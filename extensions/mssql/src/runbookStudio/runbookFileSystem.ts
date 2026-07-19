@@ -19,6 +19,12 @@
  */
 
 import * as vscode from "vscode";
+import { RunbookStudio as LocRunbookStudio } from "../constants/locConstants";
+import type {
+    LibraryDocumentBaseline,
+    LibraryDocumentCommitResult,
+    LibraryDocumentConflictResolution,
+} from "./runtime/hobbesRuntimeAdapter";
 import {
     listStash,
     sanitizeAssetId,
@@ -30,6 +36,46 @@ import {
 
 /** Scheme for virtual runbook documents backed by the library stash. */
 export const RUNBOOK_FS_SCHEME = "mssql-runbook";
+
+/** Host transaction seam. Keeping it narrower than RunbookStudioService
+ *  makes the virtual file system independently testable. */
+export interface RunbookLibraryCommitter {
+    getBaseline(assetId: string): Promise<LibraryDocumentBaseline | undefined>;
+    commit(
+        assetId: string,
+        artifactJson: string,
+        expected: LibraryDocumentBaseline | undefined,
+        resolution: LibraryDocumentConflictResolution,
+    ): Promise<LibraryDocumentCommitResult>;
+}
+
+type CommittedLibraryDocument = Extract<LibraryDocumentCommitResult, { status: "committed" }>;
+
+/** Pure two-attempt optimistic-save flow. The UI supplies the conflict
+ *  choice; undefined is Cancel and deliberately leaves the document dirty. */
+export async function commitLibraryBytes(
+    committer: RunbookLibraryCommitter,
+    assetId: string,
+    artifactJson: string,
+    expected: LibraryDocumentBaseline | undefined,
+    chooseConflict: (
+        conflict: Extract<LibraryDocumentCommitResult, { status: "conflict" }>,
+    ) => Promise<"rebase" | "overwrite" | undefined>,
+): Promise<CommittedLibraryDocument | undefined> {
+    const first = await committer.commit(assetId, artifactJson, expected, "normal");
+    if (first.status === "committed") {
+        return first;
+    }
+    const resolution = await chooseConflict(first);
+    if (!resolution) {
+        return undefined;
+    }
+    const second = await committer.commit(assetId, artifactJson, first.baseline, resolution);
+    if (second.status === "conflict") {
+        throw new Error("the runbook changed again while resolving the conflict");
+    }
+    return second;
+}
 
 // -- pure assetId <-> path mapping (unit-tested) -----------------------------
 
@@ -82,7 +128,14 @@ export class RunbookFileSystemProvider implements vscode.FileSystemProvider {
     public readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> =
         this.changeEmitter.event;
 
-    constructor(private readonly globalStorageUri: vscode.Uri) {}
+    /** Baseline captured when the document was read; dirty bytes stay in
+     *  VS Code's text buffer until writeFile commits them. */
+    private readonly baselines = new Map<string, LibraryDocumentBaseline>();
+
+    constructor(
+        private readonly globalStorageUri: vscode.Uri,
+        private readonly committer?: RunbookLibraryCommitter,
+    ) {}
 
     /** No push watching: the stash changes through this provider's own
      *  writeFile/delete (which fire the events themselves) or through
@@ -123,7 +176,21 @@ export class RunbookFileSystemProvider implements vscode.FileSystemProvider {
     public async readFile(uri: vscode.Uri): Promise<Uint8Array> {
         const target = stashEntryUri(this.globalStorageUri, this.stashName(uri));
         try {
-            return await vscode.workspace.fs.readFile(target);
+            const content = await vscode.workspace.fs.readFile(target);
+            const assetId = assetIdFromVirtualPath(uri.path);
+            if (assetId && this.committer) {
+                try {
+                    const baseline = await this.committer.getBaseline(assetId);
+                    if (baseline) {
+                        this.baselines.set(uri.toString(), baseline);
+                    }
+                } catch {
+                    // Offline opens still show the last committed projection.
+                    // A later save retries and fails honestly if the runtime
+                    // remains unavailable; the stash is never overwritten.
+                }
+            }
+            return content;
         } catch {
             throw vscode.FileSystemError.FileNotFound(uri);
         }
@@ -135,6 +202,10 @@ export class RunbookFileSystemProvider implements vscode.FileSystemProvider {
         options: { readonly create: boolean; readonly overwrite: boolean },
     ): Promise<void> {
         const name = this.stashName(uri);
+        const assetId = assetIdFromVirtualPath(uri.path);
+        if (!assetId || !this.committer) {
+            throw vscode.FileSystemError.NoPermissions(uri);
+        }
         const existed = (await statStash(this.globalStorageUri, name)) !== undefined;
         if (!existed && !options.create) {
             throw vscode.FileSystemError.FileNotFound(uri);
@@ -142,6 +213,44 @@ export class RunbookFileSystemProvider implements vscode.FileSystemProvider {
         if (existed && options.create && !options.overwrite) {
             throw vscode.FileSystemError.FileExists(uri);
         }
+        const artifactJson = Buffer.from(content).toString("utf8");
+        let committed: CommittedLibraryDocument | undefined;
+        try {
+            committed = await commitLibraryBytes(
+                this.committer,
+                assetId,
+                artifactJson,
+                this.baselines.get(uri.toString()),
+                async (conflict) => {
+                    const choices = conflict.canRebase
+                        ? [
+                              LocRunbookStudio.librarySaveRebase,
+                              LocRunbookStudio.librarySaveOverwrite,
+                          ]
+                        : [LocRunbookStudio.librarySaveOverwrite];
+                    const choice = await vscode.window.showWarningMessage(
+                        conflict.canRebase
+                            ? LocRunbookStudio.librarySaveConflict
+                            : LocRunbookStudio.librarySaveConflictNoRebase,
+                        { modal: true },
+                        ...choices,
+                    );
+                    return choice === LocRunbookStudio.librarySaveRebase
+                        ? "rebase"
+                        : choice === LocRunbookStudio.librarySaveOverwrite
+                          ? "overwrite"
+                          : undefined;
+                },
+            );
+            if (!committed) {
+                throw new Error("library save cancelled after a revision conflict");
+            }
+        } catch (error) {
+            throw vscode.FileSystemError.Unavailable(
+                error instanceof Error ? error.message : String(error),
+            );
+        }
+        this.baselines.set(uri.toString(), committed.baseline);
         await vscode.workspace.fs.createDirectory(stashDirectoryUri(this.globalStorageUri));
         await vscode.workspace.fs.writeFile(stashEntryUri(this.globalStorageUri, name), content);
         // Announce the write so every open consumer of this URI (notably

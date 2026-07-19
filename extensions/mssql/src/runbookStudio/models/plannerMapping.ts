@@ -45,6 +45,8 @@ export interface PlannerPlanNode {
 export interface PlannedRunbook {
     /** Runtime library asset id — the asset is ALREADY saved as a draft. */
     assetId: string;
+    /** Optimistic-concurrency identity of the saved draft head. */
+    revisionId?: string;
     /** Asset version label, when known (library-import path only — the
      *  planner session does not report one). */
     versionLabel?: string;

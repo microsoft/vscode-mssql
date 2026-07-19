@@ -13,8 +13,10 @@
 import { expect } from "chai";
 import {
     launchRefusalError,
+    libraryContentFingerprint,
     mapRegionStatus,
     mapTerminalStatus,
+    plannerRequestBody,
     ReasoningCoalescer,
     terminalNodeSettlementEvents,
 } from "../../src/runbookStudio/runtime/hobbesRuntimeAdapter";
@@ -97,6 +99,57 @@ suite("hobbesRuntimeAdapter", () => {
         expect(unknown.rbsError.code).to.equal("RunbookStudio.RuntimeProtocol");
         expect(unknown.rbsError.message).to.contain("some-future-code");
         expect(unknown.rbsError.retryable).to.equal(true);
+    });
+
+    test("planner generation targets the open draft with an If-Match revision", () => {
+        expect(
+            plannerRequestBody("inspect blocking", {
+                assetId: "runbook-open-draft",
+                revisionId: "rev-17",
+            }),
+        ).to.deep.equal({
+            promptText: "inspect blocking",
+            runbookId: "runbook-open-draft",
+            ifMatchRevision: "rev-17",
+        });
+        expect(plannerRequestBody("new detached runbook")).to.deep.equal({
+            promptText: "new detached runbook",
+        });
+    });
+
+    test("library content fingerprint ignores lifecycle revisions but detects plan edits", () => {
+        const head = {
+            id: "rb-1",
+            revisionId: "rev-1",
+            state: "draft",
+            versionLabel: "1.00",
+            updatedAt: "2026-07-18T00:00:00Z",
+            title: "Blocking",
+            description: "Inspect blockers",
+            category: "investigate",
+            plan: { nodes: [{ id: "query" }], edges: [] },
+            schemaVersion: 1,
+        };
+        const lifecycleOnly = {
+            ...head,
+            revisionId: "rev-2",
+            state: "approved",
+            versionLabel: "1.01",
+            updatedAt: "2026-07-18T01:00:00Z",
+        };
+        expect(libraryContentFingerprint(lifecycleOnly)).to.equal(libraryContentFingerprint(head));
+        expect(
+            libraryContentFingerprint({
+                ...lifecycleOnly,
+                plan: { nodes: [{ id: "query" }, { id: "report" }], edges: [] },
+            }),
+        ).not.to.equal(libraryContentFingerprint(head));
+        expect(
+            libraryContentFingerprint({
+                ...lifecycleOnly,
+                clientExtensions: { vscodeMssqlArtifact: { name: "Locally edited" } },
+            }),
+        ).not.to.equal(libraryContentFingerprint(head));
     });
 
     test("findFreePort returns a bindable loopback port", async () => {

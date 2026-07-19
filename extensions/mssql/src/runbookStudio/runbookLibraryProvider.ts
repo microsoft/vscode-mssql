@@ -27,7 +27,7 @@ import { RunbookStudio as LocRunbookStudio } from "../constants/locConstants";
 import { RunbookArtifactFile } from "../sharedInterfaces/runbookStudio";
 import { readStash, sanitizeAssetId, writeStash } from "./libraryStash";
 import { canonicalizeRunbookArtifact, createNewRunbookArtifact } from "./runbookArtifact";
-import { runbookVirtualUri } from "./runbookFileSystem";
+import { RUNBOOK_FS_SCHEME, runbookVirtualUri } from "./runbookFileSystem";
 import {
     collectLibraryGroups,
     isArchivedLibraryAsset,
@@ -344,6 +344,8 @@ export function registerRunbookLibrary(
     serviceAccessor: () => RunbookStudioService | undefined,
     /** The artifact of the focused Runbook Studio editor, if any. */
     activeArtifact: () => RunbookArtifactFile | undefined,
+    /** Backing URI of that editor (command-palette focus safe). */
+    activeDocumentUri: () => vscode.Uri | undefined,
 ): void {
     const provider = new RunbookLibraryProvider(serviceAccessor, context.workspaceState);
 
@@ -772,6 +774,20 @@ export function registerRunbookLibrary(
             }
             const service = requireService();
             if (!service) {
+                return;
+            }
+            const documentUri = activeDocumentUri();
+            if (documentUri?.scheme === RUNBOOK_FS_SCHEME) {
+                const document = vscode.workspace.textDocuments.find(
+                    (candidate) => candidate.uri.toString() === documentUri.toString(),
+                );
+                if (!document || !(await document.save())) {
+                    return;
+                }
+                provider.refresh();
+                void vscode.window.showInformationMessage(
+                    LocRunbookStudio.libraryCommitted(artifact.name),
+                );
                 return;
             }
             const result = await service.saveToLibrary(artifact);

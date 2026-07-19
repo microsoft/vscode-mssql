@@ -236,6 +236,20 @@ export class RunbookStudio {
             args: [name, versionLabel],
             comment: ["{0} is the runbook name", "{1} is the library version label"],
         });
+    public static libraryCommitted = (name: string) =>
+        l10n.t({
+            message: "Runbook '{0}' was saved to the library.",
+            args: [name],
+            comment: ["{0} is the runbook name"],
+        });
+    public static librarySaveConflict = l10n.t(
+        "This runbook changed in the runtime library after you opened it. Rebase preserves the newer runtime plan and applies your VS Code edits; overwrite replaces the newer head.",
+    );
+    public static librarySaveConflictNoRebase = l10n.t(
+        "This runbook changed in the runtime library after you opened it. Overwrite replaces the newer head; cancel keeps this editor dirty.",
+    );
+    public static librarySaveRebase = l10n.t("Rebase");
+    public static librarySaveOverwrite = l10n.t("Overwrite");
     public static libraryExported = (path: string) =>
         l10n.t({
             message: "Runbook exported to {0}.",

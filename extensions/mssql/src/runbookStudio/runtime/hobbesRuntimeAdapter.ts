@@ -25,6 +25,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { createHash } from "crypto";
 import { RunbookStudio as LocRunbookStudio } from "../../constants/locConstants";
 import { RbsPlannerProgressEvent, RunbookArtifactFile } from "../../sharedInterfaces/runbookStudio";
 import { PlannedRunbook, PlannerPlanNode } from "../models/plannerMapping";
@@ -161,9 +162,24 @@ export class ReasoningCoalescer {
     }
 }
 
+/** Wire body for planner generation. A target makes generation replace one
+ *  existing draft under optimistic concurrency instead of minting a second
+ *  library asset. Exported so the identity contract stays unit-testable
+ *  without opening a streaming HTTP session. */
+export function plannerRequestBody(
+    promptText: string,
+    target?: { assetId: string; revisionId: string },
+): { promptText: string; runbookId?: string; ifMatchRevision?: string } {
+    return {
+        promptText,
+        ...(target ? { runbookId: target.assetId, ifMatchRevision: target.revisionId } : {}),
+    };
+}
+
 /** The slice of the saved library asset the planner bridge maps. */
 interface PlannerAssetPayload {
     id?: string;
+    revisionId?: string;
     title?: string;
     plan?: {
         entryNodeId?: string;
@@ -177,6 +193,104 @@ interface PlannerAssetPayload {
         edges?: Array<{ from?: string; to?: string }>;
     };
     inputSchema?: Array<{ name?: string; kind?: string }>;
+}
+
+export interface LibraryDocumentBaseline {
+    assetId: string;
+    revisionId: string;
+    /** Hash of authoring content only. Lifecycle-only revision changes
+     *  (approve/run) do not produce false edit conflicts. */
+    contentFingerprint: string;
+    /** Namespaced extension projection. This is the concurrency identity for
+     *  native plans, whose executable plan can change independently and is
+     *  safely preserved during a VS Code save. */
+    extensionFingerprint: string;
+}
+
+export type LibraryDocumentCommitResult =
+    | {
+          status: "committed";
+          baseline: LibraryDocumentBaseline;
+          versionLabel?: string;
+      }
+    | {
+          status: "conflict";
+          baseline: LibraryDocumentBaseline;
+          /** Native planner plans can rebase extension-owned metadata and
+           *  presentation while preserving the newer runtime plan. */
+          canRebase: boolean;
+      };
+
+export type LibraryDocumentConflictResolution = "normal" | "rebase" | "overwrite";
+
+/** Authoring fields whose change represents a real concurrent edit. Runtime
+ *  lifecycle fields (revision/state/version/timestamps/validation cache) are
+ *  deliberately excluded so running or approving a runbook does not make a
+ *  subsequent document save conflict. */
+const LIBRARY_AUTHORING_FIELDS = [
+    "title",
+    "description",
+    "category",
+    "regions",
+    "inputSchema",
+    "inputReferenceBindings",
+    "plan",
+    "sourcePromptText",
+    "tags",
+    "sourceAgentId",
+    "capabilityFingerprint",
+    "allowedPresetParams",
+    "estimatedCost",
+    "parameters",
+    "lowGrounding",
+    "clientExtensions",
+    "schemaVersion",
+] as const;
+
+const LIBRARY_EXTENSION_FIELDS = ["clientExtensions"] as const;
+
+function stableValue(value: unknown): unknown {
+    if (Array.isArray(value)) {
+        return value.map(stableValue);
+    }
+    if (isRecordValue(value)) {
+        return Object.fromEntries(
+            Object.keys(value)
+                .sort()
+                .map((key) => [key, stableValue(value[key])]),
+        );
+    }
+    return value;
+}
+
+/** Stable, privacy-safe content identity (hash only; never logged payload). */
+export function libraryContentFingerprint(asset: Record<string, unknown>): string {
+    return libraryFieldsFingerprint(asset, LIBRARY_AUTHORING_FIELDS);
+}
+
+function libraryFieldsFingerprint(
+    asset: Record<string, unknown>,
+    fields: readonly string[],
+): string {
+    const authoring = Object.fromEntries(
+        fields
+            .filter((field) => asset[field] !== undefined)
+            .map((field) => [field, stableValue(asset[field])]),
+    );
+    return createHash("sha256").update(JSON.stringify(authoring)).digest("hex");
+}
+
+function libraryBaseline(assetId: string, asset: Record<string, unknown>): LibraryDocumentBaseline {
+    const revisionId = asset.revisionId;
+    if (typeof revisionId !== "string" || revisionId.length === 0) {
+        throw new Error(`library asset '${assetId}' has no revision id`);
+    }
+    return {
+        assetId,
+        revisionId,
+        contentFingerprint: libraryContentFingerprint(asset),
+        extensionFingerprint: libraryFieldsFingerprint(asset, LIBRARY_EXTENSION_FIELDS),
+    };
 }
 
 interface ActivePoll {
@@ -675,6 +789,122 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         return (await response.json()) as Record<string, unknown>;
     }
 
+    /** Read the optimistic-concurrency baseline for one open virtual
+     *  document. The content fingerprint ignores lifecycle-only revisions. */
+    public async getLibraryDocumentBaseline(
+        id: string,
+        context: RunbookOperationContext,
+    ): Promise<LibraryDocumentBaseline | undefined> {
+        const asset = await this.getLibraryAsset(id, context);
+        return asset ? libraryBaseline(id, asset) : undefined;
+    }
+
+    /** Ctrl+S transaction: compare the open-document baseline to the runtime
+     *  head, merge the artifact into that head, and PUT with If-Match. The
+     *  caller writes the local stash only after this returns committed.
+     *
+     *  Runtime-planner (`hobbes.native`) locks are intentionally one-way:
+     *  save preserves the runtime's rich plan while committing extension-
+     *  owned metadata/source projection. Catalog-native locks are translated
+     *  and replace the runtime plan. */
+    public async commitLibraryDocument(
+        id: string,
+        artifact: RunbookArtifactFile,
+        expected: LibraryDocumentBaseline | undefined,
+        resolution: LibraryDocumentConflictResolution,
+        context: RunbookOperationContext,
+    ): Promise<LibraryDocumentCommitResult> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const route = `/api/runbooks/${encodeURIComponent(id)}`;
+        const read = await this.request(runtime.baseUrl, "GET", route);
+        if (read.status === 404) {
+            throw new Error(`library save failed (runbook '${id}' not found)`);
+        }
+        if (!read.ok) {
+            throw new Error(`library save failed (read HTTP ${read.status})`);
+        }
+        const head = (await read.json()) as Record<string, unknown>;
+        const current = libraryBaseline(id, head);
+        const hasNativePlan =
+            artifact.lock?.nodes.some(
+                (node) => node.kind === "activity" && node.activityKind === "hobbes.native",
+            ) === true;
+        const metadataNext: Record<string, unknown> = {
+            ...head,
+            title: artifact.name,
+            description: artifact.description ?? artifact.source.intent,
+            ...(artifact.family ? { category: artifact.family } : {}),
+            sourcePromptText: artifact.source.intent,
+            clientExtensions: {
+                ...(isRecordValue(head.clientExtensions) ? head.clientExtensions : {}),
+                vscodeMssqlArtifact: artifact,
+            },
+        };
+        const concurrentContentChange =
+            expected !== undefined &&
+            (expected.assetId !== id ||
+                (expected.revisionId !== current.revisionId &&
+                    (hasNativePlan
+                        ? expected.extensionFingerprint !== current.extensionFingerprint
+                        : expected.contentFingerprint !== current.contentFingerprint)));
+        if (resolution === "normal" && concurrentContentChange) {
+            return { status: "conflict", baseline: current, canRebase: hasNativePlan };
+        }
+        if (resolution === "rebase" && !hasNativePlan) {
+            return { status: "conflict", baseline: current, canRebase: false };
+        }
+
+        let planPatch: Record<string, unknown> = {};
+        if (artifact.lock && !hasNativePlan) {
+            const translation = translateArtifactToHobbesPlan(artifact);
+            if (!translation.plan) {
+                throw new RuntimeStartRefusedError(
+                    {
+                        code: "RunbookStudio.RuntimeCapabilityUnsupported",
+                        message: LocRunbookStudio.hobbesPublishRefused(
+                            translation.issues.join("; "),
+                        ),
+                    },
+                    "publish-untranslatable",
+                );
+            }
+            planPatch = {
+                plan: translation.plan,
+                inputSchema: translation.plan.inputSchema,
+            };
+        }
+        const next: Record<string, unknown> = { ...metadataNext, ...planPatch };
+        if (libraryContentFingerprint(next) === current.contentFingerprint) {
+            return {
+                status: "committed",
+                baseline: current,
+                ...(typeof head.versionLabel === "string"
+                    ? { versionLabel: head.versionLabel }
+                    : {}),
+            };
+        }
+
+        const put = await this.request(runtime.baseUrl, "PUT", route, next, current.revisionId);
+        if (put.status === 409) {
+            const raced = await this.getLibraryAsset(id, context);
+            const racedBaseline = raced ? libraryBaseline(id, raced) : current;
+            return {
+                status: "conflict",
+                baseline: racedBaseline,
+                canRebase: hasNativePlan,
+            };
+        }
+        if (!put.ok) {
+            throw new Error(`library save failed (HTTP ${put.status})`);
+        }
+        const saved = (await put.json()) as Record<string, unknown>;
+        return {
+            status: "committed",
+            baseline: libraryBaseline(id, saved),
+            ...(typeof saved.versionLabel === "string" ? { versionLabel: saved.versionLabel } : {}),
+        };
+    }
+
     /** Recent run history for a library runbook, from the Library detail
      *  endpoint. A missing asset (404) or an unparseable body is an EMPTY
      *  history — never a throw — so the tree renders "no runs yet" instead
@@ -733,6 +963,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         promptText: string,
         context: RunbookOperationContext,
         onProgress?: (event: RbsPlannerProgressEvent) => void,
+        target?: { assetId: string; revisionId: string },
     ): Promise<PlannedRunbook> {
         const runtime = await this.supervisor.ensureRunning(context);
         const controller = new AbortController();
@@ -751,7 +982,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                     "content-type": "application/json",
                     accept: "application/x-ndjson",
                 },
-                body: JSON.stringify({ promptText }),
+                body: JSON.stringify(plannerRequestBody(promptText, target)),
                 signal: controller.signal,
             });
             if (!response.ok || !response.body) {
@@ -1739,6 +1970,9 @@ function mapPlannerAsset(asset: PlannerAssetPayload): PlannedRunbook {
     }
     return {
         assetId: asset.id,
+        ...(typeof asset.revisionId === "string" && asset.revisionId.length > 0
+            ? { revisionId: asset.revisionId }
+            : {}),
         title: typeof asset.title === "string" && asset.title.length > 0 ? asset.title : asset.id,
         plan: {
             nodes,

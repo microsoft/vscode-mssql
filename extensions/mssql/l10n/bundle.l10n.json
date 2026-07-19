@@ -138,6 +138,14 @@
         "message": "Runbook '{0}' was saved to the library as version {1}.",
         "comment": ["{0} is the runbook name", "{1} is the library version label"]
     },
+    "Runbook '{0}' was saved to the library./{0} is the runbook name": {
+        "message": "Runbook '{0}' was saved to the library.",
+        "comment": ["{0} is the runbook name"]
+    },
+    "This runbook changed in the runtime library after you opened it. Rebase preserves the newer runtime plan and applies your VS Code edits; overwrite replaces the newer head.": "This runbook changed in the runtime library after you opened it. Rebase preserves the newer runtime plan and applies your VS Code edits; overwrite replaces the newer head.",
+    "This runbook changed in the runtime library after you opened it. Overwrite replaces the newer head; cancel keeps this editor dirty.": "This runbook changed in the runtime library after you opened it. Overwrite replaces the newer head; cancel keeps this editor dirty.",
+    "Rebase": "Rebase",
+    "Overwrite": "Overwrite",
     "Runbook exported to {0}./{0} is the exported file path": {
         "message": "Runbook exported to {0}.",
         "comment": ["{0} is the exported file path"]

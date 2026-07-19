@@ -5796,6 +5796,9 @@
       <source xml:lang="en">Overall, how satisfied are you with {0}?</source>
       <note>{0} is the feature name</note>
     </trans-unit>
+    <trans-unit id="++CODE++b24963ea2cbc74b97321a347754137aa207b126695a95c860406098528966b55">
+      <source xml:lang="en">Overwrite</source>
+    </trans-unit>
     <trans-unit id="++CODE++6e92fffc548b4ca49a6b4963939ef5c52a72dbcd88ec22bfad258e4c3e06fd58">
       <source xml:lang="en">Overwrite all existing backup sets</source>
     </trans-unit>
@@ -6322,6 +6325,9 @@
     <trans-unit id="++CODE++f81ab834de5f84918dc040b884267c2b61cb1a52d46442de10e97f35a94d0500">
       <source xml:lang="en">Reason</source>
     </trans-unit>
+    <trans-unit id="++CODE++9eb5b275c3a0fa435a84d0bf601d77c45ff5d942fa17e16c000b257d20cc605e">
+      <source xml:lang="en">Rebase</source>
+    </trans-unit>
     <trans-unit id="++CODE++6aafab6eae72092eb7c25ffb6f34dab1a3eb70f1ef79e6e159f0fe540ca6b675">
       <source xml:lang="en">Receive natural language explanations to help developers unfamiliar with T-SQL understand code</source>
     </trans-unit>
@@ -6740,6 +6746,10 @@
       <source xml:lang="en">Runbook &apos;{0}&apos; was saved to the library as version {1}.</source>
       <note>{0} is the runbook name
 {1} is the library version label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b87e6bf0467810430ca30e02136ee9303db2307436642cc084048985b3a0a62e">
+      <source xml:lang="en">Runbook &apos;{0}&apos; was saved to the library.</source>
+      <note>{0} is the runbook name</note>
     </trans-unit>
     <trans-unit id="++CODE++391ff70a08ea1e11b0f3df07a481091324fa6863371f12e0ce31171e9fe21442">
       <source xml:lang="en">Runbook JSON</source>
@@ -8358,6 +8368,12 @@
     <trans-unit id="++CODE++f0c103d2366a0e8217f89638463db07c42fa370e4f7eab854fdb7bfc2604009b">
       <source xml:lang="en">This runbook cannot be published to the Hobbes runtime yet: {0}</source>
       <note>{0} lists the untranslatable plan features</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3aa9ec92f0473c9aaa19a37da6c5a1cdb876f9d18f8788a3e4e7e45d4b00e0a5">
+      <source xml:lang="en">This runbook changed in the runtime library after you opened it. Overwrite replaces the newer head; cancel keeps this editor dirty.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3f45c24bc4a1417dbe9cb785db0c98c9067a74b1d056065b1239bc735f46e096">
+      <source xml:lang="en">This runbook changed in the runtime library after you opened it. Rebase preserves the newer runtime plan and applies your VS Code edits; overwrite replaces the newer head.</source>
     </trans-unit>
     <trans-unit id="++CODE++34e7da259825961bf8aa74bf67ede13ce020e91e68007c4362733a9997793be1">
       <source xml:lang="en">This runbook could not be imported from the library: {0}</source>

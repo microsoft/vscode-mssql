@@ -137,6 +137,10 @@ function registerRunbookStudioFeatures(
     context: vscode.ExtensionContext,
     coordinatorFactory: () => RunbookRunCoordinator | undefined,
 ): void {
+    const serviceAccessor = (): RunbookStudioService | undefined => {
+        const coordinator = coordinatorFactory();
+        return coordinator instanceof RunbookStudioService ? coordinator : undefined;
+    };
     // Virtual runbook documents (D-0014 step c): the mssql-runbook: FS
     // provider MUST register BEFORE the custom editor. On hot-exit restore
     // VS Code rehydrates the text model (readFile on the virtual URI)
@@ -148,7 +152,27 @@ function registerRunbookStudioFeatures(
     context.subscriptions.push(
         vscode.workspace.registerFileSystemProvider(
             RUNBOOK_FS_SCHEME,
-            new RunbookFileSystemProvider(context.globalStorageUri),
+            new RunbookFileSystemProvider(context.globalStorageUri, {
+                getBaseline: async (assetId) => {
+                    const service = serviceAccessor();
+                    if (!service) {
+                        throw new Error(LocRunbookStudio.runtimeUnavailable);
+                    }
+                    return service.getLibraryDocumentBaseline(assetId);
+                },
+                commit: async (assetId, artifactJson, expected, resolution) => {
+                    const service = serviceAccessor();
+                    if (!service) {
+                        throw new Error(LocRunbookStudio.runtimeUnavailable);
+                    }
+                    return service.commitLibraryDocument(
+                        assetId,
+                        artifactJson,
+                        expected,
+                        resolution,
+                    );
+                },
+            }),
             { isCaseSensitive: true },
         ),
     );
@@ -299,11 +323,12 @@ function registerRunbookStudioFeatures(
     // rather than assuming (perf/test hosts may inject bare coordinators).
     registerRunbookLibrary(
         context,
-        () => {
-            const coordinator = coordinatorFactory();
-            return coordinator instanceof RunbookStudioService ? coordinator : undefined;
-        },
+        serviceAccessor,
         () => activeRunbookArtifact(provider),
+        () => {
+            const controller = activeRunbookController();
+            return controller ? vscode.Uri.parse(controller.documentUriKey) : undefined;
+        },
     );
     registerRunbookStudioPerfProbe(context, provider, coordinatorFactory);
 }
@@ -313,6 +338,13 @@ function registerRunbookStudioFeatures(
 function activeRunbookArtifact(
     provider: RunbookStudioEditorProvider,
 ): RunbookArtifactFile | undefined {
+    const chosen = activeRunbookController();
+    return chosen ? provider.documents.get(chosen.documentUriKey)?.artifact : undefined;
+}
+
+/** Focused Runbook Studio panel (falls back to the only live panel when a
+ *  command surface temporarily owns focus). */
+function activeRunbookController(): RunbookStudioController | undefined {
     let chosen: RunbookStudioController | undefined;
     for (const controller of liveControllers) {
         if (controller.isPanelActive) {
@@ -321,7 +353,7 @@ function activeRunbookArtifact(
         }
         chosen ??= controller;
     }
-    return chosen ? provider.documents.get(chosen.documentUriKey)?.artifact : undefined;
+    return chosen;
 }
 
 /**

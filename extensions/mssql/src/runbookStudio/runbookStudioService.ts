@@ -35,7 +35,12 @@ import {
     RunbookOperationContext,
 } from "./runbookDiag";
 import { removeStash, writeStash } from "./libraryStash";
-import { canonicalizeRunbookArtifact, deriveRunbookName } from "./runbookArtifact";
+import {
+    canonicalizeRunbookArtifact,
+    deriveRunbookName,
+    isArtifactParseFailure,
+    parseRunbookArtifact,
+} from "./runbookArtifact";
 import { activeLibraryAssetId, LibraryRunRef, RunbookLibraryAsset } from "./runbookLibraryModel";
 import { RunbookRunCoordinator, OutputPageResult } from "./runbookRunCoordinator";
 import { RunbookRunLedger, sanitizeRunFileId, selectExpiredRuns } from "./runbookRunLedger";
@@ -49,7 +54,12 @@ import {
     isPlannedArtifactFailure,
 } from "./models/plannerMapping";
 import { FakeRuntimeAdapter } from "./runtime/fakeRuntimeAdapter";
-import { HobbesRuntimeAdapter } from "./runtime/hobbesRuntimeAdapter";
+import {
+    HobbesRuntimeAdapter,
+    LibraryDocumentBaseline,
+    LibraryDocumentCommitResult,
+    LibraryDocumentConflictResolution,
+} from "./runtime/hobbesRuntimeAdapter";
 import { LocalSqlActivityDelegate } from "./runtime/localSqlDelegate";
 import { RuntimeSupervisor } from "./runtime/runtimeSupervisor";
 import {
@@ -514,7 +524,22 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             return undefined;
         }
         try {
-            const planned = await ensured.adapter.planFromPrompt(intent, context, onProgress);
+            // Compile INTO the document's existing runtime-library draft.
+            // The old path let /from-prompt mint a second asset, leaving the
+            // mssql-runbook: tab and stash attached to an orphaned placeholder.
+            // Supplying the current head revision makes generation one
+            // optimistic-concurrency transaction with one stable identity.
+            const targetAssetId = activeLibraryAssetId(base);
+            const targetAsset = await ensured.adapter.getLibraryAsset(targetAssetId, context);
+            const targetRevision = targetAsset?.revisionId;
+            const planned = await ensured.adapter.planFromPrompt(
+                intent,
+                context,
+                onProgress,
+                typeof targetRevision === "string" && targetRevision.length > 0
+                    ? { assetId: targetAssetId, revisionId: targetRevision }
+                    : undefined,
+            );
             const built = buildPlannedArtifact(base, intent, planned);
             if (isPlannedArtifactFailure(built)) {
                 emitRunbookEvent(context, "runbookStudio.planner.fallback", "warning", {
@@ -528,22 +553,6 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             // the New-Runbook placeholder — tree and document then match.
             if (isPlaceholderRunbookName(artifact.name) && planned.title) {
                 artifact = { ...artifact, name: planned.title };
-            }
-            // The planner saved its OWN library asset; a placeholder draft
-            // from "New Runbook" is now orphaned. Remove it (draft-only,
-            // never a book with history) and refresh the tree badges.
-            const oldRef = base.lock?.libraryAssetRef?.assetId;
-            const newRef = artifact.lock?.libraryAssetRef?.assetId;
-            if (oldRef && newRef && oldRef !== newRef && isPlaceholderRunbookName(base.name)) {
-                void this.getLibraryRunbook(oldRef).then((found) => {
-                    const state = (found.asset as { state?: string } | undefined)?.state;
-                    if (state === "draft") {
-                        return this.deleteLibraryRunbookPermanently(oldRef).then(() =>
-                            this.activeRunsEmitter.fire(),
-                        );
-                    }
-                    return undefined;
-                });
             }
             return artifact;
         } catch (error) {
@@ -671,6 +680,64 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         }
     }
 
+    /** Runtime revision/content baseline captured when a virtual document is
+     *  read. Absence means the runtime asset no longer exists. */
+    public async getLibraryDocumentBaseline(
+        id: string,
+    ): Promise<LibraryDocumentBaseline | undefined> {
+        const context = newRunbookRootContext("library");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            throw new Error(ensured.error.message);
+        }
+        return ensured.adapter.getLibraryDocumentBaseline(id, context);
+    }
+
+    /** Commit the bytes VS Code is saving to the corresponding runtime head.
+     *  Stash persistence remains in the file-system provider and happens only
+     *  after this optimistic-concurrency transaction succeeds. */
+    public async commitLibraryDocument(
+        id: string,
+        artifactJson: string,
+        expected: LibraryDocumentBaseline | undefined,
+        resolution: LibraryDocumentConflictResolution,
+    ): Promise<LibraryDocumentCommitResult> {
+        const parsed = parseRunbookArtifact(artifactJson);
+        if (isArtifactParseFailure(parsed)) {
+            throw new Error(LocRunbookStudio.invalidArtifact(parsed.detail));
+        }
+        const artifact = parsed.artifact;
+        const artifactAssetId = activeLibraryAssetId(artifact);
+        if (artifactAssetId !== id) {
+            throw new Error(`library document identity mismatch (${id} != ${artifactAssetId})`);
+        }
+        const context = newRunbookRootContext("library");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            throw new Error(ensured.error.message);
+        }
+        const result = await ensured.adapter.commitLibraryDocument(
+            id,
+            artifact,
+            expected,
+            resolution,
+            context,
+        );
+        emitRunbookEvent(
+            context,
+            "runbookStudio.library.commit",
+            result.status === "committed" ? "ok" : "warning",
+            {
+                conflict: metaField(result.status === "conflict"),
+                resolution: metaField(resolution),
+            },
+        );
+        if (result.status === "committed") {
+            this.activeRunsEmitter.fire();
+        }
+        return result;
+    }
+
     /** Import an OUTSIDE-authored library runbook (no publish-time stash to
      *  round-trip, D-0012 interop): fetch the raw asset, map its plan IR
      *  through the SAME mapping the planner authoring path uses, and write
@@ -698,7 +765,25 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 },
             };
         }
-        const built = buildArtifactFromLibraryAsset(fetched.asset);
+        const extensions = fetched.asset.clientExtensions;
+        const embedded =
+            typeof extensions === "object" && extensions !== null && !Array.isArray(extensions)
+                ? (extensions as Record<string, unknown>).vscodeMssqlArtifact
+                : undefined;
+        const embeddedParsed =
+            embedded !== undefined ? parseRunbookArtifact(JSON.stringify(embedded)) : undefined;
+        const embeddedArtifact =
+            embeddedParsed &&
+            !isArtifactParseFailure(embeddedParsed) &&
+            activeLibraryAssetId(embeddedParsed.artifact) === assetId
+                ? embeddedParsed.artifact
+                : undefined;
+        // A VS Code-authored asset carries the exact source/presentation
+        // projection in the runtime head. Outside-authored assets fall back
+        // to the plan-IR mapper as before.
+        const built = embeddedArtifact
+            ? { ok: true as const, artifact: embeddedArtifact }
+            : buildArtifactFromLibraryAsset(fetched.asset);
         if (isPlannedArtifactFailure(built)) {
             emitRunbookEvent(context, "runbookStudio.library.import", "error", {
                 errorClass: metaField("MappingInvalid"),

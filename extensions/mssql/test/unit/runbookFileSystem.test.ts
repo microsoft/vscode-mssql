@@ -16,11 +16,23 @@ import * as vscode from "vscode";
 import { sanitizeAssetId, STASH_FILE_SUFFIX } from "../../src/runbookStudio/libraryStash";
 import {
     assetIdFromVirtualPath,
+    commitLibraryBytes,
     RUNBOOK_FS_SCHEME,
+    RunbookLibraryCommitter,
     runbookVirtualPath,
     runbookVirtualUri,
     stashNameFromVirtualPath,
 } from "../../src/runbookStudio/runbookFileSystem";
+import type { LibraryDocumentBaseline } from "../../src/runbookStudio/runtime/hobbesRuntimeAdapter";
+
+function baseline(revisionId: string): LibraryDocumentBaseline {
+    return {
+        assetId: "rb-1",
+        revisionId,
+        contentFingerprint: `content-${revisionId}`,
+        extensionFingerprint: `extension-${revisionId}`,
+    };
+}
 
 suite("runbookFileSystem uri mapping", () => {
     suite("runbookVirtualPath", () => {
@@ -101,6 +113,79 @@ suite("runbookFileSystem uri mapping", () => {
             expect(assetIdFromVirtualPath("/sub/x.runbook.json")).to.equal(undefined);
             expect(assetIdFromVirtualPath("/x.json")).to.equal(undefined);
             expect(assetIdFromVirtualPath("x.runbook.json")).to.equal(undefined);
+        });
+    });
+
+    suite("commitLibraryBytes", () => {
+        test("commits once when the baseline is current", async () => {
+            const calls: string[] = [];
+            const committer: RunbookLibraryCommitter = {
+                getBaseline: async () => baseline("1"),
+                commit: async (_id, _json, _expected, resolution) => {
+                    calls.push(resolution);
+                    return { status: "committed", baseline: baseline("2") };
+                },
+            };
+
+            const result = await commitLibraryBytes(
+                committer,
+                "rb-1",
+                "{}",
+                baseline("1"),
+                async () => undefined,
+            );
+
+            expect(result?.baseline.revisionId).to.equal("2");
+            expect(calls).to.deep.equal(["normal"]);
+        });
+
+        test("rebases a native-plan conflict against the returned head", async () => {
+            const calls: Array<{ resolution: string; revision?: string }> = [];
+            const committer: RunbookLibraryCommitter = {
+                getBaseline: async () => baseline("1"),
+                commit: async (_id, _json, expected, resolution) => {
+                    calls.push({ resolution, revision: expected?.revisionId });
+                    return resolution === "normal"
+                        ? { status: "conflict", baseline: baseline("2"), canRebase: true }
+                        : { status: "committed", baseline: baseline("3") };
+                },
+            };
+
+            const result = await commitLibraryBytes(
+                committer,
+                "rb-1",
+                "{}",
+                baseline("1"),
+                async (conflict) => (conflict.canRebase ? "rebase" : undefined),
+            );
+
+            expect(result?.baseline.revisionId).to.equal("3");
+            expect(calls).to.deep.equal([
+                { resolution: "normal", revision: "1" },
+                { resolution: "rebase", revision: "2" },
+            ]);
+        });
+
+        test("cancel stops before the second write", async () => {
+            let calls = 0;
+            const committer: RunbookLibraryCommitter = {
+                getBaseline: async () => baseline("1"),
+                commit: async () => {
+                    calls++;
+                    return { status: "conflict", baseline: baseline("2"), canRebase: false };
+                },
+            };
+
+            const result = await commitLibraryBytes(
+                committer,
+                "rb-1",
+                "{}",
+                baseline("1"),
+                async () => undefined,
+            );
+
+            expect(result).to.equal(undefined);
+            expect(calls).to.equal(1);
         });
     });
 });
