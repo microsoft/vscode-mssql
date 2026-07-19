@@ -1053,6 +1053,9 @@ function stepImpactChip(node: RunbookPlanNode | undefined): string | undefined {
     if (node.kind === "gate") {
         return loc.approvalChip;
     }
+    if (node.previewOnly) {
+        return loc.previewOnly;
+    }
     if (!node.blastRadius) {
         return undefined;
     }

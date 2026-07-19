@@ -202,9 +202,19 @@ function GraphNode({
     const identity = node.activityKind
         ? `${node.activityKind}@${node.activityVersion ?? 1}`
         : node.kind;
+    const target = node.target
+        ? ` — target ${node.target.kind} via ${
+              node.target.binding.source === "parameter"
+                  ? `$params.${node.target.binding.parameterId}`
+                  : node.target.binding.source === "nodeOutput"
+                    ? `$nodes.${node.target.binding.nodeId}.${node.target.binding.output}`
+                    : "workspace"
+          }`
+        : "";
+    const preview = node.previewOnly ? " — deterministic preview only" : "";
     return (
         <g className={`rbs-graph-node ${snapshot ? `rbs-graph-node-${snapshot.state}` : ""}`}>
-            <title>{`${node.label} — ${identity}`}</title>
+            <title>{`${node.label} — ${identity}${target}${preview}`}</title>
             <rect
                 className="rbs-graph-node-rect"
                 x={position.x}

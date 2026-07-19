@@ -305,6 +305,23 @@ function blastRadiusLabel(node: RunbookPlanNode): string | undefined {
     return `${radius.operation}:${radius.resource}@${radius.targetEnvironment}`;
 }
 
+function targetBindingLabel(node: RunbookPlanNode): string | undefined {
+    const target = node.target;
+    if (!target) {
+        return undefined;
+    }
+    const binding = target.binding;
+    const source =
+        binding.source === "parameter"
+            ? `$params.${binding.parameterId}`
+            : binding.source === "nodeOutput"
+              ? `$nodes.${binding.nodeId}.${binding.output}`
+              : binding.workspaceFolder
+                ? `workspace:${binding.workspaceFolder}`
+                : "workspace";
+    return `${target.kind} ← ${source}`;
+}
+
 export function PlanStepper({
     entryNodeId,
     nodes,
@@ -372,6 +389,12 @@ export function PlanStepper({
                                 )}
                                 {blastRadiusLabel(node) ? (
                                     <span className="rbs-chip">{blastRadiusLabel(node)}</span>
+                                ) : null}
+                                {targetBindingLabel(node) ? (
+                                    <span className="rbs-muted">
+                                        {loc.targetLabel}{" "}
+                                        <span className="rbs-mono">{targetBindingLabel(node)}</span>
+                                    </span>
                                 ) : null}
                                 {node.previewOnly ? (
                                     <span className="rbs-chip rbs-chip-warn">
