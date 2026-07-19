@@ -143,6 +143,14 @@ suite("runbook capability preflight", () => {
         expect(preflightRunbookRequirements(classified.requirements)).to.deep.equal({
             status: "readyAfterBinding",
             missingActivityKinds: [],
+            issues: [
+                {
+                    dimension: "binding",
+                    code: "binding.connectionRequired",
+                    message: "Activity 'sql.query.read' needs a bound SQL connection.",
+                    activityKind: "sql.query.read@1",
+                },
+            ],
         });
         expect(
             prepareRunbookIntent(
@@ -150,5 +158,76 @@ suite("runbook capability preflight", () => {
                 "Inspect developer database health and summarize current readiness.",
             ).artifact.lock,
         ).not.to.equal(undefined);
+    });
+
+    test("a compatible bound read plan is ready", () => {
+        const manifest = classifyRunbookIntent("Inspect database health").requirements;
+        expect(
+            preflightRunbookRequirements(manifest, {
+                phase: "admission",
+                host: "extension",
+                hostVersion: "1.45.0",
+                allowedEffects: ["read"],
+                availableTargetKinds: ["sqlDatabase"],
+                supportedRollbackContracts: ["none"],
+                bindings: { connection: true },
+            }),
+        ).to.deep.equal({ status: "ready", missingActivityKinds: [] });
+    });
+
+    test("host, provider, and output compatibility produce incompatible outcomes", () => {
+        const manifest = classifyRunbookIntent("Inspect database health").requirements;
+        manifest.activities[0].minimumHostVersion = "2.0.0";
+        manifest.activities[0].providerRequirement = "execution";
+        manifest.activities[0].outputContract = "rowset/2";
+
+        const readiness = preflightRunbookRequirements(manifest, {
+            phase: "admission",
+            host: "hobbes",
+            hostVersion: "1.9.0",
+            providerAvailable: false,
+            bindings: { connection: true },
+        });
+        expect(readiness.status).to.equal("incompatible");
+        expect(readiness.issues?.map((issue) => issue.code)).to.include.members([
+            "host.unsupported",
+            "host.versionIncompatible",
+            "provider.unavailable",
+            "output.contractIncompatible",
+        ]);
+    });
+
+    test("policy denial is distinct from missing capability and binding", () => {
+        const manifest = classifyRunbookIntent("Inspect database health").requirements;
+        manifest.activities[0].effect = "mutate";
+        manifest.activities[0].approvalRequired = true;
+
+        const readiness = preflightRunbookRequirements(manifest, {
+            allowedEffects: ["read"],
+            approvalSupported: false,
+            bindings: { connection: true },
+        });
+        expect(readiness.status).to.equal("policyBlocked");
+        expect(readiness.issues?.map((issue) => issue.dimension)).to.have.members([
+            "policy",
+            "approval",
+        ]);
+    });
+
+    test("target availability is bindable while authoring and incompatible at admission", () => {
+        const manifest = classifyRunbookIntent("Inspect database health").requirements;
+        const authoring = preflightRunbookRequirements(manifest, {
+            availableTargetKinds: [],
+            bindings: { connection: true },
+        });
+        expect(authoring.status).to.equal("readyAfterBinding");
+        expect(authoring.issues?.[0].code).to.equal("target.unavailable");
+
+        const admission = preflightRunbookRequirements(manifest, {
+            phase: "admission",
+            availableTargetKinds: [],
+            bindings: { connection: true },
+        });
+        expect(admission.status).to.equal("incompatible");
     });
 });

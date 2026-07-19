@@ -113,6 +113,10 @@ export interface RunbookActivityRequirement {
     kind: string;
     version: number;
     host: "extension" | "hobbes" | "headless";
+    /** Minimum host release needed by this activity contract. */
+    minimumHostVersion?: string;
+    /** Planning may use a model; execution requirements must be explicit. */
+    providerRequirement?: "none" | "planning" | "execution";
     effect: "read" | "mutate";
     approvalRequired: boolean;
     connectionRequirement: "none" | "required" | "provisioned";
@@ -404,8 +408,25 @@ export interface RbsArtifactSummary {
 }
 
 export interface RbsRunbookReadiness {
-    status: "ready" | "readyAfterBinding" | "designOnly";
+    status: "ready" | "readyAfterBinding" | "designOnly" | "policyBlocked" | "incompatible";
     missingActivityKinds: string[];
+    issues?: RbsReadinessIssue[];
+}
+
+export interface RbsReadinessIssue {
+    dimension:
+        | "activity"
+        | "host"
+        | "provider"
+        | "policy"
+        | "target"
+        | "binding"
+        | "approval"
+        | "rollback"
+        | "output";
+    code: string;
+    message: string;
+    activityKind?: string;
 }
 
 /** One selectable run for the History/Results run picker (persisted runs

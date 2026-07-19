@@ -201,6 +201,17 @@ export function buildPlannedArtifact(
             ...base.source,
             intent,
             parameters,
+            ...(base.source.requirements
+                ? {
+                      requirements: {
+                          ...base.source.requirements,
+                          activities: base.source.requirements.activities.map((activity) => ({
+                              ...activity,
+                              host: "hobbes" as const,
+                          })),
+                      },
+                  }
+                : {}),
         },
         lock: {
             schemaVersion: RUNBOOK_LOCK_SCHEMA_VERSION,

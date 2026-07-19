@@ -283,6 +283,72 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 },
             };
         }
+        const targetKinds = artifact.lock.nodes.flatMap((node) =>
+            node.target ? [node.target.kind] : [],
+        );
+        const configuredRuntimeKind = vscode.workspace
+            .getConfiguration()
+            .get<string>("mssql.runbookStudio.runtime", "local");
+        // Library-backed locks execute in Hobbes even when an older saved
+        // draft predates host stamping and still says "extension" in source.
+        const admissionManifest =
+            configuredRuntimeKind === "hobbes" &&
+            artifact.lock.libraryAssetRef &&
+            artifact.source.requirements
+                ? {
+                      ...artifact.source.requirements,
+                      activities: artifact.source.requirements.activities.map((activity) => ({
+                          ...activity,
+                          host: "hobbes" as const,
+                      })),
+                  }
+                : artifact.source.requirements;
+        const admissionReadiness = preflightRunbookRequirements(admissionManifest, {
+            phase: "admission",
+            host: configuredRuntimeKind === "hobbes" ? "hobbes" : "extension",
+            allowedEffects: ["read"],
+            availableTargetKinds: targetKinds,
+            approvalSupported: true,
+            supportedRollbackContracts: ["none", "automatic"],
+            bindings: {
+                connection: artifact.lock.nodes.some(
+                    (node) =>
+                        (node.target?.kind === "sqlDatabase" ||
+                            node.target?.kind === "ephemeralSqlDatabase") &&
+                        node.target.binding.source === "parameter" &&
+                        binding.values[node.target.binding.parameterId] !== undefined,
+                ),
+                secret: artifact.source.parameters.some(
+                    (parameter) =>
+                        parameter.type === "secret" && binding.values[parameter.id] !== undefined,
+                ),
+                provisionedTarget: artifact.lock.nodes.some(
+                    (node) =>
+                        node.target?.kind === "ephemeralSqlDatabase" &&
+                        node.target.binding.source === "nodeOutput",
+                ),
+            },
+        });
+        if (
+            admissionReadiness.status === "policyBlocked" ||
+            admissionReadiness.status === "incompatible"
+        ) {
+            const detail = (admissionReadiness.issues ?? [])
+                .map((issue) => issue.message)
+                .join(" ");
+            return {
+                error: {
+                    code:
+                        admissionReadiness.status === "policyBlocked"
+                            ? "RunbookStudio.ActivityPolicyDenied"
+                            : "RunbookStudio.RuntimeCapabilityUnsupported",
+                    message:
+                        admissionReadiness.status === "policyBlocked"
+                            ? LocRunbookStudio.runbookPolicyBlocked(detail)
+                            : LocRunbookStudio.runbookIncompatible(detail),
+                },
+            };
+        }
 
         const adapterResult = await this.ensureAdapter(context);
         if ("error" in adapterResult) {

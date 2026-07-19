@@ -50,13 +50,20 @@ function TopBar() {
             ) : null}
             {state?.artifact?.readiness?.status === "designOnly" ? (
                 <span className="rbs-chip rbs-chip-warn">{loc.designOnly}</span>
-            ) : state?.artifact?.hasLock ? (
+            ) : state?.artifact?.readiness?.status === "policyBlocked" ? (
+                <span className="rbs-chip rbs-chip-warn">{loc.policyBlocked}</span>
+            ) : state?.artifact?.readiness?.status === "incompatible" ? (
+                <span className="rbs-chip rbs-chip-warn">{loc.incompatible}</span>
+            ) : state?.artifact?.readiness?.status === "readyAfterBinding" ? (
+                <span className="rbs-chip">{loc.bindingRequired}</span>
+            ) : null}
+            {state?.artifact?.hasLock ? (
                 <span
                     className="rbs-chip rbs-chip-ok"
                     title={loc.compiledPlanRevisionTitle(state.artifact.planRevision ?? "")}>
                     {loc.compiledV(state.artifact.planRevision ?? "?")}
                 </span>
-            ) : state?.artifact ? (
+            ) : state?.artifact?.readiness?.status !== "designOnly" && state?.artifact ? (
                 <span className="rbs-chip rbs-chip-warn">{loc.notCompiled}</span>
             ) : null}
             {!state?.workspaceTrusted ? (
@@ -140,6 +147,42 @@ function CapabilityBlockers() {
                     </span>
                 ))}
             </div>
+        </section>
+    );
+}
+
+function CompatibilityNotice() {
+    const { state } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const readiness = state?.artifact?.readiness;
+    if (
+        !readiness ||
+        !["readyAfterBinding", "policyBlocked", "incompatible"].includes(readiness.status)
+    ) {
+        return null;
+    }
+    const copy =
+        readiness.status === "readyAfterBinding"
+            ? { heading: loc.bindingRequiredHeading, detail: loc.bindingRequiredDetail }
+            : readiness.status === "policyBlocked"
+              ? { heading: loc.policyBlockedHeading, detail: loc.policyBlockedDetail }
+              : { heading: loc.incompatibleHeading, detail: loc.incompatibleDetail };
+    return (
+        <section className="rbs-capability-notice" role="status">
+            <strong>{copy.heading}</strong>
+            <div>{copy.detail}</div>
+            {(readiness.issues ?? []).length > 0 ? (
+                <div className="rbs-author-actions">
+                    {(readiness.issues ?? []).map((issue, index) => (
+                        <span
+                            key={`${issue.code}-${issue.activityKind ?? index}`}
+                            className="rbs-chip rbs-chip-warn rbs-mono"
+                            title={issue.message}>
+                            {issue.activityKind ?? issue.code}
+                        </span>
+                    ))}
+                </div>
+            ) : null}
         </section>
     );
 }
@@ -510,6 +553,7 @@ function AuthorPage() {
                     <strong>{loc.currentCapabilitiesLabel}</strong> {loc.currentCapabilitiesDetail}
                 </div>
                 <CapabilityBlockers />
+                <CompatibilityNotice />
                 {!intent.trim() ? (
                     <div className="rbs-examples">
                         <span className="rbs-muted">{loc.tryExample}</span>
@@ -662,7 +706,9 @@ function ParametersSection({ starting, onRun }: { starting: boolean; onRun: () =
     const canRun =
         (state?.workspaceTrusted ?? false) &&
         (state?.artifact?.hasLock ?? false) &&
-        state?.artifact?.readiness?.status !== "designOnly" &&
+        !["designOnly", "policyBlocked", "incompatible"].includes(
+            state?.artifact?.readiness?.status ?? "ready",
+        ) &&
         !runActive;
     return (
         <>
@@ -710,9 +756,13 @@ function ParametersSection({ starting, onRun }: { starting: boolean; onRun: () =
                             ? loc.untrustedDetail
                             : state?.artifact?.readiness?.status === "designOnly"
                               ? loc.designOnlyDetail
-                              : !state?.artifact?.hasLock
-                                ? loc.notCompiledDetail
-                                : undefined
+                              : state?.artifact?.readiness?.status === "policyBlocked"
+                                ? loc.policyBlockedDetail
+                                : state?.artifact?.readiness?.status === "incompatible"
+                                  ? loc.incompatibleDetail
+                                  : !state?.artifact?.hasLock
+                                    ? loc.notCompiledDetail
+                                    : undefined
                     }
                     onClick={() => void onRun()}>
                     {runActive ? loc.runActiveLabel : loc.runButton}
@@ -832,6 +882,7 @@ function RunPage() {
     };
     return (
         <div className="rbs-page-body">
+            <CompatibilityNotice />
             <CollapsibleSection
                 title={loc.parameters}
                 expanded={paramsExpanded}
@@ -1273,6 +1324,7 @@ function PlanPage() {
     }
     return (
         <div className="rbs-page-body">
+            <CompatibilityNotice />
             <div className="rbs-graph-toggle-group" role="group" aria-label={loc.planViewLabel}>
                 <button
                     className={`rbs-graph-toggle ${planView === "stepper" ? "active" : ""}`}

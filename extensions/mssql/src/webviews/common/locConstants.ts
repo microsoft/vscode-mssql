@@ -3578,6 +3578,21 @@ export class LocConstants {
             designOnlyDetail: l10n.t(
                 "This workflow cannot run yet. Install activities for the capabilities below, then generate the executable plan again.",
             ),
+            bindingRequired: l10n.t("binding required"),
+            bindingRequiredHeading: l10n.t("Ready after binding"),
+            bindingRequiredDetail: l10n.t(
+                "Choose the required targets, connections, and run-time secrets before starting this plan.",
+            ),
+            policyBlocked: l10n.t("policy blocked"),
+            policyBlockedHeading: l10n.t("Run policy blocks this plan"),
+            policyBlockedDetail: l10n.t(
+                "Review the denied effects or approval requirements before this plan can run.",
+            ),
+            incompatible: l10n.t("incompatible"),
+            incompatibleHeading: l10n.t("Plan and host are incompatible"),
+            incompatibleDetail: l10n.t(
+                "Update the run host or activity contracts shown below, then compile the plan again.",
+            ),
             proposedWorkflow: l10n.t("Proposed workflow"),
             designOutlineDetail: l10n.t(
                 "Review-only outline. These steps are not executable until every required activity is installed and the workflow is compiled.",

@@ -1189,6 +1189,9 @@
       <source xml:lang="en">Choose the output view for {0}</source>
       <note>{0} is a runbook step label</note>
     </trans-unit>
+    <trans-unit id="++CODE++a12fe627ce6676bc97e4d74898d956c4608057a6aa8fdbf78d73410dce5726c5">
+      <source xml:lang="en">Choose the required targets, connections, and run-time secrets before starting this plan.</source>
+    </trans-unit>
     <trans-unit id="++CODE++988c00d268f2867e2e35f7c7de12ddee2e7c5516193dc246ff16186208f335d2">
       <source xml:lang="en">Choose whether this stored procedure appears as a GraphQL mutation or query. DAB defaults to mutation.</source>
     </trans-unit>
@@ -5958,6 +5961,9 @@
     <trans-unit id="++CODE++fa8ed0bdabdd6bcb1c0746f1d3e15212f7f3439d74339fbaaf16c60c0a80fb8e">
       <source xml:lang="en">Plan</source>
     </trans-unit>
+    <trans-unit id="++CODE++2810eb6be37c6df0555b65c0c870a31e81115fe8d836cc5d25f89e29e3e46dd9">
+      <source xml:lang="en">Plan and host are incompatible</source>
+    </trans-unit>
     <trans-unit id="++CODE++23c4317e6530a8ee120a120f235a8ca60b5e2725de28ff84aa0543e98971bddb">
       <source xml:lang="en">Plan generated in {0}</source>
       <note>{0} is an elapsed time like 1m 43s</note>
@@ -6373,6 +6379,9 @@
       <source xml:lang="en">Read-only disconnected mode for &apos;{0}&apos;. Cannot create or start live sessions without a database connection.</source>
       <note>{0} is the XEL file name</note>
     </trans-unit>
+    <trans-unit id="++CODE++a516318800606fe414db4c4c713a00b3e9a41b4c28f10df08ecba0fd43b8f9c8">
+      <source xml:lang="en">Ready after binding</source>
+    </trans-unit>
     <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
       <source xml:lang="en">Ready for import</source>
     </trans-unit>
@@ -6713,6 +6722,9 @@
     <trans-unit id="++CODE++f0742e3a82fe8b57c37b57a9e81cf8b1ff50df2d1378496cffd8f118ab5359ef">
       <source xml:lang="en">Review required</source>
     </trans-unit>
+    <trans-unit id="++CODE++0b6a1d6b092f9987b3eca8e5a946b8720455b7b0a5dbe1d1267a6d7624b58251">
+      <source xml:lang="en">Review the denied effects or approval requirements before this plan can run.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d1c933cbdea558411e228d34cc56ed30fc8e122ae61e8587d5b600297b48892b">
       <source xml:lang="en">Review-only outline. These steps are not executable until every required activity is installed and the workflow is compiled.</source>
     </trans-unit>
@@ -6775,6 +6787,13 @@
     </trans-unit>
     <trans-unit id="++CODE++98fc98c876f876665c38a429c4f73c45faaebca208b98dc881a2ce8d2c9eaf1d">
       <source xml:lang="en">Run in progress…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++883a997230d3b611445157abd1ca8d9b0da7651f51d567aed43f7e4e4073a46e">
+      <source xml:lang="en">Run policy blocks this plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++10b3388c3f3304dabf14b62f9c57996d5b596fb9592d9649dedb6ce7de56fb79">
+      <source xml:lang="en">Run policy blocks this plan: {0}</source>
+      <note>{0} is a safe policy-readiness detail</note>
     </trans-unit>
     <trans-unit id="++CODE++2c757183a36d594602187e88cad67e8e38ab92dd5c9c01ca69eb4c67f465b8e3">
       <source xml:lang="en">Run query on connection &apos;{0}&apos; (ID: {1})?&#10;&#10;Query: {2}</source>
@@ -8431,6 +8450,10 @@
     <trans-unit id="++CODE++843bcce36d1ca5118f54063e1406da612d49087e8748d603e1cdbc7003b42134">
       <source xml:lang="en">This output needs a date/time column to chart — showing the grid instead.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2929b995b653b15c943d1d0a3e4f1e61bb2c1561e6dfe13a0c091bba059c3a25">
+      <source xml:lang="en">This plan is incompatible with the current run host: {0}</source>
+      <note>{0} is a safe host compatibility detail</note>
+    </trans-unit>
     <trans-unit id="++CODE++db51a1686bafa83de3720f93b749c733e1c7eeecb086624cebcc1156da3b6515">
       <source xml:lang="en">This plan step is not an executable read-only SQL query.</source>
     </trans-unit>
@@ -8753,6 +8776,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e3f20e8be1b97880a4ce91df2a3a32d86e26db6188d0b1891376e1c076af2906">
       <source xml:lang="en">Update Script</source>
+    </trans-unit>
+    <trans-unit id="++CODE++438dc37186fbd4ebffe5b7a576d4bac173550d64c8bdf7418bf56aa073085005">
+      <source xml:lang="en">Update the run host or activity contracts shown below, then compile the plan again.</source>
     </trans-unit>
     <trans-unit id="++CODE++92294188e79b2a13584eb3e6120f971c94ada2a387f3199a4cd3cb17039f9d37">
       <source xml:lang="en">Updating IntelliSense...</source>
@@ -9188,6 +9214,9 @@
     <trans-unit id="++CODE++c1399614154a55dfb1fcb95e208ed1f0b1115b846d6150ded7c7b43fdf6cbc09">
       <source xml:lang="en">authenticationType</source>
     </trans-unit>
+    <trans-unit id="++CODE++730473cdc8202fffdf7bb6d256ddd5e4261d1f87f7e89140ab2883e38fc4c797">
+      <source xml:lang="en">binding required</source>
+    </trans-unit>
     <trans-unit id="++CODE++3a2f0f1dd1fb48018c94e4c71fb334e5df808fec85ecca716db7834d3bef637a">
       <source xml:lang="en">compiled v{0}</source>
       <note>{0} is a plan revision number</note>
@@ -9232,6 +9261,9 @@
     <trans-unit id="++CODE++e6aed5aa842688d86cf6e2eff8002c365c028fd3cec051c1cf285e599b4bc2db">
       <source xml:lang="en">if rejected → {0}</source>
       <note>{0} is a plan step name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++62a8b13dcc5471418358086b4a60ef38dd3c269976f5e8339c77e3afdb1a324a">
+      <source xml:lang="en">incompatible</source>
     </trans-unit>
     <trans-unit id="++CODE++075b0e112ce5f3585bf21875b678fb678865a30c79d482cd01098957e6497c28">
       <source xml:lang="en">intelliSenseUpdated</source>
@@ -9294,6 +9326,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7175517a370b5cd2e664e3fd29c4ea9db5ce17058eb9772fe090a5485e49dad6">
       <source xml:lang="en">or</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fdf8725a10ac51a045849e27e508be68c40eec79ce3696734e1bf6f740280d37">
+      <source xml:lang="en">policy blocked</source>
     </trans-unit>
     <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
       <source xml:lang="en">profiler_events</source>

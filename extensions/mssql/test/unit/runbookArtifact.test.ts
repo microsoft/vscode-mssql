@@ -146,10 +146,24 @@ suite("runbookArtifact", () => {
             artifact.source.requirements = classifyRunbookIntent(
                 "Inspect developer database health",
             ).requirements;
+            artifact.source.requirements.activities[0].minimumHostVersion = "1.45.0";
+            artifact.source.requirements.activities[0].providerRequirement = "planning";
             const parsed = expectSuccess(
                 parseRunbookArtifact(canonicalizeRunbookArtifact(artifact)),
             );
             expect(parsed.source.requirements).to.deep.equal(artifact.source.requirements);
+        });
+
+        test("rejects an unknown provider requirement", () => {
+            const artifact = createFixtureRunbookArtifact();
+            artifact.source.requirements = classifyRunbookIntent(
+                "Inspect developer database health",
+            ).requirements;
+            (
+                artifact.source.requirements.activities[0] as unknown as Record<string, unknown>
+            ).providerRequirement = "ambient";
+            const failure = expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
+            expect(failure.detail).to.contain("invalid metadata");
         });
 
         test("refuses a newer requirements schema with IncompatibleVersion", () => {

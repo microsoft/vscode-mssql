@@ -116,6 +116,18 @@ export class RunbookStudio {
             args: [activityKinds],
             comment: ["{0} is a comma-separated list of versioned runbook activity kinds"],
         });
+    public static runbookPolicyBlocked = (detail: string) =>
+        l10n.t({
+            message: "Run policy blocks this plan: {0}",
+            args: [detail],
+            comment: ["{0} is a safe policy-readiness detail"],
+        });
+    public static runbookIncompatible = (detail: string) =>
+        l10n.t({
+            message: "This plan is incompatible with the current run host: {0}",
+            args: [detail],
+            comment: ["{0} is a safe host compatibility detail"],
+        });
     public static hobbesRunbookNotInLibrary = l10n.t(
         "This runbook is not in the Hobbes runtime's library, so the 'hobbes' runtime cannot run it. Generated runbooks run on the 'local' runtime — set mssql.runbookStudio.runtime to 'local' (or remove the setting to use the default).",
     );

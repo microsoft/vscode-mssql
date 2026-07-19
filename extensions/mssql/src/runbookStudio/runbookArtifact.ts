@@ -79,6 +79,7 @@ const REQUIREMENT_EFFECTS: ReadonlySet<string> = new Set(["read", "mutate"]);
 const CONNECTION_REQUIREMENTS: ReadonlySet<string> = new Set(["none", "required", "provisioned"]);
 const SECRET_REQUIREMENTS: ReadonlySet<string> = new Set(["none", "requiredAtRunTime"]);
 const ROLLBACK_CONTRACTS: ReadonlySet<string> = new Set(["none", "automatic", "required"]);
+const PROVIDER_REQUIREMENTS: ReadonlySet<string> = new Set(["none", "planning", "execution"]);
 
 /** Hard input bounds — repository artifacts are untrusted (A1 §12). */
 const MAX_ARTIFACT_BYTES = 2 * 1024 * 1024;
@@ -363,6 +364,11 @@ function validateRequirements(requirements: unknown): ArtifactParseFailure | und
         if (
             typeof activity.host !== "string" ||
             !REQUIREMENT_HOSTS.has(activity.host) ||
+            (activity.minimumHostVersion !== undefined &&
+                !isNonEmptyString(activity.minimumHostVersion)) ||
+            (activity.providerRequirement !== undefined &&
+                (typeof activity.providerRequirement !== "string" ||
+                    !PROVIDER_REQUIREMENTS.has(activity.providerRequirement))) ||
             typeof activity.effect !== "string" ||
             !REQUIREMENT_EFFECTS.has(activity.effect) ||
             typeof activity.approvalRequired !== "boolean" ||

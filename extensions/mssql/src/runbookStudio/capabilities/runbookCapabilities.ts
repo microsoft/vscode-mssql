@@ -12,6 +12,7 @@
 
 import {
     RbsRunbookReadiness,
+    RbsReadinessIssue,
     RunbookActivityRequirement,
     RunbookArtifactFile,
     RunbookCapabilityManifest,
@@ -31,6 +32,25 @@ export interface ClassifiedRunbookIntent {
 export interface PreparedRunbookIntent {
     artifact: RunbookArtifactFile;
     readiness: RbsRunbookReadiness;
+}
+
+/** Host/policy/binding facts supplied by an authoring surface or run host.
+ * Omitted facts remain "not yet bound" rather than being guessed. */
+export interface RunbookPreflightContext {
+    phase?: "authoring" | "admission";
+    host?: RunbookActivityRequirement["host"];
+    hostVersion?: string;
+    providerAvailable?: boolean;
+    allowedEffects?: ReadonlyArray<RunbookActivityRequirement["effect"]>;
+    availableTargetKinds?: ReadonlyArray<RunbookTargetKind>;
+    approvalSupported?: boolean;
+    supportedRollbackContracts?: ReadonlyArray<RunbookActivityRequirement["rollbackContract"]>;
+    supportedOutputContracts?: readonly string[];
+    bindings?: {
+        connection?: boolean;
+        secret?: boolean;
+        provisionedTarget?: boolean;
+    };
 }
 
 interface RequirementDefaults {
@@ -390,6 +410,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
 /** Installed-catalog preflight used both before planning and at admission. */
 export function preflightRunbookRequirements(
     manifest: RunbookCapabilityManifest | undefined,
+    context: RunbookPreflightContext = {},
 ): RbsRunbookReadiness {
     if (!manifest) {
         return { status: "ready", missingActivityKinds: [] };
@@ -401,15 +422,216 @@ export function preflightRunbookRequirements(
         })
         .map((requirement) => `${requirement.kind}@${requirement.version}`);
     if (missingActivityKinds.length > 0) {
-        return { status: "designOnly", missingActivityKinds };
+        return {
+            status: "designOnly",
+            missingActivityKinds,
+            issues: missingActivityKinds.map((activityKind) => ({
+                dimension: "activity",
+                code: "activity.missingOrOutdated",
+                message: `Required activity '${activityKind}' is not installed at a compatible version.`,
+                activityKind,
+            })),
+        };
     }
-    const needsBinding = manifest.activities.some(
-        (requirement) => requirement.connectionRequirement === "required",
-    );
+
+    const issues: RbsReadinessIssue[] = [];
+    const incompatible: RbsReadinessIssue[] = [];
+    const policyBlocked: RbsReadinessIssue[] = [];
+    const bindingRequired: RbsReadinessIssue[] = [];
+    const availableTargets = context.availableTargetKinds
+        ? new Set(context.availableTargetKinds)
+        : undefined;
+    const allowedEffects = context.allowedEffects ? new Set(context.allowedEffects) : undefined;
+    const rollbackContracts = new Set(context.supportedRollbackContracts ?? ["none"]);
+    const outputContracts = context.supportedOutputContracts
+        ? new Set(context.supportedOutputContracts)
+        : undefined;
+
+    for (const requirement of manifest.activities) {
+        const installed = findActivity(requirement.kind)!;
+        if (context.host && requirement.host !== context.host) {
+            incompatible.push(
+                readinessIssue(
+                    "host",
+                    "host.unsupported",
+                    requirement,
+                    `Activity '${requirement.kind}' requires the ${requirement.host} host; current host is ${context.host}.`,
+                ),
+            );
+        }
+        if (
+            requirement.minimumHostVersion &&
+            (!context.hostVersion ||
+                compareVersions(context.hostVersion, requirement.minimumHostVersion) < 0)
+        ) {
+            incompatible.push(
+                readinessIssue(
+                    "host",
+                    "host.versionIncompatible",
+                    requirement,
+                    `Activity '${requirement.kind}' requires host ${requirement.minimumHostVersion} or newer.`,
+                ),
+            );
+        }
+        if (
+            requirement.providerRequirement &&
+            requirement.providerRequirement !== "none" &&
+            context.providerAvailable !== true
+        ) {
+            incompatible.push(
+                readinessIssue(
+                    "provider",
+                    "provider.unavailable",
+                    requirement,
+                    `Activity '${requirement.kind}' requires a ${requirement.providerRequirement} provider that is not ready.`,
+                ),
+            );
+        }
+        if (installed.outputContract !== requirement.outputContract) {
+            incompatible.push(
+                readinessIssue(
+                    "output",
+                    "output.contractIncompatible",
+                    requirement,
+                    `Activity '${requirement.kind}' produces '${installed.outputContract}', not required '${requirement.outputContract}'.`,
+                ),
+            );
+        } else if (outputContracts && !outputContracts.has(requirement.outputContract)) {
+            incompatible.push(
+                readinessIssue(
+                    "output",
+                    "output.rendererUnavailable",
+                    requirement,
+                    `Output contract '${requirement.outputContract}' is not supported by this host.`,
+                ),
+            );
+        }
+        if (!rollbackContracts.has(requirement.rollbackContract)) {
+            incompatible.push(
+                readinessIssue(
+                    "rollback",
+                    "rollback.executorUnavailable",
+                    requirement,
+                    `Activity '${requirement.kind}' requires '${requirement.rollbackContract}' rollback support.`,
+                ),
+            );
+        }
+        if (allowedEffects && !allowedEffects.has(requirement.effect)) {
+            policyBlocked.push(
+                readinessIssue(
+                    "policy",
+                    "policy.effectDenied",
+                    requirement,
+                    `Policy denies the '${requirement.effect}' effect required by '${requirement.kind}'.`,
+                ),
+            );
+        }
+        if (requirement.approvalRequired && context.approvalSupported !== true) {
+            policyBlocked.push(
+                readinessIssue(
+                    "approval",
+                    "approval.unavailable",
+                    requirement,
+                    `Activity '${requirement.kind}' requires an approval provider.`,
+                ),
+            );
+        }
+        if (
+            requirement.connectionRequirement === "required" &&
+            context.bindings?.connection !== true
+        ) {
+            bindingRequired.push(
+                readinessIssue(
+                    "binding",
+                    "binding.connectionRequired",
+                    requirement,
+                    `Activity '${requirement.kind}' needs a bound SQL connection.`,
+                ),
+            );
+        }
+        if (
+            requirement.connectionRequirement === "provisioned" &&
+            context.bindings?.provisionedTarget !== true
+        ) {
+            bindingRequired.push(
+                readinessIssue(
+                    "binding",
+                    "binding.provisionedTargetRequired",
+                    requirement,
+                    `Activity '${requirement.kind}' needs a provisioned database target.`,
+                ),
+            );
+        }
+        if (
+            requirement.secretRequirement === "requiredAtRunTime" &&
+            context.bindings?.secret !== true
+        ) {
+            bindingRequired.push(
+                readinessIssue(
+                    "binding",
+                    "binding.secretRequired",
+                    requirement,
+                    `Activity '${requirement.kind}' needs a run-time secret binding.`,
+                ),
+            );
+        }
+    }
+
+    if (availableTargets) {
+        for (const target of manifest.targets) {
+            if (!availableTargets.has(target.kind)) {
+                const issue: RbsReadinessIssue = {
+                    dimension: "target",
+                    code: "target.unavailable",
+                    message: `Target kind '${target.kind}' is not available in this host.`,
+                };
+                (context.phase === "admission" ? incompatible : bindingRequired).push(issue);
+            }
+        }
+    }
+
+    issues.push(...incompatible, ...policyBlocked, ...bindingRequired);
     return {
-        status: needsBinding ? "readyAfterBinding" : "ready",
+        status:
+            incompatible.length > 0
+                ? "incompatible"
+                : policyBlocked.length > 0
+                  ? "policyBlocked"
+                  : bindingRequired.length > 0
+                    ? "readyAfterBinding"
+                    : "ready",
         missingActivityKinds: [],
+        ...(issues.length > 0 ? { issues } : {}),
     };
+}
+
+function readinessIssue(
+    dimension: RbsReadinessIssue["dimension"],
+    code: string,
+    requirement: RunbookActivityRequirement,
+    message: string,
+): RbsReadinessIssue {
+    return { dimension, code, message, activityKind: `${requirement.kind}@${requirement.version}` };
+}
+
+/** Numeric dotted-version comparison; prerelease labels compare as their
+ * numeric base because the contract only expresses a minimum host release. */
+function compareVersions(actual: string, minimum: string): number {
+    const parts = (value: string) =>
+        value
+            .split(/[.-]/)
+            .map((part) => Number.parseInt(part, 10))
+            .filter((part) => Number.isFinite(part));
+    const left = parts(actual);
+    const right = parts(minimum);
+    const length = Math.max(left.length, right.length);
+    for (let index = 0; index < length; index++) {
+        const difference = (left[index] ?? 0) - (right[index] ?? 0);
+        if (difference !== 0) {
+            return difference;
+        }
+    }
+    return 0;
 }
 
 /** Produce a deterministic, family-ordered review outline. The outline is

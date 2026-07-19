@@ -64,6 +64,14 @@
         "message": "Design-only: this workflow requires activities that are not installed: {0}. No executable plan was generated.",
         "comment": ["{0} is a comma-separated list of versioned runbook activity kinds"]
     },
+    "Run policy blocks this plan: {0}/{0} is a safe policy-readiness detail": {
+        "message": "Run policy blocks this plan: {0}",
+        "comment": ["{0} is a safe policy-readiness detail"]
+    },
+    "This plan is incompatible with the current run host: {0}/{0} is a safe host compatibility detail": {
+        "message": "This plan is incompatible with the current run host: {0}",
+        "comment": ["{0} is a safe host compatibility detail"]
+    },
     "This runbook is not in the Hobbes runtime's library, so the 'hobbes' runtime cannot run it. Generated runbooks run on the 'local' runtime — set mssql.runbookStudio.runtime to 'local' (or remove the setting to use the default).": "This runbook is not in the Hobbes runtime's library, so the 'hobbes' runtime cannot run it. Generated runbooks run on the 'local' runtime — set mssql.runbookStudio.runtime to 'local' (or remove the setting to use the default).",
     "The Hobbes runtime could not resolve the connection alias for this run.": "The Hobbes runtime could not resolve the connection alias for this run.",
     "The Hobbes runtime lane supports Windows integrated authentication only in this preview. Choose an integrated-auth connection profile.": "The Hobbes runtime lane supports Windows integrated authentication only in this preview. Choose an integrated-auth connection profile.",
@@ -4500,6 +4508,15 @@
     "not compiled": "not compiled",
     "Design-only: capabilities required": "Design-only: capabilities required",
     "This workflow cannot run yet. Install activities for the capabilities below, then generate the executable plan again.": "This workflow cannot run yet. Install activities for the capabilities below, then generate the executable plan again.",
+    "binding required": "binding required",
+    "Ready after binding": "Ready after binding",
+    "Choose the required targets, connections, and run-time secrets before starting this plan.": "Choose the required targets, connections, and run-time secrets before starting this plan.",
+    "policy blocked": "policy blocked",
+    "Run policy blocks this plan": "Run policy blocks this plan",
+    "Review the denied effects or approval requirements before this plan can run.": "Review the denied effects or approval requirements before this plan can run.",
+    "incompatible": "incompatible",
+    "Plan and host are incompatible": "Plan and host are incompatible",
+    "Update the run host or activity contracts shown below, then compile the plan again.": "Update the run host or activity contracts shown below, then compile the plan again.",
     "Proposed workflow": "Proposed workflow",
     "Review-only outline. These steps are not executable until every required activity is installed and the workflow is compiled.": "Review-only outline. These steps are not executable until every required activity is installed and the workflow is compiled.",
     "Missing capability": "Missing capability",
