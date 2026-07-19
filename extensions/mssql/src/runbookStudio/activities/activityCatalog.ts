@@ -40,10 +40,12 @@ export interface ActivityDescriptor {
     producedValues: string[];
     /** Target semantics are catalog authority, not model-authored metadata.
      * `bindingInput` must be a $params binding when present. */
-    target?: {
-        kind: RunbookTargetKind;
-        bindingInput: string;
-    };
+    target?:
+        | { kind: RunbookTargetKind; bindingInput: string }
+        | { kind: "workspace"; workspace: true };
+    /** Preview-only activities are executable solely by the deterministic
+     * fake lane until their production executor and recovery protocol land. */
+    previewOnly?: boolean;
     blastRadius: BlastRadius;
 }
 
@@ -55,6 +57,129 @@ const READ_ONLY_LOCAL: BlastRadius = {
 };
 
 export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
+    {
+        kind: "workspace.inspect",
+        version: 1,
+        label: "Inspect database workspace",
+        description:
+            "Produces a bounded deterministic snapshot of database-project inputs without changing files.",
+        inputs: [],
+        outputContract: "workspaceSnapshot/1",
+        producedValues: ["projectPath", "projectCount"],
+        target: { kind: "workspace", workspace: true },
+        previewOnly: true,
+        blastRadius: { ...READ_ONLY_LOCAL, resource: "workspaceFiles" },
+    },
+    {
+        kind: "dacpac.build",
+        version: 1,
+        label: "Build DACPAC (deterministic preview)",
+        description:
+            "Build-contract preview that produces a typed DACPAC artifact and diagnostics without invoking DacFx.",
+        inputs: [
+            {
+                name: "project",
+                kind: "bind",
+                required: true,
+                description: "Database-project path binding",
+            },
+        ],
+        outputContract: "dacpacArtifact/1",
+        producedValues: ["artifactPath", "diagnosticCount"],
+        target: { kind: "databaseProject", bindingInput: "project" },
+        previewOnly: true,
+        blastRadius: {
+            resource: "workspaceFiles",
+            operation: "create",
+            targetEnvironment: "local",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "sandbox.provision",
+        version: 1,
+        label: "Provision ephemeral SQL target (deterministic preview)",
+        description:
+            "Creates a typed fake lease and connection reference; no container, process, or database is created.",
+        inputs: [
+            {
+                name: "sandbox",
+                kind: "bind",
+                required: true,
+                description: "Portable sandbox specification parameter",
+            },
+        ],
+        outputContract: "databaseLease/1",
+        producedValues: ["connectionRef", "leaseId"],
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "sandbox" },
+        previewOnly: true,
+        blastRadius: {
+            resource: "container",
+            operation: "provision",
+            targetEnvironment: "ephemeral",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "dacpac.deploy.preview",
+        version: 1,
+        label: "Preview DACPAC deployment (deterministic preview)",
+        description:
+            "Produces a typed fake deployment report and script from bound DACPAC and ephemeral-target outputs.",
+        inputs: [
+            {
+                name: "dacpac",
+                kind: "bind",
+                required: true,
+                description: "Bind to a dacpac.build artifactPath",
+            },
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to a sandbox.provision connectionRef",
+            },
+        ],
+        outputContract: "deploymentPreview/1",
+        producedValues: ["changeCount", "scriptPath"],
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        previewOnly: true,
+        blastRadius: {
+            resource: "databaseSchema",
+            operation: "read",
+            targetEnvironment: "ephemeral",
+            reversibility: "noEffect",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "sandbox.dispose",
+        version: 1,
+        label: "Dispose ephemeral SQL target (deterministic preview)",
+        description:
+            "Consumes a fake lease connection reference and produces typed cleanup evidence.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to a sandbox.provision connectionRef",
+            },
+        ],
+        outputContract: "cleanupEvidence/1",
+        producedValues: ["cleaned"],
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        previewOnly: true,
+        blastRadius: {
+            resource: "container",
+            operation: "delete",
+            targetEnvironment: "ephemeral",
+            reversibility: "irreversible",
+            breadth: "bounded",
+        },
+    },
     {
         kind: "sql.query.read",
         version: 1,
@@ -153,17 +278,12 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                 issues.push(
                     `node '${node.id}' is missing its explicit ${descriptor.target.kind} target`,
                 );
-            } else if (
-                !expectedTarget ||
-                node.target.kind !== expectedTarget.kind ||
-                node.target.binding.source !== expectedTarget.binding.source ||
-                (node.target.binding.source === "parameter" &&
-                    expectedTarget.binding.source === "parameter" &&
-                    node.target.binding.parameterId !== expectedTarget.binding.parameterId)
-            ) {
-                issues.push(
-                    `node '${node.id}' target does not match catalog input '${descriptor.target.bindingInput}'`,
-                );
+            } else if (!expectedTarget || !targetsEqual(node.target, expectedTarget)) {
+                const targetSource =
+                    "bindingInput" in descriptor.target
+                        ? `catalog input '${descriptor.target.bindingInput}'`
+                        : "the workspace binding";
+                issues.push(`node '${node.id}' target does not match ${targetSource}`);
             }
         }
     }
@@ -171,6 +291,7 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
 }
 
 const PARAMETER_BIND = /^\$params\.([A-Za-z0-9_-]+)$/;
+const NODE_BIND = /^\$nodes\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/;
 
 export function targetFromCatalog(
     node: RunbookPlanNode,
@@ -179,15 +300,46 @@ export function targetFromCatalog(
     if (!descriptor.target) {
         return undefined;
     }
-    const input = node.inputs?.[descriptor.target.bindingInput];
-    const match = typeof input === "string" ? PARAMETER_BIND.exec(input) : undefined;
-    if (!match) {
-        return undefined;
+    if ("workspace" in descriptor.target) {
+        return { kind: "workspace", binding: { source: "workspace" } };
     }
-    return {
-        kind: descriptor.target.kind,
-        binding: { source: "parameter", parameterId: match[1] },
-    };
+    const input = node.inputs?.[descriptor.target.bindingInput];
+    if (typeof input === "string") {
+        const parameter = PARAMETER_BIND.exec(input);
+        if (parameter) {
+            return {
+                kind: descriptor.target.kind,
+                binding: { source: "parameter", parameterId: parameter[1] },
+            };
+        }
+        const output = NODE_BIND.exec(input);
+        if (output) {
+            return {
+                kind: descriptor.target.kind,
+                binding: { source: "nodeOutput", nodeId: output[1], output: output[2] },
+            };
+        }
+    }
+    return undefined;
+}
+
+export function targetsEqual(left: RunbookPlanTarget, right: RunbookPlanTarget): boolean {
+    if (left.kind !== right.kind || left.binding.source !== right.binding.source) {
+        return false;
+    }
+    if (left.binding.source === "parameter" && right.binding.source === "parameter") {
+        return left.binding.parameterId === right.binding.parameterId;
+    }
+    if (left.binding.source === "nodeOutput" && right.binding.source === "nodeOutput") {
+        return (
+            left.binding.nodeId === right.binding.nodeId &&
+            left.binding.output === right.binding.output
+        );
+    }
+    if (left.binding.source === "workspace" && right.binding.source === "workspace") {
+        return left.binding.workspaceFolder === right.binding.workspaceFolder;
+    }
+    return false;
 }
 
 /** Enforce trusted safety metadata: blast radius always comes from the
@@ -195,7 +347,12 @@ export function targetFromCatalog(
 export function stampCatalogMetadata(nodes: RunbookPlanNode[]): RunbookPlanNode[] {
     return nodes.map((node) => {
         if (node.kind !== "activity") {
-            return { ...node, blastRadius: undefined } as RunbookPlanNode;
+            return {
+                ...node,
+                target: undefined,
+                previewOnly: undefined,
+                blastRadius: undefined,
+            } as RunbookPlanNode;
         }
         const descriptor = findActivity(node.activityKind);
         if (!descriptor) {
@@ -205,6 +362,7 @@ export function stampCatalogMetadata(nodes: RunbookPlanNode[]): RunbookPlanNode[
             ...node,
             activityVersion: descriptor.version,
             target: targetFromCatalog(node, descriptor),
+            previewOnly: descriptor.previewOnly,
             blastRadius: descriptor.blastRadius,
         };
     });

@@ -21,6 +21,7 @@ import {
 import {
     PresentationDefinition,
     PRESENTATION_SCHEMA_VERSION,
+    expectedContractFor,
     viewCandidateTier,
 } from "../../src/sharedInterfaces/runbookPresentation";
 import { RunbookRunSnapshot } from "../../src/sharedInterfaces/runbookStudio";
@@ -82,6 +83,19 @@ suite("presentationResolver", () => {
         expect(viewCandidateTier("rowset/1", "bar")).to.equal("available");
         expect(viewCandidateTier("rowset/1", "json")).to.equal("fallback");
         expect(viewCandidateTier("unknown/1", "json")).to.equal("recommended");
+    });
+
+    test("developer preview evidence has a total scalar-card presentation", () => {
+        for (const [activityKind, contract] of [
+            ["workspace.inspect", "workspaceSnapshot/1"],
+            ["dacpac.build", "dacpacArtifact/1"],
+            ["sandbox.provision", "databaseLease/1"],
+            ["dacpac.deploy.preview", "deploymentPreview/1"],
+            ["sandbox.dispose", "cleanupEvidence/1"],
+        ] as const) {
+            expect(expectedContractFor("activity", activityKind)).to.equal(contract);
+            expect(compatibleViews(contract)).to.deep.equal(["scalar-cards", "json"]);
+        }
     });
 
     test("resolution is deterministic", () => {

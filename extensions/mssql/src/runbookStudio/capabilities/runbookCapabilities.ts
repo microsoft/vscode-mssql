@@ -44,12 +44,46 @@ export interface RunbookPreflightContext {
     allowedEffects?: ReadonlyArray<RunbookActivityRequirement["effect"]>;
     availableTargetKinds?: ReadonlyArray<RunbookTargetKind>;
     approvalSupported?: boolean;
+    allowPreviewActivities?: boolean;
     supportedRollbackContracts?: ReadonlyArray<RunbookActivityRequirement["rollbackContract"]>;
     supportedOutputContracts?: readonly string[];
     bindings?: {
         connection?: boolean;
         secret?: boolean;
         provisionedTarget?: boolean;
+    };
+}
+
+/** Deterministic product policy for the selectable VS Code runtime lanes.
+ * The fake lane is the only lane allowed to execute preview-only developer
+ * activities; local remains read-only until real executors/recovery land. */
+export function preflightContextForRuntime(
+    runtimeKind: string,
+    phase: RunbookPreflightContext["phase"] = "authoring",
+): RunbookPreflightContext {
+    if (runtimeKind === "fake") {
+        return {
+            phase,
+            host: "extension",
+            allowedEffects: ["read", "mutate"],
+            approvalSupported: true,
+            allowPreviewActivities: true,
+            supportedRollbackContracts: ["none", "automatic", "required"],
+        };
+    }
+    if (runtimeKind === "local") {
+        return {
+            phase,
+            host: "extension",
+            allowedEffects: ["read"],
+            approvalSupported: true,
+            allowPreviewActivities: false,
+            supportedRollbackContracts: ["none", "automatic"],
+        };
+    }
+    return {
+        phase,
+        allowPreviewActivities: false,
     };
 }
 
@@ -88,7 +122,7 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         outputContract: "databaseProjectChange/1",
     },
     "dacpac.build": {
-        target: "dacpac",
+        target: "databaseProject",
         effect: "mutate",
         outputContract: "dacpacArtifact/1",
     },
@@ -475,13 +509,25 @@ export function preflightRunbookRequirements(
         ? new Set(context.availableTargetKinds)
         : undefined;
     const allowedEffects = context.allowedEffects ? new Set(context.allowedEffects) : undefined;
-    const rollbackContracts = new Set(context.supportedRollbackContracts ?? ["none"]);
+    const rollbackContracts = context.supportedRollbackContracts
+        ? new Set(context.supportedRollbackContracts)
+        : undefined;
     const outputContracts = context.supportedOutputContracts
         ? new Set(context.supportedOutputContracts)
         : undefined;
 
     for (const requirement of manifest.activities) {
         const installed = findActivity(requirement.kind)!;
+        if (installed.previewOnly && context.allowPreviewActivities !== true) {
+            incompatible.push(
+                readinessIssue(
+                    "activity",
+                    "activity.previewOnly",
+                    requirement,
+                    `Activity '${requirement.kind}' is available only in the deterministic preview runtime.`,
+                ),
+            );
+        }
         if (context.host && requirement.host !== context.host) {
             incompatible.push(
                 readinessIssue(
@@ -509,7 +555,7 @@ export function preflightRunbookRequirements(
         if (
             requirement.providerRequirement &&
             requirement.providerRequirement !== "none" &&
-            context.providerAvailable !== true
+            context.providerAvailable === false
         ) {
             incompatible.push(
                 readinessIssue(
@@ -539,7 +585,7 @@ export function preflightRunbookRequirements(
                 ),
             );
         }
-        if (!rollbackContracts.has(requirement.rollbackContract)) {
+        if (rollbackContracts && !rollbackContracts.has(requirement.rollbackContract)) {
             incompatible.push(
                 readinessIssue(
                     "rollback",
@@ -559,7 +605,7 @@ export function preflightRunbookRequirements(
                 ),
             );
         }
-        if (requirement.approvalRequired && context.approvalSupported !== true) {
+        if (requirement.approvalRequired && context.approvalSupported === false) {
             policyBlocked.push(
                 readinessIssue(
                     "approval",
@@ -710,9 +756,11 @@ export function buildDesignOnlyPlan(classified: ClassifiedRunbookIntent): Runboo
 export function prepareRunbookIntent(
     current: RunbookArtifactFile,
     intent: string,
+    context: RunbookPreflightContext = {},
 ): PreparedRunbookIntent {
     const classified = classifyRunbookIntent(intent);
-    const readiness = preflightRunbookRequirements(classified.requirements);
+    const readiness = preflightRunbookRequirements(classified.requirements, context);
+    const blocked = ["designOnly", "policyBlocked", "incompatible"].includes(readiness.status);
     const sourceWithoutDesign = { ...current.source };
     delete sourceWithoutDesign.design;
     return {
@@ -723,11 +771,9 @@ export function prepareRunbookIntent(
                 ...sourceWithoutDesign,
                 intent,
                 requirements: classified.requirements,
-                ...(readiness.status === "designOnly"
-                    ? { design: buildDesignOnlyPlan(classified) }
-                    : {}),
+                ...(blocked ? { design: buildDesignOnlyPlan(classified) } : {}),
             },
-            ...(readiness.status === "designOnly" ? { lock: undefined } : {}),
+            ...(blocked ? { lock: undefined } : {}),
         },
         readiness,
     };

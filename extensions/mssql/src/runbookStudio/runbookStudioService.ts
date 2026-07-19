@@ -43,6 +43,7 @@ import {
 } from "./runbookArtifact";
 import { activeLibraryAssetId, LibraryRunRef, RunbookLibraryAsset } from "./runbookLibraryModel";
 import {
+    preflightContextForRuntime,
     preflightRunbookRequirements,
     prepareRunbookIntent,
 } from "./capabilities/runbookCapabilities";
@@ -304,12 +305,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                   }
                 : artifact.source.requirements;
         const admissionReadiness = preflightRunbookRequirements(admissionManifest, {
-            phase: "admission",
-            host: configuredRuntimeKind === "hobbes" ? "hobbes" : "extension",
-            allowedEffects: ["read"],
+            ...preflightContextForRuntime(configuredRuntimeKind, "admission"),
             availableTargetKinds: targetKinds,
-            approvalSupported: true,
-            supportedRollbackContracts: ["none", "automatic"],
             bindings: {
                 connection: artifact.lock.nodes.some(
                     (node) =>
@@ -538,7 +535,14 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             return { ok: false, error: invalidArtifactError(model) };
         }
         const context = newRunbookRootContext("compile");
-        const prepared = prepareRunbookIntent(current, intent);
+        const runtimeKind = vscode.workspace
+            .getConfiguration()
+            .get<string>("mssql.runbookStudio.runtime", "local");
+        const prepared = prepareRunbookIntent(
+            current,
+            intent,
+            preflightContextForRuntime(runtimeKind),
+        );
         const base = prepared.artifact;
         const readiness = prepared.readiness;
         Perf.marker(
@@ -561,7 +565,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 missingActivityCount: metaField(readiness.missingActivityKinds.length),
             },
         );
-        if (readiness.status === "designOnly") {
+        if (
+            readiness.status === "designOnly" ||
+            readiness.status === "policyBlocked" ||
+            readiness.status === "incompatible"
+        ) {
             // Persist the useful design contract but deliberately remove any
             // stale executable lock. A changed prompt that now needs missing
             // operations must never retain an earlier runnable plan.
@@ -575,19 +583,27 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     },
                 };
             }
+            const detail = (readiness.issues ?? []).map((issue) => issue.message).join(" ");
             return {
                 ok: false,
                 error: {
-                    code: "RunbookStudio.ActivityUnsupported",
-                    message: LocRunbookStudio.missingRunbookCapabilities(
-                        readiness.missingActivityKinds.join(", "),
-                    ),
+                    code:
+                        readiness.status === "designOnly"
+                            ? "RunbookStudio.ActivityUnsupported"
+                            : readiness.status === "policyBlocked"
+                              ? "RunbookStudio.ActivityPolicyDenied"
+                              : "RunbookStudio.RuntimeCapabilityUnsupported",
+                    message:
+                        readiness.status === "designOnly"
+                            ? LocRunbookStudio.missingRunbookCapabilities(
+                                  readiness.missingActivityKinds.join(", "),
+                              )
+                            : readiness.status === "policyBlocked"
+                              ? LocRunbookStudio.runbookPolicyBlocked(detail)
+                              : LocRunbookStudio.runbookIncompatible(detail),
                 },
             };
         }
-        const runtimeKind = vscode.workspace
-            .getConfiguration()
-            .get<string>("mssql.runbookStudio.runtime", "local");
         let artifact: RunbookArtifactFile | undefined;
         if (runtimeKind === "hobbes") {
             try {

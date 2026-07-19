@@ -7,6 +7,7 @@ import { expect } from "chai";
 import {
     buildDesignOnlyPlan,
     classifyRunbookIntent,
+    preflightContextForRuntime,
     preflightRunbookRequirements,
     prepareRunbookIntent,
 } from "../../src/runbookStudio/capabilities/runbookCapabilities";
@@ -38,7 +39,8 @@ suite("runbook capability preflight", () => {
         ]);
         const readiness = preflightRunbookRequirements(classified.requirements);
         expect(readiness.status).to.equal("designOnly");
-        expect(readiness.missingActivityKinds).to.include("dacpac.build@1");
+        expect(readiness.missingActivityKinds).to.include("dbproject.create@1");
+        expect(readiness.missingActivityKinds).to.not.include("dacpac.build@1");
         expect(readiness.missingActivityKinds).to.not.include("sql.query.read@1");
 
         const prepared = prepareRunbookIntent(
@@ -249,5 +251,20 @@ suite("runbook capability preflight", () => {
             bindings: { connection: true },
         });
         expect(admission.status).to.equal("incompatible");
+    });
+
+    test("preview developer activities are enabled only for the fake runtime profile", () => {
+        const manifest = classifyRunbookIntent(
+            "Build a DACPAC and provision an ephemeral sandbox.",
+        ).requirements;
+        const local = preflightRunbookRequirements(manifest, preflightContextForRuntime("local"));
+        expect(local.status).to.equal("incompatible");
+        expect(local.issues?.map((issue) => issue.code)).to.include("activity.previewOnly");
+
+        const fake = preflightRunbookRequirements(manifest, {
+            ...preflightContextForRuntime("fake", "admission"),
+            bindings: { provisionedTarget: true },
+        });
+        expect(fake.status).to.equal("ready");
     });
 });

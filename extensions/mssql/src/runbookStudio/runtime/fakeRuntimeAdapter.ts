@@ -13,8 +13,9 @@
  *     gates, absent = success path;
  *   - unreached nodes are reported skipped before the terminal event;
  *   - cancellation settles between nodes with one terminal;
- *   - activity kinds: sql.query.read (fixed rowset), assert.threshold
- *     (bind-expression compare), report (markdown summary).
+ *   - activity kinds: SQL/assert plus preview-only developer build/sandbox
+ *     contracts that return typed synthetic evidence and never touch disk,
+ *     processes, containers, networks, or databases.
  */
 
 import type {
@@ -101,7 +102,10 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
             issues.push({ detail: "artifact has no compiled lock" });
         } else {
             for (const node of artifact.lock.nodes) {
-                if (node.kind === "activity" && !isKnownActivity(node.activityKind)) {
+                if (
+                    node.kind === "activity" &&
+                    !isKnownActivity(node.activityKind, this.delegate === undefined)
+                ) {
                     issues.push({
                         nodeId: node.id,
                         detail: `unsupported activity '${node.activityKind}'`,
@@ -294,7 +298,12 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
                         };
                     }
                 }
-                result ??= executeNode(current, request.parameterValues, nodeValues);
+                result ??= executeNode(
+                    current,
+                    request.parameterValues,
+                    nodeValues,
+                    this.delegate === undefined,
+                );
                 if (result.values) {
                     nodeValues.set(current.id, result.values);
                 }
@@ -337,8 +346,20 @@ function hasEdge(edges: RunbookPlanEdge[], from: string, when: RunbookPlanEdge["
     return edges.some((e) => e.from === from && e.when === when);
 }
 
-function isKnownActivity(kind: string | undefined): boolean {
-    return kind === "sql.query.read" || kind === "assert.threshold";
+const PREVIEW_ACTIVITY_KINDS = new Set([
+    "workspace.inspect",
+    "dacpac.build",
+    "sandbox.provision",
+    "dacpac.deploy.preview",
+    "sandbox.dispose",
+]);
+
+function isKnownActivity(kind: string | undefined, allowPreviewActivities: boolean): boolean {
+    return (
+        kind === "sql.query.read" ||
+        kind === "assert.threshold" ||
+        (allowPreviewActivities && kind !== undefined && PREVIEW_ACTIVITY_KINDS.has(kind))
+    );
 }
 
 export interface NodeExecution {
@@ -354,6 +375,7 @@ function executeNode(
     node: RunbookPlanNode,
     parameterValues: Record<string, string | number | boolean | null>,
     nodeValues: Map<string, Record<string, number | string | boolean>>,
+    allowPreviewActivities: boolean,
 ): NodeExecution {
     if (node.kind === "report") {
         return {
@@ -364,7 +386,113 @@ function executeNode(
             },
         };
     }
+    if (PREVIEW_ACTIVITY_KINDS.has(node.activityKind ?? "") && !allowPreviewActivities) {
+        return {
+            success: false,
+            message: `preview-only activity '${node.activityKind}' requires the fake runtime`,
+            errorCode: "RunbookStudio.ActivityPolicyDenied",
+        };
+    }
     switch (node.activityKind) {
+        case "workspace.inspect":
+            return {
+                success: true,
+                message: "1 database project (deterministic preview)",
+                output: {
+                    contract: "workspaceSnapshot/1",
+                    scalars: {
+                        projectCount: 1,
+                        projectPath: "preview://workspace/Database.sqlproj",
+                        preview: true,
+                    },
+                },
+                values: {
+                    projectCount: 1,
+                    projectPath: "preview://workspace/Database.sqlproj",
+                },
+            };
+        case "dacpac.build": {
+            const project = resolveBind(node.inputs?.project, parameterValues, nodeValues);
+            if (typeof project !== "string" || project.length === 0) {
+                return invalidPreviewBinding("dacpac.build", "project");
+            }
+            return {
+                success: true,
+                message: "DACPAC build contract passed (deterministic preview)",
+                output: {
+                    contract: "dacpacArtifact/1",
+                    scalars: {
+                        artifactPath: "preview://artifacts/Database.dacpac",
+                        diagnosticCount: 0,
+                        preview: true,
+                    },
+                },
+                values: {
+                    artifactPath: "preview://artifacts/Database.dacpac",
+                    diagnosticCount: 0,
+                },
+            };
+        }
+        case "sandbox.provision": {
+            const sandbox = resolveBind(node.inputs?.sandbox, parameterValues, nodeValues);
+            if (typeof sandbox !== "string" || sandbox.length === 0) {
+                return invalidPreviewBinding("sandbox.provision", "sandbox");
+            }
+            return {
+                success: true,
+                message: "Ephemeral lease created (deterministic preview)",
+                output: {
+                    contract: "databaseLease/1",
+                    scalars: {
+                        leaseId: "preview-lease-001",
+                        connectionRef: "preview://sql/sandbox",
+                        preview: true,
+                    },
+                },
+                values: {
+                    leaseId: "preview-lease-001",
+                    connectionRef: "preview://sql/sandbox",
+                },
+            };
+        }
+        case "dacpac.deploy.preview": {
+            const dacpac = resolveBind(node.inputs?.dacpac, parameterValues, nodeValues);
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            if (typeof dacpac !== "string" || typeof database !== "string") {
+                return invalidPreviewBinding("dacpac.deploy.preview", "dacpac/database");
+            }
+            return {
+                success: true,
+                message: "3 schema changes previewed (no deployment executed)",
+                output: {
+                    contract: "deploymentPreview/1",
+                    scalars: {
+                        changeCount: 3,
+                        scriptPath: "preview://artifacts/deploy.sql",
+                        preview: true,
+                    },
+                },
+                values: {
+                    changeCount: 3,
+                    scriptPath: "preview://artifacts/deploy.sql",
+                },
+            };
+        }
+        case "sandbox.dispose": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            if (typeof database !== "string") {
+                return invalidPreviewBinding("sandbox.dispose", "database");
+            }
+            return {
+                success: true,
+                message: "Ephemeral lease disposed (deterministic preview)",
+                output: {
+                    contract: "cleanupEvidence/1",
+                    scalars: { cleaned: true, preview: true },
+                },
+                values: { cleaned: true },
+            };
+        }
         case "sql.query.read": {
             return {
                 success: true,
@@ -405,6 +533,14 @@ function executeNode(
                 errorCode: "RunbookStudio.ActivityUnsupported",
             };
     }
+}
+
+function invalidPreviewBinding(activityKind: string, input: string): NodeExecution {
+    return {
+        success: false,
+        message: `${activityKind} input '${input}' did not resolve`,
+        errorCode: "RunbookStudio.BindingInvalid",
+    };
 }
 
 /** Minimal deterministic bind-expression resolver:

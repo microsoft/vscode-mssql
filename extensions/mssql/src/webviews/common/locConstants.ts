@@ -3593,6 +3593,7 @@ export class LocConstants {
             incompatibleDetail: l10n.t(
                 "Update the run host or activity contracts shown below, then compile the plan again.",
             ),
+            previewOnly: l10n.t("deterministic preview only"),
             proposedWorkflow: l10n.t("Proposed workflow"),
             designOutlineDetail: l10n.t(
                 "Review-only outline. These steps are not executable until every required activity is installed and the workflow is compiled.",

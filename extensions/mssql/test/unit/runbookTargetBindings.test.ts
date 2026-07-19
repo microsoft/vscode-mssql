@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import { createFixtureRunbookArtifact } from "../../src/runbookStudio/runbookArtifact";
+import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudio/developerValidationPreview";
 import { validateTargetBindings } from "../../src/runbookStudio/targetBindings";
 
 suite("Runbook Studio target bindings", () => {
@@ -54,5 +55,14 @@ suite("Runbook Studio target bindings", () => {
         expect(validateTargetBindings(artifact, { target: "profile-1" })[0].kind).to.equal(
             "manifestMismatch",
         );
+    });
+
+    test("admits workspace, parameter, and upstream-output targets in the preview chain", () => {
+        expect(
+            validateTargetBindings(createDeveloperValidationPreviewArtifact(), {
+                projectPath: "Database.sqlproj",
+                sandboxName: "preview-sandbox",
+            }),
+        ).to.deep.equal([]);
     });
 });

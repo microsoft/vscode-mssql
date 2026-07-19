@@ -41,7 +41,10 @@ import {
     RunbookRunEvent,
 } from "../sharedInterfaces/runbookStudio";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
-import { preflightRunbookRequirements } from "./capabilities/runbookCapabilities";
+import {
+    preflightContextForRuntime,
+    preflightRunbookRequirements,
+} from "./capabilities/runbookCapabilities";
 import { resolvePlanQueryLaunch } from "./planQueryLaunch";
 import type { RunbookRunCoordinator } from "./runbookRunCoordinator";
 import {
@@ -438,7 +441,14 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     ? { requirements: artifact.source.requirements }
                     : {}),
                 ...(artifact.source.design ? { design: artifact.source.design } : {}),
-                readiness: preflightRunbookRequirements(artifact.source.requirements),
+                readiness: preflightRunbookRequirements(
+                    artifact.source.requirements,
+                    preflightContextForRuntime(
+                        vscode.workspace
+                            .getConfiguration()
+                            .get<string>("mssql.runbookStudio.runtime", "local"),
+                    ),
+                ),
                 hasLock: artifact.lock !== undefined,
                 ...(artifact.lock ? { planRevision: artifact.lock.planRevision } : {}),
                 ...(artifact.lock ? { entryNodeId: artifact.lock.entryNodeId } : {}),

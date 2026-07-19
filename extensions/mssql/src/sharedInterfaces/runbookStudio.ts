@@ -216,6 +216,8 @@ export interface RunbookPlanNode {
     /** Explicit typed resource affected/read by this activity. Activities
      * that need a target are refused at admission when this is absent. */
     target?: RunbookPlanTarget;
+    /** Contract is executable only in the deterministic fake runtime. */
+    previewOnly?: boolean;
     blastRadius?: BlastRadius;
 }
 

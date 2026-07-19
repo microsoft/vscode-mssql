@@ -485,6 +485,12 @@ function validateLock(lock: unknown): ArtifactParseFailure | undefined {
                 `activity node '${node.id}' missing activityKind`,
             );
         }
+        if (node.previewOnly !== undefined && typeof node.previewOnly !== "boolean") {
+            return fail(
+                "RunbookStudio.InvalidArtifact",
+                `node '${node.id}' previewOnly metadata invalid`,
+            );
+        }
         if (node.target !== undefined) {
             if (!isRecord(node.target) || !TARGET_KINDS.has(String(node.target.kind))) {
                 return fail("RunbookStudio.InvalidArtifact", `node '${node.id}' target invalid`);

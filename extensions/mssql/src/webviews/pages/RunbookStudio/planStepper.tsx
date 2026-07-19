@@ -373,6 +373,11 @@ export function PlanStepper({
                                 {blastRadiusLabel(node) ? (
                                     <span className="rbs-chip">{blastRadiusLabel(node)}</span>
                                 ) : null}
+                                {node.previewOnly ? (
+                                    <span className="rbs-chip rbs-chip-warn">
+                                        {loc.previewOnly}
+                                    </span>
+                                ) : null}
                                 {branchNotes.map((note) => (
                                     <span className="rbs-muted" key={note}>
                                         {note}

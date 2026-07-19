@@ -9240,6 +9240,9 @@
     <trans-unit id="++CODE++4b430cbcf942dab43ceaad79c3e1261f3167e47f63153c3a6a785925e6c68d81">
       <source xml:lang="en">detail data expired</source>
     </trans-unit>
+    <trans-unit id="++CODE++fd1e6199438c876d35ee40fc11314584dcd8f612dbe134e4dd4b55553b70c9f2">
+      <source xml:lang="en">deterministic preview only</source>
+    </trans-unit>
     <trans-unit id="++CODE++80ccd8c9b9af87acd9ce5bea7f8b6c9978971ca8f81888ab1d2ab3a3de6d2c06">
       <source xml:lang="en">does not contain</source>
     </trans-unit>

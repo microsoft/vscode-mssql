@@ -1312,10 +1312,14 @@ function PlanPage() {
     }
     const artifact = state?.artifact;
     if (!artifact?.hasLock) {
-        if (artifact?.readiness?.status === "designOnly") {
+        if (artifact?.design) {
             return (
                 <div className="rbs-page-body">
-                    <CapabilityBlockers />
+                    {artifact.readiness?.status === "designOnly" ? (
+                        <CapabilityBlockers />
+                    ) : (
+                        <CompatibilityNotice />
+                    )}
                     <DesignPlanOutline />
                 </div>
             );

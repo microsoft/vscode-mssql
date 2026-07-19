@@ -45,6 +45,11 @@ const COMPATIBILITY: Record<string, ViewKind[]> = {
     "log/1": ["log-view", "json"],
     "diagnostics/1": ["diagnostics", "grid", "json"],
     "artifactList/1": ["artifact-list", "grid", "json"],
+    "workspaceSnapshot/1": ["scalar-cards", "json"],
+    "dacpacArtifact/1": ["scalar-cards", "json"],
+    "databaseLease/1": ["scalar-cards", "json"],
+    "deploymentPreview/1": ["scalar-cards", "json"],
+    "cleanupEvidence/1": ["scalar-cards", "json"],
 };
 
 export function compatibleViews(contract: string): ViewKind[] {
@@ -70,6 +75,11 @@ export function viewCandidateTier(contract: string, view: ViewKind): ViewCandida
 export const ACTIVITY_OUTPUT_CONTRACTS: Record<string, string> = {
     "sql.query.read": "rowset/1",
     "assert.threshold": "scalarSet/1",
+    "workspace.inspect": "workspaceSnapshot/1",
+    "dacpac.build": "dacpacArtifact/1",
+    "sandbox.provision": "databaseLease/1",
+    "dacpac.deploy.preview": "deploymentPreview/1",
+    "sandbox.dispose": "cleanupEvidence/1",
 };
 
 /** Expected contract for a plan node at authoring time; report nodes render

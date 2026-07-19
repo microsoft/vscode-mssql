@@ -15,7 +15,7 @@ import {
     RunbookPlanNode,
     RunbookTargetKind,
 } from "../sharedInterfaces/runbookStudio";
-import { findActivity, targetFromCatalog } from "./activities/activityCatalog";
+import { findActivity, targetFromCatalog, targetsEqual } from "./activities/activityCatalog";
 
 export type TargetBindingIssueKind =
     | "missingTarget"
@@ -38,7 +38,7 @@ const PARAMETER_TYPES_BY_TARGET: Record<RunbookTargetKind, ReadonlySet<RunbookPa
     databaseProject: new Set(["string"]),
     dacpac: new Set(["string"]),
     sqlDatabase: new Set(["connection", "database"]),
-    ephemeralSqlDatabase: new Set(["connection", "database"]),
+    ephemeralSqlDatabase: new Set(["string", "connection", "database"]),
     ciAgent: new Set(["string"]),
 };
 
@@ -97,15 +97,7 @@ export function validateTargetBindings(
 
         const descriptor = findActivity(node.activityKind);
         const expected = descriptor ? targetFromCatalog(node, descriptor) : undefined;
-        if (
-            descriptor?.target &&
-            (!expected ||
-                expected.kind !== node.target.kind ||
-                expected.binding.source !== node.target.binding.source ||
-                (expected.binding.source === "parameter" &&
-                    node.target.binding.source === "parameter" &&
-                    expected.binding.parameterId !== node.target.binding.parameterId))
-        ) {
+        if (descriptor?.target && (!expected || !targetsEqual(expected, node.target))) {
             issues.push({
                 kind: "catalogMismatch",
                 nodeId: node.id,

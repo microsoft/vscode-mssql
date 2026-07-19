@@ -22,6 +22,7 @@ import {
     parseRunbookArtifact,
 } from "../../src/runbookStudio/runbookArtifact";
 import { RunbookArtifactFile } from "../../src/sharedInterfaces/runbookStudio";
+import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudio/developerValidationPreview";
 import {
     classifyRunbookIntent,
     prepareRunbookIntent,
@@ -51,6 +52,24 @@ suite("runbookArtifact", () => {
             const artifact = expectSuccess(parseRunbookArtifact(fixtureText()));
             expect(artifact.id).to.equal("fixture-readonly-check");
             expect(artifact.lock?.nodes).to.have.length(3);
+        });
+
+        test("accepts the deterministic developer validation preview", () => {
+            const artifact = createDeveloperValidationPreviewArtifact();
+            const parsed = expectSuccess(
+                parseRunbookArtifact(canonicalizeRunbookArtifact(artifact)),
+            );
+            expect(parsed.family).to.equal("validate");
+            expect(
+                parsed.lock?.nodes.find((node) => node.id === "preview-deploy")?.target,
+            ).to.deep.equal({
+                kind: "ephemeralSqlDatabase",
+                binding: {
+                    source: "nodeOutput",
+                    nodeId: "provision-sandbox",
+                    output: "connectionRef",
+                },
+            });
         });
 
         test("accepts a fresh template (no lock)", () => {

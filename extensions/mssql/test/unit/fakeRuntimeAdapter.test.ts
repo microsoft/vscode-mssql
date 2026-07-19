@@ -12,6 +12,7 @@
 
 import { expect } from "chai";
 import { createFixtureRunbookArtifact } from "../../src/runbookStudio/runbookArtifact";
+import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudio/developerValidationPreview";
 import { newRunbookRootContext } from "../../src/runbookStudio/runbookDiag";
 import { FakeRuntimeAdapter } from "../../src/runbookStudio/runtime/fakeRuntimeAdapter";
 import {
@@ -212,7 +213,7 @@ suite("fakeRuntimeAdapter", () => {
 
     test("validate rejects unsupported activities and missing locks", async () => {
         const artifact = createFixtureRunbookArtifact();
-        artifact.lock!.nodes[0].activityKind = "dacpac.build";
+        artifact.lock!.nodes[0].activityKind = "unregistered.activity";
         const result = await adapter.validate(artifact, ctx());
         expect(result.ok).to.equal(false);
         expect(result.issues[0].nodeId).to.equal("query");
@@ -221,5 +222,70 @@ suite("fakeRuntimeAdapter", () => {
         delete noLock.lock;
         const noLockResult = await adapter.validate(noLock, ctx());
         expect(noLockResult.ok).to.equal(false);
+    });
+
+    test("developer validation preview emits typed evidence and cleanup after approval", async () => {
+        const observer = new CollectingObserver();
+        const artifact = createDeveloperValidationPreviewArtifact();
+        expect((await adapter.validate(artifact, ctx())).ok).to.equal(true);
+        await adapter.startRun(
+            {
+                runId: "developer-preview",
+                artifact,
+                parameterValues: {
+                    projectPath: "Database.sqlproj",
+                    sandboxName: "preview-sandbox",
+                },
+            },
+            observer,
+            ctx(),
+        );
+        await observer.gateReached;
+        expect(
+            await adapter.respondToGate("developer-preview", "approve-sandbox", true, ctx()),
+        ).to.equal(true);
+        await observer.terminal;
+
+        expect(observer.terminalEvent()).to.include({ state: "succeeded", verdict: "pass" });
+        const contracts = observer.events
+            .filter(
+                (event): event is Extract<RuntimeBoundaryEvent, { kind: "nodeState" }> =>
+                    event.kind === "nodeState" && event.state === "succeeded",
+            )
+            .map((event) => event.output?.contract)
+            .filter(Boolean);
+        expect(contracts).to.include.members([
+            "workspaceSnapshot/1",
+            "dacpacArtifact/1",
+            "databaseLease/1",
+            "deploymentPreview/1",
+            "cleanupEvidence/1",
+            "markdown/1",
+        ]);
+        expect(observer.nodeStates("dispose-sandbox")).to.deep.equal(["running", "succeeded"]);
+        const preview = observer.events.find(
+            (event) =>
+                event.kind === "nodeState" &&
+                event.nodeId === "preview-deploy" &&
+                event.state === "succeeded",
+        ) as Extract<RuntimeBoundaryEvent, { kind: "nodeState" }>;
+        expect(preview.output?.scalars).to.include({ changeCount: 3, preview: true });
+    });
+
+    test("local delegates refuse preview-only developer activities", async () => {
+        const local = new FakeRuntimeAdapter({
+            runtimeKind: "local",
+            executeActivity: async () => undefined,
+        });
+        try {
+            const validation = await local.validate(
+                createDeveloperValidationPreviewArtifact(),
+                ctx(),
+            );
+            expect(validation.ok).to.equal(false);
+            expect(validation.issues[0].detail).to.contain("workspace.inspect");
+        } finally {
+            await local.dispose();
+        }
     });
 });
