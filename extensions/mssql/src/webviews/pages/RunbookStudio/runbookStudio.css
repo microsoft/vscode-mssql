@@ -367,6 +367,33 @@
     justify-content: flex-end;
 }
 
+.rbs-design-outline {
+    border-color: var(--vscode-inputValidation-warningBorder, var(--vscode-widget-border));
+}
+
+.rbs-design-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+    padding-left: 28px;
+}
+
+.rbs-design-step {
+    padding: 10px 12px;
+    border: 1px dashed var(--vscode-widget-border, var(--vscode-panel-border));
+    border-radius: 4px;
+    background: var(--vscode-editorWidget-background);
+}
+
+.rbs-design-step-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 4px;
+}
+
 .rbs-kv {
     margin: 0;
     display: flex;

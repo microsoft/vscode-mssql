@@ -22,7 +22,10 @@ import {
     parseRunbookArtifact,
 } from "../../src/runbookStudio/runbookArtifact";
 import { RunbookArtifactFile } from "../../src/sharedInterfaces/runbookStudio";
-import { classifyRunbookIntent } from "../../src/runbookStudio/capabilities/runbookCapabilities";
+import {
+    classifyRunbookIntent,
+    prepareRunbookIntent,
+} from "../../src/runbookStudio/capabilities/runbookCapabilities";
 
 function fixtureText(): string {
     return canonicalizeRunbookArtifact(createFixtureRunbookArtifact());
@@ -140,6 +143,45 @@ suite("runbookArtifact", () => {
             (artifact.source.requirements as unknown as Record<string, unknown>).schemaVersion = 2;
             const failure = expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
             expect(failure.code).to.equal("RunbookStudio.IncompatibleVersion");
+        });
+
+        test("round-trips a design-only plan without an executable lock", () => {
+            const artifact = prepareRunbookIntent(
+                createFixtureRunbookArtifact(),
+                "Create a database project, build a DACPAC, deploy to a sandbox, and verify schema drift.",
+            ).artifact;
+            const parsed = expectSuccess(
+                parseRunbookArtifact(canonicalizeRunbookArtifact(artifact)),
+            );
+
+            expect(parsed.lock).to.equal(undefined);
+            expect(parsed.source.design).to.deep.equal(artifact.source.design);
+            expect(parsed.source.design?.steps.map((step) => step.activityKind)).to.not.include(
+                "sql.query.read",
+            );
+        });
+
+        test("refuses a design outline alongside an executable lock", () => {
+            const executable = createFixtureRunbookArtifact();
+            const designOnly = prepareRunbookIntent(
+                executable,
+                "Create a database project and build a DACPAC.",
+            ).artifact;
+            designOnly.lock = executable.lock;
+
+            const failure = expectFailure(parseRunbookArtifact(JSON.stringify(designOnly)));
+            expect(failure.detail).to.contain("must not contain a lock");
+        });
+
+        test("refuses design steps that do not cover the requirement manifest", () => {
+            const artifact = prepareRunbookIntent(
+                createFixtureRunbookArtifact(),
+                "Create a database project and build a DACPAC.",
+            ).artifact;
+            artifact.source.design!.steps.pop();
+
+            const failure = expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
+            expect(failure.detail).to.contain("does not cover requirements");
         });
     });
 

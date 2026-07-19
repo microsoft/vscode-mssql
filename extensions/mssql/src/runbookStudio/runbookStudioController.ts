@@ -437,6 +437,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 ...(artifact.source.requirements
                     ? { requirements: artifact.source.requirements }
                     : {}),
+                ...(artifact.source.design ? { design: artifact.source.design } : {}),
                 readiness: preflightRunbookRequirements(artifact.source.requirements),
                 hasLock: artifact.lock !== undefined,
                 ...(artifact.lock ? { planRevision: artifact.lock.planRevision } : {}),

@@ -15,9 +15,11 @@ import {
     RunbookActivityRequirement,
     RunbookArtifactFile,
     RunbookCapabilityManifest,
+    RunbookDesignPlan,
     RunbookFamily,
     RunbookTargetKind,
     RUNBOOK_REQUIREMENTS_SCHEMA_VERSION,
+    RUNBOOK_DESIGN_SCHEMA_VERSION,
 } from "../../sharedInterfaces/runbookStudio";
 import { findActivity } from "../activities/activityCatalog";
 
@@ -146,6 +148,135 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         rollbackContract: "automatic",
         outputContract: "evidenceBundle/1",
     },
+};
+
+const DESIGN_COPY: Readonly<Record<string, { label: string; description: string }>> = {
+    "sql.query.read": {
+        label: "Inspect the target database",
+        description: "Run the bounded read-only SQL checks needed to gather current evidence.",
+    },
+    "workspace.inspect": {
+        label: "Inspect the workspace",
+        description: "Discover the existing database projects, source files, and build inputs.",
+    },
+    "dbproject.create": {
+        label: "Create the database project",
+        description: "Scaffold the project structure and its deterministic build configuration.",
+    },
+    "dbproject.add-object": {
+        label: "Author the requested schema objects",
+        description: "Add the tables, keys, constraints, indexes, and other project-owned objects.",
+    },
+    "dacpac.build": {
+        label: "Build the DACPAC",
+        description: "Compile the database project and retain the build diagnostics and artifact.",
+    },
+    "sandbox.provision": {
+        label: "Provision an isolated SQL target",
+        description: "Create a bounded ephemeral database and record its cleanup lease.",
+    },
+    "dacpac.deploy.preview": {
+        label: "Preview the deployment",
+        description:
+            "Generate the deployment report and script for review before applying changes.",
+    },
+    "dacpac.deploy": {
+        label: "Deploy to the isolated target",
+        description: "Apply the approved DACPAC change to the explicitly provisioned database.",
+    },
+    "schema.compare": {
+        label: "Verify the deployed schema",
+        description: "Compare the expected project model with the target and report any drift.",
+    },
+    "sqltest.run": {
+        label: "Run database tests",
+        description:
+            "Execute the registered SQL test suite and capture deterministic pass/fail results.",
+    },
+    "workload.benchmark": {
+        label: "Run the workload benchmark",
+        description:
+            "Execute the bounded workload and capture latency, throughput, and error evidence.",
+    },
+    "baseline.compare": {
+        label: "Compare with the approved baseline",
+        description:
+            "Detect statistically meaningful regressions against versioned baseline evidence.",
+    },
+    "security.permissions.validate": {
+        label: "Validate effective permissions",
+        description: "Check the target access model against the requested least-privilege policy.",
+    },
+    "connection.auth.diagnose": {
+        label: "Diagnose connection and authentication",
+        description:
+            "Test the bound target's authentication, TLS, firewall, and login prerequisites.",
+    },
+    "incident.replay.sandbox": {
+        label: "Replay the incident in isolation",
+        description:
+            "Reproduce the captured incident against a disposable target with bounded effects.",
+    },
+    "evidence.bundle": {
+        label: "Publish the evidence bundle",
+        description:
+            "Collect build, deployment, test, comparison, and cleanup evidence for review or CI.",
+    },
+    "sandbox.dispose": {
+        label: "Dispose the isolated SQL target",
+        description: "Release the ephemeral database and prove that cleanup completed.",
+    },
+};
+
+/** Family grammars intentionally order cleanup last and never substitute an
+ * installed read query for an unavailable operational verb. */
+const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> = {
+    build: [
+        "workspace.inspect",
+        "dbproject.create",
+        "dbproject.add-object",
+        "dacpac.build",
+        "sandbox.provision",
+        "dacpac.deploy.preview",
+        "dacpac.deploy",
+        "schema.compare",
+        "sqltest.run",
+        "workload.benchmark",
+        "baseline.compare",
+        "security.permissions.validate",
+        "connection.auth.diagnose",
+        "incident.replay.sandbox",
+        "evidence.bundle",
+        "sandbox.dispose",
+    ],
+    validate: [
+        "workspace.inspect",
+        "dacpac.build",
+        "sandbox.provision",
+        "dacpac.deploy.preview",
+        "dacpac.deploy",
+        "schema.compare",
+        "sqltest.run",
+        "workload.benchmark",
+        "baseline.compare",
+        "security.permissions.validate",
+        "connection.auth.diagnose",
+        "incident.replay.sandbox",
+        "sql.query.read",
+        "evidence.bundle",
+        "sandbox.dispose",
+    ],
+    investigate: [
+        "connection.auth.diagnose",
+        "sql.query.read",
+        "workload.benchmark",
+        "baseline.compare",
+        "security.permissions.validate",
+        "sandbox.provision",
+        "incident.replay.sandbox",
+        "evidence.bundle",
+        "sandbox.dispose",
+    ],
 };
 
 function has(text: string, expression: RegExp): boolean {
@@ -281,6 +412,44 @@ export function preflightRunbookRequirements(
     };
 }
 
+/** Produce a deterministic, family-ordered review outline. The outline is
+ * source material only: no inputs, bindings, gates, or executable lock. */
+export function buildDesignOnlyPlan(classified: ClassifiedRunbookIntent): RunbookDesignPlan {
+    const priority = DESIGN_ACTIVITY_ORDER[classified.family];
+    const priorityOf = (kind: string) => {
+        const index = priority.indexOf(kind);
+        return index < 0 ? Number.MAX_SAFE_INTEGER : index;
+    };
+    const ordered = [...classified.requirements.activities].sort(
+        (left, right) => priorityOf(left.kind) - priorityOf(right.kind),
+    );
+    let previousId: string | undefined;
+    const steps = ordered.map((activity) => {
+        const copy = DESIGN_COPY[activity.kind];
+        const defaults = REQUIREMENT_DEFAULTS[activity.kind];
+        if (!copy || !defaults) {
+            throw new Error(`missing design grammar for '${activity.kind}'`);
+        }
+        const id = `design-${activity.kind.replace(/[^A-Za-z0-9_-]/g, "-")}`;
+        const step = {
+            id,
+            label: copy.label,
+            description: copy.description,
+            activityKind: activity.kind,
+            activityVersion: activity.version,
+            targetKind: defaults.target,
+            dependsOn: previousId ? [previousId] : [],
+        };
+        previousId = id;
+        return step;
+    });
+    return {
+        schemaVersion: RUNBOOK_DESIGN_SCHEMA_VERSION,
+        family: classified.family,
+        steps,
+    };
+}
+
 /** Apply deterministic routing metadata to an artifact. Design-only intent
  *  always drops an older lock so source and executable state cannot diverge. */
 export function prepareRunbookIntent(
@@ -289,14 +458,19 @@ export function prepareRunbookIntent(
 ): PreparedRunbookIntent {
     const classified = classifyRunbookIntent(intent);
     const readiness = preflightRunbookRequirements(classified.requirements);
+    const sourceWithoutDesign = { ...current.source };
+    delete sourceWithoutDesign.design;
     return {
         artifact: {
             ...current,
             family: classified.family,
             source: {
-                ...current.source,
+                ...sourceWithoutDesign,
                 intent,
                 requirements: classified.requirements,
+                ...(readiness.status === "designOnly"
+                    ? { design: buildDesignOnlyPlan(classified) }
+                    : {}),
             },
             ...(readiness.status === "designOnly" ? { lock: undefined } : {}),
         },

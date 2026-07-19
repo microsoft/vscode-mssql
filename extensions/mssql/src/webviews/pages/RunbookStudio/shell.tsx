@@ -144,6 +144,49 @@ function CapabilityBlockers() {
     );
 }
 
+function DesignPlanOutline() {
+    const { state } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const design = state?.artifact?.design;
+    if (!design) {
+        return null;
+    }
+    const missing = new Set(state?.artifact?.readiness?.missingActivityKinds ?? []);
+    return (
+        <section className="rbs-section rbs-design-outline" aria-labelledby="rbs-design-heading">
+            <h2 id="rbs-design-heading" className="rbs-section-title">
+                {loc.proposedWorkflow}
+            </h2>
+            <p className="rbs-muted">{loc.designOutlineDetail}</p>
+            <ol className="rbs-design-steps">
+                {design.steps.map((step) => {
+                    const activityIdentity = `${step.activityKind}@${step.activityVersion}`;
+                    const unavailable = missing.has(activityIdentity);
+                    return (
+                        <li className="rbs-design-step" key={step.id}>
+                            <div className="rbs-design-step-heading">
+                                <strong>{step.label}</strong>
+                                <span
+                                    className={`rbs-chip ${unavailable ? "rbs-chip-warn" : "rbs-chip-ok"}`}>
+                                    {unavailable ? loc.missingCapability : loc.installedCapability}
+                                </span>
+                            </div>
+                            <div>{step.description}</div>
+                            <div className="rbs-step-meta">
+                                <span className="rbs-mono">{activityIdentity}</span>
+                                <span className="rbs-muted">
+                                    {loc.targetLabel}{" "}
+                                    <span className="rbs-mono">{step.targetKind}</span>
+                                </span>
+                            </div>
+                        </li>
+                    );
+                })}
+            </ol>
+        </section>
+    );
+}
+
 function StepsBanner({ stage }: { stage: 1 | 2 | 3 }) {
     const loc = locConstants.runbookStudio;
     const steps = [loc.stepDescribe, loc.stepGenerate, loc.stepBindRun];
@@ -506,6 +549,7 @@ function AuthorPage() {
                 </div>
                 <GenerationConsole />
             </section>
+            {!artifact.hasLock ? <DesignPlanOutline /> : null}
             {artifact.hasLock ? (
                 <section className="rbs-section">
                     <h2 className="rbs-section-title">{loc.compiledPlan}</h2>
@@ -1221,6 +1265,7 @@ function PlanPage() {
             return (
                 <div className="rbs-page-body">
                     <CapabilityBlockers />
+                    <DesignPlanOutline />
                 </div>
             );
         }

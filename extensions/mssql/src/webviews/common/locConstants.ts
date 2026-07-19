@@ -3578,6 +3578,13 @@ export class LocConstants {
             designOnlyDetail: l10n.t(
                 "This workflow cannot run yet. Install activities for the capabilities below, then generate the executable plan again.",
             ),
+            proposedWorkflow: l10n.t("Proposed workflow"),
+            designOutlineDetail: l10n.t(
+                "Review-only outline. These steps are not executable until every required activity is installed and the workflow is compiled.",
+            ),
+            missingCapability: l10n.t("Missing capability"),
+            installedCapability: l10n.t("Installed capability"),
+            targetLabel: l10n.t("Target:"),
             restrictedMode: l10n.t("restricted mode"),
             untrustedDetail: l10n.t(
                 "Runbook execution is disabled in untrusted workspaces. Trust this workspace to run runbooks.",

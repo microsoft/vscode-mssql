@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import {
+    buildDesignOnlyPlan,
     classifyRunbookIntent,
     preflightRunbookRequirements,
     prepareRunbookIntent,
@@ -46,9 +47,51 @@ suite("runbook capability preflight", () => {
         );
         expect(prepared.artifact.family).to.equal("build");
         expect(prepared.artifact.lock).to.equal(undefined);
+        expect(prepared.artifact.source.design?.family).to.equal("build");
+        expect(
+            prepared.artifact.source.design?.steps.map((step) => step.activityKind),
+        ).to.deep.equal(["workspace.inspect", "dbproject.create", "dacpac.build"]);
         expect(
             prepared.artifact.source.requirements?.activities.map((activity) => activity.kind),
         ).to.include("dacpac.build");
+    });
+
+    test("B01 design grammar orders deploy verification, evidence, and cleanup safely", () => {
+        const classified = classifyRunbookIntent(
+            "Create a database project; add tables; build a DACPAC; provision an isolated local target; deploy; verify; report with evidence.",
+        );
+        const design = buildDesignOnlyPlan(classified);
+        const kinds = design.steps.map((step) => step.activityKind);
+
+        expect(kinds).to.deep.equal([
+            "workspace.inspect",
+            "dbproject.create",
+            "dbproject.add-object",
+            "dacpac.build",
+            "sandbox.provision",
+            "dacpac.deploy.preview",
+            "dacpac.deploy",
+            "schema.compare",
+            "evidence.bundle",
+            "sandbox.dispose",
+        ]);
+        expect(kinds).not.to.include("sql.query.read");
+        expect(design.steps[0].dependsOn).to.deep.equal([]);
+        expect(design.steps.at(-1)?.dependsOn).to.deep.equal(["design-evidence-bundle"]);
+    });
+
+    test("executable investigation preparation removes a stale design outline", () => {
+        const artifact = createFixtureRunbookArtifact();
+        artifact.source.design = buildDesignOnlyPlan(
+            classifyRunbookIntent("Create a database project and build a DACPAC"),
+        );
+
+        const prepared = prepareRunbookIntent(
+            artifact,
+            "Inspect developer database health and summarize current readiness.",
+        );
+        expect(prepared.readiness.status).to.equal("readyAfterBinding");
+        expect(prepared.artifact.source.design).to.equal(undefined);
     });
 
     test("V02 pre-merge verification requests build, test, and evidence capabilities", () => {

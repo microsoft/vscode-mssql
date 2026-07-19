@@ -18,6 +18,7 @@ import {
     RunbookParameterType,
     RunbookStudioErrorCode,
     RUNBOOK_LOCK_SCHEMA_VERSION,
+    RUNBOOK_DESIGN_SCHEMA_VERSION,
     RUNBOOK_REQUIREMENTS_SCHEMA_VERSION,
     RUNBOOK_SOURCE_SCHEMA_VERSION,
 } from "../sharedInterfaces/runbookStudio";
@@ -84,6 +85,7 @@ const MAX_ARTIFACT_BYTES = 2 * 1024 * 1024;
 const MAX_NODES = 500;
 const MAX_EDGES = 2000;
 const MAX_PARAMETERS = 200;
+const MAX_DESIGN_STEPS = 500;
 
 function fail(code: RunbookStudioErrorCode, detail: string): ArtifactParseFailure {
     return { ok: false, code, detail };
@@ -170,7 +172,19 @@ export function parseRunbookArtifact(text: string): ArtifactParseResult {
             return failure;
         }
     }
+    if (source.design !== undefined) {
+        const failure = validateDesign(source.design, source.requirements, raw.family);
+        if (failure) {
+            return failure;
+        }
+    }
 
+    if (source.design !== undefined && raw.lock !== undefined) {
+        return fail(
+            "RunbookStudio.InvalidArtifact",
+            "design-only artifact must not contain a lock",
+        );
+    }
     if (raw.lock !== undefined) {
         const failure = validateLock(raw.lock);
         if (failure) {
@@ -179,6 +193,115 @@ export function parseRunbookArtifact(text: string): ArtifactParseResult {
     }
 
     return { ok: true, artifact: raw as unknown as RunbookArtifactFile };
+}
+
+function validateDesign(
+    design: unknown,
+    requirements: unknown,
+    artifactFamily: unknown,
+): ArtifactParseFailure | undefined {
+    if (!isRecord(design)) {
+        return fail("RunbookStudio.InvalidArtifact", "source.design is not an object");
+    }
+    if (design.schemaVersion !== RUNBOOK_DESIGN_SCHEMA_VERSION) {
+        if (
+            typeof design.schemaVersion === "number" &&
+            design.schemaVersion > RUNBOOK_DESIGN_SCHEMA_VERSION
+        ) {
+            return fail(
+                "RunbookStudio.IncompatibleVersion",
+                `design schemaVersion ${design.schemaVersion} > supported ${RUNBOOK_DESIGN_SCHEMA_VERSION}`,
+            );
+        }
+        return fail("RunbookStudio.InvalidArtifact", "design schemaVersion invalid");
+    }
+    if (
+        (design.family !== "build" &&
+            design.family !== "validate" &&
+            design.family !== "investigate") ||
+        design.family !== artifactFamily
+    ) {
+        return fail("RunbookStudio.InvalidArtifact", "design family does not match artifact");
+    }
+    if (!Array.isArray(design.steps) || design.steps.length === 0) {
+        return fail("RunbookStudio.InvalidArtifact", "design has no steps");
+    }
+    if (design.steps.length > MAX_DESIGN_STEPS) {
+        return fail("RunbookStudio.InvalidArtifact", "design exceeds step limit");
+    }
+    const requirementVersions = new Map<string, number>();
+    if (isRecord(requirements) && Array.isArray(requirements.activities)) {
+        for (const requirement of requirements.activities) {
+            if (
+                isRecord(requirement) &&
+                typeof requirement.kind === "string" &&
+                typeof requirement.version === "number"
+            ) {
+                requirementVersions.set(requirement.kind, requirement.version);
+            }
+        }
+    }
+    const stepIds = new Set<string>();
+    const stepKinds = new Set<string>();
+    for (const step of design.steps as unknown[]) {
+        if (!isRecord(step) || !isNonEmptyString(step.id)) {
+            return fail("RunbookStudio.InvalidArtifact", "design step missing id");
+        }
+        if (stepIds.has(step.id)) {
+            return fail("RunbookStudio.InvalidArtifact", `duplicate design step '${step.id}'`);
+        }
+        stepIds.add(step.id);
+        if (
+            !isNonEmptyString(step.label) ||
+            !isNonEmptyString(step.description) ||
+            !isNonEmptyString(step.activityKind) ||
+            !Number.isInteger(step.activityVersion) ||
+            (step.activityVersion as number) < 1 ||
+            typeof step.targetKind !== "string" ||
+            !TARGET_KINDS.has(step.targetKind) ||
+            !Array.isArray(step.dependsOn) ||
+            !step.dependsOn.every(isNonEmptyString)
+        ) {
+            return fail(
+                "RunbookStudio.InvalidArtifact",
+                `design step '${step.id}' has invalid metadata`,
+            );
+        }
+        if (requirementVersions.get(step.activityKind) !== step.activityVersion) {
+            return fail(
+                "RunbookStudio.InvalidArtifact",
+                `design step '${step.id}' does not match requirements`,
+            );
+        }
+        if (stepKinds.has(step.activityKind)) {
+            return fail(
+                "RunbookStudio.InvalidArtifact",
+                `design contains duplicate activity '${step.activityKind}'`,
+            );
+        }
+        stepKinds.add(step.activityKind);
+    }
+    if (
+        stepKinds.size !== requirementVersions.size ||
+        [...requirementVersions.keys()].some((kind) => !stepKinds.has(kind))
+    ) {
+        return fail("RunbookStudio.InvalidArtifact", "design does not cover requirements");
+    }
+    const priorIds = new Set<string>();
+    for (const step of design.steps as Array<Record<string, unknown>>) {
+        if (
+            (step.dependsOn as string[]).some(
+                (dependency) => dependency === step.id || !priorIds.has(dependency),
+            )
+        ) {
+            return fail(
+                "RunbookStudio.InvalidArtifact",
+                `design step '${step.id}' has an invalid dependency`,
+            );
+        }
+        priorIds.add(step.id as string);
+    }
+    return undefined;
 }
 
 function validateRequirements(requirements: unknown): ArtifactParseFailure | undefined {

@@ -21,6 +21,7 @@ import type { ResolvedPresentation, ViewKind } from "./runbookPresentation";
 export const RUNBOOK_SOURCE_SCHEMA_VERSION = 1;
 export const RUNBOOK_LOCK_SCHEMA_VERSION = 1;
 export const RUNBOOK_REQUIREMENTS_SCHEMA_VERSION = 1;
+export const RUNBOOK_DESIGN_SCHEMA_VERSION = 1;
 export const RBS_STATE_SCHEMA_VERSION = 1;
 export const RUNBOOK_RUN_EVENT_SCHEMA_VERSION = 1;
 
@@ -128,12 +129,33 @@ export interface RunbookCapabilityManifest {
     activities: RunbookActivityRequirement[];
 }
 
+/** Reviewable, explicitly non-executable workflow produced when required
+ * activities are unavailable. It contains no activity inputs or bindings and
+ * can never be admitted as a compiled lock. */
+export interface RunbookDesignStep {
+    id: string;
+    label: string;
+    description: string;
+    activityKind: string;
+    activityVersion: number;
+    targetKind: RunbookTargetKind;
+    dependsOn: string[];
+}
+
+export interface RunbookDesignPlan {
+    schemaVersion: typeof RUNBOOK_DESIGN_SCHEMA_VERSION;
+    family: RunbookFamily;
+    steps: RunbookDesignStep[];
+}
+
 export interface RunbookSource {
     schemaVersion: typeof RUNBOOK_SOURCE_SCHEMA_VERSION;
     /** The authored natural-language intent. */
     intent: string;
     parameters: RunbookParameterDefinition[];
     requirements?: RunbookCapabilityManifest;
+    /** Present only for an explicitly non-executable design-only workflow. */
+    design?: RunbookDesignPlan;
 }
 
 /** Safety taxonomy axes (ADR-6 / A1 §5.2). Closed enums — never free text. */
@@ -353,6 +375,7 @@ export interface RbsArtifactSummary {
     intent: string;
     parameters: RunbookParameterDefinition[];
     requirements?: RunbookCapabilityManifest;
+    design?: RunbookDesignPlan;
     readiness?: RbsRunbookReadiness;
     hasLock: boolean;
     planRevision?: string;

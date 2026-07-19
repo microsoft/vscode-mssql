@@ -4298,6 +4298,9 @@
     <trans-unit id="++CODE++bacb967a562a0c1059bd81be06c024c01789e81d12dd3fe6e3d74ae2641c9566">
       <source xml:lang="en">Install the MSSQL Database Management Keymap extension</source>
     </trans-unit>
+    <trans-unit id="++CODE++72fae46fc3d8878f2eaed81331e6f5e24a11056030d370c7b96189de87b02ecc">
+      <source xml:lang="en">Installed capability</source>
+    </trans-unit>
     <trans-unit id="++CODE++23175b00048139605147500e1f2eb6c43b4e938ee3dbcfebb00ae6b472284cdb">
       <source xml:lang="en">Instant Container Setup</source>
     </trans-unit>
@@ -4982,6 +4985,9 @@
     <trans-unit id="++CODE++ccaf4e389c9da36db8abe538b34c9a8ada96d66f0287704fa5fad574d29cd27b">
       <source xml:lang="en">Missing activities: {0}</source>
       <note>{0} is a comma-separated list of versioned runbook activity kinds</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3b6e5a31bfbaee6ea6b6609c65ac649b495d2bb03d6deebac167581721afe10b">
+      <source xml:lang="en">Missing capability</source>
     </trans-unit>
     <trans-unit id="++CODE++c4cb38118e976f2ec6af215b6206c1aeadd0a3a1a95b4ab00681c97e9a276753">
       <source xml:lang="en">Missing connection reference. Please provide exactly one of connectionId or connectionName.</source>
@@ -6185,6 +6191,9 @@
     <trans-unit id="++CODE++40040cb181f7f0ee5add2b52e8467c6652477f7ce12af39fe380b5084b64f4fe">
       <source xml:lang="en">Property</source>
     </trans-unit>
+    <trans-unit id="++CODE++d89c9c7695906fd6101b2525b2b4c6263cbb15e5138b49572599cbfccfff1200">
+      <source xml:lang="en">Proposed workflow</source>
+    </trans-unit>
     <trans-unit id="++CODE++7c68cc7494a11be986cf0d4ac8e2acb67d5aa67b35151c2435cb1c51ccd060d8">
       <source xml:lang="en">Provider &apos;{0}&apos; does not have a Microsoft resource endpoint defined.</source>
       <note>{0} is the provider</note>
@@ -6703,6 +6712,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f0742e3a82fe8b57c37b57a9e81cf8b1ff50df2d1378496cffd8f118ab5359ef">
       <source xml:lang="en">Review required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d1c933cbdea558411e228d34cc56ed30fc8e122ae61e8587d5b600297b48892b">
+      <source xml:lang="en">Review-only outline. These steps are not executable until every required activity is installed and the workflow is compiled.</source>
     </trans-unit>
     <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
       <source xml:lang="en">Reviewing Copilot Change</source>
@@ -8122,6 +8134,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f99d2bb5a944aedb608890101ecc1dc452bf30fae0666933bdf944947aff0926">
       <source xml:lang="en">Target connection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++890d34fffcde315c0575f92eefbdcce15011c60afa718c4a5e6bad4c7b81118f">
+      <source xml:lang="en">Target:</source>
     </trans-unit>
     <trans-unit id="++CODE++6e7235c51cdbf5d78d6d31be6dab659515a42b307648229060b6afecb346f1be">
       <source xml:lang="en">Target: {0}</source>
