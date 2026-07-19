@@ -120,6 +120,10 @@
         "message": "Parameter '{0}' must be one of its allowed values.",
         "comment": ["{0} is a parameter label"]
     },
+    "This runbook has an invalid or unbound activity target: {0}/{0} is a safe structural target-binding detail": {
+        "message": "This runbook has an invalid or unbound activity target: {0}",
+        "comment": ["{0} is a safe structural target-binding detail"]
+    },
     "The runbook library is unavailable: {0}/{0} is a technical detail string": {
         "message": "The runbook library is unavailable: {0}",
         "comment": ["{0} is a technical detail string"]

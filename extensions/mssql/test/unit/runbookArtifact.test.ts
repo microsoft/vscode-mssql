@@ -124,6 +124,23 @@ suite("runbookArtifact", () => {
             expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
         });
 
+        test("round-trips an explicit typed activity target", () => {
+            const artifact = expectSuccess(parseRunbookArtifact(fixtureText()));
+            expect(artifact.lock?.nodes[0].target).to.deep.equal({
+                kind: "sqlDatabase",
+                binding: { source: "parameter", parameterId: "target" },
+            });
+        });
+
+        test("rejects malformed target bindings", () => {
+            const artifact = createFixtureRunbookArtifact();
+            (artifact.lock!.nodes[0].target as unknown as Record<string, unknown>).binding = {
+                source: "ambientConnection",
+            };
+            const failure = expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
+            expect(failure.detail).to.contain("target binding source invalid");
+        });
+
         test("round-trips a versioned capability and target manifest", () => {
             const artifact = createFixtureRunbookArtifact();
             artifact.source.requirements = classifyRunbookIntent(

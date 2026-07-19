@@ -121,6 +121,10 @@ export function mapPlannerNodeToLockNode(
             activityKind: "sql.query.read",
             activityVersion: 1,
             inputs: { connection: `$params.${connectionParamId}`, sql },
+            target: {
+                kind: "sqlDatabase",
+                binding: { source: "parameter", parameterId: connectionParamId },
+            },
         };
     }
     if (isReportNode(node)) {
@@ -134,6 +138,10 @@ export function mapPlannerNodeToLockNode(
         activityVersion: 1,
         inputs: {
             strategy: nonEmptyString(node.strategy) ?? nonEmptyString(node.type) ?? "unknown",
+        },
+        target: {
+            kind: "sqlDatabase",
+            binding: { source: "parameter", parameterId: connectionParamId },
         },
     };
 }

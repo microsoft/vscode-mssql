@@ -16,6 +16,8 @@ import {
     BlastRadius,
     CompiledRunbookLock,
     RunbookPlanNode,
+    RunbookPlanTarget,
+    RunbookTargetKind,
 } from "../../sharedInterfaces/runbookStudio";
 
 export interface ActivityInputDescriptor {
@@ -36,6 +38,12 @@ export interface ActivityDescriptor {
     outputContract: string;
     /** Values other nodes can bind to ($nodes.<id>.<value>). */
     producedValues: string[];
+    /** Target semantics are catalog authority, not model-authored metadata.
+     * `bindingInput` must be a $params binding when present. */
+    target?: {
+        kind: RunbookTargetKind;
+        bindingInput: string;
+    };
     blastRadius: BlastRadius;
 }
 
@@ -69,6 +77,7 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         ],
         outputContract: "rowset/1",
         producedValues: ["rowCount"],
+        target: { kind: "sqlDatabase", bindingInput: "connection" },
         blastRadius: { ...READ_ONLY_LOCAL, resource: "databaseData" },
     },
     {
@@ -138,8 +147,47 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                 );
             }
         }
+        if (descriptor.target) {
+            const expectedTarget = targetFromCatalog(node, descriptor);
+            if (!node.target) {
+                issues.push(
+                    `node '${node.id}' is missing its explicit ${descriptor.target.kind} target`,
+                );
+            } else if (
+                !expectedTarget ||
+                node.target.kind !== expectedTarget.kind ||
+                node.target.binding.source !== expectedTarget.binding.source ||
+                (node.target.binding.source === "parameter" &&
+                    expectedTarget.binding.source === "parameter" &&
+                    node.target.binding.parameterId !== expectedTarget.binding.parameterId)
+            ) {
+                issues.push(
+                    `node '${node.id}' target does not match catalog input '${descriptor.target.bindingInput}'`,
+                );
+            }
+        }
     }
     return issues;
+}
+
+const PARAMETER_BIND = /^\$params\.([A-Za-z0-9_-]+)$/;
+
+export function targetFromCatalog(
+    node: RunbookPlanNode,
+    descriptor: ActivityDescriptor,
+): RunbookPlanTarget | undefined {
+    if (!descriptor.target) {
+        return undefined;
+    }
+    const input = node.inputs?.[descriptor.target.bindingInput];
+    const match = typeof input === "string" ? PARAMETER_BIND.exec(input) : undefined;
+    if (!match) {
+        return undefined;
+    }
+    return {
+        kind: descriptor.target.kind,
+        binding: { source: "parameter", parameterId: match[1] },
+    };
 }
 
 /** Enforce trusted safety metadata: blast radius always comes from the
@@ -156,6 +204,7 @@ export function stampCatalogMetadata(nodes: RunbookPlanNode[]): RunbookPlanNode[
         return {
             ...node,
             activityVersion: descriptor.version,
+            target: targetFromCatalog(node, descriptor),
             blastRadius: descriptor.blastRadius,
         };
     });

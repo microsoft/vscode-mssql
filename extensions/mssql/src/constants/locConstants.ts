@@ -208,6 +208,12 @@ export class RunbookStudio {
             args: [label],
             comment: ["{0} is a parameter label"],
         });
+    public static targetBindingInvalid = (detail: string) =>
+        l10n.t({
+            message: "This runbook has an invalid or unbound activity target: {0}",
+            args: [detail],
+            comment: ["{0} is a safe structural target-binding detail"],
+        });
     public static libraryUnavailable = (detail: string) =>
         l10n.t({
             message: "The runbook library is unavailable: {0}",

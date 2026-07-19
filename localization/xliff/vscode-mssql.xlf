@@ -8457,6 +8457,10 @@
     <trans-unit id="++CODE++0669a8886d1a9356118127c1639eec72ec3b3a68dea6f5b5cb16559acdac69b7">
       <source xml:lang="en">This runbook declares no parameters.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a7445322e0cf1d40950ed0adfa029260478624b8e6b7d96ea7ff977bf63c48d4">
+      <source xml:lang="en">This runbook has an invalid or unbound activity target: {0}</source>
+      <note>{0} is a safe structural target-binding detail</note>
+    </trans-unit>
     <trans-unit id="++CODE++992ccd023f188f0bb6a839a0f8be4230551359ba8529150d6e2f2f445cc479f5">
       <source xml:lang="en">This runbook has no compiled plan. Compile it before running.</source>
     </trans-unit>

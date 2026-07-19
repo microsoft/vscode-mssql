@@ -63,13 +63,21 @@ export function resolvePlanQueryLaunch(
         return { ok: false, reason: "sqlNotReadOnly" };
     }
 
+    const target = node.target;
+    if (
+        target?.kind !== "sqlDatabase" ||
+        target.binding.source !== "parameter" ||
+        !target.binding.parameterId
+    ) {
+        return { ok: false, reason: "connectionBindingInvalid" };
+    }
+    const connectionParameterId = target.binding.parameterId;
     const connection = node.inputs?.connection;
     const parameterMatch =
         typeof connection === "string" ? PARAMETER_BIND.exec(connection) : undefined;
-    if (!parameterMatch) {
+    if (!parameterMatch || parameterMatch[1] !== connectionParameterId) {
         return { ok: false, reason: "connectionBindingInvalid" };
     }
-    const connectionParameterId = parameterMatch[1];
     const definition = artifact.source.parameters.find(
         (parameter) => parameter.id === connectionParameterId,
     );

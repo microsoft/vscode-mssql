@@ -477,6 +477,48 @@ function validateLock(lock: unknown): ArtifactParseFailure | undefined {
                 `activity node '${node.id}' missing activityKind`,
             );
         }
+        if (node.target !== undefined) {
+            if (!isRecord(node.target) || !TARGET_KINDS.has(String(node.target.kind))) {
+                return fail("RunbookStudio.InvalidArtifact", `node '${node.id}' target invalid`);
+            }
+            const binding = node.target.binding;
+            if (!isRecord(binding) || !isNonEmptyString(binding.source)) {
+                return fail(
+                    "RunbookStudio.InvalidArtifact",
+                    `node '${node.id}' target binding invalid`,
+                );
+            }
+            if (binding.source === "parameter") {
+                if (!isNonEmptyString(binding.parameterId)) {
+                    return fail(
+                        "RunbookStudio.InvalidArtifact",
+                        `node '${node.id}' target parameter binding invalid`,
+                    );
+                }
+            } else if (binding.source === "nodeOutput") {
+                if (!isNonEmptyString(binding.nodeId) || !isNonEmptyString(binding.output)) {
+                    return fail(
+                        "RunbookStudio.InvalidArtifact",
+                        `node '${node.id}' target output binding invalid`,
+                    );
+                }
+            } else if (binding.source === "workspace") {
+                if (
+                    binding.workspaceFolder !== undefined &&
+                    typeof binding.workspaceFolder !== "string"
+                ) {
+                    return fail(
+                        "RunbookStudio.InvalidArtifact",
+                        `node '${node.id}' workspace target binding invalid`,
+                    );
+                }
+            } else {
+                return fail(
+                    "RunbookStudio.InvalidArtifact",
+                    `node '${node.id}' target binding source invalid`,
+                );
+            }
+        }
     }
     if (!isNonEmptyString(lock.entryNodeId) || !nodeIds.has(lock.entryNodeId)) {
         return fail("RunbookStudio.InvalidArtifact", "lock entryNodeId not a known node");
@@ -633,6 +675,10 @@ export function createFixtureRunbookArtifact(): RunbookArtifactFile {
                     activityKind: "sql.query.read",
                     activityVersion: 1,
                     inputs: { connection: "$params.target", sql: "fixture" },
+                    target: {
+                        kind: "sqlDatabase",
+                        binding: { source: "parameter", parameterId: "target" },
+                    },
                     blastRadius: {
                         resource: "none",
                         operation: "read",

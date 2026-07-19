@@ -52,6 +52,7 @@ import { RunbookRunLedger, sanitizeRunFileId, selectExpiredRuns } from "./runboo
 import { RunbookResultStore } from "./runbookResultStore";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import { compileIntentWithModel } from "./models/planCompiler";
+import { validateTargetBindings } from "./targetBindings";
 import {
     buildArtifactFromLibraryAsset,
     buildPlannedArtifact,
@@ -268,6 +269,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 error: {
                     code: "RunbookStudio.BindingInvalid",
                     message: binding.errors.join(" "),
+                },
+            };
+        }
+        const targetIssues = validateTargetBindings(artifact, binding.values);
+        if (targetIssues.length > 0) {
+            return {
+                error: {
+                    code: "RunbookStudio.BindingInvalid",
+                    message: LocRunbookStudio.targetBindingInvalid(
+                        targetIssues.map((issue) => issue.detail).join("; "),
+                    ),
                 },
             };
         }

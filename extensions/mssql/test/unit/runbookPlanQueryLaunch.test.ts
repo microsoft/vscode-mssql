@@ -51,6 +51,25 @@ suite("Runbook Studio Plan query launch", () => {
         });
     });
 
+    test("refuses a missing or divergent typed target", () => {
+        const missing = queryArtifact();
+        delete missing.lock!.nodes[0].target;
+        expect(resolvePlanQueryLaunch(missing, "query", { target: "profile-1" })).to.eql({
+            ok: false,
+            reason: "connectionBindingInvalid",
+        });
+
+        const divergent = queryArtifact();
+        divergent.lock!.nodes[0].target = {
+            kind: "sqlDatabase",
+            binding: { source: "parameter", parameterId: "other" },
+        };
+        expect(resolvePlanQueryLaunch(divergent, "query", { target: "profile-1" })).to.eql({
+            ok: false,
+            reason: "connectionBindingInvalid",
+        });
+    });
+
     test("refuses mutating SQL even when the node claims to be a read activity", () => {
         for (const sql of [
             "DELETE FROM dbo.Orders;",

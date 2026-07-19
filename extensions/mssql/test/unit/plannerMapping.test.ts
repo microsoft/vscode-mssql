@@ -80,6 +80,10 @@ suite("plannerMapping", () => {
                 connection: "$params.database",
                 sql: "SELECT r.session_id FROM sys.dm_exec_requests r",
             },
+            target: {
+                kind: "sqlDatabase",
+                binding: { source: "parameter", parameterId: "database" },
+            },
         });
     });
 
@@ -115,6 +119,10 @@ suite("plannerMapping", () => {
             activityKind: "hobbes.native",
             activityVersion: 1,
             inputs: { strategy: "Aggregation" },
+            target: {
+                kind: "sqlDatabase",
+                binding: { source: "parameter", parameterId: "database" },
+            },
         });
         const waiter = mapPlannerNodeToLockNode(
             { id: "pause-for-approval", strategy: "primitive:wait.signal" },
@@ -259,6 +267,10 @@ suite("plannerMapping", () => {
             activityKind: "hobbes.native",
             activityVersion: 1,
             inputs: { strategy: "Aggregation" },
+            target: {
+                kind: "sqlDatabase",
+                binding: { source: "parameter", parameterId: "database" },
+            },
         });
     });
 

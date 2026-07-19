@@ -185,6 +185,20 @@ export interface BlastRadius {
 
 export type RunbookPlanNodeKind = "activity" | "gate" | "report";
 
+/** A locked activity target is data, never ambient editor state. Parameter
+ * bindings are resolved at admission; node outputs are resolved only after
+ * the producing node succeeds; workspace bindings remain portable across
+ * machines by naming an optional workspace-relative folder. */
+export type RunbookTargetBinding =
+    | { source: "parameter"; parameterId: string }
+    | { source: "nodeOutput"; nodeId: string; output: string }
+    | { source: "workspace"; workspaceFolder?: string };
+
+export interface RunbookPlanTarget {
+    kind: RunbookTargetKind;
+    binding: RunbookTargetBinding;
+}
+
 export interface RunbookPlanNode {
     /** Stable node id; referenced by edges, snapshots, and approvals. */
     id: string;
@@ -195,6 +209,9 @@ export interface RunbookPlanNode {
     activityVersion?: number;
     /** Bind expressions / literal inputs, validated against the descriptor. */
     inputs?: Record<string, unknown>;
+    /** Explicit typed resource affected/read by this activity. Activities
+     * that need a target are refused at admission when this is absent. */
+    target?: RunbookPlanTarget;
     blastRadius?: BlastRadius;
 }
 

@@ -86,6 +86,10 @@ suite("planCompiler", () => {
         expect(artifact.lock?.planRevision).to.equal("1");
         expect(artifact.lock?.planHash).to.match(/^sha256:[0-9a-f]{64}$/);
         expect(artifact.lock?.activityCatalogFingerprint).to.equal(activityCatalogFingerprint());
+        expect(artifact.lock?.nodes[0].target).to.deep.equal({
+            kind: "sqlDatabase",
+            binding: { source: "parameter", parameterId: "target" },
+        });
     });
 
     test("trusted metadata is stamped from the catalog, not the model", () => {
@@ -106,6 +110,10 @@ suite("planCompiler", () => {
         expect(query.activityVersion).to.equal(1);
         expect(query.blastRadius?.resource).to.equal("databaseData");
         expect(query.blastRadius?.targetEnvironment).to.equal("local");
+        expect(query.target).to.deep.equal({
+            kind: "sqlDatabase",
+            binding: { source: "parameter", parameterId: "target" },
+        });
     });
 
     test("invented activities are refused with the exact detail", () => {
@@ -169,6 +177,21 @@ suite("planCompiler", () => {
         lock.nodes[1] = { ...lock.nodes[1], activityVersion: 7 };
         const issues = validateLockAgainstCatalog(lock);
         expect(issues.join(" ")).to.contain("registered version is 1");
+    });
+
+    test("validateLockAgainstCatalog rejects target/input drift", () => {
+        const result = parseCompiledProposal(JSON.stringify(GOOD_PROPOSAL), base(), "intent");
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+        const lock = result.artifact.lock!;
+        lock.nodes[0].target = {
+            kind: "sqlDatabase",
+            binding: { source: "parameter", parameterId: "other" },
+        };
+        expect(validateLockAgainstCatalog(lock).join(" ")).to.contain(
+            "target does not match catalog input",
+        );
     });
 });
 
