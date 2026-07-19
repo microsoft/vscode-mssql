@@ -19,6 +19,7 @@
 import * as path from "path";
 import * as vscode from "vscode";
 import * as constants from "../constants/constants";
+import { config } from "../configurations/config";
 import { RunbookStudio as LocRunbookStudio } from "../constants/locConstants";
 import { Perf } from "../perf/perfTelemetry";
 import {
@@ -115,6 +116,10 @@ import {
     type StagedLocalDacpacArtifact,
     verifyStagedLocalDacpacArtifact,
 } from "./runtime/localDacpacStaging";
+import {
+    buildLocalToolchainProvenance,
+    type LocalToolchainProvenance,
+} from "./runtime/localToolchainProvenance";
 import { RuntimeSupervisor } from "./runtime/runtimeSupervisor";
 import {
     RunbookRuntimeAdapter,
@@ -137,6 +142,7 @@ const SimpleExecuteRequestType = new RequestType<
     mssql.SimpleExecuteResult,
     void
 >("query/simpleexecute");
+const ServiceVersionRequestType = new RequestType<Record<string, never>, string, void>("version");
 
 let runCounter = 0;
 let previewCounter = 0;
@@ -173,6 +179,7 @@ interface ActiveRunBinding {
 const RETAINED_RUNS_PER_RUNBOOK = 20;
 /** A crashed host can strand a private stage; live stages are far younger. */
 const STAGED_DACPAC_RETENTION_MS = 24 * 60 * 60 * 1000;
+const TOOLCHAIN_VERSION_TIMEOUT_MS = 2000;
 /** Persistence sweep runs shortly after construction — off the open path. */
 const PERSISTENCE_SWEEP_DELAY_MS = 1500;
 
@@ -209,6 +216,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private readonly persistRoot: string;
     /** Global (workspace-independent) storage root for the library stash. */
     private readonly globalStorageUri: vscode.Uri;
+    private readonly mssqlExtensionVersion: unknown;
     private sweepTimer: ReturnType<typeof setTimeout> | undefined;
     private effectRecoveryInProgress = false;
     private effectRecoveryWarningShown = false;
@@ -226,6 +234,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             "runbookStudio",
         );
         this.globalStorageUri = context.globalStorageUri;
+        this.mssqlExtensionVersion = context.extension.packageJSON.version;
         this.persistRoot = path.join(context.globalStorageUri.fsPath, "runbookStudio");
         // One-time migration BEFORE the ledger opens: hoist records this
         // workspace wrote under its old workspace-scoped root so existing
@@ -2205,6 +2214,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 effectId,
                 dacpacPath: artifact.artifactPath,
                 artifactSha256: stagedArtifact.artifactSha256,
+                stagedArtifactSha256: stagedArtifact.artifactSha256,
                 databaseName: resolved.targetDatabase,
                 operationId,
                 approvedPreviewDigest,
@@ -2255,6 +2265,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 "RunbookStudio.DataUnavailable",
             );
         }
+        const toolchain = await this.collectLocalToolchainProvenance(isCancellationRequested);
         const planNodes = new Map(active.artifact.lock.nodes.map((node) => [node.id, node]));
         const terminalStates = new Set(["succeeded", "failed", "cancelled", "skipped"]);
         return buildLocalEvidenceBundle({
@@ -2263,6 +2274,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             planRevision: snapshot.planRevision,
             planHash: snapshot.planHash,
             runtimeKind: "local",
+            toolchain,
             nodes: snapshot.nodes
                 .filter((node) => node.nodeId !== nodeId && terminalStates.has(node.state))
                 .map((node) => ({
@@ -2278,6 +2290,51 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         ? { scalars: active.evidenceValues.get(node.nodeId) }
                         : {}),
                 })),
+        });
+    }
+
+    private async collectLocalToolchainProvenance(
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalToolchainProvenance> {
+        const cancellation = new vscode.CancellationTokenSource();
+        const timeout = setTimeout(() => cancellation.cancel(), TOOLCHAIN_VERSION_TIMEOUT_MS);
+        const cancellationPoll = setInterval(() => {
+            if (isCancellationRequested()) {
+                cancellation.cancel();
+            }
+        }, 50);
+        let sqlToolsServiceRuntimeVersion: string | undefined;
+        try {
+            sqlToolsServiceRuntimeVersion = await SqlToolsServerClient.instance.sendRequest(
+                ServiceVersionRequestType,
+                {},
+                cancellation.token,
+            );
+        } catch {
+            // Missing runtime identity is explicit in the manifest and makes a
+            // would-be passing bundle indeterminate; evidence generation still
+            // succeeds so cleanup and diagnostics are never hidden.
+        } finally {
+            clearTimeout(timeout);
+            clearInterval(cancellationPoll);
+            cancellation.dispose();
+        }
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.evidenceBundleCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const projectsExtension = vscode.extensions.getExtension(
+            constants.sqlDatabaseProjectsExtensionId,
+        );
+        return buildLocalToolchainProvenance({
+            vscodeVersion: vscode.version,
+            mssqlExtensionVersion: this.mssqlExtensionVersion,
+            sqlDatabaseProjectsExtensionVersion: projectsExtension?.packageJSON.version,
+            sqlToolsServiceRuntimeVersion,
+            sqlToolsServiceConfiguredVersion: config.service.version,
+            sqlToolsServiceRoot: SqlToolsServerClient.instance.sqlToolsServicePath,
         });
     }
 

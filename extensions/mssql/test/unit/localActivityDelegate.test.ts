@@ -52,6 +52,7 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             effectId: `effect-${"e".repeat(64)}`,
             dacpacPath,
             artifactSha256: "b".repeat(64),
+            stagedArtifactSha256: "b".repeat(64),
             databaseName: `RunbookStudio_${"d".repeat(20)}`,
             operationId: "deploy-op",
             approvedPreviewDigest: previewDigest,

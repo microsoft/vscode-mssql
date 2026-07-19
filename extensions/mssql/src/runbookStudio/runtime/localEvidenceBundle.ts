@@ -11,6 +11,10 @@
 
 import * as crypto from "crypto";
 import { DataHandleRef, RunbookNodeStateKind } from "../../sharedInterfaces/runbookStudio";
+import type {
+    LocalToolchainComponentId,
+    LocalToolchainProvenance,
+} from "./localToolchainProvenance";
 
 export type LocalEvidenceVerdict = "pass" | "fail" | "indeterminate";
 
@@ -30,6 +34,7 @@ export interface LocalEvidenceBundleInput {
     planRevision: string;
     planHash: string;
     runtimeKind: string;
+    toolchain: LocalToolchainProvenance;
     nodes: LocalEvidenceNodeInput[];
     generatedAtUtc?: string;
 }
@@ -85,9 +90,20 @@ export function buildLocalEvidenceBundle(
         (node) => node.state === "succeeded" && node.outcome !== "failure",
     ).length;
     const evidenceHandleCount = nodes.reduce((count, node) => count + node.outputs.length, 0);
-    const incompleteEvidence = nodes.some((node) =>
-        node.outputs.some((output) => output.expired === true || output.truncated === true),
+    const requiredToolchainComponents = selectRequiredToolchainComponents(nodes);
+    const resolvedToolchainComponents = new Set(
+        input.toolchain.components
+            .filter((component) => component.status === "resolved")
+            .map((component) => component.id),
     );
+    const toolchainComplete = requiredToolchainComponents.every((component) =>
+        resolvedToolchainComponents.has(component),
+    );
+    const incompleteEvidence =
+        !toolchainComplete ||
+        nodes.some((node) =>
+            node.outputs.some((output) => output.expired === true || output.truncated === true),
+        );
     const verdict: LocalEvidenceVerdict =
         failedNodeCount > 0
             ? "fail"
@@ -95,7 +111,7 @@ export function buildLocalEvidenceBundle(
               ? "indeterminate"
               : "pass";
     const content = {
-        schemaVersion: 1,
+        schemaVersion: 2,
         contract: "evidenceBundle/1",
         run: {
             runId: input.runId,
@@ -111,6 +127,13 @@ export function buildLocalEvidenceBundle(
             failedNodeCount,
             evidenceHandleCount,
             incompleteEvidence,
+            toolchainComplete,
+        },
+        toolchain: {
+            complete: toolchainComplete,
+            allComponentsResolved: input.toolchain.complete,
+            requiredComponents: requiredToolchainComponents,
+            components: input.toolchain.components.map((component) => ({ ...component })),
         },
         nodes,
     };
@@ -126,6 +149,40 @@ export function buildLocalEvidenceBundle(
         verdict,
         generatedAtUtc,
     };
+}
+
+function selectRequiredToolchainComponents(
+    nodes: EvidenceManifestNode[],
+): LocalToolchainComponentId[] {
+    const required = new Set<LocalToolchainComponentId>(["vscode", "mssqlExtension"]);
+    for (const node of nodes) {
+        switch (node.activityKind) {
+            case "dacpac.build":
+                required.add("sqlDatabaseProjectsExtension");
+                required.add("sqlToolsService");
+                break;
+            case "dacpac.deploy.preview":
+            case "dacpac.deploy":
+            case "schema.compare":
+                required.add("sqlToolsService");
+                required.add("dacFx");
+                break;
+            case "sandbox.provision":
+            case "sandbox.dispose":
+            case "sqltest.run":
+            case "sql.query.read":
+                required.add("sqlToolsService");
+                break;
+        }
+    }
+    const componentOrder: LocalToolchainComponentId[] = [
+        "vscode",
+        "mssqlExtension",
+        "sqlDatabaseProjectsExtension",
+        "sqlToolsService",
+        "dacFx",
+    ];
+    return componentOrder.filter((component) => required.has(component));
 }
 
 /** Numbers and booleans are safe aggregate evidence. String values are

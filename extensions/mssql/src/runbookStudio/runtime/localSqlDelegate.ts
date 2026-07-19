@@ -117,6 +117,7 @@ export interface LocalDacpacDeploymentResult {
     effectId: string;
     dacpacPath: string;
     artifactSha256: string;
+    stagedArtifactSha256: string;
     databaseName: string;
     operationId: string;
     approvedPreviewDigest: string;
@@ -502,6 +503,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                         effectId: result.effectId,
                         dacpacPath: result.dacpacPath,
                         artifactSha256: result.artifactSha256,
+                        stagedArtifactSha256: result.stagedArtifactSha256,
                         databaseName: result.databaseName,
                         operationId: result.operationId,
                         approvedPreviewDigest: result.approvedPreviewDigest,

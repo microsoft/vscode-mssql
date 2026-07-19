@@ -5,6 +5,45 @@
 
 import { expect } from "chai";
 import { buildLocalEvidenceBundle } from "../../src/runbookStudio/runtime/localEvidenceBundle";
+import type { LocalToolchainProvenance } from "../../src/runbookStudio/runtime/localToolchainProvenance";
+
+const completeToolchain: LocalToolchainProvenance = {
+    complete: true,
+    components: [
+        {
+            id: "vscode",
+            version: "1.106.0",
+            status: "resolved",
+            versionSource: "host",
+        },
+        {
+            id: "mssqlExtension",
+            version: "1.45.0",
+            status: "resolved",
+            versionSource: "extensionManifest",
+        },
+        {
+            id: "sqlDatabaseProjectsExtension",
+            version: "1.5.0",
+            status: "resolved",
+            versionSource: "extensionManifest",
+        },
+        {
+            id: "sqlToolsService",
+            version: "6.0.0.0",
+            configuredVersion: "6.0.20260713.1",
+            status: "resolved",
+            versionSource: "runtimeRequest",
+        },
+        {
+            id: "dacFx",
+            version: "170.5.38-preview",
+            status: "resolved",
+            versionSource: "serviceDependencyManifest",
+            hostComponent: "sqlToolsService",
+        },
+    ],
+};
 
 suite("Runbook Studio local evidence bundle", () => {
     test("builds a stable secret-safe manifest from durable handles", () => {
@@ -14,6 +53,7 @@ suite("Runbook Studio local evidence bundle", () => {
             planRevision: "3",
             planHash: "sha256:plan",
             runtimeKind: "local",
+            toolchain: completeToolchain,
             nodes: [
                 {
                     nodeId: "build",
@@ -50,6 +90,7 @@ suite("Runbook Studio local evidence bundle", () => {
         expect(first.manifestJson).to.contain("dacpacArtifact/1");
         expect(first.manifestJson).to.contain("artifactSha256");
         expect(first.manifestJson).to.contain("diagnosticCount");
+        expect(first.manifestJson).to.contain("170.5.38-preview");
         expect(first.manifestJson).not.to.contain("C:\\private");
         expect(first.manifestJson).not.to.contain("profile-secret-handle");
     });
@@ -61,6 +102,7 @@ suite("Runbook Studio local evidence bundle", () => {
             planRevision: "1",
             planHash: "sha256:plan",
             runtimeKind: "local",
+            toolchain: completeToolchain,
             nodes: [
                 {
                     nodeId: "tests",
@@ -93,9 +135,11 @@ suite("Runbook Studio local evidence bundle", () => {
             planRevision: "1",
             planHash: "sha256:plan",
             runtimeKind: "local",
+            toolchain: completeToolchain,
             nodes: [
                 {
                     nodeId: "verify",
+                    activityKind: "schema.compare",
                     state: "succeeded",
                     attempt: 1,
                     outcome: "success",
@@ -111,5 +155,72 @@ suite("Runbook Studio local evidence bundle", () => {
         });
 
         expect(result.verdict).to.equal("indeterminate");
+    });
+
+    test("uses indeterminate when runtime tool versions cannot be proven", () => {
+        const result = buildLocalEvidenceBundle({
+            runId: "run-4",
+            runbookId: "book-4",
+            planRevision: "1",
+            planHash: "sha256:plan",
+            runtimeKind: "local",
+            toolchain: {
+                complete: false,
+                components: completeToolchain.components.map((component) =>
+                    component.id === "dacFx"
+                        ? { ...component, version: null, status: "unavailable" as const }
+                        : { ...component },
+                ),
+            },
+            nodes: [
+                {
+                    nodeId: "verify",
+                    activityKind: "schema.compare",
+                    state: "succeeded",
+                    attempt: 1,
+                    outcome: "success",
+                    outputs: [{ handleId: "run-4/verify/1", contract: "schemaDiff/1" }],
+                },
+            ],
+        });
+
+        expect(result.verdict).to.equal("indeterminate");
+        expect(JSON.parse(result.manifestJson).summary.toolchainComplete).to.equal(false);
+    });
+
+    test("does not require unused developer providers for read-only evidence", () => {
+        const result = buildLocalEvidenceBundle({
+            runId: "run-5",
+            runbookId: "book-5",
+            planRevision: "1",
+            planHash: "sha256:plan",
+            runtimeKind: "local",
+            toolchain: {
+                complete: false,
+                components: completeToolchain.components.map((component) =>
+                    component.id === "dacFx" || component.id === "sqlDatabaseProjectsExtension"
+                        ? { ...component, version: null, status: "unavailable" as const }
+                        : { ...component },
+                ),
+            },
+            nodes: [
+                {
+                    nodeId: "query",
+                    activityKind: "sql.query.read",
+                    state: "succeeded",
+                    attempt: 1,
+                    outcome: "success",
+                    outputs: [{ handleId: "run-5/query/1", contract: "rowset/1" }],
+                },
+            ],
+        });
+
+        const manifest = JSON.parse(result.manifestJson);
+        expect(result.verdict).to.equal("pass");
+        expect(manifest.toolchain.requiredComponents).to.deep.equal([
+            "vscode",
+            "mssqlExtension",
+            "sqlToolsService",
+        ]);
     });
 });
