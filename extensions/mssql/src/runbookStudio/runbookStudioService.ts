@@ -50,6 +50,7 @@ import {
 } from "./capabilities/runbookCapabilities";
 import { RunbookRunCoordinator, OutputPageResult } from "./runbookRunCoordinator";
 import { RunbookRunLedger, sanitizeRunFileId, selectExpiredRuns } from "./runbookRunLedger";
+import { RunbookEffectLedger } from "./runbookEffectLedger";
 
 import { RunbookResultStore } from "./runbookResultStore";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
@@ -117,6 +118,7 @@ const PERSISTENCE_SWEEP_DELAY_MS = 1500;
 
 export class RunbookStudioService implements RunbookRunCoordinator, vscode.Disposable {
     private readonly ledger: RunbookRunLedger;
+    private readonly effectLedger: RunbookEffectLedger;
     private readonly resultStore: RunbookResultStore;
     private adapter: RunbookRuntimeAdapter | undefined;
     /** The configured kind this.adapter was built for (hot-swap detection). */
@@ -167,6 +169,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         // history reappears instead of silently starting over.
         const migratedFiles = migrateLegacyRunStorage(this.storageRoot, this.persistRoot);
         this.ledger = new RunbookRunLedger(this.persistRoot);
+        this.effectLedger = new RunbookEffectLedger(this.persistRoot);
         const persistenceContext = newRunbookRootContext("persistence");
         this.resultStore = new RunbookResultStore(path.join(this.persistRoot, "results"), {
             onPersistenceIssue: (kind, detail) =>
@@ -1435,6 +1438,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const runs = this.ledger.listAllRuns();
         const expired = selectExpiredRuns(runs, RETAINED_RUNS_PER_RUNBOOK);
         let deletedRuns = 0;
+        let deletedEffectJournals = 0;
         for (const runId of expired) {
             if (this.activeByRunId.has(runId)) {
                 continue;
@@ -1443,6 +1447,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 deletedRuns++;
             }
             this.resultStore.deleteRunResults(runId);
+            deletedEffectJournals += this.effectLedger.deleteTerminalEffectsForRun(runId);
         }
         // Orphaned result directories: payloads whose run no longer exists
         // anywhere in the ledger (e.g. records expired by another window).
@@ -1456,11 +1461,15 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 deletedResultDirs++;
             }
         }
+        const effectRecovery = this.effectLedger.scanRecovery();
         emitRunbookEvent(context, "runbookStudio.persistence.gc", "ok", {
             scannedRuns: metaField(runs.length),
             sealedInterrupted: metaField(sealedInterrupted),
             expiredRuns: metaField(deletedRuns),
             deletedResultDirs: metaField(deletedResultDirs),
+            deletedEffectJournals: metaField(deletedEffectJournals),
+            outstandingEffects: metaField(effectRecovery.outstanding.length),
+            unreadableEffectJournals: metaField(effectRecovery.unreadableFiles.length),
         });
     }
 
