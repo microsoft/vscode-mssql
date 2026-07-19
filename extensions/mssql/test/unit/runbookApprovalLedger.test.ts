@@ -119,6 +119,49 @@ suite("runbookApprovalLedger", () => {
         expect(JSON.stringify(built)).to.not.include(profileCanary);
     });
 
+    test("deployment approval binds the resolved lease and preview digest", () => {
+        const artifact = createDeveloperValidationPreviewArtifact();
+        const values = new Map([
+            [
+                "build-dacpac",
+                {
+                    artifactPath: "C:\\repo\\Database.dacpac",
+                    artifactSha256: "c".repeat(64),
+                },
+            ],
+            ["provision-sandbox", { connectionRef: `runbook-sql-lease:effect-${"d".repeat(64)}` }],
+            ["preview-deploy", { reportSha256: "a".repeat(64) }],
+        ]);
+        const built = buildRunbookApprovalChallenge({
+            runId: "run-fixture",
+            artifact,
+            parameterValues: {
+                projectPath: "Database.sqlproj",
+                sandboxConnection: "profile-a",
+            },
+            gateNodeId: "approve-deploy",
+            nodeValues: values,
+        })!;
+        values.set("preview-deploy", { reportSha256: "b".repeat(64) });
+        const changed = buildRunbookApprovalChallenge({
+            runId: "run-fixture",
+            artifact,
+            parameterValues: {
+                projectPath: "Database.sqlproj",
+                sandboxConnection: "profile-a",
+            },
+            gateNodeId: "approve-deploy",
+            nodeValues: values,
+        })!;
+
+        expect(built).to.include({
+            activityNodeId: "deploy-dacpac",
+            activityKind: "dacpac.deploy",
+        });
+        expect(changed.resolvedArgumentDigest).to.not.equal(built.resolvedArgumentDigest);
+        expect(changed.targetFingerprint).to.equal(built.targetFingerprint);
+    });
+
     test("binding and plan drift change the challenge identity", () => {
         const artifact = createDeveloperValidationPreviewArtifact();
         const first = buildRunbookApprovalChallenge({

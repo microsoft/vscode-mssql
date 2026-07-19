@@ -79,6 +79,33 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
             },
         },
         {
+            id: "approve-deploy",
+            label: "Approve exact DACPAC deployment preview",
+            kind: "gate",
+        },
+        {
+            id: "deploy-dacpac",
+            label: "Deploy DACPAC to disposable database",
+            kind: "activity",
+            activityKind: "dacpac.deploy",
+            inputs: {
+                dacpac: "$nodes.build-dacpac.artifactPath",
+                database: "$nodes.provision-sandbox.connectionRef",
+                artifactDigest: "$nodes.build-dacpac.artifactSha256",
+                previewDigest: "$nodes.preview-deploy.reportSha256",
+            },
+        },
+        {
+            id: "verify-schema",
+            label: "Verify deployed schema convergence",
+            kind: "activity",
+            activityKind: "schema.compare",
+            inputs: {
+                dacpac: "$nodes.build-dacpac.artifactPath",
+                database: "$nodes.provision-sandbox.connectionRef",
+            },
+        },
+        {
             id: "dispose-sandbox",
             label: "Dispose disposable local database",
             kind: "activity",
@@ -93,11 +120,11 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
         id: "fixture-developer-validation-preview",
         name: "Developer validation chain",
         description:
-            "Build a database project, validate its deployment against a disposable local database, and retain typed cleanup evidence.",
+            "Build a database project, approve and deploy it to a disposable local database, verify convergence, and retain typed cleanup evidence.",
         family: "validate",
         source: {
             schemaVersion: RUNBOOK_SOURCE_SCHEMA_VERSION,
-            intent: "Build the database project, approve and provision an isolated local target, preview deployment, clean up, and report typed evidence.",
+            intent: "Build the database project, approve and provision an isolated local target, approve the exact deployment preview, deploy, verify schema convergence, clean up, and report typed evidence.",
             parameters: [
                 {
                     id: "projectPath",
@@ -134,6 +161,16 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
                         connectionRequirement: "provisioned",
                         providerRequirement: "execution",
                     }),
+                    requirement("dacpac.deploy", "mutate", "deploymentEvidence/1", {
+                        approvalRequired: true,
+                        connectionRequirement: "provisioned",
+                        providerRequirement: "execution",
+                        rollbackContract: "required",
+                    }),
+                    requirement("schema.compare", "read", "schemaDiff/1", {
+                        connectionRequirement: "provisioned",
+                        providerRequirement: "execution",
+                    }),
                     requirement("sandbox.dispose", "mutate", "cleanupEvidence/1", {
                         connectionRequirement: "provisioned",
                         rollbackContract: "automatic",
@@ -152,7 +189,10 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
                 { from: "build-dacpac", to: "approve-sandbox" },
                 { from: "approve-sandbox", to: "provision-sandbox", when: "approved" },
                 { from: "provision-sandbox", to: "preview-deploy" },
-                { from: "preview-deploy", to: "dispose-sandbox" },
+                { from: "preview-deploy", to: "approve-deploy" },
+                { from: "approve-deploy", to: "deploy-dacpac", when: "approved" },
+                { from: "deploy-dacpac", to: "verify-schema" },
+                { from: "verify-schema", to: "dispose-sandbox" },
                 { from: "dispose-sandbox", to: "report" },
             ],
         },

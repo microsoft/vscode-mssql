@@ -2171,8 +2171,15 @@
       <source xml:lang="en">DACPAC deployed successfully to database &apos;{0}&apos;</source>
       <note>{0} is the database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++b4641d916087732bb68f38638b9c93157e1bd218053c260842d716153b10768f">
+      <source xml:lang="en">DACPAC deployment is allowed only for an ownership-verified Runbook Studio disposable database.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d1cb7fd2b24ac6f2b7899fc1aaaf0bb00d12126232fc70f04557368e3dd27d3">
       <source xml:lang="en">DACPAC deployment preview was cancelled.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++28d8ffa6215c63deb5acf063191a148ef21a512f1b8897fea5ef23112ccc291a">
+      <source xml:lang="en">DACPAC deployment to disposable database &apos;{0}&apos; completed and a post-deploy report was generated.</source>
+      <note>{0} is a generated disposable database name</note>
     </trans-unit>
     <trans-unit id="++CODE++0609a32cfa46dae87152f2ffa8ed3dea85080ad1acf25effef9c8b188f373be7">
       <source xml:lang="en">DACPAC evidence collection was cancelled.</source>
@@ -2186,6 +2193,9 @@
     </trans-unit>
     <trans-unit id="++CODE++859430fa647177df2bca8384a1b91e9f607ab6c35eba8d61c1ff399e80cf0ac2">
       <source xml:lang="en">DACPAC path not found. Please build the project first.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b14b10ee4582e30dafe5e5621c1891dfb9f74dcf3b0b58fc93ceb5e1691baa99">
+      <source xml:lang="en">DacFx could not deploy the DACPAC to the disposable database.</source>
     </trans-unit>
     <trans-unit id="++CODE++60362ceff08b0d6db80ba99b35761975ee75d521a0b990e0cddaba799c09bc90">
       <source xml:lang="en">DacFx could not generate a deployment report for the selected target.</source>
@@ -7216,6 +7226,10 @@
     <trans-unit id="++CODE++c55acbc843338cecc106d5428a6c2c6cd65129c6b5c440b6477f06206d844ded">
       <source xml:lang="en">Schema is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++3bde336f399c6d81fa23549703c376fc71c636c1e057f4fab713357194205e8e">
+      <source xml:lang="en">Schema verification found {0} remaining deployment change(s).</source>
+      <note>{0} is a DacFx deployment change count</note>
+    </trans-unit>
     <trans-unit id="++CODE++26336e4216dbda9c374906c54ade398c597b59facd87fba0be1758fc497bde2a">
       <source xml:lang="en">Schema/Object Type</source>
     </trans-unit>
@@ -8342,6 +8356,9 @@
     <trans-unit id="++CODE++1a4205e9f5cc50eaf70719b64956352b74a99badba266027a6244def0d016b73">
       <source xml:lang="en">The behavior when a user tries to update a row with data that is involved in a foreign key relationship.</source>
     </trans-unit>
+    <trans-unit id="++CODE++0f6702c4c8500da854f76839fe26596e93904309e90392236d3878e8bb158b66">
+      <source xml:lang="en">The built DACPAC changed after approval. Deployment was refused; rebuild and review the new preview.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3">
       <source xml:lang="en">The client secret for your Microsoft Entra app registration.</source>
     </trans-unit>
@@ -8365,6 +8382,9 @@
     </trans-unit>
     <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
       <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a66a3027ab98c9b037e7f86ad4a950c5c6176afbf0a5308b188ae62a64bfd5f2">
+      <source xml:lang="en">The deployment preview changed after approval. Deployment was refused; review and approve the new preview.</source>
     </trans-unit>
     <trans-unit id="++CODE++f229c94b4c9b8ecfa1096d1daf79194e84616c49df8fb6e229fa944592ff373e">
       <source xml:lang="en">The description of the check constraint.</source>
@@ -8395,6 +8415,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e7c9c7b7c7d53d65077b59199401df891da7d4bff30b94539fe5b33df5c2624c">
       <source xml:lang="en">The disposable database ownership marker does not match this runbook lease. Automatic cleanup was refused.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++54d47130ed496a0db61f169f9d08687ed41846a30cdfe6fa575e22cedfa06c12">
+      <source xml:lang="en">The disposable database schema matches the built DACPAC.</source>
     </trans-unit>
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>

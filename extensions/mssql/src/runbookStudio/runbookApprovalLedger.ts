@@ -259,6 +259,9 @@ export function buildRunbookApprovalChallenge(input: {
     parameterValues: Record<string, string | number | boolean | null>;
     gateNodeId: string;
     attempt?: number;
+    /** In-memory scalar outputs already observed for this run. They let a
+     * later gate bind to an exact provisioned lease or preview digest. */
+    nodeValues?: ReadonlyMap<string, Readonly<Record<string, number | string | boolean>>>;
 }): RunbookApprovalChallenge | undefined {
     const lock = input.artifact.lock;
     if (!lock) {
@@ -279,7 +282,7 @@ export function buildRunbookApprovalChallenge(input: {
         return undefined;
     }
     const attempt = input.attempt ?? 1;
-    const resolvedInputs = resolveApprovalInputs(node, input.parameterValues);
+    const resolvedInputs = resolveApprovalInputs(node, input.parameterValues, input.nodeValues);
     const targetBindingValue =
         descriptor.target && "bindingInput" in descriptor.target
             ? resolvedInputs[descriptor.target.bindingInput]
@@ -319,30 +322,39 @@ export function buildRunbookApprovalChallenge(input: {
 function resolveApprovalInputs(
     node: RunbookPlanNode,
     parameterValues: Record<string, string | number | boolean | null>,
+    nodeValues?: ReadonlyMap<string, Readonly<Record<string, number | string | boolean>>>,
 ): Record<string, unknown> {
     return Object.fromEntries(
         Object.entries(node.inputs ?? {})
             .sort(([left], [right]) => left.localeCompare(right))
-            .map(([name, value]) => [name, resolveApprovalValue(value, parameterValues)]),
+            .map(([name, value]) => [
+                name,
+                resolveApprovalValue(value, parameterValues, nodeValues),
+            ]),
     );
 }
 
 function resolveApprovalValue(
     value: unknown,
     parameterValues: Record<string, string | number | boolean | null>,
+    nodeValues?: ReadonlyMap<string, Readonly<Record<string, number | string | boolean>>>,
 ): unknown {
     if (typeof value === "string") {
-        const match = /^\$params\.([A-Za-z0-9_-]+)$/.exec(value);
-        return match ? parameterValues[match[1]] : value;
+        const parameter = /^\$params\.([A-Za-z0-9_-]+)$/.exec(value);
+        if (parameter) {
+            return parameterValues[parameter[1]];
+        }
+        const output = /^\$nodes\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/.exec(value);
+        return output ? (nodeValues?.get(output[1])?.[output[2]] ?? value) : value;
     }
     if (Array.isArray(value)) {
-        return value.map((entry) => resolveApprovalValue(entry, parameterValues));
+        return value.map((entry) => resolveApprovalValue(entry, parameterValues, nodeValues));
     }
     if (value !== null && typeof value === "object") {
         return Object.fromEntries(
             Object.entries(value as Record<string, unknown>).map(([key, entry]) => [
                 key,
-                resolveApprovalValue(entry, parameterValues),
+                resolveApprovalValue(entry, parameterValues, nodeValues),
             ]),
         );
     }

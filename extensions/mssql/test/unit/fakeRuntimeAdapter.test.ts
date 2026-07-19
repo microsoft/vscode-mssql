@@ -244,6 +244,16 @@ suite("fakeRuntimeAdapter", () => {
         expect(
             await adapter.respondToGate("developer-preview", "approve-sandbox", true, ctx()),
         ).to.equal(true);
+        while (
+            !observer.events.some(
+                (event) => event.kind === "gateRequested" && event.nodeId === "approve-deploy",
+            )
+        ) {
+            await new Promise<void>((resolve) => setTimeout(resolve, 1));
+        }
+        expect(
+            await adapter.respondToGate("developer-preview", "approve-deploy", true, ctx()),
+        ).to.equal(true);
         await observer.terminal;
 
         expect(observer.terminalEvent()).to.include({ state: "succeeded", verdict: "pass" });
@@ -259,6 +269,8 @@ suite("fakeRuntimeAdapter", () => {
             "dacpacArtifact/1",
             "databaseLease/1",
             "deploymentPreview/1",
+            "deploymentEvidence/1",
+            "schemaDiff/1",
             "cleanupEvidence/1",
             "markdown/1",
         ]);

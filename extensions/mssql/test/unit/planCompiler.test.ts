@@ -25,6 +25,7 @@ import {
 } from "../../src/runbookStudio/models/planCompiler";
 import { isReadOnlySql } from "../../src/runbookStudio/runtime/localSqlDelegate";
 import { createNewRunbookArtifact } from "../../src/runbookStudio/runbookArtifact";
+import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudio/developerValidationPreview";
 import { RunbookArtifactFile } from "../../src/sharedInterfaces/runbookStudio";
 
 function base(): RunbookArtifactFile {
@@ -141,7 +142,7 @@ suite("planCompiler", () => {
 
     test("invented activities are refused with the exact detail", () => {
         const proposal = JSON.parse(JSON.stringify(GOOD_PROPOSAL));
-        proposal.nodes[0].activityKind = "dacpac.deploy";
+        proposal.nodes[0].activityKind = "dangerous.deploy";
         const result = parseCompiledProposal(JSON.stringify(proposal), base(), "intent");
         expect(isProposalFailure(result)).to.equal(true);
         if (isProposalFailure(result)) {
@@ -214,6 +215,14 @@ suite("planCompiler", () => {
         };
         expect(validateLockAgainstCatalog(lock).join(" ")).to.contain(
             "target does not match catalog input",
+        );
+    });
+
+    test("approval-required effects need one dedicated approved gate", () => {
+        const lock = createDeveloperValidationPreviewArtifact().lock!;
+        lock.edges = lock.edges.filter((edge) => edge.from !== "approve-deploy");
+        expect(validateLockAgainstCatalog(lock).join(" ")).to.contain(
+            "node 'deploy-dacpac' requires one unambiguous incoming approved gate",
         );
     });
 });

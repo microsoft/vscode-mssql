@@ -38,8 +38,10 @@ export interface ActivityDescriptor {
     outputContract: string;
     /** Values other nodes can bind to ($nodes.<id>.<value>). */
     producedValues: string[];
+    /** Requires one unambiguous incoming approved edge from a gate. */
+    approvalRequired?: boolean;
     /** Target semantics are catalog authority, not model-authored metadata.
-     * `bindingInput` must be a $params binding when present. */
+     * `bindingInput` must be a parameter or upstream-output binding. */
     target?:
         | { kind: RunbookTargetKind; bindingInput: string }
         | { kind: "workspace"; workspace: true };
@@ -86,7 +88,7 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
             },
         ],
         outputContract: "dacpacArtifact/1",
-        producedValues: ["artifactPath", "diagnosticCount"],
+        producedValues: ["artifactPath", "artifactSha256", "diagnosticCount"],
         target: { kind: "databaseProject", bindingInput: "project" },
         blastRadius: {
             resource: "workspaceFiles",
@@ -112,6 +114,7 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         ],
         outputContract: "databaseLease/1",
         producedValues: ["connectionRef", "leaseId"],
+        approvalRequired: true,
         target: { kind: "ephemeralSqlDatabase", bindingInput: "sandbox" },
         blastRadius: {
             resource: "databaseSchema",
@@ -149,6 +152,81 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
             resource: "databaseSchema",
             operation: "read",
             targetEnvironment: "development",
+            reversibility: "noEffect",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "dacpac.deploy",
+        version: 1,
+        label: "Deploy DACPAC to disposable database",
+        description:
+            "Applies the exact approved DACPAC preview only to an ownership-verified Runbook Studio localhost lease.",
+        inputs: [
+            {
+                name: "dacpac",
+                kind: "bind",
+                required: true,
+                description: "Bind to a dacpac.build artifactPath",
+            },
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to a sandbox.provision connectionRef",
+            },
+            {
+                name: "artifactDigest",
+                kind: "bind",
+                required: true,
+                description: "Bind to the approved dacpac.build artifactSha256",
+            },
+            {
+                name: "previewDigest",
+                kind: "bind",
+                required: true,
+                description: "Bind to the approved dacpac.deploy.preview reportSha256",
+            },
+        ],
+        outputContract: "deploymentEvidence/1",
+        producedValues: ["deployed", "postDeployChangeCount", "artifactSha256"],
+        approvalRequired: true,
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseSchema",
+            operation: "modify",
+            targetEnvironment: "ephemeral",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "schema.compare",
+        version: 1,
+        label: "Verify deployed schema",
+        description:
+            "Regenerates a DacFx deployment report and succeeds only when the disposable target matches the DACPAC.",
+        inputs: [
+            {
+                name: "dacpac",
+                kind: "bind",
+                required: true,
+                description: "Bind to a dacpac.build artifactPath",
+            },
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to a sandbox.provision connectionRef",
+            },
+        ],
+        outputContract: "schemaDiff/1",
+        producedValues: ["matches", "changeCount", "reportSha256"],
+        target: { kind: "sqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseSchema",
+            operation: "read",
+            targetEnvironment: "ephemeral",
             reversibility: "noEffect",
             breadth: "bounded",
         },
@@ -284,6 +362,20 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                 issues.push(`node '${node.id}' target does not match ${targetSource}`);
             }
         }
+        if (descriptor.approvalRequired) {
+            const approvingGates = lock.edges
+                .filter((edge) => edge.to === node.id && edge.when === "approved")
+                .map((edge) => lock.nodes.find((candidate) => candidate.id === edge.from))
+                .filter((candidate) => candidate?.kind === "gate");
+            const hasUnambiguousGate =
+                approvingGates.length === 1 &&
+                lock.edges.filter(
+                    (edge) => edge.from === approvingGates[0]!.id && edge.when === "approved",
+                ).length === 1;
+            if (!hasUnambiguousGate) {
+                issues.push(`node '${node.id}' requires one unambiguous incoming approved gate`);
+            }
+        }
     }
     return issues;
 }
@@ -376,6 +468,9 @@ export function describeCatalogForPrompt(): string {
             a.producedValues.length > 0
                 ? ` Produces bindable values: ${a.producedValues.map((v) => `$nodes.<id>.${v}`).join(", ")}.`
                 : "";
-        return `- "${a.kind}" (${a.label}): ${a.description} Inputs: ${inputs}.${values}`;
+        const approval = a.approvalRequired
+            ? " Requires a dedicated gate with one approved edge directly to this activity."
+            : "";
+        return `- "${a.kind}" (${a.label}): ${a.description} Inputs: ${inputs}.${values}${approval}`;
     }).join("\n");
 }

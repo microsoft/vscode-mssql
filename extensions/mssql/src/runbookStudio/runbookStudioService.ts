@@ -48,6 +48,7 @@ import {
     preflightRunbookRequirements,
     prepareRunbookIntent,
 } from "./capabilities/runbookCapabilities";
+import { validateLockAgainstCatalog } from "./activities/activityCatalog";
 import { RunbookRunCoordinator, OutputPageResult } from "./runbookRunCoordinator";
 import { RunbookRunLedger, sanitizeRunFileId, selectExpiredRuns } from "./runbookRunLedger";
 import {
@@ -80,8 +81,10 @@ import {
 } from "./runtime/hobbesRuntimeAdapter";
 import {
     LocalActivityError,
+    LocalDacpacDeploymentResult,
     LocalSandboxCleanupResult,
     LocalSandboxLeaseResult,
+    LocalSchemaComparisonResult,
     LocalSqlActivityDelegate,
 } from "./runtime/localSqlDelegate";
 import {
@@ -150,6 +153,7 @@ interface ActiveRunBinding {
         string,
         { challenge: RunbookApprovalChallenge; evidence: RunbookApprovalEvidence }
     >;
+    outputValues: Map<string, Record<string, number | string | boolean>>;
 }
 
 /** Retention: the newest N runs per runbook id survive GC. */
@@ -350,6 +354,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const configuredRuntimeKind = vscode.workspace
             .getConfiguration()
             .get<string>("mssql.runbookStudio.runtime", "local");
+        if (configuredRuntimeKind !== "hobbes") {
+            const catalogIssues = validateLockAgainstCatalog(artifact.lock);
+            if (catalogIssues.length > 0) {
+                return {
+                    error: {
+                        code: "RunbookStudio.BindingInvalid",
+                        message: LocRunbookStudio.runbookIncompatible(catalogIssues.join("; ")),
+                    },
+                };
+            }
+        }
         // Library-backed locks execute in Hobbes even when an older saved
         // draft predates host stamping and still says "extension" in source.
         const admissionManifest =
@@ -428,6 +443,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             parameterValues: binding.values,
             pendingApprovals: new Map(),
             approvedEffects: new Map(),
+            outputValues: new Map(),
         };
         this.activeByDocument.set(model.uriKey, active);
         this.activeByRunId.set(runId, active);
@@ -1625,12 +1641,26 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     }
                 }
             }
+            const unresolvedDeployments = this.effectLedger
+                .scanRecovery()
+                .outstanding.filter((entry) => {
+                    const identity = entry.snapshot.identity;
+                    return (
+                        identity.activityKind === "dacpac.deploy" &&
+                        !this.activeByRunId.has(identity.runId) &&
+                        (identity.ownerPid === undefined ||
+                            identity.ownerPid === process.pid ||
+                            !isProcessAlive(identity.ownerPid))
+                    );
+                }).length;
+            attention += unresolvedDeployments;
             emitRunbookEvent(context, "runbookStudio.effect.recovery", "ok", {
                 recovered: metaField(recovered),
                 deferred: metaField(deferred),
                 liveOwner: metaField(liveOwner),
                 attention: metaField(attention),
                 unreadableJournals: metaField(scan.unreadableFiles.length),
+                unresolvedDeployments: metaField(unresolvedDeployments),
             });
             if (attention > 0 && !this.effectRecoveryWarningShown) {
                 this.effectRecoveryWarningShown = true;
@@ -1698,6 +1728,35 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         ),
                     previewDacpacDeployment: (dacpacPath, databaseRef, cancelled) =>
                         this.previewLocalDacpacDeployment(dacpacPath, databaseRef, cancelled),
+                    deployDacpac: (
+                        nodeId,
+                        dacpacPath,
+                        databaseRef,
+                        artifactDigest,
+                        previewDigest,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.deployLocalDacpac(
+                            nodeId,
+                            dacpacPath,
+                            databaseRef,
+                            artifactDigest,
+                            previewDigest,
+                            invocation,
+                            cancelled,
+                        ),
+                    verifyDacpacDeployment: async (dacpacPath, databaseRef, cancelled) => {
+                        const preview = await this.previewLocalDacpacDeployment(
+                            dacpacPath,
+                            databaseRef,
+                            cancelled,
+                        );
+                        return {
+                            ...preview,
+                            matches: preview.changeCount === 0,
+                        } satisfies LocalSchemaComparisonResult;
+                    },
                     disposeSandbox: (nodeId, leaseRef, invocation, cancelled) =>
                         this.disposeLocalSandbox(nodeId, leaseRef, invocation, cancelled),
                     connect: async (databaseRef, ownerUri) => {
@@ -1793,7 +1852,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalSandboxLeaseResult> {
-        const authorization = this.requireApprovedEffect(nodeId, invocation);
+        const authorization = this.requireApprovedEffect(nodeId, invocation, "sandbox.provision");
         const baseProfile = await this.requireSavedConnection(baseConnectionRef);
         this.assertSandboxBaseProfile(baseProfile);
 
@@ -1939,9 +1998,185 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         return this.cleanupLocalSandboxEffect(recovered.snapshot);
     }
 
+    private async deployLocalDacpac(
+        nodeId: string,
+        dacpacPath: string,
+        databaseRef: string,
+        approvedArtifactDigest: string,
+        approvedPreviewDigest: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalDacpacDeploymentResult> {
+        const authorization = this.requireApprovedEffect(nodeId, invocation, "dacpac.deploy");
+        const leaseEffectId = effectIdFromLocalSandboxLeaseRef(databaseRef);
+        if (!leaseEffectId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacDeployTargetRequired,
+                "RunbookStudio.ActivityPolicyDenied",
+            );
+        }
+        const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested);
+        if (artifact.artifactSha256 !== approvedArtifactDigest) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacDeployArtifactChanged,
+                "RunbookStudio.DeploymentPreviewChanged",
+            );
+        }
+        const approvedPreview = await this.previewLocalDacpacDeployment(
+            artifact.artifactPath,
+            databaseRef,
+            isCancellationRequested,
+        );
+        if (approvedPreview.reportSha256 !== approvedPreviewDigest) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacDeployPreviewChanged,
+                "RunbookStudio.DeploymentPreviewChanged",
+            );
+        }
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacPreviewCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const resolved = await this.resolveRunbookConnection(databaseRef);
+        if (!resolved.sandbox || resolved.sandbox.effectId !== leaseEffectId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacDeployTargetRequired,
+                "RunbookStudio.ActivityPolicyDenied",
+            );
+        }
+        const connectionManager = this.connectionAccess();
+        const dacFxService = this.dacFxAccess();
+        if (!connectionManager || !dacFxService) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacPreviewServiceUnavailable,
+                "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        const effectId = deriveRunbookEffectId({
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "dacpac.deploy",
+            activityVersion: authorization.challenge.activityVersion,
+        });
+        if (this.effectLedger.recoverEffect(effectId)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        this.effectLedger.prepareEffect({
+            effectId,
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "dacpac.deploy",
+            activityVersion: authorization.challenge.activityVersion,
+            idempotencyKey: digestRunbookValue({
+                effectId,
+                artifactSha256: artifact.artifactSha256,
+                approvedPreviewDigest,
+                databaseName: resolved.targetDatabase,
+            }),
+            planHash: invocation.planHash,
+            bindingDigest: authorization.challenge.resolvedArgumentDigest,
+            targetFingerprint: authorization.challenge.targetFingerprint,
+            retrySemantics: "atMostOnceUnknownOutcome",
+            ownerPid: process.pid,
+            policy: {
+                version: authorization.challenge.policyVersion,
+                outcome: "allowed",
+            },
+            approval: authorization.evidence,
+            recovery: {
+                resourceKind: "dacpacDeployment",
+                resourceId: resolved.targetDatabase,
+                connectionProfileId: resolved.sandbox.connectionProfileId,
+                ownershipMarkerDigest: resolved.sandbox.ownershipMarkerDigest,
+            },
+        });
+
+        sandboxCounter++;
+        const ownerUri = `runbookstudio://dacfx-deploy/${sandboxCounter.toString(36)}`;
+        let connected = false;
+        let deploymentStarted = false;
+        let operationId = "";
+        try {
+            connected = await connectionManager.connect(ownerUri, resolved.profile, {
+                connectionSource: "runbookStudio",
+                shouldHandleErrors: false,
+            });
+            if (!connected) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.connectFailed,
+                    "RunbookStudio.ActivityFailed",
+                );
+            }
+            // DacFx deployment is a critical effect section. Cancellation is
+            // observed before it starts and again by the run walker after it
+            // settles; abandoning the request would create an unknown live
+            // server-side task while cleanup races it.
+            deploymentStarted = true;
+            const result = await dacFxService.deployDacpac(
+                artifact.artifactPath,
+                resolved.targetDatabase,
+                true,
+                ownerUri,
+                TaskExecutionMode.execute,
+            );
+            operationId = result.operationId;
+            if (!result.success) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacDeployFailed,
+                    "RunbookStudio.DeploymentFailed",
+                );
+            }
+            this.effectLedger.recordEffectObserved(effectId, {
+                resourceKind: "dacpacDeployment",
+                resourceId: resolved.targetDatabase,
+                ownershipMarkerDigest: resolved.sandbox.ownershipMarkerDigest,
+                connectionProfileId: resolved.sandbox.connectionProfileId,
+                outputHandles: [databaseRef, operationId],
+            });
+        } catch (error) {
+            if (!deploymentStarted) {
+                this.effectLedger.recordNoEffectFailure(effectId, "DeploymentNotStarted");
+            }
+            throw error;
+        } finally {
+            if (connected) {
+                try {
+                    await connectionManager.disconnect(ownerUri);
+                } catch {
+                    // The durable effect record precedes any reported success.
+                }
+            }
+        }
+
+        const postDeploy = await this.previewLocalDacpacDeployment(
+            artifact.artifactPath,
+            databaseRef,
+            () => false,
+        );
+        return {
+            effectId,
+            dacpacPath: artifact.artifactPath,
+            artifactSha256: artifact.artifactSha256,
+            databaseName: resolved.targetDatabase,
+            operationId,
+            approvedPreviewDigest,
+            postDeployReportSha256: postDeploy.reportSha256,
+            postDeployChangeCount: postDeploy.changeCount,
+            deployedAtUtc: new Date().toISOString(),
+        };
+    }
+
     private requireApprovedEffect(
         nodeId: string,
         invocation: ActivityInvocationIdentity,
+        activityKind: string,
     ): {
         challenge: RunbookApprovalChallenge;
         evidence: RunbookApprovalEvidence;
@@ -1955,7 +2190,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             authorization.challenge.planRevision !== invocation.planRevision ||
             authorization.challenge.attempt !== invocation.attempt ||
             authorization.challenge.activityNodeId !== nodeId ||
-            authorization.challenge.activityKind !== "sandbox.provision"
+            authorization.challenge.activityKind !== activityKind
         ) {
             throw new LocalActivityError(
                 LocRunbookStudio.sandboxApprovalRequired,
@@ -1968,6 +2203,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             parameterValues: active.parameterValues,
             gateNodeId: authorization.challenge.gateNodeId,
             attempt: invocation.attempt,
+            nodeValues: active.outputValues,
         });
         if (
             !rebuilt ||
@@ -2106,6 +2342,13 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     databaseName,
                     cleaned: true,
                 });
+                this.completeDependentDeploymentEffects(
+                    snapshot.identity.runId,
+                    databaseName,
+                    connectionProfileId,
+                    expectedMarkerDigest,
+                    cleanupEvidenceDigest,
+                );
                 snapshot = this.effectLedger.completeCleanup(
                     snapshot.identity.effectId,
                     cleanupEvidenceDigest,
@@ -2113,6 +2356,54 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 return cleanupResult(snapshot, cleanupEvidenceDigest);
             },
         );
+    }
+
+    /** A DACPAC deployment is compensated by deleting its owned disposable
+     * database. Settle even a prepared/unknown deploy only after the database
+     * absence probe succeeds, so a crash window cannot strand effect state. */
+    private completeDependentDeploymentEffects(
+        runId: string,
+        databaseName: string,
+        connectionProfileId: string,
+        ownershipMarkerDigest: string,
+        cleanupEvidenceDigest: string,
+    ): void {
+        const scan = this.effectLedger.scanRecovery();
+        for (const entry of scan.outstanding) {
+            let dependent = entry.snapshot;
+            const recovery = dependent.identity.recovery;
+            if (
+                dependent.identity.runId !== runId ||
+                dependent.identity.activityKind !== "dacpac.deploy" ||
+                recovery?.resourceKind !== "dacpacDeployment" ||
+                recovery.resourceId !== databaseName ||
+                recovery.connectionProfileId !== connectionProfileId ||
+                recovery.ownershipMarkerDigest !== ownershipMarkerDigest ||
+                dependent.state === "needsOperatorDecision"
+            ) {
+                continue;
+            }
+            if (dependent.state === "prepared") {
+                dependent = this.effectLedger.recordEffectObserved(dependent.identity.effectId, {
+                    resourceKind: "dacpacDeploymentOutcomeUnknown",
+                    resourceId: databaseName,
+                    ownershipMarkerDigest,
+                    connectionProfileId,
+                });
+            }
+            if (dependent.state === "effectObserved") {
+                dependent = this.effectLedger.startCleanup(dependent.identity.effectId);
+            }
+            if (dependent.state === "cleanupStarted") {
+                this.effectLedger.completeCleanup(
+                    dependent.identity.effectId,
+                    digestRunbookValue({
+                        cleanupEvidenceDigest,
+                        dependentEffectId: dependent.identity.effectId,
+                    }),
+                );
+            }
+        }
     }
 
     private async settleSandboxProvisionFailure(
@@ -2244,6 +2535,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private async resolveRunbookConnection(databaseRef: string): Promise<{
         profile: mssql.IConnectionInfo;
         targetDatabase: string;
+        sandbox?: {
+            effectId: string;
+            connectionProfileId: string;
+            ownershipMarkerDigest: string;
+        };
     }> {
         const effectId = effectIdFromLocalSandboxLeaseRef(databaseRef);
         if (!effectId) {
@@ -2293,6 +2589,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         return {
             profile: { ...baseProfile, database: resource.resourceId } as mssql.IConnectionInfo,
             targetDatabase: resource.resourceId,
+            sandbox: {
+                effectId,
+                connectionProfileId: resource.connectionProfileId,
+                ownershipMarkerDigest: resource.ownershipMarkerDigest,
+            },
         };
     }
 
@@ -2427,6 +2728,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     return;
                 }
                 case "nodeState": {
+                    if (event.state === "succeeded" && event.output?.scalars) {
+                        active.outputValues.set(event.nodeId, { ...event.output.scalars });
+                    }
                     const outputs = event.output
                         ? [this.resultStore.put(active.runId, event.nodeId, event.output)]
                         : undefined;
@@ -2455,6 +2759,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         artifact: active.artifact,
                         parameterValues: active.parameterValues,
                         gateNodeId: event.nodeId,
+                        nodeValues: active.outputValues,
                     });
                     if (approvalChallenge) {
                         const approval = this.approvalLedger.requestApproval(approvalChallenge);

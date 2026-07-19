@@ -192,6 +192,19 @@
         "message": "Runbook Studio found {0} disposable database effect(s) that require operator review. Automatic cleanup was refused.",
         "comment": ["{0} is a count of effects requiring review"]
     },
+    "DACPAC deployment to disposable database '{0}' completed and a post-deploy report was generated./{0} is a generated disposable database name": {
+        "message": "DACPAC deployment to disposable database '{0}' completed and a post-deploy report was generated.",
+        "comment": ["{0} is a generated disposable database name"]
+    },
+    "The deployment preview changed after approval. Deployment was refused; review and approve the new preview.": "The deployment preview changed after approval. Deployment was refused; review and approve the new preview.",
+    "The built DACPAC changed after approval. Deployment was refused; rebuild and review the new preview.": "The built DACPAC changed after approval. Deployment was refused; rebuild and review the new preview.",
+    "DacFx could not deploy the DACPAC to the disposable database.": "DacFx could not deploy the DACPAC to the disposable database.",
+    "DACPAC deployment is allowed only for an ownership-verified Runbook Studio disposable database.": "DACPAC deployment is allowed only for an ownership-verified Runbook Studio disposable database.",
+    "The disposable database schema matches the built DACPAC.": "The disposable database schema matches the built DACPAC.",
+    "Schema verification found {0} remaining deployment change(s)./{0} is a DacFx deployment change count": {
+        "message": "Schema verification found {0} remaining deployment change(s).",
+        "comment": ["{0} is a DacFx deployment change count"]
+    },
     "Database project target '{0}' must be a .sqlproj file./{0} is the requested project path": {
         "message": "Database project target '{0}' must be a .sqlproj file.",
         "comment": ["{0} is the requested project path"]

@@ -317,16 +317,17 @@ suite("runbook capability preflight", () => {
         expect(local.status).to.equal("ready");
     });
 
-    test("an actual deployment remains design-only", () => {
+    test("an actual deployment is admitted only with guarded local bindings", () => {
         const manifest = classifyRunbookIntent("Deploy this database project.").requirements;
         const local = preflightRunbookRequirements(manifest, {
             ...preflightContextForRuntime("local", "admission"),
             providerAvailable: true,
-            bindings: { connection: true },
+            bindings: { connection: true, provisionedTarget: true },
         });
 
         expect(manifest.activities.map((activity) => activity.kind)).to.include("dacpac.deploy");
-        expect(local.status).to.equal("designOnly");
-        expect(local.missingActivityKinds).to.include("dacpac.deploy@1");
+        expect(manifest.activities.map((activity) => activity.kind)).to.include("schema.compare");
+        expect(local.status).to.equal("ready");
+        expect(local.missingActivityKinds).to.deep.equal([]);
     });
 });

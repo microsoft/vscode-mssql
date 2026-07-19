@@ -41,6 +41,36 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             reportTruncated: false,
             generatedAtUtc: "2026-07-19T20:02:00.000Z",
         }),
+        deployDacpac: async (
+            _nodeId,
+            dacpacPath,
+            _databaseRef,
+            _artifactDigest,
+            previewDigest,
+        ) => ({
+            effectId: `effect-${"e".repeat(64)}`,
+            dacpacPath,
+            artifactSha256: "b".repeat(64),
+            databaseName: `RunbookStudio_${"d".repeat(20)}`,
+            operationId: "deploy-op",
+            approvedPreviewDigest: previewDigest,
+            postDeployReportSha256: "f".repeat(64),
+            postDeployChangeCount: 0,
+            deployedAtUtc: "2026-07-19T20:03:30.000Z",
+        }),
+        verifyDacpacDeployment: async (dacpacPath) => ({
+            dacpacPath,
+            targetDatabase: `RunbookStudio_${"d".repeat(20)}`,
+            operationId: "verify-op",
+            changeCount: 0,
+            alertCount: 0,
+            operationSummary: "No schema changes",
+            reportSha256: "f".repeat(64),
+            reportXml: "<DeploymentReport />",
+            reportTruncated: false,
+            generatedAtUtc: "2026-07-19T20:03:40.000Z",
+            matches: true,
+        }),
         provisionSandbox: async () => ({
             effectId: `effect-${"d".repeat(64)}`,
             leaseId: "lease-1",
@@ -241,6 +271,47 @@ suite("Runbook Studio local activity delegate", () => {
         });
     });
 
+    test("guarded deployment and schema verification emit typed evidence", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+        const resolve = (value: unknown) => {
+            const values: Record<string, string> = {
+                "$nodes.build.artifactPath": "C:\\repo\\bin\\Debug\\A.dacpac",
+                "$nodes.build.artifactSha256": "b".repeat(64),
+                "$nodes.provision.connectionRef": `runbook-sql-lease:effect-${"d".repeat(64)}`,
+                "$nodes.preview.reportSha256": "c".repeat(64),
+            };
+            return typeof value === "string" ? (values[value] ?? value) : value;
+        };
+        const deploy = await delegate.executeActivity(
+            activity("dacpac.deploy", {
+                dacpac: "$nodes.build.artifactPath",
+                database: "$nodes.provision.connectionRef",
+                artifactDigest: "$nodes.build.artifactSha256",
+                previewDigest: "$nodes.preview.reportSha256",
+            }),
+            binding(resolve),
+        );
+        expect(deploy?.success).to.equal(true);
+        expect(deploy?.output?.contract).to.equal("deploymentEvidence/1");
+        expect(deploy?.output?.scalars).to.include({
+            operationId: "deploy-op",
+            approvedPreviewDigest: "c".repeat(64),
+            postDeployChangeCount: 0,
+            executionMode: "local",
+        });
+
+        const verify = await delegate.executeActivity(
+            activity("schema.compare", {
+                dacpac: "$nodes.build.artifactPath",
+                database: "$nodes.provision.connectionRef",
+            }),
+            binding(resolve),
+        );
+        expect(verify?.success).to.equal(true);
+        expect(verify?.output?.contract).to.equal("schemaDiff/1");
+        expect(verify?.values).to.deep.include({ matches: true, changeCount: 0 });
+    });
+
     test("advertises only locally implemented activities", () => {
         const delegate = new LocalSqlActivityDelegate(operations());
         expect([...delegate.supportedActivityKinds]).to.have.members([
@@ -248,10 +319,12 @@ suite("Runbook Studio local activity delegate", () => {
             "dacpac.build",
             "sandbox.provision",
             "dacpac.deploy.preview",
+            "dacpac.deploy",
+            "schema.compare",
             "sandbox.dispose",
             "sql.query.read",
         ]);
-        expect(delegate.supportedActivityKinds.has("dacpac.deploy")).to.equal(false);
+        expect(delegate.supportedActivityKinds.has("sqltest.run")).to.equal(false);
     });
 
     test("deployment report summarization counts operations and alerts", () => {

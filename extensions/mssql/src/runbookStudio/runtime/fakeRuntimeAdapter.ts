@@ -386,6 +386,8 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "dacpac.build",
     "sandbox.provision",
     "dacpac.deploy.preview",
+    "dacpac.deploy",
+    "schema.compare",
     "sandbox.dispose",
 ]);
 
@@ -463,12 +465,14 @@ function executeNode(
                     contract: "dacpacArtifact/1",
                     scalars: {
                         artifactPath: "preview://artifacts/Database.dacpac",
+                        artifactSha256: "preview-artifact-sha256",
                         diagnosticCount: 0,
                         preview: true,
                     },
                 },
                 values: {
                     artifactPath: "preview://artifacts/Database.dacpac",
+                    artifactSha256: "preview-artifact-sha256",
                     diagnosticCount: 0,
                 },
             };
@@ -518,6 +522,76 @@ function executeNode(
                 values: {
                     changeCount: 3,
                     reportSha256: "preview-report-sha256",
+                },
+            };
+        }
+        case "dacpac.deploy": {
+            const dacpac = resolveBind(node.inputs?.dacpac, parameterValues, nodeValues);
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const artifactDigest = resolveBind(
+                node.inputs?.artifactDigest,
+                parameterValues,
+                nodeValues,
+            );
+            const previewDigest = resolveBind(
+                node.inputs?.previewDigest,
+                parameterValues,
+                nodeValues,
+            );
+            if (
+                typeof dacpac !== "string" ||
+                typeof database !== "string" ||
+                typeof artifactDigest !== "string" ||
+                typeof previewDigest !== "string"
+            ) {
+                return invalidPreviewBinding(
+                    "dacpac.deploy",
+                    "dacpac/database/artifactDigest/previewDigest",
+                );
+            }
+            return {
+                success: true,
+                message: "DACPAC deployed (deterministic preview)",
+                output: {
+                    contract: "deploymentEvidence/1",
+                    scalars: {
+                        deployed: true,
+                        artifactSha256: artifactDigest,
+                        approvedPreviewDigest: previewDigest,
+                        postDeployChangeCount: 0,
+                        preview: true,
+                    },
+                },
+                values: {
+                    deployed: true,
+                    artifactSha256: artifactDigest,
+                    postDeployChangeCount: 0,
+                },
+            };
+        }
+        case "schema.compare": {
+            const dacpac = resolveBind(node.inputs?.dacpac, parameterValues, nodeValues);
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            if (typeof dacpac !== "string" || typeof database !== "string") {
+                return invalidPreviewBinding("schema.compare", "dacpac/database");
+            }
+            return {
+                success: true,
+                message: "Schema matches DACPAC (deterministic preview)",
+                output: {
+                    contract: "schemaDiff/1",
+                    text: "<DeploymentReport />",
+                    scalars: {
+                        matches: true,
+                        changeCount: 0,
+                        reportSha256: "preview-post-deploy-report-sha256",
+                        preview: true,
+                    },
+                },
+                values: {
+                    matches: true,
+                    changeCount: 0,
+                    reportSha256: "preview-post-deploy-report-sha256",
                 },
             };
         }

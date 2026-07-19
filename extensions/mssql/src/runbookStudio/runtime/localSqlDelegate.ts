@@ -48,6 +48,20 @@ export interface LocalSqlOperations {
         databaseRef: string,
         isCancellationRequested: () => boolean,
     ): Promise<LocalDeploymentPreviewResult>;
+    deployDacpac(
+        nodeId: string,
+        dacpacPath: string,
+        databaseRef: string,
+        approvedArtifactDigest: string,
+        approvedPreviewDigest: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalDacpacDeploymentResult>;
+    verifyDacpacDeployment(
+        dacpacPath: string,
+        databaseRef: string,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSchemaComparisonResult>;
     provisionSandbox(
         nodeId: string,
         baseConnectionRef: string,
@@ -92,6 +106,22 @@ export interface LocalDeploymentPreviewResult {
     generatedAtUtc: string;
 }
 
+export interface LocalDacpacDeploymentResult {
+    effectId: string;
+    dacpacPath: string;
+    artifactSha256: string;
+    databaseName: string;
+    operationId: string;
+    approvedPreviewDigest: string;
+    postDeployReportSha256: string;
+    postDeployChangeCount: number;
+    deployedAtUtc: string;
+}
+
+export interface LocalSchemaComparisonResult extends LocalDeploymentPreviewResult {
+    matches: boolean;
+}
+
 export interface LocalSandboxLeaseResult {
     effectId: string;
     leaseId: string;
@@ -131,6 +161,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "dacpac.build",
         "sandbox.provision",
         "dacpac.deploy.preview",
+        "dacpac.deploy",
+        "schema.compare",
         "sandbox.dispose",
         "sql.query.read",
     ]);
@@ -155,6 +187,10 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.provisionSandbox(node, binding);
             case "dacpac.deploy.preview":
                 return this.previewDacpacDeployment(node, binding);
+            case "dacpac.deploy":
+                return this.deployDacpac(node, binding);
+            case "schema.compare":
+                return this.verifyDacpacDeployment(node, binding);
             case "sandbox.dispose":
                 return this.disposeSandbox(node, binding);
             case "sql.query.read":
@@ -408,6 +444,122 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         }
     }
 
+    private async deployDacpac(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const dacpacPath = binding.resolveBind(node.inputs?.dacpac);
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        const artifactDigest = binding.resolveBind(node.inputs?.artifactDigest);
+        const previewDigest = binding.resolveBind(node.inputs?.previewDigest);
+        if (typeof dacpacPath !== "string" || dacpacPath.trim().length === 0) {
+            return invalidBinding("dacpac");
+        }
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        if (typeof artifactDigest !== "string" || artifactDigest.trim().length === 0) {
+            return invalidBinding("artifactDigest");
+        }
+        if (typeof previewDigest !== "string" || previewDigest.trim().length === 0) {
+            return invalidBinding("previewDigest");
+        }
+        try {
+            const result = await this.operations.deployDacpac(
+                node.id,
+                dacpacPath.trim(),
+                databaseRef.trim(),
+                artifactDigest.trim(),
+                previewDigest.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                message: LocRunbookStudio.dacpacDeployed(result.databaseName),
+                output: {
+                    contract: "deploymentEvidence/1",
+                    scalars: {
+                        effectId: result.effectId,
+                        dacpacPath: result.dacpacPath,
+                        artifactSha256: result.artifactSha256,
+                        databaseName: result.databaseName,
+                        operationId: result.operationId,
+                        approvedPreviewDigest: result.approvedPreviewDigest,
+                        postDeployReportSha256: result.postDeployReportSha256,
+                        postDeployChangeCount: result.postDeployChangeCount,
+                        deployedAtUtc: result.deployedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    deployed: true,
+                    postDeployChangeCount: result.postDeployChangeCount,
+                    artifactSha256: result.artifactSha256,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async verifyDacpacDeployment(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+        },
+    ): Promise<NodeExecution> {
+        const dacpacPath = binding.resolveBind(node.inputs?.dacpac);
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        if (typeof dacpacPath !== "string" || dacpacPath.trim().length === 0) {
+            return invalidBinding("dacpac");
+        }
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        try {
+            const result = await this.operations.verifyDacpacDeployment(
+                dacpacPath.trim(),
+                databaseRef.trim(),
+                binding.isCancellationRequested,
+            );
+            return {
+                success: result.matches,
+                message: result.matches
+                    ? LocRunbookStudio.schemaMatches
+                    : LocRunbookStudio.schemaDriftDetected(result.changeCount),
+                ...(!result.matches ? { errorCode: "RunbookStudio.SchemaDriftDetected" } : {}),
+                output: {
+                    contract: "schemaDiff/1",
+                    text: result.reportXml,
+                    scalars: {
+                        matches: result.matches,
+                        targetDatabase: result.targetDatabase,
+                        changeCount: result.changeCount,
+                        alertCount: result.alertCount,
+                        operationSummary: result.operationSummary,
+                        reportSha256: result.reportSha256,
+                        reportTruncated: result.reportTruncated,
+                        generatedAtUtc: result.generatedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    matches: result.matches,
+                    changeCount: result.changeCount,
+                    reportSha256: result.reportSha256,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
     private async disposeSandbox(
         node: RunbookPlanNode,
         binding: {
@@ -460,5 +612,13 @@ function activityFailure(error: unknown): NodeExecution {
         message: error instanceof Error ? error.message : "activity failed",
         errorCode:
             error instanceof LocalActivityError ? error.errorCode : "RunbookStudio.ActivityFailed",
+    };
+}
+
+function invalidBinding(name: string): NodeExecution {
+    return {
+        success: false,
+        message: LocRunbookStudio.parameterRequired(name),
+        errorCode: "RunbookStudio.BindingInvalid",
     };
 }

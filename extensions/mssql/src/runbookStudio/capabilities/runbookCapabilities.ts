@@ -156,12 +156,14 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         approvalRequired: true,
         connectionRequirement: "provisioned",
         rollbackContract: "required",
+        providerRequirement: "execution",
         outputContract: "deploymentEvidence/1",
     },
     "schema.compare": {
         target: "sqlDatabase",
         effect: "read",
         connectionRequirement: "required",
+        providerRequirement: "execution",
         outputContract: "schemaDiff/1",
     },
     "sqltest.run": {
@@ -454,8 +456,15 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         requested.add("dacpac.deploy.preview");
     }
     if (requestsActualDeployment) {
+        // The local mutation lane never deploys to an arbitrary saved target.
+        // An actual deployment implies its disposable lease, convergence
+        // verification, and cleanup even when the prompt omits those safety
+        // mechanics.
+        requested.add("sandbox.provision");
         requested.add("dacpac.deploy.preview");
         requested.add("dacpac.deploy");
+        requested.add("schema.compare");
+        requested.add("sandbox.dispose");
     }
     if (
         has(text, /\b(schema compare|schema drift|drift|verify deployed schema)\b/) ||

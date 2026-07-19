@@ -335,6 +335,34 @@ export class RunbookStudio {
             args: [count],
             comment: ["{0} is a count of effects requiring review"],
         });
+    public static dacpacDeployed = (databaseName: string) =>
+        l10n.t({
+            message:
+                "DACPAC deployment to disposable database '{0}' completed and a post-deploy report was generated.",
+            args: [databaseName],
+            comment: ["{0} is a generated disposable database name"],
+        });
+    public static dacpacDeployPreviewChanged = l10n.t(
+        "The deployment preview changed after approval. Deployment was refused; review and approve the new preview.",
+    );
+    public static dacpacDeployArtifactChanged = l10n.t(
+        "The built DACPAC changed after approval. Deployment was refused; rebuild and review the new preview.",
+    );
+    public static dacpacDeployFailed = l10n.t(
+        "DacFx could not deploy the DACPAC to the disposable database.",
+    );
+    public static dacpacDeployTargetRequired = l10n.t(
+        "DACPAC deployment is allowed only for an ownership-verified Runbook Studio disposable database.",
+    );
+    public static schemaMatches = l10n.t(
+        "The disposable database schema matches the built DACPAC.",
+    );
+    public static schemaDriftDetected = (changeCount: number) =>
+        l10n.t({
+            message: "Schema verification found {0} remaining deployment change(s).",
+            args: [changeCount],
+            comment: ["{0} is a DacFx deployment change count"],
+        });
     public static databaseProjectMustBeSqlproj = (projectPath: string) =>
         l10n.t({
             message: "Database project target '{0}' must be a .sqlproj file.",
