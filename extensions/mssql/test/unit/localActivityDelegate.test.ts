@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import type * as mssql from "vscode-mssql";
 import { RunbookPlanNode } from "../../src/sharedInterfaces/runbookStudio";
 import {
     LocalActivityError,
@@ -85,6 +86,16 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             cleaned: true,
             cleanedAtUtc: "2026-07-19T20:04:00.000Z",
             cleanupEvidenceDigest: "sha256:cleanup",
+        }),
+        bundleEvidence: async () => ({
+            bundleSha256: "9".repeat(64),
+            manifestJson: '{"contract":"evidenceBundle/1","verdict":"pass"}',
+            nodeCount: 10,
+            passedNodeCount: 10,
+            failedNodeCount: 0,
+            evidenceHandleCount: 8,
+            verdict: "pass",
+            generatedAtUtc: "2026-07-19T20:05:00.000Z",
         }),
         ...overrides,
     };
@@ -174,6 +185,7 @@ suite("Runbook Studio local activity delegate", () => {
         });
         expect(result?.values).to.deep.equal({
             artifactPath: "C:\\repo\\bin\\Debug\\A.dacpac",
+            artifactSha256: "b".repeat(64),
             diagnosticCount: 0,
         });
     });
@@ -312,6 +324,149 @@ suite("Runbook Studio local activity delegate", () => {
         expect(verify?.values).to.deep.include({ matches: true, changeCount: 0 });
     });
 
+    test("SQL test execution interprets typed rows and always disconnects", async () => {
+        let disconnects = 0;
+        const delegate = new LocalSqlActivityDelegate(
+            operations({
+                execute: async () => ({
+                    rowCount: 2,
+                    columnInfo: [column("test_name"), column("passed"), column("message")],
+                    rows: [
+                        [cell("table exists"), cell("1"), cell("found")],
+                        [cell("key exists"), cell("true"), cell("found")],
+                    ],
+                }),
+                disconnect: async () => {
+                    disconnects++;
+                },
+            }),
+        );
+
+        const result = await delegate.executeActivity(
+            activity("sqltest.run", {
+                database: "$nodes.provision.connectionRef",
+                sql: "SELECT N'table exists' AS test_name, CAST(1 AS bit) AS passed",
+            }),
+            binding((value) => (value === "$nodes.provision.connectionRef" ? "lease-ref" : value)),
+        );
+
+        expect(result?.success).to.equal(true);
+        expect(result?.verdict).to.equal("pass");
+        expect(result?.output?.contract).to.equal("testResults/1");
+        expect(result?.output?.rows).to.deep.equal([
+            ["table exists", true, "found"],
+            ["key exists", true, "found"],
+        ]);
+        expect(result?.values).to.deep.equal({ total: 2, passed: 2, failed: 0, allPassed: true });
+        expect(disconnects).to.equal(1);
+    });
+
+    test("SQL test failures retain typed results and produce a failing verdict", async () => {
+        const delegate = new LocalSqlActivityDelegate(
+            operations({
+                execute: async () => ({
+                    rowCount: 1,
+                    columnInfo: [column("name"), column("passed")],
+                    rows: [[cell("schema converged"), cell("0")]],
+                }),
+            }),
+        );
+
+        const result = await delegate.executeActivity(
+            activity("sqltest.run", {
+                database: "lease-ref",
+                sql: "SELECT N'schema converged' AS name, CAST(0 AS bit) AS passed",
+            }),
+            binding(),
+        );
+
+        expect(result).to.deep.include({
+            success: false,
+            verdict: "fail",
+            errorCode: "RunbookStudio.SqlTestsFailed",
+        });
+        expect(result?.output?.scalars).to.deep.include({
+            total: 1,
+            passed: 0,
+            failed: 1,
+            allPassed: false,
+        });
+    });
+
+    test("SQL test cancellation stops before query execution and disconnects", async () => {
+        let executed = false;
+        let disconnects = 0;
+        const delegate = new LocalSqlActivityDelegate(
+            operations({
+                execute: async () => {
+                    executed = true;
+                    return { rowCount: 0, columnInfo: [], rows: [] };
+                },
+                disconnect: async () => {
+                    disconnects++;
+                },
+            }),
+        );
+
+        const result = await delegate.executeActivity(
+            activity("sqltest.run", {
+                database: "lease-ref",
+                sql: "SELECT N'test' AS name, CAST(1 AS bit) AS passed",
+            }),
+            { ...binding(), isCancellationRequested: () => true },
+        );
+
+        expect(result).to.deep.include({
+            success: false,
+            errorCode: "RunbookStudio.ActivityCancelled",
+        });
+        expect(executed).to.equal(false);
+        expect(disconnects).to.equal(1);
+    });
+
+    test("SQL test timeout input is bounded before connecting", async () => {
+        let connected = false;
+        const delegate = new LocalSqlActivityDelegate(
+            operations({
+                connect: async () => {
+                    connected = true;
+                    return true;
+                },
+            }),
+        );
+
+        const result = await delegate.executeActivity(
+            activity("sqltest.run", {
+                database: "lease-ref",
+                sql: "SELECT N'test' AS name, CAST(1 AS bit) AS passed",
+                timeoutSeconds: 0,
+            }),
+            binding(),
+        );
+
+        expect(result).to.deep.include({
+            success: false,
+            errorCode: "RunbookStudio.BindingInvalid",
+        });
+        expect(connected).to.equal(false);
+    });
+
+    test("evidence aggregation emits a content-addressed manifest", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+
+        const result = await delegate.executeActivity(activity("evidence.bundle"), binding());
+
+        expect(result?.success).to.equal(true);
+        expect(result?.verdict).to.equal("pass");
+        expect(result?.output?.contract).to.equal("evidenceBundle/1");
+        expect(result?.output?.text).to.contain("evidenceBundle/1");
+        expect(result?.values).to.deep.equal({
+            bundleSha256: "9".repeat(64),
+            nodeCount: 10,
+            verdict: "pass",
+        });
+    });
+
     test("advertises only locally implemented activities", () => {
         const delegate = new LocalSqlActivityDelegate(operations());
         expect([...delegate.supportedActivityKinds]).to.have.members([
@@ -322,9 +477,10 @@ suite("Runbook Studio local activity delegate", () => {
             "dacpac.deploy",
             "schema.compare",
             "sandbox.dispose",
+            "sqltest.run",
+            "evidence.bundle",
             "sql.query.read",
         ]);
-        expect(delegate.supportedActivityKinds.has("sqltest.run")).to.equal(false);
     });
 
     test("deployment report summarization counts operations and alerts", () => {
@@ -368,3 +524,11 @@ suite("Runbook Studio local activity delegate", () => {
         expect(result.reportSha256).to.have.length(64);
     });
 });
+
+function column(columnName: string): mssql.IDbColumn {
+    return { columnName } as mssql.IDbColumn;
+}
+
+function cell(displayValue: string): mssql.DbCellValue {
+    return { displayValue, isNull: false };
+}

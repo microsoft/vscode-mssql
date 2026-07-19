@@ -19,6 +19,7 @@ import {
     RunbookPlanTarget,
     RunbookTargetKind,
 } from "../../sharedInterfaces/runbookStudio";
+import { isReadOnlySql } from "../readOnlySql";
 
 export interface ActivityInputDescriptor {
     name: string;
@@ -232,6 +233,45 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "sqltest.run",
+        version: 1,
+        label: "Run SQL assertion suite",
+        description:
+            "Executes one bounded read-only query whose rows are typed test cases, and fails the run when any case fails.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description:
+                    "Bind to a saved connection parameter or sandbox.provision connectionRef",
+            },
+            {
+                name: "sql",
+                kind: "sql",
+                required: true,
+                description:
+                    "One read-only query returning test_name (or name), passed, and optional message columns",
+            },
+            {
+                name: "timeoutSeconds",
+                kind: "bind",
+                required: false,
+                description: "Execution timeout from 1 to 300 seconds (default 60)",
+            },
+        ],
+        outputContract: "testResults/1",
+        producedValues: ["total", "passed", "failed", "allPassed"],
+        target: { kind: "sqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseData",
+            operation: "read",
+            targetEnvironment: "development",
+            reversibility: "noEffect",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "sandbox.dispose",
         version: 1,
         label: "Dispose local SQL database lease",
@@ -255,6 +295,18 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
             reversibility: "irreversible",
             breadth: "bounded",
         },
+    },
+    {
+        kind: "evidence.bundle",
+        version: 1,
+        label: "Assemble run evidence",
+        description:
+            "Builds a content-addressed, secret-safe manifest over completed node outcomes and durable result handles.",
+        inputs: [],
+        outputContract: "evidenceBundle/1",
+        producedValues: ["bundleSha256", "nodeCount", "verdict"],
+        target: { kind: "workspace", workspace: true },
+        blastRadius: READ_ONLY_LOCAL,
     },
     {
         kind: "sql.query.read",
@@ -346,6 +398,14 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                 issues.push(
                     `node '${node.id}' is missing required input '${input.name}' for ${descriptor.kind}`,
                 );
+            }
+            if (input.kind === "sql" && node.inputs && input.name in node.inputs) {
+                const sql = node.inputs[input.name];
+                if (typeof sql !== "string" || !isReadOnlySql(sql)) {
+                    issues.push(
+                        `node '${node.id}' input '${input.name}' must be one read-only SELECT statement`,
+                    );
+                }
             }
         }
         if (descriptor.target) {

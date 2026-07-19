@@ -290,6 +290,9 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
                     outcome: approved ? "success" : "failure",
                     message: approved ? "Approved" : "Rejected",
                 });
+                if (!approved) {
+                    verdict = "fail";
+                }
                 edgeCondition = approved ? "approved" : "rejected";
                 if (!approved && !hasEdge(lock.edges, current.id, "rejected")) {
                     terminal({ kind: "terminal", state: "failed", verdict: "fail" });
@@ -354,6 +357,9 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
                 if (result.verdict) {
                     verdict = result.verdict;
                 }
+                if (!result.success) {
+                    verdict = "fail";
+                }
                 edgeCondition = result.success ? "success" : "failure";
                 if (!result.success && !hasEdge(lock.edges, current.id, "failure")) {
                     terminal({
@@ -373,7 +379,12 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
             current = nextEdge ? nodesById.get(nextEdge.to) : undefined;
         }
 
-        terminal({ kind: "terminal", state: "succeeded", verdict: verdict ?? "pass" });
+        const finalVerdict = verdict ?? "pass";
+        terminal({
+            kind: "terminal",
+            state: finalVerdict === "fail" ? "failed" : "succeeded",
+            verdict: finalVerdict,
+        });
     }
 }
 
@@ -388,7 +399,9 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "dacpac.deploy.preview",
     "dacpac.deploy",
     "schema.compare",
+    "sqltest.run",
     "sandbox.dispose",
+    "evidence.bundle",
 ]);
 
 function isKnownActivity(
@@ -595,6 +608,34 @@ function executeNode(
                 },
             };
         }
+        case "sqltest.run": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const sql = resolveBind(node.inputs?.sql, parameterValues, nodeValues);
+            if (typeof database !== "string" || typeof sql !== "string") {
+                return invalidPreviewBinding("sqltest.run", "database/sql");
+            }
+            return {
+                success: true,
+                verdict: "pass",
+                message: "2 SQL tests passed (deterministic preview)",
+                output: {
+                    contract: "testResults/1",
+                    columns: ["name", "passed", "message"],
+                    rows: [
+                        ["Owned sandbox target", true, "Ownership marker is present"],
+                        ["DACPAC convergence", true, "No remaining schema changes"],
+                    ],
+                    scalars: {
+                        total: 2,
+                        passed: 2,
+                        failed: 0,
+                        allPassed: true,
+                        preview: true,
+                    },
+                },
+                values: { total: 2, passed: 2, failed: 0, allPassed: true },
+            };
+        }
         case "sandbox.dispose": {
             const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
             if (typeof database !== "string") {
@@ -610,6 +651,27 @@ function executeNode(
                 values: { cleaned: true },
             };
         }
+        case "evidence.bundle":
+            return {
+                success: true,
+                verdict: "pass",
+                message: "Evidence manifest assembled (deterministic preview)",
+                output: {
+                    contract: "evidenceBundle/1",
+                    text: '{"contract":"evidenceBundle/1","preview":true,"verdict":"pass"}',
+                    scalars: {
+                        bundleSha256: "preview-evidence-bundle-sha256",
+                        nodeCount: 11,
+                        verdict: "pass",
+                        preview: true,
+                    },
+                },
+                values: {
+                    bundleSha256: "preview-evidence-bundle-sha256",
+                    nodeCount: 11,
+                    verdict: "pass",
+                },
+            };
         case "sql.query.read": {
             return {
                 success: true,

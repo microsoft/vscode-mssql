@@ -106,11 +106,35 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
             },
         },
         {
+            id: "run-sql-tests",
+            label: "Run SQL validation tests",
+            kind: "activity",
+            activityKind: "sqltest.run",
+            inputs: {
+                database: "$nodes.provision-sandbox.connectionRef",
+                sql: [
+                    "SELECT N'Owned sandbox target' AS test_name,",
+                    "CAST(CASE WHEN EXISTS (",
+                    "SELECT 1 FROM sys.extended_properties",
+                    "WHERE class = 0 AND name = N'RunbookStudioLeaseId'",
+                    ") THEN 1 ELSE 0 END AS bit) AS passed,",
+                    "N'Runbook Studio ownership marker remains present after deployment' AS message",
+                ].join(" "),
+            },
+        },
+        {
             id: "dispose-sandbox",
             label: "Dispose disposable local database",
             kind: "activity",
             activityKind: "sandbox.dispose",
             inputs: { database: "$nodes.provision-sandbox.connectionRef" },
+        },
+        {
+            id: "bundle-evidence",
+            label: "Assemble developer validation evidence",
+            kind: "activity",
+            activityKind: "evidence.bundle",
+            inputs: {},
         },
         { id: "report", label: "Summarize developer validation", kind: "report" },
     ]);
@@ -120,11 +144,11 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
         id: "fixture-developer-validation-preview",
         name: "Developer validation chain",
         description:
-            "Build a database project, approve and deploy it to a disposable local database, verify convergence, and retain typed cleanup evidence.",
+            "Build a database project, approve and deploy it to a disposable local database, verify convergence, run SQL assertions, clean up, and retain a content-addressed evidence bundle.",
         family: "validate",
         source: {
             schemaVersion: RUNBOOK_SOURCE_SCHEMA_VERSION,
-            intent: "Build the database project, approve and provision an isolated local target, approve the exact deployment preview, deploy, verify schema convergence, clean up, and report typed evidence.",
+            intent: "Build the database project, approve and provision an isolated local target, approve the exact deployment preview, deploy, verify schema convergence, run SQL assertions, clean up, and report a typed evidence bundle.",
             parameters: [
                 {
                     id: "projectPath",
@@ -171,10 +195,14 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
                         connectionRequirement: "provisioned",
                         providerRequirement: "execution",
                     }),
+                    requirement("sqltest.run", "read", "testResults/1", {
+                        connectionRequirement: "provisioned",
+                    }),
                     requirement("sandbox.dispose", "mutate", "cleanupEvidence/1", {
                         connectionRequirement: "provisioned",
                         rollbackContract: "automatic",
                     }),
+                    requirement("evidence.bundle", "read", "evidenceBundle/1"),
                 ],
             },
         },
@@ -191,9 +219,16 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
                 { from: "provision-sandbox", to: "preview-deploy" },
                 { from: "preview-deploy", to: "approve-deploy" },
                 { from: "approve-deploy", to: "deploy-dacpac", when: "approved" },
+                { from: "approve-deploy", to: "dispose-sandbox", when: "rejected" },
                 { from: "deploy-dacpac", to: "verify-schema" },
-                { from: "verify-schema", to: "dispose-sandbox" },
-                { from: "dispose-sandbox", to: "report" },
+                { from: "deploy-dacpac", to: "dispose-sandbox", when: "failure" },
+                { from: "verify-schema", to: "run-sql-tests" },
+                { from: "verify-schema", to: "dispose-sandbox", when: "failure" },
+                { from: "run-sql-tests", to: "dispose-sandbox" },
+                { from: "run-sql-tests", to: "dispose-sandbox", when: "failure" },
+                { from: "dispose-sandbox", to: "bundle-evidence" },
+                { from: "dispose-sandbox", to: "bundle-evidence", when: "failure" },
+                { from: "bundle-evidence", to: "report" },
             ],
         },
     };

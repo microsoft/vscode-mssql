@@ -205,8 +205,7 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
     },
     "evidence.bundle": {
         target: "workspace",
-        effect: "mutate",
-        rollbackContract: "automatic",
+        effect: "read",
         outputContract: "evidenceBundle/1",
     },
 };
@@ -279,9 +278,9 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
             "Reproduce the captured incident against a disposable target with bounded effects.",
     },
     "evidence.bundle": {
-        label: "Publish the evidence bundle",
+        label: "Assemble the evidence bundle",
         description:
-            "Collect build, deployment, test, comparison, and cleanup evidence for review or CI.",
+            "Collect durable build, deployment, test, comparison, and cleanup handles for review or CI export.",
     },
     "sandbox.dispose": {
         label: "Dispose the isolated SQL target",
@@ -289,8 +288,9 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
     },
 };
 
-/** Family grammars intentionally order cleanup last and never substitute an
- * installed read query for an unavailable operational verb. */
+/** Family grammars intentionally order cleanup as the last external effect,
+ * followed only by evidence aggregation. They never substitute an installed
+ * read query for an unavailable operational verb. */
 const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> = {
     build: [
         "workspace.inspect",
@@ -307,8 +307,8 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "security.permissions.validate",
         "connection.auth.diagnose",
         "incident.replay.sandbox",
-        "evidence.bundle",
         "sandbox.dispose",
+        "evidence.bundle",
     ],
     validate: [
         "workspace.inspect",
@@ -324,8 +324,8 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "connection.auth.diagnose",
         "incident.replay.sandbox",
         "sql.query.read",
-        "evidence.bundle",
         "sandbox.dispose",
+        "evidence.bundle",
     ],
     investigate: [
         "connection.auth.diagnose",
@@ -335,8 +335,8 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "security.permissions.validate",
         "sandbox.provision",
         "incident.replay.sandbox",
-        "evidence.bundle",
         "sandbox.dispose",
+        "evidence.bundle",
     ],
     composed: [
         "workspace.inspect",
@@ -354,8 +354,8 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "security.permissions.validate",
         "connection.auth.diagnose",
         "incident.replay.sandbox",
-        "evidence.bundle",
         "sandbox.dispose",
+        "evidence.bundle",
     ],
 };
 

@@ -88,6 +88,10 @@ import {
     LocalSqlActivityDelegate,
 } from "./runtime/localSqlDelegate";
 import {
+    buildLocalEvidenceBundle,
+    type LocalEvidenceBundleResult,
+} from "./runtime/localEvidenceBundle";
+import {
     buildCreateLocalSandboxSql,
     buildDropLocalSandboxSql,
     buildProbeLocalSandboxSql,
@@ -154,6 +158,7 @@ interface ActiveRunBinding {
         { challenge: RunbookApprovalChallenge; evidence: RunbookApprovalEvidence }
     >;
     outputValues: Map<string, Record<string, number | string | boolean>>;
+    evidenceValues: Map<string, Record<string, number | string | boolean>>;
 }
 
 /** Retention: the newest N runs per runbook id survive GC. */
@@ -444,6 +449,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             pendingApprovals: new Map(),
             approvedEffects: new Map(),
             outputValues: new Map(),
+            evidenceValues: new Map(),
         };
         this.activeByDocument.set(model.uriKey, active);
         this.activeByRunId.set(runId, active);
@@ -1759,6 +1765,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     },
                     disposeSandbox: (nodeId, leaseRef, invocation, cancelled) =>
                         this.disposeLocalSandbox(nodeId, leaseRef, invocation, cancelled),
+                    bundleEvidence: (nodeId, invocation, cancelled) =>
+                        this.bundleLocalEvidence(nodeId, invocation, cancelled),
                     connect: async (databaseRef, ownerUri) => {
                         const connectionManager = this.connectionAccess();
                         if (!connectionManager) {
@@ -2171,6 +2179,61 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             postDeployChangeCount: postDeploy.changeCount,
             deployedAtUtc: new Date().toISOString(),
         };
+    }
+
+    private async bundleLocalEvidence(
+        nodeId: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEvidenceBundleResult> {
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.evidenceBundleCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const active = this.activeByRunId.get(invocation.runId);
+        if (
+            !active ||
+            active.artifact.lock?.planRevision !== invocation.planRevision ||
+            active.artifact.lock.planHash !== invocation.planHash
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.runtimeStartFailed,
+                "RunbookStudio.BindingInvalid",
+            );
+        }
+        const snapshot = this.ledger.snapshotOf(invocation.runId);
+        if (!snapshot) {
+            throw new LocalActivityError(
+                LocRunbookStudio.runtimeStartFailed,
+                "RunbookStudio.DataUnavailable",
+            );
+        }
+        const planNodes = new Map(active.artifact.lock.nodes.map((node) => [node.id, node]));
+        const terminalStates = new Set(["succeeded", "failed", "cancelled", "skipped"]);
+        return buildLocalEvidenceBundle({
+            runId: snapshot.runId,
+            runbookId: snapshot.runbookId,
+            planRevision: snapshot.planRevision,
+            planHash: snapshot.planHash,
+            runtimeKind: "local",
+            nodes: snapshot.nodes
+                .filter((node) => node.nodeId !== nodeId && terminalStates.has(node.state))
+                .map((node) => ({
+                    nodeId: node.nodeId,
+                    ...(planNodes.get(node.nodeId)?.activityKind
+                        ? { activityKind: planNodes.get(node.nodeId)!.activityKind }
+                        : {}),
+                    state: node.state,
+                    attempt: node.attempt,
+                    ...(node.outcome ? { outcome: node.outcome } : {}),
+                    ...(node.outputs ? { outputs: node.outputs } : {}),
+                    ...(active.evidenceValues.get(node.nodeId)
+                        ? { scalars: active.evidenceValues.get(node.nodeId) }
+                        : {}),
+                })),
+        });
     }
 
     private requireApprovedEffect(
@@ -2728,6 +2791,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     return;
                 }
                 case "nodeState": {
+                    if (event.output?.scalars) {
+                        active.evidenceValues.set(event.nodeId, { ...event.output.scalars });
+                    }
                     if (event.state === "succeeded" && event.output?.scalars) {
                         active.outputValues.set(event.nodeId, { ...event.output.scalars });
                     }

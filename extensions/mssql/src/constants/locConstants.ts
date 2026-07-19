@@ -363,6 +363,56 @@ export class RunbookStudio {
             args: [changeCount],
             comment: ["{0} is a DacFx deployment change count"],
         });
+    public static sqlTestsPassed = (count: number) =>
+        l10n.t({
+            message: "All {0} SQL test(s) passed.",
+            args: [count],
+            comment: ["{0} is a SQL test count"],
+        });
+    public static sqlTestsFailed = (failed: number, total: number) =>
+        l10n.t({
+            message: "{0} of {1} SQL test(s) failed.",
+            args: [failed, total],
+            comment: ["{0} is the failed count", "{1} is the total count"],
+        });
+    public static sqlTestsCancelled = l10n.t("SQL test execution was cancelled.");
+    public static sqlTestsTimedOut = (seconds: number) =>
+        l10n.t({
+            message: "SQL test execution timed out after {0} second(s).",
+            args: [seconds],
+            comment: ["{0} is the configured SQL test timeout in seconds"],
+        });
+    public static sqlTestsNoResults = l10n.t(
+        "The SQL test query returned no test cases. Return one row per test.",
+    );
+    public static sqlTestsTooManyResults = (maximum: number) =>
+        l10n.t({
+            message: "The SQL test query exceeded the limit of {0} test cases.",
+            args: [maximum],
+            comment: ["{0} is the maximum allowed SQL test count"],
+        });
+    public static sqlTestsColumnsRequired = l10n.t(
+        "The SQL test query must return 'test_name' (or 'name') and 'passed' columns; 'message' is optional.",
+    );
+    public static sqlTestsUniqueNamesRequired = l10n.t(
+        "Every SQL test result must have a non-empty, unique test name.",
+    );
+    public static sqlTestsPassedValueRequired = l10n.t(
+        "Every SQL test 'passed' value must be true/false, 1/0, pass/fail, or yes/no.",
+    );
+    public static evidenceBundlePassed = (nodeCount: number) =>
+        l10n.t({
+            message: "Evidence bundle captured {0} completed node(s) with a passing verdict.",
+            args: [nodeCount],
+            comment: ["{0} is the number of run nodes included in an evidence bundle"],
+        });
+    public static evidenceBundleNotPassed = (verdict: string) =>
+        l10n.t({
+            message: "Evidence bundle was captured with verdict '{0}'.",
+            args: [verdict],
+            comment: ["{0} is fail or indeterminate"],
+        });
+    public static evidenceBundleCancelled = l10n.t("Evidence bundle creation was cancelled.");
     public static databaseProjectMustBeSqlproj = (projectPath: string) =>
         l10n.t({
             message: "Database project target '{0}' must be a .sqlproj file.",

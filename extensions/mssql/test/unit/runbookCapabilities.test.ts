@@ -58,7 +58,7 @@ suite("runbook capability preflight", () => {
         ).to.include("dacpac.build");
     });
 
-    test("B01 design grammar orders deploy verification, evidence, and cleanup safely", () => {
+    test("B01 design grammar makes cleanup the last external effect before evidence", () => {
         const classified = classifyRunbookIntent(
             "Create a database project; add tables; build a DACPAC; provision an isolated local target; deploy; verify; report with evidence.",
         );
@@ -74,12 +74,12 @@ suite("runbook capability preflight", () => {
             "dacpac.deploy.preview",
             "dacpac.deploy",
             "schema.compare",
-            "evidence.bundle",
             "sandbox.dispose",
+            "evidence.bundle",
         ]);
         expect(kinds).not.to.include("sql.query.read");
         expect(design.steps[0].dependsOn).to.deep.equal([]);
-        expect(design.steps.at(-1)?.dependsOn).to.deep.equal(["design-evidence-bundle"]);
+        expect(design.steps.at(-1)?.dependsOn).to.deep.equal(["design-sandbox-dispose"]);
     });
 
     test("executable investigation preparation removes a stale design outline", () => {
@@ -115,7 +115,9 @@ suite("runbook capability preflight", () => {
             "sqltest.run",
             "evidence.bundle",
         ]);
-        expect(preflightRunbookRequirements(classified.requirements).status).to.equal("designOnly");
+        expect(preflightRunbookRequirements(classified.requirements).status).to.equal(
+            "readyAfterBinding",
+        );
     });
 
     test("cross-family authoring plus validation routes to composed", () => {

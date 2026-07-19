@@ -159,6 +159,29 @@ suite("fakeRuntimeAdapter", () => {
         expect(skipIndex).to.be.lessThan(terminalIndex);
     });
 
+    test("failure-path cleanup/reporting does not erase the failing run verdict", async () => {
+        const observer = new CollectingObserver();
+        const artifact = createFixtureRunbookArtifact();
+        artifact.lock!.edges = artifact.lock!.edges.map((edge) =>
+            edge.from === "threshold" ? { ...edge, when: "failure" } : edge,
+        );
+
+        await adapter.startRun(
+            {
+                runId: "r2-cleanup",
+                artifact,
+                parameterValues: { target: "conn-1", maxCount: 1 },
+            },
+            observer,
+            ctx(),
+        );
+        await observer.terminal;
+
+        expect(observer.nodeStates("threshold")).to.deep.equal(["running", "failed"]);
+        expect(observer.nodeStates("report")).to.deep.equal(["running", "succeeded"]);
+        expect(observer.terminalEvent()).to.include({ state: "failed", verdict: "fail" });
+    });
+
     test("cancellation settles with one cancelled terminal", async () => {
         const observer = new CollectingObserver();
         const artifact = gateArtifact(); // gate blocks so we can cancel mid-run
@@ -271,10 +294,13 @@ suite("fakeRuntimeAdapter", () => {
             "deploymentPreview/1",
             "deploymentEvidence/1",
             "schemaDiff/1",
+            "testResults/1",
             "cleanupEvidence/1",
+            "evidenceBundle/1",
             "markdown/1",
         ]);
         expect(observer.nodeStates("dispose-sandbox")).to.deep.equal(["running", "succeeded"]);
+        expect(observer.nodeStates("bundle-evidence")).to.deep.equal(["running", "succeeded"]);
         const preview = observer.events.find(
             (event) =>
                 event.kind === "nodeState" &&

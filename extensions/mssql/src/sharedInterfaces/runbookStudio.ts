@@ -53,6 +53,8 @@ export type RunbookStudioErrorCode =
     | "RunbookStudio.DeploymentPreviewChanged"
     | "RunbookStudio.DeploymentFailed"
     | "RunbookStudio.SchemaDriftDetected"
+    | "RunbookStudio.SqlTestContractInvalid"
+    | "RunbookStudio.SqlTestsFailed"
     | "RunbookStudio.Cancelled"
     | "RunbookStudio.Interrupted"
     | "RunbookStudio.Timeout"

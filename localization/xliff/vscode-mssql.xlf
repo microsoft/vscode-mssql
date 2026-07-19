@@ -352,6 +352,10 @@
     <trans-unit id="++CODE++222b823b4b06fbaee8182e65844c15a278fe21f952490451c025e85fed20945f">
       <source xml:lang="en">All severities</source>
     </trans-unit>
+    <trans-unit id="++CODE++151c431c83b3b1f98583d157c7d445edfd996a882355de208bd66a63c14ab4a5">
+      <source xml:lang="en">All {0} SQL test(s) passed.</source>
+      <note>{0} is a SQL test count</note>
+    </trans-unit>
     <trans-unit id="++CODE++4d33c136b843b3ddc449137e1c655e000f830c7ce36da8d6645e9a76633d035f">
       <source xml:lang="en">Allow Null</source>
     </trans-unit>
@@ -3096,6 +3100,23 @@
     </trans-unit>
     <trans-unit id="++CODE++122d6fc2cd5624c4bc039226bae2926e08baf779f5cb4e424e1210a4d8ea54a7">
       <source xml:lang="en">Event properties list</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eacc15bc76e302cc2320ad2a3b11f78fd7a5524eee9f5985a37fcfbae96bb17e">
+      <source xml:lang="en">Every SQL test &apos;passed&apos; value must be true/false, 1/0, pass/fail, or yes/no.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cd0d2ddec7c452200fe744a3154f47ce50020d64c221f9edbec0a6fb3da3998c">
+      <source xml:lang="en">Every SQL test result must have a non-empty, unique test name.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++da7526e20051a7949add1e0f984c96fa2a1960f6b078db5a3554b6e4a515dd97">
+      <source xml:lang="en">Evidence bundle captured {0} completed node(s) with a passing verdict.</source>
+      <note>{0} is the number of run nodes included in an evidence bundle</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1423a150d8453e31857a32813d22219b986ac1aafa77432b5cf4770942261a82">
+      <source xml:lang="en">Evidence bundle creation was cancelled.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++006f7c937960090734e5a2df0c30fbaf05b248148552436937b3abe21eb54744">
+      <source xml:lang="en">Evidence bundle was captured with verdict &apos;{0}&apos;.</source>
+      <note>{0} is fail or indeterminate</note>
     </trans-unit>
     <trans-unit id="++CODE++ef0cb162a837dc75d0bc705304a331f2f1bbc2a81e7611348518734ef5e5dc5b">
       <source xml:lang="en">Example: Find queries with {0} &gt; 100</source>
@@ -7031,6 +7052,13 @@
     <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
       <source xml:lang="en">SQL database in Fabric</source>
     </trans-unit>
+    <trans-unit id="++CODE++91d2133d6a77d7063cdc0cf3a4b12cc0ee61c79bd9eb307c48f17858fb16096a">
+      <source xml:lang="en">SQL test execution timed out after {0} second(s).</source>
+      <note>{0} is the configured SQL test timeout in seconds</note>
+    </trans-unit>
+    <trans-unit id="++CODE++325085c911ac58a0560d7855e01de1a0960c9c8b9202bdce63d4ca082ec3bb01">
+      <source xml:lang="en">SQL test execution was cancelled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++dd0804b065a533eb0198e076460421ada3d861683b408ef39daea67e9aad46a6">
       <source xml:lang="en">SQLAlchemy</source>
     </trans-unit>
@@ -8343,6 +8371,16 @@
     <trans-unit id="++CODE++b8f35d7818d7118cd923582949c2e285bc01391842dc64b313e69ac569305452">
       <source xml:lang="en">The SQL project build produced an empty or invalid artifact at &apos;{0}&apos;.</source>
       <note>{0} is the DACPAC file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c76de16a4f7a14ee1519c572ded5a00c9e2891888acc311e27e91b86688229a4">
+      <source xml:lang="en">The SQL test query exceeded the limit of {0} test cases.</source>
+      <note>{0} is the maximum allowed SQL test count</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2d7091e4c3e22dc27e4e9286333147552d3bb61a4b306e96b2f0f34cb8b1e556">
+      <source xml:lang="en">The SQL test query must return &apos;test_name&apos; (or &apos;name&apos;) and &apos;passed&apos; columns; &apos;message&apos; is optional.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++52056a5d843980e6705c7cc41b6ee42334bba8b949a329ed2ed522b88db7f18a">
+      <source xml:lang="en">The SQL test query returned no test cases. Return one row per test.</source>
     </trans-unit>
     <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
       <source xml:lang="en">The XEL file was not found.</source>
@@ -9663,6 +9701,11 @@
       <source xml:lang="en">{0} of {1}</source>
       <note>{0} is the number of active elements
 {1} is the total number of elements</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e3092db8cebdb91d59dc1db74e9e03dd2af1f2094223f4993e2e7581da578e0d">
+      <source xml:lang="en">{0} of {1} SQL test(s) failed.</source>
+      <note>{0} is the failed count
+{1} is the total count</note>
     </trans-unit>
     <trans-unit id="++CODE++51e6bdbb52f5fe3271eb11b24de7b07440a59a88f0df6bfc9b620179db64c925">
       <source xml:lang="en">{0} of {1} connection groups selected.</source>

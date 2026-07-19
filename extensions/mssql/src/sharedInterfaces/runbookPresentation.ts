@@ -48,8 +48,12 @@ const COMPATIBILITY: Record<string, ViewKind[]> = {
     "workspaceSnapshot/1": ["scalar-cards", "json"],
     "dacpacArtifact/1": ["scalar-cards", "json"],
     "databaseLease/1": ["scalar-cards", "json"],
-    "deploymentPreview/1": ["scalar-cards", "json"],
+    "deploymentPreview/1": ["log-view", "json"],
+    "deploymentEvidence/1": ["scalar-cards", "json"],
+    "schemaDiff/1": ["log-view", "json"],
+    "testResults/1": ["grid", "bar", "json"],
     "cleanupEvidence/1": ["scalar-cards", "json"],
+    "evidenceBundle/1": ["log-view", "json"],
 };
 
 export function compatibleViews(contract: string): ViewKind[] {
@@ -79,7 +83,11 @@ export const ACTIVITY_OUTPUT_CONTRACTS: Record<string, string> = {
     "dacpac.build": "dacpacArtifact/1",
     "sandbox.provision": "databaseLease/1",
     "dacpac.deploy.preview": "deploymentPreview/1",
+    "dacpac.deploy": "deploymentEvidence/1",
+    "schema.compare": "schemaDiff/1",
+    "sqltest.run": "testResults/1",
     "sandbox.dispose": "cleanupEvidence/1",
+    "evidence.bundle": "evidenceBundle/1",
 };
 
 /** Expected contract for a plan node at authoring time; report nodes render

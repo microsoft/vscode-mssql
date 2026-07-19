@@ -85,17 +85,27 @@ suite("presentationResolver", () => {
         expect(viewCandidateTier("unknown/1", "json")).to.equal("recommended");
     });
 
-    test("developer preview evidence has a total scalar-card presentation", () => {
+    test("developer evidence contracts have implemented default presentations", () => {
         for (const [activityKind, contract] of [
             ["workspace.inspect", "workspaceSnapshot/1"],
             ["dacpac.build", "dacpacArtifact/1"],
             ["sandbox.provision", "databaseLease/1"],
-            ["dacpac.deploy.preview", "deploymentPreview/1"],
+            ["dacpac.deploy", "deploymentEvidence/1"],
             ["sandbox.dispose", "cleanupEvidence/1"],
         ] as const) {
             expect(expectedContractFor("activity", activityKind)).to.equal(contract);
             expect(compatibleViews(contract)).to.deep.equal(["scalar-cards", "json"]);
         }
+        expect(expectedContractFor("activity", "dacpac.deploy.preview")).to.equal(
+            "deploymentPreview/1",
+        );
+        expect(compatibleViews("deploymentPreview/1")).to.deep.equal(["log-view", "json"]);
+        expect(expectedContractFor("activity", "schema.compare")).to.equal("schemaDiff/1");
+        expect(compatibleViews("schemaDiff/1")).to.deep.equal(["log-view", "json"]);
+        expect(expectedContractFor("activity", "sqltest.run")).to.equal("testResults/1");
+        expect(compatibleViews("testResults/1")).to.deep.equal(["grid", "bar", "json"]);
+        expect(expectedContractFor("activity", "evidence.bundle")).to.equal("evidenceBundle/1");
+        expect(compatibleViews("evidenceBundle/1")).to.deep.equal(["log-view", "json"]);
     });
 
     test("resolution is deterministic", () => {

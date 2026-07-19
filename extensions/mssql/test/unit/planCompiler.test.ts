@@ -218,6 +218,18 @@ suite("planCompiler", () => {
         );
     });
 
+    test("validateLockAgainstCatalog rejects mutating SQL inputs before execution", () => {
+        const result = parseCompiledProposal(JSON.stringify(GOOD_PROPOSAL), base(), "intent");
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+        const lock = result.artifact.lock!;
+        lock.nodes[0].inputs!.sql = "DELETE FROM dbo.Orders";
+        expect(validateLockAgainstCatalog(lock).join(" ")).to.contain(
+            "must be one read-only SELECT statement",
+        );
+    });
+
     test("approval-required effects need one dedicated approved gate", () => {
         const lock = createDeveloperValidationPreviewArtifact().lock!;
         lock.edges = lock.edges.filter((edge) => edge.from !== "approve-deploy");

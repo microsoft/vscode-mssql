@@ -44,6 +44,9 @@ suite("Runbook Studio local sandbox live smoke (gated)", function () {
             expect(runSqlcmd(createSql).status).to.equal(0);
             created = true;
             expect(runSqlcmd(probeSql).stdout).to.include(`1|${effectId}`);
+            const sqlTest = runSqlcmd(sqlAssertionSql(databaseName));
+            expect(sqlTest.status).to.equal(0);
+            expect(sqlTest.stdout).to.include("ownership marker|1|marker present");
 
             expect(runSqlcmd(updateMarkerSql(databaseName, "tampered")).status).to.equal(0);
             const refused = runSqlcmd(dropSql);
@@ -123,6 +126,14 @@ function isLoopbackConnectionString(connectionString: string): boolean {
 
 function updateMarkerSql(databaseName: string, marker: string): string {
     return `EXEC [${databaseName}].sys.sp_updateextendedproperty @name = N'RunbookStudioLeaseId', @value = N'${marker}';`;
+}
+
+function sqlAssertionSql(databaseName: string): string {
+    return [
+        "SELECT N'ownership marker' AS test_name,",
+        `CAST(CASE WHEN EXISTS (SELECT 1 FROM [${databaseName}].sys.extended_properties WHERE [class] = 0 AND [name] = N'RunbookStudioLeaseId') THEN 1 ELSE 0 END AS bit) AS passed,`,
+        "N'marker present' AS message;",
+    ].join(" ");
 }
 
 function safeTestCleanupSql(databaseName: string, effectId: string, dropSql: string): string {

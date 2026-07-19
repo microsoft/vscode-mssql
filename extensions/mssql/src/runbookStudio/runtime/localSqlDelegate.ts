@@ -16,6 +16,7 @@
  *     finally, so runs never leak sessions.
  */
 
+import * as vscode from "vscode";
 import type * as mssql from "vscode-mssql";
 import { RunbookStudio as LocRunbookStudio } from "../../constants/locConstants";
 import { RunbookPlanNode } from "../../sharedInterfaces/runbookStudio";
@@ -25,6 +26,7 @@ import {
     ActivityInvocationIdentity,
     NodeExecution,
 } from "./fakeRuntimeAdapter";
+import type { LocalEvidenceBundleResult } from "./localEvidenceBundle";
 
 export { isReadOnlySql } from "../readOnlySql";
 
@@ -74,6 +76,11 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalSandboxCleanupResult>;
+    bundleEvidence(
+        nodeId: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEvidenceBundleResult>;
 }
 
 export interface LocalWorkspaceSnapshot {
@@ -151,6 +158,7 @@ export class LocalActivityError extends Error {
 }
 
 const MAX_STORED_ROWS = 5000;
+const MAX_SQL_TEST_CASES = 1000;
 
 let queryCounter = 0;
 
@@ -164,6 +172,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "dacpac.deploy",
         "schema.compare",
         "sandbox.dispose",
+        "sqltest.run",
+        "evidence.bundle",
         "sql.query.read",
     ]);
 
@@ -193,6 +203,10 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.verifyDacpacDeployment(node, binding);
             case "sandbox.dispose":
                 return this.disposeSandbox(node, binding);
+            case "sqltest.run":
+                return this.executeSqlTests(node, binding);
+            case "evidence.bundle":
+                return this.bundleEvidence(node, binding);
             case "sql.query.read":
                 return this.executeSql(node, binding);
             default:
@@ -263,6 +277,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 },
                 values: {
                     artifactPath: result.artifactPath,
+                    artifactSha256: result.artifactSha256,
                     diagnosticCount: result.diagnosticCount,
                 },
             };
@@ -604,6 +619,260 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             return activityFailure(error);
         }
     }
+
+    private async executeSqlTests(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        const sql = binding.resolveBind(node.inputs?.sql);
+        const timeoutValue = binding.resolveBind(node.inputs?.timeoutSeconds);
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        if (typeof sql !== "string" || sql.trim().length === 0) {
+            return invalidBinding("sql");
+        }
+        if (!isReadOnlySql(sql)) {
+            return {
+                success: false,
+                message: LocRunbookStudio.sqlNotReadOnly,
+                errorCode: "RunbookStudio.ActivityPolicyDenied",
+            };
+        }
+        const timeoutSeconds = timeoutValue === undefined ? 60 : timeoutValue;
+        if (
+            typeof timeoutSeconds !== "number" ||
+            !Number.isInteger(timeoutSeconds) ||
+            timeoutSeconds < 1 ||
+            timeoutSeconds > 300
+        ) {
+            return invalidBinding("timeoutSeconds");
+        }
+
+        queryCounter++;
+        const ownerUri = `runbookstudio://sqltest/${queryCounter.toString(36)}/${node.id}`;
+        const cancellation = new vscode.CancellationTokenSource();
+        const cancellationPoll = setInterval(() => {
+            if (binding.isCancellationRequested()) {
+                cancellation.cancel();
+            }
+        }, 50);
+        let timedOut = false;
+        const timeout = setTimeout(() => {
+            timedOut = true;
+            cancellation.cancel();
+        }, timeoutSeconds * 1000);
+        let connected = false;
+        try {
+            connected = await this.operations.connect(databaseRef.trim(), ownerUri);
+            if (!connected) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.connectFailed,
+                    "RunbookStudio.ActivityFailed",
+                );
+            }
+            if (timedOut) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.sqlTestsTimedOut(timeoutSeconds),
+                    "RunbookStudio.Timeout",
+                );
+            }
+            if (cancellation.token.isCancellationRequested || binding.isCancellationRequested()) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.sqlTestsCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            const result = await this.operations.execute(ownerUri, sql.trim(), cancellation.token);
+            if (timedOut) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.sqlTestsTimedOut(timeoutSeconds),
+                    "RunbookStudio.Timeout",
+                );
+            }
+            if (cancellation.token.isCancellationRequested || binding.isCancellationRequested()) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.sqlTestsCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            const tests = parseSqlTestRows(result);
+            const passed = tests.filter((test) => test.passed).length;
+            const failed = tests.length - passed;
+            return {
+                success: failed === 0,
+                verdict: failed === 0 ? "pass" : "fail",
+                message:
+                    failed === 0
+                        ? LocRunbookStudio.sqlTestsPassed(tests.length)
+                        : LocRunbookStudio.sqlTestsFailed(failed, tests.length),
+                ...(failed > 0 ? { errorCode: "RunbookStudio.SqlTestsFailed" } : {}),
+                output: {
+                    contract: "testResults/1",
+                    columns: ["name", "passed", "message"],
+                    rows: tests.map((test) => [test.name, test.passed, test.message]),
+                    scalars: {
+                        total: tests.length,
+                        passed,
+                        failed,
+                        allPassed: failed === 0,
+                        executionMode: "local",
+                    },
+                },
+                values: { total: tests.length, passed, failed, allPassed: failed === 0 },
+            };
+        } catch (error) {
+            if (timedOut) {
+                return activityFailure(
+                    new LocalActivityError(
+                        LocRunbookStudio.sqlTestsTimedOut(timeoutSeconds),
+                        "RunbookStudio.Timeout",
+                    ),
+                );
+            }
+            if (
+                error instanceof vscode.CancellationError ||
+                cancellation.token.isCancellationRequested ||
+                binding.isCancellationRequested()
+            ) {
+                return activityFailure(
+                    new LocalActivityError(
+                        LocRunbookStudio.sqlTestsCancelled,
+                        "RunbookStudio.ActivityCancelled",
+                    ),
+                );
+            }
+            return activityFailure(error);
+        } finally {
+            clearTimeout(timeout);
+            clearInterval(cancellationPoll);
+            cancellation.dispose();
+            if (connected) {
+                try {
+                    await this.operations.disconnect(ownerUri);
+                } catch {
+                    // Best effort: test execution has already settled.
+                }
+            }
+        }
+    }
+
+    private async bundleEvidence(
+        node: RunbookPlanNode,
+        binding: {
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        try {
+            const result = await this.operations.bundleEvidence(
+                node.id,
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                verdict: result.verdict === "pass" ? "pass" : "fail",
+                message:
+                    result.verdict === "pass"
+                        ? LocRunbookStudio.evidenceBundlePassed(result.nodeCount)
+                        : LocRunbookStudio.evidenceBundleNotPassed(result.verdict),
+                output: {
+                    contract: "evidenceBundle/1",
+                    text: result.manifestJson,
+                    scalars: {
+                        bundleSha256: result.bundleSha256,
+                        nodeCount: result.nodeCount,
+                        passedNodeCount: result.passedNodeCount,
+                        failedNodeCount: result.failedNodeCount,
+                        evidenceHandleCount: result.evidenceHandleCount,
+                        verdict: result.verdict,
+                        generatedAtUtc: result.generatedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    bundleSha256: result.bundleSha256,
+                    nodeCount: result.nodeCount,
+                    verdict: result.verdict,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+}
+
+interface ParsedSqlTestCase {
+    name: string;
+    passed: boolean;
+    message: string;
+}
+
+function parseSqlTestRows(result: mssql.SimpleExecuteResult): ParsedSqlTestCase[] {
+    if (result.rowCount < 1 || result.rows.length < 1) {
+        throw new LocalActivityError(
+            LocRunbookStudio.sqlTestsNoResults,
+            "RunbookStudio.SqlTestContractInvalid",
+        );
+    }
+    if (result.rowCount > MAX_SQL_TEST_CASES || result.rows.length > MAX_SQL_TEST_CASES) {
+        throw new LocalActivityError(
+            LocRunbookStudio.sqlTestsTooManyResults(MAX_SQL_TEST_CASES),
+            "RunbookStudio.SqlTestContractInvalid",
+        );
+    }
+    const columns = result.columnInfo.map((column) =>
+        column.columnName.trim().toLowerCase().replaceAll("_", ""),
+    );
+    const nameIndex = columns.findIndex((column) => column === "name" || column === "testname");
+    const passedIndex = columns.indexOf("passed");
+    const messageIndex = columns.indexOf("message");
+    if (nameIndex < 0 || passedIndex < 0) {
+        throw new LocalActivityError(
+            LocRunbookStudio.sqlTestsColumnsRequired,
+            "RunbookStudio.SqlTestContractInvalid",
+        );
+    }
+    const names = new Set<string>();
+    return result.rows.map((row) => {
+        const nameCell = row[nameIndex];
+        const passedCell = row[passedIndex];
+        const name = nameCell?.isNull ? "" : nameCell?.displayValue.trim();
+        const nameKey = name?.toLocaleLowerCase();
+        if (!name || !nameKey || names.has(nameKey)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sqlTestsUniqueNamesRequired,
+                "RunbookStudio.SqlTestContractInvalid",
+            );
+        }
+        names.add(nameKey);
+        const passed = parseSqlTestBoolean(passedCell);
+        const messageCell = messageIndex >= 0 ? row[messageIndex] : undefined;
+        return {
+            name,
+            passed,
+            message: messageCell?.isNull ? "" : (messageCell?.displayValue ?? ""),
+        };
+    });
+}
+
+function parseSqlTestBoolean(cell: mssql.DbCellValue | undefined): boolean {
+    const value = cell?.isNull ? "" : cell?.displayValue.trim().toLowerCase();
+    if (["1", "true", "pass", "passed", "yes"].includes(value ?? "")) {
+        return true;
+    }
+    if (["0", "false", "fail", "failed", "no"].includes(value ?? "")) {
+        return false;
+    }
+    throw new LocalActivityError(
+        LocRunbookStudio.sqlTestsPassedValueRequired,
+        "RunbookStudio.SqlTestContractInvalid",
+    );
 }
 
 function activityFailure(error: unknown): NodeExecution {

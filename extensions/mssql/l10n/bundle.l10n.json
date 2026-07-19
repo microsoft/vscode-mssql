@@ -205,6 +205,36 @@
         "message": "Schema verification found {0} remaining deployment change(s).",
         "comment": ["{0} is a DacFx deployment change count"]
     },
+    "All {0} SQL test(s) passed./{0} is a SQL test count": {
+        "message": "All {0} SQL test(s) passed.",
+        "comment": ["{0} is a SQL test count"]
+    },
+    "{0} of {1} SQL test(s) failed./{0} is the failed count{1} is the total count": {
+        "message": "{0} of {1} SQL test(s) failed.",
+        "comment": ["{0} is the failed count", "{1} is the total count"]
+    },
+    "SQL test execution was cancelled.": "SQL test execution was cancelled.",
+    "SQL test execution timed out after {0} second(s)./{0} is the configured SQL test timeout in seconds": {
+        "message": "SQL test execution timed out after {0} second(s).",
+        "comment": ["{0} is the configured SQL test timeout in seconds"]
+    },
+    "The SQL test query returned no test cases. Return one row per test.": "The SQL test query returned no test cases. Return one row per test.",
+    "The SQL test query exceeded the limit of {0} test cases./{0} is the maximum allowed SQL test count": {
+        "message": "The SQL test query exceeded the limit of {0} test cases.",
+        "comment": ["{0} is the maximum allowed SQL test count"]
+    },
+    "The SQL test query must return 'test_name' (or 'name') and 'passed' columns; 'message' is optional.": "The SQL test query must return 'test_name' (or 'name') and 'passed' columns; 'message' is optional.",
+    "Every SQL test result must have a non-empty, unique test name.": "Every SQL test result must have a non-empty, unique test name.",
+    "Every SQL test 'passed' value must be true/false, 1/0, pass/fail, or yes/no.": "Every SQL test 'passed' value must be true/false, 1/0, pass/fail, or yes/no.",
+    "Evidence bundle captured {0} completed node(s) with a passing verdict./{0} is the number of run nodes included in an evidence bundle": {
+        "message": "Evidence bundle captured {0} completed node(s) with a passing verdict.",
+        "comment": ["{0} is the number of run nodes included in an evidence bundle"]
+    },
+    "Evidence bundle was captured with verdict '{0}'./{0} is fail or indeterminate": {
+        "message": "Evidence bundle was captured with verdict '{0}'.",
+        "comment": ["{0} is fail or indeterminate"]
+    },
+    "Evidence bundle creation was cancelled.": "Evidence bundle creation was cancelled.",
     "Database project target '{0}' must be a .sqlproj file./{0} is the requested project path": {
         "message": "Database project target '{0}' must be a .sqlproj file.",
         "comment": ["{0} is the requested project path"]
