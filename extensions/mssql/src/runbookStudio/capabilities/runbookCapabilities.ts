@@ -297,6 +297,25 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "evidence.bundle",
         "sandbox.dispose",
     ],
+    composed: [
+        "workspace.inspect",
+        "dbproject.create",
+        "dbproject.add-object",
+        "dacpac.build",
+        "sandbox.provision",
+        "dacpac.deploy.preview",
+        "dacpac.deploy",
+        "schema.compare",
+        "sqltest.run",
+        "sql.query.read",
+        "workload.benchmark",
+        "baseline.compare",
+        "security.permissions.validate",
+        "connection.auth.diagnose",
+        "incident.replay.sandbox",
+        "evidence.bundle",
+        "sandbox.dispose",
+    ],
 };
 
 function has(text: string, expression: RegExp): boolean {
@@ -327,21 +346,35 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     const requested = new Set<string>();
 
     const isPreMerge = has(text, /\b(pre[- ]?merge|pull request|ci\/cd|pipeline|quality gate)\b/);
-    const isBuild =
-        !isPreMerge &&
-        has(
-            text,
-            /\b(scaffold|create|author|add|edit)\b.{0,40}\b(database|sql) (project|schema|table|constraint|index)\b|\b(database|sql) project\b|\bdacpac\b|\bdeploy\b/,
-        );
+    const hasBuildWork = has(
+        text,
+        /\b(scaffold|create|author|add|edit)\b.{0,40}\b(database|sql) (project|schema|table|constraint|index)\b|\b(database|sql) project\b|\bdacpac\b|\bdeploy\b/,
+    );
+    const hasValidationWork = has(
+        text,
+        /\b(sql tests?|database tests?|t-?sqlt|schema drift|benchmark|regression|least privilege|effective access|security gate)\b/,
+    );
+    const hasInvestigationWork = has(
+        text,
+        /\b(investigate|diagnos(e|is)|root cause|why|blocking|deadlock|database health)\b/,
+    );
+    const isBuild = !isPreMerge && hasBuildWork;
     const isValidate =
         isPreMerge ||
         has(
             text,
             /\b(validate|verify|check|test|regression|benchmark|drift|security|permissions|diagnos(e|is)|replay)\b/,
         );
-    const family: RunbookFamily = isBuild ? "build" : isValidate ? "validate" : "investigate";
+    const family: RunbookFamily =
+        isBuild && (hasValidationWork || hasInvestigationWork)
+            ? "composed"
+            : isBuild
+              ? "build"
+              : isValidate
+                ? "validate"
+                : "investigate";
 
-    if (family === "build") {
+    if (family === "build" || family === "composed") {
         requested.add("workspace.inspect");
         if (has(text, /\b(project|scaffold)\b/)) requested.add("dbproject.create");
         if (has(text, /\b(tables?|schemas?|foreign keys?|constraints?|indexes?|objects?)\b/)) {
@@ -360,11 +393,11 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     }
     if (
         has(text, /\b(schema compare|schema drift|drift|verify deployed schema)\b/) ||
-        (family === "build" && has(text, /\bverify\b/))
+        ((family === "build" || family === "composed") && has(text, /\bverify\b/))
     ) {
         requested.add("schema.compare");
     }
-    if (isPreMerge || has(text, /\b(t-sqlt|tsqlt|sql test|database test)\b/)) {
+    if (isPreMerge || has(text, /\b(t-sqlt|tsqlt|sql tests?|database tests?)\b/)) {
         requested.add("sqltest.run");
     }
     if (has(text, /\b(performance|latency|benchmark|regression)\b/)) {

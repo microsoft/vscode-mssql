@@ -116,6 +116,26 @@ suite("runbook capability preflight", () => {
         expect(preflightRunbookRequirements(classified.requirements).status).to.equal("designOnly");
     });
 
+    test("cross-family authoring plus validation routes to composed", () => {
+        const classified = classifyRunbookIntent(
+            "Create a database project and tables, then run SQL tests and investigate blocking against the deployed sandbox.",
+        );
+        expect(classified.family).to.equal("composed");
+        expect(
+            classified.requirements.activities.map((activity) => activity.kind),
+        ).to.include.members([
+            "workspace.inspect",
+            "dbproject.create",
+            "dbproject.add-object",
+            "sqltest.run",
+        ]);
+        const design = buildDesignOnlyPlan(classified);
+        expect(design.family).to.equal("composed");
+        expect(design.steps[0].activityKind).to.equal("workspace.inspect");
+        expect(design.steps.at(-1)?.activityKind).to.equal("sandbox.dispose");
+        expect(design.steps.map((step) => step.activityKind)).not.to.include("sql.query.read");
+    });
+
     test("V17 and I01 regression prompts require benchmark and baseline comparison", () => {
         for (const intent of [
             "Detect a performance regression in this workload benchmark.",

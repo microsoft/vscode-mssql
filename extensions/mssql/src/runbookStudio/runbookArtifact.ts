@@ -133,7 +133,8 @@ export function parseRunbookArtifact(text: string): ArtifactParseResult {
         raw.family !== undefined &&
         raw.family !== "build" &&
         raw.family !== "validate" &&
-        raw.family !== "investigate"
+        raw.family !== "investigate" &&
+        raw.family !== "composed"
     ) {
         return fail("RunbookStudio.InvalidArtifact", "unknown family");
     }
@@ -219,7 +220,8 @@ function validateDesign(
     if (
         (design.family !== "build" &&
             design.family !== "validate" &&
-            design.family !== "investigate") ||
+            design.family !== "investigate" &&
+            design.family !== "composed") ||
         design.family !== artifactFamily
     ) {
         return fail("RunbookStudio.InvalidArtifact", "design family does not match artifact");

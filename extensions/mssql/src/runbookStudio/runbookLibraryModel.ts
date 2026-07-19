@@ -405,9 +405,12 @@ export function activeLibraryAssetId(artifact: {
  *  else is undefined — the family is never guessed. */
 export function libraryFamilyFromCategory(
     category: string | undefined,
-): "build" | "validate" | "investigate" | undefined {
+): "build" | "validate" | "investigate" | "composed" | undefined {
     const normalized = category?.trim().toLowerCase();
-    return normalized === "build" || normalized === "validate" || normalized === "investigate"
+    return normalized === "build" ||
+        normalized === "validate" ||
+        normalized === "investigate" ||
+        normalized === "composed"
         ? normalized
         : undefined;
 }

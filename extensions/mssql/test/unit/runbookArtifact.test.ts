@@ -192,6 +192,17 @@ suite("runbookArtifact", () => {
             );
         });
 
+        test("round-trips the composed family", () => {
+            const artifact = prepareRunbookIntent(
+                createFixtureRunbookArtifact(),
+                "Create a database project, then run SQL tests and investigate blocking.",
+            ).artifact;
+            expect(artifact.family).to.equal("composed");
+            expect(
+                expectSuccess(parseRunbookArtifact(canonicalizeRunbookArtifact(artifact))).family,
+            ).to.equal("composed");
+        });
+
         test("refuses a design outline alongside an executable lock", () => {
             const executable = createFixtureRunbookArtifact();
             const designOnly = prepareRunbookIntent(

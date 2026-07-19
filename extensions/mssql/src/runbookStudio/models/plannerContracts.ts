@@ -1,0 +1,168 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+/**
+ * Family-specific planner contracts. Models receive these rules, but the
+ * same rules are enforced after generation so prompt text is never the
+ * security or correctness boundary.
+ */
+
+import { RunbookArtifactFile, RunbookFamily } from "../../sharedInterfaces/runbookStudio";
+
+export interface FamilyPlannerContract {
+    family: RunbookFamily;
+    purpose: string;
+    operationalActivityKinds: readonly string[];
+    helperActivityKinds: readonly string[];
+    rules: readonly string[];
+}
+
+const BUILD_ACTIVITIES = [
+    "workspace.inspect",
+    "dbproject.create",
+    "dbproject.add-object",
+    "dacpac.build",
+    "sandbox.provision",
+    "dacpac.deploy.preview",
+    "dacpac.deploy",
+    "schema.compare",
+    "sqltest.run",
+    "evidence.bundle",
+    "sandbox.dispose",
+] as const;
+
+const VALIDATE_ACTIVITIES = [
+    "workspace.inspect",
+    "dacpac.build",
+    "sandbox.provision",
+    "dacpac.deploy.preview",
+    "dacpac.deploy",
+    "schema.compare",
+    "sqltest.run",
+    "workload.benchmark",
+    "baseline.compare",
+    "security.permissions.validate",
+    "connection.auth.diagnose",
+    "sql.query.read",
+    "evidence.bundle",
+    "sandbox.dispose",
+] as const;
+
+const INVESTIGATE_ACTIVITIES = [
+    "sql.query.read",
+    "workload.benchmark",
+    "baseline.compare",
+    "security.permissions.validate",
+    "connection.auth.diagnose",
+    "sandbox.provision",
+    "incident.replay.sandbox",
+    "evidence.bundle",
+    "sandbox.dispose",
+] as const;
+
+export const FAMILY_PLANNER_CONTRACTS: Readonly<Record<RunbookFamily, FamilyPlannerContract>> = {
+    build: {
+        family: "build",
+        purpose: "Create or change database source and produce deployable artifacts.",
+        operationalActivityKinds: BUILD_ACTIVITIES,
+        helperActivityKinds: [],
+        rules: [
+            "Every create, edit, build, provision, preview, deploy, verify, and cleanup verb must map to its matching registered activity.",
+            "A SQL query, report, or prose analysis node must never substitute for a workspace, DacFx, deployment, or cleanup operation.",
+            "Deployment requires preview before mutation, and cleanup must follow evidence collection.",
+        ],
+    },
+    validate: {
+        family: "validate",
+        purpose: "Produce a deterministic pass/fail developer or CI validation verdict.",
+        operationalActivityKinds: VALIDATE_ACTIVITIES,
+        helperActivityKinds: ["assert.threshold"],
+        rules: [
+            "Build and deploy only through their typed activities; read queries may gather evidence but cannot stand in for them.",
+            "Every check must produce a typed result consumed by a deterministic assertion or final verdict.",
+            "Cleanup and evidence publication remain on terminal paths, including failed validation paths.",
+        ],
+    },
+    investigate: {
+        family: "investigate",
+        purpose: "Gather bounded read evidence, interpret it, and recommend developer actions.",
+        operationalActivityKinds: INVESTIGATE_ACTIVITIES,
+        helperActivityKinds: ["assert.threshold"],
+        rules: [
+            "Gather only through registered read or explicitly sandboxed activities.",
+            "Analysis and recommendation nodes may interpret typed evidence but may not claim that an unavailable operation ran.",
+            "All SQL targets must be explicit and every SQL statement must remain read-only.",
+        ],
+    },
+    composed: {
+        family: "composed",
+        purpose: "Sequence multiple developer families without weakening any family boundary.",
+        operationalActivityKinds: [
+            ...new Set([...BUILD_ACTIVITIES, ...VALIDATE_ACTIVITIES, ...INVESTIGATE_ACTIVITIES]),
+        ],
+        helperActivityKinds: ["assert.threshold"],
+        rules: [
+            "Preserve each sub-workflow's typed operational activities; do not collapse a Build or Validate phase into investigation prose.",
+            "Pass only typed outputs between phases and keep target changes explicit.",
+            "Preview and approval precede mutation; evidence precedes cleanup; the final report summarizes actual typed outcomes only.",
+        ],
+    },
+};
+
+export function plannerContractFor(family: RunbookFamily): FamilyPlannerContract {
+    return FAMILY_PLANNER_CONTRACTS[family];
+}
+
+export function describePlannerContract(family: RunbookFamily): string {
+    const contract = plannerContractFor(family);
+    return [
+        `Planner family: ${contract.family}. ${contract.purpose}`,
+        `Family activity vocabulary: ${contract.operationalActivityKinds.map((kind) => `"${kind}"`).join(", ")}.`,
+        ...contract.rules.map((rule) => `- ${rule}`),
+    ].join("\n");
+}
+
+/** Post-generation family admission. Catalog validation runs separately;
+ * this enforces operational completeness and terminal report semantics. */
+export function validateCompiledFamilyContract(artifact: RunbookArtifactFile): string[] {
+    const lock = artifact.lock;
+    if (!lock) {
+        return ["compiled family contract has no lock"];
+    }
+    const family = artifact.family ?? "investigate";
+    const contract = plannerContractFor(family);
+    const allowed = new Set([
+        ...contract.operationalActivityKinds,
+        ...contract.helperActivityKinds,
+    ]);
+    const activityKinds = lock.nodes
+        .filter((node) => node.kind === "activity")
+        .map((node) => node.activityKind)
+        .filter((kind): kind is string => typeof kind === "string");
+    const issues: string[] = [];
+
+    for (const kind of activityKinds) {
+        if (!allowed.has(kind)) {
+            issues.push(`family '${family}' does not allow activity '${kind}'`);
+        }
+    }
+    const plannedKinds = new Set(activityKinds);
+    for (const requirement of artifact.source.requirements?.activities ?? []) {
+        if (!plannedKinds.has(requirement.kind)) {
+            issues.push(`required operation '${requirement.kind}' has no executable plan node`);
+        }
+    }
+    if (family === "build" && plannedKinds.has("sql.query.read")) {
+        issues.push("build plans cannot substitute sql.query.read for a Build operation");
+    }
+
+    const reports = lock.nodes.filter((node) => node.kind === "report");
+    if (reports.length !== 1) {
+        issues.push(`compiled plan must contain exactly one report node; found ${reports.length}`);
+    } else if (lock.edges.some((edge) => edge.from === reports[0].id)) {
+        issues.push("the final report node cannot have outgoing edges");
+    }
+    return issues;
+}

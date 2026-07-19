@@ -33,6 +33,7 @@ import {
     stampCatalogMetadata,
     validateLockAgainstCatalog,
 } from "../activities/activityCatalog";
+import { describePlannerContract, validateCompiledFamilyContract } from "./plannerContracts";
 import {
     canonicalizeRunbookArtifact,
     computePlanHash,
@@ -147,16 +148,26 @@ export function parseCompiledProposal(
     if (issues.length > 0) {
         return { ok: false, detail: issues.join("; ") };
     }
+    const familyIssues = validateCompiledFamilyContract(candidate);
+    if (familyIssues.length > 0) {
+        return { ok: false, detail: familyIssues.join("; ") };
+    }
     return { ok: true, artifact: structural.artifact };
 }
 
-export function buildCompilePrompt(intent: string, previousError?: string): string {
+export function buildCompilePrompt(
+    intent: string,
+    previousError?: string,
+    family: NonNullable<RunbookArtifactFile["family"]> = "investigate",
+): string {
     return [
         "You compile a database developer's intent into a runbook execution plan.",
         "Respond with ONE JSON object only — no prose, no markdown fences.",
         "",
         "Available activities (you may ONLY use these — nothing else):",
         describeCatalogForPrompt(),
+        "",
+        describePlannerContract(family),
         "",
         'Node kinds: "activity" (uses an activity above), "gate" (pauses for human approval — include one only when the intent implies a consequential/approval step), "report" (final summary; every plan ends with exactly one report node, no inputs).',
         "Bind syntax: $params.<parameterId> references a parameter; $nodes.<nodeId>.<value> references a produced value.",
@@ -243,7 +254,11 @@ export async function compileIntentWithModel(
         let responseText = "";
         try {
             const response = await model.sendRequest(
-                [vscode.LanguageModelChatMessage.User(buildCompilePrompt(intent, previousError))],
+                [
+                    vscode.LanguageModelChatMessage.User(
+                        buildCompilePrompt(intent, previousError, base.family ?? "investigate"),
+                    ),
+                ],
                 {},
                 token,
             );

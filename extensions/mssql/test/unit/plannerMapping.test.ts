@@ -293,6 +293,9 @@ suite("plannerMapping", () => {
         const cased = libraryAsset();
         cased.category = "Validate";
         expect(buildOk(cased).family).to.equal("validate");
+        const composed = libraryAsset();
+        composed.category = "Composed";
+        expect(buildOk(composed).family).to.equal("composed");
         const missing = libraryAsset();
         delete missing.category;
         expect(buildOk(missing).family).to.equal(undefined);

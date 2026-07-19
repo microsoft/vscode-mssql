@@ -251,7 +251,10 @@ function familyFromCategory(
     category: string | undefined,
 ): RunbookArtifactFile["family"] | undefined {
     const normalized = category?.trim().toLowerCase();
-    return normalized === "build" || normalized === "validate" || normalized === "investigate"
+    return normalized === "build" ||
+        normalized === "validate" ||
+        normalized === "investigate" ||
+        normalized === "composed"
         ? normalized
         : undefined;
 }

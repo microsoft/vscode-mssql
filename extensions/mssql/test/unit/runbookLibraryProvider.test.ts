@@ -268,6 +268,7 @@ suite("runbookLibraryModel", () => {
             expect(libraryFamilyFromCategory("validate")).to.equal("validate");
             expect(libraryFamilyFromCategory(" Investigate ")).to.equal("investigate");
             expect(libraryFamilyFromCategory("BUILD")).to.equal("build");
+            expect(libraryFamilyFromCategory("Composed")).to.equal("composed");
             expect(libraryFamilyFromCategory("alerts")).to.equal(undefined);
             expect(libraryFamilyFromCategory(undefined)).to.equal(undefined);
         });

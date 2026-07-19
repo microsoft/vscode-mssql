@@ -91,7 +91,7 @@ export interface RunbookParameterDefinition {
     enumValues?: string[];
 }
 
-export type RunbookFamily = "build" | "validate" | "investigate";
+export type RunbookFamily = "build" | "validate" | "investigate" | "composed";
 
 /** Closed target taxonomy for preflight and policy. A target is explicit;
  *  non-SQL work must never inherit an ambient active connection. */

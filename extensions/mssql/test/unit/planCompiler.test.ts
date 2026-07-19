@@ -18,6 +18,7 @@ import {
     validateLockAgainstCatalog,
 } from "../../src/runbookStudio/activities/activityCatalog";
 import {
+    buildCompilePrompt,
     extractJsonObject,
     isProposalFailure,
     parseCompiledProposal,
@@ -90,6 +91,28 @@ suite("planCompiler", () => {
             kind: "sqlDatabase",
             binding: { source: "parameter", parameterId: "target" },
         });
+    });
+
+    test("compile prompts carry the selected family grammar", () => {
+        expect(buildCompilePrompt("create it", undefined, "build")).to.contain(
+            "Planner family: build",
+        );
+        expect(buildCompilePrompt("inspect it", undefined, "investigate")).to.contain(
+            "Planner family: investigate",
+        );
+    });
+
+    test("post-generation family admission rejects a SQL substitute for Build", () => {
+        const buildBase = { ...base(), family: "build" as const };
+        const result = parseCompiledProposal(
+            JSON.stringify(GOOD_PROPOSAL),
+            buildBase,
+            "create a database project",
+        );
+        expect(isProposalFailure(result)).to.equal(true);
+        if (isProposalFailure(result)) {
+            expect(result.detail).to.contain("does not allow activity 'sql.query.read'");
+        }
     });
 
     test("trusted metadata is stamped from the catalog, not the model", () => {
