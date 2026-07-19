@@ -878,6 +878,11 @@
     <trans-unit id="++CODE++9168a1046e45504ed34edeecd99ec73be336161e82395399aa9a3c1d912be6b2">
       <source xml:lang="en">Building {0}...</source>
     </trans-unit>
+    <trans-unit id="++CODE++6aa7901f3b94d9f5494b2bc07bd2362348e6400fc8e7360b582807324ef2dbd7">
+      <source xml:lang="en">Built {0} ({1} diagnostics).</source>
+      <note>{0} is a DACPAC file path
+{1} is a diagnostic count</note>
+    </trans-unit>
     <trans-unit id="++CODE++0e065649e8d08d5182df2d21e09c4601b250d55237faf7166fb300ea125f3d8b">
       <source xml:lang="en">Built-in encryption, firewall rules, and Microsoft Entra ID integration to protect your data.</source>
     </trans-unit>
@@ -2153,12 +2158,21 @@
     <trans-unit id="++CODE++edb45df4d9dc81d0ba51ac48d83da35e32f4a62efc89a3d227df9e1794fee394">
       <source xml:lang="en">DAB container logs</source>
     </trans-unit>
+    <trans-unit id="++CODE++57f6ed7d8f99dd1173c17a44cab284c33ba8910b911fee633f1bda055e40ea7d">
+      <source xml:lang="en">DACPAC artifact</source>
+    </trans-unit>
+    <trans-unit id="++CODE++309b398359fe87be1446a174bcc802f8989fa1596b19561d46f8254a4194184a">
+      <source xml:lang="en">DACPAC build was cancelled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8f56b52b4f497c14810f52351db46c7f638c38f1a321f5bdfb38a3fb817f0ad9">
       <source xml:lang="en">DACPAC deployed successfully</source>
     </trans-unit>
     <trans-unit id="++CODE++c013d84f45a8e17f8b3f0bfea676174416117e054fa2315d1e3f1daeac57af36">
       <source xml:lang="en">DACPAC deployed successfully to database &apos;{0}&apos;</source>
       <note>{0} is the database name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0609a32cfa46dae87152f2ffa8ed3dea85080ad1acf25effef9c8b188f373be7">
+      <source xml:lang="en">DACPAC evidence collection was cancelled.</source>
     </trans-unit>
     <trans-unit id="++CODE++fec6ccad8071c66a146f4f9bab40620ba0279984c3c35763ac115ac3825fa6fd">
       <source xml:lang="en">DACPAC extracted successfully</source>
@@ -2273,6 +2287,21 @@
     </trans-unit>
     <trans-unit id="++CODE++74243f86c3e0868010e2216f08236ed91a5ca829759c64e8321c9eb1750dada1">
       <source xml:lang="en">Database pauses until the next billing cycle when free amount is renewed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1b90d53e491d43b20f0db878d6dc9132abfd6fdb3c75bcd51edc0442889f45c0">
+      <source xml:lang="en">Database project</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5589a7fc436de6ba16a990305a106ac78a98bcb7c0a6a158665b0d6b37582b94">
+      <source xml:lang="en">Database project &apos;{0}&apos; is ambiguous across workspace folders; bind an absolute project path.</source>
+      <note>{0} is the requested relative project path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8a7cce4f2ff903c30a4d2f801e25fb101d1ba80006fbebdc7a756df906714772">
+      <source xml:lang="en">Database project &apos;{0}&apos; was not found in the open workspace.</source>
+      <note>{0} is the requested project path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++6407d1c42c8729b05cf6905e76d7680de80b5cb7dedb9015eeab04a338aac8c1">
+      <source xml:lang="en">Database project target &apos;{0}&apos; must be a .sqlproj file.</source>
+      <note>{0} is the requested project path</note>
     </trans-unit>
     <trans-unit id="++CODE++dc235092072ac5817e5dbd55f1d76a649819cab27de89743dfd611f78bd52c5e">
       <source xml:lang="en">Database the table is created in</source>
@@ -3911,6 +3940,10 @@
     <trans-unit id="++CODE++463124bedefc986e5dc0c3e34607c881ba0337297037552decc1df70945e57e8">
       <source xml:lang="en">Found pending reconnect promise for uri {0}, waiting.</source>
       <note>{0} is the uri</note>
+    </trans-unit>
+    <trans-unit id="++CODE++16fd6e7e3f7dc883381de683ec17b23a9182357d1406a39dd57f9525176e030a">
+      <source xml:lang="en">Found {0} database projects in the open workspace.</source>
+      <note>{0} is a count of SQL database project files</note>
     </trans-unit>
     <trans-unit id="++CODE++fc70e7e548649aa12095a141703b67943b4437de990082c3646b3ab61884dcf0">
       <source xml:lang="en">Found {0} saved connection profile(s).</source>
@@ -5744,6 +5777,9 @@
     <trans-unit id="++CODE++0a840f4bedb16b304134c98444ca43bac77c020b9189faa847080629f7b1e08e">
       <source xml:lang="en">Open a runbook in Runbook Studio first, then run &apos;Save to Library&apos;.</source>
     </trans-unit>
+    <trans-unit id="++CODE++fa45e0f2a6d0a1ec6b37a9e5fc1977b53e5323f98ac7312a6fad1958a79423ca">
+      <source xml:lang="en">Open a workspace containing the SQL database project before running this step.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f22bd213b6a2f93198a3fda9b1dc6e58526c5f68f06380fc6124774c30af6faa">
       <source xml:lang="en">Open an eligible Spatial result tab to see host preparation, worker decode, renderer, interaction, and cleanup evidence here.</source>
     </trans-unit>
@@ -6909,6 +6945,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7f779b8a3477b9909716127bf4ed2ef8e07e7f5fae134f7ad1506a7f267de247">
       <source xml:lang="en">SQL Database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b3edb684b0c3fd7b6cb6b0e4484c72b85cb46fab26f2d0b55e8866596cdc33cf">
+      <source xml:lang="en">SQL Database Projects is required to build this DACPAC.</source>
     </trans-unit>
     <trans-unit id="++CODE++0d41159e953416fd1facaa0f44131e65fb6e10e1faf44e6f28283765881c589a">
       <source xml:lang="en">SQL Database Projects — Code Analysis</source>
@@ -8241,6 +8280,18 @@
       <source xml:lang="en">The SQL Server extension couldn&apos;t start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++855352d475fa868944e53e607f71f0b81f3ebe80481430862ffd41d0b2ea0d92">
+      <source xml:lang="en">The SQL project build completed without creating &apos;{0}&apos;.</source>
+      <note>{0} is the expected DACPAC file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b2dec1797840fb944170f4a5f009b7c1ccd7a89765e8843a830b5cc411783142">
+      <source xml:lang="en">The SQL project build did not report a DACPAC for &apos;{0}&apos;.</source>
+      <note>{0} is a SQL project file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b8f35d7818d7118cd923582949c2e285bc01391842dc64b313e69ac569305452">
+      <source xml:lang="en">The SQL project build produced an empty or invalid artifact at &apos;{0}&apos;.</source>
+      <note>{0} is the DACPAC file path</note>
+    </trans-unit>
     <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
       <source xml:lang="en">The XEL file was not found.</source>
     </trans-unit>
@@ -8671,6 +8722,10 @@
     </trans-unit>
     <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
       <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3501b483f0443cd63f5c6b1504f49a215f7f65996df06a708dcebf1227ba8847">
+      <source xml:lang="en">Unable to read SQL project properties for &apos;{0}&apos;.</source>
+      <note>{0} is a SQL project file path</note>
     </trans-unit>
     <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
       <source xml:lang="en">Unable to read proxy agent options.</source>
@@ -9383,6 +9438,16 @@
     </trans-unit>
     <trans-unit id="++CODE++8a798890fe93817163b10b5f7bd2ca4d25d84c52739a645a889c173eee7d9d3d">
       <source xml:lang="en">yes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4d22ee96ed3e4a83c4b464a2f5b4d59fd384d52642a41f3744050f4f81eef655">
+      <source xml:lang="en">{0} &apos;{1}&apos; does not exist.</source>
+      <note>{0} is a target type label
+{1} is a file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8290c4d662b7ed78d993edc301d557fe2d7804e683f6f94fcf1e75bc780cd0cd">
+      <source xml:lang="en">{0} &apos;{1}&apos; is outside the open workspace.</source>
+      <note>{0} is a target type label
+{1} is a file path</note>
     </trans-unit>
     <trans-unit id="++CODE++068d20844c66d21c588a335a78293216df5e76501471a4f175eb5758c3372fe4">
       <source xml:lang="en">{0} (Current Account)</source>

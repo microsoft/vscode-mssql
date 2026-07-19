@@ -55,8 +55,9 @@ export interface RunbookPreflightContext {
 }
 
 /** Deterministic product policy for the selectable VS Code runtime lanes.
- * The fake lane is the only lane allowed to execute preview-only developer
- * activities; local remains read-only until real executors/recovery land. */
+ * The local lane may write bounded build outputs inside the workspace, but
+ * effectful sandbox/deployment activities remain fake-only until their real
+ * executors and recovery protocols land. */
 export function preflightContextForRuntime(
     runtimeKind: string,
     phase: RunbookPreflightContext["phase"] = "authoring",
@@ -75,7 +76,7 @@ export function preflightContextForRuntime(
         return {
             phase,
             host: "extension",
-            allowedEffects: ["read"],
+            allowedEffects: ["read", "mutate"],
             approvalSupported: true,
             allowPreviewActivities: false,
             supportedRollbackContracts: ["none", "automatic"],
@@ -93,6 +94,7 @@ interface RequirementDefaults {
     approvalRequired?: boolean;
     connectionRequirement?: RunbookActivityRequirement["connectionRequirement"];
     secretRequirement?: RunbookActivityRequirement["secretRequirement"];
+    providerRequirement?: RunbookActivityRequirement["providerRequirement"];
     rollbackContract?: RunbookActivityRequirement["rollbackContract"];
     outputContract: string;
 }
@@ -124,6 +126,7 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
     "dacpac.build": {
         target: "databaseProject",
         effect: "mutate",
+        providerRequirement: "execution",
         outputContract: "dacpacArtifact/1",
     },
     "sandbox.provision": {
@@ -369,6 +372,9 @@ function requirement(kind: string): RunbookActivityRequirement {
         approvalRequired: defaults.approvalRequired ?? false,
         connectionRequirement: defaults.connectionRequirement ?? "none",
         secretRequirement: defaults.secretRequirement ?? "none",
+        ...(defaults.providerRequirement
+            ? { providerRequirement: defaults.providerRequirement }
+            : {}),
         rollbackContract: defaults.rollbackContract ?? "none",
         outputContract: defaults.outputContract,
     };
@@ -410,7 +416,14 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
 
     if (family === "build" || family === "composed") {
         requested.add("workspace.inspect");
-        if (has(text, /\b(project|scaffold)\b/)) requested.add("dbproject.create");
+        if (
+            has(
+                text,
+                /\b(create|scaffold|initialize|new)\b.{0,40}\b(database|sql)?\s*project\b|\bnew\s+\.sqlproj\b/,
+            )
+        ) {
+            requested.add("dbproject.create");
+        }
         if (has(text, /\b(tables?|schemas?|foreign keys?|constraints?|indexes?|objects?)\b/)) {
             requested.add("dbproject.add-object");
         }

@@ -12,6 +12,7 @@
  */
 
 import * as vscode from "vscode";
+import * as constants from "../constants/constants";
 import { RunbookStudio as LocRunbookStudio } from "../constants/locConstants";
 import { WebviewBaseController } from "../controllers/webviewBaseController";
 import { diag } from "../diagnostics/diagnosticsCore";
@@ -38,6 +39,7 @@ import {
     RbsCancelRunRequest,
     RbsGetRunRequest,
     RBS_STATE_SCHEMA_VERSION,
+    RunbookArtifactFile,
     RunbookRunEvent,
 } from "../sharedInterfaces/runbookStudio";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
@@ -441,14 +443,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     ? { requirements: artifact.source.requirements }
                     : {}),
                 ...(artifact.source.design ? { design: artifact.source.design } : {}),
-                readiness: preflightRunbookRequirements(
-                    artifact.source.requirements,
-                    preflightContextForRuntime(
-                        vscode.workspace
-                            .getConfiguration()
-                            .get<string>("mssql.runbookStudio.runtime", "local"),
-                    ),
-                ),
+                readiness: this.resolveReadiness(artifact.source.requirements),
                 hasLock: artifact.lock !== undefined,
                 ...(artifact.lock ? { planRevision: artifact.lock.planRevision } : {}),
                 ...(artifact.lock ? { entryNodeId: artifact.lock.entryNodeId } : {}),
@@ -498,5 +493,22 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 .get<boolean>("mssql.runbookStudio.debugTools", false),
             ...(initialRoute ? { initialRoute } : {}),
         };
+    }
+
+    private static resolveReadiness(requirements: RunbookArtifactFile["source"]["requirements"]) {
+        const runtimeKind = vscode.workspace
+            .getConfiguration()
+            .get<string>("mssql.runbookStudio.runtime", "local");
+        return preflightRunbookRequirements(requirements, {
+            ...preflightContextForRuntime(runtimeKind),
+            ...(runtimeKind === "local"
+                ? {
+                      providerAvailable:
+                          vscode.extensions.getExtension(
+                              constants.sqlDatabaseProjectsExtensionId,
+                          ) !== undefined,
+                  }
+                : {}),
+        });
     }
 }

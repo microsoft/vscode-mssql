@@ -5,9 +5,10 @@
 
 /**
  * Deterministic Phase-2 developer validation preview. This artifact is an
- * executable contract fixture for the fake runtime only: it proves typed
- * Build -> approval -> provision -> deployment preview -> cleanup flow while
- * performing no filesystem, DacFx, process, container, network, or SQL work.
+ * executable contract fixture for the fake runtime: it proves typed Build ->
+ * approval -> provision -> deployment preview -> cleanup flow while the fake
+ * lane performs no filesystem, DacFx, process, container, network, or SQL
+ * work. The local lane can execute the inspection/build prefix separately.
  */
 
 import {
@@ -123,7 +124,9 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
                 ],
                 activities: [
                     requirement("workspace.inspect", "read", "workspaceSnapshot/1"),
-                    requirement("dacpac.build", "mutate", "dacpacArtifact/1"),
+                    requirement("dacpac.build", "mutate", "dacpacArtifact/1", {
+                        providerRequirement: "execution",
+                    }),
                     requirement("sandbox.provision", "mutate", "databaseLease/1", {
                         approvalRequired: true,
                         rollbackContract: "required",

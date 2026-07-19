@@ -272,9 +272,14 @@ suite("fakeRuntimeAdapter", () => {
         expect(preview.output?.scalars).to.include({ changeCount: 3, preview: true });
     });
 
-    test("local delegates refuse preview-only developer activities", async () => {
+    test("local delegates accept build activities but refuse preview-only sandbox work", async () => {
         const local = new FakeRuntimeAdapter({
             runtimeKind: "local",
+            supportedActivityKinds: new Set([
+                "workspace.inspect",
+                "dacpac.build",
+                "sql.query.read",
+            ]),
             executeActivity: async () => undefined,
         });
         try {
@@ -283,7 +288,64 @@ suite("fakeRuntimeAdapter", () => {
                 ctx(),
             );
             expect(validation.ok).to.equal(false);
-            expect(validation.issues[0].detail).to.contain("workspace.inspect");
+            expect(validation.issues[0].detail).to.contain("sandbox.provision");
+        } finally {
+            await local.dispose();
+        }
+    });
+
+    test("cancellation during a delegated build settles the active node as cancelled", async () => {
+        const artifact = createFixtureRunbookArtifact();
+        artifact.lock = {
+            schemaVersion: RUNBOOK_LOCK_SCHEMA_VERSION,
+            planRevision: "1",
+            planHash: "sha256:delegated-build-cancel",
+            entryNodeId: "build",
+            nodes: [
+                {
+                    id: "build",
+                    label: "Build DACPAC",
+                    kind: "activity",
+                    activityKind: "dacpac.build",
+                    inputs: { project: "$params.projectPath" },
+                },
+            ],
+            edges: [],
+        };
+        const local = new FakeRuntimeAdapter({
+            runtimeKind: "local",
+            supportedActivityKinds: new Set(["dacpac.build"]),
+            executeActivity: async (_node, binding) => {
+                while (!binding.isCancellationRequested()) {
+                    await new Promise<void>((resolve) => setTimeout(resolve, 1));
+                }
+                return {
+                    success: false,
+                    message: "build task terminated",
+                    errorCode: "RunbookStudio.ActivityCancelled",
+                };
+            },
+        });
+        const observer = new CollectingObserver();
+        try {
+            await local.startRun(
+                {
+                    runId: "delegated-build-cancel",
+                    artifact,
+                    parameterValues: { projectPath: "Database.sqlproj" },
+                },
+                observer,
+                ctx(),
+            );
+            while (!observer.nodeStates("build").includes("running")) {
+                await new Promise<void>((resolve) => setTimeout(resolve, 1));
+            }
+            expect(await local.cancelRun("delegated-build-cancel", ctx())).to.equal("cancelled");
+            await observer.terminal;
+
+            expect(observer.nodeStates("build")).to.deep.equal(["running", "cancelled"]);
+            expect(observer.terminalEvent()).to.include({ state: "cancelled" });
+            expect(observer.events.filter((event) => event.kind === "terminal")).to.have.length(1);
         } finally {
             await local.dispose();
         }

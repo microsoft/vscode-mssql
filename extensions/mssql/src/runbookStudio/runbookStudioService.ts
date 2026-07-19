@@ -18,6 +18,7 @@
 
 import * as path from "path";
 import * as vscode from "vscode";
+import * as constants from "../constants/constants";
 import { RunbookStudio as LocRunbookStudio } from "../constants/locConstants";
 import { Perf } from "../perf/perfTelemetry";
 import {
@@ -67,6 +68,7 @@ import {
     LibraryDocumentConflictResolution,
 } from "./runtime/hobbesRuntimeAdapter";
 import { LocalSqlActivityDelegate } from "./runtime/localSqlDelegate";
+import { buildLocalDacpac, inspectLocalWorkspace } from "./runtime/localDeveloperOperations";
 import { RuntimeSupervisor } from "./runtime/runtimeSupervisor";
 import {
     RunbookRuntimeAdapter,
@@ -306,6 +308,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 : artifact.source.requirements;
         const admissionReadiness = preflightRunbookRequirements(admissionManifest, {
             ...preflightContextForRuntime(configuredRuntimeKind, "admission"),
+            providerAvailable:
+                configuredRuntimeKind !== "local" ||
+                vscode.extensions.getExtension(constants.sqlDatabaseProjectsExtensionId) !==
+                    undefined,
             availableTargetKinds: targetKinds,
             bindings: {
                 connection: artifact.lock.nodes.some(
@@ -538,11 +544,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const runtimeKind = vscode.workspace
             .getConfiguration()
             .get<string>("mssql.runbookStudio.runtime", "local");
-        const prepared = prepareRunbookIntent(
-            current,
-            intent,
-            preflightContextForRuntime(runtimeKind),
-        );
+        const prepared = prepareRunbookIntent(current, intent, {
+            ...preflightContextForRuntime(runtimeKind),
+            ...(runtimeKind === "local"
+                ? {
+                      providerAvailable:
+                          vscode.extensions.getExtension(
+                              constants.sqlDatabaseProjectsExtensionId,
+                          ) !== undefined,
+                  }
+                : {}),
+        });
         const base = prepared.artifact;
         const readiness = prepared.readiness;
         Perf.marker(
@@ -1487,6 +1499,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             // for every non-SQL activity.
             adapter = new FakeRuntimeAdapter(
                 new LocalSqlActivityDelegate({
+                    inspectWorkspace: inspectLocalWorkspace,
+                    buildDacpac: buildLocalDacpac,
                     connect: async (profileId, ownerUri) => {
                         const connectionManager = this.connectionAccess();
                         if (!connectionManager) {

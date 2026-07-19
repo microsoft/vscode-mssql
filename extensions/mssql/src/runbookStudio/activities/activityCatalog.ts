@@ -62,20 +62,21 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         version: 1,
         label: "Inspect database workspace",
         description:
-            "Produces a bounded deterministic snapshot of database-project inputs without changing files.",
+            "Produces a bounded snapshot of database-project inputs in the open VS Code workspace without changing files.",
         inputs: [],
         outputContract: "workspaceSnapshot/1",
-        producedValues: ["projectPath", "projectCount"],
+        // Project selection is deliberately not a produced binding: a
+        // multi-project workspace must never silently pick the first target.
+        producedValues: ["projectCount"],
         target: { kind: "workspace", workspace: true },
-        previewOnly: true,
         blastRadius: { ...READ_ONLY_LOCAL, resource: "workspaceFiles" },
     },
     {
         kind: "dacpac.build",
         version: 1,
-        label: "Build DACPAC (deterministic preview)",
+        label: "Build DACPAC",
         description:
-            "Build-contract preview that produces a typed DACPAC artifact and diagnostics without invoking DacFx.",
+            "Builds the explicitly bound SQL database project through the native VS Code SQL project task and records typed artifact evidence.",
         inputs: [
             {
                 name: "project",
@@ -87,7 +88,6 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         outputContract: "dacpacArtifact/1",
         producedValues: ["artifactPath", "diagnosticCount"],
         target: { kind: "databaseProject", bindingInput: "project" },
-        previewOnly: true,
         blastRadius: {
             resource: "workspaceFiles",
             operation: "create",

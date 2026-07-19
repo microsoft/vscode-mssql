@@ -69,6 +69,7 @@ suite("ProjectController Tests", () => {
      */
     function setupBuildMocks(sandbox: sinon.SinonSandbox): {
         mockExecution: vscode.TaskExecution;
+        terminateStub: sinon.SinonStub;
         executeTaskStub: sinon.SinonStub;
         withProgressStub: sinon.SinonStub;
         triggerTaskCompletion: (exitCode: number) => void;
@@ -80,7 +81,8 @@ suite("ProjectController Tests", () => {
         sandbox.stub(vscode.extensions, "getExtension").returns(mockExtension);
 
         // Mock vscode.tasks.executeTask
-        const mockExecution = {} as vscode.TaskExecution;
+        const terminateStub = sandbox.stub();
+        const mockExecution = { terminate: terminateStub } as unknown as vscode.TaskExecution;
         const executeTaskStub = sandbox.stub(vscode.tasks, "executeTask").resolves(mockExecution);
 
         // Mock task completion event
@@ -115,7 +117,13 @@ suite("ProjectController Tests", () => {
             }, 0);
         };
 
-        return { mockExecution, executeTaskStub, withProgressStub, triggerTaskCompletion };
+        return {
+            mockExecution,
+            terminateStub,
+            executeTaskStub,
+            withProgressStub,
+            triggerTaskCompletion,
+        };
     }
 
     test("buildProject should build SDK-style project without NETCoreTargetsPath", async () => {
@@ -275,5 +283,34 @@ suite("ProjectController Tests", () => {
         expect(argsString).to.include("BuildDirectory");
 
         platformStub.restore();
+    });
+
+    test("background build terminates its exact task when the workflow is cancelled", async () => {
+        const projectProperties = createProjectProperties(
+            projectFilePath,
+            dacpacOutputPath,
+            mssql.ProjectType.SdkStyle,
+        );
+        const { terminateStub, withProgressStub } = setupBuildMocks(sandbox);
+        const cancellation = new vscode.CancellationTokenSource();
+
+        const build = projectController.buildProject(projectProperties, {
+            cancellationToken: cancellation.token,
+            showProgress: false,
+        });
+        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+        cancellation.cancel();
+
+        let error: unknown;
+        try {
+            await build;
+        } catch (caught) {
+            error = caught;
+        } finally {
+            cancellation.dispose();
+        }
+        expect(error).to.be.instanceOf(vscode.CancellationError);
+        expect(terminateStub).to.have.been.calledOnce;
+        expect(withProgressStub).not.to.have.been.called;
     });
 });

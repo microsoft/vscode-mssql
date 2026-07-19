@@ -4,10 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Local SQL activity delegate (the "local" runtime lane): executes
- * sql.query.read against a REAL extension-owned connection through the
- * normal ConnectionManager + STS `query/simpleexecute` path, while every
- * other activity keeps the shared deterministic semantics. Guardrails:
+ * Local activity delegate (the "local" runtime lane): executes read-only SQL
+ * through the extension-owned connection path and developer build activities
+ * through native VS Code workspace/task services. Guardrails:
  *   - only single read-only SELECT/WITH statements execute (a policy engine
  *     replaces this conservative check in RBS2-13, but the refusal is
  *     visible and typed, never silent);
@@ -31,6 +30,38 @@ export interface LocalSqlOperations {
     connect(profileId: string, ownerUri: string): Promise<boolean>;
     execute(ownerUri: string, sql: string): Promise<mssql.SimpleExecuteResult>;
     disconnect(ownerUri: string): Promise<void>;
+    inspectWorkspace(): Promise<LocalWorkspaceSnapshot>;
+    buildDacpac(
+        projectPath: string,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalDacpacBuildResult>;
+}
+
+export interface LocalWorkspaceSnapshot {
+    workspaceFolderCount: number;
+    /** Absolute, workspace-contained project paths in stable sort order. */
+    projectPaths: string[];
+    truncated?: boolean;
+}
+
+export interface LocalDacpacBuildResult {
+    projectPath: string;
+    artifactPath: string;
+    artifactSizeBytes: number;
+    artifactSha256: string;
+    diagnosticCount: number;
+    builtAtUtc: string;
+}
+
+/** Expected host refusal with a stable, non-secret error classification. */
+export class LocalActivityError extends Error {
+    constructor(
+        message: string,
+        public readonly errorCode: string,
+    ) {
+        super(message);
+        this.name = "LocalActivityError";
+    }
 }
 
 const MAX_STORED_ROWS = 5000;
@@ -39,6 +70,11 @@ let queryCounter = 0;
 
 export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
     public readonly runtimeKind = "local" as const;
+    public readonly supportedActivityKinds = new Set([
+        "workspace.inspect",
+        "dacpac.build",
+        "sql.query.read",
+    ]);
 
     constructor(private readonly operations: LocalSqlOperations) {}
 
@@ -47,12 +83,96 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         binding: {
             parameterValues: Record<string, string | number | boolean | null>;
             resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
         },
     ): Promise<NodeExecution | undefined> {
-        if (node.activityKind !== "sql.query.read") {
-            // Built-in deterministic semantics handle everything else.
-            return undefined;
+        switch (node.activityKind) {
+            case "workspace.inspect":
+                return this.inspectWorkspace();
+            case "dacpac.build":
+                return this.buildDacpac(node, binding);
+            case "sql.query.read":
+                return this.executeSql(node, binding);
+            default:
+                return undefined;
         }
+    }
+
+    private async inspectWorkspace(): Promise<NodeExecution> {
+        try {
+            const snapshot = await this.operations.inspectWorkspace();
+            const projectPaths = [...snapshot.projectPaths].sort((left, right) =>
+                left.localeCompare(right),
+            );
+            return {
+                success: true,
+                message: LocRunbookStudio.workspaceProjectsFound(projectPaths.length),
+                output: {
+                    contract: "workspaceSnapshot/1",
+                    scalars: {
+                        workspaceFolderCount: snapshot.workspaceFolderCount,
+                        projectCount: projectPaths.length,
+                        projectPaths: projectPaths.join("\n") || "(none)",
+                        truncated: snapshot.truncated === true,
+                        executionMode: "local",
+                    },
+                },
+                values: { projectCount: projectPaths.length },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async buildDacpac(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+        },
+    ): Promise<NodeExecution> {
+        const projectPath = binding.resolveBind(node.inputs?.project);
+        if (typeof projectPath !== "string" || projectPath.trim().length === 0) {
+            return {
+                success: false,
+                message: LocRunbookStudio.parameterRequired("project"),
+                errorCode: "RunbookStudio.BindingInvalid",
+            };
+        }
+        try {
+            const result = await this.operations.buildDacpac(
+                projectPath.trim(),
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                message: LocRunbookStudio.dacpacBuilt(result.artifactPath, result.diagnosticCount),
+                output: {
+                    contract: "dacpacArtifact/1",
+                    scalars: {
+                        projectPath: result.projectPath,
+                        artifactPath: result.artifactPath,
+                        artifactSizeBytes: result.artifactSizeBytes,
+                        artifactSha256: result.artifactSha256,
+                        diagnosticCount: result.diagnosticCount,
+                        builtAtUtc: result.builtAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    artifactPath: result.artifactPath,
+                    diagnosticCount: result.diagnosticCount,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async executeSql(
+        node: RunbookPlanNode,
+        binding: { resolveBind: (input: unknown) => unknown },
+    ): Promise<NodeExecution> {
         const profileId = binding.resolveBind(node.inputs?.connection);
         if (typeof profileId !== "string" || profileId.length === 0) {
             return {
@@ -113,4 +233,13 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             }
         }
     }
+}
+
+function activityFailure(error: unknown): NodeExecution {
+    return {
+        success: false,
+        message: error instanceof Error ? error.message : "activity failed",
+        errorCode:
+            error instanceof LocalActivityError ? error.errorCode : "RunbookStudio.ActivityFailed",
+    };
 }

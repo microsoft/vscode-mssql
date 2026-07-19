@@ -66,11 +66,16 @@ function tick(): Promise<void> {
  */
 export interface ActivityExecutionDelegate {
     readonly runtimeKind: "fake" | "hobbes" | "local";
+    /** Activity kinds implemented by this delegate. Validation uses this
+     * closed list; execution never assumes that a delegate can handle an
+     * activity merely because it is registered in the product catalog. */
+    readonly supportedActivityKinds?: ReadonlySet<string>;
     executeActivity(
         node: RunbookPlanNode,
         binding: {
             parameterValues: Record<string, string | number | boolean | null>;
             resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
         },
     ): Promise<NodeExecution | undefined>;
 }
@@ -104,7 +109,11 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
             for (const node of artifact.lock.nodes) {
                 if (
                     node.kind === "activity" &&
-                    !isKnownActivity(node.activityKind, this.delegate === undefined)
+                    !isKnownActivity(
+                        node.activityKind,
+                        this.delegate === undefined,
+                        this.delegate?.supportedActivityKinds,
+                    )
                 ) {
                     issues.push({
                         nodeId: node.id,
@@ -289,6 +298,7 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
                             parameterValues: request.parameterValues,
                             resolveBind: (input) =>
                                 resolveBind(input, request.parameterValues, nodeValues),
+                            isCancellationRequested: () => run.cancelRequested,
                         });
                     } catch (error) {
                         result = {
@@ -297,6 +307,17 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
                             errorCode: "RunbookStudio.ActivityFailed",
                         };
                     }
+                }
+                if (run.cancelRequested) {
+                    emit({
+                        kind: "nodeState",
+                        nodeId: current.id,
+                        state: "cancelled",
+                        attempt: 1,
+                        outcome: "cancelled",
+                    });
+                    terminal({ kind: "terminal", state: "cancelled" });
+                    return;
                 }
                 result ??= executeNode(
                     current,
@@ -354,10 +375,15 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "sandbox.dispose",
 ]);
 
-function isKnownActivity(kind: string | undefined, allowPreviewActivities: boolean): boolean {
+function isKnownActivity(
+    kind: string | undefined,
+    allowPreviewActivities: boolean,
+    delegatedActivities?: ReadonlySet<string>,
+): boolean {
     return (
         kind === "sql.query.read" ||
         kind === "assert.threshold" ||
+        (kind !== undefined && delegatedActivities?.has(kind) === true) ||
         (allowPreviewActivities && kind !== undefined && PREVIEW_ACTIVITY_KINDS.has(kind))
     );
 }

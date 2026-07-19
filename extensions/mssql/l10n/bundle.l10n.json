@@ -132,6 +132,56 @@
         "message": "This runbook has an invalid or unbound activity target: {0}",
         "comment": ["{0} is a safe structural target-binding detail"]
     },
+    "Found {0} database projects in the open workspace./{0} is a count of SQL database project files": {
+        "message": "Found {0} database projects in the open workspace.",
+        "comment": ["{0} is a count of SQL database project files"]
+    },
+    "Built {0} ({1} diagnostics)./{0} is a DACPAC file path{1} is a diagnostic count": {
+        "message": "Built {0} ({1} diagnostics).",
+        "comment": ["{0} is a DACPAC file path", "{1} is a diagnostic count"]
+    },
+    "Open a workspace containing the SQL database project before running this step.": "Open a workspace containing the SQL database project before running this step.",
+    "DACPAC build was cancelled.": "DACPAC build was cancelled.",
+    "DACPAC artifact": "DACPAC artifact",
+    "Database project": "Database project",
+    "DACPAC evidence collection was cancelled.": "DACPAC evidence collection was cancelled.",
+    "SQL Database Projects is required to build this DACPAC.": "SQL Database Projects is required to build this DACPAC.",
+    "Unable to read SQL project properties for '{0}'./{0} is a SQL project file path": {
+        "message": "Unable to read SQL project properties for '{0}'.",
+        "comment": ["{0} is a SQL project file path"]
+    },
+    "The SQL project build did not report a DACPAC for '{0}'./{0} is a SQL project file path": {
+        "message": "The SQL project build did not report a DACPAC for '{0}'.",
+        "comment": ["{0} is a SQL project file path"]
+    },
+    "The SQL project build completed without creating '{0}'./{0} is the expected DACPAC file path": {
+        "message": "The SQL project build completed without creating '{0}'.",
+        "comment": ["{0} is the expected DACPAC file path"]
+    },
+    "The SQL project build produced an empty or invalid artifact at '{0}'./{0} is the DACPAC file path": {
+        "message": "The SQL project build produced an empty or invalid artifact at '{0}'.",
+        "comment": ["{0} is the DACPAC file path"]
+    },
+    "Database project target '{0}' must be a .sqlproj file./{0} is the requested project path": {
+        "message": "Database project target '{0}' must be a .sqlproj file.",
+        "comment": ["{0} is the requested project path"]
+    },
+    "Database project '{0}' was not found in the open workspace./{0} is the requested project path": {
+        "message": "Database project '{0}' was not found in the open workspace.",
+        "comment": ["{0} is the requested project path"]
+    },
+    "Database project '{0}' is ambiguous across workspace folders; bind an absolute project path./{0} is the requested relative project path": {
+        "message": "Database project '{0}' is ambiguous across workspace folders; bind an absolute project path.",
+        "comment": ["{0} is the requested relative project path"]
+    },
+    "{0} '{1}' does not exist./{0} is a target type label{1} is a file path": {
+        "message": "{0} '{1}' does not exist.",
+        "comment": ["{0} is a target type label", "{1} is a file path"]
+    },
+    "{0} '{1}' is outside the open workspace./{0} is a target type label{1} is a file path": {
+        "message": "{0} '{1}' is outside the open workspace.",
+        "comment": ["{0} is a target type label", "{1} is a file path"]
+    },
     "The runbook library is unavailable: {0}/{0} is a technical detail string": {
         "message": "The runbook library is unavailable: {0}",
         "comment": ["{0} is a technical detail string"]

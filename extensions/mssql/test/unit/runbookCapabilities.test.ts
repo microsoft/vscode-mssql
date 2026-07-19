@@ -267,4 +267,30 @@ suite("runbook capability preflight", () => {
         });
         expect(fake.status).to.equal("ready");
     });
+
+    test("local runtime admits the real workspace and DACPAC build prefix", () => {
+        const manifest = classifyRunbookIntent("Build this database project DACPAC.").requirements;
+        const local = preflightRunbookRequirements(manifest, {
+            ...preflightContextForRuntime("local", "admission"),
+            providerAvailable: true,
+        });
+
+        expect(manifest.activities.map((activity) => activity.kind)).to.deep.equal([
+            "workspace.inspect",
+            "dacpac.build",
+        ]);
+        expect(local.status).to.equal("ready");
+        expect(local.issues ?? []).to.deep.equal([]);
+    });
+
+    test("local DACPAC build reports a missing SQL Projects provider", () => {
+        const manifest = classifyRunbookIntent("Build this database project DACPAC.").requirements;
+        const local = preflightRunbookRequirements(manifest, {
+            ...preflightContextForRuntime("local", "admission"),
+            providerAvailable: false,
+        });
+
+        expect(local.status).to.equal("incompatible");
+        expect(local.issues?.map((issue) => issue.code)).to.include("provider.unavailable");
+    });
 });

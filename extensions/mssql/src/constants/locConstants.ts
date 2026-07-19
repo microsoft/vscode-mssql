@@ -226,6 +226,83 @@ export class RunbookStudio {
             args: [detail],
             comment: ["{0} is a safe structural target-binding detail"],
         });
+    public static workspaceProjectsFound = (count: number) =>
+        l10n.t({
+            message: "Found {0} database projects in the open workspace.",
+            args: [count],
+            comment: ["{0} is a count of SQL database project files"],
+        });
+    public static dacpacBuilt = (artifactPath: string, diagnosticCount: number) =>
+        l10n.t({
+            message: "Built {0} ({1} diagnostics).",
+            args: [artifactPath, diagnosticCount],
+            comment: ["{0} is a DACPAC file path", "{1} is a diagnostic count"],
+        });
+    public static openWorkspaceForDatabaseProject = l10n.t(
+        "Open a workspace containing the SQL database project before running this step.",
+    );
+    public static dacpacBuildCancelled = l10n.t("DACPAC build was cancelled.");
+    public static dacpacArtifactLabel = l10n.t("DACPAC artifact");
+    public static databaseProjectLabel = l10n.t("Database project");
+    public static dacpacEvidenceCancelled = l10n.t("DACPAC evidence collection was cancelled.");
+    public static sqlProjectsRequired = l10n.t(
+        "SQL Database Projects is required to build this DACPAC.",
+    );
+    public static projectPropertiesUnavailable = (projectPath: string) =>
+        l10n.t({
+            message: "Unable to read SQL project properties for '{0}'.",
+            args: [projectPath],
+            comment: ["{0} is a SQL project file path"],
+        });
+    public static dacpacArtifactNotReported = (projectPath: string) =>
+        l10n.t({
+            message: "The SQL project build did not report a DACPAC for '{0}'.",
+            args: [projectPath],
+            comment: ["{0} is a SQL project file path"],
+        });
+    public static dacpacArtifactNotCreated = (artifactPath: string) =>
+        l10n.t({
+            message: "The SQL project build completed without creating '{0}'.",
+            args: [artifactPath],
+            comment: ["{0} is the expected DACPAC file path"],
+        });
+    public static dacpacArtifactInvalid = (artifactPath: string) =>
+        l10n.t({
+            message: "The SQL project build produced an empty or invalid artifact at '{0}'.",
+            args: [artifactPath],
+            comment: ["{0} is the DACPAC file path"],
+        });
+    public static databaseProjectMustBeSqlproj = (projectPath: string) =>
+        l10n.t({
+            message: "Database project target '{0}' must be a .sqlproj file.",
+            args: [projectPath],
+            comment: ["{0} is the requested project path"],
+        });
+    public static databaseProjectNotFound = (projectPath: string) =>
+        l10n.t({
+            message: "Database project '{0}' was not found in the open workspace.",
+            args: [projectPath],
+            comment: ["{0} is the requested project path"],
+        });
+    public static databaseProjectAmbiguous = (projectPath: string) =>
+        l10n.t({
+            message:
+                "Database project '{0}' is ambiguous across workspace folders; bind an absolute project path.",
+            args: [projectPath],
+            comment: ["{0} is the requested relative project path"],
+        });
+    public static runbookPathDoesNotExist = (label: string, targetPath: string) =>
+        l10n.t({
+            message: "{0} '{1}' does not exist.",
+            args: [label, targetPath],
+            comment: ["{0} is a target type label", "{1} is a file path"],
+        });
+    public static runbookPathOutsideWorkspace = (label: string, targetPath: string) =>
+        l10n.t({
+            message: "{0} '{1}' is outside the open workspace.",
+            args: [label, targetPath],
+            comment: ["{0} is a target type label", "{1} is a file path"],
+        });
     public static libraryUnavailable = (detail: string) =>
         l10n.t({
             message: "The runbook library is unavailable: {0}",

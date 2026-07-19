@@ -13,6 +13,13 @@ import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry"
 import { getErrorMessage } from "../utils/utils";
 import { ProjectPropertiesResult } from "../sharedInterfaces/publishDialog";
 
+export interface ProjectBuildOptions {
+    /** External cancellation owned by the calling workflow. */
+    cancellationToken?: vscode.CancellationToken;
+    /** Publish UI keeps its notification; background automation opts out. */
+    showProgress?: boolean;
+}
+
 /**
  * Controller for SQL Project operations
  */
@@ -24,6 +31,7 @@ export class ProjectController {
      */
     public async buildProject(
         projectProperties: ProjectPropertiesResult,
+        options: ProjectBuildOptions = {},
     ): Promise<string | undefined> {
         try {
             const projectFilePath = projectProperties.projectFilePath;
@@ -62,11 +70,14 @@ export class ProjectController {
             );
 
             // Execute the task and wait for completion
-            await this.executeBuildTask(buildTask, projectName);
+            await this.executeBuildTask(buildTask, projectName, options);
 
             // Return the DACPAC output path
             return projectProperties.dacpacOutputPath;
         } catch (error) {
+            if (error instanceof vscode.CancellationError) {
+                throw error;
+            }
             // Send error telemetry
             sendErrorEvent(
                 TelemetryViews.SqlProjects,
@@ -117,37 +128,62 @@ export class ProjectController {
      * @param buildTask The VS Code task to execute
      * @param projectName Name of the project being built
      */
-    private async executeBuildTask(buildTask: vscode.Task, projectName: string): Promise<void> {
+    private async executeBuildTask(
+        buildTask: vscode.Task,
+        projectName: string,
+        options: ProjectBuildOptions,
+    ): Promise<void> {
+        const execute = async (): Promise<void> => {
+            if (options.cancellationToken?.isCancellationRequested) {
+                throw new vscode.CancellationError();
+            }
+            const execution = await vscode.tasks.executeTask(buildTask);
+            return new Promise<void>((resolve, reject) => {
+                let settled = false;
+                let cancellationDisposable: vscode.Disposable | undefined;
+                const finish = (error?: Error) => {
+                    if (settled) {
+                        return;
+                    }
+                    settled = true;
+                    processDisposable.dispose();
+                    cancellationDisposable?.dispose();
+                    error ? reject(error) : resolve();
+                };
+                const processDisposable = vscode.tasks.onDidEndTaskProcess((event) => {
+                    if (event.execution !== execution) {
+                        return;
+                    }
+                    if (event.exitCode === 0) {
+                        finish();
+                    } else {
+                        finish(
+                            new Error(
+                                Loc.PublishProject.BuildFailedWithExitCode(event.exitCode ?? -1),
+                            ),
+                        );
+                    }
+                });
+                cancellationDisposable = options.cancellationToken?.onCancellationRequested(() => {
+                    try {
+                        execution.terminate();
+                    } finally {
+                        finish(new vscode.CancellationError());
+                    }
+                });
+            });
+        };
+
+        if (options.showProgress === false) {
+            return execute();
+        }
         return vscode.window.withProgress(
             {
                 location: vscode.ProgressLocation.Notification,
                 title: Loc.PublishProject.BuildingProjectProgress(projectName),
                 cancellable: false,
             },
-            async () => {
-                // Execute the task
-                const execution = await vscode.tasks.executeTask(buildTask);
-
-                // Wait for task completion
-                return new Promise<void>((resolve, reject) => {
-                    const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
-                        if (e.execution === execution) {
-                            disposable.dispose();
-                            if (e.exitCode === 0) {
-                                resolve();
-                            } else {
-                                reject(
-                                    new Error(
-                                        Loc.PublishProject.BuildFailedWithExitCode(
-                                            e.exitCode ?? -1,
-                                        ),
-                                    ),
-                                );
-                            }
-                        }
-                    });
-                });
-            },
+            execute,
         );
     }
 }
