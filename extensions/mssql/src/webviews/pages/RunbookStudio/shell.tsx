@@ -424,6 +424,9 @@ function AuthorPage() {
                     onChange={(e) => setIntentDraft(e.target.value)}
                     disabled={compiling}
                 />
+                <div className="rbs-capability-notice" role="note">
+                    <strong>{loc.currentCapabilitiesLabel}</strong> {loc.currentCapabilitiesDetail}
+                </div>
                 {!intent.trim() ? (
                     <div className="rbs-examples">
                         <span className="rbs-muted">{loc.tryExample}</span>

@@ -3770,6 +3770,10 @@ export class LocConstants {
             describePlaceholder: l10n.t(
                 'Describe the check, validation, or investigation in plain language — e.g. "verify the Orders table has no rows with a NULL customer id and stays under 1M rows".',
             ),
+            currentCapabilitiesLabel: l10n.t("Executable today:"),
+            currentCapabilitiesDetail: l10n.t(
+                "Read-only SQL validation and investigation runbooks. Build, schema-change, deployment, benchmark, and CI/CD prompts can help shape a draft, but cannot run until their typed activities and a headless runner are installed.",
+            ),
             generatePlan: l10n.t("Generate plan"),
             regeneratePlan: l10n.t("Regenerate plan"),
             generating: l10n.t("Generating plan…"),

@@ -3030,6 +3030,9 @@
     <trans-unit id="++CODE++01ae099f23b8fe85d27a9e26613eb2624bd76e11505385e3493f316afde824c2">
       <source xml:lang="en">Exclude Object Types</source>
     </trans-unit>
+    <trans-unit id="++CODE++dfe9146a9934c0daeb5611bcdb88cd26f42428e43fb5b359986d56a2b6812f97">
+      <source xml:lang="en">Executable today:</source>
+    </trans-unit>
     <trans-unit id="++CODE++e3a67d9540e9a204f7dc4aa9d44a0ec652856cfa932a21196bf9df23aa0e4cd1">
       <source xml:lang="en">Execute</source>
     </trans-unit>
@@ -6330,6 +6333,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b521c7ed9a58c1ac646cdbdd914ba0867a1be379440fb6c8b9caa22b7f579013">
       <source xml:lang="en">Read-only SQL text editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bf695df62302b5b5b9dba050ef44aba611acb9e9a4430ccfa9503a6328b36587">
+      <source xml:lang="en">Read-only SQL validation and investigation runbooks. Build, schema-change, deployment, benchmark, and CI/CD prompts can help shape a draft, but cannot run until their typed activities and a headless runner are installed.</source>
     </trans-unit>
     <trans-unit id="++CODE++60c9871ec9518d202a3029e9d9bd63e0fb135ddcc133140686873c2f44b28c61">
       <source xml:lang="en">Read-only disconnected mode for &apos;{0}&apos;. Cannot create or start live sessions without a database connection.</source>

@@ -705,6 +705,15 @@
     line-height: 1.5;
 }
 
+.rbs-capability-notice {
+    max-width: 704px;
+    margin-top: 8px;
+    padding: 7px 8px;
+    color: var(--vscode-descriptionForeground);
+    background: var(--vscode-textBlockQuote-background, var(--vscode-editor-background));
+    border-left: 2px solid var(--vscode-textBlockQuote-border, var(--vscode-panel-border));
+}
+
 .rbs-examples {
     display: flex;
     align-items: center;

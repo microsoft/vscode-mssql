@@ -4611,6 +4611,8 @@
     },
     "What should this runbook do?": "What should this runbook do?",
     "Describe the check, validation, or investigation in plain language — e.g. \"verify the Orders table has no rows with a NULL customer id and stays under 1M rows\".": "Describe the check, validation, or investigation in plain language — e.g. \"verify the Orders table has no rows with a NULL customer id and stays under 1M rows\".",
+    "Executable today:": "Executable today:",
+    "Read-only SQL validation and investigation runbooks. Build, schema-change, deployment, benchmark, and CI/CD prompts can help shape a draft, but cannot run until their typed activities and a headless runner are installed.": "Read-only SQL validation and investigation runbooks. Build, schema-change, deployment, benchmark, and CI/CD prompts can help shape a draft, but cannot run until their typed activities and a headless runner are installed.",
     "Generate plan": "Generate plan",
     "Regenerate plan": "Regenerate plan",
     "Generating plan…": "Generating plan…",
