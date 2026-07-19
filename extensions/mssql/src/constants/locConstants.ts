@@ -243,10 +243,10 @@ export class RunbookStudio {
             comment: ["{0} is the runbook name"],
         });
     public static librarySaveConflict = l10n.t(
-        "This runbook changed in the runtime library after you opened it. Rebase preserves the newer runtime plan and applies your VS Code edits; overwrite replaces the newer head.",
+        "This runbook changed in the runtime library after you opened it. Rebase keeps non-overlapping newer library edits and applies yours; overwrite replaces the newer authoring changes.",
     );
     public static librarySaveConflictNoRebase = l10n.t(
-        "This runbook changed in the runtime library after you opened it. Overwrite replaces the newer head; cancel keeps this editor dirty.",
+        "This runbook changed in the runtime library after you opened it, but a common merge base is unavailable. Overwrite replaces the newer authoring changes; cancel keeps this editor dirty.",
     );
     public static librarySaveRebase = l10n.t("Rebase");
     public static librarySaveOverwrite = l10n.t("Overwrite");

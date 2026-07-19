@@ -70,7 +70,10 @@ export async function commitLibraryBytes(
     if (!resolution) {
         return undefined;
     }
-    const second = await committer.commit(assetId, artifactJson, first.baseline, resolution);
+    // Rebase needs the ORIGINAL projection as its merge base. Overwrite can
+    // acknowledge the head returned by the conflict and replace it directly.
+    const retryBaseline = resolution === "rebase" ? expected : first.baseline;
+    const second = await committer.commit(assetId, artifactJson, retryBaseline, resolution);
     if (second.status === "conflict") {
         throw new Error("the runbook changed again while resolving the conflict");
     }

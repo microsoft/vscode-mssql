@@ -18,6 +18,7 @@ import {
     mapTerminalStatus,
     plannerRequestBody,
     ReasoningCoalescer,
+    rebaseLibraryArtifact,
     terminalNodeSettlementEvents,
 } from "../../src/runbookStudio/runtime/hobbesRuntimeAdapter";
 import { findFreePort } from "../../src/runbookStudio/runtime/runtimeSupervisor";
@@ -150,6 +151,30 @@ suite("hobbesRuntimeAdapter", () => {
                 clientExtensions: { vscodeMssqlArtifact: { name: "Locally edited" } },
             }),
         ).not.to.equal(libraryContentFingerprint(head));
+    });
+
+    test("library rebase keeps remote-only edits and replays local edits", () => {
+        const base = {
+            name: "Blocking",
+            source: { intent: "Inspect blockers", parameters: [{ id: "target" }] },
+            lock: { planRevision: "1", nodes: [{ id: "query" }] },
+            presentation: { revision: 1, sections: [] },
+        };
+        const local = {
+            ...base,
+            presentation: { revision: 2, sections: [{ id: "summary" }] },
+        } as unknown as Parameters<typeof rebaseLibraryArtifact>[1];
+        const remote = {
+            ...base,
+            name: "Blocking analysis",
+            lock: { planRevision: "2", nodes: [{ id: "query" }, { id: "report" }] },
+        };
+
+        const rebased = rebaseLibraryArtifact(base, local, remote);
+
+        expect(rebased.name).to.equal("Blocking analysis");
+        expect(rebased.lock?.planRevision).to.equal("2");
+        expect(rebased.presentation).to.deep.equal(local.presentation);
     });
 
     test("findFreePort returns a bindable loopback port", async () => {

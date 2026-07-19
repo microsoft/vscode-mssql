@@ -142,8 +142,8 @@
         "message": "Runbook '{0}' was saved to the library.",
         "comment": ["{0} is the runbook name"]
     },
-    "This runbook changed in the runtime library after you opened it. Rebase preserves the newer runtime plan and applies your VS Code edits; overwrite replaces the newer head.": "This runbook changed in the runtime library after you opened it. Rebase preserves the newer runtime plan and applies your VS Code edits; overwrite replaces the newer head.",
-    "This runbook changed in the runtime library after you opened it. Overwrite replaces the newer head; cancel keeps this editor dirty.": "This runbook changed in the runtime library after you opened it. Overwrite replaces the newer head; cancel keeps this editor dirty.",
+    "This runbook changed in the runtime library after you opened it. Rebase keeps non-overlapping newer library edits and applies yours; overwrite replaces the newer authoring changes.": "This runbook changed in the runtime library after you opened it. Rebase keeps non-overlapping newer library edits and applies yours; overwrite replaces the newer authoring changes.",
+    "This runbook changed in the runtime library after you opened it, but a common merge base is unavailable. Overwrite replaces the newer authoring changes; cancel keeps this editor dirty.": "This runbook changed in the runtime library after you opened it, but a common merge base is unavailable. Overwrite replaces the newer authoring changes; cancel keeps this editor dirty.",
     "Rebase": "Rebase",
     "Overwrite": "Overwrite",
     "Runbook exported to {0}./{0} is the exported file path": {

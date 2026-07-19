@@ -8394,11 +8394,11 @@
       <source xml:lang="en">This runbook cannot be published to the Hobbes runtime yet: {0}</source>
       <note>{0} lists the untranslatable plan features</note>
     </trans-unit>
-    <trans-unit id="++CODE++3aa9ec92f0473c9aaa19a37da6c5a1cdb876f9d18f8788a3e4e7e45d4b00e0a5">
-      <source xml:lang="en">This runbook changed in the runtime library after you opened it. Overwrite replaces the newer head; cancel keeps this editor dirty.</source>
+    <trans-unit id="++CODE++b5813f57e79d63e72d0b2587411eb517b1717e9fe3ccf420f1b21b96c207c686">
+      <source xml:lang="en">This runbook changed in the runtime library after you opened it, but a common merge base is unavailable. Overwrite replaces the newer authoring changes; cancel keeps this editor dirty.</source>
     </trans-unit>
-    <trans-unit id="++CODE++3f45c24bc4a1417dbe9cb785db0c98c9067a74b1d056065b1239bc735f46e096">
-      <source xml:lang="en">This runbook changed in the runtime library after you opened it. Rebase preserves the newer runtime plan and applies your VS Code edits; overwrite replaces the newer head.</source>
+    <trans-unit id="++CODE++3b026257f83ac4dee676013f21f8851a3536ed4a19eefc9054c15fbae2b78f3f">
+      <source xml:lang="en">This runbook changed in the runtime library after you opened it. Rebase keeps non-overlapping newer library edits and applies yours; overwrite replaces the newer authoring changes.</source>
     </trans-unit>
     <trans-unit id="++CODE++34e7da259825961bf8aa74bf67ede13ce020e91e68007c4362733a9997793be1">
       <source xml:lang="en">This runbook could not be imported from the library: {0}</source>

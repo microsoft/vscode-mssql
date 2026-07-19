@@ -205,6 +205,9 @@ export interface LibraryDocumentBaseline {
      *  native plans, whose executable plan can change independently and is
      *  safely preserved during a VS Code save. */
     extensionFingerprint: string;
+    /** Exact extension-owned projection at read time. Kept only in memory so
+     *  a later conflict can apply the local delta to the newer projection. */
+    extensionArtifact?: unknown;
 }
 
 export type LibraryDocumentCommitResult =
@@ -216,8 +219,7 @@ export type LibraryDocumentCommitResult =
     | {
           status: "conflict";
           baseline: LibraryDocumentBaseline;
-          /** Native planner plans can rebase extension-owned metadata and
-           *  presentation while preserving the newer runtime plan. */
+          /** A common extension projection exists for a three-way rebase. */
           canRebase: boolean;
       };
 
@@ -263,6 +265,58 @@ function stableValue(value: unknown): unknown {
     return value;
 }
 
+const missingJsonValue = Symbol("missingJsonValue");
+type MaybeJsonValue = unknown | typeof missingJsonValue;
+
+function stableJsonEqual(left: MaybeJsonValue, right: MaybeJsonValue): boolean {
+    if (left === missingJsonValue || right === missingJsonValue) {
+        return left === right;
+    }
+    return JSON.stringify(stableValue(left)) === JSON.stringify(stableValue(right));
+}
+
+/** Three-way JSON merge used by library Rebase. Values changed only by the
+ *  newer head are retained; values changed locally are replayed on top. Arrays
+ *  and overlapping scalar edits are atomic and local-wins, matching a rebase
+ *  of the editor's patch. */
+function rebaseJsonValue(
+    base: MaybeJsonValue,
+    local: MaybeJsonValue,
+    remote: MaybeJsonValue,
+): MaybeJsonValue {
+    if (stableJsonEqual(local, base)) {
+        return remote;
+    }
+    if (stableJsonEqual(remote, base) || stableJsonEqual(local, remote)) {
+        return local;
+    }
+    if (isRecordValue(base) && isRecordValue(local) && isRecordValue(remote)) {
+        const merged: Record<string, unknown> = {};
+        const keys = new Set([...Object.keys(base), ...Object.keys(local), ...Object.keys(remote)]);
+        for (const key of keys) {
+            const value = rebaseJsonValue(
+                Object.hasOwn(base, key) ? base[key] : missingJsonValue,
+                Object.hasOwn(local, key) ? local[key] : missingJsonValue,
+                Object.hasOwn(remote, key) ? remote[key] : missingJsonValue,
+            );
+            if (value !== missingJsonValue) {
+                merged[key] = value;
+            }
+        }
+        return merged;
+    }
+    return local;
+}
+
+export function rebaseLibraryArtifact(
+    base: unknown,
+    local: RunbookArtifactFile,
+    remote: unknown,
+): RunbookArtifactFile {
+    const merged = rebaseJsonValue(base, local, remote);
+    return isRecordValue(merged) ? (merged as unknown as RunbookArtifactFile) : local;
+}
+
 /** Stable, privacy-safe content identity (hash only; never logged payload). */
 export function libraryContentFingerprint(asset: Record<string, unknown>): string {
     return libraryFieldsFingerprint(asset, LIBRARY_AUTHORING_FIELDS);
@@ -285,11 +339,16 @@ function libraryBaseline(assetId: string, asset: Record<string, unknown>): Libra
     if (typeof revisionId !== "string" || revisionId.length === 0) {
         throw new Error(`library asset '${assetId}' has no revision id`);
     }
+    const clientExtensions = isRecordValue(asset.clientExtensions)
+        ? asset.clientExtensions
+        : undefined;
+    const extensionArtifact = clientExtensions?.vscodeMssqlArtifact;
     return {
         assetId,
         revisionId,
         contentFingerprint: libraryContentFingerprint(asset),
         extensionFingerprint: libraryFieldsFingerprint(asset, LIBRARY_EXTENSION_FIELDS),
+        ...(extensionArtifact !== undefined ? { extensionArtifact } : {}),
     };
 }
 
@@ -825,38 +884,48 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         }
         const head = (await read.json()) as Record<string, unknown>;
         const current = libraryBaseline(id, head);
+        const canRebase =
+            expected?.extensionArtifact !== undefined && current.extensionArtifact !== undefined;
+        if (resolution === "rebase" && !canRebase) {
+            return { status: "conflict", baseline: current, canRebase: false };
+        }
+        const artifactNext =
+            resolution === "rebase"
+                ? rebaseLibraryArtifact(
+                      expected!.extensionArtifact,
+                      artifact,
+                      current.extensionArtifact,
+                  )
+                : artifact;
         const hasNativePlan =
-            artifact.lock?.nodes.some(
+            artifactNext.lock?.nodes.some(
                 (node) => node.kind === "activity" && node.activityKind === "hobbes.native",
             ) === true;
         const metadataNext: Record<string, unknown> = {
             ...head,
-            title: artifact.name,
-            description: artifact.description ?? artifact.source.intent,
-            ...(artifact.family ? { category: artifact.family } : {}),
-            sourcePromptText: artifact.source.intent,
+            title: artifactNext.name,
+            description: artifactNext.description ?? artifactNext.source.intent,
+            ...(artifactNext.family ? { category: artifactNext.family } : {}),
+            sourcePromptText: artifactNext.source.intent,
             clientExtensions: {
                 ...(isRecordValue(head.clientExtensions) ? head.clientExtensions : {}),
-                vscodeMssqlArtifact: artifact,
+                vscodeMssqlArtifact: artifactNext,
             },
         };
         const concurrentContentChange =
-            expected !== undefined &&
-            (expected.assetId !== id ||
-                (expected.revisionId !== current.revisionId &&
-                    (hasNativePlan
-                        ? expected.extensionFingerprint !== current.extensionFingerprint
-                        : expected.contentFingerprint !== current.contentFingerprint)));
+            expected === undefined ||
+            expected.assetId !== id ||
+            (expected.revisionId !== current.revisionId &&
+                (hasNativePlan
+                    ? expected.extensionFingerprint !== current.extensionFingerprint
+                    : expected.contentFingerprint !== current.contentFingerprint));
         if (resolution === "normal" && concurrentContentChange) {
-            return { status: "conflict", baseline: current, canRebase: hasNativePlan };
-        }
-        if (resolution === "rebase" && !hasNativePlan) {
-            return { status: "conflict", baseline: current, canRebase: false };
+            return { status: "conflict", baseline: current, canRebase };
         }
 
         let planPatch: Record<string, unknown> = {};
-        if (artifact.lock && !hasNativePlan) {
-            const translation = translateArtifactToHobbesPlan(artifact);
+        if (artifactNext.lock && !hasNativePlan) {
+            const translation = translateArtifactToHobbesPlan(artifactNext);
             if (!translation.plan) {
                 throw new RuntimeStartRefusedError(
                     {
@@ -891,7 +960,9 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             return {
                 status: "conflict",
                 baseline: racedBaseline,
-                canRebase: hasNativePlan,
+                canRebase:
+                    expected?.extensionArtifact !== undefined &&
+                    racedBaseline.extensionArtifact !== undefined,
             };
         }
         if (!put.ok) {

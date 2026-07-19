@@ -162,7 +162,7 @@ suite("runbookFileSystem uri mapping", () => {
             expect(result?.baseline.revisionId).to.equal("3");
             expect(calls).to.deep.equal([
                 { resolution: "normal", revision: "1" },
-                { resolution: "rebase", revision: "2" },
+                { resolution: "rebase", revision: "1" },
             ]);
         });
 
