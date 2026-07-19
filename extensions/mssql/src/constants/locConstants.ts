@@ -102,6 +102,13 @@ export class RunbookStudio {
     public static compileApplyFailed = l10n.t(
         "The compiled plan could not be written into the document.",
     );
+    public static missingRunbookCapabilities = (activityKinds: string) =>
+        l10n.t({
+            message:
+                "Design-only: this workflow requires activities that are not installed: {0}. No executable plan was generated.",
+            args: [activityKinds],
+            comment: ["{0} is a comma-separated list of versioned runbook activity kinds"],
+        });
     public static hobbesRunbookNotInLibrary = l10n.t(
         "This runbook is not in the Hobbes runtime's library, so the 'hobbes' runtime cannot run it. Generated runbooks run on the 'local' runtime — set mssql.runbookStudio.runtime to 'local' (or remove the setting to use the default).",
     );
@@ -260,6 +267,13 @@ export class RunbookStudio {
     public static libraryNoRuns = l10n.t("No runs yet");
     public static libraryArchivedGroup = l10n.t("Archived");
     public static libraryRunningBadge = l10n.t("running");
+    public static libraryDesignOnlyBadge = l10n.t("design-only");
+    public static libraryMissingCapabilities = (activityKinds: string) =>
+        l10n.t({
+            message: "Missing activities: {0}",
+            args: [activityKinds],
+            comment: ["{0} is a comma-separated list of versioned runbook activity kinds"],
+        });
     public static libraryDeleteConfirm = (title: string) =>
         l10n.t({
             message:

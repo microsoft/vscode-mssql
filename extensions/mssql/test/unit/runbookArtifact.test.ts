@@ -22,6 +22,7 @@ import {
     parseRunbookArtifact,
 } from "../../src/runbookStudio/runbookArtifact";
 import { RunbookArtifactFile } from "../../src/sharedInterfaces/runbookStudio";
+import { classifyRunbookIntent } from "../../src/runbookStudio/capabilities/runbookCapabilities";
 
 function fixtureText(): string {
     return canonicalizeRunbookArtifact(createFixtureRunbookArtifact());
@@ -118,6 +119,27 @@ suite("runbookArtifact", () => {
             const artifact = createFixtureRunbookArtifact();
             delete (artifact.lock!.nodes[0] as unknown as Record<string, unknown>).activityKind;
             expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
+        });
+
+        test("round-trips a versioned capability and target manifest", () => {
+            const artifact = createFixtureRunbookArtifact();
+            artifact.source.requirements = classifyRunbookIntent(
+                "Inspect developer database health",
+            ).requirements;
+            const parsed = expectSuccess(
+                parseRunbookArtifact(canonicalizeRunbookArtifact(artifact)),
+            );
+            expect(parsed.source.requirements).to.deep.equal(artifact.source.requirements);
+        });
+
+        test("refuses a newer requirements schema with IncompatibleVersion", () => {
+            const artifact = createFixtureRunbookArtifact();
+            artifact.source.requirements = classifyRunbookIntent(
+                "Inspect developer database health",
+            ).requirements;
+            (artifact.source.requirements as unknown as Record<string, unknown>).schemaVersion = 2;
+            const failure = expectFailure(parseRunbookArtifact(JSON.stringify(artifact)));
+            expect(failure.code).to.equal("RunbookStudio.IncompatibleVersion");
         });
     });
 

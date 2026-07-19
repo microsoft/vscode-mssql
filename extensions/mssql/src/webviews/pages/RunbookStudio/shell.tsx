@@ -48,7 +48,9 @@ function TopBar() {
             {state?.artifact?.family ? (
                 <span className="rbs-chip">{state.artifact.family}</span>
             ) : null}
-            {state?.artifact?.hasLock ? (
+            {state?.artifact?.readiness?.status === "designOnly" ? (
+                <span className="rbs-chip rbs-chip-warn">{loc.designOnly}</span>
+            ) : state?.artifact?.hasLock ? (
                 <span
                     className="rbs-chip rbs-chip-ok"
                     title={loc.compiledPlanRevisionTitle(state.artifact.planRevision ?? "")}>
@@ -117,6 +119,28 @@ function InvalidArtifact() {
             title={locConstants.runbookStudio.invalidRunbookTitle}
             detail={state?.artifactError?.message ?? ""}
         />
+    );
+}
+
+function CapabilityBlockers() {
+    const { state } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const missing = state?.artifact?.readiness?.missingActivityKinds ?? [];
+    if (missing.length === 0) {
+        return null;
+    }
+    return (
+        <section className="rbs-capability-notice" role="status">
+            <strong>{loc.designOnlyHeading}</strong>
+            <div>{loc.designOnlyDetail}</div>
+            <div className="rbs-author-actions">
+                {missing.map((kind) => (
+                    <span key={kind} className="rbs-chip rbs-chip-warn rbs-mono">
+                        {kind}
+                    </span>
+                ))}
+            </div>
+        </section>
     );
 }
 
@@ -442,6 +466,7 @@ function AuthorPage() {
                 <div className="rbs-capability-notice" role="note">
                     <strong>{loc.currentCapabilitiesLabel}</strong> {loc.currentCapabilitiesDetail}
                 </div>
+                <CapabilityBlockers />
                 {!intent.trim() ? (
                     <div className="rbs-examples">
                         <span className="rbs-muted">{loc.tryExample}</span>
@@ -591,7 +616,10 @@ function ParametersSection({ starting, onRun }: { starting: boolean; onRun: () =
     const runActive =
         state?.run !== undefined && !["succeeded", "failed", "cancelled"].includes(state.run.state);
     const canRun =
-        (state?.workspaceTrusted ?? false) && (state?.artifact?.hasLock ?? false) && !runActive;
+        (state?.workspaceTrusted ?? false) &&
+        (state?.artifact?.hasLock ?? false) &&
+        state?.artifact?.readiness?.status !== "designOnly" &&
+        !runActive;
     return (
         <>
             {parameters.length === 0 ? (
@@ -636,9 +664,11 @@ function ParametersSection({ starting, onRun }: { starting: boolean; onRun: () =
                     title={
                         !state?.workspaceTrusted
                             ? loc.untrustedDetail
-                            : !state?.artifact?.hasLock
-                              ? loc.notCompiledDetail
-                              : undefined
+                            : state?.artifact?.readiness?.status === "designOnly"
+                              ? loc.designOnlyDetail
+                              : !state?.artifact?.hasLock
+                                ? loc.notCompiledDetail
+                                : undefined
                     }
                     onClick={() => void onRun()}>
                     {runActive ? loc.runActiveLabel : loc.runButton}
@@ -1187,6 +1217,13 @@ function PlanPage() {
     }
     const artifact = state?.artifact;
     if (!artifact?.hasLock) {
+        if (artifact?.readiness?.status === "designOnly") {
+            return (
+                <div className="rbs-page-body">
+                    <CapabilityBlockers />
+                </div>
+            );
+        }
         return <EmptyState title={loc.noCompiledPlanTitle} detail={loc.notCompiledDetail} />;
     }
     return (

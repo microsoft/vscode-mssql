@@ -40,6 +40,7 @@ import {
     RunbookRunEvent,
 } from "../sharedInterfaces/runbookStudio";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
+import { preflightRunbookRequirements } from "./capabilities/runbookCapabilities";
 import type { RunbookRunCoordinator } from "./runbookRunCoordinator";
 import {
     pinnedViewsOf,
@@ -362,6 +363,10 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 ...(artifact.family !== undefined ? { family: artifact.family } : {}),
                 intent: artifact.source.intent,
                 parameters: artifact.source.parameters,
+                ...(artifact.source.requirements
+                    ? { requirements: artifact.source.requirements }
+                    : {}),
+                readiness: preflightRunbookRequirements(artifact.source.requirements),
                 hasLock: artifact.lock !== undefined,
                 ...(artifact.lock ? { planRevision: artifact.lock.planRevision } : {}),
                 ...(artifact.lock ? { entryNodeId: artifact.lock.entryNodeId } : {}),

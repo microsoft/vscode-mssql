@@ -12,6 +12,8 @@
  * stable id are dropped rather than rendered half-formed.
  */
 
+import { findActivity } from "./activities/activityCatalog";
+
 /** Library asset summary as projected from `GET /api/runbooks`. */
 export interface RunbookLibraryAsset {
     id: string;
@@ -22,6 +24,55 @@ export interface RunbookLibraryAsset {
     versionLabel?: string;
     tags?: string[];
     updatedAt?: string;
+    /** Catalog requirements absent from this extension, projected from the
+     *  namespaced VS Code artifact when the runtime list includes it. */
+    missingActivityKinds?: string[];
+}
+
+function missingActivitiesFromClientExtension(record: Record<string, unknown>): string[] {
+    const clientExtensions = record.clientExtensions;
+    if (
+        !clientExtensions ||
+        typeof clientExtensions !== "object" ||
+        Array.isArray(clientExtensions)
+    ) {
+        return [];
+    }
+    const artifact = (clientExtensions as Record<string, unknown>).vscodeMssqlArtifact;
+    if (!artifact || typeof artifact !== "object" || Array.isArray(artifact)) {
+        return [];
+    }
+    const source = (artifact as Record<string, unknown>).source;
+    if (!source || typeof source !== "object" || Array.isArray(source)) {
+        return [];
+    }
+    const requirements = (source as Record<string, unknown>).requirements;
+    if (!requirements || typeof requirements !== "object" || Array.isArray(requirements)) {
+        return [];
+    }
+    const activities = (requirements as Record<string, unknown>).activities;
+    if (!Array.isArray(activities)) {
+        return [];
+    }
+    const missing = activities
+        .filter(
+            (activity): activity is Record<string, unknown> =>
+                typeof activity === "object" && activity !== null && !Array.isArray(activity),
+        )
+        .map((activity) => ({ kind: activity.kind, version: activity.version }))
+        .filter(
+            (activity): activity is { kind: string; version: number } =>
+                typeof activity.kind === "string" &&
+                activity.kind.length > 0 &&
+                typeof activity.version === "number" &&
+                activity.version > 0,
+        )
+        .filter((activity) => {
+            const installed = findActivity(activity.kind);
+            return installed === undefined || installed.version < activity.version;
+        })
+        .map((activity) => `${activity.kind}@${activity.version}`);
+    return [...new Set(missing)];
 }
 
 /** One recent run surfaced under a library runbook, as projected from the
@@ -73,6 +124,7 @@ export function parseLibraryListResponse(body: unknown): RunbookLibraryAsset[] {
         if (!id) {
             continue;
         }
+        const missingActivityKinds = missingActivitiesFromClientExtension(record);
         assets.push({
             id,
             title: typeof record.title === "string" && record.title.length > 0 ? record.title : id,
@@ -94,6 +146,7 @@ export function parseLibraryListResponse(body: unknown): RunbookLibraryAsset[] {
             ...(typeof record.updatedAt === "string" && record.updatedAt.length > 0
                 ? { updatedAt: record.updatedAt }
                 : {}),
+            ...(missingActivityKinds.length > 0 ? { missingActivityKinds } : {}),
         });
     }
     return assets;
@@ -362,8 +415,17 @@ export function libraryFamilyFromCategory(
 /** Tree item description, e.g. "approved · 1.02 · running" (every part
  *  optional; the running badge label is caller-localized — this module
  *  stays vscode-free). */
-export function libraryItemDescription(asset: RunbookLibraryAsset, runningLabel?: string): string {
-    return [asset.state, asset.versionLabel, runningLabel]
+export function libraryItemDescription(
+    asset: RunbookLibraryAsset,
+    runningLabel?: string,
+    designOnlyLabel?: string,
+): string {
+    return [
+        asset.state,
+        asset.versionLabel,
+        asset.missingActivityKinds?.length ? designOnlyLabel : undefined,
+        runningLabel,
+    ]
         .filter((part): part is string => typeof part === "string" && part.length > 0)
         .join(" · ");
 }

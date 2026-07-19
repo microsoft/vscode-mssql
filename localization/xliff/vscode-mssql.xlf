@@ -2413,6 +2413,13 @@
     <trans-unit id="++CODE++064ff20a39b16a49639c1d176496eb3078f7a0629c7bf854eb5021fc5a20aef8">
       <source xml:lang="en">Design Schemas with GitHub Copilot</source>
     </trans-unit>
+    <trans-unit id="++CODE++9018208818e112711cf343bc32333f626c612edc5ddb535c5f79145dca02ab3f">
+      <source xml:lang="en">Design-only: capabilities required</source>
+    </trans-unit>
+    <trans-unit id="++CODE++923850b862b867a94882c4bd253c842b414dd398f1511f8c2377127081ab03b9">
+      <source xml:lang="en">Design-only: this workflow requires activities that are not installed: {0}. No executable plan was generated.</source>
+      <note>{0} is a comma-separated list of versioned runbook activity kinds</note>
+    </trans-unit>
     <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
       <source xml:lang="en">Details</source>
     </trans-unit>
@@ -4968,6 +4975,10 @@
     <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
       <source xml:lang="en">Min: {0}</source>
       <note>{0} is the min</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ccaf4e389c9da36db8abe538b34c9a8ada96d66f0287704fa5fad574d29cd27b">
+      <source xml:lang="en">Missing activities: {0}</source>
+      <note>{0} is a comma-separated list of versioned runbook activity kinds</note>
     </trans-unit>
     <trans-unit id="++CODE++c4cb38118e976f2ec6af215b6206c1aeadd0a3a1a95b4ab00681c97e9a276753">
       <source xml:lang="en">Missing connection reference. Please provide exactly one of connectionId or connectionName.</source>
@@ -8451,6 +8462,9 @@
     <trans-unit id="++CODE++03126be5685aeff8f0cfd24c8347e944469c6d847936baf9d95cde004b33d295">
       <source xml:lang="en">This will reset all rules to their default severity and disable &apos;Enable Code Analysis on Build&apos;. This cannot be undone. Would you like to continue?</source>
     </trans-unit>
+    <trans-unit id="++CODE++463b5f51752be41e649fffd96330621d64b1539e74b1305f50f649b8f5c3af50">
+      <source xml:lang="en">This workflow cannot run yet. Install activities for the capabilities below, then generate the executable plan again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++33b93476cf597a3330653b66a658983d892ac264b5d6029a2dc642b9b1f30870">
       <source xml:lang="en">Time</source>
     </trans-unit>
@@ -9156,6 +9170,9 @@
     <trans-unit id="++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03">
       <source xml:lang="en">delete the saved connection: {0}?</source>
       <note>{0} is the connection name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b933d69b6840fdb03d14d21a665823b01accab831129b434a4a3c23ce4ac53ff">
+      <source xml:lang="en">design-only</source>
     </trans-unit>
     <trans-unit id="++CODE++4b430cbcf942dab43ceaad79c3e1261f3167e47f63153c3a6a785925e6c68d81">
       <source xml:lang="en">detail data expired</source>

@@ -20,6 +20,7 @@ import type { ResolvedPresentation, ViewKind } from "./runbookPresentation";
 
 export const RUNBOOK_SOURCE_SCHEMA_VERSION = 1;
 export const RUNBOOK_LOCK_SCHEMA_VERSION = 1;
+export const RUNBOOK_REQUIREMENTS_SCHEMA_VERSION = 1;
 export const RBS_STATE_SCHEMA_VERSION = 1;
 export const RUNBOOK_RUN_EVENT_SCHEMA_VERSION = 1;
 
@@ -89,11 +90,50 @@ export interface RunbookParameterDefinition {
     enumValues?: string[];
 }
 
+export type RunbookFamily = "build" | "validate" | "investigate";
+
+/** Closed target taxonomy for preflight and policy. A target is explicit;
+ *  non-SQL work must never inherit an ambient active connection. */
+export type RunbookTargetKind =
+    | "workspace"
+    | "databaseProject"
+    | "dacpac"
+    | "sqlDatabase"
+    | "ephemeralSqlDatabase"
+    | "ciAgent";
+
+export interface RunbookTargetRequirement {
+    kind: RunbookTargetKind;
+    environment: BlastRadius["targetEnvironment"];
+}
+
+export interface RunbookActivityRequirement {
+    /** Registered activity kind and minimum compatible version. */
+    kind: string;
+    version: number;
+    host: "extension" | "hobbes" | "headless";
+    effect: "read" | "mutate";
+    approvalRequired: boolean;
+    connectionRequirement: "none" | "required" | "provisioned";
+    secretRequirement: "none" | "requiredAtRunTime";
+    rollbackContract: "none" | "automatic" | "required";
+    outputContract: string;
+}
+
+/** Deterministic requirements carried with authored source and checked
+ *  before model-expensive planning and again at run admission. */
+export interface RunbookCapabilityManifest {
+    schemaVersion: typeof RUNBOOK_REQUIREMENTS_SCHEMA_VERSION;
+    targets: RunbookTargetRequirement[];
+    activities: RunbookActivityRequirement[];
+}
+
 export interface RunbookSource {
     schemaVersion: typeof RUNBOOK_SOURCE_SCHEMA_VERSION;
     /** The authored natural-language intent. */
     intent: string;
     parameters: RunbookParameterDefinition[];
+    requirements?: RunbookCapabilityManifest;
 }
 
 /** Safety taxonomy axes (ADR-6 / A1 §5.2). Closed enums — never free text. */
@@ -165,7 +205,7 @@ export interface RunbookArtifactFile {
     id: string;
     name: string;
     description?: string;
-    family?: "build" | "validate" | "investigate";
+    family?: RunbookFamily;
     source: RunbookSource;
     lock?: CompiledRunbookLock;
     /** Versioned PresentationDefinition (rendering spec); opaque here. */
@@ -312,6 +352,8 @@ export interface RbsArtifactSummary {
     family?: string;
     intent: string;
     parameters: RunbookParameterDefinition[];
+    requirements?: RunbookCapabilityManifest;
+    readiness?: RbsRunbookReadiness;
     hasLock: boolean;
     planRevision?: string;
     entryNodeId?: string;
@@ -319,6 +361,11 @@ export interface RbsArtifactSummary {
     edges: RunbookPlanEdge[];
     /** User-pinned output views by node id (presentation definition pins). */
     pinnedViews?: Record<string, ViewKind>;
+}
+
+export interface RbsRunbookReadiness {
+    status: "ready" | "readyAfterBinding" | "designOnly";
+    missingActivityKinds: string[];
 }
 
 /** One selectable run for the History/Results run picker (persisted runs

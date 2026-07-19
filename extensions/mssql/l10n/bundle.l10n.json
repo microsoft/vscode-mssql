@@ -57,6 +57,10 @@
     },
     "Could not connect to the selected connection.": "Could not connect to the selected connection.",
     "The compiled plan could not be written into the document.": "The compiled plan could not be written into the document.",
+    "Design-only: this workflow requires activities that are not installed: {0}. No executable plan was generated./{0} is a comma-separated list of versioned runbook activity kinds": {
+        "message": "Design-only: this workflow requires activities that are not installed: {0}. No executable plan was generated.",
+        "comment": ["{0} is a comma-separated list of versioned runbook activity kinds"]
+    },
     "This runbook is not in the Hobbes runtime's library, so the 'hobbes' runtime cannot run it. Generated runbooks run on the 'local' runtime — set mssql.runbookStudio.runtime to 'local' (or remove the setting to use the default).": "This runbook is not in the Hobbes runtime's library, so the 'hobbes' runtime cannot run it. Generated runbooks run on the 'local' runtime — set mssql.runbookStudio.runtime to 'local' (or remove the setting to use the default).",
     "The Hobbes runtime could not resolve the connection alias for this run.": "The Hobbes runtime could not resolve the connection alias for this run.",
     "The Hobbes runtime lane supports Windows integrated authentication only in this preview. Choose an integrated-auth connection profile.": "The Hobbes runtime lane supports Windows integrated authentication only in this preview. Choose an integrated-auth connection profile.",
@@ -154,6 +158,11 @@
     "No runs yet": "No runs yet",
     "Archived": "Archived",
     "running": "running",
+    "design-only": "design-only",
+    "Missing activities: {0}/{0} is a comma-separated list of versioned runbook activity kinds": {
+        "message": "Missing activities: {0}",
+        "comment": ["{0} is a comma-separated list of versioned runbook activity kinds"]
+    },
     "Permanently delete runbook '{0}' and all of its run history? This cannot be undone./{0} is the runbook title": {
         "message": "Permanently delete runbook '{0}' and all of its run history? This cannot be undone.",
         "comment": ["{0} is the runbook title"]
@@ -4482,6 +4491,8 @@
         "comment": ["{0} is a plan revision number"]
     },
     "not compiled": "not compiled",
+    "Design-only: capabilities required": "Design-only: capabilities required",
+    "This workflow cannot run yet. Install activities for the capabilities below, then generate the executable plan again.": "This workflow cannot run yet. Install activities for the capabilities below, then generate the executable plan again.",
     "restricted mode": "restricted mode",
     "Loading…": "Loading…",
     "This file is not a valid runbook": "This file is not a valid runbook",

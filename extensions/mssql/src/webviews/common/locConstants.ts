@@ -3573,6 +3573,11 @@ export class LocConstants {
                     comment: ["{0} is a plan revision number"],
                 }),
             notCompiled: l10n.t("not compiled"),
+            designOnly: l10n.t("design-only"),
+            designOnlyHeading: l10n.t("Design-only: capabilities required"),
+            designOnlyDetail: l10n.t(
+                "This workflow cannot run yet. Install activities for the capabilities below, then generate the executable plan again.",
+            ),
             restrictedMode: l10n.t("restricted mode"),
             untrustedDetail: l10n.t(
                 "Runbook execution is disabled in untrusted workspaces. Trust this workspace to run runbooks.",

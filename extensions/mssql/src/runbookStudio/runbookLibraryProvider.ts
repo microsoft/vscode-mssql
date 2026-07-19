@@ -194,11 +194,16 @@ export class RunbookLibraryProvider
                 const description = libraryItemDescription(
                     node.asset,
                     running ? LocRunbookStudio.libraryRunningBadge : undefined,
+                    LocRunbookStudio.libraryDesignOnlyBadge,
                 );
                 if (description.length > 0) {
                     item.description = description;
                 }
-                item.tooltip = node.asset.description ?? node.asset.title;
+                item.tooltip = node.asset.missingActivityKinds?.length
+                    ? `${node.asset.description ?? node.asset.title}\n${LocRunbookStudio.libraryMissingCapabilities(
+                          node.asset.missingActivityKinds.join(", "),
+                      )}`
+                    : (node.asset.description ?? node.asset.title);
                 item.command = {
                     command: "mssql.runbookLibrary.open",
                     title: LocRunbookStudio.libraryOpenItem,

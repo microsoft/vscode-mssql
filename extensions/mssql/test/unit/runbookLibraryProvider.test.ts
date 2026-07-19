@@ -67,6 +67,28 @@ suite("runbookLibraryModel", () => {
             expect(parsed[0].id).to.equal("rb-2");
         });
 
+        test("projects missing activities from the namespaced editor artifact", () => {
+            const parsed = parseLibraryListResponse([
+                {
+                    id: "rb-build",
+                    clientExtensions: {
+                        vscodeMssqlArtifact: {
+                            source: {
+                                requirements: {
+                                    activities: [
+                                        { kind: "sql.query.read", version: 1 },
+                                        { kind: "dacpac.build", version: 1 },
+                                    ],
+                                },
+                            },
+                        },
+                    },
+                },
+            ]);
+
+            expect(parsed[0].missingActivityKinds).to.deep.equal(["dacpac.build@1"]);
+        });
+
         test("drops malformed entries and falls back title to id", () => {
             const parsed = parseLibraryListResponse([
                 undefined,
@@ -274,6 +296,16 @@ suite("runbookLibraryModel", () => {
                 ),
             ).to.equal("approved · 1.02 · running");
             expect(libraryItemDescription(asset({ id: "x" }), "running")).to.equal("running");
+        });
+
+        test("includes the caller-localized design-only badge", () => {
+            expect(
+                libraryItemDescription(
+                    asset({ id: "x", state: "draft", missingActivityKinds: ["dacpac.build@1"] }),
+                    undefined,
+                    "design-only",
+                ),
+            ).to.equal("draft · design-only");
         });
     });
 

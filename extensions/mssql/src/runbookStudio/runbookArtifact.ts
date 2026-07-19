@@ -18,6 +18,7 @@ import {
     RunbookParameterType,
     RunbookStudioErrorCode,
     RUNBOOK_LOCK_SCHEMA_VERSION,
+    RUNBOOK_REQUIREMENTS_SCHEMA_VERSION,
     RUNBOOK_SOURCE_SCHEMA_VERSION,
 } from "../sharedInterfaces/runbookStudio";
 
@@ -55,6 +56,28 @@ const PARAMETER_TYPES: ReadonlySet<string> = new Set<RunbookParameterType>([
 
 const NODE_KINDS: ReadonlySet<string> = new Set(["activity", "gate", "report"]);
 const EDGE_WHEN: ReadonlySet<string> = new Set(["success", "failure", "approved", "rejected"]);
+const TARGET_KINDS: ReadonlySet<string> = new Set([
+    "workspace",
+    "databaseProject",
+    "dacpac",
+    "sqlDatabase",
+    "ephemeralSqlDatabase",
+    "ciAgent",
+]);
+const TARGET_ENVIRONMENTS: ReadonlySet<string> = new Set([
+    "local",
+    "ephemeral",
+    "ci",
+    "development",
+    "test",
+    "staging",
+    "approvedReadOnlyProduction",
+]);
+const REQUIREMENT_HOSTS: ReadonlySet<string> = new Set(["extension", "hobbes", "headless"]);
+const REQUIREMENT_EFFECTS: ReadonlySet<string> = new Set(["read", "mutate"]);
+const CONNECTION_REQUIREMENTS: ReadonlySet<string> = new Set(["none", "required", "provisioned"]);
+const SECRET_REQUIREMENTS: ReadonlySet<string> = new Set(["none", "requiredAtRunTime"]);
+const ROLLBACK_CONTRACTS: ReadonlySet<string> = new Set(["none", "automatic", "required"]);
 
 /** Hard input bounds — repository artifacts are untrusted (A1 §12). */
 const MAX_ARTIFACT_BYTES = 2 * 1024 * 1024;
@@ -141,6 +164,12 @@ export function parseRunbookArtifact(text: string): ArtifactParseResult {
             return failure;
         }
     }
+    if (source.requirements !== undefined) {
+        const failure = validateRequirements(source.requirements);
+        if (failure) {
+            return failure;
+        }
+    }
 
     if (raw.lock !== undefined) {
         const failure = validateLock(raw.lock);
@@ -150,6 +179,85 @@ export function parseRunbookArtifact(text: string): ArtifactParseResult {
     }
 
     return { ok: true, artifact: raw as unknown as RunbookArtifactFile };
+}
+
+function validateRequirements(requirements: unknown): ArtifactParseFailure | undefined {
+    if (!isRecord(requirements)) {
+        return fail("RunbookStudio.InvalidArtifact", "source.requirements is not an object");
+    }
+    if (requirements.schemaVersion !== RUNBOOK_REQUIREMENTS_SCHEMA_VERSION) {
+        if (
+            typeof requirements.schemaVersion === "number" &&
+            requirements.schemaVersion > RUNBOOK_REQUIREMENTS_SCHEMA_VERSION
+        ) {
+            return fail(
+                "RunbookStudio.IncompatibleVersion",
+                `requirements schemaVersion ${requirements.schemaVersion} > supported ${RUNBOOK_REQUIREMENTS_SCHEMA_VERSION}`,
+            );
+        }
+        return fail("RunbookStudio.InvalidArtifact", "requirements schemaVersion invalid");
+    }
+    if (!Array.isArray(requirements.targets) || !Array.isArray(requirements.activities)) {
+        return fail("RunbookStudio.InvalidArtifact", "requirements targets/activities missing");
+    }
+    const targetKinds = new Set<string>();
+    for (const target of requirements.targets as unknown[]) {
+        if (
+            !isRecord(target) ||
+            typeof target.kind !== "string" ||
+            !TARGET_KINDS.has(target.kind) ||
+            typeof target.environment !== "string" ||
+            !TARGET_ENVIRONMENTS.has(target.environment)
+        ) {
+            return fail("RunbookStudio.InvalidArtifact", "requirements contains an invalid target");
+        }
+        if (targetKinds.has(target.kind)) {
+            return fail(
+                "RunbookStudio.InvalidArtifact",
+                `requirements contains duplicate target '${target.kind}'`,
+            );
+        }
+        targetKinds.add(target.kind);
+    }
+    const activityKinds = new Set<string>();
+    for (const activity of requirements.activities as unknown[]) {
+        if (!isRecord(activity) || !isNonEmptyString(activity.kind)) {
+            return fail("RunbookStudio.InvalidArtifact", "requirements activity missing kind");
+        }
+        if (activityKinds.has(activity.kind)) {
+            return fail(
+                "RunbookStudio.InvalidArtifact",
+                `requirements contains duplicate activity '${activity.kind}'`,
+            );
+        }
+        activityKinds.add(activity.kind);
+        if (!Number.isInteger(activity.version) || (activity.version as number) < 1) {
+            return fail(
+                "RunbookStudio.InvalidArtifact",
+                `requirement '${activity.kind}' has invalid version`,
+            );
+        }
+        if (
+            typeof activity.host !== "string" ||
+            !REQUIREMENT_HOSTS.has(activity.host) ||
+            typeof activity.effect !== "string" ||
+            !REQUIREMENT_EFFECTS.has(activity.effect) ||
+            typeof activity.approvalRequired !== "boolean" ||
+            typeof activity.connectionRequirement !== "string" ||
+            !CONNECTION_REQUIREMENTS.has(activity.connectionRequirement) ||
+            typeof activity.secretRequirement !== "string" ||
+            !SECRET_REQUIREMENTS.has(activity.secretRequirement) ||
+            typeof activity.rollbackContract !== "string" ||
+            !ROLLBACK_CONTRACTS.has(activity.rollbackContract) ||
+            !isNonEmptyString(activity.outputContract)
+        ) {
+            return fail(
+                "RunbookStudio.InvalidArtifact",
+                `requirement '${activity.kind}' has invalid metadata`,
+            );
+        }
+    }
+    return undefined;
 }
 
 function validateParameter(

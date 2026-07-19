@@ -42,6 +42,10 @@ import {
     parseRunbookArtifact,
 } from "./runbookArtifact";
 import { activeLibraryAssetId, LibraryRunRef, RunbookLibraryAsset } from "./runbookLibraryModel";
+import {
+    preflightRunbookRequirements,
+    prepareRunbookIntent,
+} from "./capabilities/runbookCapabilities";
 import { RunbookRunCoordinator, OutputPageResult } from "./runbookRunCoordinator";
 import { RunbookRunLedger, sanitizeRunFileId, selectExpiredRuns } from "./runbookRunLedger";
 
@@ -215,6 +219,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const artifact = model.artifact;
         if (!artifact) {
             return { error: invalidArtifactError(model) };
+        }
+        const readiness = preflightRunbookRequirements(artifact.source.requirements);
+        if (readiness.status === "designOnly") {
+            return {
+                error: {
+                    code: "RunbookStudio.ActivityUnsupported",
+                    message: LocRunbookStudio.missingRunbookCapabilities(
+                        readiness.missingActivityKinds.join(", "),
+                    ),
+                },
+            };
         }
         if (!artifact.lock) {
             return {
@@ -440,11 +455,58 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         intent: string,
         onProgress?: (event: RbsPlannerProgressEvent) => void,
     ): Promise<{ ok: boolean; error?: RbsError }> {
-        const base = model.artifact;
-        if (!base) {
+        const current = model.artifact;
+        if (!current) {
             return { ok: false, error: invalidArtifactError(model) };
         }
         const context = newRunbookRootContext("compile");
+        const prepared = prepareRunbookIntent(current, intent);
+        const base = prepared.artifact;
+        const readiness = prepared.readiness;
+        Perf.marker(
+            "mssql.runbookStudio.compile.preflight",
+            "instant",
+            {
+                family: base.family ?? "investigate",
+                readiness: readiness.status,
+                missingActivityCount: readiness.missingActivityKinds.length,
+            },
+            context.traceId,
+        );
+        emitRunbookEvent(
+            context,
+            "runbookStudio.compile.preflight",
+            readiness.status === "designOnly" ? "warning" : "ok",
+            {
+                family: metaField(base.family ?? "investigate"),
+                readiness: metaField(readiness.status),
+                missingActivityCount: metaField(readiness.missingActivityKinds.length),
+            },
+        );
+        if (readiness.status === "designOnly") {
+            // Persist the useful design contract but deliberately remove any
+            // stale executable lock. A changed prompt that now needs missing
+            // operations must never retain an earlier runnable plan.
+            const applied = await model.applyArtifactEdit(base);
+            if (!applied) {
+                return {
+                    ok: false,
+                    error: {
+                        code: "RunbookStudio.Internal",
+                        message: LocRunbookStudio.compileApplyFailed,
+                    },
+                };
+            }
+            return {
+                ok: false,
+                error: {
+                    code: "RunbookStudio.ActivityUnsupported",
+                    message: LocRunbookStudio.missingRunbookCapabilities(
+                        readiness.missingActivityKinds.join(", "),
+                    ),
+                },
+            };
+        }
         const runtimeKind = vscode.workspace
             .getConfiguration()
             .get<string>("mssql.runbookStudio.runtime", "local");
