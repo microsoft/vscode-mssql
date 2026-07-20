@@ -640,6 +640,7 @@ suite("presentationResolver", () => {
         snap.verdict = "pass";
         snap.startedEpochMs = 100;
         snap.endedEpochMs = 550;
+        snap.diagnosticCounts = { warningCount: 2, errorCount: 0 };
 
         const widgets = resolvePresentation(def, snap).sections[0].widgets;
         expect(widgets.map((widget) => widget.id)).to.deep.equal([
@@ -657,15 +658,16 @@ suite("presentationResolver", () => {
             "ready",
             "ready",
             "ready",
-            "sourceMissing",
+            "ready",
             "ready",
         ]);
-        expect(widgets.slice(0, 5).map((widget) => widget.runField?.value)).to.deep.equal([
+        expect(widgets.slice(0, 6).map((widget) => widget.runField?.value)).to.deep.equal([
             "succeeded",
             "pass",
             450,
             2,
             3,
+            2,
         ]);
         expect(widgets.every((widget) => widget.handleId === undefined)).to.equal(true);
         expect(widgets[6]).to.deep.include({ view: "scalar-cards", contract: "scalarSet/1" });
@@ -677,6 +679,13 @@ suite("presentationResolver", () => {
         const running = resolvePresentation(def, snap).sections[0].widgets;
         expect(running.find((widget) => widget.id === "verdict")?.state).to.equal("pending");
         expect(running.find((widget) => widget.id === "elapsed")?.state).to.equal("pending");
+
+        snap.diagnosticCounts = undefined;
+        expect(
+            resolvePresentation(def, snap).sections[0].widgets.find(
+                (widget) => widget.id === "warnings",
+            )?.state,
+        ).to.equal("sourceMissing");
     });
 
     test("run-metric sources resolve only durable runtime-published scalars", () => {

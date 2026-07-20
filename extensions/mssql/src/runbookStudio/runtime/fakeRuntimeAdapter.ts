@@ -20,6 +20,7 @@
 
 import type {
     RunbookArtifactFile,
+    RunbookDiagnosticCounts,
     RunbookPlanEdge,
     RunbookPlanNode,
 } from "../../sharedInterfaces/runbookStudio";
@@ -256,6 +257,8 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
         const lock = request.artifact.lock!;
         const nodesById = new Map(lock.nodes.map((n) => [n.id, n]));
         const visited = new Set<string>();
+        const runMetrics: Record<string, string | number | boolean> = {};
+        const diagnosticCounts: RunbookDiagnosticCounts = { warningCount: 0, errorCount: 0 };
         /** Deterministic values produced by executed nodes ($nodes.<id>.<k>). */
         const nodeValues = new Map<string, Record<string, number | string | boolean>>();
         const evidenceNodes = new Map<string, LocalEvidenceNodeInput>();
@@ -268,6 +271,15 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
             if (run.terminalSent) {
                 return;
             }
+            mergeRunMetrics(runMetrics, event.runMetrics);
+            diagnosticCounts.warningCount = addBoundedCount(
+                diagnosticCounts.warningCount,
+                event.diagnosticCounts?.warningCount,
+            );
+            diagnosticCounts.errorCount = addBoundedCount(
+                diagnosticCounts.errorCount,
+                event.diagnosticCounts?.errorCount,
+            );
             // Every unreached node is reported skipped BEFORE the terminal —
             // the ledger refuses post-terminal output (A2 §7.3).
             for (const node of lock.nodes) {
@@ -281,7 +293,11 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
                     });
                 }
             }
-            observer.onEvent(event);
+            observer.onEvent({
+                ...event,
+                ...(Object.keys(runMetrics).length > 0 ? { runMetrics: { ...runMetrics } } : {}),
+                diagnosticCounts: { ...diagnosticCounts },
+            });
             run.terminalSent = true;
             this.activeRuns.delete(request.runId);
         };
@@ -403,6 +419,18 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
                         nodes: [...evidenceNodes.values()],
                     },
                 );
+                mergeRunMetrics(runMetrics, result.runMetrics);
+                diagnosticCounts.warningCount = addBoundedCount(
+                    diagnosticCounts.warningCount,
+                    result.diagnosticCounts?.warningCount,
+                );
+                diagnosticCounts.errorCount = addBoundedCount(
+                    diagnosticCounts.errorCount,
+                    Math.max(
+                        measuredCount(result.diagnosticCounts?.errorCount),
+                        result.success ? 0 : 1,
+                    ),
+                );
                 if (result.values) {
                     nodeValues.set(current.id, result.values);
                 }
@@ -512,6 +540,41 @@ export interface NodeExecution {
     values?: Record<string, number | string | boolean>;
     verdict?: "pass" | "fail";
     errorCode?: string;
+    /** Closed, trusted scalar facts to publish on the terminal run record. */
+    runMetrics?: Record<string, string | number | boolean>;
+    /** Measured activity diagnostics. Failed activities without an explicit
+     * count contribute one runtime error diagnostic at the walker boundary. */
+    diagnosticCounts?: RunbookDiagnosticCounts;
+}
+
+function mergeRunMetrics(
+    target: Record<string, string | number | boolean>,
+    source: Record<string, string | number | boolean> | undefined,
+): void {
+    if (!source) {
+        return;
+    }
+    for (const [key, value] of Object.entries(source)) {
+        if (
+            (!(key in target) && Object.keys(target).length >= 100) ||
+            key.length === 0 ||
+            key.length > 256 ||
+            (typeof value !== "string" &&
+                typeof value !== "boolean" &&
+                !(typeof value === "number" && Number.isFinite(value)))
+        ) {
+            continue;
+        }
+        target[key] = value;
+    }
+}
+
+function measuredCount(value: number | undefined): number {
+    return value !== undefined && Number.isSafeInteger(value) && value >= 0 ? value : 0;
+}
+
+function addBoundedCount(current: number, value: number | undefined): number {
+    return Math.min(Number.MAX_SAFE_INTEGER, current + measuredCount(value));
 }
 
 function executeNode(
@@ -541,6 +604,7 @@ function executeNode(
         case "workspace.inspect":
             return {
                 success: true,
+                runMetrics: { "workspace.projectCount": 1 },
                 message: "1 database project (deterministic preview)",
                 output: {
                     contract: "workspaceSnapshot/1",
@@ -558,6 +622,7 @@ function executeNode(
         case "sqltest.discover":
             return {
                 success: true,
+                runMetrics: { "tests.discovered": 2 },
                 message: "2 tSQLt tests discovered (deterministic preview)",
                 output: {
                     contract: "testSuiteDiscovery/1",
@@ -598,6 +663,8 @@ function executeNode(
             }
             return {
                 success: true,
+                runMetrics: { "build.warningCount": 0, "build.errorCount": 0 },
+                diagnosticCounts: { warningCount: 0, errorCount: 0 },
                 message: "DACPAC build contract passed (deterministic preview)",
                 output: {
                     contract: "dacpacArtifact/1",
@@ -645,6 +712,10 @@ function executeNode(
             }
             return {
                 success: true,
+                runMetrics: {
+                    "deployment.previewChangeCount": 3,
+                    "deployment.previewAlertCount": 0,
+                },
                 message: "3 schema changes previewed (no deployment executed)",
                 output: {
                     contract: "deploymentPreview/1",
@@ -689,6 +760,7 @@ function executeNode(
             }
             return {
                 success: true,
+                runMetrics: { "deployment.postDeployChangeCount": 0 },
                 message: "DACPAC deployed (deterministic preview)",
                 output: {
                     contract: "deploymentEvidence/1",
@@ -715,6 +787,7 @@ function executeNode(
             }
             return {
                 success: true,
+                runMetrics: { "schema.changeCount": 0, "schema.matches": true },
                 message: "Schema matches DACPAC (deterministic preview)",
                 output: {
                     contract: "schemaDiff/1",
@@ -742,6 +815,12 @@ function executeNode(
             return {
                 success: true,
                 verdict: "pass",
+                runMetrics: {
+                    "sqlTests.total": 2,
+                    "sqlTests.passed": 2,
+                    "sqlTests.failed": 0,
+                    "sqlTests.allPassed": true,
+                },
                 message: "2 SQL tests passed (deterministic preview)",
                 output: {
                     contract: "testResults/1",
@@ -776,6 +855,14 @@ function executeNode(
             return {
                 success: true,
                 verdict: "pass",
+                runMetrics: {
+                    "tsqlt.total": 2,
+                    "tsqlt.passed": 2,
+                    "tsqlt.failed": 0,
+                    "tsqlt.errors": 0,
+                    "tsqlt.skipped": 0,
+                    "tsqlt.allPassed": true,
+                },
                 message: "2 tSQLt tests passed (deterministic preview)",
                 output: {
                     contract: "testResults/1",
@@ -812,6 +899,7 @@ function executeNode(
             }
             return {
                 success: true,
+                runMetrics: { "cleanup.completed": true },
                 message: "Ephemeral lease disposed (deterministic preview)",
                 output: {
                     contract: "cleanupEvidence/1",
@@ -829,6 +917,10 @@ function executeNode(
             });
             return {
                 success: true,
+                runMetrics: {
+                    "evidence.nodeCount": bundle.nodeCount,
+                    "evidence.failedNodeCount": bundle.failedNodeCount,
+                },
                 verdict: bundle.verdict === "pass" ? "pass" : "fail",
                 message: "Evidence manifest assembled (deterministic preview)",
                 output: {
@@ -851,6 +943,7 @@ function executeNode(
         case "sql.query.read": {
             return {
                 success: true,
+                runMetrics: { "query.rowCount": FIXTURE_ROWS.length },
                 message: `${FIXTURE_ROWS.length} rows`,
                 output: {
                     contract: "rowset/1",
@@ -874,6 +967,10 @@ function executeNode(
             return {
                 success: pass,
                 verdict: pass ? "pass" : "fail",
+                runMetrics: {
+                    "assertions.passed": pass ? 1 : 0,
+                    "assertions.failed": pass ? 0 : 1,
+                },
                 message: pass ? `${value} <= ${max}` : `${value} > ${max}`,
                 output: {
                     contract: "scalarSet/1",

@@ -131,6 +131,8 @@ export interface LocalDacpacBuildResult {
     artifactSizeBytes: number;
     artifactSha256: string;
     diagnosticCount: number;
+    warningCount: number;
+    errorCount: number;
     builtAtUtc: string;
 }
 
@@ -264,6 +266,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             );
             return {
                 success: true,
+                runMetrics: { "workspace.projectCount": projectPaths.length },
                 message: LocRunbookStudio.workspaceProjectsFound(projectPaths.length),
                 output: {
                     contract: "workspaceSnapshot/1",
@@ -289,6 +292,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             const result = await this.operations.discoverSqlTests(binding.isCancellationRequested);
             return {
                 success: true,
+                runMetrics: { "tests.discovered": result.tests.length },
                 message: LocRunbookStudio.sqlTestsDiscovered(
                     result.tests.length,
                     result.tSqltClassCount,
@@ -363,6 +367,14 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             );
             return {
                 success: true,
+                runMetrics: {
+                    "build.warningCount": result.warningCount,
+                    "build.errorCount": result.errorCount,
+                },
+                diagnosticCounts: {
+                    warningCount: result.warningCount,
+                    errorCount: result.errorCount,
+                },
                 message: LocRunbookStudio.dacpacBuilt(result.artifactPath, result.diagnosticCount),
                 output: {
                     contract: "dacpacArtifact/1",
@@ -433,6 +445,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 .map((row) => row.map((cell) => (cell.isNull ? null : cell.displayValue)));
             return {
                 success: true,
+                runMetrics: { "query.rowCount": result.rowCount },
                 message: `${result.rowCount} rows`,
                 output: {
                     contract: "rowset/1",
@@ -483,6 +496,10 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             );
             return {
                 success: true,
+                runMetrics: {
+                    "deployment.previewChangeCount": result.changeCount,
+                    "deployment.previewAlertCount": result.alertCount,
+                },
                 message: LocRunbookStudio.dacpacPreviewGenerated(
                     result.changeCount,
                     result.alertCount,
@@ -596,6 +613,9 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             );
             return {
                 success: true,
+                runMetrics: {
+                    "deployment.postDeployChangeCount": result.postDeployChangeCount,
+                },
                 message: LocRunbookStudio.dacpacDeployed(result.databaseName),
                 output: {
                     contract: "deploymentEvidence/1",
@@ -647,6 +667,10 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             );
             return {
                 success: result.matches,
+                runMetrics: {
+                    "schema.changeCount": result.changeCount,
+                    "schema.matches": result.matches,
+                },
                 message: result.matches
                     ? LocRunbookStudio.schemaMatches
                     : LocRunbookStudio.schemaDriftDetected(result.changeCount),
@@ -702,6 +726,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             );
             return {
                 success: true,
+                runMetrics: { "cleanup.completed": result.cleaned },
                 message: LocRunbookStudio.sandboxDisposed(result.databaseName),
                 output: {
                     contract: "cleanupEvidence/1",
@@ -808,6 +833,12 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             return {
                 success: failed === 0,
                 verdict: failed === 0 ? "pass" : "fail",
+                runMetrics: {
+                    "sqlTests.total": tests.length,
+                    "sqlTests.passed": passed,
+                    "sqlTests.failed": failed,
+                    "sqlTests.allPassed": failed === 0,
+                },
                 message:
                     failed === 0
                         ? LocRunbookStudio.sqlTestsPassed(tests.length)
@@ -897,6 +928,14 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             return {
                 success: result.allPassed,
                 verdict: result.allPassed ? "pass" : "fail",
+                runMetrics: {
+                    "tsqlt.total": result.total,
+                    "tsqlt.passed": result.passed,
+                    "tsqlt.failed": result.failed,
+                    "tsqlt.errors": result.errors,
+                    "tsqlt.skipped": result.skipped,
+                    "tsqlt.allPassed": result.allPassed,
+                },
                 message: result.allPassed
                     ? LocRunbookStudio.tsqltTestsPassed(result.passed, result.skipped)
                     : LocRunbookStudio.tsqltTestsFailed(result.failed, result.errors, result.total),
@@ -952,6 +991,10 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             return {
                 success: true,
                 verdict: result.verdict === "pass" ? "pass" : "fail",
+                runMetrics: {
+                    "evidence.nodeCount": result.nodeCount,
+                    "evidence.failedNodeCount": result.failedNodeCount,
+                },
                 message:
                     result.verdict === "pass"
                         ? LocRunbookStudio.evidenceBundlePassed(result.nodeCount)

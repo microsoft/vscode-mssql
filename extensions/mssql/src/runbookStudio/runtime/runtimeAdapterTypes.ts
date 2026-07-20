@@ -14,6 +14,7 @@
 import type {
     RbsError,
     RunbookArtifactFile,
+    RunbookDiagnosticCounts,
     RunbookNodeStateKind,
 } from "../../sharedInterfaces/runbookStudio";
 import type { RunbookOperationContext } from "../runbookDiag";
@@ -79,6 +80,8 @@ export type RuntimeBoundaryEvent =
           verdict?: "pass" | "fail" | "indeterminate";
           /** Optional bounded scalar metrics published with terminal state. */
           runMetrics?: Record<string, string | number | boolean>;
+          /** Optional measured diagnostics. Absence means not measured. */
+          diagnosticCounts?: RunbookDiagnosticCounts;
           errorCode?: string;
           errorMessage?: string;
       };

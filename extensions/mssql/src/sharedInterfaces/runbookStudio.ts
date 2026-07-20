@@ -341,6 +341,13 @@ export interface RunbookPendingGate {
     impactSummary: string;
 }
 
+/** Durable totals for user-visible run diagnostics. Absence means the
+ * runtime did not measure diagnostics; a present zero is an observed zero. */
+export interface RunbookDiagnosticCounts {
+    warningCount: number;
+    errorCount: number;
+}
+
 export interface RunbookRunSnapshot {
     runId: string;
     runbookId: string;
@@ -358,6 +365,9 @@ export interface RunbookRunSnapshot {
      * into the durable terminal record; presentation never evaluates an
      * expression to obtain them. */
     runMetrics?: Record<string, string | number | boolean>;
+    /** Runtime-owned measured diagnostics. Kept separate from verdicts and
+     * failed assertions so Results never invents a diagnostic count. */
+    diagnosticCounts?: RunbookDiagnosticCounts;
     error?: RbsError;
 }
 
@@ -402,6 +412,8 @@ export interface RunbookRunEvent {
     error?: RbsError;
     /** run.terminal only; bounded scalar metrics published by the runtime. */
     runMetrics?: Record<string, string | number | boolean>;
+    /** run.terminal only; bounded measured warning/error totals. */
+    diagnosticCounts?: RunbookDiagnosticCounts;
     /** run.accepted only: plan identity for journal-only recovery. */
     accepted?: RunbookRunAcceptedMeta;
     /** Terminal was written DURING rehydration (the run was interrupted by

@@ -1518,10 +1518,13 @@ function resolveRunField(
         case "totalNodeCount":
             return { state: "ready", value: snapshot.nodes.length };
         case "warningCount":
+            return snapshot.diagnosticCounts
+                ? { state: "ready", value: snapshot.diagnosticCounts.warningCount }
+                : { state: "sourceMissing" };
         case "errorCount":
-            // The durable snapshot does not yet own diagnostic counts. Zero
-            // would falsely mean that diagnostics were measured and absent.
-            return { state: "sourceMissing" };
+            return snapshot.diagnosticCounts
+                ? { state: "ready", value: snapshot.diagnosticCounts.errorCount }
+                : { state: "sourceMissing" };
     }
 }
 

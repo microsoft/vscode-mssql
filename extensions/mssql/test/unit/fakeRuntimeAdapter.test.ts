@@ -162,6 +162,11 @@ suite("fakeRuntimeAdapter", () => {
         const terminal = observer.terminalEvent()!;
         expect(terminal.state).to.equal("succeeded");
         expect(terminal.verdict).to.equal("pass");
+        expect(terminal.runMetrics).to.deep.include({
+            "query.rowCount": 5,
+            "assertions.failed": 0,
+        });
+        expect(terminal.diagnosticCounts).to.deep.equal({ warningCount: 0, errorCount: 0 });
         expect(observer.events.filter((e) => e.kind === "terminal")).to.have.length(1);
         expect(observer.nodeStates("query")).to.deep.equal(["running", "succeeded"]);
         expect(observer.nodeStates("threshold")).to.deep.equal(["running", "succeeded"]);
@@ -190,6 +195,8 @@ suite("fakeRuntimeAdapter", () => {
         const terminal = observer.terminalEvent()!;
         expect(terminal.state).to.equal("failed");
         expect(terminal.verdict).to.equal("fail");
+        expect(terminal.runMetrics).to.deep.include({ "assertions.failed": 1 });
+        expect(terminal.diagnosticCounts).to.deep.equal({ warningCount: 0, errorCount: 1 });
         expect(observer.nodeStates("threshold")).to.deep.equal(["running", "failed"]);
         expect(observer.nodeStates("report")).to.deep.equal(["skipped"]);
         // Skips arrive BEFORE the terminal event.
@@ -362,6 +369,18 @@ suite("fakeRuntimeAdapter", () => {
         expect(manifest.toolchain.requiredComponents).to.deep.equal(["vscode", "mssqlExtension"]);
         expect(manifest.nodes).to.have.length.greaterThan(0);
         expect(() => buildEvidenceExport(evidence.output?.text ?? "", "junit")).not.to.throw();
+        expect(observer.terminalEvent()?.runMetrics).to.deep.include({
+            "workspace.projectCount": 1,
+            "tests.discovered": 2,
+            "deployment.previewChangeCount": 3,
+            "schema.matches": true,
+            "sqlTests.passed": 2,
+            "cleanup.completed": true,
+        });
+        expect(observer.terminalEvent()?.diagnosticCounts).to.deep.equal({
+            warningCount: 0,
+            errorCount: 0,
+        });
     });
 
     test("governed tSQLt preview runs only after its exact gate and emits typed evidence", async () => {

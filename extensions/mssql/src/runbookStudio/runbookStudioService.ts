@@ -3343,6 +3343,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 runState: event.state,
                 ...(event.verdict ? { outcome: event.verdict } : {}),
                 ...(event.runMetrics ? { runMetrics: event.runMetrics } : {}),
+                ...(event.diagnosticCounts ? { diagnosticCounts: event.diagnosticCounts } : {}),
                 ...(event.errorCode
                     ? {
                           error: {

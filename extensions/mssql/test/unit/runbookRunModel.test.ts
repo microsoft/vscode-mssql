@@ -80,6 +80,7 @@ suite("runbookRunModel", () => {
                     "deployment.changed": false,
                     invalid: Number.NaN,
                 },
+                diagnosticCounts: { warningCount: 2, errorCount: 0 },
             }),
         ]);
         expect(snapshot.state).to.equal("succeeded");
@@ -88,10 +89,23 @@ suite("runbookRunModel", () => {
             "tests.passed": 18,
             "deployment.changed": false,
         });
+        expect(snapshot.diagnosticCounts).to.deep.equal({ warningCount: 2, errorCount: 0 });
         expect(snapshot.endedEpochMs).to.be.a("number");
         expect(snapshot.nodes.every((n) => n.state === "succeeded")).to.equal(true);
         // Duration folds from running -> terminal epochs.
         expect(snapshot.nodes[0].durationMs).to.be.a("number");
+    });
+
+    test("invalid diagnostic totals remain unmeasured", () => {
+        const snapshot = foldRunEvents(initial(), [
+            ev({ type: "run.accepted" }),
+            ev({
+                type: "run.terminal",
+                runState: "failed",
+                diagnosticCounts: { warningCount: -1, errorCount: Number.NaN },
+            }),
+        ]);
+        expect(snapshot.diagnosticCounts).to.equal(undefined);
     });
 
     test("non-monotonic sequence throws", () => {

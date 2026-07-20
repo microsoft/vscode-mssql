@@ -248,11 +248,25 @@ export function applyRunEvent(
                     next.runMetrics = Object.fromEntries(entries);
                 }
             }
+            if (
+                event.diagnosticCounts &&
+                isBoundedCount(event.diagnosticCounts.warningCount) &&
+                isBoundedCount(event.diagnosticCounts.errorCount)
+            ) {
+                next.diagnosticCounts = {
+                    warningCount: event.diagnosticCounts.warningCount,
+                    errorCount: event.diagnosticCounts.errorCount,
+                };
+            }
             return next;
         }
         default:
             return next;
     }
+}
+
+function isBoundedCount(value: number): boolean {
+    return Number.isSafeInteger(value) && value >= 0;
 }
 
 /** Fold a full event list from scratch (recovery/reopen path). */

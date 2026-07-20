@@ -64,6 +64,8 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             artifactSizeBytes: 2048,
             artifactSha256: "a".repeat(64),
             diagnosticCount: 2,
+            warningCount: 1,
+            errorCount: 1,
             builtAtUtc: "2026-07-19T20:00:00.000Z",
         }),
         previewDacpacDeployment: async (dacpacPath) => ({
@@ -256,6 +258,8 @@ suite("Runbook Studio local activity delegate", () => {
                         artifactSizeBytes: 4096,
                         artifactSha256: "b".repeat(64),
                         diagnosticCount: 0,
+                        warningCount: 0,
+                        errorCount: 0,
                         builtAtUtc: "2026-07-19T20:01:00.000Z",
                     };
                 },
@@ -281,6 +285,11 @@ suite("Runbook Studio local activity delegate", () => {
             artifactSha256: "b".repeat(64),
             diagnosticCount: 0,
         });
+        expect(result?.runMetrics).to.deep.equal({
+            "build.warningCount": 0,
+            "build.errorCount": 0,
+        });
+        expect(result?.diagnosticCounts).to.deep.equal({ warningCount: 0, errorCount: 0 });
     });
 
     test("DACPAC host refusals preserve stable error codes", async () => {
@@ -451,6 +460,12 @@ suite("Runbook Studio local activity delegate", () => {
             ["key exists", true, "found"],
         ]);
         expect(result?.values).to.deep.equal({ total: 2, passed: 2, failed: 0, allPassed: true });
+        expect(result?.runMetrics).to.deep.equal({
+            "sqlTests.total": 2,
+            "sqlTests.passed": 2,
+            "sqlTests.failed": 0,
+            "sqlTests.allPassed": true,
+        });
         expect(disconnects).to.equal(1);
     });
 
@@ -494,6 +509,12 @@ suite("Runbook Studio local activity delegate", () => {
             skipped: 1,
             allPassed: true,
         });
+        expect(result?.runMetrics).to.deep.include({
+            "tsqlt.total": 2,
+            "tsqlt.passed": 1,
+            "tsqlt.skipped": 1,
+            "tsqlt.allPassed": true,
+        });
     });
 
     test("governed tSQLt failures retain results and fail the run", async () => {
@@ -536,6 +557,11 @@ suite("Runbook Studio local activity delegate", () => {
             failed: 1,
             errors: 0,
             allPassed: false,
+        });
+        expect(result?.runMetrics).to.deep.include({
+            "tsqlt.failed": 1,
+            "tsqlt.errors": 0,
+            "tsqlt.allPassed": false,
         });
     });
 
@@ -591,6 +617,10 @@ suite("Runbook Studio local activity delegate", () => {
             passed: 0,
             failed: 1,
             allPassed: false,
+        });
+        expect(result?.runMetrics).to.deep.include({
+            "sqlTests.failed": 1,
+            "sqlTests.allPassed": false,
         });
     });
 
@@ -665,6 +695,10 @@ suite("Runbook Studio local activity delegate", () => {
             bundleSha256: "9".repeat(64),
             nodeCount: 10,
             verdict: "pass",
+        });
+        expect(result?.runMetrics).to.deep.equal({
+            "evidence.nodeCount": 10,
+            "evidence.failedNodeCount": 0,
         });
     });
 

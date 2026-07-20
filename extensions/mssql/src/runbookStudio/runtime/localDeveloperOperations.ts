@@ -256,13 +256,14 @@ export async function buildLocalDacpac(
     }
 
     const artifact = await verifyLocalDacpacArtifact(artifactPath, isCancellationRequested);
-    const diagnosticCount = countProjectDiagnostics(path.dirname(projectPath));
+    const diagnosticCounts = countProjectDiagnostics(path.dirname(projectPath));
     return {
         projectPath,
         artifactPath: artifact.artifactPath,
         artifactSizeBytes: artifact.artifactSizeBytes,
         artifactSha256: artifact.artifactSha256,
-        diagnosticCount,
+        diagnosticCount: diagnosticCounts.warningCount + diagnosticCounts.errorCount,
+        ...diagnosticCounts,
         builtAtUtc: new Date().toISOString(),
     };
 }
@@ -466,8 +467,12 @@ async function assertPathInWorkspace(
     );
 }
 
-function countProjectDiagnostics(projectDirectory: string): number {
-    let count = 0;
+function countProjectDiagnostics(projectDirectory: string): {
+    warningCount: number;
+    errorCount: number;
+} {
+    let warningCount = 0;
+    let errorCount = 0;
     for (const [uri, diagnostics] of vscode.languages.getDiagnostics()) {
         const relative = path.relative(projectDirectory, uri.fsPath);
         if (
@@ -478,13 +483,15 @@ function countProjectDiagnostics(projectDirectory: string): number {
         ) {
             continue;
         }
-        count += diagnostics.filter(
-            (diagnostic) =>
-                diagnostic.severity === vscode.DiagnosticSeverity.Error ||
-                diagnostic.severity === vscode.DiagnosticSeverity.Warning,
-        ).length;
+        for (const diagnostic of diagnostics) {
+            if (diagnostic.severity === vscode.DiagnosticSeverity.Error) {
+                errorCount++;
+            } else if (diagnostic.severity === vscode.DiagnosticSeverity.Warning) {
+                warningCount++;
+            }
+        }
     }
-    return count;
+    return { warningCount, errorCount };
 }
 
 function sha256File(filePath: string, isCancellationRequested: () => boolean): Promise<string> {

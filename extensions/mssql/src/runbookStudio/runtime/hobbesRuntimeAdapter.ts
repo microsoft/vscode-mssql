@@ -359,6 +359,8 @@ interface ActivePoll {
      *  from genuinely unreached branch nodes without post-terminal events. */
     knownNodeIds: Set<string>;
     reportedNodeStates: Map<string, string>;
+    /** Latest bounded finding/remediation totals reported per region. */
+    regionMetrics: Map<string, { findingCount?: number; remediationCount?: number }>;
     /** Epoch of the first failed region report — arms the stall guard (the
      *  runtime can hang post-failure, e.g. on its summarize step: U-2). */
     failedNodeAt?: number;
@@ -1583,6 +1585,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             observer,
             knownNodeIds: new Set((request.artifact.lock?.nodes ?? []).map((node) => node.id)),
             reportedNodeStates: new Map(),
+            regionMetrics: new Map(),
         };
         this.polls.set(request.runId, poll);
         void this.kickoffAndStream(activeBaseUrl, request, hobbesRunId, poll, observer);
@@ -1622,7 +1625,9 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             poll.observer?.onEvent(event);
         }
         poll.stop = true;
-        poll.observer?.onEvent({ kind: "terminal", state: "cancelled" });
+        poll.observer?.onEvent(
+            withHobbesRunMetrics(poll, { kind: "terminal", state: "cancelled" }),
+        );
         return "cancelled";
     }
 
@@ -1731,6 +1736,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                         if (!knownNodeIds.has(region.regionId)) {
                             continue;
                         }
+                        recordRegionMetrics(poll, region.regionId, region);
                         const state = mapRegionStatus(region.status);
                         if (!state || reportedNodeStates.get(region.regionId) === state) {
                             continue;
@@ -1770,15 +1776,17 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                             observer.onEvent(event);
                         }
                         poll.stop = true;
-                        observer.onEvent({
-                            kind: "terminal",
-                            state: terminal,
-                            ...(terminal === "succeeded"
-                                ? { verdict: "pass" as const }
-                                : terminal === "failed"
-                                  ? { verdict: "fail" as const }
-                                  : {}),
-                        });
+                        observer.onEvent(
+                            withHobbesRunMetrics(poll, {
+                                kind: "terminal",
+                                state: terminal,
+                                ...(terminal === "succeeded"
+                                    ? { verdict: "pass" as const }
+                                    : terminal === "failed"
+                                      ? { verdict: "fail" as const }
+                                      : {}),
+                            }),
+                        );
                         return;
                     }
                 }
@@ -1815,13 +1823,15 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                             Date.now() - poll.lastProgressEpoch > NO_PROGRESS_TIMEOUT_MS
                         ) {
                             poll.stop = true;
-                            observer.onEvent({
-                                kind: "terminal",
-                                state: "failed",
-                                verdict: "fail",
-                                errorCode: "RunbookStudio.Timeout",
-                                errorMessage: LocRunbookStudio.hobbesRunNoProgress,
-                            });
+                            observer.onEvent(
+                                withHobbesRunMetrics(poll, {
+                                    kind: "terminal",
+                                    state: "failed",
+                                    verdict: "fail",
+                                    errorCode: "RunbookStudio.Timeout",
+                                    errorMessage: LocRunbookStudio.hobbesRunNoProgress,
+                                }),
+                            );
                             return;
                         }
                         // Gate suspension: the workflow genuinely stops in
@@ -1865,11 +1875,13 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                                 observer.onEvent(event);
                             }
                             poll.stop = true;
-                            observer.onEvent({
-                                kind: "terminal",
-                                state: terminalState,
-                                verdict: executionStatus === "completed" ? "pass" : "fail",
-                            });
+                            observer.onEvent(
+                                withHobbesRunMetrics(poll, {
+                                    kind: "terminal",
+                                    state: terminalState,
+                                    verdict: executionStatus === "completed" ? "pass" : "fail",
+                                }),
+                            );
                             return;
                         }
                     }
@@ -1885,13 +1897,15 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                     Date.now() - poll.failedNodeAt > STALL_AFTER_FAILURE_MS
                 ) {
                     poll.stop = true;
-                    observer.onEvent({
-                        kind: "terminal",
-                        state: "failed",
-                        verdict: "fail",
-                        errorCode: "RunbookStudio.ActivityFailed",
-                        errorMessage: LocRunbookStudio.hobbesRunStalledAfterFailure,
-                    });
+                    observer.onEvent(
+                        withHobbesRunMetrics(poll, {
+                            kind: "terminal",
+                            state: "failed",
+                            verdict: "fail",
+                            errorCode: "RunbookStudio.ActivityFailed",
+                            errorMessage: LocRunbookStudio.hobbesRunStalledAfterFailure,
+                        }),
+                    );
                     return;
                 }
                 await new Promise((resolve) => setTimeout(resolve, RUN_POLL_INTERVAL_MS));
@@ -2092,6 +2106,61 @@ export function launchRefusalError(refusalCode: string): RuntimeStartRefusedErro
                 refusalCode,
             );
     }
+}
+
+function recordRegionMetrics(
+    poll: ActivePoll,
+    regionId: string,
+    region: { findingCount?: number; remediationCount?: number },
+): void {
+    const findingCount = boundedRuntimeCount(region.findingCount);
+    const remediationCount = boundedRuntimeCount(region.remediationCount);
+    if (findingCount === undefined && remediationCount === undefined) {
+        return;
+    }
+    poll.regionMetrics.set(regionId, {
+        ...poll.regionMetrics.get(regionId),
+        ...(findingCount !== undefined ? { findingCount } : {}),
+        ...(remediationCount !== undefined ? { remediationCount } : {}),
+    });
+}
+
+function withHobbesRunMetrics(
+    poll: ActivePoll,
+    event: Extract<RuntimeBoundaryEvent, { kind: "terminal" }>,
+): Extract<RuntimeBoundaryEvent, { kind: "terminal" }> {
+    const runMetrics = summarizeHobbesRegionMetrics(poll.regionMetrics.values());
+    return { ...event, ...(runMetrics ? { runMetrics } : {}) };
+}
+
+/** Pure projection of the only scalar metrics exposed by the current Hobbes
+ * run-record contract. Per-region replacement prevents polling duplicates
+ * from inflating totals. */
+export function summarizeHobbesRegionMetrics(
+    regions: Iterable<{ findingCount?: number; remediationCount?: number }>,
+): Record<string, number> | undefined {
+    let observed = false;
+    let findingCount = 0;
+    let remediationCount = 0;
+    for (const region of regions) {
+        const findings = boundedRuntimeCount(region.findingCount);
+        const remediations = boundedRuntimeCount(region.remediationCount);
+        if (findings !== undefined) {
+            observed = true;
+            findingCount = Math.min(Number.MAX_SAFE_INTEGER, findingCount + findings);
+        }
+        if (remediations !== undefined) {
+            observed = true;
+            remediationCount = Math.min(Number.MAX_SAFE_INTEGER, remediationCount + remediations);
+        }
+    }
+    return observed
+        ? { "findings.total": findingCount, "remediations.total": remediationCount }
+        : undefined;
+}
+
+function boundedRuntimeCount(value: number | undefined): number | undefined {
+    return value !== undefined && Number.isSafeInteger(value) && value >= 0 ? value : undefined;
 }
 
 /**

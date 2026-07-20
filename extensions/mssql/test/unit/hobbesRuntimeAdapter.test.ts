@@ -19,6 +19,7 @@ import {
     plannerRequestBody,
     ReasoningCoalescer,
     rebaseLibraryArtifact,
+    summarizeHobbesRegionMetrics,
     terminalNodeSettlementEvents,
 } from "../../src/runbookStudio/runtime/hobbesRuntimeAdapter";
 import { findFreePort } from "../../src/runbookStudio/runtime/runtimeSupervisor";
@@ -42,6 +43,17 @@ suite("hobbesRuntimeAdapter", () => {
         expect(mapRegionStatus("failed")).to.equal("failed");
         expect(mapRegionStatus("queued")).to.equal(undefined);
         expect(mapRegionStatus(undefined)).to.equal(undefined);
+    });
+
+    test("runtime region findings produce bounded terminal metrics", () => {
+        expect(
+            summarizeHobbesRegionMetrics([
+                { findingCount: 3, remediationCount: 1 },
+                { findingCount: 2, remediationCount: 2 },
+                { findingCount: -1, remediationCount: Number.NaN },
+            ]),
+        ).to.deep.equal({ "findings.total": 5, "remediations.total": 3 });
+        expect(summarizeHobbesRegionMetrics([{}])).to.equal(undefined);
     });
 
     test("successful conditional runs settle unreported nodes as branch-not-taken", () => {
