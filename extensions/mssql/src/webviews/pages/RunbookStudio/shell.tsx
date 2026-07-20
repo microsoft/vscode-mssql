@@ -40,7 +40,7 @@ import { PlanGraphView } from "./graphView";
 import { ResolvedWidgetView } from "./widgets";
 import {
     mergePresentationLayoutEdits,
-    pointerReorderPresentationLayoutEdits,
+    pointerMovePresentationLayoutEdits,
     presentationLayoutSnapshot,
     presentationLayoutStrategy,
     PresentationLayoutConflict,
@@ -2209,6 +2209,7 @@ function PresentationSections({
     editingDisabled?: boolean;
 }) {
     const loc = locConstants.runbookStudio;
+    const sectionWidgets = presentation.sections.map((section) => section.widgets);
     return (
         <>
             {presentation.sections.map((section) => (
@@ -2225,6 +2226,7 @@ function PresentationSections({
                                     <LayoutEditorControls
                                         widget={widget}
                                         siblings={section.widgets}
+                                        sectionWidgets={sectionWidgets}
                                         index={index}
                                         onLayoutEdits={onLayoutEdits}
                                         disabled={editingDisabled}
@@ -2276,12 +2278,14 @@ function spanPresetOf(span: { wide?: number } | undefined) {
 function LayoutEditorControls({
     widget,
     siblings,
+    sectionWidgets,
     index,
     onLayoutEdits,
     disabled,
 }: {
     widget: ResolvedWidget;
     siblings: ResolvedWidget[];
+    sectionWidgets: ResolvedWidget[][];
     index: number;
     onLayoutEdits?: (edits: PresentationLayoutEdit[]) => void;
     disabled: boolean;
@@ -2343,17 +2347,15 @@ function LayoutEditorControls({
         event.dataTransfer.setData(LAYOUT_DRAG_MIME, widget.nodeId);
     };
     const dragOver = (event: DragEvent<HTMLDivElement>) => {
-        const sourceNodeId = event.dataTransfer.getData(LAYOUT_DRAG_MIME);
-        if (sourceNodeId && siblings.some((candidate) => candidate.nodeId === sourceNodeId)) {
+        if (event.dataTransfer.types.includes(LAYOUT_DRAG_MIME)) {
             event.preventDefault();
             event.dataTransfer.dropEffect = "move";
         }
     };
     const drop = (event: DragEvent<HTMLDivElement>) => {
         const sourceNodeId = event.dataTransfer.getData(LAYOUT_DRAG_MIME);
-        const siblingEdits = siblings.map((candidate) => editFor(candidate));
-        const edits = pointerReorderPresentationLayoutEdits(
-            siblingEdits,
+        const edits = pointerMovePresentationLayoutEdits(
+            sectionWidgets.map((section) => section.map((candidate) => editFor(candidate))),
             sourceNodeId,
             widget.nodeId,
         );

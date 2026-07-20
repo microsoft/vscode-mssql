@@ -111,6 +111,60 @@ export function pointerReorderPresentationLayoutEdits(
         );
 }
 
+/** Move a widget to the target widget's section and normalize both affected
+ * sections as one staged batch. The caller supplies every section in its
+ * rendered order; missing identities remain honest no-ops. */
+export function pointerMovePresentationLayoutEdits(
+    sections: PresentationLayoutEdit[][],
+    sourceNodeId: string,
+    targetNodeId: string,
+): PresentationLayoutEdit[] {
+    const sourceSectionIndex = sections.findIndex((section) =>
+        section.some((edit) => edit.nodeId === sourceNodeId),
+    );
+    const targetSectionIndex = sections.findIndex((section) =>
+        section.some((edit) => edit.nodeId === targetNodeId),
+    );
+    if (sourceSectionIndex < 0 || targetSectionIndex < 0 || sourceNodeId === targetNodeId) {
+        return [];
+    }
+    if (sourceSectionIndex === targetSectionIndex) {
+        return pointerReorderPresentationLayoutEdits(
+            sections[sourceSectionIndex],
+            sourceNodeId,
+            targetNodeId,
+        );
+    }
+
+    const sourceSection = sections[sourceSectionIndex];
+    const targetSection = sections[targetSectionIndex];
+    const source = sourceSection.find((edit) => edit.nodeId === sourceNodeId);
+    const targetIndex = targetSection.findIndex((edit) => edit.nodeId === targetNodeId);
+    if (!source || targetIndex < 0) {
+        return [];
+    }
+    const targetSectionId = targetSection[targetIndex].sectionId;
+    const nextSource = sourceSection.filter((edit) => edit.nodeId !== sourceNodeId);
+    const nextTarget = [...targetSection];
+    nextTarget.splice(targetIndex, 0, { ...source, sectionId: targetSectionId });
+    const original = new Map(
+        [...sourceSection, ...targetSection].map((edit) => [edit.nodeId, edit]),
+    );
+    return [...nextSource, ...nextTarget]
+        .map((edit, index, all) => {
+            const sectionStart = all.length - nextTarget.length;
+            const order = index < sectionStart ? index : index - sectionStart;
+            return { ...edit, placement: { ...edit.placement, order } };
+        })
+        .filter((edit) => {
+            const before = original.get(edit.nodeId);
+            return (
+                before?.sectionId !== edit.sectionId ||
+                before?.placement.order !== edit.placement.order
+            );
+        });
+}
+
 /** Capture the complete persisted/resolved layout intent without result
  * payloads. Persisted summaries win so hidden widgets remain part of the
  * merge base even though the resolver intentionally omits them. */

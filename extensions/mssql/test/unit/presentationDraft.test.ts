@@ -8,6 +8,7 @@ import {
     mergePresentationLayoutEdits,
     presentationLayoutSnapshot,
     pointerReorderPresentationLayoutEdits,
+    pointerMovePresentationLayoutEdits,
     presentationLayoutStrategy,
     rebasePresentationLayoutEdits,
     rebasePresentationLayoutPolicy,
@@ -69,6 +70,35 @@ suite("presentationDraft", () => {
         const siblings = [edit("query", 0), edit("tests", 1)];
         expect(pointerReorderPresentationLayoutEdits(siblings, "query", "query")).to.deep.equal([]);
         expect(pointerReorderPresentationLayoutEdits(siblings, "query", "other")).to.deep.equal([]);
+    });
+
+    test("pointer move normalizes the source and target sections atomically", () => {
+        const primary = [edit("query", 0), edit("tests", 1), edit("report", 2)];
+        const details = [
+            { ...edit("findings", 0), sectionId: "details" },
+            { ...edit("evidence", 1), sectionId: "details" },
+        ];
+        const moved = pointerMovePresentationLayoutEdits([primary, details], "tests", "evidence");
+        expect(
+            moved.map((candidate) => [
+                candidate.nodeId,
+                candidate.sectionId,
+                candidate.placement.order,
+            ]),
+        ).to.deep.equal([
+            ["report", "primary", 1],
+            ["tests", "details", 1],
+            ["evidence", "details", 2],
+        ]);
+    });
+
+    test("pointer move rejects missing identities and delegates same-section ordering", () => {
+        const siblings = [edit("query", 0), edit("tests", 1)];
+        expect(pointerMovePresentationLayoutEdits([siblings], "other", "tests")).to.deep.equal([]);
+        expect(pointerMovePresentationLayoutEdits([siblings], "query", "tests")).to.deep.equal([
+            edit("tests", 0),
+            edit("query", 1),
+        ]);
     });
 
     test("three-way rebase preserves non-overlapping upstream fields", () => {
