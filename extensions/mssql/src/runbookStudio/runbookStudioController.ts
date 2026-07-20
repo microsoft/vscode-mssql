@@ -73,12 +73,14 @@ import {
     pinnedViewsOf,
     outputPresentationsOf,
     resetOutputPresentation,
+    resolveDerivedSourcePlan,
     resolvePresentation,
     upsertOutputPresentation,
     upsertOutputPin,
     validateOutputViewSettings,
     validatePresentationDefinition,
 } from "./presentation/presentationResolver";
+import { applyTransformPipeline } from "./presentation/presentationTransforms";
 import {
     createSampleRunSnapshot,
     fetchSampleOutputPage,
@@ -500,19 +502,101 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
 
         this.onRequest(RbsFetchOutputPageRequest.type, async (page) => {
             if (isSampleHandle(page.handleId)) {
-                return (
-                    fetchSampleOutputPage(page) ?? {
+                const samplePage = fetchSampleOutputPage({
+                    handleId: page.handleId,
+                    startRow: page.derivedSourceId ? 0 : page.startRow,
+                    rowCount: page.derivedSourceId ? 1000 : page.rowCount,
+                });
+                if (!page.derivedSourceId) {
+                    return (
+                        samplePage ?? {
+                            error: {
+                                code: "RunbookStudio.ResultNotFound" as const,
+                                message: LocRunbookStudio.dataExpired,
+                            },
+                        }
+                    );
+                }
+                const artifact = this.model.artifact;
+                const definition = validatePresentationDefinition(artifact?.presentation);
+                const derived =
+                    artifact && definition
+                        ? (["clean", "blockingErrors", "approvalRejected"] as const)
+                              .flatMap((scenario) => {
+                                  const snapshot = createSampleRunSnapshot(artifact, scenario);
+                                  if (!snapshot) {
+                                      return [];
+                                  }
+                                  const resolved = resolveDerivedSourcePlan(
+                                      definition,
+                                      page.derivedSourceId!,
+                                      snapshot,
+                                  );
+                                  return (resolved.state === "ready" ||
+                                      resolved.state === "expired") &&
+                                      resolved.handleId === page.handleId
+                                      ? [resolved]
+                                      : [];
+                              })
+                              .at(0)
+                        : undefined;
+                if (!samplePage || !derived) {
+                    return {
                         error: {
-                            code: "RunbookStudio.ResultNotFound" as const,
-                            message: LocRunbookStudio.dataExpired,
+                            code: "RunbookStudio.PresentationInvalid" as const,
+                            message: LocRunbookStudio.presentationTransformFailed,
                         },
-                    }
+                    };
+                }
+                const transformed = applyTransformPipeline(
+                    { columns: samplePage.columns, rows: samplePage.rows },
+                    derived.pipeline,
                 );
+                if (!transformed.ok) {
+                    return {
+                        error: {
+                            code: "RunbookStudio.PresentationInvalid" as const,
+                            message: LocRunbookStudio.presentationTransformFailed,
+                        },
+                    };
+                }
+                const start = Math.max(0, page.startRow);
+                const count = Math.min(Math.max(0, page.rowCount), 1000);
+                return {
+                    columns: transformed.table.columns,
+                    rows: transformed.table.rows.slice(start, start + count),
+                    totalRows: transformed.table.rows.length,
+                };
             }
             if (!this.coordinator) {
                 return { error: this.runtimeUnavailableError() };
             }
-            return this.coordinator.fetchOutputPage(this.model, page);
+            if (!page.derivedSourceId) {
+                return this.coordinator.fetchOutputPage(this.model, page);
+            }
+            const run = this.model.displayRun;
+            const base = validatePresentationDefinition(this.model.artifact?.presentation);
+            const definition = run
+                ? (this.presentationOverlays.get(run.runId)?.definition ?? base)
+                : base;
+            const derived =
+                definition && run
+                    ? resolveDerivedSourcePlan(definition, page.derivedSourceId, run)
+                    : undefined;
+            if (!derived || derived.state !== "ready" || derived.handleId !== page.handleId) {
+                return {
+                    error: {
+                        code: "RunbookStudio.PresentationInvalid",
+                        message: LocRunbookStudio.presentationTransformFailed,
+                    },
+                };
+            }
+            return this.coordinator.fetchOutputPage(this.model, {
+                handleId: page.handleId,
+                startRow: page.startRow,
+                rowCount: page.rowCount,
+                pipeline: derived.pipeline,
+            });
         });
 
         this.onRequest(RbsExportEvidenceRequest.type, async ({ runId, format }) => {

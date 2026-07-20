@@ -167,6 +167,55 @@ suite("runbookResultStore", () => {
         expect(store.listPersistedRunIds()).to.deep.equal([]);
     });
 
+    test("derived pages transform retained data lazily and survive restart", () => {
+        const store = new RunbookResultStore(root);
+        const ref = store.put("run_derived", "query", {
+            contract: "rowset/1",
+            columns: ["suite", "durationMs"],
+            rows: [
+                ["A", 10],
+                ["A", 20],
+                ["B", 5],
+            ],
+        });
+        const pipeline = {
+            steps: [
+                {
+                    op: "aggregate" as const,
+                    by: ["suite"],
+                    measures: [{ field: "durationMs", fn: "avg" as const, as: "averageMs" }],
+                },
+                { op: "sort" as const, by: [{ field: "averageMs", direction: "desc" as const }] },
+            ],
+        };
+        const first = store.fetchTransformedPage(ref.handleId, pipeline, 0, 1);
+        expect(first).to.deep.equal({
+            columns: ["suite", "averageMs"],
+            rows: [["A", 15]],
+            totalRows: 2,
+        });
+
+        const restarted = new RunbookResultStore(root);
+        expect(restarted.fetchTransformedPage(ref.handleId, pipeline, 1, 10)).to.deep.equal({
+            columns: ["suite", "averageMs"],
+            rows: [["B", 5]],
+            totalRows: 2,
+        });
+        expect(
+            restarted.fetchTransformedPage(
+                ref.handleId,
+                { steps: [{ op: "select", columns: ["missing"] }] },
+                0,
+                10,
+            ),
+        ).to.deep.equal({ transformError: "fieldMissing" });
+        expect(restarted.fetchPage(ref.handleId, 0, 10)?.rows).to.deep.equal([
+            ["A", 10],
+            ["A", 20],
+            ["B", 5],
+        ]);
+    });
+
     test("boundPayload is pure and honest at the edges", () => {
         const small = { contract: "rowset/1", columns: ["a"], rows: [[1]] as Array<Array<number>> };
         const bounded = boundPayload(small, 10_000);

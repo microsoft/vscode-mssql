@@ -17,12 +17,14 @@ import {
     RbsPlannerProgressEvent,
     RunbookRunSnapshot,
 } from "../sharedInterfaces/runbookStudio";
+import type { TransformPipeline } from "../sharedInterfaces/runbookPresentation";
 import type { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 
 export interface OutputPageResult {
     columns?: string[];
     rows?: Array<Array<string | number | boolean | null>>;
     totalRows?: number;
+    truncated?: boolean;
     error?: RbsError;
 }
 
@@ -55,7 +57,12 @@ export interface RunbookRunCoordinator {
 
     fetchOutputPage(
         model: RunbookStudioDocumentModel,
-        page: { handleId: string; startRow: number; rowCount: number },
+        page: {
+            handleId: string;
+            startRow: number;
+            rowCount: number;
+            pipeline?: TransformPipeline;
+        },
     ): Promise<OutputPageResult>;
 
     /** Save a deterministic, secret-safe projection of one run's durable

@@ -18,8 +18,14 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { TransformPipeline } from "../sharedInterfaces/runbookPresentation";
 import { DataHandleRef } from "../sharedInterfaces/runbookStudio";
 import { sanitizeRunFileId } from "./runbookRunLedger";
+import {
+    applyTransformPipeline,
+    PresentationTable,
+    PresentationTransformFailureReason,
+} from "./presentation/presentationTransforms";
 import type { RuntimeOutputPayload } from "./runtime/runtimeAdapterTypes";
 
 interface StoredOutput {
@@ -64,6 +70,22 @@ export interface RunbookResultStoreOptions {
     maxPayloadBytes?: number;
     /** Persistence problems surface here (the store stays diag-free). */
     onPersistenceIssue?: (kind: string, detail: string) => void;
+}
+
+export interface StoredOutputPage {
+    columns?: string[];
+    rows?: Array<Array<string | number | boolean | null>>;
+    totalRows?: number;
+    truncated?: boolean;
+    transformError?: never;
+}
+
+export interface StoredOutputTransformFailure {
+    transformError: PresentationTransformFailureReason;
+    columns?: never;
+    rows?: never;
+    totalRows?: never;
+    truncated?: never;
 }
 
 export class RunbookResultStore {
@@ -134,14 +156,7 @@ export class RunbookResultStore {
         handleId: string,
         startRow: number,
         rowCount: number,
-    ):
-        | {
-              columns?: string[];
-              rows?: Array<Array<string | number | boolean | null>>;
-              totalRows?: number;
-              truncated?: boolean;
-          }
-        | undefined {
+    ): StoredOutputPage | undefined {
         const stored = this.outputs.get(handleId) ?? this.rehydrate(handleId);
         if (!stored) {
             return undefined;
@@ -170,6 +185,35 @@ export class RunbookResultStore {
             };
         }
         return { rows: [], totalRows: 0, ...truncatedMark };
+    }
+
+    /** Apply a validated, pure presentation pipeline to the retained bounded
+     * payload, then page the result. The transformed table is intentionally
+     * ephemeral: the durable ledger continues to name the original runtime
+     * evidence and a presentation edit cannot mutate it. */
+    public fetchTransformedPage(
+        handleId: string,
+        pipeline: TransformPipeline,
+        startRow: number,
+        rowCount: number,
+    ): StoredOutputPage | StoredOutputTransformFailure | undefined {
+        const stored = this.outputs.get(handleId) ?? this.rehydrate(handleId);
+        if (!stored) {
+            return undefined;
+        }
+        const input = tableForStoredOutput(stored);
+        const transformed = applyTransformPipeline(input, pipeline);
+        if ("reason" in transformed) {
+            return { transformError: transformed.reason };
+        }
+        const start = Math.max(0, startRow);
+        const count = Math.min(Math.max(0, rowCount), MAX_PAGE_ROWS);
+        return {
+            columns: transformed.table.columns,
+            rows: transformed.table.rows.slice(start, start + count),
+            totalRows: transformed.table.rows.length,
+            ...(transformed.table.truncated ? { truncated: true } : {}),
+        };
     }
 
     /** Trusted-host read for an exact text contract. Unlike fetchPage this
@@ -328,6 +372,36 @@ export class RunbookResultStore {
             return undefined;
         }
     }
+}
+
+function tableForStoredOutput(stored: StoredOutput): PresentationTable {
+    const payload = stored.payload;
+    if (payload.rows) {
+        const inferredWidth = payload.rows.reduce((width, row) => Math.max(width, row.length), 0);
+        return {
+            columns:
+                payload.columns && payload.columns.length >= inferredWidth
+                    ? [...payload.columns]
+                    : Array.from({ length: inferredWidth }, (_, index) => `column${index + 1}`),
+            rows: payload.rows.map((row) => [...row]),
+            ...(stored.truncated ? { truncated: true } : {}),
+        };
+    }
+    if (payload.scalars) {
+        return {
+            columns: ["name", "value"],
+            rows: Object.entries(payload.scalars),
+            ...(stored.truncated ? { truncated: true } : {}),
+        };
+    }
+    if (payload.text !== undefined) {
+        return {
+            columns: ["text"],
+            rows: [[payload.text]],
+            ...(stored.truncated ? { truncated: true } : {}),
+        };
+    }
+    return { columns: [], rows: [], ...(stored.truncated ? { truncated: true } : {}) };
 }
 
 /**

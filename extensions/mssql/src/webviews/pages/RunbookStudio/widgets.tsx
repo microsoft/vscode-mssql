@@ -63,7 +63,10 @@ interface FetchedPage {
     errorCode?: string;
 }
 
-function usePage(handleId: string | undefined): FetchedPage | undefined {
+function usePage(
+    handleId: string | undefined,
+    derivedSourceId: string | undefined,
+): FetchedPage | undefined {
     const { rpc } = useRbs();
     const [page, setPage] = useState<FetchedPage | undefined>(undefined);
     useEffect(() => {
@@ -75,6 +78,7 @@ function usePage(handleId: string | undefined): FetchedPage | undefined {
         void rpc
             .sendRequest(RbsFetchOutputPageRequest.type, {
                 handleId,
+                ...(derivedSourceId ? { derivedSourceId } : {}),
                 startRow: 0,
                 rowCount: PAGE_ROWS,
             })
@@ -91,7 +95,7 @@ function usePage(handleId: string | undefined): FetchedPage | undefined {
         return () => {
             cancelled = true;
         };
-    }, [handleId]);
+    }, [derivedSourceId, handleId]);
     return page;
 }
 
@@ -726,14 +730,23 @@ export function ResolvedWidgetView({
 }) {
     const { setOutputView } = useRbs();
     const loc = locConstants.runbookStudio;
-    const fetchedPage = usePage(widget.state === "ready" ? widget.handleId : undefined);
+    const fetchedPage = usePage(
+        widget.state === "ready" ? widget.handleId : undefined,
+        widget.derivedSourceId,
+    );
     const page: FetchedPage | undefined = widget.runField
         ? {
               columns: ["Metric", "Value"],
               rows: [[widget.runField.field, widget.runField.value]],
               totalRows: 1,
           }
-        : fetchedPage;
+        : widget.runMetric
+          ? {
+                columns: ["Metric", "Value"],
+                rows: [[widget.runMetric.key, widget.runMetric.value]],
+                totalRows: 1,
+            }
+          : fetchedPage;
     // Ephemeral per-widget view override — "this run only": client-side state
     // keyed to the widget id and never sent over RPC unless the user invokes
     // the explicit save action. Ignored automatically when the widget identity

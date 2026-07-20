@@ -352,6 +352,10 @@ export interface RunbookRunSnapshot {
     startedEpochMs?: number;
     endedEpochMs?: number;
     verdict?: "pass" | "fail" | "indeterminate";
+    /** Bounded, runtime-published scalar metrics. Keys and values are copied
+     * into the durable terminal record; presentation never evaluates an
+     * expression to obtain them. */
+    runMetrics?: Record<string, string | number | boolean>;
     error?: RbsError;
 }
 
@@ -394,6 +398,8 @@ export interface RunbookRunEvent {
     outputs?: DataHandleRef[];
     gate?: RunbookPendingGate;
     error?: RbsError;
+    /** run.terminal only; bounded scalar metrics published by the runtime. */
+    runMetrics?: Record<string, string | number | boolean>;
     /** run.accepted only: plan identity for journal-only recovery. */
     accepted?: RunbookRunAcceptedMeta;
     /** Terminal was written DURING rehydration (the run was interrupted by
@@ -747,7 +753,7 @@ export namespace RbsSelectRunRequest {
 /** Bounded page pull for a data handle (rows never ride notifications). */
 export namespace RbsFetchOutputPageRequest {
     export const type = new RequestType<
-        { handleId: string; startRow: number; rowCount: number },
+        { handleId: string; derivedSourceId?: string; startRow: number; rowCount: number },
         {
             columns?: string[];
             rows?: Array<Array<string | number | boolean | null>>;

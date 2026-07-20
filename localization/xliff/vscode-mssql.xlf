@@ -8885,6 +8885,9 @@
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d78994e8cd03343752f75d9cc3b38fab2160b8425c05868fc6a5fca8ce3d08e8">
+      <source xml:lang="en">This derived result could not be produced from the retained output. Review its field mappings and transform steps.</source>
+    </trans-unit>
     <trans-unit id="++CODE++74aad90f9cdc5bb5164cc8a20ffada00a5ab882b9f8890e4000c2294ff7facd5">
       <source xml:lang="en">This disposable database effect already has recovery state. Resolve its cleanup before retrying.</source>
     </trans-unit>

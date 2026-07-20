@@ -669,11 +669,18 @@ export interface ResolvedWidget {
     drift?: { requestedView: ViewKind; reason: "contractIncompatible" };
     /** Data handle to pull pages through the controller (state === ready). */
     handleId?: string;
+    /** Host-resolved derived source identity. Page requests send only this
+     * identity; the extension host reloads the trusted pipeline from the
+     * current presentation definition instead of accepting transform code
+     * from the webview. */
+    derivedSourceId?: string;
     contract?: string;
     rows?: number;
     /** Bounded structural metadata for a `run-field` source. This is not an
      * activity result payload and never creates a result-store handle. */
     runField?: { field: RunFieldName; value: string | number };
+    /** Bounded scalar selected from the durable run metric map. */
+    runMetric?: { key: string; value: string | number | boolean };
 }
 
 export interface ResolvedSection {

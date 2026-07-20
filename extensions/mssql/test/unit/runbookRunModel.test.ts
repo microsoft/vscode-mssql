@@ -71,10 +71,23 @@ suite("runbookRunModel", () => {
                 attempt: 1,
                 outcome: "success",
             }),
-            ev({ type: "run.terminal", runState: "succeeded", outcome: "pass" }),
+            ev({
+                type: "run.terminal",
+                runState: "succeeded",
+                outcome: "pass",
+                runMetrics: {
+                    "tests.passed": 18,
+                    "deployment.changed": false,
+                    invalid: Number.NaN,
+                },
+            }),
         ]);
         expect(snapshot.state).to.equal("succeeded");
         expect(snapshot.verdict).to.equal("pass");
+        expect(snapshot.runMetrics).to.deep.equal({
+            "tests.passed": 18,
+            "deployment.changed": false,
+        });
         expect(snapshot.endedEpochMs).to.be.a("number");
         expect(snapshot.nodes.every((n) => n.state === "succeeded")).to.equal(true);
         // Duration folds from running -> terminal epochs.

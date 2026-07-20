@@ -233,6 +233,21 @@ export function applyRunEvent(
             if (event.error) {
                 next.error = event.error;
             }
+            if (event.runMetrics) {
+                const entries = Object.entries(event.runMetrics)
+                    .filter(
+                        ([key, value]) =>
+                            key.length > 0 &&
+                            key.length <= 256 &&
+                            (typeof value === "string" ||
+                                typeof value === "boolean" ||
+                                (typeof value === "number" && Number.isFinite(value))),
+                    )
+                    .slice(0, 100);
+                if (entries.length > 0) {
+                    next.runMetrics = Object.fromEntries(entries);
+                }
+            }
             return next;
         }
         default:

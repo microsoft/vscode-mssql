@@ -77,6 +77,8 @@ export type RuntimeBoundaryEvent =
           kind: "terminal";
           state: "succeeded" | "failed" | "cancelled";
           verdict?: "pass" | "fail" | "indeterminate";
+          /** Optional bounded scalar metrics published with terminal state. */
+          runMetrics?: Record<string, string | number | boolean>;
           errorCode?: string;
           errorMessage?: string;
       };

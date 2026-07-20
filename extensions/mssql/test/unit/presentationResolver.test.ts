@@ -21,6 +21,7 @@ import {
     outputPresentationsOf,
     pinnedViewsOf,
     resetOutputPresentation,
+    resolveDerivedSourcePlan,
     resolvePresentation,
     upsertOutputPin,
     upsertOutputPresentation,
@@ -677,12 +678,129 @@ suite("presentationResolver", () => {
         expect(running.find((widget) => widget.id === "elapsed")?.state).to.equal("pending");
     });
 
+    test("run-metric sources resolve only durable runtime-published scalars", () => {
+        const def = definition();
+        def.results.widgets = [
+            {
+                ...runFieldBinding("passed", "status", 0),
+                source: { kind: "run-metric", key: "tests.passed" },
+                visibility: { when: "source-ready" },
+            },
+            {
+                ...runFieldBinding("changed", "status", 1),
+                source: { kind: "run-metric", key: "deployment.changed" },
+            },
+            {
+                ...runFieldBinding("missing", "status", 2),
+                source: { kind: "run-metric", key: "not.published" },
+            },
+        ];
+        const snap = snapshot();
+        snap.runMetrics = { "tests.passed": 18, "deployment.changed": false };
+        const widgets = resolvePresentation(def, snap).sections[0].widgets;
+        expect(widgets.map((widget) => widget.state)).to.deep.equal(["ready", "ready", "noOutput"]);
+        expect(widgets[0].runMetric).to.deep.equal({ key: "tests.passed", value: 18 });
+        expect(widgets[1].runMetric).to.deep.equal({
+            key: "deployment.changed",
+            value: false,
+        });
+        expect(widgets.every((widget) => widget.handleId === undefined)).to.equal(true);
+
+        snap.state = "running";
+        snap.runMetrics = undefined;
+        const running = resolvePresentation(def, snap).sections[0].widgets;
+        expect(running.map((widget) => widget.id)).to.deep.equal(["changed", "missing"]);
+        expect(running.every((widget) => widget.state === "pending")).to.equal(true);
+    });
+
     test("validation rejects run fields outside the closed grammar", () => {
         const def = definition() as unknown as {
             results: { widgets: Array<{ source: { kind: string; field?: string } }> };
         };
         def.results.widgets[0].source = { kind: "run-field", field: "secretPath" };
         expect(validatePresentationDefinition(def)).to.equal(undefined);
+    });
+
+    test("validation rejects empty run metric keys", () => {
+        const def = definition() as unknown as {
+            results: { widgets: Array<{ source: { kind: string; key?: string } }> };
+        };
+        def.results.widgets[0].source = { kind: "run-metric", key: "" };
+        expect(validatePresentationDefinition(def)).to.equal(undefined);
+    });
+
+    test("derived widgets resolve to a trusted base handle and composed pipeline", () => {
+        const def = definition();
+        def.derivedSources = [
+            {
+                id: "slow-tests",
+                from: { kind: "activity-output", nodeId: "query", slot: "primary" },
+                pipeline: {
+                    steps: [
+                        { op: "filter", predicate: { op: "gt", field: "durationMs", value: 10 } },
+                    ],
+                },
+                authoredContract: "rowset/1",
+                provenance: { by: "user" },
+            },
+            {
+                id: "slow-tests-top",
+                from: { kind: "derived", sourceId: "slow-tests" },
+                pipeline: { steps: [{ op: "limit", count: 5 }] },
+                authoredContract: "rowset/1",
+                provenance: { by: "user" },
+            },
+        ];
+        def.results.widgets = [
+            {
+                ...binding("derived-widget", "unused", "grid", 0),
+                source: { kind: "derived", sourceId: "slow-tests-top" },
+                authoredContract: "rowset/1",
+                authoredContractFingerprint: "rowset/1",
+                visibility: { when: "source-ready" },
+            },
+        ];
+        expect(validatePresentationDefinition(def)).to.exist;
+        expect(resolveDerivedSourcePlan(def, "slow-tests-top", snapshot())).to.deep.equal({
+            state: "ready",
+            handleId: "h1",
+            nodeId: "query",
+            contract: "rowset/1",
+            pipeline: {
+                steps: [
+                    { op: "filter", predicate: { op: "gt", field: "durationMs", value: 10 } },
+                    { op: "limit", count: 5 },
+                ],
+            },
+        });
+        expect(resolvePresentation(def, snapshot()).sections[0].widgets[0]).to.deep.include({
+            id: "derived-widget",
+            state: "ready",
+            handleId: "h1",
+            contract: "rowset/1",
+            derivedSourceId: "slow-tests-top",
+        });
+
+        const cyclic = structuredClone(def);
+        cyclic.derivedSources[0].from = { kind: "derived", sourceId: "slow-tests-top" };
+        expect(validatePresentationDefinition(cyclic)).to.equal(undefined);
+
+        const tooDeep = structuredClone(def);
+        tooDeep.derivedSources[0].pipeline.steps = Array.from({ length: 11 }, () => ({
+            op: "limit" as const,
+            count: 5,
+        }));
+        tooDeep.derivedSources[1].pipeline.steps = Array.from({ length: 10 }, () => ({
+            op: "limit" as const,
+            count: 5,
+        }));
+        expect(validatePresentationDefinition(tooDeep)).to.equal(undefined);
+
+        const executable = structuredClone(def) as unknown as {
+            derivedSources: Array<{ pipeline: { steps: unknown[] } }>;
+        };
+        executable.derivedSources[0].pipeline.steps = [{ op: "javascript", code: "alert(1)" }];
+        expect(validatePresentationDefinition(executable)).to.equal(undefined);
     });
 
     test("upsertOutputPin creates, re-pins, and clears without touching authored widgets", () => {

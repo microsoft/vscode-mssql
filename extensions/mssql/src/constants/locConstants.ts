@@ -205,6 +205,9 @@ export class RunbookStudio {
         "No Hobbes runtime executable is configured. Set mssql.runbookStudio.hobbesRuntimePath (or the MSSQL_HOBBES_RUNTIME environment variable) to the runtime executable.",
     );
     public static dataExpired = l10n.t("The detail data for this output has expired.");
+    public static presentationTransformFailed = l10n.t(
+        "This derived result could not be produced from the retained output. Review its field mappings and transform steps.",
+    );
     public static parameterRequired = (label: string) =>
         l10n.t({
             message: "Parameter '{0}' is required.",

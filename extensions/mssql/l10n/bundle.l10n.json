@@ -117,6 +117,7 @@
     },
     "No Hobbes runtime executable is configured. Set mssql.runbookStudio.hobbesRuntimePath (or the MSSQL_HOBBES_RUNTIME environment variable) to the runtime executable.": "No Hobbes runtime executable is configured. Set mssql.runbookStudio.hobbesRuntimePath (or the MSSQL_HOBBES_RUNTIME environment variable) to the runtime executable.",
     "The detail data for this output has expired.": "The detail data for this output has expired.",
+    "This derived result could not be produced from the retained output. Review its field mappings and transform steps.": "This derived result could not be produced from the retained output. Review its field mappings and transform steps.",
     "Parameter '{0}' is required./{0} is a parameter label": {
         "message": "Parameter '{0}' is required.",
         "comment": ["{0} is a parameter label"]

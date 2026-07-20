@@ -22,6 +22,7 @@ import * as constants from "../constants/constants";
 import { config } from "../configurations/config";
 import { RunbookStudio as LocRunbookStudio } from "../constants/locConstants";
 import { Perf } from "../perf/perfTelemetry";
+import type { TransformPipeline } from "../sharedInterfaces/runbookPresentation";
 import {
     RbsError,
     RbsEvidenceExportFormat,
@@ -651,11 +652,35 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
 
     public async fetchOutputPage(
         _model: RunbookStudioDocumentModel,
-        page: { handleId: string; startRow: number; rowCount: number },
+        page: {
+            handleId: string;
+            startRow: number;
+            rowCount: number;
+            pipeline?: TransformPipeline;
+        },
     ): Promise<OutputPageResult> {
         const context = newRunbookRootContext("fetch");
         Perf.marker("mssql.runbookStudio.output.fetch.begin", "begin", undefined, context.traceId);
-        const result = this.resultStore.fetchPage(page.handleId, page.startRow, page.rowCount);
+        const result = page.pipeline
+            ? this.resultStore.fetchTransformedPage(
+                  page.handleId,
+                  page.pipeline,
+                  page.startRow,
+                  page.rowCount,
+              )
+            : this.resultStore.fetchPage(page.handleId, page.startRow, page.rowCount);
+        if (result && "transformError" in result) {
+            Perf.marker("mssql.runbookStudio.output.fetch.end", "end", {
+                rows: 0,
+                cacheHit: true,
+            });
+            return {
+                error: {
+                    code: "RunbookStudio.PresentationInvalid",
+                    message: LocRunbookStudio.presentationTransformFailed,
+                },
+            };
+        }
         Perf.marker(
             "mssql.runbookStudio.output.fetch.end",
             "end",
@@ -3317,6 +3342,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 epochMs: Date.now(),
                 runState: event.state,
                 ...(event.verdict ? { outcome: event.verdict } : {}),
+                ...(event.runMetrics ? { runMetrics: event.runMetrics } : {}),
                 ...(event.errorCode
                     ? {
                           error: {

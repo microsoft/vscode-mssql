@@ -13,6 +13,7 @@
 import {
     compatibleViews,
     defaultViewFor,
+    DerivedSourceDefinition,
     isViewCompatible,
     LegacyPresentationDefinition,
     OutputSchemaDescriptor,
@@ -36,6 +37,7 @@ import {
     ViewSpec,
     viewCandidates,
     WidgetBinding,
+    TransformPipeline,
 } from "../../sharedInterfaces/runbookPresentation";
 import {
     DataHandleRef,
@@ -43,6 +45,7 @@ import {
     RunbookRunSnapshot,
 } from "../../sharedInterfaces/runbookStudio";
 import { isTerminalNodeState, isTerminalRunState } from "../runbookRunModel";
+import { validateTransformPipeline } from "./presentationTransforms";
 
 const VIEW_KINDS: ReadonlySet<string> = new Set<ViewKind>([
     "grid",
@@ -77,6 +80,8 @@ const SECTION_ROLES: ReadonlySet<string> = new Set<SectionRole>([
     "overflow",
 ]);
 const PROVENANCE_KINDS = new Set(["default", "ai", "user", "migration"]);
+const MAX_DERIVED_SOURCES = 100;
+const MAX_COMPOSED_TRANSFORM_STEPS = 20;
 
 export const DEFAULT_PRESENTATION_LAYOUT: ResponsiveLayoutPolicy = {
     breakpoints: [
@@ -877,9 +882,15 @@ function validSource(source: unknown): boolean {
         case "run-field":
             return typeof source.field === "string" && RUN_FIELDS.has(source.field);
         case "run-metric":
-            return typeof source.key === "string";
+            return (
+                typeof source.key === "string" && source.key.length > 0 && source.key.length <= 256
+            );
         case "derived":
-            return typeof source.sourceId === "string";
+            return (
+                typeof source.sourceId === "string" &&
+                source.sourceId.length > 0 &&
+                source.sourceId.length <= 256
+            );
         default:
             return false;
     }
@@ -964,6 +975,67 @@ function validateV2(raw: Record<string, unknown>): PresentationDefinition | unde
         widgetIds.add(widget.id);
     }
 
+    if (raw.derivedSources.length > MAX_DERIVED_SOURCES) {
+        return undefined;
+    }
+    const derivedIds = new Set<string>();
+    const derivedById = new Map<string, DerivedSourceDefinition>();
+    for (const source of raw.derivedSources) {
+        if (
+            !isRecord(source) ||
+            typeof source.id !== "string" ||
+            source.id.length === 0 ||
+            source.id.length > 256 ||
+            derivedIds.has(source.id) ||
+            !validSource(source.from) ||
+            !validateTransformPipeline(source.pipeline) ||
+            typeof source.authoredContract !== "string" ||
+            source.authoredContract.length === 0 ||
+            !isRecord(source.provenance) ||
+            !PROVENANCE_KINDS.has(String(source.provenance.by))
+        ) {
+            return undefined;
+        }
+        derivedIds.add(source.id);
+        derivedById.set(source.id, source as unknown as DerivedSourceDefinition);
+    }
+    for (const widget of raw.results.widgets) {
+        const source = (widget as unknown as WidgetBinding).source;
+        if (source.kind === "derived" && !derivedIds.has(source.sourceId)) {
+            return undefined;
+        }
+    }
+    const visiting = new Set<string>();
+    const composedStepCounts = new Map<string, number>();
+    const visitDerived = (id: string): number | undefined => {
+        if (visiting.has(id)) {
+            return undefined;
+        }
+        const knownCount = composedStepCounts.get(id);
+        if (knownCount !== undefined) {
+            return knownCount;
+        }
+        const source = derivedById.get(id);
+        if (!source) {
+            return undefined;
+        }
+        visiting.add(id);
+        const parentCount = source.from.kind === "derived" ? visitDerived(source.from.sourceId) : 0;
+        visiting.delete(id);
+        if (parentCount === undefined) {
+            return undefined;
+        }
+        const count = parentCount + source.pipeline.steps.length;
+        if (count > MAX_COMPOSED_TRANSFORM_STEPS) {
+            return undefined;
+        }
+        composedStepCounts.set(id, count);
+        return count;
+    };
+    if ([...derivedIds].some((id) => visitDerived(id) === undefined)) {
+        return undefined;
+    }
+
     const layout = raw.results.layout;
     if (
         !Array.isArray(layout.breakpoints) ||
@@ -1027,7 +1099,7 @@ export function resolvePresentation(
         if (binding.source.kind === "activity-output") {
             boundOutputs.add(`${binding.source.nodeId}\u0000${binding.source.slot}`);
         }
-        if (!visibilityAllows(binding, snapshot, nodesById)) {
+        if (!visibilityAllows(binding, definition, snapshot, nodesById)) {
             continue;
         }
         if (
@@ -1039,7 +1111,7 @@ export function resolvePresentation(
         const sectionId = knownSectionIds.has(binding.sectionId)
             ? binding.sectionId
             : (overflowSectionId ?? binding.sectionId);
-        const resolved = resolveBinding(binding, sectionId, snapshot, nodesById);
+        const resolved = resolveBinding(binding, sectionId, definition, snapshot, nodesById);
         const widgets = widgetsBySection.get(sectionId) ?? [];
         widgets.push(resolved);
         widgetsBySection.set(sectionId, widgets);
@@ -1106,6 +1178,7 @@ export function resolvePresentation(
  * count cannot be promoted to ready/non-empty by guesswork. */
 function visibilityAllows(
     binding: WidgetBinding,
+    definition: PresentationDefinition,
     snapshot: RunbookRunSnapshot | undefined,
     nodesById: Map<string, RunbookNodeSnapshot>,
 ): boolean {
@@ -1130,9 +1203,14 @@ function visibilityAllows(
         return policy.values.includes(verdict);
     }
     if (binding.source.kind !== "activity-output") {
+        if (binding.source.kind === "derived") {
+            const derived = resolveDerivedSourcePlan(definition, binding.source.sourceId, snapshot);
+            return policy.when === "source-ready" && derived.state === "ready";
+        }
+        if (binding.source.kind === "run-metric") {
+            return resolveRunMetric(binding.source.key, snapshot).state === "ready";
+        }
         if (binding.source.kind !== "run-field") {
-            // Metric and derived materialization remain separate evaluator
-            // slices. Until then, do not claim they are ready/non-empty.
             return false;
         }
         const runField = resolveRunField(binding.source.field, snapshot);
@@ -1178,6 +1256,7 @@ function resolvedUnboundOutput(
 function resolveBinding(
     binding: WidgetBinding,
     sectionId: string,
+    definition: PresentationDefinition,
     snapshot: RunbookRunSnapshot | undefined,
     nodesById: Map<string, RunbookNodeSnapshot>,
 ): ResolvedWidget {
@@ -1203,6 +1282,28 @@ function resolveBinding(
     if (binding.source.kind === "run-field") {
         return resolveRunFieldBinding(binding, binding.source.field, sectionId, snapshot);
     }
+    if (binding.source.kind === "run-metric") {
+        return resolveRunMetricBinding(binding, binding.source.key, sectionId, snapshot);
+    }
+    if (binding.source.kind === "derived") {
+        const source = resolveDerivedSourcePlan(definition, binding.source.sourceId, snapshot);
+        if (source.state !== "ready" && source.state !== "expired") {
+            return { ...common, state: source.state };
+        }
+        const node = nodesById.get(source.nodeId);
+        if (!node) {
+            return { ...common, state: "sourceMissing" };
+        }
+        return {
+            ...resolveWidgetWithOutput(binding, sectionId, node, {
+                handleId: source.handleId,
+                contract: source.contract,
+                ...(source.state === "expired" ? { expired: true } : {}),
+            }),
+            nodeId: binding.id,
+            derivedSourceId: binding.source.sourceId,
+        };
+    }
     if (binding.source.kind !== "activity-output") {
         return { ...common, state: "sourceMissing" };
     }
@@ -1215,6 +1316,92 @@ function resolveBinding(
         return { ...common, state: isTerminalNodeState(node.state) ? "noOutput" : "pending" };
     }
     return resolveWidgetWithOutput(binding, sectionId, node, output);
+}
+
+export type ResolvedDerivedSourcePlan =
+    | {
+          state: "ready" | "expired";
+          handleId: string;
+          nodeId: string;
+          contract: string;
+          pipeline: TransformPipeline;
+      }
+    | { state: "pending" | "noOutput" | "sourceMissing" };
+
+/** Resolve a derived source to one durable base handle plus a composed pure
+ * pipeline. This is shared by presentation resolution and the controller's
+ * page-request authorization; no payload is read here. */
+export function resolveDerivedSourcePlan(
+    definition: PresentationDefinition,
+    sourceId: string,
+    snapshot: RunbookRunSnapshot | undefined,
+): ResolvedDerivedSourcePlan {
+    if (!snapshot) {
+        return { state: "sourceMissing" };
+    }
+    const sources = new Map(definition.derivedSources.map((source) => [source.id, source]));
+    const nodes = new Map(snapshot.nodes.map((node) => [node.nodeId, node]));
+    const resolve = (
+        source: DerivedSourceDefinition,
+        visiting: Set<string>,
+    ): ResolvedDerivedSourcePlan => {
+        if (visiting.has(source.id)) {
+            return { state: "sourceMissing" };
+        }
+        const nextVisiting = new Set(visiting).add(source.id);
+        if (source.from.kind === "derived") {
+            const parent = sources.get(source.from.sourceId);
+            if (!parent) {
+                return { state: "sourceMissing" };
+            }
+            const resolved = resolve(parent, nextVisiting);
+            return resolved.state === "ready" || resolved.state === "expired"
+                ? {
+                      ...resolved,
+                      contract: source.authoredContract,
+                      pipeline: {
+                          steps: [...resolved.pipeline.steps, ...source.pipeline.steps],
+                      },
+                  }
+                : resolved;
+        }
+        if (source.from.kind !== "activity-output") {
+            return { state: "sourceMissing" };
+        }
+        const node = nodes.get(source.from.nodeId);
+        if (!node) {
+            return { state: "sourceMissing" };
+        }
+        const output = outputForSlot(node.outputs ?? [], source.from.slot);
+        if (!output) {
+            return { state: isTerminalNodeState(node.state) ? "noOutput" : "pending" };
+        }
+        return {
+            state: output.expired ? "expired" : "ready",
+            handleId: output.handleId,
+            nodeId: node.nodeId,
+            contract: source.authoredContract,
+            pipeline: { steps: [...source.pipeline.steps] },
+        };
+    };
+    const source = sources.get(sourceId);
+    return source ? resolve(source, new Set()) : { state: "sourceMissing" };
+}
+
+function resolveRunMetric(
+    key: string,
+    snapshot: RunbookRunSnapshot | undefined,
+):
+    | { state: "ready"; value: string | number | boolean }
+    | { state: "pending" | "noOutput" | "sourceMissing" } {
+    if (!snapshot) {
+        return { state: "sourceMissing" };
+    }
+    const value = snapshot.runMetrics?.[key];
+    if (value !== undefined) {
+        return { state: "ready", value };
+    }
+    return { state: isTerminalRunState(snapshot.state) ? "noOutput" : "pending" };
 }
 
 function resolveRunField(
@@ -1307,6 +1494,64 @@ function resolveRunFieldBinding(
         provenance: binding.provenance,
         contract,
         ...(value.state === "ready" ? { runField: { field, value: value.value } } : {}),
+        ...(!requestedCompatible
+            ? { drift: { requestedView: requested.kind, reason: "contractIncompatible" as const } }
+            : {}),
+    };
+}
+
+function resolveRunMetricBinding(
+    binding: WidgetBinding,
+    key: string,
+    sectionId: string,
+    snapshot: RunbookRunSnapshot | undefined,
+): ResolvedWidget {
+    const contract = "scalarSet/1";
+    const requested = defaultViewSpec(binding);
+    const compatible = binding.views.filter((view) => isViewCompatible(contract, view.kind));
+    const requestedCompatible = isViewCompatible(contract, requested.kind);
+    const fallback = requestedCompatible
+        ? undefined
+        : (compatible[0] ?? createViewSpec(defaultViewFor(contract), `${binding.id}:fallback`));
+    const active = requestedCompatible ? requested : fallback!;
+    const views = [
+        ...binding.views,
+        ...(fallback && !binding.views.some((view) => view.id === fallback.id) ? [fallback] : []),
+    ].map((view) => {
+        const compatibleView = isViewCompatible(contract, view.kind);
+        return {
+            id: view.id,
+            kind: view.kind,
+            ...(view.title ? { title: view.title } : {}),
+            ...(!compatibleView
+                ? {
+                      issue: {
+                          viewId: view.id,
+                          code: "CONTRACT_KIND_CHANGED" as const,
+                          message: `Run metric '${key}' is not compatible with ${view.kind}.`,
+                          fallbackViewId: active.id,
+                      },
+                  }
+                : {}),
+            ...(rendererSettingsOf(view) ? { settings: rendererSettingsOf(view) } : {}),
+        };
+    });
+    const value = resolveRunMetric(key, snapshot);
+    return {
+        id: binding.id,
+        title: active.title ?? binding.id,
+        nodeId: binding.id,
+        state: value.state,
+        view: active.kind,
+        views,
+        presentation: binding.presentation,
+        defaultViewId: binding.defaultViewId,
+        activeViewId: active.id,
+        sectionId,
+        ...(binding.placement ? { placement: binding.placement } : {}),
+        provenance: binding.provenance,
+        contract,
+        ...(value.state === "ready" ? { runMetric: { key, value: value.value } } : {}),
         ...(!requestedCompatible
             ? { drift: { requestedView: requested.kind, reason: "contractIncompatible" as const } }
             : {}),
