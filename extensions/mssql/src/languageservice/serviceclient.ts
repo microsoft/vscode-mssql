@@ -451,6 +451,10 @@ export default class SqlToolsServiceClient {
             LanguageServiceContracts.StatusChangedNotification.type,
             this.handleLanguageServiceStatusNotification(),
         );
+        client.onNotification(
+            LanguageServiceContracts.SqlToolsServiceTelemetryNotification.type,
+            this.handleSqlToolsServiceTelemetryNotification(),
+        );
 
         return client;
     }
@@ -487,6 +491,20 @@ export default class SqlToolsServiceClient {
                 );
             }
             this._statusView.languageServiceStatusChanged(event.ownerUri, event.status);
+        };
+    }
+
+    /**
+     * Public for testing purposes only.
+     */
+    public handleSqlToolsServiceTelemetryNotification(): NotificationHandler<LanguageServiceContracts.SqlToolsServiceTelemetryParams> {
+        return (event: LanguageServiceContracts.SqlToolsServiceTelemetryParams): void => {
+            sendActionEvent(
+                TelemetryViews.QueryEditor,
+                event.params.eventName,
+                event.params.properties ?? {},
+                event.params.measures ?? {},
+            );
         };
     }
 

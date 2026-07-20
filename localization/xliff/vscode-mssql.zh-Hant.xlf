@@ -2516,7 +2516,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++dfc42cab83fbac4fe6fa1922367034eb24905e5540deef714d06396fb60dbe31">
         <source xml:lang="en">Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.</source>
-        <target state="new">Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.</target>
+        <target state="translated">建立及管理常用查詢的鍵盤快速鍵，以及查詢編輯器和結果方格的動作，以探索可用的命令並更有效率地執行它們。</target>
       </trans-unit>
       <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
         <source xml:lang="en">Create as Script</source>
@@ -9049,7 +9049,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++222422dd74a5bec73da386f3e436f2ab2f949669b387d61a3a442868c3c908fc">
         <source xml:lang="en">Shortcuts Configuration</source>
-        <target state="new">Shortcuts Configuration</target>
+        <target state="translated">快速鍵設定</target>
       </trans-unit>
       <trans-unit id="++CODE++0f1b94abd66e64f81ea87f920176dbbbd52464f63ca0c67e770a12a2dfb4d4ba">
         <source xml:lang="en">Shortcuts Configuration (Preview)</source>
@@ -12353,7 +12353,7 @@ See the estimated plan without running the query, or view the actual query plan 
       </trans-unit>
       <trans-unit id="mssql.format.enablePreviewFormatter">
         <source xml:lang="en">Use the preview SQL formatter.</source>
-        <target state="new">Use the preview SQL formatter.</target>
+        <target state="translated">使用預覽 SQL 格式器。</target>
       </trans-unit>
       <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
         <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>

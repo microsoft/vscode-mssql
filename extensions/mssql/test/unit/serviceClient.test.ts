@@ -17,6 +17,7 @@ import { PlatformInformation, Runtime } from "../../src/models/platform";
 import StatusView from "../../src/views/statusView";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import { Logger } from "../../src/models/logger";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import { stubTelemetry, stubVscodeEnv } from "./utils";
 
 chai.use(sinonChai);
@@ -41,6 +42,7 @@ suite("Service Client tests", () => {
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
     let loggerShowStub: sinon.SinonStub;
     let dotnetRuntimeProvider: sinon.SinonStubbedInstance<DotnetRuntimeProvider>;
+    let sendActionEvent: sinon.SinonStub;
     let originalStsOverride: string | undefined;
 
     setup(() => {
@@ -49,7 +51,7 @@ suite("Service Client tests", () => {
         testStatusView = sandbox.createStubInstance(StatusView);
         loggerShowStub = sandbox.stub(Logger.prototype, "show");
         dotnetRuntimeProvider = sandbox.createStubInstance(DotnetRuntimeProvider);
-        stubTelemetry(sandbox);
+        ({ sendActionEvent } = stubTelemetry(sandbox));
         originalStsOverride = process.env.MSSQL_SQLTOOLSSERVICE;
         delete process.env.MSSQL_SQLTOOLSSERVICE;
     });
@@ -110,6 +112,41 @@ suite("Service Client tests", () => {
             },
         );
     }
+
+    test("forwards SQL Tools Service telemetry", () => {
+        const serviceClient = createServiceClient();
+        const event: LanguageServiceContracts.SqlToolsServiceTelemetryParams = {
+            params: {
+                eventName: TelemetryActions.FormatCode,
+                properties: { FormatterImplementation: "ScriptDom" },
+                measures: { FormatterDurationMs: 12.5 },
+            },
+        };
+
+        serviceClient.handleSqlToolsServiceTelemetryNotification()(event);
+
+        expect(sendActionEvent).to.have.been.calledWithExactly(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.FormatCode,
+            event.params.properties,
+            event.params.measures,
+        );
+    });
+
+    test("forwards SQL Tools Service telemetry without optional data", () => {
+        const serviceClient = createServiceClient();
+
+        serviceClient.handleSqlToolsServiceTelemetryNotification()({
+            params: { eventName: TelemetryActions.PeekDefinitionRequested },
+        });
+
+        expect(sendActionEvent).to.have.been.calledWithExactly(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.PeekDefinitionRequested,
+            {},
+            {},
+        );
+    });
 
     function stubLaunches(
         serviceClient: SqlToolsServiceClient,
