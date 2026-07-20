@@ -5,14 +5,16 @@
 
 /**
  * Executable coverage audit for representative workflows from
- * "Hobbes for SQL Developers in VS Code". This intentionally distinguishes
- * the small end-to-end slice that works today from workflows that still need
- * typed activities; adding a capability should require updating this audit.
+ * "Hobbes for SQL Developers in VS Code". Claims here are intentionally
+ * narrower than the scenario titles: catalog presence proves an executable
+ * primitive, while the guarded fake run proves the landed V02 correctness
+ * core as one composed contract. Unsupported operations stay explicit so a
+ * UI or planner change cannot accidentally claim complete CI/CD support.
  */
 
 import { expect } from "chai";
 import { findActivity } from "../../src/runbookStudio/activities/activityCatalog";
-import { createFixtureRunbookArtifact } from "../../src/runbookStudio/runbookArtifact";
+import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudio/developerValidationPreview";
 import { newRunbookRootContext } from "../../src/runbookStudio/runbookDiag";
 import { FakeRuntimeAdapter } from "../../src/runbookStudio/runtime/fakeRuntimeAdapter";
 import {
@@ -35,14 +37,69 @@ class ScenarioObserver implements RuntimeEventObserver {
     onExit(): void {}
 }
 
-const representativeScenarios = [
+const landedScenarioClaims = [
+    {
+        id: "V01",
+        scope: "build/discover/assert/evidence inner-loop core",
+        activities: [
+            "workspace.inspect",
+            "sqltest.discover",
+            "dacpac.build",
+            "sqltest.run",
+            "evidence.bundle",
+        ],
+    },
+    {
+        id: "B14",
+        scope: "approval-bound owned localhost sandbox lifecycle",
+        activities: ["sandbox.provision", "sandbox.dispose"],
+    },
+    {
+        id: "V02",
+        scope: "local pre-merge correctness core",
+        activities: [
+            "workspace.inspect",
+            "sqltest.discover",
+            "dacpac.build",
+            "sandbox.provision",
+            "dacpac.deploy.preview",
+            "dacpac.deploy",
+            "schema.compare",
+            "sqltest.run",
+            "tsqlt.run",
+            "sandbox.dispose",
+            "evidence.bundle",
+        ],
+    },
+    {
+        id: "V10",
+        scope: "DACPAC-to-owned-target schema convergence",
+        activities: [
+            "dacpac.build",
+            "sandbox.provision",
+            "dacpac.deploy.preview",
+            "dacpac.deploy",
+            "schema.compare",
+            "sandbox.dispose",
+        ],
+    },
+    {
+        id: "V15",
+        scope: "bounded SQL invariant and threshold evidence",
+        activities: ["sql.query.read", "assert.threshold", "evidence.bundle"],
+    },
+    {
+        id: "I25",
+        scope: "workspace and read-only database health evidence",
+        activities: ["workspace.inspect", "sql.query.read", "evidence.bundle"],
+    },
+] as const;
+
+const unsupportedScenarioClaims = [
     { id: "B01", title: "Scaffold new application DB", missing: "db.project.scaffold" },
-    { id: "B14", title: "Provision local/ephemeral DB", missing: "db.sandbox.provision" },
+    { id: "B04", title: "Author FK and supporting indexes", missing: "db.schema.apply" },
     { id: "B16", title: "Constraint-aware sample data", missing: "data.generate.constraint-aware" },
-    { id: "B04", title: "FK relationship + supporting indexes", missing: "db.schema.apply" },
-    { id: "V02", title: "Full pre-merge verification", missing: "db.project.build" },
     { id: "V06", title: "Upgrade previous release", missing: "db.upgrade.validate" },
-    { id: "V10", title: "Schema drift", missing: "db.schema.compare" },
     { id: "V17", title: "Performance regression benchmark", missing: "workload.benchmark" },
     { id: "V20", title: "Security and permissions", missing: "security.permissions.validate" },
     { id: "I01", title: "Query latency regression", missing: "perf.baseline.compare" },
@@ -54,58 +111,114 @@ const representativeScenarios = [
     },
 ] as const;
 
-suite("developer scenario smoke", () => {
-    test("runs the current V01, V15, and I25 read-only slices through results", async () => {
-        for (const scenario of [
-            { id: "V01", title: "Fast inner-loop check" },
-            { id: "V15", title: "Data-quality invariant" },
-            { id: "I25", title: "Developer environment health" },
-        ]) {
-            const adapter = new FakeRuntimeAdapter();
-            const artifact = createFixtureRunbookArtifact();
-            artifact.id = scenario.id.toLowerCase();
-            artifact.name = scenario.title;
-            artifact.source.intent = scenario.title;
-            const validation = await adapter.validate(
-                artifact,
-                newRunbookRootContext(`scenario-${scenario.id}`),
-            );
-            expect(validation.ok, scenario.id).to.equal(true);
+async function waitForEvent(
+    observer: ScenarioObserver,
+    predicate: (event: RuntimeBoundaryEvent) => boolean,
+): Promise<RuntimeBoundaryEvent> {
+    const deadline = Date.now() + 2_000;
+    while (Date.now() < deadline) {
+        const event = observer.events.find(predicate);
+        if (event) {
+            return event;
+        }
+        await new Promise<void>((resolve) => setTimeout(resolve, 1));
+    }
+    throw new Error("Timed out waiting for the developer scenario event");
+}
 
-            const observer = new ScenarioObserver();
+suite("developer scenario smoke", () => {
+    test("keeps six landed scenario slices anchored to executable catalog activities", () => {
+        expect(landedScenarioClaims).to.have.length(6);
+        for (const scenario of landedScenarioClaims) {
+            for (const activity of scenario.activities) {
+                const descriptor = findActivity(activity);
+                expect(descriptor, `${scenario.id} ${scenario.scope}: ${activity}`).not.to.equal(
+                    undefined,
+                );
+                expect(descriptor?.previewOnly, `${scenario.id} ${activity}`).not.to.equal(true);
+            }
+        }
+    });
+
+    test("runs the composed V02 correctness core through approvals, cleanup, and evidence", async () => {
+        const adapter = new FakeRuntimeAdapter();
+        const observer = new ScenarioObserver();
+        const artifact = createDeveloperValidationPreviewArtifact();
+        const context = newRunbookRootContext("scenario-v02-core");
+        try {
+            expect((await adapter.validate(artifact, context)).ok).to.equal(true);
             await adapter.startRun(
                 {
-                    runId: `scenario-${scenario.id}`,
+                    runId: "scenario-v02-core",
                     artifact,
-                    parameterValues: { target: "synthetic", maxCount: 100 },
+                    parameterValues: {
+                        projectPath: "Database.sqlproj",
+                        sandboxConnection: "preview-profile",
+                    },
                 },
                 observer,
-                newRunbookRootContext(`scenario-${scenario.id}`),
+                context,
             );
+            await waitForEvent(
+                observer,
+                (event) => event.kind === "gateRequested" && event.nodeId === "approve-sandbox",
+            );
+            expect(
+                await adapter.respondToGate("scenario-v02-core", "approve-sandbox", true, context),
+            ).to.equal(true);
+            await waitForEvent(
+                observer,
+                (event) => event.kind === "gateRequested" && event.nodeId === "approve-deploy",
+            );
+            expect(
+                await adapter.respondToGate("scenario-v02-core", "approve-deploy", true, context),
+            ).to.equal(true);
             await observer.terminal;
 
-            const terminal = observer.events.find((event) => event.kind === "terminal");
+            const succeeded = observer.events.filter(
+                (event): event is Extract<RuntimeBoundaryEvent, { kind: "nodeState" }> =>
+                    event.kind === "nodeState" && event.state === "succeeded",
+            );
+            const contracts = succeeded
+                .map((event) => event.output?.contract)
+                .filter((contract): contract is string => contract !== undefined);
+            expect(contracts).to.include.members([
+                "workspaceSnapshot/1",
+                "testSuiteDiscovery/1",
+                "dacpacArtifact/1",
+                "databaseLease/1",
+                "deploymentPreview/1",
+                "deploymentEvidence/1",
+                "schemaDiff/1",
+                "testResults/1",
+                "cleanupEvidence/1",
+                "evidenceBundle/1",
+            ]);
+            expect(contracts.indexOf("cleanupEvidence/1")).to.be.lessThan(
+                contracts.indexOf("evidenceBundle/1"),
+            );
+            const terminal = observer.events.find(
+                (event): event is Extract<RuntimeBoundaryEvent, { kind: "terminal" }> =>
+                    event.kind === "terminal",
+            );
             expect(terminal).to.include({ state: "succeeded", verdict: "pass" });
-            expect(
-                observer.events.some(
-                    (event) => event.kind === "nodeState" && event.output?.contract === "rowset/1",
-                ),
-                `${scenario.id} rowset evidence`,
-            ).to.equal(true);
-            expect(
-                observer.events.some(
-                    (event) =>
-                        event.kind === "nodeState" && event.output?.contract === "markdown/1",
-                ),
-                `${scenario.id} report evidence`,
-            ).to.equal(true);
+            expect(terminal?.diagnosticCounts).to.deep.equal({ warningCount: 0, errorCount: 0 });
+            expect(terminal?.runMetrics).to.deep.include({
+                "workspace.projectCount": 1,
+                "tests.discovered": 2,
+                "deployment.previewChangeCount": 3,
+                "schema.matches": true,
+                "sqlTests.passed": 2,
+                "cleanup.completed": true,
+            });
+        } finally {
             await adapter.dispose();
         }
     });
 
-    test("records the missing typed capability for twelve broader workflows", () => {
-        expect(representativeScenarios).to.have.length(12);
-        for (const scenario of representativeScenarios) {
+    test("keeps nine unsupported scenario operations design-only", () => {
+        expect(unsupportedScenarioClaims).to.have.length(9);
+        for (const scenario of unsupportedScenarioClaims) {
             expect(
                 findActivity(scenario.missing),
                 `${scenario.id} ${scenario.title} unexpectedly claims executable support`,
