@@ -36,7 +36,12 @@ import { PlannerConsoleTurn, PlannerFeedEntry, useRbs } from "./state";
 import { displayOrder, PlanStepper } from "./planStepper";
 import { PlanGraphView } from "./graphView";
 import { ResolvedWidgetView } from "./widgets";
-import { mergePresentationLayoutEdits } from "./presentationDraft";
+import {
+    mergePresentationLayoutEdits,
+    presentationLayoutSnapshot,
+    PresentationLayoutConflict,
+    rebasePresentationLayoutEdits,
+} from "./presentationDraft";
 
 const ROUTES: Array<{ id: RbsRoute; label: () => string; icon: string }> = [
     { id: "author", label: () => locConstants.runbookStudio.author, icon: "✎" },
@@ -1463,6 +1468,10 @@ type PresentationDraftTarget =
           scenario: "clean" | "blockingErrors" | "approvalRejected";
       };
 
+type PresentationDraftConflict =
+    | { kind: "stale" }
+    | { kind: "overlap"; conflicts: PresentationLayoutConflict[] };
+
 function usePresentationDraft(
     basePresentation: ResolvedPresentation | undefined,
     target: PresentationDraftTarget | undefined,
@@ -1478,6 +1487,7 @@ function usePresentationDraft(
     const currentRevision = state?.artifact?.presentationRevision ?? 0;
     const [draftEdits, setDraftEdits] = useState<PresentationLayoutEdit[]>([]);
     const [draftBaseRevision, setDraftBaseRevision] = useState<number | undefined>();
+    const [draftBaseline, setDraftBaseline] = useState<PresentationLayoutEdit[]>();
     const [draftPresentation, setDraftPresentation] = useState<ResolvedPresentation | undefined>();
     const [runOnlyEdits, setRunOnlyEdits] = useState<PresentationLayoutEdit[]>([]);
     const [runOnlyPresentation, setRunOnlyPresentation] = useState<
@@ -1485,13 +1495,17 @@ function usePresentationDraft(
     >();
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<"invalid" | "targetMissing" | undefined>();
-    const [conflict, setConflict] = useState(false);
+    const [conflict, setConflict] = useState<PresentationDraftConflict>();
     const requestSequence = useRef(0);
     const targetKey = target ? JSON.stringify(target) : undefined;
     const hostRunOnlyEdits =
         target?.kind === "run" && state?.presentationOverlay?.runId === target.runId
             ? state.presentationOverlay.edits
             : [];
+    const currentLayoutSnapshot = useMemo(
+        () => presentationLayoutSnapshot(basePresentation, state?.artifact?.outputPresentations),
+        [basePresentation, state?.artifact?.outputPresentations],
+    );
 
     const resolveEdits = useCallback(
         async (
@@ -1517,7 +1531,7 @@ function usePresentationDraft(
                 return true;
             }
             if (result.reason === "revisionConflict") {
-                setConflict(true);
+                setConflict({ kind: "stale" });
             } else {
                 setError(result.reason === "targetMissing" ? "targetMissing" : "invalid");
             }
@@ -1530,18 +1544,19 @@ function usePresentationDraft(
         requestSequence.current++;
         setDraftEdits([]);
         setDraftBaseRevision(undefined);
+        setDraftBaseline(undefined);
         setDraftPresentation(undefined);
         setRunOnlyEdits([]);
         setRunOnlyPresentation(undefined);
         setError(undefined);
-        setConflict(false);
+        setConflict(undefined);
     }, [resetKey]);
 
     useEffect(() => {
         if (draftEdits.length > 0 && draftBaseRevision !== undefined) {
             setDraftPresentation(undefined);
             if (draftBaseRevision !== currentRevision) {
-                setConflict(true);
+                setConflict({ kind: "stale" });
             } else {
                 void resolveEdits(draftEdits, draftBaseRevision, "draft");
             }
@@ -1549,7 +1564,7 @@ function usePresentationDraft(
             setRunOnlyPresentation(undefined);
             void resolveEdits(runOnlyEdits, currentRevision, "runOnly");
         }
-    }, [targetKey]);
+    }, [currentRevision, targetKey]);
 
     const stageEdits = useCallback(
         (changes: PresentationLayoutEdit[]) => {
@@ -1570,6 +1585,9 @@ function usePresentationDraft(
                     changes,
                 );
                 const revision = draftBaseRevision ?? currentRevision;
+                if (draftBaseline === undefined) {
+                    setDraftBaseline(currentLayoutSnapshot);
+                }
                 setDraftBaseRevision(revision);
                 void resolveEdits(next, revision, "draft");
                 return next;
@@ -1578,6 +1596,8 @@ function usePresentationDraft(
         [
             conflict,
             currentRevision,
+            currentLayoutSnapshot,
+            draftBaseline,
             draftBaseRevision,
             hostRunOnlyEdits,
             resolveEdits,
@@ -1590,9 +1610,10 @@ function usePresentationDraft(
         requestSequence.current++;
         setDraftEdits([]);
         setDraftBaseRevision(undefined);
+        setDraftBaseline(undefined);
         setDraftPresentation(undefined);
         setError(undefined);
-        setConflict(false);
+        setConflict(undefined);
     }, []);
 
     const applyToRun = useCallback(async () => {
@@ -1612,7 +1633,7 @@ function usePresentationDraft(
                     return true;
                 }
                 if (result.reason === "revisionConflict") {
-                    setConflict(true);
+                    setConflict({ kind: "stale" });
                 } else {
                     setError(result.reason === "targetMissing" ? "targetMissing" : "invalid");
                 }
@@ -1656,7 +1677,7 @@ function usePresentationDraft(
                 return true;
             }
             if (result.reason === "revisionConflict") {
-                setConflict(true);
+                setConflict({ kind: "stale" });
             } else {
                 setError("invalid");
             }
@@ -1667,20 +1688,58 @@ function usePresentationDraft(
     }, [applyPresentationLayout, draftBaseRevision, draftEdits, resetDraft, resetRunOnly]);
 
     const rebase = useCallback(async () => {
-        if (draftEdits.length === 0) {
+        if (draftEdits.length === 0 || draftBaseline === undefined) {
             return;
         }
         setSaving(true);
         try {
-            const resolved = await resolveEdits(draftEdits, currentRevision, "draft");
+            const rebased = rebasePresentationLayoutEdits(
+                draftBaseline,
+                currentLayoutSnapshot,
+                draftEdits,
+            );
+            if (rebased.conflicts.length > 0) {
+                setConflict({ kind: "overlap", conflicts: rebased.conflicts });
+                return;
+            }
+            const resolved = await resolveEdits(rebased.edits, currentRevision, "draft");
             if (resolved) {
+                setDraftEdits(rebased.edits);
                 setDraftBaseRevision(currentRevision);
-                setConflict(false);
+                setDraftBaseline(currentLayoutSnapshot);
+                setConflict(undefined);
             }
         } finally {
             setSaving(false);
         }
-    }, [currentRevision, draftEdits, resolveEdits]);
+    }, [currentLayoutSnapshot, currentRevision, draftBaseline, draftEdits, resolveEdits]);
+
+    const overwriteConflicts = useCallback(async () => {
+        if (
+            conflict?.kind !== "overlap" ||
+            conflict.conflicts.some((entry) => entry.fields.includes("node")) ||
+            draftBaseline === undefined
+        ) {
+            return;
+        }
+        setSaving(true);
+        try {
+            const rebased = rebasePresentationLayoutEdits(
+                draftBaseline,
+                currentLayoutSnapshot,
+                draftEdits,
+            );
+            const resolved = await resolveEdits(rebased.edits, currentRevision, "draft");
+            if (resolved) {
+                setDraftEdits(rebased.edits);
+                setDraftBaseRevision(currentRevision);
+                setDraftBaseline(currentLayoutSnapshot);
+                setConflict(undefined);
+            }
+        } finally {
+            setSaving(false);
+        }
+    }, [conflict, currentLayoutSnapshot, currentRevision, draftBaseline, draftEdits, resolveEdits]);
 
     return {
         presentation: draftPresentation ?? runOnlyPresentation ?? basePresentation,
@@ -1688,13 +1747,18 @@ function usePresentationDraft(
         runOnly: runOnlyEdits.length > 0 || hostRunOnlyEdits.length > 0,
         saving,
         error,
-        conflict,
+        conflict: conflict !== undefined,
+        conflictDetail: conflict,
+        canOverwriteConflicts:
+            conflict?.kind === "overlap" &&
+            !conflict.conflicts.some((entry) => entry.fields.includes("node")),
         stageEdits,
         resetDraft,
         resetRunOnly,
         applyToRun,
         saveToRunbook,
         rebase,
+        overwriteConflicts,
     };
 }
 
@@ -1706,6 +1770,32 @@ function PresentationDraftBanner({
     previewOnly?: boolean;
 }) {
     const loc = locConstants.runbookStudio;
+    const conflictFieldLabel = (field: PresentationLayoutConflict["fields"][number]): string => {
+        switch (field) {
+            case "node":
+                return loc.layoutConflictWidgetRemoved;
+            case "widgetId":
+                return loc.layoutConflictWidgetIdentity;
+            case "defaultView":
+                return loc.layoutConflictDefaultView;
+            case "sectionId":
+                return loc.layoutConflictSection;
+            case "hidden":
+                return loc.layoutConflictVisibility;
+            case "placement.order":
+                return loc.layoutConflictOrder;
+            case "placement.span.compact":
+                return loc.layoutConflictCompactWidth;
+            case "placement.span.medium":
+                return loc.layoutConflictMediumWidth;
+            case "placement.span.wide":
+                return loc.layoutConflictWideWidth;
+            case "placement.minHeight":
+                return loc.layoutConflictMinimumHeight;
+            case "placement.priority":
+                return loc.layoutConflictPriority;
+        }
+    };
     if (!draft.pending && !draft.runOnly) {
         return null;
     }
@@ -1716,20 +1806,50 @@ function PresentationDraftBanner({
                     {draft.pending ? loc.layoutChangesPending : loc.layoutRunOnlyApplied}
                 </strong>
                 {draft.conflict ? (
-                    <div className="rbs-error-text">{loc.layoutRevisionConflict}</div>
+                    <div className="rbs-error-text">
+                        {draft.conflictDetail?.kind === "overlap"
+                            ? loc.layoutOverlapConflict(
+                                  draft.conflictDetail.conflicts.reduce(
+                                      (count, entry) => count + entry.fields.length,
+                                      0,
+                                  ),
+                              )
+                            : loc.layoutRevisionConflict}
+                        {draft.conflictDetail?.kind === "overlap" ? (
+                            <ul className="rbs-layout-conflict-list">
+                                {draft.conflictDetail.conflicts.map((entry) => (
+                                    <li key={entry.nodeId}>
+                                        {loc.layoutConflictItem(
+                                            entry.nodeId,
+                                            entry.fields.map(conflictFieldLabel).join(", "),
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : null}
+                    </div>
                 ) : null}
                 {draft.error ? (
                     <div className="rbs-error-text">{loc.layoutPreviewFailed}</div>
                 ) : null}
             </div>
             <div className="rbs-spacer" />
-            {draft.conflict ? (
+            {draft.conflictDetail?.kind === "stale" ? (
                 <button
                     type="button"
                     className="rbs-btn"
                     disabled={draft.saving}
                     onClick={() => void draft.rebase()}>
                     {loc.rebaseLayout}
+                </button>
+            ) : null}
+            {draft.conflictDetail?.kind === "overlap" && draft.canOverwriteConflicts ? (
+                <button
+                    type="button"
+                    className="rbs-btn rbs-btn-danger"
+                    disabled={draft.saving}
+                    onClick={() => void draft.overwriteConflicts()}>
+                    {loc.overwriteLayoutConflicts}
                 </button>
             ) : null}
             {draft.pending && !draft.conflict ? (

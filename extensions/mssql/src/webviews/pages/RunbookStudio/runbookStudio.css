@@ -311,6 +311,12 @@
     background: var(--vscode-editorWidget-background);
 }
 
+.rbs-layout-conflict-list {
+    margin: 5px 0 0;
+    padding-left: 18px;
+    color: var(--vscode-foreground);
+}
+
 .rbs-layout-controls label {
     display: inline-flex;
     align-items: center;
@@ -451,6 +457,15 @@
     background: var(--vscode-button-background);
     color: var(--vscode-button-foreground);
     padding: 4px 14px;
+}
+
+.rbs-btn-danger {
+    background: var(
+        --vscode-inputValidation-errorBackground,
+        var(--vscode-button-secondaryBackground)
+    );
+    border-color: var(--vscode-inputValidation-errorBorder, var(--vscode-button-border));
+    color: var(--vscode-errorForeground);
 }
 
 .rbs-btn-primary:disabled {

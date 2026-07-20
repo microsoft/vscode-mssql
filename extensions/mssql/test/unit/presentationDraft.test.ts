@@ -4,7 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { mergePresentationLayoutEdits } from "../../src/webviews/pages/RunbookStudio/presentationDraft";
+import {
+    mergePresentationLayoutEdits,
+    presentationLayoutSnapshot,
+    rebasePresentationLayoutEdits,
+} from "../../src/webviews/pages/RunbookStudio/presentationDraft";
 import { PresentationLayoutEdit } from "../../src/sharedInterfaces/runbookPresentation";
 
 function edit(nodeId: string, order: number, hidden = false): PresentationLayoutEdit {
@@ -37,6 +41,67 @@ suite("presentationDraft", () => {
             ["summary", 2],
             ["query", 1],
             ["tests", 0],
+        ]);
+    });
+
+    test("three-way rebase preserves non-overlapping upstream fields", () => {
+        const base = edit("query", 0);
+        const local = { ...base, sectionId: "details" };
+        const upstream = {
+            ...base,
+            placement: { ...base.placement, span: { compact: 1, medium: 4, wide: 8 } },
+        };
+        const result = rebasePresentationLayoutEdits([base], [upstream], [local]);
+        expect(result.conflicts).to.deep.equal([]);
+        expect(result.edits).to.deep.equal([
+            {
+                ...upstream,
+                sectionId: "details",
+            },
+        ]);
+    });
+
+    test("three-way rebase reports only differently overlapping fields", () => {
+        const base = edit("query", 0);
+        const local = { ...base, sectionId: "details", hidden: true };
+        const upstream = { ...base, sectionId: "appendix", hidden: true };
+        const result = rebasePresentationLayoutEdits([base], [upstream], [local]);
+        expect(result.conflicts).to.deep.equal([{ nodeId: "query", fields: ["sectionId"] }]);
+        expect(result.edits[0]).to.include({ sectionId: "details", hidden: true });
+    });
+
+    test("three-way rebase refuses a widget removed upstream", () => {
+        const base = edit("query", 0);
+        const result = rebasePresentationLayoutEdits(
+            [base],
+            [],
+            [{ ...base, sectionId: "details" }],
+        );
+        expect(result.conflicts).to.deep.equal([{ nodeId: "query", fields: ["node"] }]);
+    });
+
+    test("layout snapshot retains persisted hidden widgets", () => {
+        const snapshot = presentationLayoutSnapshot(undefined, {
+            query: {
+                widgetId: "query-widget",
+                views: ["grid"],
+                defaultView: "grid",
+                presentation: { mode: "single" },
+                setByUser: true,
+                sectionId: "details",
+                placement: { order: 2 },
+                hidden: true,
+            },
+        });
+        expect(snapshot).to.deep.equal([
+            {
+                nodeId: "query",
+                widgetId: "query-widget",
+                defaultView: "grid",
+                sectionId: "details",
+                placement: { order: 2 },
+                hidden: true,
+            },
         ]);
     });
 });

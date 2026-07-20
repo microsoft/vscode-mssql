@@ -3615,6 +3615,34 @@ export class LocConstants {
             layoutRevisionConflict: l10n.t(
                 "The runbook layout changed after customization started. Rebase to preview these edits against the current version, or reset them.",
             ),
+            layoutOverlapConflict: (count: number) =>
+                l10n.t({
+                    message:
+                        "Rebase found {0} field conflict(s). Review the conflicting output fields, keep your values explicitly, or reset the staged changes.",
+                    args: [count],
+                    comment: ["{0} is the number of conflicting presentation fields"],
+                }),
+            layoutConflictItem: (nodeId: string, fields: string) =>
+                l10n.t({
+                    message: "{0}: {1}",
+                    args: [nodeId, fields],
+                    comment: [
+                        "{0} is a runbook plan node id",
+                        "{1} is a comma-separated list of conflicting presentation field identifiers",
+                    ],
+                }),
+            layoutConflictWidgetRemoved: l10n.t("output removed"),
+            layoutConflictWidgetIdentity: l10n.t("output identity"),
+            layoutConflictDefaultView: l10n.t("default view"),
+            layoutConflictSection: l10n.t("section"),
+            layoutConflictVisibility: l10n.t("visibility"),
+            layoutConflictOrder: l10n.t("order"),
+            layoutConflictCompactWidth: l10n.t("compact width"),
+            layoutConflictMediumWidth: l10n.t("medium width"),
+            layoutConflictWideWidth: l10n.t("wide width"),
+            layoutConflictMinimumHeight: l10n.t("minimum height"),
+            layoutConflictPriority: l10n.t("priority"),
+            overwriteLayoutConflicts: l10n.t("Keep my conflicting values"),
             layoutPreviewFailed: l10n.t("The staged layout could not be previewed."),
             layoutSaveFailed: l10n.t(
                 "The layout changed or this edit is no longer valid. Review the latest layout and try again.",

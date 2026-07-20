@@ -4576,6 +4576,9 @@
     <trans-unit id="++CODE++29b39d81b8651e8717f85c00002b2b087bafb969eb289ac991fa41b17522e775">
       <source xml:lang="en">Keep in query pane</source>
     </trans-unit>
+    <trans-unit id="++CODE++c5df84b5c1a338d2e09852ffba39d673e6afa5b7bc6a0271b822785b68de1c26">
+      <source xml:lang="en">Keep my conflicting values</source>
+    </trans-unit>
     <trans-unit id="++CODE++99a52df3ff3d499488e2fa28150c4106a2cb5e928891a830a9aa3922b2d32160">
       <source xml:lang="en">Key</source>
     </trans-unit>
@@ -6630,6 +6633,10 @@
     </trans-unit>
     <trans-unit id="++CODE++9eb5b275c3a0fa435a84d0bf601d77c45ff5d942fa17e16c000b257d20cc605e">
       <source xml:lang="en">Rebase</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3f3848b08d71b27bc40fe798abad182f5c45b31e82d7af2d2fd2f6b4347c4848">
+      <source xml:lang="en">Rebase found {0} field conflict(s). Review the conflicting output fields, keep your values explicitly, or reset the staged changes.</source>
+      <note>{0} is the number of conflicting presentation fields</note>
     </trans-unit>
     <trans-unit id="++CODE++d6bd9538d6bb10c32df905940dd1cb32f14c67545e860f9be1d3097a62cdc404">
       <source xml:lang="en">Rebase on current runbook</source>
@@ -9667,6 +9674,9 @@
     <trans-unit id="++CODE++730473cdc8202fffdf7bb6d256ddd5e4261d1f87f7e89140ab2883e38fc4c797">
       <source xml:lang="en">binding required</source>
     </trans-unit>
+    <trans-unit id="++CODE++47fd4807c7fc13831d1cf089339a9788374db42ef0a5a5b2232462bcc153382e">
+      <source xml:lang="en">compact width</source>
+    </trans-unit>
     <trans-unit id="++CODE++3a2f0f1dd1fb48018c94e4c71fb334e5df808fec85ecca716db7834d3bef637a">
       <source xml:lang="en">compiled v{0}</source>
       <note>{0} is a plan revision number</note>
@@ -9679,6 +9689,9 @@
     </trans-unit>
     <trans-unit id="++CODE++37a8eec1ce19687d132fe29051dca629d164e2c4958ba141d5f4133a33f0688f">
       <source xml:lang="en">default</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d282a873825e31f5d12936bf4fc52000992be423fad779a68897562f1f6bc4af">
+      <source xml:lang="en">default view</source>
     </trans-unit>
     <trans-unit id="++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03">
       <source xml:lang="en">delete the saved connection: {0}?</source>
@@ -9745,6 +9758,12 @@
     <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
       <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
     </trans-unit>
+    <trans-unit id="++CODE++bbb2c65d3ecd163278d07969f068d31f8e6783a0f0701ca388231af9d508a8d8">
+      <source xml:lang="en">medium width</source>
+    </trans-unit>
+    <trans-unit id="++CODE++236b0c58df0ebbb949e0c3b62152886540d015ce19da1603688b96603ec08269">
+      <source xml:lang="en">minimum height</source>
+    </trans-unit>
     <trans-unit id="++CODE++10617d30f38e16b600a8b1f5cee26f8fd9aa146f18ea7649c25fb6dd9f5814e2">
       <source xml:lang="en">model {0}</source>
       <note>{0} is a model identifier</note>
@@ -9780,8 +9799,20 @@
     <trans-unit id="++CODE++7175517a370b5cd2e664e3fd29c4ea9db5ce17058eb9772fe090a5485e49dad6">
       <source xml:lang="en">or</source>
     </trans-unit>
+    <trans-unit id="++CODE++3eeb7e96e59ce40f9cb1a089daba079fd699f6867a30f6634af8570967b2375a">
+      <source xml:lang="en">order</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a29ccb6e8e7f622ed2a61b257227f6c6efb990be47e770fe41a86ff81e6dbe9d">
+      <source xml:lang="en">output identity</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9d13eacfb1a28a13841bc3f8f6099899abfa95376c457ecd8d17e59a6d4f95ea">
+      <source xml:lang="en">output removed</source>
+    </trans-unit>
     <trans-unit id="++CODE++fdf8725a10ac51a045849e27e508be68c40eec79ce3696734e1bf6f740280d37">
       <source xml:lang="en">policy blocked</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3092a5f0dba05ff3cadc3c2c8eeacd47940b1837f9534bc559d19d8435c8b219">
+      <source xml:lang="en">priority</source>
     </trans-unit>
     <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
       <source xml:lang="en">profiler_events</source>
@@ -9797,6 +9828,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c071cf5f5ed6f884cc70155b6f05f755fd46a302d05e4261b7e92ce878bbfed8">
       <source xml:lang="en">running</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3fb45623cb3075a8af9a2f81ef3beaa4038541cd71f08e4bf6c79c088f7a4026">
+      <source xml:lang="en">section</source>
     </trans-unit>
     <trans-unit id="++CODE++b3eacd33433b31b5252351032c9b3e7a2e7aa7738d5decdf0dd6c62680853c06">
       <source xml:lang="en">server</source>
@@ -9839,6 +9873,12 @@
     </trans-unit>
     <trans-unit id="++CODE++cd42404d52ad55ccfa9aca4adc828aa5800ad9d385a0671fbcbf724118320619">
       <source xml:lang="en">value</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7d2fb3da93a013ce41e4eb531e0bb78e245939e05984a6a8dea49113becc347c">
+      <source xml:lang="en">visibility</source>
+    </trans-unit>
+    <trans-unit id="++CODE++829d00b4b9a14211d6bb08d9be6b2d45eed911bcffae76a86826b5084fc8d4e7">
+      <source xml:lang="en">wide width</source>
     </trans-unit>
     <trans-unit id="++CODE++dd5ace9e018dbd62336cbe039916ad7c817d0e9bc9934f70d67f3ff75544da88">
       <source xml:lang="en">working</source>
@@ -10131,6 +10171,11 @@
     <trans-unit id="++CODE++0e4e17db5444ca9044df0967a4cb1cf74b4b906c65abc091feee77da17bda1bb">
       <source xml:lang="en">{0}/{1} events</source>
       <note>{0} is the filtered count, {1} is the total count</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4298c03fa97785ec85baadacf903e723c7f8dccc670c2b250fdc92c0e62cf1aa">
+      <source xml:lang="en">{0}: {1}</source>
+      <note>{0} is a runbook plan node id
+{1} is a comma-separated list of conflicting presentation field identifiers</note>
     </trans-unit>
     <trans-unit id="++CODE++a2d133c4fbcb2f605ecd460e6639e824d6bc388d75b5df672fd4cbf95d1e71f9">
       <source xml:lang="en">{0}: {1}</source>

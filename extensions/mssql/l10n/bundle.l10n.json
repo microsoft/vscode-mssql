@@ -4686,6 +4686,29 @@
     "Save to runbook": "Save to runbook",
     "Rebase on current runbook": "Rebase on current runbook",
     "The runbook layout changed after customization started. Rebase to preview these edits against the current version, or reset them.": "The runbook layout changed after customization started. Rebase to preview these edits against the current version, or reset them.",
+    "Rebase found {0} field conflict(s). Review the conflicting output fields, keep your values explicitly, or reset the staged changes./{0} is the number of conflicting presentation fields": {
+        "message": "Rebase found {0} field conflict(s). Review the conflicting output fields, keep your values explicitly, or reset the staged changes.",
+        "comment": ["{0} is the number of conflicting presentation fields"]
+    },
+    "{0}: {1}/{0} is a runbook plan node id{1} is a comma-separated list of conflicting presentation field identifiers": {
+        "message": "{0}: {1}",
+        "comment": [
+            "{0} is a runbook plan node id",
+            "{1} is a comma-separated list of conflicting presentation field identifiers"
+        ]
+    },
+    "output removed": "output removed",
+    "output identity": "output identity",
+    "default view": "default view",
+    "section": "section",
+    "visibility": "visibility",
+    "order": "order",
+    "compact width": "compact width",
+    "medium width": "medium width",
+    "wide width": "wide width",
+    "minimum height": "minimum height",
+    "priority": "priority",
+    "Keep my conflicting values": "Keep my conflicting values",
     "The staged layout could not be previewed.": "The staged layout could not be previewed.",
     "The layout changed or this edit is no longer valid. Review the latest layout and try again.": "The layout changed or this edit is no longer valid. Review the latest layout and try again.",
     "Intent": "Intent",
