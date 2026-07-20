@@ -204,12 +204,19 @@ suite("developer scenario smoke", () => {
             expect(terminal).to.include({ state: "succeeded", verdict: "pass" });
             expect(terminal?.diagnosticCounts).to.deep.equal({ warningCount: 0, errorCount: 0 });
             expect(terminal?.runMetrics).to.deep.include({
+                "workspace.folderCount": 1,
                 "workspace.projectCount": 1,
                 "tests.discovered": 2,
+                "tests.discoveryComplete": true,
+                "build.artifactSizeBytes": 84 * 1024,
+                "sandbox.provisioned": true,
                 "deployment.previewChangeCount": 3,
+                "deployment.applied": true,
+                "schema.alertCount": 0,
                 "schema.matches": true,
                 "sqlTests.passed": 2,
                 "cleanup.completed": true,
+                "evidence.verdict": "pass",
             });
         } finally {
             await adapter.dispose();

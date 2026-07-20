@@ -604,7 +604,11 @@ function executeNode(
         case "workspace.inspect":
             return {
                 success: true,
-                runMetrics: { "workspace.projectCount": 1 },
+                runMetrics: {
+                    "workspace.folderCount": 1,
+                    "workspace.projectCount": 1,
+                    "workspace.truncated": false,
+                },
                 message: "1 database project (deterministic preview)",
                 output: {
                     contract: "workspaceSnapshot/1",
@@ -622,7 +626,12 @@ function executeNode(
         case "sqltest.discover":
             return {
                 success: true,
-                runMetrics: { "tests.discovered": 2 },
+                runMetrics: {
+                    "tests.discovered": 2,
+                    "tests.discoveredClassCount": 1,
+                    "tests.scannedSqlFileCount": 2,
+                    "tests.discoveryComplete": true,
+                },
                 message: "2 tSQLt tests discovered (deterministic preview)",
                 output: {
                     contract: "testSuiteDiscovery/1",
@@ -663,7 +672,12 @@ function executeNode(
             }
             return {
                 success: true,
-                runMetrics: { "build.warningCount": 0, "build.errorCount": 0 },
+                runMetrics: {
+                    "build.artifactSizeBytes": 84 * 1024,
+                    "build.diagnosticCount": 0,
+                    "build.warningCount": 0,
+                    "build.errorCount": 0,
+                },
                 diagnosticCounts: { warningCount: 0, errorCount: 0 },
                 message: "DACPAC build contract passed (deterministic preview)",
                 output: {
@@ -689,6 +703,7 @@ function executeNode(
             }
             return {
                 success: true,
+                runMetrics: { "sandbox.provisioned": true },
                 message: "Ephemeral lease created (deterministic preview)",
                 output: {
                     contract: "databaseLease/1",
@@ -760,7 +775,10 @@ function executeNode(
             }
             return {
                 success: true,
-                runMetrics: { "deployment.postDeployChangeCount": 0 },
+                runMetrics: {
+                    "deployment.applied": true,
+                    "deployment.postDeployChangeCount": 0,
+                },
                 message: "DACPAC deployed (deterministic preview)",
                 output: {
                     contract: "deploymentEvidence/1",
@@ -787,7 +805,11 @@ function executeNode(
             }
             return {
                 success: true,
-                runMetrics: { "schema.changeCount": 0, "schema.matches": true },
+                runMetrics: {
+                    "schema.alertCount": 0,
+                    "schema.changeCount": 0,
+                    "schema.matches": true,
+                },
                 message: "Schema matches DACPAC (deterministic preview)",
                 output: {
                     contract: "schemaDiff/1",
@@ -919,7 +941,10 @@ function executeNode(
                 success: true,
                 runMetrics: {
                     "evidence.nodeCount": bundle.nodeCount,
+                    "evidence.passedNodeCount": bundle.passedNodeCount,
                     "evidence.failedNodeCount": bundle.failedNodeCount,
+                    "evidence.handleCount": bundle.evidenceHandleCount,
+                    "evidence.verdict": bundle.verdict,
                 },
                 verdict: bundle.verdict === "pass" ? "pass" : "fail",
                 message: "Evidence manifest assembled (deterministic preview)",

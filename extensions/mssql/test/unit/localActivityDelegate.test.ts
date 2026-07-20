@@ -187,6 +187,11 @@ suite("Runbook Studio local activity delegate", () => {
             truncated: true,
             executionMode: "local",
         });
+        expect(result?.runMetrics).to.deep.equal({
+            "workspace.folderCount": 2,
+            "workspace.projectCount": 2,
+            "workspace.truncated": true,
+        });
         expect(result?.values).to.deep.equal({ projectCount: 2 });
     });
 
@@ -207,6 +212,12 @@ suite("Runbook Studio local activity delegate", () => {
             tSqltTestCount: 1,
             complete: true,
             truncated: false,
+        });
+        expect(result?.runMetrics).to.deep.equal({
+            "tests.discovered": 1,
+            "tests.discoveredClassCount": 1,
+            "tests.scannedSqlFileCount": 2,
+            "tests.discoveryComplete": true,
         });
         expect(result?.values).to.deep.equal({
             tSqltClassCount: 1,
@@ -243,6 +254,7 @@ suite("Runbook Studio local activity delegate", () => {
             complete: false,
             truncated: true,
         });
+        expect(result?.runMetrics).to.deep.include({ "tests.discoveryComplete": false });
         expect(result?.values?.complete).to.equal(false);
     });
 
@@ -286,6 +298,8 @@ suite("Runbook Studio local activity delegate", () => {
             diagnosticCount: 0,
         });
         expect(result?.runMetrics).to.deep.equal({
+            "build.artifactSizeBytes": 4096,
+            "build.diagnosticCount": 0,
             "build.warningCount": 0,
             "build.errorCount": 0,
         });
@@ -360,6 +374,7 @@ suite("Runbook Studio local activity delegate", () => {
             binding((value) => (value === "$params.sandbox" ? "profile-id" : value)),
         );
         expect(provision?.success).to.equal(true);
+        expect(provision?.runMetrics).to.deep.equal({ "sandbox.provisioned": true });
         expect(provision?.output?.contract).to.equal("databaseLease/1");
         expect(provision?.values?.connectionRef).to.match(/^runbook-sql-lease:effect-/);
         expect(provision?.output?.scalars).to.include({
@@ -406,6 +421,10 @@ suite("Runbook Studio local activity delegate", () => {
             binding(resolve),
         );
         expect(deploy?.success).to.equal(true);
+        expect(deploy?.runMetrics).to.deep.equal({
+            "deployment.applied": true,
+            "deployment.postDeployChangeCount": 0,
+        });
         expect(deploy?.output?.contract).to.equal("deploymentEvidence/1");
         expect(deploy?.output?.scalars).to.include({
             operationId: "deploy-op",
@@ -422,6 +441,11 @@ suite("Runbook Studio local activity delegate", () => {
             binding(resolve),
         );
         expect(verify?.success).to.equal(true);
+        expect(verify?.runMetrics).to.deep.equal({
+            "schema.alertCount": 0,
+            "schema.changeCount": 0,
+            "schema.matches": true,
+        });
         expect(verify?.output?.contract).to.equal("schemaDiff/1");
         expect(verify?.values).to.deep.include({ matches: true, changeCount: 0 });
     });
@@ -698,7 +722,10 @@ suite("Runbook Studio local activity delegate", () => {
         });
         expect(result?.runMetrics).to.deep.equal({
             "evidence.nodeCount": 10,
+            "evidence.passedNodeCount": 10,
             "evidence.failedNodeCount": 0,
+            "evidence.handleCount": 8,
+            "evidence.verdict": "pass",
         });
     });
 

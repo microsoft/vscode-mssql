@@ -266,7 +266,11 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             );
             return {
                 success: true,
-                runMetrics: { "workspace.projectCount": projectPaths.length },
+                runMetrics: {
+                    "workspace.folderCount": snapshot.workspaceFolderCount,
+                    "workspace.projectCount": projectPaths.length,
+                    "workspace.truncated": snapshot.truncated === true,
+                },
                 message: LocRunbookStudio.workspaceProjectsFound(projectPaths.length),
                 output: {
                     contract: "workspaceSnapshot/1",
@@ -290,9 +294,20 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
     }): Promise<NodeExecution> {
         try {
             const result = await this.operations.discoverSqlTests(binding.isCancellationRequested);
+            const discoveryComplete =
+                !result.truncated &&
+                result.skippedOversizedFileCount === 0 &&
+                result.skippedByteBudgetFileCount === 0 &&
+                result.unsafePathFileCount === 0 &&
+                result.unreadableFileCount === 0;
             return {
                 success: true,
-                runMetrics: { "tests.discovered": result.tests.length },
+                runMetrics: {
+                    "tests.discovered": result.tests.length,
+                    "tests.discoveredClassCount": result.tSqltClassCount,
+                    "tests.scannedSqlFileCount": result.scannedSqlFileCount,
+                    "tests.discoveryComplete": discoveryComplete,
+                },
                 message: LocRunbookStudio.sqlTestsDiscovered(
                     result.tests.length,
                     result.tSqltClassCount,
@@ -319,12 +334,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                         tSqltSourceFileCount: result.tSqltSourceFileCount,
                         tSqltTestCount: result.tests.length,
                         duplicateDefinitionCount: result.duplicateDefinitionCount,
-                        complete:
-                            !result.truncated &&
-                            result.skippedOversizedFileCount === 0 &&
-                            result.skippedByteBudgetFileCount === 0 &&
-                            result.unsafePathFileCount === 0 &&
-                            result.unreadableFileCount === 0,
+                        complete: discoveryComplete,
                         truncated: result.truncated,
                         executionMode: "local",
                     },
@@ -332,12 +342,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 values: {
                     tSqltClassCount: result.tSqltClassCount,
                     tSqltTestCount: result.tests.length,
-                    complete:
-                        !result.truncated &&
-                        result.skippedOversizedFileCount === 0 &&
-                        result.skippedByteBudgetFileCount === 0 &&
-                        result.unsafePathFileCount === 0 &&
-                        result.unreadableFileCount === 0,
+                    complete: discoveryComplete,
                 },
             };
         } catch (error) {
@@ -368,6 +373,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             return {
                 success: true,
                 runMetrics: {
+                    "build.artifactSizeBytes": result.artifactSizeBytes,
+                    "build.diagnosticCount": result.diagnosticCount,
                     "build.warningCount": result.warningCount,
                     "build.errorCount": result.errorCount,
                 },
@@ -555,6 +562,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             );
             return {
                 success: true,
+                runMetrics: { "sandbox.provisioned": true },
                 message: LocRunbookStudio.sandboxProvisioned(result.databaseName),
                 output: {
                     contract: "databaseLease/1",
@@ -614,6 +622,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             return {
                 success: true,
                 runMetrics: {
+                    "deployment.applied": true,
                     "deployment.postDeployChangeCount": result.postDeployChangeCount,
                 },
                 message: LocRunbookStudio.dacpacDeployed(result.databaseName),
@@ -668,6 +677,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             return {
                 success: result.matches,
                 runMetrics: {
+                    "schema.alertCount": result.alertCount,
                     "schema.changeCount": result.changeCount,
                     "schema.matches": result.matches,
                 },
@@ -993,7 +1003,10 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 verdict: result.verdict === "pass" ? "pass" : "fail",
                 runMetrics: {
                     "evidence.nodeCount": result.nodeCount,
+                    "evidence.passedNodeCount": result.passedNodeCount,
                     "evidence.failedNodeCount": result.failedNodeCount,
+                    "evidence.handleCount": result.evidenceHandleCount,
+                    "evidence.verdict": result.verdict,
                 },
                 message:
                     result.verdict === "pass"
