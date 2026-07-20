@@ -481,6 +481,7 @@ function hasEdge(edges: RunbookPlanEdge[], from: string, when: RunbookPlanEdge["
 const PREVIEW_ACTIVITY_KINDS = new Set([
     "workspace.inspect",
     "sqltest.discover",
+    "tsqlt.run",
     "dacpac.build",
     "sandbox.provision",
     "dacpac.deploy.preview",
@@ -758,6 +759,50 @@ function executeNode(
                     },
                 },
                 values: { total: 2, passed: 2, failed: 0, allPassed: true },
+            };
+        }
+        case "tsqlt.run": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const suite = resolveBind(node.inputs?.suite, parameterValues, nodeValues);
+            const test = resolveBind(node.inputs?.test, parameterValues, nodeValues);
+            if (
+                typeof database !== "string" ||
+                (suite !== undefined && typeof suite !== "string") ||
+                (test !== undefined && typeof test !== "string") ||
+                (typeof test === "string" && typeof suite !== "string")
+            ) {
+                return invalidPreviewBinding("tsqlt.run", "database/suite/test");
+            }
+            return {
+                success: true,
+                verdict: "pass",
+                message: "2 tSQLt tests passed (deterministic preview)",
+                output: {
+                    contract: "testResults/1",
+                    columns: ["suite", "test", "result", "message", "durationMs"],
+                    rows: [
+                        ["OrderTests", "test total is correct", "passed", "", 12],
+                        ["OrderTests", "test customer is required", "passed", "", 9],
+                    ],
+                    scalars: {
+                        total: 2,
+                        passed: 2,
+                        failed: 0,
+                        errors: 0,
+                        skipped: 0,
+                        allPassed: true,
+                        truncatedMessageCount: 0,
+                        preview: true,
+                    },
+                },
+                values: {
+                    total: 2,
+                    passed: 2,
+                    failed: 0,
+                    errors: 0,
+                    skipped: 0,
+                    allPassed: true,
+                },
             };
         }
         case "sandbox.dispose": {

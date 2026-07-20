@@ -215,6 +215,21 @@
         "message": "All {0} SQL test(s) passed.",
         "comment": ["{0} is a SQL test count"]
     },
+    "All tSQLt checks passed ({0} passed, {1} skipped)./{0} is a passed test count{1} is a skipped test count": {
+        "message": "All tSQLt checks passed ({0} passed, {1} skipped).",
+        "comment": ["{0} is a passed test count", "{1} is a skipped test count"]
+    },
+    "tSQLt failed ({0} failures, {1} errors, {2} total)./{0} is a failed test count{1} is an errored test count{2} is a total test count": {
+        "message": "tSQLt failed ({0} failures, {1} errors, {2} total).",
+        "comment": [
+            "{0} is a failed test count",
+            "{1} is an errored test count",
+            "{2} is a total test count"
+        ]
+    },
+    "tSQLt execution was cancelled before the stored-procedure boundary.": "tSQLt execution was cancelled before the stored-procedure boundary.",
+    "tSQLt execution is allowed only on an ownership-verified disposable database from this run.": "tSQLt execution is allowed only on an ownership-verified disposable database from this run.",
+    "The tSQLt execution outcome is unknown; cleanup or recovery must settle the disposable database.": "The tSQLt execution outcome is unknown; cleanup or recovery must settle the disposable database.",
     "{0} of {1} SQL test(s) failed./{0} is the failed count{1} is the total count": {
         "message": "{0} of {1} SQL test(s) failed.",
         "comment": ["{0} is the failed count", "{1} is the total count"]

@@ -379,6 +379,31 @@ export class RunbookStudio {
             args: [count],
             comment: ["{0} is a SQL test count"],
         });
+    public static tsqltTestsPassed = (passed: number, skipped: number) =>
+        l10n.t({
+            message: "All tSQLt checks passed ({0} passed, {1} skipped).",
+            args: [passed, skipped],
+            comment: ["{0} is a passed test count", "{1} is a skipped test count"],
+        });
+    public static tsqltTestsFailed = (failed: number, errors: number, total: number) =>
+        l10n.t({
+            message: "tSQLt failed ({0} failures, {1} errors, {2} total).",
+            args: [failed, errors, total],
+            comment: [
+                "{0} is a failed test count",
+                "{1} is an errored test count",
+                "{2} is a total test count",
+            ],
+        });
+    public static tsqltExecutionCancelled = l10n.t(
+        "tSQLt execution was cancelled before the stored-procedure boundary.",
+    );
+    public static tsqltOwnedSandboxRequired = l10n.t(
+        "tSQLt execution is allowed only on an ownership-verified disposable database from this run.",
+    );
+    public static tsqltExecutionFailed = l10n.t(
+        "The tSQLt execution outcome is unknown; cleanup or recovery must settle the disposable database.",
+    );
     public static sqlTestsFailed = (failed: number, total: number) =>
         l10n.t({
             message: "{0} of {1} SQL test(s) failed.",

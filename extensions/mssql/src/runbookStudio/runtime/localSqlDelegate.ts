@@ -27,6 +27,12 @@ import {
     NodeExecution,
 } from "./fakeRuntimeAdapter";
 import type { LocalEvidenceBundleResult } from "./localEvidenceBundle";
+import {
+    LocalTsqltContractError,
+    LocalTsqltSelection,
+    normalizeLocalTsqltSelection,
+    parseLocalTsqltResult,
+} from "./localTsqlt";
 
 export { isReadOnlySql } from "../readOnlySql";
 
@@ -42,6 +48,13 @@ export interface LocalSqlOperations {
     disconnect(ownerUri: string): Promise<void>;
     inspectWorkspace(): Promise<LocalWorkspaceSnapshot>;
     discoverSqlTests(isCancellationRequested: () => boolean): Promise<LocalSqlTestDiscoveryResult>;
+    runTsqlt(
+        nodeId: string,
+        databaseRef: string,
+        selection: LocalTsqltSelection,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<mssql.SimpleExecuteResult>;
     buildDacpac(
         projectPath: string,
         isCancellationRequested: () => boolean,
@@ -190,6 +203,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
     public readonly supportedActivityKinds = new Set([
         "workspace.inspect",
         "sqltest.discover",
+        "tsqlt.run",
         "dacpac.build",
         "sandbox.provision",
         "dacpac.deploy.preview",
@@ -217,6 +231,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.inspectWorkspace();
             case "sqltest.discover":
                 return this.discoverSqlTests(binding);
+            case "tsqlt.run":
+                return this.executeTsqlt(node, binding);
             case "dacpac.build":
                 return this.buildDacpac(node, binding);
             case "sandbox.provision":
@@ -847,6 +863,79 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         }
     }
 
+    private async executeTsqlt(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        try {
+            const selection = normalizeLocalTsqltSelection(
+                binding.resolveBind(node.inputs?.suite),
+                binding.resolveBind(node.inputs?.test),
+            );
+            if (binding.isCancellationRequested()) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.tsqltExecutionCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            const raw = await this.operations.runTsqlt(
+                node.id,
+                databaseRef.trim(),
+                selection,
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            const result = parseLocalTsqltResult(raw);
+            return {
+                success: result.allPassed,
+                verdict: result.allPassed ? "pass" : "fail",
+                message: result.allPassed
+                    ? LocRunbookStudio.tsqltTestsPassed(result.passed, result.skipped)
+                    : LocRunbookStudio.tsqltTestsFailed(result.failed, result.errors, result.total),
+                ...(!result.allPassed ? { errorCode: "RunbookStudio.TsqltTestsFailed" } : {}),
+                output: {
+                    contract: "testResults/1",
+                    columns: ["suite", "test", "result", "message", "durationMs"],
+                    rows: result.tests.map((test) => [
+                        test.suite,
+                        test.name,
+                        test.result,
+                        test.message,
+                        test.durationMs,
+                    ]),
+                    scalars: {
+                        total: result.total,
+                        passed: result.passed,
+                        failed: result.failed,
+                        errors: result.errors,
+                        skipped: result.skipped,
+                        allPassed: result.allPassed,
+                        truncatedMessageCount: result.truncatedMessageCount,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    total: result.total,
+                    passed: result.passed,
+                    failed: result.failed,
+                    errors: result.errors,
+                    skipped: result.skipped,
+                    allPassed: result.allPassed,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
     private async bundleEvidence(
         node: RunbookPlanNode,
         binding: {
@@ -966,7 +1055,9 @@ function activityFailure(error: unknown): NodeExecution {
         success: false,
         message: error instanceof Error ? error.message : "activity failed",
         errorCode:
-            error instanceof LocalActivityError ? error.errorCode : "RunbookStudio.ActivityFailed",
+            error instanceof LocalActivityError || error instanceof LocalTsqltContractError
+                ? error.errorCode
+                : "RunbookStudio.ActivityFailed",
     };
 }
 

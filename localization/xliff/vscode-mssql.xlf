@@ -352,6 +352,11 @@
     <trans-unit id="++CODE++222b823b4b06fbaee8182e65844c15a278fe21f952490451c025e85fed20945f">
       <source xml:lang="en">All severities</source>
     </trans-unit>
+    <trans-unit id="++CODE++996e9dda4bb2996935a135293f72861684d243f9d580d4dd7a002132805390f0">
+      <source xml:lang="en">All tSQLt checks passed ({0} passed, {1} skipped).</source>
+      <note>{0} is a passed test count
+{1} is a skipped test count</note>
+    </trans-unit>
     <trans-unit id="++CODE++151c431c83b3b1f98583d157c7d445edfd996a882355de208bd66a63c14ab4a5">
       <source xml:lang="en">All {0} SQL test(s) passed.</source>
       <note>{0} is a SQL test count</note>
@@ -8614,6 +8619,9 @@
     <trans-unit id="++CODE++25b1366077c998403b9fe6bd8d05cb29103950e2ed34a8f56d7a8c442b2586e1">
       <source xml:lang="en">The step this widget was bound to no longer exists.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2398edc5e6279538138b5a179102e96f003d9f87174f258b53ecc1897ff9d4c6">
+      <source xml:lang="en">The tSQLt execution outcome is unknown; cleanup or recovery must settle the disposable database.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
     </trans-unit>
@@ -9578,6 +9586,18 @@
     </trans-unit>
     <trans-unit id="++CODE++a8fa7fd60893411a49907b5545ccf9c47ed8073cc38e2ac3b79c4f6156cd7755">
       <source xml:lang="en">subscription</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a802790d874e4deffe54e1658342a1527a80f2ee339b38ba129f6b4ad84e3b6f">
+      <source xml:lang="en">tSQLt execution is allowed only on an ownership-verified disposable database from this run.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++55e8811464103413018969814c5f296084fa650e4874a9813988bec25a33275b">
+      <source xml:lang="en">tSQLt execution was cancelled before the stored-procedure boundary.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++afb3d968c88d6b0b0d3b7d963d99a5b26bd94409678c69b7e00b9ec35b8f077f">
+      <source xml:lang="en">tSQLt failed ({0} failures, {1} errors, {2} total).</source>
+      <note>{0} is a failed test count
+{1} is an errored test count
+{2} is a total test count</note>
     </trans-unit>
     <trans-unit id="++CODE++9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08">
       <source xml:lang="en">test</source>

@@ -82,6 +82,7 @@ export const ACTIVITY_OUTPUT_CONTRACTS: Record<string, string> = {
     "assert.threshold": "scalarSet/1",
     "workspace.inspect": "workspaceSnapshot/1",
     "sqltest.discover": "testSuiteDiscovery/1",
+    "tsqlt.run": "testResults/1",
     "dacpac.build": "dacpacArtifact/1",
     "sandbox.provision": "databaseLease/1",
     "dacpac.deploy.preview": "deploymentPreview/1",

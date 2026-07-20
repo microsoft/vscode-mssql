@@ -107,6 +107,7 @@ suite("presentationResolver", () => {
         );
         expect(compatibleViews("testSuiteDiscovery/1")).to.deep.equal(["grid", "json"]);
         expect(expectedContractFor("activity", "sqltest.run")).to.equal("testResults/1");
+        expect(expectedContractFor("activity", "tsqlt.run")).to.equal("testResults/1");
         expect(compatibleViews("testResults/1")).to.deep.equal(["grid", "bar", "json"]);
         expect(expectedContractFor("activity", "evidence.bundle")).to.equal("evidenceBundle/1");
         expect(compatibleViews("evidenceBundle/1")).to.deep.equal(["log-view", "json"]);

@@ -177,6 +177,14 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         connectionRequirement: "required",
         outputContract: "testResults/1",
     },
+    "tsqlt.run": {
+        target: "ephemeralSqlDatabase",
+        effect: "mutate",
+        approvalRequired: true,
+        connectionRequirement: "provisioned",
+        rollbackContract: "automatic",
+        outputContract: "testResults/1",
+    },
     "workload.benchmark": {
         target: "sqlDatabase",
         effect: "read",
@@ -263,6 +271,11 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         description:
             "Execute the registered SQL test suite and capture deterministic pass/fail results.",
     },
+    "tsqlt.run": {
+        label: "Run the approved tSQLt selection",
+        description:
+            "Execute repository tSQLt procedures only on the owned disposable target and retain typed results.",
+    },
     "workload.benchmark": {
         label: "Run the workload benchmark",
         description:
@@ -312,6 +325,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "dacpac.deploy.preview",
         "dacpac.deploy",
         "schema.compare",
+        "tsqlt.run",
         "sqltest.run",
         "workload.benchmark",
         "baseline.compare",
@@ -329,6 +343,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "dacpac.deploy.preview",
         "dacpac.deploy",
         "schema.compare",
+        "tsqlt.run",
         "sqltest.run",
         "workload.benchmark",
         "baseline.compare",
@@ -360,6 +375,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "dacpac.deploy.preview",
         "dacpac.deploy",
         "schema.compare",
+        "tsqlt.run",
         "sqltest.run",
         "sql.query.read",
         "workload.benchmark",
@@ -420,7 +436,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         isPreMerge ||
         has(
             text,
-            /\b(validate|verify|check|test|regression|benchmark|drift|security|permissions|diagnos(e|is)|replay)\b/,
+            /\b(validate|verify|check|tests?|t-?sqlt|regression|benchmark|drift|security|permissions|diagnos(e|is)|replay)\b/,
         );
     const family: RunbookFamily =
         isBuild && (hasValidationWork || hasInvestigationWork)
@@ -485,8 +501,14 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     ) {
         requested.add("schema.compare");
     }
-    if (isPreMerge || has(text, /\b(t-sqlt|tsqlt|sql tests?|database tests?)\b/)) {
+    const requestsTsqlt = has(text, /\b(t-sqlt|tsqlt)\b/);
+    if (isPreMerge || has(text, /\b(sql tests?|database tests?)\b/) || requestsTsqlt) {
         requested.add("sqltest.discover");
+    }
+    if (requestsTsqlt) {
+        requested.add("tsqlt.run");
+    }
+    if (isPreMerge || has(text, /\b(sql tests?|database tests?)\b/)) {
         requested.add("sqltest.run");
     }
     if (has(text, /\b(performance|latency|benchmark|regression)\b/)) {

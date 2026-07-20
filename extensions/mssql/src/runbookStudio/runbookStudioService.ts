@@ -123,6 +123,8 @@ import {
     executeLocalDacpacDeploymentEffect,
     LocalDacpacDeploymentEffectError,
 } from "./runtime/localDacpacDeploymentEffect";
+import { buildLocalTsqltBatch, type LocalTsqltSelection } from "./runtime/localTsqlt";
+import { executeLocalTsqltEffect, LocalTsqltEffectError } from "./runtime/localTsqltEffect";
 import {
     buildLocalToolchainProvenance,
     type LocalToolchainProvenance,
@@ -1802,7 +1804,19 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             !isProcessAlive(identity.ownerPid))
                     );
                 }).length;
-            attention += unresolvedDeployments;
+            const unresolvedTsqltExecutions = this.effectLedger
+                .scanRecovery()
+                .outstanding.filter((entry) => {
+                    const identity = entry.snapshot.identity;
+                    return (
+                        identity.activityKind === "tsqlt.run" &&
+                        !this.activeByRunId.has(identity.runId) &&
+                        (identity.ownerPid === undefined ||
+                            identity.ownerPid === process.pid ||
+                            !isProcessAlive(identity.ownerPid))
+                    );
+                }).length;
+            attention += unresolvedDeployments + unresolvedTsqltExecutions;
             emitRunbookEvent(context, "runbookStudio.effect.recovery", "ok", {
                 recovered: metaField(recovered),
                 deferred: metaField(deferred),
@@ -1810,6 +1824,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 attention: metaField(attention),
                 unreadableJournals: metaField(scan.unreadableFiles.length),
                 unresolvedDeployments: metaField(unresolvedDeployments),
+                unresolvedTsqltExecutions: metaField(unresolvedTsqltExecutions),
             });
             if (attention > 0 && !this.effectRecoveryWarningShown) {
                 this.effectRecoveryWarningShown = true;
@@ -1868,6 +1883,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 new LocalSqlActivityDelegate({
                     inspectWorkspace: inspectLocalWorkspace,
                     discoverSqlTests: discoverLocalSqlTests,
+                    runTsqlt: (nodeId, databaseRef, selection, invocation, cancelled) =>
+                        this.runLocalTsqlt(nodeId, databaseRef, selection, invocation, cancelled),
                     buildDacpac: buildLocalDacpac,
                     provisionSandbox: (nodeId, baseConnectionRef, invocation, cancelled) =>
                         this.provisionLocalSandbox(
@@ -2119,6 +2136,156 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 }
             },
         );
+    }
+
+    private async runLocalTsqlt(
+        nodeId: string,
+        databaseRef: string,
+        selection: LocalTsqltSelection,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<mssql.SimpleExecuteResult> {
+        const authorization = this.requireApprovedEffect(nodeId, invocation, "tsqlt.run");
+        const leaseEffectId = effectIdFromLocalSandboxLeaseRef(databaseRef);
+        if (!leaseEffectId || isCancellationRequested()) {
+            throw new LocalActivityError(
+                isCancellationRequested()
+                    ? LocRunbookStudio.tsqltExecutionCancelled
+                    : LocRunbookStudio.tsqltOwnedSandboxRequired,
+                isCancellationRequested()
+                    ? "RunbookStudio.ActivityCancelled"
+                    : "RunbookStudio.ActivityPolicyDenied",
+            );
+        }
+        const lease = this.effectLedger.recoverEffect(leaseEffectId)?.snapshot;
+        if (!lease || lease.identity.runId !== invocation.runId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.tsqltOwnedSandboxRequired,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        const resolved = await this.resolveRunbookConnection(databaseRef);
+        if (!resolved.sandbox || resolved.sandbox.effectId !== leaseEffectId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.tsqltOwnedSandboxRequired,
+                "RunbookStudio.ActivityPolicyDenied",
+            );
+        }
+        const connectionManager = this.connectionAccess();
+        if (!connectionManager) {
+            throw new LocalActivityError(
+                LocRunbookStudio.connectFailed,
+                "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        const effectId = deriveRunbookEffectId({
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "tsqlt.run",
+            activityVersion: authorization.challenge.activityVersion,
+        });
+        if (this.effectLedger.recoverEffect(effectId)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        const sandbox = resolved.sandbox;
+        this.effectLedger.prepareEffect({
+            effectId,
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "tsqlt.run",
+            activityVersion: authorization.challenge.activityVersion,
+            idempotencyKey: digestRunbookValue({
+                effectId,
+                databaseName: resolved.targetDatabase,
+                selection,
+            }),
+            planHash: invocation.planHash,
+            bindingDigest: authorization.challenge.resolvedArgumentDigest,
+            targetFingerprint: authorization.challenge.targetFingerprint,
+            retrySemantics: "atMostOnceUnknownOutcome",
+            ownerPid: process.pid,
+            policy: {
+                version: authorization.challenge.policyVersion,
+                outcome: "allowed",
+            },
+            approval: authorization.evidence,
+            recovery: {
+                resourceKind: "tsqltExecution",
+                resourceId: resolved.targetDatabase,
+                connectionProfileId: sandbox.connectionProfileId,
+                ownershipMarkerDigest: sandbox.ownershipMarkerDigest,
+            },
+        });
+
+        const batch = buildLocalTsqltBatch(selection);
+        sandboxCounter++;
+        const ownerUri = `runbookstudio://tsqlt/${sandboxCounter.toString(36)}/${nodeId}`;
+        let result: mssql.SimpleExecuteResult;
+        try {
+            result = await executeLocalTsqltEffect({
+                connect: () =>
+                    connectionManager.connect(ownerUri, resolved.profile, {
+                        connectionSource: "runbookStudio",
+                        shouldHandleErrors: false,
+                    }),
+                // Deliberately no cancellation token once stored-procedure
+                // execution starts; the effect must settle before cleanup.
+                execute: () =>
+                    Promise.resolve(
+                        SqlToolsServerClient.instance.sendRequest(SimpleExecuteRequestType, {
+                            ownerUri,
+                            queryString: batch,
+                        }),
+                    ),
+                recordObserved: (_observed) =>
+                    this.effectLedger.recordEffectObserved(effectId, {
+                        resourceKind: "tsqltExecution",
+                        resourceId: resolved.targetDatabase,
+                        ownershipMarkerDigest: sandbox.ownershipMarkerDigest,
+                        connectionProfileId: sandbox.connectionProfileId,
+                    }),
+                recordNoEffectFailure: (reason) =>
+                    this.effectLedger.recordNoEffectFailure(effectId, reason),
+                disconnect: async () => {
+                    await connectionManager.disconnect(ownerUri);
+                },
+            });
+        } catch (error) {
+            if (error instanceof LocalTsqltEffectError) {
+                throw new LocalActivityError(
+                    error.reason === "connectFailed"
+                        ? LocRunbookStudio.connectFailed
+                        : LocRunbookStudio.tsqltExecutionFailed,
+                    error.reason === "connectFailed"
+                        ? "RunbookStudio.ActivityFailed"
+                        : "RunbookStudio.EffectRecoveryRequired",
+                );
+            }
+            throw error;
+        }
+        const effect = this.effectLedger.recoverEffect(effectId)?.snapshot;
+        if (!effect || effect.state !== "effectObserved") {
+            throw new LocalActivityError(
+                LocRunbookStudio.tsqltExecutionFailed,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        this.effectLedger.startCleanup(effectId);
+        this.effectLedger.completeCleanup(
+            effectId,
+            digestRunbookValue({
+                effectId,
+                databaseName: resolved.targetDatabase,
+                rowCount: result.rowCount,
+                settled: true,
+            }),
+        );
+        return result;
     }
 
     private async disposeLocalSandbox(
@@ -2625,7 +2792,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     databaseName,
                     cleaned: true,
                 });
-                this.completeDependentDeploymentEffects(
+                this.completeDependentSandboxEffects(
                     snapshot.identity.runId,
                     databaseName,
                     connectionProfileId,
@@ -2644,7 +2811,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     /** A DACPAC deployment is compensated by deleting its owned disposable
      * database. Settle even a prepared/unknown deploy only after the database
      * absence probe succeeds, so a crash window cannot strand effect state. */
-    private completeDependentDeploymentEffects(
+    private completeDependentSandboxEffects(
         runId: string,
         databaseName: string,
         connectionProfileId: string,
@@ -2655,10 +2822,16 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         for (const entry of scan.outstanding) {
             let dependent = entry.snapshot;
             const recovery = dependent.identity.recovery;
+            const isDeployment =
+                dependent.identity.activityKind === "dacpac.deploy" &&
+                recovery?.resourceKind === "dacpacDeployment";
+            const isTsqlt =
+                dependent.identity.activityKind === "tsqlt.run" &&
+                recovery?.resourceKind === "tsqltExecution";
             if (
                 dependent.identity.runId !== runId ||
-                dependent.identity.activityKind !== "dacpac.deploy" ||
-                recovery?.resourceKind !== "dacpacDeployment" ||
+                (!isDeployment && !isTsqlt) ||
+                !recovery ||
                 recovery.resourceId !== databaseName ||
                 recovery.connectionProfileId !== connectionProfileId ||
                 recovery.ownershipMarkerDigest !== ownershipMarkerDigest ||
@@ -2668,7 +2841,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             }
             if (dependent.state === "prepared") {
                 dependent = this.effectLedger.recordEffectObserved(dependent.identity.effectId, {
-                    resourceKind: "dacpacDeploymentOutcomeUnknown",
+                    resourceKind: isDeployment
+                        ? "dacpacDeploymentOutcomeUnknown"
+                        : "tsqltExecutionOutcomeUnknown",
                     resourceId: databaseName,
                     ownershipMarkerDigest,
                     connectionProfileId,

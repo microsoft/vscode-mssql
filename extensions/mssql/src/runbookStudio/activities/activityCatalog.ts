@@ -284,6 +284,44 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "tsqlt.run",
+        version: 1,
+        label: "Run governed tSQLt suite",
+        description:
+            "Executes a host-authored tSQLt runner batch on an ownership-verified disposable database and captures typed per-test results.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to a sandbox.provision connectionRef from this run",
+            },
+            {
+                name: "suite",
+                kind: "bind",
+                required: false,
+                description: "Optional exact tSQLt class name; omission runs every class",
+            },
+            {
+                name: "test",
+                kind: "bind",
+                required: false,
+                description: "Optional exact tSQLt test name; requires suite",
+            },
+        ],
+        outputContract: "testResults/1",
+        producedValues: ["total", "passed", "failed", "errors", "skipped", "allPassed"],
+        approvalRequired: true,
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseData",
+            operation: "execute",
+            targetEnvironment: "ephemeral",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "sandbox.dispose",
         version: 1,
         label: "Dispose local SQL database lease",
@@ -433,6 +471,15 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                         : "the workspace binding";
                 issues.push(`node '${node.id}' target does not match ${targetSource}`);
             }
+            if (
+                descriptor.target.kind === "ephemeralSqlDatabase" &&
+                descriptor.kind !== "sandbox.provision" &&
+                !isOwnedSandboxOutput(lock, node)
+            ) {
+                issues.push(
+                    `node '${node.id}' must bind its disposable target to an upstream sandbox.provision connectionRef`,
+                );
+            }
         }
         if (descriptor.approvalRequired) {
             const approvingGates = lock.edges
@@ -450,6 +497,36 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
         }
     }
     return issues;
+}
+
+function isOwnedSandboxOutput(lock: CompiledRunbookLock, node: RunbookPlanNode): boolean {
+    if (node.target?.binding.source !== "nodeOutput") {
+        return false;
+    }
+    const binding = node.target.binding;
+    const producer = lock.nodes.find((candidate) => candidate.id === binding.nodeId);
+    if (
+        producer?.kind !== "activity" ||
+        producer.activityKind !== "sandbox.provision" ||
+        binding.output !== "connectionRef"
+    ) {
+        return false;
+    }
+    const visited = new Set<string>([producer.id]);
+    const pending = [producer.id];
+    while (pending.length > 0) {
+        const current = pending.shift()!;
+        for (const edge of lock.edges.filter((candidate) => candidate.from === current)) {
+            if (edge.to === node.id) {
+                return true;
+            }
+            if (!visited.has(edge.to)) {
+                visited.add(edge.to);
+                pending.push(edge.to);
+            }
+        }
+    }
+    return false;
 }
 
 const PARAMETER_BIND = /^\$params\.([A-Za-z0-9_-]+)$/;

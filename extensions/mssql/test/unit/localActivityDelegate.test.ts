@@ -44,6 +44,20 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
                 },
             ],
         }),
+        runTsqlt: async () => ({
+            rowCount: 2,
+            columnInfo: [
+                column("suite_name"),
+                column("test_name"),
+                column("result"),
+                column("message"),
+                column("duration_ms"),
+            ],
+            rows: [
+                [cell("OrderTests"), cell("test one"), cell("Success"), cell(""), cell("12")],
+                [cell("OrderTests"), cell("test two"), cell("Skipped"), cell(""), cell("0")],
+            ],
+        }),
         buildDacpac: async (projectPath) => ({
             projectPath,
             artifactPath: "C:\\repo\\bin\\Debug\\A.dacpac",
@@ -440,6 +454,114 @@ suite("Runbook Studio local activity delegate", () => {
         expect(disconnects).to.equal(1);
     });
 
+    test("governed tSQLt execution projects typed outcomes", async () => {
+        let requestedSelection: { suite?: string; test?: string } | undefined;
+        const delegate = new LocalSqlActivityDelegate(
+            operations({
+                runTsqlt: async (_nodeId, _databaseRef, selection) => {
+                    requestedSelection = selection;
+                    return operations().runTsqlt(
+                        "node",
+                        "lease",
+                        selection,
+                        binding().invocation,
+                        () => false,
+                    );
+                },
+            }),
+        );
+
+        const result = await delegate.executeActivity(
+            activity("tsqlt.run", {
+                database: "$nodes.provision.connectionRef",
+                suite: "OrderTests",
+            }),
+            binding((value) => (value === "$nodes.provision.connectionRef" ? "lease-ref" : value)),
+        );
+
+        expect(requestedSelection).to.deep.equal({ suite: "OrderTests" });
+        expect(result).to.deep.include({ success: true, verdict: "pass" });
+        expect(result?.output?.contract).to.equal("testResults/1");
+        expect(result?.output?.rows).to.deep.equal([
+            ["OrderTests", "test one", "passed", "", 12],
+            ["OrderTests", "test two", "skipped", "", 0],
+        ]);
+        expect(result?.values).to.deep.equal({
+            total: 2,
+            passed: 1,
+            failed: 0,
+            errors: 0,
+            skipped: 1,
+            allPassed: true,
+        });
+    });
+
+    test("governed tSQLt failures retain results and fail the run", async () => {
+        const delegate = new LocalSqlActivityDelegate(
+            operations({
+                runTsqlt: async () => ({
+                    rowCount: 1,
+                    columnInfo: [
+                        column("suite_name"),
+                        column("test_name"),
+                        column("result"),
+                        column("message"),
+                        column("duration_ms"),
+                    ],
+                    rows: [
+                        [
+                            cell("OrderTests"),
+                            cell("test total"),
+                            cell("Failure"),
+                            cell("expected 2 but found 3"),
+                            cell("31"),
+                        ],
+                    ],
+                }),
+            }),
+        );
+
+        const result = await delegate.executeActivity(
+            activity("tsqlt.run", { database: "lease-ref" }),
+            binding(),
+        );
+
+        expect(result).to.deep.include({
+            success: false,
+            verdict: "fail",
+            errorCode: "RunbookStudio.TsqltTestsFailed",
+        });
+        expect(result?.output?.scalars).to.deep.include({
+            total: 1,
+            failed: 1,
+            errors: 0,
+            allPassed: false,
+        });
+    });
+
+    test("governed tSQLt rejects a test without a suite before host execution", async () => {
+        let executed = false;
+        const delegate = new LocalSqlActivityDelegate(
+            operations({
+                runTsqlt: async () => {
+                    executed = true;
+                    return { rowCount: 0, columnInfo: [], rows: [] };
+                },
+            }),
+        );
+
+        const result = await delegate.executeActivity(
+            activity("tsqlt.run", { database: "lease-ref", test: "test one" }),
+            binding(),
+        );
+
+        expect(result).to.deep.include({
+            success: false,
+            errorCode: "RunbookStudio.BindingInvalid",
+        });
+        expect(executed).to.equal(false);
+    });
+
     test("SQL test failures retain typed results and produce a failing verdict", async () => {
         const delegate = new LocalSqlActivityDelegate(
             operations({
@@ -551,6 +673,7 @@ suite("Runbook Studio local activity delegate", () => {
         expect([...delegate.supportedActivityKinds]).to.have.members([
             "workspace.inspect",
             "sqltest.discover",
+            "tsqlt.run",
             "dacpac.build",
             "sandbox.provision",
             "dacpac.deploy.preview",

@@ -15,6 +15,7 @@
 import { expect } from "chai";
 import {
     activityCatalogFingerprint,
+    stampCatalogMetadata,
     validateLockAgainstCatalog,
 } from "../../src/runbookStudio/activities/activityCatalog";
 import {
@@ -235,6 +236,41 @@ suite("planCompiler", () => {
         lock.edges = lock.edges.filter((edge) => edge.from !== "approve-deploy");
         expect(validateLockAgainstCatalog(lock).join(" ")).to.contain(
             "node 'deploy-dacpac' requires one unambiguous incoming approved gate",
+        );
+    });
+
+    test("tSQLt execution requires an approved upstream owned sandbox", () => {
+        const artifact = createDeveloperValidationPreviewArtifact();
+        const lock = artifact.lock!;
+        const provision = lock.nodes.find((node) => node.id === "provision-sandbox")!;
+        const dispose = lock.nodes.find((node) => node.id === "dispose-sandbox")!;
+        lock.nodes.push(
+            { id: "approve-tsqlt", label: "Approve tSQLt", kind: "gate" },
+            ...stampCatalogMetadata([
+                {
+                    id: "run-tsqlt",
+                    label: "Run tSQLt",
+                    kind: "activity",
+                    activityKind: "tsqlt.run",
+                    inputs: { database: "$nodes.provision-sandbox.connectionRef" },
+                },
+            ]),
+        );
+        lock.edges.push(
+            { from: provision.id, to: "approve-tsqlt" },
+            { from: "approve-tsqlt", to: "run-tsqlt", when: "approved" },
+            { from: "run-tsqlt", to: dispose.id },
+        );
+
+        expect(validateLockAgainstCatalog(lock)).to.deep.equal([]);
+        const run = lock.nodes.find((node) => node.id === "run-tsqlt")!;
+        run.inputs!.database = "$params.sandboxConnection";
+        run.target = {
+            kind: "ephemeralSqlDatabase",
+            binding: { source: "parameter", parameterId: "sandboxConnection" },
+        };
+        expect(validateLockAgainstCatalog(lock).join(" ")).to.contain(
+            "must bind its disposable target to an upstream sandbox.provision connectionRef",
         );
     });
 });

@@ -11,7 +11,11 @@
  */
 
 import { expect } from "chai";
-import { createFixtureRunbookArtifact } from "../../src/runbookStudio/runbookArtifact";
+import {
+    computePlanHash,
+    createFixtureRunbookArtifact,
+} from "../../src/runbookStudio/runbookArtifact";
+import { stampCatalogMetadata } from "../../src/runbookStudio/activities/activityCatalog";
 import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudio/developerValidationPreview";
 import { buildEvidenceExport } from "../../src/runbookStudio/evidenceExport";
 import { newRunbookRootContext } from "../../src/runbookStudio/runbookDiag";
@@ -96,6 +100,38 @@ function gateArtifact(): RunbookArtifactFile {
             { from: "approve", to: "report", when: "approved" },
         ],
     };
+    return artifact;
+}
+
+function developerTsqltArtifact(): RunbookArtifactFile {
+    const artifact = createDeveloperValidationPreviewArtifact();
+    const lock = artifact.lock!;
+    lock.nodes.push(
+        { id: "approve-tsqlt", label: "Approve tSQLt execution", kind: "gate" },
+        ...stampCatalogMetadata([
+            {
+                id: "run-tsqlt",
+                label: "Run tSQLt suite",
+                kind: "activity",
+                activityKind: "tsqlt.run",
+                inputs: {
+                    database: "$nodes.provision-sandbox.connectionRef",
+                    suite: "OrderTests",
+                },
+            },
+        ]),
+    );
+    lock.edges = lock.edges.filter(
+        (edge) => !(edge.from === "verify-schema" && edge.to === "run-sql-tests"),
+    );
+    lock.edges.push(
+        { from: "verify-schema", to: "approve-tsqlt" },
+        { from: "approve-tsqlt", to: "run-tsqlt", when: "approved" },
+        { from: "approve-tsqlt", to: "dispose-sandbox", when: "rejected" },
+        { from: "run-tsqlt", to: "run-sql-tests" },
+        { from: "run-tsqlt", to: "dispose-sandbox", when: "failure" },
+    );
+    lock.planHash = computePlanHash(artifact.source, lock);
     return artifact;
 }
 
@@ -326,6 +362,46 @@ suite("fakeRuntimeAdapter", () => {
         expect(manifest.toolchain.requiredComponents).to.deep.equal(["vscode", "mssqlExtension"]);
         expect(manifest.nodes).to.have.length.greaterThan(0);
         expect(() => buildEvidenceExport(evidence.output?.text ?? "", "junit")).not.to.throw();
+    });
+
+    test("governed tSQLt preview runs only after its exact gate and emits typed evidence", async () => {
+        const observer = new CollectingObserver();
+        const artifact = developerTsqltArtifact();
+        expect((await adapter.validate(artifact, ctx())).ok).to.equal(true);
+        await adapter.startRun(
+            {
+                runId: "developer-tsqlt-preview",
+                artifact,
+                parameterValues: {
+                    projectPath: "Database.sqlproj",
+                    sandboxConnection: "preview-profile",
+                },
+            },
+            observer,
+            ctx(),
+        );
+        await approveDeveloperGate(adapter, observer, "developer-tsqlt-preview", "approve-sandbox");
+        await approveDeveloperGate(adapter, observer, "developer-tsqlt-preview", "approve-deploy");
+        await approveDeveloperGate(adapter, observer, "developer-tsqlt-preview", "approve-tsqlt");
+        await observer.terminal;
+
+        expect(observer.terminalEvent()).to.include({ state: "succeeded", verdict: "pass" });
+        expect(observer.nodeStates("run-tsqlt")).to.deep.equal(["running", "succeeded"]);
+        const completed = observer.events.find(
+            (event) =>
+                event.kind === "nodeState" &&
+                event.nodeId === "run-tsqlt" &&
+                event.state === "succeeded",
+        ) as Extract<RuntimeBoundaryEvent, { kind: "nodeState" }>;
+        expect(completed.output?.contract).to.equal("testResults/1");
+        expect(completed.output?.columns).to.deep.equal([
+            "suite",
+            "test",
+            "result",
+            "message",
+            "durationMs",
+        ]);
+        expect(completed.output?.scalars).to.include({ total: 2, passed: 2, allPassed: true });
     });
 
     test("developer publish failure still executes cleanup and failing evidence", async () => {

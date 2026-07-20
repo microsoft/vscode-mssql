@@ -121,6 +121,27 @@ suite("runbook capability preflight", () => {
         );
     });
 
+    test("explicit tSQLt validation selects governed discovery and execution", () => {
+        const classified = classifyRunbookIntent(
+            "Run the OrderTests tSQLt suite in a disposable sandbox and retain evidence.",
+        );
+        const kinds = classified.requirements.activities.map((activity) => activity.kind);
+
+        expect(classified.family).to.equal("validate");
+        expect(kinds).to.include.members(["sqltest.discover", "tsqlt.run", "evidence.bundle"]);
+        expect(kinds).not.to.include("sqltest.run");
+        const execution = classified.requirements.activities.find(
+            (activity) => activity.kind === "tsqlt.run",
+        );
+        expect(execution).to.deep.include({
+            effect: "mutate",
+            approvalRequired: true,
+            connectionRequirement: "provisioned",
+            rollbackContract: "automatic",
+            outputContract: "testResults/1",
+        });
+    });
+
     test("cross-family authoring plus validation routes to composed", () => {
         const classified = classifyRunbookIntent(
             "Create a database project and tables, then run SQL tests and investigate blocking against the deployed sandbox.",

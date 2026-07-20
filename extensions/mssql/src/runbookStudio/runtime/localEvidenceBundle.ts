@@ -177,6 +177,7 @@ function selectRequiredToolchainComponents(
             case "sandbox.provision":
             case "sandbox.dispose":
             case "sqltest.run":
+            case "tsqlt.run":
             case "sql.query.read":
                 required.add("sqlToolsService");
                 break;
