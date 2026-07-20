@@ -1,0 +1,263 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { expect } from "chai";
+import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudio/developerValidationPreview";
+import { parseHeadlessCliArguments } from "../../src/runbookStudio/headless/headlessCliArguments";
+import {
+    HEADLESS_EXIT_CODES,
+    headlessCapabilities,
+    runHeadlessPreview,
+    validateHeadlessPreview,
+} from "../../src/runbookStudio/headless/headlessRunner";
+import {
+    canonicalizeRunbookArtifact,
+    computePlanHash,
+    createFixtureRunbookArtifact,
+} from "../../src/runbookStudio/runbookArtifact";
+
+suite("Runbook Studio headless deterministic preview", () => {
+    const parameterValues = {
+        projectPath: "Database.sqlproj",
+        sandboxConnection: "preview-profile-secret-canary",
+    };
+
+    test("advertises an explicitly effect-free no-model capability", () => {
+        const capabilities = headlessCapabilities() as {
+            runtimeKind: string;
+            mode: string;
+            modelRequired: boolean;
+            effects: string;
+            productionHeadlessActivityHostAvailable: boolean;
+            evidenceFormats: string[];
+        };
+        expect(capabilities).to.include({
+            runtimeKind: "fake",
+            mode: "deterministicPreview",
+            modelRequired: false,
+            effects: "none",
+            productionHeadlessActivityHostAvailable: false,
+        });
+        expect(capabilities.evidenceFormats).to.deep.equal(["json", "junit", "sarif", "markdown"]);
+    });
+
+    test("fails closed on undocumented, duplicate, missing-value, and extra CLI arguments", () => {
+        expect(parseHeadlessCliArguments(["run", "book.json", "--mystery"]).error).to.equal(
+            "HeadlessPreview.OptionUnknown",
+        );
+        expect(
+            parseHeadlessCliArguments([
+                "run",
+                "book.json",
+                "--run-id",
+                "first",
+                "--run-id",
+                "second",
+            ]).error,
+        ).to.equal("HeadlessPreview.OptionDuplicate");
+        expect(parseHeadlessCliArguments(["run", "book.json", "--params"]).error).to.equal(
+            "HeadlessPreview.OptionValueRequired",
+        );
+        expect(parseHeadlessCliArguments(["validate", "one.json", "two.json"]).error).to.equal(
+            "HeadlessPreview.ArgumentUnexpected",
+        );
+        expect(parseHeadlessCliArguments(["capabilities", "secret-canary"]).error).to.equal(
+            "HeadlessPreview.ArgumentUnexpected",
+        );
+        expect(
+            JSON.stringify(parseHeadlessCliArguments(["run", "book.json", "--secret-canary"])),
+        ).not.to.contain("secret-canary");
+    });
+
+    test("accepts only the options documented for each command", () => {
+        expect(parseHeadlessCliArguments(["capabilities", "--json"])).to.include({
+            command: "capabilities",
+            deterministicPreview: false,
+            approvePreview: false,
+        });
+        expect(
+            parseHeadlessCliArguments([
+                "run",
+                "book.json",
+                "--deterministic-preview",
+                "--approve-preview",
+                "--params",
+                "params.json",
+                "--output",
+                "out",
+                "--run-id",
+                "ci-run",
+            ]),
+        ).to.include({
+            command: "run",
+            artifactPath: "book.json",
+            deterministicPreview: true,
+            approvePreview: true,
+            paramsPath: "params.json",
+            outputDirectory: "out",
+            runId: "ci-run",
+        });
+        expect(
+            parseHeadlessCliArguments(["validate", "book.json", "--output", "out"]).error,
+        ).to.equal("HeadlessPreview.OptionUnknown");
+    });
+
+    test("distinguishes malformed, design-only, and bind-invalid artifacts", async () => {
+        const malformed = await validateHeadlessPreview("{not json");
+        expect(malformed.result).to.include({ valid: false, executable: false });
+        expect(malformed.result.issues[0].code).to.equal("RunbookStudio.InvalidArtifact");
+
+        const designOnly = createDeveloperValidationPreviewArtifact();
+        designOnly.lock = undefined;
+        const uncompiled = await validateHeadlessPreview(canonicalizeRunbookArtifact(designOnly));
+        expect(uncompiled.result).to.include({ valid: true, executable: false });
+        expect(uncompiled.result.issues[0].code).to.equal("RunbookStudio.NotCompiled");
+
+        const artifactText = canonicalizeRunbookArtifact(
+            createDeveloperValidationPreviewArtifact(),
+        );
+        const missing = await validateHeadlessPreview(artifactText, {
+            unknownSecret: "must-not-echo",
+        });
+        expect(missing.result).to.include({ valid: false, executable: false });
+        expect(missing.result.issues.map((issue) => issue.code)).to.include.members([
+            "HeadlessPreview.ParameterUnknown",
+            "HeadlessPreview.ParameterRequired",
+        ]);
+        expect(JSON.stringify(missing.result)).not.to.contain("must-not-echo");
+    });
+
+    test("requires an explicit deterministic-preview acknowledgement", async () => {
+        const result = await runHeadlessPreview({
+            artifactText: canonicalizeRunbookArtifact(createDeveloperValidationPreviewArtifact()),
+            parameterValues,
+            runId: "ci-no-ack",
+            deterministicPreviewAcknowledged: false,
+            approvePreviewGates: true,
+        });
+        expect(result).to.include({
+            outcome: "blocked",
+            exitCode: HEADLESS_EXIT_CODES.blocked,
+            evidenceAvailable: false,
+        });
+        expect(result.validation.issues.at(-1)?.code).to.equal(
+            "HeadlessPreview.AcknowledgementRequired",
+        );
+    });
+
+    test("missing gate authority is blocked rather than reported as a test failure", async () => {
+        const result = await runHeadlessPreview({
+            artifactText: canonicalizeRunbookArtifact(createDeveloperValidationPreviewArtifact()),
+            parameterValues,
+            runId: "ci-gate-blocked",
+            deterministicPreviewAcknowledged: true,
+            approvePreviewGates: false,
+        });
+        expect(result).to.include({
+            outcome: "blocked",
+            exitCode: HEADLESS_EXIT_CODES.blocked,
+            blockedGateId: "approve-sandbox",
+        });
+    });
+
+    test("runs the immutable fake lock without VS Code or a model and exports CI evidence", async () => {
+        const artifactText = canonicalizeRunbookArtifact(
+            createDeveloperValidationPreviewArtifact(),
+        );
+        const first = await runHeadlessPreview({
+            artifactText,
+            parameterValues,
+            runId: "ci-preview-1",
+            deterministicPreviewAcknowledged: true,
+            approvePreviewGates: true,
+        });
+        const repeated = await runHeadlessPreview({
+            artifactText,
+            parameterValues,
+            runId: "ci-preview-1",
+            deterministicPreviewAcknowledged: true,
+            approvePreviewGates: true,
+        });
+
+        expect(first).to.include({
+            outcome: "pass",
+            exitCode: HEADLESS_EXIT_CODES.pass,
+            terminalState: "succeeded",
+            verdict: "pass",
+            evidenceAvailable: true,
+        });
+        expect(first.validation.simulatedMutationCount).to.be.greaterThan(0);
+        expect(first.nodeCounts).to.deep.equal({
+            succeeded: 12,
+            failed: 0,
+            skipped: 0,
+            cancelled: 0,
+        });
+        expect(Object.keys(first.exports ?? {}).sort()).to.deep.equal([
+            "json",
+            "junit",
+            "markdown",
+            "sarif",
+        ]);
+        expect(first.exports?.json.content).to.equal(repeated.exports?.json.content);
+        for (const artifact of Object.values(first.exports ?? {})) {
+            expect(artifact.content).not.to.contain("preview-profile-secret-canary");
+            expect(artifact.content).not.to.contain("fake/");
+        }
+    });
+
+    test("refuses unsafe caller-provided run identities", async () => {
+        const result = await runHeadlessPreview({
+            artifactText: canonicalizeRunbookArtifact(createDeveloperValidationPreviewArtifact()),
+            parameterValues,
+            runId: "../escape",
+            deterministicPreviewAcknowledged: true,
+            approvePreviewGates: true,
+        });
+        expect(result).to.include({
+            outcome: "invalid",
+            exitCode: HEADLESS_EXIT_CODES.invalid,
+            evidenceAvailable: false,
+        });
+        expect(result.validation.issues.at(-1)?.code).to.equal("HeadlessPreview.RunIdInvalid");
+    });
+
+    test("returns a distinct failing exit code without requiring evidence", async () => {
+        const artifact = createFixtureRunbookArtifact();
+        artifact.lock!.nodes[0].inputs!.sql = "SELECT 1";
+        artifact.lock!.planHash = computePlanHash(artifact.source, artifact.lock!);
+        const result = await runHeadlessPreview({
+            artifactText: canonicalizeRunbookArtifact(artifact),
+            parameterValues: { target: "synthetic-target", maxCount: 0 },
+            runId: "ci-failing-preview",
+            deterministicPreviewAcknowledged: true,
+        });
+        expect(result).to.include({
+            outcome: "fail",
+            exitCode: HEADLESS_EXIT_CODES.fail,
+            terminalState: "failed",
+            verdict: "fail",
+            evidenceAvailable: false,
+        });
+    });
+
+    test("returns the cancelled exit code for an aborted invocation", async () => {
+        const cancellation = new AbortController();
+        cancellation.abort();
+        const result = await runHeadlessPreview({
+            artifactText: canonicalizeRunbookArtifact(createDeveloperValidationPreviewArtifact()),
+            parameterValues,
+            runId: "ci-cancelled-preview",
+            deterministicPreviewAcknowledged: true,
+            approvePreviewGates: true,
+            cancellationSignal: cancellation.signal,
+        });
+        expect(result).to.include({
+            outcome: "cancelled",
+            exitCode: HEADLESS_EXIT_CODES.cancelled,
+            evidenceAvailable: false,
+        });
+    });
+});

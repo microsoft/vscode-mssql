@@ -64,6 +64,7 @@
         "build:webviews": "tsgo -p tsconfig.webviews.json",
         "build:webviews-bundle": "node scripts/bundle-webviews.js",
         "build:notebook-renderer-bundle": "node scripts/bundle-notebook-renderer.js",
+        "runbook:headless": "node dist/runbookHeadless.js",
         "build": "node scripts/build.js",
         "watch:extension": "run-p -l watch:extension:typecheck watch:extension:emit",
         "watch:extension:typecheck": "tsgo -watch -p tsconfig.extension.json --noEmit --preserveWatchOutput",
