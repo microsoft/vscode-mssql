@@ -190,7 +190,7 @@ suite("Runbook Studio headless deterministic preview", () => {
         });
         expect(first.validation.simulatedMutationCount).to.be.greaterThan(0);
         expect(first.nodeCounts).to.deep.equal({
-            succeeded: 12,
+            succeeded: 13,
             failed: 0,
             skipped: 0,
             cancelled: 0,

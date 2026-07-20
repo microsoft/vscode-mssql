@@ -480,6 +480,7 @@ function hasEdge(edges: RunbookPlanEdge[], from: string, when: RunbookPlanEdge["
 
 const PREVIEW_ACTIVITY_KINDS = new Set([
     "workspace.inspect",
+    "sqltest.discover",
     "dacpac.build",
     "sandbox.provision",
     "dacpac.deploy.preview",
@@ -552,6 +553,42 @@ function executeNode(
                     projectCount: 1,
                     projectPath: "preview://workspace/Database.sqlproj",
                 },
+            };
+        case "sqltest.discover":
+            return {
+                success: true,
+                message: "2 tSQLt tests discovered (deterministic preview)",
+                output: {
+                    contract: "testSuiteDiscovery/1",
+                    columns: ["framework", "suite", "test", "repositoryPath", "line"],
+                    rows: [
+                        ["tSQLt", "OrderTests", "test total is correct", "tests/OrderTests.sql", 8],
+                        [
+                            "tSQLt",
+                            "OrderTests",
+                            "test customer is required",
+                            "tests/OrderTests.sql",
+                            24,
+                        ],
+                    ],
+                    scalars: {
+                        candidateSqlFileCount: 2,
+                        scannedSqlFileCount: 2,
+                        skippedOversizedFileCount: 0,
+                        skippedByteBudgetFileCount: 0,
+                        unsafePathFileCount: 0,
+                        unreadableFileCount: 0,
+                        scannedSourceBytes: 512,
+                        tSqltClassCount: 1,
+                        tSqltSourceFileCount: 1,
+                        tSqltTestCount: 2,
+                        duplicateDefinitionCount: 0,
+                        complete: true,
+                        truncated: false,
+                        preview: true,
+                    },
+                },
+                values: { tSqltClassCount: 1, tSqltTestCount: 2, complete: true },
             };
         case "dacpac.build": {
             const project = resolveBind(node.inputs?.project, parameterValues, nodeValues);

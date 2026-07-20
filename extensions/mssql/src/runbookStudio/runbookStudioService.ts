@@ -107,6 +107,7 @@ import {
 import {
     buildLocalDacpac,
     buildLocalDeploymentPreviewResult,
+    discoverLocalSqlTests,
     inspectLocalWorkspace,
     verifyLocalDacpacArtifact,
 } from "./runtime/localDeveloperOperations";
@@ -1866,6 +1867,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             adapter = new FakeRuntimeAdapter(
                 new LocalSqlActivityDelegate({
                     inspectWorkspace: inspectLocalWorkspace,
+                    discoverSqlTests: discoverLocalSqlTests,
                     buildDacpac: buildLocalDacpac,
                     provisionSandbox: (nodeId, baseConnectionRef, invocation, cancelled) =>
                         this.provisionLocalSandbox(

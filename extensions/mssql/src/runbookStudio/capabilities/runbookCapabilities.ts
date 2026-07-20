@@ -110,6 +110,11 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         effect: "read",
         outputContract: "workspaceSnapshot/1",
     },
+    "sqltest.discover": {
+        target: "workspace",
+        effect: "read",
+        outputContract: "testSuiteDiscovery/1",
+    },
     "dbproject.create": {
         target: "databaseProject",
         effect: "mutate",
@@ -219,6 +224,11 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         label: "Inspect the workspace",
         description: "Discover the existing database projects, source files, and build inputs.",
     },
+    "sqltest.discover": {
+        label: "Discover repository SQL tests",
+        description:
+            "Find bounded repository-owned tSQLt classes and tests without granting database execution authority.",
+    },
     "dbproject.create": {
         label: "Create the database project",
         description: "Scaffold the project structure and its deterministic build configuration.",
@@ -294,6 +304,7 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
 const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> = {
     build: [
         "workspace.inspect",
+        "sqltest.discover",
         "dbproject.create",
         "dbproject.add-object",
         "dacpac.build",
@@ -312,6 +323,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
     ],
     validate: [
         "workspace.inspect",
+        "sqltest.discover",
         "dacpac.build",
         "sandbox.provision",
         "dacpac.deploy.preview",
@@ -340,6 +352,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
     ],
     composed: [
         "workspace.inspect",
+        "sqltest.discover",
         "dbproject.create",
         "dbproject.add-object",
         "dacpac.build",
@@ -473,6 +486,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         requested.add("schema.compare");
     }
     if (isPreMerge || has(text, /\b(t-sqlt|tsqlt|sql tests?|database tests?)\b/)) {
+        requested.add("sqltest.discover");
         requested.add("sqltest.run");
     }
     if (has(text, /\b(performance|latency|benchmark|regression)\b/)) {

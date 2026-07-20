@@ -22,6 +22,28 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             workspaceFolderCount: 1,
             projectPaths: ["C:\\repo\\B.sqlproj", "C:\\repo\\A.sqlproj"],
         }),
+        discoverSqlTests: async () => ({
+            candidateSqlFileCount: 2,
+            scannedSqlFileCount: 2,
+            skippedOversizedFileCount: 0,
+            skippedByteBudgetFileCount: 0,
+            unsafePathFileCount: 0,
+            unreadableFileCount: 0,
+            scannedSourceBytes: 512,
+            tSqltClassCount: 1,
+            tSqltSourceFileCount: 1,
+            duplicateDefinitionCount: 0,
+            truncated: false,
+            tests: [
+                {
+                    framework: "tSQLt",
+                    suite: "OrderTests",
+                    name: "test total is correct",
+                    relativePath: "repo/tests/OrderTests.sql",
+                    line: 8,
+                },
+            ],
+        }),
         buildDacpac: async (projectPath) => ({
             projectPath,
             artifactPath: "C:\\repo\\bin\\Debug\\A.dacpac",
@@ -150,6 +172,62 @@ suite("Runbook Studio local activity delegate", () => {
             executionMode: "local",
         });
         expect(result?.values).to.deep.equal({ projectCount: 2 });
+    });
+
+    test("repository test discovery emits bounded typed rows and completeness", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+
+        const result = await delegate.executeActivity(activity("sqltest.discover"), binding());
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("testSuiteDiscovery/1");
+        expect(result?.output?.rows).to.deep.equal([
+            ["tSQLt", "OrderTests", "test total is correct", "repo/tests/OrderTests.sql", 8],
+        ]);
+        expect(result?.output?.scalars).to.deep.include({
+            candidateSqlFileCount: 2,
+            scannedSqlFileCount: 2,
+            tSqltClassCount: 1,
+            tSqltTestCount: 1,
+            complete: true,
+            truncated: false,
+        });
+        expect(result?.values).to.deep.equal({
+            tSqltClassCount: 1,
+            tSqltTestCount: 1,
+            complete: true,
+        });
+    });
+
+    test("repository test discovery reports partial evidence honestly", async () => {
+        const delegate = new LocalSqlActivityDelegate(
+            operations({
+                discoverSqlTests: async () => ({
+                    candidateSqlFileCount: 2001,
+                    scannedSqlFileCount: 1998,
+                    skippedOversizedFileCount: 2,
+                    skippedByteBudgetFileCount: 0,
+                    unsafePathFileCount: 0,
+                    unreadableFileCount: 0,
+                    scannedSourceBytes: 4096,
+                    tSqltClassCount: 0,
+                    tSqltSourceFileCount: 0,
+                    duplicateDefinitionCount: 0,
+                    truncated: true,
+                    tests: [],
+                }),
+            }),
+        );
+
+        const result = await delegate.executeActivity(activity("sqltest.discover"), binding());
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.scalars).to.deep.include({
+            skippedOversizedFileCount: 2,
+            complete: false,
+            truncated: true,
+        });
+        expect(result?.values?.complete).to.equal(false);
     });
 
     test("DACPAC build emits verified artifact provenance", async () => {
@@ -472,6 +550,7 @@ suite("Runbook Studio local activity delegate", () => {
         const delegate = new LocalSqlActivityDelegate(operations());
         expect([...delegate.supportedActivityKinds]).to.have.members([
             "workspace.inspect",
+            "sqltest.discover",
             "dacpac.build",
             "sandbox.provision",
             "dacpac.deploy.preview",

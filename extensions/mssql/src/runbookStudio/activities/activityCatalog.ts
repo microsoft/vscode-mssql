@@ -75,6 +75,18 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         blastRadius: { ...READ_ONLY_LOCAL, resource: "workspaceFiles" },
     },
     {
+        kind: "sqltest.discover",
+        version: 1,
+        label: "Discover repository SQL tests",
+        description:
+            "Scans bounded workspace SQL sources for repository-owned tSQLt classes and test procedures without executing database code.",
+        inputs: [],
+        outputContract: "testSuiteDiscovery/1",
+        producedValues: ["tSqltClassCount", "tSqltTestCount", "complete"],
+        target: { kind: "workspace", workspace: true },
+        blastRadius: { ...READ_ONLY_LOCAL, resource: "workspaceFiles" },
+    },
+    {
         kind: "dacpac.build",
         version: 1,
         label: "Build DACPAC",

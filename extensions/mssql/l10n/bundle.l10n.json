@@ -137,11 +137,17 @@
         "message": "Found {0} database projects in the open workspace.",
         "comment": ["{0} is a count of SQL database project files"]
     },
+    "Discovered {0} tSQLt test(s) in {1} test class(es)./{0} is a test count{1} is a tSQLt test class count": {
+        "message": "Discovered {0} tSQLt test(s) in {1} test class(es).",
+        "comment": ["{0} is a test count", "{1} is a tSQLt test class count"]
+    },
     "Built {0} ({1} diagnostics)./{0} is a DACPAC file path{1} is a diagnostic count": {
         "message": "Built {0} ({1} diagnostics).",
         "comment": ["{0} is a DACPAC file path", "{1} is a diagnostic count"]
     },
     "Open a workspace containing the SQL database project before running this step.": "Open a workspace containing the SQL database project before running this step.",
+    "Open a workspace containing the repository SQL tests before running this step.": "Open a workspace containing the repository SQL tests before running this step.",
+    "SQL test discovery was cancelled.": "SQL test discovery was cancelled.",
     "DACPAC build was cancelled.": "DACPAC build was cancelled.",
     "DACPAC artifact": "DACPAC artifact",
     "Database project": "Database project",

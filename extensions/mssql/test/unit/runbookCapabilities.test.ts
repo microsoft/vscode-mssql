@@ -112,6 +112,7 @@ suite("runbook capability preflight", () => {
             "dacpac.deploy.preview",
             "dacpac.deploy",
             "schema.compare",
+            "sqltest.discover",
             "sqltest.run",
             "evidence.bundle",
         ]);

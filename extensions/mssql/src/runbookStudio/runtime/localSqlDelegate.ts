@@ -41,6 +41,7 @@ export interface LocalSqlOperations {
     ): Promise<mssql.SimpleExecuteResult>;
     disconnect(ownerUri: string): Promise<void>;
     inspectWorkspace(): Promise<LocalWorkspaceSnapshot>;
+    discoverSqlTests(isCancellationRequested: () => boolean): Promise<LocalSqlTestDiscoveryResult>;
     buildDacpac(
         projectPath: string,
         isCancellationRequested: () => boolean,
@@ -88,6 +89,27 @@ export interface LocalWorkspaceSnapshot {
     /** Absolute, workspace-contained project paths in stable sort order. */
     projectPaths: string[];
     truncated?: boolean;
+}
+
+export interface LocalSqlTestDiscoveryResult {
+    candidateSqlFileCount: number;
+    scannedSqlFileCount: number;
+    skippedOversizedFileCount: number;
+    skippedByteBudgetFileCount: number;
+    unsafePathFileCount: number;
+    unreadableFileCount: number;
+    scannedSourceBytes: number;
+    tSqltClassCount: number;
+    tSqltSourceFileCount: number;
+    duplicateDefinitionCount: number;
+    truncated: boolean;
+    tests: Array<{
+        framework: "tSQLt";
+        suite: string;
+        name: string;
+        relativePath: string;
+        line: number;
+    }>;
 }
 
 export interface LocalDacpacBuildResult {
@@ -167,6 +189,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
     public readonly runtimeKind = "local" as const;
     public readonly supportedActivityKinds = new Set([
         "workspace.inspect",
+        "sqltest.discover",
         "dacpac.build",
         "sandbox.provision",
         "dacpac.deploy.preview",
@@ -192,6 +215,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         switch (node.activityKind) {
             case "workspace.inspect":
                 return this.inspectWorkspace();
+            case "sqltest.discover":
+                return this.discoverSqlTests(binding);
             case "dacpac.build":
                 return this.buildDacpac(node, binding);
             case "sandbox.provision":
@@ -235,6 +260,65 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     },
                 },
                 values: { projectCount: projectPaths.length },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async discoverSqlTests(binding: {
+        isCancellationRequested: () => boolean;
+    }): Promise<NodeExecution> {
+        try {
+            const result = await this.operations.discoverSqlTests(binding.isCancellationRequested);
+            return {
+                success: true,
+                message: LocRunbookStudio.sqlTestsDiscovered(
+                    result.tests.length,
+                    result.tSqltClassCount,
+                ),
+                output: {
+                    contract: "testSuiteDiscovery/1",
+                    columns: ["framework", "suite", "test", "repositoryPath", "line"],
+                    rows: result.tests.map((test) => [
+                        test.framework,
+                        test.suite,
+                        test.name,
+                        test.relativePath,
+                        test.line,
+                    ]),
+                    scalars: {
+                        candidateSqlFileCount: result.candidateSqlFileCount,
+                        scannedSqlFileCount: result.scannedSqlFileCount,
+                        skippedOversizedFileCount: result.skippedOversizedFileCount,
+                        skippedByteBudgetFileCount: result.skippedByteBudgetFileCount,
+                        unsafePathFileCount: result.unsafePathFileCount,
+                        unreadableFileCount: result.unreadableFileCount,
+                        scannedSourceBytes: result.scannedSourceBytes,
+                        tSqltClassCount: result.tSqltClassCount,
+                        tSqltSourceFileCount: result.tSqltSourceFileCount,
+                        tSqltTestCount: result.tests.length,
+                        duplicateDefinitionCount: result.duplicateDefinitionCount,
+                        complete:
+                            !result.truncated &&
+                            result.skippedOversizedFileCount === 0 &&
+                            result.skippedByteBudgetFileCount === 0 &&
+                            result.unsafePathFileCount === 0 &&
+                            result.unreadableFileCount === 0,
+                        truncated: result.truncated,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    tSqltClassCount: result.tSqltClassCount,
+                    tSqltTestCount: result.tests.length,
+                    complete:
+                        !result.truncated &&
+                        result.skippedOversizedFileCount === 0 &&
+                        result.skippedByteBudgetFileCount === 0 &&
+                        result.unsafePathFileCount === 0 &&
+                        result.unreadableFileCount === 0,
+                },
             };
         } catch (error) {
             return activityFailure(error);

@@ -50,6 +50,13 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
             inputs: {},
         },
         {
+            id: "discover-sql-tests",
+            label: "Discover repository SQL tests",
+            kind: "activity",
+            activityKind: "sqltest.discover",
+            inputs: {},
+        },
+        {
             id: "build-dacpac",
             label: "Build DACPAC",
             kind: "activity",
@@ -144,11 +151,11 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
         id: "fixture-developer-validation-preview",
         name: "Developer validation chain",
         description:
-            "Build a database project, approve and deploy it to a disposable local database, verify convergence, run SQL assertions, clean up, and retain a content-addressed evidence bundle.",
+            "Discover repository SQL tests, build a database project, approve and deploy it to a disposable local database, verify convergence, run SQL assertions, clean up, and retain a content-addressed evidence bundle.",
         family: "validate",
         source: {
             schemaVersion: RUNBOOK_SOURCE_SCHEMA_VERSION,
-            intent: "Build the database project, approve and provision an isolated local target, approve the exact deployment preview, deploy, verify schema convergence, run SQL assertions, clean up, and report a typed evidence bundle.",
+            intent: "Discover repository SQL tests, build the database project, approve and provision an isolated local target, approve the exact deployment preview, deploy, verify schema convergence, run SQL assertions, clean up, and report a typed evidence bundle.",
             parameters: [
                 {
                     id: "projectPath",
@@ -173,6 +180,7 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
                 ],
                 activities: [
                     requirement("workspace.inspect", "read", "workspaceSnapshot/1"),
+                    requirement("sqltest.discover", "read", "testSuiteDiscovery/1"),
                     requirement("dacpac.build", "mutate", "dacpacArtifact/1", {
                         providerRequirement: "execution",
                     }),
@@ -213,7 +221,8 @@ export function createDeveloperValidationPreviewArtifact(): RunbookArtifactFile 
             entryNodeId: "inspect-workspace",
             nodes,
             edges: [
-                { from: "inspect-workspace", to: "build-dacpac" },
+                { from: "inspect-workspace", to: "discover-sql-tests" },
+                { from: "discover-sql-tests", to: "build-dacpac" },
                 { from: "build-dacpac", to: "approve-sandbox" },
                 { from: "approve-sandbox", to: "provision-sandbox", when: "approved" },
                 { from: "provision-sandbox", to: "preview-deploy" },

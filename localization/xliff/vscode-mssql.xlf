@@ -2551,6 +2551,11 @@
     <trans-unit id="++CODE++57d34ecd6fc9b04ba8ad6450eeb1159b21aa3e6f127082ea6554f826985cdddb">
       <source xml:lang="en">Discover how SQL Database in Fabric, Azure SQL, and SQL Server are redefining modern app development. Join engineers and peers pushing the limits of performance, AI integration, and developer productivity.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b45beb76ada2a8219a9ecb706a62dfcfb469ca678de12131735c40059418ba22">
+      <source xml:lang="en">Discovered {0} tSQLt test(s) in {1} test class(es).</source>
+      <note>{0} is a test count
+{1} is a tSQLt test class count</note>
+    </trans-unit>
     <trans-unit id="++CODE++48845bff334a50a59aaecf499f28a7a24c3b4b891b8b18a9f1169ad8e8a6b261">
       <source xml:lang="en">Dismiss</source>
     </trans-unit>
@@ -5863,6 +5868,9 @@
     <trans-unit id="++CODE++fa45e0f2a6d0a1ec6b37a9e5fc1977b53e5323f98ac7312a6fad1958a79423ca">
       <source xml:lang="en">Open a workspace containing the SQL database project before running this step.</source>
     </trans-unit>
+    <trans-unit id="++CODE++31aeb07151dca1480240425f3da3f220ba984f5ac900406df3e8c162069da234">
+      <source xml:lang="en">Open a workspace containing the repository SQL tests before running this step.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f22bd213b6a2f93198a3fda9b1dc6e58526c5f68f06380fc6124774c30af6faa">
       <source xml:lang="en">Open an eligible Spatial result tab to see host preparation, worker decode, renderer, interaction, and cleanup evidence here.</source>
     </trans-unit>
@@ -7081,6 +7089,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
       <source xml:lang="en">SQL database in Fabric</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ccefe1f992b312786203b32358206ced2c052988ee4f01251144216c9c47dc61">
+      <source xml:lang="en">SQL test discovery was cancelled.</source>
     </trans-unit>
     <trans-unit id="++CODE++91d2133d6a77d7063cdc0cf3a4b12cc0ee61c79bd9eb307c48f17858fb16096a">
       <source xml:lang="en">SQL test execution timed out after {0} second(s).</source>

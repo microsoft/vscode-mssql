@@ -294,6 +294,7 @@ suite("fakeRuntimeAdapter", () => {
             .filter(Boolean);
         expect(contracts).to.include.members([
             "workspaceSnapshot/1",
+            "testSuiteDiscovery/1",
             "dacpacArtifact/1",
             "databaseLease/1",
             "deploymentPreview/1",
@@ -422,6 +423,7 @@ suite("fakeRuntimeAdapter", () => {
             runtimeKind: "local",
             supportedActivityKinds: new Set([
                 "workspace.inspect",
+                "sqltest.discover",
                 "dacpac.build",
                 "dacpac.deploy.preview",
                 "sql.query.read",
@@ -547,6 +549,7 @@ function developerFailureDelegate(
 ): ActivityExecutionDelegate {
     const supportedActivityKinds = new Set([
         "workspace.inspect",
+        "sqltest.discover",
         "dacpac.build",
         "sandbox.provision",
         "dacpac.deploy.preview",
@@ -575,6 +578,11 @@ function developerFailureDelegate(
 
 function developerNodeSuccess(nodeId: string): NodeExecution {
     switch (nodeId) {
+        case "discover-sql-tests":
+            return {
+                success: true,
+                values: { tSqltClassCount: 1, tSqltTestCount: 2, complete: true },
+            };
         case "build-dacpac":
             return {
                 success: true,

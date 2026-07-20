@@ -235,6 +235,12 @@ export class RunbookStudio {
             args: [count],
             comment: ["{0} is a count of SQL database project files"],
         });
+    public static sqlTestsDiscovered = (testCount: number, classCount: number) =>
+        l10n.t({
+            message: "Discovered {0} tSQLt test(s) in {1} test class(es).",
+            args: [testCount, classCount],
+            comment: ["{0} is a test count", "{1} is a tSQLt test class count"],
+        });
     public static dacpacBuilt = (artifactPath: string, diagnosticCount: number) =>
         l10n.t({
             message: "Built {0} ({1} diagnostics).",
@@ -244,6 +250,10 @@ export class RunbookStudio {
     public static openWorkspaceForDatabaseProject = l10n.t(
         "Open a workspace containing the SQL database project before running this step.",
     );
+    public static openWorkspaceForSqlTestDiscovery = l10n.t(
+        "Open a workspace containing the repository SQL tests before running this step.",
+    );
+    public static sqlTestDiscoveryCancelled = l10n.t("SQL test discovery was cancelled.");
     public static dacpacBuildCancelled = l10n.t("DACPAC build was cancelled.");
     public static dacpacArtifactLabel = l10n.t("DACPAC artifact");
     public static databaseProjectLabel = l10n.t("Database project");

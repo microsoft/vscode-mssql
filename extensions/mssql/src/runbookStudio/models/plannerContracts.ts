@@ -21,6 +21,7 @@ export interface FamilyPlannerContract {
 
 const BUILD_ACTIVITIES = [
     "workspace.inspect",
+    "sqltest.discover",
     "dbproject.create",
     "dbproject.add-object",
     "dacpac.build",
@@ -35,6 +36,7 @@ const BUILD_ACTIVITIES = [
 
 const VALIDATE_ACTIVITIES = [
     "workspace.inspect",
+    "sqltest.discover",
     "dacpac.build",
     "sandbox.provision",
     "dacpac.deploy.preview",
