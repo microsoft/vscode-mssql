@@ -314,6 +314,40 @@ suite("presentationResolver", () => {
         expect(resolved.derived).to.equal(true);
     });
 
+    test("empty-section policies collapse, describe, or reserve explicitly", () => {
+        const def = definition();
+        def.results.widgets = [];
+        def.results.sections = [
+            { id: "collapsed", role: "summary", order: 0, whenEmpty: "collapse" },
+            {
+                id: "described",
+                label: "Checks",
+                role: "primary",
+                order: 1,
+                whenEmpty: "show-empty-state",
+            },
+            { id: "reserved", role: "details", order: 2, whenEmpty: "reserve" },
+        ];
+        def.results.layout = { ...def.results.layout, overflowSectionId: "collapsed" };
+        def.results.emptyState = {
+            title: "No checks yet",
+            body: "Run validation to populate this section.",
+            suggestedAction: "Run validation",
+        };
+
+        const resolved = resolvePresentation(def, undefined);
+        expect(resolved.sections.map((section) => section.id)).to.deep.equal([
+            "described",
+            "reserved",
+        ]);
+        expect(resolved.sections.map((section) => section.whenEmpty)).to.deep.equal([
+            "show-empty-state",
+            "reserve",
+        ]);
+        expect(resolved.emptyState).to.deep.equal(def.results.emptyState);
+        expect(resolved.emptyState).not.to.equal(def.results.emptyState);
+    });
+
     test("upsertOutputPin creates, re-pins, and clears without touching authored widgets", () => {
         // First pin creates the definition + primary section.
         const pinned = upsertOutputPin(undefined, "query", "bar");

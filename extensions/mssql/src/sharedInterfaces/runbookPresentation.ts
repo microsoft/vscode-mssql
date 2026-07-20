@@ -502,5 +502,8 @@ export interface ResolvedPresentation {
      *  from the run snapshot's typed outputs. */
     derived: boolean;
     layout: ResponsiveLayoutPolicy;
+    /** Authored copy for sections whose `whenEmpty` policy requests an
+     * explicit empty state. Suggested actions are descriptive only. */
+    emptyState?: ResultsSurfaceDefinition["emptyState"];
     sections: ResolvedSection[];
 }

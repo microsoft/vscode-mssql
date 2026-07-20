@@ -5670,6 +5670,9 @@
     <trans-unit id="++CODE++4dfded12d62e6f18c858be45db4d0f8b07d57a31417037444685fecadb4351d5">
       <source xml:lang="en">No results for the active editor</source>
     </trans-unit>
+    <trans-unit id="++CODE++07b01017487599665cd17010e27b341b5561e668615a56fa0b0788ab275edc8c">
+      <source xml:lang="en">No results in this section</source>
+    </trans-unit>
     <trans-unit id="++CODE++d6f175c0cc2e82f1f69f421b3776d1a306fc92dbce166cbf045a4d8e31f5608e">
       <source xml:lang="en">No results match the current filters</source>
     </trans-unit>
@@ -6800,6 +6803,9 @@
     <trans-unit id="++CODE++4004a79eaf29661f3548d4131219d944e668bc53c073de136e71c39a60f031a9">
       <source xml:lang="en">Rerun</source>
     </trans-unit>
+    <trans-unit id="++CODE++4a638f5913cfad83b63c2284a25ffd60a0fd5855361e251c2f32b065ddf4a75e">
+      <source xml:lang="en">Reserved for matching results</source>
+    </trans-unit>
     <trans-unit id="++CODE++daee7606b339f3c339076fe2c9f372a3ff40c8ee896005d829c7481b64ca5303">
       <source xml:lang="en">Reset</source>
     </trans-unit>
@@ -6910,6 +6916,9 @@
     </trans-unit>
     <trans-unit id="++CODE++307ea97b854d629bc8febac31e69d61ee13fcdeca467abf549e7a3258bce347e">
       <source xml:lang="en">Results toolbar</source>
+    </trans-unit>
+    <trans-unit id="++CODE++182bb2978e8e596889f4553c7190627d4d20a83af1eb3e3814bf3e82ccedb52a">
+      <source xml:lang="en">Results will appear here when this section receives a matching output.</source>
     </trans-unit>
     <trans-unit id="++CODE++d640c7421da066618a39daf4266da5f61f66a9b1afcd626481b831a17064965d">
       <source xml:lang="en">Resume</source>

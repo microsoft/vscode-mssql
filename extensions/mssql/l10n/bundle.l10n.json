@@ -4836,6 +4836,9 @@
     "Event log": "Event log",
     "Waiting for this step to produce output…": "Waiting for this step to produce output…",
     "The step this widget was bound to no longer exists.": "The step this widget was bound to no longer exists.",
+    "No results in this section": "No results in this section",
+    "Results will appear here when this section receives a matching output.": "Results will appear here when this section receives a matching output.",
+    "Reserved for matching results": "Reserved for matching results",
     "The detail data for this output has expired. The run record remains available.": "The detail data for this output has expired. The run record remains available.",
     "The '{0}' view is not available yet in this preview./{0} is a renderer kind id": {
         "message": "The '{0}' view is not available yet in this preview.",

@@ -1892,6 +1892,7 @@ function PresentationSections({
     onLayoutEdits?: (edits: PresentationLayoutEdit[]) => void;
     editingDisabled?: boolean;
 }) {
+    const loc = locConstants.runbookStudio;
     return (
         <>
             {presentation.sections.map((section) => (
@@ -1916,6 +1917,26 @@ function PresentationSections({
                                 <ResolvedWidgetView widget={widget} sample={sample} />
                             </div>
                         ))}
+                        {section.widgets.length === 0 &&
+                        section.whenEmpty === "show-empty-state" ? (
+                            <div className="rbs-presentation-empty" role="status">
+                                <strong>
+                                    {presentation.emptyState?.title ?? loc.emptySectionTitle}
+                                </strong>
+                                <span className="rbs-muted">
+                                    {presentation.emptyState?.body ?? loc.emptySectionDetail}
+                                </span>
+                                {presentation.emptyState?.suggestedAction ? (
+                                    <span className="rbs-presentation-empty-action">
+                                        {presentation.emptyState.suggestedAction}
+                                    </span>
+                                ) : null}
+                            </div>
+                        ) : section.widgets.length === 0 && section.whenEmpty === "reserve" ? (
+                            <div className="rbs-presentation-reserved rbs-muted" role="status">
+                                {loc.reservedSectionDetail}
+                            </div>
+                        ) : null}
                     </div>
                 </section>
             ))}

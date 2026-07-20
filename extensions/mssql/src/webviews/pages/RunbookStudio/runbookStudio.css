@@ -165,6 +165,34 @@
     grid-column: span var(--rbs-span-wide);
 }
 
+.rbs-presentation-empty,
+.rbs-presentation-reserved {
+    grid-column: 1 / -1;
+    min-height: 64px;
+    box-sizing: border-box;
+    border: 1px dashed var(--vscode-panel-border);
+    border-radius: 4px;
+}
+
+.rbs-presentation-empty {
+    display: grid;
+    align-content: center;
+    justify-items: start;
+    gap: 4px;
+    padding: 12px;
+}
+
+.rbs-presentation-empty-action {
+    color: var(--vscode-textLink-foreground);
+}
+
+.rbs-presentation-reserved {
+    display: grid;
+    place-items: center;
+    padding: 8px;
+    opacity: 0.7;
+}
+
 .rbs-layout-dashboard .rbs-widget {
     height: calc(100% - 10px);
     box-sizing: border-box;

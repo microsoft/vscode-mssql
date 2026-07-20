@@ -3829,6 +3829,11 @@ export class LocConstants {
             eventLog: l10n.t("Event log"),
             widgetPending: l10n.t("Waiting for this step to produce output…"),
             widgetSourceMissing: l10n.t("The step this widget was bound to no longer exists."),
+            emptySectionTitle: l10n.t("No results in this section"),
+            emptySectionDetail: l10n.t(
+                "Results will appear here when this section receives a matching output.",
+            ),
+            reservedSectionDetail: l10n.t("Reserved for matching results"),
             dataExpiredDetail: l10n.t(
                 "The detail data for this output has expired. The run record remains available.",
             ),

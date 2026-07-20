@@ -981,6 +981,9 @@ export function resolvePresentation(
         revision: definition.revision,
         derived: false,
         layout: definition.results.layout,
+        ...(definition.results.emptyState
+            ? { emptyState: { ...definition.results.emptyState } }
+            : {}),
         sections,
     };
 }
