@@ -3571,6 +3571,28 @@ export class LocConstants {
             noPreviewDetail: l10n.t(
                 "The preview uses the compiled activity output contracts and never runs SQL or other effects.",
             ),
+            customizeLayout: l10n.t("Customize layout"),
+            finishCustomizing: l10n.t("Done customizing"),
+            outputsDrawer: l10n.t("Outputs"),
+            outputsDrawerDetail: l10n.t("Place or hide every typed output from the compiled plan."),
+            layoutSection: l10n.t("Section"),
+            layoutSectionFor: (label: string) =>
+                l10n.t({
+                    message: "Section for {0}",
+                    args: [label],
+                    comment: ["{0} is a runbook plan step label"],
+                }),
+            layoutWidth: l10n.t("Width"),
+            layoutFull: l10n.t("Full"),
+            layoutTwoThirds: l10n.t("Two thirds"),
+            layoutHalf: l10n.t("Half"),
+            layoutThird: l10n.t("One third"),
+            hideOutput: l10n.t("Hide"),
+            showOutput: l10n.t("Show"),
+            savingLayout: l10n.t("Saving…"),
+            layoutSaveFailed: l10n.t(
+                "The layout changed or this edit is no longer valid. Review the latest layout and try again.",
+            ),
             intent: l10n.t("Intent"),
             compiledPlan: l10n.t("Compiled plan"),
             edges: l10n.t("Edges"),

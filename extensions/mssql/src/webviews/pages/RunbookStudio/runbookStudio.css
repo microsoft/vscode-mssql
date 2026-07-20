@@ -248,6 +248,79 @@
     grid-column: span var(--rbs-span-wide);
 }
 
+.rbs-results-compose {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    min-width: 0;
+}
+
+.rbs-results-compose.with-drawer {
+    grid-template-columns: minmax(0, 1fr) minmax(230px, 300px);
+}
+
+.rbs-layout-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 5px;
+    padding: 6px 8px;
+    border: 1px dashed var(--vscode-focusBorder);
+    border-radius: 4px;
+    background: var(--vscode-editorWidget-background, transparent);
+}
+
+.rbs-layout-controls label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.rbs-error-text {
+    color: var(--vscode-errorForeground);
+    font-size: 11px;
+}
+
+.rbs-outputs-drawer {
+    align-self: start;
+    position: sticky;
+    top: 0;
+    padding: 10px;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 5px;
+    background: var(--vscode-sideBar-background);
+}
+
+.rbs-outputs-drawer h2 {
+    margin: 0;
+    font-size: 13px;
+}
+
+.rbs-outputs-list {
+    display: grid;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.rbs-output-row {
+    display: grid;
+    gap: 6px;
+    padding: 8px;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+}
+
+@media (max-width: 760px) {
+    .rbs-results-compose.with-drawer {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .rbs-outputs-drawer {
+        position: static;
+    }
+}
+
 .rbs-intent {
     margin: 0;
     line-height: 1.5;

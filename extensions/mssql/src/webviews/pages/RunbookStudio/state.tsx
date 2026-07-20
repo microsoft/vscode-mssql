@@ -19,6 +19,7 @@ import {
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     RbsCancelCompileRequest,
+    RbsApplyPresentationLayoutRequest,
     RbsCancelRunRequest,
     RbsCompileProgressNotification,
     RbsCompileRequest,
@@ -42,7 +43,11 @@ import {
     RbsUpdateIntentRequest,
     RunbookRunEvent,
 } from "../../../sharedInterfaces/runbookStudio";
-import { PresentationMode, ViewKind } from "../../../sharedInterfaces/runbookPresentation";
+import {
+    PresentationLayoutEdit,
+    PresentationMode,
+    ViewKind,
+} from "../../../sharedInterfaces/runbookPresentation";
 
 /** One WORKFLOW STEPS row of the generation console (planner build turn). */
 export interface PlannerConsoleTurn {
@@ -217,6 +222,10 @@ interface RbsContextValue {
         baseRevision: number,
         resetToSuggested?: boolean,
     ) => Promise<{ applied: boolean; reason?: "invalid" | "revisionConflict" }>;
+    applyPresentationLayout: (
+        edits: PresentationLayoutEdit[],
+        baseRevision: number,
+    ) => Promise<{ applied: boolean; reason?: "invalid" | "revisionConflict" }>;
     /** Open and execute a compiled read-query node in Query Studio. */
     executePlanQuery: (nodeId: string) => Promise<boolean>;
     /** Show a prior run's results (persistence-backed). */
@@ -363,6 +372,12 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
         [rpc],
     );
 
+    const applyPresentationLayout = useCallback(
+        async (edits: PresentationLayoutEdit[], baseRevision: number) =>
+            rpc.sendRequest(RbsApplyPresentationLayoutRequest.type, { edits, baseRevision }),
+        [rpc],
+    );
+
     const executePlanQuery = useCallback(
         async (nodeId: string): Promise<boolean> => {
             setLastError(undefined);
@@ -492,6 +507,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             setParameterDraft,
             setOutputView,
             setOutputPresentation,
+            applyPresentationLayout,
             executePlanQuery,
             selectRun,
             exportEvidence,
@@ -518,6 +534,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             setParameterDraft,
             setOutputView,
             setOutputPresentation,
+            applyPresentationLayout,
             executePlanQuery,
             selectRun,
             exportEvidence,

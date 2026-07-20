@@ -26,6 +26,9 @@ import {
     RunbookRunSnapshot,
 } from "../../../sharedInterfaces/runbookStudio";
 import {
+    defaultViewFor,
+    expectedContractFor,
+    PresentationLayoutEdit,
     ResolvedPresentation,
     ResolvedWidget,
 } from "../../../sharedInterfaces/runbookPresentation";
@@ -1456,6 +1459,8 @@ function ResultsPage() {
     const { state } = useRbs();
     const loc = locConstants.runbookStudio;
     const paintedResults = useRef<Map<string, string>>(new Map());
+    const [editingLayout, setEditingLayout] = useState(false);
+    const [outputsOpen, setOutputsOpen] = useState(false);
     const widgets = (state?.presentation?.sections ?? []).flatMap((section) => section.widgets);
     const readyWidgets = widgets.filter((widget) => widget.state === "ready");
     const runId = state?.run?.runId;
@@ -1510,9 +1515,28 @@ function ResultsPage() {
                 ) : null}
                 <ResultsRunPicker />
                 <div className="rbs-spacer" />
+                <button
+                    type="button"
+                    className="rbs-btn"
+                    aria-pressed={editingLayout}
+                    onClick={() => setEditingLayout((value) => !value)}>
+                    {editingLayout ? loc.finishCustomizing : loc.customizeLayout}
+                </button>
+                <button
+                    type="button"
+                    className="rbs-btn rbs-btn-quiet"
+                    aria-pressed={outputsOpen}
+                    onClick={() => setOutputsOpen((value) => !value)}>
+                    {loc.outputsDrawer}
+                </button>
                 <EvidenceExportControl />
             </div>
-            <PresentationSections presentation={presentation} />
+            <div className={`rbs-results-compose ${outputsOpen ? "with-drawer" : ""}`}>
+                <div>
+                    <PresentationSections presentation={presentation} editing={editingLayout} />
+                </div>
+                {outputsOpen ? <OutputsDrawer presentation={presentation} /> : null}
+            </div>
         </div>
     );
 }
@@ -1535,9 +1559,11 @@ function layoutStyle(widget: ResolvedWidget, presentation: ResolvedPresentation)
 function PresentationSections({
     presentation,
     sample = false,
+    editing = false,
 }: {
     presentation: ResolvedPresentation;
     sample?: boolean;
+    editing?: boolean;
 }) {
     return (
         <>
@@ -1551,6 +1577,7 @@ function PresentationSections({
                                 className="rbs-layout-widget"
                                 style={layoutStyle(widget, presentation)}
                                 key={widget.id}>
+                                {editing ? <LayoutEditorControls widget={widget} /> : null}
                                 <ResolvedWidgetView widget={widget} sample={sample} />
                             </div>
                         ))}
@@ -1561,10 +1588,211 @@ function PresentationSections({
     );
 }
 
+const SPAN_PRESETS = {
+    full: { compact: 1, medium: 6, wide: 12 },
+    twoThirds: { compact: 1, medium: 4, wide: 8 },
+    half: { compact: 1, medium: 3, wide: 6 },
+    third: { compact: 1, medium: 2, wide: 4 },
+} as const;
+
+function spanPresetOf(span: { wide?: number } | undefined) {
+    const wide = span?.wide;
+    return wide === 4 ? "third" : wide === 6 ? "half" : wide === 8 ? "twoThirds" : "full";
+}
+
+function LayoutEditorControls({ widget }: { widget: ResolvedWidget }) {
+    const { state, applyPresentationLayout } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState(false);
+    const configured = state?.artifact?.outputPresentations?.[widget.nodeId];
+    const sections = state?.artifact?.presentationSections ?? [];
+    const placement = configured?.placement ?? widget.placement ?? { order: 0 };
+    const currentSectionId =
+        configured?.sectionId ??
+        (sections.some((section) => section.id === widget.sectionId)
+            ? widget.sectionId
+            : "primary");
+    const commit = async (edit: Partial<PresentationLayoutEdit>) => {
+        const baseRevision = state?.artifact?.presentationRevision ?? 0;
+        setSaving(true);
+        setError(false);
+        try {
+            const result = await applyPresentationLayout(
+                [
+                    {
+                        nodeId: widget.nodeId,
+                        widgetId: configured?.widgetId ?? widget.id,
+                        defaultView: configured?.defaultView ?? widget.view,
+                        sectionId: currentSectionId,
+                        placement,
+                        hidden: false,
+                        ...edit,
+                    },
+                ],
+                baseRevision,
+            );
+            setError(!result.applied);
+        } catch {
+            setError(true);
+        } finally {
+            setSaving(false);
+        }
+    };
+    return (
+        <div className="rbs-layout-controls">
+            <label>
+                <span className="rbs-muted">{loc.layoutSection}</span>
+                <select
+                    className="rbs-select"
+                    value={currentSectionId}
+                    disabled={saving}
+                    onChange={(event) => void commit({ sectionId: event.target.value })}>
+                    {sections.map((section) => (
+                        <option key={section.id} value={section.id}>
+                            {section.label ?? section.role}
+                        </option>
+                    ))}
+                </select>
+            </label>
+            <label>
+                <span className="rbs-muted">{loc.layoutWidth}</span>
+                <select
+                    className="rbs-select"
+                    value={spanPresetOf(placement.span)}
+                    disabled={saving}
+                    onChange={(event) =>
+                        void commit({
+                            placement: {
+                                ...placement,
+                                span: SPAN_PRESETS[event.target.value as keyof typeof SPAN_PRESETS],
+                            },
+                        })
+                    }>
+                    <option value="full">{loc.layoutFull}</option>
+                    <option value="twoThirds">{loc.layoutTwoThirds}</option>
+                    <option value="half">{loc.layoutHalf}</option>
+                    <option value="third">{loc.layoutThird}</option>
+                </select>
+            </label>
+            <button
+                type="button"
+                className="rbs-link-button"
+                disabled={saving}
+                onClick={() => void commit({ hidden: true })}>
+                {loc.hideOutput}
+            </button>
+            {saving ? <span className="rbs-muted">{loc.savingLayout}</span> : null}
+            {error ? <span className="rbs-error-text">{loc.layoutSaveFailed}</span> : null}
+        </div>
+    );
+}
+
+function OutputsDrawer({ presentation }: { presentation: ResolvedPresentation }) {
+    const { state, applyPresentationLayout } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const [savingNode, setSavingNode] = useState<string | undefined>();
+    const [errorNode, setErrorNode] = useState<string | undefined>();
+    const sections = state?.artifact?.presentationSections ?? [];
+    const visibleNodes = new Set(
+        presentation.sections.flatMap((section) => section.widgets.map((widget) => widget.nodeId)),
+    );
+    const outputs = (state?.artifact?.nodes ?? [])
+        .map((node) => ({
+            node,
+            contract: expectedContractFor(node.kind, node.activityKind),
+        }))
+        .filter(
+            (entry): entry is typeof entry & { contract: string } => entry.contract !== undefined,
+        );
+
+    const update = async (nodeId: string, hidden: boolean, sectionId?: string) => {
+        const configured = state?.artifact?.outputPresentations?.[nodeId];
+        const node = outputs.find((entry) => entry.node.id === nodeId);
+        if (!node) {
+            return;
+        }
+        setSavingNode(nodeId);
+        setErrorNode(undefined);
+        try {
+            const result = await applyPresentationLayout(
+                [
+                    {
+                        nodeId,
+                        ...(configured?.widgetId ? { widgetId: configured.widgetId } : {}),
+                        defaultView: configured?.defaultView ?? defaultViewFor(node.contract),
+                        sectionId: sectionId ?? configured?.sectionId ?? "primary",
+                        placement: configured?.placement ?? {
+                            order: outputs.findIndex((entry) => entry.node.id === nodeId),
+                            span: SPAN_PRESETS.full,
+                        },
+                        hidden,
+                    },
+                ],
+                state?.artifact?.presentationRevision ?? 0,
+            );
+            if (!result.applied) {
+                setErrorNode(nodeId);
+            }
+        } catch {
+            setErrorNode(nodeId);
+        } finally {
+            setSavingNode(undefined);
+        }
+    };
+
+    return (
+        <aside className="rbs-outputs-drawer" aria-label={loc.outputsDrawer}>
+            <h2>{loc.outputsDrawer}</h2>
+            <p className="rbs-muted">{loc.outputsDrawerDetail}</p>
+            <div className="rbs-outputs-list">
+                {outputs.map(({ node, contract }) => {
+                    const configured = state?.artifact?.outputPresentations?.[node.id];
+                    const hidden = configured?.hidden ?? !visibleNodes.has(node.id);
+                    return (
+                        <div className="rbs-output-row" key={node.id}>
+                            <div>
+                                <strong>{node.label}</strong>
+                                <div className="rbs-chip rbs-mono">{contract}</div>
+                            </div>
+                            <select
+                                className="rbs-select"
+                                aria-label={loc.layoutSectionFor(node.label)}
+                                value={configured?.sectionId ?? "primary"}
+                                disabled={savingNode === node.id || hidden}
+                                onChange={(event) =>
+                                    void update(node.id, false, event.target.value)
+                                }>
+                                {sections.map((section) => (
+                                    <option key={section.id} value={section.id}>
+                                        {section.label ?? section.role}
+                                    </option>
+                                ))}
+                            </select>
+                            <button
+                                type="button"
+                                className="rbs-btn rbs-btn-quiet"
+                                disabled={savingNode === node.id}
+                                onClick={() => void update(node.id, !hidden)}>
+                                {hidden ? loc.showOutput : loc.hideOutput}
+                            </button>
+                            {errorNode === node.id ? (
+                                <span className="rbs-error-text">{loc.layoutSaveFailed}</span>
+                            ) : null}
+                        </div>
+                    );
+                })}
+            </div>
+        </aside>
+    );
+}
+
 function PreviewPage() {
     const { state } = useRbs();
     const loc = locConstants.runbookStudio;
     const [width, setWidth] = useState<"compact" | "medium" | "wide">("wide");
+    const [editingLayout, setEditingLayout] = useState(false);
+    const [outputsOpen, setOutputsOpen] = useState(false);
     if (state?.artifactError) {
         return <InvalidArtifact />;
     }
@@ -1580,6 +1808,20 @@ function PreviewPage() {
                 </div>
                 <span className="rbs-chip rbs-chip-suggested">{loc.sample}</span>
                 <div className="rbs-spacer" />
+                <button
+                    type="button"
+                    className="rbs-btn"
+                    aria-pressed={editingLayout}
+                    onClick={() => setEditingLayout((value) => !value)}>
+                    {editingLayout ? loc.finishCustomizing : loc.customizeLayout}
+                </button>
+                <button
+                    type="button"
+                    className="rbs-btn rbs-btn-quiet"
+                    aria-pressed={outputsOpen}
+                    onClick={() => setOutputsOpen((value) => !value)}>
+                    {loc.outputsDrawer}
+                </button>
                 <div className="rbs-graph-toggle-group" role="group" aria-label={loc.previewWidth}>
                     {(["compact", "medium", "wide"] as const).map((candidate) => (
                         <button
@@ -1597,8 +1839,15 @@ function PreviewPage() {
                     ))}
                 </div>
             </div>
-            <div className={`rbs-preview-canvas rbs-preview-${width}`}>
-                <PresentationSections presentation={state.previewPresentation} sample />
+            <div className={`rbs-results-compose ${outputsOpen ? "with-drawer" : ""}`}>
+                <div className={`rbs-preview-canvas rbs-preview-${width}`}>
+                    <PresentationSections
+                        presentation={state.previewPresentation}
+                        sample
+                        editing={editingLayout}
+                    />
+                </div>
+                {outputsOpen ? <OutputsDrawer presentation={state.previewPresentation} /> : null}
             </div>
         </div>
     );

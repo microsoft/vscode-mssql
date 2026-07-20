@@ -12,6 +12,7 @@
 
 import { expect } from "chai";
 import {
+    applyPresentationLayoutEdits,
     compatibleViews,
     createViewSpec,
     DEFAULT_PRESENTATION_LAYOUT,
@@ -298,7 +299,7 @@ suite("presentationResolver", () => {
         // First pin creates the definition + primary section.
         const pinned = upsertOutputPin(undefined, "query", "bar");
         expect(pinned.revision).to.equal(1);
-        expect(pinned.results.sections[0].id).to.equal("primary");
+        expect(pinned.results.sections.some((section) => section.id === "primary")).to.equal(true);
         expect(pinned.results.widgets[0]).to.deep.include({
             id: "pin-query",
             defaultViewId: "pin-query:bar",
@@ -360,10 +361,14 @@ suite("presentationResolver", () => {
             },
         });
         expect(outputPresentationsOf(edited).query).to.deep.equal({
+            widgetId: "w1",
             views: ["bar", "json"],
             defaultView: "json",
             presentation: { mode: "tabs" },
             setByUser: true,
+            sectionId: "main",
+            placement: { order: 0 },
+            hidden: false,
         });
 
         // Results can change the default without collapsing a multi-view
@@ -381,14 +386,61 @@ suite("presentationResolver", () => {
         });
         expect(reset.results.widgets.find((widget) => widget.id === "w1")).to.exist;
         expect(outputPresentationsOf(reset).query).to.deep.equal({
+            widgetId: "w1",
             views: ["grid"],
             defaultView: "grid",
             presentation: { mode: "single" },
             setByUser: false,
+            sectionId: "main",
+            placement: { order: 0 },
+            hidden: false,
         });
 
         const generatedPin = upsertOutputPin(undefined, "new-node", "bar");
         const resetGenerated = resetOutputPresentation(generatedPin, "new-node", "grid");
         expect(resetGenerated.results.widgets).to.have.length(0);
+    });
+
+    test("layout edits materialize Overflow outputs and explicit hiding prevents reflow", () => {
+        const laidOut = applyPresentationLayoutEdits(
+            undefined,
+            [
+                {
+                    nodeId: "query",
+                    defaultView: "grid",
+                    sectionId: "summary",
+                    placement: { order: 2, span: { compact: 1, medium: 3, wide: 6 } },
+                    hidden: false,
+                },
+            ],
+            { contractByNode: { query: "rowset/1" }, planRevision: "9" },
+        );
+        expect(outputPresentationsOf(laidOut).query).to.deep.include({
+            widgetId: "layout-query",
+            sectionId: "summary",
+            placement: { order: 2, span: { compact: 1, medium: 3, wide: 6 } },
+            hidden: false,
+        });
+        expect(resolvePresentation(laidOut, snapshot()).sections[0].widgets[0].nodeId).to.equal(
+            "query",
+        );
+
+        const hidden = applyPresentationLayoutEdits(laidOut, [
+            {
+                nodeId: "query",
+                widgetId: "layout-query",
+                defaultView: "grid",
+                sectionId: "summary",
+                placement: { order: 2 },
+                hidden: true,
+            },
+        ]);
+        const resolved = resolvePresentation(hidden, snapshot());
+        expect(
+            resolved.sections
+                .flatMap((section) => section.widgets)
+                .some((widget) => widget.nodeId === "query"),
+        ).to.equal(false);
+        expect(outputPresentationsOf(hidden).query.hidden).to.equal(true);
     });
 });

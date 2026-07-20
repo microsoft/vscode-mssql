@@ -2164,6 +2164,9 @@
     <trans-unit id="++CODE++c525ed2944e05f661b7bc658ddccb355cd47a8daab5629ce4310c575aa58e2a1">
       <source xml:lang="en">Customize keyboard shortcuts</source>
     </trans-unit>
+    <trans-unit id="++CODE++7ba13f0a153b8951f28221fc59428b441fbf0548fbdc2e48f8f2dc44926d3aee">
+      <source xml:lang="en">Customize layout</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7aa1ff656ae01487b19a24f178526fa3b74963ac0bfb6cff35b047b62d8be4b">
       <source xml:lang="en">DAB container failed to become ready within the timeout period.</source>
     </trans-unit>
@@ -2644,6 +2647,9 @@
     </trans-unit>
     <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
       <source xml:lang="en">Don&apos;t show this again</source>
+    </trans-unit>
+    <trans-unit id="++CODE++14523022f8a8bbb9a795979045680151adf9962c7c447e002329f809a4bacaf4">
+      <source xml:lang="en">Done customizing</source>
     </trans-unit>
     <trans-unit id="++CODE++ade5b866b0e6b83f736f3f1e46c0448a8ed129ae76c552d26cd62d610f1eb0e5">
       <source xml:lang="en">Download offline VSIX</source>
@@ -4224,11 +4230,17 @@
       <source xml:lang="en">Groups: {0}</source>
       <note>{0} is a summary of safe spatial type or SRID group counts</note>
     </trans-unit>
+    <trans-unit id="++CODE++8082c15cbfa7f886116d3bc4e17b24392e89601d592651f7333780f26c50bebb">
+      <source xml:lang="en">Half</source>
+    </trans-unit>
     <trans-unit id="++CODE++b79cac926e0b2e347e72cc91d5174037c9e17ae7733fd7bdb570f71b10cd7bfc">
       <source xml:lang="en">Help</source>
     </trans-unit>
     <trans-unit id="++CODE++fe44c8ac09e3996f71f7153cac29fe00113075f95611f98e76cf3aae6232d0dd">
       <source xml:lang="en">Help us improve by sharing your thoughts.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ac20a57bfde0bbc40bfe70895eb1cfacc944aaff06ca784053623c569b3e1b3d">
+      <source xml:lang="en">Hide</source>
     </trans-unit>
     <trans-unit id="++CODE++cf7a4462cdb4e65708d6da34fafbdbd520b0300850a68be92f1fe3d5be3811d2">
       <source xml:lang="en">Hide Changes</source>
@@ -5831,6 +5843,9 @@
     <trans-unit id="++CODE++5c96a0d717cf95bc5e8a44accd180436a5606ded18cb29001f3e9df57614ed31">
       <source xml:lang="en">One or more of your entities contain column types that are not currently supported by Data API builder. These entities cannot be selected for deployment.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9923b76939fafafc3e79d0557df3bbb5f269241ca511cea044765b1b7d9a835a">
+      <source xml:lang="en">One third</source>
+    </trans-unit>
     <trans-unit id="++CODE++591ddf96c29680f1ba3e3549693049fa4b6db4cfc7112f6c64fa4ccc05ce5756">
       <source xml:lang="en">Online layer disabled in an untrusted workspace</source>
     </trans-unit>
@@ -5984,6 +5999,9 @@
     <trans-unit id="++CODE++457f4957af842a5251cfb7190234e6a6fc30c1cb69d7b9d086b4b39c89f8ab06">
       <source xml:lang="en">Output:</source>
     </trans-unit>
+    <trans-unit id="++CODE++e7ce99764a2debd20909bfcf02693d2c1aa3c6b38e1edc86fe2604296fe5e868">
+      <source xml:lang="en">Outputs</source>
+    </trans-unit>
     <trans-unit id="++CODE++eabaa5ba70b7871bd005170e9a540a993456433cdaad54eacc4e4c07a13c71bb">
       <source xml:lang="en">Overall, how satisfied are you with the MSSQL extension?</source>
     </trans-unit>
@@ -6101,6 +6119,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++71f55eb07a0ed3930088769674d96bae24e48d8ef48bbc051feef94a693fb5be">
+      <source xml:lang="en">Place or hide every typed output from the compiled plan.</source>
     </trans-unit>
     <trans-unit id="++CODE++fa8ed0bdabdd6bcb1c0746f1d3e15212f7f3439d74339fbaaf16c60c0a80fb8e">
       <source xml:lang="en">Plan</source>
@@ -7266,6 +7287,9 @@
     <trans-unit id="++CODE++dc85af8f2b1d0d6756547cd5f79557466e25e682b882f68d277bd7f125851321">
       <source xml:lang="en">Saving...</source>
     </trans-unit>
+    <trans-unit id="++CODE++0b804d320c911b15c647d1abb90cc085aae74214c6dffb88f319f34e4cb4786a">
+      <source xml:lang="en">Saving…</source>
+    </trans-unit>
     <trans-unit id="++CODE++28b9471fbcdd3a3ce3799551c1cee3825afe4ea4ce67688c764bd4a364028bd9">
       <source xml:lang="en">Scaffold backend components (e.g., data-access layers) based on your current database context</source>
     </trans-unit>
@@ -7419,6 +7443,13 @@
     </trans-unit>
     <trans-unit id="++CODE++78c9d9f6ace0e9b850ab68646c51dc2c990edf221c872d1c6ec389dd797c0f21">
       <source xml:lang="en">Searching...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dfca5da56b8cdb627309e2aa5a45e17b0e3e3e09e729209216b4fb0684ad8bae">
+      <source xml:lang="en">Section</source>
+    </trans-unit>
+    <trans-unit id="++CODE++05aefda4ac819d8dc178b19716cd504fc59513e5dc1d3954bb55a3bbd61dfa81">
+      <source xml:lang="en">Section for {0}</source>
+      <note>{0} is a runbook plan step label</note>
     </trans-unit>
     <trans-unit id="++CODE++c4038f47497f61adc776523835e82f3bab98d497b1978fced8d46e61e6f435a4">
       <source xml:lang="en">Seed sample data or import an existing schema</source>
@@ -7794,6 +7825,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bf913efbcc381cf124165f3786831debf4e1caf3e8b775f07ba3b65e58534ac6">
       <source xml:lang="en">Shortcuts configuration page</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0df6f1cad36c49da768a6efdcc2c4be102f5729f7381cb53e4ff8061d17eaeb6">
+      <source xml:lang="en">Show</source>
     </trans-unit>
     <trans-unit id="++CODE++e1c32645f2f85a25ae64e38f306ded9b82771ab8ac4595e769f9410e632584f4">
       <source xml:lang="en">Show All</source>
@@ -8575,6 +8609,9 @@
     <trans-unit id="++CODE++0f98888ce39572ae27e642dd46baba8dbf179c6b3c42c522cde8ad1f43323b11">
       <source xml:lang="en">The language model did not return any output.</source>
     </trans-unit>
+    <trans-unit id="++CODE++577d02ca582344ac419c856b7ba171d6a78519e7b202b0135676e0a5dbc1655e">
+      <source xml:lang="en">The layout changed or this edit is no longer valid. Review the latest layout and try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d">
       <source xml:lang="en">The mapping between foreign key columns and primary key columns.</source>
     </trans-unit>
@@ -8920,6 +8957,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a3a3528ddf91f12579305467446f74ee44ef4c6016c889a73ee002be224a1b08">
       <source xml:lang="en">Try searching by command name, description, or keybinding.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7bd62f01abd7a5aa93969a4d539da75fde9e194a4026716e65f1982c750d8e00">
+      <source xml:lang="en">Two thirds</source>
     </trans-unit>
     <trans-unit id="++CODE++baaddf70fb5d432b8bd948ef91d6f910124a6d138edae4d5f000c4610ddc8eae">
       <source xml:lang="en">Type</source>
@@ -9353,6 +9393,9 @@
     </trans-unit>
     <trans-unit id="++CODE++147170e793c6e58f2f7c858cb567f1aa926232793d664c034a4260f9d0e19875">
       <source xml:lang="en">Wide</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3019947b6daf18b0534a15d8c7ac30ab587e36cc93fb45a6e7b750348006d620">
+      <source xml:lang="en">Width</source>
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>

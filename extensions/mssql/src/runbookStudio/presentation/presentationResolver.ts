@@ -16,6 +16,7 @@ import {
     isViewCompatible,
     LegacyPresentationDefinition,
     OutputPresentationSummary,
+    PresentationLayoutEdit,
     PresentationDefinition,
     PresentationMode,
     PRESENTATION_SCHEMA_VERSION,
@@ -80,15 +81,22 @@ function defaultDefinition(): PresentationDefinition {
         authoredForPlanRevision: "unknown",
         registryVersion: "2.0",
         results: {
-            sections: [
-                defaultSection("primary", "primary", 0),
-                defaultSection("overflow", "overflow", 1),
-            ],
+            sections: defaultPresentationSections(),
             widgets: [],
             layout: DEFAULT_PRESENTATION_LAYOUT,
         },
         derivedSources: [],
     };
+}
+
+export function defaultPresentationSections(): SectionDefinition[] {
+    return [
+        defaultSection("summary", "summary", 0, "Summary"),
+        defaultSection("primary", "primary", 1, "Primary"),
+        defaultSection("details", "details", 2, "Details"),
+        defaultSection("appendix", "appendix", 3, "Appendix"),
+        defaultSection("overflow", "overflow", 4, "Overflow"),
+    ];
 }
 
 function defaultSection(
@@ -150,6 +158,11 @@ export function migrateLegacyPresentationDefinition(
     );
     if (!sections.some((section) => section.id === "overflow")) {
         sections.push(defaultSection("overflow", "overflow", sections.length));
+    }
+    for (const standard of defaultPresentationSections()) {
+        if (!sections.some((section) => section.role === standard.role)) {
+            sections.push({ ...standard, order: sections.length });
+        }
     }
     const widgets: WidgetBinding[] = legacy.sections.flatMap((section) =>
         section.widgets.map((widget, index) => {
@@ -388,6 +401,70 @@ export function resetOutputPresentation(
     };
 }
 
+/** Apply one or more host-validated semantic layout edits atomically. Missing
+ * bindings are materialized from their node/default-view identity so an
+ * Overflow output can be intentionally placed or hidden. */
+export function applyPresentationLayoutEdits(
+    definition: PresentationDefinition | undefined,
+    edits: PresentationLayoutEdit[],
+    metadata?: { contractByNode?: Record<string, string>; planRevision?: string },
+): PresentationDefinition {
+    const base = definition ?? defaultDefinition();
+    const widgets = [...base.results.widgets];
+    for (const edit of edits) {
+        const index = widgets.findIndex(
+            (widget) =>
+                widget.source.kind === "activity-output" &&
+                widget.source.nodeId === edit.nodeId &&
+                widget.source.slot === "primary" &&
+                (edit.widgetId === undefined || widget.id === edit.widgetId),
+        );
+        if (index >= 0) {
+            const widget = widgets[index];
+            const selected =
+                widget.views.find((view) => view.kind === edit.defaultView) ??
+                createViewSpec(edit.defaultView, `${widget.id}:${edit.defaultView}`);
+            widgets[index] = {
+                ...widget,
+                sectionId: edit.sectionId,
+                placement: edit.placement,
+                visibility: edit.hidden ? { when: "never" } : { when: "always" },
+                ...(!widget.views.some((view) => view.kind === edit.defaultView)
+                    ? {
+                          views: [selected],
+                          presentation: { mode: "single" },
+                          defaultViewId: selected.id,
+                      }
+                    : {}),
+                provenance: { by: "user", previous: defaultViewKind(widget) },
+            };
+            continue;
+        }
+        const id = edit.widgetId ?? `layout-${edit.nodeId}`;
+        const selected = createViewSpec(edit.defaultView, `${id}:${edit.defaultView}`);
+        const contract = metadata?.contractByNode?.[edit.nodeId] ?? "unknown/1";
+        widgets.push({
+            id,
+            source: { kind: "activity-output", nodeId: edit.nodeId, slot: "primary" },
+            views: [selected],
+            presentation: { mode: "single" },
+            defaultViewId: selected.id,
+            sectionId: edit.sectionId,
+            placement: edit.placement,
+            visibility: edit.hidden ? { when: "never" } : { when: "always" },
+            authoredContract: contract,
+            authoredContractFingerprint: contract,
+            provenance: { by: "user" },
+        });
+    }
+    return {
+        ...base,
+        revision: base.revision + 1,
+        ...(metadata?.planRevision ? { authoredForPlanRevision: metadata.planRevision } : {}),
+        results: { ...base.results, widgets },
+    };
+}
+
 function defaultViewSpec(widget: WidgetBinding): ViewSpec {
     return widget.views.find((view) => view.id === widget.defaultViewId) ?? widget.views[0];
 }
@@ -429,10 +506,14 @@ export function outputPresentationsOf(
             continue;
         }
         summaries[widget.source.nodeId] = {
+            widgetId: widget.id,
             views: widget.views.map((view) => view.kind),
             defaultView,
             presentation: widget.presentation,
             setByUser: widget.provenance.by === "user",
+            sectionId: widget.sectionId,
+            ...(widget.placement ? { placement: widget.placement } : {}),
+            hidden: widget.visibility?.when === "never",
         };
     }
     return summaries;
@@ -641,6 +722,9 @@ export function resolvePresentation(
     for (const binding of definition.results.widgets) {
         if (binding.source.kind === "activity-output") {
             boundOutputs.add(`${binding.source.nodeId}\u0000${binding.source.slot}`);
+        }
+        if (binding.visibility?.when === "never") {
+            continue;
         }
         const sectionId = knownSectionIds.has(binding.sectionId)
             ? binding.sectionId

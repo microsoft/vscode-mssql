@@ -257,10 +257,23 @@ export type PresentationMode =
  * omits renderer settings and source internals; edits still round-trip
  * through the host-owned full definition. */
 export interface OutputPresentationSummary {
+    widgetId: string;
     views: ViewKind[];
     defaultView: ViewKind;
     presentation: PresentationMode;
     setByUser: boolean;
+    sectionId: string;
+    placement?: WidgetPlacement;
+    hidden: boolean;
+}
+
+export interface PresentationLayoutEdit {
+    nodeId: string;
+    widgetId?: string;
+    defaultView: ViewKind;
+    sectionId: string;
+    placement: WidgetPlacement;
+    hidden: boolean;
 }
 
 export type PresentationProvenance =
@@ -270,6 +283,7 @@ export type PresentationProvenance =
     | { by: "migration"; fromSchemaVersion: number };
 
 export type VisibilityPolicy =
+    | { when: "never" }
     | { when: "always" }
     | { when: "source-ready" }
     | { when: "source-non-empty" }

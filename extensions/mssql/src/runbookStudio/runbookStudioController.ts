@@ -19,6 +19,7 @@ import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
 import {
     RbsArtifactSummary,
+    RbsApplyPresentationLayoutRequest,
     RbsCancelCompileRequest,
     RbsCompileProgressNotification,
     RbsCompileRequest,
@@ -57,6 +58,8 @@ import {
 import { resolvePlanQueryLaunch } from "./planQueryLaunch";
 import type { RunbookRunCoordinator } from "./runbookRunCoordinator";
 import {
+    applyPresentationLayoutEdits,
+    defaultPresentationSections,
     pinnedViewsOf,
     outputPresentationsOf,
     resetOutputPresentation,
@@ -275,6 +278,58 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 return { applied };
             },
         );
+
+        this.onRequest(RbsApplyPresentationLayoutRequest.type, async ({ edits, baseRevision }) => {
+            const artifact = this.model.artifact;
+            const definition = validatePresentationDefinition(artifact?.presentation);
+            if ((definition?.revision ?? 0) !== baseRevision) {
+                return { applied: false, reason: "revisionConflict" as const };
+            }
+            const sections = definition?.results.sections ?? defaultPresentationSections();
+            const sectionIds = new Set(sections.map((section) => section.id));
+            const contractByNode: Record<string, string> = {};
+            let valid = artifact?.lock !== undefined && edits.length > 0 && edits.length <= 100;
+            for (const edit of edits) {
+                const node = artifact?.lock?.nodes.find(
+                    (candidate) => candidate.id === edit.nodeId,
+                );
+                const contract = node
+                    ? expectedContractFor(node.kind, node.activityKind)
+                    : undefined;
+                const span = edit.placement.span;
+                valid =
+                    valid &&
+                    node !== undefined &&
+                    contract !== undefined &&
+                    compatibleViews(contract).includes(edit.defaultView) &&
+                    sectionIds.has(edit.sectionId) &&
+                    Number.isInteger(edit.placement.order) &&
+                    edit.placement.order >= 0 &&
+                    (span?.compact === undefined ||
+                        (Number.isInteger(span.compact) &&
+                            span.compact >= 1 &&
+                            span.compact <= 1)) &&
+                    (span?.medium === undefined ||
+                        (Number.isInteger(span.medium) && span.medium >= 1 && span.medium <= 6)) &&
+                    (span?.wide === undefined ||
+                        (Number.isInteger(span.wide) && span.wide >= 1 && span.wide <= 12));
+                if (contract) {
+                    contractByNode[edit.nodeId] = contract;
+                }
+            }
+            if (!valid || !artifact) {
+                return { applied: false, reason: "invalid" as const };
+            }
+            const next = applyPresentationLayoutEdits(definition, edits, {
+                contractByNode,
+                planRevision: artifact.lock?.planRevision,
+            });
+            const applied = await this.model.applyArtifactEdit({
+                ...artifact,
+                presentation: next,
+            });
+            return { applied };
+        });
 
         this.onRequest(RbsExecutePlanQueryRequest.type, async ({ nodeId, connectionValues }) => {
             if (!vscode.workspace.isTrusted) {
@@ -548,6 +603,14 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 pinnedViews: pinnedViewsOf(presentationDefinition),
                 outputPresentations: outputPresentationsOf(presentationDefinition),
                 presentationRevision: presentationDefinition?.revision ?? 0,
+                presentationSections: (
+                    presentationDefinition?.results.sections ?? defaultPresentationSections()
+                ).map((section) => ({
+                    id: section.id,
+                    ...(section.label ? { label: section.label } : {}),
+                    role: section.role,
+                    order: section.order,
+                })),
             };
         }
         // Pure resolution (rendering spec: deterministic, zero model calls,

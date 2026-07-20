@@ -14,6 +14,7 @@
 import { NotificationType, RequestType } from "vscode-jsonrpc";
 import type {
     OutputPresentationSummary,
+    PresentationLayoutEdit,
     PresentationMode,
     ResolvedPresentation,
     ViewKind,
@@ -433,6 +434,12 @@ export interface RbsArtifactSummary {
     /** V2 multi-view authoring projection by primary-output node id. */
     outputPresentations?: Record<string, OutputPresentationSummary>;
     presentationRevision?: number;
+    presentationSections?: Array<{
+        id: string;
+        label?: string;
+        role: string;
+        order: number;
+    }>;
 }
 
 export interface RbsRunbookReadiness {
@@ -580,6 +587,14 @@ export namespace RbsSetOutputPresentationRequest {
         { applied: boolean; reason?: "invalid" | "revisionConflict" },
         void
     >("rbs/setOutputPresentation");
+}
+
+export namespace RbsApplyPresentationLayoutRequest {
+    export const type = new RequestType<
+        { edits: PresentationLayoutEdit[]; baseRevision: number },
+        { applied: boolean; reason?: "invalid" | "revisionConflict" },
+        void
+    >("rbs/applyPresentationLayout");
 }
 
 /** Open a compiled read-query step in Query Studio and execute it against
