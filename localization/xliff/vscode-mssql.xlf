@@ -2346,6 +2346,9 @@
     <trans-unit id="++CODE++647cc4253428b25fe686fa8d5d5da5841fed53ad85395cdd43920d0226900c1d">
       <source xml:lang="en">Default Value</source>
     </trans-unit>
+    <trans-unit id="++CODE++99f5151884f267e82d6f1cddd8034933c7abc2e758d23ba83df7e3f17628add1">
+      <source xml:lang="en">Default view</source>
+    </trans-unit>
     <trans-unit id="++CODE++9912ff507e2f48ad028b400bce2df6d1b4a673fe69fddcacf1cbfd3836275ab1">
       <source xml:lang="en">Define who can access this endpoint</source>
     </trans-unit>
@@ -7193,6 +7196,9 @@
     <trans-unit id="++CODE++3ec8a4f0540db2ba6c43128944d19d2d6d10b0a65523ab185cf4e185e96f7dd6">
       <source xml:lang="en">Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.</source>
     </trans-unit>
+    <trans-unit id="++CODE++8dff05f9a672bc720e5335e4234946dabbd0958cc535ba6792c57dda8bfa9b79">
+      <source xml:lang="en">Save output layout</source>
+    </trans-unit>
     <trans-unit id="++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506">
       <source xml:lang="en">Save password</source>
     </trans-unit>
@@ -7235,6 +7241,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dedee7c7e27ebed1afe4a3b5190751603194f651a4fe0b0fd1e86163496fc247">
       <source xml:lang="en">Saving default…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3310f003f18a6edd36a0326d24fccc5af40f7c8856741936839aa8878c755bb9">
+      <source xml:lang="en">Saving layout…</source>
     </trans-unit>
     <trans-unit id="++CODE++dc85af8f2b1d0d6756547cd5f79557466e25e682b882f68d277bd7f125851321">
       <source xml:lang="en">Saving...</source>
@@ -7814,6 +7823,9 @@
     <trans-unit id="++CODE++87e6b9fe0c51b9ad481c1e47b40fbc5a13ea3464c5131908b81cb2b21cd33822">
       <source xml:lang="en">Show all columns</source>
     </trans-unit>
+    <trans-unit id="++CODE++e6565cb811a7df62be5aba3ec66362f87ba2765a048fa7f080b665b2defaceae">
+      <source xml:lang="en">Show as</source>
+    </trans-unit>
     <trans-unit id="++CODE++7f642b55cbf51cf21e5b6a0861e2a93abf8fbe5a8b5d04a9ed9d7a97040549d1">
       <source xml:lang="en">Show full error message</source>
     </trans-unit>
@@ -7856,6 +7868,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e2c8a41969888f518a4656791ee4737b49874f2213d86c949983a67a9ac55212">
       <source xml:lang="en">Showplan XML</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a3d7b387c34df52c5a611045b53215ebba668ddb9026a813b5aff0d50599fb3e">
+      <source xml:lang="en">Side by side</source>
     </trans-unit>
     <trans-unit id="++CODE++bcc0bcc9140b0c97a6440ce56966a07a05e85bddd509ddc5e2ab98755f319af1">
       <source xml:lang="en">Sign In</source>
@@ -8001,6 +8016,9 @@
     </trans-unit>
     <trans-unit id="++CODE++750a67f87ba0f31ee32659e1f32e6c6dfba4ca3ceb0a303c7242aff561a7d7e4">
       <source xml:lang="en">SqlPackage Command</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c2fed746cc0e2142b5a2bb118d3d02721c0800c3bf25385c936a6c846d773f7f">
+      <source xml:lang="en">Stacked</source>
     </trans-unit>
     <trans-unit id="++CODE++de838855e4a6e04ea2f284b246a07a1126e7fcd151be9449e112006ad7db5c50">
       <source xml:lang="en">Stage</source>
@@ -8289,6 +8307,9 @@
     <trans-unit id="++CODE++e3fe2a3fe52c9c35874478d22328281ebf754f1b35747152c13e441a9eed92df">
       <source xml:lang="en">Tables</source>
     </trans-unit>
+    <trans-unit id="++CODE++8e5ea509893e6dfd39126d7fb98c5237b273db19f11df5be8bca227fc11fe08a">
+      <source xml:lang="en">Tabs</source>
+    </trans-unit>
     <trans-unit id="++CODE++ab25773875891beef60edb4b69226e94a44e347625f2188a767af0552f50f33f">
       <source xml:lang="en">Tag keys must be unique.</source>
     </trans-unit>
@@ -8558,6 +8579,9 @@
     <trans-unit id="++CODE++644a28f160d2df093fab1a8c94e5176f21c1af3bee1915315edd409d14397021">
       <source xml:lang="en">The name of the index.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d840c7f06b4743166fdebaa91eaf9eef13a471acc167aca7ba55e76b6b6e845d">
+      <source xml:lang="en">The output layout could not be saved. Review the selected views and try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1a8f5ee7653df34f60fb72efebdd9ef164005d91939502c2fefcf6982d6631a4">
       <source xml:lang="en">The query results panel failed to load. Please try running the query again.</source>
     </trans-unit>
@@ -8732,6 +8756,9 @@
       <source xml:lang="en">This runbook was created by a newer version of the extension. Update the MSSQL extension to open it. ({0})</source>
       <note>{0} is a technical detail string</note>
     </trans-unit>
+    <trans-unit id="++CODE++6bbfd44c77c3d60bab3badc07449b1607ceefe15d9b5a5926b8904e62b3efed7">
+      <source xml:lang="en">This runbook&apos;s output layout changed while the editor was open. Reopen the picker to review the latest version.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fe7c308744af85e1b26e84b0c8a550277e37fb301dc51f647dc41ff07ba16f3d">
       <source xml:lang="en">This saved view no longer matches the step&apos;s expected output contract. Choose a compatible replacement or return to the suggested view.</source>
     </trans-unit>
@@ -8775,6 +8802,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e53c65fb2c5014c76bacb8ae7e110d59e8f5a57507db2682d0bd4fdbd156c8f4">
       <source xml:lang="en">To use this command, you must set the language to &quot;SQL&quot;. Confirm to change language mode.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3d03a1dea561d0dbeadf0694dd44a3398e3e0bfecbb88bcf7d4a6d9e8b91e409">
+      <source xml:lang="en">Toggle</source>
     </trans-unit>
     <trans-unit id="++CODE++f91eac004e8c4e3334060eea2ab51d73ccda2acc75fd0cf172b0679757126f6f">
       <source xml:lang="en">Toggle Actual Plan</source>

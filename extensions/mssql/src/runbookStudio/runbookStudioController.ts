@@ -36,6 +36,7 @@ import {
     RbsStartRunRequest,
     RbsState,
     RbsSetOutputViewRequest,
+    RbsSetOutputPresentationRequest,
     RbsUpdateIntentRequest,
     RbsCancelRunRequest,
     RbsGetRunRequest,
@@ -43,6 +44,11 @@ import {
     RunbookArtifactFile,
     RunbookRunEvent,
 } from "../sharedInterfaces/runbookStudio";
+import {
+    compatibleViews,
+    defaultViewFor,
+    expectedContractFor,
+} from "../sharedInterfaces/runbookPresentation";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import {
     preflightContextForRuntime,
@@ -52,7 +58,10 @@ import { resolvePlanQueryLaunch } from "./planQueryLaunch";
 import type { RunbookRunCoordinator } from "./runbookRunCoordinator";
 import {
     pinnedViewsOf,
+    outputPresentationsOf,
+    resetOutputPresentation,
     resolvePresentation,
+    upsertOutputPresentation,
     upsertOutputPin,
     validatePresentationDefinition,
 } from "./presentation/presentationResolver";
@@ -198,6 +207,69 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             });
             return { applied };
         });
+
+        this.onRequest(
+            RbsSetOutputPresentationRequest.type,
+            async ({
+                nodeId,
+                views,
+                presentation,
+                defaultView,
+                baseRevision,
+                resetToSuggested,
+            }) => {
+                const artifact = this.model.artifact;
+                const node = artifact?.lock?.nodes.find((candidate) => candidate.id === nodeId);
+                const definition = validatePresentationDefinition(artifact?.presentation);
+                if ((definition?.revision ?? 0) !== baseRevision) {
+                    return { applied: false, reason: "revisionConflict" as const };
+                }
+                const contract = node
+                    ? expectedContractFor(node.kind, node.activityKind)
+                    : undefined;
+                const uniqueViews = new Set(views);
+                const validMode =
+                    (views.length === 1 && presentation.mode === "single") ||
+                    (views.length > 1 && presentation.mode !== "single");
+                if (
+                    !artifact ||
+                    !node ||
+                    !contract ||
+                    views.length === 0 ||
+                    uniqueViews.size !== views.length ||
+                    !views.includes(defaultView) ||
+                    !validMode ||
+                    views.some((view) => !compatibleViews(contract).includes(view))
+                ) {
+                    return { applied: false, reason: "invalid" as const };
+                }
+                const metadata = {
+                    authoredContract: contract,
+                    planRevision: artifact.lock?.planRevision,
+                };
+                const next =
+                    resetToSuggested && definition
+                        ? resetOutputPresentation(
+                              definition,
+                              nodeId,
+                              defaultViewFor(contract),
+                              metadata,
+                          )
+                        : upsertOutputPresentation(
+                              definition,
+                              nodeId,
+                              views,
+                              presentation,
+                              defaultView,
+                              metadata,
+                          );
+                const applied = await this.model.applyArtifactEdit({
+                    ...artifact,
+                    presentation: next,
+                });
+                return { applied };
+            },
+        );
 
         this.onRequest(RbsExecutePlanQueryRequest.type, async ({ nodeId, connectionValues }) => {
             if (!vscode.workspace.isTrusted) {
@@ -438,6 +510,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         const artifact = model.artifact;
         let summary: RbsArtifactSummary | undefined;
         if (artifact) {
+            const presentationDefinition = validatePresentationDefinition(artifact.presentation);
             summary = {
                 id: artifact.id,
                 name: artifact.name,
@@ -457,7 +530,9 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 ...(artifact.lock ? { entryNodeId: artifact.lock.entryNodeId } : {}),
                 nodes: artifact.lock?.nodes ?? [],
                 edges: artifact.lock?.edges ?? [],
-                pinnedViews: pinnedViewsOf(validatePresentationDefinition(artifact.presentation)),
+                pinnedViews: pinnedViewsOf(presentationDefinition),
+                outputPresentations: outputPresentationsOf(presentationDefinition),
+                presentationRevision: presentationDefinition?.revision ?? 0,
             };
         }
         // Pure resolution (rendering spec: deterministic, zero model calls,

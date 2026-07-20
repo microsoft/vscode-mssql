@@ -1360,7 +1360,8 @@ function PlanPage() {
                     nodes={artifact.nodes}
                     edges={artifact.edges}
                     run={state?.run}
-                    pinnedViews={artifact.pinnedViews}
+                    outputPresentations={artifact.outputPresentations}
+                    presentationRevision={artifact.presentationRevision}
                     enableQueryExecution
                 />
             )}

@@ -3684,6 +3684,20 @@ export class LocConstants {
             viewCandidateCompatibleReason: l10n.t(
                 "Compatible with this step's expected output contract.",
             ),
+            showAsLabel: l10n.t("Show as"),
+            showAsTabs: l10n.t("Tabs"),
+            showAsToggle: l10n.t("Toggle"),
+            showAsSideBySide: l10n.t("Side by side"),
+            showAsStacked: l10n.t("Stacked"),
+            defaultViewLabel: l10n.t("Default view"),
+            saveOutputPresentation: l10n.t("Save output layout"),
+            savingOutputPresentation: l10n.t("Saving layout…"),
+            outputPresentationRevisionConflict: l10n.t(
+                "This runbook's output layout changed while the editor was open. Reopen the picker to review the latest version.",
+            ),
+            outputPresentationSaveFailed: l10n.t(
+                "The output layout could not be saved. Review the selected views and try again.",
+            ),
             viewCandidateShapeReason: l10n.t(
                 "Uses chartable columns when available and falls back visibly to the grid when the result shape does not match.",
             ),

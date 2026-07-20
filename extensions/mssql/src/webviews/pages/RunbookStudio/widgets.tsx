@@ -640,59 +640,72 @@ export function ResolvedWidgetView({ widget }: { widget: ResolvedWidget }) {
             : undefined;
     const view = overriddenView ?? widget.view;
 
-    let body: React.ReactNode;
-    switch (widget.state) {
-        case "pending":
-            body = <div className="rbs-muted">{loc.widgetPending}</div>;
-            break;
-        case "noOutput":
-            body = <div className="rbs-muted">{loc.noOutputsDetail}</div>;
-            break;
-        case "expired":
-            body = <div className="rbs-muted">{loc.dataExpiredDetail}</div>;
-            break;
-        case "sourceMissing":
-            body = <div className="rbs-muted">{loc.widgetSourceMissing}</div>;
-            break;
-        case "ready": {
-            if (!page) {
-                body = <div className="rbs-muted">{loc.loading}</div>;
-            } else if (page.errorCode) {
-                body = <div className="rbs-muted">{loc.dataExpiredDetail}</div>;
-            } else {
-                switch (view) {
+    const renderBody = (renderView: ViewKind): React.ReactNode => {
+        switch (widget.state) {
+            case "pending":
+                return <div className="rbs-muted">{loc.widgetPending}</div>;
+            case "noOutput":
+                return <div className="rbs-muted">{loc.noOutputsDetail}</div>;
+            case "expired":
+                return <div className="rbs-muted">{loc.dataExpiredDetail}</div>;
+            case "sourceMissing":
+                return <div className="rbs-muted">{loc.widgetSourceMissing}</div>;
+            case "ready": {
+                if (!page) {
+                    return <div className="rbs-muted">{loc.loading}</div>;
+                }
+                if (page.errorCode) {
+                    return <div className="rbs-muted">{loc.dataExpiredDetail}</div>;
+                }
+                switch (renderView) {
                     case "grid":
-                        body = <GridView page={page} />;
-                        break;
+                        return <GridView page={page} />;
                     case "scalar-cards":
-                        body = <ScalarCardsView page={page} />;
-                        break;
+                        return <ScalarCardsView page={page} />;
                     case "markdown":
                     case "log-view":
-                        body = <TextView page={page} mono={view === "log-view"} />;
-                        break;
+                        return <TextView page={page} mono={renderView === "log-view"} />;
                     case "json":
-                        body = <JsonView page={page} />;
-                        break;
+                        return <JsonView page={page} />;
                     case "bar":
-                        body = <BarChartView page={page} />;
-                        break;
+                        return <BarChartView page={page} />;
                     case "timeseries":
-                        body = <TimeseriesView page={page} />;
-                        break;
+                        return <TimeseriesView page={page} />;
                     default:
                         // Honest degrade: registered-but-unimplemented kinds
                         // say so rather than rendering a blank panel.
-                        body = <div className="rbs-muted">{loc.unsupportedRenderer(view)}</div>;
+                        return (
+                            <div className="rbs-muted">{loc.unsupportedRenderer(renderView)}</div>
+                        );
                 }
             }
-            break;
         }
-    }
+    };
 
     const viewOptions = candidates.includes(widget.view)
         ? candidates
         : [widget.view, ...candidates];
+    const multiView = widget.views.length > 1 && widget.presentation.mode !== "single";
+    const splitAxis = widget.presentation.mode === "split" ? widget.presentation.axis : undefined;
+    const split = multiView && splitAxis !== undefined;
+    const body = split ? (
+        <div className={`rbs-widget-split rbs-widget-split-${splitAxis}`}>
+            {widget.views.map((authoredView) => (
+                <section className="rbs-widget-split-pane" key={authoredView.id}>
+                    <div className="rbs-widget-split-label rbs-mono">{authoredView.kind}</div>
+                    {authoredView.issue ? (
+                        <div className="rbs-drift-notice" role="status">
+                            {authoredView.issue.message}
+                        </div>
+                    ) : (
+                        renderBody(authoredView.kind)
+                    )}
+                </section>
+            ))}
+        </div>
+    ) : (
+        renderBody(view)
+    );
 
     const saveAsRunbookDefault = async () => {
         if (!overriddenView) {
@@ -716,7 +729,32 @@ export function ResolvedWidgetView({ widget }: { widget: ResolvedWidget }) {
         <section className="rbs-widget" aria-label={widget.title}>
             <div className="rbs-widget-header">
                 <span className="rbs-widget-title">{widget.title}</span>
-                {candidates.length > 0 ? (
+                {multiView && !split ? (
+                    <div
+                        className={`rbs-widget-view-tabs rbs-widget-view-tabs-${widget.presentation.mode}`}
+                        role="group"
+                        aria-label={loc.viewSwitcherLabel(widget.title)}>
+                        {widget.views.map((authoredView) => (
+                            <button
+                                key={authoredView.id}
+                                type="button"
+                                className={`rbs-graph-toggle ${view === authoredView.kind ? "active" : ""}`}
+                                aria-pressed={view === authoredView.kind}
+                                disabled={authoredView.issue !== undefined}
+                                title={authoredView.issue?.message}
+                                onClick={() => {
+                                    setSaveDefaultFailed(false);
+                                    setOverride(
+                                        authoredView.kind === widget.view
+                                            ? undefined
+                                            : { id: widget.id, view: authoredView.kind },
+                                    );
+                                }}>
+                                {authoredView.title ?? authoredView.kind}
+                            </button>
+                        ))}
+                    </div>
+                ) : !split && candidates.length > 0 ? (
                     <>
                         <select
                             className="rbs-select rbs-view-switch"
@@ -762,6 +800,10 @@ export function ResolvedWidgetView({ widget }: { widget: ResolvedWidget }) {
                             </>
                         ) : null}
                     </>
+                ) : split ? (
+                    <span className="rbs-chip">
+                        {splitAxis === "row" ? loc.showAsSideBySide : loc.showAsStacked}
+                    </span>
                 ) : (
                     <span className="rbs-chip">{widget.view}</span>
                 )}

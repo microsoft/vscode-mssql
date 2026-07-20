@@ -253,6 +253,16 @@ export type PresentationMode =
     | { mode: "toggle" }
     | { mode: "split"; axis: "row" | "column" };
 
+/** Bounded authoring projection used by the Plan page. It intentionally
+ * omits renderer settings and source internals; edits still round-trip
+ * through the host-owned full definition. */
+export interface OutputPresentationSummary {
+    views: ViewKind[];
+    defaultView: ViewKind;
+    presentation: PresentationMode;
+    setByUser: boolean;
+}
+
 export type PresentationProvenance =
     | { by: "default" }
     | { by: "ai"; promptSpan?: string; modelLabel?: string }

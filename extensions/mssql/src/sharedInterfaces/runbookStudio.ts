@@ -12,7 +12,12 @@
  */
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";
-import type { ResolvedPresentation, ViewKind } from "./runbookPresentation";
+import type {
+    OutputPresentationSummary,
+    PresentationMode,
+    ResolvedPresentation,
+    ViewKind,
+} from "./runbookPresentation";
 
 // ---------------------------------------------------------------------------
 // Version domains
@@ -417,6 +422,9 @@ export interface RbsArtifactSummary {
     edges: RunbookPlanEdge[];
     /** User-pinned output views by node id (presentation definition pins). */
     pinnedViews?: Record<string, ViewKind>;
+    /** V2 multi-view authoring projection by primary-output node id. */
+    outputPresentations?: Record<string, OutputPresentationSummary>;
+    presentationRevision?: number;
 }
 
 export interface RbsRunbookReadiness {
@@ -545,6 +553,23 @@ export namespace RbsSetOutputViewRequest {
         { applied: boolean },
         void
     >("rbs/setOutputView");
+}
+
+/** Replace the V2 presentation for a node's primary output. The base
+ * revision makes concurrent/stale authoring explicit instead of clobbering. */
+export namespace RbsSetOutputPresentationRequest {
+    export const type = new RequestType<
+        {
+            nodeId: string;
+            views: ViewKind[];
+            presentation: PresentationMode;
+            defaultView: ViewKind;
+            baseRevision: number;
+            resetToSuggested?: boolean;
+        },
+        { applied: boolean; reason?: "invalid" | "revisionConflict" },
+        void
+    >("rbs/setOutputPresentation");
 }
 
 /** Open a compiled read-query step in Query Studio and execute it against

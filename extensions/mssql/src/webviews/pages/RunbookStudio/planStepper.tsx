@@ -24,20 +24,34 @@ import {
     compatibleViews,
     defaultViewFor,
     expectedContractFor,
+    OutputPresentationSummary,
+    PresentationMode,
     viewCandidateTier,
     ViewKind,
 } from "../../../sharedInterfaces/runbookPresentation";
 import { useRbs } from "./state";
 
-/** Mockup "Output: [view ▾]" affordance: pick from the closed catalog's
- *  contract-compatible candidates; a pin shows "Set by you", otherwise the
- *  compiler-suggested default shows "Suggested". Gates show a quiet dash. */
-function OutputPicker({ node, pinned }: { node: RunbookPlanNode; pinned: ViewKind | undefined }) {
-    const { setOutputView } = useRbs();
+/** V2 output-slot editor: choose one or more contract-compatible renderers,
+ * their runtime presentation mode, and a default. The draft stays local until
+ * Save; the host validates it against the plan and a base revision. */
+function OutputPicker({
+    node,
+    configured,
+    presentationRevision,
+}: {
+    node: RunbookPlanNode;
+    configured: OutputPresentationSummary | undefined;
+    presentationRevision: number;
+}) {
+    const { setOutputPresentation } = useRbs();
     const loc = locConstants.runbookStudio;
     const candidatePanelId = useId();
     const [open, setOpen] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [selectedViews, setSelectedViews] = useState<ViewKind[]>([]);
+    const [defaultView, setDefaultView] = useState<ViewKind | undefined>(undefined);
+    const [presentation, setPresentation] = useState<PresentationMode>({ mode: "single" });
+    const [saveError, setSaveError] = useState<"invalid" | "revisionConflict" | undefined>();
     const contract = expectedContractFor(node.kind, node.activityKind);
     if (!contract) {
         return (
@@ -47,15 +61,99 @@ function OutputPicker({ node, pinned }: { node: RunbookPlanNode; pinned: ViewKin
         );
     }
     const candidates = compatibleViews(contract);
-    const current = pinned ?? defaultViewFor(contract);
-    const unavailablePin = pinned && !candidates.includes(pinned) ? pinned : undefined;
+    const suggested = defaultViewFor(contract);
+    const current = configured?.defaultView ?? suggested;
+    const currentViews = configured?.views ?? [current];
+    const unavailableViews = currentViews.filter((view) => !candidates.includes(view));
 
-    const chooseView = async (view: ViewKind | undefined) => {
+    const openEditor = () => {
+        if (open) {
+            setOpen(false);
+            return;
+        }
+        const compatibleConfigured = currentViews.filter((view) => candidates.includes(view));
+        const initial = compatibleConfigured.length > 0 ? compatibleConfigured : [suggested];
+        setSelectedViews(initial);
+        setDefaultView(initial.includes(current) ? current : initial[0]);
+        setPresentation(
+            initial.length === 1
+                ? { mode: "single" }
+                : configured?.presentation.mode === "single"
+                  ? { mode: "split", axis: "row" }
+                  : (configured?.presentation ?? { mode: "split", axis: "row" }),
+        );
+        setSaveError(undefined);
+        setOpen(true);
+    };
+
+    const resetToSuggested = async () => {
         setSaving(true);
+        setSaveError(undefined);
         try {
-            if (await setOutputView(node.id, view)) {
+            const result = await setOutputPresentation(
+                node.id,
+                [suggested],
+                { mode: "single" },
+                suggested,
+                presentationRevision,
+                true,
+            );
+            if (result.applied) {
                 setOpen(false);
+            } else {
+                setSaveError(result.reason ?? "invalid");
             }
+        } catch {
+            setSaveError("invalid");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const toggleView = (view: ViewKind) => {
+        setSaveError(undefined);
+        if (selectedViews.includes(view)) {
+            if (selectedViews.length === 1) {
+                return;
+            }
+            const next = selectedViews.filter((candidate) => candidate !== view);
+            setSelectedViews(next);
+            if (defaultView === view) {
+                setDefaultView(next[0]);
+            }
+            if (next.length === 1) {
+                setPresentation({ mode: "single" });
+            }
+            return;
+        }
+        const next = [...selectedViews, view];
+        setSelectedViews(next);
+        if (next.length === 2 && presentation.mode === "single") {
+            setPresentation({ mode: "split", axis: "row" });
+        }
+    };
+
+    const save = async () => {
+        if (!defaultView || selectedViews.length === 0) {
+            return;
+        }
+        setSaving(true);
+        setSaveError(undefined);
+        try {
+            const result = await setOutputPresentation(
+                node.id,
+                selectedViews,
+                presentation,
+                defaultView,
+                presentationRevision,
+            );
+            if (result.applied) {
+                setOpen(false);
+            } else {
+                setSaveError(result.reason ?? "invalid");
+            }
+        } catch {
+            setSaveError("invalid");
         } finally {
             setSaving(false);
         }
@@ -71,15 +169,18 @@ function OutputPicker({ node, pinned }: { node: RunbookPlanNode; pinned: ViewKin
                     aria-label={loc.chooseOutputViewFor(node.label)}
                     aria-expanded={open}
                     aria-controls={candidatePanelId}
-                    onClick={() => setOpen((value) => !value)}>
-                    <span className="rbs-mono">{current}</span>
+                    onClick={openEditor}>
+                    <span className="rbs-mono">
+                        {current}
+                        {currentViews.length > 1 ? ` +${currentViews.length - 1}` : ""}
+                    </span>
                     <span aria-hidden>⌄</span>
                 </button>
                 <span
-                    className={`rbs-chip ${pinned ? "" : "rbs-chip-suggested"} ${unavailablePin ? "rbs-candidate-unavailable" : ""}`}>
-                    {unavailablePin
+                    className={`rbs-chip ${configured?.setByUser ? "" : "rbs-chip-suggested"} ${unavailableViews.length > 0 ? "rbs-candidate-unavailable" : ""}`}>
+                    {unavailableViews.length > 0
                         ? loc.driftBadge
-                        : pinned
+                        : configured?.setByUser
                           ? loc.setByYouMarker
                           : loc.suggestedMarker}
                 </span>
@@ -99,21 +200,16 @@ function OutputPicker({ node, pinned }: { node: RunbookPlanNode; pinned: ViewKin
                     </div>
                     <div
                         className="rbs-output-candidate-list"
-                        role="radiogroup"
+                        role="group"
                         aria-label={loc.chooseOutputViewFor(node.label)}>
-                        {unavailablePin ? (
-                            <label className="rbs-output-candidate rbs-output-candidate-unavailable">
-                                <input
-                                    type="radio"
-                                    name={candidatePanelId}
-                                    value={unavailablePin}
-                                    checked
-                                    disabled
-                                    readOnly
-                                />
+                        {unavailableViews.map((view) => (
+                            <label
+                                key={view}
+                                className="rbs-output-candidate rbs-output-candidate-unavailable">
+                                <input type="checkbox" value={view} checked disabled readOnly />
                                 <span className="rbs-output-candidate-copy">
                                     <span className="rbs-output-candidate-title">
-                                        <span className="rbs-mono">{unavailablePin}</span>
+                                        <span className="rbs-mono">{view}</span>
                                         <span className="rbs-chip rbs-candidate-unavailable">
                                             {loc.unavailableMarker}
                                         </span>
@@ -124,7 +220,7 @@ function OutputPicker({ node, pinned }: { node: RunbookPlanNode; pinned: ViewKin
                                     </span>
                                 </span>
                             </label>
-                        ) : null}
+                        ))}
                         {candidates.map((view) => {
                             const tier = viewCandidateTier(contract, view);
                             const tierLabel =
@@ -145,14 +241,17 @@ function OutputPicker({ node, pinned }: { node: RunbookPlanNode; pinned: ViewKin
                             return (
                                 <label
                                     key={view}
-                                    className={`rbs-output-candidate ${current === view ? "selected" : ""}`}>
+                                    className={`rbs-output-candidate ${selectedViews.includes(view) ? "selected" : ""}`}>
                                     <input
-                                        type="radio"
-                                        name={candidatePanelId}
+                                        type="checkbox"
                                         value={view}
-                                        checked={current === view}
-                                        disabled={saving}
-                                        onChange={() => void chooseView(view)}
+                                        checked={selectedViews.includes(view)}
+                                        disabled={
+                                            saving ||
+                                            (selectedViews.length === 1 &&
+                                                selectedViews[0] === view)
+                                        }
+                                        onChange={() => toggleView(view)}
                                     />
                                     <span className="rbs-output-candidate-copy">
                                         <span className="rbs-output-candidate-title">
@@ -160,7 +259,8 @@ function OutputPicker({ node, pinned }: { node: RunbookPlanNode; pinned: ViewKin
                                             <span className={`rbs-chip rbs-candidate-${tier}`}>
                                                 {tierLabel}
                                             </span>
-                                            {pinned === view ? (
+                                            {configured?.setByUser &&
+                                            currentViews.includes(view) ? (
                                                 <span className="rbs-muted">
                                                     {loc.setByYouMarker}
                                                 </span>
@@ -172,13 +272,73 @@ function OutputPicker({ node, pinned }: { node: RunbookPlanNode; pinned: ViewKin
                             );
                         })}
                     </div>
+                    {selectedViews.length > 1 ? (
+                        <div className="rbs-output-mode-editor">
+                            <span className="rbs-muted">{loc.showAsLabel}</span>
+                            <div
+                                className="rbs-output-mode-group"
+                                role="group"
+                                aria-label={loc.showAsLabel}>
+                                {(
+                                    [
+                                        ["tabs", loc.showAsTabs],
+                                        ["toggle", loc.showAsToggle],
+                                        ["split", loc.showAsSideBySide],
+                                    ] as const
+                                ).map(([mode, label]) => (
+                                    <button
+                                        key={mode}
+                                        type="button"
+                                        className={`rbs-graph-toggle ${presentation.mode === mode ? "active" : ""}`}
+                                        aria-pressed={presentation.mode === mode}
+                                        disabled={saving}
+                                        onClick={() =>
+                                            setPresentation(
+                                                mode === "split" ? { mode, axis: "row" } : { mode },
+                                            )
+                                        }>
+                                        {label}
+                                    </button>
+                                ))}
+                            </div>
+                            <fieldset className="rbs-output-default-group">
+                                <legend className="rbs-muted">{loc.defaultViewLabel}</legend>
+                                {selectedViews.map((view) => (
+                                    <label key={view}>
+                                        <input
+                                            type="radio"
+                                            name={`${candidatePanelId}-default`}
+                                            checked={defaultView === view}
+                                            disabled={saving}
+                                            onChange={() => setDefaultView(view)}
+                                        />
+                                        <span className="rbs-mono">{view}</span>
+                                    </label>
+                                ))}
+                            </fieldset>
+                        </div>
+                    ) : null}
+                    {saveError ? (
+                        <div className="rbs-drift-notice" role="alert">
+                            {saveError === "revisionConflict"
+                                ? loc.outputPresentationRevisionConflict
+                                : loc.outputPresentationSaveFailed}
+                        </div>
+                    ) : null}
                     <div className="rbs-output-candidate-footer">
-                        {pinned ? (
+                        <button
+                            type="button"
+                            className="rbs-btn"
+                            disabled={saving}
+                            onClick={() => void save()}>
+                            {saving ? loc.savingOutputPresentation : loc.saveOutputPresentation}
+                        </button>
+                        {configured?.setByUser ? (
                             <button
                                 type="button"
                                 className="rbs-link-button"
                                 disabled={saving}
-                                onClick={() => void chooseView(undefined)}>
+                                onClick={() => void resetToSuggested()}>
                                 {loc.useSuggestedView}
                             </button>
                         ) : (
@@ -327,14 +487,16 @@ export function PlanStepper({
     nodes,
     edges,
     run,
-    pinnedViews,
+    outputPresentations,
+    presentationRevision = 0,
     enableQueryExecution = false,
 }: {
     entryNodeId: string;
     nodes: RunbookPlanNode[];
     edges: RunbookPlanEdge[];
     run?: RunbookRunSnapshot;
-    pinnedViews?: Record<string, ViewKind>;
+    outputPresentations?: Record<string, OutputPresentationSummary>;
+    presentationRevision?: number;
     /** Plan-page-only action; compact Author previews remain observational. */
     enableQueryExecution?: boolean;
 }) {
@@ -411,7 +573,11 @@ export function PlanStepper({
                                 <div className="rbs-muted rbs-step-message">{snapshot.message}</div>
                             ) : null}
                             <div className="rbs-step-output">
-                                <OutputPicker node={node} pinned={pinnedViews?.[node.id]} />
+                                <OutputPicker
+                                    node={node}
+                                    configured={outputPresentations?.[node.id]}
+                                    presentationRevision={presentationRevision}
+                                />
                             </div>
                             {hasDetails(node) ? (
                                 <>

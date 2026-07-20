@@ -15,6 +15,7 @@ import {
     defaultViewFor,
     isViewCompatible,
     LegacyPresentationDefinition,
+    OutputPresentationSummary,
     PresentationDefinition,
     PresentationMode,
     PRESENTATION_SCHEMA_VERSION,
@@ -218,10 +219,14 @@ export function upsertOutputPin(
             }
             const existing = widget.views.find((candidate) => candidate.kind === view);
             const selected = existing ?? createViewSpec(view, `${widget.id}:${view}`);
+            const preserveMultiple =
+                widget.views.length > 1 || widget.presentation.mode !== "single";
             return {
                 ...widget,
-                views: [selected],
-                presentation: { mode: "single" },
+                views: preserveMultiple
+                    ? [...widget.views, ...(existing === undefined ? [selected] : [])]
+                    : [selected],
+                presentation: preserveMultiple ? widget.presentation : { mode: "single" },
                 defaultViewId: selected.id,
                 provenance: { by: "user", previous: defaultViewKind(widget) },
             };
@@ -259,6 +264,130 @@ export function upsertOutputPin(
     };
 }
 
+/** Replace a node's primary-output presentation with a validated V2
+ * selection. Existing per-view settings survive when a kind stays selected. */
+export function upsertOutputPresentation(
+    definition: PresentationDefinition | undefined,
+    nodeId: string,
+    views: ViewKind[],
+    presentation: PresentationMode,
+    defaultView: ViewKind,
+    metadata?: { authoredContract?: string; planRevision?: string },
+): PresentationDefinition {
+    const base = definition ?? defaultDefinition();
+    const pinId = `pin-${nodeId}`;
+    let found = false;
+    const widgets = base.results.widgets.map((widget): WidgetBinding => {
+        if (
+            widget.source.kind !== "activity-output" ||
+            widget.source.nodeId !== nodeId ||
+            widget.source.slot !== "primary"
+        ) {
+            return widget;
+        }
+        found = true;
+        const selected = views.map(
+            (kind) =>
+                widget.views.find((candidate) => candidate.kind === kind) ??
+                createViewSpec(kind, `${widget.id}:${kind}`),
+        );
+        const defaultSpec = selected.find((candidate) => candidate.kind === defaultView)!;
+        return {
+            ...widget,
+            views: selected,
+            presentation,
+            defaultViewId: defaultSpec.id,
+            ...(metadata?.authoredContract
+                ? {
+                      authoredContract: metadata.authoredContract,
+                      authoredContractFingerprint: metadata.authoredContract,
+                  }
+                : {}),
+            provenance: { by: "user", previous: defaultViewKind(widget) },
+        };
+    });
+
+    const sections = [...base.results.sections];
+    if (!found) {
+        let sectionId = sections.find((section) => section.role === "primary")?.id;
+        if (!sectionId) {
+            sectionId = "primary";
+            sections.push(defaultSection(sectionId, "primary", sections.length));
+        }
+        const selected = views.map((kind) => createViewSpec(kind, `${pinId}:${kind}`));
+        const defaultSpec = selected.find((candidate) => candidate.kind === defaultView)!;
+        widgets.push({
+            id: pinId,
+            source: { kind: "activity-output", nodeId, slot: "primary" },
+            views: selected,
+            presentation,
+            defaultViewId: defaultSpec.id,
+            sectionId,
+            placement: {
+                order: widgets.filter((widget) => widget.sectionId === sectionId).length,
+            },
+            authoredContract: metadata?.authoredContract ?? "unknown/1",
+            authoredContractFingerprint: metadata?.authoredContract ?? "runtime:unknown",
+            provenance: { by: "user" },
+        });
+    }
+
+    return {
+        ...base,
+        revision: base.revision + 1,
+        ...(metadata?.planRevision ? { authoredForPlanRevision: metadata.planRevision } : {}),
+        results: { ...base.results, sections, widgets },
+    };
+}
+
+/** Reset author overrides while preserving a hand-authored widget's layout.
+ * Pin-created widgets can be removed entirely so normal derived presentation
+ * takes over; migrated/authored widgets retain identity and placement. */
+export function resetOutputPresentation(
+    definition: PresentationDefinition,
+    nodeId: string,
+    suggestedView: ViewKind,
+    metadata?: { authoredContract?: string; planRevision?: string },
+): PresentationDefinition {
+    const pinId = `pin-${nodeId}`;
+    const widgets = definition.results.widgets
+        .map((widget): WidgetBinding | undefined => {
+            if (
+                widget.source.kind !== "activity-output" ||
+                widget.source.nodeId !== nodeId ||
+                widget.source.slot !== "primary"
+            ) {
+                return widget;
+            }
+            if (widget.id === pinId) {
+                return undefined;
+            }
+            const selected =
+                widget.views.find((candidate) => candidate.kind === suggestedView) ??
+                createViewSpec(suggestedView, `${widget.id}:${suggestedView}`);
+            return {
+                ...widget,
+                views: [selected],
+                presentation: { mode: "single" },
+                defaultViewId: selected.id,
+                ...(metadata?.authoredContract
+                    ? {
+                          authoredContract: metadata.authoredContract,
+                          authoredContractFingerprint: metadata.authoredContract,
+                      }
+                    : {}),
+                provenance: { by: "default" },
+            };
+        })
+        .filter((widget): widget is WidgetBinding => widget !== undefined);
+    return {
+        ...definition,
+        revision: definition.revision + 1,
+        ...(metadata?.planRevision ? { authoredForPlanRevision: metadata.planRevision } : {}),
+        results: { ...definition.results, widgets },
+    };
+}
+
 function defaultViewSpec(widget: WidgetBinding): ViewSpec {
     return widget.views.find((view) => view.id === widget.defaultViewId) ?? widget.views[0];
 }
@@ -285,6 +414,28 @@ export function pinnedViewsOf(
         }
     }
     return pins;
+}
+
+export function outputPresentationsOf(
+    definition: PresentationDefinition | undefined,
+): Record<string, OutputPresentationSummary> {
+    const summaries: Record<string, OutputPresentationSummary> = {};
+    for (const widget of definition?.results.widgets ?? []) {
+        if (widget.source.kind !== "activity-output" || widget.source.slot !== "primary") {
+            continue;
+        }
+        const defaultView = defaultViewKind(widget);
+        if (!defaultView) {
+            continue;
+        }
+        summaries[widget.source.nodeId] = {
+            views: widget.views.map((view) => view.kind),
+            defaultView,
+            presentation: widget.presentation,
+            setByUser: widget.provenance.by === "user",
+        };
+    }
+    return summaries;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

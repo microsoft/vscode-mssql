@@ -36,12 +36,13 @@ import {
     RbsRunEventNotification,
     RbsSelectRunRequest,
     RbsSetOutputViewRequest,
+    RbsSetOutputPresentationRequest,
     RbsStartRunRequest,
     RbsState,
     RbsUpdateIntentRequest,
     RunbookRunEvent,
 } from "../../../sharedInterfaces/runbookStudio";
-import { ViewKind } from "../../../sharedInterfaces/runbookPresentation";
+import { PresentationMode, ViewKind } from "../../../sharedInterfaces/runbookPresentation";
 
 /** One WORKFLOW STEPS row of the generation console (planner build turn). */
 export interface PlannerConsoleTurn {
@@ -208,6 +209,14 @@ interface RbsContextValue {
     parameterDraft: Record<string, string>;
     setParameterDraft: (id: string, value: string) => void;
     setOutputView: (nodeId: string, view: ViewKind | undefined) => Promise<boolean>;
+    setOutputPresentation: (
+        nodeId: string,
+        views: ViewKind[],
+        presentation: PresentationMode,
+        defaultView: ViewKind,
+        baseRevision: number,
+        resetToSuggested?: boolean,
+    ) => Promise<{ applied: boolean; reason?: "invalid" | "revisionConflict" }>;
     /** Open and execute a compiled read-query node in Query Studio. */
     executePlanQuery: (nodeId: string) => Promise<boolean>;
     /** Show a prior run's results (persistence-backed). */
@@ -331,6 +340,26 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             const result = await rpc.sendRequest(RbsSetOutputViewRequest.type, { nodeId, view });
             return result.applied;
         },
+        [rpc],
+    );
+
+    const setOutputPresentation = useCallback(
+        async (
+            nodeId: string,
+            views: ViewKind[],
+            presentation: PresentationMode,
+            defaultView: ViewKind,
+            baseRevision: number,
+            resetToSuggested = false,
+        ) =>
+            rpc.sendRequest(RbsSetOutputPresentationRequest.type, {
+                nodeId,
+                views,
+                presentation,
+                defaultView,
+                baseRevision,
+                ...(resetToSuggested ? { resetToSuggested: true } : {}),
+            }),
         [rpc],
     );
 
@@ -462,6 +491,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             parameterDraft,
             setParameterDraft,
             setOutputView,
+            setOutputPresentation,
             executePlanQuery,
             selectRun,
             exportEvidence,
@@ -487,6 +517,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             parameterDraft,
             setParameterDraft,
             setOutputView,
+            setOutputPresentation,
             executePlanQuery,
             selectRun,
             exportEvidence,

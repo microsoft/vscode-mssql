@@ -16,9 +16,12 @@ import {
     createViewSpec,
     DEFAULT_PRESENTATION_LAYOUT,
     migrateLegacyPresentationDefinition,
+    outputPresentationsOf,
     pinnedViewsOf,
+    resetOutputPresentation,
     resolvePresentation,
     upsertOutputPin,
+    upsertOutputPresentation,
     validatePresentationDefinition,
 } from "../../src/runbookStudio/presentation/presentationResolver";
 import {
@@ -305,5 +308,72 @@ suite("presentationResolver", () => {
         const unpinned = upsertOutputPin(authored, "other", undefined);
         expect(unpinned.results.widgets).to.have.length(1);
         expect(unpinned.results.widgets[0].provenance.by).to.equal("default");
+    });
+
+    test("V2 output edits preserve retained settings and expose a bounded authoring summary", () => {
+        const def = definition();
+        def.results.widgets[0].views = [
+            {
+                id: "w1:bar",
+                kind: "bar",
+                props: {
+                    categoryField: "category",
+                    valueFields: ["count"],
+                    orientation: "horizontal",
+                },
+            },
+        ];
+        def.results.widgets[0].defaultViewId = "w1:bar";
+
+        const edited = upsertOutputPresentation(
+            def,
+            "query",
+            ["bar", "json"],
+            { mode: "tabs" },
+            "json",
+            { authoredContract: "rowset/1", planRevision: "8" },
+        );
+        expect(edited.revision).to.equal(4);
+        expect(edited.authoredForPlanRevision).to.equal("8");
+        expect(edited.results.widgets[0].views[0]).to.deep.include({
+            id: "w1:bar",
+            kind: "bar",
+            props: {
+                categoryField: "category",
+                valueFields: ["count"],
+                orientation: "horizontal",
+            },
+        });
+        expect(outputPresentationsOf(edited).query).to.deep.equal({
+            views: ["bar", "json"],
+            defaultView: "json",
+            presentation: { mode: "tabs" },
+            setByUser: true,
+        });
+
+        // Results can change the default without collapsing a multi-view
+        // binding back to the old single-view grammar.
+        const newDefault = upsertOutputPin(edited, "query", "bar");
+        expect(outputPresentationsOf(newDefault).query).to.deep.include({
+            views: ["bar", "json"],
+            defaultView: "bar",
+            presentation: { mode: "tabs" },
+        });
+
+        const reset = resetOutputPresentation(newDefault, "query", "grid", {
+            authoredContract: "rowset/1",
+            planRevision: "8",
+        });
+        expect(reset.results.widgets.find((widget) => widget.id === "w1")).to.exist;
+        expect(outputPresentationsOf(reset).query).to.deep.equal({
+            views: ["grid"],
+            defaultView: "grid",
+            presentation: { mode: "single" },
+            setByUser: false,
+        });
+
+        const generatedPin = upsertOutputPin(undefined, "new-node", "bar");
+        const resetGenerated = resetOutputPresentation(generatedPin, "new-node", "grid");
+        expect(resetGenerated.results.widgets).to.have.length(0);
     });
 });
