@@ -1456,6 +1456,9 @@
     <trans-unit id="++CODE++b269dc4e81a528a4d42e9e74101923514a626f55f8dd76b1461e0690e72d041a">
       <source xml:lang="en">Commands</source>
     </trans-unit>
+    <trans-unit id="++CODE++99452646e34b69704c9134a093d5ce5af823cc6d4ed3566fe8ad3ba1555057ae">
+      <source xml:lang="en">Compact</source>
+    </trans-unit>
     <trans-unit id="++CODE++e888155d8c7d2e3c3f9eb1bf57e8d81ba1a3c182b5e94b01e09de2cb2cca81f9">
       <source xml:lang="en">Compare</source>
     </trans-unit>
@@ -1473,6 +1476,9 @@
     </trans-unit>
     <trans-unit id="++CODE++863a5ece309b40403af900846f7d3b2f1ff93efbf3fb7409e72282e34570253b">
       <source xml:lang="en">Compatible with this step&apos;s expected output contract.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ba9f851a4a99f696a02d30ff4bb98c4ecd03315c378ab7e49cff0c88d6706a92">
+      <source xml:lang="en">Compile a plan to preview its results layout</source>
     </trans-unit>
     <trans-unit id="++CODE++635e3f4e5a4db594d8597d8ff8f3783908f1d1380751e0ae9078235dab7830a9">
       <source xml:lang="en">Compiled plan</source>
@@ -5042,6 +5048,9 @@
     <trans-unit id="++CODE++927853630df5ee306a9b44a868e0a34b91e055e070b630b5dc2451bd2163fab9">
       <source xml:lang="en">Media set name is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++8e588cd187741f1cd76f5fab77b7208782a8c21d764ce7d7a4cf3ac4e0968873">
+      <source xml:lang="en">Medium</source>
+    </trans-unit>
     <trans-unit id="++CODE++2f77668a9dfbf8d5848b9eeb4a7145ca94c6ed9236e4a773f6dcafa5132b2f91">
       <source xml:lang="en">Message</source>
     </trans-unit>
@@ -6236,6 +6245,12 @@
     <trans-unit id="++CODE++9d13699b657fe91178f41ecf87e9c11095306c7b62e26f7e7a1b019df9ca50b1">
       <source xml:lang="en">Preview Database Updates</source>
     </trans-unit>
+    <trans-unit id="++CODE++00c9181edd00f9e818666bf52271a0e549fa694716143413656fb02394b5057b">
+      <source xml:lang="en">Preview results layout</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0644dda59d887ed55d25cf38ae64288814f4477624b93b0681d6387bb72e609d">
+      <source xml:lang="en">Preview width</source>
+    </trans-unit>
     <trans-unit id="++CODE++a57b08a480b822a0a572b993391c292ede593bf8000b406675b180bbb16260fa">
       <source xml:lang="en">Previous</source>
     </trans-unit>
@@ -7119,6 +7134,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
       <source xml:lang="en">SVG</source>
+    </trans-unit>
+    <trans-unit id="++CODE++95a2f1edb08a76120b82cec7c93ca477618639f04beac7d2aeba2dc039d43715">
+      <source xml:lang="en">Sample</source>
     </trans-unit>
     <trans-unit id="++CODE++be3bac2c67dcc1b486b10add2ba1bf56e6e49fd17d6187fe6b6c012b08cedbfc">
       <source xml:lang="en">Satisfied</source>
@@ -8250,6 +8268,9 @@
     <trans-unit id="++CODE++2550007022b2cb525a426176b9fd9615b9fac3cc51d6abd99ac96f59ea33ce3a">
       <source xml:lang="en">Synchronous resize</source>
     </trans-unit>
+    <trans-unit id="++CODE++3bd1a39214b8e03567178bf6b3b4eb6976e5bcbbafa6a01049cd8ce265d87a66">
+      <source xml:lang="en">Synthetic bounded data shows how this saved presentation reflows before a real run.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ec45cfbf2af59ce8d7cc24d91cb00575e3c328bbb4101a8af85ef66b04333d36">
       <source xml:lang="en">System databases</source>
     </trans-unit>
@@ -8581,6 +8602,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d840c7f06b4743166fdebaa91eaf9eef13a471acc167aca7ba55e76b6b6e845d">
       <source xml:lang="en">The output layout could not be saved. Review the selected views and try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d25cb7cb615b44cf93cbec1c0f74ef7be719ed3131886d1d3424d02502a7f494">
+      <source xml:lang="en">The preview uses the compiled activity output contracts and never runs SQL or other effects.</source>
     </trans-unit>
     <trans-unit id="++CODE++1a8f5ee7653df34f60fb72efebdd9ef164005d91939502c2fefcf6982d6631a4">
       <source xml:lang="en">The query results panel failed to load. Please try running the query again.</source>
@@ -9326,6 +9350,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ba085d3e0a98793193992bd9e8c811a6c462345946a6d97382bd27651f92b6fe">
       <source xml:lang="en">Why these options?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++147170e793c6e58f2f7c858cb567f1aa926232793d664c034a4260f9d0e19875">
+      <source xml:lang="en">Wide</source>
     </trans-unit>
     <trans-unit id="++CODE++4aa3356437232c6d45b29802f09eee6e201660a67cf78e145f39ad1fada6feab">
       <source xml:lang="en">Width cannot be 0 or negative</source>

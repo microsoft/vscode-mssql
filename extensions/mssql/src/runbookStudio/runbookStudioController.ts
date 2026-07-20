@@ -65,6 +65,11 @@ import {
     upsertOutputPin,
     validatePresentationDefinition,
 } from "./presentation/presentationResolver";
+import {
+    createSampleRunSnapshot,
+    fetchSampleOutputPage,
+    isSampleHandle,
+} from "./presentation/samplePresentation";
 
 /** Coarse state pushes are throttled; edits/typing must not flood the webview. */
 const STATE_PUSH_MIN_INTERVAL_MS = 100;
@@ -389,6 +394,16 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         });
 
         this.onRequest(RbsFetchOutputPageRequest.type, async (page) => {
+            if (isSampleHandle(page.handleId)) {
+                return (
+                    fetchSampleOutputPage(page) ?? {
+                        error: {
+                            code: "RunbookStudio.ResultNotFound" as const,
+                            message: LocRunbookStudio.dataExpired,
+                        },
+                    }
+                );
+            }
             if (!this.coordinator) {
                 return { error: this.runtimeUnavailableError() };
             }
@@ -541,18 +556,20 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         // candidate marker pair.
         const displayRun = model.displayRun;
         let presentation: ReturnType<typeof resolvePresentation> | undefined;
+        const presentationDefinition = validatePresentationDefinition(artifact?.presentation);
         if (displayRun) {
             Perf.marker("mssql.runbookStudio.presentation.resolve.begin", "begin");
-            presentation = resolvePresentation(
-                validatePresentationDefinition(artifact?.presentation),
-                displayRun,
-            );
+            presentation = resolvePresentation(presentationDefinition, displayRun);
             Perf.marker("mssql.runbookStudio.presentation.resolve.end", "end", {
                 widgetCount: presentation.sections.reduce((n, s) => n + s.widgets.length, 0),
                 sectionCount: presentation.sections.length,
                 nodeCount: displayRun.nodes.length,
             });
         }
+        const sampleRun = artifact ? createSampleRunSnapshot(artifact) : undefined;
+        const previewPresentation = sampleRun
+            ? resolvePresentation(presentationDefinition, sampleRun)
+            : undefined;
         const availableRuns = model.history.map((entry) => ({
             runId: entry.runId,
             ...(entry.startedEpochMs ? { startedEpochMs: entry.startedEpochMs } : {}),
@@ -570,6 +587,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             ...(displayRun ? { selectedRunId: displayRun.runId } : {}),
             ...(availableRuns.length > 0 ? { availableRuns } : {}),
             ...(presentation ? { presentation } : {}),
+            ...(previewPresentation ? { previewPresentation } : {}),
             history: model.history,
             debugEnabled: vscode.workspace
                 .getConfiguration()

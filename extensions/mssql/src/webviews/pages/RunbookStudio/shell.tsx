@@ -13,7 +13,7 @@
  */
 
 import debounce from "lodash/debounce";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
@@ -25,6 +25,10 @@ import {
     RunbookPlanNode,
     RunbookRunSnapshot,
 } from "../../../sharedInterfaces/runbookStudio";
+import {
+    ResolvedPresentation,
+    ResolvedWidget,
+} from "../../../sharedInterfaces/runbookPresentation";
 import { PlannerConsoleTurn, PlannerFeedEntry, useRbs } from "./state";
 import { displayOrder, PlanStepper } from "./planStepper";
 import { PlanGraphView } from "./graphView";
@@ -34,6 +38,7 @@ const ROUTES: Array<{ id: RbsRoute; label: () => string; icon: string }> = [
     { id: "author", label: () => locConstants.runbookStudio.author, icon: "✎" },
     { id: "run", label: () => locConstants.runbookStudio.run, icon: "▶" },
     { id: "plan", label: () => locConstants.runbookStudio.plan, icon: "⬡" },
+    { id: "preview", label: () => locConstants.runbookStudio.preview, icon: "▦" },
     { id: "results", label: () => locConstants.runbookStudio.results, icon: "▤" },
     { id: "history", label: () => locConstants.runbookStudio.history, icon: "◷" },
 ];
@@ -1507,14 +1512,94 @@ function ResultsPage() {
                 <div className="rbs-spacer" />
                 <EvidenceExportControl />
             </div>
+            <PresentationSections presentation={presentation} />
+        </div>
+    );
+}
+
+type LayoutStyle = CSSProperties & {
+    "--rbs-span-compact": number;
+    "--rbs-span-medium": number;
+    "--rbs-span-wide": number;
+};
+
+function layoutStyle(widget: ResolvedWidget, presentation: ResolvedPresentation): LayoutStyle {
+    const span = widget.placement?.span ?? presentation.layout.defaultSpan;
+    return {
+        "--rbs-span-compact": span.compact ?? presentation.layout.defaultSpan.compact ?? 1,
+        "--rbs-span-medium": span.medium ?? presentation.layout.defaultSpan.medium ?? 6,
+        "--rbs-span-wide": span.wide ?? presentation.layout.defaultSpan.wide ?? 12,
+    };
+}
+
+function PresentationSections({
+    presentation,
+    sample = false,
+}: {
+    presentation: ResolvedPresentation;
+    sample?: boolean;
+}) {
+    return (
+        <>
             {presentation.sections.map((section) => (
                 <section className="rbs-section" key={section.id}>
                     <h2 className="rbs-section-title">{section.title}</h2>
-                    {section.widgets.map((widget) => (
-                        <ResolvedWidgetView key={widget.id} widget={widget} />
-                    ))}
+                    <div
+                        className={`rbs-layout-grid rbs-layout-${presentation.layout.sectionFlow}`}>
+                        {section.widgets.map((widget) => (
+                            <div
+                                className="rbs-layout-widget"
+                                style={layoutStyle(widget, presentation)}
+                                key={widget.id}>
+                                <ResolvedWidgetView widget={widget} sample={sample} />
+                            </div>
+                        ))}
+                    </div>
                 </section>
             ))}
+        </>
+    );
+}
+
+function PreviewPage() {
+    const { state } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const [width, setWidth] = useState<"compact" | "medium" | "wide">("wide");
+    if (state?.artifactError) {
+        return <InvalidArtifact />;
+    }
+    if (!state?.artifact?.hasLock || !state.previewPresentation) {
+        return <EmptyState title={loc.noPreviewTitle} detail={loc.noPreviewDetail} />;
+    }
+    return (
+        <div className="rbs-page-body">
+            <div className="rbs-preview-toolbar">
+                <div>
+                    <strong>{loc.previewResultsLayout}</strong>
+                    <div className="rbs-muted">{loc.previewResultsLayoutDetail}</div>
+                </div>
+                <span className="rbs-chip rbs-chip-suggested">{loc.sample}</span>
+                <div className="rbs-spacer" />
+                <div className="rbs-graph-toggle-group" role="group" aria-label={loc.previewWidth}>
+                    {(["compact", "medium", "wide"] as const).map((candidate) => (
+                        <button
+                            key={candidate}
+                            type="button"
+                            className={`rbs-graph-toggle ${width === candidate ? "active" : ""}`}
+                            aria-pressed={width === candidate}
+                            onClick={() => setWidth(candidate)}>
+                            {candidate === "compact"
+                                ? loc.previewCompact
+                                : candidate === "medium"
+                                  ? loc.previewMedium
+                                  : loc.previewWide}
+                        </button>
+                    ))}
+                </div>
+            </div>
+            <div className={`rbs-preview-canvas rbs-preview-${width}`}>
+                <PresentationSections presentation={state.previewPresentation} sample />
+            </div>
         </div>
     );
 }
@@ -1593,6 +1678,9 @@ export function RunbookStudioApp() {
             break;
         case "plan":
             page = <PlanPage />;
+            break;
+        case "preview":
+            page = <PreviewPage />;
             break;
         case "results":
             page = <ResultsPage />;

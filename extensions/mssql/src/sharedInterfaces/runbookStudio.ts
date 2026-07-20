@@ -402,7 +402,15 @@ export interface RunbookRunHistoryEntry {
 // Webview state (coarse; pushed via StateChangeNotification)
 // ---------------------------------------------------------------------------
 
-export type RbsRoute = "author" | "parameters" | "run" | "plan" | "results" | "history" | "debug";
+export type RbsRoute =
+    | "author"
+    | "parameters"
+    | "run"
+    | "plan"
+    | "preview"
+    | "results"
+    | "history"
+    | "debug";
 
 /** Bounded artifact projection for rendering (never the raw file text). */
 export interface RbsArtifactSummary {
@@ -477,6 +485,8 @@ export interface RbsState {
     /** Deterministic resolved results layout for the active run (handles
      *  only — the webview pulls pages through the controller). */
     presentation?: ResolvedPresentation;
+    /** Pre-run presentation resolved against bounded synthetic handles. */
+    previewPresentation?: ResolvedPresentation;
     history: RunbookRunHistoryEntry[];
     /** Debug & Replay route visibility (developer/preview setting). */
     debugEnabled: boolean;

@@ -216,6 +216,21 @@ suite("presentationResolver", () => {
         ).to.equal("w1");
     });
 
+    test("outputs added after authoring remain visible in Overflow", () => {
+        const def = definition();
+        def.results.widgets = def.results.widgets.filter((widget) => widget.id !== "w2");
+        const resolved = resolvePresentation(def, snapshot());
+        const overflow = resolved.sections.find((section) => section.id === "overflow");
+        expect(overflow?.widgets.map((widget) => widget.id)).to.deep.equal([
+            "overflow:threshold:primary",
+        ]);
+        expect(overflow?.widgets[0]).to.deep.include({
+            nodeId: "threshold",
+            view: "scalar-cards",
+            state: "ready",
+        });
+    });
+
     test("no definition derives one section per node with outputs", () => {
         const resolved = resolvePresentation(undefined, snapshot());
         expect(resolved.derived).to.equal(true);

@@ -637,7 +637,11 @@ export function resolvePresentation(
         : definition.results.sections.find((section) => section.role === "overflow")?.id;
 
     const widgetsBySection = new Map<string, ResolvedWidget[]>();
+    const boundOutputs = new Set<string>();
     for (const binding of definition.results.widgets) {
+        if (binding.source.kind === "activity-output") {
+            boundOutputs.add(`${binding.source.nodeId}\u0000${binding.source.slot}`);
+        }
         const sectionId = knownSectionIds.has(binding.sectionId)
             ? binding.sectionId
             : (overflowSectionId ?? binding.sectionId);
@@ -645,6 +649,32 @@ export function resolvePresentation(
         const widgets = widgetsBySection.get(sectionId) ?? [];
         widgets.push(resolved);
         widgetsBySection.set(sectionId, widgets);
+    }
+    // Plan evolution can add outputs after a presentation was authored. They
+    // must remain visible and flow to Overflow rather than silently vanish.
+    if (overflowSectionId) {
+        const overflowWidgets = widgetsBySection.get(overflowSectionId) ?? [];
+        for (const node of snapshot?.nodes ?? []) {
+            for (const [outputIndex, output] of (node.outputs ?? []).entries()) {
+                const slot =
+                    output.slot ?? (outputIndex === 0 ? "primary" : `legacy:${outputIndex}`);
+                if (boundOutputs.has(`${node.nodeId}\u0000${slot}`)) {
+                    continue;
+                }
+                overflowWidgets.push(
+                    resolvedUnboundOutput(
+                        node,
+                        output,
+                        slot,
+                        overflowSectionId,
+                        overflowWidgets.length,
+                    ),
+                );
+            }
+        }
+        if (overflowWidgets.length > 0) {
+            widgetsBySection.set(overflowSectionId, overflowWidgets);
+        }
     }
 
     const sections: ResolvedSection[] = definition.results.sections
@@ -671,6 +701,35 @@ export function resolvePresentation(
         derived: false,
         layout: definition.results.layout,
         sections,
+    };
+}
+
+function resolvedUnboundOutput(
+    node: RunbookNodeSnapshot,
+    output: DataHandleRef,
+    slot: string,
+    sectionId: string,
+    order: number,
+): ResolvedWidget {
+    const id = `overflow:${node.nodeId}:${slot}`;
+    const kind = defaultViewFor(output.contract);
+    const viewId = `${id}:${kind}`;
+    return {
+        id,
+        title: node.nodeId,
+        nodeId: node.nodeId,
+        state: output.expired ? "expired" : "ready",
+        view: kind,
+        views: [{ id: viewId, kind }],
+        presentation: { mode: "single" },
+        defaultViewId: viewId,
+        activeViewId: viewId,
+        sectionId,
+        placement: { order },
+        provenance: { by: "default" },
+        handleId: output.handleId,
+        contract: output.contract,
+        ...(output.rows !== undefined ? { rows: output.rows } : {}),
     };
 }
 

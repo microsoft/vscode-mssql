@@ -606,7 +606,13 @@ function TimeseriesView({ page }: { page: FetchedPage }) {
     );
 }
 
-export function ResolvedWidgetView({ widget }: { widget: ResolvedWidget }) {
+export function ResolvedWidgetView({
+    widget,
+    sample = false,
+}: {
+    widget: ResolvedWidget;
+    sample?: boolean;
+}) {
     const { setOutputView } = useRbs();
     const loc = locConstants.runbookStudio;
     const page = usePage(widget.state === "ready" ? widget.handleId : undefined);
@@ -729,6 +735,7 @@ export function ResolvedWidgetView({ widget }: { widget: ResolvedWidget }) {
         <section className="rbs-widget" aria-label={widget.title}>
             <div className="rbs-widget-header">
                 <span className="rbs-widget-title">{widget.title}</span>
+                {sample ? <span className="rbs-chip rbs-chip-suggested">{loc.sample}</span> : null}
                 {multiView && !split ? (
                     <div
                         className={`rbs-widget-view-tabs rbs-widget-view-tabs-${widget.presentation.mode}`}
