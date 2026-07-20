@@ -6,6 +6,24 @@ const fs = require("fs").promises;
 const path = require("path");
 const { createBrowserConfig, run } = require("../../../scripts/esbuild-utils");
 
+/** Delete only this bundler's generated outdir before a non-watch build.
+ * The worker config runs second and intentionally adds to the fresh graph. */
+function cleanWebviewOutdirPlugin() {
+    let cleaned = false;
+    return {
+        name: "clean-webview-outdir",
+        setup(build) {
+            build.onStart(async () => {
+                if (cleaned) {
+                    return;
+                }
+                cleaned = true;
+                await fs.rm("./dist/views", { recursive: true, force: true });
+            });
+        },
+    };
+}
+
 /**
  * Emit the static ESM closure for each entry bundle. Query Studio uses this
  * manifest to preload a view's chunks in one fetch wave rather than waiting
@@ -73,7 +91,7 @@ function worldOutlineAssetPlugin() {
     };
 }
 
-function createConfigs({ isProd }) {
+function createConfigs({ isProd, isWatch }) {
     const webviews = createBrowserConfig({
         entryPoints: {
             addFirewallRule: "src/webviews/pages/AddFirewallRule/index.tsx",
@@ -127,7 +145,15 @@ function createConfigs({ isProd }) {
         metafile: true,
         minify: isProd,
         outdir: "dist/views",
-        plugins: [preloadManifestPlugin(), worldOutlineAssetPlugin()],
+        plugins: [
+            // Hashed chunks change whenever a shared dependency changes. A
+            // non-watch build starts from a clean graph so stale chunks never
+            // leak into later VSIX packages. Watch mode keeps both concurrent
+            // contexts intact and packaging always performs a non-watch build.
+            ...(!isWatch ? [cleanWebviewOutdirPlugin()] : []),
+            preloadManifestPlugin(),
+            worldOutlineAssetPlugin(),
+        ],
         // Linked maps in development avoid loading multi-megabyte inline maps
         // during normal webview startup; the maps remain available in devtools.
         sourcemap: isProd ? false : "linked",
