@@ -31,10 +31,13 @@ import {
     PresentationDefinition,
     PRESENTATION_SCHEMA_VERSION,
     expectedContractFor,
+    isViewCandidateSelectable,
     viewCandidateTier,
+    viewCandidates,
     RunFieldName,
 } from "../../src/sharedInterfaces/runbookPresentation";
 import { RunbookRunSnapshot } from "../../src/sharedInterfaces/runbookStudio";
+import { findActivity } from "../../src/runbookStudio/activities/activityCatalog";
 
 function snapshot(): RunbookRunSnapshot {
     return {
@@ -135,6 +138,75 @@ suite("presentationResolver", () => {
         expect(viewCandidateTier("rowset/1", "bar")).to.equal("available");
         expect(viewCandidateTier("rowset/1", "json")).to.equal("fallback");
         expect(viewCandidateTier("unknown/1", "json")).to.equal("recommended");
+    });
+
+    test("unknown rowset fields keep shape-dependent charts explicitly conditional", () => {
+        expect(
+            viewCandidates("rowset/1")
+                .filter((candidate) => candidate.view === "bar" || candidate.view === "timeseries")
+                .map((candidate) => [
+                    candidate.view,
+                    candidate.compatibility,
+                    candidate.reason,
+                    candidate.score,
+                ]),
+        ).to.deep.equal([
+            ["bar", "conditional", "runtime-shape-required", 0.78],
+            ["timeseries", "conditional", "runtime-shape-required", 0.88],
+        ]);
+    });
+
+    test("known fields bind viable charts and retain impossible charts with exact reasons", () => {
+        const candidates = viewCandidates("rowset/1", {
+            fields: [
+                { name: "test", valueType: "string", roles: ["label"] },
+                { name: "durationMs", valueType: "number", roles: ["measure"] },
+            ],
+        });
+        expect(candidates.find((candidate) => candidate.view === "bar")).to.deep.include({
+            compatibility: "compatible",
+            reason: "category-and-measure",
+            bindings: { categoryField: "test", valueFields: ["durationMs"] },
+        });
+        expect(candidates.find((candidate) => candidate.view === "timeseries")).to.deep.include({
+            compatibility: "incompatible",
+            reason: "temporal-field-missing",
+            score: 0,
+        });
+
+        const noMeasure = viewCandidates("testResults/1", {
+            fields: [{ name: "passed", valueType: "boolean" }],
+        });
+        expect(noMeasure.find((candidate) => candidate.view === "bar")).to.deep.include({
+            compatibility: "incompatible",
+            reason: "numeric-field-missing",
+        });
+
+        expect(
+            viewCandidates("testResults/1", findActivity("sqltest.run")?.outputSchema).find(
+                (candidate) => candidate.view === "bar",
+            )?.compatibility,
+        ).to.equal("incompatible");
+        expect(
+            viewCandidates("testResults/1", findActivity("tsqlt.run")?.outputSchema).find(
+                (candidate) => candidate.view === "bar",
+            )?.bindings,
+        ).to.deep.equal({ categoryField: "suite", valueFields: ["durationMs"] });
+        expect(
+            isViewCandidateSelectable(
+                "testResults/1",
+                "bar",
+                findActivity("sqltest.run")?.outputSchema,
+            ),
+        ).to.equal(false);
+        expect(
+            isViewCandidateSelectable(
+                "testResults/1",
+                "bar",
+                findActivity("tsqlt.run")?.outputSchema,
+            ),
+        ).to.equal(true);
+        expect(isViewCandidateSelectable("rowset/1", "timeseries")).to.equal(true);
     });
 
     test("developer evidence contracts have implemented default presentations", () => {

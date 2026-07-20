@@ -52,10 +52,12 @@ import {
     compatibleViews,
     defaultViewFor,
     expectedContractFor,
+    isViewCandidateSelectable,
     PresentationDefinition,
     PresentationLayoutEdit,
     PresentationLayoutPolicyEdit,
 } from "../sharedInterfaces/runbookPresentation";
+import { findActivity } from "./activities/activityCatalog";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import {
     preflightContextForRuntime,
@@ -256,6 +258,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     ? expectedContractFor(node.kind, node.activityKind)
                     : undefined;
                 const uniqueViews = new Set(views);
+                const outputSchema = findActivity(node?.activityKind)?.outputSchema;
                 const validMode =
                     (views.length === 1 && presentation.mode === "single") ||
                     (views.length > 1 && presentation.mode !== "single");
@@ -267,7 +270,9 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     uniqueViews.size !== views.length ||
                     !views.includes(defaultView) ||
                     !validMode ||
-                    views.some((view) => !compatibleViews(contract).includes(view)) ||
+                    views.some(
+                        (view) => !isViewCandidateSelectable(contract, view, outputSchema),
+                    ) ||
                     (settings !== undefined && !validateOutputViewSettings(settings, views))
                 ) {
                     return { applied: false, reason: "invalid" as const };
@@ -655,6 +660,12 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 edges: artifact.lock?.edges ?? [],
                 pinnedViews: pinnedViewsOf(presentationDefinition),
                 outputPresentations: outputPresentationsOf(presentationDefinition),
+                outputSchemas: Object.fromEntries(
+                    (artifact.lock?.nodes ?? []).flatMap((node) => {
+                        const schema = findActivity(node.activityKind)?.outputSchema;
+                        return schema ? [[node.id, schema]] : [];
+                    }),
+                ),
                 presentationRevision: presentationDefinition?.revision ?? 0,
                 presentationLayoutStrategy:
                     presentationDefinition?.results.layout.strategy ??

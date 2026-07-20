@@ -3780,6 +3780,7 @@ export class LocConstants {
             availableMarker: l10n.t("Available"),
             fallbackMarker: l10n.t("Fallback"),
             unavailableMarker: l10n.t("Unavailable"),
+            checkedAtRunTime: l10n.t("Checked at run time"),
             viewCandidateRecommendedReason: l10n.t(
                 "Best match for this step's expected output contract.",
             ),
@@ -3826,9 +3827,30 @@ export class LocConstants {
             outputPresentationSaveFailed: l10n.t(
                 "The output layout could not be saved. Review the selected views and try again.",
             ),
-            viewCandidateShapeReason: l10n.t(
-                "Uses chartable columns when available and falls back visibly to the grid when the result shape does not match.",
+            viewCandidateRuntimeShapeReason: l10n.t(
+                "The columns are produced at run time. This view stays available and falls back visibly if the result shape does not match.",
             ),
+            viewCandidateBarFields: (category: string, values: string) =>
+                l10n.t({
+                    message: "Category: {0} · value: {1}",
+                    args: [category, values],
+                    comment: [
+                        "{0} is a result field used as a chart category",
+                        "{1} is a comma-separated list of numeric result fields",
+                    ],
+                }),
+            viewCandidateTimeFields: (time: string, values: string) =>
+                l10n.t({
+                    message: "Time: {0} · value: {1}",
+                    args: [time, values],
+                    comment: [
+                        "{0} is a date/time result field",
+                        "{1} is a comma-separated list of numeric result fields",
+                    ],
+                }),
+            viewCandidateNeedsNumericField: l10n.t("Needs a numeric value column."),
+            viewCandidateNeedsCategoryField: l10n.t("Needs a category or label column."),
+            viewCandidateNeedsTemporalField: l10n.t("Needs a date/time column."),
             viewCandidateFallbackReason: l10n.t(
                 "Universal fallback that preserves the typed output.",
             ),
@@ -3839,7 +3861,7 @@ export class LocConstants {
             usingSuggestedView: l10n.t("Using the suggested view"),
             whyTheseOptions: l10n.t("Why these options?"),
             whyTheseOptionsDetail: l10n.t(
-                "Candidates come from the step's expected data contract. The actual result is validated at run time and falls back visibly if its shape changed.",
+                "Candidates come from the step's expected data contract and catalog-owned field shape when available. Runtime-only shapes are labeled, validated when data arrives, and fall back visibly if they do not match.",
             ),
             stepsComplete: (done: number, total: number) =>
                 l10n.t({

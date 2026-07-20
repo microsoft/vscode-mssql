@@ -19,6 +19,7 @@ import {
     RunbookPlanTarget,
     RunbookTargetKind,
 } from "../../sharedInterfaces/runbookStudio";
+import type { OutputSchemaDescriptor } from "../../sharedInterfaces/runbookPresentation";
 import { isReadOnlySql } from "../readOnlySql";
 
 export interface ActivityInputDescriptor {
@@ -37,6 +38,9 @@ export interface ActivityDescriptor {
     inputs: ActivityInputDescriptor[];
     /** Data contract of the primary output. */
     outputContract: string;
+    /** Optional authoring-time field shape. Omit for outputs such as
+     * arbitrary SQL rowsets whose columns exist only after execution. */
+    outputSchema?: OutputSchemaDescriptor;
     /** Values other nodes can bind to ($nodes.<id>.<value>). */
     producedValues: string[];
     /** Requires one unambiguous incoming approved edge from a gate. */
@@ -82,6 +86,15 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
             "Scans bounded workspace SQL sources for repository-owned tSQLt classes and test procedures without executing database code.",
         inputs: [],
         outputContract: "testSuiteDiscovery/1",
+        outputSchema: {
+            fields: [
+                { name: "framework", valueType: "string", roles: ["category"] },
+                { name: "suite", valueType: "string", roles: ["category"] },
+                { name: "test", valueType: "string", roles: ["label"] },
+                { name: "repositoryPath", valueType: "string" },
+                { name: "line", valueType: "number" },
+            ],
+        },
         producedValues: ["tSqltClassCount", "tSqltTestCount", "complete"],
         target: { kind: "workspace", workspace: true },
         blastRadius: { ...READ_ONLY_LOCAL, resource: "workspaceFiles" },
@@ -273,6 +286,13 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
             },
         ],
         outputContract: "testResults/1",
+        outputSchema: {
+            fields: [
+                { name: "name", valueType: "string", roles: ["label"] },
+                { name: "passed", valueType: "boolean" },
+                { name: "message", valueType: "string" },
+            ],
+        },
         producedValues: ["total", "passed", "failed", "allPassed"],
         target: { kind: "sqlDatabase", bindingInput: "database" },
         blastRadius: {
@@ -310,6 +330,15 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
             },
         ],
         outputContract: "testResults/1",
+        outputSchema: {
+            fields: [
+                { name: "suite", valueType: "string", roles: ["category"] },
+                { name: "test", valueType: "string", roles: ["label"] },
+                { name: "result", valueType: "string" },
+                { name: "message", valueType: "string" },
+                { name: "durationMs", valueType: "number", roles: ["measure"] },
+            ],
+        },
         producedValues: ["total", "passed", "failed", "errors", "skipped", "allPassed"],
         approvalRequired: true,
         target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },

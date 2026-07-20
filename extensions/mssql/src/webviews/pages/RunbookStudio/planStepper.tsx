@@ -21,15 +21,15 @@ import {
     RunbookRunSnapshot,
 } from "../../../sharedInterfaces/runbookStudio";
 import {
-    compatibleViews,
     defaultViewFor,
     expectedContractFor,
     OutputPresentationSummary,
     OutputViewSettings,
     PresentationMode,
     ResolvedWidget,
+    ViewCandidateDescriptor,
     ViewRenderSettings,
-    viewCandidateTier,
+    viewCandidates,
     ViewKind,
 } from "../../../sharedInterfaces/runbookPresentation";
 import { useRbs } from "./state";
@@ -239,18 +239,26 @@ function OutputPicker({
             </span>
         );
     }
-    const candidates = compatibleViews(contract);
+    const candidates = viewCandidates(contract, state?.artifact?.outputSchemas?.[node.id]);
+    const candidateByView = new Map(candidates.map((candidate) => [candidate.view, candidate]));
+    const selectableViews = candidates
+        .filter((candidate) => candidate.compatibility !== "incompatible")
+        .map((candidate) => candidate.view);
     const suggested = defaultViewFor(contract);
     const current = configured?.defaultView ?? suggested;
     const currentViews = configured?.views ?? [current];
-    const unavailableViews = currentViews.filter((view) => !candidates.includes(view));
+    const unavailableViews = currentViews.filter(
+        (view) =>
+            candidateByView.get(view)?.compatibility === "incompatible" ||
+            !candidateByView.has(view),
+    );
 
     const openEditor = () => {
         if (open) {
             setOpen(false);
             return;
         }
-        const compatibleConfigured = currentViews.filter((view) => candidates.includes(view));
+        const compatibleConfigured = currentViews.filter((view) => selectableViews.includes(view));
         const initial = compatibleConfigured.length > 0 ? compatibleConfigured : [suggested];
         setSelectedViews(initial);
         setDefaultView(initial.includes(current) ? current : initial[0]);
@@ -367,6 +375,35 @@ function OutputPicker({
         }));
     };
 
+    const candidateReason = (candidate: ViewCandidateDescriptor): string => {
+        switch (candidate.reason) {
+            case "runtime-shape-required":
+                return loc.viewCandidateRuntimeShapeReason;
+            case "category-and-measure":
+                return loc.viewCandidateBarFields(
+                    candidate.bindings?.categoryField ?? "—",
+                    candidate.bindings?.valueFields?.join(", ") ?? "—",
+                );
+            case "time-and-measure":
+                return loc.viewCandidateTimeFields(
+                    candidate.bindings?.timeField ?? "—",
+                    candidate.bindings?.valueFields?.join(", ") ?? "—",
+                );
+            case "numeric-field-missing":
+                return loc.viewCandidateNeedsNumericField;
+            case "category-field-missing":
+                return loc.viewCandidateNeedsCategoryField;
+            case "temporal-field-missing":
+                return loc.viewCandidateNeedsTemporalField;
+            default:
+                return candidate.tier === "fallback"
+                    ? loc.viewCandidateFallbackReason
+                    : candidate.tier === "recommended"
+                      ? loc.viewCandidateRecommendedReason
+                      : loc.viewCandidateCompatibleReason;
+        }
+    };
+
     const sampleWidget = state?.previewScenarios
         ?.flatMap((scenario) => scenario.presentation.sections)
         .flatMap((section) => section.widgets)
@@ -433,52 +470,50 @@ function OutputPicker({
                         className="rbs-output-candidate-list"
                         role="group"
                         aria-label={loc.chooseOutputViewFor(node.label)}>
-                        {unavailableViews.map((view) => (
-                            <label
-                                key={view}
-                                className="rbs-output-candidate rbs-output-candidate-unavailable">
-                                <input type="checkbox" value={view} checked disabled readOnly />
-                                <span className="rbs-output-candidate-copy">
-                                    <span className="rbs-output-candidate-title">
-                                        <span className="rbs-mono">{view}</span>
-                                        <span className="rbs-chip rbs-candidate-unavailable">
-                                            {loc.unavailableMarker}
+                        {unavailableViews
+                            .filter((view) => !candidateByView.has(view))
+                            .map((view) => (
+                                <label
+                                    key={view}
+                                    className="rbs-output-candidate rbs-output-candidate-unavailable">
+                                    <input type="checkbox" value={view} checked disabled readOnly />
+                                    <span className="rbs-output-candidate-copy">
+                                        <span className="rbs-output-candidate-title">
+                                            <span className="rbs-mono">{view}</span>
+                                            <span className="rbs-chip rbs-candidate-unavailable">
+                                                {loc.unavailableMarker}
+                                            </span>
+                                            <span className="rbs-muted">{loc.setByYouMarker}</span>
                                         </span>
-                                        <span className="rbs-muted">{loc.setByYouMarker}</span>
+                                        <span className="rbs-muted">
+                                            {loc.pinnedViewUnavailableReason}
+                                        </span>
                                     </span>
-                                    <span className="rbs-muted">
-                                        {loc.pinnedViewUnavailableReason}
-                                    </span>
-                                </span>
-                            </label>
-                        ))}
-                        {candidates.map((view) => {
-                            const tier = viewCandidateTier(contract, view);
+                                </label>
+                            ))}
+                        {candidates.map((candidate) => {
+                            const view = candidate.view;
+                            const tier = candidate.tier;
                             const tierLabel =
-                                tier === "recommended"
-                                    ? loc.recommendedMarker
-                                    : tier === "fallback"
-                                      ? loc.fallbackMarker
-                                      : loc.availableMarker;
-                            const reason =
-                                tier === "fallback"
-                                    ? loc.viewCandidateFallbackReason
-                                    : contract === "rowset/1" &&
-                                        (view === "bar" || view === "timeseries")
-                                      ? loc.viewCandidateShapeReason
-                                      : tier === "recommended"
-                                        ? loc.viewCandidateRecommendedReason
-                                        : loc.viewCandidateCompatibleReason;
+                                candidate.compatibility === "incompatible"
+                                    ? loc.unavailableMarker
+                                    : tier === "recommended"
+                                      ? loc.recommendedMarker
+                                      : tier === "fallback"
+                                        ? loc.fallbackMarker
+                                        : loc.availableMarker;
+                            const reason = candidateReason(candidate);
                             return (
                                 <label
                                     key={view}
-                                    className={`rbs-output-candidate ${selectedViews.includes(view) ? "selected" : ""}`}>
+                                    className={`rbs-output-candidate ${selectedViews.includes(view) ? "selected" : ""} ${candidate.compatibility === "incompatible" ? "rbs-output-candidate-unavailable" : ""}`}>
                                     <input
                                         type="checkbox"
                                         value={view}
                                         checked={selectedViews.includes(view)}
                                         disabled={
                                             saving ||
+                                            candidate.compatibility === "incompatible" ||
                                             (selectedViews.length === 1 &&
                                                 selectedViews[0] === view)
                                         }
@@ -487,9 +522,15 @@ function OutputPicker({
                                     <span className="rbs-output-candidate-copy">
                                         <span className="rbs-output-candidate-title">
                                             <span className="rbs-mono">{view}</span>
-                                            <span className={`rbs-chip rbs-candidate-${tier}`}>
+                                            <span
+                                                className={`rbs-chip ${candidate.compatibility === "incompatible" ? "rbs-candidate-unavailable" : `rbs-candidate-${tier}`}`}>
                                                 {tierLabel}
                                             </span>
+                                            {candidate.compatibility === "conditional" ? (
+                                                <span className="rbs-muted">
+                                                    {loc.checkedAtRunTime}
+                                                </span>
+                                            ) : null}
                                             {configured?.setByUser &&
                                             currentViews.includes(view) ? (
                                                 <span className="rbs-muted">

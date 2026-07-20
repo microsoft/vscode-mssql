@@ -969,8 +969,8 @@
     <trans-unit id="++CODE++80aa8267452e6acff1a7d85f3f06923dc34f20fb027017e4cd660abddc133ee6">
       <source xml:lang="en">Cancelled before the step completed.</source>
     </trans-unit>
-    <trans-unit id="++CODE++cb7a30606f67b4ff9c2b85887d8ac5f87356ae21bfce7e1986c4395b68dc14ee">
-      <source xml:lang="en">Candidates come from the step&apos;s expected data contract. The actual result is validated at run time and falls back visibly if its shape changed.</source>
+    <trans-unit id="++CODE++79be4b59b9ec56c9a11b1e69d5bbe1c7c43d80ef31290070693ad24d3edd9db8">
+      <source xml:lang="en">Candidates come from the step&apos;s expected data contract and catalog-owned field shape when available. Runtime-only shapes are labeled, validated when data arrives, and fall back visibly if they do not match.</source>
     </trans-unit>
     <trans-unit id="++CODE++d09d0b9c54e5b4f0d495d4ecb562baa57fced06448e89522241c5b6e1b8641a4">
       <source xml:lang="en">Cannot access the Docker socket. Your user may not be in the &apos;docker&apos; group, or VS Code was started before group membership took effect. Run &apos;sudo usermod -aG docker $USER&apos; and then log out and back in (or reboot) before relaunching VS Code.</source>
@@ -1034,6 +1034,11 @@
     </trans-unit>
     <trans-unit id="++CODE++292c06f0045a45d044be282b132b7055ae224e18e02b523a451d8ea96fadfd24">
       <source xml:lang="en">Category</source>
+    </trans-unit>
+    <trans-unit id="++CODE++79f064fbaade5e18a50a3384733dfc8316593093fb7ab55a798250a435d62be8">
+      <source xml:lang="en">Category: {0} · value: {1}</source>
+      <note>{0} is a result field used as a chart category
+{1} is a comma-separated list of numeric result fields</note>
     </trans-unit>
     <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
       <source xml:lang="en">Change</source>
@@ -1132,6 +1137,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9c53e128952037c4ead60c30ad2f97941bb80c9f493241427b5df85e95b05b24">
       <source xml:lang="en">Check that the dbo.Orders table stays under 1,000,000 rows and fail the run if it does not.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3294098d0837daccc26cbb637082d210506cbef4adfabeb9f988f90d77ec9e83">
+      <source xml:lang="en">Checked at run time</source>
     </trans-unit>
     <trans-unit id="++CODE++43034967e711bc54bfe87c71c74ca2a19a39ca0d6e18c5d495cd90634d25eea0">
       <source xml:lang="en">Checking Docker Engine Configuration</source>
@@ -5358,6 +5366,15 @@
     <trans-unit id="++CODE++3db65f8c2a7d1861b4bca37da3adec5aa7905931eb6faddbc595a35f75e6ca40">
       <source xml:lang="en">Navigation</source>
     </trans-unit>
+    <trans-unit id="++CODE++c2da8af6d5e1e1772f7d5a8e427d3c144dd7f14378a1f31f72301e994f3b58d3">
+      <source xml:lang="en">Needs a category or label column.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d05782dde34b0c4190dd87c151059b166b2822154c0a82b4a569fb7998a680e4">
+      <source xml:lang="en">Needs a date/time column.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++294d5a8f4814f36d0d1d3f76ad03642952c98d3422ac3f2d1932ee3abbe84dbd">
+      <source xml:lang="en">Needs a numeric value column.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c1ebc7817870e5be78fceae559ba5fcac2b68d5c5498d8080298004f3f79d62d">
       <source xml:lang="en">Needs attention</source>
     </trans-unit>
@@ -8642,6 +8659,9 @@
     <trans-unit id="++CODE++b3ed9d46f7671d126e86925d532363313c1f6795e877d3d348d134f6e7051bc3">
       <source xml:lang="en">The client secret for your Microsoft Entra app registration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d922bcbf4a9b6a5e075705ac9d2d65ab2f3fb88e3fe35a6c6a53d7968734df05">
+      <source xml:lang="en">The columns are produced at run time. This view stays available and falls back visibly if the result shape does not match.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4002a5b20dd0c7a8caf9764ba024343e8f87e2ba8221aaeae4c5112d1d7bb4ed">
       <source xml:lang="en">The columns of the index.</source>
     </trans-unit>
@@ -8970,6 +8990,11 @@
     </trans-unit>
     <trans-unit id="++CODE++33b93476cf597a3330653b66a658983d892ac264b5d6029a2dc642b9b1f30870">
       <source xml:lang="en">Time</source>
+    </trans-unit>
+    <trans-unit id="++CODE++461df2bf76817253f0bdddb11d9765245a6e8d17dbbc9cf08c88793e693f2668">
+      <source xml:lang="en">Time: {0} · value: {1}</source>
+      <note>{0} is a date/time result field
+{1} is a comma-separated list of numeric result fields</note>
     </trans-unit>
     <trans-unit id="++CODE++115a2cc92c1097ac4ebeb49698f5e22635a24ee1ef89722616f862ea43c5baba">
       <source xml:lang="en">Timestamp</source>
@@ -9305,9 +9330,6 @@
     </trans-unit>
     <trans-unit id="++CODE++c46bb7e94dff869833c54aacc136c0a371496fc7d5fdcb2f895e8c82f48d39a6">
       <source xml:lang="en">Uses bounded typed sample data and the same renderer as Results.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++a9825f7e4bf8bf420c5c48a55d5cc6fc8af1d70f1ff905aa4677f922b3f830ff">
-      <source xml:lang="en">Uses chartable columns when available and falls back visibly to the grid when the result shape does not match.</source>
     </trans-unit>
     <trans-unit id="++CODE++4c0f47c92a61b83f5a3505071ff1ba53361768bccee0021da6a0d341daa653a1">
       <source xml:lang="en">Uses the WITH KEEP_REPLICATION option during restore</source>

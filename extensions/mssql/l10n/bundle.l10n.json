@@ -4811,6 +4811,7 @@
     "Available": "Available",
     "Fallback": "Fallback",
     "Unavailable": "Unavailable",
+    "Checked at run time": "Checked at run time",
     "Best match for this step's expected output contract.": "Best match for this step's expected output contract.",
     "Compatible with this step's expected output contract.": "Compatible with this step's expected output contract.",
     "Show as": "Show as",
@@ -4842,13 +4843,30 @@
     "Saving layout…": "Saving layout…",
     "This runbook's output layout changed while the editor was open. Reopen the picker to review the latest version.": "This runbook's output layout changed while the editor was open. Reopen the picker to review the latest version.",
     "The output layout could not be saved. Review the selected views and try again.": "The output layout could not be saved. Review the selected views and try again.",
-    "Uses chartable columns when available and falls back visibly to the grid when the result shape does not match.": "Uses chartable columns when available and falls back visibly to the grid when the result shape does not match.",
+    "The columns are produced at run time. This view stays available and falls back visibly if the result shape does not match.": "The columns are produced at run time. This view stays available and falls back visibly if the result shape does not match.",
+    "Category: {0} · value: {1}/{0} is a result field used as a chart category{1} is a comma-separated list of numeric result fields": {
+        "message": "Category: {0} · value: {1}",
+        "comment": [
+            "{0} is a result field used as a chart category",
+            "{1} is a comma-separated list of numeric result fields"
+        ]
+    },
+    "Time: {0} · value: {1}/{0} is a date/time result field{1} is a comma-separated list of numeric result fields": {
+        "message": "Time: {0} · value: {1}",
+        "comment": [
+            "{0} is a date/time result field",
+            "{1} is a comma-separated list of numeric result fields"
+        ]
+    },
+    "Needs a numeric value column.": "Needs a numeric value column.",
+    "Needs a category or label column.": "Needs a category or label column.",
+    "Needs a date/time column.": "Needs a date/time column.",
     "Universal fallback that preserves the typed output.": "Universal fallback that preserves the typed output.",
     "This saved view no longer matches the step's expected output contract. Choose a compatible replacement or return to the suggested view.": "This saved view no longer matches the step's expected output contract. Choose a compatible replacement or return to the suggested view.",
     "Use suggested view": "Use suggested view",
     "Using the suggested view": "Using the suggested view",
     "Why these options?": "Why these options?",
-    "Candidates come from the step's expected data contract. The actual result is validated at run time and falls back visibly if its shape changed.": "Candidates come from the step's expected data contract. The actual result is validated at run time and falls back visibly if its shape changed.",
+    "Candidates come from the step's expected data contract and catalog-owned field shape when available. Runtime-only shapes are labeled, validated when data arrives, and fall back visibly if they do not match.": "Candidates come from the step's expected data contract and catalog-owned field shape when available. Runtime-only shapes are labeled, validated when data arrives, and fall back visibly if they do not match.",
     "{0} of {1} steps complete/{0} completed count, {1} total count": {
         "message": "{0} of {1} steps complete",
         "comment": ["{0} completed count, {1} total count"]

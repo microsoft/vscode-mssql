@@ -68,12 +68,172 @@ export function compatibleViews(contract: string): ViewKind[] {
  *  compatible renderer is an available alternative. */
 export type ViewCandidateTier = "recommended" | "available" | "fallback";
 
+export type OutputFieldValueType = "string" | "number" | "boolean" | "dateTime" | "unknown";
+export type OutputFieldRole = "category" | "measure" | "time" | "label";
+
+/** Bounded authoring-time shape owned by a registered activity descriptor.
+ * Absence means the activity's fields are known only after execution. */
+export interface OutputSchemaDescriptor {
+    fields: Array<{
+        name: string;
+        valueType: OutputFieldValueType;
+        roles?: OutputFieldRole[];
+    }>;
+}
+
+export type ViewCandidateCompatibility = "compatible" | "conditional" | "incompatible";
+export type ViewCandidateReason =
+    | "runtime-shape-required"
+    | "category-and-measure"
+    | "time-and-measure"
+    | "numeric-field-missing"
+    | "category-field-missing"
+    | "temporal-field-missing";
+
+export interface ViewCandidateDescriptor {
+    view: ViewKind;
+    tier: ViewCandidateTier;
+    score: number;
+    compatibility: ViewCandidateCompatibility;
+    reason?: ViewCandidateReason;
+    requirements?: Array<{
+        roles: OutputFieldRole[];
+        valueTypes: OutputFieldValueType[];
+    }>;
+    bindings?: { categoryField?: string; timeField?: string; valueFields?: string[] };
+}
+
+function baselineCandidateScore(view: ViewKind, tier: ViewCandidateTier): number {
+    if (view === "timeseries") {
+        return 0.88;
+    }
+    if (view === "bar") {
+        return 0.78;
+    }
+    return tier === "recommended" ? 0.95 : tier === "fallback" ? 0.35 : 0.65;
+}
+
 export function viewCandidateTier(contract: string, view: ViewKind): ViewCandidateTier {
     const candidates = compatibleViews(contract);
     if (view === candidates[0]) {
         return "recommended";
     }
     return view === "json" ? "fallback" : "available";
+}
+
+/** Contract-first candidate computation refined only by catalog-owned field
+ * descriptors. Unknown runtime rowsets remain selectable but conditional;
+ * known impossible chart shapes are retained as disabled candidates. */
+export function viewCandidates(
+    contract: string,
+    schema?: OutputSchemaDescriptor,
+): ViewCandidateDescriptor[] {
+    return compatibleViews(contract).map((view) => {
+        const tier = viewCandidateTier(contract, view);
+        const base: ViewCandidateDescriptor = {
+            view,
+            tier,
+            score: baselineCandidateScore(view, tier),
+            compatibility: "compatible",
+            ...(view === "bar"
+                ? {
+                      requirements: [
+                          {
+                              roles: ["category", "label"] as OutputFieldRole[],
+                              valueTypes: ["string", "boolean"] as OutputFieldValueType[],
+                          },
+                          {
+                              roles: ["measure"] as OutputFieldRole[],
+                              valueTypes: ["number"] as OutputFieldValueType[],
+                          },
+                      ],
+                  }
+                : view === "timeseries"
+                  ? {
+                        requirements: [
+                            {
+                                roles: ["time"] as OutputFieldRole[],
+                                valueTypes: ["dateTime"] as OutputFieldValueType[],
+                            },
+                            {
+                                roles: ["measure"] as OutputFieldRole[],
+                                valueTypes: ["number"] as OutputFieldValueType[],
+                            },
+                        ],
+                    }
+                  : {}),
+        };
+        if (view !== "bar" && view !== "timeseries") {
+            return base;
+        }
+        if (!schema) {
+            return { ...base, compatibility: "conditional", reason: "runtime-shape-required" };
+        }
+        const measures = schema.fields.filter(
+            (field) => field.roles?.includes("measure") || field.valueType === "number",
+        );
+        if (measures.length === 0) {
+            return {
+                ...base,
+                score: 0,
+                compatibility: "incompatible",
+                reason: "numeric-field-missing",
+            };
+        }
+        if (view === "bar") {
+            const category = schema.fields.find(
+                (field) =>
+                    field.roles?.includes("category") ||
+                    field.roles?.includes("label") ||
+                    field.valueType === "string" ||
+                    field.valueType === "boolean",
+            );
+            return category
+                ? {
+                      ...base,
+                      reason: "category-and-measure",
+                      bindings: {
+                          categoryField: category.name,
+                          valueFields: measures.map((field) => field.name),
+                      },
+                  }
+                : {
+                      ...base,
+                      score: 0,
+                      compatibility: "incompatible",
+                      reason: "category-field-missing",
+                  };
+        }
+        const time = schema.fields.find(
+            (field) => field.roles?.includes("time") || field.valueType === "dateTime",
+        );
+        return time
+            ? {
+                  ...base,
+                  reason: "time-and-measure",
+                  bindings: {
+                      timeField: time.name,
+                      valueFields: measures.map((field) => field.name),
+                  },
+              }
+            : {
+                  ...base,
+                  score: 0,
+                  compatibility: "incompatible",
+                  reason: "temporal-field-missing",
+              };
+    });
+}
+
+export function isViewCandidateSelectable(
+    contract: string,
+    view: ViewKind,
+    schema?: OutputSchemaDescriptor,
+): boolean {
+    return (
+        viewCandidates(contract, schema).find((candidate) => candidate.view === view)
+            ?.compatibility !== "incompatible" && compatibleViews(contract).includes(view)
+    );
 }
 
 /** Authoring-time expected output contract per activity kind (the actual

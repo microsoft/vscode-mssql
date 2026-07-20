@@ -14,6 +14,7 @@
 import { NotificationType, RequestType } from "vscode-jsonrpc";
 import type {
     OutputPresentationSummary,
+    OutputSchemaDescriptor,
     OutputViewSettings,
     PresentationLayoutEdit,
     PresentationLayoutPolicyEdit,
@@ -442,6 +443,9 @@ export interface RbsArtifactSummary {
     pinnedViews?: Record<string, ViewKind>;
     /** V2 multi-view authoring projection by primary-output node id. */
     outputPresentations?: Record<string, OutputPresentationSummary>;
+    /** Catalog-owned field descriptors by plan node. Missing entries mean
+     * the shape is known only after execution. */
+    outputSchemas?: Record<string, OutputSchemaDescriptor>;
     presentationRevision?: number;
     presentationLayoutStrategy?: PresentationLayoutStrategy;
     presentationSections?: Array<{
