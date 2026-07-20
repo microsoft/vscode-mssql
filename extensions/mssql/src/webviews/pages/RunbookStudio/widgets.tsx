@@ -12,8 +12,9 @@
  * layout, never blank). Chart renderers (bar, timeseries) are pure inline
  * SVG — the webview CSP forbids external chart libs — and degrade honestly
  * to the grid when the rowset has no chartable columns. The per-widget view
- * switcher is an ephemeral client-side override ("this run only"); pinning
- * and persistence are Plan-page concerns.
+ * switcher is an ephemeral client-side override ("this run only") until the
+ * user explicitly saves it as the runbook default through the
+ * host-authoritative presentation edit path.
  */
 
 import { useEffect, useState } from "react";
@@ -606,13 +607,27 @@ function TimeseriesView({ page }: { page: FetchedPage }) {
 }
 
 export function ResolvedWidgetView({ widget }: { widget: ResolvedWidget }) {
+    const { setOutputView } = useRbs();
     const loc = locConstants.runbookStudio;
     const page = usePage(widget.state === "ready" ? widget.handleId : undefined);
     // Ephemeral per-widget view override — "this run only": client-side state
-    // keyed to the widget id, never persisted and never sent over RPC
-    // (pinning is a Plan-page concern). Ignored automatically when the widget
-    // identity changes or the override stops being contract-compatible.
+    // keyed to the widget id and never sent over RPC unless the user invokes
+    // the explicit save action. Ignored automatically when the widget identity
+    // changes or the override stops being contract-compatible.
     const [override, setOverride] = useState<{ id: string; view: ViewKind } | undefined>(undefined);
+    const [savingDefault, setSavingDefault] = useState(false);
+    const [saveDefaultFailed, setSaveDefaultFailed] = useState(false);
+
+    // The artifact edit publishes a new resolved snapshot. Retire the local
+    // override only once that snapshot proves the saved default took effect,
+    // avoiding a flash back to the old view while the RPC response races the
+    // state notification.
+    useEffect(() => {
+        if (override?.id === widget.id && override.view === widget.view) {
+            setOverride(undefined);
+            setSaveDefaultFailed(false);
+        }
+    }, [override, widget.id, widget.view]);
 
     const candidates =
         widget.state === "ready" && widget.contract ? compatibleViews(widget.contract) : [];
@@ -679,6 +694,24 @@ export function ResolvedWidgetView({ widget }: { widget: ResolvedWidget }) {
         ? candidates
         : [widget.view, ...candidates];
 
+    const saveAsRunbookDefault = async () => {
+        if (!overriddenView) {
+            return;
+        }
+        setSavingDefault(true);
+        setSaveDefaultFailed(false);
+        try {
+            const applied = await setOutputView(widget.nodeId, overriddenView);
+            if (!applied) {
+                setSaveDefaultFailed(true);
+            }
+        } catch {
+            setSaveDefaultFailed(true);
+        } finally {
+            setSavingDefault(false);
+        }
+    };
+
     return (
         <section className="rbs-widget" aria-label={widget.title}>
             <div className="rbs-widget-header">
@@ -691,6 +724,7 @@ export function ResolvedWidgetView({ widget }: { widget: ResolvedWidget }) {
                             aria-label={loc.viewSwitcherLabel(widget.title)}
                             onChange={(e) => {
                                 const next = e.target.value as ViewKind;
+                                setSaveDefaultFailed(false);
                                 setOverride(
                                     next === widget.view
                                         ? undefined
@@ -708,6 +742,15 @@ export function ResolvedWidgetView({ widget }: { widget: ResolvedWidget }) {
                                 <span className="rbs-chip rbs-chip-modified">
                                     {loc.modifiedChip}
                                 </span>
+                                <button
+                                    type="button"
+                                    className="rbs-btn rbs-btn-quiet"
+                                    disabled={savingDefault}
+                                    onClick={() => void saveAsRunbookDefault()}>
+                                    {savingDefault
+                                        ? loc.savingViewAsRunbookDefault
+                                        : loc.saveViewAsRunbookDefault}
+                                </button>
                                 <button
                                     type="button"
                                     className="rbs-btn rbs-btn-quiet rbs-view-reset"
@@ -736,6 +779,11 @@ export function ResolvedWidgetView({ widget }: { widget: ResolvedWidget }) {
             {widget.drift ? (
                 <div className="rbs-drift-notice" role="status">
                     {loc.driftDetail(widget.drift.requestedView, widget.view)}
+                </div>
+            ) : null}
+            {saveDefaultFailed ? (
+                <div className="rbs-drift-notice" role="alert">
+                    {loc.saveViewAsRunbookDefaultFailed}
                 </div>
             ) : null}
             {body}

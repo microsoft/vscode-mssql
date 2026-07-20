@@ -4805,6 +4805,9 @@
     },
     "modified": "modified",
     "Reset to the default view (this run only)": "Reset to the default view (this run only)",
+    "Save as runbook default": "Save as runbook default",
+    "Saving default…": "Saving default…",
+    "The runbook default could not be saved. The selected view still applies to this run only.": "The runbook default could not be saved. The selected view still applies to this run only.",
     "View for {0}/{0} is a result widget title": {
         "message": "View for {0}",
         "comment": ["{0} is a result widget title"]

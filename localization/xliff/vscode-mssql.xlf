@@ -7181,6 +7181,9 @@
       <source xml:lang="en">Save as JSON ({0})</source>
       <note>{0} is the keyboard shortcut for saving as JSON</note>
     </trans-unit>
+    <trans-unit id="++CODE++46688437ad118de1e0a0cfab2a0400bb3d577f1bbc136ce5711803f85756f9af">
+      <source xml:lang="en">Save as runbook default</source>
+    </trans-unit>
     <trans-unit id="++CODE++96b1b8cd908066c11a95c7b3c5aa3e0147264f999df87e8ced6d0b240f571c9a">
       <source xml:lang="en">Save backup to URL</source>
     </trans-unit>
@@ -7229,6 +7232,9 @@
     <trans-unit id="++CODE++214bf67326266805ed0887a2154efa6a38e78d684c4f4c69c33cbecdb16feb13">
       <source xml:lang="en">Saved results to {0}</source>
       <note>{0} is the saved file path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++dedee7c7e27ebed1afe4a3b5190751603194f651a4fe0b0fd1e86163496fc247">
+      <source xml:lang="en">Saving default…</source>
     </trans-unit>
     <trans-unit id="++CODE++dc85af8f2b1d0d6756547cd5f79557466e25e682b882f68d277bd7f125851321">
       <source xml:lang="en">Saving...</source>
@@ -8560,6 +8566,9 @@
     </trans-unit>
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c7d829370bbb3bcf3ed575fa0340eb0fa89e3c5fea172b4421403e679e266ca1">
+      <source xml:lang="en">The runbook default could not be saved. The selected view still applies to this run only.</source>
     </trans-unit>
     <trans-unit id="++CODE++389263d86008f9ae81c47866dbff80193a8d41f104f5a846d117b9ba0aa12ff8">
       <source xml:lang="en">The runbook library is unavailable: {0}</source>

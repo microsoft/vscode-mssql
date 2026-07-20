@@ -3798,6 +3798,11 @@ export class LocConstants {
                 }),
             modifiedChip: l10n.t("modified"),
             resetViewTitle: l10n.t("Reset to the default view (this run only)"),
+            saveViewAsRunbookDefault: l10n.t("Save as runbook default"),
+            savingViewAsRunbookDefault: l10n.t("Saving default…"),
+            saveViewAsRunbookDefaultFailed: l10n.t(
+                "The runbook default could not be saved. The selected view still applies to this run only.",
+            ),
             viewSwitcherLabel: (title: string) =>
                 l10n.t({
                     message: "View for {0}",
