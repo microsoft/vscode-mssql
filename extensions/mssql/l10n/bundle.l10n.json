@@ -97,13 +97,10 @@
     "Approval required to continue.": "Approval required to continue.",
     "Cancelled before the step completed.": "Cancelled before the step completed.",
     "Plan generation was cancelled. Edit the prompt and generate again.": "Plan generation was cancelled. Edit the prompt and generate again.",
-    "The runtime's active provider profile does not expose configurable models.": "The runtime's active provider profile does not expose configurable models.",
-    "Planner (generates the runbook plan)": "Planner (generates the runbook plan)",
-    "Workflow (executes plan steps)": "Workflow (executes plan steps)",
-    "Model id for {0} on provider {1}/{0} model role name, {1} provider label": {
-        "message": "Model id for {0} on provider {1}",
-        "comment": ["{0} model role name, {1} provider label"]
-    },
+    "The runtime's authoring or execution provider profile does not expose configurable models.": "The runtime's authoring or execution provider profile does not expose configurable models.",
+    "Configure Runbook Studio AI models": "Configure Runbook Studio AI models",
+    "Authoring AI (generates the runbook plan)": "Authoring AI (generates the runbook plan)",
+    "Execution AI (executes plan steps)": "Execution AI (executes plan steps)",
     "{0} model set to {1}./{0} model role name, {1} model id": {
         "message": "{0} model set to {1}.",
         "comment": ["{0} model role name, {1} model id"]
@@ -5153,6 +5150,15 @@
     "Generate plan": "Generate plan",
     "Regenerate plan": "Regenerate plan",
     "Generating plan…": "Generating plan…",
+    "Runbook Studio AI model settings": "Runbook Studio AI model settings",
+    "Authoring AI": "Authoring AI",
+    "Execution AI": "Execution AI",
+    "Loading models…": "Loading models…",
+    "Runtime default for this provider": "Runtime default for this provider",
+    "Select {0} model/{0} is an AI model role, such as Authoring AI": {
+        "message": "Select {0} model",
+        "comment": ["{0} is an AI model role, such as Authoring AI"]
+    },
     "Live thinking": "Live thinking",
     "Workflow steps": "Workflow steps",
     "Plan generation console": "Plan generation console",

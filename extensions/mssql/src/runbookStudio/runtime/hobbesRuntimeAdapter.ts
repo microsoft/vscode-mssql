@@ -91,6 +91,13 @@ interface HobbesRunRecord {
     }>;
 }
 
+export interface HobbesRuntimeModelOption {
+    id: string;
+    name: string;
+    vendor: string;
+    isDefault: boolean;
+}
+
 /** One NDJSON line of a `/api/runbooks/from-prompt` planner session. Only
  *  the fields the bridge reads (wire shapes captured live). */
 interface PlannerStreamEvent {
@@ -1551,6 +1558,39 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             throw new Error(`settings read failed (HTTP ${response.status})`);
         }
         return (await response.json()) as Record<string, unknown>;
+    }
+
+    /** Models the runtime can actually execute for one provider profile. */
+    public async getRuntimeModelCatalog(
+        profileId: string,
+        context: RunbookOperationContext,
+    ): Promise<HobbesRuntimeModelOption[]> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const response = await this.request(
+            runtime.baseUrl,
+            "GET",
+            `/api/models?profileId=${encodeURIComponent(profileId)}`,
+        );
+        if (!response.ok) {
+            throw new Error(`model catalog failed (HTTP ${response.status})`);
+        }
+        const body = (await response.json()) as { models?: unknown };
+        if (!Array.isArray(body.models)) {
+            return [];
+        }
+        return body.models.flatMap((candidate) => {
+            if (!isRecordValue(candidate) || typeof candidate.id !== "string") {
+                return [];
+            }
+            return [
+                {
+                    id: candidate.id,
+                    name: typeof candidate.name === "string" ? candidate.name : candidate.id,
+                    vendor: typeof candidate.vendor === "string" ? candidate.vendor : "",
+                    isDefault: candidate.isDefault === true,
+                },
+            ];
+        });
     }
 
     /** Bounded readiness probe for the runtime's active provider profile. */

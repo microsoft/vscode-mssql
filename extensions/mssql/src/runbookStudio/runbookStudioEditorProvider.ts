@@ -268,10 +268,8 @@ function registerRunbookStudioFeatures(
                 preview: true,
             });
         }),
-        // Model configuration (global, runtime-side): planner + workflow
-        // model ids on the ACTIVE provider profile via the runtime's own
-        // settings round-trip. Free-text ids — the runtime does not expose
-        // a model catalog to enumerate.
+        // Model configuration (global, runtime-side): each role is resolved
+        // through its assigned provider profile and live model catalog.
         vscode.commands.registerCommand("mssql.runbookStudio.configureModels", async () => {
             const coordinator = coordinatorFactory();
             const service = coordinator instanceof RunbookStudioService ? coordinator : undefined;
@@ -288,36 +286,40 @@ function registerRunbookStudioFeatures(
                 [
                     {
                         label: LocRunbookStudio.modelRolePlanner,
-                        description: config.plannerModelId ?? "",
-                        role: "planner" as const,
+                        description: config.authoring.modelId,
+                        role: "authoring" as const,
                     },
                     {
                         label: LocRunbookStudio.modelRoleWorkflow,
-                        description: config.workflowModelId ?? "",
-                        role: "workflow" as const,
+                        description: config.execution.modelId,
+                        role: "execution" as const,
                     },
                 ],
-                { title: config.providerLabel },
+                { title: LocRunbookStudio.configureModelsTitle },
             );
             if (!pick) {
                 return;
             }
-            const modelId = await vscode.window.showInputBox({
-                prompt: LocRunbookStudio.modelIdPrompt(pick.label, config.providerLabel),
-                value:
-                    pick.role === "planner"
-                        ? (config.plannerModelId ?? "")
-                        : (config.workflowModelId ?? ""),
-            });
-            if (!modelId) {
+            const roleConfig = config[pick.role];
+            const model = await vscode.window.showQuickPick(
+                roleConfig.models.map((option) => ({
+                    label: option.name,
+                    description: option.vendor,
+                    detail: option.id,
+                    modelId: option.id,
+                    picked: option.id === roleConfig.modelId,
+                })),
+                { title: `${pick.label} — ${roleConfig.providerLabel}` },
+            );
+            if (!model) {
                 return;
             }
-            const refusal = await service.setModelConfiguration(pick.role, modelId.trim());
+            const refusal = await service.setModelConfiguration(pick.role, model.modelId);
             if (refusal) {
                 void vscode.window.showErrorMessage(refusal);
             } else {
                 void vscode.window.showInformationMessage(
-                    LocRunbookStudio.modelConfigSaved(pick.label, modelId.trim()),
+                    LocRunbookStudio.modelConfigSaved(pick.label, model.modelId),
                 );
             }
         }),

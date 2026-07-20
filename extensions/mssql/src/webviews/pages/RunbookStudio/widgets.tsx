@@ -215,30 +215,32 @@ function GridView({ page, settings }: { page: FetchedPage; settings?: ViewRender
     const loc = locConstants.runbookStudio;
     const rows = (page.rows ?? []).slice(0, settings?.pageSize ?? PAGE_ROWS);
     return (
-        <div className="rbs-widget-scroll">
-            <table
-                className={`rbs-table ${settings?.density === "compact" ? "rbs-table-compact" : ""}`}>
-                {page.columns ? (
-                    <thead>
-                        <tr>
-                            {page.columns.map((column, i) => (
-                                <th key={i}>{column}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                ) : null}
-                <tbody>
-                    {rows.map((row, rowIndex) => (
-                        <tr key={rowIndex}>
-                            {row.map((cell, cellIndex) => (
-                                <td key={cellIndex} className="rbs-mono">
-                                    {cell === null ? "NULL" : String(cell)}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+        <div className="rbs-grid-view">
+            <div className="rbs-grid-viewport">
+                <table
+                    className={`rbs-table ${settings?.density === "compact" ? "rbs-table-compact" : ""}`}>
+                    {page.columns ? (
+                        <thead>
+                            <tr>
+                                {page.columns.map((column, i) => (
+                                    <th key={i}>{column}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                    ) : null}
+                    <tbody>
+                        {rows.map((row, rowIndex) => (
+                            <tr key={rowIndex}>
+                                {row.map((cell, cellIndex) => (
+                                    <td key={cellIndex} className="rbs-mono">
+                                        {cell === null ? "NULL" : String(cell)}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
             {page.totalRows !== undefined && page.totalRows > rows.length ? (
                 <div className="rbs-muted">{loc.showingRows(rows.length, page.totalRows)}</div>
             ) : null}

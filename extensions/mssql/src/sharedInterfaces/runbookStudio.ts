@@ -764,6 +764,47 @@ export interface RbsConnectionProfileRef {
     label: string;
 }
 
+export type RbsModelRole = "authoring" | "execution";
+
+/** One model the selected Hobbes provider reports as executable. */
+export interface RbsModelOption {
+    id: string;
+    name: string;
+    vendor: string;
+    isDefault: boolean;
+}
+
+/** Role-specific runtime default. Authoring and execution may intentionally
+ * use different provider profiles, so each projection carries its provider. */
+export interface RbsModelRoleConfiguration {
+    providerId: string;
+    providerKind: string;
+    providerLabel: string;
+    modelId: string;
+    models: RbsModelOption[];
+}
+
+export interface RbsModelConfiguration {
+    authoring: RbsModelRoleConfiguration;
+    execution: RbsModelRoleConfiguration;
+}
+
+export namespace RbsGetModelConfigurationRequest {
+    export const type = new RequestType<
+        Record<string, never>,
+        { configuration?: RbsModelConfiguration; error?: RbsError },
+        void
+    >("rbs/getModelConfiguration");
+}
+
+export namespace RbsSetModelConfigurationRequest {
+    export const type = new RequestType<
+        { role: RbsModelRole; modelId: string },
+        { applied: boolean; configuration?: RbsModelConfiguration; error?: RbsError },
+        void
+    >("rbs/setModelConfiguration");
+}
+
 /** Saved connections as opaque handles for connection-typed parameters. */
 export namespace RbsListConnectionsRequest {
     export const type = new RequestType<void, { profiles: RbsConnectionProfileRef[] }, void>(

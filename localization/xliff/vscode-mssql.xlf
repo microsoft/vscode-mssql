@@ -645,6 +645,12 @@
     <trans-unit id="++CODE++856c7d52c1cc2f2e29a69695fafac2d3ca5f8de708699f91f0b0cad66e0909f0">
       <source xml:lang="en">Authored SQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++8b870ba91e491c4e0935a0d272434ba36091603e8ff0b330017a657f5d3e21e9">
+      <source xml:lang="en">Authoring AI</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3cf2210f8552cf7f70a3f840063d83fece95ec7b9c6c5af60078b5dbbec0db3e">
+      <source xml:lang="en">Authoring AI (generates the runbook plan)</source>
+    </trans-unit>
     <trans-unit id="++CODE++85f930fa723218285e6109c5262e596f034321fc9971425de297c37061fbf924">
       <source xml:lang="en">Auto (suggested)</source>
     </trans-unit>
@@ -1650,6 +1656,9 @@
     </trans-unit>
     <trans-unit id="++CODE++73b680fbf34c02acc61629ac870cb10a5f382c5379516f9dd96777d75a3086fe">
       <source xml:lang="en">Configure Rosetta in Docker Desktop</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9fa66efe896d43bb609a5ac68d72f0cfef8a51dcb5d9bedadb137cba37952457">
+      <source xml:lang="en">Configure Runbook Studio AI models</source>
     </trans-unit>
     <trans-unit id="++CODE++c6cc40d1bb74f7c0333c4264cbd7d9ac832fcd4a39f54a4f044b54471beffd71">
       <source xml:lang="en">Configure and customize Azure SQL Databases</source>
@@ -3397,6 +3406,12 @@
     <trans-unit id="++CODE++0a716f1cfed3e0da68a8eee920bd5ca51a470c790800d878429da7ab9ecf0d56">
       <source xml:lang="en">Executing query...</source>
     </trans-unit>
+    <trans-unit id="++CODE++fee52924786d68f0ac457b394de45c90c53717d4e12aade8d97106a2548a9285">
+      <source xml:lang="en">Execution AI</source>
+    </trans-unit>
+    <trans-unit id="++CODE++31764c1cbefed73b5d514a6f9d90e478cdd055907717a0fd6ea7e09c276e857d">
+      <source xml:lang="en">Execution AI (executes plan steps)</source>
+    </trans-unit>
     <trans-unit id="++CODE++bd705ebabe1919a636a0e09b2ee27d43a5aba05d645cc0339451e54b37f42bd6">
       <source xml:lang="en">Execution Plan</source>
     </trans-unit>
@@ -5105,6 +5120,9 @@
     <trans-unit id="++CODE++b4eb78ee43fade6ba490bb64508b7dc359f5f67a8438030d28f54d46a222ee4b">
       <source xml:lang="en">Loading maintenance windows...</source>
     </trans-unit>
+    <trans-unit id="++CODE++bf02f4674378519e22fcc385fc1e466817d6b80e53d9deb2089c3a0139d63140">
+      <source xml:lang="en">Loading models…</source>
+    </trans-unit>
     <trans-unit id="++CODE++c81954973ca0121a610a95a9872f6e71c08df9f100dd5dfb65dfee8545d2df2f">
       <source xml:lang="en">Loading resource groups</source>
     </trans-unit>
@@ -5462,10 +5480,6 @@
     </trans-unit>
     <trans-unit id="++CODE++275defa851ac09403faf8a674e5bdba13cf70e44dcd812b90e2c515db391a7ed">
       <source xml:lang="en">Missing table target for delete_table operation. Provide tableId or tableName+schemaName.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++4ac983643653985914b015e5943810fbff9fc4cb032de643cb3b012859642a02">
-      <source xml:lang="en">Model id for {0} on provider {1}</source>
-      <note>{0} model role name, {1} provider label</note>
     </trans-unit>
     <trans-unit id="++CODE++e8ce5dcaf408935ff76747226d2e8bee4319a2f593c1d7a838115e56183d1f37">
       <source xml:lang="en">Modified</source>
@@ -6532,9 +6546,6 @@
     <trans-unit id="++CODE++3523a6beb7bd63797f5fac1f4a6c8b26f48ba7d74aa76f7b96ee94850c679c93">
       <source xml:lang="en">Plan view</source>
     </trans-unit>
-    <trans-unit id="++CODE++cce7bf6763cfce9709f80c013a1e6132132f8c74486587a2b249761a0320522f">
-      <source xml:lang="en">Planner (generates the runbook plan)</source>
-    </trans-unit>
     <trans-unit id="++CODE++b1290600e1b792005e8f60c1da240f6b09ae5c1064d1ea8604fa54561c34e0af">
       <source xml:lang="en">Planning session started</source>
     </trans-unit>
@@ -7462,6 +7473,9 @@
     <trans-unit id="++CODE++391ff70a08ea1e11b0f3df07a481091324fa6863371f12e0ce31171e9fe21442">
       <source xml:lang="en">Runbook JSON</source>
     </trans-unit>
+    <trans-unit id="++CODE++257227dbceaba986bd4a3a241b1b422be05ff08fed895b5e5bcc25da61b714ec">
+      <source xml:lang="en">Runbook Studio AI model settings</source>
+    </trans-unit>
     <trans-unit id="++CODE++60c489ad9075f4f1d463126d52c9034c922d11c21cfaca8545176faba1d6ed4c">
       <source xml:lang="en">Runbook Studio found {0} disposable database effect(s) that require operator review. Automatic cleanup was refused.</source>
       <note>{0} is a count of effects requiring review</note>
@@ -7515,6 +7529,9 @@
     <trans-unit id="++CODE++c650e15b69c35c39b6ff6743c908ed1db08e9d4840abb2ebfce8303e88b9507a">
       <source xml:lang="en">Running: {0}</source>
       <note>{0} is how long the query has been running</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a3e909e8a56d069024041c086368c52694ccfe04ad99f551a1c97d5c963a65da">
+      <source xml:lang="en">Runtime default for this provider</source>
     </trans-unit>
     <trans-unit id="++CODE++9e08cb76f36d45e860589e428958cebca94eaf4213c5e6f86ada170ff58171e4">
       <source xml:lang="en">Runtime metric: {0}</source>
@@ -8159,6 +8176,10 @@
     </trans-unit>
     <trans-unit id="++CODE++21f736a51b932eed3aed712f5cc2cd8ca7fd204ad2690df8c6d8d1f6cd926e1a">
       <source xml:lang="en">Select the target schema</source>
+    </trans-unit>
+    <trans-unit id="++CODE++49dea872dbf4382b326af9a568f98018d11308403c72da813b6dff3991ca7bcd">
+      <source xml:lang="en">Select {0} model</source>
+      <note>{0} is an AI model role, such as Authoring AI</note>
     </trans-unit>
     <trans-unit id="++CODE++57fd7a0cf33f2666eede69e44f8857159653f2f28e4fd7482a5e16d4af628d2a">
       <source xml:lang="en">Selected</source>
@@ -9229,8 +9250,8 @@
     <trans-unit id="++CODE++f0251dbe090283c1f357637266f942be4c6d47df91ad3b2511f3a32f9bbd6b71">
       <source xml:lang="en">The runtime did not report diagnostic totals.</source>
     </trans-unit>
-    <trans-unit id="++CODE++d4264a01a18abb343b9d61223a43e5483da0927048f1f2b86b08c184ab5e94e6">
-      <source xml:lang="en">The runtime&apos;s active provider profile does not expose configurable models.</source>
+    <trans-unit id="++CODE++32c29945b962798adfc7118cb2d06732bfdcc7648cd86e0f4e167be1d4d41b90">
+      <source xml:lang="en">The runtime&apos;s authoring or execution provider profile does not expose configurable models.</source>
     </trans-unit>
     <trans-unit id="++CODE++2dec4a1dbe2852819e5a638c8045f9981969a1e949eb39f8608effa4b407d5ff">
       <source xml:lang="en">The saved &apos;{0}&apos; view no longer matches this output. Showing &apos;{1}&apos; instead. Review this widget&apos;s presentation before saving the runbook.</source>
@@ -10008,9 +10029,6 @@
     </trans-unit>
     <trans-unit id="++CODE++8746aa4543652187c8719dbebc36f0609e31bbc53b14ed2ca12b0207c9e79345">
       <source xml:lang="en">Windows Authentication</source>
-    </trans-unit>
-    <trans-unit id="++CODE++306d8a977fa805451410d501bb524ff87671f33eee93689be624b4a1bc3d8f83">
-      <source xml:lang="en">Workflow (executes plan steps)</source>
     </trans-unit>
     <trans-unit id="++CODE++b80fca299939e1de06beabd7c5e8eddd1431470b12a3a0555c130ea6933cc5d6">
       <source xml:lang="en">Workflow graph: {0} steps, {1} edges</source>

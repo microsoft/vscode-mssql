@@ -4215,6 +4215,18 @@ export class LocConstants {
             generatePlan: l10n.t("Generate plan"),
             regeneratePlan: l10n.t("Regenerate plan"),
             generating: l10n.t("Generating plan…"),
+            aiModelToolbar: l10n.t("Runbook Studio AI model settings"),
+            authoringAi: l10n.t("Authoring AI"),
+            executionAi: l10n.t("Execution AI"),
+            loadingModels: l10n.t("Loading models…"),
+            savingModel: l10n.t("Saving…"),
+            runtimeModelScope: l10n.t("Runtime default for this provider"),
+            selectAiModel: (role: string) =>
+                l10n.t({
+                    message: "Select {0} model",
+                    args: [role],
+                    comment: ["{0} is an AI model role, such as Authoring AI"],
+                }),
             liveThinking: l10n.t("Live thinking"),
             workflowSteps: l10n.t("Workflow steps"),
             generationConsoleAria: l10n.t("Plan generation console"),

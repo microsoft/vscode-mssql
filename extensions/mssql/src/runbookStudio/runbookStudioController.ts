@@ -28,7 +28,9 @@ import {
     RbsExecutePlanQueryRequest,
     RbsExportEvidenceRequest,
     RbsFetchOutputPageRequest,
+    RbsGetModelConfigurationRequest,
     RbsListConnectionsRequest,
+    RbsModelConfiguration,
     RbsNavigateNotification,
     RbsOpenDiagnosticsRequest,
     RbsPreviewPresentationLayoutRequest,
@@ -40,6 +42,7 @@ import {
     RbsState,
     RbsSetOutputViewRequest,
     RbsSetOutputPresentationRequest,
+    RbsSetModelConfigurationRequest,
     RbsUpdateIntentRequest,
     RbsCancelRunRequest,
     RbsClearPresentationOverlayRequest,
@@ -103,6 +106,14 @@ const MAX_PRESENTATION_PREVIEWS = 20;
 type PresentationPreviewTarget =
     | { kind: "run"; runId: string }
     | { kind: "sample"; scenario: "clean" | "blockingErrors" | "approvalRejected" };
+
+interface ModelConfigurationCoordinator extends RunbookRunCoordinator {
+    getModelConfiguration?: () => Promise<RbsModelConfiguration | { error: RbsError }>;
+    setModelConfiguration?: (
+        role: "authoring" | "execution",
+        modelId: string,
+    ) => Promise<string | undefined>;
+}
 
 export class RunbookStudioController extends WebviewBaseController<RbsState, void> {
     private statePushTimer: ReturnType<typeof setTimeout> | undefined;
@@ -481,6 +492,49 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             return { profiles };
         });
 
+        this.onRequest(RbsGetModelConfigurationRequest.type, async () => {
+            return this.getModelConfiguration();
+        });
+
+        this.onRequest(RbsSetModelConfigurationRequest.type, async ({ role, modelId }) => {
+            if (!vscode.workspace.isTrusted) {
+                return { applied: false, error: this.untrustedError() };
+            }
+            const current = await this.getModelConfiguration();
+            if (
+                !current.configuration ||
+                !current.configuration[role].models.some((model) => model.id === modelId)
+            ) {
+                return {
+                    applied: false,
+                    error: {
+                        code: "RunbookStudio.RuntimeCapabilityUnsupported" as const,
+                        message: LocRunbookStudio.modelConfigUnavailable,
+                    },
+                };
+            }
+            const candidate = this.coordinator as ModelConfigurationCoordinator | undefined;
+            if (!candidate?.setModelConfiguration) {
+                return { applied: false, error: this.runtimeUnavailableError() };
+            }
+            const refusal = await candidate.setModelConfiguration(role, modelId);
+            if (refusal !== undefined) {
+                return {
+                    applied: false,
+                    error: {
+                        code: "RunbookStudio.RuntimeUnavailable" as const,
+                        message: refusal,
+                        retryable: true,
+                    },
+                };
+            }
+            const refreshed = await this.getModelConfiguration();
+            return {
+                applied: true,
+                ...(refreshed.configuration ? { configuration: refreshed.configuration } : {}),
+            };
+        });
+
         this.onRequest(RbsStartRunRequest.type, async ({ parameterValues }) => {
             if (!vscode.workspace.isTrusted) {
                 return { error: this.untrustedError() };
@@ -692,12 +746,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
      *  generation console can show a model chip. Display-only; this never
      *  blocks and never fails the compile. */
     private sendPlannerModelEvent(coordinator: RunbookRunCoordinator): void {
-        const candidate = coordinator as RunbookRunCoordinator & {
-            getModelConfiguration?: () => Promise<
-                | { providerLabel: string; plannerModelId?: string; workflowModelId?: string }
-                | { error: RbsError }
-            >;
-        };
+        const candidate = coordinator as ModelConfigurationCoordinator;
         if (
             !("getModelConfiguration" in coordinator) ||
             typeof candidate.getModelConfiguration !== "function"
@@ -707,16 +756,28 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         void candidate
             .getModelConfiguration()
             .then((config) => {
-                if (this.isDisposed || "error" in config || !config.plannerModelId) {
+                if (this.isDisposed || "error" in config) {
                     return;
                 }
                 void this.sendNotification(RbsCompileProgressNotification.type, {
                     kind: "model",
-                    text: config.plannerModelId,
-                    label: config.providerLabel,
+                    text: config.authoring.modelId,
+                    label: config.authoring.providerLabel,
                 });
             })
             .catch(() => undefined);
+    }
+
+    private async getModelConfiguration(): Promise<{
+        configuration?: RbsModelConfiguration;
+        error?: RbsError;
+    }> {
+        const candidate = this.coordinator as ModelConfigurationCoordinator | undefined;
+        if (!candidate?.getModelConfiguration) {
+            return { error: this.runtimeUnavailableError() };
+        }
+        const result = await candidate.getModelConfiguration();
+        return "error" in result ? { error: result.error } : { configuration: result };
     }
 
     private untrustedError(): RbsError {

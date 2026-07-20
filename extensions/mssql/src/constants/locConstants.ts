@@ -175,16 +175,11 @@ export class RunbookStudio {
         "Plan generation was cancelled. Edit the prompt and generate again.",
     );
     public static modelConfigUnavailable = l10n.t(
-        "The runtime's active provider profile does not expose configurable models.",
+        "The runtime's authoring or execution provider profile does not expose configurable models.",
     );
-    public static modelRolePlanner = l10n.t("Planner (generates the runbook plan)");
-    public static modelRoleWorkflow = l10n.t("Workflow (executes plan steps)");
-    public static modelIdPrompt = (role: string, provider: string) =>
-        l10n.t({
-            message: "Model id for {0} on provider {1}",
-            args: [role, provider],
-            comment: ["{0} model role name, {1} provider label"],
-        });
+    public static configureModelsTitle = l10n.t("Configure Runbook Studio AI models");
+    public static modelRolePlanner = l10n.t("Authoring AI (generates the runbook plan)");
+    public static modelRoleWorkflow = l10n.t("Execution AI (executes plan steps)");
     public static modelConfigSaved = (role: string, modelId: string) =>
         l10n.t({
             message: "{0} model set to {1}.",

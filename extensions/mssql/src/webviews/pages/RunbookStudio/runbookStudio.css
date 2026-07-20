@@ -145,6 +145,36 @@
     max-width: 980px;
 }
 
+.rbs-model-toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 7px 9px;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+}
+
+.rbs-model-toolbar-label {
+    font-weight: 600;
+}
+
+.rbs-model-select {
+    min-width: 240px;
+    max-width: 420px;
+}
+
+.rbs-model-toolbar-detail {
+    color: var(--vscode-descriptionForeground);
+    font-size: 11px;
+}
+
+.rbs-model-toolbar-error {
+    flex-basis: 100%;
+    color: var(--vscode-errorForeground);
+}
+
 .rbs-section-title {
     font-size: 12px;
     font-weight: 600;
@@ -163,6 +193,7 @@
 .rbs-layout-widget {
     min-width: 0;
     grid-column: span var(--rbs-span-wide);
+    align-self: start;
 }
 
 .rbs-presentation-empty,
@@ -191,11 +222,6 @@
     place-items: center;
     padding: 8px;
     opacity: 0.7;
-}
-
-.rbs-layout-dashboard .rbs-widget {
-    height: calc(100% - 10px);
-    box-sizing: border-box;
 }
 
 .rbs-layout-strategy-flow {
@@ -750,6 +776,26 @@
 
 .rbs-widget-scroll {
     overflow-x: auto;
+}
+
+.rbs-grid-view {
+    min-width: 0;
+}
+
+.rbs-grid-viewport {
+    max-height: min(360px, 50vh);
+    overflow: auto;
+}
+
+.rbs-grid-viewport .rbs-table {
+    margin: 0;
+}
+
+.rbs-grid-viewport .rbs-table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--vscode-editorWidget-background, var(--vscode-editor-background));
 }
 
 .rbs-cards {

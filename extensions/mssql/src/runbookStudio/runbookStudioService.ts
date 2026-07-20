@@ -26,6 +26,10 @@ import type { TransformPipeline } from "../sharedInterfaces/runbookPresentation"
 import {
     RbsError,
     RbsEvidenceExportFormat,
+    RbsModelConfiguration,
+    RbsModelOption,
+    RbsModelRole,
+    RbsModelRoleConfiguration,
     RbsPlannerProgressEvent,
     RunbookArtifactFile,
     RunbookParameterDefinition,
@@ -70,6 +74,11 @@ import { buildEvidenceExport, EvidenceExportError, evidenceExportFileName } from
 import { RunbookResultStore } from "./runbookResultStore";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import { compileIntentWithModel } from "./models/planCompiler";
+import {
+    runtimeModelIdForRole,
+    runtimeProviderProfileForRole,
+    setRuntimeModelIdForRole,
+} from "./models/modelConfiguration";
 import { validateTargetBindings } from "./targetBindings";
 import {
     buildArtifactFromLibraryAsset,
@@ -1349,17 +1358,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         return { ok: true };
     }
 
-    /** Model roles the config UI exposes, read from the runtime's ACTIVE
-     *  provider profile ("whatever Hobbes supports" — planner + workflow
-     *  today; global setting, per-runbook later). */
-    public async getModelConfiguration(): Promise<
-        | {
-              providerLabel: string;
-              plannerModelId?: string;
-              workflowModelId?: string;
-          }
-        | { error: RbsError }
-    > {
+    /** Runtime-backed model choices for the authoring and execution roles.
+     * Catalogs are profile-specific: every option shown is executable by
+     * the Hobbes provider that will receive that role. */
+    public async getModelConfiguration(): Promise<RbsModelConfiguration | { error: RbsError }> {
         const context = newRunbookRootContext("library");
         const ensured = this.ensureHobbesAdapter();
         if ("error" in ensured) {
@@ -1367,13 +1369,46 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         }
         try {
             const doc = await ensured.adapter.getRuntimeSettingsDocument(context);
-            const profile = activeProviderProfile(doc);
-            const planner = profile?.defaultModels?.plannerModelId;
-            const workflow = profile?.defaultModels?.workflowModelId;
+            const authoringProfile = runtimeProviderProfileForRole(doc, "authoring");
+            const executionProfile = runtimeProviderProfileForRole(doc, "execution");
+            const authoringModelId = authoringProfile
+                ? runtimeModelIdForRole(authoringProfile, "authoring")
+                : undefined;
+            const executionModelId = executionProfile
+                ? runtimeModelIdForRole(executionProfile, "execution")
+                : undefined;
+            if (
+                !authoringProfile?.id ||
+                !executionProfile?.id ||
+                !authoringModelId ||
+                !executionModelId
+            ) {
+                return { error: modelConfigurationUnavailableError() };
+            }
+            const catalogs = new Map<string, Promise<RbsModelOption[]>>();
+            const getCatalog = (profileId: string): Promise<RbsModelOption[]> => {
+                let pending = catalogs.get(profileId);
+                if (!pending) {
+                    pending = ensured.adapter.getRuntimeModelCatalog(profileId, context);
+                    catalogs.set(profileId, pending);
+                }
+                return pending;
+            };
+            const [authoringModels, executionModels] = await Promise.all([
+                getCatalog(authoringProfile.id),
+                getCatalog(executionProfile.id),
+            ]);
             return {
-                providerLabel: String(profile?.label ?? profile?.id ?? "?"),
-                ...(typeof planner === "string" ? { plannerModelId: planner } : {}),
-                ...(typeof workflow === "string" ? { workflowModelId: workflow } : {}),
+                authoring: modelRoleConfiguration(
+                    authoringProfile,
+                    authoringModelId,
+                    authoringModels,
+                ),
+                execution: modelRoleConfiguration(
+                    executionProfile,
+                    executionModelId,
+                    executionModels,
+                ),
             };
         } catch (error) {
             return { error: libraryError(error) };
@@ -1384,7 +1419,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
      *  runtime's supported settings round-trip. Returns an error string on
      *  refusal (e.g. the in-flight guard while a run executes). */
     public async setModelConfiguration(
-        role: "planner" | "workflow",
+        role: RbsModelRole,
         modelId: string,
     ): Promise<string | undefined> {
         const context = newRunbookRootContext("library");
@@ -1394,14 +1429,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         }
         try {
             const doc = await ensured.adapter.getRuntimeSettingsDocument(context);
-            const profile = activeProviderProfile(doc);
-            if (!profile?.defaultModels) {
+            const profile = runtimeProviderProfileForRole(doc, role);
+            if (!profile || !setRuntimeModelIdForRole(profile, role, modelId)) {
                 return LocRunbookStudio.modelConfigUnavailable;
-            }
-            if (role === "planner") {
-                profile.defaultModels.plannerModelId = modelId;
-            } else {
-                profile.defaultModels.workflowModelId = modelId;
             }
             const refusal = await ensured.adapter.putRuntimeSettingsDocument(doc, context);
             emitRunbookEvent(
@@ -3585,24 +3615,45 @@ function isPlaceholderRunbookName(name: string): boolean {
     return name === base || (name.startsWith(`${base} (`) && name.endsWith(")"));
 }
 
-interface RuntimeProviderProfileDoc {
-    id?: string;
-    label?: string;
-    defaultModels?: Record<string, unknown> & {
-        plannerModelId?: unknown;
-        workflowModelId?: unknown;
+function modelRoleConfiguration(
+    profile: { id?: string; kind?: string; label?: string },
+    modelId: string,
+    catalog: RbsModelOption[],
+): RbsModelRoleConfiguration {
+    const models = catalog.some((model) => model.id === modelId)
+        ? catalog
+        : catalog.concat({
+              id: modelId,
+              name: modelId,
+              vendor: profile.kind ?? "",
+              isDefault: false,
+          });
+    return {
+        providerId: profile.id ?? "",
+        providerKind: profile.kind ?? "",
+        providerLabel: profile.label ?? profile.id ?? "?",
+        modelId,
+        models: models.slice().sort((left, right) => {
+            if (left.isDefault !== right.isDefault) {
+                return left.isDefault ? -1 : 1;
+            }
+            return (
+                left.vendor.localeCompare(right.vendor, undefined, { sensitivity: "base" }) ||
+                left.name.localeCompare(right.name, undefined, {
+                    sensitivity: "base",
+                    numeric: true,
+                }) ||
+                left.id.localeCompare(right.id, undefined, { sensitivity: "base" })
+            );
+        }),
     };
 }
 
-/** The provider profile the runtime's activeProviderProfileId points at. */
-function activeProviderProfile(
-    doc: Record<string, unknown>,
-): RuntimeProviderProfileDoc | undefined {
-    const activeId = doc.activeProviderProfileId;
-    const providers = Array.isArray(doc.providers)
-        ? (doc.providers as RuntimeProviderProfileDoc[])
-        : [];
-    return providers.find((p) => p?.id === activeId) ?? providers[0];
+function modelConfigurationUnavailableError(): RbsError {
+    return {
+        code: "RunbookStudio.RuntimeCapabilityUnsupported",
+        message: LocRunbookStudio.modelConfigUnavailable,
+    };
 }
 
 function libraryError(error: unknown): RbsError {

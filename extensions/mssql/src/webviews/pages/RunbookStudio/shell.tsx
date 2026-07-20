@@ -20,7 +20,11 @@ import {
     RbsArtifactSummary,
     RbsEvidenceExportFormat,
     RbsFetchOutputPageRequest,
+    RbsGetModelConfigurationRequest,
+    RbsModelConfiguration,
+    RbsModelRole,
     RbsRoute,
+    RbsSetModelConfigurationRequest,
     RunbookNodeSnapshot,
     RunbookParameterDefinition,
     RunbookPlanNode,
@@ -74,6 +78,101 @@ const ROUTES: Array<{ id: RbsRoute; label: () => string; icon: string }> = [
     { id: "results", label: () => locConstants.runbookStudio.results, icon: "▤" },
     { id: "history", label: () => locConstants.runbookStudio.history, icon: "◷" },
 ];
+
+/** Runtime-backed role picker shared by Author and Run. The catalog comes
+ * from Hobbes, so every displayed choice is executable by that role's
+ * assigned provider rather than merely registered in the VS Code host. */
+function ModelToolbar({ role, disabled }: { role: RbsModelRole; disabled?: boolean }) {
+    const { rpc, state } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const [configuration, setConfiguration] = useState<RbsModelConfiguration>();
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string>();
+
+    useEffect(() => {
+        let active = true;
+        void rpc
+            .sendRequest(RbsGetModelConfigurationRequest.type, {})
+            .then((result) => {
+                if (!active) {
+                    return;
+                }
+                setConfiguration(result.configuration);
+                setError(result.error?.message);
+            })
+            .finally(() => {
+                if (active) {
+                    setLoading(false);
+                }
+            });
+        return () => {
+            active = false;
+        };
+    }, [rpc]);
+
+    if (!loading && !configuration) {
+        return null;
+    }
+    const roleConfiguration = configuration?.[role];
+    const roleLabel = role === "authoring" ? loc.authoringAi : loc.executionAi;
+    return (
+        <div className="rbs-model-toolbar" aria-label={loc.aiModelToolbar}>
+            <span className="rbs-model-toolbar-label">{roleLabel}</span>
+            {roleConfiguration ? (
+                <>
+                    <select
+                        className="rbs-input rbs-model-select"
+                        aria-label={loc.selectAiModel(roleLabel)}
+                        value={roleConfiguration.modelId}
+                        disabled={disabled || saving || !state?.workspaceTrusted}
+                        onChange={(event) => {
+                            const modelId = event.target.value;
+                            setSaving(true);
+                            setError(undefined);
+                            void rpc
+                                .sendRequest(RbsSetModelConfigurationRequest.type, {
+                                    role,
+                                    modelId,
+                                })
+                                .then((result) => {
+                                    if (result.configuration) {
+                                        setConfiguration(result.configuration);
+                                    }
+                                    if (result.error) {
+                                        setError(result.error.message);
+                                    }
+                                })
+                                .finally(() => setSaving(false));
+                        }}>
+                        {roleConfiguration.models.map((model) => {
+                            const label = model.vendor
+                                ? `${model.vendor} — ${model.name}`
+                                : model.name;
+                            return (
+                                <option key={model.id} value={model.id} title={model.id}>
+                                    {label}
+                                </option>
+                            );
+                        })}
+                    </select>
+                    <span className="rbs-chip" title={roleConfiguration.providerKind}>
+                        {roleConfiguration.providerLabel}
+                    </span>
+                    {saving ? <span className="rbs-muted">{loc.savingModel}</span> : null}
+                </>
+            ) : (
+                <span className="rbs-muted">{loc.loadingModels}</span>
+            )}
+            <span className="rbs-model-toolbar-detail">{loc.runtimeModelScope}</span>
+            {error ? (
+                <span className="rbs-model-toolbar-error" role="alert">
+                    {error}
+                </span>
+            ) : null}
+        </div>
+    );
+}
 
 function TopBar() {
     const { state, lastError, dismissError } = useRbs();
@@ -570,6 +669,7 @@ function AuthorPage() {
     };
     return (
         <div className="rbs-page-body">
+            <ModelToolbar role="authoring" disabled={compiling} />
             <StepsBanner stage={stage} />
             <section className="rbs-section">
                 <h2 className="rbs-section-title">{loc.describeHeading}</h2>
@@ -855,16 +955,7 @@ function CollapsibleSection({
  * appears once a run exists. Routes "parameters" and "debug" alias here.
  */
 function RunPage() {
-    const {
-        state,
-        route,
-        navigate,
-        startRun,
-        parameterDraft,
-        openDiagnostics,
-        cancelRun,
-        respondToGate,
-    } = useRbs();
+    const { state, route, navigate, startRun, parameterDraft, cancelRun, respondToGate } = useRbs();
     const loc = locConstants.runbookStudio;
     const run = state?.run;
     const [paramsExpanded, setParamsExpanded] = useState(true);
@@ -920,6 +1011,7 @@ function RunPage() {
     };
     return (
         <div className="rbs-page-body">
+            <ModelToolbar role="execution" disabled={runActive || starting} />
             <CompatibilityNotice />
             <CollapsibleSection
                 title={loc.parameters}
@@ -963,9 +1055,6 @@ function RunPage() {
                                     </button>
                                 </>
                             )}
-                            <button className="rbs-btn" onClick={() => openDiagnostics(run.runId)}>
-                                {loc.openDiagnostics}
-                            </button>
                         </>
                     }>
                     {run.pendingGate ? (
@@ -4733,7 +4822,7 @@ function PreviewPage() {
 }
 
 function HistoryPage() {
-    const { state, selectRun, navigate, openDiagnostics } = useRbs();
+    const { state, selectRun, navigate } = useRbs();
     const loc = locConstants.runbookStudio;
     const history = state?.history ?? [];
     if (history.length === 0) {
@@ -4822,12 +4911,6 @@ function HistoryPage() {
                                                     });
                                                 }}>
                                                 {loc.viewResults}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="rbs-link-button"
-                                                onClick={() => openDiagnostics(entry.runId)}>
-                                                {loc.openDiagnostics}
                                             </button>
                                         </div>
                                     </td>
