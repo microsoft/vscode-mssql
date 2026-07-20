@@ -12,6 +12,7 @@ import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 import { WebviewBaseController } from "./webviewBaseController";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { Deferred } from "../protocol";
+import type { WebviewBundleName } from "../sharedInterfaces/webviewBundle";
 
 /**
  * WebviewPanelController is a class that manages a vscode.WebviewPanel and provides
@@ -38,7 +39,7 @@ export class WebviewPanelController<State, Reducers, Result = void> extends Webv
      */
     constructor(
         _context: vscode.ExtensionContext,
-        sourceFile: string,
+        sourceFile: WebviewBundleName,
         _viewId: string,
         initialData: State,
         private _options: MssqlWebviewPanelOptions,

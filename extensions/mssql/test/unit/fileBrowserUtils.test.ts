@@ -286,7 +286,7 @@ class TestFileBrowserWebviewController<TResult> extends WebviewPanelController<
     constructor(context: vscode.ExtensionContext, options: MssqlWebviewPanelOptions) {
         super(
             context,
-            "testSource",
+            "queryResult",
             "testSource",
             {
                 fileBrowserState: {

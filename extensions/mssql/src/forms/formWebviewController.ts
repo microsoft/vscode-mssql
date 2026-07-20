@@ -6,6 +6,7 @@
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { FormItemSpec, FormReducers, FormState } from "../sharedInterfaces/form";
 import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
+import type { WebviewBundleName } from "../sharedInterfaces/webviewBundle";
 
 export abstract class FormWebviewController<
     TForm,
@@ -16,7 +17,7 @@ export abstract class FormWebviewController<
 > extends WebviewPanelController<TState, TReducers, TResult> {
     constructor(
         context,
-        sourceFile: string,
+        sourceFile: WebviewBundleName,
         _viewId: string,
         initialData: TState,
         options: MssqlWebviewPanelOptions,

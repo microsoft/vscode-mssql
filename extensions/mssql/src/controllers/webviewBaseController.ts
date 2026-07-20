@@ -53,6 +53,7 @@ import { Deferred } from "../protocol";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { getLocalizationFileContentsCached } from "./localizationCache";
+import type { WebviewBundleName } from "../sharedInterfaces/webviewBundle";
 
 export const WEBVIEW_INIT_TIMEOUT_MS = 5_000;
 
@@ -150,7 +151,7 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
      */
     constructor(
         protected _context: vscode.ExtensionContext,
-        private _sourceFile: string,
+        private _sourceFile: WebviewBundleName,
         private _initialData: State,
         viewId?: string,
     ) {

@@ -19,6 +19,7 @@ import { ObjectManagementService } from "../services/objectManagementService";
 import { getErrorMessage, uuid } from "../utils/utils";
 import * as LocConstants from "../constants/locConstants";
 import { FormWebviewController } from "../forms/formWebviewController";
+import type { WebviewBundleName } from "../sharedInterfaces/webviewBundle";
 import { FormItemSpec, FormReducers } from "../sharedInterfaces/form";
 
 interface ObjectManagementWebviewIconFiles {
@@ -67,7 +68,7 @@ export abstract class ObjectManagementWebviewController<
         dialogTitle: string,
         webviewTitle: string,
         iconFiles: ObjectManagementWebviewIconFiles,
-        sourceFile: string,
+        sourceFile: WebviewBundleName,
         connectionUri: string,
         serverName: string,
         databaseName?: string,

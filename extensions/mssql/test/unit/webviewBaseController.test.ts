@@ -75,7 +75,7 @@ suite("WebviewController Tests", () => {
             extensionUri: vscode.Uri.parse("file://test"),
             // Add other properties if needed
         } as unknown as vscode.ExtensionContext;
-        controller = new TestWebviewController(mockContext, "testSource", {
+        controller = new TestWebviewController(mockContext, {
             count: 0,
         });
         // Stubs for methods
@@ -262,8 +262,8 @@ suite("WebviewController Tests", () => {
         sandbox.stub(utils, "getNonce").returns("test-nonce");
         (controller as any)._getWebview().asWebviewUri = webviewUriStub;
         const html = controller["_getHtmlTemplate"]();
-        expect(html.includes("testSource.css"), "CSS file is not included").to.be.true;
-        expect(html.includes("testSource.js"), "JS file is not included").to.be.true;
+        expect(html.includes("queryResult.css"), "CSS file is not included").to.be.true;
+        expect(html.includes("queryResult.js"), "JS file is not included").to.be.true;
         expect(html.includes('nonce="test-nonce"'), "Nonce is not included").to.be.true;
         expect(html.includes('<base href="https://example.com//">'), "Base href is not included").to
             .be.true;
@@ -282,8 +282,8 @@ interface TestReducers {
 class TestWebviewController extends WebviewBaseController<TestState, TestReducers> {
     public _webview: TestWebView;
 
-    constructor(context: vscode.ExtensionContext, sourceFile: string, initialData: TestState) {
-        super(context, sourceFile, initialData);
+    constructor(context: vscode.ExtensionContext, initialData: TestState) {
+        super(context, "queryResult", initialData);
         this._webview = {
             postMessage: sinon.stub(),
             options: {},

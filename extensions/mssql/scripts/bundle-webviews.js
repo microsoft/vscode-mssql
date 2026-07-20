@@ -3,43 +3,43 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+const fs = require("fs").promises;
+const path = require("path");
 const { createBrowserConfig, run } = require("../../../scripts/esbuild-utils");
+const webviewEntryPoints = require("./webview-entry-points.json");
+
+function verifyWebviewBundleOutputsPlugin() {
+    return {
+        name: "verify-webview-bundle-outputs",
+        setup(build) {
+            build.onEnd(async (result) => {
+                if (result.errors.length > 0) {
+                    return;
+                }
+
+                const outdir = build.initialOptions.outdir;
+                const outputFiles = new Set(await fs.readdir(path.resolve(outdir)));
+                const expectedOutputs = Object.keys(webviewEntryPoints).flatMap((bundleName) => [
+                    `${bundleName}.js`,
+                    `${bundleName}.css`,
+                ]);
+                const missingOutputs = expectedOutputs.filter((output) => !outputFiles.has(output));
+
+                if (missingOutputs.length > 0) {
+                    result.errors.push({
+                        text: `Missing expected webview bundle output(s): ${missingOutputs.sort().join(", ")}`,
+                    });
+                }
+            });
+        },
+    };
+}
 
 // Build configuration
 void run(
     ({ isProd }) =>
         createBrowserConfig({
-            entryPoints: {
-                addFirewallRule: "src/webviews/pages/AddFirewallRule/index.tsx",
-                backupDatabaseDialog:
-                    "src/webviews/pages/ObjectManagement/BackupDatabase/backupDatabaseIndex.tsx",
-                restoreDatabaseDialog:
-                    "src/webviews/pages/ObjectManagement/RestoreDatabase/restoreDatabaseIndex.tsx",
-                connectionDialog: "src/webviews/pages/ConnectionDialog/index.tsx",
-                connectionGroup: "src/webviews/pages/ConnectionGroup/index.tsx",
-                DacpacDialog: "src/webviews/pages/DacpacDialog/index.tsx",
-                deployment: "src/webviews/pages/Deployment/index.tsx",
-                executionPlan: "src/webviews/pages/ExecutionPlan/index.tsx",
-                flatFileImport: "src/webviews/pages/FlatFileImport/index.tsx",
-                tableDesigner: "src/webviews/pages/TableDesigner/index.tsx",
-                objectExplorerFilter: "src/webviews/pages/ObjectExplorerFilter/index.tsx",
-                queryResult: "src/webviews/pages/QueryResult/index.tsx",
-                userSurvey: "src/webviews/pages/UserSurvey/index.tsx",
-                schemaDesigner: "src/webviews/pages/SchemaDesigner/index.tsx",
-                schemaCompare: "src/webviews/pages/SchemaCompare/index.tsx",
-                changePassword: "src/webviews/pages/ChangePassword/index.tsx",
-                createDatabaseDialog: "src/webviews/pages/ObjectManagement/createDatabaseIndex.tsx",
-                dropDatabaseDialog: "src/webviews/pages/ObjectManagement/dropDatabaseIndex.tsx",
-                renameDatabaseDialog: "src/webviews/pages/ObjectManagement/renameDatabaseIndex.tsx",
-                publishProject: "src/webviews/pages/PublishProject/index.tsx",
-                codeAnalysis: "src/webviews/pages/CodeAnalysis/index.tsx",
-                tableExplorer: "src/webviews/pages/TableExplorer/index.tsx",
-                searchDatabase: "src/webviews/pages/SearchDatabase/index.tsx",
-                changelog: "src/webviews/pages/Changelog/index.tsx",
-                profiler: "src/webviews/pages/Profiler/index.tsx",
-                azureDataStudioMigration: "src/webviews/pages/AzureDataStudioMigration/index.tsx",
-                shortcutsConfiguration: "src/webviews/pages/ShortcutsConfiguration/index.tsx",
-            },
+            entryPoints: webviewEntryPoints,
             loader: {
                 ".tsx": "tsx",
                 ".ts": "ts",
@@ -52,6 +52,7 @@ void run(
             metafile: !isProd,
             minify: isProd,
             outdir: "dist/views",
+            plugins: [verifyWebviewBundleOutputsPlugin()],
             sourcemap: isProd ? false : "inline",
             splitting: true,
             tsconfig: "./tsconfig.webviews.json",

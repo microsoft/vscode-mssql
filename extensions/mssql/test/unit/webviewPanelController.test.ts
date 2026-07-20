@@ -113,7 +113,7 @@ suite("WebviewPanelController", () => {
             },
         );
 
-        expect(mockPanel.webview.html.includes("testSource.js")).to.be.true;
+        expect(mockPanel.webview.html.includes("queryResult.js")).to.be.true;
         expect(mockPanel.iconPath).to.equal(options.iconPath);
     });
 
@@ -242,8 +242,8 @@ suite("WebviewPanelController", () => {
         const controller = createController();
         const html = controller["_getHtmlTemplate"]();
         expect(typeof html, "HTML should be a string").to.equal("string");
-        expect(html.includes("testSource.css"), "HTML should include testSource.css").to.be.true;
-        expect(html.includes("testSource.js"), "HTML should include testSource.js").to.be.true;
+        expect(html.includes("queryResult.css"), "HTML should include queryResult.css").to.be.true;
+        expect(html.includes("queryResult.js"), "HTML should include queryResult.js").to.be.true;
         expect(html.includes('nonce="test-nonce"'), "HTML should include the nonce").to.be.true;
         expect(
             html.includes('<base href="https://example.com//">'),
@@ -337,6 +337,6 @@ class TestWebviewPanelController<TResult> extends WebviewPanelController<
     TResult
 > {
     constructor(context: vscode.ExtensionContext, options: MssqlWebviewPanelOptions) {
-        super(context, "testSource", "testSource", { count: 0 }, options);
+        super(context, "queryResult", "testSource", { count: 0 }, options);
     }
 }
