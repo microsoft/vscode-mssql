@@ -633,6 +633,9 @@
     <trans-unit id="++CODE++d95082a2ee57f3e40e3050662a346e26a872fd4d0baf57d293ac5a883f0f4ff5">
       <source xml:lang="en">Author</source>
     </trans-unit>
+    <trans-unit id="++CODE++856c7d52c1cc2f2e29a69695fafac2d3ca5f8de708699f91f0b0cad66e0909f0">
+      <source xml:lang="en">Authored SQL</source>
+    </trans-unit>
     <trans-unit id="++CODE++85f930fa723218285e6109c5262e596f034321fc9971425de297c37061fbf924">
       <source xml:lang="en">Auto (suggested)</source>
     </trans-unit>
@@ -7490,6 +7493,9 @@
       <source xml:lang="en">Runtime metric: {0}</source>
       <note>{0} is a runtime-published metric key</note>
     </trans-unit>
+    <trans-unit id="++CODE++f19c78bd8ae86d99c792a5c343052ea2851290cbbd70bb58dbd84e995da9bc4e">
+      <source xml:lang="en">Runtime-executed SQL</source>
+    </trans-unit>
     <trans-unit id="++CODE++a2ed054db50da31db52e2b3320b15f87c366191789d306ad1e0682baf1590762">
       <source xml:lang="en">SARIF</source>
     </trans-unit>
@@ -9126,6 +9132,12 @@
     </trans-unit>
     <trans-unit id="++CODE++11b7e8f9b6b3ff39782af051a6656f5e74340a0a2e296b7b74190097c660d7ae">
       <source xml:lang="en">The retained bundle is incomplete and cannot be exported.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d8bee8735c1a92eddf312f089d3f9b542f065237ec81981f104bbef406c7cdd5">
+      <source xml:lang="en">The retained executed query is truncated.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0f24d889cc308e06f1ae9fcaf7a0a5a6f00faa9ee8fb928cb3f677166833c89a">
+      <source xml:lang="en">The retained executed query is unavailable.</source>
     </trans-unit>
     <trans-unit id="++CODE++c7d829370bbb3bcf3ed575fa0340eb0fa89e3c5fea172b4421403e679e266ca1">
       <source xml:lang="en">The runbook default could not be saved. The selected view still applies to this run only.</source>

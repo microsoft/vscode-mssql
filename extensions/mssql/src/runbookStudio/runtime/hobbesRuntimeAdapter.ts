@@ -382,9 +382,55 @@ interface ActivePoll {
 export interface HobbesSnapshotPayload {
     informationSpace?: { nodes?: Array<{ id?: string; regionId?: string }> };
     widgets?: Record<string, HobbesSnapshotWidget | undefined>;
+    runtime?: {
+        /** Canonical report cache written before the execution-view projection. */
+        workflowReports?: Record<string, { executedQueryText?: string | null } | undefined>;
+        workflowExecutionView?: {
+            regions?: Array<{
+                id?: string;
+                regionReport?: { executedQueryText?: string | null };
+            }>;
+        };
+    };
     /** region-lifecycle payloads reuse this type; unrelated fields ignored. */
     phase?: string;
     status?: string;
+}
+
+export interface HobbesExecutedQuery {
+    regionId: string;
+    queryText: string;
+}
+
+/**
+ * Project exact executed-query facts already published by Hobbes. Both the
+ * canonical report cache and its typed execution-view projection are accepted
+ * because snapshots can arrive between those two runtime updates. Unknown
+ * regions and whitespace-only values are ignored; authored plan SQL is never a
+ * fallback.
+ */
+export function executedQueriesFromSnapshot(
+    payload: HobbesSnapshotPayload,
+    knownNodeIds: ReadonlySet<string>,
+): HobbesExecutedQuery[] {
+    const byRegion = new Map<string, string>();
+    const retain = (regionId: string | undefined, queryText: string | null | undefined) => {
+        if (
+            regionId &&
+            knownNodeIds.has(regionId) &&
+            typeof queryText === "string" &&
+            queryText.trim().length > 0
+        ) {
+            byRegion.set(regionId, queryText);
+        }
+    };
+    for (const [regionId, report] of Object.entries(payload.runtime?.workflowReports ?? {})) {
+        retain(regionId, report?.executedQueryText);
+    }
+    for (const region of payload.runtime?.workflowExecutionView?.regions ?? []) {
+        retain(region.id, region.regionReport?.executedQueryText);
+    }
+    return Array.from(byRegion, ([regionId, queryText]) => ({ regionId, queryText }));
 }
 
 export interface HobbesSnapshotWidget {
@@ -1233,6 +1279,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         const knownNodeIds = poll.knownNodeIds;
         const reported = poll.reportedNodeStates;
         const emittedWidgetIds = new Set<string>();
+        const emittedExecutedQueries = new Map<string, string>();
         try {
             const response = await fetch(`${baseUrl}/agui`, {
                 method: "POST",
@@ -1305,11 +1352,19 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                         }
                         if (envelope.hobbesKind === "investigation-snapshot" && envelope.payload) {
                             // The runtime broadcasts its full investigation
-                            // clone after every primitive; region widgets in
-                            // it carry the actual result data (table rows,
-                            // threshold text, report assessment). Translate
-                            // each widget ONCE into a boundary output on its
-                            // plan node.
+                            // clone after every primitive. Region reports
+                            // carry exact executed-query detail; widgets carry
+                            // result data (table rows, threshold text, report
+                            // assessment). Retain each through its distinct
+                            // boundary path without treating query text as a
+                            // presentation output.
+                            this.emitSnapshotExecutedQueries(
+                                envelope.payload,
+                                knownNodeIds,
+                                reported,
+                                emittedExecutedQueries,
+                                observer,
+                            );
                             this.emitSnapshotWidgetOutputs(
                                 envelope.payload,
                                 knownNodeIds,
@@ -1913,6 +1968,45 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         } finally {
             this.polls.delete(request.runId);
             this.hobbesRunIds.delete(request.runId);
+        }
+    }
+
+    /** Retain runtime-observed SQL as a dedicated result detail. It is not a
+     * presentation output and therefore cannot appear as an invented plan
+     * slot or dashboard widget. A changed query replaces the node's drill-in
+     * handle; repeated full snapshots do not duplicate it. */
+    private emitSnapshotExecutedQueries(
+        payload: HobbesSnapshotPayload,
+        knownNodeIds: Set<string>,
+        reported: Map<string, string>,
+        emitted: Map<string, string>,
+        observer: RuntimeEventObserver,
+    ): void {
+        for (const query of executedQueriesFromSnapshot(payload, knownNodeIds)) {
+            if (emitted.get(query.regionId) === query.queryText) {
+                continue;
+            }
+            const known = reported.get(query.regionId);
+            if (known === "skipped" || known === "cancelled") {
+                continue;
+            }
+            emitted.set(query.regionId, query.queryText);
+            const state =
+                known === "succeeded" || known === "failed"
+                    ? (known as "succeeded" | "failed")
+                    : "running";
+            observer.onEvent({
+                kind: "nodeState",
+                nodeId: query.regionId,
+                state,
+                attempt: 1,
+                ...(state === "succeeded"
+                    ? { outcome: "success" as const }
+                    : state === "failed"
+                      ? { outcome: "failure" as const }
+                      : {}),
+                executedQuery: { contract: "sql/1", text: query.queryText },
+            });
         }
     }
 

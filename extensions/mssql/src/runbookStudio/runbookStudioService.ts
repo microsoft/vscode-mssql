@@ -3242,6 +3242,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     const outputs = event.output
                         ? [this.resultStore.put(active.runId, event.nodeId, event.output)]
                         : undefined;
+                    const executedQuery = event.executedQuery
+                        ? this.resultStore.put(active.runId, event.nodeId, event.executedQuery)
+                        : undefined;
                     const snapshot = this.ledger.append(active.runId, {
                         type: "node.state",
                         epochMs: Date.now(),
@@ -3252,6 +3255,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         ...(event.message ? { message: event.message } : {}),
                         ...(event.branchNotTaken ? { branchNotTaken: true } : {}),
                         ...(outputs ? { outputs } : {}),
+                        ...(executedQuery ? { executedQuery } : {}),
                     });
                     active.model.setActiveRun(snapshot);
                     return;

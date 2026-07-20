@@ -19,6 +19,7 @@ import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
     RbsArtifactSummary,
     RbsEvidenceExportFormat,
+    RbsFetchOutputPageRequest,
     RbsRoute,
     RunbookNodeSnapshot,
     RunbookParameterDefinition,
@@ -1112,7 +1113,12 @@ function TimelineStepDetails({ node }: { node: RunbookPlanNode }) {
     }
     return (
         <div className="rbs-step-details">
-            {sql ? <pre className="rbs-code rbs-mono">{sql}</pre> : null}
+            {sql ? (
+                <div>
+                    <div className="rbs-query-detail-label">{loc.authoredSql}</div>
+                    <pre className="rbs-code rbs-mono">{sql}</pre>
+                </div>
+            ) : null}
             {rest.length > 0 ? (
                 <dl className="rbs-kv" aria-label={loc.stepInputs}>
                     {rest.map(([key, value]) => (
@@ -1125,6 +1131,82 @@ function TimelineStepDetails({ node }: { node: RunbookPlanNode }) {
                     ))}
                 </dl>
             ) : null}
+        </div>
+    );
+}
+
+function TimelineExecutedQuery({ snapshot }: { snapshot: RunbookNodeSnapshot | undefined }) {
+    const { rpc } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const handle = snapshot?.executedQuery;
+    const handleId = handle?.handleId;
+    const expired = handle?.expired === true;
+    const retainedTruncated = handle?.truncated === true;
+    const [detail, setDetail] = useState<
+        | { state: "loading" }
+        | { state: "ready"; query: string; truncated: boolean }
+        | { state: "unavailable" }
+        | undefined
+    >(undefined);
+
+    useEffect(() => {
+        let cancelled = false;
+        setDetail(handleId ? { state: "loading" } : undefined);
+        if (!handleId || expired) {
+            if (expired) {
+                setDetail({ state: "unavailable" });
+            }
+            return;
+        }
+        void rpc
+            .sendRequest(RbsFetchOutputPageRequest.type, {
+                handleId,
+                startRow: 0,
+                rowCount: 1,
+            })
+            .then((page) => {
+                if (cancelled) {
+                    return;
+                }
+                const query = page.rows?.[0]?.[0];
+                setDetail(
+                    !page.error && typeof query === "string"
+                        ? {
+                              state: "ready",
+                              query,
+                              truncated: retainedTruncated || page.truncated === true,
+                          }
+                        : { state: "unavailable" },
+                );
+            })
+            .catch(() => {
+                if (!cancelled) {
+                    setDetail({ state: "unavailable" });
+                }
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [expired, handleId, retainedTruncated, rpc]);
+
+    if (!handle || !detail) {
+        return null;
+    }
+    return (
+        <div className="rbs-executed-query">
+            <div className="rbs-query-detail-label">{loc.runtimeExecutedSql}</div>
+            {detail.state === "loading" ? (
+                <div className="rbs-muted">{loc.loading}</div>
+            ) : detail.state === "unavailable" ? (
+                <div className="rbs-muted">{loc.executedSqlUnavailable}</div>
+            ) : (
+                <>
+                    <pre className="rbs-code rbs-mono">{detail.query}</pre>
+                    {detail.truncated ? (
+                        <div className="rbs-muted">{loc.executedSqlTruncated}</div>
+                    ) : null}
+                </>
+            )}
         </div>
     );
 }
@@ -1171,6 +1253,7 @@ function TimelineStepPanel({
     return (
         <div className="rbs-tl-panel">
             {plan ? <TimelineStepDetails node={plan} /> : null}
+            <TimelineExecutedQuery snapshot={snapshot} />
             {snapshot?.state === "running" ? (
                 <TimelineRunningLine sinceMs={runningSinceMs} />
             ) : null}

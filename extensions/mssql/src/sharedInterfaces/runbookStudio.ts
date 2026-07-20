@@ -332,6 +332,10 @@ export interface RunbookNodeSnapshot {
      * to reflow absent branch outputs. */
     branchNotTaken?: boolean;
     outputs?: DataHandleRef[];
+    /** Runtime-observed query text retained behind an opaque result handle.
+     *  Kept separate from authored inputs and presentation output slots so
+     *  drill-in never implies that the planned text was actually executed. */
+    executedQuery?: DataHandleRef;
 }
 
 export interface RunbookPendingGate {
@@ -408,6 +412,8 @@ export interface RunbookRunEvent {
     /** node.state only; persisted so branch-aware layouts survive restart. */
     branchNotTaken?: boolean;
     outputs?: DataHandleRef[];
+    /** node.state only; latest runtime-observed query detail for this node. */
+    executedQuery?: DataHandleRef;
     gate?: RunbookPendingGate;
     error?: RbsError;
     /** run.terminal only; bounded scalar metrics published by the runtime. */

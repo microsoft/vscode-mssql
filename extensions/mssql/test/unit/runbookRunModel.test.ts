@@ -215,6 +215,31 @@ suite("runbookRunModel", () => {
         expect(snapshot.nodes[0].outputs![0].handleId).to.equal("h1");
     });
 
+    test("runtime-executed query detail stays separate and keeps the latest handle", () => {
+        const snapshot = foldRunEvents(initial(), [
+            ev({ type: "run.accepted" }),
+            ev({
+                type: "node.state",
+                nodeId: "a",
+                nodeState: "running",
+                attempt: 1,
+                executedQuery: { handleId: "query-1", contract: "sql/1", bytes: 9 },
+            }),
+            ev({
+                type: "node.state",
+                nodeId: "a",
+                nodeState: "succeeded",
+                attempt: 1,
+                outputs: [{ handleId: "rows-1", contract: "rowset/1", rows: 1 }],
+                executedQuery: { handleId: "query-2", contract: "sql/1", bytes: 10 },
+            }),
+        ]);
+        expect(snapshot.nodes[0].executedQuery?.handleId).to.equal("query-2");
+        expect(snapshot.nodes[0].outputs?.map((output) => output.handleId)).to.deep.equal([
+            "rows-1",
+        ]);
+    });
+
     test("branch-not-taken state folds as structured durable evidence", () => {
         const snapshot = foldRunEvents(initial(), [
             ev({ type: "run.accepted" }),

@@ -71,6 +71,9 @@ export type RuntimeBoundaryEvent =
           /** True only when a conditional branch was not selected. */
           branchNotTaken?: boolean;
           output?: RuntimeOutputPayload;
+          /** Exact runtime-observed query text, retained separately from the
+           * activity's declared outputs and never inferred from plan inputs. */
+          executedQuery?: RuntimeOutputPayload;
       }
     | { kind: "gateRequested"; nodeId: string; impactSummary: string }
     | { kind: "gateResponded"; nodeId: string; approved: boolean }

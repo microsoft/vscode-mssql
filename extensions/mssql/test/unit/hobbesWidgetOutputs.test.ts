@@ -11,7 +11,10 @@
  */
 
 import { expect } from "chai";
-import { translateWidgetToOutput } from "../../src/runbookStudio/runtime/hobbesRuntimeAdapter";
+import {
+    executedQueriesFromSnapshot,
+    translateWidgetToOutput,
+} from "../../src/runbookStudio/runtime/hobbesRuntimeAdapter";
 
 suite("hobbesWidgetOutputs", () => {
     test("table widgets become rowset/1 with schema-ordered cells", () => {
@@ -94,5 +97,48 @@ suite("hobbesWidgetOutputs", () => {
                 dataSource: { data: { schema: [], rows: [] } },
             }),
         ).to.equal(undefined);
+    });
+
+    test("projects exact runtime-executed SQL only for known regions", () => {
+        expect(
+            executedQueriesFromSnapshot(
+                {
+                    runtime: {
+                        workflowExecutionView: {
+                            regions: [
+                                {
+                                    id: "collect",
+                                    regionReport: {
+                                        executedQueryText: "SELECT actual FROM dbo.t;",
+                                    },
+                                },
+                                {
+                                    id: "unknown",
+                                    regionReport: { executedQueryText: "SELECT ignored;" },
+                                },
+                            ],
+                        },
+                    },
+                },
+                new Set(["collect"]),
+            ),
+        ).to.deep.equal([{ regionId: "collect", queryText: "SELECT actual FROM dbo.t;" }]);
+    });
+
+    test("accepts the canonical report cache without falling back to authored SQL", () => {
+        expect(
+            executedQueriesFromSnapshot(
+                {
+                    runtime: {
+                        workflowReports: {
+                            collect: { executedQueryText: "  SELECT runtime_value;\n" },
+                            empty: { executedQueryText: "   " },
+                        },
+                    },
+                },
+                new Set(["collect", "empty"]),
+            ),
+        ).to.deep.equal([{ regionId: "collect", queryText: "  SELECT runtime_value;\n" }]);
+        expect(executedQueriesFromSnapshot({}, new Set(["collect"]))).to.deep.equal([]);
     });
 });

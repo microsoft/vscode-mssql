@@ -171,6 +171,9 @@ export function applyRunEvent(
             if (event.outputs !== undefined) {
                 updated.outputs = [...(current.outputs ?? []), ...event.outputs];
             }
+            if (event.executedQuery !== undefined) {
+                updated.executedQuery = event.executedQuery;
+            }
             if (
                 event.nodeState !== undefined &&
                 isTerminalNodeState(event.nodeState) &&
