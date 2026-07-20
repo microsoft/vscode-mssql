@@ -339,6 +339,28 @@
     font-size: 14px;
 }
 
+.rbs-history-summary {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rbs-history-selected {
+    background: var(--vscode-list-inactiveSelectionBackground);
+}
+
+.rbs-history-selected-chip {
+    margin-left: 6px;
+}
+
+.rbs-history-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    white-space: nowrap;
+}
+
 .rbs-run-comparison h3 {
     margin: 4px 0 0;
     font-size: 12px;

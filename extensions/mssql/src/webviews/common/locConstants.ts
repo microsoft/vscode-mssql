@@ -4072,6 +4072,22 @@ export class LocConstants {
                 truncated: l10n.t("The retained bundle is incomplete and cannot be exported."),
                 expired: l10n.t("The evidence detail expired under the retention policy."),
             },
+            retainedRuns: (count: number) =>
+                l10n.t({
+                    message: "Retained runs: {0}",
+                    args: [count],
+                    comment: ["{0} is a count of retained runbook runs"],
+                }),
+            currentPlanRevision: (revision: string) =>
+                l10n.t({
+                    message: "Current plan revision: {0}",
+                    args: [revision],
+                    comment: ["{0} is a runbook plan revision"],
+                }),
+            actions: l10n.t("Actions"),
+            selectedRun: l10n.t("Selected"),
+            currentPlan: l10n.t("Current plan"),
+            differentRevision: l10n.t("Different revision"),
             viewResults: l10n.t("View results"),
             evidenceFormat: l10n.t("Evidence format:"),
             evidenceFormatJunit: l10n.t("JUnit XML"),

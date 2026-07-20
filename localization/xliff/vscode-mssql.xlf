@@ -2274,6 +2274,13 @@
     <trans-unit id="++CODE++31471ef54c94fd1a0ed4fcd85c62277d98a6119305f1ea0862fab2f0aa4a1c3b">
       <source xml:lang="en">Current Schema: {0}, Select the new schema:</source>
     </trans-unit>
+    <trans-unit id="++CODE++37ca715f53b6bb835e198f5b4fb1ed409792fe5a9f1e07d70536950e59524f15">
+      <source xml:lang="en">Current plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b341e675fbcf8b44889083d424acfc2fce215423aadd0dd2874ddb0ccc3cde37">
+      <source xml:lang="en">Current plan revision: {0}</source>
+      <note>{0} is a runbook plan revision</note>
+    </trans-unit>
     <trans-unit id="++CODE++87a66e3c88ffbca47508d5dcd250ebaa992c772a4b9d260c36216d4695e05475">
       <source xml:lang="en">Currently signed in as:</source>
     </trans-unit>
@@ -2667,6 +2674,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5be7cc11b35273bacfc9b60f03306860c698d40ae916b51c7b795e79d6b4b3c4">
       <source xml:lang="en">Different plan revisions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ce5ee741a93330396709d2140a45870fbf68f92a6c14841fd354b42a66949094">
+      <source xml:lang="en">Different revision</source>
     </trans-unit>
     <trans-unit id="++CODE++ba142112330ecabeb92c1588f850c838091bcfd621fa97b344e2d9e73a3b7314">
       <source xml:lang="en">Differential</source>
@@ -7234,6 +7244,10 @@
     </trans-unit>
     <trans-unit id="++CODE++d647b9f6483baa818a4f660d92726b61fb1d08fe42e39ddf95c763fd2fb260c0">
       <source xml:lang="en">Resuming database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fd4fdd29697277cfb1ddf877534b17f5e4628cd14b23c7dc9bb88f1c4a66cea1">
+      <source xml:lang="en">Retained runs: {0}</source>
+      <note>{0} is a count of retained runbook runs</note>
     </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>

@@ -5025,6 +5025,16 @@
     "This run did not retain an exportable evidence bundle.": "This run did not retain an exportable evidence bundle.",
     "The retained bundle is incomplete and cannot be exported.": "The retained bundle is incomplete and cannot be exported.",
     "The evidence detail expired under the retention policy.": "The evidence detail expired under the retention policy.",
+    "Retained runs: {0}/{0} is a count of retained runbook runs": {
+        "message": "Retained runs: {0}",
+        "comment": ["{0} is a count of retained runbook runs"]
+    },
+    "Current plan revision: {0}/{0} is a runbook plan revision": {
+        "message": "Current plan revision: {0}",
+        "comment": ["{0} is a runbook plan revision"]
+    },
+    "Current plan": "Current plan",
+    "Different revision": "Different revision",
     "View results": "View results",
     "Evidence format:": "Evidence format:",
     "JUnit XML": "JUnit XML",

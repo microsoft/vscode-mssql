@@ -24,6 +24,7 @@ import {
     RunbookParameterDefinition,
     RunbookPlanNode,
     RunbookRunSnapshot,
+    RunbookRunStateKind,
 } from "../../../sharedInterfaces/runbookStudio";
 import {
     AggregateFunction,
@@ -48,6 +49,7 @@ import { PlanGraphView } from "./graphView";
 import { ResolvedWidgetView } from "./widgets";
 import { compareRunSnapshots, RunComparisonValue } from "./runComparison";
 import { buildRunOutcomeSummary, RunEvidenceState } from "./runOutcomeSummary";
+import { presentRunHistoryEntry } from "./runHistoryPresentation";
 import {
     buildDerivedSource,
     mergePresentationLayoutEdits,
@@ -1728,18 +1730,9 @@ function EvidenceExportControl() {
     );
 }
 
-function runOutcomeLabel(run: RunbookRunSnapshot): string {
+function runStateLabel(state: RunbookRunStateKind): string {
     const loc = locConstants.runbookStudio;
-    if (run.verdict === "pass") {
-        return loc.runPassed;
-    }
-    if (run.verdict === "fail") {
-        return loc.runFailed;
-    }
-    if (run.verdict === "indeterminate") {
-        return loc.runIndeterminate;
-    }
-    switch (run.state) {
+    switch (state) {
         case "accepted":
             return loc.runAccepted;
         case "running":
@@ -1755,6 +1748,20 @@ function runOutcomeLabel(run: RunbookRunSnapshot): string {
         case "cancelled":
             return loc.runCancelled;
     }
+}
+
+function runOutcomeLabel(run: Pick<RunbookRunSnapshot, "verdict" | "state">): string {
+    const loc = locConstants.runbookStudio;
+    if (run.verdict === "pass") {
+        return loc.runPassed;
+    }
+    if (run.verdict === "fail") {
+        return loc.runFailed;
+    }
+    if (run.verdict === "indeterminate") {
+        return loc.runIndeterminate;
+    }
+    return runStateLabel(run.state);
 }
 
 function evidenceStateLabel(state: RunEvidenceState): string {
@@ -4643,7 +4650,7 @@ function PreviewPage() {
 }
 
 function HistoryPage() {
-    const { state, selectRun, navigate } = useRbs();
+    const { state, selectRun, navigate, openDiagnostics } = useRbs();
     const loc = locConstants.runbookStudio;
     const history = state?.history ?? [];
     if (history.length === 0) {
@@ -4651,41 +4658,102 @@ function HistoryPage() {
     }
     return (
         <div className="rbs-page-body">
-            <table className="rbs-table">
-                <thead>
-                    <tr>
-                        <th>{loc.run}</th>
-                        <th>{loc.started}</th>
-                        <th>{loc.state}</th>
-                        <th>{loc.planRevision}</th>
-                        <th>{loc.results}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {history.map((entry) => (
-                        <tr key={entry.runId}>
-                            <td className="rbs-mono">{entry.runId}</td>
-                            <td>{new Date(entry.startedEpochMs).toLocaleString()}</td>
-                            <td>
-                                <span className={`rbs-chip rbs-state-${entry.state}`}>
-                                    {entry.state}
-                                </span>
-                            </td>
-                            <td className="rbs-mono">{entry.planRevision}</td>
-                            <td>
-                                <button
-                                    type="button"
-                                    className="rbs-link-button"
-                                    onClick={() => {
-                                        void selectRun(entry.runId).then(() => navigate("results"));
-                                    }}>
-                                    {loc.viewResults}
-                                </button>
-                            </td>
+            <div className="rbs-history-summary">
+                <strong>{loc.retainedRuns(history.length)}</strong>
+                {state?.artifact?.planRevision ? (
+                    <span className="rbs-muted">
+                        {loc.currentPlanRevision(state.artifact.planRevision)}
+                    </span>
+                ) : null}
+            </div>
+            <div className="rbs-table-wrap">
+                <table className="rbs-table">
+                    <thead>
+                        <tr>
+                            <th>{loc.run}</th>
+                            <th>{loc.started}</th>
+                            <th>{loc.runOutcome}</th>
+                            <th>{loc.state}</th>
+                            <th>{loc.planRevision}</th>
+                            <th>{loc.actions}</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {history.map((entry) => {
+                            const presented = presentRunHistoryEntry(
+                                entry,
+                                state?.artifact?.planRevision,
+                                state?.selectedRunId ?? state?.run?.runId,
+                            );
+                            return (
+                                <tr
+                                    key={entry.runId}
+                                    className={presented.selected ? "rbs-history-selected" : ""}
+                                    aria-current={presented.selected ? "true" : undefined}>
+                                    <td className="rbs-mono">
+                                        {entry.runId}
+                                        {presented.selected ? (
+                                            <span className="rbs-chip rbs-history-selected-chip">
+                                                {loc.selectedRun}
+                                            </span>
+                                        ) : null}
+                                    </td>
+                                    <td>{new Date(entry.startedEpochMs).toLocaleString()}</td>
+                                    <td>
+                                        <span
+                                            className={`rbs-chip ${
+                                                presented.tone === "active"
+                                                    ? `rbs-state-${entry.state}`
+                                                    : `rbs-verdict-${presented.tone}`
+                                            }`}>
+                                            {runOutcomeLabel(entry)}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span className={`rbs-chip rbs-state-${entry.state}`}>
+                                            {runStateLabel(entry.state)}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span className="rbs-mono">{entry.planRevision}</span>{" "}
+                                        {presented.planRelation === "current" ? (
+                                            <span className="rbs-chip rbs-chip-ok">
+                                                {loc.currentPlan}
+                                            </span>
+                                        ) : presented.planRelation === "different" ? (
+                                            <span className="rbs-chip rbs-chip-warning">
+                                                {loc.differentRevision}
+                                            </span>
+                                        ) : null}
+                                    </td>
+                                    <td>
+                                        <div className="rbs-history-actions">
+                                            <button
+                                                type="button"
+                                                className="rbs-link-button"
+                                                onClick={() => {
+                                                    void selectRun(entry.runId).then((selected) => {
+                                                        if (selected) {
+                                                            navigate("results");
+                                                        }
+                                                    });
+                                                }}>
+                                                {loc.viewResults}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="rbs-link-button"
+                                                onClick={() => openDiagnostics(entry.runId)}>
+                                                {loc.openDiagnostics}
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            );
+                        })}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }
