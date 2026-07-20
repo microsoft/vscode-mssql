@@ -687,9 +687,35 @@ export function applyPresentationLayoutEdits(
     policy?: PresentationLayoutPolicyEdit,
 ): PresentationDefinition {
     const base = definition ?? defaultDefinition();
-    const derivedSources = [...base.derivedSources];
+    const removedDerivedSourceIds = new Set(
+        edits.flatMap((edit) => (edit.removeDerivedSourceId ? [edit.removeDerivedSourceId] : [])),
+    );
+    const renamedDerivedSourceIds = new Map(
+        edits.flatMap((edit) =>
+            edit.renameDerivedSourceFrom && edit.derivedSource
+                ? [[edit.renameDerivedSourceFrom, edit.derivedSource.id] as const]
+                : [],
+        ),
+    );
+    const retargetSource = (source: PresentationSourceRef): PresentationSourceRef => {
+        const renamedId =
+            source.kind === "derived" ? renamedDerivedSourceIds.get(source.sourceId) : undefined;
+        return renamedId ? { kind: "derived", sourceId: renamedId } : source;
+    };
+    const derivedSources = base.derivedSources
+        .filter((source) => !removedDerivedSourceIds.has(source.id))
+        .map((source) => {
+            const rename = edits.find((edit) => edit.renameDerivedSourceFrom === source.id);
+            const current = rename?.derivedSource
+                ? ({
+                      ...rename.derivedSource,
+                      provenance: { by: "user" },
+                  } satisfies DerivedSourceDefinition)
+                : source;
+            return { ...current, from: retargetSource(current.from) };
+        });
     for (const edit of edits) {
-        if (!edit.derivedSource) {
+        if (!edit.derivedSource || edit.removeDerivedSourceId || edit.renameDerivedSourceFrom) {
             continue;
         }
         const authored: DerivedSourceDefinition = {
@@ -703,8 +729,17 @@ export function applyPresentationLayoutEdits(
             derivedSources.push(authored);
         }
     }
-    const widgets = [...base.results.widgets];
+    const widgets = base.results.widgets
+        .filter(
+            (widget) =>
+                widget.source.kind !== "derived" ||
+                !removedDerivedSourceIds.has(widget.source.sourceId),
+        )
+        .map((widget) => ({ ...widget, source: retargetSource(widget.source) }));
     for (const edit of edits) {
+        if (edit.removeDerivedSourceId) {
+            continue;
+        }
         const source = metadata?.sourceByNode?.[edit.nodeId] ??
             edit.source ?? { kind: "activity-output", nodeId: edit.nodeId, slot: "primary" };
         const index = widgets.findIndex((widget) =>

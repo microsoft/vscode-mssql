@@ -520,6 +520,14 @@ export interface PresentationLayoutEdit {
     /** Upserts the derived source used by this widget in the same staged
      * presentation transaction. Only valid for a matching derived source. */
     derivedSource?: DerivedSourceAuthoringEdit;
+    /** Present with `derivedSource` when its identifier replaces this prior
+     * identifier. The host retargets dependent sources and the widget
+     * atomically after validating the complete graph. */
+    renameDerivedSourceFrom?: string;
+    /** Removes this derived source and its widget in the same staged
+     * transaction. The host refuses removal while another derived source
+     * depends on it. */
+    removeDerivedSourceId?: string;
 }
 
 export type PresentationLayoutStrategy = "flow" | "stacked" | "grid";

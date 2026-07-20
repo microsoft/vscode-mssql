@@ -1911,8 +1911,15 @@ function usePresentationDraft(
         resolveEdits,
     ]);
 
+    const effectiveEdits =
+        draftEdits.length > 0
+            ? draftEdits
+            : runOnlyEdits.length > 0
+              ? runOnlyEdits
+              : hostRunOnlyEdits;
     return {
         presentation: draftPresentation ?? runOnlyPresentation ?? basePresentation,
+        edits: effectiveEdits,
         pending: draftEdits.length > 0 || draftPolicy !== undefined,
         runOnly:
             runOnlyEdits.length > 0 ||
@@ -2195,6 +2202,7 @@ function ResultsPage() {
                 {outputsOpen ? (
                     <OutputsDrawer
                         presentation={presentation}
+                        layoutEdits={layoutDraft.edits}
                         onLayoutEdits={layoutDraft.stageEdits}
                         editingDisabled={layoutDraft.saving || layoutDraft.conflict}
                     />
@@ -2581,6 +2589,7 @@ interface DerivedMeasureDraft extends DerivedDraftRow {
 
 interface DerivedSourceDraft {
     editingId?: string;
+    renamingFrom?: string;
     id: string;
     sourceKey: string;
     transform: DerivedTransformKind;
@@ -2612,9 +2621,11 @@ function defaultDerivedSourceDraft(
     id = "",
     sourceKey = "",
     editingId?: string,
+    renamingFrom?: string,
 ): DerivedSourceDraft {
     return {
         ...(editingId ? { editingId } : {}),
+        ...(renamingFrom ? { renamingFrom } : {}),
         id,
         sourceKey,
         transform: "top-rows",
@@ -2750,8 +2761,9 @@ function filterDraft(
 function editableDerivedSourceDraft(
     source: DerivedSourceAuthoringEdit,
     sourceKey: string,
+    renamingFrom?: string,
 ): DerivedSourceDraft | undefined {
-    const base = defaultDerivedSourceDraft(source.id, sourceKey, source.id);
+    const base = defaultDerivedSourceDraft(source.id, sourceKey, source.id, renamingFrom);
     const [only] = source.pipeline.steps;
     const sorts = source.pipeline.steps.filter((step) => step.op === "sort");
     const limits = source.pipeline.steps.filter((step) => step.op === "limit");
@@ -2926,11 +2938,13 @@ function derivedTransformSteps(draft: DerivedSourceDraft): TransformOp[] | undef
 
 function OutputsDrawer({
     presentation,
+    layoutEdits = [],
     branchNotTakenNodeIds = [],
     onLayoutEdits,
     editingDisabled = false,
 }: {
     presentation: ResolvedPresentation;
+    layoutEdits?: PresentationLayoutEdit[];
     branchNotTakenNodeIds?: string[];
     onLayoutEdits?: (edits: PresentationLayoutEdit[]) => void;
     editingDisabled?: boolean;
@@ -2957,18 +2971,68 @@ function OutputsDrawer({
             (entry): entry is typeof entry & { contract: string } => entry.contract !== undefined,
         );
     const persistedWidgets = state?.artifact?.presentationWidgets ?? [];
-    const effectiveDerivedSources = [
-        ...new Map(
-            [
-                ...(state?.artifact?.derivedSources ?? []),
-                ...(state?.presentationOverlay?.edits.flatMap((edit) =>
-                    edit.derivedSource ? [edit.derivedSource] : [],
-                ) ?? []),
-            ].map((source) => [source.id, source]),
-        ).values(),
-    ];
-    const sourceSummary = (source: PresentationSourceRef) =>
-        persistedWidgets.find((summary) => presentationSourcesMatch(summary.source, source));
+    const effectiveDerivedSourcesById = new Map(
+        (state?.artifact?.derivedSources ?? []).map((source) => [source.id, source]),
+    );
+    const renamedDerivedSourceIds = new Map<string, string>();
+    for (const edit of layoutEdits) {
+        if (edit.removeDerivedSourceId) {
+            effectiveDerivedSourcesById.delete(edit.removeDerivedSourceId);
+        } else if (edit.derivedSource) {
+            if (edit.renameDerivedSourceFrom) {
+                effectiveDerivedSourcesById.delete(edit.renameDerivedSourceFrom);
+                renamedDerivedSourceIds.set(edit.renameDerivedSourceFrom, edit.derivedSource.id);
+            }
+            effectiveDerivedSourcesById.set(edit.derivedSource.id, edit.derivedSource);
+        }
+    }
+    const effectiveDerivedSources = [...effectiveDerivedSourcesById.values()].map((source) => {
+        const renamedParent =
+            source.from.kind === "derived"
+                ? renamedDerivedSourceIds.get(source.from.sourceId)
+                : undefined;
+        return renamedParent
+            ? {
+                  ...source,
+                  from: { kind: "derived" as const, sourceId: renamedParent },
+              }
+            : source;
+    });
+    const renameOriginFor = (sourceId: string) =>
+        layoutEdits.find((edit) => edit.derivedSource?.id === sourceId)?.renameDerivedSourceFrom;
+    const sourceSummary = (
+        source: PresentationSourceRef,
+    ): PresentationWidgetSummary | undefined => {
+        const persisted = persistedWidgets.find((summary) =>
+            presentationSourcesMatch(summary.source, source),
+        );
+        if (persisted) {
+            return persisted;
+        }
+        const edit = layoutEdits.find(
+            (candidate) =>
+                !candidate.removeDerivedSourceId &&
+                candidate.source !== undefined &&
+                presentationSourcesMatch(candidate.source, source),
+        );
+        if (!edit) {
+            return undefined;
+        }
+        const resolved = resolvedWidgets.find((widget) =>
+            presentationSourcesMatch(widget.source, source),
+        );
+        const widgetId = edit.widgetId ?? resolved?.id ?? `layout-${edit.nodeId}`;
+        return {
+            layoutId: resolved?.id ?? edit.nodeId,
+            widgetId,
+            source,
+            defaultView: edit.defaultView,
+            sectionId: edit.sectionId,
+            placement: edit.placement,
+            hidden: edit.hidden,
+            ...(edit.derivedSource ? { derivedSource: edit.derivedSource } : {}),
+        };
+    };
     const runFields = [
         { field: "status" as const, label: loc.runStatusSource },
         { field: "verdict" as const, label: loc.runVerdictSource },
@@ -3050,7 +3114,11 @@ function OutputsDrawer({
                     : derived.from.kind === "derived"
                       ? `derived:${derived.from.sourceId}`
                       : "";
-            const draft = editableDerivedSourceDraft(derived, sourceKey);
+            const draft = editableDerivedSourceDraft(
+                derived,
+                sourceKey,
+                renameOriginFor(derived.id),
+            );
             if (draft) {
                 setDerivedDraft(draft);
             }
@@ -3074,9 +3142,13 @@ function OutputsDrawer({
             return;
         }
         const source = { kind: "derived", sourceId: id } satisfies PresentationSourceRef;
-        const summary = sourceSummary(source);
+        const priorSource = {
+            kind: "derived",
+            sourceId: derivedDraft.renamingFrom ?? derivedDraft.editingId ?? id,
+        } satisfies PresentationSourceRef;
+        const summary = sourceSummary(priorSource);
         const resolved = resolvedWidgets.find((widget) =>
-            presentationSourcesMatch(widget.source, source),
+            presentationSourcesMatch(widget.source, priorSource),
         );
         const steps = derivedTransformSteps(derivedDraft);
         const definition = steps
@@ -3091,6 +3163,13 @@ function OutputsDrawer({
                 ...(summary?.widgetId ? { widgetId: summary.widgetId } : {}),
                 source,
                 derivedSource: definition,
+                ...((derivedDraft.renamingFrom ?? derivedDraft.editingId) &&
+                (derivedDraft.renamingFrom ?? derivedDraft.editingId) !== id
+                    ? {
+                          renameDerivedSourceFrom:
+                              derivedDraft.renamingFrom ?? derivedDraft.editingId,
+                      }
+                    : {}),
                 defaultView:
                     summary?.defaultView ?? resolved?.view ?? defaultViewFor(from.contract),
                 sectionId: resolved?.sectionId ?? summary?.sectionId ?? "primary",
@@ -3109,8 +3188,10 @@ function OutputsDrawer({
         : undefined;
     const duplicateDerivedId =
         derivedDraft !== undefined &&
-        derivedDraft.editingId === undefined &&
-        effectiveDerivedSources.some((source) => source.id === derivedDraft.id.trim());
+        effectiveDerivedSources.some(
+            (source) =>
+                source.id === derivedDraft.id.trim() && source.id !== derivedDraft.editingId,
+        );
     const candidateDerivedSource =
         derivedDraft && selectedDerivedSource
             ? (() => {
@@ -3126,6 +3207,37 @@ function OutputsDrawer({
               })()
             : undefined;
     const canStageDerived = candidateDerivedSource !== undefined && !duplicateDerivedId;
+
+    const removeDerivedSource = (derived: DerivedSourceAuthoringEdit) => {
+        const persistedId = renameOriginFor(derived.id) ?? derived.id;
+        const source = {
+            kind: "derived",
+            sourceId: persistedId,
+        } satisfies PresentationSourceRef;
+        const summary = sourceSummary(source);
+        const resolved = resolvedWidgets.find((widget) =>
+            presentationSourcesMatch(widget.source, source),
+        );
+        onLayoutEdits?.([
+            {
+                nodeId: summary?.layoutId ?? `derived:${persistedId}`,
+                ...(summary?.widgetId ? { widgetId: summary.widgetId } : {}),
+                source,
+                removeDerivedSourceId: persistedId,
+                defaultView: summary?.defaultView ?? resolved?.view ?? defaultViewFor("rowset/1"),
+                sectionId: resolved?.sectionId ?? summary?.sectionId ?? "primary",
+                placement: resolved?.placement ??
+                    summary?.placement ?? {
+                        order: outputs.length,
+                        span: PRESENTATION_SPAN_PRESETS.full,
+                    },
+                hidden: true,
+            },
+        ]);
+        if (derivedDraft?.editingId === derived.id) {
+            setDerivedDraft(undefined);
+        }
+    };
 
     const update = (output: (typeof outputs)[number], hidden: boolean, sectionId?: string) => {
         const outputDerived = "derived" in output ? output.derived : undefined;
@@ -3199,8 +3311,16 @@ function OutputsDrawer({
                                   : outputDerived.from.kind === "derived"
                                     ? `derived:${outputDerived.from.sourceId}`
                                     : "",
+                              renameOriginFor(outputDerived.id),
                           )
                         : undefined;
+                    const hasDerivedDependents = outputDerived
+                        ? effectiveDerivedSources.some(
+                              (candidate) =>
+                                  candidate.from.kind === "derived" &&
+                                  candidate.from.sourceId === outputDerived.id,
+                          )
+                        : false;
                     return (
                         <div className="rbs-output-row" key={output.layoutId}>
                             <div>
@@ -3246,6 +3366,20 @@ function OutputsDrawer({
                             ) : outputDerived ? (
                                 <span className="rbs-muted">{loc.advancedDerivedSource}</span>
                             ) : null}
+                            {outputDerived ? (
+                                <button
+                                    type="button"
+                                    className="rbs-link-button"
+                                    disabled={editingDisabled || hasDerivedDependents}
+                                    title={
+                                        hasDerivedDependents
+                                            ? loc.removeDerivedSourceBlocked
+                                            : loc.removeDerivedSource
+                                    }
+                                    onClick={() => removeDerivedSource(outputDerived)}>
+                                    {loc.removeDerivedSource}
+                                </button>
+                            ) : null}
                         </div>
                     );
                 })}
@@ -3268,12 +3402,15 @@ function OutputsDrawer({
                                 className="rbs-input"
                                 value={derivedDraft.id}
                                 maxLength={256}
-                                disabled={editingDisabled || derivedDraft.editingId !== undefined}
+                                disabled={editingDisabled}
                                 onChange={(event) =>
                                     setDerivedDraft({ ...derivedDraft, id: event.target.value })
                                 }
                             />
                         </label>
+                        {derivedDraft.editingId ? (
+                            <span className="rbs-muted">{loc.renameDerivedSourceHint}</span>
+                        ) : null}
                         <label>
                             <span>{loc.derivedFrom}</span>
                             <select
@@ -4106,6 +4243,7 @@ function PreviewPage() {
                 {outputsOpen ? (
                     <OutputsDrawer
                         presentation={presentation}
+                        layoutEdits={layoutDraft.edits}
                         branchNotTakenNodeIds={scenario.hiddenBranchNodeIds}
                         onLayoutEdits={layoutDraft.stageEdits}
                         editingDisabled={layoutDraft.saving || layoutDraft.conflict}

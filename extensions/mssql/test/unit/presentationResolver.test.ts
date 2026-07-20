@@ -1134,6 +1134,144 @@ suite("presentationResolver", () => {
         );
     });
 
+    test("derived-source removal deletes its widget and leaves dependencies invalid", () => {
+        const base = definition();
+        base.derivedSources.push({
+            id: "slow-tests",
+            from: { kind: "activity-output", nodeId: "query", slot: "primary" },
+            authoredContract: "rowset/1",
+            pipeline: { steps: [{ op: "limit", count: 5 }] },
+            provenance: { by: "user" },
+        });
+        base.results.widgets.push({
+            id: "slow-tests-widget",
+            source: { kind: "derived", sourceId: "slow-tests" },
+            views: [{ id: "slow-tests-grid", kind: "grid", props: {} }],
+            presentation: { mode: "single" },
+            defaultViewId: "slow-tests-grid",
+            sectionId: "main",
+            placement: { order: 3 },
+            visibility: { when: "always" },
+            authoredContract: "rowset/1",
+            authoredContractFingerprint: "rowset/1",
+            provenance: { by: "user" },
+        });
+        const removed = applyPresentationLayoutEdits(base, [
+            {
+                nodeId: "slow-tests-widget",
+                widgetId: "slow-tests-widget",
+                source: { kind: "derived", sourceId: "slow-tests" },
+                removeDerivedSourceId: "slow-tests",
+                defaultView: "grid",
+                sectionId: "main",
+                placement: { order: 3 },
+                hidden: true,
+            },
+        ]);
+        expect(removed.derivedSources).to.deep.equal([]);
+        expect(
+            removed.results.widgets.some(
+                (widget) =>
+                    widget.source.kind === "derived" && widget.source.sourceId === "slow-tests",
+            ),
+        ).to.equal(false);
+        expect(validatePresentationDefinition(removed)).to.deep.equal(removed);
+
+        const withDependent = structuredClone(base);
+        withDependent.derivedSources.push({
+            id: "slowest-tests",
+            from: { kind: "derived", sourceId: "slow-tests" },
+            authoredContract: "rowset/1",
+            pipeline: { steps: [{ op: "limit", count: 1 }] },
+            provenance: { by: "user" },
+        });
+        const orphaned = applyPresentationLayoutEdits(withDependent, [
+            {
+                nodeId: "slow-tests-widget",
+                source: { kind: "derived", sourceId: "slow-tests" },
+                removeDerivedSourceId: "slow-tests",
+                defaultView: "grid",
+                sectionId: "main",
+                placement: { order: 3 },
+                hidden: true,
+            },
+        ]);
+        expect(validatePresentationDefinition(orphaned)).to.equal(undefined);
+    });
+
+    test("derived-source rename atomically retargets its widget and dependent sources", () => {
+        const base = definition();
+        base.derivedSources.push(
+            {
+                id: "slow-tests",
+                from: { kind: "activity-output", nodeId: "query", slot: "primary" },
+                authoredContract: "rowset/1",
+                pipeline: { steps: [{ op: "limit", count: 5 }] },
+                provenance: { by: "user" },
+            },
+            {
+                id: "slowest-tests",
+                from: { kind: "derived", sourceId: "slow-tests" },
+                authoredContract: "rowset/1",
+                pipeline: { steps: [{ op: "limit", count: 1 }] },
+                provenance: { by: "user" },
+            },
+        );
+        base.results.widgets.push({
+            id: "slow-tests-widget",
+            source: { kind: "derived", sourceId: "slow-tests" },
+            views: [{ id: "slow-tests-grid", kind: "grid", props: {} }],
+            presentation: { mode: "single" },
+            defaultViewId: "slow-tests-grid",
+            sectionId: "main",
+            placement: { order: 3 },
+            visibility: { when: "always" },
+            authoredContract: "rowset/1",
+            authoredContractFingerprint: "rowset/1",
+            provenance: { by: "user" },
+        });
+        const renamed = applyPresentationLayoutEdits(
+            base,
+            [
+                {
+                    nodeId: "slow-tests-widget",
+                    widgetId: "slow-tests-widget",
+                    source: { kind: "derived", sourceId: "long-tests" },
+                    derivedSource: {
+                        id: "long-tests",
+                        from: { kind: "activity-output", nodeId: "query", slot: "primary" },
+                        authoredContract: "rowset/1",
+                        pipeline: { steps: [{ op: "limit", count: 5 }] },
+                    },
+                    renameDerivedSourceFrom: "slow-tests",
+                    defaultView: "grid",
+                    sectionId: "main",
+                    placement: { order: 3 },
+                    hidden: false,
+                },
+            ],
+            {
+                contractByNode: { "slow-tests-widget": "rowset/1" },
+                sourceByNode: {
+                    "slow-tests-widget": { kind: "derived", sourceId: "long-tests" },
+                },
+            },
+        );
+        expect(renamed.derivedSources.map((source) => source.id)).to.deep.equal([
+            "long-tests",
+            "slowest-tests",
+        ]);
+        expect(renamed.derivedSources[1].from).to.deep.equal({
+            kind: "derived",
+            sourceId: "long-tests",
+        });
+        expect(renamed.results.widgets.at(-1)?.source).to.deep.equal({
+            kind: "derived",
+            sourceId: "long-tests",
+        });
+        expect(validatePresentationDefinition(renamed)).to.deep.equal(renamed);
+    });
+
     test("layout policy edits persist Flow, Stacked, and Grid semantics without widget edits", () => {
         const stacked = applyPresentationLayoutEdits(
             definition(),

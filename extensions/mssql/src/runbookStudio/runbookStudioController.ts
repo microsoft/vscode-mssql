@@ -1021,8 +1021,72 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         const derivedById = new Map(
             (definition?.derivedSources ?? []).map((source) => [source.id, source]),
         );
+        const existingDerivedIds = new Set(derivedById.keys());
+        const removedDerivedIds = edits.flatMap((edit) =>
+            edit.removeDerivedSourceId ? [edit.removeDerivedSourceId] : [],
+        );
+        const removedDerivedIdSet = new Set(removedDerivedIds);
+        const renamedDerivedIds = edits.flatMap((edit) =>
+            edit.renameDerivedSourceFrom && edit.derivedSource
+                ? [[edit.renameDerivedSourceFrom, edit.derivedSource.id] as const]
+                : [],
+        );
+        const renamedFromIds = new Set(renamedDerivedIds.map(([from]) => from));
+        const renamedToIds = new Set(renamedDerivedIds.map(([, to]) => to));
+        const validDerivedLifecycle =
+            removedDerivedIdSet.size === removedDerivedIds.length &&
+            renamedFromIds.size === renamedDerivedIds.length &&
+            renamedToIds.size === renamedDerivedIds.length &&
+            renamedDerivedIds.every(
+                ([from, to]) =>
+                    from !== to &&
+                    existingDerivedIds.has(from) &&
+                    !existingDerivedIds.has(to) &&
+                    !removedDerivedIdSet.has(from) &&
+                    !removedDerivedIdSet.has(to) &&
+                    !renamedFromIds.has(to),
+            ) &&
+            !edits.some(
+                (edit) => edit.renameDerivedSourceFrom !== undefined && !edit.derivedSource,
+            ) &&
+            !edits.some(
+                (edit) =>
+                    edit.derivedSource !== undefined &&
+                    removedDerivedIdSet.has(edit.derivedSource.id),
+            );
+        for (const id of removedDerivedIds) {
+            derivedById.delete(id);
+        }
+        for (const [id, source] of [...derivedById]) {
+            const parentId = source.from.kind === "derived" ? source.from.sourceId : undefined;
+            const renamedParent = parentId
+                ? renamedDerivedIds.find(([from]) => from === parentId)?.[1]
+                : undefined;
+            if (renamedParent) {
+                derivedById.set(id, {
+                    ...source,
+                    from: {
+                        kind: "derived",
+                        sourceId: renamedParent,
+                    },
+                });
+            }
+        }
+        for (const [from, to] of renamedDerivedIds) {
+            const authored = edits.find(
+                (candidate) => candidate.renameDerivedSourceFrom === from,
+            )?.derivedSource;
+            if (!authored) {
+                continue;
+            }
+            derivedById.delete(from);
+            derivedById.set(to, {
+                ...authored,
+                provenance: { by: "user" },
+            });
+        }
         for (const edit of edits) {
-            if (edit.derivedSource) {
+            if (edit.derivedSource && !edit.renameDerivedSourceFrom) {
                 derivedById.set(edit.derivedSource.id, {
                     ...edit.derivedSource,
                     provenance: { by: "user" },
@@ -1031,6 +1095,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         }
         let valid =
             artifact?.lock !== undefined &&
+            validDerivedLifecycle &&
             (edits.length > 0 || policy !== undefined) &&
             edits.length <= 100 &&
             (policy === undefined || ["flow", "stacked", "grid"].includes(policy.strategy));
@@ -1042,6 +1107,19 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     nodeId: edit.nodeId,
                     slot: "primary",
                 } satisfies PresentationSourceRef);
+            if (edit.removeDerivedSourceId) {
+                valid =
+                    valid &&
+                    edit.derivedSource === undefined &&
+                    edit.removeDerivedSourceId.length > 0 &&
+                    edit.removeDerivedSourceId.length <= 256 &&
+                    existingDerivedIds.has(edit.removeDerivedSourceId) &&
+                    source.kind === "derived" &&
+                    source.sourceId === edit.removeDerivedSourceId &&
+                    edit.nodeId.length > 0 &&
+                    edit.nodeId.length <= 256;
+                continue;
+            }
             const widgetById = edit.widgetId
                 ? definition?.results.widgets.find((widget) => widget.id === edit.widgetId)
                 : undefined;
@@ -1049,14 +1127,25 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 presentationSourcesEqual(widget.source, source),
             );
             const existingWidget = widgetById ?? widgetForSource;
+            const expectedExistingSource = edit.renameDerivedSourceFrom
+                ? ({
+                      kind: "derived",
+                      sourceId: edit.renameDerivedSourceFrom,
+                  } satisfies PresentationSourceRef)
+                : source;
             valid =
                 valid &&
-                (widgetById === undefined || presentationSourcesEqual(widgetById.source, source)) &&
+                (widgetById === undefined ||
+                    presentationSourcesEqual(widgetById.source, expectedExistingSource)) &&
                 (widgetForSource === undefined ||
                     edit.widgetId === undefined ||
                     widgetForSource.id === edit.widgetId) &&
                 (edit.widgetId === undefined ||
-                    (edit.widgetId.length > 0 && edit.widgetId.length <= 256));
+                    (edit.widgetId.length > 0 && edit.widgetId.length <= 256)) &&
+                (edit.renameDerivedSourceFrom === undefined ||
+                    (edit.derivedSource !== undefined &&
+                        source.kind === "derived" &&
+                        source.sourceId === edit.derivedSource.id));
             if (edit.derivedSource) {
                 const authored = edit.derivedSource;
                 let fromContract: string | undefined;

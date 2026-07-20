@@ -1100,6 +1100,9 @@
     <trans-unit id="++CODE++d96e501638c5b597c8f01ed60ef2a376be46cb4fbc9dbc8601f53b08d6f4f556">
       <source xml:lang="en">Change the database for the active SQL document</source>
     </trans-unit>
+    <trans-unit id="++CODE++7671bb87476dc94dca86686988d8c41ca6b993f5709eb01459d58b8c7ad50b55">
+      <source xml:lang="en">Change the source ID to rename this view and update its dependents.</source>
+    </trans-unit>
     <trans-unit id="++CODE++03e884ddf92692afa483662c376c0ddbe134c6b0e73c8506a40d7731d2f9fe3d">
       <source xml:lang="en">Change {0} of {1}</source>
       <note>{0} is the current change number
@@ -6911,6 +6914,12 @@
     </trans-unit>
     <trans-unit id="++CODE++5ac0b06fc9f0d038a09cc4dd62fb7a69d62ee1f1c0d84646ff519d6025d6e766">
       <source xml:lang="en">Remove condition</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c4043b639070fc8ae7896f94af1d0a24663dc8d534641636ea56726efbc4d9b3">
+      <source xml:lang="en">Remove derived view</source>
+    </trans-unit>
+    <trans-unit id="++CODE++97411ef9f027c7a136a003828154e78287e50e30cc188048a95dda5aff8c8c81">
+      <source xml:lang="en">Remove derived views that depend on this view first.</source>
     </trans-unit>
     <trans-unit id="++CODE++fffa2e32da712d499f75b15a2fae0e145c1f33dff29cac68e7e0a46f9bf9483a">
       <source xml:lang="en">Remove file</source>

@@ -3615,6 +3615,13 @@ export class LocConstants {
             createDerivedView: l10n.t("Create derived view"),
             editDerivedSource: l10n.t("Edit transform"),
             advancedDerivedSource: l10n.t("Multi-operation transform"),
+            renameDerivedSourceHint: l10n.t(
+                "Change the source ID to rename this view and update its dependents.",
+            ),
+            removeDerivedSource: l10n.t("Remove derived view"),
+            removeDerivedSourceBlocked: l10n.t(
+                "Remove derived views that depend on this view first.",
+            ),
             derivedSourceId: l10n.t("Source ID"),
             derivedFrom: l10n.t("From output"),
             transformOperation: l10n.t("Operation"),

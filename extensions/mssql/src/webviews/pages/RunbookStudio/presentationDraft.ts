@@ -273,8 +273,14 @@ function fieldValue(edit: PresentationLayoutEdit, field: PresentationLayoutConfl
         case "defaultView":
         case "sectionId":
         case "hidden":
-        case "derivedSource":
             return edit[field];
+        case "derivedSource":
+            return {
+                source: edit.source?.kind === "derived" ? edit.source : undefined,
+                upsert: edit.derivedSource,
+                renameFrom: edit.renameDerivedSourceFrom,
+                removeId: edit.removeDerivedSourceId,
+            };
         case "placement.order":
             return edit.placement.order;
         case "placement.span.compact":
@@ -324,10 +330,28 @@ function withField(
             next.hidden = value as boolean;
             break;
         case "derivedSource":
-            if (value === undefined) {
-                delete next.derivedSource;
-            } else {
-                next.derivedSource = value as NonNullable<PresentationLayoutEdit["derivedSource"]>;
+            delete next.derivedSource;
+            delete next.renameDerivedSourceFrom;
+            delete next.removeDerivedSourceId;
+            if (value !== undefined) {
+                const lifecycle = value as {
+                    upsert?: PresentationLayoutEdit["derivedSource"];
+                    source?: Extract<PresentationSourceRef, { kind: "derived" }>;
+                    renameFrom?: string;
+                    removeId?: string;
+                };
+                if (lifecycle.upsert) {
+                    next.derivedSource = lifecycle.upsert;
+                }
+                if (lifecycle.source) {
+                    next.source = lifecycle.source;
+                }
+                if (lifecycle.renameFrom) {
+                    next.renameDerivedSourceFrom = lifecycle.renameFrom;
+                }
+                if (lifecycle.removeId) {
+                    next.removeDerivedSourceId = lifecycle.removeId;
+                }
             }
             break;
         case "placement.order":

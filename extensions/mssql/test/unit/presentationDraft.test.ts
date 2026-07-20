@@ -176,6 +176,66 @@ suite("presentationDraft", () => {
         ]);
     });
 
+    test("derived removal rebases when unchanged and conflicts with a concurrent transform", () => {
+        const base = {
+            ...edit("derived:slow-tests", 0),
+            source: { kind: "derived", sourceId: "slow-tests" } as const,
+            derivedSource: {
+                id: "slow-tests",
+                from: { kind: "activity-output", nodeId: "query", slot: "primary" } as const,
+                authoredContract: "rowset/1",
+                pipeline: { steps: [{ op: "limit", count: 10 } as const] },
+            },
+        };
+        const removal: PresentationLayoutEdit = {
+            ...base,
+            derivedSource: undefined,
+            removeDerivedSourceId: "slow-tests",
+        };
+        const clean = rebasePresentationLayoutEdits([base], [base], [removal]);
+        expect(clean.conflicts).to.deep.equal([]);
+        expect(clean.edits[0]).to.include({ removeDerivedSourceId: "slow-tests" });
+        expect(clean.edits[0].derivedSource).to.equal(undefined);
+
+        const upstream = {
+            ...base,
+            derivedSource: {
+                ...base.derivedSource,
+                pipeline: { steps: [{ op: "limit", count: 50 } as const] },
+            },
+        };
+        const conflicted = rebasePresentationLayoutEdits([base], [upstream], [removal]);
+        expect(conflicted.conflicts).to.deep.equal([
+            { nodeId: "derived:slow-tests", fields: ["derivedSource"] },
+        ]);
+    });
+
+    test("derived rename keeps its new source identity through a clean rebase", () => {
+        const base = {
+            ...edit("derived:slow-tests", 0),
+            source: { kind: "derived", sourceId: "slow-tests" } as const,
+            derivedSource: {
+                id: "slow-tests",
+                from: { kind: "activity-output", nodeId: "query", slot: "primary" } as const,
+                authoredContract: "rowset/1",
+                pipeline: { steps: [{ op: "limit", count: 10 } as const] },
+            },
+        };
+        const rename: PresentationLayoutEdit = {
+            ...base,
+            source: { kind: "derived", sourceId: "long-tests" },
+            derivedSource: { ...base.derivedSource, id: "long-tests" },
+            renameDerivedSourceFrom: "slow-tests",
+        };
+        const rebased = rebasePresentationLayoutEdits([base], [base], [rename]);
+        expect(rebased.conflicts).to.deep.equal([]);
+        expect(rebased.edits[0]).to.deep.include({
+            source: { kind: "derived", sourceId: "long-tests" },
+            renameDerivedSourceFrom: "slow-tests",
+        });
+        expect(rebased.edits[0].derivedSource?.id).to.equal("long-tests");
+    });
+
     test("layout snapshot retains persisted hidden widgets", () => {
         const snapshot = presentationLayoutSnapshot(undefined, {
             query: {
