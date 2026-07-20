@@ -7,6 +7,7 @@ import { expect } from "chai";
 import {
     mergePresentationLayoutEdits,
     presentationLayoutSnapshot,
+    pointerReorderPresentationLayoutEdits,
     rebasePresentationLayoutEdits,
 } from "../../src/webviews/pages/RunbookStudio/presentationDraft";
 import { PresentationLayoutEdit } from "../../src/sharedInterfaces/runbookPresentation";
@@ -42,6 +43,27 @@ suite("presentationDraft", () => {
             ["query", 1],
             ["tests", 0],
         ]);
+    });
+
+    test("pointer reorder emits one normalized atomic range", () => {
+        const reordered = pointerReorderPresentationLayoutEdits(
+            [edit("query", 0), edit("tests", 1), edit("report", 2), edit("evidence", 3)],
+            "query",
+            "report",
+        );
+        expect(
+            reordered.map((candidate) => [candidate.nodeId, candidate.placement.order]),
+        ).to.deep.equal([
+            ["tests", 0],
+            ["report", 1],
+            ["query", 2],
+        ]);
+    });
+
+    test("pointer reorder rejects missing and self targets", () => {
+        const siblings = [edit("query", 0), edit("tests", 1)];
+        expect(pointerReorderPresentationLayoutEdits(siblings, "query", "query")).to.deep.equal([]);
+        expect(pointerReorderPresentationLayoutEdits(siblings, "query", "other")).to.deep.equal([]);
     });
 
     test("three-way rebase preserves non-overlapping upstream fields", () => {

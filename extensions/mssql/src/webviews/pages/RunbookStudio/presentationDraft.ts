@@ -46,6 +46,35 @@ export function mergePresentationLayoutEdits(
     return [...byNode.values()];
 }
 
+/** Pointer convenience over the same atomic edit batch used by keyboard
+ * ordering. The caller supplies siblings in rendered order; every affected
+ * order is normalized in one batch so no intermediate duplicate order can
+ * be persisted. Missing/cross-section identities are honest no-ops. */
+export function pointerReorderPresentationLayoutEdits(
+    siblings: PresentationLayoutEdit[],
+    sourceNodeId: string,
+    targetNodeId: string,
+): PresentationLayoutEdit[] {
+    const sourceIndex = siblings.findIndex((edit) => edit.nodeId === sourceNodeId);
+    const targetIndex = siblings.findIndex((edit) => edit.nodeId === targetNodeId);
+    if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+        return [];
+    }
+    const reordered = [...siblings];
+    const [source] = reordered.splice(sourceIndex, 1);
+    reordered.splice(targetIndex, 0, source);
+    return reordered
+        .map((edit, order) => ({
+            ...edit,
+            placement: { ...edit.placement, order },
+        }))
+        .filter(
+            (edit) =>
+                siblings.find((current) => current.nodeId === edit.nodeId)?.placement.order !==
+                edit.placement.order,
+        );
+}
+
 /** Capture the complete persisted/resolved layout intent without result
  * payloads. Persisted summaries win so hidden widgets remain part of the
  * merge base even though the resolver intentionally omits them. */

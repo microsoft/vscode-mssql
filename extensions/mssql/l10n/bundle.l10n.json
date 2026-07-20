@@ -4681,6 +4681,10 @@
     "One third": "One third",
     "Move output up": "Move output up",
     "Move output down": "Move output down",
+    "Drag {0} to reorder within this section/{0} is an output widget title": {
+        "message": "Drag {0} to reorder within this section",
+        "comment": ["{0} is an output widget title"]
+    },
     "Hide": "Hide",
     "Show": "Show",
     "Saving…": "Saving…",

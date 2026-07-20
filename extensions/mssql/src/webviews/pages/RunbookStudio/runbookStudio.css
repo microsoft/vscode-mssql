@@ -323,6 +323,24 @@
     gap: 5px;
 }
 
+.rbs-layout-drag-handle {
+    border: 0;
+    background: transparent;
+    color: var(--vscode-descriptionForeground);
+    cursor: grab;
+    font: inherit;
+    padding: 2px 3px;
+}
+
+.rbs-layout-drag-handle:active {
+    cursor: grabbing;
+}
+
+.rbs-layout-drag-handle:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
 .rbs-error-text {
     color: var(--vscode-errorForeground);
     font-size: 11px;

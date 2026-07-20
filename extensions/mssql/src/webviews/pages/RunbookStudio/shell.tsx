@@ -13,7 +13,7 @@
  */
 
 import debounce from "lodash/debounce";
-import { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, DragEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
@@ -38,6 +38,7 @@ import { PlanGraphView } from "./graphView";
 import { ResolvedWidgetView } from "./widgets";
 import {
     mergePresentationLayoutEdits,
+    pointerReorderPresentationLayoutEdits,
     presentationLayoutSnapshot,
     PresentationLayoutConflict,
     rebasePresentationLayoutEdits,
@@ -2070,6 +2071,7 @@ const SPAN_PRESETS = {
     half: { compact: 1, medium: 3, wide: 6 },
     third: { compact: 1, medium: 2, wide: 4 },
 } as const;
+const LAYOUT_DRAG_MIME = "application/vnd.microsoft.runbook-studio-layout-node";
 
 function spanPresetOf(span: { wide?: number } | undefined) {
     const wide = span?.wide;
@@ -2141,8 +2143,42 @@ function LayoutEditorControls({
             }),
         ]);
     };
+    const dragStart = (event: DragEvent<HTMLButtonElement>) => {
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData(LAYOUT_DRAG_MIME, widget.nodeId);
+    };
+    const dragOver = (event: DragEvent<HTMLDivElement>) => {
+        const sourceNodeId = event.dataTransfer.getData(LAYOUT_DRAG_MIME);
+        if (sourceNodeId && siblings.some((candidate) => candidate.nodeId === sourceNodeId)) {
+            event.preventDefault();
+            event.dataTransfer.dropEffect = "move";
+        }
+    };
+    const drop = (event: DragEvent<HTMLDivElement>) => {
+        const sourceNodeId = event.dataTransfer.getData(LAYOUT_DRAG_MIME);
+        const siblingEdits = siblings.map((candidate) => editFor(candidate));
+        const edits = pointerReorderPresentationLayoutEdits(
+            siblingEdits,
+            sourceNodeId,
+            widget.nodeId,
+        );
+        if (edits.length > 0) {
+            event.preventDefault();
+            commitEdits(edits);
+        }
+    };
     return (
-        <div className="rbs-layout-controls">
+        <div className="rbs-layout-controls" onDragOver={dragOver} onDrop={drop}>
+            <button
+                type="button"
+                className="rbs-layout-drag-handle"
+                draggable={!disabled}
+                disabled={disabled}
+                aria-label={loc.dragOutputToReorder(widget.title)}
+                title={loc.dragOutputToReorder(widget.title)}
+                onDragStart={dragStart}>
+                ⠿
+            </button>
             <label>
                 <span className="rbs-muted">{loc.layoutSection}</span>
                 <select

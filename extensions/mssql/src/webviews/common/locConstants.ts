@@ -3602,6 +3602,12 @@ export class LocConstants {
             layoutThird: l10n.t("One third"),
             moveOutputUp: l10n.t("Move output up"),
             moveOutputDown: l10n.t("Move output down"),
+            dragOutputToReorder: (output: string) =>
+                l10n.t({
+                    message: "Drag {0} to reorder within this section",
+                    args: [output],
+                    comment: ["{0} is an output widget title"],
+                }),
             hideOutput: l10n.t("Hide"),
             showOutput: l10n.t("Show"),
             savingLayout: l10n.t("Saving…"),
