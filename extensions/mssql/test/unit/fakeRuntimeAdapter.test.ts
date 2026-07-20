@@ -14,7 +14,11 @@ import { expect } from "chai";
 import { createFixtureRunbookArtifact } from "../../src/runbookStudio/runbookArtifact";
 import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudio/developerValidationPreview";
 import { newRunbookRootContext } from "../../src/runbookStudio/runbookDiag";
-import { FakeRuntimeAdapter } from "../../src/runbookStudio/runtime/fakeRuntimeAdapter";
+import {
+    type ActivityExecutionDelegate,
+    FakeRuntimeAdapter,
+    type NodeExecution,
+} from "../../src/runbookStudio/runtime/fakeRuntimeAdapter";
 import {
     RuntimeBoundaryEvent,
     RuntimeEventObserver,
@@ -310,6 +314,96 @@ suite("fakeRuntimeAdapter", () => {
         expect(preview.output?.scalars).to.include({ changeCount: 3, preview: true });
     });
 
+    test("developer publish failure still executes cleanup and failing evidence", async () => {
+        const executed: string[] = [];
+        const local = new FakeRuntimeAdapter(developerFailureDelegate("deploy-dacpac", executed));
+        const observer = new CollectingObserver();
+        try {
+            await local.startRun(
+                {
+                    runId: "developer-publish-failure",
+                    artifact: createDeveloperValidationPreviewArtifact(),
+                    parameterValues: {
+                        projectPath: "Database.sqlproj",
+                        sandboxConnection: "preview-profile",
+                    },
+                },
+                observer,
+                ctx(),
+            );
+            await approveDeveloperGate(
+                local,
+                observer,
+                "developer-publish-failure",
+                "approve-sandbox",
+            );
+            await approveDeveloperGate(
+                local,
+                observer,
+                "developer-publish-failure",
+                "approve-deploy",
+            );
+            await observer.terminal;
+
+            expect(observer.terminalEvent()).to.include({ state: "failed", verdict: "fail" });
+            expect(observer.nodeStates("deploy-dacpac")).to.deep.equal(["running", "failed"]);
+            expect(observer.nodeStates("verify-schema")).to.deep.equal(["skipped"]);
+            expect(observer.nodeStates("run-sql-tests")).to.deep.equal(["skipped"]);
+            expect(observer.nodeStates("dispose-sandbox")).to.deep.equal(["running", "succeeded"]);
+            expect(observer.nodeStates("bundle-evidence")).to.deep.equal(["running", "succeeded"]);
+            expect(executed).to.include.members([
+                "deploy-dacpac",
+                "dispose-sandbox",
+                "bundle-evidence",
+            ]);
+        } finally {
+            await local.dispose();
+        }
+    });
+
+    test("developer deployment rejection never publishes and still cleans up", async () => {
+        const executed: string[] = [];
+        const local = new FakeRuntimeAdapter(developerFailureDelegate(undefined, executed));
+        const observer = new CollectingObserver();
+        try {
+            await local.startRun(
+                {
+                    runId: "developer-deploy-rejected",
+                    artifact: createDeveloperValidationPreviewArtifact(),
+                    parameterValues: {
+                        projectPath: "Database.sqlproj",
+                        sandboxConnection: "preview-profile",
+                    },
+                },
+                observer,
+                ctx(),
+            );
+            await approveDeveloperGate(
+                local,
+                observer,
+                "developer-deploy-rejected",
+                "approve-sandbox",
+            );
+            await waitForGate(observer, "approve-deploy");
+            expect(
+                await local.respondToGate(
+                    "developer-deploy-rejected",
+                    "approve-deploy",
+                    false,
+                    ctx(),
+                ),
+            ).to.equal(true);
+            await observer.terminal;
+
+            expect(observer.terminalEvent()).to.include({ state: "failed", verdict: "fail" });
+            expect(executed).not.to.include("deploy-dacpac");
+            expect(observer.nodeStates("dispose-sandbox")).to.deep.equal(["running", "succeeded"]);
+            expect(observer.nodeStates("bundle-evidence")).to.deep.equal(["running", "succeeded"]);
+        } finally {
+            await local.dispose();
+        }
+    });
+
     test("a closed delegate list refuses activity kinds the host omitted", async () => {
         const local = new FakeRuntimeAdapter({
             runtimeKind: "local",
@@ -433,3 +527,86 @@ suite("fakeRuntimeAdapter", () => {
         }
     });
 });
+
+function developerFailureDelegate(
+    failNodeId: string | undefined,
+    executed: string[],
+): ActivityExecutionDelegate {
+    const supportedActivityKinds = new Set([
+        "workspace.inspect",
+        "dacpac.build",
+        "sandbox.provision",
+        "dacpac.deploy.preview",
+        "dacpac.deploy",
+        "schema.compare",
+        "sqltest.run",
+        "sandbox.dispose",
+        "evidence.bundle",
+    ]);
+    return {
+        runtimeKind: "local",
+        supportedActivityKinds,
+        executeActivity: async (node) => {
+            executed.push(node.id);
+            if (node.id === failNodeId) {
+                return {
+                    success: false,
+                    message: "injected developer activity failure",
+                    errorCode: "RunbookStudio.DeploymentFailed",
+                };
+            }
+            return developerNodeSuccess(node.id);
+        },
+    };
+}
+
+function developerNodeSuccess(nodeId: string): NodeExecution {
+    switch (nodeId) {
+        case "build-dacpac":
+            return {
+                success: true,
+                values: {
+                    artifactPath: "C:\\workspace\\Database.dacpac",
+                    artifactSha256: "a".repeat(64),
+                },
+            };
+        case "provision-sandbox":
+            return {
+                success: true,
+                values: { connectionRef: `runbook-sql-lease:effect-${"b".repeat(64)}` },
+            };
+        case "preview-deploy":
+            return { success: true, values: { reportSha256: "c".repeat(64) } };
+        case "bundle-evidence":
+            return {
+                success: true,
+                verdict: "fail",
+                output: {
+                    contract: "evidenceBundle/1",
+                    text: '{"verdict":"fail","injected":true}',
+                },
+            };
+        default:
+            return { success: true };
+    }
+}
+
+async function approveDeveloperGate(
+    adapter: FakeRuntimeAdapter,
+    observer: CollectingObserver,
+    runId: string,
+    nodeId: string,
+): Promise<void> {
+    await waitForGate(observer, nodeId);
+    expect(
+        await adapter.respondToGate(runId, nodeId, true, newRunbookRootContext("test")),
+    ).to.equal(true);
+}
+
+async function waitForGate(observer: CollectingObserver, nodeId: string): Promise<void> {
+    while (
+        !observer.events.some((event) => event.kind === "gateRequested" && event.nodeId === nodeId)
+    ) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 1));
+    }
+}
