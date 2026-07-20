@@ -304,6 +304,41 @@
     background: var(--vscode-editorWidget-background, transparent);
 }
 
+.rbs-outcome-summary {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 5px;
+    background: var(--vscode-editorWidget-background, transparent);
+}
+
+.rbs-outcome-summary-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.rbs-outcome-summary-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 8px;
+}
+
+.rbs-outcome-summary-card {
+    display: grid;
+    align-content: start;
+    gap: 3px;
+    min-width: 0;
+    padding: 8px;
+    border-left: 2px solid var(--vscode-panel-border);
+}
+
+.rbs-outcome-summary-card strong {
+    overflow-wrap: anywhere;
+    font-size: 14px;
+}
+
 .rbs-run-comparison h3 {
     margin: 4px 0 0;
     font-size: 12px;

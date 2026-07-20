@@ -4981,6 +4981,50 @@
     "No step facts changed.": "No step facts changed.",
     "Changed runtime metrics": "Changed runtime metrics",
     "No runtime metrics changed.": "No runtime metrics changed.",
+    "Run outcome": "Run outcome",
+    "Passed": "Passed",
+    "Indeterminate": "Indeterminate",
+    "Accepted": "Accepted",
+    "Awaiting approval": "Awaiting approval",
+    "Cancelling": "Cancelling",
+    "Cancelled": "Cancelled",
+    "{0} failed/{0} is a count of failed runbook steps": {
+        "message": "{0} failed",
+        "comment": ["{0} is a count of failed runbook steps"]
+    },
+    "{0} cancelled/{0} is a count of cancelled runbook steps": {
+        "message": "{0} cancelled",
+        "comment": ["{0} is a count of cancelled runbook steps"]
+    },
+    "{0} skipped/{0} is a count of skipped runbook steps": {
+        "message": "{0} skipped",
+        "comment": ["{0} is a count of skipped runbook steps"]
+    },
+    "{0} branch not taken/{0} is a count of runbook steps on branches that were not taken": {
+        "message": "{0} branch not taken",
+        "comment": ["{0} is a count of runbook steps on branches that were not taken"]
+    },
+    "Available when the run reaches a terminal state.": "Available when the run reaches a terminal state.",
+    "Measured from the durable run record.": "Measured from the durable run record.",
+    "Diagnostics": "Diagnostics",
+    "{0} warnings · {1} errors/{0} is a warning count; {1} is an error count": {
+        "message": "{0} warnings · {1} errors",
+        "comment": ["{0} is a warning count; {1} is an error count"]
+    },
+    "Not measured": "Not measured",
+    "Reported by the runtime.": "Reported by the runtime.",
+    "The runtime did not report diagnostic totals.": "The runtime did not report diagnostic totals.",
+    "CI evidence": "CI evidence",
+    "Ready to export": "Ready to export",
+    "Pending": "Pending",
+    "Not produced": "Not produced",
+    "Truncated": "Truncated",
+    "Expired": "Expired",
+    "An exportable evidence bundle is retained.": "An exportable evidence bundle is retained.",
+    "No exportable evidence bundle has been retained yet.": "No exportable evidence bundle has been retained yet.",
+    "This run did not retain an exportable evidence bundle.": "This run did not retain an exportable evidence bundle.",
+    "The retained bundle is incomplete and cannot be exported.": "The retained bundle is incomplete and cannot be exported.",
+    "The evidence detail expired under the retention policy.": "The evidence detail expired under the retention policy.",
     "View results": "View results",
     "Evidence format:": "Evidence format:",
     "JUnit XML": "JUnit XML",

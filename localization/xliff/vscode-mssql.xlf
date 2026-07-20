@@ -169,6 +169,9 @@
     <trans-unit id="++CODE++e21e734aaaff27306eeaba840397aea3b25480cb0426c9c21386cbf141e56e34">
       <source xml:lang="en">Accept the SQL Server EULA to deploy a SQL Server Docker container</source>
     </trans-unit>
+    <trans-unit id="++CODE++a00fb0c50741f81bb51d35b4475a4357f8039aabd896a21036bc516839401595">
+      <source xml:lang="en">Accepted</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa0563b6f04578f7a2a7cff43aed611c4835bbb2f3a21dfed76a0601a1d63859">
       <source xml:lang="en">Access denied. Please ensure you have the necessary permissions to use this tool or model.</source>
     </trans-unit>
@@ -442,6 +445,9 @@
       <source xml:lang="en">An error occurred: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++d99ae42335cc70c8519a9c8a9bf9047c73efb34f609092dfa9f80889c875825c">
+      <source xml:lang="en">An exportable evidence bundle is retained.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6615bf1c8fddf2fbb0970f969c21c5d919d912608bd1cceb93855780bec3123d">
       <source xml:lang="en">An unexpected error occurred</source>
     </trans-unit>
@@ -672,6 +678,9 @@
     <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
       <source xml:lang="en">Available Servers</source>
     </trans-unit>
+    <trans-unit id="++CODE++77e09eb4e7d022a22bb748cd7d47b9884a99c4845ba84cda938cb42ec54493e0">
+      <source xml:lang="en">Available when the run reaches a terminal state.</source>
+    </trans-unit>
     <trans-unit id="++CODE++b38ae2c5b84529e8027b43a69c8ce9426a3cb081dae97b77bdcd2fdc5a9df742">
       <source xml:lang="en">Average</source>
     </trans-unit>
@@ -685,6 +694,9 @@
     </trans-unit>
     <trans-unit id="++CODE++41835ff14ac6b8c789e93c4f3af5fdda54d093c45144a3cce1bb907e9c222162">
       <source xml:lang="en">Avg</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ae25c9b1d366d15918cab61519f7f89b637b22c9bec59b7cf60c87712658f7f7">
+      <source xml:lang="en">Awaiting approval</source>
     </trans-unit>
     <trans-unit id="++CODE++994c049faf0fd65f191759cacf91508d01743fda1b2f06cfc7f779fc49ae4991">
       <source xml:lang="en">Azure (China)</source>
@@ -949,6 +961,9 @@
     <trans-unit id="++CODE++6f52d618fb243f0ae137c3c850eb0bda8b347766a553b613fc210f6eb6bb5c97">
       <source xml:lang="en">Bulk-logged</source>
     </trans-unit>
+    <trans-unit id="++CODE++a1bd1da2baa550317e30b35235e77800dd46d809f4d2b4ae831abc4f88e5c079">
+      <source xml:lang="en">CI evidence</source>
+    </trans-unit>
     <trans-unit id="++CODE++eb6b42f54c42d2832e296319f7fdad64d46aecd1ec19b0e9c80b85b7cfc6dcae">
       <source xml:lang="en">CSV</source>
     </trans-unit>
@@ -999,8 +1014,14 @@
       <source xml:lang="en">Canceling the query failed: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++d353a99eb4556847ceeb3c306ac886cf6b4fa13043eb1864b9aeb0607fd5f2cc">
+      <source xml:lang="en">Cancelled</source>
+    </trans-unit>
     <trans-unit id="++CODE++80aa8267452e6acff1a7d85f3f06923dc34f20fb027017e4cd660abddc133ee6">
       <source xml:lang="en">Cancelled before the step completed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++20d55e8c3373cb09161484abeb2a760254ae43d9a6a812e126928bd263949533">
+      <source xml:lang="en">Cancelling</source>
     </trans-unit>
     <trans-unit id="++CODE++79be4b59b9ec56c9a11b1e69d5bbe1c7c43d80ef31290070693ad24d3edd9db8">
       <source xml:lang="en">Candidates come from the step&apos;s expected data contract and catalog-owned field shape when available. Runtime-only shapes are labeled, validated when data arrives, and fall back visibly if they do not match.</source>
@@ -2641,6 +2662,9 @@
     <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
       <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
     </trans-unit>
+    <trans-unit id="++CODE++268f14bbfe119c1e92150583af960a086d7db9619a097f8aa72ff6779842f610">
+      <source xml:lang="en">Diagnostics</source>
+    </trans-unit>
     <trans-unit id="++CODE++5be7cc11b35273bacfc9b60f03306860c698d40ae916b51c7b795e79d6b4b3c4">
       <source xml:lang="en">Different plan revisions</source>
     </trans-unit>
@@ -3417,6 +3441,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f38d6e0e9b0832fa142cfa3a658a948fda6200e465fae470e535154579d5ef98">
       <source xml:lang="en">Expiration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++424a2551d356754c882d04ac16c63e6b50b80b159549d23231001f629455756e">
+      <source xml:lang="en">Expired</source>
     </trans-unit>
     <trans-unit id="++CODE++a0c63383db5f8661b595463ea3a315d20546235fa0124096696606ebccb73c0c">
       <source xml:lang="en">Explore tutorials, docs, and what&apos;s coming next.</source>
@@ -4597,6 +4624,9 @@
     <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
       <source xml:lang="en">Incomplete or orphaned connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++d5db1eba726dd542eb206de7f49eca8ae293e8f6d0fa540b91e881178ffc6576">
+      <source xml:lang="en">Indeterminate</source>
+    </trans-unit>
     <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
       <source xml:lang="en">Index</source>
     </trans-unit>
@@ -5293,6 +5323,9 @@
     <trans-unit id="++CODE++495dd1c62e69c8448388f877ad318436a841c8959d30c67e55062a38cf5d065a">
       <source xml:lang="en">Measure fields (comma-separated)</source>
     </trans-unit>
+    <trans-unit id="++CODE++1084d599fc530abb06145652f4eb9a3103bc3e833113a85d6fcc43603287aaa8">
+      <source xml:lang="en">Measured from the durable run record.</source>
+    </trans-unit>
     <trans-unit id="++CODE++aabaa8ff445c09b9fc021865bc424b6e6ed9e1657365705f27285c622bc03767">
       <source xml:lang="en">Measures</source>
     </trans-unit>
@@ -5806,6 +5839,9 @@
     <trans-unit id="++CODE++0ca074b55c38a61a072092289a02d99d016075ccc3ba4519df5bcb3a8777d561">
       <source xml:lang="en">No events to export</source>
     </trans-unit>
+    <trans-unit id="++CODE++5dfcb4e41153792e1c4b8b7c1da2951d8a2b7bf0e0b4ef28a47f028e55ac65b1">
+      <source xml:lang="en">No exportable evidence bundle has been retained yet.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
       <source xml:lang="en">No filter is currently active</source>
     </trans-unit>
@@ -6047,6 +6083,12 @@
     </trans-unit>
     <trans-unit id="++CODE++972711d90594be0ec9340bc56950dc455b2764187dcad7093ae641df2cbc10c5">
       <source xml:lang="en">Not likely at all</source>
+    </trans-unit>
+    <trans-unit id="++CODE++040f7884d3b5f35e4c11cc841162295a5b021d423b3328cc32fdf22d477f821d">
+      <source xml:lang="en">Not measured</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e62a8c5c2653da3e9c780c2a989e006d74426142ab74679a5cffba9b15a065b2">
+      <source xml:lang="en">Not produced</source>
     </trans-unit>
     <trans-unit id="++CODE++9e3856eef37c48e551fcb274637d0d3499eec816116e0a3aa509990a59a49040">
       <source xml:lang="en">Not running</source>
@@ -6348,6 +6390,9 @@
     <trans-unit id="++CODE++efbcd674b4f43dccabacb225785788da668a0a975e51eae40b05687ddea370f9">
       <source xml:lang="en">Parts</source>
     </trans-unit>
+    <trans-unit id="++CODE++436fe71bb9561f0596161c4d50c7b23327b4189acaf63dc89f4f9205b67a7528">
+      <source xml:lang="en">Passed</source>
+    </trans-unit>
     <trans-unit id="++CODE++e7cf3ef4f17c3999a94f2c6f612e8a888e5b1026878e4e19398b23bd38ec221a">
       <source xml:lang="en">Password</source>
     </trans-unit>
@@ -6393,6 +6438,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b0c99209b59c6d7ac573d0eacaa18989cc0a4213bc131cd4535072359d746f26">
       <source xml:lang="en">Paused - click to resume</source>
+    </trans-unit>
+    <trans-unit id="++CODE++331551b0de4157c9abc7b72b61b96a2a928fd6db3cdf029c1fc44b08ad633aa6">
+      <source xml:lang="en">Pending</source>
     </trans-unit>
     <trans-unit id="++CODE++e87dbc12e88933c84d9ccdb30d89a4c9977b80894c26a85504ed7b1b42fda674">
       <source xml:lang="en">Perform checksum before writing to media</source>
@@ -6846,6 +6894,9 @@
     <trans-unit id="++CODE++26bbc19674f13d589450ded585fd3285cb51dc7409d3f00eb1f265936de06b3d">
       <source xml:lang="en">Ready for import</source>
     </trans-unit>
+    <trans-unit id="++CODE++47942aa3d00f924208b2302d676ba6030256c9641e6d20ca08d50eb3bf385705">
+      <source xml:lang="en">Ready to export</source>
+    </trans-unit>
     <trans-unit id="++CODE++8a71e31f52571efdf22b8d02a3c0f05489b38f70968e5741c1d4a1a47ea5bae4">
       <source xml:lang="en">Readying container for connections.</source>
     </trans-unit>
@@ -7042,6 +7093,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
+    </trans-unit>
+    <trans-unit id="++CODE++473e9517d62d8b9ee2d57bf65d8ae9eeedcc0aad17dc637ab507020114fd3e1c">
+      <source xml:lang="en">Reported by the runtime.</source>
     </trans-unit>
     <trans-unit id="++CODE++cc874c54b76cd239b02d7fddeea1dd3415c1a0a3fe476cd537f26b06c0e98dcd">
       <source xml:lang="en">Request a new feature</source>
@@ -7303,6 +7357,9 @@
     </trans-unit>
     <trans-unit id="++CODE++98fc98c876f876665c38a429c4f73c45faaebca208b98dc881a2ce8d2c9eaf1d">
       <source xml:lang="en">Run in progress…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7365d701af89b879cd88c1b62bce182f67f4cd9f9476b0782f1419953e491d47">
+      <source xml:lang="en">Run outcome</source>
     </trans-unit>
     <trans-unit id="++CODE++883a997230d3b611445157abd1ca8d9b0da7651f51d567aed43f7e4e4073a46e">
       <source xml:lang="en">Run policy blocks this plan</source>
@@ -8980,6 +9037,9 @@
     <trans-unit id="++CODE++54d47130ed496a0db61f169f9d08687ed41846a30cdfe6fa575e22cedfa06c12">
       <source xml:lang="en">The disposable database schema matches the built DACPAC.</source>
     </trans-unit>
+    <trans-unit id="++CODE++de500fc7d20cce68c1e98039f85e314553104518f2a48724c0143d1f5459c3de">
+      <source xml:lang="en">The evidence detail expired under the retention policy.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>
     </trans-unit>
@@ -9050,6 +9110,9 @@
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
     </trans-unit>
+    <trans-unit id="++CODE++11b7e8f9b6b3ff39782af051a6656f5e74340a0a2e296b7b74190097c660d7ae">
+      <source xml:lang="en">The retained bundle is incomplete and cannot be exported.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c7d829370bbb3bcf3ed575fa0340eb0fa89e3c5fea172b4421403e679e266ca1">
       <source xml:lang="en">The runbook default could not be saved. The selected view still applies to this run only.</source>
     </trans-unit>
@@ -9074,6 +9137,9 @@
     </trans-unit>
     <trans-unit id="++CODE++81fd64bc0eb4031b13583f84bfc60440dc11e1065a194b1fff7692cc794765b5">
       <source xml:lang="en">The runbook runtime setting changed, but runs are still active on the previous runtime. Cancel or finish them, then run again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f0251dbe090283c1f357637266f942be4c6d47df91ad3b2511f3a32f9bbd6b71">
+      <source xml:lang="en">The runtime did not report diagnostic totals.</source>
     </trans-unit>
     <trans-unit id="++CODE++d4264a01a18abb343b9d61223a43e5483da0927048f1f2b86b08c184ab5e94e6">
       <source xml:lang="en">The runtime&apos;s active provider profile does not expose configurable models.</source>
@@ -9183,6 +9249,9 @@
     </trans-unit>
     <trans-unit id="++CODE++54623e8b2c722f78d23fe37acdc9223f3d0afa167f91614fa16228823d9003c5">
       <source xml:lang="en">This run did not finish — the window closed while it was still running.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++dbec17bc11ea8f129d5af9c1d515ed9d5aa4360601f049965bef6448ead1642c">
+      <source xml:lang="en">This run did not retain an exportable evidence bundle.</source>
     </trans-unit>
     <trans-unit id="++CODE++78b9bdb7d3c28c439bb9d8a815d5748af3f16efa4b874f18b2be3826caf8c8c2">
       <source xml:lang="en">This run does not have a complete evidence bundle to export.</source>
@@ -9366,6 +9435,9 @@
     </trans-unit>
     <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
       <source xml:lang="en">Truncate the transaction log</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d9d9fcf3bd8af3458a4bceab8b07cf7739b980fd0f8418ea73f7738ec9127abe">
+      <source xml:lang="en">Truncated</source>
     </trans-unit>
     <trans-unit id="++CODE++d7f5ff6e4dad9f838e47b0ebe6e7599c967ad07620a3329436b4887f723d649e">
       <source xml:lang="en">Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.</source>
@@ -10264,6 +10336,14 @@
       <note>{0} is the action name (Create, Read, etc.)
 {1} is the entity name</note>
     </trans-unit>
+    <trans-unit id="++CODE++6e07ced08068b360240b9b30256acc97c938d5684067a52d596bd8da9bf089f5">
+      <source xml:lang="en">{0} branch not taken</source>
+      <note>{0} is a count of runbook steps on branches that were not taken</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3fa3616e37a1c8e07f20406231e4eb61b16dc6f3318cfd547a31c1c58c84fb89">
+      <source xml:lang="en">{0} cancelled</source>
+      <note>{0} is a count of cancelled runbook steps</note>
+    </trans-unit>
     <trans-unit id="++CODE++4f044358b3c661463f0d081556f19d4015b61fa2a493069920dcddeca01a410c">
       <source xml:lang="en">{0} change(s)</source>
       <note>{0} is the number of changes</note>
@@ -10319,6 +10399,10 @@
     <trans-unit id="++CODE++d70ef3a0d3dafd1dfb3ac896ba331f0c11c35f7638de133a8739a0a7d5a87056">
       <source xml:lang="en">{0} events</source>
       <note>{0} is the number of events</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f698b8490e11bb505bd58ca61055c79621fe675c019d9c2909777e07f36ca336">
+      <source xml:lang="en">{0} failed</source>
+      <note>{0} is a count of failed runbook steps</note>
     </trans-unit>
     <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
       <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
@@ -10453,6 +10537,10 @@
       <source xml:lang="en">{0} settings imported</source>
       <note>{0} is the number of settings imported (plural)</note>
     </trans-unit>
+    <trans-unit id="++CODE++2df21f06ca4e48283e66d3feb77802a7b57c1ccc63bc7230149f4b55ff43d9b7">
+      <source xml:lang="en">{0} skipped</source>
+      <note>{0} is a count of skipped runbook steps</note>
+    </trans-unit>
     <trans-unit id="++CODE++e92744f747f8adbd4eb748f272e3c3f3542a48f35b35134f2f2adf89758e2310">
       <source xml:lang="en">{0} started successfully.</source>
       <note>{0} started successfully.</note>
@@ -10468,6 +10556,10 @@
     <trans-unit id="++CODE++c4777dc358a4dd9d44e2865392ea9fb6b761d10b718279ab38df4f72f5645fa7">
       <source xml:lang="en">{0} warnings</source>
       <note>{0} is the number of warnings</note>
+    </trans-unit>
+    <trans-unit id="++CODE++71e09ada88ee2cc9a23b133d2cccb14bc60e19fc2a62a6cf64d7157ebfa6651c">
+      <source xml:lang="en">{0} warnings · {1} errors</source>
+      <note>{0} is a warning count; {1} is an error count</note>
     </trans-unit>
     <trans-unit id="++CODE++e29f55f346b08b76ddf9633f8d991e9cc16f8f201f837052b3e59e681ba2dbda">
       <source xml:lang="en">{0} {1} issue</source>

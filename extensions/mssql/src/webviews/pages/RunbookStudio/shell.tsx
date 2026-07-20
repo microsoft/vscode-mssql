@@ -47,6 +47,7 @@ import { displayOrder, PlanStepper } from "./planStepper";
 import { PlanGraphView } from "./graphView";
 import { ResolvedWidgetView } from "./widgets";
 import { compareRunSnapshots, RunComparisonValue } from "./runComparison";
+import { buildRunOutcomeSummary, RunEvidenceState } from "./runOutcomeSummary";
 import {
     buildDerivedSource,
     mergePresentationLayoutEdits,
@@ -1433,7 +1434,7 @@ function ResultsRunPicker() {
     );
 }
 
-function formatComparisonDuration(value: number | undefined): string {
+function formatRunDuration(value: number | undefined): string {
     if (value === undefined) {
         return "—";
     }
@@ -1516,7 +1517,7 @@ function RunComparisonPanel({ current }: { current: RunbookRunSnapshot }) {
               {
                   label: loc.elapsed,
                   value: comparison.elapsedMs,
-                  formatter: formatComparisonDuration,
+                  formatter: formatRunDuration,
               },
               {
                   label: loc.completedSteps,
@@ -1627,7 +1628,7 @@ function RunComparisonPanel({ current }: { current: RunbookRunSnapshot }) {
                                             <td>
                                                 {comparisonDelta(
                                                     node.durationMs,
-                                                    formatComparisonDuration,
+                                                    formatRunDuration,
                                                 )}
                                             </td>
                                             <td>
@@ -1724,6 +1725,124 @@ function EvidenceExportControl() {
                 {exporting ? loc.exportingEvidence : loc.exportEvidence}
             </button>
         </div>
+    );
+}
+
+function runOutcomeLabel(run: RunbookRunSnapshot): string {
+    const loc = locConstants.runbookStudio;
+    if (run.verdict === "pass") {
+        return loc.runPassed;
+    }
+    if (run.verdict === "fail") {
+        return loc.runFailed;
+    }
+    if (run.verdict === "indeterminate") {
+        return loc.runIndeterminate;
+    }
+    switch (run.state) {
+        case "accepted":
+            return loc.runAccepted;
+        case "running":
+            return loc.runRunning;
+        case "awaitingApproval":
+            return loc.runAwaitingApproval;
+        case "cancelling":
+            return loc.runCancelling;
+        case "succeeded":
+            return loc.runSucceeded;
+        case "failed":
+            return loc.runFailed;
+        case "cancelled":
+            return loc.runCancelled;
+    }
+}
+
+function evidenceStateLabel(state: RunEvidenceState): string {
+    const loc = locConstants.runbookStudio;
+    switch (state) {
+        case "ready":
+            return loc.evidenceReady;
+        case "pending":
+            return loc.evidencePending;
+        case "missing":
+            return loc.evidenceMissing;
+        case "truncated":
+            return loc.evidenceTruncated;
+        case "expired":
+            return loc.evidenceExpired;
+    }
+}
+
+function RunOutcomeSummaryPanel({ run }: { run: RunbookRunSnapshot }) {
+    const loc = locConstants.runbookStudio;
+    const summary = buildRunOutcomeSummary(run);
+    const outcomeStyle =
+        run.verdict ??
+        (run.state === "succeeded"
+            ? "pass"
+            : run.state === "failed"
+              ? "fail"
+              : run.state === "cancelled"
+                ? "indeterminate"
+                : undefined);
+    const stepDetails = [
+        ...(summary.failedSteps > 0 ? [loc.failedSteps(summary.failedSteps)] : []),
+        ...(summary.cancelledSteps > 0 ? [loc.cancelledSteps(summary.cancelledSteps)] : []),
+        ...(summary.skippedSteps > 0 ? [loc.skippedSteps(summary.skippedSteps)] : []),
+        ...(summary.branchNotTakenSteps > 0
+            ? [loc.branchNotTakenSteps(summary.branchNotTakenSteps)]
+            : []),
+    ];
+    return (
+        <section className="rbs-outcome-summary" aria-label={loc.runOutcome}>
+            <div className="rbs-outcome-summary-head">
+                <span className="rbs-muted">{loc.runOutcome}</span>
+                <span className={`rbs-chip ${outcomeStyle ? `rbs-verdict-${outcomeStyle}` : ""}`}>
+                    {runOutcomeLabel(run)}
+                </span>
+            </div>
+            <div className="rbs-outcome-summary-cards">
+                <div className="rbs-outcome-summary-card">
+                    <span className="rbs-muted">{loc.steps}</span>
+                    <strong>{loc.stepsComplete(summary.terminalSteps, summary.totalSteps)}</strong>
+                    {stepDetails.length > 0 ? (
+                        <span className="rbs-muted">{stepDetails.join(" · ")}</span>
+                    ) : null}
+                </div>
+                <div className="rbs-outcome-summary-card">
+                    <span className="rbs-muted">{loc.elapsed}</span>
+                    <strong>{formatRunDuration(summary.elapsedMs)}</strong>
+                    <span className="rbs-muted">
+                        {summary.elapsedMs === undefined
+                            ? loc.elapsedNotMeasured
+                            : loc.durableRunTiming}
+                    </span>
+                </div>
+                <div className="rbs-outcome-summary-card">
+                    <span className="rbs-muted">{loc.diagnostics}</span>
+                    <strong>
+                        {summary.diagnosticCounts
+                            ? loc.diagnosticTotals(
+                                  summary.diagnosticCounts.warningCount,
+                                  summary.diagnosticCounts.errorCount,
+                              )
+                            : loc.notMeasured}
+                    </strong>
+                    <span className="rbs-muted">
+                        {summary.diagnosticCounts
+                            ? loc.runtimeMeasured
+                            : loc.diagnosticsNotReported}
+                    </span>
+                </div>
+                <div className="rbs-outcome-summary-card">
+                    <span className="rbs-muted">{loc.ciEvidence}</span>
+                    <strong>{evidenceStateLabel(summary.evidenceState)}</strong>
+                    <span className="rbs-muted">
+                        {loc.evidenceStateDetail[summary.evidenceState]}
+                    </span>
+                </div>
+            </div>
+        </section>
     );
 }
 
@@ -2414,6 +2533,7 @@ function ResultsPage() {
                     </button>
                     <EvidenceExportControl />
                 </div>
+                <RunOutcomeSummaryPanel run={state.run} />
                 {comparisonOpen ? <RunComparisonPanel current={state.run} /> : null}
                 <EmptyState title={loc.noOutputsTitle} detail={loc.noOutputsDetail} />
             </div>
@@ -2422,11 +2542,6 @@ function ResultsPage() {
     return (
         <div className="rbs-page-body">
             <div className="rbs-run-header">
-                {state.run.verdict ? (
-                    <span className={`rbs-chip rbs-verdict-${state.run.verdict}`}>
-                        {state.run.verdict}
-                    </span>
-                ) : null}
                 <ResultsRunPicker />
                 <div className="rbs-spacer" />
                 <button
@@ -2460,6 +2575,7 @@ function ResultsPage() {
                 ) : null}
                 <EvidenceExportControl />
             </div>
+            <RunOutcomeSummaryPanel run={state.run} />
             {comparisonOpen ? <RunComparisonPanel current={state.run} /> : null}
             <PresentationDraftBanner draft={layoutDraft} />
             <div className={`rbs-results-compose ${outputsOpen ? "with-drawer" : ""}`}>
