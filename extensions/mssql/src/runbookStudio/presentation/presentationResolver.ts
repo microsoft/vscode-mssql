@@ -23,7 +23,10 @@ import {
     PresentationLayoutPolicyEdit,
     PresentationDefinition,
     PresentationMode,
+    PresentationSourceRef,
+    PresentationWidgetSummary,
     RunFieldName,
+    RUN_FIELD_NAMES,
     PRESENTATION_SCHEMA_VERSION,
     ResolvedPresentation,
     ResolvedSection,
@@ -61,15 +64,7 @@ const VIEW_KINDS: ReadonlySet<string> = new Set<ViewKind>([
     "log-view",
     "artifact-list",
 ]);
-const RUN_FIELDS: ReadonlySet<string> = new Set<RunFieldName>([
-    "status",
-    "verdict",
-    "elapsedMs",
-    "warningCount",
-    "errorCount",
-    "completedNodeCount",
-    "totalNodeCount",
-]);
+const RUN_FIELDS: ReadonlySet<string> = new Set<RunFieldName>(RUN_FIELD_NAMES);
 const SECTION_ROLES: ReadonlySet<string> = new Set<SectionRole>([
     "hero",
     "summary",
@@ -685,6 +680,8 @@ export function applyPresentationLayoutEdits(
         contractByNode?: Record<string, string>;
         fingerprintByNode?: Record<string, string>;
         outputSchemaByNode?: Record<string, OutputSchemaDescriptor>;
+        sourceByNode?: Record<string, PresentationSourceRef>;
+        titleByNode?: Record<string, string>;
         planRevision?: string;
     },
     policy?: PresentationLayoutPolicyEdit,
@@ -692,12 +689,12 @@ export function applyPresentationLayoutEdits(
     const base = definition ?? defaultDefinition();
     const widgets = [...base.results.widgets];
     for (const edit of edits) {
-        const index = widgets.findIndex(
-            (widget) =>
-                widget.source.kind === "activity-output" &&
-                widget.source.nodeId === edit.nodeId &&
-                widget.source.slot === "primary" &&
-                (edit.widgetId === undefined || widget.id === edit.widgetId),
+        const source = metadata?.sourceByNode?.[edit.nodeId] ??
+            edit.source ?? { kind: "activity-output", nodeId: edit.nodeId, slot: "primary" };
+        const index = widgets.findIndex((widget) =>
+            edit.widgetId !== undefined
+                ? widget.id === edit.widgetId
+                : presentationSourcesEqual(widget.source, source),
         );
         if (index >= 0) {
             const widget = widgets[index];
@@ -723,13 +720,17 @@ export function applyPresentationLayoutEdits(
         const id = edit.widgetId ?? `layout-${edit.nodeId}`;
         const contract = metadata?.contractByNode?.[edit.nodeId] ?? "unknown/1";
         const selected = applyOutputSchemaBindings(
-            createViewSpec(edit.defaultView, `${id}:${edit.defaultView}`),
+            createViewSpec(
+                edit.defaultView,
+                `${id}:${edit.defaultView}`,
+                metadata?.titleByNode?.[edit.nodeId],
+            ),
             contract,
             metadata?.outputSchemaByNode?.[edit.nodeId],
         );
         widgets.push({
             id,
-            source: { kind: "activity-output", nodeId: edit.nodeId, slot: "primary" },
+            source,
             views: [selected],
             presentation: { mode: "single" },
             defaultViewId: selected.id,
@@ -824,6 +825,52 @@ export function outputPresentationsOf(
         };
     }
     return summaries;
+}
+
+export function presentationSourceLayoutId(
+    source: PresentationSourceRef,
+    widgetId: string,
+): string {
+    return source.kind === "activity-output" && source.slot === "primary"
+        ? source.nodeId
+        : widgetId;
+}
+
+export function presentationSourcesEqual(
+    left: PresentationSourceRef,
+    right: PresentationSourceRef,
+): boolean {
+    if (left.kind !== right.kind) {
+        return false;
+    }
+    switch (left.kind) {
+        case "activity-output":
+            return (
+                right.kind === "activity-output" &&
+                left.nodeId === right.nodeId &&
+                left.slot === right.slot
+            );
+        case "run-field":
+            return right.kind === "run-field" && left.field === right.field;
+        case "run-metric":
+            return right.kind === "run-metric" && left.key === right.key;
+        case "derived":
+            return right.kind === "derived" && left.sourceId === right.sourceId;
+    }
+}
+
+export function presentationWidgetsOf(
+    definition: PresentationDefinition | undefined,
+): PresentationWidgetSummary[] {
+    return (definition?.results.widgets ?? []).map((widget) => ({
+        layoutId: presentationSourceLayoutId(widget.source, widget.id),
+        widgetId: widget.id,
+        source: widget.source,
+        defaultView: defaultViewKind(widget) ?? "json",
+        sectionId: widget.sectionId,
+        ...(widget.placement ? { placement: widget.placement } : {}),
+        hidden: widget.visibility?.when === "never",
+    }));
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -1238,6 +1285,7 @@ function resolvedUnboundOutput(
         id,
         title: node.nodeId,
         nodeId: node.nodeId,
+        source: { kind: "activity-output", nodeId: node.nodeId, slot },
         state: output.expired ? "expired" : "ready",
         view: kind,
         views: [{ id: viewId, kind }],
@@ -1265,6 +1313,7 @@ function resolveBinding(
         id: binding.id,
         title: requested.title ?? binding.id,
         nodeId: binding.source.kind === "activity-output" ? binding.source.nodeId : binding.id,
+        source: binding.source,
         view: requested.kind,
         views: binding.views.map((view) => ({
             id: view.id,
@@ -1483,6 +1532,7 @@ function resolveRunFieldBinding(
         id: binding.id,
         title: active.title ?? binding.id,
         nodeId: binding.id,
+        source: binding.source,
         state: value.state,
         view: active.kind,
         views,
@@ -1541,6 +1591,7 @@ function resolveRunMetricBinding(
         id: binding.id,
         title: active.title ?? binding.id,
         nodeId: binding.id,
+        source: binding.source,
         state: value.state,
         view: active.kind,
         views,
@@ -1612,6 +1663,7 @@ function resolveWidgetWithOutput(
         id: binding.id,
         title: active.title ?? binding.id,
         nodeId: node.nodeId,
+        source: binding.source,
         view: active.kind,
         views,
         presentation: binding.presentation,
@@ -1661,6 +1713,11 @@ function deriveFromSnapshot(snapshot: RunbookRunSnapshot | undefined): ResolvedP
                     id: widgetId,
                     title: node.nodeId,
                     nodeId: node.nodeId,
+                    source: {
+                        kind: "activity-output",
+                        nodeId: node.nodeId,
+                        slot: output.slot ?? (index === 0 ? "primary" : `legacy:${index}`),
+                    },
                     state: output.expired ? "expired" : "ready",
                     view: kind,
                     views: [{ id: viewId, kind }],

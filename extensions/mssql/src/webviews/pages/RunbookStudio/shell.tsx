@@ -31,6 +31,8 @@ import {
     PresentationLayoutEdit,
     PresentationLayoutPolicyEdit,
     PresentationLayoutStrategy,
+    PresentationSourceRef,
+    PresentationWidgetSummary,
     ResolvedPresentation,
     ResolvedWidget,
 } from "../../../sharedInterfaces/runbookPresentation";
@@ -1516,8 +1518,17 @@ function usePresentationDraft(
             ? state.presentationOverlay.policy
             : undefined;
     const currentLayoutSnapshot = useMemo(
-        () => presentationLayoutSnapshot(basePresentation, state?.artifact?.outputPresentations),
-        [basePresentation, state?.artifact?.outputPresentations],
+        () =>
+            presentationLayoutSnapshot(
+                basePresentation,
+                state?.artifact?.outputPresentations,
+                state?.artifact?.presentationWidgets,
+            ),
+        [
+            basePresentation,
+            state?.artifact?.outputPresentations,
+            state?.artifact?.presentationWidgets,
+        ],
     );
     const currentPersistedStrategy =
         state?.artifact?.presentationLayoutStrategy ?? presentationLayoutStrategy(basePresentation);
@@ -2222,7 +2233,7 @@ function PresentationSections({
                                 className="rbs-layout-widget"
                                 style={layoutStyle(widget, presentation)}
                                 key={widget.id}>
-                                {editing && !widget.runField ? (
+                                {editing && widget.source ? (
                                     <LayoutEditorControls
                                         widget={widget}
                                         siblings={section.widgets}
@@ -2275,6 +2286,41 @@ function spanPresetOf(span: { wide?: number } | undefined) {
     return wide === 4 ? "third" : wide === 6 ? "half" : wide === 8 ? "twoThirds" : "full";
 }
 
+function presentationSourcesMatch(
+    left: PresentationSourceRef | undefined,
+    right: PresentationSourceRef | undefined,
+) {
+    if (!left || !right || left.kind !== right.kind) {
+        return false;
+    }
+    switch (left.kind) {
+        case "activity-output":
+            return (
+                right.kind === "activity-output" &&
+                left.nodeId === right.nodeId &&
+                left.slot === right.slot
+            );
+        case "run-field":
+            return right.kind === "run-field" && left.field === right.field;
+        case "run-metric":
+            return right.kind === "run-metric" && left.key === right.key;
+        case "derived":
+            return right.kind === "derived" && left.sourceId === right.sourceId;
+    }
+}
+
+function widgetSummaryFor(
+    widget: ResolvedWidget,
+    summaries: PresentationWidgetSummary[] | undefined,
+) {
+    return summaries?.find(
+        (summary) =>
+            summary.widgetId === widget.id ||
+            summary.layoutId === widget.nodeId ||
+            presentationSourcesMatch(summary.source, widget.source),
+    );
+}
+
 function LayoutEditorControls({
     widget,
     siblings,
@@ -2292,32 +2338,43 @@ function LayoutEditorControls({
 }) {
     const { state } = useRbs();
     const loc = locConstants.runbookStudio;
+    const summary = widgetSummaryFor(widget, state?.artifact?.presentationWidgets);
     const configured = state?.artifact?.outputPresentations?.[widget.nodeId];
     const sections = state?.artifact?.presentationSections ?? [];
-    const placement = widget.placement ?? configured?.placement ?? { order: 0 };
+    const placement = widget.placement ??
+        summary?.placement ??
+        configured?.placement ?? { order: 0 };
     const currentSectionId =
         (sections.some((section) => section.id === widget.sectionId)
             ? widget.sectionId
             : undefined) ??
+        summary?.sectionId ??
         configured?.sectionId ??
         "primary";
     const editFor = (
         target: ResolvedWidget,
         edit: Partial<PresentationLayoutEdit> = {},
     ): PresentationLayoutEdit => {
+        const targetSummary = widgetSummaryFor(target, state?.artifact?.presentationWidgets);
         const targetConfigured = state?.artifact?.outputPresentations?.[target.nodeId];
         const targetSectionId =
             (sections.some((section) => section.id === target.sectionId)
                 ? target.sectionId
                 : undefined) ??
+            targetSummary?.sectionId ??
             targetConfigured?.sectionId ??
             "primary";
         return {
             nodeId: target.nodeId,
-            widgetId: targetConfigured?.widgetId ?? target.id,
-            defaultView: targetConfigured?.defaultView ?? target.view,
+            widgetId: targetSummary?.widgetId ?? targetConfigured?.widgetId ?? target.id,
+            ...(target.source || targetSummary?.source
+                ? { source: target.source ?? targetSummary?.source }
+                : {}),
+            defaultView: targetSummary?.defaultView ?? targetConfigured?.defaultView ?? target.view,
             sectionId: targetSectionId,
-            placement: target.placement ?? targetConfigured?.placement ?? { order: 0 },
+            placement: target.placement ??
+                targetSummary?.placement ??
+                targetConfigured?.placement ?? { order: 0 },
             hidden: false,
             ...edit,
         };
@@ -2330,8 +2387,10 @@ function LayoutEditorControls({
             return;
         }
         const currentOrder = placement.order;
+        const siblingSummary = widgetSummaryFor(sibling, state?.artifact?.presentationWidgets);
         const siblingConfigured = state?.artifact?.outputPresentations?.[sibling.nodeId];
         const siblingPlacement = sibling.placement ??
+            siblingSummary?.placement ??
             siblingConfigured?.placement ?? {
                 order: index + delta,
             };
@@ -2453,38 +2512,107 @@ function OutputsDrawer({
     const { state } = useRbs();
     const loc = locConstants.runbookStudio;
     const sections = state?.artifact?.presentationSections ?? [];
-    const visibleNodes = new Set(
-        presentation.sections.flatMap((section) => section.widgets.map((widget) => widget.nodeId)),
-    );
+    const resolvedWidgets = presentation.sections.flatMap((section) => section.widgets);
     const branchNotTakenNodes = new Set(branchNotTakenNodeIds);
-    const outputs = (state?.artifact?.nodes ?? [])
+    const activityOutputs = (state?.artifact?.nodes ?? [])
         .map((node) => ({
-            node,
+            layoutId: node.id,
+            label: node.label,
             contract: expectedContractFor(node.kind, node.activityKind),
+            source: {
+                kind: "activity-output",
+                nodeId: node.id,
+                slot: "primary",
+            } satisfies PresentationSourceRef,
+            branchNotTaken: branchNotTakenNodes.has(node.id),
         }))
         .filter(
             (entry): entry is typeof entry & { contract: string } => entry.contract !== undefined,
         );
+    const persistedWidgets = state?.artifact?.presentationWidgets ?? [];
+    const sourceSummary = (source: PresentationSourceRef) =>
+        persistedWidgets.find((summary) => presentationSourcesMatch(summary.source, source));
+    const runFields = [
+        { field: "status" as const, label: loc.runStatusSource },
+        { field: "verdict" as const, label: loc.runVerdictSource },
+        { field: "elapsedMs" as const, label: loc.runElapsedSource },
+        { field: "completedNodeCount" as const, label: loc.completedStepsSource },
+        { field: "totalNodeCount" as const, label: loc.totalStepsSource },
+    ].map(({ field, label }) => {
+        const source = { kind: "run-field", field } satisfies PresentationSourceRef;
+        return {
+            layoutId: sourceSummary(source)?.layoutId ?? `run-field:${field}`,
+            label,
+            contract: "scalarSet/1",
+            source,
+            branchNotTaken: false,
+        };
+    });
+    const metricKeys = new Set([
+        ...Object.keys(state?.run?.runMetrics ?? {}),
+        ...persistedWidgets.flatMap((summary) =>
+            summary.source.kind === "run-metric" ? [summary.source.key] : [],
+        ),
+    ]);
+    const runMetrics = [...metricKeys].sort().map((key) => {
+        const source = { kind: "run-metric", key } satisfies PresentationSourceRef;
+        return {
+            layoutId: sourceSummary(source)?.layoutId ?? `run-metric:${key}`,
+            label: loc.runtimeMetricSource(key),
+            contract: "scalarSet/1",
+            source,
+            branchNotTaken: false,
+        };
+    });
+    const derivedSources = (state?.artifact?.derivedSources ?? []).map((derived) => {
+        const source = {
+            kind: "derived",
+            sourceId: derived.id,
+        } satisfies PresentationSourceRef;
+        return {
+            layoutId: sourceSummary(source)?.layoutId ?? `derived:${derived.id}`,
+            label: loc.derivedSource(derived.id),
+            contract: derived.authoredContract,
+            source,
+            branchNotTaken: false,
+        };
+    });
+    const outputs = [...activityOutputs, ...runFields, ...runMetrics, ...derivedSources];
 
-    const update = (nodeId: string, hidden: boolean, sectionId?: string) => {
-        const configured = state?.artifact?.outputPresentations?.[nodeId];
-        const node = outputs.find((entry) => entry.node.id === nodeId);
-        if (!node) {
-            return;
-        }
-        const resolved = presentation.sections
-            .flatMap((candidate) => candidate.widgets)
-            .find((widget) => widget.nodeId === nodeId);
+    const update = (output: (typeof outputs)[number], hidden: boolean, sectionId?: string) => {
+        const summary = sourceSummary(output.source);
+        const configured =
+            output.source.kind === "activity-output"
+                ? state?.artifact?.outputPresentations?.[output.source.nodeId]
+                : undefined;
+        const resolved = resolvedWidgets.find(
+            (widget) =>
+                presentationSourcesMatch(widget.source, output.source) ||
+                (output.source.kind === "activity-output" &&
+                    widget.nodeId === output.source.nodeId),
+        );
         onLayoutEdits?.([
             {
-                nodeId,
-                ...(configured?.widgetId ? { widgetId: configured.widgetId } : {}),
+                nodeId: summary?.layoutId ?? output.layoutId,
+                ...(summary?.widgetId || configured?.widgetId
+                    ? { widgetId: summary?.widgetId ?? configured?.widgetId }
+                    : {}),
+                source: output.source,
                 defaultView:
-                    configured?.defaultView ?? resolved?.view ?? defaultViewFor(node.contract),
-                sectionId: sectionId ?? resolved?.sectionId ?? configured?.sectionId ?? "primary",
+                    summary?.defaultView ??
+                    configured?.defaultView ??
+                    resolved?.view ??
+                    defaultViewFor(output.contract),
+                sectionId:
+                    sectionId ??
+                    resolved?.sectionId ??
+                    summary?.sectionId ??
+                    configured?.sectionId ??
+                    "primary",
                 placement: resolved?.placement ??
+                    summary?.placement ??
                     configured?.placement ?? {
-                        order: outputs.findIndex((entry) => entry.node.id === nodeId),
+                        order: outputs.findIndex((entry) => entry.layoutId === output.layoutId),
                         span: SPAN_PRESETS.full,
                     },
                 hidden,
@@ -2497,25 +2625,36 @@ function OutputsDrawer({
             <h2>{loc.outputsDrawer}</h2>
             <p className="rbs-muted">{loc.outputsDrawerDetail}</p>
             <div className="rbs-outputs-list">
-                {outputs.map(({ node, contract }) => {
-                    const configured = state?.artifact?.outputPresentations?.[node.id];
-                    const resolved = presentation.sections
-                        .flatMap((candidate) => candidate.widgets)
-                        .find((widget) => widget.nodeId === node.id);
-                    const branchNotTaken = branchNotTakenNodes.has(node.id);
-                    const hidden = !visibleNodes.has(node.id) && !branchNotTaken;
+                {outputs.map((output) => {
+                    const summary = sourceSummary(output.source);
+                    const configured =
+                        output.source.kind === "activity-output"
+                            ? state?.artifact?.outputPresentations?.[output.source.nodeId]
+                            : undefined;
+                    const resolved = resolvedWidgets.find(
+                        (widget) =>
+                            presentationSourcesMatch(widget.source, output.source) ||
+                            (output.source.kind === "activity-output" &&
+                                widget.nodeId === output.source.nodeId),
+                    );
+                    const hidden = !resolved && !output.branchNotTaken;
                     return (
-                        <div className="rbs-output-row" key={node.id}>
+                        <div className="rbs-output-row" key={output.layoutId}>
                             <div>
-                                <strong>{node.label}</strong>
-                                <div className="rbs-chip rbs-mono">{contract}</div>
+                                <strong>{output.label}</strong>
+                                <div className="rbs-chip rbs-mono">{output.contract}</div>
                             </div>
                             <select
                                 className="rbs-select"
-                                aria-label={loc.layoutSectionFor(node.label)}
-                                value={resolved?.sectionId ?? configured?.sectionId ?? "primary"}
-                                disabled={editingDisabled || hidden || branchNotTaken}
-                                onChange={(event) => update(node.id, false, event.target.value)}>
+                                aria-label={loc.layoutSectionFor(output.label)}
+                                value={
+                                    resolved?.sectionId ??
+                                    summary?.sectionId ??
+                                    configured?.sectionId ??
+                                    "primary"
+                                }
+                                disabled={editingDisabled || hidden || output.branchNotTaken}
+                                onChange={(event) => update(output, false, event.target.value)}>
                                 {sections.map((section) => (
                                     <option key={section.id} value={section.id}>
                                         {section.label ?? section.role}
@@ -2525,9 +2664,9 @@ function OutputsDrawer({
                             <button
                                 type="button"
                                 className="rbs-btn rbs-btn-quiet"
-                                disabled={editingDisabled || branchNotTaken}
-                                onClick={() => update(node.id, !hidden)}>
-                                {branchNotTaken
+                                disabled={editingDisabled || output.branchNotTaken}
+                                onClick={() => update(output, !hidden)}>
+                                {output.branchNotTaken
                                     ? loc.branchNotTaken
                                     : hidden
                                       ? loc.showOutput

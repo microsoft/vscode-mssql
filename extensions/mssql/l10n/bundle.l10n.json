@@ -4674,7 +4674,20 @@
     "Customize layout": "Customize layout",
     "Done customizing": "Done customizing",
     "Outputs": "Outputs",
-    "Place or hide every typed output from the compiled plan.": "Place or hide every typed output from the compiled plan.",
+    "Place or hide plan outputs, run summary fields, runtime metrics, and derived sources.": "Place or hide plan outputs, run summary fields, runtime metrics, and derived sources.",
+    "Run status": "Run status",
+    "Run verdict": "Run verdict",
+    "Run elapsed time": "Run elapsed time",
+    "Completed steps": "Completed steps",
+    "Total steps": "Total steps",
+    "Runtime metric: {0}/{0} is a runtime-published metric key": {
+        "message": "Runtime metric: {0}",
+        "comment": ["{0} is a runtime-published metric key"]
+    },
+    "Derived source: {0}/{0} is a saved derived presentation source identifier": {
+        "message": "Derived source: {0}",
+        "comment": ["{0} is a saved derived presentation source identifier"]
+    },
     "Section": "Section",
     "Section for {0}/{0} is a runbook plan step label": {
         "message": "Section for {0}",
@@ -4992,7 +5005,6 @@
     "Approval required": "Approval required",
     "Cancel run": "Cancel run",
     "Cancel generation": "Cancel generation",
-    "Run status": "Run status",
     "Select a connection…": "Select a connection…",
     "No saved connections. Add one in the SQL Server view first — runbooks bind to saved connection profiles.": "No saved connections. Add one in the SQL Server view first — runbooks bind to saved connection profiles.",
     "on failure → {0}/{0} is a plan step name": {

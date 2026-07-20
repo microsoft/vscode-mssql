@@ -20,6 +20,7 @@ import {
     migrateLegacyPresentationDefinition,
     outputPresentationsOf,
     pinnedViewsOf,
+    presentationWidgetsOf,
     resetOutputPresentation,
     resolveDerivedSourcePlan,
     resolvePresentation,
@@ -1039,6 +1040,89 @@ suite("presentationResolver", () => {
             (widget) => widget.id,
         );
         expect(ids.slice(0, 2)).to.deep.equal(["w2", "w1"]);
+    });
+
+    test("layout edits materialize source-aware run and derived widgets", () => {
+        const base = definition();
+        base.derivedSources = [
+            {
+                id: "slow-tests",
+                from: { kind: "activity-output", nodeId: "query", slot: "primary" },
+                authoredContract: "rowset/1",
+                pipeline: { steps: [{ op: "limit", count: 5 }] },
+                provenance: { by: "user" },
+            },
+        ];
+        const laidOut = applyPresentationLayoutEdits(
+            base,
+            [
+                {
+                    nodeId: "run-field:status",
+                    source: { kind: "run-field", field: "status" },
+                    defaultView: "scalar-cards",
+                    sectionId: "main",
+                    placement: { order: 2 },
+                    hidden: false,
+                },
+                {
+                    nodeId: "derived:slow-tests",
+                    source: { kind: "derived", sourceId: "slow-tests" },
+                    defaultView: "grid",
+                    sectionId: "main",
+                    placement: { order: 3 },
+                    hidden: false,
+                },
+            ],
+            {
+                contractByNode: {
+                    "run-field:status": "scalarSet/1",
+                    "derived:slow-tests": "rowset/1",
+                },
+                sourceByNode: {
+                    "run-field:status": { kind: "run-field", field: "status" },
+                    "derived:slow-tests": { kind: "derived", sourceId: "slow-tests" },
+                },
+                titleByNode: {
+                    "run-field:status": "Run status",
+                    "derived:slow-tests": "Slow tests",
+                },
+            },
+        );
+
+        expect(presentationWidgetsOf(laidOut).slice(-2)).to.deep.include.members([
+            {
+                layoutId: "layout-run-field:status",
+                widgetId: "layout-run-field:status",
+                source: { kind: "run-field", field: "status" },
+                defaultView: "scalar-cards",
+                sectionId: "main",
+                placement: { order: 2 },
+                hidden: false,
+            },
+            {
+                layoutId: "layout-derived:slow-tests",
+                widgetId: "layout-derived:slow-tests",
+                source: { kind: "derived", sourceId: "slow-tests" },
+                defaultView: "grid",
+                sectionId: "main",
+                placement: { order: 3 },
+                hidden: false,
+            },
+        ]);
+        const widgets = resolvePresentation(laidOut, snapshot()).sections.flatMap(
+            (section) => section.widgets,
+        );
+        expect(widgets.find((widget) => widget.id === "layout-run-field:status")).to.deep.include({
+            state: "ready",
+            source: { kind: "run-field", field: "status" },
+        });
+        expect(widgets.find((widget) => widget.id === "layout-derived:slow-tests")).to.deep.include(
+            {
+                state: "ready",
+                source: { kind: "derived", sourceId: "slow-tests" },
+                derivedSourceId: "slow-tests",
+            },
+        );
     });
 
     test("layout policy edits persist Flow, Stacked, and Grid semantics without widget edits", () => {

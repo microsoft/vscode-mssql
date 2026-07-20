@@ -1519,6 +1519,9 @@
       <source xml:lang="en">Compiled plan revision {0}</source>
       <note>{0} is a plan revision number</note>
     </trans-unit>
+    <trans-unit id="++CODE++e14a09ab0746c31a9fb925d57b7f1d16c3d22bcd437f918f2152ea847a384aec">
+      <source xml:lang="en">Completed steps</source>
+    </trans-unit>
     <trans-unit id="++CODE++9d9d46783dcefefd1551f73e73f02714e347e6e8e8f33052135e0d3fefd8e0d8">
       <source xml:lang="en">Compress backup</source>
     </trans-unit>
@@ -2502,6 +2505,10 @@
       <source xml:lang="en">Deployment preview found {0} schema changes and {1} alerts.</source>
       <note>{0} is a schema change count
 {1} is a DacFx alert count</note>
+    </trans-unit>
+    <trans-unit id="++CODE++23e0b037707f3b75c92fb87b973fc7e9e491d68c2bf9a14b1dc5903f45143fb0">
+      <source xml:lang="en">Derived source: {0}</source>
+      <note>{0} is a saved derived presentation source identifier</note>
     </trans-unit>
     <trans-unit id="++CODE++00f7e8c272e77d2652568b950f67d2d6e43b6713b557e23441e767f1bf9ddf98">
       <source xml:lang="en">Describe</source>
@@ -6222,8 +6229,8 @@
     <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
     </trans-unit>
-    <trans-unit id="++CODE++71f55eb07a0ed3930088769674d96bae24e48d8ef48bbc051feef94a693fb5be">
-      <source xml:lang="en">Place or hide every typed output from the compiled plan.</source>
+    <trans-unit id="++CODE++3c5b1373e11cbec1694aee5bb506dda47f535655fdc2c596305a8265b59e678e">
+      <source xml:lang="en">Place or hide plan outputs, run summary fields, runtime metrics, and derived sources.</source>
     </trans-unit>
     <trans-unit id="++CODE++fa8ed0bdabdd6bcb1c0746f1d3e15212f7f3439d74339fbaaf16c60c0a80fb8e">
       <source xml:lang="en">Plan</source>
@@ -7074,6 +7081,9 @@
     <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
       <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
     </trans-unit>
+    <trans-unit id="++CODE++1e1556ee69c1c2a2aeb46c718ef6de33045f82e13fd79ecd3a978d817c5408a8">
+      <source xml:lang="en">Run elapsed time</source>
+    </trans-unit>
     <trans-unit id="++CODE++94dea0068085644c3aae9c2c2334063b0eca10a1779b6547be1fa61eaec79318">
       <source xml:lang="en">Run evidence could not be exported. Choose a writable destination and try again.</source>
     </trans-unit>
@@ -7101,6 +7111,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3b75c8793470c1283b3b7e9f5491c4c5ada22ddb25e7ecfb0a83a7dc4ea2c78a">
       <source xml:lang="en">Run status</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b1a10762a54024e2bba9df6ab791262df68043f53a6d8ef45110c0d58493635f">
+      <source xml:lang="en">Run verdict</source>
     </trans-unit>
     <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
       <source xml:lang="en">Run, cancel, and create queries</source>
@@ -7190,6 +7203,10 @@
     <trans-unit id="++CODE++c650e15b69c35c39b6ff6743c908ed1db08e9d4840abb2ebfce8303e88b9507a">
       <source xml:lang="en">Running: {0}</source>
       <note>{0} is how long the query has been running</note>
+    </trans-unit>
+    <trans-unit id="++CODE++9e08cb76f36d45e860589e428958cebca94eaf4213c5e6f86ada170ff58171e4">
+      <source xml:lang="en">Runtime metric: {0}</source>
+      <note>{0} is a runtime-published metric key</note>
     </trans-unit>
     <trans-unit id="++CODE++a2ed054db50da31db52e2b3320b15f87c366191789d306ad1e0682baf1590762">
       <source xml:lang="en">SARIF</source>
@@ -9087,6 +9104,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3018218f5b66be1c5027fdc1d75389f30f30ac7cfa00c77c3453790d8830dc9a">
       <source xml:lang="en">Total rows to fetch:</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3e3d627f94ea680559edfe0753298830cd4d31a4abf243530410ba51cfcc4fae">
+      <source xml:lang="en">Total steps</source>
     </trans-unit>
     <trans-unit id="++CODE++c7363102b16228ab96af90a6f97d1ab569d452b23341820a7070e0dd8ddb859b">
       <source xml:lang="en">Transaction Log</source>

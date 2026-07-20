@@ -3591,7 +3591,26 @@ export class LocConstants {
             customizeLayout: l10n.t("Customize layout"),
             finishCustomizing: l10n.t("Done customizing"),
             outputsDrawer: l10n.t("Outputs"),
-            outputsDrawerDetail: l10n.t("Place or hide every typed output from the compiled plan."),
+            outputsDrawerDetail: l10n.t(
+                "Place or hide plan outputs, run summary fields, runtime metrics, and derived sources.",
+            ),
+            runStatusSource: l10n.t("Run status"),
+            runVerdictSource: l10n.t("Run verdict"),
+            runElapsedSource: l10n.t("Run elapsed time"),
+            completedStepsSource: l10n.t("Completed steps"),
+            totalStepsSource: l10n.t("Total steps"),
+            runtimeMetricSource: (key: string) =>
+                l10n.t({
+                    message: "Runtime metric: {0}",
+                    args: [key],
+                    comment: ["{0} is a runtime-published metric key"],
+                }),
+            derivedSource: (id: string) =>
+                l10n.t({
+                    message: "Derived source: {0}",
+                    args: [id],
+                    comment: ["{0} is a saved derived presentation source identifier"],
+                }),
             layoutSection: l10n.t("Section"),
             layoutSectionFor: (label: string) =>
                 l10n.t({

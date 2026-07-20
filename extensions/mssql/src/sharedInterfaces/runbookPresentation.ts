@@ -336,6 +336,16 @@ export type RunFieldName =
     | "completedNodeCount"
     | "totalNodeCount";
 
+export const RUN_FIELD_NAMES: readonly RunFieldName[] = [
+    "status",
+    "verdict",
+    "elapsedMs",
+    "warningCount",
+    "errorCount",
+    "completedNodeCount",
+    "totalNodeCount",
+];
+
 export type PresentationSourceRef =
     | { kind: "activity-output"; nodeId: string; slot: string }
     | { kind: "run-field"; field: RunFieldName }
@@ -460,6 +470,19 @@ export interface OutputPresentationSummary {
     authoredContractFingerprint: string;
 }
 
+/** Source-aware persisted widget projection used by Results/Preview layout
+ * authoring. Activity-output summaries remain separately keyed by node id
+ * for the Plan page's slot editor. */
+export interface PresentationWidgetSummary {
+    layoutId: string;
+    widgetId: string;
+    source: PresentationSourceRef;
+    defaultView: ViewKind;
+    sectionId: string;
+    placement?: WidgetPlacement;
+    hidden: boolean;
+}
+
 /** A user-authored output layout must be reviewed when the registered field
  * descriptor no longer matches the descriptor it was authored against.
  * Default-derived layouts remain safe to refresh automatically. */
@@ -473,6 +496,9 @@ export function outputPresentationNeedsReview(
 }
 
 export interface PresentationLayoutEdit {
+    /** Omitted by legacy/activity-output callers; the host then resolves the
+     * conventional primary output for `nodeId`. */
+    source?: PresentationSourceRef;
     nodeId: string;
     widgetId?: string;
     defaultView: ViewKind;
@@ -645,6 +671,8 @@ export interface ResolvedWidget {
     id: string;
     title: string;
     nodeId: string;
+    /** Stable semantic source used by generalized layout authoring. */
+    source?: PresentationSourceRef;
     state: ResolvedWidgetState;
     /** The view that will actually render (may be a drift fallback). */
     view: ViewKind;

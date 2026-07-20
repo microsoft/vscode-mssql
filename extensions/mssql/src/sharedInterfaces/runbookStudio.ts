@@ -20,6 +20,7 @@ import type {
     PresentationLayoutPolicyEdit,
     PresentationLayoutStrategy,
     PresentationMode,
+    PresentationWidgetSummary,
     ResolvedPresentation,
     ViewKind,
 } from "./runbookPresentation";
@@ -460,6 +461,10 @@ export interface RbsArtifactSummary {
         role: string;
         order: number;
     }>;
+    /** Source-aware persisted widget projection, including hidden run-field,
+     * run-metric, and derived widgets. */
+    presentationWidgets?: PresentationWidgetSummary[];
+    derivedSources?: Array<{ id: string; authoredContract: string }>;
 }
 
 export interface RbsRunbookReadiness {

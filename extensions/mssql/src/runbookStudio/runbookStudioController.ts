@@ -58,6 +58,8 @@ import {
     PresentationDefinition,
     PresentationLayoutEdit,
     PresentationLayoutPolicyEdit,
+    PresentationSourceRef,
+    RUN_FIELD_NAMES,
 } from "../sharedInterfaces/runbookPresentation";
 import { findActivity } from "./activities/activityCatalog";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
@@ -72,6 +74,8 @@ import {
     defaultPresentationSections,
     pinnedViewsOf,
     outputPresentationsOf,
+    presentationSourcesEqual,
+    presentationWidgetsOf,
     resetOutputPresentation,
     resolveDerivedSourcePlan,
     resolvePresentation,
@@ -768,6 +772,11 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     role: section.role,
                     order: section.order,
                 })),
+                presentationWidgets: presentationWidgetsOf(presentationDefinition),
+                derivedSources: (presentationDefinition?.derivedSources ?? []).map((source) => ({
+                    id: source.id,
+                    authoredContract: source.authoredContract,
+                })),
             };
         }
         // Pure resolution (rendering spec: deterministic, zero model calls,
@@ -928,21 +937,81 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         const contractByNode: Record<string, string> = {};
         const fingerprintByNode: Record<string, string> = {};
         const outputSchemaByNode: Record<string, OutputSchemaDescriptor> = {};
+        const sourceByNode: Record<string, PresentationSourceRef> = {};
+        const titleByNode: Record<string, string> = {};
         let valid =
             artifact?.lock !== undefined &&
             (edits.length > 0 || policy !== undefined) &&
             edits.length <= 100 &&
             (policy === undefined || ["flow", "stacked", "grid"].includes(policy.strategy));
         for (const edit of edits) {
-            const node = artifact?.lock?.nodes.find((candidate) => candidate.id === edit.nodeId);
-            const contract = node ? expectedContractFor(node.kind, node.activityKind) : undefined;
+            const source =
+                edit.source ??
+                ({
+                    kind: "activity-output",
+                    nodeId: edit.nodeId,
+                    slot: "primary",
+                } satisfies PresentationSourceRef);
+            const widgetById = edit.widgetId
+                ? definition?.results.widgets.find((widget) => widget.id === edit.widgetId)
+                : undefined;
+            const widgetForSource = definition?.results.widgets.find((widget) =>
+                presentationSourcesEqual(widget.source, source),
+            );
+            const existingWidget = widgetById ?? widgetForSource;
+            valid =
+                valid &&
+                (widgetById === undefined || presentationSourcesEqual(widgetById.source, source)) &&
+                (widgetForSource === undefined ||
+                    edit.widgetId === undefined ||
+                    widgetForSource.id === edit.widgetId) &&
+                (edit.widgetId === undefined ||
+                    (edit.widgetId.length > 0 && edit.widgetId.length <= 256));
+            let contract: string | undefined;
+            let outputSchema: OutputSchemaDescriptor | undefined;
+            if (source.kind === "activity-output") {
+                const node = artifact?.lock?.nodes.find(
+                    (candidate) => candidate.id === source.nodeId,
+                );
+                contract = node ? expectedContractFor(node.kind, node.activityKind) : undefined;
+                outputSchema = findActivity(node?.activityKind)?.outputSchema;
+                titleByNode[edit.nodeId] = node?.label ?? source.nodeId;
+                valid =
+                    valid &&
+                    source.slot === "primary" &&
+                    edit.nodeId === source.nodeId &&
+                    node !== undefined;
+            } else if (source.kind === "run-field") {
+                contract = "scalarSet/1";
+                titleByNode[edit.nodeId] = source.field;
+                valid = valid && RUN_FIELD_NAMES.includes(source.field);
+            } else if (source.kind === "run-metric") {
+                contract = "scalarSet/1";
+                titleByNode[edit.nodeId] = source.key;
+                valid =
+                    valid &&
+                    source.key.length > 0 &&
+                    source.key.length <= 256 &&
+                    (existingWidget !== undefined ||
+                        this.model.displayRun?.runMetrics?.[source.key] !== undefined);
+            } else {
+                const derived = definition?.derivedSources.find(
+                    (candidate) => candidate.id === source.sourceId,
+                );
+                contract = derived?.authoredContract;
+                titleByNode[edit.nodeId] = source.sourceId;
+                valid = valid && derived !== undefined;
+            }
             const span = edit.placement.span;
             valid =
                 valid &&
-                node !== undefined &&
                 contract !== undefined &&
-                compatibleViews(contract).includes(edit.defaultView) &&
+                (source.kind === "activity-output"
+                    ? isViewCandidateSelectable(contract, edit.defaultView, outputSchema)
+                    : compatibleViews(contract).includes(edit.defaultView)) &&
                 sectionIds.has(edit.sectionId) &&
+                edit.nodeId.length > 0 &&
+                edit.nodeId.length <= 256 &&
                 Number.isInteger(edit.placement.order) &&
                 edit.placement.order >= 0 &&
                 (span?.compact === undefined ||
@@ -953,7 +1022,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     (Number.isInteger(span.wide) && span.wide >= 1 && span.wide <= 12));
             if (contract) {
                 contractByNode[edit.nodeId] = contract;
-                const outputSchema = findActivity(node?.activityKind)?.outputSchema;
+                sourceByNode[edit.nodeId] = source;
                 fingerprintByNode[edit.nodeId] = outputSchemaFingerprint(contract, outputSchema);
                 if (outputSchema) {
                     outputSchemaByNode[edit.nodeId] = outputSchema;
@@ -972,6 +1041,8 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     contractByNode,
                     fingerprintByNode,
                     outputSchemaByNode,
+                    sourceByNode,
+                    titleByNode,
                     planRevision: artifact.lock?.planRevision,
                 },
                 policy,

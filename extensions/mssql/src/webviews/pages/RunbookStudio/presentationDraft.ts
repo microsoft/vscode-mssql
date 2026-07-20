@@ -8,6 +8,7 @@ import {
     PresentationLayoutEdit,
     PresentationLayoutPolicyEdit,
     PresentationLayoutStrategy,
+    PresentationWidgetSummary,
     ResolvedPresentation,
 } from "../../../sharedInterfaces/runbookPresentation";
 
@@ -171,6 +172,7 @@ export function pointerMovePresentationLayoutEdits(
 export function presentationLayoutSnapshot(
     presentation: ResolvedPresentation | undefined,
     summaries: Record<string, OutputPresentationSummary> = {},
+    widgets: PresentationWidgetSummary[] = [],
 ): PresentationLayoutEdit[] {
     const byNode = new Map<string, PresentationLayoutEdit>();
     for (const section of presentation?.sections ?? []) {
@@ -178,6 +180,7 @@ export function presentationLayoutSnapshot(
             byNode.set(widget.nodeId, {
                 nodeId: widget.nodeId,
                 widgetId: widget.id,
+                ...(widget.source ? { source: widget.source } : {}),
                 defaultView: widget.view,
                 sectionId: widget.sectionId,
                 placement: widget.placement ?? { order: index },
@@ -190,6 +193,18 @@ export function presentationLayoutSnapshot(
         byNode.set(nodeId, {
             nodeId,
             widgetId: summary.widgetId,
+            defaultView: summary.defaultView,
+            sectionId: summary.sectionId,
+            placement: summary.placement ?? resolved?.placement ?? { order: 0 },
+            hidden: summary.hidden,
+        });
+    }
+    for (const summary of widgets) {
+        const resolved = byNode.get(summary.layoutId);
+        byNode.set(summary.layoutId, {
+            nodeId: summary.layoutId,
+            widgetId: summary.widgetId,
+            source: summary.source,
             defaultView: summary.defaultView,
             sectionId: summary.sectionId,
             placement: summary.placement ?? resolved?.placement ?? { order: 0 },

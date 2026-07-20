@@ -163,6 +163,31 @@ suite("presentationDraft", () => {
         ]);
     });
 
+    test("layout snapshot retains hidden non-activity source identity", () => {
+        const snapshot = presentationLayoutSnapshot(undefined, {}, [
+            {
+                layoutId: "run-field-widget",
+                widgetId: "run-field-widget",
+                source: { kind: "run-field", field: "status" },
+                defaultView: "scalar-cards",
+                sectionId: "summary",
+                placement: { order: 1 },
+                hidden: true,
+            },
+        ]);
+        expect(snapshot).to.deep.equal([
+            {
+                nodeId: "run-field-widget",
+                widgetId: "run-field-widget",
+                source: { kind: "run-field", field: "status" },
+                defaultView: "scalar-cards",
+                sectionId: "summary",
+                placement: { order: 1 },
+                hidden: true,
+            },
+        ]);
+    });
+
     test("layout strategy normalizes older definitions and rebases non-overlapping changes", () => {
         const presentation = {
             layout: { sectionFlow: "dashboard" },
