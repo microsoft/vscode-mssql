@@ -3989,6 +3989,9 @@
     <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
       <source xml:lang="en">Flat</source>
     </trans-unit>
+    <trans-unit id="++CODE++f1273dc72c95d57e92eb520dac8ef22abb27634f46dcda121dab711eb04f66ec">
+      <source xml:lang="en">Flow</source>
+    </trans-unit>
     <trans-unit id="++CODE++762550b051f95cfccd3aafcc54ed71051c74eddc0b6110fbbe6e4d53573efade">
       <source xml:lang="en">Focus the Messages tab</source>
     </trans-unit>
@@ -4250,6 +4253,9 @@
     </trans-unit>
     <trans-unit id="++CODE++85d08e84787824d6a0d1f70c740cbd8be8b0a2ffe54d329dc4202e867d283454">
       <source xml:lang="en">Greater than or equal to</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0d7d12ac624c66e687f98a68ce621c8a44531d5da1db7d0005aa215e2f1d964f">
+      <source xml:lang="en">Grid</source>
     </trans-unit>
     <trans-unit id="++CODE++38ee89c32a2a983a8b02689b35c8cdb60f5d9949c4e128a77cc3e79785c02b51">
       <source xml:lang="en">Grid View</source>
@@ -4627,6 +4633,12 @@
     </trans-unit>
     <trans-unit id="++CODE++2fcc227061321736529247759f83aeb506db66027d24f2469f387987d3e2b149">
       <source xml:lang="en">Layout changes are ready to apply</source>
+    </trans-unit>
+    <trans-unit id="++CODE++945e07b7d5757313978a624a30a9a650b4d414dda5c46fd2d0bdaff373557f58">
+      <source xml:lang="en">Layout policy</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0baae3b55deacf1de5e355057614960e834b8f908982120b465a2c7b507aec26">
+      <source xml:lang="en">Layout strategy</source>
     </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
@@ -9759,6 +9771,9 @@
     </trans-unit>
     <trans-unit id="++CODE++053647276061b7d42afcaab6e846a76c03cf9c3c023ec3d982e296bb30dd6094">
       <source xml:lang="en">items selected</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f0d9eab4ddab5bc814e8e81f9dd5f87236c073eb87b9208bfd0916eb04ecf65b">
+      <source xml:lang="en">layout strategy</source>
     </trans-unit>
     <trans-unit id="++CODE++59238e4f67ce8670dfec068a47b8042ccb8025a41dcafaf97e332f7593422008">
       <source xml:lang="en">less than</source>

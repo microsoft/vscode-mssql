@@ -54,6 +54,7 @@ import {
     expectedContractFor,
     PresentationDefinition,
     PresentationLayoutEdit,
+    PresentationLayoutPolicyEdit,
 } from "../sharedInterfaces/runbookPresentation";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import {
@@ -90,7 +91,11 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
     private openMarkerEnded = false;
     private readonly presentationOverlays = new Map<
         string,
-        { definition: PresentationDefinition; edits: PresentationLayoutEdit[] }
+        {
+            definition: PresentationDefinition;
+            edits: PresentationLayoutEdit[];
+            policy?: PresentationLayoutPolicyEdit;
+        }
     >();
 
     constructor(
@@ -299,28 +304,31 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             },
         );
 
-        this.onRequest(RbsApplyPresentationLayoutRequest.type, async ({ edits, baseRevision }) => {
-            const prepared = this.preparePresentationLayout(edits, baseRevision);
-            if ("reason" in prepared) {
-                return { applied: false, reason: prepared.reason };
-            }
-            if (!(await this.confirmApprovedPresentationDemotion())) {
-                return { applied: false, reason: "cancelled" as const };
-            }
-            const applied = await this.model.applyArtifactEdit({
-                ...prepared.artifact,
-                presentation: prepared.definition,
-            });
-            if (applied) {
-                this.presentationOverlays.clear();
-            }
-            return { applied };
-        });
+        this.onRequest(
+            RbsApplyPresentationLayoutRequest.type,
+            async ({ edits, policy, baseRevision }) => {
+                const prepared = this.preparePresentationLayout(edits, policy, baseRevision);
+                if ("reason" in prepared) {
+                    return { applied: false, reason: prepared.reason };
+                }
+                if (!(await this.confirmApprovedPresentationDemotion())) {
+                    return { applied: false, reason: "cancelled" as const };
+                }
+                const applied = await this.model.applyArtifactEdit({
+                    ...prepared.artifact,
+                    presentation: prepared.definition,
+                });
+                if (applied) {
+                    this.presentationOverlays.clear();
+                }
+                return { applied };
+            },
+        );
 
         this.onRequest(
             RbsPreviewPresentationLayoutRequest.type,
-            async ({ edits, baseRevision, target }) => {
-                const prepared = this.preparePresentationLayout(edits, baseRevision);
+            async ({ edits, policy, baseRevision, target }) => {
+                const prepared = this.preparePresentationLayout(edits, policy, baseRevision);
                 if ("reason" in prepared) {
                     return { reason: prepared.reason };
                 }
@@ -338,17 +346,18 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
 
         this.onRequest(
             RbsApplyPresentationOverlayRequest.type,
-            async ({ runId, edits, baseRevision }) => {
+            async ({ runId, edits, policy, baseRevision }) => {
                 if (this.model.displayRun?.runId !== runId) {
                     return { applied: false, reason: "targetMissing" as const };
                 }
-                const prepared = this.preparePresentationLayout(edits, baseRevision);
+                const prepared = this.preparePresentationLayout(edits, policy, baseRevision);
                 if ("reason" in prepared) {
                     return { applied: false, reason: prepared.reason };
                 }
                 this.presentationOverlays.set(runId, {
                     definition: prepared.definition,
                     edits,
+                    ...(policy ? { policy } : {}),
                 });
                 this.queueStatePush();
                 return { applied: true };
@@ -614,7 +623,11 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         initialRoute?: RbsRoute,
         presentationOverlays?: ReadonlyMap<
             string,
-            { definition: PresentationDefinition; edits: PresentationLayoutEdit[] }
+            {
+                definition: PresentationDefinition;
+                edits: PresentationLayoutEdit[];
+                policy?: PresentationLayoutPolicyEdit;
+            }
         >,
     ): RbsState {
         const artifact = model.artifact;
@@ -643,6 +656,11 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 pinnedViews: pinnedViewsOf(presentationDefinition),
                 outputPresentations: outputPresentationsOf(presentationDefinition),
                 presentationRevision: presentationDefinition?.revision ?? 0,
+                presentationLayoutStrategy:
+                    presentationDefinition?.results.layout.strategy ??
+                    (presentationDefinition?.results.layout.sectionFlow === "dashboard"
+                        ? "grid"
+                        : "flow"),
                 presentationSections: (
                     presentationDefinition?.results.sections ?? defaultPresentationSections()
                 ).map((section) => ({
@@ -741,6 +759,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                       presentationOverlay: {
                           runId: displayRun.runId,
                           edits: displayOverlay.edits,
+                          ...(displayOverlay.policy ? { policy: displayOverlay.policy } : {}),
                       },
                   }
                 : {}),
@@ -795,6 +814,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
 
     private preparePresentationLayout(
         edits: PresentationLayoutEdit[],
+        policy: PresentationLayoutPolicyEdit | undefined,
         baseRevision: number,
     ):
         | { artifact: RunbookArtifactFile; definition: PresentationDefinition }
@@ -807,7 +827,11 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         const sections = definition?.results.sections ?? defaultPresentationSections();
         const sectionIds = new Set(sections.map((section) => section.id));
         const contractByNode: Record<string, string> = {};
-        let valid = artifact?.lock !== undefined && edits.length > 0 && edits.length <= 100;
+        let valid =
+            artifact?.lock !== undefined &&
+            (edits.length > 0 || policy !== undefined) &&
+            edits.length <= 100 &&
+            (policy === undefined || ["flow", "stacked", "grid"].includes(policy.strategy));
         for (const edit of edits) {
             const node = artifact?.lock?.nodes.find((candidate) => candidate.id === edit.nodeId);
             const contract = node ? expectedContractFor(node.kind, node.activityKind) : undefined;
@@ -835,10 +859,15 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         }
         return {
             artifact,
-            definition: applyPresentationLayoutEdits(definition, edits, {
-                contractByNode,
-                planRevision: artifact.lock?.planRevision,
-            }),
+            definition: applyPresentationLayoutEdits(
+                definition,
+                edits,
+                {
+                    contractByNode,
+                    planRevision: artifact.lock?.planRevision,
+                },
+                policy,
+            ),
         };
     }
 }

@@ -198,6 +198,14 @@
     box-sizing: border-box;
 }
 
+.rbs-layout-strategy-flow {
+    grid-auto-flow: row dense;
+}
+
+.rbs-layout-strategy-stacked .rbs-layout-widget {
+    grid-column: 1 / -1;
+}
+
 .rbs-preview-toolbar {
     display: flex;
     align-items: center;

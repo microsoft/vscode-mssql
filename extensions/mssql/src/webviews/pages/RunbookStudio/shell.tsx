@@ -29,6 +29,8 @@ import {
     defaultViewFor,
     expectedContractFor,
     PresentationLayoutEdit,
+    PresentationLayoutPolicyEdit,
+    PresentationLayoutStrategy,
     ResolvedPresentation,
     ResolvedWidget,
 } from "../../../sharedInterfaces/runbookPresentation";
@@ -40,8 +42,10 @@ import {
     mergePresentationLayoutEdits,
     pointerReorderPresentationLayoutEdits,
     presentationLayoutSnapshot,
+    presentationLayoutStrategy,
     PresentationLayoutConflict,
     rebasePresentationLayoutEdits,
+    rebasePresentationLayoutPolicy,
 } from "./presentationDraft";
 
 const ROUTES: Array<{ id: RbsRoute; label: () => string; icon: string }> = [
@@ -1487,10 +1491,14 @@ function usePresentationDraft(
     } = useRbs();
     const currentRevision = state?.artifact?.presentationRevision ?? 0;
     const [draftEdits, setDraftEdits] = useState<PresentationLayoutEdit[]>([]);
+    const [draftPolicy, setDraftPolicy] = useState<PresentationLayoutPolicyEdit>();
     const [draftBaseRevision, setDraftBaseRevision] = useState<number | undefined>();
     const [draftBaseline, setDraftBaseline] = useState<PresentationLayoutEdit[]>();
+    const [draftBaselineStrategy, setDraftBaselineStrategy] =
+        useState<PresentationLayoutStrategy>();
     const [draftPresentation, setDraftPresentation] = useState<ResolvedPresentation | undefined>();
     const [runOnlyEdits, setRunOnlyEdits] = useState<PresentationLayoutEdit[]>([]);
+    const [runOnlyPolicy, setRunOnlyPolicy] = useState<PresentationLayoutPolicyEdit>();
     const [runOnlyPresentation, setRunOnlyPresentation] = useState<
         ResolvedPresentation | undefined
     >();
@@ -1503,22 +1511,29 @@ function usePresentationDraft(
         target?.kind === "run" && state?.presentationOverlay?.runId === target.runId
             ? state.presentationOverlay.edits
             : [];
+    const hostRunOnlyPolicy =
+        target?.kind === "run" && state?.presentationOverlay?.runId === target.runId
+            ? state.presentationOverlay.policy
+            : undefined;
     const currentLayoutSnapshot = useMemo(
         () => presentationLayoutSnapshot(basePresentation, state?.artifact?.outputPresentations),
         [basePresentation, state?.artifact?.outputPresentations],
     );
+    const currentPersistedStrategy =
+        state?.artifact?.presentationLayoutStrategy ?? presentationLayoutStrategy(basePresentation);
 
     const resolveEdits = useCallback(
         async (
             edits: PresentationLayoutEdit[],
+            policy: PresentationLayoutPolicyEdit | undefined,
             baseRevision: number,
             destination: "draft" | "runOnly",
         ) => {
-            if (!target || edits.length === 0) {
+            if (!target || (edits.length === 0 && !policy)) {
                 return false;
             }
             const sequence = ++requestSequence.current;
-            const result = await previewPresentationLayout(edits, baseRevision, target);
+            const result = await previewPresentationLayout(edits, policy, baseRevision, target);
             if (sequence !== requestSequence.current) {
                 return false;
             }
@@ -1544,26 +1559,29 @@ function usePresentationDraft(
     useEffect(() => {
         requestSequence.current++;
         setDraftEdits([]);
+        setDraftPolicy(undefined);
         setDraftBaseRevision(undefined);
         setDraftBaseline(undefined);
+        setDraftBaselineStrategy(undefined);
         setDraftPresentation(undefined);
         setRunOnlyEdits([]);
+        setRunOnlyPolicy(undefined);
         setRunOnlyPresentation(undefined);
         setError(undefined);
         setConflict(undefined);
     }, [resetKey]);
 
     useEffect(() => {
-        if (draftEdits.length > 0 && draftBaseRevision !== undefined) {
+        if ((draftEdits.length > 0 || draftPolicy) && draftBaseRevision !== undefined) {
             setDraftPresentation(undefined);
             if (draftBaseRevision !== currentRevision) {
                 setConflict({ kind: "stale" });
             } else {
-                void resolveEdits(draftEdits, draftBaseRevision, "draft");
+                void resolveEdits(draftEdits, draftPolicy, draftBaseRevision, "draft");
             }
-        } else if (runOnlyEdits.length > 0) {
+        } else if (runOnlyEdits.length > 0 || runOnlyPolicy) {
             setRunOnlyPresentation(undefined);
-            void resolveEdits(runOnlyEdits, currentRevision, "runOnly");
+            void resolveEdits(runOnlyEdits, runOnlyPolicy, currentRevision, "runOnly");
         }
     }, [currentRevision, targetKey]);
 
@@ -1572,8 +1590,9 @@ function usePresentationDraft(
             if (!target || changes.length === 0 || conflict) {
                 return;
             }
-            if (runOnlyEdits.length > 0) {
+            if (runOnlyEdits.length > 0 || runOnlyPolicy) {
                 setRunOnlyEdits([]);
+                setRunOnlyPolicy(undefined);
                 setRunOnlyPresentation(undefined);
             }
             setDraftEdits((current) => {
@@ -1588,9 +1607,12 @@ function usePresentationDraft(
                 const revision = draftBaseRevision ?? currentRevision;
                 if (draftBaseline === undefined) {
                     setDraftBaseline(currentLayoutSnapshot);
+                    setDraftBaselineStrategy(currentPersistedStrategy);
                 }
+                const policy = draftPolicy ?? hostRunOnlyPolicy ?? runOnlyPolicy;
+                setDraftPolicy(policy);
                 setDraftBaseRevision(revision);
-                void resolveEdits(next, revision, "draft");
+                void resolveEdits(next, policy, revision, "draft");
                 return next;
             });
         },
@@ -1598,11 +1620,63 @@ function usePresentationDraft(
             conflict,
             currentRevision,
             currentLayoutSnapshot,
+            currentPersistedStrategy,
             draftBaseline,
             draftBaseRevision,
+            draftPolicy,
+            hostRunOnlyEdits,
+            hostRunOnlyPolicy,
+            resolveEdits,
+            runOnlyEdits,
+            runOnlyPolicy,
+            targetKey,
+        ],
+    );
+
+    const stagePolicy = useCallback(
+        (strategy: PresentationLayoutStrategy) => {
+            if (
+                !target ||
+                conflict ||
+                strategy === presentationLayoutStrategy(draftPresentation ?? basePresentation)
+            ) {
+                return;
+            }
+            if (runOnlyEdits.length > 0 || runOnlyPolicy) {
+                setRunOnlyEdits([]);
+                setRunOnlyPolicy(undefined);
+                setRunOnlyPresentation(undefined);
+            }
+            const policy = { strategy } satisfies PresentationLayoutPolicyEdit;
+            const edits =
+                draftEdits.length > 0
+                    ? draftEdits
+                    : hostRunOnlyEdits.length > 0
+                      ? hostRunOnlyEdits
+                      : runOnlyEdits;
+            const revision = draftBaseRevision ?? currentRevision;
+            if (draftBaseline === undefined) {
+                setDraftBaseline(currentLayoutSnapshot);
+                setDraftBaselineStrategy(currentPersistedStrategy);
+            }
+            setDraftPolicy(policy);
+            setDraftBaseRevision(revision);
+            void resolveEdits(edits, policy, revision, "draft");
+        },
+        [
+            basePresentation,
+            conflict,
+            currentLayoutSnapshot,
+            currentRevision,
+            currentPersistedStrategy,
+            draftBaseline,
+            draftBaseRevision,
+            draftEdits,
+            draftPresentation,
             hostRunOnlyEdits,
             resolveEdits,
             runOnlyEdits,
+            runOnlyPolicy,
             targetKey,
         ],
     );
@@ -1610,15 +1684,21 @@ function usePresentationDraft(
     const resetDraft = useCallback(() => {
         requestSequence.current++;
         setDraftEdits([]);
+        setDraftPolicy(undefined);
         setDraftBaseRevision(undefined);
         setDraftBaseline(undefined);
+        setDraftBaselineStrategy(undefined);
         setDraftPresentation(undefined);
         setError(undefined);
         setConflict(undefined);
     }, []);
 
     const applyToRun = useCallback(async () => {
-        if (!draftPresentation || draftEdits.length === 0 || draftBaseRevision === undefined) {
+        if (
+            !draftPresentation ||
+            (draftEdits.length === 0 && !draftPolicy) ||
+            draftBaseRevision === undefined
+        ) {
             return false;
         }
         if (target?.kind === "run") {
@@ -1627,6 +1707,7 @@ function usePresentationDraft(
                 const result = await applyPresentationOverlay(
                     target.runId,
                     draftEdits,
+                    draftPolicy,
                     draftBaseRevision,
                 );
                 if (result.applied) {
@@ -1644,6 +1725,7 @@ function usePresentationDraft(
             }
         }
         setRunOnlyEdits(draftEdits);
+        setRunOnlyPolicy(draftPolicy);
         setRunOnlyPresentation(draftPresentation);
         resetDraft();
         return true;
@@ -1651,6 +1733,7 @@ function usePresentationDraft(
         applyPresentationOverlay,
         draftBaseRevision,
         draftEdits,
+        draftPolicy,
         draftPresentation,
         resetDraft,
         targetKey,
@@ -1661,17 +1744,22 @@ function usePresentationDraft(
             await clearPresentationOverlay(target.runId);
         }
         setRunOnlyEdits([]);
+        setRunOnlyPolicy(undefined);
         setRunOnlyPresentation(undefined);
     }, [clearPresentationOverlay, state?.presentationOverlay?.runId, targetKey]);
 
     const saveToRunbook = useCallback(async () => {
-        if (draftEdits.length === 0 || draftBaseRevision === undefined) {
+        if ((draftEdits.length === 0 && !draftPolicy) || draftBaseRevision === undefined) {
             return false;
         }
         setSaving(true);
         setError(undefined);
         try {
-            const result = await applyPresentationLayout(draftEdits, draftBaseRevision);
+            const result = await applyPresentationLayout(
+                draftEdits,
+                draftPolicy,
+                draftBaseRevision,
+            );
             if (result.applied) {
                 await resetRunOnly();
                 resetDraft();
@@ -1686,10 +1774,21 @@ function usePresentationDraft(
         } finally {
             setSaving(false);
         }
-    }, [applyPresentationLayout, draftBaseRevision, draftEdits, resetDraft, resetRunOnly]);
+    }, [
+        applyPresentationLayout,
+        draftBaseRevision,
+        draftEdits,
+        draftPolicy,
+        resetDraft,
+        resetRunOnly,
+    ]);
 
     const rebase = useCallback(async () => {
-        if (draftEdits.length === 0 || draftBaseline === undefined) {
+        if (
+            (draftEdits.length === 0 && !draftPolicy) ||
+            draftBaseline === undefined ||
+            draftBaselineStrategy === undefined
+        ) {
             return;
         }
         setSaving(true);
@@ -1699,21 +1798,46 @@ function usePresentationDraft(
                 currentLayoutSnapshot,
                 draftEdits,
             );
+            const rebasedPolicy = rebasePresentationLayoutPolicy(
+                draftBaselineStrategy,
+                currentPersistedStrategy,
+                draftPolicy,
+            );
+            if (rebasedPolicy.conflict) {
+                rebased.conflicts.push({ nodeId: "$layout", fields: ["layout.strategy"] });
+            }
             if (rebased.conflicts.length > 0) {
                 setConflict({ kind: "overlap", conflicts: rebased.conflicts });
                 return;
             }
-            const resolved = await resolveEdits(rebased.edits, currentRevision, "draft");
+            const resolved = await resolveEdits(
+                rebased.edits,
+                rebasedPolicy.policy,
+                currentRevision,
+                "draft",
+            );
             if (resolved) {
                 setDraftEdits(rebased.edits);
+                setDraftPolicy(rebasedPolicy.policy);
                 setDraftBaseRevision(currentRevision);
                 setDraftBaseline(currentLayoutSnapshot);
+                setDraftBaselineStrategy(currentPersistedStrategy);
                 setConflict(undefined);
             }
         } finally {
             setSaving(false);
         }
-    }, [currentLayoutSnapshot, currentRevision, draftBaseline, draftEdits, resolveEdits]);
+    }, [
+        basePresentation,
+        currentLayoutSnapshot,
+        currentRevision,
+        currentPersistedStrategy,
+        draftBaseline,
+        draftBaselineStrategy,
+        draftEdits,
+        draftPolicy,
+        resolveEdits,
+    ]);
 
     const overwriteConflicts = useCallback(async () => {
         if (
@@ -1730,22 +1854,49 @@ function usePresentationDraft(
                 currentLayoutSnapshot,
                 draftEdits,
             );
-            const resolved = await resolveEdits(rebased.edits, currentRevision, "draft");
+            const rebasedPolicy = rebasePresentationLayoutPolicy(
+                draftBaselineStrategy ?? currentPersistedStrategy,
+                currentPersistedStrategy,
+                draftPolicy,
+            );
+            const resolved = await resolveEdits(
+                rebased.edits,
+                rebasedPolicy.policy,
+                currentRevision,
+                "draft",
+            );
             if (resolved) {
                 setDraftEdits(rebased.edits);
+                setDraftPolicy(rebasedPolicy.policy);
                 setDraftBaseRevision(currentRevision);
                 setDraftBaseline(currentLayoutSnapshot);
+                setDraftBaselineStrategy(currentPersistedStrategy);
                 setConflict(undefined);
             }
         } finally {
             setSaving(false);
         }
-    }, [conflict, currentLayoutSnapshot, currentRevision, draftBaseline, draftEdits, resolveEdits]);
+    }, [
+        basePresentation,
+        conflict,
+        currentLayoutSnapshot,
+        currentRevision,
+        currentPersistedStrategy,
+        draftBaseline,
+        draftBaselineStrategy,
+        draftEdits,
+        draftPolicy,
+        resolveEdits,
+    ]);
 
     return {
         presentation: draftPresentation ?? runOnlyPresentation ?? basePresentation,
-        pending: draftEdits.length > 0,
-        runOnly: runOnlyEdits.length > 0 || hostRunOnlyEdits.length > 0,
+        pending: draftEdits.length > 0 || draftPolicy !== undefined,
+        runOnly:
+            runOnlyEdits.length > 0 ||
+            runOnlyPolicy !== undefined ||
+            hostRunOnlyEdits.length > 0 ||
+            hostRunOnlyPolicy !== undefined,
         saving,
         error,
         conflict: conflict !== undefined,
@@ -1754,6 +1905,7 @@ function usePresentationDraft(
             conflict?.kind === "overlap" &&
             !conflict.conflicts.some((entry) => entry.fields.includes("node")),
         stageEdits,
+        stagePolicy,
         resetDraft,
         resetRunOnly,
         applyToRun,
@@ -1795,6 +1947,8 @@ function PresentationDraftBanner({
                 return loc.layoutConflictMinimumHeight;
             case "placement.priority":
                 return loc.layoutConflictPriority;
+            case "layout.strategy":
+                return loc.layoutConflictStrategy;
         }
     };
     if (!draft.pending && !draft.runOnly) {
@@ -1821,7 +1975,9 @@ function PresentationDraftBanner({
                                 {draft.conflictDetail.conflicts.map((entry) => (
                                     <li key={entry.nodeId}>
                                         {loc.layoutConflictItem(
-                                            entry.nodeId,
+                                            entry.nodeId === "$layout"
+                                                ? loc.layoutPolicy
+                                                : entry.nodeId,
                                             entry.fields.map(conflictFieldLabel).join(", "),
                                         )}
                                     </li>
@@ -1878,6 +2034,38 @@ function PresentationDraftBanner({
                 onClick={draft.pending ? draft.resetDraft : draft.resetRunOnly}>
                 {loc.resetLayoutChanges}
             </button>
+        </div>
+    );
+}
+
+function LayoutStrategyControl({
+    presentation,
+    onChange,
+    disabled = false,
+}: {
+    presentation: ResolvedPresentation;
+    onChange: (strategy: PresentationLayoutStrategy) => void;
+    disabled?: boolean;
+}) {
+    const loc = locConstants.runbookStudio;
+    const strategy = presentationLayoutStrategy(presentation);
+    return (
+        <div className="rbs-graph-toggle-group" role="group" aria-label={loc.layoutStrategy}>
+            {(["flow", "stacked", "grid"] as const).map((candidate) => (
+                <button
+                    key={candidate}
+                    type="button"
+                    className={`rbs-graph-toggle ${strategy === candidate ? "active" : ""}`}
+                    aria-pressed={strategy === candidate}
+                    disabled={disabled}
+                    onClick={() => onChange(candidate)}>
+                    {candidate === "flow"
+                        ? loc.layoutFlow
+                        : candidate === "stacked"
+                          ? loc.layoutStacked
+                          : loc.layoutGrid}
+                </button>
+            ))}
         </div>
     );
 }
@@ -1961,6 +2149,13 @@ function ResultsPage() {
                     onClick={() => setOutputsOpen((value) => !value)}>
                     {loc.outputsDrawer}
                 </button>
+                {editingLayout ? (
+                    <LayoutStrategyControl
+                        presentation={presentation}
+                        onChange={layoutDraft.stagePolicy}
+                        disabled={layoutDraft.saving || layoutDraft.conflict}
+                    />
+                ) : null}
                 <EvidenceExportControl />
             </div>
             <PresentationDraftBanner draft={layoutDraft} />
@@ -2020,7 +2215,7 @@ function PresentationSections({
                 <section className="rbs-section" key={section.id}>
                     <h2 className="rbs-section-title">{section.title}</h2>
                     <div
-                        className={`rbs-layout-grid rbs-layout-${presentation.layout.sectionFlow}`}>
+                        className={`rbs-layout-grid rbs-layout-${presentation.layout.sectionFlow} rbs-layout-strategy-${presentationLayoutStrategy(presentation)}`}>
                         {section.widgets.map((widget, index) => (
                             <div
                                 className="rbs-layout-widget"
@@ -2435,6 +2630,11 @@ function PreviewPage() {
                     onClick={() => setOutputsOpen((value) => !value)}>
                     {loc.outputsDrawer}
                 </button>
+                <LayoutStrategyControl
+                    presentation={presentation}
+                    onChange={layoutDraft.stagePolicy}
+                    disabled={layoutDraft.saving || layoutDraft.conflict}
+                />
                 <div className="rbs-graph-toggle-group" role="group" aria-label={loc.previewWidth}>
                     {(["compact", "medium", "wide"] as const).map((candidate) => (
                         <button

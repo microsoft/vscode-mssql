@@ -18,6 +18,7 @@ import {
     OutputPresentationSummary,
     OutputViewSettings,
     PresentationLayoutEdit,
+    PresentationLayoutPolicyEdit,
     PresentationDefinition,
     PresentationMode,
     RunFieldName,
@@ -84,6 +85,7 @@ export const DEFAULT_PRESENTATION_LAYOUT: ResponsiveLayoutPolicy = {
     overflowSectionId: "overflow",
     defaultSpan: { compact: 1, medium: 6, wide: 12 },
     sectionFlow: "document",
+    strategy: "flow",
 };
 
 function defaultDefinition(): PresentationDefinition {
@@ -599,6 +601,7 @@ export function applyPresentationLayoutEdits(
     definition: PresentationDefinition | undefined,
     edits: PresentationLayoutEdit[],
     metadata?: { contractByNode?: Record<string, string>; planRevision?: string },
+    policy?: PresentationLayoutPolicyEdit,
 ): PresentationDefinition {
     const base = definition ?? defaultDefinition();
     const widgets = [...base.results.widgets];
@@ -652,7 +655,19 @@ export function applyPresentationLayoutEdits(
         ...base,
         revision: base.revision + 1,
         ...(metadata?.planRevision ? { authoredForPlanRevision: metadata.planRevision } : {}),
-        results: { ...base.results, widgets },
+        results: {
+            ...base.results,
+            widgets,
+            ...(policy
+                ? {
+                      layout: {
+                          ...base.results.layout,
+                          strategy: policy.strategy,
+                          sectionFlow: policy.strategy === "grid" ? "dashboard" : "document",
+                      },
+                  }
+                : {}),
+        },
     };
 }
 
@@ -869,7 +884,9 @@ function validateV2(raw: Record<string, unknown>): PresentationDefinition | unde
         typeof layout.overflowSectionId !== "string" ||
         !sectionIds.has(layout.overflowSectionId) ||
         !isRecord(layout.defaultSpan) ||
-        (layout.sectionFlow !== "document" && layout.sectionFlow !== "dashboard")
+        (layout.sectionFlow !== "document" && layout.sectionFlow !== "dashboard") ||
+        (layout.strategy !== undefined &&
+            !["flow", "stacked", "grid"].includes(String(layout.strategy)))
     ) {
         return undefined;
     }

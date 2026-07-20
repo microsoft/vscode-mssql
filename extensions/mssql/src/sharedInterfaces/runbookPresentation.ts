@@ -292,6 +292,15 @@ export interface PresentationLayoutEdit {
     hidden: boolean;
 }
 
+export type PresentationLayoutStrategy = "flow" | "stacked" | "grid";
+
+/** Semantic page-level layout edit. The host derives the lower-level
+ * document/dashboard flow from this closed strategy rather than accepting
+ * arbitrary CSS or pixel geometry from the webview. */
+export interface PresentationLayoutPolicyEdit {
+    strategy: PresentationLayoutStrategy;
+}
+
 export type PresentationProvenance =
     | { by: "default" }
     | { by: "ai"; promptSpan?: string; modelLabel?: string }
@@ -364,6 +373,9 @@ export interface ResponsiveLayoutPolicy {
     overflowSectionId: string;
     defaultSpan: ResponsiveSpan;
     sectionFlow: "document" | "dashboard";
+    /** Optional for persisted schema-v2 compatibility. Older definitions
+     * derive Flow from document and Grid from dashboard. */
+    strategy?: PresentationLayoutStrategy;
 }
 
 export interface ResultsSurfaceDefinition {

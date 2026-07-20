@@ -722,4 +722,28 @@ suite("presentationResolver", () => {
         );
         expect(ids.slice(0, 2)).to.deep.equal(["w2", "w1"]);
     });
+
+    test("layout policy edits persist Flow, Stacked, and Grid semantics without widget edits", () => {
+        const stacked = applyPresentationLayoutEdits(
+            definition(),
+            [],
+            { planRevision: "10" },
+            { strategy: "stacked" },
+        );
+        expect(stacked.revision).to.equal(4);
+        expect(stacked.authoredForPlanRevision).to.equal("10");
+        expect(stacked.results.layout).to.include({
+            strategy: "stacked",
+            sectionFlow: "document",
+        });
+        expect(stacked.results.widgets).to.deep.equal(definition().results.widgets);
+
+        const grid = applyPresentationLayoutEdits(stacked, [], undefined, { strategy: "grid" });
+        expect(grid.results.layout).to.include({ strategy: "grid", sectionFlow: "dashboard" });
+        expect(validatePresentationDefinition(grid)).to.deep.equal(grid);
+
+        const invalid = structuredClone(grid) as PresentationDefinition;
+        invalid.results.layout.strategy = "tiles" as "grid";
+        expect(validatePresentationDefinition(invalid)).to.equal(undefined);
+    });
 });

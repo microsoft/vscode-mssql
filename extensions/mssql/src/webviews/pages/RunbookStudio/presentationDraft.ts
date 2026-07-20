@@ -6,6 +6,8 @@
 import {
     OutputPresentationSummary,
     PresentationLayoutEdit,
+    PresentationLayoutPolicyEdit,
+    PresentationLayoutStrategy,
     ResolvedPresentation,
 } from "../../../sharedInterfaces/runbookPresentation";
 
@@ -20,7 +22,8 @@ export type PresentationLayoutConflictField =
     | "placement.span.medium"
     | "placement.span.wide"
     | "placement.minHeight"
-    | "placement.priority";
+    | "placement.priority"
+    | "layout.strategy";
 
 export interface PresentationLayoutConflict {
     nodeId: string;
@@ -30,6 +33,39 @@ export interface PresentationLayoutConflict {
 export interface PresentationLayoutRebase {
     edits: PresentationLayoutEdit[];
     conflicts: PresentationLayoutConflict[];
+}
+
+export interface PresentationLayoutPolicyRebase {
+    policy?: PresentationLayoutPolicyEdit;
+    conflict: boolean;
+}
+
+/** Normalize optional schema-v2 strategy metadata. Definitions written
+ * before strategy authoring used document for flow and dashboard for grid. */
+export function presentationLayoutStrategy(
+    presentation: ResolvedPresentation | undefined,
+): PresentationLayoutStrategy {
+    return (
+        presentation?.layout.strategy ??
+        (presentation?.layout.sectionFlow === "dashboard" ? "grid" : "flow")
+    );
+}
+
+/** Three-way merge the page-level layout policy independently from widget
+ * fields. The local value is retained for an explicit conflict preview, but
+ * callers must not persist it until the user confirms. */
+export function rebasePresentationLayoutPolicy(
+    baseline: PresentationLayoutStrategy,
+    current: PresentationLayoutStrategy,
+    local: PresentationLayoutPolicyEdit | undefined,
+): PresentationLayoutPolicyRebase {
+    if (!local || local.strategy === baseline) {
+        return { conflict: false };
+    }
+    return {
+        policy: local,
+        conflict: current !== baseline && current !== local.strategy,
+    };
 }
 
 /** Merge staged layout edits by their stable output-node identity. A later
@@ -141,6 +177,8 @@ function fieldValue(edit: PresentationLayoutEdit, field: PresentationLayoutConfl
             return edit.placement.minHeight;
         case "placement.priority":
             return edit.placement.priority;
+        case "layout.strategy":
+            return undefined;
         case "node":
             return edit.nodeId;
     }
@@ -214,6 +252,7 @@ function withField(
             break;
         }
         case "node":
+        case "layout.strategy":
             break;
     }
     return next;

@@ -8,9 +8,14 @@ import {
     mergePresentationLayoutEdits,
     presentationLayoutSnapshot,
     pointerReorderPresentationLayoutEdits,
+    presentationLayoutStrategy,
     rebasePresentationLayoutEdits,
+    rebasePresentationLayoutPolicy,
 } from "../../src/webviews/pages/RunbookStudio/presentationDraft";
-import { PresentationLayoutEdit } from "../../src/sharedInterfaces/runbookPresentation";
+import {
+    PresentationLayoutEdit,
+    ResolvedPresentation,
+} from "../../src/sharedInterfaces/runbookPresentation";
 
 function edit(nodeId: string, order: number, hidden = false): PresentationLayoutEdit {
     return {
@@ -125,5 +130,27 @@ suite("presentationDraft", () => {
                 hidden: true,
             },
         ]);
+    });
+
+    test("layout strategy normalizes older definitions and rebases non-overlapping changes", () => {
+        const presentation = {
+            layout: { sectionFlow: "dashboard" },
+        } as ResolvedPresentation;
+        expect(presentationLayoutStrategy(presentation)).to.equal("grid");
+        expect(
+            rebasePresentationLayoutPolicy("flow", "flow", { strategy: "stacked" }),
+        ).to.deep.equal({ policy: { strategy: "stacked" }, conflict: false });
+        expect(rebasePresentationLayoutPolicy("flow", "grid", undefined)).to.deep.equal({
+            conflict: false,
+        });
+    });
+
+    test("layout strategy rebase reports differently overlapping policy changes", () => {
+        expect(
+            rebasePresentationLayoutPolicy("flow", "grid", { strategy: "stacked" }),
+        ).to.deep.equal({ policy: { strategy: "stacked" }, conflict: true });
+        expect(
+            rebasePresentationLayoutPolicy("flow", "stacked", { strategy: "stacked" }),
+        ).to.deep.equal({ policy: { strategy: "stacked" }, conflict: false });
     });
 });

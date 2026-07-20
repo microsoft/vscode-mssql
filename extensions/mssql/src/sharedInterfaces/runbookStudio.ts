@@ -16,6 +16,8 @@ import type {
     OutputPresentationSummary,
     OutputViewSettings,
     PresentationLayoutEdit,
+    PresentationLayoutPolicyEdit,
+    PresentationLayoutStrategy,
     PresentationMode,
     ResolvedPresentation,
     ViewKind,
@@ -441,6 +443,7 @@ export interface RbsArtifactSummary {
     /** V2 multi-view authoring projection by primary-output node id. */
     outputPresentations?: Record<string, OutputPresentationSummary>;
     presentationRevision?: number;
+    presentationLayoutStrategy?: PresentationLayoutStrategy;
     presentationSections?: Array<{
         id: string;
         label?: string;
@@ -501,7 +504,11 @@ export interface RbsState {
     presentation?: ResolvedPresentation;
     /** Session-only layout overlay for one run. It survives page navigation
      * and state pushes but is never written into the runbook artifact. */
-    presentationOverlay?: { runId: string; edits: PresentationLayoutEdit[] };
+    presentationOverlay?: {
+        runId: string;
+        edits: PresentationLayoutEdit[];
+        policy?: PresentationLayoutPolicyEdit;
+    };
     /** Pre-run presentation resolved against bounded synthetic handles. */
     previewPresentation?: ResolvedPresentation;
     /** Branch-aware pre-run lenses. Every presentation is resolved with the
@@ -610,7 +617,11 @@ export namespace RbsSetOutputPresentationRequest {
 
 export namespace RbsApplyPresentationLayoutRequest {
     export const type = new RequestType<
-        { edits: PresentationLayoutEdit[]; baseRevision: number },
+        {
+            edits: PresentationLayoutEdit[];
+            policy?: PresentationLayoutPolicyEdit;
+            baseRevision: number;
+        },
         { applied: boolean; reason?: "invalid" | "revisionConflict" | "cancelled" },
         void
     >("rbs/applyPresentationLayout");
@@ -623,6 +634,7 @@ export namespace RbsPreviewPresentationLayoutRequest {
     export const type = new RequestType<
         {
             edits: PresentationLayoutEdit[];
+            policy?: PresentationLayoutPolicyEdit;
             baseRevision: number;
             target:
                 | { kind: "run"; runId: string }
@@ -641,7 +653,12 @@ export namespace RbsPreviewPresentationLayoutRequest {
 
 export namespace RbsApplyPresentationOverlayRequest {
     export const type = new RequestType<
-        { runId: string; edits: PresentationLayoutEdit[]; baseRevision: number },
+        {
+            runId: string;
+            edits: PresentationLayoutEdit[];
+            policy?: PresentationLayoutPolicyEdit;
+            baseRevision: number;
+        },
         { applied: boolean; reason?: "invalid" | "revisionConflict" | "targetMissing" },
         void
     >("rbs/applyPresentationOverlay");

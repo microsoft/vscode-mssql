@@ -48,6 +48,7 @@ import {
 } from "../../../sharedInterfaces/runbookStudio";
 import {
     PresentationLayoutEdit,
+    PresentationLayoutPolicyEdit,
     PresentationMode,
     OutputViewSettings,
     ResolvedPresentation,
@@ -230,10 +231,12 @@ interface RbsContextValue {
     ) => Promise<{ applied: boolean; reason?: "invalid" | "revisionConflict" }>;
     applyPresentationLayout: (
         edits: PresentationLayoutEdit[],
+        policy: PresentationLayoutPolicyEdit | undefined,
         baseRevision: number,
     ) => Promise<{ applied: boolean; reason?: "invalid" | "revisionConflict" | "cancelled" }>;
     previewPresentationLayout: (
         edits: PresentationLayoutEdit[],
+        policy: PresentationLayoutPolicyEdit | undefined,
         baseRevision: number,
         target:
             | { kind: "run"; runId: string }
@@ -248,6 +251,7 @@ interface RbsContextValue {
     applyPresentationOverlay: (
         runId: string,
         edits: PresentationLayoutEdit[],
+        policy: PresentationLayoutPolicyEdit | undefined,
         baseRevision: number,
     ) => Promise<{
         applied: boolean;
@@ -403,14 +407,23 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
     );
 
     const applyPresentationLayout = useCallback(
-        async (edits: PresentationLayoutEdit[], baseRevision: number) =>
-            rpc.sendRequest(RbsApplyPresentationLayoutRequest.type, { edits, baseRevision }),
+        async (
+            edits: PresentationLayoutEdit[],
+            policy: PresentationLayoutPolicyEdit | undefined,
+            baseRevision: number,
+        ) =>
+            rpc.sendRequest(RbsApplyPresentationLayoutRequest.type, {
+                edits,
+                ...(policy ? { policy } : {}),
+                baseRevision,
+            }),
         [rpc],
     );
 
     const previewPresentationLayout = useCallback(
         (
             edits: PresentationLayoutEdit[],
+            policy: PresentationLayoutPolicyEdit | undefined,
             baseRevision: number,
             target:
                 | { kind: "run"; runId: string }
@@ -421,6 +434,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
         ) =>
             rpc.sendRequest(RbsPreviewPresentationLayoutRequest.type, {
                 edits,
+                ...(policy ? { policy } : {}),
                 baseRevision,
                 target,
             }),
@@ -428,10 +442,16 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
     );
 
     const applyPresentationOverlay = useCallback(
-        (runId: string, edits: PresentationLayoutEdit[], baseRevision: number) =>
+        (
+            runId: string,
+            edits: PresentationLayoutEdit[],
+            policy: PresentationLayoutPolicyEdit | undefined,
+            baseRevision: number,
+        ) =>
             rpc.sendRequest(RbsApplyPresentationOverlayRequest.type, {
                 runId,
                 edits,
+                ...(policy ? { policy } : {}),
                 baseRevision,
             }),
         [rpc],
