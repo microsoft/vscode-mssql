@@ -13,6 +13,7 @@
 
 import {
     RbsError,
+    RbsEvidenceExportFormat,
     RbsPlannerProgressEvent,
     RunbookRunSnapshot,
 } from "../sharedInterfaces/runbookStudio";
@@ -52,6 +53,14 @@ export interface RunbookRunCoordinator {
         model: RunbookStudioDocumentModel,
         page: { handleId: string; startRow: number; rowCount: number },
     ): Promise<OutputPageResult>;
+
+    /** Save a deterministic, secret-safe projection of one run's durable
+     * evidence bundle. The save picker and payload remain host-owned. */
+    exportEvidence(
+        model: RunbookStudioDocumentModel,
+        runId: string,
+        format: RbsEvidenceExportFormat,
+    ): Promise<{ exported: boolean; cancelled?: boolean; error?: RbsError }>;
 
     /** Diagnostics trace for a run this window started (Debug Console link). */
     traceIdOf(runId: string): string | undefined;

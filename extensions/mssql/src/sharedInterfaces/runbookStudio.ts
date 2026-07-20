@@ -631,6 +631,19 @@ export namespace RbsFetchOutputPageRequest {
     >("rbs/fetchOutputPage");
 }
 
+/** CI-friendly projections of the host-retained evidence manifest. The
+ * webview sends only a run identity and format; evidence content and the
+ * destination URI stay in the trusted extension host. */
+export type RbsEvidenceExportFormat = "json" | "junit" | "sarif" | "markdown";
+
+export namespace RbsExportEvidenceRequest {
+    export const type = new RequestType<
+        { runId: string; format: RbsEvidenceExportFormat },
+        { exported: boolean; cancelled?: boolean; error?: RbsError },
+        void
+    >("rbs/exportEvidence");
+}
+
 /** Open the Debug Console trace for this run/operator (RBS2-7 deep link). */
 export namespace RbsOpenDiagnosticsRequest {
     export const type = new RequestType<

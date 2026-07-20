@@ -24,6 +24,8 @@ import type {
     RunbookPlanNode,
 } from "../../sharedInterfaces/runbookStudio";
 import type { RunbookOperationContext } from "../runbookDiag";
+import { buildLocalEvidenceBundle, LocalEvidenceNodeInput } from "./localEvidenceBundle";
+import type { LocalToolchainProvenance } from "./localToolchainProvenance";
 import type {
     RunbookRuntimeAdapter,
     RuntimeBoundaryEvent,
@@ -51,6 +53,51 @@ interface ActiveRun {
         resolve: (approved: boolean) => void;
     };
 }
+
+interface FakeEvidenceContext {
+    runId: string;
+    runbookId: string;
+    planRevision: string;
+    planHash: string;
+    nodes: LocalEvidenceNodeInput[];
+}
+
+const FAKE_TOOLCHAIN: LocalToolchainProvenance = {
+    complete: false,
+    components: [
+        {
+            id: "vscode",
+            version: "0.0.0-fake",
+            status: "resolved",
+            versionSource: "host",
+        },
+        {
+            id: "mssqlExtension",
+            version: "0.0.0-fake",
+            status: "resolved",
+            versionSource: "extensionManifest",
+        },
+        {
+            id: "sqlDatabaseProjectsExtension",
+            version: null,
+            status: "unavailable",
+            versionSource: "none",
+        },
+        {
+            id: "sqlToolsService",
+            version: null,
+            status: "unavailable",
+            versionSource: "none",
+        },
+        {
+            id: "dacFx",
+            version: null,
+            status: "unavailable",
+            versionSource: "none",
+            hostComponent: "sqlToolsService",
+        },
+    ],
+};
 
 /** Deterministic pause point so cancellation has a window between nodes. */
 function tick(): Promise<void> {
@@ -211,6 +258,7 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
         const visited = new Set<string>();
         /** Deterministic values produced by executed nodes ($nodes.<id>.<k>). */
         const nodeValues = new Map<string, Record<string, number | string | boolean>>();
+        const evidenceNodes = new Map<string, LocalEvidenceNodeInput>();
         const emit = (event: RuntimeBoundaryEvent) => {
             if (!run.terminalSent) {
                 observer.onEvent(event);
@@ -290,6 +338,12 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
                     outcome: approved ? "success" : "failure",
                     message: approved ? "Approved" : "Rejected",
                 });
+                evidenceNodes.set(current.id, {
+                    nodeId: current.id,
+                    state: approved ? "succeeded" : "failed",
+                    attempt: 1,
+                    outcome: approved ? "success" : "failure",
+                });
                 if (!approved) {
                     verdict = "fail";
                 }
@@ -341,6 +395,13 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
                     request.parameterValues,
                     nodeValues,
                     this.delegate === undefined,
+                    {
+                        runId: request.runId,
+                        runbookId: request.artifact.id,
+                        planRevision: lock.planRevision,
+                        planHash: lock.planHash,
+                        nodes: [...evidenceNodes.values()],
+                    },
                 );
                 if (result.values) {
                     nodeValues.set(current.id, result.values);
@@ -353,6 +414,31 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
                     outcome: result.success ? "success" : "failure",
                     ...(result.message ? { message: result.message } : {}),
                     ...(result.output ? { output: result.output } : {}),
+                });
+                evidenceNodes.set(current.id, {
+                    nodeId: current.id,
+                    ...(current.activityKind ? { activityKind: current.activityKind } : {}),
+                    state: result.success ? "succeeded" : "failed",
+                    attempt: 1,
+                    outcome: result.success ? "success" : "failure",
+                    ...(result.output
+                        ? {
+                              outputs: [
+                                  {
+                                      handleId: `fake/${current.id}`,
+                                      contract: result.output.contract,
+                                      ...(result.output.rows
+                                          ? { rows: result.output.rows.length }
+                                          : {}),
+                                      bytes: Buffer.byteLength(
+                                          JSON.stringify(result.output),
+                                          "utf8",
+                                      ),
+                                  },
+                              ],
+                          }
+                        : {}),
+                    ...(result.output?.scalars ? { scalars: result.output.scalars } : {}),
                 });
                 if (result.verdict) {
                     verdict = result.verdict;
@@ -431,6 +517,7 @@ function executeNode(
     parameterValues: Record<string, string | number | boolean | null>,
     nodeValues: Map<string, Record<string, number | string | boolean>>,
     allowPreviewActivities: boolean,
+    evidenceContext: FakeEvidenceContext,
 ): NodeExecution {
     if (node.kind === "report") {
         return {
@@ -651,27 +738,34 @@ function executeNode(
                 values: { cleaned: true },
             };
         }
-        case "evidence.bundle":
+        case "evidence.bundle": {
+            const bundle = buildLocalEvidenceBundle({
+                ...evidenceContext,
+                runtimeKind: "fake",
+                toolchain: FAKE_TOOLCHAIN,
+                generatedAtUtc: "1970-01-01T00:00:00.000Z",
+            });
             return {
                 success: true,
-                verdict: "pass",
+                verdict: bundle.verdict === "pass" ? "pass" : "fail",
                 message: "Evidence manifest assembled (deterministic preview)",
                 output: {
                     contract: "evidenceBundle/1",
-                    text: '{"contract":"evidenceBundle/1","preview":true,"verdict":"pass"}',
+                    text: bundle.manifestJson,
                     scalars: {
-                        bundleSha256: "preview-evidence-bundle-sha256",
-                        nodeCount: 11,
-                        verdict: "pass",
+                        bundleSha256: bundle.bundleSha256,
+                        nodeCount: bundle.nodeCount,
+                        verdict: bundle.verdict,
                         preview: true,
                     },
                 },
                 values: {
-                    bundleSha256: "preview-evidence-bundle-sha256",
-                    nodeCount: 11,
-                    verdict: "pass",
+                    bundleSha256: bundle.bundleSha256,
+                    nodeCount: bundle.nodeCount,
+                    verdict: bundle.verdict,
                 },
             };
+        }
         case "sql.query.read": {
             return {
                 success: true,

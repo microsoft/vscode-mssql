@@ -251,6 +251,11 @@
     cursor: default;
 }
 
+.rbs-btn:disabled {
+    opacity: 0.5;
+    cursor: default;
+}
+
 .rbs-input {
     width: 100%;
     max-width: 260px;

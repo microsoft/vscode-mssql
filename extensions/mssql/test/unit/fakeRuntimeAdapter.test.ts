@@ -13,6 +13,7 @@
 import { expect } from "chai";
 import { createFixtureRunbookArtifact } from "../../src/runbookStudio/runbookArtifact";
 import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudio/developerValidationPreview";
+import { buildEvidenceExport } from "../../src/runbookStudio/evidenceExport";
 import { newRunbookRootContext } from "../../src/runbookStudio/runbookDiag";
 import {
     type ActivityExecutionDelegate,
@@ -312,6 +313,18 @@ suite("fakeRuntimeAdapter", () => {
                 event.state === "succeeded",
         ) as Extract<RuntimeBoundaryEvent, { kind: "nodeState" }>;
         expect(preview.output?.scalars).to.include({ changeCount: 3, preview: true });
+        const evidence = observer.events.find(
+            (event) =>
+                event.kind === "nodeState" &&
+                event.nodeId === "bundle-evidence" &&
+                event.state === "succeeded",
+        ) as Extract<RuntimeBoundaryEvent, { kind: "nodeState" }>;
+        const manifest = JSON.parse(evidence.output?.text ?? "{}");
+        expect(manifest).to.include({ schemaVersion: 2, contract: "evidenceBundle/1" });
+        expect(manifest.run.runtimeKind).to.equal("fake");
+        expect(manifest.toolchain.requiredComponents).to.deep.equal(["vscode", "mssqlExtension"]);
+        expect(manifest.nodes).to.have.length.greaterThan(0);
+        expect(() => buildEvidenceExport(evidence.output?.text ?? "", "junit")).not.to.throw();
     });
 
     test("developer publish failure still executes cleanup and failing evidence", async () => {

@@ -24,6 +24,7 @@ import { RunbookStudio as LocRunbookStudio } from "../constants/locConstants";
 import { Perf } from "../perf/perfTelemetry";
 import {
     RbsError,
+    RbsEvidenceExportFormat,
     RbsPlannerProgressEvent,
     RunbookArtifactFile,
     RunbookParameterDefinition,
@@ -64,6 +65,7 @@ import {
     RunbookApprovalLedger,
 } from "./runbookApprovalLedger";
 
+import { buildEvidenceExport, EvidenceExportError, evidenceExportFileName } from "./evidenceExport";
 import { RunbookResultStore } from "./runbookResultStore";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import { compileIntentWithModel } from "./models/planCompiler";
@@ -669,6 +671,117 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             };
         }
         return result;
+    }
+
+    public async exportEvidence(
+        model: RunbookStudioDocumentModel,
+        runId: string,
+        format: RbsEvidenceExportFormat,
+    ): Promise<{ exported: boolean; cancelled?: boolean; error?: RbsError }> {
+        const context = newRunbookRootContext("evidenceExport");
+        let eventCount = 0;
+        let artifactCount = 0;
+        Perf.marker(
+            "mssql.runbookStudio.evidence.export.begin",
+            "begin",
+            undefined,
+            context.traceId,
+        );
+        try {
+            const snapshot = this.ledger.snapshotOf(runId);
+            const artifact = model.artifact;
+            if (
+                !snapshot ||
+                !artifact ||
+                snapshot.runbookId !== artifact.id ||
+                !["succeeded", "failed", "cancelled"].includes(snapshot.state)
+            ) {
+                return { exported: false, error: evidenceUnavailableError() };
+            }
+            eventCount = snapshot.nodes.length;
+            let evidenceHandle: string | undefined;
+            for (let nodeIndex = snapshot.nodes.length - 1; nodeIndex >= 0; nodeIndex--) {
+                const outputs = snapshot.nodes[nodeIndex].outputs ?? [];
+                for (let outputIndex = outputs.length - 1; outputIndex >= 0; outputIndex--) {
+                    if (
+                        outputs[outputIndex].contract === "evidenceBundle/1" &&
+                        outputs[outputIndex].expired !== true &&
+                        outputs[outputIndex].truncated !== true
+                    ) {
+                        evidenceHandle = outputs[outputIndex].handleId;
+                        break;
+                    }
+                }
+                if (evidenceHandle) {
+                    break;
+                }
+            }
+            if (!evidenceHandle) {
+                return { exported: false, error: evidenceUnavailableError() };
+            }
+            const payload = this.resultStore.readTextPayload(evidenceHandle, "evidenceBundle/1");
+            if (!payload || payload.truncated) {
+                return { exported: false, error: evidenceUnavailableError() };
+            }
+            const exportArtifact = buildEvidenceExport(payload.text, format);
+            if (
+                exportArtifact.sourceIdentity.runId !== snapshot.runId ||
+                exportArtifact.sourceIdentity.runbookId !== snapshot.runbookId ||
+                exportArtifact.sourceIdentity.planRevision !== snapshot.planRevision ||
+                exportArtifact.sourceIdentity.planHash !== snapshot.planHash ||
+                exportArtifact.sourceIdentity.verdict !== snapshot.verdict
+            ) {
+                return {
+                    exported: false,
+                    error: {
+                        code: "RunbookStudio.DataUnavailable",
+                        message: LocRunbookStudio.evidenceExportInvalid,
+                    },
+                };
+            }
+            const fileName = evidenceExportFileName(
+                artifact.name,
+                snapshot.runId,
+                exportArtifact.extension,
+            );
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            const target = await vscode.window.showSaveDialog({
+                title: LocRunbookStudio.evidenceExportTitle,
+                ...(workspaceFolder
+                    ? { defaultUri: vscode.Uri.joinPath(workspaceFolder.uri, fileName) }
+                    : {}),
+                filters: { [exportArtifact.filterLabel]: [exportArtifact.extension] },
+            });
+            if (!target) {
+                return { exported: false, cancelled: true };
+            }
+            await vscode.workspace.fs.writeFile(
+                target,
+                Buffer.from(exportArtifact.content, "utf8"),
+            );
+            artifactCount = 1;
+            void vscode.window.showInformationMessage(LocRunbookStudio.evidenceExported);
+            return { exported: true };
+        } catch (error) {
+            return {
+                exported: false,
+                error: {
+                    code: "RunbookStudio.DataUnavailable",
+                    message:
+                        error instanceof EvidenceExportError
+                            ? LocRunbookStudio.evidenceExportInvalid
+                            : LocRunbookStudio.evidenceExportFailed,
+                    ...(error instanceof EvidenceExportError ? {} : { retryable: true }),
+                },
+            };
+        } finally {
+            Perf.marker(
+                "mssql.runbookStudio.evidence.export.end",
+                "end",
+                { eventCount, artifactCount },
+                context.traceId,
+            );
+        }
     }
 
     public traceIdOf(runId: string): string | undefined {
@@ -3070,6 +3183,13 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             errorMessage: LocRunbookStudio.runtimeExited,
         });
     }
+}
+
+function evidenceUnavailableError(): RbsError {
+    return {
+        code: "RunbookStudio.DataUnavailable",
+        message: LocRunbookStudio.evidenceExportUnavailable,
+    };
 }
 
 // ---------------------------------------------------------------------------

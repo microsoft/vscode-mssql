@@ -413,6 +413,17 @@ export class RunbookStudio {
             comment: ["{0} is fail or indeterminate"],
         });
     public static evidenceBundleCancelled = l10n.t("Evidence bundle creation was cancelled.");
+    public static evidenceExportTitle = l10n.t("Export run evidence");
+    public static evidenceExported = l10n.t("Run evidence exported.");
+    public static evidenceExportUnavailable = l10n.t(
+        "This run does not have a complete evidence bundle to export.",
+    );
+    public static evidenceExportInvalid = l10n.t(
+        "This run's evidence bundle is invalid and cannot be exported safely.",
+    );
+    public static evidenceExportFailed = l10n.t(
+        "Run evidence could not be exported. Choose a writable destination and try again.",
+    );
     public static databaseProjectMustBeSqlproj = (projectPath: string) =>
         l10n.t({
             message: "Database project target '{0}' must be a .sqlproj file.",

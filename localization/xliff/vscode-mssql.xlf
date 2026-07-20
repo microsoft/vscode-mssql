@@ -3118,6 +3118,9 @@
       <source xml:lang="en">Evidence bundle was captured with verdict &apos;{0}&apos;.</source>
       <note>{0} is fail or indeterminate</note>
     </trans-unit>
+    <trans-unit id="++CODE++c9ab251e2abdbc5953a399c700b3f470fb903feffe7c3c170b8253f25046dc5d">
+      <source xml:lang="en">Evidence format:</source>
+    </trans-unit>
     <trans-unit id="++CODE++ef0cb162a837dc75d0bc705304a331f2f1bbc2a81e7611348518734ef5e5dc5b">
       <source xml:lang="en">Example: Find queries with {0} &gt; 100</source>
       <note>{0} is the column name</note>
@@ -3274,6 +3277,12 @@
     <trans-unit id="++CODE++5be15d5b5b4cc52954f9556226d71e11e6615cc61f77411094cb407fb0327ff1">
       <source xml:lang="en">Export all results to an Excel file</source>
     </trans-unit>
+    <trans-unit id="++CODE++caab91492e0e564bac705e75ec05a209c89241c96046b9228419fbf9a81bce7b">
+      <source xml:lang="en">Export evidence</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5bd9f7f4dd89b950170288413c8e828e649cbd447f2e0bee021ef48592ea4114">
+      <source xml:lang="en">Export run evidence</source>
+    </trans-unit>
     <trans-unit id="++CODE++db58c9165373339af3f704ec69490c93458bb6a0c870a7dca79c243948cc02e1">
       <source xml:lang="en">Export the schema and data from a SQL database to a .bacpac file</source>
     </trans-unit>
@@ -3304,6 +3313,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c6f66b11bb77919ad8b1894fbdb2341d518f92d668331ca0844e78f252ce7321">
       <source xml:lang="en">Exporting results…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++378bd5ed6d2b3e238ff0b40d670435da99151ea47dffcfd95d299550d540a9cd">
+      <source xml:lang="en">Exporting…</source>
     </trans-unit>
     <trans-unit id="++CODE++29b442400008bbd807940df17eeffd10d069f415bd2c1320d813f2e61a223095">
       <source xml:lang="en">Expose as MCP DML tools</source>
@@ -4485,6 +4497,9 @@
     <trans-unit id="++CODE++db1a21a0bc2ef8fbe13ac4cf044e8c9116d29137d5ed8b916ab63dcb2d4290df">
       <source xml:lang="en">JSON</source>
     </trans-unit>
+    <trans-unit id="++CODE++eb7d855f3dfd162b11295fcac7765947b7ee21096e2a3d422454f59e5f69e606">
+      <source xml:lang="en">JUnit XML</source>
+    </trans-unit>
     <trans-unit id="++CODE++b91185f63fbbc17c093e3d2b7a50b755ba38d0e3a2bf1c82e079236e0624c673">
       <source xml:lang="en">Join the discussions</source>
     </trans-unit>
@@ -4928,6 +4943,9 @@
     <trans-unit id="++CODE++bc9503a89518d47aeceed119c50d8826d8ca48592bd977647da2b8e49a240ed3">
       <source xml:lang="en">MSSQL: What&apos;s new</source>
     </trans-unit>
+    <trans-unit id="++CODE++57f7f5bf09854a03ef167193dd88b8c3ba8dc3b8b034328a0a5e2e89ad5e89d1">
+      <source xml:lang="en">Machine JSON</source>
+    </trans-unit>
     <trans-unit id="++CODE++4812f4553152a2d4f7e8c4ddbd2740db0fd157638b9723fc369790631aa21061">
       <source xml:lang="en">Maintenance Window</source>
     </trans-unit>
@@ -4960,6 +4978,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4d2c1b44580c3174463c5515d330b289c012384751e5350be4cb2b5d568d174f">
       <source xml:lang="en">Map zoom controls</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0e52f6b9d02515c59bb4fdeec2762fdbe701080c82986fc4dfbefcb1e2389817">
+      <source xml:lang="en">Markdown</source>
     </trans-unit>
     <trans-unit id="++CODE++a1a5936d3b0f8a69fd62c91ed9990d3bd414c5e78c603e2837c65c9f46a93eb8">
       <source xml:lang="en">Max</source>
@@ -6883,6 +6904,12 @@
     <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
       <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
     </trans-unit>
+    <trans-unit id="++CODE++94dea0068085644c3aae9c2c2334063b0eca10a1779b6547be1fa61eaec79318">
+      <source xml:lang="en">Run evidence could not be exported. Choose a writable destination and try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6780edb0af9a38b66693bca9d5e073f20d72c602c14fae00f35b6701f1013d6c">
+      <source xml:lang="en">Run evidence exported.</source>
+    </trans-unit>
     <trans-unit id="++CODE++98fc98c876f876665c38a429c4f73c45faaebca208b98dc881a2ce8d2c9eaf1d">
       <source xml:lang="en">Run in progress…</source>
     </trans-unit>
@@ -6993,6 +7020,9 @@
     <trans-unit id="++CODE++c650e15b69c35c39b6ff6743c908ed1db08e9d4840abb2ebfce8303e88b9507a">
       <source xml:lang="en">Running: {0}</source>
       <note>{0} is how long the query has been running</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a2ed054db50da31db52e2b3320b15f87c366191789d306ad1e0682baf1590762">
+      <source xml:lang="en">SARIF</source>
     </trans-unit>
     <trans-unit id="++CODE++a7056a455639d1c7deec82ee787db24a0c1878e2792b4597709f0facf7cc7b35">
       <source xml:lang="en">SQL</source>
@@ -8631,8 +8661,14 @@
     <trans-unit id="++CODE++54623e8b2c722f78d23fe37acdc9223f3d0afa167f91614fa16228823d9003c5">
       <source xml:lang="en">This run did not finish — the window closed while it was still running.</source>
     </trans-unit>
+    <trans-unit id="++CODE++78b9bdb7d3c28c439bb9d8a815d5748af3f16efa4b874f18b2be3826caf8c8c2">
+      <source xml:lang="en">This run does not have a complete evidence bundle to export.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d61a4b2a59e09dacacd07c8f32c2a1b3243269a241d27d5dac0f6b2ac82f41d9">
       <source xml:lang="en">This run has not produced any typed outputs.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d3079132afe7a91a3aee5c15f1f721d75a0cd4f907525a3dc211339e196c75ca">
+      <source xml:lang="en">This run&apos;s evidence bundle is invalid and cannot be exported safely.</source>
     </trans-unit>
     <trans-unit id="++CODE++f0c103d2366a0e8217f89638463db07c42fa370e4f7eab854fdb7bfc2604009b">
       <source xml:lang="en">This runbook cannot be published to the Hobbes runtime yet: {0}</source>

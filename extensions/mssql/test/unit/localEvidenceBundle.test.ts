@@ -223,4 +223,36 @@ suite("Runbook Studio local evidence bundle", () => {
             "sqlToolsService",
         ]);
     });
+
+    test("fake preview evidence requires only the host and extension", () => {
+        const result = buildLocalEvidenceBundle({
+            runId: "run-fake",
+            runbookId: "book-fake",
+            planRevision: "1",
+            planHash: `sha256:${"a".repeat(64)}`,
+            runtimeKind: "fake",
+            toolchain: {
+                complete: false,
+                components: completeToolchain.components.map((component) =>
+                    component.id === "vscode" || component.id === "mssqlExtension"
+                        ? component
+                        : { ...component, version: null, status: "unavailable" as const },
+                ),
+            },
+            nodes: [
+                {
+                    nodeId: "preview",
+                    activityKind: "dacpac.deploy",
+                    state: "succeeded",
+                    attempt: 1,
+                    outcome: "success",
+                },
+            ],
+        });
+
+        const manifest = JSON.parse(result.manifestJson);
+        expect(result.verdict).to.equal("pass");
+        expect(manifest.toolchain.requiredComponents).to.deep.equal(["vscode", "mssqlExtension"]);
+        expect(manifest.toolchain.allComponentsResolved).to.equal(false);
+    });
 });

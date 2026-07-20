@@ -24,6 +24,7 @@ import {
     RbsCompileRequest,
     RbsError,
     RbsExecutePlanQueryRequest,
+    RbsExportEvidenceRequest,
     RbsFetchOutputPageRequest,
     RbsListConnectionsRequest,
     RbsNavigateNotification,
@@ -320,6 +321,13 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 return { error: this.runtimeUnavailableError() };
             }
             return this.coordinator.fetchOutputPage(this.model, page);
+        });
+
+        this.onRequest(RbsExportEvidenceRequest.type, async ({ runId, format }) => {
+            if (!this.coordinator) {
+                return { exported: false, error: this.runtimeUnavailableError() };
+            }
+            return this.coordinator.exportEvidence(this.model, runId, format);
         });
 
         this.onRequest(RbsOpenDiagnosticsRequest.type, async ({ runId, nodeId }) => {

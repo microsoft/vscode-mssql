@@ -3711,6 +3711,13 @@ export class LocConstants {
             queuedLabel: l10n.t("Queued."),
             resultsRunPicker: l10n.t("Run:"),
             viewResults: l10n.t("View results"),
+            evidenceFormat: l10n.t("Evidence format:"),
+            evidenceFormatJunit: l10n.t("JUnit XML"),
+            evidenceFormatSarif: l10n.t("SARIF"),
+            evidenceFormatMarkdown: l10n.t("Markdown"),
+            evidenceFormatJson: l10n.t("Machine JSON"),
+            exportEvidence: l10n.t("Export evidence"),
+            exportingEvidence: l10n.t("Exporting…"),
             waitingOn: (steps: string) =>
                 l10n.t({
                     message: "Waiting on: {0}",

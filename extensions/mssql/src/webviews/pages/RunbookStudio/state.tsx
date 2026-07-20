@@ -24,7 +24,9 @@ import {
     RbsCompileRequest,
     RbsConnectionProfileRef,
     RbsError,
+    RbsEvidenceExportFormat,
     RbsExecutePlanQueryRequest,
+    RbsExportEvidenceRequest,
     RbsListConnectionsRequest,
     RbsNavigateNotification,
     RbsOpenDiagnosticsRequest,
@@ -210,6 +212,8 @@ interface RbsContextValue {
     executePlanQuery: (nodeId: string) => Promise<boolean>;
     /** Show a prior run's results (persistence-backed). */
     selectRun: (runId: string) => Promise<boolean>;
+    /** Ask the host to save a secret-safe CI evidence projection. */
+    exportEvidence: (runId: string, format: RbsEvidenceExportFormat) => Promise<boolean>;
     startRun: (
         parameterValues: Record<string, string | number | boolean | null>,
     ) => Promise<string | undefined>;
@@ -363,6 +367,18 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
         [rpc],
     );
 
+    const exportEvidence = useCallback(
+        async (runId: string, format: RbsEvidenceExportFormat): Promise<boolean> => {
+            setLastError(undefined);
+            const result = await rpc.sendRequest(RbsExportEvidenceRequest.type, { runId, format });
+            if (result.error) {
+                setLastError(result.error);
+            }
+            return result.exported;
+        },
+        [rpc],
+    );
+
     const startRun = useCallback(
         async (
             parameterValues: Record<string, string | number | boolean | null>,
@@ -448,6 +464,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             setOutputView,
             executePlanQuery,
             selectRun,
+            exportEvidence,
             startRun,
             cancelRun,
             respondToGate,
@@ -472,6 +489,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             setOutputView,
             executePlanQuery,
             selectRun,
+            exportEvidence,
             startRun,
             cancelRun,
             respondToGate,

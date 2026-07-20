@@ -18,6 +18,7 @@ import { locConstants } from "../../common/locConstants";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
     RbsArtifactSummary,
+    RbsEvidenceExportFormat,
     RbsRoute,
     RunbookNodeSnapshot,
     RunbookParameterDefinition,
@@ -1398,6 +1399,53 @@ function ResultsRunPicker() {
     );
 }
 
+function EvidenceExportControl() {
+    const { state, exportEvidence } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const [format, setFormat] = useState<RbsEvidenceExportFormat>("junit");
+    const [exporting, setExporting] = useState(false);
+    const runId = state?.run?.runId;
+    const evidenceReady = state?.run?.nodes.some((node) =>
+        node.outputs?.some(
+            (output) =>
+                output.contract === "evidenceBundle/1" &&
+                output.expired !== true &&
+                output.truncated !== true,
+        ),
+    );
+    if (!runId || !evidenceReady) {
+        return null;
+    }
+    const startExport = async () => {
+        setExporting(true);
+        try {
+            await exportEvidence(runId, format);
+        } finally {
+            setExporting(false);
+        }
+    };
+    return (
+        <div className="rbs-output-picker">
+            <label className="rbs-output-picker">
+                <span className="rbs-muted">{loc.evidenceFormat}</span>
+                <select
+                    className="rbs-select"
+                    value={format}
+                    disabled={exporting}
+                    onChange={(event) => setFormat(event.target.value as RbsEvidenceExportFormat)}>
+                    <option value="junit">{loc.evidenceFormatJunit}</option>
+                    <option value="sarif">{loc.evidenceFormatSarif}</option>
+                    <option value="markdown">{loc.evidenceFormatMarkdown}</option>
+                    <option value="json">{loc.evidenceFormatJson}</option>
+                </select>
+            </label>
+            <button className="rbs-btn" disabled={exporting} onClick={() => void startExport()}>
+                {exporting ? loc.exportingEvidence : loc.exportEvidence}
+            </button>
+        </div>
+    );
+}
+
 function ResultsPage() {
     const { state } = useRbs();
     const loc = locConstants.runbookStudio;
@@ -1437,7 +1485,11 @@ function ResultsPage() {
     if (!presentation || presentation.sections.length === 0) {
         return (
             <div className="rbs-page-body">
-                <ResultsRunPicker />
+                <div className="rbs-run-header">
+                    <ResultsRunPicker />
+                    <div className="rbs-spacer" />
+                    <EvidenceExportControl />
+                </div>
                 <EmptyState title={loc.noOutputsTitle} detail={loc.noOutputsDetail} />
             </div>
         );
@@ -1451,6 +1503,8 @@ function ResultsPage() {
                     </span>
                 ) : null}
                 <ResultsRunPicker />
+                <div className="rbs-spacer" />
+                <EvidenceExportControl />
             </div>
             {presentation.sections.map((section) => (
                 <section className="rbs-section" key={section.id}>

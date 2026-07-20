@@ -172,6 +172,24 @@ export class RunbookResultStore {
         return { rows: [], totalRows: 0, ...truncatedMark };
     }
 
+    /** Trusted-host read for an exact text contract. Unlike fetchPage this
+     * never crosses the controller boundary and never coerces rows/scalars
+     * into text. Callers must refuse truncated content before exporting it. */
+    public readTextPayload(
+        handleId: string,
+        expectedContract: string,
+    ): { text: string; truncated: boolean } | undefined {
+        const stored = this.outputs.get(handleId) ?? this.rehydrate(handleId);
+        if (
+            !stored ||
+            stored.payload.contract !== expectedContract ||
+            typeof stored.payload.text !== "string"
+        ) {
+            return undefined;
+        }
+        return { text: stored.payload.text, truncated: stored.truncated === true };
+    }
+
     /** Drop a run's payloads from memory AND disk (retention GC / delete). */
     public deleteRunResults(runId: string): void {
         for (const handleId of [...this.outputs.keys()]) {

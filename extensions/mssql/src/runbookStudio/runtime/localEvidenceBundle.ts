@@ -90,7 +90,7 @@ export function buildLocalEvidenceBundle(
         (node) => node.state === "succeeded" && node.outcome !== "failure",
     ).length;
     const evidenceHandleCount = nodes.reduce((count, node) => count + node.outputs.length, 0);
-    const requiredToolchainComponents = selectRequiredToolchainComponents(nodes);
+    const requiredToolchainComponents = selectRequiredToolchainComponents(nodes, input.runtimeKind);
     const resolvedToolchainComponents = new Set(
         input.toolchain.components
             .filter((component) => component.status === "resolved")
@@ -153,8 +153,15 @@ export function buildLocalEvidenceBundle(
 
 function selectRequiredToolchainComponents(
     nodes: EvidenceManifestNode[],
+    runtimeKind: string,
 ): LocalToolchainComponentId[] {
     const required = new Set<LocalToolchainComponentId>(["vscode", "mssqlExtension"]);
+    // The deterministic fake executes no SQL, DacFx, project build, process,
+    // network, or filesystem effects. Its synthetic activity names must not
+    // imply that those providers participated in preview evidence.
+    if (runtimeKind === "fake") {
+        return ["vscode", "mssqlExtension"];
+    }
     for (const node of nodes) {
         switch (node.activityKind) {
             case "dacpac.build":

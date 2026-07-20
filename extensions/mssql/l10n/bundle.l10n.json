@@ -235,6 +235,11 @@
         "comment": ["{0} is fail or indeterminate"]
     },
     "Evidence bundle creation was cancelled.": "Evidence bundle creation was cancelled.",
+    "Export run evidence": "Export run evidence",
+    "Run evidence exported.": "Run evidence exported.",
+    "This run does not have a complete evidence bundle to export.": "This run does not have a complete evidence bundle to export.",
+    "This run's evidence bundle is invalid and cannot be exported safely.": "This run's evidence bundle is invalid and cannot be exported safely.",
+    "Run evidence could not be exported. Choose a writable destination and try again.": "Run evidence could not be exported. Choose a writable destination and try again.",
     "Database project target '{0}' must be a .sqlproj file./{0} is the requested project path": {
         "message": "Database project target '{0}' must be a .sqlproj file.",
         "comment": ["{0} is the requested project path"]
@@ -4721,6 +4726,13 @@
     "Queued.": "Queued.",
     "Run:": "Run:",
     "View results": "View results",
+    "Evidence format:": "Evidence format:",
+    "JUnit XML": "JUnit XML",
+    "SARIF": "SARIF",
+    "Markdown": "Markdown",
+    "Machine JSON": "Machine JSON",
+    "Export evidence": "Export evidence",
+    "Exporting…": "Exporting…",
     "Waiting on: {0}/{0} comma-separated names of steps this one depends on": {
         "message": "Waiting on: {0}",
         "comment": ["{0} comma-separated names of steps this one depends on"]

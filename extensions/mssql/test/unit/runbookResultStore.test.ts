@@ -111,6 +111,32 @@ suite("runbookResultStore", () => {
         expect(text.length).to.be.lessThan(5000);
     });
 
+    test("trusted text reads require an exact contract and retain truncation", () => {
+        const store = new RunbookResultStore(root, { maxPayloadBytes: 300 });
+        const complete = store.put("run_text", "evidence", {
+            contract: "evidenceBundle/1",
+            text: "complete",
+        });
+        expect(store.readTextPayload(complete.handleId, "evidenceBundle/1")).to.deep.equal({
+            text: "complete",
+            truncated: false,
+        });
+        expect(store.readTextPayload(complete.handleId, "markdown/1")).to.equal(undefined);
+
+        const truncated = store.put("run_text", "large", {
+            contract: "evidenceBundle/1",
+            text: "x".repeat(5000),
+        });
+        expect(store.readTextPayload(truncated.handleId, "evidenceBundle/1")?.truncated).to.equal(
+            true,
+        );
+        const restarted = new RunbookResultStore(root, { maxPayloadBytes: 300 });
+        expect(restarted.readTextPayload(complete.handleId, "evidenceBundle/1")).to.deep.equal({
+            text: "complete",
+            truncated: false,
+        });
+    });
+
     test("a payload that cannot be bounded is refused as expired", () => {
         const store = new RunbookResultStore(root, { maxPayloadBytes: 64 });
         const scalars: Record<string, number> = {};
