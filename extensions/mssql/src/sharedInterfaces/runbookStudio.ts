@@ -291,6 +291,9 @@ export type RunbookNodeStateKind =
  *  itself never crosses into state — the webview pulls bounded pages. */
 export interface DataHandleRef {
     handleId: string;
+    /** Stable activity output slot. Older run records omit this; their first
+     * output is treated as the conventional `primary` slot. */
+    slot?: string;
     /** Data contract id, e.g. "rowset/1", "log/1", "scalarSet/1". */
     contract: string;
     rows?: number;

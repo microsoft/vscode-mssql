@@ -4,28 +4,30 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Pure presentation resolver (RBS2-9 keystone; rendering-spec invariants):
- *   - deterministic: same definition + snapshot -> same resolved model;
- *   - total: EVERY widget resolves to an explicit state, never dropped,
- *     never blank;
- *   - zero model calls; zero payload copies (handles only);
- *   - drift degrades visibly: an incompatible pinned view falls back to the
- *     contract's default view with the drift recorded;
- *   - with no persisted definition, a layout is DERIVED from the snapshot's
- *     typed outputs (one section per node with outputs).
- * No vscode imports — unit-testable and shared with a future headless host.
+ * Pure presentation resolver. Persisted V1 definitions are migrated to the
+ * semantic V2 grammar at the validation boundary; every writer therefore
+ * emits V2 while existing library and source-controlled artifacts continue
+ * to render. Resolution remains deterministic, payload-free, and total.
  */
 
 import {
     compatibleViews,
     defaultViewFor,
     isViewCompatible,
+    LegacyPresentationDefinition,
     PresentationDefinition,
+    PresentationMode,
     PRESENTATION_SCHEMA_VERSION,
     ResolvedPresentation,
     ResolvedSection,
     ResolvedWidget,
+    ResponsiveLayoutPolicy,
+    SectionDefinition,
+    SectionRole,
+    ViewIssue,
     ViewKind,
+    ViewSpec,
+    WidgetBinding,
 } from "../../sharedInterfaces/runbookPresentation";
 import {
     DataHandleRef,
@@ -34,107 +36,440 @@ import {
 } from "../../sharedInterfaces/runbookStudio";
 import { isTerminalNodeState } from "../runbookRunModel";
 
-/**
- * Pin (or clear) a node's output view in the definition — pure. Creates the
- * definition/section on first pin; clearing removes the widget only when it
- * was pin-created (id prefix), never a hand-authored layout entry. Bumps the
- * revision so patches remain atomically versioned.
- */
+const VIEW_KINDS: ReadonlySet<string> = new Set<ViewKind>([
+    "grid",
+    "timeseries",
+    "bar",
+    "scalar-cards",
+    "er-diagram",
+    "diff",
+    "diagnostics",
+    "form",
+    "markdown",
+    "json",
+    "log-view",
+    "artifact-list",
+]);
+const SECTION_ROLES: ReadonlySet<string> = new Set<SectionRole>([
+    "hero",
+    "summary",
+    "primary",
+    "secondary",
+    "details",
+    "appendix",
+    "overflow",
+]);
+const PROVENANCE_KINDS = new Set(["default", "ai", "user", "migration"]);
+
+export const DEFAULT_PRESENTATION_LAYOUT: ResponsiveLayoutPolicy = {
+    breakpoints: [
+        { name: "compact", minWidth: 0, columns: 1, gap: 8 },
+        { name: "medium", minWidth: 640, columns: 6, gap: 10 },
+        { name: "wide", minWidth: 1000, columns: 12, gap: 12 },
+    ],
+    overflowSectionId: "overflow",
+    defaultSpan: { compact: 1, medium: 6, wide: 12 },
+    sectionFlow: "document",
+};
+
+function defaultDefinition(): PresentationDefinition {
+    return {
+        schemaVersion: PRESENTATION_SCHEMA_VERSION,
+        revision: 0,
+        authoredForPlanRevision: "unknown",
+        registryVersion: "2.0",
+        results: {
+            sections: [
+                defaultSection("primary", "primary", 0),
+                defaultSection("overflow", "overflow", 1),
+            ],
+            widgets: [],
+            layout: DEFAULT_PRESENTATION_LAYOUT,
+        },
+        derivedSources: [],
+    };
+}
+
+function defaultSection(
+    id: string,
+    role: SectionRole,
+    order: number,
+    label?: string,
+): SectionDefinition {
+    return {
+        id,
+        ...(label ? { label } : {}),
+        role,
+        order,
+        whenEmpty: "collapse",
+    };
+}
+
+/** Trusted default spec construction. Shape-dependent settings deliberately
+ * start empty; the renderer performs bounded runtime shape validation and
+ * visibly degrades when required fields have not yet been authored. */
+export function createViewSpec(kind: ViewKind, id = `view:${kind}`, title?: string): ViewSpec {
+    const base = { id, ...(title ? { title } : {}) };
+    switch (kind) {
+        case "timeseries":
+            return { ...base, kind, props: { timeField: "", valueFields: [] } };
+        case "bar":
+            return { ...base, kind, props: { categoryField: "", valueFields: [] } };
+        case "form":
+            return { ...base, kind, props: { mode: "review" } };
+        default:
+            return { ...base, kind, props: {} } as ViewSpec;
+    }
+}
+
+function roleForLegacySection(id: string, index: number): SectionRole {
+    switch (id.toLowerCase()) {
+        case "hero":
+        case "summary":
+        case "primary":
+        case "secondary":
+        case "details":
+        case "appendix":
+        case "overflow":
+            return id.toLowerCase() as SectionRole;
+        case "main":
+            return "primary";
+        default:
+            return index === 0 ? "primary" : "details";
+    }
+}
+
+/** Deterministic, lossless-for-V1 migration. The old selected view becomes a
+ * single V2 view and old user pins become user provenance. */
+export function migrateLegacyPresentationDefinition(
+    legacy: LegacyPresentationDefinition,
+): PresentationDefinition {
+    const sections = legacy.sections.map((section, index) =>
+        defaultSection(section.id, roleForLegacySection(section.id, index), index, section.title),
+    );
+    if (!sections.some((section) => section.id === "overflow")) {
+        sections.push(defaultSection("overflow", "overflow", sections.length));
+    }
+    const widgets: WidgetBinding[] = legacy.sections.flatMap((section) =>
+        section.widgets.map((widget, index) => {
+            const viewId = `${widget.id}:${widget.view}`;
+            return {
+                id: widget.id,
+                source: {
+                    kind: "activity-output" as const,
+                    nodeId: widget.source.nodeId,
+                    slot:
+                        (widget.source.outputIndex ?? 0) === 0
+                            ? "primary"
+                            : `legacy:${widget.source.outputIndex}`,
+                },
+                views: [createViewSpec(widget.view, viewId, widget.title)],
+                presentation: { mode: "single" as const },
+                defaultViewId: viewId,
+                sectionId: section.id,
+                placement: { order: index },
+                authoredContract: "unknown/1",
+                authoredContractFingerprint: "legacy:unknown",
+                provenance: widget.pinnedByUser
+                    ? ({ by: "user" } as const)
+                    : ({ by: "migration", fromSchemaVersion: 1 } as const),
+            };
+        }),
+    );
+    return {
+        schemaVersion: PRESENTATION_SCHEMA_VERSION,
+        revision: legacy.revision,
+        authoredForPlanRevision: "unknown",
+        registryVersion: "2.0",
+        results: {
+            sections,
+            widgets,
+            layout: { ...DEFAULT_PRESENTATION_LAYOUT },
+        },
+        derivedSources: [],
+    };
+}
+
+/** Pin (or clear) the default view for a node's first output. This remains the
+ * narrow edit used by today's Plan/Results UI. The full slot editor will use
+ * a revision-checked V2 patch request for multi-view edits. */
 export function upsertOutputPin(
     definition: PresentationDefinition | undefined,
     nodeId: string,
     view: ViewKind | undefined,
 ): PresentationDefinition {
-    const base: PresentationDefinition = definition ?? {
-        schemaVersion: PRESENTATION_SCHEMA_VERSION,
-        revision: 0,
-        sections: [],
-    };
+    const base = definition ?? defaultDefinition();
     const pinId = `pin-${nodeId}`;
-    const sections = base.sections.map((section) => ({
-        ...section,
-        widgets: section.widgets
-            .map((widget) => {
-                if (widget.source.nodeId !== nodeId || (widget.source.outputIndex ?? 0) !== 0) {
-                    return widget;
-                }
-                if (view === undefined) {
-                    // Clearing: drop pin-created widgets, unpin authored ones.
-                    return widget.id === pinId ? undefined : { ...widget, pinnedByUser: false };
-                }
-                return { ...widget, view, pinnedByUser: true };
-            })
-            .filter((w): w is NonNullable<typeof w> => w !== undefined),
-    }));
-    const hasWidget = sections.some((s) =>
-        s.widgets.some((w) => w.source.nodeId === nodeId && (w.source.outputIndex ?? 0) === 0),
-    );
-    if (view !== undefined && !hasWidget) {
-        const primary = sections.find((s) => s.id === "primary");
-        const widget = {
-            id: pinId,
-            source: { nodeId },
-            view,
-            pinnedByUser: true,
-        };
-        if (primary) {
-            primary.widgets = [...primary.widgets, widget];
-        } else {
-            sections.push({ id: "primary", widgets: [widget] });
+    let found = false;
+    const widgets = base.results.widgets
+        .map((widget): WidgetBinding | undefined => {
+            if (
+                widget.source.kind !== "activity-output" ||
+                widget.source.nodeId !== nodeId ||
+                widget.source.slot !== "primary"
+            ) {
+                return widget;
+            }
+            found = true;
+            if (view === undefined) {
+                return widget.id === pinId
+                    ? undefined
+                    : { ...widget, provenance: { by: "default" } };
+            }
+            const existing = widget.views.find((candidate) => candidate.kind === view);
+            const selected = existing ?? createViewSpec(view, `${widget.id}:${view}`);
+            return {
+                ...widget,
+                views: [selected],
+                presentation: { mode: "single" },
+                defaultViewId: selected.id,
+                provenance: { by: "user", previous: defaultViewKind(widget) },
+            };
+        })
+        .filter((widget): widget is WidgetBinding => widget !== undefined);
+
+    const sections = [...base.results.sections];
+    if (view !== undefined && !found) {
+        let sectionId = sections.find((section) => section.role === "primary")?.id;
+        if (!sectionId) {
+            sectionId = "primary";
+            sections.push(defaultSection(sectionId, "primary", sections.length));
         }
+        const selected = createViewSpec(view, `${pinId}:${view}`);
+        widgets.push({
+            id: pinId,
+            source: { kind: "activity-output", nodeId, slot: "primary" },
+            views: [selected],
+            presentation: { mode: "single" },
+            defaultViewId: selected.id,
+            sectionId,
+            placement: {
+                order: widgets.filter((widget) => widget.sectionId === sectionId).length,
+            },
+            authoredContract: "unknown/1",
+            authoredContractFingerprint: "runtime:unknown",
+            provenance: { by: "user" },
+        });
     }
-    return { ...base, revision: base.revision + 1, sections };
+
+    return {
+        ...base,
+        revision: base.revision + 1,
+        results: { ...base.results, sections, widgets },
+    };
 }
 
-/** Pinned views by node id — the webview's "Set by you" markers. */
+function defaultViewSpec(widget: WidgetBinding): ViewSpec {
+    return widget.views.find((view) => view.id === widget.defaultViewId) ?? widget.views[0];
+}
+
+function defaultViewKind(widget: WidgetBinding): ViewKind | undefined {
+    return defaultViewSpec(widget)?.kind;
+}
+
+/** User-pinned defaults by node id — the webview's "Set by you" markers. */
 export function pinnedViewsOf(
     definition: PresentationDefinition | undefined,
 ): Record<string, ViewKind> {
     const pins: Record<string, ViewKind> = {};
-    for (const section of definition?.sections ?? []) {
-        for (const widget of section.widgets) {
-            if (widget.pinnedByUser && (widget.source.outputIndex ?? 0) === 0) {
-                pins[widget.source.nodeId] = widget.view;
+    for (const widget of definition?.results.widgets ?? []) {
+        if (
+            widget.provenance.by === "user" &&
+            widget.source.kind === "activity-output" &&
+            widget.source.slot === "primary"
+        ) {
+            const kind = defaultViewKind(widget);
+            if (kind) {
+                pins[widget.source.nodeId] = kind;
             }
         }
     }
     return pins;
 }
 
-/** Validate a persisted definition; returns undefined when unusable (the
- *  caller derives instead — an invalid persisted layout must not blank the
- *  results surface, it degrades to the derived default). */
-export function validatePresentationDefinition(raw: unknown): PresentationDefinition | undefined {
-    if (typeof raw !== "object" || raw === null || Array.isArray(raw)) {
-        return undefined;
-    }
-    const candidate = raw as Partial<PresentationDefinition>;
-    if (candidate.schemaVersion !== PRESENTATION_SCHEMA_VERSION) {
-        return undefined;
-    }
-    if (typeof candidate.revision !== "number" || !Array.isArray(candidate.sections)) {
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isViewKind(value: unknown): value is ViewKind {
+    return typeof value === "string" && VIEW_KINDS.has(value);
+}
+
+function validateLegacy(raw: Record<string, unknown>): LegacyPresentationDefinition | undefined {
+    if (
+        raw.schemaVersion !== 1 ||
+        !Number.isInteger(raw.revision) ||
+        !Array.isArray(raw.sections)
+    ) {
         return undefined;
     }
     const widgetIds = new Set<string>();
-    for (const section of candidate.sections) {
-        if (typeof section?.id !== "string" || !Array.isArray(section.widgets)) {
+    for (const section of raw.sections) {
+        if (
+            !isRecord(section) ||
+            typeof section.id !== "string" ||
+            !Array.isArray(section.widgets)
+        ) {
             return undefined;
         }
         for (const widget of section.widgets) {
             if (
-                typeof widget?.id !== "string" ||
-                typeof widget.view !== "string" ||
-                typeof widget.source?.nodeId !== "string"
+                !isRecord(widget) ||
+                typeof widget.id !== "string" ||
+                !isViewKind(widget.view) ||
+                !isRecord(widget.source) ||
+                typeof widget.source.nodeId !== "string" ||
+                widgetIds.has(widget.id)
             ) {
-                return undefined;
-            }
-            if (widgetIds.has(widget.id)) {
                 return undefined;
             }
             widgetIds.add(widget.id);
         }
     }
-    return candidate as PresentationDefinition;
+    return raw as unknown as LegacyPresentationDefinition;
+}
+
+function validSource(source: unknown): boolean {
+    if (!isRecord(source) || typeof source.kind !== "string") {
+        return false;
+    }
+    switch (source.kind) {
+        case "activity-output":
+            return (
+                typeof source.nodeId === "string" &&
+                typeof source.slot === "string" &&
+                source.slot.length > 0
+            );
+        case "run-field":
+            return typeof source.field === "string";
+        case "run-metric":
+            return typeof source.key === "string";
+        case "derived":
+            return typeof source.sourceId === "string";
+        default:
+            return false;
+    }
+}
+
+function validPresentationMode(value: unknown): value is PresentationMode {
+    if (!isRecord(value)) {
+        return false;
+    }
+    if (value.mode === "single" || value.mode === "tabs" || value.mode === "toggle") {
+        return true;
+    }
+    return value.mode === "split" && (value.axis === "row" || value.axis === "column");
+}
+
+function validateV2(raw: Record<string, unknown>): PresentationDefinition | undefined {
+    if (
+        raw.schemaVersion !== PRESENTATION_SCHEMA_VERSION ||
+        !Number.isInteger(raw.revision) ||
+        typeof raw.authoredForPlanRevision !== "string" ||
+        typeof raw.registryVersion !== "string" ||
+        !isRecord(raw.results) ||
+        !Array.isArray(raw.results.sections) ||
+        !Array.isArray(raw.results.widgets) ||
+        !isRecord(raw.results.layout) ||
+        !Array.isArray(raw.derivedSources)
+    ) {
+        return undefined;
+    }
+
+    const sectionIds = new Set<string>();
+    for (const section of raw.results.sections) {
+        if (
+            !isRecord(section) ||
+            typeof section.id !== "string" ||
+            typeof section.role !== "string" ||
+            !SECTION_ROLES.has(section.role) ||
+            !Number.isFinite(section.order) ||
+            !["collapse", "show-empty-state", "reserve"].includes(String(section.whenEmpty)) ||
+            sectionIds.has(section.id)
+        ) {
+            return undefined;
+        }
+        sectionIds.add(section.id);
+    }
+
+    const widgetIds = new Set<string>();
+    for (const widget of raw.results.widgets) {
+        if (
+            !isRecord(widget) ||
+            typeof widget.id !== "string" ||
+            widgetIds.has(widget.id) ||
+            !validSource(widget.source) ||
+            !Array.isArray(widget.views) ||
+            widget.views.length === 0 ||
+            typeof widget.defaultViewId !== "string" ||
+            typeof widget.sectionId !== "string" ||
+            typeof widget.authoredContract !== "string" ||
+            typeof widget.authoredContractFingerprint !== "string" ||
+            !isRecord(widget.provenance) ||
+            !PROVENANCE_KINDS.has(String(widget.provenance.by)) ||
+            !validPresentationMode(widget.presentation)
+        ) {
+            return undefined;
+        }
+        const viewIds = new Set<string>();
+        for (const view of widget.views) {
+            if (
+                !isRecord(view) ||
+                typeof view.id !== "string" ||
+                viewIds.has(view.id) ||
+                !isViewKind(view.kind) ||
+                !isRecord(view.props)
+            ) {
+                return undefined;
+            }
+            viewIds.add(view.id);
+        }
+        if (!viewIds.has(widget.defaultViewId)) {
+            return undefined;
+        }
+        widgetIds.add(widget.id);
+    }
+
+    const layout = raw.results.layout;
+    if (
+        !Array.isArray(layout.breakpoints) ||
+        typeof layout.overflowSectionId !== "string" ||
+        !sectionIds.has(layout.overflowSectionId) ||
+        !isRecord(layout.defaultSpan) ||
+        (layout.sectionFlow !== "document" && layout.sectionFlow !== "dashboard")
+    ) {
+        return undefined;
+    }
+    const breakpointNames = new Set<string>();
+    for (const breakpoint of layout.breakpoints) {
+        if (
+            !isRecord(breakpoint) ||
+            !["compact", "medium", "wide"].includes(String(breakpoint.name)) ||
+            breakpointNames.has(String(breakpoint.name)) ||
+            !Number.isFinite(breakpoint.minWidth) ||
+            !Number.isInteger(breakpoint.columns) ||
+            Number(breakpoint.columns) < 1 ||
+            !Number.isFinite(breakpoint.gap)
+        ) {
+            return undefined;
+        }
+        breakpointNames.add(String(breakpoint.name));
+    }
+    return raw as unknown as PresentationDefinition;
+}
+
+/** Validate and normalize a persisted definition. V1 is migrated in memory;
+ * malformed or future versions return undefined so callers derive a visible
+ * default rather than blanking Results. */
+export function validatePresentationDefinition(raw: unknown): PresentationDefinition | undefined {
+    if (!isRecord(raw)) {
+        return undefined;
+    }
+    if (raw.schemaVersion === 1) {
+        const legacy = validateLegacy(raw);
+        return legacy ? migrateLegacyPresentationDefinition(legacy) : undefined;
+    }
+    return validateV2(raw);
 }
 
 export function resolvePresentation(
@@ -145,111 +480,197 @@ export function resolvePresentation(
         return deriveFromSnapshot(snapshot);
     }
     const nodesById = new Map((snapshot?.nodes ?? []).map((node) => [node.nodeId, node]));
-    const sections: ResolvedSection[] = definition.sections.map((section) => ({
-        id: section.id,
-        title: section.title ?? section.id,
-        widgets: section.widgets.map((widget): ResolvedWidget => {
-            const node = nodesById.get(widget.source.nodeId);
-            if (!node) {
-                return {
-                    id: widget.id,
-                    title: widget.title ?? widget.id,
-                    nodeId: widget.source.nodeId,
-                    state: "sourceMissing",
-                    view: widget.view,
-                };
-            }
-            const output = (node.outputs ?? [])[widget.source.outputIndex ?? 0];
-            if (!output) {
-                return {
-                    id: widget.id,
-                    title: widget.title ?? widget.id,
-                    nodeId: node.nodeId,
-                    state: isTerminalNodeState(node.state) ? "noOutput" : "pending",
-                    view: widget.view,
-                };
-            }
-            return resolveWidgetWithOutput(
-                widget.id,
-                widget.title ?? widget.id,
-                node,
-                output,
-                widget.view,
-            );
-        }),
-    }));
+    const knownSectionIds = new Set(definition.results.sections.map((section) => section.id));
+    const overflowSectionId = knownSectionIds.has(definition.results.layout.overflowSectionId)
+        ? definition.results.layout.overflowSectionId
+        : definition.results.sections.find((section) => section.role === "overflow")?.id;
+
+    const widgetsBySection = new Map<string, ResolvedWidget[]>();
+    for (const binding of definition.results.widgets) {
+        const sectionId = knownSectionIds.has(binding.sectionId)
+            ? binding.sectionId
+            : (overflowSectionId ?? binding.sectionId);
+        const resolved = resolveBinding(binding, sectionId, nodesById);
+        const widgets = widgetsBySection.get(sectionId) ?? [];
+        widgets.push(resolved);
+        widgetsBySection.set(sectionId, widgets);
+    }
+
+    const sections: ResolvedSection[] = definition.results.sections
+        .map(
+            (section): ResolvedSection => ({
+                id: section.id,
+                title: section.label ?? section.id,
+                role: section.role,
+                order: section.order,
+                whenEmpty: section.whenEmpty,
+                widgets: (widgetsBySection.get(section.id) ?? []).sort(
+                    (a, b) =>
+                        (a.placement?.order ?? 0) - (b.placement?.order ?? 0) ||
+                        a.id.localeCompare(b.id),
+                ),
+            }),
+        )
+        .filter((section) => section.widgets.length > 0 || section.whenEmpty !== "collapse")
+        .sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+
     return {
         schemaVersion: PRESENTATION_SCHEMA_VERSION,
         revision: definition.revision,
         derived: false,
+        layout: definition.results.layout,
         sections,
     };
 }
 
+function resolveBinding(
+    binding: WidgetBinding,
+    sectionId: string,
+    nodesById: Map<string, RunbookNodeSnapshot>,
+): ResolvedWidget {
+    const requested = defaultViewSpec(binding);
+    const common = {
+        id: binding.id,
+        title: requested.title ?? binding.id,
+        nodeId: binding.source.kind === "activity-output" ? binding.source.nodeId : binding.id,
+        view: requested.kind,
+        views: binding.views.map((view) => ({
+            id: view.id,
+            kind: view.kind,
+            ...(view.title ? { title: view.title } : {}),
+        })),
+        presentation: binding.presentation,
+        defaultViewId: binding.defaultViewId,
+        activeViewId: requested.id,
+        sectionId,
+        ...(binding.placement ? { placement: binding.placement } : {}),
+        provenance: binding.provenance,
+    };
+    if (binding.source.kind !== "activity-output") {
+        return { ...common, state: "sourceMissing" };
+    }
+    const node = nodesById.get(binding.source.nodeId);
+    if (!node) {
+        return { ...common, state: "sourceMissing" };
+    }
+    const output = outputForSlot(node.outputs ?? [], binding.source.slot);
+    if (!output) {
+        return { ...common, state: isTerminalNodeState(node.state) ? "noOutput" : "pending" };
+    }
+    return resolveWidgetWithOutput(binding, sectionId, node, output);
+}
+
+function outputForSlot(outputs: DataHandleRef[], slot: string): DataHandleRef | undefined {
+    const named = outputs.find((output) => output.slot === slot);
+    if (named) {
+        return named;
+    }
+    // Compatibility for V1/current runtime records, which predate named
+    // output handles. All installed activities currently expose one primary
+    // output; legacy:N retains old nth-output identity through migration.
+    if (slot === "primary") {
+        return outputs[0];
+    }
+    const legacyIndex = /^legacy:(\d+)$/.exec(slot)?.[1];
+    return legacyIndex === undefined ? undefined : outputs[Number(legacyIndex)];
+}
+
 function resolveWidgetWithOutput(
-    id: string,
-    title: string,
+    binding: WidgetBinding,
+    sectionId: string,
     node: RunbookNodeSnapshot,
     output: DataHandleRef,
-    requestedView: ViewKind,
 ): ResolvedWidget {
+    const requested = defaultViewSpec(binding);
+    const compatible = binding.views.filter((view) => isViewCompatible(output.contract, view.kind));
+    const requestedCompatible = isViewCompatible(output.contract, requested.kind);
+    let active = requestedCompatible ? requested : compatible[0];
+    let fallback: ViewSpec | undefined;
+    if (!active) {
+        const kind = defaultViewFor(output.contract);
+        fallback = createViewSpec(kind, `${binding.id}:fallback:${kind}`);
+        active = fallback;
+    }
+    const issueFor = (view: ViewSpec): ViewIssue | undefined =>
+        isViewCompatible(output.contract, view.kind)
+            ? undefined
+            : {
+                  viewId: view.id,
+                  code: "CONTRACT_KIND_CHANGED",
+                  message: `The current ${output.contract} output is not compatible with ${view.kind}.`,
+                  fallbackViewId: active.id,
+              };
+    const views = [...binding.views, ...(fallback ? [fallback] : [])].map((view) => {
+        const issue = issueFor(view);
+        return {
+            id: view.id,
+            kind: view.kind,
+            ...(view.title ? { title: view.title } : {}),
+            ...(issue ? { issue } : {}),
+        };
+    });
     const base = {
-        id,
-        title,
+        id: binding.id,
+        title: active.title ?? binding.id,
         nodeId: node.nodeId,
+        view: active.kind,
+        views,
+        presentation: binding.presentation,
+        defaultViewId: binding.defaultViewId,
+        activeViewId: active.id,
+        sectionId,
+        ...(binding.placement ? { placement: binding.placement } : {}),
+        provenance: binding.provenance,
         handleId: output.handleId,
         contract: output.contract,
         ...(output.rows !== undefined ? { rows: output.rows } : {}),
     };
     if (output.expired) {
-        return { ...base, state: "expired", view: requestedView };
+        return { ...base, state: "expired" };
     }
-    if (!isViewCompatible(output.contract, requestedView)) {
-        // Drift: the output's contract no longer supports the chosen view.
-        // Degrade VISIBLY to the contract default; the pin itself survives
-        // in the persisted definition (never rewritten by resolution).
+    if (!requestedCompatible) {
         return {
             ...base,
             state: "ready",
-            view: defaultViewFor(output.contract),
-            drift: { requestedView, reason: "contractIncompatible" },
+            drift: { requestedView: requested.kind, reason: "contractIncompatible" },
         };
     }
-    return { ...base, state: "ready", view: requestedView };
+    return { ...base, state: "ready" };
 }
 
-/** No persisted definition: derive one section per node that has outputs,
- *  one widget per output at the contract's default view. Deterministic in
- *  plan/node order (snapshot node order is the accepted plan order). */
+/** No persisted definition: derive one semantic section per node that has
+ * outputs, one widget per output, in accepted plan order. */
 function deriveFromSnapshot(snapshot: RunbookRunSnapshot | undefined): ResolvedPresentation {
     const sections: ResolvedSection[] = [];
-    for (const node of snapshot?.nodes ?? []) {
+    for (const [nodeIndex, node] of (snapshot?.nodes ?? []).entries()) {
         const outputs = node.outputs ?? [];
         if (outputs.length === 0) {
             continue;
         }
+        const sectionId = `node:${node.nodeId}`;
         sections.push({
-            id: `node:${node.nodeId}`,
+            id: sectionId,
             title: node.nodeId,
+            role: "primary",
+            order: nodeIndex,
+            whenEmpty: "collapse",
             widgets: outputs.map((output, index): ResolvedWidget => {
                 const widgetId = `derived:${node.nodeId}:${index}`;
-                if (output.expired) {
-                    return {
-                        id: widgetId,
-                        title: node.nodeId,
-                        nodeId: node.nodeId,
-                        state: "expired",
-                        view: defaultViewFor(output.contract),
-                        handleId: output.handleId,
-                        contract: output.contract,
-                    };
-                }
+                const kind = defaultViewFor(output.contract);
+                const viewId = `${widgetId}:${kind}`;
                 return {
                     id: widgetId,
                     title: node.nodeId,
                     nodeId: node.nodeId,
-                    state: "ready",
-                    view: defaultViewFor(output.contract),
+                    state: output.expired ? "expired" : "ready",
+                    view: kind,
+                    views: [{ id: viewId, kind }],
+                    presentation: { mode: "single" },
+                    defaultViewId: viewId,
+                    activeViewId: viewId,
+                    sectionId,
+                    placement: { order: index },
+                    provenance: { by: "default" },
                     handleId: output.handleId,
                     contract: output.contract,
                     ...(output.rows !== undefined ? { rows: output.rows } : {}),
@@ -261,6 +682,7 @@ function deriveFromSnapshot(snapshot: RunbookRunSnapshot | undefined): ResolvedP
         schemaVersion: PRESENTATION_SCHEMA_VERSION,
         revision: 0,
         derived: true,
+        layout: DEFAULT_PRESENTATION_LAYOUT,
         sections,
     };
 }

@@ -13,12 +13,16 @@
 import { expect } from "chai";
 import {
     compatibleViews,
+    createViewSpec,
+    DEFAULT_PRESENTATION_LAYOUT,
+    migrateLegacyPresentationDefinition,
     pinnedViewsOf,
     resolvePresentation,
     upsertOutputPin,
     validatePresentationDefinition,
 } from "../../src/runbookStudio/presentation/presentationResolver";
 import {
+    LegacyPresentationDefinition,
     PresentationDefinition,
     PRESENTATION_SCHEMA_VERSION,
     expectedContractFor,
@@ -56,23 +60,44 @@ function definition(): PresentationDefinition {
     return {
         schemaVersion: PRESENTATION_SCHEMA_VERSION,
         revision: 3,
-        sections: [
-            {
-                id: "main",
-                title: "Main",
-                widgets: [
-                    { id: "w1", source: { nodeId: "query" }, view: "grid" },
-                    {
-                        id: "w2",
-                        source: { nodeId: "threshold" },
-                        view: "scalar-cards",
-                        pinnedByUser: true,
-                    },
-                    { id: "w3", source: { nodeId: "report" }, view: "markdown" },
-                    { id: "w4", source: { nodeId: "gone" }, view: "grid" },
-                ],
-            },
-        ],
+        authoredForPlanRevision: "1",
+        registryVersion: "2.0",
+        results: {
+            sections: [
+                { id: "main", label: "Main", role: "primary", order: 0, whenEmpty: "collapse" },
+                { id: "overflow", role: "overflow", order: 1, whenEmpty: "collapse" },
+            ],
+            widgets: [
+                binding("w1", "query", "grid", 0),
+                binding("w2", "threshold", "scalar-cards", 1, true),
+                binding("w3", "report", "markdown", 2),
+                binding("w4", "gone", "grid", 3),
+            ],
+            layout: DEFAULT_PRESENTATION_LAYOUT,
+        },
+        derivedSources: [],
+    };
+}
+
+function binding(
+    id: string,
+    nodeId: string,
+    kind: Parameters<typeof createViewSpec>[0],
+    order: number,
+    pinned = false,
+): PresentationDefinition["results"]["widgets"][number] {
+    const view = createViewSpec(kind, `${id}:${kind}`);
+    return {
+        id,
+        source: { kind: "activity-output", nodeId, slot: "primary" },
+        views: [view],
+        presentation: { mode: "single" },
+        defaultViewId: view.id,
+        sectionId: "main",
+        placement: { order },
+        authoredContract: "unknown/1",
+        authoredContractFingerprint: "test",
+        provenance: pinned ? { by: "user" } : { by: "default" },
     };
 }
 
@@ -151,12 +176,41 @@ suite("presentationResolver", () => {
     test("drift: incompatible pinned view degrades visibly to the contract default", () => {
         const def = definition();
         // Pin the threshold widget to a view its scalarSet contract does not support.
-        def.sections[0].widgets[1].view = "er-diagram";
+        def.results.widgets[1].views = [createViewSpec("er-diagram", "w2:er")];
+        def.results.widgets[1].defaultViewId = "w2:er";
         const resolved = resolvePresentation(def, snapshot());
         const widget = resolved.sections[0].widgets[1];
         expect(widget.state).to.equal("ready");
         expect(widget.view).to.equal("scalar-cards");
         expect(widget.drift?.requestedView).to.equal("er-diagram");
+    });
+
+    test("V2 drift is per view and preserves a compatible authored sibling", () => {
+        const def = definition();
+        const widget = def.results.widgets[1];
+        widget.views = [createViewSpec("bar", "w2:bar"), createViewSpec("json", "w2:json")];
+        widget.presentation = { mode: "tabs" };
+        widget.defaultViewId = "w2:bar";
+
+        const resolved = resolvePresentation(def, snapshot()).sections[0].widgets[1];
+        expect(resolved.view).to.equal("json");
+        expect(resolved.activeViewId).to.equal("w2:json");
+        expect(resolved.presentation).to.deep.equal({ mode: "tabs" });
+        expect(resolved.views[0].issue).to.deep.include({
+            viewId: "w2:bar",
+            code: "CONTRACT_KIND_CHANGED",
+            fallbackViewId: "w2:json",
+        });
+        expect(resolved.views[1].issue).to.equal(undefined);
+    });
+
+    test("unknown V2 section assignments flow to the configured overflow section", () => {
+        const def = definition();
+        def.results.widgets[0].sectionId = "removed-section";
+        const resolved = resolvePresentation(def, snapshot());
+        expect(
+            resolved.sections.find((section) => section.id === "overflow")?.widgets[0].id,
+        ).to.equal("w1");
     });
 
     test("no definition derives one section per node with outputs", () => {
@@ -172,12 +226,48 @@ suite("presentationResolver", () => {
         expect(validatePresentationDefinition(undefined)).to.equal(undefined);
         expect(validatePresentationDefinition("nope")).to.equal(undefined);
         expect(
-            validatePresentationDefinition({ schemaVersion: 2, revision: 1, sections: [] }),
+            validatePresentationDefinition({ schemaVersion: 3, revision: 1, sections: [] }),
         ).to.equal(undefined);
         const dupe = definition();
-        dupe.sections[0].widgets.push({ ...dupe.sections[0].widgets[0] });
+        dupe.results.widgets.push({ ...dupe.results.widgets[0] });
         expect(validatePresentationDefinition(dupe)).to.equal(undefined);
         expect(validatePresentationDefinition(definition())).to.not.equal(undefined);
+    });
+
+    test("migrates V1 definitions to V2 without losing layout, titles, or pins", () => {
+        const legacy: LegacyPresentationDefinition = {
+            schemaVersion: 1,
+            revision: 7,
+            sections: [
+                {
+                    id: "main",
+                    title: "Main",
+                    widgets: [
+                        {
+                            id: "old-widget",
+                            source: { nodeId: "query", outputIndex: 0 },
+                            view: "bar",
+                            title: "Rows by category",
+                            pinnedByUser: true,
+                        },
+                    ],
+                },
+            ],
+        };
+        const migrated = migrateLegacyPresentationDefinition(legacy);
+        expect(migrated.schemaVersion).to.equal(2);
+        expect(migrated.revision).to.equal(7);
+        expect(migrated.results.sections[0]).to.deep.include({
+            id: "main",
+            label: "Main",
+            role: "primary",
+        });
+        expect(migrated.results.widgets[0].views[0]).to.deep.include({
+            kind: "bar",
+            title: "Rows by category",
+        });
+        expect(pinnedViewsOf(migrated)).to.deep.equal({ query: "bar" });
+        expect(validatePresentationDefinition(legacy)).to.deep.equal(migrated);
     });
 
     test("empty run resolves to an empty derived layout (not a crash)", () => {
@@ -190,29 +280,30 @@ suite("presentationResolver", () => {
         // First pin creates the definition + primary section.
         const pinned = upsertOutputPin(undefined, "query", "bar");
         expect(pinned.revision).to.equal(1);
-        expect(pinned.sections[0].id).to.equal("primary");
-        expect(pinned.sections[0].widgets[0]).to.deep.include({
+        expect(pinned.results.sections[0].id).to.equal("primary");
+        expect(pinned.results.widgets[0]).to.deep.include({
             id: "pin-query",
-            view: "bar",
-            pinnedByUser: true,
+            defaultViewId: "pin-query:bar",
         });
+        expect(pinned.results.widgets[0].views[0].kind).to.equal("bar");
+        expect(pinned.results.widgets[0].provenance.by).to.equal("user");
         expect(pinnedViewsOf(pinned)).to.deep.equal({ query: "bar" });
 
         // Re-pin updates in place (no duplicate widget).
         const repinned = upsertOutputPin(pinned, "query", "grid");
-        expect(repinned.sections[0].widgets).to.have.length(1);
+        expect(repinned.results.widgets).to.have.length(1);
         expect(pinnedViewsOf(repinned)).to.deep.equal({ query: "grid" });
 
         // Clearing removes the pin-created widget entirely.
         const cleared = upsertOutputPin(repinned, "query", undefined);
-        expect(cleared.sections[0].widgets).to.have.length(0);
+        expect(cleared.results.widgets).to.have.length(0);
         expect(pinnedViewsOf(cleared)).to.deep.equal({});
 
         // Clearing an AUTHORED widget only unpins it — never deletes layout.
         const authored = upsertOutputPin(undefined, "other", "grid");
-        authored.sections[0].widgets[0].id = "hand-made";
+        authored.results.widgets[0].id = "hand-made";
         const unpinned = upsertOutputPin(authored, "other", undefined);
-        expect(unpinned.sections[0].widgets).to.have.length(1);
-        expect(unpinned.sections[0].widgets[0].pinnedByUser).to.equal(false);
+        expect(unpinned.results.widgets).to.have.length(1);
+        expect(unpinned.results.widgets[0].provenance.by).to.equal("default");
     });
 });

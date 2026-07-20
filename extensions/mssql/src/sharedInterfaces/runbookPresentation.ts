@@ -16,7 +16,8 @@
 // schema change; renderers register against these ids only.
 // ---------------------------------------------------------------------------
 
-export const PRESENTATION_SCHEMA_VERSION = 1;
+export const LEGACY_PRESENTATION_SCHEMA_VERSION = 1 as const;
+export const PRESENTATION_SCHEMA_VERSION = 2 as const;
 
 export type ViewKind =
     | "grid"
@@ -117,40 +118,279 @@ export function isViewCompatible(contract: string, view: ViewKind): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// Persisted definition (lives in the artifact's `presentation` section)
+// Persisted definition (lives in the artifact's `presentation` section).
+// V2 follows the rendering specification's semantic grammar: source bindings
+// are separate from sections, a widget can own multiple views, and layout is
+// expressed as responsive spans rather than pixels. The legacy V1 shape is
+// retained only as an input contract for deterministic migration.
 // ---------------------------------------------------------------------------
 
-/** Stable source identity: a node's nth output. Survives replays and
- *  reformatting; never references a concrete handle id. */
-export interface PresentationSourceRef {
+export interface LegacyPresentationSourceRef {
     nodeId: string;
-    /** Index into the node's outputs (default 0). */
     outputIndex?: number;
 }
 
-export interface PresentationWidgetDefinition {
-    /** Stable widget identity (user pins and patches reference it). */
+export interface LegacyPresentationWidgetDefinition {
     id: string;
-    source: PresentationSourceRef;
-    /** Chosen view; validated against the source contract at resolve time. */
+    source: LegacyPresentationSourceRef;
     view: ViewKind;
     title?: string;
-    /** True when the user explicitly chose the view — survives AI rebinding
-     *  and is preserved through drift fallback (flag stays, view degrades). */
     pinnedByUser?: boolean;
 }
 
-export interface PresentationSectionDefinition {
+export interface LegacyPresentationSectionDefinition {
     id: string;
     title?: string;
-    widgets: PresentationWidgetDefinition[];
+    widgets: LegacyPresentationWidgetDefinition[];
+}
+
+export interface LegacyPresentationDefinition {
+    schemaVersion: typeof LEGACY_PRESENTATION_SCHEMA_VERSION;
+    revision: number;
+    sections: LegacyPresentationSectionDefinition[];
+}
+
+/** Stable semantic source identity; never references a concrete data handle. */
+export type PresentationSourceRef =
+    | { kind: "activity-output"; nodeId: string; slot: string }
+    | {
+          kind: "run-field";
+          field:
+              | "status"
+              | "verdict"
+              | "elapsedMs"
+              | "warningCount"
+              | "errorCount"
+              | "completedNodeCount"
+              | "totalNodeCount";
+      }
+    | { kind: "run-metric"; key: string }
+    | { kind: "derived"; sourceId: string };
+
+export type SortSpec = { field: string; direction: "asc" | "desc" };
+
+interface BaseViewSpec {
+    id: string;
+    label?: string;
+    title?: string;
+    description?: string;
+}
+
+export type ViewSpec =
+    | (BaseViewSpec & {
+          kind: "grid";
+          props: {
+              columns?: string[];
+              sort?: SortSpec[];
+              pageSize?: number;
+              density?: "compact" | "comfortable";
+          };
+      })
+    | (BaseViewSpec & {
+          kind: "timeseries";
+          props: {
+              timeField: string;
+              valueFields: string[];
+              seriesField?: string;
+              interpolation?: "linear" | "step";
+              yAxis?: "zero-based" | "auto";
+          };
+      })
+    | (BaseViewSpec & {
+          kind: "bar";
+          props: {
+              categoryField: string;
+              valueFields: string[];
+              orientation?: "vertical" | "horizontal";
+              sort?: "category" | "value-asc" | "value-desc" | "none";
+              maxCategories?: number;
+          };
+      })
+    | (BaseViewSpec & {
+          kind: "scalar-cards";
+          props: { fields?: string[]; columns?: 1 | 2 | 3 | 4 };
+      })
+    | (BaseViewSpec & {
+          kind: "er-diagram";
+          props: {
+              showTypes?: boolean;
+              showRelationshipLabels?: boolean;
+              initialLayout?: "hierarchical" | "force";
+          };
+      })
+    | (BaseViewSpec & {
+          kind: "diff";
+          props: { mode?: "side-by-side" | "unified"; groupBySeverity?: boolean };
+      })
+    | (BaseViewSpec & {
+          kind: "diagnostics";
+          props: { groupBy?: "severity" | "code" | "file"; showResolved?: boolean };
+      })
+    | (BaseViewSpec & {
+          kind: "form";
+          props: { mode: "review" | "edit" | "create"; submitLabel?: string };
+      })
+    | (BaseViewSpec & {
+          kind: "markdown";
+          props: { allowLinks?: boolean; allowImages?: boolean };
+      })
+    | (BaseViewSpec & {
+          kind: "json";
+          props: { initiallyExpandedDepth?: number };
+      })
+    | (BaseViewSpec & {
+          kind: "log-view";
+          props: { follow?: boolean; wrap?: boolean; severityField?: string };
+      })
+    | (BaseViewSpec & {
+          kind: "artifact-list";
+          props: { showSize?: boolean; showMime?: boolean };
+      });
+
+export type PresentationMode =
+    | { mode: "single" }
+    | { mode: "tabs" }
+    | { mode: "toggle" }
+    | { mode: "split"; axis: "row" | "column" };
+
+export type PresentationProvenance =
+    | { by: "default" }
+    | { by: "ai"; promptSpan?: string; modelLabel?: string }
+    | { by: "user"; actor?: string; previous?: ViewKind }
+    | { by: "migration"; fromSchemaVersion: number };
+
+export type VisibilityPolicy =
+    | { when: "always" }
+    | { when: "source-ready" }
+    | { when: "source-non-empty" }
+    | { when: "run-complete" }
+    | { when: "verdict"; values: Array<"pass" | "warn" | "fail"> };
+
+export interface ResponsiveSpan {
+    compact?: number;
+    medium?: number;
+    wide?: number;
+}
+
+export interface WidgetPlacement {
+    order: number;
+    span?: ResponsiveSpan;
+    minHeight?: "short" | "medium" | "tall";
+    priority?: "primary" | "normal" | "supporting";
+}
+
+export interface WidgetBinding {
+    id: string;
+    source: PresentationSourceRef;
+    views: ViewSpec[];
+    presentation: PresentationMode;
+    defaultViewId: string;
+    sectionId: string;
+    placement?: WidgetPlacement;
+    visibility?: VisibilityPolicy;
+    authoredContract: string;
+    authoredContractFingerprint: string;
+    provenance: PresentationProvenance;
+}
+
+export type SectionRole =
+    | "hero"
+    | "summary"
+    | "primary"
+    | "secondary"
+    | "details"
+    | "appendix"
+    | "overflow";
+
+export interface SectionDefinition {
+    id: string;
+    label?: string;
+    role: SectionRole;
+    order: number;
+    collapsible?: boolean;
+    collapsedByDefault?: boolean;
+    whenEmpty: "collapse" | "show-empty-state" | "reserve";
+}
+
+export interface BreakpointDefinition {
+    name: "compact" | "medium" | "wide";
+    minWidth: number;
+    columns: number;
+    gap: number;
+}
+
+export interface ResponsiveLayoutPolicy {
+    breakpoints: BreakpointDefinition[];
+    overflowSectionId: string;
+    defaultSpan: ResponsiveSpan;
+    sectionFlow: "document" | "dashboard";
+}
+
+export interface ResultsSurfaceDefinition {
+    sections: SectionDefinition[];
+    widgets: WidgetBinding[];
+    layout: ResponsiveLayoutPolicy;
+    emptyState?: { title: string; body?: string; suggestedAction?: string };
+}
+
+export interface DerivedSourceDefinition {
+    id: string;
+    from: PresentationSourceRef;
+    /** Execution lands in a later slice; the persisted language is already
+     * closed and typed so it cannot smuggle renderer code or side effects. */
+    pipeline: TransformPipeline;
+    authoredContract: string;
+    provenance: PresentationProvenance;
+}
+
+export type JsonScalar = string | number | boolean | null;
+
+export interface TransformPipeline {
+    steps: TransformOp[];
+}
+
+export type TransformOp =
+    | { op: "select"; columns: string[] }
+    | { op: "rename"; columns: Record<string, string> }
+    | { op: "filter"; predicate: PresentationPredicate }
+    | { op: "sort"; by: SortSpec[] }
+    | { op: "limit"; count: number }
+    | { op: "aggregate"; by: string[]; measures: AggregateMeasure[] }
+    | {
+          op: "pivot";
+          index: string[];
+          column: string;
+          value: string;
+          reducer: AggregateFunction;
+      }
+    | { op: "to-timeseries"; timeField: string; measureFields: string[] };
+
+export type PresentationPredicate =
+    | {
+          op: "eq" | "ne" | "gt" | "gte" | "lt" | "lte";
+          field: string;
+          value: JsonScalar;
+      }
+    | { op: "in"; field: string; values: JsonScalar[] }
+    | { op: "is-null" | "not-null"; field: string }
+    | { op: "and" | "or"; children: PresentationPredicate[] }
+    | { op: "not"; child: PresentationPredicate };
+
+export type AggregateFunction = "sum" | "avg" | "min" | "max" | "count" | "count-distinct";
+
+export interface AggregateMeasure {
+    field?: string;
+    fn: AggregateFunction;
+    as: string;
 }
 
 export interface PresentationDefinition {
     schemaVersion: typeof PRESENTATION_SCHEMA_VERSION;
-    /** Monotonic revision; patches apply atomically against a base revision. */
     revision: number;
-    sections: PresentationSectionDefinition[];
+    authoredForPlanRevision: string;
+    registryVersion: string;
+    results: ResultsSurfaceDefinition;
+    derivedSources: DerivedSourceDefinition[];
 }
 
 // ---------------------------------------------------------------------------
@@ -167,6 +407,16 @@ export interface ResolvedWidget {
     state: ResolvedWidgetState;
     /** The view that will actually render (may be a drift fallback). */
     view: ViewKind;
+    /** V2 authored views in stable order. The scalar `view` above remains the
+     *  active/default compatibility projection consumed by current widgets. */
+    views: Array<{ id: string; kind: ViewKind; title?: string; issue?: ViewIssue }>;
+    presentation: PresentationMode;
+    defaultViewId: string;
+    /** View selected after per-view compatibility/drift resolution. */
+    activeViewId: string;
+    sectionId: string;
+    placement?: WidgetPlacement;
+    provenance: PresentationProvenance;
     /** Set when the pinned/requested view was incompatible with the actual
      *  output contract and a fallback was substituted (visible degrade). */
     drift?: { requestedView: ViewKind; reason: "contractIncompatible" };
@@ -179,7 +429,22 @@ export interface ResolvedWidget {
 export interface ResolvedSection {
     id: string;
     title: string;
+    role: SectionRole;
+    order: number;
+    whenEmpty: SectionDefinition["whenEmpty"];
     widgets: ResolvedWidget[];
+}
+
+export interface ViewIssue {
+    viewId: string;
+    code:
+        | "CONTRACT_KIND_CHANGED"
+        | "FIELD_MISSING"
+        | "FIELD_TYPE_CHANGED"
+        | "ACTION_UNAVAILABLE"
+        | "RENDERER_UNAVAILABLE";
+    message: string;
+    fallbackViewId?: string;
 }
 
 export interface ResolvedPresentation {
@@ -189,5 +454,6 @@ export interface ResolvedPresentation {
     /** True when no persisted definition existed and the layout was derived
      *  from the run snapshot's typed outputs. */
     derived: boolean;
+    layout: ResponsiveLayoutPolicy;
     sections: ResolvedSection[];
 }
