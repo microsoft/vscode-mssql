@@ -498,6 +498,9 @@ export interface RbsState {
     /** Deterministic resolved results layout for the active run (handles
      *  only — the webview pulls pages through the controller). */
     presentation?: ResolvedPresentation;
+    /** Session-only layout overlay for one run. It survives page navigation
+     * and state pushes but is never written into the runbook artifact. */
+    presentationOverlay?: { runId: string; edits: PresentationLayoutEdit[] };
     /** Pre-run presentation resolved against bounded synthetic handles. */
     previewPresentation?: ResolvedPresentation;
     /** Branch-aware pre-run lenses. Every presentation is resolved with the
@@ -609,6 +612,43 @@ export namespace RbsApplyPresentationLayoutRequest {
         { applied: boolean; reason?: "invalid" | "revisionConflict" },
         void
     >("rbs/applyPresentationLayout");
+}
+
+/** Resolve a staged layout batch without persisting it. The host uses the
+ * same validator and resolver as the eventual runbook edit, and synthetic
+ * targets remain effect-free. */
+export namespace RbsPreviewPresentationLayoutRequest {
+    export const type = new RequestType<
+        {
+            edits: PresentationLayoutEdit[];
+            baseRevision: number;
+            target:
+                | { kind: "run"; runId: string }
+                | {
+                      kind: "sample";
+                      scenario: "clean" | "blockingErrors" | "approvalRejected";
+                  };
+        },
+        {
+            presentation?: ResolvedPresentation;
+            reason?: "invalid" | "revisionConflict" | "targetMissing";
+        },
+        void
+    >("rbs/previewPresentationLayout");
+}
+
+export namespace RbsApplyPresentationOverlayRequest {
+    export const type = new RequestType<
+        { runId: string; edits: PresentationLayoutEdit[]; baseRevision: number },
+        { applied: boolean; reason?: "invalid" | "revisionConflict" | "targetMissing" },
+        void
+    >("rbs/applyPresentationOverlay");
+}
+
+export namespace RbsClearPresentationOverlayRequest {
+    export const type = new RequestType<{ runId: string }, { cleared: boolean }, void>(
+        "rbs/clearPresentationOverlay",
+    );
 }
 
 /** Open a compiled read-query step in Query Studio and execute it against

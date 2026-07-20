@@ -20,7 +20,9 @@ import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import {
     RbsCancelCompileRequest,
     RbsApplyPresentationLayoutRequest,
+    RbsApplyPresentationOverlayRequest,
     RbsCancelRunRequest,
+    RbsClearPresentationOverlayRequest,
     RbsCompileProgressNotification,
     RbsCompileRequest,
     RbsConnectionProfileRef,
@@ -31,6 +33,7 @@ import {
     RbsListConnectionsRequest,
     RbsNavigateNotification,
     RbsOpenDiagnosticsRequest,
+    RbsPreviewPresentationLayoutRequest,
     RbsPlannerProgressEvent,
     RbsRespondToGateRequest,
     RbsRoute,
@@ -46,6 +49,7 @@ import {
 import {
     PresentationLayoutEdit,
     PresentationMode,
+    ResolvedPresentation,
     ViewKind,
 } from "../../../sharedInterfaces/runbookPresentation";
 
@@ -226,6 +230,28 @@ interface RbsContextValue {
         edits: PresentationLayoutEdit[],
         baseRevision: number,
     ) => Promise<{ applied: boolean; reason?: "invalid" | "revisionConflict" }>;
+    previewPresentationLayout: (
+        edits: PresentationLayoutEdit[],
+        baseRevision: number,
+        target:
+            | { kind: "run"; runId: string }
+            | {
+                  kind: "sample";
+                  scenario: "clean" | "blockingErrors" | "approvalRejected";
+              },
+    ) => Promise<{
+        presentation?: ResolvedPresentation;
+        reason?: "invalid" | "revisionConflict" | "targetMissing";
+    }>;
+    applyPresentationOverlay: (
+        runId: string,
+        edits: PresentationLayoutEdit[],
+        baseRevision: number,
+    ) => Promise<{
+        applied: boolean;
+        reason?: "invalid" | "revisionConflict" | "targetMissing";
+    }>;
+    clearPresentationOverlay: (runId: string) => Promise<boolean>;
     /** Open and execute a compiled read-query node in Query Studio. */
     executePlanQuery: (nodeId: string) => Promise<boolean>;
     /** Show a prior run's results (persistence-backed). */
@@ -378,6 +404,41 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
         [rpc],
     );
 
+    const previewPresentationLayout = useCallback(
+        (
+            edits: PresentationLayoutEdit[],
+            baseRevision: number,
+            target:
+                | { kind: "run"; runId: string }
+                | {
+                      kind: "sample";
+                      scenario: "clean" | "blockingErrors" | "approvalRejected";
+                  },
+        ) =>
+            rpc.sendRequest(RbsPreviewPresentationLayoutRequest.type, {
+                edits,
+                baseRevision,
+                target,
+            }),
+        [rpc],
+    );
+
+    const applyPresentationOverlay = useCallback(
+        (runId: string, edits: PresentationLayoutEdit[], baseRevision: number) =>
+            rpc.sendRequest(RbsApplyPresentationOverlayRequest.type, {
+                runId,
+                edits,
+                baseRevision,
+            }),
+        [rpc],
+    );
+
+    const clearPresentationOverlay = useCallback(
+        async (runId: string) =>
+            (await rpc.sendRequest(RbsClearPresentationOverlayRequest.type, { runId })).cleared,
+        [rpc],
+    );
+
     const executePlanQuery = useCallback(
         async (nodeId: string): Promise<boolean> => {
             setLastError(undefined);
@@ -508,6 +569,9 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             setOutputView,
             setOutputPresentation,
             applyPresentationLayout,
+            previewPresentationLayout,
+            applyPresentationOverlay,
+            clearPresentationOverlay,
             executePlanQuery,
             selectRun,
             exportEvidence,
@@ -535,6 +599,9 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             setOutputView,
             setOutputPresentation,
             applyPresentationLayout,
+            previewPresentationLayout,
+            applyPresentationOverlay,
+            clearPresentationOverlay,
             executePlanQuery,
             selectRun,
             exportEvidence,

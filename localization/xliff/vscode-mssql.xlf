@@ -484,6 +484,12 @@
     <trans-unit id="++CODE++b7a29a0664722b59ea2bc598ce82feac6ef017534cb0564b53d9b3189f7233ce">
       <source xml:lang="en">Apply failed. Fix the error and retry, or run Schema Compare again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++878dfd063c731a769e4c6d662d18ec9e9d6290b5f86760b13cad1fb16cc3c38c">
+      <source xml:lang="en">Apply to this preview only</source>
+    </trans-unit>
+    <trans-unit id="++CODE++19b23a3130681608afcb2faf007a5f45141c8bf3fe8c00a3c3dae98ee28272e4">
+      <source xml:lang="en">Apply to this run only</source>
+    </trans-unit>
     <trans-unit id="++CODE++65660be4b1aada743a043b8bfae0d7ab62971f6ef37c3e6860d6449dc85609e5">
       <source xml:lang="en">Applying changes, this might take a while...</source>
     </trans-unit>
@@ -4591,6 +4597,9 @@
     <trans-unit id="++CODE++a511909161e1b84fb81b52028fc2ce79525a96b40ccda823caa4a66ee64772b5">
       <source xml:lang="en">Layout</source>
     </trans-unit>
+    <trans-unit id="++CODE++2fcc227061321736529247759f83aeb506db66027d24f2469f387987d3e2b149">
+      <source xml:lang="en">Layout changes are ready to apply</source>
+    </trans-unit>
     <trans-unit id="++CODE++8d8cd546b58d91c300d3149ef40b8d98d3061dc38f15ea937d2ed785a3f25771">
       <source xml:lang="en">Learn More</source>
     </trans-unit>
@@ -6586,6 +6595,9 @@
     <trans-unit id="++CODE++9eb5b275c3a0fa435a84d0bf601d77c45ff5d942fa17e16c000b257d20cc605e">
       <source xml:lang="en">Rebase</source>
     </trans-unit>
+    <trans-unit id="++CODE++d6bd9538d6bb10c32df905940dd1cb32f14c67545e860f9be1d3097a62cdc404">
+      <source xml:lang="en">Rebase on current runbook</source>
+    </trans-unit>
     <trans-unit id="++CODE++6aafab6eae72092eb7c25ffb6f34dab1a3eb70f1ef79e6e159f0fe540ca6b675">
       <source xml:lang="en">Receive natural language explanations to help developers unfamiliar with T-SQL understand code</source>
     </trans-unit>
@@ -7282,6 +7294,9 @@
     </trans-unit>
     <trans-unit id="++CODE++27f768bff5493669f3ea47f271ac8cbc1f64712b84067a3d52598d5fed8fc55e">
       <source xml:lang="en">Save to URL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e6b25069e69e1eee471dec3ba227a61f224402c1781b8f2ed14fc908c29398f7">
+      <source xml:lang="en">Save to runbook</source>
     </trans-unit>
     <trans-unit id="++CODE++b06c97aadc7b1480dd3683dd84ca01b97e9812e714e66732531bf6f0961f8b06">
       <source xml:lang="en">Save without connecting</source>
@@ -8676,6 +8691,9 @@
     <trans-unit id="++CODE++c7d829370bbb3bcf3ed575fa0340eb0fa89e3c5fea172b4421403e679e266ca1">
       <source xml:lang="en">The runbook default could not be saved. The selected view still applies to this run only.</source>
     </trans-unit>
+    <trans-unit id="++CODE++4e1cca4f303a8f873b1e2763c0edc8018cca2ac702589b5e81e328e51dea6e6d">
+      <source xml:lang="en">The runbook layout changed after customization started. Rebase to preview these edits against the current version, or reset them.</source>
+    </trans-unit>
     <trans-unit id="++CODE++389263d86008f9ae81c47866dbff80193a8d41f104f5a846d117b9ba0aa12ff8">
       <source xml:lang="en">The runbook library is unavailable: {0}</source>
       <note>{0} is a technical detail string</note>
@@ -8731,6 +8749,9 @@
       <source xml:lang="en">The selected profile authenticates using Entra ID &apos;{0}&apos;, but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
       <note>{0} is the account ID or label</note>
     </trans-unit>
+    <trans-unit id="++CODE++1aaf914627240cc1be564812eec1b80ac805e7605c3ff3c2dc5188820a5bfff8">
+      <source xml:lang="en">The staged layout could not be previewed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++25b1366077c998403b9fe6bd8d05cb29103950e2ed34a8f56d7a8c442b2586e1">
       <source xml:lang="en">The step this widget was bound to no longer exists.</source>
     </trans-unit>
@@ -8772,6 +8793,9 @@
     <trans-unit id="++CODE++3b66e66298f47c8eba7cd3aa9e408063df46a203ada5016bc649f3aaeac658e4">
       <source xml:lang="en">This file is not a valid runbook: {0}</source>
       <note>{0} is a technical detail string</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e190ec66c2faef655a85ebaf56ad4ebc751dded3e9114b1d523cda378d22c79d">
+      <source xml:lang="en">This layout applies only to the current run</source>
     </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>

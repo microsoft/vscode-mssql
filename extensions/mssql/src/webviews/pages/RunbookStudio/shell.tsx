@@ -13,7 +13,7 @@
  */
 
 import debounce from "lodash/debounce";
-import { CSSProperties, useEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
@@ -36,6 +36,7 @@ import { PlannerConsoleTurn, PlannerFeedEntry, useRbs } from "./state";
 import { displayOrder, PlanStepper } from "./planStepper";
 import { PlanGraphView } from "./graphView";
 import { ResolvedWidgetView } from "./widgets";
+import { mergePresentationLayoutEdits } from "./presentationDraft";
 
 const ROUTES: Array<{ id: RbsRoute; label: () => string; icon: string }> = [
     { id: "author", label: () => locConstants.runbookStudio.author, icon: "✎" },
@@ -1455,6 +1456,311 @@ function EvidenceExportControl() {
     );
 }
 
+type PresentationDraftTarget =
+    | { kind: "run"; runId: string }
+    | {
+          kind: "sample";
+          scenario: "clean" | "blockingErrors" | "approvalRejected";
+      };
+
+function usePresentationDraft(
+    basePresentation: ResolvedPresentation | undefined,
+    target: PresentationDraftTarget | undefined,
+    resetKey: string | undefined,
+) {
+    const {
+        state,
+        applyPresentationLayout,
+        previewPresentationLayout,
+        applyPresentationOverlay,
+        clearPresentationOverlay,
+    } = useRbs();
+    const currentRevision = state?.artifact?.presentationRevision ?? 0;
+    const [draftEdits, setDraftEdits] = useState<PresentationLayoutEdit[]>([]);
+    const [draftBaseRevision, setDraftBaseRevision] = useState<number | undefined>();
+    const [draftPresentation, setDraftPresentation] = useState<ResolvedPresentation | undefined>();
+    const [runOnlyEdits, setRunOnlyEdits] = useState<PresentationLayoutEdit[]>([]);
+    const [runOnlyPresentation, setRunOnlyPresentation] = useState<
+        ResolvedPresentation | undefined
+    >();
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<"invalid" | "targetMissing" | undefined>();
+    const [conflict, setConflict] = useState(false);
+    const requestSequence = useRef(0);
+    const targetKey = target ? JSON.stringify(target) : undefined;
+    const hostRunOnlyEdits =
+        target?.kind === "run" && state?.presentationOverlay?.runId === target.runId
+            ? state.presentationOverlay.edits
+            : [];
+
+    const resolveEdits = useCallback(
+        async (
+            edits: PresentationLayoutEdit[],
+            baseRevision: number,
+            destination: "draft" | "runOnly",
+        ) => {
+            if (!target || edits.length === 0) {
+                return false;
+            }
+            const sequence = ++requestSequence.current;
+            const result = await previewPresentationLayout(edits, baseRevision, target);
+            if (sequence !== requestSequence.current) {
+                return false;
+            }
+            if (result.presentation) {
+                if (destination === "draft") {
+                    setDraftPresentation(result.presentation);
+                } else {
+                    setRunOnlyPresentation(result.presentation);
+                }
+                setError(undefined);
+                return true;
+            }
+            if (result.reason === "revisionConflict") {
+                setConflict(true);
+            } else {
+                setError(result.reason === "targetMissing" ? "targetMissing" : "invalid");
+            }
+            return false;
+        },
+        [previewPresentationLayout, targetKey],
+    );
+
+    useEffect(() => {
+        requestSequence.current++;
+        setDraftEdits([]);
+        setDraftBaseRevision(undefined);
+        setDraftPresentation(undefined);
+        setRunOnlyEdits([]);
+        setRunOnlyPresentation(undefined);
+        setError(undefined);
+        setConflict(false);
+    }, [resetKey]);
+
+    useEffect(() => {
+        if (draftEdits.length > 0 && draftBaseRevision !== undefined) {
+            setDraftPresentation(undefined);
+            if (draftBaseRevision !== currentRevision) {
+                setConflict(true);
+            } else {
+                void resolveEdits(draftEdits, draftBaseRevision, "draft");
+            }
+        } else if (runOnlyEdits.length > 0) {
+            setRunOnlyPresentation(undefined);
+            void resolveEdits(runOnlyEdits, currentRevision, "runOnly");
+        }
+    }, [targetKey]);
+
+    const stageEdits = useCallback(
+        (changes: PresentationLayoutEdit[]) => {
+            if (!target || changes.length === 0 || conflict) {
+                return;
+            }
+            if (runOnlyEdits.length > 0) {
+                setRunOnlyEdits([]);
+                setRunOnlyPresentation(undefined);
+            }
+            setDraftEdits((current) => {
+                const next = mergePresentationLayoutEdits(
+                    current.length > 0
+                        ? current
+                        : hostRunOnlyEdits.length > 0
+                          ? hostRunOnlyEdits
+                          : runOnlyEdits,
+                    changes,
+                );
+                const revision = draftBaseRevision ?? currentRevision;
+                setDraftBaseRevision(revision);
+                void resolveEdits(next, revision, "draft");
+                return next;
+            });
+        },
+        [
+            conflict,
+            currentRevision,
+            draftBaseRevision,
+            hostRunOnlyEdits,
+            resolveEdits,
+            runOnlyEdits,
+            targetKey,
+        ],
+    );
+
+    const resetDraft = useCallback(() => {
+        requestSequence.current++;
+        setDraftEdits([]);
+        setDraftBaseRevision(undefined);
+        setDraftPresentation(undefined);
+        setError(undefined);
+        setConflict(false);
+    }, []);
+
+    const applyToRun = useCallback(async () => {
+        if (!draftPresentation || draftEdits.length === 0 || draftBaseRevision === undefined) {
+            return false;
+        }
+        if (target?.kind === "run") {
+            setSaving(true);
+            try {
+                const result = await applyPresentationOverlay(
+                    target.runId,
+                    draftEdits,
+                    draftBaseRevision,
+                );
+                if (result.applied) {
+                    resetDraft();
+                    return true;
+                }
+                if (result.reason === "revisionConflict") {
+                    setConflict(true);
+                } else {
+                    setError(result.reason === "targetMissing" ? "targetMissing" : "invalid");
+                }
+                return false;
+            } finally {
+                setSaving(false);
+            }
+        }
+        setRunOnlyEdits(draftEdits);
+        setRunOnlyPresentation(draftPresentation);
+        resetDraft();
+        return true;
+    }, [
+        applyPresentationOverlay,
+        draftBaseRevision,
+        draftEdits,
+        draftPresentation,
+        resetDraft,
+        targetKey,
+    ]);
+
+    const resetRunOnly = useCallback(async () => {
+        if (target?.kind === "run" && state?.presentationOverlay?.runId === target.runId) {
+            await clearPresentationOverlay(target.runId);
+        }
+        setRunOnlyEdits([]);
+        setRunOnlyPresentation(undefined);
+    }, [clearPresentationOverlay, state?.presentationOverlay?.runId, targetKey]);
+
+    const saveToRunbook = useCallback(async () => {
+        if (draftEdits.length === 0 || draftBaseRevision === undefined) {
+            return false;
+        }
+        setSaving(true);
+        setError(undefined);
+        try {
+            const result = await applyPresentationLayout(draftEdits, draftBaseRevision);
+            if (result.applied) {
+                await resetRunOnly();
+                resetDraft();
+                return true;
+            }
+            if (result.reason === "revisionConflict") {
+                setConflict(true);
+            } else {
+                setError("invalid");
+            }
+            return false;
+        } finally {
+            setSaving(false);
+        }
+    }, [applyPresentationLayout, draftBaseRevision, draftEdits, resetDraft, resetRunOnly]);
+
+    const rebase = useCallback(async () => {
+        if (draftEdits.length === 0) {
+            return;
+        }
+        setSaving(true);
+        try {
+            const resolved = await resolveEdits(draftEdits, currentRevision, "draft");
+            if (resolved) {
+                setDraftBaseRevision(currentRevision);
+                setConflict(false);
+            }
+        } finally {
+            setSaving(false);
+        }
+    }, [currentRevision, draftEdits, resolveEdits]);
+
+    return {
+        presentation: draftPresentation ?? runOnlyPresentation ?? basePresentation,
+        pending: draftEdits.length > 0,
+        runOnly: runOnlyEdits.length > 0 || hostRunOnlyEdits.length > 0,
+        saving,
+        error,
+        conflict,
+        stageEdits,
+        resetDraft,
+        resetRunOnly,
+        applyToRun,
+        saveToRunbook,
+        rebase,
+    };
+}
+
+function PresentationDraftBanner({
+    draft,
+    previewOnly = false,
+}: {
+    draft: ReturnType<typeof usePresentationDraft>;
+    previewOnly?: boolean;
+}) {
+    const loc = locConstants.runbookStudio;
+    if (!draft.pending && !draft.runOnly) {
+        return null;
+    }
+    return (
+        <div className="rbs-layout-draft-banner" role="status">
+            <div>
+                <strong>
+                    {draft.pending ? loc.layoutChangesPending : loc.layoutRunOnlyApplied}
+                </strong>
+                {draft.conflict ? (
+                    <div className="rbs-error-text">{loc.layoutRevisionConflict}</div>
+                ) : null}
+                {draft.error ? (
+                    <div className="rbs-error-text">{loc.layoutPreviewFailed}</div>
+                ) : null}
+            </div>
+            <div className="rbs-spacer" />
+            {draft.conflict ? (
+                <button
+                    type="button"
+                    className="rbs-btn"
+                    disabled={draft.saving}
+                    onClick={() => void draft.rebase()}>
+                    {loc.rebaseLayout}
+                </button>
+            ) : null}
+            {draft.pending && !draft.conflict ? (
+                <>
+                    <button
+                        type="button"
+                        className="rbs-btn rbs-btn-quiet"
+                        disabled={draft.saving}
+                        onClick={draft.applyToRun}>
+                        {previewOnly ? loc.applyToPreviewOnly : loc.applyToRunOnly}
+                    </button>
+                    <button
+                        type="button"
+                        className="rbs-btn"
+                        disabled={draft.saving}
+                        onClick={() => void draft.saveToRunbook()}>
+                        {draft.saving ? loc.savingLayout : loc.saveLayoutToRunbook}
+                    </button>
+                </>
+            ) : null}
+            <button
+                type="button"
+                className="rbs-link-button"
+                disabled={draft.saving}
+                onClick={draft.pending ? draft.resetDraft : draft.resetRunOnly}>
+                {loc.resetLayoutChanges}
+            </button>
+        </div>
+    );
+}
+
 function ResultsPage() {
     const { state } = useRbs();
     const loc = locConstants.runbookStudio;
@@ -1464,6 +1770,11 @@ function ResultsPage() {
     const widgets = (state?.presentation?.sections ?? []).flatMap((section) => section.widgets);
     const readyWidgets = widgets.filter((widget) => widget.state === "ready");
     const runId = state?.run?.runId;
+    const draftTarget = useMemo<PresentationDraftTarget | undefined>(
+        () => (runId ? { kind: "run", runId } : undefined),
+        [runId],
+    );
+    const layoutDraft = usePresentationDraft(state?.presentation, draftTarget, runId);
     const resultSignature = readyWidgets
         .map(
             (widget) =>
@@ -1492,7 +1803,7 @@ function ResultsPage() {
     if (!state?.run) {
         return <EmptyState title={loc.noResultsTitle} detail={loc.noResultsDetail} />;
     }
-    const presentation = state.presentation;
+    const presentation = layoutDraft.presentation;
     if (!presentation || presentation.sections.length === 0) {
         return (
             <div className="rbs-page-body">
@@ -1531,11 +1842,23 @@ function ResultsPage() {
                 </button>
                 <EvidenceExportControl />
             </div>
+            <PresentationDraftBanner draft={layoutDraft} />
             <div className={`rbs-results-compose ${outputsOpen ? "with-drawer" : ""}`}>
                 <div>
-                    <PresentationSections presentation={presentation} editing={editingLayout} />
+                    <PresentationSections
+                        presentation={presentation}
+                        editing={editingLayout}
+                        onLayoutEdits={layoutDraft.stageEdits}
+                        editingDisabled={layoutDraft.saving || layoutDraft.conflict}
+                    />
                 </div>
-                {outputsOpen ? <OutputsDrawer presentation={presentation} /> : null}
+                {outputsOpen ? (
+                    <OutputsDrawer
+                        presentation={presentation}
+                        onLayoutEdits={layoutDraft.stageEdits}
+                        editingDisabled={layoutDraft.saving || layoutDraft.conflict}
+                    />
+                ) : null}
             </div>
         </div>
     );
@@ -1560,10 +1883,14 @@ function PresentationSections({
     presentation,
     sample = false,
     editing = false,
+    onLayoutEdits,
+    editingDisabled = false,
 }: {
     presentation: ResolvedPresentation;
     sample?: boolean;
     editing?: boolean;
+    onLayoutEdits?: (edits: PresentationLayoutEdit[]) => void;
+    editingDisabled?: boolean;
 }) {
     return (
         <>
@@ -1582,6 +1909,8 @@ function PresentationSections({
                                         widget={widget}
                                         siblings={section.widgets}
                                         index={index}
+                                        onLayoutEdits={onLayoutEdits}
+                                        disabled={editingDisabled}
                                     />
                                 ) : null}
                                 <ResolvedWidgetView widget={widget} sample={sample} />
@@ -1610,56 +1939,48 @@ function LayoutEditorControls({
     widget,
     siblings,
     index,
+    onLayoutEdits,
+    disabled,
 }: {
     widget: ResolvedWidget;
     siblings: ResolvedWidget[];
     index: number;
+    onLayoutEdits?: (edits: PresentationLayoutEdit[]) => void;
+    disabled: boolean;
 }) {
-    const { state, applyPresentationLayout } = useRbs();
+    const { state } = useRbs();
     const loc = locConstants.runbookStudio;
-    const [saving, setSaving] = useState(false);
-    const [error, setError] = useState(false);
     const configured = state?.artifact?.outputPresentations?.[widget.nodeId];
     const sections = state?.artifact?.presentationSections ?? [];
-    const placement = configured?.placement ?? widget.placement ?? { order: 0 };
+    const placement = widget.placement ?? configured?.placement ?? { order: 0 };
     const currentSectionId =
-        configured?.sectionId ??
         (sections.some((section) => section.id === widget.sectionId)
             ? widget.sectionId
-            : "primary");
+            : undefined) ??
+        configured?.sectionId ??
+        "primary";
     const editFor = (
         target: ResolvedWidget,
         edit: Partial<PresentationLayoutEdit> = {},
     ): PresentationLayoutEdit => {
         const targetConfigured = state?.artifact?.outputPresentations?.[target.nodeId];
         const targetSectionId =
-            targetConfigured?.sectionId ??
             (sections.some((section) => section.id === target.sectionId)
                 ? target.sectionId
-                : "primary");
+                : undefined) ??
+            targetConfigured?.sectionId ??
+            "primary";
         return {
             nodeId: target.nodeId,
             widgetId: targetConfigured?.widgetId ?? target.id,
             defaultView: targetConfigured?.defaultView ?? target.view,
             sectionId: targetSectionId,
-            placement: targetConfigured?.placement ?? target.placement ?? { order: 0 },
+            placement: target.placement ?? targetConfigured?.placement ?? { order: 0 },
             hidden: false,
             ...edit,
         };
     };
-    const commitEdits = async (edits: PresentationLayoutEdit[]) => {
-        const baseRevision = state?.artifact?.presentationRevision ?? 0;
-        setSaving(true);
-        setError(false);
-        try {
-            const result = await applyPresentationLayout(edits, baseRevision);
-            setError(!result.applied);
-        } catch {
-            setError(true);
-        } finally {
-            setSaving(false);
-        }
-    };
+    const commitEdits = (edits: PresentationLayoutEdit[]) => onLayoutEdits?.(edits);
     const commit = (edit: Partial<PresentationLayoutEdit>) => commitEdits([editFor(widget, edit)]);
     const move = (delta: -1 | 1) => {
         const sibling = siblings[index + delta];
@@ -1668,11 +1989,11 @@ function LayoutEditorControls({
         }
         const currentOrder = placement.order;
         const siblingConfigured = state?.artifact?.outputPresentations?.[sibling.nodeId];
-        const siblingPlacement = siblingConfigured?.placement ??
-            sibling.placement ?? {
+        const siblingPlacement = sibling.placement ??
+            siblingConfigured?.placement ?? {
                 order: index + delta,
             };
-        void commitEdits([
+        commitEdits([
             editFor(widget, { placement: { ...placement, order: siblingPlacement.order } }),
             editFor(sibling, {
                 placement: { ...siblingPlacement, order: currentOrder },
@@ -1686,8 +2007,8 @@ function LayoutEditorControls({
                 <select
                     className="rbs-select"
                     value={currentSectionId}
-                    disabled={saving}
-                    onChange={(event) => void commit({ sectionId: event.target.value })}>
+                    disabled={disabled}
+                    onChange={(event) => commit({ sectionId: event.target.value })}>
                     {sections.map((section) => (
                         <option key={section.id} value={section.id}>
                             {section.label ?? section.role}
@@ -1700,9 +2021,9 @@ function LayoutEditorControls({
                 <select
                     className="rbs-select"
                     value={spanPresetOf(placement.span)}
-                    disabled={saving}
+                    disabled={disabled}
                     onChange={(event) =>
-                        void commit({
+                        commit({
                             placement: {
                                 ...placement,
                                 span: SPAN_PRESETS[event.target.value as keyof typeof SPAN_PRESETS],
@@ -1720,7 +2041,7 @@ function LayoutEditorControls({
                 className="rbs-btn rbs-btn-quiet rbs-layout-move"
                 aria-label={loc.moveOutputUp}
                 title={loc.moveOutputUp}
-                disabled={saving || index === 0}
+                disabled={disabled || index === 0}
                 onClick={() => move(-1)}>
                 ↑
             </button>
@@ -1729,19 +2050,17 @@ function LayoutEditorControls({
                 className="rbs-btn rbs-btn-quiet rbs-layout-move"
                 aria-label={loc.moveOutputDown}
                 title={loc.moveOutputDown}
-                disabled={saving || index === siblings.length - 1}
+                disabled={disabled || index === siblings.length - 1}
                 onClick={() => move(1)}>
                 ↓
             </button>
             <button
                 type="button"
                 className="rbs-link-button"
-                disabled={saving}
-                onClick={() => void commit({ hidden: true })}>
+                disabled={disabled}
+                onClick={() => commit({ hidden: true })}>
                 {loc.hideOutput}
             </button>
-            {saving ? <span className="rbs-muted">{loc.savingLayout}</span> : null}
-            {error ? <span className="rbs-error-text">{loc.layoutSaveFailed}</span> : null}
         </div>
     );
 }
@@ -1749,14 +2068,16 @@ function LayoutEditorControls({
 function OutputsDrawer({
     presentation,
     branchNotTakenNodeIds = [],
+    onLayoutEdits,
+    editingDisabled = false,
 }: {
     presentation: ResolvedPresentation;
     branchNotTakenNodeIds?: string[];
+    onLayoutEdits?: (edits: PresentationLayoutEdit[]) => void;
+    editingDisabled?: boolean;
 }) {
-    const { state, applyPresentationLayout } = useRbs();
+    const { state } = useRbs();
     const loc = locConstants.runbookStudio;
-    const [savingNode, setSavingNode] = useState<string | undefined>();
-    const [errorNode, setErrorNode] = useState<string | undefined>();
     const sections = state?.artifact?.presentationSections ?? [];
     const visibleNodes = new Set(
         presentation.sections.flatMap((section) => section.widgets.map((widget) => widget.nodeId)),
@@ -1771,39 +2092,30 @@ function OutputsDrawer({
             (entry): entry is typeof entry & { contract: string } => entry.contract !== undefined,
         );
 
-    const update = async (nodeId: string, hidden: boolean, sectionId?: string) => {
+    const update = (nodeId: string, hidden: boolean, sectionId?: string) => {
         const configured = state?.artifact?.outputPresentations?.[nodeId];
         const node = outputs.find((entry) => entry.node.id === nodeId);
         if (!node) {
             return;
         }
-        setSavingNode(nodeId);
-        setErrorNode(undefined);
-        try {
-            const result = await applyPresentationLayout(
-                [
-                    {
-                        nodeId,
-                        ...(configured?.widgetId ? { widgetId: configured.widgetId } : {}),
-                        defaultView: configured?.defaultView ?? defaultViewFor(node.contract),
-                        sectionId: sectionId ?? configured?.sectionId ?? "primary",
-                        placement: configured?.placement ?? {
-                            order: outputs.findIndex((entry) => entry.node.id === nodeId),
-                            span: SPAN_PRESETS.full,
-                        },
-                        hidden,
+        const resolved = presentation.sections
+            .flatMap((candidate) => candidate.widgets)
+            .find((widget) => widget.nodeId === nodeId);
+        onLayoutEdits?.([
+            {
+                nodeId,
+                ...(configured?.widgetId ? { widgetId: configured.widgetId } : {}),
+                defaultView:
+                    configured?.defaultView ?? resolved?.view ?? defaultViewFor(node.contract),
+                sectionId: sectionId ?? resolved?.sectionId ?? configured?.sectionId ?? "primary",
+                placement: resolved?.placement ??
+                    configured?.placement ?? {
+                        order: outputs.findIndex((entry) => entry.node.id === nodeId),
+                        span: SPAN_PRESETS.full,
                     },
-                ],
-                state?.artifact?.presentationRevision ?? 0,
-            );
-            if (!result.applied) {
-                setErrorNode(nodeId);
-            }
-        } catch {
-            setErrorNode(nodeId);
-        } finally {
-            setSavingNode(undefined);
-        }
+                hidden,
+            },
+        ]);
     };
 
     return (
@@ -1813,9 +2125,11 @@ function OutputsDrawer({
             <div className="rbs-outputs-list">
                 {outputs.map(({ node, contract }) => {
                     const configured = state?.artifact?.outputPresentations?.[node.id];
+                    const resolved = presentation.sections
+                        .flatMap((candidate) => candidate.widgets)
+                        .find((widget) => widget.nodeId === node.id);
                     const branchNotTaken = branchNotTakenNodes.has(node.id);
-                    const hidden =
-                        configured?.hidden ?? (!visibleNodes.has(node.id) && !branchNotTaken);
+                    const hidden = !visibleNodes.has(node.id) && !branchNotTaken;
                     return (
                         <div className="rbs-output-row" key={node.id}>
                             <div>
@@ -1825,11 +2139,9 @@ function OutputsDrawer({
                             <select
                                 className="rbs-select"
                                 aria-label={loc.layoutSectionFor(node.label)}
-                                value={configured?.sectionId ?? "primary"}
-                                disabled={savingNode === node.id || hidden || branchNotTaken}
-                                onChange={(event) =>
-                                    void update(node.id, false, event.target.value)
-                                }>
+                                value={resolved?.sectionId ?? configured?.sectionId ?? "primary"}
+                                disabled={editingDisabled || hidden || branchNotTaken}
+                                onChange={(event) => update(node.id, false, event.target.value)}>
                                 {sections.map((section) => (
                                     <option key={section.id} value={section.id}>
                                         {section.label ?? section.role}
@@ -1839,17 +2151,14 @@ function OutputsDrawer({
                             <button
                                 type="button"
                                 className="rbs-btn rbs-btn-quiet"
-                                disabled={savingNode === node.id || branchNotTaken}
-                                onClick={() => void update(node.id, !hidden)}>
+                                disabled={editingDisabled || branchNotTaken}
+                                onClick={() => update(node.id, !hidden)}>
                                 {branchNotTaken
                                     ? loc.branchNotTaken
                                     : hidden
                                       ? loc.showOutput
                                       : loc.hideOutput}
                             </button>
-                            {errorNode === node.id ? (
-                                <span className="rbs-error-text">{loc.layoutSaveFailed}</span>
-                            ) : null}
                         </div>
                     );
                 })}
@@ -1867,21 +2176,41 @@ function PreviewPage() {
     );
     const [editingLayout, setEditingLayout] = useState(false);
     const [outputsOpen, setOutputsOpen] = useState(false);
+    const scenarios =
+        state?.previewScenarios ??
+        (state?.previewPresentation
+            ? [
+                  {
+                      id: "clean" as const,
+                      presentation: state.previewPresentation,
+                      hiddenBranchWidgetCount: 0,
+                      hiddenBranchNodeIds: [],
+                  },
+              ]
+            : []);
+    const scenario = scenarios.find((candidate) => candidate.id === scenarioId) ?? scenarios[0];
+    const draftTarget = useMemo<PresentationDraftTarget | undefined>(
+        () =>
+            scenario
+                ? {
+                      kind: "sample",
+                      scenario: scenario.id,
+                  }
+                : undefined,
+        [scenario?.id],
+    );
+    const layoutDraft = usePresentationDraft(
+        scenario?.presentation,
+        draftTarget,
+        state?.artifact ? `preview:${state.artifact.id}` : undefined,
+    );
     if (state?.artifactError) {
         return <InvalidArtifact />;
     }
-    if (!state?.artifact?.hasLock || !state.previewPresentation) {
+    if (!state?.artifact?.hasLock || !scenario || !layoutDraft.presentation) {
         return <EmptyState title={loc.noPreviewTitle} detail={loc.noPreviewDetail} />;
     }
-    const scenarios = state.previewScenarios ?? [
-        {
-            id: "clean" as const,
-            presentation: state.previewPresentation,
-            hiddenBranchWidgetCount: 0,
-            hiddenBranchNodeIds: [],
-        },
-    ];
-    const scenario = scenarios.find((candidate) => candidate.id === scenarioId) ?? scenarios[0];
+    const presentation = layoutDraft.presentation;
     return (
         <div className="rbs-page-body">
             <div className="rbs-preview-toolbar">
@@ -1951,18 +2280,23 @@ function PreviewPage() {
                     {loc.branchWidgetsHidden(scenario.hiddenBranchWidgetCount)}
                 </div>
             ) : null}
+            <PresentationDraftBanner draft={layoutDraft} previewOnly />
             <div className={`rbs-results-compose ${outputsOpen ? "with-drawer" : ""}`}>
                 <div className={`rbs-preview-canvas rbs-preview-${width}`}>
                     <PresentationSections
-                        presentation={scenario.presentation}
+                        presentation={presentation}
                         sample
                         editing={editingLayout}
+                        onLayoutEdits={layoutDraft.stageEdits}
+                        editingDisabled={layoutDraft.saving || layoutDraft.conflict}
                     />
                 </div>
                 {outputsOpen ? (
                     <OutputsDrawer
-                        presentation={scenario.presentation}
+                        presentation={presentation}
                         branchNotTakenNodeIds={scenario.hiddenBranchNodeIds}
+                        onLayoutEdits={layoutDraft.stageEdits}
+                        editingDisabled={layoutDraft.saving || layoutDraft.conflict}
                     />
                 ) : null}
             </div>

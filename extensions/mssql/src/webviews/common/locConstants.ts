@@ -3605,6 +3605,17 @@ export class LocConstants {
             hideOutput: l10n.t("Hide"),
             showOutput: l10n.t("Show"),
             savingLayout: l10n.t("Saving…"),
+            layoutChangesPending: l10n.t("Layout changes are ready to apply"),
+            layoutRunOnlyApplied: l10n.t("This layout applies only to the current run"),
+            applyToRunOnly: l10n.t("Apply to this run only"),
+            applyToPreviewOnly: l10n.t("Apply to this preview only"),
+            saveLayoutToRunbook: l10n.t("Save to runbook"),
+            resetLayoutChanges: l10n.t("Reset"),
+            rebaseLayout: l10n.t("Rebase on current runbook"),
+            layoutRevisionConflict: l10n.t(
+                "The runbook layout changed after customization started. Rebase to preview these edits against the current version, or reset them.",
+            ),
+            layoutPreviewFailed: l10n.t("The staged layout could not be previewed."),
             layoutSaveFailed: l10n.t(
                 "The layout changed or this edit is no longer valid. Review the latest layout and try again.",
             ),

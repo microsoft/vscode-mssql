@@ -271,6 +271,18 @@
     background: var(--vscode-editorWidget-background, transparent);
 }
 
+.rbs-layout-draft-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 8px 0;
+    padding: 10px 12px;
+    border: 1px solid var(--vscode-focusBorder);
+    border-radius: 4px;
+    background: var(--vscode-editorWidget-background);
+}
+
 .rbs-layout-controls label {
     display: inline-flex;
     align-items: center;

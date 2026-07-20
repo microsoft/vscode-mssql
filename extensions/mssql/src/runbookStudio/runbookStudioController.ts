@@ -19,6 +19,7 @@ import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
 import {
     RbsArtifactSummary,
+    RbsApplyPresentationOverlayRequest,
     RbsApplyPresentationLayoutRequest,
     RbsCancelCompileRequest,
     RbsCompileProgressNotification,
@@ -30,6 +31,7 @@ import {
     RbsListConnectionsRequest,
     RbsNavigateNotification,
     RbsOpenDiagnosticsRequest,
+    RbsPreviewPresentationLayoutRequest,
     RbsRespondToGateRequest,
     RbsRoute,
     RbsRunEventNotification,
@@ -40,6 +42,7 @@ import {
     RbsSetOutputPresentationRequest,
     RbsUpdateIntentRequest,
     RbsCancelRunRequest,
+    RbsClearPresentationOverlayRequest,
     RbsGetRunRequest,
     RBS_STATE_SCHEMA_VERSION,
     RunbookArtifactFile,
@@ -49,6 +52,8 @@ import {
     compatibleViews,
     defaultViewFor,
     expectedContractFor,
+    PresentationDefinition,
+    PresentationLayoutEdit,
 } from "../sharedInterfaces/runbookPresentation";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import {
@@ -81,6 +86,10 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
     private statePushTimer: ReturnType<typeof setTimeout> | undefined;
     private lastStatePush = 0;
     private openMarkerEnded = false;
+    private readonly presentationOverlays = new Map<
+        string,
+        { definition: PresentationDefinition; edits: PresentationLayoutEdit[] }
+    >();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -213,6 +222,9 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 ...artifact,
                 presentation: definition,
             });
+            if (applied) {
+                this.presentationOverlays.clear();
+            }
             return { applied };
         });
 
@@ -275,60 +287,72 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     ...artifact,
                     presentation: next,
                 });
+                if (applied) {
+                    this.presentationOverlays.clear();
+                }
                 return { applied };
             },
         );
 
         this.onRequest(RbsApplyPresentationLayoutRequest.type, async ({ edits, baseRevision }) => {
-            const artifact = this.model.artifact;
-            const definition = validatePresentationDefinition(artifact?.presentation);
-            if ((definition?.revision ?? 0) !== baseRevision) {
-                return { applied: false, reason: "revisionConflict" as const };
+            const prepared = this.preparePresentationLayout(edits, baseRevision);
+            if ("reason" in prepared) {
+                return { applied: false, reason: prepared.reason };
             }
-            const sections = definition?.results.sections ?? defaultPresentationSections();
-            const sectionIds = new Set(sections.map((section) => section.id));
-            const contractByNode: Record<string, string> = {};
-            let valid = artifact?.lock !== undefined && edits.length > 0 && edits.length <= 100;
-            for (const edit of edits) {
-                const node = artifact?.lock?.nodes.find(
-                    (candidate) => candidate.id === edit.nodeId,
-                );
-                const contract = node
-                    ? expectedContractFor(node.kind, node.activityKind)
-                    : undefined;
-                const span = edit.placement.span;
-                valid =
-                    valid &&
-                    node !== undefined &&
-                    contract !== undefined &&
-                    compatibleViews(contract).includes(edit.defaultView) &&
-                    sectionIds.has(edit.sectionId) &&
-                    Number.isInteger(edit.placement.order) &&
-                    edit.placement.order >= 0 &&
-                    (span?.compact === undefined ||
-                        (Number.isInteger(span.compact) &&
-                            span.compact >= 1 &&
-                            span.compact <= 1)) &&
-                    (span?.medium === undefined ||
-                        (Number.isInteger(span.medium) && span.medium >= 1 && span.medium <= 6)) &&
-                    (span?.wide === undefined ||
-                        (Number.isInteger(span.wide) && span.wide >= 1 && span.wide <= 12));
-                if (contract) {
-                    contractByNode[edit.nodeId] = contract;
-                }
-            }
-            if (!valid || !artifact) {
-                return { applied: false, reason: "invalid" as const };
-            }
-            const next = applyPresentationLayoutEdits(definition, edits, {
-                contractByNode,
-                planRevision: artifact.lock?.planRevision,
-            });
             const applied = await this.model.applyArtifactEdit({
-                ...artifact,
-                presentation: next,
+                ...prepared.artifact,
+                presentation: prepared.definition,
             });
+            if (applied) {
+                this.presentationOverlays.clear();
+            }
             return { applied };
+        });
+
+        this.onRequest(
+            RbsPreviewPresentationLayoutRequest.type,
+            async ({ edits, baseRevision, target }) => {
+                const prepared = this.preparePresentationLayout(edits, baseRevision);
+                if ("reason" in prepared) {
+                    return { reason: prepared.reason };
+                }
+                const snapshot =
+                    target.kind === "run"
+                        ? this.model.displayRun?.runId === target.runId
+                            ? this.model.displayRun
+                            : undefined
+                        : createSampleRunSnapshot(prepared.artifact, target.scenario);
+                return snapshot
+                    ? { presentation: resolvePresentation(prepared.definition, snapshot) }
+                    : { reason: "targetMissing" as const };
+            },
+        );
+
+        this.onRequest(
+            RbsApplyPresentationOverlayRequest.type,
+            async ({ runId, edits, baseRevision }) => {
+                if (this.model.displayRun?.runId !== runId) {
+                    return { applied: false, reason: "targetMissing" as const };
+                }
+                const prepared = this.preparePresentationLayout(edits, baseRevision);
+                if ("reason" in prepared) {
+                    return { applied: false, reason: prepared.reason };
+                }
+                this.presentationOverlays.set(runId, {
+                    definition: prepared.definition,
+                    edits,
+                });
+                this.queueStatePush();
+                return { applied: true };
+            },
+        );
+
+        this.onRequest(RbsClearPresentationOverlayRequest.type, async ({ runId }) => {
+            const cleared = this.presentationOverlays.delete(runId);
+            if (cleared) {
+                this.queueStatePush();
+            }
+            return { cleared };
         });
 
         this.onRequest(RbsExecutePlanQueryRequest.type, async ({ nodeId, connectionValues }) => {
@@ -560,7 +584,11 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             this.statePushTimer = undefined;
             this.lastStatePush = Date.now();
             if (!this.isDisposed) {
-                this.state = RunbookStudioController.buildState(this.model);
+                this.state = RunbookStudioController.buildState(
+                    this.model,
+                    undefined,
+                    this.presentationOverlays,
+                );
             }
         }, delay);
     }
@@ -576,6 +604,10 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
     private static buildState(
         model: RunbookStudioDocumentModel,
         initialRoute?: RbsRoute,
+        presentationOverlays?: ReadonlyMap<
+            string,
+            { definition: PresentationDefinition; edits: PresentationLayoutEdit[] }
+        >,
     ): RbsState {
         const artifact = model.artifact;
         let summary: RbsArtifactSummary | undefined;
@@ -618,11 +650,15 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         // the active/most recent run by default. Same-process official
         // candidate marker pair.
         const displayRun = model.displayRun;
+        const displayOverlay = displayRun ? presentationOverlays?.get(displayRun.runId) : undefined;
         let presentation: ReturnType<typeof resolvePresentation> | undefined;
         const presentationDefinition = validatePresentationDefinition(artifact?.presentation);
         if (displayRun) {
             Perf.marker("mssql.runbookStudio.presentation.resolve.begin", "begin");
-            presentation = resolvePresentation(presentationDefinition, displayRun);
+            presentation = resolvePresentation(
+                displayOverlay?.definition ?? presentationDefinition,
+                displayRun,
+            );
             Perf.marker("mssql.runbookStudio.presentation.resolve.end", "end", {
                 widgetCount: presentation.sections.reduce((n, s) => n + s.widgets.length, 0),
                 sectionCount: presentation.sections.length,
@@ -692,6 +728,14 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             ...(displayRun ? { selectedRunId: displayRun.runId } : {}),
             ...(availableRuns.length > 0 ? { availableRuns } : {}),
             ...(presentation ? { presentation } : {}),
+            ...(displayRun && displayOverlay
+                ? {
+                      presentationOverlay: {
+                          runId: displayRun.runId,
+                          edits: displayOverlay.edits,
+                      },
+                  }
+                : {}),
             ...(cleanPreview ? { previewPresentation: cleanPreview.presentation } : {}),
             ...(previewPresentations.length > 0 ? { previewScenarios: previewPresentations } : {}),
             history: model.history,
@@ -717,5 +761,54 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                   }
                 : {}),
         });
+    }
+
+    private preparePresentationLayout(
+        edits: PresentationLayoutEdit[],
+        baseRevision: number,
+    ):
+        | { artifact: RunbookArtifactFile; definition: PresentationDefinition }
+        | { reason: "invalid" | "revisionConflict" } {
+        const artifact = this.model.artifact;
+        const definition = validatePresentationDefinition(artifact?.presentation);
+        if ((definition?.revision ?? 0) !== baseRevision) {
+            return { reason: "revisionConflict" };
+        }
+        const sections = definition?.results.sections ?? defaultPresentationSections();
+        const sectionIds = new Set(sections.map((section) => section.id));
+        const contractByNode: Record<string, string> = {};
+        let valid = artifact?.lock !== undefined && edits.length > 0 && edits.length <= 100;
+        for (const edit of edits) {
+            const node = artifact?.lock?.nodes.find((candidate) => candidate.id === edit.nodeId);
+            const contract = node ? expectedContractFor(node.kind, node.activityKind) : undefined;
+            const span = edit.placement.span;
+            valid =
+                valid &&
+                node !== undefined &&
+                contract !== undefined &&
+                compatibleViews(contract).includes(edit.defaultView) &&
+                sectionIds.has(edit.sectionId) &&
+                Number.isInteger(edit.placement.order) &&
+                edit.placement.order >= 0 &&
+                (span?.compact === undefined ||
+                    (Number.isInteger(span.compact) && span.compact >= 1 && span.compact <= 1)) &&
+                (span?.medium === undefined ||
+                    (Number.isInteger(span.medium) && span.medium >= 1 && span.medium <= 6)) &&
+                (span?.wide === undefined ||
+                    (Number.isInteger(span.wide) && span.wide >= 1 && span.wide <= 12));
+            if (contract) {
+                contractByNode[edit.nodeId] = contract;
+            }
+        }
+        if (!valid || !artifact) {
+            return { reason: "invalid" };
+        }
+        return {
+            artifact,
+            definition: applyPresentationLayoutEdits(definition, edits, {
+                contractByNode,
+                planRevision: artifact.lock?.planRevision,
+            }),
+        };
     }
 }
