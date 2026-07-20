@@ -71,6 +71,7 @@ import {
     resolvePresentation,
     upsertOutputPresentation,
     upsertOutputPin,
+    validateOutputViewSettings,
     validatePresentationDefinition,
 } from "./presentation/presentationResolver";
 import {
@@ -235,6 +236,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 views,
                 presentation,
                 defaultView,
+                settings,
                 baseRevision,
                 resetToSuggested,
             }) => {
@@ -259,7 +261,8 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     uniqueViews.size !== views.length ||
                     !views.includes(defaultView) ||
                     !validMode ||
-                    views.some((view) => !compatibleViews(contract).includes(view))
+                    views.some((view) => !compatibleViews(contract).includes(view)) ||
+                    (settings !== undefined && !validateOutputViewSettings(settings, views))
                 ) {
                     return { applied: false, reason: "invalid" as const };
                 }
@@ -281,6 +284,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                               views,
                               presentation,
                               defaultView,
+                              settings,
                               metadata,
                           );
                 const applied = await this.model.applyArtifactEdit({

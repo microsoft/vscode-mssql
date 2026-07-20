@@ -23,6 +23,7 @@ import {
     resolvePresentation,
     upsertOutputPin,
     upsertOutputPresentation,
+    validateOutputViewSettings,
     validatePresentationDefinition,
 } from "../../src/runbookStudio/presentation/presentationResolver";
 import {
@@ -365,6 +366,7 @@ suite("presentationResolver", () => {
             ["bar", "json"],
             { mode: "tabs" },
             "json",
+            undefined,
             { authoredContract: "rowset/1", planRevision: "8" },
         );
         expect(edited.revision).to.equal(4);
@@ -387,11 +389,49 @@ suite("presentationResolver", () => {
             sectionId: "main",
             placement: { order: 0 },
             hidden: false,
+            settings: { bar: { orientation: "horizontal" } },
+        });
+
+        const configured = upsertOutputPresentation(
+            edited,
+            "query",
+            ["bar", "json"],
+            { mode: "tabs" },
+            "json",
+            {
+                bar: {
+                    orientation: "vertical",
+                    sort: "category",
+                    maxCategories: 20,
+                },
+            },
+            { authoredContract: "rowset/1", planRevision: "8" },
+        );
+        expect(configured.results.widgets[0].views[0]).to.deep.include({
+            id: "w1:bar",
+            kind: "bar",
+            props: {
+                categoryField: "category",
+                valueFields: ["count"],
+                orientation: "vertical",
+                sort: "category",
+                maxCategories: 20,
+            },
+        });
+        expect(outputPresentationsOf(configured).query.settings).to.deep.equal({
+            bar: { orientation: "vertical", sort: "category", maxCategories: 20 },
+        });
+        expect(
+            resolvePresentation(configured, snapshot()).sections[0].widgets[0].views[0].settings,
+        ).to.deep.equal({
+            orientation: "vertical",
+            sort: "category",
+            maxCategories: 20,
         });
 
         // Results can change the default without collapsing a multi-view
         // binding back to the old single-view grammar.
-        const newDefault = upsertOutputPin(edited, "query", "bar");
+        const newDefault = upsertOutputPin(configured, "query", "bar");
         expect(outputPresentationsOf(newDefault).query).to.deep.include({
             views: ["bar", "json"],
             defaultView: "bar",
@@ -417,6 +457,24 @@ suite("presentationResolver", () => {
         const generatedPin = upsertOutputPin(undefined, "new-node", "bar");
         const resetGenerated = resetOutputPresentation(generatedPin, "new-node", "grid");
         expect(resetGenerated.results.widgets).to.have.length(0);
+    });
+
+    test("native renderer settings reject unknown, unselected, and unbounded input", () => {
+        expect(
+            validateOutputViewSettings(
+                {
+                    grid: { pageSize: 25, density: "compact" },
+                    bar: { orientation: "vertical", sort: "value-asc", maxCategories: 50 },
+                },
+                ["grid", "bar"],
+            ),
+        ).to.equal(true);
+        expect(validateOutputViewSettings({ bar: { maxCategories: 500 } }, ["bar"])).to.equal(
+            false,
+        );
+        expect(validateOutputViewSettings({ bar: { color: "red" } }, ["bar"])).to.equal(false);
+        expect(validateOutputViewSettings({ grid: { pageSize: 25 } }, ["bar"])).to.equal(false);
+        expect(validateOutputViewSettings({ json: {} }, ["json"])).to.equal(false);
     });
 
     test("layout edits materialize Overflow outputs and explicit hiding prevents reflow", () => {

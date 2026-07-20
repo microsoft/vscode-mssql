@@ -1026,6 +1026,9 @@
     <trans-unit id="++CODE++3824a9f4dafe92c6f1b80b40656a59784c03a824c27d58125d7d0ace753e2df2">
       <source xml:lang="en">Canvas</source>
     </trans-unit>
+    <trans-unit id="++CODE++ba09f9b2d9321bb620f3d114b159c5650a166bb15a0d91e973d4d52e686f0abb">
+      <source xml:lang="en">Card columns</source>
+    </trans-unit>
     <trans-unit id="++CODE++9527fb2b3d5ccb62606c88f7604ddb16febed19faead67b1edf263f6e0c8fe0b">
       <source xml:lang="en">Cascade</source>
     </trans-unit>
@@ -1467,6 +1470,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9504ef48c5eab40c3e3a086cbbdc3d70b44e607552db6adfbdd7c278ddabe357">
       <source xml:lang="en">Columns in the primary key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++459a23a5980fd5c63646e067c0503210fff540a57e74884956c119b3d2ac5407">
+      <source xml:lang="en">Comfortable</source>
     </trans-unit>
     <trans-unit id="++CODE++e665046133e22f0d3599a6c5de916445ed88c82a997a625a04af1827c42d790b">
       <source xml:lang="en">Command Timeout</source>
@@ -2435,6 +2441,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
       <source xml:lang="en">Deleting Container...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++77a283d69258c2ae985dc2343725d0af253da0fc1d87626966f7cefe4a3c7469">
+      <source xml:lang="en">Density</source>
     </trans-unit>
     <trans-unit id="++CODE++05a2d7332eb9d8bf164487c743a2e93c21b16bb2061a93e3ee2ceb508eadb753">
       <source xml:lang="en">Deny</source>
@@ -3967,6 +3976,9 @@
     <trans-unit id="++CODE++9f872ed43d00d8bdb372b1c05bd345b22f2ad5f7f41e06656d05625602e065b1">
       <source xml:lang="en">Fit</source>
     </trans-unit>
+    <trans-unit id="++CODE++b683993085e6ed4a5ed2242329b29220f6778e0fc30149fbb15bd7df68827925">
+      <source xml:lang="en">Fit data</source>
+    </trans-unit>
     <trans-unit id="++CODE++9285cedcf26a7cbb5277c70b4651a54679ee9d2c89767bc9dbe532b14f4bb697">
       <source xml:lang="en">Flat</source>
     </trans-unit>
@@ -4305,6 +4317,9 @@
     <trans-unit id="++CODE++0e769600933790607b2a13b33ddfade0fa17810eb62c3b28ee23e59516516491">
       <source xml:lang="en">History</source>
     </trans-unit>
+    <trans-unit id="++CODE++0abba441f16eff90782e7a820fd5abb05a1749cca37bff515e4cc968238a2d26">
+      <source xml:lang="en">Horizontal</source>
+    </trans-unit>
     <trans-unit id="++CODE++2db533557011ec539fc4c6604367e99cbb77c0a49b8b73b655841d3ee08f4f3e">
       <source xml:lang="en">Hostname</source>
     </trans-unit>
@@ -4426,6 +4441,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac665fafc5f9732c9d322749a1f726be51f8b31d2ec83ecde83a6e1d2b632eda">
       <source xml:lang="en">Include all object types</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4bbc7c045bb78f27dd036eecc5590a851b915821a0d406eb2685d0840d643c15">
+      <source xml:lang="en">Include zero</source>
     </trans-unit>
     <trans-unit id="++CODE++a19caa35e133f5a0e94975762741c4c73b09c8a830908934206474fea30817b0">
       <source xml:lang="en">Incomplete or orphaned connections</source>
@@ -4641,9 +4659,15 @@
       <source xml:lang="en">Line chart of {0} over {1}</source>
       <note>{0} is a value column name, {1} is a date/time column name</note>
     </trans-unit>
+    <trans-unit id="++CODE++2c4a93b503bb615300d0f7b6f9f364d80bb6d86f9502b726cd1464f8bed7499c">
+      <source xml:lang="en">Line style</source>
+    </trans-unit>
     <trans-unit id="++CODE++d05f53bafc473abafc1af3b592a9186f7c8b2579999c953b6f3d9f9450c43f50">
       <source xml:lang="en">Line {0}</source>
       <note>{0} is the line number</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e6950b45d25c2027b1ecae90490570d89bb0285e606df6ea24c16377fb0f2cf1">
+      <source xml:lang="en">Linear</source>
     </trans-unit>
     <trans-unit id="++CODE++e2a627b4134a5455218d4018fec6393c005ed0097d63e533d50ea350a1eab6c2">
       <source xml:lang="en">Link copied to clipboard</source>
@@ -4748,6 +4772,9 @@
       <source xml:lang="en">Listing views for connection &apos;{0}&apos; (ID: {1})</source>
       <note>{0} is the connection display name
 {1} is the connection ID</note>
+    </trans-unit>
+    <trans-unit id="++CODE++80e96060ae71d3a0a712cd317d78278e660c62593b997b58b857616cdefd5be9">
+      <source xml:lang="en">Live sample preview</source>
     </trans-unit>
     <trans-unit id="++CODE++5211db1ff5932d3ddd2d5ee0873de428f87b688754eb6aa7e2015971c39b92ef">
       <source xml:lang="en">Live thinking</source>
@@ -5071,6 +5098,9 @@
     </trans-unit>
     <trans-unit id="++CODE++bf18e5cb878e3e2732c578fcc970528f5dbb3bf17ad8378e40d9bb675f5e19af">
       <source xml:lang="en">Maximize results grid</source>
+    </trans-unit>
+    <trans-unit id="++CODE++615e87beb00ed794c20da28e2ccde9fdeaec68d239b3da7fd8b41286eed72d62">
+      <source xml:lang="en">Maximum categories</source>
     </trans-unit>
     <trans-unit id="++CODE++d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd">
       <source xml:lang="en">Media</source>
@@ -6010,6 +6040,9 @@
     </trans-unit>
     <trans-unit id="++CODE++974ccf82fb956ae52dd736ed3f1046fe6da2fcb80bc6679104cbd37773665175">
       <source xml:lang="en">Options have changed. Recompare to see the comparison?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e3d11242200fe8f2f21c2e5334ba0e0a7aa4dcd2a4533f92f4ec921fa9ff16a4">
+      <source xml:lang="en">Orientation</source>
     </trans-unit>
     <trans-unit id="++CODE++110b7288ee54432862487c6ca5ea2579493dc3b078d51218ff4e2bfdcac4986c">
       <source xml:lang="en">Original file name</source>
@@ -6958,6 +6991,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cd6fbedddc1e2f2ad05df517a6a2db8e06a549aa6a670ac0d42344e99c9618df">
       <source xml:lang="en">Rows returned</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3fae82eb74b9ef6818a8f544b9d8ae61d7ec223a9ea047fa6dc2848c7144d48f">
+      <source xml:lang="en">Rows shown</source>
     </trans-unit>
     <trans-unit id="++CODE++24601cef1cab3c7af34a853118337c5ac35833d0713571295bdfc7b9b37b994c">
       <source xml:lang="en">Rule disabled</source>
@@ -8048,6 +8084,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7363f4432b648a803e2bf468798cf69a7be5bab4b8055e35f6a038afb54be9d7">
       <source xml:lang="en">Source Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++77a9f139e5a72b972bbe4e08fa8aa55d28d02541d4950b07e99ee7ac73a79698">
+      <source xml:lang="en">Source order</source>
     </trans-unit>
     <trans-unit id="++CODE++dc2ec826bf30a7434d345d8b1e114e649e2c0bea7e4d34741a81996f6022bc90">
       <source xml:lang="en">Source row</source>
@@ -9225,6 +9264,9 @@
     <trans-unit id="++CODE++d18de1563a616cb53199d56202336f6b481375ac8ecb8d0eeafb53466f42c4bf">
       <source xml:lang="en">Username is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++c46bb7e94dff869833c54aacc136c0a371496fc7d5fdcb2f895e8c82f48d39a6">
+      <source xml:lang="en">Uses bounded typed sample data and the same renderer as Results.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a9825f7e4bf8bf420c5c48a55d5cc6fc8af1d70f1ff905aa4677f922b3f830ff">
       <source xml:lang="en">Uses chartable columns when available and falls back visibly to the grid when the result shape does not match.</source>
     </trans-unit>
@@ -9264,6 +9306,12 @@
     <trans-unit id="++CODE++1fbf278b53995ff39f69ce0e2aef7d56406fb890b82cd87febce6995e98776cd">
       <source xml:lang="en">Value is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++ea702be727bd9cb4b45de7c84f8a667415c7d46d20e57e57dc4b92069fe501e7">
+      <source xml:lang="en">Value, high to low</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e97d889fde0d67ed2c3ee22d3d62547f4756e3753a4982b86223ba8fad8b1f23">
+      <source xml:lang="en">Value, low to high</source>
+    </trans-unit>
     <trans-unit id="++CODE++020047fc73e369f164014c46ff59e909f16aa48075f1646315b139843c2dcfbc">
       <source xml:lang="en">Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.</source>
     </trans-unit>
@@ -9290,6 +9338,9 @@
     </trans-unit>
     <trans-unit id="++CODE++231f6c3aeb3c4c3fccb71154ec11eea4e310360cd379f33c6530bef5fa2c7efd">
       <source xml:lang="en">Verifying the API is ready to accept requests</source>
+    </trans-unit>
+    <trans-unit id="++CODE++727cd3a64d792ad410e3cb6036da3eb54dbac258e87c554e3b6081c1a5efc0e6">
+      <source xml:lang="en">Vertical</source>
     </trans-unit>
     <trans-unit id="++CODE++f5af129ea336fc4a23c0c6eb2bb8a2505e41346d7bc12f595ff1085547e4e625">
       <source xml:lang="en">Vertices</source>
@@ -9477,6 +9528,9 @@
     <trans-unit id="++CODE++e6e1e5b3543b138100ae82e90e4050783a955adb3268d9c73b3dedb5055358f4">
       <source xml:lang="en">World outline (offline)</source>
     </trans-unit>
+    <trans-unit id="++CODE++59f3fdfea75e1912a85c39e6a043953a0fbb47b54d3524b2cd4cf4d88ca5214f">
+      <source xml:lang="en">Wrap long lines</source>
+    </trans-unit>
     <trans-unit id="++CODE++136286bc5a894ca127a857f65556676fa503d02c806d035053fe50a4d5678214">
       <source xml:lang="en">Write a review</source>
     </trans-unit>
@@ -9485,6 +9539,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e288577fddfc0fca255b96b887c869892311ba4f7ba0ecab34268b08e08d1ad3">
       <source xml:lang="en">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6f6de37fb2977eca0337685a20e2b2b7312ed4c95f08dde49810954e88511372">
+      <source xml:lang="en">Y-axis baseline</source>
     </trans-unit>
     <trans-unit id="++CODE++54a82587ded9d34e040e4db9f860f3e0b0e6285ca43651e9cfca8dbc65bd3ab0">
       <source xml:lang="en">YYYY-MM-DD HH:mm:ss</source>
@@ -9734,6 +9791,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b3eacd33433b31b5252351032c9b3e7a2e7aa7738d5decdf0dd6c62680853c06">
       <source xml:lang="en">server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cde0fb0dec1400c54a0f7e7eafa73624c53e4da258bbd34b3380a0defeba95c1">
+      <source xml:lang="en">settings</source>
     </trans-unit>
     <trans-unit id="++CODE++97862730c3a13cd957b766b03489cdf46b415e9d465b67812974158d631d6107">
       <source xml:lang="en">starts with</source>

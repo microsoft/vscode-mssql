@@ -49,6 +49,7 @@ import {
 import {
     PresentationLayoutEdit,
     PresentationMode,
+    OutputViewSettings,
     ResolvedPresentation,
     ViewKind,
 } from "../../../sharedInterfaces/runbookPresentation";
@@ -223,6 +224,7 @@ interface RbsContextValue {
         views: ViewKind[],
         presentation: PresentationMode,
         defaultView: ViewKind,
+        settings: OutputViewSettings | undefined,
         baseRevision: number,
         resetToSuggested?: boolean,
     ) => Promise<{ applied: boolean; reason?: "invalid" | "revisionConflict" }>;
@@ -384,6 +386,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             views: ViewKind[],
             presentation: PresentationMode,
             defaultView: ViewKind,
+            settings: OutputViewSettings | undefined,
             baseRevision: number,
             resetToSuggested = false,
         ) =>
@@ -392,6 +395,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
                 views,
                 presentation,
                 defaultView,
+                ...(settings ? { settings } : {}),
                 baseRevision,
                 ...(resetToSuggested ? { resetToSuggested: true } : {}),
             }),

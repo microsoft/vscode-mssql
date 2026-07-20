@@ -253,9 +253,25 @@ export type PresentationMode =
     | { mode: "toggle" }
     | { mode: "split"; axis: "row" | "column" };
 
-/** Bounded authoring projection used by the Plan page. It intentionally
- * omits renderer settings and source internals; edits still round-trip
- * through the host-owned full definition. */
+/** Closed, bounded subset of renderer settings exposed by native authoring.
+ * Field bindings remain host-owned because they depend on the actual output
+ * shape. A setting is only valid beneath its matching ViewKind key. */
+export interface ViewRenderSettings {
+    pageSize?: 25 | 50 | 100;
+    density?: "compact" | "comfortable";
+    orientation?: "vertical" | "horizontal";
+    sort?: "category" | "value-asc" | "value-desc" | "none";
+    maxCategories?: number;
+    interpolation?: "linear" | "step";
+    yAxis?: "zero-based" | "auto";
+    columns?: 1 | 2 | 3 | 4;
+    wrap?: boolean;
+}
+
+export type OutputViewSettings = Partial<Record<ViewKind, ViewRenderSettings>>;
+
+/** Bounded authoring projection used by the Plan page. Source internals and
+ * shape-dependent field bindings stay in the host-owned full definition. */
 export interface OutputPresentationSummary {
     widgetId: string;
     views: ViewKind[];
@@ -265,6 +281,7 @@ export interface OutputPresentationSummary {
     sectionId: string;
     placement?: WidgetPlacement;
     hidden: boolean;
+    settings?: OutputViewSettings;
 }
 
 export interface PresentationLayoutEdit {
@@ -433,7 +450,13 @@ export interface ResolvedWidget {
     view: ViewKind;
     /** V2 authored views in stable order. The scalar `view` above remains the
      *  active/default compatibility projection consumed by current widgets. */
-    views: Array<{ id: string; kind: ViewKind; title?: string; issue?: ViewIssue }>;
+    views: Array<{
+        id: string;
+        kind: ViewKind;
+        title?: string;
+        issue?: ViewIssue;
+        settings?: ViewRenderSettings;
+    }>;
     presentation: PresentationMode;
     defaultViewId: string;
     /** View selected after per-view compatibility/drift resolution. */

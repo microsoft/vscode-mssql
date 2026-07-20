@@ -14,6 +14,7 @@
 import { NotificationType, RequestType } from "vscode-jsonrpc";
 import type {
     OutputPresentationSummary,
+    OutputViewSettings,
     PresentationLayoutEdit,
     PresentationMode,
     ResolvedPresentation,
@@ -598,6 +599,7 @@ export namespace RbsSetOutputPresentationRequest {
             views: ViewKind[];
             presentation: PresentationMode;
             defaultView: ViewKind;
+            settings?: OutputViewSettings;
             baseRevision: number;
             resetToSuggested?: boolean;
         },

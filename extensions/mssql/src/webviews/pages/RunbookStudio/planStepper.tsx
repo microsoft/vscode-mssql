@@ -25,11 +25,189 @@ import {
     defaultViewFor,
     expectedContractFor,
     OutputPresentationSummary,
+    OutputViewSettings,
     PresentationMode,
+    ResolvedWidget,
+    ViewRenderSettings,
     viewCandidateTier,
     ViewKind,
 } from "../../../sharedInterfaces/runbookPresentation";
 import { useRbs } from "./state";
+import { ResolvedWidgetView } from "./widgets";
+
+function defaultSettingsFor(view: ViewKind): ViewRenderSettings | undefined {
+    switch (view) {
+        case "grid":
+            return { pageSize: 100, density: "comfortable" };
+        case "bar":
+            return { orientation: "horizontal", sort: "value-desc", maxCategories: 30 };
+        case "timeseries":
+            return { interpolation: "linear", yAxis: "auto" };
+        case "scalar-cards":
+            return { columns: 3 };
+        case "log-view":
+            return { wrap: false };
+        default:
+            return undefined;
+    }
+}
+
+function settingsForSelectedViews(
+    views: ViewKind[],
+    settings: OutputViewSettings,
+): OutputViewSettings | undefined {
+    const entries = views.flatMap((view) => {
+        const value = settings[view] ?? defaultSettingsFor(view);
+        return value ? [[view, value] as const] : [];
+    });
+    return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
+
+function ViewSettingsEditor({
+    view,
+    settings,
+    disabled,
+    onChange,
+}: {
+    view: ViewKind;
+    settings: ViewRenderSettings;
+    disabled: boolean;
+    onChange: (patch: ViewRenderSettings) => void;
+}) {
+    const loc = locConstants.runbookStudio;
+    const select = (
+        label: string,
+        value: string | number,
+        options: Array<[string | number, string]>,
+        update: (value: string) => ViewRenderSettings,
+    ) => (
+        <label className="rbs-output-setting">
+            <span className="rbs-muted">{label}</span>
+            <select
+                className="rbs-select"
+                value={value}
+                disabled={disabled}
+                onChange={(event) => onChange(update(event.target.value))}>
+                {options.map(([option, text]) => (
+                    <option key={option} value={option}>
+                        {text}
+                    </option>
+                ))}
+            </select>
+        </label>
+    );
+    let controls: React.ReactNode;
+    switch (view) {
+        case "grid":
+            controls = (
+                <>
+                    {select(
+                        loc.outputPageSize,
+                        settings.pageSize ?? 100,
+                        [25, 50, 100].map((value) => [value, String(value)]),
+                        (value) => ({ pageSize: Number(value) as 25 | 50 | 100 }),
+                    )}
+                    {select(
+                        loc.outputDensity,
+                        settings.density ?? "comfortable",
+                        [
+                            ["comfortable", loc.outputComfortable],
+                            ["compact", loc.outputCompact],
+                        ],
+                        (value) => ({ density: value as "compact" | "comfortable" }),
+                    )}
+                </>
+            );
+            break;
+        case "bar":
+            controls = (
+                <>
+                    {select(
+                        loc.outputOrientation,
+                        settings.orientation ?? "horizontal",
+                        [
+                            ["horizontal", loc.outputHorizontal],
+                            ["vertical", loc.outputVertical],
+                        ],
+                        (value) => ({ orientation: value as "vertical" | "horizontal" }),
+                    )}
+                    {select(
+                        loc.outputSort,
+                        settings.sort ?? "value-desc",
+                        [
+                            ["value-desc", loc.outputSortValueDesc],
+                            ["value-asc", loc.outputSortValueAsc],
+                            ["category", loc.outputSortCategory],
+                            ["none", loc.outputSortNone],
+                        ],
+                        (value) => ({ sort: value as ViewRenderSettings["sort"] }),
+                    )}
+                    {select(
+                        loc.outputMaxCategories,
+                        settings.maxCategories ?? 30,
+                        [10, 20, 30, 50].map((value) => [value, String(value)]),
+                        (value) => ({ maxCategories: Number(value) }),
+                    )}
+                </>
+            );
+            break;
+        case "timeseries":
+            controls = (
+                <>
+                    {select(
+                        loc.outputInterpolation,
+                        settings.interpolation ?? "linear",
+                        [
+                            ["linear", loc.outputLinear],
+                            ["step", loc.outputStep],
+                        ],
+                        (value) => ({ interpolation: value as "linear" | "step" }),
+                    )}
+                    {select(
+                        loc.outputAxisBaseline,
+                        settings.yAxis ?? "auto",
+                        [
+                            ["auto", loc.outputAxisAuto],
+                            ["zero-based", loc.outputAxisZeroBased],
+                        ],
+                        (value) => ({ yAxis: value as "zero-based" | "auto" }),
+                    )}
+                </>
+            );
+            break;
+        case "scalar-cards":
+            controls = select(
+                loc.outputCardColumns,
+                settings.columns ?? 3,
+                [1, 2, 3, 4].map((value) => [value, String(value)]),
+                (value) => ({ columns: Number(value) as 1 | 2 | 3 | 4 }),
+            );
+            break;
+        case "log-view":
+            controls = (
+                <label className="rbs-output-setting rbs-output-setting-check">
+                    <input
+                        type="checkbox"
+                        checked={settings.wrap ?? false}
+                        disabled={disabled}
+                        onChange={(event) => onChange({ wrap: event.target.checked })}
+                    />
+                    <span>{loc.outputWrapLines}</span>
+                </label>
+            );
+            break;
+        default:
+            return null;
+    }
+    return (
+        <fieldset className="rbs-output-view-settings">
+            <legend>
+                <span className="rbs-mono">{view}</span> {loc.outputSettings}
+            </legend>
+            <div className="rbs-output-settings-grid">{controls}</div>
+        </fieldset>
+    );
+}
 
 /** V2 output-slot editor: choose one or more contract-compatible renderers,
  * their runtime presentation mode, and a default. The draft stays local until
@@ -43,7 +221,7 @@ function OutputPicker({
     configured: OutputPresentationSummary | undefined;
     presentationRevision: number;
 }) {
-    const { setOutputPresentation } = useRbs();
+    const { setOutputPresentation, state } = useRbs();
     const loc = locConstants.runbookStudio;
     const candidatePanelId = useId();
     const [open, setOpen] = useState(false);
@@ -51,6 +229,7 @@ function OutputPicker({
     const [selectedViews, setSelectedViews] = useState<ViewKind[]>([]);
     const [defaultView, setDefaultView] = useState<ViewKind | undefined>(undefined);
     const [presentation, setPresentation] = useState<PresentationMode>({ mode: "single" });
+    const [viewSettings, setViewSettings] = useState<OutputViewSettings>({});
     const [saveError, setSaveError] = useState<"invalid" | "revisionConflict" | undefined>();
     const contract = expectedContractFor(node.kind, node.activityKind);
     if (!contract) {
@@ -82,6 +261,14 @@ function OutputPicker({
                   ? { mode: "split", axis: "row" }
                   : (configured?.presentation ?? { mode: "split", axis: "row" }),
         );
+        setViewSettings(
+            Object.fromEntries(
+                initial.flatMap((view) => {
+                    const settings = configured?.settings?.[view] ?? defaultSettingsFor(view);
+                    return settings ? [[view, settings]] : [];
+                }),
+            ),
+        );
         setSaveError(undefined);
         setOpen(true);
     };
@@ -95,6 +282,7 @@ function OutputPicker({
                 [suggested],
                 { mode: "single" },
                 suggested,
+                undefined,
                 presentationRevision,
                 true,
             );
@@ -128,6 +316,13 @@ function OutputPicker({
         }
         const next = [...selectedViews, view];
         setSelectedViews(next);
+        const defaults = defaultSettingsFor(view);
+        if (defaults) {
+            setViewSettings((currentSettings) => ({
+                ...currentSettings,
+                [view]: currentSettings[view] ?? defaults,
+            }));
+        }
         if (next.length === 2 && presentation.mode === "single") {
             setPresentation({ mode: "split", axis: "row" });
         }
@@ -145,6 +340,7 @@ function OutputPicker({
                 selectedViews,
                 presentation,
                 defaultView,
+                settingsForSelectedViews(selectedViews, viewSettings),
                 presentationRevision,
             );
             if (result.applied) {
@@ -158,6 +354,41 @@ function OutputPicker({
             setSaving(false);
         }
     };
+
+    const updateViewSettings = (view: ViewKind, patch: ViewRenderSettings) => {
+        setSaveError(undefined);
+        setViewSettings((currentSettings) => ({
+            ...currentSettings,
+            [view]: {
+                ...defaultSettingsFor(view),
+                ...currentSettings[view],
+                ...patch,
+            },
+        }));
+    };
+
+    const sampleWidget = state?.previewScenarios
+        ?.flatMap((scenario) => scenario.presentation.sections)
+        .flatMap((section) => section.widgets)
+        .find((widget) => widget.nodeId === node.id && widget.state === "ready");
+    const previewWidget: ResolvedWidget | undefined =
+        sampleWidget && defaultView && selectedViews.length > 0
+            ? {
+                  ...sampleWidget,
+                  id: `${sampleWidget.id}:output-authoring`,
+                  title: node.label,
+                  view: defaultView,
+                  views: selectedViews.map((view) => ({
+                      id: `${sampleWidget.id}:output-authoring:${view}`,
+                      kind: view,
+                      ...(viewSettings[view] ? { settings: viewSettings[view] } : {}),
+                  })),
+                  presentation: selectedViews.length === 1 ? { mode: "single" } : presentation,
+                  defaultViewId: `${sampleWidget.id}:output-authoring:${defaultView}`,
+                  activeViewId: `${sampleWidget.id}:output-authoring:${defaultView}`,
+                  provenance: { by: "user" },
+              }
+            : undefined;
 
     return (
         <div className="rbs-output-authoring">
@@ -316,6 +547,29 @@ function OutputPicker({
                                     </label>
                                 ))}
                             </fieldset>
+                        </div>
+                    ) : null}
+                    <div className="rbs-output-settings-list">
+                        {selectedViews.map((view) => {
+                            const settings = viewSettings[view] ?? defaultSettingsFor(view);
+                            return settings ? (
+                                <ViewSettingsEditor
+                                    key={view}
+                                    view={view}
+                                    settings={settings}
+                                    disabled={saving}
+                                    onChange={(patch) => updateViewSettings(view, patch)}
+                                />
+                            ) : null;
+                        })}
+                    </div>
+                    {previewWidget ? (
+                        <div className="rbs-output-inline-preview">
+                            <div className="rbs-output-preview-heading">
+                                <strong>{loc.outputLivePreview}</strong>
+                                <span className="rbs-muted">{loc.outputLivePreviewDetail}</span>
+                            </div>
+                            <ResolvedWidgetView widget={previewWidget} sample />
                         </div>
                     ) : null}
                     {saveError ? (

@@ -23,6 +23,7 @@ import {
     compatibleViews,
     ResolvedWidget,
     ViewKind,
+    ViewRenderSettings,
 } from "../../../sharedInterfaces/runbookPresentation";
 import { RbsFetchOutputPageRequest } from "../../../sharedInterfaces/runbookStudio";
 import { useRbs } from "./state";
@@ -204,12 +205,13 @@ function monotonicNumericAxis(rows: CellValue[][], columnIndex: number): XAxis |
 // Renderers
 // ---------------------------------------------------------------------------
 
-function GridView({ page }: { page: FetchedPage }) {
+function GridView({ page, settings }: { page: FetchedPage; settings?: ViewRenderSettings }) {
     const loc = locConstants.runbookStudio;
-    const rows = page.rows ?? [];
+    const rows = (page.rows ?? []).slice(0, settings?.pageSize ?? PAGE_ROWS);
     return (
         <div className="rbs-widget-scroll">
-            <table className="rbs-table">
+            <table
+                className={`rbs-table ${settings?.density === "compact" ? "rbs-table-compact" : ""}`}>
                 {page.columns ? (
                     <thead>
                         <tr>
@@ -238,14 +240,20 @@ function GridView({ page }: { page: FetchedPage }) {
     );
 }
 
-function ScalarCardsView({ page }: { page: FetchedPage }) {
+function ScalarCardsView({ page, settings }: { page: FetchedPage; settings?: ViewRenderSettings }) {
     // scalarSet pages arrive as name/value rows.
     const entries = (page.rows ?? []).map((row) => ({
         label: String(row[0] ?? ""),
         value: row[1] === null ? "NULL" : String(row[1]),
     }));
     return (
-        <div className="rbs-cards">
+        <div
+            className={`rbs-cards ${settings?.columns ? "rbs-cards-grid" : ""}`}
+            style={
+                settings?.columns
+                    ? { gridTemplateColumns: `repeat(${settings.columns}, minmax(0, 1fr))` }
+                    : undefined
+            }>
             {entries.map((entry) => (
                 <div className="rbs-card" key={entry.label}>
                     <div className="rbs-card-label">{entry.label}</div>
@@ -256,11 +264,23 @@ function ScalarCardsView({ page }: { page: FetchedPage }) {
     );
 }
 
-function TextView({ page, mono }: { page: FetchedPage; mono: boolean }) {
+function TextView({
+    page,
+    mono,
+    wrap = false,
+}: {
+    page: FetchedPage;
+    mono: boolean;
+    wrap?: boolean;
+}) {
     const text = (page.rows ?? [])
         .map((row) => row.map((cell) => (cell === null ? "" : String(cell))).join(" "))
         .join("\n");
-    return <pre className={`rbs-text-block ${mono ? "rbs-mono" : ""}`}>{text}</pre>;
+    return (
+        <pre className={`rbs-text-block ${mono ? "rbs-mono" : ""} ${wrap ? "rbs-text-wrap" : ""}`}>
+            {text}
+        </pre>
+    );
 }
 
 function JsonView({ page }: { page: FetchedPage }) {
@@ -317,7 +337,7 @@ function ChartLegend({
  *  full precision, compact value labels, and subtle gridlines at
  *  25/50/75/100% of max. Degrades honestly to the grid when no numeric
  *  column exists. */
-function BarChartView({ page }: { page: FetchedPage }) {
+function BarChartView({ page, settings }: { page: FetchedPage; settings?: ViewRenderSettings }) {
     const loc = locConstants.runbookStudio;
     const rows = page.rows ?? [];
     const columnCount = columnCountOf(page);
@@ -346,29 +366,100 @@ function BarChartView({ page }: { page: FetchedPage }) {
         name: page.columns?.[column] ?? String(column + 1),
         color: CHART_PALETTE[index],
     }));
-    const bars = rows
-        .map((row, index) => {
-            const categoryCell = categoryColumn >= 0 ? row[categoryColumn] : undefined;
-            return {
-                label:
-                    categoryColumn >= 0
-                        ? categoryCell === null || categoryCell === undefined
-                            ? "NULL"
-                            : String(categoryCell)
-                        : String(index + 1),
-                values: seriesColumns.map((column) => numericCellValue(row[column])),
-            };
-        })
-        .sort(
-            (a, b) =>
-                (b.values[0] ?? Number.NEGATIVE_INFINITY) -
-                (a.values[0] ?? Number.NEGATIVE_INFINITY),
-        )
-        .slice(0, BAR_MAX_ROWS);
-    const maxValue = Math.max(0, ...bars.flatMap((bar) => bar.values.map((value) => value ?? 0)));
+    const bars = rows.map((row, index) => {
+        const categoryCell = categoryColumn >= 0 ? row[categoryColumn] : undefined;
+        return {
+            label:
+                categoryColumn >= 0
+                    ? categoryCell === null || categoryCell === undefined
+                        ? "NULL"
+                        : String(categoryCell)
+                    : String(index + 1),
+            values: seriesColumns.map((column) => numericCellValue(row[column])),
+        };
+    });
+    switch (settings?.sort ?? "value-desc") {
+        case "category":
+            bars.sort((a, b) => a.label.localeCompare(b.label));
+            break;
+        case "value-asc":
+            bars.sort(
+                (a, b) =>
+                    (a.values[0] ?? Number.POSITIVE_INFINITY) -
+                    (b.values[0] ?? Number.POSITIVE_INFINITY),
+            );
+            break;
+        case "value-desc":
+            bars.sort(
+                (a, b) =>
+                    (b.values[0] ?? Number.NEGATIVE_INFINITY) -
+                    (a.values[0] ?? Number.NEGATIVE_INFINITY),
+            );
+            break;
+        case "none":
+            break;
+    }
+    const visibleBars = bars.slice(0, settings?.maxCategories ?? BAR_MAX_ROWS);
+    const maxValue = Math.max(
+        0,
+        ...visibleBars.flatMap((bar) => bar.values.map((value) => value ?? 0)),
+    );
     const totalRows = page.totalRows ?? rows.length;
     const categoryName = categoryColumn >= 0 ? page.columns?.[categoryColumn] : undefined;
     const barHeight = grouped ? 12 : 16;
+    if (settings?.orientation === "vertical") {
+        return (
+            <div className="rbs-bar-chart rbs-bar-chart-vertical" role="group">
+                <ChartMeta page={page} />
+                {grouped ? <ChartLegend entries={series} /> : null}
+                <div className="rbs-bar-columns">
+                    {visibleBars.map((bar, index) => (
+                        <div className="rbs-bar-column" key={index}>
+                            <div className="rbs-bar-column-series">
+                                {bar.values.map((value, seriesIndex) => {
+                                    const exact =
+                                        value === undefined ? "NULL" : formatNumber(value);
+                                    const title = grouped
+                                        ? loc.categorySeriesValue(
+                                              bar.label,
+                                              series[seriesIndex].name,
+                                              exact,
+                                          )
+                                        : `${bar.label}: ${exact}`;
+                                    const fraction =
+                                        maxValue > 0 && value !== undefined && value > 0
+                                            ? value / maxValue
+                                            : 0;
+                                    return (
+                                        <div
+                                            className="rbs-bar-column-track"
+                                            key={seriesIndex}
+                                            title={title}>
+                                            <div
+                                                className="rbs-bar-column-fill"
+                                                style={{
+                                                    background: series[seriesIndex].color,
+                                                    height: `${(fraction * 100).toFixed(2)}%`,
+                                                }}
+                                            />
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                            <span className="rbs-bar-column-label" title={bar.label}>
+                                {bar.label}
+                            </span>
+                        </div>
+                    ))}
+                </div>
+                {totalRows > visibleBars.length ? (
+                    <div className="rbs-muted">
+                        {loc.showingFirstRows(visibleBars.length, totalRows)}
+                    </div>
+                ) : null}
+            </div>
+        );
+    }
     return (
         <div
             className="rbs-bar-chart"
@@ -380,7 +471,7 @@ function BarChartView({ page }: { page: FetchedPage }) {
             }>
             <ChartMeta page={page} />
             {grouped ? <ChartLegend entries={series} /> : null}
-            {bars.map((bar, index) => {
+            {visibleBars.map((bar, index) => {
                 const titles = bar.values.map((value, seriesIndex) => {
                     const exact = value === undefined ? "NULL" : formatNumber(value);
                     return grouped
@@ -440,8 +531,10 @@ function BarChartView({ page }: { page: FetchedPage }) {
                     </div>
                 );
             })}
-            {totalRows > bars.length ? (
-                <div className="rbs-muted">{loc.showingFirstRows(bars.length, totalRows)}</div>
+            {totalRows > visibleBars.length ? (
+                <div className="rbs-muted">
+                    {loc.showingFirstRows(visibleBars.length, totalRows)}
+                </div>
             ) : null}
         </div>
     );
@@ -453,7 +546,7 @@ function BarChartView({ page }: { page: FetchedPage }) {
  *  gridlines with compact tick labels, first/middle/last X labels, native
  *  SVG <title> tooltips on lines and points. Degrades honestly to the grid
  *  when no usable axis exists. */
-function TimeseriesView({ page }: { page: FetchedPage }) {
+function TimeseriesView({ page, settings }: { page: FetchedPage; settings?: ViewRenderSettings }) {
     const loc = locConstants.runbookStudio;
     const rows = page.rows ?? [];
     const columnCount = columnCountOf(page);
@@ -517,8 +610,10 @@ function TimeseriesView({ page }: { page: FetchedPage }) {
     }
     const xMin = Math.min(...allPoints.map((point) => point.x));
     const xMax = Math.max(...allPoints.map((point) => point.x));
-    const yMin = Math.min(...allPoints.map((point) => point.y));
-    const yMax = Math.max(...allPoints.map((point) => point.y));
+    const dataYMin = Math.min(...allPoints.map((point) => point.y));
+    const dataYMax = Math.max(...allPoints.map((point) => point.y));
+    const yMin = settings?.yAxis === "zero-based" ? Math.min(0, dataYMin) : dataYMin;
+    const yMax = settings?.yAxis === "zero-based" ? Math.max(0, dataYMax) : dataYMax;
     const xSpan = xMax - xMin || 1;
     const ySpan = yMax - yMin || 1;
     const px = (x: number) => TS_PAD + ((x - xMin) / xSpan) * (TS_VIEW_WIDTH - 2 * TS_PAD);
@@ -562,17 +657,33 @@ function TimeseriesView({ page }: { page: FetchedPage }) {
                     ))}
                     {series.map((entry) => (
                         <g key={entry.column}>
-                            <polyline
-                                className="rbs-ts-line"
-                                style={{ stroke: entry.color }}
-                                points={entry.points
-                                    .map(
-                                        (point) =>
-                                            `${px(point.x).toFixed(1)},${py(point.y).toFixed(1)}`,
-                                    )
-                                    .join(" ")}>
-                                <title>{entry.name}</title>
-                            </polyline>
+                            {settings?.interpolation === "step" ? (
+                                <path
+                                    className="rbs-ts-line"
+                                    fill="none"
+                                    style={{ stroke: entry.color }}
+                                    d={entry.points
+                                        .map((point, index) => {
+                                            const x = px(point.x).toFixed(1);
+                                            const y = py(point.y).toFixed(1);
+                                            return index === 0 ? `M ${x} ${y}` : `H ${x} V ${y}`;
+                                        })
+                                        .join(" ")}>
+                                    <title>{entry.name}</title>
+                                </path>
+                            ) : (
+                                <polyline
+                                    className="rbs-ts-line"
+                                    style={{ stroke: entry.color }}
+                                    points={entry.points
+                                        .map(
+                                            (point) =>
+                                                `${px(point.x).toFixed(1)},${py(point.y).toFixed(1)}`,
+                                        )
+                                        .join(" ")}>
+                                    <title>{entry.name}</title>
+                                </polyline>
+                            )}
                             {entry.points.length <= TS_DOT_MAX_POINTS
                                 ? entry.points.map((point, pointIndex) => (
                                       <circle
@@ -646,7 +757,7 @@ export function ResolvedWidgetView({
             : undefined;
     const view = overriddenView ?? widget.view;
 
-    const renderBody = (renderView: ViewKind): React.ReactNode => {
+    const renderBody = (renderView: ViewKind, settings?: ViewRenderSettings): React.ReactNode => {
         switch (widget.state) {
             case "pending":
                 return <div className="rbs-muted">{loc.widgetPending}</div>;
@@ -665,18 +776,24 @@ export function ResolvedWidgetView({
                 }
                 switch (renderView) {
                     case "grid":
-                        return <GridView page={page} />;
+                        return <GridView page={page} settings={settings} />;
                     case "scalar-cards":
-                        return <ScalarCardsView page={page} />;
+                        return <ScalarCardsView page={page} settings={settings} />;
                     case "markdown":
                     case "log-view":
-                        return <TextView page={page} mono={renderView === "log-view"} />;
+                        return (
+                            <TextView
+                                page={page}
+                                mono={renderView === "log-view"}
+                                wrap={renderView === "log-view" && settings?.wrap}
+                            />
+                        );
                     case "json":
                         return <JsonView page={page} />;
                     case "bar":
-                        return <BarChartView page={page} />;
+                        return <BarChartView page={page} settings={settings} />;
                     case "timeseries":
-                        return <TimeseriesView page={page} />;
+                        return <TimeseriesView page={page} settings={settings} />;
                     default:
                         // Honest degrade: registered-but-unimplemented kinds
                         // say so rather than rendering a blank panel.
@@ -704,13 +821,13 @@ export function ResolvedWidgetView({
                             {authoredView.issue.message}
                         </div>
                     ) : (
-                        renderBody(authoredView.kind)
+                        renderBody(authoredView.kind, authoredView.settings)
                     )}
                 </section>
             ))}
         </div>
     ) : (
-        renderBody(view)
+        renderBody(view, widget.views.find((candidate) => candidate.kind === view)?.settings)
     );
 
     const saveAsRunbookDefault = async () => {
@@ -787,15 +904,17 @@ export function ResolvedWidgetView({
                                 <span className="rbs-chip rbs-chip-modified">
                                     {loc.modifiedChip}
                                 </span>
-                                <button
-                                    type="button"
-                                    className="rbs-btn rbs-btn-quiet"
-                                    disabled={savingDefault}
-                                    onClick={() => void saveAsRunbookDefault()}>
-                                    {savingDefault
-                                        ? loc.savingViewAsRunbookDefault
-                                        : loc.saveViewAsRunbookDefault}
-                                </button>
+                                {!sample ? (
+                                    <button
+                                        type="button"
+                                        className="rbs-btn rbs-btn-quiet"
+                                        disabled={savingDefault}
+                                        onClick={() => void saveAsRunbookDefault()}>
+                                        {savingDefault
+                                            ? loc.savingViewAsRunbookDefault
+                                            : loc.saveViewAsRunbookDefault}
+                                    </button>
+                                ) : null}
                                 <button
                                     type="button"
                                     className="rbs-btn rbs-btn-quiet rbs-view-reset"

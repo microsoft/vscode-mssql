@@ -16,6 +16,7 @@ import {
     isViewCompatible,
     LegacyPresentationDefinition,
     OutputPresentationSummary,
+    OutputViewSettings,
     PresentationLayoutEdit,
     PresentationDefinition,
     PresentationMode,
@@ -28,6 +29,7 @@ import {
     SectionRole,
     ViewIssue,
     ViewKind,
+    ViewRenderSettings,
     ViewSpec,
     WidgetBinding,
 } from "../../sharedInterfaces/runbookPresentation";
@@ -128,6 +130,180 @@ export function createViewSpec(kind: ViewKind, id = `view:${kind}`, title?: stri
             return { ...base, kind, props: { mode: "review" } };
         default:
             return { ...base, kind, props: {} } as ViewSpec;
+    }
+}
+
+function compactSettings(settings: ViewRenderSettings): ViewRenderSettings | undefined {
+    const entries = Object.entries(settings).filter(([, value]) => value !== undefined);
+    return entries.length > 0 ? Object.fromEntries(entries) : undefined;
+}
+
+/** Project only settings that the native renderer currently honors. Shape
+ * bindings (columns/fields) deliberately never cross this authoring API. */
+function rendererSettingsOf(view: ViewSpec): ViewRenderSettings | undefined {
+    switch (view.kind) {
+        case "grid":
+            return compactSettings({
+                pageSize:
+                    view.props.pageSize === 25 ||
+                    view.props.pageSize === 50 ||
+                    view.props.pageSize === 100
+                        ? view.props.pageSize
+                        : undefined,
+                density: view.props.density,
+            });
+        case "bar":
+            return compactSettings({
+                orientation: view.props.orientation,
+                sort: view.props.sort,
+                maxCategories: view.props.maxCategories,
+            });
+        case "timeseries":
+            return compactSettings({
+                interpolation: view.props.interpolation,
+                yAxis: view.props.yAxis,
+            });
+        case "scalar-cards":
+            return compactSettings({ columns: view.props.columns });
+        case "log-view":
+            return compactSettings({ wrap: view.props.wrap });
+        default:
+            return undefined;
+    }
+}
+
+function hasOnlyKeys(value: Record<string, unknown>, keys: readonly string[]): boolean {
+    return Object.keys(value).every((key) => keys.includes(key));
+}
+
+/** Validate the untrusted webview settings envelope. This is intentionally
+ * stricter than the persisted ViewSpec validator: unknown keys, settings for
+ * an unselected view, and unbounded numbers are rejected atomically. */
+export function validateOutputViewSettings(
+    raw: unknown,
+    selectedViews: ViewKind[],
+): raw is OutputViewSettings {
+    if (!isRecord(raw)) {
+        return false;
+    }
+    for (const [kind, candidate] of Object.entries(raw)) {
+        if (
+            !VIEW_KINDS.has(kind) ||
+            !selectedViews.includes(kind as ViewKind) ||
+            !isRecord(candidate)
+        ) {
+            return false;
+        }
+        switch (kind as ViewKind) {
+            case "grid":
+                if (
+                    !hasOnlyKeys(candidate, ["pageSize", "density"]) ||
+                    (candidate.pageSize !== undefined &&
+                        candidate.pageSize !== 25 &&
+                        candidate.pageSize !== 50 &&
+                        candidate.pageSize !== 100) ||
+                    (candidate.density !== undefined &&
+                        candidate.density !== "compact" &&
+                        candidate.density !== "comfortable")
+                ) {
+                    return false;
+                }
+                break;
+            case "bar":
+                if (
+                    !hasOnlyKeys(candidate, ["orientation", "sort", "maxCategories"]) ||
+                    (candidate.orientation !== undefined &&
+                        candidate.orientation !== "vertical" &&
+                        candidate.orientation !== "horizontal") ||
+                    (candidate.sort !== undefined &&
+                        candidate.sort !== "category" &&
+                        candidate.sort !== "value-asc" &&
+                        candidate.sort !== "value-desc" &&
+                        candidate.sort !== "none") ||
+                    (candidate.maxCategories !== undefined &&
+                        (!Number.isInteger(candidate.maxCategories) ||
+                            (candidate.maxCategories as number) < 5 ||
+                            (candidate.maxCategories as number) > 50))
+                ) {
+                    return false;
+                }
+                break;
+            case "timeseries":
+                if (
+                    !hasOnlyKeys(candidate, ["interpolation", "yAxis"]) ||
+                    (candidate.interpolation !== undefined &&
+                        candidate.interpolation !== "linear" &&
+                        candidate.interpolation !== "step") ||
+                    (candidate.yAxis !== undefined &&
+                        candidate.yAxis !== "zero-based" &&
+                        candidate.yAxis !== "auto")
+                ) {
+                    return false;
+                }
+                break;
+            case "scalar-cards":
+                if (
+                    !hasOnlyKeys(candidate, ["columns"]) ||
+                    (candidate.columns !== undefined &&
+                        candidate.columns !== 1 &&
+                        candidate.columns !== 2 &&
+                        candidate.columns !== 3 &&
+                        candidate.columns !== 4)
+                ) {
+                    return false;
+                }
+                break;
+            case "log-view":
+                if (
+                    !hasOnlyKeys(candidate, ["wrap"]) ||
+                    (candidate.wrap !== undefined && typeof candidate.wrap !== "boolean")
+                ) {
+                    return false;
+                }
+                break;
+            default:
+                // Other renderers do not yet expose native settings.
+                return false;
+        }
+    }
+    return true;
+}
+
+function applyRendererSettings(view: ViewSpec, settings: ViewRenderSettings | undefined): ViewSpec {
+    if (!settings) {
+        return view;
+    }
+    switch (view.kind) {
+        case "grid":
+            return {
+                ...view,
+                props: { ...view.props, pageSize: settings.pageSize, density: settings.density },
+            };
+        case "bar":
+            return {
+                ...view,
+                props: {
+                    ...view.props,
+                    orientation: settings.orientation,
+                    sort: settings.sort,
+                    maxCategories: settings.maxCategories,
+                },
+            };
+        case "timeseries":
+            return {
+                ...view,
+                props: {
+                    ...view.props,
+                    interpolation: settings.interpolation,
+                    yAxis: settings.yAxis,
+                },
+            };
+        case "scalar-cards":
+            return { ...view, props: { ...view.props, columns: settings.columns } };
+        case "log-view":
+            return { ...view, props: { ...view.props, wrap: settings.wrap } };
+        default:
+            return view;
     }
 }
 
@@ -285,6 +461,7 @@ export function upsertOutputPresentation(
     views: ViewKind[],
     presentation: PresentationMode,
     defaultView: ViewKind,
+    settings?: OutputViewSettings,
     metadata?: { authoredContract?: string; planRevision?: string },
 ): PresentationDefinition {
     const base = definition ?? defaultDefinition();
@@ -299,10 +476,12 @@ export function upsertOutputPresentation(
             return widget;
         }
         found = true;
-        const selected = views.map(
-            (kind) =>
+        const selected = views.map((kind) =>
+            applyRendererSettings(
                 widget.views.find((candidate) => candidate.kind === kind) ??
-                createViewSpec(kind, `${widget.id}:${kind}`),
+                    createViewSpec(kind, `${widget.id}:${kind}`),
+                settings?.[kind],
+            ),
         );
         const defaultSpec = selected.find((candidate) => candidate.kind === defaultView)!;
         return {
@@ -327,7 +506,9 @@ export function upsertOutputPresentation(
             sectionId = "primary";
             sections.push(defaultSection(sectionId, "primary", sections.length));
         }
-        const selected = views.map((kind) => createViewSpec(kind, `${pinId}:${kind}`));
+        const selected = views.map((kind) =>
+            applyRendererSettings(createViewSpec(kind, `${pinId}:${kind}`), settings?.[kind]),
+        );
         const defaultSpec = selected.find((candidate) => candidate.kind === defaultView)!;
         widgets.push({
             id: pinId,
@@ -514,6 +695,16 @@ export function outputPresentationsOf(
             sectionId: widget.sectionId,
             ...(widget.placement ? { placement: widget.placement } : {}),
             hidden: widget.visibility?.when === "never",
+            ...(widget.views.some((view) => rendererSettingsOf(view) !== undefined)
+                ? {
+                      settings: Object.fromEntries(
+                          widget.views.flatMap((view) => {
+                              const settings = rendererSettingsOf(view);
+                              return settings ? [[view.kind, settings]] : [];
+                          }),
+                      ) as OutputViewSettings,
+                  }
+                : {}),
         };
     }
     return summaries;
@@ -838,6 +1029,7 @@ function resolveBinding(
             id: view.id,
             kind: view.kind,
             ...(view.title ? { title: view.title } : {}),
+            ...(rendererSettingsOf(view) ? { settings: rendererSettingsOf(view) } : {}),
         })),
         presentation: binding.presentation,
         defaultViewId: binding.defaultViewId,
@@ -907,6 +1099,7 @@ function resolveWidgetWithOutput(
             kind: view.kind,
             ...(view.title ? { title: view.title } : {}),
             ...(issue ? { issue } : {}),
+            ...(rendererSettingsOf(view) ? { settings: rendererSettingsOf(view) } : {}),
         };
     });
     const base = {

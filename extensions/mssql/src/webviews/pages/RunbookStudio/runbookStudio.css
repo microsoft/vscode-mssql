@@ -517,6 +517,21 @@
     flex-wrap: wrap;
 }
 
+.rbs-cards-grid {
+    display: grid;
+}
+
+.rbs-table-compact th,
+.rbs-table-compact td {
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+.rbs-text-wrap {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
 .rbs-card {
     border: 1px solid var(--vscode-panel-border);
     border-radius: 6px;
@@ -1241,6 +1256,113 @@
     flex: 0 0 auto;
     min-width: 56px;
     text-align: right;
+}
+
+.rbs-output-settings-list {
+    display: grid;
+    gap: 7px;
+    margin-top: 9px;
+}
+
+.rbs-output-view-settings {
+    min-width: 0;
+    margin: 0;
+    padding: 8px;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+}
+
+.rbs-output-view-settings legend {
+    padding: 0 4px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.rbs-output-settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+}
+
+.rbs-output-setting {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+}
+
+.rbs-output-setting-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.rbs-output-inline-preview {
+    margin-top: 9px;
+    padding: 8px;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    background: var(--vscode-editor-background);
+}
+
+.rbs-output-preview-heading {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin-bottom: 7px;
+}
+
+.rbs-output-inline-preview .rbs-widget {
+    max-height: 320px;
+    margin-bottom: 0;
+    overflow: auto;
+}
+
+.rbs-bar-columns {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+    height: 190px;
+    padding: 8px 4px 0;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    overflow-x: auto;
+}
+
+.rbs-bar-column {
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) 28px;
+    gap: 4px;
+    min-width: 34px;
+    flex: 1 0 34px;
+}
+
+.rbs-bar-column-series {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    gap: 2px;
+    min-height: 0;
+}
+
+.rbs-bar-column-track {
+    display: flex;
+    align-items: flex-end;
+    width: min(20px, 45%);
+    min-width: 6px;
+    background: color-mix(in srgb, var(--vscode-panel-border) 24%, transparent);
+}
+
+.rbs-bar-column-fill {
+    width: 100%;
+    min-height: 1px;
+    border-radius: 2px 2px 0 0;
+}
+
+.rbs-bar-column-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 10.5px;
 }
 
 .rbs-ts-chart {
