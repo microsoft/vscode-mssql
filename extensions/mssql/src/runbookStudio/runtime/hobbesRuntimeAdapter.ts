@@ -59,6 +59,7 @@ const REQUEST_TIMEOUT_MS = 15_000;
 const HEALTH_PROBE_TIMEOUT_MS = 3_000;
 /** A full planner elicitation session runs 1-5 minutes (verified live). */
 const PLANNER_TIMEOUT_MS = 300_000;
+const PROVIDER_LOGIN_TIMEOUT_MS = 300_000;
 
 /** GET /api/runs/{runId} projection (InvestigationsLaunchApi.RunToJson). */
 interface HobbesRunRecord {
@@ -98,6 +99,111 @@ interface PlannerStreamEvent {
     message?: string;
     /** Present on the terminal `runbook-asset` event. */
     asset?: PlannerAssetPayload;
+}
+
+export interface HobbesProviderStatus {
+    loginRequired: boolean;
+    provider: {
+        profileId: string;
+        kind: string;
+        label: string;
+        enabled: boolean;
+        ready: boolean;
+        reason?: string;
+        supportsLogin: boolean;
+    };
+}
+
+export interface HobbesProviderLoginEvent {
+    kind: "deviceCode" | "pending" | "succeeded" | "failed" | "progress";
+    verificationUri?: string;
+    userCode?: string;
+}
+
+function recordOf(value: unknown): Record<string, unknown> | undefined {
+    return value !== null && typeof value === "object" && !Array.isArray(value)
+        ? (value as Record<string, unknown>)
+        : undefined;
+}
+
+function boundedString(value: unknown, maxLength: number): string | undefined {
+    return typeof value === "string" && value.length > 0 && value.length <= maxLength
+        ? value
+        : undefined;
+}
+
+/** Strict projection of the runtime's safe auth-status document. */
+export function parseHobbesProviderStatus(value: unknown): HobbesProviderStatus | undefined {
+    const root = recordOf(value);
+    const provider = recordOf(root?.provider);
+    if (
+        typeof root?.loginRequired !== "boolean" ||
+        !provider ||
+        typeof provider.enabled !== "boolean" ||
+        typeof provider.ready !== "boolean" ||
+        typeof provider.supportsLogin !== "boolean"
+    ) {
+        return undefined;
+    }
+    const profileId = boundedString(provider.profileId, 256);
+    const kind = boundedString(provider.kind, 128);
+    const label = boundedString(provider.label, 256);
+    if (!profileId || !kind || !label) {
+        return undefined;
+    }
+    const reason = boundedString(provider.reason, 500);
+    return {
+        loginRequired: root.loginRequired,
+        provider: {
+            profileId,
+            kind,
+            label,
+            enabled: provider.enabled,
+            ready: provider.ready,
+            supportsLogin: provider.supportsLogin,
+            ...(reason ? { reason } : {}),
+        },
+    };
+}
+
+/** Parse one SSE provider-login frame without trusting arbitrary event data. */
+export function parseHobbesProviderLoginFrame(frame: string): HobbesProviderLoginEvent | undefined {
+    let eventName = "progress";
+    let data = "";
+    for (const rawLine of frame.split(/\r?\n/)) {
+        const line = rawLine.trimEnd();
+        if (line.startsWith("event:")) {
+            eventName = line.slice(6).trim();
+        } else if (line.startsWith("data:")) {
+            data += line.slice(5).trim();
+        }
+    }
+    let payload: Record<string, unknown> | undefined;
+    try {
+        payload = recordOf(data ? JSON.parse(data) : undefined);
+    } catch {
+        return undefined;
+    }
+    if (!payload) {
+        return undefined;
+    }
+    const kind: HobbesProviderLoginEvent["kind"] =
+        eventName === "device-code"
+            ? "deviceCode"
+            : eventName === "pending"
+              ? "pending"
+              : eventName === "succeeded"
+                ? "succeeded"
+                : eventName === "failed"
+                  ? "failed"
+                  : "progress";
+    const verificationUri = boundedString(payload.verificationUri, 2_048);
+    const userCode = boundedString(payload.userCode, 128);
+    return {
+        kind,
+        ...(verificationUri ? { verificationUri } : {}),
+        ...(userCode ? { userCode } : {}),
+    };
 }
 
 /** Reasoning deltas over the flush ceiling emit as one run this size. */
@@ -1430,6 +1536,91 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             throw new Error(`settings read failed (HTTP ${response.status})`);
         }
         return (await response.json()) as Record<string, unknown>;
+    }
+
+    /** Bounded readiness probe for the runtime's active provider profile. */
+    public async getProviderStatus(
+        context: RunbookOperationContext,
+    ): Promise<HobbesProviderStatus> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const response = await this.request(runtime.baseUrl, "GET", "/auth/status");
+        if (!response.ok) {
+            throw new Error(`provider status failed (HTTP ${response.status})`);
+        }
+        const status = parseHobbesProviderStatus(await response.json());
+        if (!status) {
+            throw new Error("provider status response was invalid");
+        }
+        return status;
+    }
+
+    /** Drive the runtime-owned provider login flow. Device-code data is
+     * surfaced through a bounded callback; provider prose is deliberately
+     * not forwarded. */
+    public async loginProvider(
+        context: RunbookOperationContext,
+        onEvent: (event: HobbesProviderLoginEvent) => void,
+        signal?: AbortSignal,
+    ): Promise<"succeeded" | "failed" | "cancelled"> {
+        const runtime = await this.supervisor.ensureRunning(context);
+        const controller = new AbortController();
+        const abort = () => controller.abort();
+        signal?.addEventListener("abort", abort, { once: true });
+        if (signal?.aborted) {
+            controller.abort();
+        }
+        const timer = setTimeout(abort, PROVIDER_LOGIN_TIMEOUT_MS);
+        try {
+            const response = await fetch(`${runtime.baseUrl}/auth/provider/login`, {
+                method: "POST",
+                headers: { accept: "text/event-stream" },
+                signal: controller.signal,
+            });
+            if (!response.ok || !response.body) {
+                return "failed";
+            }
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = "";
+            for (;;) {
+                const { done, value } = await reader.read();
+                buffer += decoder.decode(value, { stream: !done });
+                let match = /\r?\n\r?\n/.exec(buffer);
+                while (match?.index !== undefined) {
+                    const frame = buffer.slice(0, match.index);
+                    buffer = buffer.slice(match.index + match[0].length);
+                    const event = parseHobbesProviderLoginFrame(frame);
+                    if (event) {
+                        onEvent(event);
+                        if (event.kind === "succeeded" || event.kind === "failed") {
+                            return event.kind;
+                        }
+                    }
+                    match = /\r?\n\r?\n/.exec(buffer);
+                }
+                if (done) {
+                    const event = parseHobbesProviderLoginFrame(buffer);
+                    if (event) {
+                        onEvent(event);
+                        if (event.kind === "succeeded" || event.kind === "failed") {
+                            return event.kind;
+                        }
+                    }
+                    return "failed";
+                }
+            }
+        } catch (error) {
+            if (signal?.aborted) {
+                return "cancelled";
+            }
+            if (controller.signal.aborted) {
+                return "failed";
+            }
+            throw error;
+        } finally {
+            clearTimeout(timer);
+            signal?.removeEventListener("abort", abort);
+        }
     }
 
     /** PUT the (mutated) settings document. Returns an error string on

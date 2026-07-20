@@ -60,6 +60,7 @@
     "mssql.runbookStudio.saveToLibrary": "Runbook Studio: Save to Library",
     "mssql.runbookStudio.openRuntimeLog": "Runbook Studio: Open Runtime Log",
     "mssql.runbookStudio.configureModels": "Runbook Studio: Configure Models",
+    "mssql.runbookStudio.checkRuntimeProvider": "Runbook Studio: Check Runtime Provider",
     "mssql.connect": "Connect (MSSQL)",
     "mssql.disconnect": "Disconnect (MSSQL)",
     "mssql.cancelConnect": "Cancel Connection (MSSQL)",

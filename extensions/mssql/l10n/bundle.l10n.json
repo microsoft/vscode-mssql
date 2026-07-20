@@ -105,6 +105,35 @@
         "message": "{0} model set to {1}.",
         "comment": ["{0} model role name, {1} model id"]
     },
+    "The Hobbes runtime provider '{0}' is not ready. Run 'Runbook Studio: Check Runtime Provider' to inspect readiness or sign in./{0} is a runtime provider profile label": {
+        "message": "The Hobbes runtime provider '{0}' is not ready. Run 'Runbook Studio: Check Runtime Provider' to inspect readiness or sign in.",
+        "comment": ["{0} is a runtime provider profile label"]
+    },
+    "The Hobbes runtime provider status could not be checked.": "The Hobbes runtime provider status could not be checked.",
+    "Runtime provider '{0}' is ready./{0} is a runtime provider profile label": {
+        "message": "Runtime provider '{0}' is ready.",
+        "comment": ["{0} is a runtime provider profile label"]
+    },
+    "Runtime provider '{0}' is not ready: {1}/{0} is a provider label, {1} is its bounded readiness reason": {
+        "message": "Runtime provider '{0}' is not ready: {1}",
+        "comment": ["{0} is a provider label, {1} is its bounded readiness reason"]
+    },
+    "No readiness reason was reported.": "No readiness reason was reported.",
+    "Check provider": "Check provider",
+    "Sign in": "Sign in",
+    "Signing in to runtime provider '{0}'/{0} is a runtime provider profile label": {
+        "message": "Signing in to runtime provider '{0}'",
+        "comment": ["{0} is a runtime provider profile label"]
+    },
+    "Waiting for provider authorization…": "Waiting for provider authorization…",
+    "Use code {0} to sign in to the runtime provider./{0} is a short provider device code": {
+        "message": "Use code {0} to sign in to the runtime provider.",
+        "comment": ["{0} is a short provider device code"]
+    },
+    "Open sign-in page": "Open sign-in page",
+    "Runtime provider sign-in succeeded.": "Runtime provider sign-in succeeded.",
+    "Runtime provider sign-in failed.": "Runtime provider sign-in failed.",
+    "Runtime provider sign-in was cancelled.": "Runtime provider sign-in was cancelled.",
     "The Hobbes runtime reported no progress for 10 minutes; the run has been marked failed. Open the runtime log for details.": "The Hobbes runtime reported no progress for 10 minutes; the run has been marked failed. Open the runtime log for details.",
     "Runbook run": "Runbook run",
     "Runbook: running…": "Runbook: running…",
@@ -1005,7 +1034,6 @@
     "User name is required": "User name is required",
     "Connection String": "Connection String",
     "Connection string is required": "Connection string is required",
-    "Sign in": "Sign in",
     "Additional parameters": "Additional parameters",
     "<Default>": "<Default>",
     "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.": "Automatically selects an available Microsoft Entra ID identity from providers installed on your system. Click the info icon to learn more.",

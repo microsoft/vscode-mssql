@@ -321,6 +321,108 @@ function registerRunbookStudioFeatures(
                 );
             }
         }),
+        vscode.commands.registerCommand("mssql.runbookStudio.checkRuntimeProvider", async () => {
+            const service = serviceAccessor();
+            if (!service) {
+                void vscode.window.showErrorMessage(LocRunbookStudio.runtimeUnavailable);
+                return;
+            }
+            const checked = await service.getRuntimeProviderStatus();
+            if (!checked.status) {
+                void vscode.window.showErrorMessage(
+                    checked.error?.message ?? LocRunbookStudio.runtimeProviderStatusFailed,
+                );
+                return;
+            }
+            const status = checked.status;
+            if (status.provider.ready) {
+                void vscode.window.showInformationMessage(
+                    LocRunbookStudio.runtimeProviderReady(status.provider.label),
+                );
+                return;
+            }
+            const detail = LocRunbookStudio.runtimeProviderUnavailable(
+                status.provider.label,
+                status.provider.reason ?? LocRunbookStudio.runtimeProviderNoReason,
+            );
+            if (!status.loginRequired || !status.provider.supportsLogin) {
+                void vscode.window.showWarningMessage(detail);
+                return;
+            }
+            const choice = await vscode.window.showWarningMessage(
+                detail,
+                LocRunbookStudio.runtimeProviderSignIn,
+            );
+            if (choice !== LocRunbookStudio.runtimeProviderSignIn) {
+                return;
+            }
+            const outcome = await vscode.window.withProgress(
+                {
+                    location: vscode.ProgressLocation.Notification,
+                    title: LocRunbookStudio.runtimeProviderSigningIn(status.provider.label),
+                    cancellable: true,
+                },
+                async (progress, token) =>
+                    service.signInRuntimeProvider((event) => {
+                        if (event.kind === "pending" || event.kind === "progress") {
+                            progress.report({
+                                message: LocRunbookStudio.runtimeProviderWaiting,
+                            });
+                        }
+                        if (
+                            event.kind === "deviceCode" &&
+                            event.userCode &&
+                            event.verificationUri
+                        ) {
+                            let signInUri: vscode.Uri | undefined;
+                            try {
+                                const parsed = vscode.Uri.parse(event.verificationUri, true);
+                                if (parsed.scheme === "https") {
+                                    signInUri = parsed;
+                                }
+                            } catch {
+                                // Invalid provider URI: show the code but
+                                // do not expose an untrusted open action.
+                            }
+                            const message = LocRunbookStudio.runtimeProviderDeviceCode(
+                                event.userCode,
+                            );
+                            if (signInUri) {
+                                void vscode.window
+                                    .showInformationMessage(
+                                        message,
+                                        LocRunbookStudio.runtimeProviderOpenSignIn,
+                                    )
+                                    .then((openChoice) => {
+                                        if (
+                                            openChoice ===
+                                            LocRunbookStudio.runtimeProviderOpenSignIn
+                                        ) {
+                                            void vscode.env.openExternal(signInUri);
+                                        }
+                                    });
+                            } else {
+                                void vscode.window.showInformationMessage(message);
+                            }
+                        }
+                    }, token),
+            );
+            if (outcome === "cancelled") {
+                void vscode.window.showInformationMessage(
+                    LocRunbookStudio.runtimeProviderSignInCancelled,
+                );
+                return;
+            }
+            const rechecked =
+                outcome === "succeeded" ? await service.getRuntimeProviderStatus() : undefined;
+            if (rechecked?.status?.provider.ready) {
+                void vscode.window.showInformationMessage(
+                    LocRunbookStudio.runtimeProviderSignInSucceeded,
+                );
+            } else {
+                void vscode.window.showErrorMessage(LocRunbookStudio.runtimeProviderSignInFailed);
+            }
+        }),
     );
     // Runbook Library tree (R3): the runtime library next to Object
     // Explorer, sharing the lazily constructed service. The coordinator

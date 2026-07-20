@@ -79,6 +79,8 @@ import {
 import { ActivityInvocationIdentity, FakeRuntimeAdapter } from "./runtime/fakeRuntimeAdapter";
 import {
     HobbesRuntimeAdapter,
+    HobbesProviderLoginEvent,
+    HobbesProviderStatus,
     LibraryDocumentBaseline,
     LibraryDocumentCommitResult,
     LibraryDocumentConflictResolution,
@@ -818,8 +820,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
 
     /** Intent -> compiled plan, written into the document via WorkspaceEdit
      *  (dirty/undo-safe). On the hobbes lane the runtime's elicitation
-     *  planner authors the plan first (D-0010); any planner failure falls
-     *  back to the catalog-constrained vscode.lm compiler. */
+     *  planner authors the plan first (D-0010); transport/mapping failures
+     *  fall back to the catalog-constrained vscode.lm compiler, while typed
+     *  provider/auth and cancellation refusals remain visible. */
     public async compileIntent(
         model: RunbookStudioDocumentModel,
         intent: string,
@@ -910,12 +913,24 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             try {
                 artifact = await this.compileWithRuntimePlanner(base, intent, context, onProgress);
             } catch (error) {
-                // A USER cancellation ends compilation outright — falling
-                // through to the catalog compiler would un-cancel it.
-                if (
-                    error instanceof RuntimeStartRefusedError &&
-                    error.rbsError.code === "RunbookStudio.Cancelled"
-                ) {
+                // A typed runtime refusal ends compilation outright. Falling
+                // through to a different compiler would hide provider/auth
+                // readiness and can turn a deliberate cancel into new work.
+                if (error instanceof RuntimeStartRefusedError) {
+                    if (error.rbsError.code === "RunbookStudio.ModelUnavailable") {
+                        void vscode.window
+                            .showWarningMessage(
+                                error.rbsError.message,
+                                LocRunbookStudio.runtimeProviderCheck,
+                            )
+                            .then((choice) => {
+                                if (choice === LocRunbookStudio.runtimeProviderCheck) {
+                                    void vscode.commands.executeCommand(
+                                        "mssql.runbookStudio.checkRuntimeProvider",
+                                    );
+                                }
+                            });
+                    }
                     return { ok: false, error: error.rbsError };
                 }
                 throw error;
@@ -966,7 +981,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     /** Runtime-planner authoring path (hobbes lane, R1.2): the planner
      *  authors the full plan IR and saves it in the runtime library; the
      *  compiled lock mirrors that plan and references the asset. Returns
-     *  undefined on ANY failure so the catalog compiler takes over. */
+     *  undefined on an untyped transport/mapping failure so the catalog
+     *  compiler can take over; typed refusals propagate to the user. */
     private async compileWithRuntimePlanner(
         base: RunbookArtifactFile,
         intent: string,
@@ -981,6 +997,16 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             return undefined;
         }
         try {
+            const providerStatus = await ensured.adapter.getProviderStatus(context);
+            if (!providerStatus.provider.ready) {
+                throw new RuntimeStartRefusedError({
+                    code: "RunbookStudio.ModelUnavailable",
+                    message: LocRunbookStudio.runtimeProviderNotReady(
+                        providerStatus.provider.label,
+                    ),
+                    retryable: true,
+                });
+            }
             // Compile INTO the document's existing runtime-library draft.
             // The old path let /from-prompt mint a second asset, leaving the
             // mssql-runbook: tab and stash attached to an orphaned placeholder.
@@ -1013,11 +1039,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             }
             return artifact;
         } catch (error) {
-            // User cancellation propagates — it must not trigger fallback.
-            if (
-                error instanceof RuntimeStartRefusedError &&
-                error.rbsError.code === "RunbookStudio.Cancelled"
-            ) {
+            // Typed refusal propagates — it must not trigger a compiler
+            // fallback that hides authentication or cancellation state.
+            if (error instanceof RuntimeStartRefusedError) {
                 throw error;
             }
             emitRunbookEvent(context, "runbookStudio.planner.fallback", "warning", {
@@ -1030,6 +1054,48 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     /** Abort an in-flight planner generation (user cancel). */
     public cancelCompile(): boolean {
         return this.hobbesAdapter?.cancelActivePlanner() ?? false;
+    }
+
+    public async getRuntimeProviderStatus(): Promise<{
+        status?: HobbesProviderStatus;
+        error?: RbsError;
+    }> {
+        const context = newRunbookRootContext("providerStatus");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            return { error: ensured.error };
+        }
+        try {
+            return { status: await ensured.adapter.getProviderStatus(context) };
+        } catch {
+            return {
+                error: {
+                    code: "RunbookStudio.ModelUnavailable",
+                    message: LocRunbookStudio.runtimeProviderStatusFailed,
+                    retryable: true,
+                },
+            };
+        }
+    }
+
+    public async signInRuntimeProvider(
+        onEvent: (event: HobbesProviderLoginEvent) => void,
+        cancellation: vscode.CancellationToken,
+    ): Promise<"succeeded" | "failed" | "cancelled"> {
+        const context = newRunbookRootContext("providerLogin");
+        const ensured = this.ensureHobbesAdapter();
+        if ("error" in ensured) {
+            return "failed";
+        }
+        const controller = new AbortController();
+        const registration = cancellation.onCancellationRequested(() => controller.abort());
+        try {
+            return await ensured.adapter.loginProvider(context, onEvent, controller.signal);
+        } catch {
+            return controller.signal.aborted ? "cancelled" : "failed";
+        } finally {
+            registration.dispose();
+        }
     }
 
     /** "Name (2)"-style dedupe against every OTHER library title. Listing

@@ -1201,6 +1201,9 @@
     <trans-unit id="++CODE++751964221301ecba898752df37067be0761a03f6668871a4933327defb5b0b2c">
       <source xml:lang="en">Check a table for orphaned rows</source>
     </trans-unit>
+    <trans-unit id="++CODE++655b6b054c32b6850e6bc245f79b03cb2513ab227e96e7e4a6fb3269daf60119">
+      <source xml:lang="en">Check provider</source>
+    </trans-unit>
     <trans-unit id="++CODE++9c53e128952037c4ead60c30ad2f97941bb80c9f493241427b5df85e95b05b24">
       <source xml:lang="en">Check that the dbo.Orders table stays under 1,000,000 rows and fail the run if it does not.</source>
     </trans-unit>
@@ -5914,6 +5917,9 @@
     <trans-unit id="++CODE++07fa58bdd9de910a1e070b49104fd2eb37a4665f9cae70f35a28130d6fb1cf10">
       <source xml:lang="en">No query set</source>
     </trans-unit>
+    <trans-unit id="++CODE++a120047d85be3be1564920514a8a4500718aff7bd20e702fabbdf5f751908f98">
+      <source xml:lang="en">No readiness reason was reported.</source>
+    </trans-unit>
     <trans-unit id="++CODE++dca3ee73f048d988c89462169bafd9d3173c8f941a22768414517de4a0892611">
       <source xml:lang="en">No renameable symbol found at cursor.</source>
     </trans-unit>
@@ -6265,6 +6271,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d3976936e979be164499768f7baa4965692500bfc5f78042b4f73efd932028ef">
+      <source xml:lang="en">Open sign-in page</source>
     </trans-unit>
     <trans-unit id="++CODE++d5b15bfc605139b20cbb77db812b2496d375680f31d266bccd9767a0c63f0092">
       <source xml:lang="en">Open text data in a new editor</source>
@@ -7493,6 +7502,23 @@
       <source xml:lang="en">Runtime metric: {0}</source>
       <note>{0} is a runtime-published metric key</note>
     </trans-unit>
+    <trans-unit id="++CODE++bc5edaa8725467b32ab2ac33587036fc03fd723ddcc51134330d7a101d705e07">
+      <source xml:lang="en">Runtime provider &apos;{0}&apos; is not ready: {1}</source>
+      <note>{0} is a provider label, {1} is its bounded readiness reason</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7a48759cb4d7361d61a13ae57e74a42ea544aede03be21faac24c1af922a456f">
+      <source xml:lang="en">Runtime provider &apos;{0}&apos; is ready.</source>
+      <note>{0} is a runtime provider profile label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1c887dcdfc906983c3041e009f398ff11379ac8cbd24c57b6284d77d76c2d8cc">
+      <source xml:lang="en">Runtime provider sign-in failed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0a5ddb56dcfa90f719d70f221d6999e9ddd1359cf875aaeeadb3e0a7722a861b">
+      <source xml:lang="en">Runtime provider sign-in succeeded.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++993975ed330502da75debae2e9247ae6e48b5c3fbafb50cc7cb93229400b44eb">
+      <source xml:lang="en">Runtime provider sign-in was cancelled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f19c78bd8ae86d99c792a5c343052ea2851290cbbd70bb58dbd84e995da9bc4e">
       <source xml:lang="en">Runtime-executed SQL</source>
     </trans-unit>
@@ -8410,6 +8436,10 @@
       <source xml:lang="en">Signing in to Azure as {0}...</source>
       <note>{0} is the account name</note>
     </trans-unit>
+    <trans-unit id="++CODE++12370e4bdc1a2e337a61ab8224d2d1ca15b8f92322fc58fdb4e99dc17b2ddbdb">
+      <source xml:lang="en">Signing in to runtime provider &apos;{0}&apos;</source>
+      <note>{0} is a runtime provider profile label</note>
+    </trans-unit>
     <trans-unit id="++CODE++3fee95da5ab69ebfdc16ec892b754105a11c20203054a6c6bcc0a60176891043">
       <source xml:lang="en">Simple</source>
     </trans-unit>
@@ -8936,6 +8966,13 @@
     </trans-unit>
     <trans-unit id="++CODE++7b501afa65585ea057724e4a1165353748c403e4ea8d791f8f84859b36c4952d">
       <source xml:lang="en">The Hobbes runtime planner did not finish within the time limit. Try again, or simplify the request.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cc7cdaaedb42f554655feea2b7ecd96d39a52d1ad0041b50a2beb7d5140ee0a0">
+      <source xml:lang="en">The Hobbes runtime provider &apos;{0}&apos; is not ready. Run &apos;Runbook Studio: Check Runtime Provider&apos; to inspect readiness or sign in.</source>
+      <note>{0} is a runtime provider profile label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f5a39ef4ab594988fb7a51f3c2a2b192e1278004cd2e2eb0fdade97972ffd432">
+      <source xml:lang="en">The Hobbes runtime provider status could not be checked.</source>
     </trans-unit>
     <trans-unit id="++CODE++eb85e5b179ae508851d9c3a4ad1b70f15e62bcc724ccceba39fb65ab10b7d537">
       <source xml:lang="en">The Hobbes runtime refused to start the run ({0}).</source>
@@ -9650,6 +9687,10 @@
     <trans-unit id="++CODE++eeefe579e45c25e1a551b536d8eecc680562bce4d0aa58ffee1ad7df8cc84e63">
       <source xml:lang="en">Use T-SQL intellisense and syntax error checking on current document</source>
     </trans-unit>
+    <trans-unit id="++CODE++a73aaccee8d3378aecbfddcf10edf92209bcd4f91d339f41252eb9370ed2e22d">
+      <source xml:lang="en">Use code {0} to sign in to the runtime provider.</source>
+      <note>{0} is a short provider device code</note>
+    </trans-unit>
     <trans-unit id="++CODE++6ef37ea9955ac30c701324290f719cf696d1f34b027640872eb4bba2fcd59c25">
       <source xml:lang="en">Use discount code {0} to save €200 on registration.</source>
     </trans-unit>
@@ -9862,6 +9903,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6e293a8c009e001103199768f7bcbea1729c59f9fc1ef2748958757f47ab99ed">
       <source xml:lang="en">Waiting</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3d5845135c10c3868aa722280956c224738690a3f70f2011a7cc281a89fc5f2d">
+      <source xml:lang="en">Waiting for provider authorization…</source>
     </trans-unit>
     <trans-unit id="++CODE++a3332cf376529da6c1c40d33793a65cbd095419611326105c148b6a0f4966c37">
       <source xml:lang="en">Waiting for this step to produce output…</source>
@@ -11350,6 +11394,9 @@
     </trans-unit>
     <trans-unit id="mssql.runbookLibrary.viewName">
       <source xml:lang="en">Runbook Library</source>
+    </trans-unit>
+    <trans-unit id="mssql.runbookStudio.checkRuntimeProvider">
+      <source xml:lang="en">Runbook Studio: Check Runtime Provider</source>
     </trans-unit>
     <trans-unit id="mssql.runbookStudio.configureModels">
       <source xml:lang="en">Runbook Studio: Configure Models</source>

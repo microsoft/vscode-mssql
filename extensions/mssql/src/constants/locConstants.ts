@@ -187,6 +187,50 @@ export class RunbookStudio {
             args: [role, modelId],
             comment: ["{0} model role name, {1} model id"],
         });
+    public static runtimeProviderNotReady = (provider: string) =>
+        l10n.t({
+            message:
+                "The Hobbes runtime provider '{0}' is not ready. Run 'Runbook Studio: Check Runtime Provider' to inspect readiness or sign in.",
+            args: [provider],
+            comment: ["{0} is a runtime provider profile label"],
+        });
+    public static runtimeProviderStatusFailed = l10n.t(
+        "The Hobbes runtime provider status could not be checked.",
+    );
+    public static runtimeProviderReady = (provider: string) =>
+        l10n.t({
+            message: "Runtime provider '{0}' is ready.",
+            args: [provider],
+            comment: ["{0} is a runtime provider profile label"],
+        });
+    public static runtimeProviderUnavailable = (provider: string, reason: string) =>
+        l10n.t({
+            message: "Runtime provider '{0}' is not ready: {1}",
+            args: [provider, reason],
+            comment: ["{0} is a provider label, {1} is its bounded readiness reason"],
+        });
+    public static runtimeProviderNoReason = l10n.t("No readiness reason was reported.");
+    public static runtimeProviderCheck = l10n.t("Check provider");
+    public static runtimeProviderSignIn = l10n.t("Sign in");
+    public static runtimeProviderSigningIn = (provider: string) =>
+        l10n.t({
+            message: "Signing in to runtime provider '{0}'",
+            args: [provider],
+            comment: ["{0} is a runtime provider profile label"],
+        });
+    public static runtimeProviderWaiting = l10n.t("Waiting for provider authorization…");
+    public static runtimeProviderDeviceCode = (code: string) =>
+        l10n.t({
+            message: "Use code {0} to sign in to the runtime provider.",
+            args: [code],
+            comment: ["{0} is a short provider device code"],
+        });
+    public static runtimeProviderOpenSignIn = l10n.t("Open sign-in page");
+    public static runtimeProviderSignInSucceeded = l10n.t("Runtime provider sign-in succeeded.");
+    public static runtimeProviderSignInFailed = l10n.t("Runtime provider sign-in failed.");
+    public static runtimeProviderSignInCancelled = l10n.t(
+        "Runtime provider sign-in was cancelled.",
+    );
     public static hobbesRunNoProgress = l10n.t(
         "The Hobbes runtime reported no progress for 10 minutes; the run has been marked failed. Open the runtime log for details.",
     );
