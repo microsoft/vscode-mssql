@@ -1850,6 +1850,9 @@
     <trans-unit id="++CODE++56fd975f4cea21a748feabb6cb1cfb49161141245c2d4d1698cee7ae99c69bf2">
       <source xml:lang="en">Continue Editing</source>
     </trans-unit>
+    <trans-unit id="++CODE++b38c89cb8c27297009bfa9179a93109b4ea3b8b7121e6fe088114483cc516891">
+      <source xml:lang="en">Continue and return to Draft</source>
+    </trans-unit>
     <trans-unit id="++CODE++f331832c8bdfb5c52a1430795650caa56eb169ffa1dfea7084b518fcf9511d48">
       <source xml:lang="en">Continue on error</source>
     </trans-unit>
@@ -7368,6 +7371,10 @@
     </trans-unit>
     <trans-unit id="++CODE++3310f003f18a6edd36a0326d24fccc5af40f7c8856741936839aa8878c755bb9">
       <source xml:lang="en">Saving layout…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++df9cbc1ac01308951ca7731bd04ee7d41314a77b126e34ef631b0e9e53ca29d4">
+      <source xml:lang="en">Saving these presentation changes will return approved runbook &apos;{0}&apos; to Draft. Existing run history is preserved, but the updated revision must be approved again before it is the approved library version.</source>
+      <note>{0} is the runbook name</note>
     </trans-unit>
     <trans-unit id="++CODE++dc85af8f2b1d0d6756547cd5f79557466e25e682b882f68d277bd7f125851321">
       <source xml:lang="en">Saving...</source>

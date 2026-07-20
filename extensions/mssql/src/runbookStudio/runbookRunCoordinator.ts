@@ -27,6 +27,10 @@ export interface OutputPageResult {
 }
 
 export interface RunbookRunCoordinator {
+    /** Optional library lifecycle probe used by authoring surfaces that must
+     * warn before an approved runtime asset is reverted to draft. */
+    getLibraryLifecycleState?(assetId: string): Promise<string | undefined>;
+
     startRun(
         model: RunbookStudioDocumentModel,
         parameterValues: Record<string, string | number | boolean | null>,

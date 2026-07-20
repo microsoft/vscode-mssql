@@ -611,7 +611,7 @@ export namespace RbsSetOutputPresentationRequest {
 export namespace RbsApplyPresentationLayoutRequest {
     export const type = new RequestType<
         { edits: PresentationLayoutEdit[]; baseRevision: number },
-        { applied: boolean; reason?: "invalid" | "revisionConflict" },
+        { applied: boolean; reason?: "invalid" | "revisionConflict" | "cancelled" },
         void
     >("rbs/applyPresentationLayout");
 }

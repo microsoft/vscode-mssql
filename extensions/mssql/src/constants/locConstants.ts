@@ -546,6 +546,14 @@ export class RunbookStudio {
     );
     public static librarySaveRebase = l10n.t("Rebase");
     public static librarySaveOverwrite = l10n.t("Overwrite");
+    public static presentationApprovedDemotionWarning = (name: string) =>
+        l10n.t({
+            message:
+                "Saving these presentation changes will return approved runbook '{0}' to Draft. Existing run history is preserved, but the updated revision must be approved again before it is the approved library version.",
+            args: [name],
+            comment: ["{0} is the runbook name"],
+        });
+    public static presentationApprovedDemotionContinue = l10n.t("Continue and return to Draft");
     public static libraryExported = (path: string) =>
         l10n.t({
             message: "Runbook exported to {0}.",

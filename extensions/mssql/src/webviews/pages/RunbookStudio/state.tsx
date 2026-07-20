@@ -231,7 +231,7 @@ interface RbsContextValue {
     applyPresentationLayout: (
         edits: PresentationLayoutEdit[],
         baseRevision: number,
-    ) => Promise<{ applied: boolean; reason?: "invalid" | "revisionConflict" }>;
+    ) => Promise<{ applied: boolean; reason?: "invalid" | "revisionConflict" | "cancelled" }>;
     previewPresentationLayout: (
         edits: PresentationLayoutEdit[],
         baseRevision: number,

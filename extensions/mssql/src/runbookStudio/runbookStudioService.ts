@@ -1112,6 +1112,14 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         }
     }
 
+    /** Narrow controller-facing lifecycle probe. Unknown/offline state is
+     * returned as undefined; the subsequent library transaction remains the
+     * authority and will still fail honestly if the runtime is unavailable. */
+    public async getLibraryLifecycleState(id: string): Promise<string | undefined> {
+        const result = await this.getLibraryRunbook(id);
+        return typeof result.asset?.state === "string" ? result.asset.state : undefined;
+    }
+
     /** Runtime revision/content baseline captured when a virtual document is
      *  read. Absence means the runtime asset no longer exists. */
     public async getLibraryDocumentBaseline(

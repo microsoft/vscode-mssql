@@ -1678,7 +1678,7 @@ function usePresentationDraft(
             }
             if (result.reason === "revisionConflict") {
                 setConflict({ kind: "stale" });
-            } else {
+            } else if (result.reason !== "cancelled") {
                 setError("invalid");
             }
             return false;

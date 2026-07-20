@@ -79,6 +79,7 @@ import {
     fetchSampleOutputPage,
     isSampleHandle,
 } from "./presentation/samplePresentation";
+import { presentationSaveRequiresDraftDemotionConfirmation } from "./presentation/presentationSavePolicy";
 
 /** Coarse state pushes are throttled; edits/typing must not flood the webview. */
 const STATE_PUSH_MIN_INTERVAL_MS = 100;
@@ -302,6 +303,9 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             const prepared = this.preparePresentationLayout(edits, baseRevision);
             if ("reason" in prepared) {
                 return { applied: false, reason: prepared.reason };
+            }
+            if (!(await this.confirmApprovedPresentationDemotion())) {
+                return { applied: false, reason: "cancelled" as const };
             }
             const applied = await this.model.applyArtifactEdit({
                 ...prepared.artifact,
@@ -765,6 +769,28 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                   }
                 : {}),
         });
+    }
+
+    private async confirmApprovedPresentationDemotion(): Promise<boolean> {
+        const artifact = this.model.artifact;
+        const lifecycleState = artifact
+            ? await this.coordinator?.getLibraryLifecycleState?.(artifact.id)
+            : undefined;
+        if (
+            !artifact ||
+            !presentationSaveRequiresDraftDemotionConfirmation(
+                this.model.backingDocument.uri.scheme,
+                lifecycleState,
+            )
+        ) {
+            return true;
+        }
+        const choice = await vscode.window.showWarningMessage(
+            LocRunbookStudio.presentationApprovedDemotionWarning(artifact.name),
+            { modal: true },
+            LocRunbookStudio.presentationApprovedDemotionContinue,
+        );
+        return choice === LocRunbookStudio.presentationApprovedDemotionContinue;
     }
 
     private preparePresentationLayout(

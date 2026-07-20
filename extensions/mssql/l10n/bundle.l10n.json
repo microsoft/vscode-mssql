@@ -314,6 +314,11 @@
     "This runbook changed in the runtime library after you opened it, but a common merge base is unavailable. Overwrite replaces the newer authoring changes; cancel keeps this editor dirty.": "This runbook changed in the runtime library after you opened it, but a common merge base is unavailable. Overwrite replaces the newer authoring changes; cancel keeps this editor dirty.",
     "Rebase": "Rebase",
     "Overwrite": "Overwrite",
+    "Saving these presentation changes will return approved runbook '{0}' to Draft. Existing run history is preserved, but the updated revision must be approved again before it is the approved library version./{0} is the runbook name": {
+        "message": "Saving these presentation changes will return approved runbook '{0}' to Draft. Existing run history is preserved, but the updated revision must be approved again before it is the approved library version.",
+        "comment": ["{0} is the runbook name"]
+    },
+    "Continue and return to Draft": "Continue and return to Draft",
     "Runbook exported to {0}./{0} is the exported file path": {
         "message": "Runbook exported to {0}.",
         "comment": ["{0} is the exported file path"]
