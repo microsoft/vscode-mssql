@@ -1572,12 +1572,18 @@ function PresentationSections({
                     <h2 className="rbs-section-title">{section.title}</h2>
                     <div
                         className={`rbs-layout-grid rbs-layout-${presentation.layout.sectionFlow}`}>
-                        {section.widgets.map((widget) => (
+                        {section.widgets.map((widget, index) => (
                             <div
                                 className="rbs-layout-widget"
                                 style={layoutStyle(widget, presentation)}
                                 key={widget.id}>
-                                {editing ? <LayoutEditorControls widget={widget} /> : null}
+                                {editing ? (
+                                    <LayoutEditorControls
+                                        widget={widget}
+                                        siblings={section.widgets}
+                                        index={index}
+                                    />
+                                ) : null}
                                 <ResolvedWidgetView widget={widget} sample={sample} />
                             </div>
                         ))}
@@ -1600,7 +1606,15 @@ function spanPresetOf(span: { wide?: number } | undefined) {
     return wide === 4 ? "third" : wide === 6 ? "half" : wide === 8 ? "twoThirds" : "full";
 }
 
-function LayoutEditorControls({ widget }: { widget: ResolvedWidget }) {
+function LayoutEditorControls({
+    widget,
+    siblings,
+    index,
+}: {
+    widget: ResolvedWidget;
+    siblings: ResolvedWidget[];
+    index: number;
+}) {
     const { state, applyPresentationLayout } = useRbs();
     const loc = locConstants.runbookStudio;
     const [saving, setSaving] = useState(false);
@@ -1613,31 +1627,57 @@ function LayoutEditorControls({ widget }: { widget: ResolvedWidget }) {
         (sections.some((section) => section.id === widget.sectionId)
             ? widget.sectionId
             : "primary");
-    const commit = async (edit: Partial<PresentationLayoutEdit>) => {
+    const editFor = (
+        target: ResolvedWidget,
+        edit: Partial<PresentationLayoutEdit> = {},
+    ): PresentationLayoutEdit => {
+        const targetConfigured = state?.artifact?.outputPresentations?.[target.nodeId];
+        const targetSectionId =
+            targetConfigured?.sectionId ??
+            (sections.some((section) => section.id === target.sectionId)
+                ? target.sectionId
+                : "primary");
+        return {
+            nodeId: target.nodeId,
+            widgetId: targetConfigured?.widgetId ?? target.id,
+            defaultView: targetConfigured?.defaultView ?? target.view,
+            sectionId: targetSectionId,
+            placement: targetConfigured?.placement ?? target.placement ?? { order: 0 },
+            hidden: false,
+            ...edit,
+        };
+    };
+    const commitEdits = async (edits: PresentationLayoutEdit[]) => {
         const baseRevision = state?.artifact?.presentationRevision ?? 0;
         setSaving(true);
         setError(false);
         try {
-            const result = await applyPresentationLayout(
-                [
-                    {
-                        nodeId: widget.nodeId,
-                        widgetId: configured?.widgetId ?? widget.id,
-                        defaultView: configured?.defaultView ?? widget.view,
-                        sectionId: currentSectionId,
-                        placement,
-                        hidden: false,
-                        ...edit,
-                    },
-                ],
-                baseRevision,
-            );
+            const result = await applyPresentationLayout(edits, baseRevision);
             setError(!result.applied);
         } catch {
             setError(true);
         } finally {
             setSaving(false);
         }
+    };
+    const commit = (edit: Partial<PresentationLayoutEdit>) => commitEdits([editFor(widget, edit)]);
+    const move = (delta: -1 | 1) => {
+        const sibling = siblings[index + delta];
+        if (!sibling) {
+            return;
+        }
+        const currentOrder = placement.order;
+        const siblingConfigured = state?.artifact?.outputPresentations?.[sibling.nodeId];
+        const siblingPlacement = siblingConfigured?.placement ??
+            sibling.placement ?? {
+                order: index + delta,
+            };
+        void commitEdits([
+            editFor(widget, { placement: { ...placement, order: siblingPlacement.order } }),
+            editFor(sibling, {
+                placement: { ...siblingPlacement, order: currentOrder },
+            }),
+        ]);
     };
     return (
         <div className="rbs-layout-controls">
@@ -1675,6 +1715,24 @@ function LayoutEditorControls({ widget }: { widget: ResolvedWidget }) {
                     <option value="third">{loc.layoutThird}</option>
                 </select>
             </label>
+            <button
+                type="button"
+                className="rbs-btn rbs-btn-quiet rbs-layout-move"
+                aria-label={loc.moveOutputUp}
+                title={loc.moveOutputUp}
+                disabled={saving || index === 0}
+                onClick={() => move(-1)}>
+                ↑
+            </button>
+            <button
+                type="button"
+                className="rbs-btn rbs-btn-quiet rbs-layout-move"
+                aria-label={loc.moveOutputDown}
+                title={loc.moveOutputDown}
+                disabled={saving || index === siblings.length - 1}
+                onClick={() => move(1)}>
+                ↓
+            </button>
             <button
                 type="button"
                 className="rbs-link-button"

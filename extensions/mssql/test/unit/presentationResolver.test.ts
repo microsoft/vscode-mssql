@@ -443,4 +443,29 @@ suite("presentationResolver", () => {
         ).to.equal(false);
         expect(outputPresentationsOf(hidden).query.hidden).to.equal(true);
     });
+
+    test("layout edits atomically reorder sibling widgets", () => {
+        const reordered = applyPresentationLayoutEdits(definition(), [
+            {
+                nodeId: "query",
+                widgetId: "w1",
+                defaultView: "grid",
+                sectionId: "main",
+                placement: { order: 1 },
+                hidden: false,
+            },
+            {
+                nodeId: "threshold",
+                widgetId: "w2",
+                defaultView: "scalar-cards",
+                sectionId: "main",
+                placement: { order: 0 },
+                hidden: false,
+            },
+        ]);
+        const ids = resolvePresentation(reordered, snapshot()).sections[0].widgets.map(
+            (widget) => widget.id,
+        );
+        expect(ids.slice(0, 2)).to.deep.equal(["w2", "w1"]);
+    });
 });

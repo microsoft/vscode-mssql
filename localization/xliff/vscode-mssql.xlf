@@ -5215,6 +5215,12 @@
     <trans-unit id="++CODE++26825fb5a23a1dc6ad7a97722d21ac4c03f6056a5601b641cfb921705b7ef11d">
       <source xml:lang="en">Move focus to the previous result set grid</source>
     </trans-unit>
+    <trans-unit id="++CODE++3da507c504f23dc119fa2638cf5c36f873aef4cca612e875ad2cc99c7a9da22a">
+      <source xml:lang="en">Move output down</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4dd3074934de9892e34a7ee9f7bcc65db56cc70252e39b93c653026dfafba7b2">
+      <source xml:lang="en">Move output up</source>
+    </trans-unit>
     <trans-unit id="++CODE++7ef29db2f48bc9bd611c6152b14e6c378e0654dc760f9f09a412cebda6143dc1">
       <source xml:lang="en">Move selection to the first cell in the row</source>
     </trans-unit>

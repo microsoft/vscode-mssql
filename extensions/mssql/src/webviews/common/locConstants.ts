@@ -3587,6 +3587,8 @@ export class LocConstants {
             layoutTwoThirds: l10n.t("Two thirds"),
             layoutHalf: l10n.t("Half"),
             layoutThird: l10n.t("One third"),
+            moveOutputUp: l10n.t("Move output up"),
+            moveOutputDown: l10n.t("Move output down"),
             hideOutput: l10n.t("Hide"),
             showOutput: l10n.t("Show"),
             savingLayout: l10n.t("Saving…"),
