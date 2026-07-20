@@ -14,24 +14,49 @@ const SAMPLE_HANDLE_PREFIX = "rbs-sample:";
 
 export function createSampleRunSnapshot(
     artifact: RunbookArtifactFile,
+    scenario: "clean" | "blockingErrors" | "approvalRejected" = "clean",
 ): RunbookRunSnapshot | undefined {
     if (!artifact.lock) {
         return undefined;
     }
+    const failureNodeId = failureNode(artifact, scenario);
+    if (scenario !== "clean" && !failureNodeId) {
+        return undefined;
+    }
+    const branchNotTaken = branchNotTakenNodes(artifact, scenario);
     return {
-        runId: "sample-preview",
+        runId: `sample-preview-${scenario}`,
         runbookId: artifact.id,
         planRevision: artifact.lock.planRevision,
         planHash: artifact.lock.planHash,
-        state: "succeeded",
+        state: scenario === "clean" ? "succeeded" : "failed",
         seq: 0,
-        verdict: "pass",
+        verdict: scenario === "clean" ? "pass" : "fail",
         nodes: artifact.lock.nodes.map((node) => {
             const contract = expectedContractFor(node.kind, node.activityKind);
+            if (branchNotTaken.has(node.id)) {
+                return {
+                    nodeId: node.id,
+                    state: "skipped" as const,
+                    attempt: 0,
+                    outcome: "skipped" as const,
+                    branchNotTaken: true,
+                    message: "Not executed — branch not taken.",
+                };
+            }
+            const failed = node.id === failureNodeId;
             return {
                 nodeId: node.id,
-                state: "succeeded" as const,
+                state: failed ? ("failed" as const) : ("succeeded" as const),
                 attempt: 1,
+                ...(failed
+                    ? {
+                          outcome:
+                              scenario === "approvalRejected"
+                                  ? ("policyDenied" as const)
+                                  : ("failure" as const),
+                      }
+                    : {}),
                 ...(contract
                     ? {
                           outputs: [
@@ -47,6 +72,61 @@ export function createSampleRunSnapshot(
             };
         }),
     };
+}
+
+function failureNode(
+    artifact: RunbookArtifactFile,
+    scenario: "clean" | "blockingErrors" | "approvalRejected",
+): string | undefined {
+    const lock = artifact.lock;
+    if (!lock || scenario === "clean") {
+        return undefined;
+    }
+    if (scenario === "approvalRejected") {
+        return lock.nodes.find((node) => node.kind === "gate")?.id;
+    }
+    const outputNodes = lock.nodes.filter(
+        (node) => expectedContractFor(node.kind, node.activityKind) !== undefined,
+    );
+    const preferred = outputNodes.find(
+        (node) =>
+            /^(schema\.compare|sqltest\.run|tsqlt\.run|assert\.threshold)$/.test(
+                node.activityKind ?? "",
+            ) && descendantsOf(lock.edges, node.id).size > 0,
+    );
+    return (
+        preferred ??
+        outputNodes.find((node) => descendantsOf(lock.edges, node.id).size > 0) ??
+        outputNodes[outputNodes.length - 1]
+    )?.id;
+}
+
+function branchNotTakenNodes(
+    artifact: RunbookArtifactFile,
+    scenario: "clean" | "blockingErrors" | "approvalRejected",
+): Set<string> {
+    const failed = failureNode(artifact, scenario);
+    return failed && artifact.lock ? descendantsOf(artifact.lock.edges, failed) : new Set();
+}
+
+function descendantsOf(edges: Array<{ from: string; to: string }>, nodeId: string): Set<string> {
+    const outgoing = new Map<string, string[]>();
+    for (const edge of edges) {
+        const targets = outgoing.get(edge.from) ?? [];
+        targets.push(edge.to);
+        outgoing.set(edge.from, targets);
+    }
+    const descendants = new Set<string>();
+    const pending = [...(outgoing.get(nodeId) ?? [])];
+    while (pending.length > 0) {
+        const current = pending.shift()!;
+        if (descendants.has(current)) {
+            continue;
+        }
+        descendants.add(current);
+        pending.push(...(outgoing.get(current) ?? []));
+    }
+    return descendants;
 }
 
 export function isSampleHandle(handleId: string): boolean {

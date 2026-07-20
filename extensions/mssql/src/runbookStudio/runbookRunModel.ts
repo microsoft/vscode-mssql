@@ -165,6 +165,9 @@ export function applyRunEvent(
             if (event.message !== undefined) {
                 updated.message = event.message;
             }
+            if (event.branchNotTaken !== undefined) {
+                updated.branchNotTaken = event.branchNotTaken;
+            }
             if (event.outputs !== undefined) {
                 updated.outputs = [...(current.outputs ?? []), ...event.outputs];
             }

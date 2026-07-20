@@ -726,6 +726,12 @@ export function resolvePresentation(
         if (binding.visibility?.when === "never") {
             continue;
         }
+        if (
+            binding.source.kind === "activity-output" &&
+            nodesById.get(binding.source.nodeId)?.branchNotTaken === true
+        ) {
+            continue;
+        }
         const sectionId = knownSectionIds.has(binding.sectionId)
             ? binding.sectionId
             : (overflowSectionId ?? binding.sectionId);

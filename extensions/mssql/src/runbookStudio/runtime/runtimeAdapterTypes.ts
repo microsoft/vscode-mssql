@@ -67,6 +67,8 @@ export type RuntimeBoundaryEvent =
           outcome?: "success" | "failure" | "cancelled" | "skipped" | "policyDenied";
           /** Safe, localized-at-source one-line summary. */
           message?: string;
+          /** True only when a conditional branch was not selected. */
+          branchNotTaken?: boolean;
           output?: RuntimeOutputPayload;
       }
     | { kind: "gateRequested"; nodeId: string; impactSummary: string }

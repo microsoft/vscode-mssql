@@ -3566,6 +3566,19 @@ export class LocConstants {
             previewCompact: l10n.t("Compact"),
             previewMedium: l10n.t("Medium"),
             previewWide: l10n.t("Wide"),
+            previewScenario: l10n.t("Scenario"),
+            previewScenarioClean: l10n.t("Clean run"),
+            previewScenarioBlockingErrors: l10n.t("Blocking error"),
+            previewScenarioApprovalRejected: l10n.t("Approval rejected"),
+            branchWidgetsHidden: (count: number) =>
+                l10n.t({
+                    message: "{0} output widgets hidden — branch not taken",
+                    args: [count],
+                    comment: [
+                        "{0} is the number of output widgets hidden by this preview scenario",
+                    ],
+                }),
+            branchNotTaken: l10n.t("Branch not taken"),
             sample: l10n.t("Sample"),
             noPreviewTitle: l10n.t("Compile a plan to preview its results layout"),
             noPreviewDetail: l10n.t(

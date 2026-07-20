@@ -3217,6 +3217,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         nodeState: event.state,
                         ...(event.outcome ? { outcome: event.outcome } : {}),
                         ...(event.message ? { message: event.message } : {}),
+                        ...(event.branchNotTaken ? { branchNotTaken: true } : {}),
                         ...(outputs ? { outputs } : {}),
                     });
                     active.model.setActiveRun(snapshot);

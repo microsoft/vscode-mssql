@@ -487,6 +487,9 @@
     <trans-unit id="++CODE++65660be4b1aada743a043b8bfae0d7ab62971f6ef37c3e6860d6449dc85609e5">
       <source xml:lang="en">Applying changes, this might take a while...</source>
     </trans-unit>
+    <trans-unit id="++CODE++64b0e7abe9cde15792207814f2721ed28470182b6a23395a9b43afb2f9cda7b6">
+      <source xml:lang="en">Approval rejected</source>
+    </trans-unit>
     <trans-unit id="++CODE++ef677f59f01b2a51731f0cb0af349d7fa718b787d4cc8db79d7f3cc306e97869">
       <source xml:lang="en">Approval required</source>
     </trans-unit>
@@ -836,8 +839,14 @@
     <trans-unit id="++CODE++886089b371ee3596c742b0c91467d1b7239b1d7f8f3eb86b88c1304644266abc">
       <source xml:lang="en">Block this extension from accessing your connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++0b7f69f0a5867f790797c025f4ac9ca03d31704a5194fbd37ca94dcf0c2db976">
+      <source xml:lang="en">Blocking error</source>
+    </trans-unit>
     <trans-unit id="++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7">
       <source xml:lang="en">Both</source>
+    </trans-unit>
+    <trans-unit id="++CODE++81dada55e6b96d153da31eee9f63ba3d6788cda16e96934e50aacac61972b76d">
+      <source xml:lang="en">Branch not taken</source>
     </trans-unit>
     <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
       <source xml:lang="en">Brightness</source>
@@ -1213,6 +1222,9 @@
       <source xml:lang="en">Circular reference detected: &apos;{0}&apos; → &apos;{1}&apos; creates a cycle</source>
       <note>{0} is source table
 {1} is target table</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4d0cb4c807dbdf60ff29d6a8e73ae2a5514d28a184594a4aea3a6e7d040f5e7b">
+      <source xml:lang="en">Clean run</source>
     </trans-unit>
     <trans-unit id="++CODE++83b12c2216efb4fdc924e1deb5182e905e4926ed0c1c324d467107f46d5a26a9">
       <source xml:lang="en">Clear</source>
@@ -7307,6 +7319,9 @@
       <note>{0} is source column
 {1} is target column</note>
     </trans-unit>
+    <trans-unit id="++CODE++2fcb5d374697f5ff760c860bf0cc9e89b27daeef4e404cb74a5ea11c2af02d50">
+      <source xml:lang="en">Scenario</source>
+    </trans-unit>
     <trans-unit id="++CODE++07b091a3fdc4e4c03cd047b5264e61241f20fe8dbc36a4c796d46cd8dc3e7d03">
       <source xml:lang="en">Schema</source>
     </trans-unit>
@@ -9916,6 +9931,10 @@
       <source xml:lang="en">{0} of {1} tenants</source>
       <note>{0} is the number of tenants with active sessions
 {1} is the total number of tenants</note>
+    </trans-unit>
+    <trans-unit id="++CODE++07617f9509ce18423be37b6cbcee3573536837dd17bfba0be0c2cfe00ca58d44">
+      <source xml:lang="en">{0} output widgets hidden — branch not taken</source>
+      <note>{0} is the number of output widgets hidden by this preview scenario</note>
     </trans-unit>
     <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
       <source xml:lang="en">{0} password doesn&apos;t match the confirmation password</source>

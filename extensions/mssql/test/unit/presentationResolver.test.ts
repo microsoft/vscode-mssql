@@ -168,6 +168,24 @@ suite("presentationResolver", () => {
         expect(resolved.sections[0].widgets[2].state).to.equal("noOutput");
     });
 
+    test("branch-not-taken outputs reflow without parsing localized messages", () => {
+        const snap = snapshot();
+        snap.nodes[1] = {
+            nodeId: "threshold",
+            state: "skipped",
+            attempt: 0,
+            outcome: "skipped",
+            branchNotTaken: true,
+            message: "localized text can change",
+        };
+        const resolved = resolvePresentation(definition(), snap);
+        expect(resolved.sections[0].widgets.map((widget) => widget.id)).to.deep.equal([
+            "w1",
+            "w3",
+            "w4",
+        ]);
+    });
+
     test("expired handles render as expired, keeping identity", () => {
         const snap = snapshot();
         snap.nodes[0].outputs = [{ handleId: "h1", contract: "rowset/1", expired: true }];

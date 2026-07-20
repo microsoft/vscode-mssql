@@ -187,4 +187,25 @@ suite("runbookRunModel", () => {
         expect(snapshot.nodes[0].outputs).to.have.length(1);
         expect(snapshot.nodes[0].outputs![0].handleId).to.equal("h1");
     });
+
+    test("branch-not-taken state folds as structured durable evidence", () => {
+        const snapshot = foldRunEvents(initial(), [
+            ev({ type: "run.accepted" }),
+            ev({
+                type: "node.state",
+                nodeId: "b",
+                nodeState: "skipped",
+                attempt: 0,
+                outcome: "skipped",
+                branchNotTaken: true,
+                message: "localized display text",
+            }),
+        ]);
+        expect(snapshot.nodes[1]).to.deep.include({
+            state: "skipped",
+            outcome: "skipped",
+            branchNotTaken: true,
+            message: "localized display text",
+        });
+    });
 });

@@ -1746,7 +1746,13 @@ function LayoutEditorControls({
     );
 }
 
-function OutputsDrawer({ presentation }: { presentation: ResolvedPresentation }) {
+function OutputsDrawer({
+    presentation,
+    branchNotTakenNodeIds = [],
+}: {
+    presentation: ResolvedPresentation;
+    branchNotTakenNodeIds?: string[];
+}) {
     const { state, applyPresentationLayout } = useRbs();
     const loc = locConstants.runbookStudio;
     const [savingNode, setSavingNode] = useState<string | undefined>();
@@ -1755,6 +1761,7 @@ function OutputsDrawer({ presentation }: { presentation: ResolvedPresentation })
     const visibleNodes = new Set(
         presentation.sections.flatMap((section) => section.widgets.map((widget) => widget.nodeId)),
     );
+    const branchNotTakenNodes = new Set(branchNotTakenNodeIds);
     const outputs = (state?.artifact?.nodes ?? [])
         .map((node) => ({
             node,
@@ -1806,7 +1813,9 @@ function OutputsDrawer({ presentation }: { presentation: ResolvedPresentation })
             <div className="rbs-outputs-list">
                 {outputs.map(({ node, contract }) => {
                     const configured = state?.artifact?.outputPresentations?.[node.id];
-                    const hidden = configured?.hidden ?? !visibleNodes.has(node.id);
+                    const branchNotTaken = branchNotTakenNodes.has(node.id);
+                    const hidden =
+                        configured?.hidden ?? (!visibleNodes.has(node.id) && !branchNotTaken);
                     return (
                         <div className="rbs-output-row" key={node.id}>
                             <div>
@@ -1817,7 +1826,7 @@ function OutputsDrawer({ presentation }: { presentation: ResolvedPresentation })
                                 className="rbs-select"
                                 aria-label={loc.layoutSectionFor(node.label)}
                                 value={configured?.sectionId ?? "primary"}
-                                disabled={savingNode === node.id || hidden}
+                                disabled={savingNode === node.id || hidden || branchNotTaken}
                                 onChange={(event) =>
                                     void update(node.id, false, event.target.value)
                                 }>
@@ -1830,9 +1839,13 @@ function OutputsDrawer({ presentation }: { presentation: ResolvedPresentation })
                             <button
                                 type="button"
                                 className="rbs-btn rbs-btn-quiet"
-                                disabled={savingNode === node.id}
+                                disabled={savingNode === node.id || branchNotTaken}
                                 onClick={() => void update(node.id, !hidden)}>
-                                {hidden ? loc.showOutput : loc.hideOutput}
+                                {branchNotTaken
+                                    ? loc.branchNotTaken
+                                    : hidden
+                                      ? loc.showOutput
+                                      : loc.hideOutput}
                             </button>
                             {errorNode === node.id ? (
                                 <span className="rbs-error-text">{loc.layoutSaveFailed}</span>
@@ -1849,6 +1862,9 @@ function PreviewPage() {
     const { state } = useRbs();
     const loc = locConstants.runbookStudio;
     const [width, setWidth] = useState<"compact" | "medium" | "wide">("wide");
+    const [scenarioId, setScenarioId] = useState<"clean" | "blockingErrors" | "approvalRejected">(
+        "clean",
+    );
     const [editingLayout, setEditingLayout] = useState(false);
     const [outputsOpen, setOutputsOpen] = useState(false);
     if (state?.artifactError) {
@@ -1857,6 +1873,15 @@ function PreviewPage() {
     if (!state?.artifact?.hasLock || !state.previewPresentation) {
         return <EmptyState title={loc.noPreviewTitle} detail={loc.noPreviewDetail} />;
     }
+    const scenarios = state.previewScenarios ?? [
+        {
+            id: "clean" as const,
+            presentation: state.previewPresentation,
+            hiddenBranchWidgetCount: 0,
+            hiddenBranchNodeIds: [],
+        },
+    ];
+    const scenario = scenarios.find((candidate) => candidate.id === scenarioId) ?? scenarios[0];
     return (
         <div className="rbs-page-body">
             <div className="rbs-preview-toolbar">
@@ -1866,6 +1891,30 @@ function PreviewPage() {
                 </div>
                 <span className="rbs-chip rbs-chip-suggested">{loc.sample}</span>
                 <div className="rbs-spacer" />
+                <label className="rbs-output-picker">
+                    <span className="rbs-muted">{loc.previewScenario}</span>
+                    <select
+                        className="rbs-select"
+                        value={scenario.id}
+                        onChange={(event) =>
+                            setScenarioId(
+                                event.target.value as
+                                    | "clean"
+                                    | "blockingErrors"
+                                    | "approvalRejected",
+                            )
+                        }>
+                        {scenarios.map((candidate) => (
+                            <option key={candidate.id} value={candidate.id}>
+                                {candidate.id === "clean"
+                                    ? loc.previewScenarioClean
+                                    : candidate.id === "blockingErrors"
+                                      ? loc.previewScenarioBlockingErrors
+                                      : loc.previewScenarioApprovalRejected}
+                            </option>
+                        ))}
+                    </select>
+                </label>
                 <button
                     type="button"
                     className="rbs-btn"
@@ -1897,15 +1946,25 @@ function PreviewPage() {
                     ))}
                 </div>
             </div>
+            {scenario.hiddenBranchWidgetCount > 0 ? (
+                <div className="rbs-inline-notice" role="status">
+                    {loc.branchWidgetsHidden(scenario.hiddenBranchWidgetCount)}
+                </div>
+            ) : null}
             <div className={`rbs-results-compose ${outputsOpen ? "with-drawer" : ""}`}>
                 <div className={`rbs-preview-canvas rbs-preview-${width}`}>
                     <PresentationSections
-                        presentation={state.previewPresentation}
+                        presentation={scenario.presentation}
                         sample
                         editing={editingLayout}
                     />
                 </div>
-                {outputsOpen ? <OutputsDrawer presentation={state.previewPresentation} /> : null}
+                {outputsOpen ? (
+                    <OutputsDrawer
+                        presentation={scenario.presentation}
+                        branchNotTakenNodeIds={scenario.hiddenBranchNodeIds}
+                    />
+                ) : null}
             </div>
         </div>
     );

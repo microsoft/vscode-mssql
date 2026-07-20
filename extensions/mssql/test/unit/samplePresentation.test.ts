@@ -32,8 +32,19 @@ function artifact(): RunbookArtifactFile {
                     inputs: {},
                 },
                 { id: "gate", kind: "gate", label: "Approve" },
+                {
+                    id: "report",
+                    kind: "report",
+                    label: "Report",
+                    activityKind: "report.markdown",
+                    activityVersion: 1,
+                    inputs: {},
+                },
             ],
-            edges: [{ from: "query", to: "gate" }],
+            edges: [
+                { from: "query", to: "gate" },
+                { from: "gate", to: "report" },
+            ],
         },
     };
 }
@@ -42,7 +53,7 @@ suite("samplePresentation", () => {
     test("creates effect-free typed sample handles only for output nodes", () => {
         const snapshot = createSampleRunSnapshot(artifact());
         expect(snapshot).to.deep.include({
-            runId: "sample-preview",
+            runId: "sample-preview-clean",
             runbookId: "sample-runbook",
             planRevision: "4",
             state: "succeeded",
@@ -54,6 +65,27 @@ suite("samplePresentation", () => {
         });
         expect(isSampleHandle(snapshot?.nodes[0].outputs?.[0].handleId ?? "")).to.equal(true);
         expect(snapshot?.nodes[1].outputs).to.equal(undefined);
+    });
+
+    test("models blocking and rejected branches without inventing output handles", () => {
+        const blocking = createSampleRunSnapshot(artifact(), "blockingErrors")!;
+        expect(blocking.state).to.equal("failed");
+        expect(blocking.nodes[0].state).to.equal("failed");
+        expect(blocking.nodes.slice(1).every((node) => node.branchNotTaken === true)).to.equal(
+            true,
+        );
+        expect(blocking.nodes.slice(1).some((node) => node.outputs !== undefined)).to.equal(false);
+
+        const rejected = createSampleRunSnapshot(artifact(), "approvalRejected")!;
+        expect(rejected.nodes[0].state).to.equal("succeeded");
+        expect(rejected.nodes[1]).to.deep.include({
+            state: "failed",
+            outcome: "policyDenied",
+        });
+        expect(rejected.nodes[2]).to.deep.include({
+            state: "skipped",
+            branchNotTaken: true,
+        });
     });
 
     test("serves bounded deterministic pages and refuses ordinary handles", () => {

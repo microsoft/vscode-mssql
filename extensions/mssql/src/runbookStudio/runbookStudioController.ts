@@ -629,10 +629,52 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 nodeCount: displayRun.nodes.length,
             });
         }
-        const sampleRun = artifact ? createSampleRunSnapshot(artifact) : undefined;
-        const previewPresentation = sampleRun
-            ? resolvePresentation(presentationDefinition, sampleRun)
-            : undefined;
+        const previewScenarioIds = ["clean", "blockingErrors", "approvalRejected"] as const;
+        const previewScenarios = artifact
+            ? previewScenarioIds.flatMap((id) => {
+                  const sampleRun = createSampleRunSnapshot(artifact, id);
+                  return sampleRun
+                      ? [
+                            {
+                                id,
+                                presentation: resolvePresentation(
+                                    presentationDefinition,
+                                    sampleRun,
+                                ),
+                            },
+                        ]
+                      : [];
+              })
+            : [];
+        const cleanPreview = previewScenarios.find((scenario) => scenario.id === "clean");
+        const cleanWidgetCount = cleanPreview
+            ? cleanPreview.presentation.sections.reduce(
+                  (count, section) => count + section.widgets.length,
+                  0,
+              )
+            : 0;
+        const cleanNodeIds = new Set(
+            cleanPreview?.presentation.sections.flatMap((section) =>
+                section.widgets.map((widget) => widget.nodeId),
+            ) ?? [],
+        );
+        const previewPresentations = previewScenarios.map((scenario) => ({
+            ...scenario,
+            hiddenBranchWidgetCount: Math.max(
+                0,
+                cleanWidgetCount -
+                    scenario.presentation.sections.reduce(
+                        (count, section) => count + section.widgets.length,
+                        0,
+                    ),
+            ),
+            hiddenBranchNodeIds: [...cleanNodeIds].filter(
+                (nodeId) =>
+                    !scenario.presentation.sections.some((section) =>
+                        section.widgets.some((widget) => widget.nodeId === nodeId),
+                    ),
+            ),
+        }));
         const availableRuns = model.history.map((entry) => ({
             runId: entry.runId,
             ...(entry.startedEpochMs ? { startedEpochMs: entry.startedEpochMs } : {}),
@@ -650,7 +692,8 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             ...(displayRun ? { selectedRunId: displayRun.runId } : {}),
             ...(availableRuns.length > 0 ? { availableRuns } : {}),
             ...(presentation ? { presentation } : {}),
-            ...(previewPresentation ? { previewPresentation } : {}),
+            ...(cleanPreview ? { previewPresentation: cleanPreview.presentation } : {}),
+            ...(previewPresentations.length > 0 ? { previewScenarios: previewPresentations } : {}),
             history: model.history,
             debugEnabled: vscode.workspace
                 .getConfiguration()

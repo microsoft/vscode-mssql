@@ -321,6 +321,10 @@ export interface RunbookNodeSnapshot {
     outcome?: "success" | "failure" | "cancelled" | "skipped" | "policyDenied";
     /** Localized, safe one-line result summary. */
     message?: string;
+    /** Structured reason for a skipped node whose conditional branch was not
+     * selected. Presentation resolution uses this instead of localized text
+     * to reflow absent branch outputs. */
+    branchNotTaken?: boolean;
     outputs?: DataHandleRef[];
 }
 
@@ -381,6 +385,8 @@ export interface RunbookRunEvent {
     nodeState?: RunbookNodeStateKind;
     outcome?: string;
     message?: string;
+    /** node.state only; persisted so branch-aware layouts survive restart. */
+    branchNotTaken?: boolean;
     outputs?: DataHandleRef[];
     gate?: RunbookPendingGate;
     error?: RbsError;
@@ -494,6 +500,14 @@ export interface RbsState {
     presentation?: ResolvedPresentation;
     /** Pre-run presentation resolved against bounded synthetic handles. */
     previewPresentation?: ResolvedPresentation;
+    /** Branch-aware pre-run lenses. Every presentation is resolved with the
+     * same saved definition and a different effect-free synthetic snapshot. */
+    previewScenarios?: Array<{
+        id: "clean" | "blockingErrors" | "approvalRejected";
+        presentation: ResolvedPresentation;
+        hiddenBranchWidgetCount: number;
+        hiddenBranchNodeIds: string[];
+    }>;
     history: RunbookRunHistoryEntry[];
     /** Debug & Replay route visibility (developer/preview setting). */
     debugEnabled: boolean;

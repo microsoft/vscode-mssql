@@ -4649,6 +4649,15 @@
     "Compact": "Compact",
     "Medium": "Medium",
     "Wide": "Wide",
+    "Scenario": "Scenario",
+    "Clean run": "Clean run",
+    "Blocking error": "Blocking error",
+    "Approval rejected": "Approval rejected",
+    "{0} output widgets hidden — branch not taken/{0} is the number of output widgets hidden by this preview scenario": {
+        "message": "{0} output widgets hidden — branch not taken",
+        "comment": ["{0} is the number of output widgets hidden by this preview scenario"]
+    },
+    "Branch not taken": "Branch not taken",
     "Sample": "Sample",
     "Compile a plan to preview its results layout": "Compile a plan to preview its results layout",
     "The preview uses the compiled activity output contracts and never runs SQL or other effects.": "The preview uses the compiled activity output contracts and never runs SQL or other effects.",

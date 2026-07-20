@@ -60,6 +60,7 @@ suite("hobbesRuntimeAdapter", () => {
             nodeId: "not-taken",
             state: "skipped",
             outcome: "skipped",
+            branchNotTaken: true,
         });
         expect(events[0].message).to.contain("branch not taken");
     });

@@ -2117,6 +2117,7 @@ export function terminalNodeSettlementEvents(
                 state: "skipped",
                 attempt: 0,
                 outcome: "skipped",
+                ...(terminalState === "succeeded" ? { branchNotTaken: true } : {}),
                 message:
                     terminalState === "succeeded"
                         ? LocRunbookStudio.branchNotTaken
