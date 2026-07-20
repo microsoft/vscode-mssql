@@ -4001,8 +4001,8 @@
     <trans-unit id="++CODE++8aa318eb7eaa233aada0d332bec14cb6a631c8fda25deb2c7d4f402888f1b1e2">
       <source xml:lang="en">Insert</source>
     </trans-unit>
-    <trans-unit id="++CODE++76c675c0d1baad491929caa0671f14885712dba02766ffc38d3dbd87899fa7af">
-      <source xml:lang="en">Insert selected query-editor text using {selected_text} or {arg}. If you don&apos;t use either placeholder, selected text is automatically appended to the end of the query.</source>
+    <trans-unit id="++CODE++7231a7d45a700048f4057a8040de5fb2afc1ebd67638a7a2fa96da6b8f24e3ba">
+      <source xml:lang="en">Insert selected query-editor text using {arg}. If you don&apos;t use the placeholder, selected text is automatically appended to the end of the query.</source>
     </trans-unit>
     <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
       <source xml:lang="en">Install Docker</source>
@@ -6180,8 +6180,8 @@
 {1} is the connection ID
 {2} is the SQL query</note>
     </trans-unit>
-    <trans-unit id="++CODE++15f0a73febb41e5763fb9beb423512a44bd978ff5063bc197d35c4f9455ab7b4">
-      <source xml:lang="en">Run saved SQL instantly with custom keyboard shortcuts. Use {selected_text} to insert selected query-editor text; otherwise, it is appended to the query.</source>
+    <trans-unit id="++CODE++0bc00be2d21a631fedf64e0302de168c6a49105158a47fc837faf0df12f53fe4">
+      <source xml:lang="en">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</source>
     </trans-unit>
     <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
       <source xml:lang="en">Run, cancel, and create queries</source>
@@ -9193,7 +9193,7 @@
       <source xml:lang="en">SQL Tools (MSSQL)</source>
     </trans-unit>
     <trans-unit id="mssql.quickQueries.query">
-      <source xml:lang="en">SQL text for this Quick Query. Use {selected_text} to insert selected query-editor text; otherwise, it is appended.</source>
+      <source xml:lang="en">SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.</source>
     </trans-unit>
     <trans-unit id="mssql.scriptAlter">
       <source xml:lang="en">Script as Alter</source>

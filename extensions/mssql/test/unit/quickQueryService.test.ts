@@ -103,17 +103,11 @@ suite("Quick Query Service", () => {
     });
 
     test("composes explicit and appended Quick Query arguments literally", () => {
-        expect(composeQuickQuery("select * from {selected_text}", "[dbo].[Orders]")).to.equal(
-            "select * from [dbo].[Orders]",
-        );
-        expect(composeQuickQuery("select * from {selectedText}", "[dbo].[Orders]")).to.equal(
-            "select * from [dbo].[Orders]",
-        );
         expect(composeQuickQuery("select * from {arg}", "[dbo].[Orders]")).to.equal(
             "select * from [dbo].[Orders]",
         );
-        expect(composeQuickQuery("select '${selectedText}', {arg}, {arg}", "$&Orders")).to.equal(
-            "select '$&Orders', $&Orders, $&Orders",
+        expect(composeQuickQuery("select {arg}, {arg}", "$&Orders")).to.equal(
+            "select $&Orders, $&Orders",
         );
         expect(composeQuickQuery("select * from ", "[dbo].[Orders]")).to.equal(
             "select * from [dbo].[Orders]",
@@ -121,9 +115,11 @@ suite("Quick Query Service", () => {
         expect(composeQuickQuery("select {arg}", "")).to.equal("select ");
     });
 
-    test("detects supported Quick Query arguments", () => {
-        expect(hasQuickQueryArgument("select {selected_text}")).to.equal(true);
+    test("supports only the {arg} Quick Query argument", () => {
         expect(hasQuickQueryArgument("select {arg}")).to.equal(true);
+        expect(hasQuickQueryArgument("select {selected_text}")).to.equal(false);
+        expect(hasQuickQueryArgument("select {selectedText}")).to.equal(false);
+        expect(hasQuickQueryArgument("select ${selectedText}")).to.equal(false);
         expect(hasQuickQueryArgument("select 1")).to.equal(false);
     });
 
@@ -190,8 +186,7 @@ suite("Quick Query Service", () => {
         const showSelectedTextRequiredError = sandbox.stub();
         const runSqlEditorQueryString = sandbox.stub().resolves();
         const service = configureService({
-            readQuickQueries: () =>
-                normalizeQuickQueries([{ name: "Run", query: "select {selected_text}" }]),
+            readQuickQueries: () => normalizeQuickQueries([{ name: "Run", query: "select {arg}" }]),
             getActiveSqlEditor: sandbox.stub().returns(editor),
             showSelectedTextRequiredError,
             runSqlEditorQueryString,

@@ -2437,7 +2437,7 @@
     "Configuration sections": "Configuration sections",
     "Configure Quick Query and Extension shortcuts.": "Configure Quick Query and Extension shortcuts.",
     "Quick Queries": "Quick Queries",
-    "Run saved SQL instantly with custom keyboard shortcuts. Use {selected_text} to insert selected query-editor text; otherwise, it is appended to the query.": "Run saved SQL instantly with custom keyboard shortcuts. Use {selected_text} to insert selected query-editor text; otherwise, it is appended to the query.",
+    "Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.": "Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.",
     "Quick Queries keyboard shortcuts are managed by Visual Studio Code.": "Quick Queries keyboard shortcuts are managed by Visual Studio Code.",
     "Open Keyboard Shortcuts editor.": "Open Keyboard Shortcuts editor.",
     "Extension Shortcuts": "Extension Shortcuts",
@@ -2501,7 +2501,7 @@
         "message": "Query editor for {0}",
         "comment": ["{0} is the Quick Query shortcut name"]
     },
-    "Insert selected query-editor text using {selected_text} or {arg}. If you don't use either placeholder, selected text is automatically appended to the end of the query.": "Insert selected query-editor text using {selected_text} or {arg}. If you don't use either placeholder, selected text is automatically appended to the end of the query.",
+    "Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.": "Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.",
     "Selected query-editor text": "Selected query-editor text",
     "No shortcut": "No shortcut",
     "No query set": "No query set",

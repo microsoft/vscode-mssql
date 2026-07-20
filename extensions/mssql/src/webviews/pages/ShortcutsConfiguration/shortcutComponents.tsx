@@ -130,9 +130,9 @@ function registerSelectedTextCompletionProvider(
             return {
                 suggestions: [
                     {
-                        label: "{selected_text}",
+                        label: "{arg}",
                         kind: monaco.languages.CompletionItemKind.Variable,
-                        insertText: "{selected_text}",
+                        insertText: "{arg}",
                         detail: loc.selectedTextCompletionDetail,
                         documentation: loc.selectedTextArgumentHint,
                         range,

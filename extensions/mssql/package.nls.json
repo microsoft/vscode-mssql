@@ -302,7 +302,7 @@
     "mssql.shortcutsConfiguration.open": "Open Shortcuts Configuration",
     "mssql.quickQueries": "Configure up to 10 Quick Queries that execute from commands.",
     "mssql.quickQueries.name": "Display name for this Quick Query.",
-    "mssql.quickQueries.query": "SQL text for this Quick Query. Use {selected_text} to insert selected query-editor text; otherwise, it is appended.",
+    "mssql.quickQueries.query": "SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.",
     "mssql.quickQueries.executionMode": "Legacy execution behavior. Quick Queries now always open and execute when no SQL editor is active.",
     "mssql.quickQueries.executionMode.open": "Legacy open mode.",
     "mssql.quickQueries.executionMode.openAndRun": "Legacy open-and-run mode.",

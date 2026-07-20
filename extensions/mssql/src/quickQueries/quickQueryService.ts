@@ -45,10 +45,10 @@ export function resolveQuickQueryConnectionOptions(): Pick<NewQueryOptions, "con
     };
 }
 
-const quickQueryArgumentTokens = ["${selectedText}", "{selectedText}", "{selected_text}", "{arg}"];
+const quickQueryArgumentToken = "{arg}";
 
 export function hasQuickQueryArgument(query: string): boolean {
-    return quickQueryArgumentTokens.some((token) => query.includes(token));
+    return query.includes(quickQueryArgumentToken);
 }
 
 /**
@@ -61,10 +61,7 @@ export function composeQuickQuery(query: string, selectedText: string): string {
         return query + selectedText;
     }
 
-    return quickQueryArgumentTokens.reduce(
-        (result, token) => result.replaceAll(token, () => selectedText),
-        query,
-    );
+    return query.replaceAll(quickQueryArgumentToken, () => selectedText);
 }
 
 export class QuickQueryService {
