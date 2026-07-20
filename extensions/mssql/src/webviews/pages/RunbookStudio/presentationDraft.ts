@@ -12,7 +12,9 @@ import {
     PresentationSourceRef,
     PresentationWidgetSummary,
     ResolvedPresentation,
+    TransformOp,
 } from "../../../sharedInterfaces/runbookPresentation";
+import { validateTransformPipeline } from "../../../runbookStudio/presentation/presentationTransforms";
 
 export type PresentationLayoutConflictField =
     | "node"
@@ -373,9 +375,35 @@ function withField(
     return next;
 }
 
-/** Build the intentionally small native top-N transform editor projection.
- * Advanced closed pipelines remain source-authored until their dedicated
- * form controls land. */
+/** Build a user-authored derived source only when its complete transform is
+ * accepted by the same pure validator used by the extension host. Keeping
+ * this check in the webview is convenience/feedback, not authority: the host
+ * validates the envelope again before preview or persistence. */
+export function buildDerivedSource(
+    id: string,
+    from: PresentationSourceRef,
+    authoredContract: string,
+    steps: TransformOp[],
+): DerivedSourceAuthoringEdit | undefined {
+    const normalizedId = id.trim();
+    if (
+        normalizedId.length === 0 ||
+        normalizedId.length > 256 ||
+        authoredContract.length === 0 ||
+        authoredContract.length > 256 ||
+        !validateTransformPipeline({ steps })
+    ) {
+        return undefined;
+    }
+    return {
+        id: normalizedId,
+        from,
+        authoredContract,
+        pipeline: { steps },
+    };
+}
+
+/** Backward-compatible convenience builder for the common top-N form. */
 export function buildTopRowsDerivedSource(
     id: string,
     from: PresentationSourceRef,
@@ -384,38 +412,21 @@ export function buildTopRowsDerivedSource(
     direction: "asc" | "desc",
     limit: number,
 ): DerivedSourceAuthoringEdit | undefined {
-    const normalizedId = id.trim();
     const normalizedField = sortField.trim();
-    if (
-        normalizedId.length === 0 ||
-        normalizedId.length > 256 ||
-        authoredContract.length === 0 ||
-        authoredContract.length > 256 ||
-        normalizedField.length > 256 ||
-        !Number.isInteger(limit) ||
-        limit < 1 ||
-        limit > 10_000
-    ) {
+    if (!Number.isInteger(limit) || limit < 1 || limit > 10_000) {
         return undefined;
     }
-    return {
-        id: normalizedId,
-        from,
-        authoredContract,
-        pipeline: {
-            steps: [
-                ...(normalizedField
-                    ? [
-                          {
-                              op: "sort" as const,
-                              by: [{ field: normalizedField, direction }],
-                          },
-                      ]
-                    : []),
-                { op: "limit", count: limit },
-            ],
-        },
-    };
+    return buildDerivedSource(id, from, authoredContract, [
+        ...(normalizedField
+            ? [
+                  {
+                      op: "sort" as const,
+                      by: [{ field: normalizedField, direction }],
+                  },
+              ]
+            : []),
+        { op: "limit", count: limit },
+    ]);
 }
 
 function fieldValuesEqual(field: PresentationLayoutConflictField, left: unknown, right: unknown) {

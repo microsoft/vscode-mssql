@@ -250,11 +250,20 @@
     <trans-unit id="++CODE++ee7ee5830f091690030fed013c05a7073f6cb971891c3fc6f16e928bd6d69e61">
       <source xml:lang="en">Add account</source>
     </trans-unit>
+    <trans-unit id="++CODE++4ddc7f2040b7eb3a01c91e7618ad6f233cd1141b8d380e566cd93035b49c8384">
+      <source xml:lang="en">Add column rename</source>
+    </trans-unit>
+    <trans-unit id="++CODE++60a0d83510ea99a149507fc5f9d9780e504e40bf7d8fa2d90f7db36f17252514">
+      <source xml:lang="en">Add condition</source>
+    </trans-unit>
     <trans-unit id="++CODE++e520df698000f85f2862a9e7403a405b562c793f67bebe0ad0235ef93a55a84e">
       <source xml:lang="en">Add filter</source>
     </trans-unit>
     <trans-unit id="++CODE++72d975d00b2a6ec753bd80833252852de2c69720c3bbcd404493650cb4cdca41">
       <source xml:lang="en">Add filters to modify the SQL query</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f623974ef01763fa63ff2d6c5161b311cf5a42266451bbd63af8d5fb3ebd0e3d">
+      <source xml:lang="en">Add measure</source>
     </trans-unit>
     <trans-unit id="++CODE++7c0d6c25e58caa429d8df44b1266a82eff13a7fe9f477b164863aea8a9acc658">
       <source xml:lang="en">Add my client IP ({0})</source>
@@ -268,6 +277,9 @@
     </trans-unit>
     <trans-unit id="++CODE++18ef399051716731a65e9412dca68fc9d35b38850e7dff905d9771fe15bde438">
       <source xml:lang="en">Add new foreign key</source>
+    </trans-unit>
+    <trans-unit id="++CODE++84735891cd2237a44a06ba938310694312b9be5007cf8634631b03b127dc8c17">
+      <source xml:lang="en">Add sort field</source>
     </trans-unit>
     <trans-unit id="++CODE++3e10b08cc874514175b51ba372ff955b27e2817963bc53ab489344968d5a472d">
       <source xml:lang="en">Add tag</source>
@@ -325,9 +337,6 @@
     <trans-unit id="++CODE++cfbdd6edf1303a7731f7ba735eee41c3618043e3cb424fe470dced0126aa8c71">
       <source xml:lang="en">Advanced restore options</source>
     </trans-unit>
-    <trans-unit id="++CODE++5a324d2db693167c10fd71eee6b83c78efb03ec51f62f2b0f920eb66dd5582e7">
-      <source xml:lang="en">Advanced transform — edit in source</source>
-    </trans-unit>
     <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
       <source xml:lang="en">After</source>
     </trans-unit>
@@ -342,6 +351,9 @@
     </trans-unit>
     <trans-unit id="++CODE++00cf214a7dfb7d94c1e2ff944723bb21250ac45fa4fbf9add906bd3532c56563">
       <source xml:lang="en">All Schemas</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7c403b64e552bb0234e218a7dc2f460cba061ad631d8f4547d7c296db191351b">
+      <source xml:lang="en">All conditions</source>
     </trans-unit>
     <trans-unit id="++CODE++866956901fd1536273ad6dd922ba6ae8f46bf4cc51a14b5f21353cdd56d7570d">
       <source xml:lang="en">All files</source>
@@ -450,6 +462,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e7a8aa2df7e5d0b233da615af4e7fef148bec39aef1709da0a80391ad0316563">
       <source xml:lang="en">Anonymous</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8d8c95487f497b978475493950702992d138332857e916dbb6897341ab570764">
+      <source xml:lang="en">Any condition</source>
     </trans-unit>
     <trans-unit id="++CODE++a6f31505cd1943fe9695363ab1c0a08e79c015c0747830d411a24e29689f4899">
       <source xml:lang="en">Append to the existing backup set</source>
@@ -657,6 +672,9 @@
     <trans-unit id="++CODE++87cdec8b1acc8c61a853ce73e9707a8a0c55e57922ff53e108262128e97553f2">
       <source xml:lang="en">Available Servers</source>
     </trans-unit>
+    <trans-unit id="++CODE++b38ae2c5b84529e8027b43a69c8ce9426a3cb081dae97b77bdcd2fdc5a9df742">
+      <source xml:lang="en">Average</source>
+    </trans-unit>
     <trans-unit id="++CODE++fb226d6b73aa48dadaf6a46992c5d7a707fb8d1fe58b0865de04d08c848fecff">
       <source xml:lang="en">Average: {0}</source>
       <note>{0} is the average</note>
@@ -856,6 +874,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0b7f69f0a5867f790797c025f4ac9ca03d31704a5194fbd37ca94dcf0c2db976">
       <source xml:lang="en">Blocking error</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a066ff921096d0f99b5f985b7e37a9c703bcc0db4d3409cdabf31cf6a22b5556">
+      <source xml:lang="en">Boolean</source>
     </trans-unit>
     <trans-unit id="++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7">
       <source xml:lang="en">Both</source>
@@ -1461,6 +1482,12 @@
     <trans-unit id="++CODE++186b1f01ef876a3c1fd8101430b6e3f0b83c8960f32e74b36ebe6015c4b15a25">
       <source xml:lang="en">Column Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++d188cbdcadc0969d6aeb9afc9b1c021bf9a9369ed8b0ec07f7ab4e7fd209abbe">
+      <source xml:lang="en">Column containing pivot names</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2ff74090cfe2c96ef5fc8de338648f90a0fd05a269c1c5e7b0ced2f348b750b8">
+      <source xml:lang="en">Column containing values</source>
+    </trans-unit>
     <trans-unit id="++CODE++acc8a3fcd4b7b62165cfa6e4b832566d25a6c172b6c1ec229a59b4eb7eb655a5">
       <source xml:lang="en">Column max length cannot be empty</source>
     </trans-unit>
@@ -1484,6 +1511,9 @@
     </trans-unit>
     <trans-unit id="++CODE++53aade77cd69a77bbb51bf8ca4e7ea8b282db75edce8883775e47042478d35b5">
       <source xml:lang="en">Columns</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d028877c1e92b755155e45638d81bf25891b60466b69a5ad9eb50f471fcd7977">
+      <source xml:lang="en">Columns (comma-separated)</source>
     </trans-unit>
     <trans-unit id="++CODE++9504ef48c5eab40c3e3a086cbbdc3d70b44e607552db6adfbdd7c278ddabe357">
       <source xml:lang="en">Columns in the primary key.</source>
@@ -2052,6 +2082,9 @@
     <trans-unit id="++CODE++37bac4952becf21ac5838d3c9ba82811bc421c857571e89634dcbe346681d54c">
       <source xml:lang="en">Count</source>
     </trans-unit>
+    <trans-unit id="++CODE++5f747803f4c2139502bf47375242cb384e80aacf29a1009f619b789ea4a3780c">
+      <source xml:lang="en">Count distinct</source>
+    </trans-unit>
     <trans-unit id="++CODE++740a203633aed889e5b930b95ba1b4091d8813de60755ef81e481cc427703821">
       <source xml:lang="en">Count: {0}</source>
       <note>{0} is the count</note>
@@ -2140,6 +2173,9 @@
     <trans-unit id="++CODE++7ec04ea2bc2ba275e7471e9e6ec9ed4764f7c069d84e751a4652cb5bd3cba6b7">
       <source xml:lang="en">Create new firewall rule for {0}</source>
       <note>{0} is the server name that the firewall rule will be created for</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ecf28f59dc9c4fc9e2542026550a556b108c9bcbdabe952992e10ca8c7b91f3d">
+      <source xml:lang="en">Create time series</source>
     </trans-unit>
     <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
       <source xml:lang="en">Created table {0}</source>
@@ -2698,6 +2734,9 @@
     </trans-unit>
     <trans-unit id="++CODE++319f0296a0199ff55c80367670b4bc2dda57e9856942a4be10ca5a4b1531b6a1">
       <source xml:lang="en">Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e47c3280f3bfbdfccb72e781dc6797d0de3507d1ac433c650efc1935771ba084">
+      <source xml:lang="en">Does not equal</source>
     </trans-unit>
     <trans-unit id="++CODE++33adc66daa87a2ef80e7811a4454c1574b6db68d8f42d1a48e074593535cb48b">
       <source xml:lang="en">Don&apos;t Ask Again</source>
@@ -3844,6 +3883,9 @@
     <trans-unit id="++CODE++325e84939c6410fa2e09372b2b49328fdf22136efbd5ca1d6746667edfb92abc">
       <source xml:lang="en">Fallback</source>
     </trans-unit>
+    <trans-unit id="++CODE++60a33e6cf5151f2d52eddae9685cfa270426aa89d8dbc7dfb854606f1d1a40fe">
+      <source xml:lang="en">False</source>
+    </trans-unit>
     <trans-unit id="++CODE++db977fde0b1cbb3a3a5c4093cbff6b231ea747d7daebfb7bd6b9280805625bcc">
       <source xml:lang="en">Feature details</source>
     </trans-unit>
@@ -3856,6 +3898,12 @@
     <trans-unit id="++CODE++4d696d1fc30a43745a483d9bf89065718f6abfcdf8241fe4abb09ef13ec1d5e3">
       <source xml:lang="en">Fetching {0} script...</source>
       <note>{0} is the script type</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f45fc1dfdc96db2761a434542f105c04d1e15cf96f410656460051efd33ea5b6">
+      <source xml:lang="en">Field</source>
+    </trans-unit>
+    <trans-unit id="++CODE++682b8d5b37e923472152fb177dfec187d656c70e3b214ac16bd1bac02494a824">
+      <source xml:lang="en">Field (optional)</source>
     </trans-unit>
     <trans-unit id="++CODE++50009ce1da4d15e1c4a04024df691eed5f0d598e2c4c67092f205366d0adf99e">
       <source xml:lang="en">File</source>
@@ -3957,6 +4005,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5e8d7eea75a574fd6922c307c83c7f88891a7cb299cc402fbdbe1acbf97c63ec">
       <source xml:lang="en">Filter operator</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1adca7bb6b33bf0cf8c79a6e838c60ceb24fabb5b77facf53a9fb1995709a378">
+      <source xml:lang="en">Filter rows</source>
     </trans-unit>
     <trans-unit id="++CODE++9066acbf6eaa314ffdd2abdd497e7d66cda883d6f819f5ad43b121bbbb27a55b">
       <source xml:lang="en">Filter shortcuts</source>
@@ -4294,6 +4345,9 @@
     <trans-unit id="++CODE++1fbcaddaa36260ff8a3c55cb7b0f95813cba07fbe56173e8a47a7099dcae75b6">
       <source xml:lang="en">Greater than</source>
     </trans-unit>
+    <trans-unit id="++CODE++4df4f066c9c1a5ad17660a1d2f074f4b4bd7d49a6c431273e05e31551ae7081c">
+      <source xml:lang="en">Greater than or equal</source>
+    </trans-unit>
     <trans-unit id="++CODE++85d08e84787824d6a0d1f70c740cbd8be8b0a2ffe54d329dc4202e867d283454">
       <source xml:lang="en">Greater than or equal to</source>
     </trans-unit>
@@ -4308,6 +4362,9 @@
     </trans-unit>
     <trans-unit id="++CODE++956a51f6b098a41b7c3108015f0790bb24af7693717b07cee39d5df6a5da1826">
       <source xml:lang="en">Group by</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fa2d75949e53753ef20d8780c87737d0bbe866914b2bfd3ab588f565cd599f5c">
+      <source xml:lang="en">Group by columns (comma-separated, optional)</source>
     </trans-unit>
     <trans-unit id="++CODE++e7a0f5d984721771397ee01588da1bac07c6f45150113d1ba8c4c3de194cfdb0">
       <source xml:lang="en">Group differences by</source>
@@ -4507,6 +4564,9 @@
     <trans-unit id="++CODE++39c3be1198a2fddf18d03608348d9cfaf8823d2dda4d5ff13fdb851bd15d29ea">
       <source xml:lang="en">Index</source>
     </trans-unit>
+    <trans-unit id="++CODE++f25b7c118777584bff411803512763915a42b18f6b7edf8fe8a530c3e321d809">
+      <source xml:lang="en">Index columns (comma-separated)</source>
+    </trans-unit>
     <trans-unit id="++CODE++90b901a30c3f089e10d82e1b842bbdc736a36b536a19d207b36a8e7be1904dcb">
       <source xml:lang="en">Indexes</source>
     </trans-unit>
@@ -4592,6 +4652,9 @@
     <trans-unit id="++CODE++47c0fe12afa4bfe2a7a1d5bc84764f66b6794e02c1f5c5372cca55e0a0c8d6a9">
       <source xml:lang="en">Invalid table type</source>
     </trans-unit>
+    <trans-unit id="++CODE++96f6f28d871e9e51a26899cb73e8886ccda2ecdc80b42ca43497469e72dea051">
+      <source xml:lang="en">Invert result</source>
+    </trans-unit>
     <trans-unit id="++CODE++d1a326f448eac64b9ec46d31b9dce63a30f305179abc83e734c8d960bcaa9631">
       <source xml:lang="en">Is Computed</source>
     </trans-unit>
@@ -4609,6 +4672,15 @@
     </trans-unit>
     <trans-unit id="++CODE++5b3eef9bf6b0c6df6a0d614b57c2fcd589f9716a7e8b8040dde61be4d2f7e02e">
       <source xml:lang="en">Is Persisted</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d0324c7beb3be9be63289d0ce3f4c219d72d099a89342ade5a93b6dcf41f61f4">
+      <source xml:lang="en">Is in list</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b0b66f885ed325bdde5faa04a96aed7c0e844280243b1826a2c432f15615d3cb">
+      <source xml:lang="en">Is not null</source>
+    </trans-unit>
+    <trans-unit id="++CODE++490f3c3d8a9e588c938ff0e7f991142fbc9f2aa4e70b61fa321a54aee78aa396">
+      <source xml:lang="en">Is null</source>
     </trans-unit>
     <trans-unit id="++CODE++fa95e3dd5aa6339906552abd3b5613f356ea1c6e4a3a3d376b450d3856b0b8d6">
       <source xml:lang="en">Issues ({0})</source>
@@ -4716,6 +4788,9 @@
     </trans-unit>
     <trans-unit id="++CODE++23105bdfc3d62ed123bff7dd685f40015ddf25b49f2b9a895014acb9d8d40763">
       <source xml:lang="en">Less than</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ee8df42e168765daba8f715f60c4779ad829bf55df655922db5ce1c10b4340e0">
+      <source xml:lang="en">Less than or equal</source>
     </trans-unit>
     <trans-unit id="++CODE++ae1564a79ff31afebb08eb05fd9d31bcf9b616516c2a9deff4288695cf2c5240">
       <source xml:lang="en">Less than or equal to</source>
@@ -5126,6 +5201,9 @@
     <trans-unit id="++CODE++0e52f6b9d02515c59bb4fdeec2762fdbe701080c82986fc4dfbefcb1e2389817">
       <source xml:lang="en">Markdown</source>
     </trans-unit>
+    <trans-unit id="++CODE++03c0e806becb14255a81ae988518aad54d7464b58802b60817b1aed1eb20cfbd">
+      <source xml:lang="en">Match</source>
+    </trans-unit>
     <trans-unit id="++CODE++a1a5936d3b0f8a69fd62c91ed9990d3bd414c5e78c603e2837c65c9f46a93eb8">
       <source xml:lang="en">Max</source>
     </trans-unit>
@@ -5164,11 +5242,20 @@
     <trans-unit id="++CODE++bf18e5cb878e3e2732c578fcc970528f5dbb3bf17ad8378e40d9bb675f5e19af">
       <source xml:lang="en">Maximize results grid</source>
     </trans-unit>
+    <trans-unit id="++CODE++66c9ab177708cbc6b9770301ef0caa3f4fdcab0e3741a7f555b025a5d7dac2eb">
+      <source xml:lang="en">Maximum</source>
+    </trans-unit>
     <trans-unit id="++CODE++615e87beb00ed794c20da28e2ccde9fdeaec68d239b3da7fd8b41286eed72d62">
       <source xml:lang="en">Maximum categories</source>
     </trans-unit>
     <trans-unit id="++CODE++41c5e0f71db527f0e8e1a74734c9ea5ffd30aea3366aea6f1e6d681966315e77">
       <source xml:lang="en">Maximum rows</source>
+    </trans-unit>
+    <trans-unit id="++CODE++495dd1c62e69c8448388f877ad318436a841c8959d30c67e55062a38cf5d065a">
+      <source xml:lang="en">Measure fields (comma-separated)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aabaa8ff445c09b9fc021865bc424b6e6ed9e1657365705f27285c622bc03767">
+      <source xml:lang="en">Measures</source>
     </trans-unit>
     <trans-unit id="++CODE++d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd">
       <source xml:lang="en">Media</source>
@@ -5250,6 +5337,9 @@
     <trans-unit id="++CODE++b2f711bd6e74f6bab7fe9cb304a059fe7213d5db1e7f14f207aaac37c5d13ac7">
       <source xml:lang="en">Min: {0}</source>
       <note>{0} is the min</note>
+    </trans-unit>
+    <trans-unit id="++CODE++735beee2e390c7979f936104c3cb5a30c752d73d68844eefc028c403aee8229b">
+      <source xml:lang="en">Minimum</source>
     </trans-unit>
     <trans-unit id="++CODE++ccaf4e389c9da36db8abe538b34c9a8ada96d66f0287704fa5fad574d29cd27b">
       <source xml:lang="en">Missing activities: {0}</source>
@@ -5369,6 +5459,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b34e3a5a7a4eb6d296f62a5c74f344f47a570e9777c3576f7c5004fcc3a5f3c2">
       <source xml:lang="en">Move to schema &apos;{0}&apos;</source>
+    </trans-unit>
+    <trans-unit id="++CODE++68333ca1575f7b577635bb9e4a2dd1dd60fd24229ecf6e1f432768a598069e5a">
+      <source xml:lang="en">Multi-operation transform</source>
     </trans-unit>
     <trans-unit id="++CODE++fee0735b5a3fda3dbca8a98565c568c91a4f03c9e52587bad82fd6d6f163f95a">
       <source xml:lang="en">Multiple connection groups with ID &apos;{0}&apos; found.  Delete or rename all of them, except one in User/Global settings.json, then restart the extension.</source>
@@ -5930,6 +6023,9 @@
       <source xml:lang="en">Null Count: {0}</source>
       <note>{0} is the null count</note>
     </trans-unit>
+    <trans-unit id="++CODE++bd82cf16699be29ec05cbb763199c12f0dced428dde8381dbdd31c1d5dd0e8d4">
+      <source xml:lang="en">Number</source>
+    </trans-unit>
     <trans-unit id="++CODE++6091a3057f7b1b8140c1ad2fc9232cc4d483a484667f76fe8bb305d77ca3deb1">
       <source xml:lang="en">Number of Rows Read</source>
     </trans-unit>
@@ -6133,6 +6229,9 @@
     <trans-unit id="++CODE++b2439bcb8dee14b685f137f294b0e0cb62f5aadf45143ce01d79777d435a93b4">
       <source xml:lang="en">Output</source>
     </trans-unit>
+    <trans-unit id="++CODE++20fbdf96eddc6805ac9af13d4ee1d4ec0e718a14be9604895cbbd23edf45b0fd">
+      <source xml:lang="en">Output column</source>
+    </trans-unit>
     <trans-unit id="++CODE++2de12c616c9f918c2f9b8736ac202dcfef66460ded9a0292131caaf08466ff3f">
       <source xml:lang="en">Output file</source>
     </trans-unit>
@@ -6259,6 +6358,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++135c58f0115dd2f2bd3a8dfd75724da0be9b193cda4dd3f56ac40de0b27577f9">
+      <source xml:lang="en">Pivot rows</source>
     </trans-unit>
     <trans-unit id="++CODE++3c5b1373e11cbec1694aee5bb506dda47f535655fdc2c596305a8265b59e678e">
       <source xml:lang="en">Place or hide plan outputs, run summary fields, runtime metrics, and derived sources.</source>
@@ -6742,6 +6844,9 @@
     <trans-unit id="++CODE++74273989b0966e2369b6d01aadb23af4ad6a9e724643fa88f2bde99202a36708">
       <source xml:lang="en">Redo</source>
     </trans-unit>
+    <trans-unit id="++CODE++f4eb72a6d9703d8072aecebc143a4aa124146258326f64a8013ab5806b7adc25">
+      <source xml:lang="en">Reducer</source>
+    </trans-unit>
     <trans-unit id="++CODE++d49d10a2017dc4911588fbe91abdc783a6eb59caf6b52432ddae0399d838014d">
       <source xml:lang="en">Referenced column &apos;{0}&apos; not found</source>
       <note>{0} is the column name</note>
@@ -6801,6 +6906,12 @@
     <trans-unit id="++CODE++b1ab0d9fa82b1c562a39df3dc986ee56a59f8fa2ab106e88936f505daad7d7c4">
       <source xml:lang="en">Remove a connection profile</source>
     </trans-unit>
+    <trans-unit id="++CODE++76b51a461d0f92376f39d78ef72e4441d9903f592e073f1e1bf04799e1f5e74e">
+      <source xml:lang="en">Remove column rename</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5ac0b06fc9f0d038a09cc4dd62fb7a69d62ee1f1c0d84646ff519d6025d6e766">
+      <source xml:lang="en">Remove condition</source>
+    </trans-unit>
     <trans-unit id="++CODE++fffa2e32da712d499f75b15a2fae0e145c1f33dff29cac68e7e0a46f9bf9483a">
       <source xml:lang="en">Remove file</source>
     </trans-unit>
@@ -6814,8 +6925,14 @@
     <trans-unit id="++CODE++18720329ca307c792fee6c6c1f707145c981d07c2b5a1b7127732ccd6e7203eb">
       <source xml:lang="en">Remove from favorites</source>
     </trans-unit>
+    <trans-unit id="++CODE++a89e5c8d3242d70076887bf88a573d1d186fa54e58154d9fad3b458a736d1e8a">
+      <source xml:lang="en">Remove measure</source>
+    </trans-unit>
     <trans-unit id="++CODE++d5001dd4aab39b12094fd9e9b68e3b8ab67a6437c8eeaf592f0943dcd5851890">
       <source xml:lang="en">Remove sort</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d3eb777c1927ddd0ce3182c46a991932d272ea35e6c06fc6c44ef30ac6c52427">
+      <source xml:lang="en">Remove sort field</source>
     </trans-unit>
     <trans-unit id="++CODE++488464ba45b0e8e2bb24fac5530ec868c24851f486b82ab6e95c95e4f31ae79a">
       <source xml:lang="en">Remove tag</source>
@@ -6837,6 +6954,9 @@
     </trans-unit>
     <trans-unit id="++CODE++39b10e9a29841c96618fdf773450de8dbc3c86e0d4392b03e0c13ae1c6dfd938">
       <source xml:lang="en">Rename Options</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b7efe6610a4a8258687d1d3a91fcdc366cf632449cb0dfe1de826580516be4a0">
+      <source xml:lang="en">Rename columns</source>
     </trans-unit>
     <trans-unit id="++CODE++98340672aa64e0201bd86c0c7c68acd1f368e2f4ce9565da2425778a5c29b6fa">
       <source xml:lang="en">Rename is not supported at this position.</source>
@@ -7789,6 +7909,9 @@
     <trans-unit id="++CODE++91db086469f6b5535752cd441009d061a5ade94b6684a1dbaff02da204515224">
       <source xml:lang="en">Select column</source>
     </trans-unit>
+    <trans-unit id="++CODE++cc772df4c7edc64cd265dd3c8add7fa16ee17eb756776ab1d36bcfef3e7f496e">
+      <source xml:lang="en">Select columns</source>
+    </trans-unit>
     <trans-unit id="++CODE++1dd75b0dd68914e185b547fe475e416fe18bc8a68709129eada033866baf612c">
       <source xml:lang="en">Select file to import</source>
     </trans-unit>
@@ -8168,6 +8291,9 @@
     <trans-unit id="++CODE++2497697ff826db13ca94ea6c34dceced8bdf6fe44c7dde9d32c1cea30e9360a6">
       <source xml:lang="en">Sort Descending</source>
     </trans-unit>
+    <trans-unit id="++CODE++de1012f66e8ae7a3fe57cb32a4da450476bf86137756fa148a7626489ab732d1">
+      <source xml:lang="en">Sort and limit rows</source>
+    </trans-unit>
     <trans-unit id="++CODE++ec3c9c77806c5b64f8a48249389349d028e2a4eb86f8ce64e5e5fd7203bc62ea">
       <source xml:lang="en">Sort ascending</source>
     </trans-unit>
@@ -8180,8 +8306,8 @@
     <trans-unit id="++CODE++29c8371d927b118d8d71544c8c8d336f340b0fe893a48faa5a746880f578f373">
       <source xml:lang="en">Sort direction</source>
     </trans-unit>
-    <trans-unit id="++CODE++c57a5ee5be66afa56d0db8c634077fc106445dbca0eb546f068db76c9eeb49df">
-      <source xml:lang="en">Sort field (optional)</source>
+    <trans-unit id="++CODE++cc057b1983c62af25075cf51314eaae88f526b7d609339904cb3ddf0f46ca5dc">
+      <source xml:lang="en">Sort fields (optional)</source>
     </trans-unit>
     <trans-unit id="++CODE++0e570ca6fabe24f94e52c1833f3ffd25567022beb826fa16891f3322051bc221">
       <source xml:lang="en">Source</source>
@@ -8197,6 +8323,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7363f4432b648a803e2bf468798cf69a7be5bab4b8055e35f6a038afb54be9d7">
       <source xml:lang="en">Source Name</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3e17d20e048679b4acbfd5d2a97a57987fd8a62d4ad14cdf94ad9dcb9423478c">
+      <source xml:lang="en">Source column</source>
     </trans-unit>
     <trans-unit id="++CODE++77a9f139e5a72b972bbe4e08fa8aa55d28d02541d4950b07e99ee7ac73a79698">
       <source xml:lang="en">Source order</source>
@@ -8438,6 +8567,9 @@
     <trans-unit id="++CODE++da099a63ce9b5fe688c4f5219cdd8614a27faa324bdd5c612dfab086630b346c">
       <source xml:lang="en">Sum: {0}</source>
       <note>{0} is the sum</note>
+    </trans-unit>
+    <trans-unit id="++CODE++066774e14b870e6efa063f08209e18529c6426dcb79892c04ce4fb9800c83bb1">
+      <source xml:lang="en">Summarize rows</source>
     </trans-unit>
     <trans-unit id="++CODE++8e76a94ac8320d515375e625bef1829238b097ecbd33611b59eeefd4ffefebfb">
       <source xml:lang="en">Summary</source>
@@ -9060,6 +9192,9 @@
     <trans-unit id="++CODE++33b93476cf597a3330653b66a658983d892ac264b5d6029a2dc642b9b1f30870">
       <source xml:lang="en">Time</source>
     </trans-unit>
+    <trans-unit id="++CODE++4e1ee7767412cb4908d056b4697d962e44716ce6f4dbe157854272b41ba03901">
+      <source xml:lang="en">Time field</source>
+    </trans-unit>
     <trans-unit id="++CODE++461df2bf76817253f0bdddb11d9765245a6e8d17dbbc9cf08c88793e693f2668">
       <source xml:lang="en">Time: {0} · value: {1}</source>
       <note>{0} is a date/time result field
@@ -9159,6 +9294,9 @@
     </trans-unit>
     <trans-unit id="++CODE++573843c55dfcb6caf7a345bf40ff4dfe681f4e262ed72c68ac5f55ce0b2a7749">
       <source xml:lang="en">Transfer active connection (Default)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3cbc87c7681f34db4617feaa2c8801931bc5e42d8d0f560e756dd4cd92885f18">
+      <source xml:lang="en">True</source>
     </trans-unit>
     <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
       <source xml:lang="en">Truncate the transaction log</source>
@@ -9439,11 +9577,17 @@
     <trans-unit id="++CODE++1fbf278b53995ff39f69ce0e2aef7d56406fb890b82cd87febce6995e98776cd">
       <source xml:lang="en">Value is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++5582ca4d29b5eb050577ff4741e7a41b36e1535307364a8f9b5b002c9a95a121">
+      <source xml:lang="en">Value type</source>
+    </trans-unit>
     <trans-unit id="++CODE++ea702be727bd9cb4b45de7c84f8a667415c7d46d20e57e57dc4b92069fe501e7">
       <source xml:lang="en">Value, high to low</source>
     </trans-unit>
     <trans-unit id="++CODE++e97d889fde0d67ed2c3ee22d3d62547f4756e3753a4982b86223ba8fad8b1f23">
       <source xml:lang="en">Value, low to high</source>
+    </trans-unit>
+    <trans-unit id="++CODE++108ab9f67de4afcfb7375578a142f77fb99d9f5b30033dc710f3a5901b11ba5e">
+      <source xml:lang="en">Values (comma-separated)</source>
     </trans-unit>
     <trans-unit id="++CODE++020047fc73e369f164014c46ff59e909f16aa48075f1646315b139843c2dcfbc">
       <source xml:lang="en">Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.</source>

@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import {
+    buildDerivedSource,
     buildTopRowsDerivedSource,
     mergePresentationLayoutEdits,
     presentationLayoutSnapshot,
@@ -19,6 +20,7 @@ import {
 import {
     PresentationLayoutEdit,
     ResolvedPresentation,
+    TransformOp,
 } from "../../src/sharedInterfaces/runbookPresentation";
 
 function edit(nodeId: string, order: number, hidden = false): PresentationLayoutEdit {
@@ -288,6 +290,71 @@ suite("presentationDraft", () => {
         );
         expect(
             buildTopRowsDerivedSource("too-many", source, "rowset/1", "", "asc", 10_001),
+        ).to.equal(undefined);
+    });
+
+    test("derived builder admits every closed native operation and rejects executable input", () => {
+        const source = { kind: "activity-output", nodeId: "query", slot: "primary" } as const;
+        const steps: TransformOp[] = [
+            { op: "select", columns: ["suite", "durationMs", "status"] },
+            { op: "rename", columns: { durationMs: "elapsedMs" } },
+            {
+                op: "filter",
+                predicate: {
+                    op: "and",
+                    children: [
+                        { op: "gte", field: "elapsedMs", value: 100 },
+                        { op: "in", field: "status", values: ["failed", "timedOut"] },
+                    ],
+                },
+            },
+            { op: "sort", by: [{ field: "elapsedMs", direction: "desc" }] },
+            { op: "limit", count: 25 },
+            {
+                op: "aggregate",
+                by: ["suite"],
+                measures: [
+                    { field: "elapsedMs", fn: "avg", as: "averageMs" },
+                    { fn: "count", as: "testCount" },
+                ],
+            },
+            {
+                op: "pivot",
+                index: ["suite"],
+                column: "status",
+                value: "elapsedMs",
+                reducer: "max",
+            },
+            {
+                op: "to-timeseries",
+                timeField: "capturedAt",
+                measureFields: ["averageMs", "testCount"],
+            },
+        ];
+        expect(buildDerivedSource("developer-summary", source, "rowset/1", steps)).to.deep.equal({
+            id: "developer-summary",
+            from: source,
+            authoredContract: "rowset/1",
+            pipeline: { steps },
+        });
+        expect(
+            buildDerivedSource("unsafe", source, "rowset/1", [
+                { op: "javascript", code: "alert(1)" } as unknown as TransformOp,
+            ]),
+        ).to.equal(undefined);
+        expect(
+            buildDerivedSource("too-deep", source, "rowset/1", [
+                {
+                    op: "filter",
+                    predicate: Array.from({ length: 10 }).reduce<
+                        Extract<TransformOp, { op: "filter" }>["predicate"]
+                    >((child) => ({ op: "not", child }), {
+                        op: "eq",
+                        field: "status",
+                        value: "failed",
+                    }),
+                },
+            ]),
         ).to.equal(undefined);
     });
 });

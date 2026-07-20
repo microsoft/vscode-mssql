@@ -26,23 +26,28 @@ import {
     RunbookRunSnapshot,
 } from "../../../sharedInterfaces/runbookStudio";
 import {
+    AggregateFunction,
     defaultViewFor,
     DerivedSourceAuthoringEdit,
     expectedContractFor,
+    JsonScalar,
     PresentationLayoutEdit,
     PresentationLayoutPolicyEdit,
+    PresentationPredicate,
     PresentationLayoutStrategy,
     PresentationSourceRef,
     PresentationWidgetSummary,
     ResolvedPresentation,
     ResolvedWidget,
+    SortSpec,
+    TransformOp,
 } from "../../../sharedInterfaces/runbookPresentation";
 import { PlannerConsoleTurn, PlannerFeedEntry, useRbs } from "./state";
 import { displayOrder, PlanStepper } from "./planStepper";
 import { PlanGraphView } from "./graphView";
 import { ResolvedWidgetView } from "./widgets";
 import {
-    buildTopRowsDerivedSource,
+    buildDerivedSource,
     mergePresentationLayoutEdits,
     PRESENTATION_SPAN_PRESETS,
     PRESENTATION_SPAN_PRESET_ORDER,
@@ -2536,41 +2541,387 @@ function LayoutEditorControls({
     );
 }
 
+type DerivedTransformKind =
+    | "top-rows"
+    | "select"
+    | "rename"
+    | "filter"
+    | "aggregate"
+    | "pivot"
+    | "to-timeseries";
+type FilterOperator = "eq" | "ne" | "gt" | "gte" | "lt" | "lte" | "in" | "is-null" | "not-null";
+type ScalarKind = "string" | "number" | "boolean" | "null";
+
+interface DerivedDraftRow {
+    key: string;
+}
+
+interface DerivedSortDraft extends DerivedDraftRow {
+    field: string;
+    direction: "asc" | "desc";
+}
+
+interface DerivedRenameDraft extends DerivedDraftRow {
+    from: string;
+    to: string;
+}
+
+interface DerivedFilterDraft extends DerivedDraftRow {
+    field: string;
+    operator: FilterOperator;
+    value: string;
+    valueKind: ScalarKind;
+}
+
+interface DerivedMeasureDraft extends DerivedDraftRow {
+    field: string;
+    fn: AggregateFunction;
+    as: string;
+}
+
 interface DerivedSourceDraft {
     editingId?: string;
     id: string;
     sourceKey: string;
-    sortField: string;
-    direction: "asc" | "desc";
+    transform: DerivedTransformKind;
+    selectedColumns: string;
+    renames: DerivedRenameDraft[];
+    filterMatch: "and" | "or";
+    filterNegated: boolean;
+    filters: DerivedFilterDraft[];
+    sorts: DerivedSortDraft[];
     limit: number;
+    groupBy: string;
+    measures: DerivedMeasureDraft[];
+    pivotIndex: string;
+    pivotColumn: string;
+    pivotValue: string;
+    pivotReducer: AggregateFunction;
+    timeField: string;
+    measureFields: string;
 }
 
-function simpleDerivedSourceDraft(
+let derivedDraftRowSequence = 0;
+
+function draftRowKey(): string {
+    derivedDraftRowSequence++;
+    return `derived-draft-row-${derivedDraftRowSequence}`;
+}
+
+function defaultDerivedSourceDraft(
+    id = "",
+    sourceKey = "",
+    editingId?: string,
+): DerivedSourceDraft {
+    return {
+        ...(editingId ? { editingId } : {}),
+        id,
+        sourceKey,
+        transform: "top-rows",
+        selectedColumns: "",
+        renames: [{ key: draftRowKey(), from: "", to: "" }],
+        filterMatch: "and",
+        filterNegated: false,
+        filters: [
+            {
+                key: draftRowKey(),
+                field: "",
+                operator: "eq",
+                value: "",
+                valueKind: "string",
+            },
+        ],
+        sorts: [{ key: draftRowKey(), field: "", direction: "desc" }],
+        limit: 100,
+        groupBy: "",
+        measures: [{ key: draftRowKey(), field: "", fn: "count", as: "count" }],
+        pivotIndex: "",
+        pivotColumn: "",
+        pivotValue: "",
+        pivotReducer: "sum",
+        timeField: "",
+        measureFields: "",
+    };
+}
+
+function fieldList(value: string): string[] {
+    return value
+        .split(",")
+        .map((field) => field.trim())
+        .filter(Boolean);
+}
+
+function scalarKind(value: JsonScalar): ScalarKind {
+    if (value === null) {
+        return "null";
+    }
+    if (typeof value === "number") {
+        return "number";
+    }
+    return typeof value === "boolean" ? "boolean" : "string";
+}
+
+function scalarText(value: JsonScalar): string {
+    return value === null ? "" : String(value);
+}
+
+function parseScalar(value: string, kind: ScalarKind): JsonScalar | undefined {
+    if (kind === "null") {
+        return null;
+    }
+    if (kind === "string") {
+        return value.length <= 4096 ? value : undefined;
+    }
+    if (kind === "boolean") {
+        return value === "true" ? true : value === "false" ? false : undefined;
+    }
+    const number = Number(value);
+    return value.trim().length > 0 && Number.isFinite(number) ? number : undefined;
+}
+
+function predicateLeafDraft(predicate: PresentationPredicate): DerivedFilterDraft | undefined {
+    if (predicate.op === "and" || predicate.op === "or" || predicate.op === "not") {
+        return undefined;
+    }
+    if (predicate.op === "is-null" || predicate.op === "not-null") {
+        return {
+            key: draftRowKey(),
+            field: predicate.field,
+            operator: predicate.op,
+            value: "",
+            valueKind: "null",
+        };
+    }
+    if (predicate.op === "in") {
+        if (predicate.values.length === 0) {
+            return undefined;
+        }
+        const kind = scalarKind(predicate.values[0]);
+        if (
+            predicate.values.some(
+                (value) =>
+                    scalarKind(value) !== kind ||
+                    (typeof value === "string" && value.includes(",")),
+            )
+        ) {
+            return undefined;
+        }
+        return {
+            key: draftRowKey(),
+            field: predicate.field,
+            operator: "in",
+            value: predicate.values.map(scalarText).join(", "),
+            valueKind: kind,
+        };
+    }
+    if (!("field" in predicate) || !("value" in predicate)) {
+        return undefined;
+    }
+    return {
+        key: draftRowKey(),
+        field: predicate.field,
+        operator: predicate.op,
+        value: scalarText(predicate.value),
+        valueKind: scalarKind(predicate.value),
+    };
+}
+
+function filterDraft(
+    predicate: PresentationPredicate,
+): Pick<DerivedSourceDraft, "filterMatch" | "filterNegated" | "filters"> | undefined {
+    let current = predicate;
+    let filterNegated = false;
+    if (current.op === "not") {
+        filterNegated = true;
+        current = current.child;
+    }
+    const filterMatch = current.op === "or" ? "or" : "and";
+    const predicates = current.op === "and" || current.op === "or" ? current.children : [current];
+    const filters = predicates.map(predicateLeafDraft);
+    return filters.some((filter) => filter === undefined)
+        ? undefined
+        : {
+              filterMatch,
+              filterNegated,
+              filters: filters as DerivedFilterDraft[],
+          };
+}
+
+function editableDerivedSourceDraft(
     source: DerivedSourceAuthoringEdit,
     sourceKey: string,
 ): DerivedSourceDraft | undefined {
-    if (
-        source.pipeline.steps.length === 0 ||
-        source.pipeline.steps.length > 2 ||
-        source.pipeline.steps.some((step) => step.op !== "sort" && step.op !== "limit")
-    ) {
-        return undefined;
-    }
+    const base = defaultDerivedSourceDraft(source.id, sourceKey, source.id);
+    const [only] = source.pipeline.steps;
     const sorts = source.pipeline.steps.filter((step) => step.op === "sort");
     const limits = source.pipeline.steps.filter((step) => step.op === "limit");
-    if (sorts.length > 1 || limits.length !== 1 || (sorts[0] && sorts[0].by.length !== 1)) {
+    if (
+        source.pipeline.steps.length > 0 &&
+        source.pipeline.steps.length <= 2 &&
+        source.pipeline.steps.every((step) => step.op === "sort" || step.op === "limit") &&
+        sorts.length <= 1 &&
+        limits.length === 1
+    ) {
+        return {
+            ...base,
+            transform: "top-rows",
+            sorts: sorts[0]?.by.map((sort) => ({ key: draftRowKey(), ...sort })) ?? [
+                { key: draftRowKey(), field: "", direction: "desc" },
+            ],
+            limit: limits[0].count,
+        };
+    }
+    if (source.pipeline.steps.length !== 1 || !only) {
         return undefined;
     }
-    const sort = sorts[0];
-    const limit = limits[0];
-    return {
-        editingId: source.id,
-        id: source.id,
-        sourceKey,
-        sortField: sort ? sort.by[0].field : "",
-        direction: sort ? sort.by[0].direction : "desc",
-        limit: limit.count,
-    };
+    switch (only.op) {
+        case "select":
+            return { ...base, transform: "select", selectedColumns: only.columns.join(", ") };
+        case "rename":
+            return {
+                ...base,
+                transform: "rename",
+                renames: Object.entries(only.columns).map(([from, to]) => ({
+                    key: draftRowKey(),
+                    from,
+                    to,
+                })),
+            };
+        case "filter": {
+            const filter = filterDraft(only.predicate);
+            return filter ? { ...base, transform: "filter", ...filter } : undefined;
+        }
+        case "aggregate":
+            return {
+                ...base,
+                transform: "aggregate",
+                groupBy: only.by.join(", "),
+                measures: only.measures.map((measure) => ({
+                    key: draftRowKey(),
+                    field: measure.field ?? "",
+                    fn: measure.fn,
+                    as: measure.as,
+                })),
+            };
+        case "pivot":
+            return {
+                ...base,
+                transform: "pivot",
+                pivotIndex: only.index.join(", "),
+                pivotColumn: only.column,
+                pivotValue: only.value,
+                pivotReducer: only.reducer,
+            };
+        case "to-timeseries":
+            return {
+                ...base,
+                transform: "to-timeseries",
+                timeField: only.timeField,
+                measureFields: only.measureFields.join(", "),
+            };
+        case "sort":
+        case "limit":
+            return undefined;
+    }
+}
+
+function filterPredicate(draft: DerivedSourceDraft): PresentationPredicate | undefined {
+    const predicates = draft.filters.map((filter): PresentationPredicate | undefined => {
+        const field = filter.field.trim();
+        if (!field) {
+            return undefined;
+        }
+        if (filter.operator === "is-null" || filter.operator === "not-null") {
+            return { op: filter.operator, field };
+        }
+        if (filter.operator === "in") {
+            const values = filter.value
+                .split(",")
+                .map((value) =>
+                    parseScalar(
+                        filter.valueKind === "string" ? value.trim() : value.trim(),
+                        filter.valueKind,
+                    ),
+                );
+            return values.length > 0 && values.every((value) => value !== undefined)
+                ? { op: "in", field, values: values as JsonScalar[] }
+                : undefined;
+        }
+        const value = parseScalar(filter.value, filter.valueKind);
+        return value === undefined ? undefined : { op: filter.operator, field, value };
+    });
+    if (predicates.length === 0 || predicates.some((predicate) => predicate === undefined)) {
+        return undefined;
+    }
+    const children = predicates as PresentationPredicate[];
+    const combined: PresentationPredicate =
+        children.length === 1 ? children[0] : { op: draft.filterMatch, children };
+    return draft.filterNegated ? { op: "not", child: combined } : combined;
+}
+
+function derivedTransformSteps(draft: DerivedSourceDraft): TransformOp[] | undefined {
+    switch (draft.transform) {
+        case "top-rows": {
+            if (!Number.isInteger(draft.limit) || draft.limit < 1 || draft.limit > 10_000) {
+                return undefined;
+            }
+            const by: SortSpec[] = draft.sorts
+                .filter((sort) => sort.field.trim())
+                .map((sort) => ({ field: sort.field.trim(), direction: sort.direction }));
+            return [
+                ...(by.length > 0 ? [{ op: "sort" as const, by }] : []),
+                { op: "limit", count: draft.limit },
+            ];
+        }
+        case "select":
+            return [{ op: "select", columns: fieldList(draft.selectedColumns) }];
+        case "rename": {
+            const renames = draft.renames.map((rename) => [rename.from.trim(), rename.to.trim()]);
+            if (new Set(renames.map(([from]) => from)).size !== renames.length) {
+                return undefined;
+            }
+            return [
+                {
+                    op: "rename",
+                    columns: Object.fromEntries(renames),
+                },
+            ];
+        }
+        case "filter": {
+            const predicate = filterPredicate(draft);
+            return predicate ? [{ op: "filter", predicate }] : undefined;
+        }
+        case "aggregate":
+            return [
+                {
+                    op: "aggregate",
+                    by: fieldList(draft.groupBy),
+                    measures: draft.measures.map((measure) => ({
+                        ...(measure.field.trim() ? { field: measure.field.trim() } : {}),
+                        fn: measure.fn,
+                        as: measure.as.trim(),
+                    })),
+                },
+            ];
+        case "pivot":
+            return [
+                {
+                    op: "pivot",
+                    index: fieldList(draft.pivotIndex),
+                    column: draft.pivotColumn.trim(),
+                    value: draft.pivotValue.trim(),
+                    reducer: draft.pivotReducer,
+                },
+            ];
+        case "to-timeseries":
+            return [
+                {
+                    op: "to-timeseries",
+                    timeField: draft.timeField.trim(),
+                    measureFields: fieldList(draft.measureFields),
+                },
+            ];
+    }
 }
 
 function OutputsDrawer({
@@ -2699,19 +3050,13 @@ function OutputsDrawer({
                     : derived.from.kind === "derived"
                       ? `derived:${derived.from.sourceId}`
                       : "";
-            const draft = simpleDerivedSourceDraft(derived, sourceKey);
+            const draft = editableDerivedSourceDraft(derived, sourceKey);
             if (draft) {
                 setDerivedDraft(draft);
             }
             return;
         }
-        setDerivedDraft({
-            id: "",
-            sourceKey: derivedSourceOptions[0]?.key ?? "",
-            sortField: "",
-            direction: "desc",
-            limit: 100,
-        });
+        setDerivedDraft(defaultDerivedSourceDraft("", derivedSourceOptions[0]?.key ?? ""));
     };
 
     const stageDerivedSource = () => {
@@ -2720,13 +3065,10 @@ function OutputsDrawer({
         }
         const id = derivedDraft.id.trim();
         const from = derivedSourceOptions.find((option) => option.key === derivedDraft.sourceKey);
-        const limit = Math.round(derivedDraft.limit);
         if (
             !id ||
             id.length > 256 ||
             !from ||
-            limit < 1 ||
-            limit > 10_000 ||
             (!derivedDraft.editingId && effectiveDerivedSources.some((source) => source.id === id))
         ) {
             return;
@@ -2736,14 +3078,10 @@ function OutputsDrawer({
         const resolved = resolvedWidgets.find((widget) =>
             presentationSourcesMatch(widget.source, source),
         );
-        const definition = buildTopRowsDerivedSource(
-            id,
-            from.source,
-            from.contract,
-            derivedDraft.sortField,
-            derivedDraft.direction,
-            limit,
-        );
+        const steps = derivedTransformSteps(derivedDraft);
+        const definition = steps
+            ? buildDerivedSource(id, from.source, from.contract, steps)
+            : undefined;
         if (!definition) {
             return;
         }
@@ -2773,15 +3111,21 @@ function OutputsDrawer({
         derivedDraft !== undefined &&
         derivedDraft.editingId === undefined &&
         effectiveDerivedSources.some((source) => source.id === derivedDraft.id.trim());
-    const canStageDerived =
-        derivedDraft !== undefined &&
-        derivedDraft.id.trim().length > 0 &&
-        derivedDraft.id.trim().length <= 256 &&
-        selectedDerivedSource !== undefined &&
-        Number.isInteger(derivedDraft.limit) &&
-        derivedDraft.limit >= 1 &&
-        derivedDraft.limit <= 10_000 &&
-        !duplicateDerivedId;
+    const candidateDerivedSource =
+        derivedDraft && selectedDerivedSource
+            ? (() => {
+                  const steps = derivedTransformSteps(derivedDraft);
+                  return steps
+                      ? buildDerivedSource(
+                            derivedDraft.id,
+                            selectedDerivedSource.source,
+                            selectedDerivedSource.contract,
+                            steps,
+                        )
+                      : undefined;
+              })()
+            : undefined;
+    const canStageDerived = candidateDerivedSource !== undefined && !duplicateDerivedId;
 
     const update = (output: (typeof outputs)[number], hidden: boolean, sectionId?: string) => {
         const outputDerived = "derived" in output ? output.derived : undefined;
@@ -2848,7 +3192,7 @@ function OutputsDrawer({
                     );
                     const hidden = !resolved && !output.branchNotTaken;
                     const editableDerived = outputDerived
-                        ? simpleDerivedSourceDraft(
+                        ? editableDerivedSourceDraft(
                               outputDerived,
                               outputDerived.from.kind === "activity-output"
                                   ? `activity:${outputDerived.from.nodeId}`
@@ -2950,53 +3294,658 @@ function OutputsDrawer({
                             </select>
                         </label>
                         <label>
-                            <span>{loc.sortFieldOptional}</span>
-                            <input
-                                className="rbs-input"
-                                value={derivedDraft.sortField}
-                                maxLength={256}
-                                disabled={editingDisabled}
-                                onChange={(event) =>
-                                    setDerivedDraft({
-                                        ...derivedDraft,
-                                        sortField: event.target.value,
-                                    })
-                                }
-                            />
-                        </label>
-                        <label>
-                            <span>{loc.sortDirection}</span>
+                            <span>{loc.transformOperation}</span>
                             <select
                                 className="rbs-select"
-                                value={derivedDraft.direction}
-                                disabled={editingDisabled || !derivedDraft.sortField.trim()}
-                                onChange={(event) =>
-                                    setDerivedDraft({
-                                        ...derivedDraft,
-                                        direction: event.target.value as "asc" | "desc",
-                                    })
-                                }>
-                                <option value="desc">{loc.descending}</option>
-                                <option value="asc">{loc.ascending}</option>
-                            </select>
-                        </label>
-                        <label>
-                            <span>{loc.maximumRows}</span>
-                            <input
-                                className="rbs-input"
-                                type="number"
-                                min={1}
-                                max={10_000}
-                                value={derivedDraft.limit}
+                                value={derivedDraft.transform}
                                 disabled={editingDisabled}
                                 onChange={(event) =>
                                     setDerivedDraft({
                                         ...derivedDraft,
-                                        limit: Number(event.target.value),
+                                        transform: event.target.value as DerivedTransformKind,
                                     })
-                                }
-                            />
+                                }>
+                                <option value="top-rows">{loc.topRows}</option>
+                                <option value="select">{loc.selectColumns}</option>
+                                <option value="rename">{loc.renameColumns}</option>
+                                <option value="filter">{loc.filterRows}</option>
+                                <option value="aggregate">{loc.summarizeRows}</option>
+                                <option value="pivot">{loc.pivotRows}</option>
+                                <option value="to-timeseries">{loc.timeSeries}</option>
+                            </select>
                         </label>
+                        {derivedDraft.transform === "top-rows" ? (
+                            <>
+                                <span className="rbs-derived-field-label">
+                                    {loc.sortFieldsOptional}
+                                </span>
+                                {derivedDraft.sorts.map((sort, index) => (
+                                    <div className="rbs-derived-operation-row" key={sort.key}>
+                                        <label>
+                                            <span>{loc.field}</span>
+                                            <input
+                                                className="rbs-input"
+                                                value={sort.field}
+                                                maxLength={256}
+                                                disabled={editingDisabled}
+                                                onChange={(event) => {
+                                                    const sorts = [...derivedDraft.sorts];
+                                                    sorts[index] = {
+                                                        ...sort,
+                                                        field: event.target.value,
+                                                    };
+                                                    setDerivedDraft({ ...derivedDraft, sorts });
+                                                }}
+                                            />
+                                        </label>
+                                        <label>
+                                            <span>{loc.sortDirection}</span>
+                                            <select
+                                                className="rbs-select"
+                                                value={sort.direction}
+                                                disabled={editingDisabled || !sort.field.trim()}
+                                                onChange={(event) => {
+                                                    const sorts = [...derivedDraft.sorts];
+                                                    sorts[index] = {
+                                                        ...sort,
+                                                        direction: event.target.value as
+                                                            | "asc"
+                                                            | "desc",
+                                                    };
+                                                    setDerivedDraft({ ...derivedDraft, sorts });
+                                                }}>
+                                                <option value="desc">{loc.descending}</option>
+                                                <option value="asc">{loc.ascending}</option>
+                                            </select>
+                                        </label>
+                                        <button
+                                            type="button"
+                                            className="rbs-link-button"
+                                            disabled={editingDisabled}
+                                            onClick={() =>
+                                                setDerivedDraft({
+                                                    ...derivedDraft,
+                                                    sorts: derivedDraft.sorts.filter(
+                                                        (candidate) => candidate.key !== sort.key,
+                                                    ),
+                                                })
+                                            }>
+                                            {loc.removeSort}
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    className="rbs-link-button rbs-derived-add"
+                                    disabled={editingDisabled || derivedDraft.sorts.length >= 100}
+                                    onClick={() =>
+                                        setDerivedDraft({
+                                            ...derivedDraft,
+                                            sorts: [
+                                                ...derivedDraft.sorts,
+                                                {
+                                                    key: draftRowKey(),
+                                                    field: "",
+                                                    direction: "desc",
+                                                },
+                                            ],
+                                        })
+                                    }>
+                                    {loc.addSort}
+                                </button>
+                                <label>
+                                    <span>{loc.maximumRows}</span>
+                                    <input
+                                        className="rbs-input"
+                                        type="number"
+                                        min={0}
+                                        max={10_000}
+                                        value={derivedDraft.limit}
+                                        disabled={editingDisabled}
+                                        onChange={(event) =>
+                                            setDerivedDraft({
+                                                ...derivedDraft,
+                                                limit: Number(event.target.value),
+                                            })
+                                        }
+                                    />
+                                </label>
+                            </>
+                        ) : null}
+                        {derivedDraft.transform === "select" ? (
+                            <label>
+                                <span>{loc.columnsCommaSeparated}</span>
+                                <input
+                                    className="rbs-input"
+                                    value={derivedDraft.selectedColumns}
+                                    disabled={editingDisabled}
+                                    onChange={(event) =>
+                                        setDerivedDraft({
+                                            ...derivedDraft,
+                                            selectedColumns: event.target.value,
+                                        })
+                                    }
+                                />
+                            </label>
+                        ) : null}
+                        {derivedDraft.transform === "rename" ? (
+                            <>
+                                {derivedDraft.renames.map((rename, index) => (
+                                    <div className="rbs-derived-operation-row" key={rename.key}>
+                                        <label>
+                                            <span>{loc.sourceColumn}</span>
+                                            <input
+                                                className="rbs-input"
+                                                value={rename.from}
+                                                maxLength={256}
+                                                disabled={editingDisabled}
+                                                onChange={(event) => {
+                                                    const renames = [...derivedDraft.renames];
+                                                    renames[index] = {
+                                                        ...rename,
+                                                        from: event.target.value,
+                                                    };
+                                                    setDerivedDraft({ ...derivedDraft, renames });
+                                                }}
+                                            />
+                                        </label>
+                                        <label>
+                                            <span>{loc.outputColumn}</span>
+                                            <input
+                                                className="rbs-input"
+                                                value={rename.to}
+                                                maxLength={256}
+                                                disabled={editingDisabled}
+                                                onChange={(event) => {
+                                                    const renames = [...derivedDraft.renames];
+                                                    renames[index] = {
+                                                        ...rename,
+                                                        to: event.target.value,
+                                                    };
+                                                    setDerivedDraft({ ...derivedDraft, renames });
+                                                }}
+                                            />
+                                        </label>
+                                        <button
+                                            type="button"
+                                            className="rbs-link-button"
+                                            disabled={
+                                                editingDisabled || derivedDraft.renames.length === 1
+                                            }
+                                            onClick={() =>
+                                                setDerivedDraft({
+                                                    ...derivedDraft,
+                                                    renames: derivedDraft.renames.filter(
+                                                        (candidate) => candidate.key !== rename.key,
+                                                    ),
+                                                })
+                                            }>
+                                            {loc.removeRename}
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    className="rbs-link-button rbs-derived-add"
+                                    disabled={editingDisabled || derivedDraft.renames.length >= 100}
+                                    onClick={() =>
+                                        setDerivedDraft({
+                                            ...derivedDraft,
+                                            renames: [
+                                                ...derivedDraft.renames,
+                                                { key: draftRowKey(), from: "", to: "" },
+                                            ],
+                                        })
+                                    }>
+                                    {loc.addRename}
+                                </button>
+                            </>
+                        ) : null}
+                        {derivedDraft.transform === "filter" ? (
+                            <>
+                                <div className="rbs-derived-compact-row">
+                                    <label>
+                                        <span>{loc.matchConditions}</span>
+                                        <select
+                                            className="rbs-select"
+                                            value={derivedDraft.filterMatch}
+                                            disabled={editingDisabled}
+                                            onChange={(event) =>
+                                                setDerivedDraft({
+                                                    ...derivedDraft,
+                                                    filterMatch: event.target.value as "and" | "or",
+                                                })
+                                            }>
+                                            <option value="and">{loc.matchAll}</option>
+                                            <option value="or">{loc.matchAny}</option>
+                                        </select>
+                                    </label>
+                                    <label className="rbs-check-row">
+                                        <input
+                                            type="checkbox"
+                                            checked={derivedDraft.filterNegated}
+                                            disabled={editingDisabled}
+                                            onChange={(event) =>
+                                                setDerivedDraft({
+                                                    ...derivedDraft,
+                                                    filterNegated: event.target.checked,
+                                                })
+                                            }
+                                        />
+                                        <span>{loc.negateFilter}</span>
+                                    </label>
+                                </div>
+                                {derivedDraft.filters.map((filter, index) => (
+                                    <div className="rbs-derived-operation-row" key={filter.key}>
+                                        <label>
+                                            <span>{loc.field}</span>
+                                            <input
+                                                className="rbs-input"
+                                                value={filter.field}
+                                                maxLength={256}
+                                                disabled={editingDisabled}
+                                                onChange={(event) => {
+                                                    const filters = [...derivedDraft.filters];
+                                                    filters[index] = {
+                                                        ...filter,
+                                                        field: event.target.value,
+                                                    };
+                                                    setDerivedDraft({ ...derivedDraft, filters });
+                                                }}
+                                            />
+                                        </label>
+                                        <label>
+                                            <span>{loc.operator}</span>
+                                            <select
+                                                className="rbs-select"
+                                                value={filter.operator}
+                                                disabled={editingDisabled}
+                                                onChange={(event) => {
+                                                    const filters = [...derivedDraft.filters];
+                                                    filters[index] = {
+                                                        ...filter,
+                                                        operator: event.target
+                                                            .value as FilterOperator,
+                                                    };
+                                                    setDerivedDraft({ ...derivedDraft, filters });
+                                                }}>
+                                                <option value="eq">{loc.equals}</option>
+                                                <option value="ne">{loc.notEquals}</option>
+                                                <option value="gt">{loc.greaterThan}</option>
+                                                <option value="gte">
+                                                    {loc.greaterThanOrEqual}
+                                                </option>
+                                                <option value="lt">{loc.lessThan}</option>
+                                                <option value="lte">{loc.lessThanOrEqual}</option>
+                                                <option value="in">{loc.inList}</option>
+                                                <option value="is-null">{loc.isNull}</option>
+                                                <option value="not-null">{loc.isNotNull}</option>
+                                            </select>
+                                        </label>
+                                        {filter.operator !== "is-null" &&
+                                        filter.operator !== "not-null" ? (
+                                            <>
+                                                <label>
+                                                    <span>{loc.valueType}</span>
+                                                    <select
+                                                        className="rbs-select"
+                                                        value={filter.valueKind}
+                                                        disabled={editingDisabled}
+                                                        onChange={(event) => {
+                                                            const filters = [
+                                                                ...derivedDraft.filters,
+                                                            ];
+                                                            filters[index] = {
+                                                                ...filter,
+                                                                valueKind: event.target
+                                                                    .value as ScalarKind,
+                                                            };
+                                                            setDerivedDraft({
+                                                                ...derivedDraft,
+                                                                filters,
+                                                            });
+                                                        }}>
+                                                        <option value="string">
+                                                            {loc.stringValue}
+                                                        </option>
+                                                        <option value="number">
+                                                            {loc.numberValue}
+                                                        </option>
+                                                        <option value="boolean">
+                                                            {loc.booleanValue}
+                                                        </option>
+                                                        <option value="null">
+                                                            {loc.nullValue}
+                                                        </option>
+                                                    </select>
+                                                </label>
+                                                {filter.valueKind !== "null" ? (
+                                                    <label>
+                                                        <span>
+                                                            {filter.operator === "in"
+                                                                ? loc.valuesCommaSeparated
+                                                                : loc.value}
+                                                        </span>
+                                                        {filter.valueKind === "boolean" &&
+                                                        filter.operator !== "in" ? (
+                                                            <select
+                                                                className="rbs-select"
+                                                                value={filter.value}
+                                                                disabled={editingDisabled}
+                                                                onChange={(event) => {
+                                                                    const filters = [
+                                                                        ...derivedDraft.filters,
+                                                                    ];
+                                                                    filters[index] = {
+                                                                        ...filter,
+                                                                        value: event.target.value,
+                                                                    };
+                                                                    setDerivedDraft({
+                                                                        ...derivedDraft,
+                                                                        filters,
+                                                                    });
+                                                                }}>
+                                                                <option value="">—</option>
+                                                                <option value="true">
+                                                                    {loc.trueValue}
+                                                                </option>
+                                                                <option value="false">
+                                                                    {loc.falseValue}
+                                                                </option>
+                                                            </select>
+                                                        ) : (
+                                                            <input
+                                                                className="rbs-input"
+                                                                value={filter.value}
+                                                                maxLength={4096}
+                                                                disabled={editingDisabled}
+                                                                onChange={(event) => {
+                                                                    const filters = [
+                                                                        ...derivedDraft.filters,
+                                                                    ];
+                                                                    filters[index] = {
+                                                                        ...filter,
+                                                                        value: event.target.value,
+                                                                    };
+                                                                    setDerivedDraft({
+                                                                        ...derivedDraft,
+                                                                        filters,
+                                                                    });
+                                                                }}
+                                                            />
+                                                        )}
+                                                    </label>
+                                                ) : null}
+                                            </>
+                                        ) : null}
+                                        <button
+                                            type="button"
+                                            className="rbs-link-button"
+                                            disabled={
+                                                editingDisabled || derivedDraft.filters.length === 1
+                                            }
+                                            onClick={() =>
+                                                setDerivedDraft({
+                                                    ...derivedDraft,
+                                                    filters: derivedDraft.filters.filter(
+                                                        (candidate) => candidate.key !== filter.key,
+                                                    ),
+                                                })
+                                            }>
+                                            {loc.removeCondition}
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    className="rbs-link-button rbs-derived-add"
+                                    disabled={editingDisabled || derivedDraft.filters.length >= 100}
+                                    onClick={() =>
+                                        setDerivedDraft({
+                                            ...derivedDraft,
+                                            filters: [
+                                                ...derivedDraft.filters,
+                                                {
+                                                    key: draftRowKey(),
+                                                    field: "",
+                                                    operator: "eq",
+                                                    value: "",
+                                                    valueKind: "string",
+                                                },
+                                            ],
+                                        })
+                                    }>
+                                    {loc.addCondition}
+                                </button>
+                            </>
+                        ) : null}
+                        {derivedDraft.transform === "aggregate" ? (
+                            <>
+                                <label>
+                                    <span>{loc.groupByColumnsOptional}</span>
+                                    <input
+                                        className="rbs-input"
+                                        value={derivedDraft.groupBy}
+                                        disabled={editingDisabled}
+                                        onChange={(event) =>
+                                            setDerivedDraft({
+                                                ...derivedDraft,
+                                                groupBy: event.target.value,
+                                            })
+                                        }
+                                    />
+                                </label>
+                                <span className="rbs-derived-field-label">{loc.measures}</span>
+                                {derivedDraft.measures.map((measure, index) => (
+                                    <div className="rbs-derived-operation-row" key={measure.key}>
+                                        <label>
+                                            <span>{loc.function}</span>
+                                            <select
+                                                className="rbs-select"
+                                                value={measure.fn}
+                                                disabled={editingDisabled}
+                                                onChange={(event) => {
+                                                    const measures = [...derivedDraft.measures];
+                                                    measures[index] = {
+                                                        ...measure,
+                                                        fn: event.target.value as AggregateFunction,
+                                                    };
+                                                    setDerivedDraft({ ...derivedDraft, measures });
+                                                }}>
+                                                <option value="count">{loc.count}</option>
+                                                <option value="count-distinct">
+                                                    {loc.countDistinct}
+                                                </option>
+                                                <option value="sum">{loc.sum}</option>
+                                                <option value="avg">{loc.average}</option>
+                                                <option value="min">{loc.minimum}</option>
+                                                <option value="max">{loc.maximum}</option>
+                                            </select>
+                                        </label>
+                                        <label>
+                                            <span>
+                                                {measure.fn === "count"
+                                                    ? loc.fieldOptional
+                                                    : loc.field}
+                                            </span>
+                                            <input
+                                                className="rbs-input"
+                                                value={measure.field}
+                                                maxLength={256}
+                                                disabled={editingDisabled}
+                                                onChange={(event) => {
+                                                    const measures = [...derivedDraft.measures];
+                                                    measures[index] = {
+                                                        ...measure,
+                                                        field: event.target.value,
+                                                    };
+                                                    setDerivedDraft({ ...derivedDraft, measures });
+                                                }}
+                                            />
+                                        </label>
+                                        <label>
+                                            <span>{loc.outputColumn}</span>
+                                            <input
+                                                className="rbs-input"
+                                                value={measure.as}
+                                                maxLength={256}
+                                                disabled={editingDisabled}
+                                                onChange={(event) => {
+                                                    const measures = [...derivedDraft.measures];
+                                                    measures[index] = {
+                                                        ...measure,
+                                                        as: event.target.value,
+                                                    };
+                                                    setDerivedDraft({ ...derivedDraft, measures });
+                                                }}
+                                            />
+                                        </label>
+                                        <button
+                                            type="button"
+                                            className="rbs-link-button"
+                                            disabled={
+                                                editingDisabled ||
+                                                derivedDraft.measures.length === 1
+                                            }
+                                            onClick={() =>
+                                                setDerivedDraft({
+                                                    ...derivedDraft,
+                                                    measures: derivedDraft.measures.filter(
+                                                        (candidate) =>
+                                                            candidate.key !== measure.key,
+                                                    ),
+                                                })
+                                            }>
+                                            {loc.removeMeasure}
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    type="button"
+                                    className="rbs-link-button rbs-derived-add"
+                                    disabled={
+                                        editingDisabled || derivedDraft.measures.length >= 100
+                                    }
+                                    onClick={() =>
+                                        setDerivedDraft({
+                                            ...derivedDraft,
+                                            measures: [
+                                                ...derivedDraft.measures,
+                                                {
+                                                    key: draftRowKey(),
+                                                    field: "",
+                                                    fn: "count",
+                                                    as: "",
+                                                },
+                                            ],
+                                        })
+                                    }>
+                                    {loc.addMeasure}
+                                </button>
+                            </>
+                        ) : null}
+                        {derivedDraft.transform === "pivot" ? (
+                            <>
+                                <label>
+                                    <span>{loc.pivotIndexColumns}</span>
+                                    <input
+                                        className="rbs-input"
+                                        value={derivedDraft.pivotIndex}
+                                        disabled={editingDisabled}
+                                        onChange={(event) =>
+                                            setDerivedDraft({
+                                                ...derivedDraft,
+                                                pivotIndex: event.target.value,
+                                            })
+                                        }
+                                    />
+                                </label>
+                                <label>
+                                    <span>{loc.pivotColumn}</span>
+                                    <input
+                                        className="rbs-input"
+                                        value={derivedDraft.pivotColumn}
+                                        maxLength={256}
+                                        disabled={editingDisabled}
+                                        onChange={(event) =>
+                                            setDerivedDraft({
+                                                ...derivedDraft,
+                                                pivotColumn: event.target.value,
+                                            })
+                                        }
+                                    />
+                                </label>
+                                <label>
+                                    <span>{loc.pivotValueColumn}</span>
+                                    <input
+                                        className="rbs-input"
+                                        value={derivedDraft.pivotValue}
+                                        maxLength={256}
+                                        disabled={editingDisabled}
+                                        onChange={(event) =>
+                                            setDerivedDraft({
+                                                ...derivedDraft,
+                                                pivotValue: event.target.value,
+                                            })
+                                        }
+                                    />
+                                </label>
+                                <label>
+                                    <span>{loc.reducer}</span>
+                                    <select
+                                        className="rbs-select"
+                                        value={derivedDraft.pivotReducer}
+                                        disabled={editingDisabled}
+                                        onChange={(event) =>
+                                            setDerivedDraft({
+                                                ...derivedDraft,
+                                                pivotReducer: event.target
+                                                    .value as AggregateFunction,
+                                            })
+                                        }>
+                                        <option value="count">{loc.count}</option>
+                                        <option value="count-distinct">{loc.countDistinct}</option>
+                                        <option value="sum">{loc.sum}</option>
+                                        <option value="avg">{loc.average}</option>
+                                        <option value="min">{loc.minimum}</option>
+                                        <option value="max">{loc.maximum}</option>
+                                    </select>
+                                </label>
+                            </>
+                        ) : null}
+                        {derivedDraft.transform === "to-timeseries" ? (
+                            <>
+                                <label>
+                                    <span>{loc.timeField}</span>
+                                    <input
+                                        className="rbs-input"
+                                        value={derivedDraft.timeField}
+                                        maxLength={256}
+                                        disabled={editingDisabled}
+                                        onChange={(event) =>
+                                            setDerivedDraft({
+                                                ...derivedDraft,
+                                                timeField: event.target.value,
+                                            })
+                                        }
+                                    />
+                                </label>
+                                <label>
+                                    <span>{loc.measureFields}</span>
+                                    <input
+                                        className="rbs-input"
+                                        value={derivedDraft.measureFields}
+                                        disabled={editingDisabled}
+                                        onChange={(event) =>
+                                            setDerivedDraft({
+                                                ...derivedDraft,
+                                                measureFields: event.target.value,
+                                            })
+                                        }
+                                    />
+                                </label>
+                            </>
+                        ) : null}
                         {duplicateDerivedId ? (
                             <span className="rbs-error-text">{loc.derivedSourceExists}</span>
                         ) : null}

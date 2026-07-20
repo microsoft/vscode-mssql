@@ -414,6 +414,36 @@
     font-size: 11px;
 }
 
+.rbs-derived-field-label {
+    font-size: 11px;
+}
+
+.rbs-derived-operation-row {
+    display: grid;
+    gap: 7px;
+    padding: 7px;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+    background: var(--vscode-editor-background);
+}
+
+.rbs-derived-compact-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 8px;
+}
+
+.rbs-derived-builder .rbs-check-row {
+    display: flex;
+    align-items: center;
+    min-height: 28px;
+}
+
+.rbs-derived-add {
+    justify-self: start;
+}
+
 @media (max-width: 760px) {
     .rbs-results-compose.with-drawer {
         grid-template-columns: minmax(0, 1fr);
