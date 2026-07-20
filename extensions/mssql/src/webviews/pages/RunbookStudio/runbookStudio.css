@@ -395,6 +395,25 @@
     border-radius: 4px;
 }
 
+.rbs-derived-builder {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--vscode-panel-border);
+}
+
+.rbs-derived-builder h3 {
+    margin: 0;
+    font-size: 12px;
+}
+
+.rbs-derived-builder label {
+    display: grid;
+    gap: 4px;
+    font-size: 11px;
+}
+
 @media (max-width: 760px) {
     .rbs-results-compose.with-drawer {
         grid-template-columns: minmax(0, 1fr);

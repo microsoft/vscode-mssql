@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import {
+    buildTopRowsDerivedSource,
     mergePresentationLayoutEdits,
     presentationLayoutSnapshot,
     pointerReorderPresentationLayoutEdits,
@@ -139,6 +140,40 @@ suite("presentationDraft", () => {
         expect(result.conflicts).to.deep.equal([{ nodeId: "query", fields: ["node"] }]);
     });
 
+    test("three-way rebase detects concurrent derived transform edits", () => {
+        const base = {
+            ...edit("derived:slow-tests", 0),
+            source: { kind: "derived", sourceId: "slow-tests" } as const,
+            derivedSource: {
+                id: "slow-tests",
+                from: { kind: "activity-output", nodeId: "query", slot: "primary" } as const,
+                authoredContract: "rowset/1",
+                pipeline: { steps: [{ op: "limit", count: 10 } as const] },
+            },
+        };
+        const local = {
+            ...base,
+            derivedSource: {
+                ...base.derivedSource,
+                pipeline: { steps: [{ op: "limit", count: 20 } as const] },
+            },
+        };
+        const upstream = {
+            ...base,
+            derivedSource: {
+                ...base.derivedSource,
+                pipeline: { steps: [{ op: "limit", count: 50 } as const] },
+            },
+        };
+        const result = rebasePresentationLayoutEdits([base], [upstream], [local]);
+        expect(result.conflicts).to.deep.equal([
+            { nodeId: "derived:slow-tests", fields: ["derivedSource"] },
+        ]);
+        expect(result.edits[0].derivedSource?.pipeline.steps).to.deep.equal([
+            { op: "limit", count: 20 },
+        ]);
+    });
+
     test("layout snapshot retains persisted hidden widgets", () => {
         const snapshot = presentationLayoutSnapshot(undefined, {
             query: {
@@ -222,5 +257,37 @@ suite("presentationDraft", () => {
         expect(presentationSpanPresetOf({ wide: 6 })).to.equal("half");
         expect(presentationSpanPresetOf({ wide: 8 })).to.equal("twoThirds");
         expect(presentationSpanPresetOf({ wide: 11 })).to.equal("full");
+    });
+
+    test("top-rows derived builder emits only bounded closed operations", () => {
+        const source = { kind: "activity-output", nodeId: "query", slot: "primary" } as const;
+        expect(
+            buildTopRowsDerivedSource(" slow-tests ", source, "rowset/1", "durationMs", "desc", 25),
+        ).to.deep.equal({
+            id: "slow-tests",
+            from: source,
+            authoredContract: "rowset/1",
+            pipeline: {
+                steps: [
+                    {
+                        op: "sort",
+                        by: [{ field: "durationMs", direction: "desc" }],
+                    },
+                    { op: "limit", count: 25 },
+                ],
+            },
+        });
+        expect(buildTopRowsDerivedSource("all", source, "rowset/1", "", "asc", 100)).to.deep.equal({
+            id: "all",
+            from: source,
+            authoredContract: "rowset/1",
+            pipeline: { steps: [{ op: "limit", count: 100 }] },
+        });
+        expect(buildTopRowsDerivedSource("", source, "rowset/1", "", "asc", 100)).to.equal(
+            undefined,
+        );
+        expect(
+            buildTopRowsDerivedSource("too-many", source, "rowset/1", "", "asc", 10_001),
+        ).to.equal(undefined);
     });
 });

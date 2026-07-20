@@ -66,6 +66,7 @@ interface FetchedPage {
 function usePage(
     handleId: string | undefined,
     derivedSourceId: string | undefined,
+    derivedPreviewId: string | undefined,
 ): FetchedPage | undefined {
     const { rpc } = useRbs();
     const [page, setPage] = useState<FetchedPage | undefined>(undefined);
@@ -79,6 +80,7 @@ function usePage(
             .sendRequest(RbsFetchOutputPageRequest.type, {
                 handleId,
                 ...(derivedSourceId ? { derivedSourceId } : {}),
+                ...(derivedPreviewId ? { derivedPreviewId } : {}),
                 startRow: 0,
                 rowCount: PAGE_ROWS,
             })
@@ -95,7 +97,7 @@ function usePage(
         return () => {
             cancelled = true;
         };
-    }, [derivedSourceId, handleId]);
+    }, [derivedPreviewId, derivedSourceId, handleId]);
     return page;
 }
 
@@ -733,6 +735,7 @@ export function ResolvedWidgetView({
     const fetchedPage = usePage(
         widget.state === "ready" ? widget.handleId : undefined,
         widget.derivedSourceId,
+        widget.derivedPreviewId,
     );
     const page: FetchedPage | undefined = widget.runField
         ? {

@@ -481,6 +481,9 @@ export interface PresentationWidgetSummary {
     sectionId: string;
     placement?: WidgetPlacement;
     hidden: boolean;
+    /** Present for derived widgets so the closed transform can participate
+     * in staged editing and three-way conflict detection. */
+    derivedSource?: DerivedSourceAuthoringEdit;
 }
 
 /** A user-authored output layout must be reviewed when the registered field
@@ -495,6 +498,15 @@ export function outputPresentationNeedsReview(
     );
 }
 
+/** Closed, provenance-free authoring projection. The host supplies user
+ * provenance and validates the complete definition before preview or save. */
+export interface DerivedSourceAuthoringEdit {
+    id: string;
+    from: PresentationSourceRef;
+    pipeline: TransformPipeline;
+    authoredContract: string;
+}
+
 export interface PresentationLayoutEdit {
     /** Omitted by legacy/activity-output callers; the host then resolves the
      * conventional primary output for `nodeId`. */
@@ -505,6 +517,9 @@ export interface PresentationLayoutEdit {
     sectionId: string;
     placement: WidgetPlacement;
     hidden: boolean;
+    /** Upserts the derived source used by this widget in the same staged
+     * presentation transaction. Only valid for a matching derived source. */
+    derivedSource?: DerivedSourceAuthoringEdit;
 }
 
 export type PresentationLayoutStrategy = "flow" | "stacked" | "grid";
@@ -702,6 +717,9 @@ export interface ResolvedWidget {
      * current presentation definition instead of accepting transform code
      * from the webview. */
     derivedSourceId?: string;
+    /** Opaque extension-host identity for the exact staged definition used
+     * to resolve a derived preview. Never contains transform code. */
+    derivedPreviewId?: string;
     contract?: string;
     rows?: number;
     /** Bounded structural metadata for a `run-field` source. This is not an

@@ -126,6 +126,9 @@
     <trans-unit id="++CODE++c8de997b7629be28d0a23b5051675226cd94e8dbce3b837e10491b7d60dc9903">
       <source xml:lang="en">A database with this name already exists on the server</source>
     </trans-unit>
+    <trans-unit id="++CODE++5c7079d58fb2f9a462fc469817274c95764a45aafe73e8cb09dc8b307a907b34">
+      <source xml:lang="en">A derived source with this ID already exists.</source>
+    </trans-unit>
     <trans-unit id="++CODE++6ab58ce9ca23e017bf594366b66b620458a5580640ddaf3aebf96f3c8fdf0977">
       <source xml:lang="en">A firewall rule is required to access this server.</source>
     </trans-unit>
@@ -321,6 +324,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cfbdd6edf1303a7731f7ba735eee41c3618043e3cb424fe470dced0126aa8c71">
       <source xml:lang="en">Advanced restore options</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5a324d2db693167c10fd71eee6b83c78efb03ec51f62f2b0f920eb66dd5582e7">
+      <source xml:lang="en">Advanced transform — edit in source</source>
     </trans-unit>
     <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
       <source xml:lang="en">After</source>
@@ -555,6 +561,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f0762c4f3bfcd695e32e7fcd087dc2a60bc26cda108b4fc0a643445b397168c7">
       <source xml:lang="en">Are you sure?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++77184595bde3befc7f5a20efc97caea43f4858e4c97cd2ee406af2c61db3266c">
+      <source xml:lang="en">Ascending</source>
     </trans-unit>
     <trans-unit id="++CODE++0dfc3f06b7fb664c12d91fc6a7ec665c092f9e79fb8da300d344fc0250348b5d">
       <source xml:lang="en">Ask GitHub Copilot to Fix</source>
@@ -2118,6 +2127,9 @@
     <trans-unit id="++CODE++920a110919d9017fb66218139efb71c5907532cbe6292a1db645f05d06a171ae">
       <source xml:lang="en">Create as Script</source>
     </trans-unit>
+    <trans-unit id="++CODE++7ee99549467c3b06920a71026a193de794748530381c20bad113697890684f4e">
+      <source xml:lang="en">Create derived view</source>
+    </trans-unit>
     <trans-unit id="++CODE++9f3df753a41ae98ee68246dcf9727a0e2c18af3b99e9921a55b7d75aed543f44">
       <source xml:lang="en">Create new</source>
     </trans-unit>
@@ -2510,6 +2522,12 @@
       <source xml:lang="en">Derived source: {0}</source>
       <note>{0} is a saved derived presentation source identifier</note>
     </trans-unit>
+    <trans-unit id="++CODE++7a85f9859375931b8e8a835caa6c3186d3291d2c0056ee0975c297a4ef9d71b2">
+      <source xml:lang="en">Derived view</source>
+    </trans-unit>
+    <trans-unit id="++CODE++79479a6c76d8416ab7839952a2f8222e350862464f4d02db13d8d8f9551dbf8e">
+      <source xml:lang="en">Descending</source>
+    </trans-unit>
     <trans-unit id="++CODE++00f7e8c272e77d2652568b950f67d2d6e43b6713b557e23441e767f1bf9ddf98">
       <source xml:lang="en">Describe</source>
     </trans-unit>
@@ -2777,6 +2795,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3f60c38f32a4cbb47dd3fd2e4e95d272a157dd89834e124e294b31261139390a">
       <source xml:lang="en">Edit connection profile</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2e605bfe0e6cfea6075a8dcf4b412e34a2113ad288d97e82196d2d7549459a94">
+      <source xml:lang="en">Edit transform</source>
     </trans-unit>
     <trans-unit id="++CODE++483ae1b24096d9a81ac96a7130953e6dfefca8f3d83cc76539bea6ad44f85ebf">
       <source xml:lang="en">Edit your schema to see changes here.</source>
@@ -4117,6 +4138,9 @@
       <source xml:lang="en">From</source>
       <note>Label for the start IP address in the firewall rule IP range</note>
     </trans-unit>
+    <trans-unit id="++CODE++3d99c231fbe0d538ebab60a194826d88bbb7479fba0f8ded5272eb5351b629e5">
+      <source xml:lang="en">From output</source>
+    </trans-unit>
     <trans-unit id="++CODE++008dacb6d1e85bd8c0ae9661c4472810ef75537f690dd75d77fc74ca62f78fec">
       <source xml:lang="en">Full</source>
     </trans-unit>
@@ -5142,6 +5166,9 @@
     </trans-unit>
     <trans-unit id="++CODE++615e87beb00ed794c20da28e2ccde9fdeaec68d239b3da7fd8b41286eed72d62">
       <source xml:lang="en">Maximum categories</source>
+    </trans-unit>
+    <trans-unit id="++CODE++41c5e0f71db527f0e8e1a74734c9ea5ffd30aea3366aea6f1e6d681966315e77">
+      <source xml:lang="en">Maximum rows</source>
     </trans-unit>
     <trans-unit id="++CODE++d357175cfe8978d39b0f86552dcd9404973493e2816101d9ff6c05ee248ef6bd">
       <source xml:lang="en">Media</source>
@@ -8150,6 +8177,12 @@
     <trans-unit id="++CODE++8993b788afbe1634760d811d4c6985d7c7386f9bbe950875d0d911f3d0cfc807">
       <source xml:lang="en">Sort descending</source>
     </trans-unit>
+    <trans-unit id="++CODE++29c8371d927b118d8d71544c8c8d336f340b0fe893a48faa5a746880f578f373">
+      <source xml:lang="en">Sort direction</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c57a5ee5be66afa56d0db8c634077fc106445dbca0eb546f068db76c9eeb49df">
+      <source xml:lang="en">Sort field (optional)</source>
+    </trans-unit>
     <trans-unit id="++CODE++0e570ca6fabe24f94e52c1833f3ffd25567022beb826fa16891f3322051bc221">
       <source xml:lang="en">Source</source>
     </trans-unit>
@@ -8158,6 +8191,9 @@
     </trans-unit>
     <trans-unit id="++CODE++6c0fbe990abbc4d4b6a832d99cd6f59e467c361fe623ec0b67a332a648d23a5e">
       <source xml:lang="en">Source Database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++685f3bc5f7e22f5cbee0d33b6e192ee44876e298e1f45becdf2be78caadb8888">
+      <source xml:lang="en">Source ID</source>
     </trans-unit>
     <trans-unit id="++CODE++7363f4432b648a803e2bf468798cf69a7be5bab4b8055e35f6a038afb54be9d7">
       <source xml:lang="en">Source Name</source>
@@ -8226,6 +8262,12 @@
     </trans-unit>
     <trans-unit id="++CODE++de838855e4a6e04ea2f284b246a07a1126e7fcd151be9449e112006ad7db5c50">
       <source xml:lang="en">Stage</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fd791e642d4f5db2e58bfb1fc022f9ba607ea7f030e204dcdd7976e720360329">
+      <source xml:lang="en">Stage derived view</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3a1c83c00fd69779fcd7e6bd08684e3e60b46501add931fcb7dae6c7d0854d53">
+      <source xml:lang="en">Stage transform update</source>
     </trans-unit>
     <trans-unit id="++CODE++042beab64062efc6a2e69013111afa772e5cb23c39d380bc06cc12b9bf4c8042">
       <source xml:lang="en">Standby file</source>
@@ -9771,6 +9813,9 @@
     <trans-unit id="++CODE++43daebc3c05a210cb50000c5c10686b90656dcdf1cae4ebd4914b1f0c98f9b03">
       <source xml:lang="en">delete the saved connection: {0}?</source>
       <note>{0} is the connection name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d64108862096f28b64438c132d021e16eecdf9e48487185b8078dea763864571">
+      <source xml:lang="en">derived transform</source>
     </trans-unit>
     <trans-unit id="++CODE++b933d69b6840fdb03d14d21a665823b01accab831129b434a4a3c23ce4ac53ff">
       <source xml:lang="en">design-only</source>

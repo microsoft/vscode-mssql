@@ -13,6 +13,7 @@
 
 import { NotificationType, RequestType } from "vscode-jsonrpc";
 import type {
+    DerivedSourceAuthoringEdit,
     OutputPresentationSummary,
     OutputSchemaDescriptor,
     OutputViewSettings,
@@ -464,7 +465,7 @@ export interface RbsArtifactSummary {
     /** Source-aware persisted widget projection, including hidden run-field,
      * run-metric, and derived widgets. */
     presentationWidgets?: PresentationWidgetSummary[];
-    derivedSources?: Array<{ id: string; authoredContract: string }>;
+    derivedSources?: DerivedSourceAuthoringEdit[];
 }
 
 export interface RbsRunbookReadiness {
@@ -758,7 +759,13 @@ export namespace RbsSelectRunRequest {
 /** Bounded page pull for a data handle (rows never ride notifications). */
 export namespace RbsFetchOutputPageRequest {
     export const type = new RequestType<
-        { handleId: string; derivedSourceId?: string; startRow: number; rowCount: number },
+        {
+            handleId: string;
+            derivedSourceId?: string;
+            derivedPreviewId?: string;
+            startRow: number;
+            rowCount: number;
+        },
         {
             columns?: string[];
             rows?: Array<Array<string | number | boolean | null>>;

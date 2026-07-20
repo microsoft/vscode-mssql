@@ -687,6 +687,22 @@ export function applyPresentationLayoutEdits(
     policy?: PresentationLayoutPolicyEdit,
 ): PresentationDefinition {
     const base = definition ?? defaultDefinition();
+    const derivedSources = [...base.derivedSources];
+    for (const edit of edits) {
+        if (!edit.derivedSource) {
+            continue;
+        }
+        const authored: DerivedSourceDefinition = {
+            ...edit.derivedSource,
+            provenance: { by: "user" },
+        };
+        const index = derivedSources.findIndex((source) => source.id === authored.id);
+        if (index >= 0) {
+            derivedSources[index] = authored;
+        } else {
+            derivedSources.push(authored);
+        }
+    }
     const widgets = [...base.results.widgets];
     for (const edit of edits) {
         const source = metadata?.sourceByNode?.[edit.nodeId] ??
@@ -746,6 +762,7 @@ export function applyPresentationLayoutEdits(
         ...base,
         revision: base.revision + 1,
         ...(metadata?.planRevision ? { authoredForPlanRevision: metadata.planRevision } : {}),
+        derivedSources,
         results: {
             ...base.results,
             widgets,
@@ -862,15 +879,32 @@ export function presentationSourcesEqual(
 export function presentationWidgetsOf(
     definition: PresentationDefinition | undefined,
 ): PresentationWidgetSummary[] {
-    return (definition?.results.widgets ?? []).map((widget) => ({
-        layoutId: presentationSourceLayoutId(widget.source, widget.id),
-        widgetId: widget.id,
-        source: widget.source,
-        defaultView: defaultViewKind(widget) ?? "json",
-        sectionId: widget.sectionId,
-        ...(widget.placement ? { placement: widget.placement } : {}),
-        hidden: widget.visibility?.when === "never",
-    }));
+    return (definition?.results.widgets ?? []).map((widget) => {
+        const derivedSourceId =
+            widget.source.kind === "derived" ? widget.source.sourceId : undefined;
+        const derived = derivedSourceId
+            ? definition?.derivedSources.find((source) => source.id === derivedSourceId)
+            : undefined;
+        return {
+            layoutId: presentationSourceLayoutId(widget.source, widget.id),
+            widgetId: widget.id,
+            source: widget.source,
+            defaultView: defaultViewKind(widget) ?? "json",
+            sectionId: widget.sectionId,
+            ...(widget.placement ? { placement: widget.placement } : {}),
+            hidden: widget.visibility?.when === "never",
+            ...(derived
+                ? {
+                      derivedSource: {
+                          id: derived.id,
+                          from: derived.from,
+                          pipeline: derived.pipeline,
+                          authoredContract: derived.authoredContract,
+                      },
+                  }
+                : {}),
+        };
+    });
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

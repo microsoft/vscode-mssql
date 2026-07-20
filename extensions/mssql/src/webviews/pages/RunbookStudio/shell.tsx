@@ -27,6 +27,7 @@ import {
 } from "../../../sharedInterfaces/runbookStudio";
 import {
     defaultViewFor,
+    DerivedSourceAuthoringEdit,
     expectedContractFor,
     PresentationLayoutEdit,
     PresentationLayoutPolicyEdit,
@@ -41,6 +42,7 @@ import { displayOrder, PlanStepper } from "./planStepper";
 import { PlanGraphView } from "./graphView";
 import { ResolvedWidgetView } from "./widgets";
 import {
+    buildTopRowsDerivedSource,
     mergePresentationLayoutEdits,
     PRESENTATION_SPAN_PRESETS,
     PRESENTATION_SPAN_PRESET_ORDER,
@@ -1950,6 +1952,8 @@ function PresentationDraftBanner({
                 return loc.layoutConflictSection;
             case "hidden":
                 return loc.layoutConflictVisibility;
+            case "derivedSource":
+                return loc.layoutConflictDerivedSource;
             case "placement.order":
                 return loc.layoutConflictOrder;
             case "placement.span.compact":
@@ -2370,6 +2374,7 @@ function LayoutEditorControls({
             ...(target.source || targetSummary?.source
                 ? { source: target.source ?? targetSummary?.source }
                 : {}),
+            ...(targetSummary?.derivedSource ? { derivedSource: targetSummary.derivedSource } : {}),
             defaultView: targetSummary?.defaultView ?? targetConfigured?.defaultView ?? target.view,
             sectionId: targetSectionId,
             placement: target.placement ??
@@ -2531,6 +2536,43 @@ function LayoutEditorControls({
     );
 }
 
+interface DerivedSourceDraft {
+    editingId?: string;
+    id: string;
+    sourceKey: string;
+    sortField: string;
+    direction: "asc" | "desc";
+    limit: number;
+}
+
+function simpleDerivedSourceDraft(
+    source: DerivedSourceAuthoringEdit,
+    sourceKey: string,
+): DerivedSourceDraft | undefined {
+    if (
+        source.pipeline.steps.length === 0 ||
+        source.pipeline.steps.length > 2 ||
+        source.pipeline.steps.some((step) => step.op !== "sort" && step.op !== "limit")
+    ) {
+        return undefined;
+    }
+    const sorts = source.pipeline.steps.filter((step) => step.op === "sort");
+    const limits = source.pipeline.steps.filter((step) => step.op === "limit");
+    if (sorts.length > 1 || limits.length !== 1 || (sorts[0] && sorts[0].by.length !== 1)) {
+        return undefined;
+    }
+    const sort = sorts[0];
+    const limit = limits[0];
+    return {
+        editingId: source.id,
+        id: source.id,
+        sourceKey,
+        sortField: sort ? sort.by[0].field : "",
+        direction: sort ? sort.by[0].direction : "desc",
+        limit: limit.count,
+    };
+}
+
 function OutputsDrawer({
     presentation,
     branchNotTakenNodeIds = [],
@@ -2545,6 +2587,7 @@ function OutputsDrawer({
     const { state } = useRbs();
     const loc = locConstants.runbookStudio;
     const sections = state?.artifact?.presentationSections ?? [];
+    const [derivedDraft, setDerivedDraft] = useState<DerivedSourceDraft>();
     const resolvedWidgets = presentation.sections.flatMap((section) => section.widgets);
     const branchNotTakenNodes = new Set(branchNotTakenNodeIds);
     const activityOutputs = (state?.artifact?.nodes ?? [])
@@ -2563,6 +2606,16 @@ function OutputsDrawer({
             (entry): entry is typeof entry & { contract: string } => entry.contract !== undefined,
         );
     const persistedWidgets = state?.artifact?.presentationWidgets ?? [];
+    const effectiveDerivedSources = [
+        ...new Map(
+            [
+                ...(state?.artifact?.derivedSources ?? []),
+                ...(state?.presentationOverlay?.edits.flatMap((edit) =>
+                    edit.derivedSource ? [edit.derivedSource] : [],
+                ) ?? []),
+            ].map((source) => [source.id, source]),
+        ).values(),
+    ];
     const sourceSummary = (source: PresentationSourceRef) =>
         persistedWidgets.find((summary) => presentationSourcesMatch(summary.source, source));
     const runFields = [
@@ -2597,7 +2650,7 @@ function OutputsDrawer({
             branchNotTaken: false,
         };
     });
-    const derivedSources = (state?.artifact?.derivedSources ?? []).map((derived) => {
+    const derivedSources = effectiveDerivedSources.map((derived) => {
         const source = {
             kind: "derived",
             sourceId: derived.id,
@@ -2608,11 +2661,130 @@ function OutputsDrawer({
             contract: derived.authoredContract,
             source,
             branchNotTaken: false,
+            derived,
         };
     });
     const outputs = [...activityOutputs, ...runFields, ...runMetrics, ...derivedSources];
+    const derivedSourceOptions = [
+        ...activityOutputs
+            .filter((output) => output.contract === "rowset/1")
+            .map((output) => ({
+                key: `activity:${output.source.nodeId}`,
+                label: output.label,
+                source: output.source,
+                contract: output.contract,
+            })),
+        ...effectiveDerivedSources
+            .filter(
+                (derived) =>
+                    derived.authoredContract === "rowset/1" &&
+                    derived.id !== derivedDraft?.editingId,
+            )
+            .map((derived) => ({
+                key: `derived:${derived.id}`,
+                label: loc.derivedSource(derived.id),
+                source: {
+                    kind: "derived",
+                    sourceId: derived.id,
+                } satisfies PresentationSourceRef,
+                contract: derived.authoredContract,
+            })),
+    ];
+
+    const beginDerivedSource = (derived?: DerivedSourceAuthoringEdit) => {
+        if (derived) {
+            const sourceKey =
+                derived.from.kind === "activity-output"
+                    ? `activity:${derived.from.nodeId}`
+                    : derived.from.kind === "derived"
+                      ? `derived:${derived.from.sourceId}`
+                      : "";
+            const draft = simpleDerivedSourceDraft(derived, sourceKey);
+            if (draft) {
+                setDerivedDraft(draft);
+            }
+            return;
+        }
+        setDerivedDraft({
+            id: "",
+            sourceKey: derivedSourceOptions[0]?.key ?? "",
+            sortField: "",
+            direction: "desc",
+            limit: 100,
+        });
+    };
+
+    const stageDerivedSource = () => {
+        if (!derivedDraft) {
+            return;
+        }
+        const id = derivedDraft.id.trim();
+        const from = derivedSourceOptions.find((option) => option.key === derivedDraft.sourceKey);
+        const limit = Math.round(derivedDraft.limit);
+        if (
+            !id ||
+            id.length > 256 ||
+            !from ||
+            limit < 1 ||
+            limit > 10_000 ||
+            (!derivedDraft.editingId && effectiveDerivedSources.some((source) => source.id === id))
+        ) {
+            return;
+        }
+        const source = { kind: "derived", sourceId: id } satisfies PresentationSourceRef;
+        const summary = sourceSummary(source);
+        const resolved = resolvedWidgets.find((widget) =>
+            presentationSourcesMatch(widget.source, source),
+        );
+        const definition = buildTopRowsDerivedSource(
+            id,
+            from.source,
+            from.contract,
+            derivedDraft.sortField,
+            derivedDraft.direction,
+            limit,
+        );
+        if (!definition) {
+            return;
+        }
+        onLayoutEdits?.([
+            {
+                nodeId: summary?.layoutId ?? `derived:${id}`,
+                ...(summary?.widgetId ? { widgetId: summary.widgetId } : {}),
+                source,
+                derivedSource: definition,
+                defaultView:
+                    summary?.defaultView ?? resolved?.view ?? defaultViewFor(from.contract),
+                sectionId: resolved?.sectionId ?? summary?.sectionId ?? "primary",
+                placement: resolved?.placement ??
+                    summary?.placement ?? {
+                        order: outputs.length,
+                        span: PRESENTATION_SPAN_PRESETS.full,
+                    },
+                hidden: false,
+            },
+        ]);
+        setDerivedDraft(undefined);
+    };
+    const selectedDerivedSource = derivedDraft
+        ? derivedSourceOptions.find((option) => option.key === derivedDraft.sourceKey)
+        : undefined;
+    const duplicateDerivedId =
+        derivedDraft !== undefined &&
+        derivedDraft.editingId === undefined &&
+        effectiveDerivedSources.some((source) => source.id === derivedDraft.id.trim());
+    const canStageDerived =
+        derivedDraft !== undefined &&
+        derivedDraft.id.trim().length > 0 &&
+        derivedDraft.id.trim().length <= 256 &&
+        selectedDerivedSource !== undefined &&
+        Number.isInteger(derivedDraft.limit) &&
+        derivedDraft.limit >= 1 &&
+        derivedDraft.limit <= 10_000 &&
+        !duplicateDerivedId;
 
     const update = (output: (typeof outputs)[number], hidden: boolean, sectionId?: string) => {
+        const outputDerived = "derived" in output ? output.derived : undefined;
         const summary = sourceSummary(output.source);
         const configured =
             output.source.kind === "activity-output"
@@ -2631,6 +2803,9 @@ function OutputsDrawer({
                     ? { widgetId: summary?.widgetId ?? configured?.widgetId }
                     : {}),
                 source: output.source,
+                ...(summary?.derivedSource || outputDerived
+                    ? { derivedSource: summary?.derivedSource ?? outputDerived }
+                    : {}),
                 defaultView:
                     summary?.defaultView ??
                     configured?.defaultView ??
@@ -2659,6 +2834,7 @@ function OutputsDrawer({
             <p className="rbs-muted">{loc.outputsDrawerDetail}</p>
             <div className="rbs-outputs-list">
                 {outputs.map((output) => {
+                    const outputDerived = "derived" in output ? output.derived : undefined;
                     const summary = sourceSummary(output.source);
                     const configured =
                         output.source.kind === "activity-output"
@@ -2671,6 +2847,16 @@ function OutputsDrawer({
                                 widget.nodeId === output.source.nodeId),
                     );
                     const hidden = !resolved && !output.branchNotTaken;
+                    const editableDerived = outputDerived
+                        ? simpleDerivedSourceDraft(
+                              outputDerived,
+                              outputDerived.from.kind === "activity-output"
+                                  ? `activity:${outputDerived.from.nodeId}`
+                                  : outputDerived.from.kind === "derived"
+                                    ? `derived:${outputDerived.from.sourceId}`
+                                    : "",
+                          )
+                        : undefined;
                     return (
                         <div className="rbs-output-row" key={output.layoutId}>
                             <div>
@@ -2705,9 +2891,135 @@ function OutputsDrawer({
                                       ? loc.showOutput
                                       : loc.hideOutput}
                             </button>
+                            {editableDerived ? (
+                                <button
+                                    type="button"
+                                    className="rbs-link-button"
+                                    disabled={editingDisabled}
+                                    onClick={() => beginDerivedSource(outputDerived)}>
+                                    {loc.editDerivedSource}
+                                </button>
+                            ) : outputDerived ? (
+                                <span className="rbs-muted">{loc.advancedDerivedSource}</span>
+                            ) : null}
                         </div>
                     );
                 })}
+            </div>
+            <div className="rbs-derived-builder">
+                <h3>{loc.derivedView}</h3>
+                {!derivedDraft ? (
+                    <button
+                        type="button"
+                        className="rbs-btn rbs-btn-quiet"
+                        disabled={editingDisabled || derivedSourceOptions.length === 0}
+                        onClick={() => beginDerivedSource()}>
+                        {loc.createDerivedView}
+                    </button>
+                ) : (
+                    <>
+                        <label>
+                            <span>{loc.derivedSourceId}</span>
+                            <input
+                                className="rbs-input"
+                                value={derivedDraft.id}
+                                maxLength={256}
+                                disabled={editingDisabled || derivedDraft.editingId !== undefined}
+                                onChange={(event) =>
+                                    setDerivedDraft({ ...derivedDraft, id: event.target.value })
+                                }
+                            />
+                        </label>
+                        <label>
+                            <span>{loc.derivedFrom}</span>
+                            <select
+                                className="rbs-select"
+                                value={derivedDraft.sourceKey}
+                                disabled={editingDisabled}
+                                onChange={(event) =>
+                                    setDerivedDraft({
+                                        ...derivedDraft,
+                                        sourceKey: event.target.value,
+                                    })
+                                }>
+                                {derivedSourceOptions.map((option) => (
+                                    <option key={option.key} value={option.key}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+                        <label>
+                            <span>{loc.sortFieldOptional}</span>
+                            <input
+                                className="rbs-input"
+                                value={derivedDraft.sortField}
+                                maxLength={256}
+                                disabled={editingDisabled}
+                                onChange={(event) =>
+                                    setDerivedDraft({
+                                        ...derivedDraft,
+                                        sortField: event.target.value,
+                                    })
+                                }
+                            />
+                        </label>
+                        <label>
+                            <span>{loc.sortDirection}</span>
+                            <select
+                                className="rbs-select"
+                                value={derivedDraft.direction}
+                                disabled={editingDisabled || !derivedDraft.sortField.trim()}
+                                onChange={(event) =>
+                                    setDerivedDraft({
+                                        ...derivedDraft,
+                                        direction: event.target.value as "asc" | "desc",
+                                    })
+                                }>
+                                <option value="desc">{loc.descending}</option>
+                                <option value="asc">{loc.ascending}</option>
+                            </select>
+                        </label>
+                        <label>
+                            <span>{loc.maximumRows}</span>
+                            <input
+                                className="rbs-input"
+                                type="number"
+                                min={1}
+                                max={10_000}
+                                value={derivedDraft.limit}
+                                disabled={editingDisabled}
+                                onChange={(event) =>
+                                    setDerivedDraft({
+                                        ...derivedDraft,
+                                        limit: Number(event.target.value),
+                                    })
+                                }
+                            />
+                        </label>
+                        {duplicateDerivedId ? (
+                            <span className="rbs-error-text">{loc.derivedSourceExists}</span>
+                        ) : null}
+                        <div className="rbs-inline-actions">
+                            <button
+                                type="button"
+                                className="rbs-btn"
+                                disabled={editingDisabled || !canStageDerived}
+                                onClick={stageDerivedSource}>
+                                {derivedDraft.editingId
+                                    ? loc.stageDerivedUpdate
+                                    : loc.stageDerivedView}
+                            </button>
+                            <button
+                                type="button"
+                                className="rbs-btn rbs-btn-quiet"
+                                disabled={editingDisabled}
+                                onClick={() => setDerivedDraft(undefined)}>
+                                {loc.cancel}
+                            </button>
+                        </div>
+                    </>
+                )}
             </div>
         </aside>
     );

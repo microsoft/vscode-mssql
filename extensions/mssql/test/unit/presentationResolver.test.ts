@@ -1044,15 +1044,12 @@ suite("presentationResolver", () => {
 
     test("layout edits materialize source-aware run and derived widgets", () => {
         const base = definition();
-        base.derivedSources = [
-            {
-                id: "slow-tests",
-                from: { kind: "activity-output", nodeId: "query", slot: "primary" },
-                authoredContract: "rowset/1",
-                pipeline: { steps: [{ op: "limit", count: 5 }] },
-                provenance: { by: "user" },
-            },
-        ];
+        const derivedSource = {
+            id: "slow-tests",
+            from: { kind: "activity-output" as const, nodeId: "query", slot: "primary" },
+            authoredContract: "rowset/1",
+            pipeline: { steps: [{ op: "limit" as const, count: 5 }] },
+        };
         const laidOut = applyPresentationLayoutEdits(
             base,
             [
@@ -1067,6 +1064,7 @@ suite("presentationResolver", () => {
                 {
                     nodeId: "derived:slow-tests",
                     source: { kind: "derived", sourceId: "slow-tests" },
+                    derivedSource,
                     defaultView: "grid",
                     sectionId: "main",
                     placement: { order: 3 },
@@ -1088,6 +1086,7 @@ suite("presentationResolver", () => {
                 },
             },
         );
+        expect(validatePresentationDefinition(laidOut)).to.deep.equal(laidOut);
 
         expect(presentationWidgetsOf(laidOut).slice(-2)).to.deep.include.members([
             {
@@ -1103,6 +1102,7 @@ suite("presentationResolver", () => {
                 layoutId: "layout-derived:slow-tests",
                 widgetId: "layout-derived:slow-tests",
                 source: { kind: "derived", sourceId: "slow-tests" },
+                derivedSource,
                 defaultView: "grid",
                 sectionId: "main",
                 placement: { order: 3 },

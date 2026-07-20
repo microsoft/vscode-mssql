@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    DerivedSourceAuthoringEdit,
     OutputPresentationSummary,
     PresentationLayoutEdit,
     PresentationLayoutPolicyEdit,
     PresentationLayoutStrategy,
+    PresentationSourceRef,
     PresentationWidgetSummary,
     ResolvedPresentation,
 } from "../../../sharedInterfaces/runbookPresentation";
@@ -18,6 +20,7 @@ export type PresentationLayoutConflictField =
     | "defaultView"
     | "sectionId"
     | "hidden"
+    | "derivedSource"
     | "placement.order"
     | "placement.span.compact"
     | "placement.span.medium"
@@ -238,6 +241,7 @@ export function presentationLayoutSnapshot(
             nodeId: summary.layoutId,
             widgetId: summary.widgetId,
             source: summary.source,
+            ...(summary.derivedSource ? { derivedSource: summary.derivedSource } : {}),
             defaultView: summary.defaultView,
             sectionId: summary.sectionId,
             placement: summary.placement ?? resolved?.placement ?? { order: 0 },
@@ -252,6 +256,7 @@ const REBASE_FIELDS: PresentationLayoutConflictField[] = [
     "defaultView",
     "sectionId",
     "hidden",
+    "derivedSource",
     "placement.order",
     "placement.span.compact",
     "placement.span.medium",
@@ -266,6 +271,7 @@ function fieldValue(edit: PresentationLayoutEdit, field: PresentationLayoutConfl
         case "defaultView":
         case "sectionId":
         case "hidden":
+        case "derivedSource":
             return edit[field];
         case "placement.order":
             return edit.placement.order;
@@ -315,6 +321,13 @@ function withField(
         case "hidden":
             next.hidden = value as boolean;
             break;
+        case "derivedSource":
+            if (value === undefined) {
+                delete next.derivedSource;
+            } else {
+                next.derivedSource = value as NonNullable<PresentationLayoutEdit["derivedSource"]>;
+            }
+            break;
         case "placement.order":
             next.placement.order = value as number;
             break;
@@ -360,6 +373,57 @@ function withField(
     return next;
 }
 
+/** Build the intentionally small native top-N transform editor projection.
+ * Advanced closed pipelines remain source-authored until their dedicated
+ * form controls land. */
+export function buildTopRowsDerivedSource(
+    id: string,
+    from: PresentationSourceRef,
+    authoredContract: string,
+    sortField: string,
+    direction: "asc" | "desc",
+    limit: number,
+): DerivedSourceAuthoringEdit | undefined {
+    const normalizedId = id.trim();
+    const normalizedField = sortField.trim();
+    if (
+        normalizedId.length === 0 ||
+        normalizedId.length > 256 ||
+        authoredContract.length === 0 ||
+        authoredContract.length > 256 ||
+        normalizedField.length > 256 ||
+        !Number.isInteger(limit) ||
+        limit < 1 ||
+        limit > 10_000
+    ) {
+        return undefined;
+    }
+    return {
+        id: normalizedId,
+        from,
+        authoredContract,
+        pipeline: {
+            steps: [
+                ...(normalizedField
+                    ? [
+                          {
+                              op: "sort" as const,
+                              by: [{ field: normalizedField, direction }],
+                          },
+                      ]
+                    : []),
+                { op: "limit", count: limit },
+            ],
+        },
+    };
+}
+
+function fieldValuesEqual(field: PresentationLayoutConflictField, left: unknown, right: unknown) {
+    return field === "derivedSource"
+        ? JSON.stringify(left) === JSON.stringify(right)
+        : Object.is(left, right);
+}
+
 /** Reapply only the fields changed locally onto the current layout. A
  * conflict is reported when the same field changed upstream to a different
  * value. The returned candidate deliberately retains the local value for
@@ -389,10 +453,10 @@ export function rebasePresentationLayoutEdits(
             const baseValue = base ? fieldValue(base, field) : undefined;
             const latestValue = fieldValue(latest, field);
             const localValue = fieldValue(local, field);
-            const localChanged = !Object.is(localValue, baseValue);
-            const upstreamChanged = !Object.is(latestValue, baseValue);
+            const localChanged = !fieldValuesEqual(field, localValue, baseValue);
+            const upstreamChanged = !fieldValuesEqual(field, latestValue, baseValue);
             if (localChanged) {
-                if (upstreamChanged && !Object.is(localValue, latestValue)) {
+                if (upstreamChanged && !fieldValuesEqual(field, localValue, latestValue)) {
                     conflictFields.push(field);
                 }
                 merged = withField(merged, field, localValue);

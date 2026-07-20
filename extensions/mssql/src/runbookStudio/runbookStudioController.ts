@@ -59,6 +59,7 @@ import {
     PresentationLayoutEdit,
     PresentationLayoutPolicyEdit,
     PresentationSourceRef,
+    ResolvedPresentation,
     RUN_FIELD_NAMES,
 } from "../sharedInterfaces/runbookPresentation";
 import { findActivity } from "./activities/activityCatalog";
@@ -84,7 +85,10 @@ import {
     validateOutputViewSettings,
     validatePresentationDefinition,
 } from "./presentation/presentationResolver";
-import { applyTransformPipeline } from "./presentation/presentationTransforms";
+import {
+    applyTransformPipeline,
+    validateTransformPipeline,
+} from "./presentation/presentationTransforms";
 import {
     createSampleRunSnapshot,
     fetchSampleOutputPage,
@@ -94,11 +98,21 @@ import { presentationSaveRequiresDraftDemotionConfirmation } from "./presentatio
 
 /** Coarse state pushes are throttled; edits/typing must not flood the webview. */
 const STATE_PUSH_MIN_INTERVAL_MS = 100;
+const MAX_PRESENTATION_PREVIEWS = 20;
+
+type PresentationPreviewTarget =
+    | { kind: "run"; runId: string }
+    | { kind: "sample"; scenario: "clean" | "blockingErrors" | "approvalRejected" };
 
 export class RunbookStudioController extends WebviewBaseController<RbsState, void> {
     private statePushTimer: ReturnType<typeof setTimeout> | undefined;
     private lastStatePush = 0;
     private openMarkerEnded = false;
+    private presentationPreviewSequence = 0;
+    private readonly presentationPreviews = new Map<
+        string,
+        { definition: PresentationDefinition; target: PresentationPreviewTarget }
+    >();
     private readonly presentationOverlays = new Map<
         string,
         {
@@ -354,7 +368,13 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                             : undefined
                         : createSampleRunSnapshot(prepared.artifact, target.scenario);
                 return snapshot
-                    ? { presentation: resolvePresentation(prepared.definition, snapshot) }
+                    ? {
+                          presentation: this.rememberPresentationPreview(
+                              prepared.definition,
+                              target,
+                              resolvePresentation(prepared.definition, snapshot),
+                          ),
+                      }
                     : { reason: "targetMissing" as const };
             },
         );
@@ -505,6 +525,20 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         });
 
         this.onRequest(RbsFetchOutputPageRequest.type, async (page) => {
+            const preview = page.derivedPreviewId
+                ? this.presentationPreviews.get(page.derivedPreviewId)
+                : undefined;
+            if (
+                (page.derivedPreviewId && !preview) ||
+                (page.derivedPreviewId && !page.derivedSourceId)
+            ) {
+                return {
+                    error: {
+                        code: "RunbookStudio.PresentationInvalid" as const,
+                        message: LocRunbookStudio.presentationTransformFailed,
+                    },
+                };
+            }
             if (isSampleHandle(page.handleId)) {
                 const samplePage = fetchSampleOutputPage({
                     handleId: page.handleId,
@@ -522,10 +556,20 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     );
                 }
                 const artifact = this.model.artifact;
-                const definition = validatePresentationDefinition(artifact?.presentation);
+                const base = validatePresentationDefinition(artifact?.presentation);
+                const definition =
+                    preview?.target.kind === "sample"
+                        ? preview.definition
+                        : preview
+                          ? undefined
+                          : base;
+                const scenarios =
+                    preview?.target.kind === "sample"
+                        ? [preview.target.scenario]
+                        : (["clean", "blockingErrors", "approvalRejected"] as const);
                 const derived =
                     artifact && definition
-                        ? (["clean", "blockingErrors", "approvalRejected"] as const)
+                        ? scenarios
                               .flatMap((scenario) => {
                                   const snapshot = createSampleRunSnapshot(artifact, scenario);
                                   if (!snapshot) {
@@ -580,9 +624,14 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             }
             const run = this.model.displayRun;
             const base = validatePresentationDefinition(this.model.artifact?.presentation);
-            const definition = run
-                ? (this.presentationOverlays.get(run.runId)?.definition ?? base)
-                : base;
+            const definition =
+                preview?.target.kind === "run" && run?.runId === preview.target.runId
+                    ? preview.definition
+                    : preview
+                      ? undefined
+                      : run
+                        ? (this.presentationOverlays.get(run.runId)?.definition ?? base)
+                        : base;
             const derived =
                 definition && run
                     ? resolveDerivedSourcePlan(definition, page.derivedSourceId, run)
@@ -775,6 +824,8 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 presentationWidgets: presentationWidgetsOf(presentationDefinition),
                 derivedSources: (presentationDefinition?.derivedSources ?? []).map((source) => ({
                     id: source.id,
+                    from: source.from,
+                    pipeline: source.pipeline,
                     authoredContract: source.authoredContract,
                 })),
             };
@@ -920,6 +971,34 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         return choice === LocRunbookStudio.presentationApprovedDemotionContinue;
     }
 
+    /** Retain the exact host-validated definition behind a staged preview.
+     * The opaque id lets derived page pulls use that definition without
+     * accepting a transform pipeline from the webview. */
+    private rememberPresentationPreview(
+        definition: PresentationDefinition,
+        target: PresentationPreviewTarget,
+        presentation: ResolvedPresentation,
+    ): ResolvedPresentation {
+        const id = `preview-${++this.presentationPreviewSequence}`;
+        this.presentationPreviews.set(id, { definition, target });
+        while (this.presentationPreviews.size > MAX_PRESENTATION_PREVIEWS) {
+            const oldest = this.presentationPreviews.keys().next().value as string | undefined;
+            if (!oldest) {
+                break;
+            }
+            this.presentationPreviews.delete(oldest);
+        }
+        return {
+            ...presentation,
+            sections: presentation.sections.map((section) => ({
+                ...section,
+                widgets: section.widgets.map((widget) =>
+                    widget.derivedSourceId ? { ...widget, derivedPreviewId: id } : widget,
+                ),
+            })),
+        };
+    }
+
     private preparePresentationLayout(
         edits: PresentationLayoutEdit[],
         policy: PresentationLayoutPolicyEdit | undefined,
@@ -939,6 +1018,17 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         const outputSchemaByNode: Record<string, OutputSchemaDescriptor> = {};
         const sourceByNode: Record<string, PresentationSourceRef> = {};
         const titleByNode: Record<string, string> = {};
+        const derivedById = new Map(
+            (definition?.derivedSources ?? []).map((source) => [source.id, source]),
+        );
+        for (const edit of edits) {
+            if (edit.derivedSource) {
+                derivedById.set(edit.derivedSource.id, {
+                    ...edit.derivedSource,
+                    provenance: { by: "user" },
+                });
+            }
+        }
         let valid =
             artifact?.lock !== undefined &&
             (edits.length > 0 || policy !== undefined) &&
@@ -967,6 +1057,29 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     widgetForSource.id === edit.widgetId) &&
                 (edit.widgetId === undefined ||
                     (edit.widgetId.length > 0 && edit.widgetId.length <= 256));
+            if (edit.derivedSource) {
+                const authored = edit.derivedSource;
+                let fromContract: string | undefined;
+                if (authored.from.kind === "activity-output") {
+                    const { nodeId, slot } = authored.from;
+                    const node = artifact?.lock?.nodes.find((candidate) => candidate.id === nodeId);
+                    fromContract =
+                        slot === "primary" && node
+                            ? expectedContractFor(node.kind, node.activityKind)
+                            : undefined;
+                } else if (authored.from.kind === "derived") {
+                    fromContract = derivedById.get(authored.from.sourceId)?.authoredContract;
+                }
+                valid =
+                    valid &&
+                    source.kind === "derived" &&
+                    source.sourceId === authored.id &&
+                    authored.id.length > 0 &&
+                    authored.id.length <= 256 &&
+                    validateTransformPipeline(authored.pipeline) &&
+                    (fromContract === "rowset/1" || fromContract === "timeseries/1") &&
+                    authored.authoredContract === fromContract;
+            }
             let contract: string | undefined;
             let outputSchema: OutputSchemaDescriptor | undefined;
             if (source.kind === "activity-output") {
@@ -995,9 +1108,7 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     (existingWidget !== undefined ||
                         this.model.displayRun?.runMetrics?.[source.key] !== undefined);
             } else {
-                const derived = definition?.derivedSources.find(
-                    (candidate) => candidate.id === source.sourceId,
-                );
+                const derived = derivedById.get(source.sourceId);
                 contract = derived?.authoredContract;
                 titleByNode[edit.nodeId] = source.sourceId;
                 valid = valid && derived !== undefined;
@@ -1032,21 +1143,20 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         if (!valid || !artifact) {
             return { reason: "invalid" };
         }
-        return {
-            artifact,
-            definition: applyPresentationLayoutEdits(
-                definition,
-                edits,
-                {
-                    contractByNode,
-                    fingerprintByNode,
-                    outputSchemaByNode,
-                    sourceByNode,
-                    titleByNode,
-                    planRevision: artifact.lock?.planRevision,
-                },
-                policy,
-            ),
-        };
+        const candidate = applyPresentationLayoutEdits(
+            definition,
+            edits,
+            {
+                contractByNode,
+                fingerprintByNode,
+                outputSchemaByNode,
+                sourceByNode,
+                titleByNode,
+                planRevision: artifact.lock?.planRevision,
+            },
+            policy,
+        );
+        const validated = validatePresentationDefinition(candidate);
+        return validated ? { artifact, definition: validated } : { reason: "invalid" };
     }
 }
