@@ -152,9 +152,13 @@ export class RunbookStudio {
             args: [detail],
             comment: ["{0} is a technical detail string"],
         });
-    public static hobbesPlannerTimeout = l10n.t(
-        "The Hobbes runtime planner did not finish within the time limit. Try again, or simplify the request.",
-    );
+    public static hobbesPlannerTimeout = (minutes: number) =>
+        l10n.t({
+            message:
+                "The Hobbes runtime planner did not finish within the configured {0}-minute time limit. Try again, simplify the request, or increase mssql.runbookStudio.plannerTimeoutMinutes (maximum 30).",
+            args: [minutes],
+            comment: ["{0} is the configured planner timeout in minutes"],
+        });
     public static plannerPhaseSessionStarted = l10n.t("Planning session started");
     public static plannerPhasePlanSynthesized = l10n.t("Plan synthesized");
     public static plannerPhaseDryRunPassed = l10n.t("Dry-run passed");

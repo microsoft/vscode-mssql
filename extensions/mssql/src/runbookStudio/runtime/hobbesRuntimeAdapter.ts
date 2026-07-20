@@ -64,9 +64,18 @@ import {
 const RUN_POLL_INTERVAL_MS = 750;
 const REQUEST_TIMEOUT_MS = 15_000;
 const HEALTH_PROBE_TIMEOUT_MS = 3_000;
-/** A full planner elicitation session runs 1-5 minutes (verified live). */
-const PLANNER_TIMEOUT_MS = 300_000;
+export const DEFAULT_PLANNER_TIMEOUT_MINUTES = 10;
+export const MAX_PLANNER_TIMEOUT_MINUTES = 30;
 const PROVIDER_LOGIN_TIMEOUT_MS = 300_000;
+
+/** Normalize the user-facing minute setting before it reaches setTimeout. */
+export function plannerTimeoutMilliseconds(configuredMinutes: unknown): number {
+    const minutes =
+        typeof configuredMinutes === "number" && Number.isFinite(configuredMinutes)
+            ? configuredMinutes
+            : DEFAULT_PLANNER_TIMEOUT_MINUTES;
+    return Math.min(MAX_PLANNER_TIMEOUT_MINUTES, Math.max(1, minutes)) * 60_000;
+}
 
 /** GET /api/runs/{runId} projection (InvestigationsLaunchApi.RunToJson). */
 interface HobbesRunRecord {
@@ -641,6 +650,9 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         private readonly resolveProfile: (
             profileId: string,
         ) => Promise<BridgeableConnectionProfile | undefined> = () => Promise.resolve(undefined),
+        /** Read for every session so Settings changes need no reload. */
+        private readonly getPlannerTimeoutMilliseconds: () => number = () =>
+            plannerTimeoutMilliseconds(undefined),
     ) {}
 
     // -- publish bridge ------------------------------------------------------
@@ -1197,7 +1209,8 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         // Exposed for user cancellation (single planner session at a time).
         this.activePlannerAbort = controller;
         this.plannerCancelRequested = false;
-        const timer = setTimeout(() => controller.abort(), PLANNER_TIMEOUT_MS);
+        const plannerTimeoutMs = this.getPlannerTimeoutMilliseconds();
+        const timer = setTimeout(() => controller.abort(), plannerTimeoutMs);
         const coalescer = new ReasoningCoalescer((text) =>
             onProgress?.({ kind: "reasoning", text }),
         );
@@ -1354,7 +1367,7 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                 throw new RuntimeStartRefusedError(
                     {
                         code: "RunbookStudio.Timeout",
-                        message: LocRunbookStudio.hobbesPlannerTimeout,
+                        message: LocRunbookStudio.hobbesPlannerTimeout(plannerTimeoutMs / 60_000),
                         retryable: true,
                     },
                     "planner-timeout",

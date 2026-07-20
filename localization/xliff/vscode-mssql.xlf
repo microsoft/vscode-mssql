@@ -8988,8 +8988,9 @@
       <source xml:lang="en">The Hobbes runtime planner could not produce a plan: {0}</source>
       <note>{0} is a technical detail string</note>
     </trans-unit>
-    <trans-unit id="++CODE++7b501afa65585ea057724e4a1165353748c403e4ea8d791f8f84859b36c4952d">
-      <source xml:lang="en">The Hobbes runtime planner did not finish within the time limit. Try again, or simplify the request.</source>
+    <trans-unit id="++CODE++ae08eaa49fc279ea96e28990f85262f42d7aebc06e6519e7ed0932c88c6a83b4">
+      <source xml:lang="en">The Hobbes runtime planner did not finish within the configured {0}-minute time limit. Try again, simplify the request, or increase mssql.runbookStudio.plannerTimeoutMinutes (maximum 30).</source>
+      <note>{0} is the configured planner timeout in minutes</note>
     </trans-unit>
     <trans-unit id="++CODE++cc7cdaaedb42f554655feea2b7ecd96d39a52d1ad0041b50a2beb7d5140ee0a0">
       <source xml:lang="en">The Hobbes runtime provider &apos;{0}&apos; is not ready. Run &apos;Runbook Studio: Check Runtime Provider&apos; to inspect readiness or sign in.</source>
@@ -11228,6 +11229,9 @@
     </trans-unit>
     <trans-unit id="mssql.query.textSize">
       <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
+    </trans-unit>
+    <trans-unit id="mssql.runbookStudio.plannerTimeoutMinutes.description">
+      <source xml:lang="en">Maximum time, in minutes, to wait for Hobbes runbook plan generation. Changes apply to the next planning session.</source>
     </trans-unit>
     <trans-unit id="mssql.openAzureDataStudioMigration">
       <source xml:lang="en">Migrate from Azure Data Studio</source>

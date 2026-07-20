@@ -17,6 +17,7 @@ import {
     mapRegionStatus,
     mapTerminalStatus,
     plannerRequestBody,
+    plannerTimeoutMilliseconds,
     ReasoningCoalescer,
     rebaseLibraryArtifact,
     summarizeHobbesRegionMetrics,
@@ -25,6 +26,14 @@ import {
 import { findFreePort } from "../../src/runbookStudio/runtime/runtimeSupervisor";
 
 suite("hobbesRuntimeAdapter", () => {
+    test("planner timeout defaults to ten minutes and stays within supported bounds", () => {
+        expect(plannerTimeoutMilliseconds(undefined)).to.equal(10 * 60_000);
+        expect(plannerTimeoutMilliseconds(Number.NaN)).to.equal(10 * 60_000);
+        expect(plannerTimeoutMilliseconds(15)).to.equal(15 * 60_000);
+        expect(plannerTimeoutMilliseconds(0)).to.equal(60_000);
+        expect(plannerTimeoutMilliseconds(60)).to.equal(30 * 60_000);
+    });
+
     test("terminal statuses map to host terminal states", () => {
         expect(mapTerminalStatus("completed")).to.equal("succeeded");
         expect(mapTerminalStatus("failed")).to.equal("failed");

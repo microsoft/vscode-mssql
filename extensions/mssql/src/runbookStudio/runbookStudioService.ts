@@ -84,6 +84,7 @@ import {
     LibraryDocumentBaseline,
     LibraryDocumentCommitResult,
     LibraryDocumentConflictResolution,
+    plannerTimeoutMilliseconds,
 } from "./runtime/hobbesRuntimeAdapter";
 import {
     LocalActivityError,
@@ -1700,6 +1701,12 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         String(profile.authenticationType ?? "").toLowerCase() === "integrated",
                 };
             },
+            () =>
+                plannerTimeoutMilliseconds(
+                    vscode.workspace
+                        .getConfiguration()
+                        .get<number>("mssql.runbookStudio.plannerTimeoutMinutes"),
+                ),
         );
         return { adapter: this.hobbesAdapter };
     }

@@ -4267,6 +4267,14 @@
                     "description": "Path to the Hobbes runtime executable (used when mssql.runbookStudio.runtime is 'hobbes'). Launched loopback-only with an isolated data directory.",
                     "scope": "machine"
                 },
+                "mssql.runbookStudio.plannerTimeoutMinutes": {
+                    "type": "number",
+                    "default": 10,
+                    "minimum": 1,
+                    "maximum": 30,
+                    "description": "%mssql.runbookStudio.plannerTimeoutMinutes.description%",
+                    "scope": "application"
+                },
                 "mssql.queryStudio.vectorWorkbench.enabled": {
                     "type": "boolean",
                     "default": false,

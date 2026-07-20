@@ -84,7 +84,10 @@
         "message": "The Hobbes runtime planner could not produce a plan: {0}",
         "comment": ["{0} is a technical detail string"]
     },
-    "The Hobbes runtime planner did not finish within the time limit. Try again, or simplify the request.": "The Hobbes runtime planner did not finish within the time limit. Try again, or simplify the request.",
+    "The Hobbes runtime planner did not finish within the configured {0}-minute time limit. Try again, simplify the request, or increase mssql.runbookStudio.plannerTimeoutMinutes (maximum 30)./{0} is the configured planner timeout in minutes": {
+        "message": "The Hobbes runtime planner did not finish within the configured {0}-minute time limit. Try again, simplify the request, or increase mssql.runbookStudio.plannerTimeoutMinutes (maximum 30).",
+        "comment": ["{0} is the configured planner timeout in minutes"]
+    },
     "Planning session started": "Planning session started",
     "Plan synthesized": "Plan synthesized",
     "Dry-run passed": "Dry-run passed",

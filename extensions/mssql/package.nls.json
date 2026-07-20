@@ -353,5 +353,6 @@
     "mssql.copilot.inlineCompletions.profile.description": "Default request profile for SQL inline completions. Preset profiles control model preference, enabled categories, and automatic debounce.",
     "mssql.copilot.inlineCompletions.modelFamily.description": "Language model used for SQL inline completions when the completion profile is 'default'. Accepts either a vendor/id selector (e.g. 'anthropic-api/claude-opus-4-8', 'copilot/gpt-5.5') or a bare family name (e.g. 'gpt-5.5', 'claude-sonnet-4-6'). Falls back to the strongest available model if the specified value is not found.",
     "mssql.copilot.inlineCompletions.continuationModelFamily.description": "Optional language model used only for continuation SQL inline completions. Leave empty to use the active profile/default model. Accepts either a vendor/id selector (e.g. 'openai-api/gpt-5.4-mini') or a bare family name.",
-    "mssql.copilot.inlineCompletions.enabledCategories.description": "Inline SQL completion categories to enable. Use 'continuation' for cursor-continuation ghost text and 'intent' for comment-to-query completions."
+    "mssql.copilot.inlineCompletions.enabledCategories.description": "Inline SQL completion categories to enable. Use 'continuation' for cursor-continuation ghost text and 'intent' for comment-to-query completions.",
+    "mssql.runbookStudio.plannerTimeoutMinutes.description": "Maximum time, in minutes, to wait for Hobbes runbook plan generation. Changes apply to the next planning session."
 }
