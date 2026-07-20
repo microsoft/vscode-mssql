@@ -27,6 +27,7 @@ import {
     classifyRunbookIntent,
     prepareRunbookIntent,
 } from "../../src/runbookStudio/capabilities/runbookCapabilities";
+import { validateLockAgainstCatalog } from "../../src/runbookStudio/activities/activityCatalog";
 
 function fixtureText(): string {
     return canonicalizeRunbookArtifact(createFixtureRunbookArtifact());
@@ -52,6 +53,11 @@ suite("runbookArtifact", () => {
             const artifact = expectSuccess(parseRunbookArtifact(fixtureText()));
             expect(artifact.id).to.equal("fixture-readonly-check");
             expect(artifact.lock?.nodes).to.have.length(3);
+        });
+
+        test("keeps the deterministic fixture executable under catalog admission", () => {
+            const artifact = createFixtureRunbookArtifact();
+            expect(validateLockAgainstCatalog(artifact.lock!)).to.deep.equal([]);
         });
 
         test("accepts the deterministic developer validation preview", () => {

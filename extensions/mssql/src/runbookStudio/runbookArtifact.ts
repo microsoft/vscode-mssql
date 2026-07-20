@@ -688,7 +688,10 @@ export function createFixtureRunbookArtifact(): RunbookArtifactFile {
                     kind: "activity",
                     activityKind: "sql.query.read",
                     activityVersion: 1,
-                    inputs: { connection: "$params.target", sql: "fixture" },
+                    // Keep the fixture valid against the same host-authoritative
+                    // read-only SQL admission rule used for generated plans.
+                    // The deterministic fake does not execute this text.
+                    inputs: { connection: "$params.target", sql: "SELECT 1 AS [value]" },
                     target: {
                         kind: "sqlDatabase",
                         binding: { source: "parameter", parameterId: "target" },

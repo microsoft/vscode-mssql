@@ -21,7 +21,12 @@ import { RunbookStudio as LocRunbookStudio } from "../constants/locConstants";
 import { diag } from "../diagnostics/diagnosticsCore";
 import { Perf } from "../perf/perfTelemetry";
 import { canonicalizeRunbookArtifact, createFixtureRunbookArtifact } from "./runbookArtifact";
-import { RUNBOOK_FS_SCHEME, RunbookFileSystemProvider } from "./runbookFileSystem";
+import {
+    RUNBOOK_FS_SCHEME,
+    RunbookFileSystemProvider,
+    runbookVirtualUri,
+} from "./runbookFileSystem";
+import { readStash, writeStash } from "./libraryStash";
 import { registerRunbookLibrary } from "./runbookLibraryProvider";
 import type { RunbookRunCoordinator } from "./runbookRunCoordinator";
 import { RunbookStudioController } from "./runbookStudioController";
@@ -374,6 +379,74 @@ function registerRunbookStudioPerfProbe(
         const controller = findRunbookStudioController(uri);
         return controller ? provider.documents.get(controller.documentUriKey) : undefined;
     };
+    const waitForTerminal = (
+        model: NonNullable<ReturnType<typeof modelFor>>,
+        timeoutMs = 60_000,
+    ): Promise<void> => {
+        const terminalOutcome = (): "succeeded" | Error | undefined => {
+            const run = model.activeRun;
+            if (!run) {
+                return undefined;
+            }
+            if (run.state === "succeeded") {
+                return "succeeded";
+            }
+            if (run.state === "failed" || run.state === "cancelled") {
+                return new Error(`fixture run reached ${run.state}`);
+            }
+            return undefined;
+        };
+        const current = terminalOutcome();
+        if (current === "succeeded") {
+            return Promise.resolve();
+        }
+        if (current) {
+            return Promise.reject(current);
+        }
+        return new Promise<void>((resolve, reject) => {
+            const timer = setTimeout(() => {
+                subscription.dispose();
+                reject(new Error("timed out waiting for the fixture run to finish"));
+            }, timeoutMs);
+            const subscription = model.onDidChange(() => {
+                const result = terminalOutcome();
+                if (!result) {
+                    return;
+                }
+                clearTimeout(timer);
+                subscription.dispose();
+                if (result === "succeeded") {
+                    resolve();
+                } else {
+                    reject(result);
+                }
+            });
+        });
+    };
+    const assertRecoveredFixture = (
+        model: NonNullable<ReturnType<typeof modelFor>>,
+    ): { historyCount: number; outputCount: number } => {
+        const run = model.activeRun;
+        if (!run || model.history.length === 0) {
+            throw new Error("the durable fixture run was not rehydrated");
+        }
+        if (run.state !== "succeeded" || run.verdict !== "pass") {
+            throw new Error(
+                `the recovered fixture run is ${run.state}/${run.verdict ?? "no-verdict"}`,
+            );
+        }
+        if (run.nodes.some((node) => node.state !== "succeeded")) {
+            throw new Error("the recovered fixture contains a non-succeeded node");
+        }
+        const outputCount = run.nodes.reduce(
+            (total, node) => total + (node.outputs?.length ?? 0),
+            0,
+        );
+        if (outputCount === 0) {
+            throw new Error("the recovered fixture lost its durable node output handles");
+        }
+        return { historyCount: model.history.length, outputCount };
+    };
     context.subscriptions.push(
         vscode.commands.registerCommand("mssql.perf.runbookStudio.openFixture", async () => {
             const doc = await vscode.workspace.openTextDocument({
@@ -387,6 +460,94 @@ function registerRunbookStudioPerfProbe(
             );
             return { uri: doc.uri.toString() };
         }),
+        vscode.commands.registerCommand(
+            "mssql.perf.runbookStudio.restartRecoveryFixture",
+            async () => {
+                const repId = Number.parseInt(process.env.PERF_REP_ID ?? "0", 10);
+                if (!Number.isSafeInteger(repId) || repId < 0) {
+                    throw new Error("PERF_REP_ID must be a non-negative integer");
+                }
+                const artifact = createFixtureRunbookArtifact();
+                const existed =
+                    (await readStash(context.globalStorageUri, artifact.id)) !== undefined;
+                if (repId > 0 && !existed) {
+                    throw new Error(
+                        "the warmed profile did not retain the fixture stash from the prior host",
+                    );
+                }
+                if (!existed) {
+                    await writeStash(
+                        context.globalStorageUri,
+                        artifact.id,
+                        canonicalizeRunbookArtifact(artifact),
+                    );
+                }
+
+                const uri = runbookVirtualUri(artifact.id);
+                const open = () =>
+                    vscode.commands.executeCommand(
+                        "vscode.openWith",
+                        uri,
+                        RUNBOOK_STUDIO_VIEW_TYPE,
+                    );
+                await open();
+                let model = modelFor(uri.toString());
+                const coordinator = coordinatorFactory();
+                if (!model || !coordinator) {
+                    throw new Error("the persistent fixture did not open in Runbook Studio");
+                }
+
+                if (model.history.length === 0) {
+                    if (repId > 0) {
+                        throw new Error(
+                            "the new extension host did not rehydrate the prior fixture run",
+                        );
+                    }
+                    const started = await coordinator.startRun(model, {
+                        target: "fixture-connection",
+                        maxCount: 100,
+                    });
+                    if (!started.runId || started.error) {
+                        throw new Error(
+                            `the warmup fixture run was refused: ${started.error?.code ?? "unknown"}`,
+                        );
+                    }
+                    await waitForTerminal(model);
+                    assertRecoveredFixture(model);
+
+                    // Seed host: close the only panel and reopen the virtual
+                    // URI so this repetition also proves the document-level
+                    // rehydrate path. Later reps additionally require that
+                    // the state survived a whole extension-host process.
+                    await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+                    await open();
+                    model = modelFor(uri.toString());
+                    if (!model) {
+                        throw new Error("the fixture did not reopen after its warmup run");
+                    }
+                } else if (repId > 0) {
+                    // A warmed VS Code profile can hot-exit restore this tab
+                    // before scenario.start. Assert that restored state first
+                    // (the cross-process proof), then reopen once so the
+                    // measured window contains a fresh recovery marker rather
+                    // than waiting on the legitimate pre-window one.
+                    assertRecoveredFixture(model);
+                    await vscode.commands.executeCommand("workbench.action.closeActiveEditor");
+                    await open();
+                    model = modelFor(uri.toString());
+                    if (!model) {
+                        throw new Error("the recovered fixture did not reopen for measurement");
+                    }
+                }
+
+                return {
+                    uri: uri.toString(),
+                    repId,
+                    recoveredFromPriorHost: repId > 0,
+                    ...assertRecoveredFixture(model),
+                };
+            },
+        ),
         vscode.commands.registerCommand(
             "mssql.perf.runbookStudio.getState",
             (args?: { uri?: string }) => {
