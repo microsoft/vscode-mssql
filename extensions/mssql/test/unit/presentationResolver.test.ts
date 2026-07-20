@@ -13,6 +13,7 @@
 import { expect } from "chai";
 import {
     applyPresentationLayoutEdits,
+    applyOutputSchemaBindings,
     compatibleViews,
     createViewSpec,
     DEFAULT_PRESENTATION_LAYOUT,
@@ -32,6 +33,8 @@ import {
     PRESENTATION_SCHEMA_VERSION,
     expectedContractFor,
     isViewCandidateSelectable,
+    outputPresentationNeedsReview,
+    outputSchemaFingerprint,
     viewCandidateTier,
     viewCandidates,
     RunFieldName,
@@ -207,6 +210,124 @@ suite("presentationResolver", () => {
             ),
         ).to.equal(true);
         expect(isViewCandidateSelectable("rowset/1", "timeseries")).to.equal(true);
+    });
+
+    test("explicit authoring binds catalog fields and fingerprints descriptor changes", () => {
+        const originalSchema = {
+            fields: [
+                { name: "suite", valueType: "string" as const, roles: ["label" as const] },
+                {
+                    name: "durationMs",
+                    valueType: "number" as const,
+                    roles: ["measure" as const],
+                },
+            ],
+        };
+        const originalFingerprint = outputSchemaFingerprint("testResults/1", originalSchema);
+        expect(
+            outputSchemaFingerprint("testResults/1", {
+                fields: [
+                    { name: "suite", valueType: "string", roles: ["category", "label"] },
+                    { name: "durationMs", valueType: "number", roles: ["measure"] },
+                ],
+            }),
+        ).to.equal(
+            outputSchemaFingerprint("testResults/1", {
+                fields: [
+                    { name: "suite", valueType: "string", roles: ["label", "category"] },
+                    { name: "durationMs", valueType: "number", roles: ["measure"] },
+                ],
+            }),
+        );
+
+        const bound = applyOutputSchemaBindings(
+            {
+                id: "bar",
+                kind: "bar",
+                props: {
+                    categoryField: "oldCategory",
+                    valueFields: ["oldValue"],
+                    orientation: "horizontal",
+                },
+            },
+            "testResults/1",
+            originalSchema,
+        );
+        expect(bound).to.deep.equal({
+            id: "bar",
+            kind: "bar",
+            props: {
+                categoryField: "suite",
+                valueFields: ["durationMs"],
+                orientation: "horizontal",
+            },
+        });
+
+        const authored = upsertOutputPresentation(
+            undefined,
+            "tests",
+            ["bar"],
+            { mode: "single" },
+            "bar",
+            { bar: { orientation: "vertical" } },
+            {
+                authoredContract: "testResults/1",
+                authoredContractFingerprint: originalFingerprint,
+                outputSchema: originalSchema,
+            },
+        );
+        const summary = outputPresentationsOf(authored).tests;
+        expect(summary.authoredContractFingerprint).to.equal(originalFingerprint);
+        expect(outputPresentationNeedsReview(summary, originalFingerprint)).to.equal(false);
+        expect(authored.results.widgets[0].views[0]).to.deep.include({
+            kind: "bar",
+            props: {
+                categoryField: "suite",
+                valueFields: ["durationMs"],
+                orientation: "vertical",
+                sort: undefined,
+                maxCategories: undefined,
+            },
+        });
+
+        const changedSchema = {
+            fields: [
+                { name: "testClass", valueType: "string" as const },
+                { name: "elapsedMs", valueType: "number" as const },
+            ],
+        };
+        const changedFingerprint = outputSchemaFingerprint("testResults/1", changedSchema);
+        expect(changedFingerprint).not.to.equal(originalFingerprint);
+        expect(outputPresentationNeedsReview(summary, changedFingerprint)).to.equal(true);
+
+        const reviewed = upsertOutputPresentation(
+            authored,
+            "tests",
+            ["bar"],
+            { mode: "single" },
+            "bar",
+            summary.settings,
+            {
+                authoredContract: "testResults/1",
+                authoredContractFingerprint: changedFingerprint,
+                outputSchema: changedSchema,
+            },
+        );
+        expect(reviewed.results.widgets[0].views[0]).to.deep.include({
+            props: {
+                categoryField: "testClass",
+                valueFields: ["elapsedMs"],
+                orientation: "vertical",
+                sort: undefined,
+                maxCategories: undefined,
+            },
+        });
+        expect(
+            outputPresentationNeedsReview(
+                outputPresentationsOf(reviewed).tests,
+                changedFingerprint,
+            ),
+        ).to.equal(false);
     });
 
     test("developer evidence contracts have implemented default presentations", () => {
@@ -640,6 +761,7 @@ suite("presentationResolver", () => {
             placement: { order: 0 },
             hidden: false,
             settings: { bar: { orientation: "horizontal" } },
+            authoredContractFingerprint: "rowset/1",
         });
 
         const configured = upsertOutputPresentation(
@@ -702,6 +824,7 @@ suite("presentationResolver", () => {
             sectionId: "main",
             placement: { order: 0 },
             hidden: false,
+            authoredContractFingerprint: "rowset/1",
         });
 
         const generatedPin = upsertOutputPin(undefined, "new-node", "bar");
@@ -739,13 +862,18 @@ suite("presentationResolver", () => {
                     hidden: false,
                 },
             ],
-            { contractByNode: { query: "rowset/1" }, planRevision: "9" },
+            {
+                contractByNode: { query: "rowset/1" },
+                fingerprintByNode: { query: "schema-v1:rowset/1:known" },
+                planRevision: "9",
+            },
         );
         expect(outputPresentationsOf(laidOut).query).to.deep.include({
             widgetId: "layout-query",
             sectionId: "summary",
             placement: { order: 2, span: { compact: 1, medium: 3, wide: 6 } },
             hidden: false,
+            authoredContractFingerprint: "schema-v1:rowset/1:known",
         });
         expect(resolvePresentation(laidOut, snapshot()).sections[0].widgets[0].nodeId).to.equal(
             "query",

@@ -81,6 +81,22 @@ export interface OutputSchemaDescriptor {
     }>;
 }
 
+/** Deterministic authoring identity. Runtime-only shapes retain the legacy
+ * contract fingerprint; known field descriptors add ordered names/types and
+ * normalized roles so a catalog change becomes explicitly reviewable. */
+export function outputSchemaFingerprint(contract: string, schema?: OutputSchemaDescriptor): string {
+    if (!schema) {
+        return contract;
+    }
+    return `schema-v1:${contract}:${JSON.stringify(
+        schema.fields.map((field) => ({
+            name: field.name,
+            valueType: field.valueType,
+            roles: [...(field.roles ?? [])].sort(),
+        })),
+    )}`;
+}
+
 export type ViewCandidateCompatibility = "compatible" | "conditional" | "incompatible";
 export type ViewCandidateReason =
     | "runtime-shape-required"
@@ -441,6 +457,19 @@ export interface OutputPresentationSummary {
     placement?: WidgetPlacement;
     hidden: boolean;
     settings?: OutputViewSettings;
+    authoredContractFingerprint: string;
+}
+
+/** A user-authored output layout must be reviewed when the registered field
+ * descriptor no longer matches the descriptor it was authored against.
+ * Default-derived layouts remain safe to refresh automatically. */
+export function outputPresentationNeedsReview(
+    summary: OutputPresentationSummary | undefined,
+    expectedFingerprint: string,
+): boolean {
+    return (
+        summary?.setByUser === true && summary.authoredContractFingerprint !== expectedFingerprint
+    );
 }
 
 export interface PresentationLayoutEdit {

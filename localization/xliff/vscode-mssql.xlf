@@ -8783,6 +8783,9 @@
     <trans-unit id="++CODE++13549c97f0b3baa43655bd41e05e3bb60918ded05df9e7e94186ecc6ba53c3d1">
       <source xml:lang="en">The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a579bc312ec6b0ac71c5bdac08c2b3b84ab4e5eed469637e128c9ef1051d6d36">
+      <source xml:lang="en">The registered output fields changed since this view was saved. Review the field mapping below and save to accept it.</source>
+    </trans-unit>
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
     </trans-unit>

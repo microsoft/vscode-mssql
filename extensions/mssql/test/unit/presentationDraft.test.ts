@@ -148,6 +148,7 @@ suite("presentationDraft", () => {
                 sectionId: "details",
                 placement: { order: 2 },
                 hidden: true,
+                authoredContractFingerprint: "rowset/1",
             },
         });
         expect(snapshot).to.deep.equal([

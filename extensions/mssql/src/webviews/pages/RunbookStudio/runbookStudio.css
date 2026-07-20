@@ -943,6 +943,11 @@
     border-color: currentColor;
 }
 
+.rbs-candidate-review {
+    color: var(--vscode-editorWarning-foreground);
+    border-color: currentColor;
+}
+
 .rbs-output-candidate-unavailable {
     cursor: not-allowed;
     border-color: var(--vscode-inputValidation-errorBorder, var(--vscode-errorForeground));

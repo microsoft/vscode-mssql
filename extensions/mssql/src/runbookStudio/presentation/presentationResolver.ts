@@ -15,6 +15,7 @@ import {
     defaultViewFor,
     isViewCompatible,
     LegacyPresentationDefinition,
+    OutputSchemaDescriptor,
     OutputPresentationSummary,
     OutputViewSettings,
     PresentationLayoutEdit,
@@ -33,6 +34,7 @@ import {
     ViewKind,
     ViewRenderSettings,
     ViewSpec,
+    viewCandidates,
     WidgetBinding,
 } from "../../sharedInterfaces/runbookPresentation";
 import {
@@ -143,6 +145,46 @@ export function createViewSpec(kind: ViewKind, id = `view:${kind}`, title?: stri
         default:
             return { ...base, kind, props: {} } as ViewSpec;
     }
+}
+
+/** Apply catalog-owned field bindings at an explicit authoring boundary.
+ * Normal resolution deliberately does not call this helper: persisted user
+ * mappings remain unchanged until the author reviews and saves them. */
+export function applyOutputSchemaBindings(
+    view: ViewSpec,
+    contract: string,
+    schema?: OutputSchemaDescriptor,
+): ViewSpec {
+    if (!schema) {
+        return view;
+    }
+    const candidate = viewCandidates(contract, schema).find(
+        (descriptor) => descriptor.view === view.kind,
+    );
+    if (candidate?.compatibility !== "compatible" || !candidate.bindings) {
+        return view;
+    }
+    if (view.kind === "bar" && candidate.bindings.categoryField) {
+        return {
+            ...view,
+            props: {
+                ...view.props,
+                categoryField: candidate.bindings.categoryField,
+                valueFields: [...(candidate.bindings.valueFields ?? [])],
+            },
+        };
+    }
+    if (view.kind === "timeseries" && candidate.bindings.timeField) {
+        return {
+            ...view,
+            props: {
+                ...view.props,
+                timeField: candidate.bindings.timeField,
+                valueFields: [...(candidate.bindings.valueFields ?? [])],
+            },
+        };
+    }
+    return view;
 }
 
 function compactSettings(settings: ViewRenderSettings): ViewRenderSettings | undefined {
@@ -474,7 +516,12 @@ export function upsertOutputPresentation(
     presentation: PresentationMode,
     defaultView: ViewKind,
     settings?: OutputViewSettings,
-    metadata?: { authoredContract?: string; planRevision?: string },
+    metadata?: {
+        authoredContract?: string;
+        authoredContractFingerprint?: string;
+        outputSchema?: OutputSchemaDescriptor;
+        planRevision?: string;
+    },
 ): PresentationDefinition {
     const base = definition ?? defaultDefinition();
     const pinId = `pin-${nodeId}`;
@@ -488,13 +535,19 @@ export function upsertOutputPresentation(
             return widget;
         }
         found = true;
-        const selected = views.map((kind) =>
-            applyRendererSettings(
+        const selected = views.map((kind) => {
+            const view =
                 widget.views.find((candidate) => candidate.kind === kind) ??
-                    createViewSpec(kind, `${widget.id}:${kind}`),
+                createViewSpec(kind, `${widget.id}:${kind}`);
+            return applyRendererSettings(
+                applyOutputSchemaBindings(
+                    view,
+                    metadata?.authoredContract ?? widget.authoredContract,
+                    metadata?.outputSchema,
+                ),
                 settings?.[kind],
-            ),
-        );
+            );
+        });
         const defaultSpec = selected.find((candidate) => candidate.kind === defaultView)!;
         return {
             ...widget,
@@ -504,7 +557,8 @@ export function upsertOutputPresentation(
             ...(metadata?.authoredContract
                 ? {
                       authoredContract: metadata.authoredContract,
-                      authoredContractFingerprint: metadata.authoredContract,
+                      authoredContractFingerprint:
+                          metadata.authoredContractFingerprint ?? metadata.authoredContract,
                   }
                 : {}),
             provenance: { by: "user", previous: defaultViewKind(widget) },
@@ -518,8 +572,16 @@ export function upsertOutputPresentation(
             sectionId = "primary";
             sections.push(defaultSection(sectionId, "primary", sections.length));
         }
+        const authoredContract = metadata?.authoredContract ?? "unknown/1";
         const selected = views.map((kind) =>
-            applyRendererSettings(createViewSpec(kind, `${pinId}:${kind}`), settings?.[kind]),
+            applyRendererSettings(
+                applyOutputSchemaBindings(
+                    createViewSpec(kind, `${pinId}:${kind}`),
+                    authoredContract,
+                    metadata?.outputSchema,
+                ),
+                settings?.[kind],
+            ),
         );
         const defaultSpec = selected.find((candidate) => candidate.kind === defaultView)!;
         widgets.push({
@@ -532,8 +594,11 @@ export function upsertOutputPresentation(
             placement: {
                 order: widgets.filter((widget) => widget.sectionId === sectionId).length,
             },
-            authoredContract: metadata?.authoredContract ?? "unknown/1",
-            authoredContractFingerprint: metadata?.authoredContract ?? "runtime:unknown",
+            authoredContract,
+            authoredContractFingerprint:
+                metadata?.authoredContractFingerprint ??
+                metadata?.authoredContract ??
+                "runtime:unknown",
             provenance: { by: "user" },
         });
     }
@@ -553,7 +618,12 @@ export function resetOutputPresentation(
     definition: PresentationDefinition,
     nodeId: string,
     suggestedView: ViewKind,
-    metadata?: { authoredContract?: string; planRevision?: string },
+    metadata?: {
+        authoredContract?: string;
+        authoredContractFingerprint?: string;
+        outputSchema?: OutputSchemaDescriptor;
+        planRevision?: string;
+    },
 ): PresentationDefinition {
     const pinId = `pin-${nodeId}`;
     const widgets = definition.results.widgets
@@ -568,9 +638,14 @@ export function resetOutputPresentation(
             if (widget.id === pinId) {
                 return undefined;
             }
-            const selected =
+            const retained =
                 widget.views.find((candidate) => candidate.kind === suggestedView) ??
                 createViewSpec(suggestedView, `${widget.id}:${suggestedView}`);
+            const selected = applyOutputSchemaBindings(
+                retained,
+                metadata?.authoredContract ?? widget.authoredContract,
+                metadata?.outputSchema,
+            );
             return {
                 ...widget,
                 views: [selected],
@@ -579,7 +654,8 @@ export function resetOutputPresentation(
                 ...(metadata?.authoredContract
                     ? {
                           authoredContract: metadata.authoredContract,
-                          authoredContractFingerprint: metadata.authoredContract,
+                          authoredContractFingerprint:
+                              metadata.authoredContractFingerprint ?? metadata.authoredContract,
                       }
                     : {}),
                 provenance: { by: "default" },
@@ -600,7 +676,12 @@ export function resetOutputPresentation(
 export function applyPresentationLayoutEdits(
     definition: PresentationDefinition | undefined,
     edits: PresentationLayoutEdit[],
-    metadata?: { contractByNode?: Record<string, string>; planRevision?: string },
+    metadata?: {
+        contractByNode?: Record<string, string>;
+        fingerprintByNode?: Record<string, string>;
+        outputSchemaByNode?: Record<string, OutputSchemaDescriptor>;
+        planRevision?: string;
+    },
     policy?: PresentationLayoutPolicyEdit,
 ): PresentationDefinition {
     const base = definition ?? defaultDefinition();
@@ -635,8 +716,12 @@ export function applyPresentationLayoutEdits(
             continue;
         }
         const id = edit.widgetId ?? `layout-${edit.nodeId}`;
-        const selected = createViewSpec(edit.defaultView, `${id}:${edit.defaultView}`);
         const contract = metadata?.contractByNode?.[edit.nodeId] ?? "unknown/1";
+        const selected = applyOutputSchemaBindings(
+            createViewSpec(edit.defaultView, `${id}:${edit.defaultView}`),
+            contract,
+            metadata?.outputSchemaByNode?.[edit.nodeId],
+        );
         widgets.push({
             id,
             source: { kind: "activity-output", nodeId: edit.nodeId, slot: "primary" },
@@ -647,7 +732,7 @@ export function applyPresentationLayoutEdits(
             placement: edit.placement,
             visibility: edit.hidden ? { when: "never" } : { when: "always" },
             authoredContract: contract,
-            authoredContractFingerprint: contract,
+            authoredContractFingerprint: metadata?.fingerprintByNode?.[edit.nodeId] ?? contract,
             provenance: { by: "user" },
         });
     }
@@ -720,6 +805,7 @@ export function outputPresentationsOf(
             sectionId: widget.sectionId,
             ...(widget.placement ? { placement: widget.placement } : {}),
             hidden: widget.visibility?.when === "never",
+            authoredContractFingerprint: widget.authoredContractFingerprint,
             ...(widget.views.some((view) => rendererSettingsOf(view) !== undefined)
                 ? {
                       settings: Object.fromEntries(

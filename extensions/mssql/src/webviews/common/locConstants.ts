@@ -3767,6 +3767,7 @@ export class LocConstants {
             outputLabel: l10n.t("Output:"),
             suggestedMarker: l10n.t("Suggested"),
             setByYouMarker: l10n.t("Set by you"),
+            reviewRequiredMarker: l10n.t("Review required"),
             autoSuggested: l10n.t("Auto (suggested)"),
             noOutput: l10n.t("no output"),
             chooseOutputView: l10n.t("Choose output view"),
@@ -3826,6 +3827,9 @@ export class LocConstants {
             ),
             outputPresentationSaveFailed: l10n.t(
                 "The output layout could not be saved. Review the selected views and try again.",
+            ),
+            outputFieldsChangedReview: l10n.t(
+                "The registered output fields changed since this view was saved. Review the field mapping below and save to accept it.",
             ),
             viewCandidateRuntimeShapeReason: l10n.t(
                 "The columns are produced at run time. This view stays available and falls back visibly if the result shape does not match.",

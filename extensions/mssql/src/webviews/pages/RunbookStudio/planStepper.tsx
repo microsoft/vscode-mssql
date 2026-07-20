@@ -24,6 +24,8 @@ import {
     defaultViewFor,
     expectedContractFor,
     OutputPresentationSummary,
+    outputPresentationNeedsReview,
+    outputSchemaFingerprint,
     OutputViewSettings,
     PresentationMode,
     ResolvedWidget,
@@ -239,7 +241,8 @@ function OutputPicker({
             </span>
         );
     }
-    const candidates = viewCandidates(contract, state?.artifact?.outputSchemas?.[node.id]);
+    const outputSchema = state?.artifact?.outputSchemas?.[node.id];
+    const candidates = viewCandidates(contract, outputSchema);
     const candidateByView = new Map(candidates.map((candidate) => [candidate.view, candidate]));
     const selectableViews = candidates
         .filter((candidate) => candidate.compatibility !== "incompatible")
@@ -251,6 +254,10 @@ function OutputPicker({
         (view) =>
             candidateByView.get(view)?.compatibility === "incompatible" ||
             !candidateByView.has(view),
+    );
+    const reviewRequired = outputPresentationNeedsReview(
+        configured,
+        outputSchemaFingerprint(contract, outputSchema),
     );
 
     const openEditor = () => {
@@ -445,12 +452,14 @@ function OutputPicker({
                     <span aria-hidden>⌄</span>
                 </button>
                 <span
-                    className={`rbs-chip ${configured?.setByUser ? "" : "rbs-chip-suggested"} ${unavailableViews.length > 0 ? "rbs-candidate-unavailable" : ""}`}>
+                    className={`rbs-chip ${configured?.setByUser ? "" : "rbs-chip-suggested"} ${unavailableViews.length > 0 ? "rbs-candidate-unavailable" : reviewRequired ? "rbs-candidate-review" : ""}`}>
                     {unavailableViews.length > 0
                         ? loc.driftBadge
-                        : configured?.setByUser
-                          ? loc.setByYouMarker
-                          : loc.suggestedMarker}
+                        : reviewRequired
+                          ? loc.reviewRequiredMarker
+                          : configured?.setByUser
+                            ? loc.setByYouMarker
+                            : loc.suggestedMarker}
                 </span>
             </div>
             {open ? (
@@ -466,6 +475,11 @@ function OutputPicker({
                         <strong>{loc.chooseOutputView}</strong>
                         <span className="rbs-chip rbs-mono">{contract}</span>
                     </div>
+                    {reviewRequired ? (
+                        <div className="rbs-drift-notice" role="status">
+                            {loc.outputFieldsChangedReview}
+                        </div>
+                    ) : null}
                     <div
                         className="rbs-output-candidate-list"
                         role="group"

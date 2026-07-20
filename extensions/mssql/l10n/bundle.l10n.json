@@ -4800,6 +4800,7 @@
     "Output:": "Output:",
     "Suggested": "Suggested",
     "Set by you": "Set by you",
+    "Review required": "Review required",
     "Auto (suggested)": "Auto (suggested)",
     "no output": "no output",
     "Choose output view": "Choose output view",
@@ -4843,6 +4844,7 @@
     "Saving layout…": "Saving layout…",
     "This runbook's output layout changed while the editor was open. Reopen the picker to review the latest version.": "This runbook's output layout changed while the editor was open. Reopen the picker to review the latest version.",
     "The output layout could not be saved. Review the selected views and try again.": "The output layout could not be saved. Review the selected views and try again.",
+    "The registered output fields changed since this view was saved. Review the field mapping below and save to accept it.": "The registered output fields changed since this view was saved. Review the field mapping below and save to accept it.",
     "The columns are produced at run time. This view stays available and falls back visibly if the result shape does not match.": "The columns are produced at run time. This view stays available and falls back visibly if the result shape does not match.",
     "Category: {0} · value: {1}/{0} is a result field used as a chart category{1} is a comma-separated list of numeric result fields": {
         "message": "Category: {0} · value: {1}",
@@ -4899,7 +4901,6 @@
         "message": "The '{0}' view is not available yet in this preview.",
         "comment": ["{0} is a renderer kind id"]
     },
-    "Review required": "Review required",
     "The saved '{0}' view no longer matches this output. Showing '{1}' instead. Review this widget's presentation before saving the runbook./{0} and {1} are renderer kind ids": {
         "message": "The saved '{0}' view no longer matches this output. Showing '{1}' instead. Review this widget's presentation before saving the runbook.",
         "comment": ["{0} and {1} are renderer kind ids"]

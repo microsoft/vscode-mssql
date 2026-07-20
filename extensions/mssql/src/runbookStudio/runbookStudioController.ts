@@ -53,6 +53,8 @@ import {
     defaultViewFor,
     expectedContractFor,
     isViewCandidateSelectable,
+    OutputSchemaDescriptor,
+    outputSchemaFingerprint,
     PresentationDefinition,
     PresentationLayoutEdit,
     PresentationLayoutPolicyEdit,
@@ -279,6 +281,8 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 }
                 const metadata = {
                     authoredContract: contract,
+                    authoredContractFingerprint: outputSchemaFingerprint(contract, outputSchema),
+                    ...(outputSchema ? { outputSchema } : {}),
                     planRevision: artifact.lock?.planRevision,
                 };
                 const next =
@@ -838,6 +842,8 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
         const sections = definition?.results.sections ?? defaultPresentationSections();
         const sectionIds = new Set(sections.map((section) => section.id));
         const contractByNode: Record<string, string> = {};
+        const fingerprintByNode: Record<string, string> = {};
+        const outputSchemaByNode: Record<string, OutputSchemaDescriptor> = {};
         let valid =
             artifact?.lock !== undefined &&
             (edits.length > 0 || policy !== undefined) &&
@@ -863,6 +869,11 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                     (Number.isInteger(span.wide) && span.wide >= 1 && span.wide <= 12));
             if (contract) {
                 contractByNode[edit.nodeId] = contract;
+                const outputSchema = findActivity(node?.activityKind)?.outputSchema;
+                fingerprintByNode[edit.nodeId] = outputSchemaFingerprint(contract, outputSchema);
+                if (outputSchema) {
+                    outputSchemaByNode[edit.nodeId] = outputSchema;
+                }
             }
         }
         if (!valid || !artifact) {
@@ -875,6 +886,8 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 edits,
                 {
                     contractByNode,
+                    fingerprintByNode,
+                    outputSchemaByNode,
                     planRevision: artifact.lock?.planRevision,
                 },
                 policy,
