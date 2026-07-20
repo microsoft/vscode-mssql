@@ -8982,15 +8982,6 @@
     <trans-unit id="mssql.profiler.launchFromObjectExplorer">
       <source xml:lang="en">Launch Query Profiler...</source>
     </trans-unit>
-    <trans-unit id="mssql.quickQueries.executionMode">
-      <source xml:lang="en">Legacy execution behavior. Quick Queries now always open and execute when no SQL editor is active.</source>
-    </trans-unit>
-    <trans-unit id="mssql.quickQueries.executionMode.open">
-      <source xml:lang="en">Legacy open mode.</source>
-    </trans-unit>
-    <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
-      <source xml:lang="en">Legacy open-and-run mode.</source>
-    </trans-unit>
     <trans-unit id="mssql.Configuration">
       <source xml:lang="en">MSSQL</source>
     </trans-unit>
@@ -9113,9 +9104,6 @@
     </trans-unit>
     <trans-unit id="mssql.walkthroughs.nextSteps.viewQueryPlan.altText">
       <source xml:lang="en">Query plan visualization</source>
-    </trans-unit>
-    <trans-unit id="mssql.quickQueries.executionMode.deprecationMessage">
-      <source xml:lang="en">Quick Queries now always open and execute when no SQL editor is active. This setting is ignored and can be removed.</source>
     </trans-unit>
     <trans-unit id="mssql.refreshObjectExplorerNode">
       <source xml:lang="en">Refresh</source>

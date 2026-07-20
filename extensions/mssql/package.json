@@ -2234,19 +2234,6 @@
                             "query": {
                                 "type": "string",
                                 "description": "%mssql.quickQueries.query%"
-                            },
-                            "executionMode": {
-                                "type": "string",
-                                "enum": [
-                                    "open",
-                                    "openAndRun"
-                                ],
-                                "enumDescriptions": [
-                                    "%mssql.quickQueries.executionMode.open%",
-                                    "%mssql.quickQueries.executionMode.openAndRun%"
-                                ],
-                                "description": "%mssql.quickQueries.executionMode%",
-                                "deprecationMessage": "%mssql.quickQueries.executionMode.deprecationMessage%"
                             }
                         }
                     },

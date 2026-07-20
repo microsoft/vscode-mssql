@@ -277,7 +277,7 @@ suite("Quick Query Service", () => {
                         {
                             default?: QuickQuerySlot[];
                             items?: {
-                                properties?: Record<string, { deprecationMessage?: string }>;
+                                properties?: Record<string, unknown>;
                             };
                         }
                     >;
@@ -300,8 +300,6 @@ suite("Quick Query Service", () => {
             expect(defaultSlot.name).to.equal(getQuickQuerySlotName(slotNumber));
             expect(defaultSlot).to.not.have.property("executionMode");
         }
-        expect(quickQueryConfiguration.items.properties.executionMode.deprecationMessage).to.equal(
-            "%mssql.quickQueries.executionMode.deprecationMessage%",
-        );
+        expect(quickQueryConfiguration.items.properties).to.not.have.property("executionMode");
     });
 });
