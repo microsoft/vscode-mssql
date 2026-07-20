@@ -32,6 +32,7 @@ import {
     PRESENTATION_SCHEMA_VERSION,
     expectedContractFor,
     viewCandidateTier,
+    RunFieldName,
 } from "../../src/sharedInterfaces/runbookPresentation";
 import { RunbookRunSnapshot } from "../../src/sharedInterfaces/runbookStudio";
 
@@ -103,6 +104,27 @@ function binding(
         authoredContract: "unknown/1",
         authoredContractFingerprint: "test",
         provenance: pinned ? { by: "user" } : { by: "default" },
+    };
+}
+
+function runFieldBinding(
+    id: string,
+    field: RunFieldName,
+    order: number,
+    viewKind: Parameters<typeof createViewSpec>[0] = "scalar-cards",
+): PresentationDefinition["results"]["widgets"][number] {
+    const view = createViewSpec(viewKind, `${id}:${viewKind}`);
+    return {
+        id,
+        source: { kind: "run-field", field },
+        views: [view],
+        presentation: { mode: "single" },
+        defaultViewId: view.id,
+        sectionId: "main",
+        placement: { order },
+        authoredContract: "scalarSet/1",
+        authoredContractFingerprint: "scalarSet/1",
+        provenance: { by: "default" },
     };
 }
 
@@ -400,6 +422,74 @@ suite("presentationResolver", () => {
         expect(
             resolvePresentation(def, snap).sections[0].widgets.map((widget) => widget.id),
         ).to.deep.equal(["always", "warning"]);
+    });
+
+    test("run-field sources resolve bounded durable metadata without handles", () => {
+        const def = definition();
+        def.results.widgets = [
+            {
+                ...runFieldBinding("status", "status", 0),
+                visibility: { when: "source-ready" },
+            },
+            runFieldBinding("verdict", "verdict", 1),
+            runFieldBinding("elapsed", "elapsedMs", 2),
+            runFieldBinding("completed", "completedNodeCount", 3),
+            {
+                ...runFieldBinding("total", "totalNodeCount", 4),
+                visibility: { when: "source-non-empty" },
+            },
+            runFieldBinding("warnings", "warningCount", 5),
+            runFieldBinding("fallback", "status", 6, "bar"),
+        ];
+        const snap = snapshot();
+        snap.verdict = "pass";
+        snap.startedEpochMs = 100;
+        snap.endedEpochMs = 550;
+
+        const widgets = resolvePresentation(def, snap).sections[0].widgets;
+        expect(widgets.map((widget) => widget.id)).to.deep.equal([
+            "status",
+            "verdict",
+            "elapsed",
+            "completed",
+            "total",
+            "warnings",
+            "fallback",
+        ]);
+        expect(widgets.map((widget) => widget.state)).to.deep.equal([
+            "ready",
+            "ready",
+            "ready",
+            "ready",
+            "ready",
+            "sourceMissing",
+            "ready",
+        ]);
+        expect(widgets.slice(0, 5).map((widget) => widget.runField?.value)).to.deep.equal([
+            "succeeded",
+            "pass",
+            450,
+            2,
+            3,
+        ]);
+        expect(widgets.every((widget) => widget.handleId === undefined)).to.equal(true);
+        expect(widgets[6]).to.deep.include({ view: "scalar-cards", contract: "scalarSet/1" });
+        expect(widgets[6].drift?.requestedView).to.equal("bar");
+
+        snap.state = "running";
+        snap.verdict = undefined;
+        snap.endedEpochMs = undefined;
+        const running = resolvePresentation(def, snap).sections[0].widgets;
+        expect(running.find((widget) => widget.id === "verdict")?.state).to.equal("pending");
+        expect(running.find((widget) => widget.id === "elapsed")?.state).to.equal("pending");
+    });
+
+    test("validation rejects run fields outside the closed grammar", () => {
+        const def = definition() as unknown as {
+            results: { widgets: Array<{ source: { kind: string; field?: string } }> };
+        };
+        def.results.widgets[0].source = { kind: "run-field", field: "secretPath" };
+        expect(validatePresentationDefinition(def)).to.equal(undefined);
     });
 
     test("upsertOutputPin creates, re-pins, and clears without touching authored widgets", () => {

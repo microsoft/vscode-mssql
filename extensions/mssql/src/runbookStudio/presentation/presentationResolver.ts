@@ -20,6 +20,7 @@ import {
     PresentationLayoutEdit,
     PresentationDefinition,
     PresentationMode,
+    RunFieldName,
     PRESENTATION_SCHEMA_VERSION,
     ResolvedPresentation,
     ResolvedSection,
@@ -53,6 +54,15 @@ const VIEW_KINDS: ReadonlySet<string> = new Set<ViewKind>([
     "json",
     "log-view",
     "artifact-list",
+]);
+const RUN_FIELDS: ReadonlySet<string> = new Set<RunFieldName>([
+    "status",
+    "verdict",
+    "elapsedMs",
+    "warningCount",
+    "errorCount",
+    "completedNodeCount",
+    "totalNodeCount",
 ]);
 const SECTION_ROLES: ReadonlySet<string> = new Set<SectionRole>([
     "hero",
@@ -764,7 +774,7 @@ function validSource(source: unknown): boolean {
                 source.slot.length > 0
             );
         case "run-field":
-            return typeof source.field === "string";
+            return typeof source.field === "string" && RUN_FIELDS.has(source.field);
         case "run-metric":
             return typeof source.key === "string";
         case "derived":
@@ -926,7 +936,7 @@ export function resolvePresentation(
         const sectionId = knownSectionIds.has(binding.sectionId)
             ? binding.sectionId
             : (overflowSectionId ?? binding.sectionId);
-        const resolved = resolveBinding(binding, sectionId, nodesById);
+        const resolved = resolveBinding(binding, sectionId, snapshot, nodesById);
         const widgets = widgetsBySection.get(sectionId) ?? [];
         widgets.push(resolved);
         widgetsBySection.set(sectionId, widgets);
@@ -1017,9 +1027,13 @@ function visibilityAllows(
         return policy.values.includes(verdict);
     }
     if (binding.source.kind !== "activity-output") {
-        // Run-field, metric, and derived source materialization is a separate
-        // evaluator slice. Until then, do not claim they are ready/non-empty.
-        return false;
+        if (binding.source.kind !== "run-field") {
+            // Metric and derived materialization remain separate evaluator
+            // slices. Until then, do not claim they are ready/non-empty.
+            return false;
+        }
+        const runField = resolveRunField(binding.source.field, snapshot);
+        return runField.state === "ready";
     }
     const node = nodesById.get(binding.source.nodeId);
     const output = node ? outputForSlot(node.outputs ?? [], binding.source.slot) : undefined;
@@ -1061,6 +1075,7 @@ function resolvedUnboundOutput(
 function resolveBinding(
     binding: WidgetBinding,
     sectionId: string,
+    snapshot: RunbookRunSnapshot | undefined,
     nodesById: Map<string, RunbookNodeSnapshot>,
 ): ResolvedWidget {
     const requested = defaultViewSpec(binding);
@@ -1082,6 +1097,9 @@ function resolveBinding(
         ...(binding.placement ? { placement: binding.placement } : {}),
         provenance: binding.provenance,
     };
+    if (binding.source.kind === "run-field") {
+        return resolveRunFieldBinding(binding, binding.source.field, sectionId, snapshot);
+    }
     if (binding.source.kind !== "activity-output") {
         return { ...common, state: "sourceMissing" };
     }
@@ -1094,6 +1112,102 @@ function resolveBinding(
         return { ...common, state: isTerminalNodeState(node.state) ? "noOutput" : "pending" };
     }
     return resolveWidgetWithOutput(binding, sectionId, node, output);
+}
+
+function resolveRunField(
+    field: RunFieldName,
+    snapshot: RunbookRunSnapshot | undefined,
+):
+    | { state: "ready"; value: string | number }
+    | { state: "pending" | "noOutput" | "sourceMissing" } {
+    if (!snapshot) {
+        return { state: "sourceMissing" };
+    }
+    switch (field) {
+        case "status":
+            return { state: "ready", value: snapshot.state };
+        case "verdict":
+            return snapshot.verdict
+                ? { state: "ready", value: snapshot.verdict }
+                : { state: isTerminalRunState(snapshot.state) ? "noOutput" : "pending" };
+        case "elapsedMs":
+            return snapshot.startedEpochMs !== undefined && snapshot.endedEpochMs !== undefined
+                ? {
+                      state: "ready",
+                      value: Math.max(0, snapshot.endedEpochMs - snapshot.startedEpochMs),
+                  }
+                : { state: isTerminalRunState(snapshot.state) ? "noOutput" : "pending" };
+        case "completedNodeCount":
+            return {
+                state: "ready",
+                value: snapshot.nodes.filter((node) => isTerminalNodeState(node.state)).length,
+            };
+        case "totalNodeCount":
+            return { state: "ready", value: snapshot.nodes.length };
+        case "warningCount":
+        case "errorCount":
+            // The durable snapshot does not yet own diagnostic counts. Zero
+            // would falsely mean that diagnostics were measured and absent.
+            return { state: "sourceMissing" };
+    }
+}
+
+function resolveRunFieldBinding(
+    binding: WidgetBinding,
+    field: RunFieldName,
+    sectionId: string,
+    snapshot: RunbookRunSnapshot | undefined,
+): ResolvedWidget {
+    const contract = "scalarSet/1";
+    const requested = defaultViewSpec(binding);
+    const compatible = binding.views.filter((view) => isViewCompatible(contract, view.kind));
+    const requestedCompatible = isViewCompatible(contract, requested.kind);
+    const fallback = requestedCompatible
+        ? undefined
+        : (compatible[0] ?? createViewSpec(defaultViewFor(contract), `${binding.id}:fallback`));
+    const active = requestedCompatible ? requested : fallback!;
+    const views = [
+        ...binding.views,
+        ...(fallback && !binding.views.some((view) => view.id === fallback.id) ? [fallback] : []),
+    ].map((view) => {
+        const compatibleView = isViewCompatible(contract, view.kind);
+        return {
+            id: view.id,
+            kind: view.kind,
+            ...(view.title ? { title: view.title } : {}),
+            ...(!compatibleView
+                ? {
+                      issue: {
+                          viewId: view.id,
+                          code: "CONTRACT_KIND_CHANGED" as const,
+                          message: `Run field '${field}' is not compatible with ${view.kind}.`,
+                          fallbackViewId: active.id,
+                      },
+                  }
+                : {}),
+            ...(rendererSettingsOf(view) ? { settings: rendererSettingsOf(view) } : {}),
+        };
+    });
+    const value = resolveRunField(field, snapshot);
+    return {
+        id: binding.id,
+        title: active.title ?? binding.id,
+        nodeId: binding.id,
+        state: value.state,
+        view: active.kind,
+        views,
+        presentation: binding.presentation,
+        defaultViewId: binding.defaultViewId,
+        activeViewId: active.id,
+        sectionId,
+        ...(binding.placement ? { placement: binding.placement } : {}),
+        provenance: binding.provenance,
+        contract,
+        ...(value.state === "ready" ? { runField: { field, value: value.value } } : {}),
+        ...(!requestedCompatible
+            ? { drift: { requestedView: requested.kind, reason: "contractIncompatible" as const } }
+            : {}),
+    };
 }
 
 function outputForSlot(outputs: DataHandleRef[], slot: string): DataHandleRef | undefined {

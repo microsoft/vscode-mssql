@@ -726,7 +726,14 @@ export function ResolvedWidgetView({
 }) {
     const { setOutputView } = useRbs();
     const loc = locConstants.runbookStudio;
-    const page = usePage(widget.state === "ready" ? widget.handleId : undefined);
+    const fetchedPage = usePage(widget.state === "ready" ? widget.handleId : undefined);
+    const page: FetchedPage | undefined = widget.runField
+        ? {
+              columns: ["Metric", "Value"],
+              rows: [[widget.runField.field, widget.runField.value]],
+              totalRows: 1,
+          }
+        : fetchedPage;
     // Ephemeral per-widget view override — "this run only": client-side state
     // keyed to the widget id and never sent over RPC unless the user invokes
     // the explicit save action. Ignored automatically when the widget identity
@@ -904,7 +911,7 @@ export function ResolvedWidgetView({
                                 <span className="rbs-chip rbs-chip-modified">
                                     {loc.modifiedChip}
                                 </span>
-                                {!sample ? (
+                                {!sample && !widget.runField ? (
                                     <button
                                         type="button"
                                         className="rbs-btn rbs-btn-quiet"

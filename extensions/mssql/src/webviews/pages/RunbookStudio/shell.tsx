@@ -2025,7 +2025,7 @@ function PresentationSections({
                                 className="rbs-layout-widget"
                                 style={layoutStyle(widget, presentation)}
                                 key={widget.id}>
-                                {editing ? (
+                                {editing && !widget.runField ? (
                                     <LayoutEditorControls
                                         widget={widget}
                                         siblings={section.widgets}

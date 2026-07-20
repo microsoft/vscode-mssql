@@ -151,19 +151,18 @@ export interface LegacyPresentationDefinition {
 }
 
 /** Stable semantic source identity; never references a concrete data handle. */
+export type RunFieldName =
+    | "status"
+    | "verdict"
+    | "elapsedMs"
+    | "warningCount"
+    | "errorCount"
+    | "completedNodeCount"
+    | "totalNodeCount";
+
 export type PresentationSourceRef =
     | { kind: "activity-output"; nodeId: string; slot: string }
-    | {
-          kind: "run-field";
-          field:
-              | "status"
-              | "verdict"
-              | "elapsedMs"
-              | "warningCount"
-              | "errorCount"
-              | "completedNodeCount"
-              | "totalNodeCount";
-      }
+    | { kind: "run-field"; field: RunFieldName }
     | { kind: "run-metric"; key: string }
     | { kind: "derived"; sourceId: string };
 
@@ -471,6 +470,9 @@ export interface ResolvedWidget {
     handleId?: string;
     contract?: string;
     rows?: number;
+    /** Bounded structural metadata for a `run-field` source. This is not an
+     * activity result payload and never creates a result-store handle. */
+    runField?: { field: RunFieldName; value: string | number };
 }
 
 export interface ResolvedSection {
