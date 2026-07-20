@@ -348,6 +348,60 @@ suite("presentationResolver", () => {
         expect(resolved.emptyState).not.to.equal(def.results.emptyState);
     });
 
+    test("visibility policies use durable readiness, row-count, terminal, and verdict facts", () => {
+        const def = definition();
+        def.results.widgets = [
+            { ...binding("always", "query", "grid", 0), visibility: { when: "always" } },
+            { ...binding("ready", "query", "grid", 1), visibility: { when: "source-ready" } },
+            {
+                ...binding("nonempty", "query", "grid", 2),
+                visibility: { when: "source-non-empty" },
+            },
+            {
+                ...binding("unknown-rows", "threshold", "scalar-cards", 3),
+                visibility: { when: "source-non-empty" },
+            },
+            {
+                ...binding("complete", "query", "grid", 4),
+                visibility: { when: "run-complete" },
+            },
+            {
+                ...binding("passing", "query", "grid", 5),
+                visibility: { when: "verdict", values: ["pass"] },
+            },
+            {
+                ...binding("warning", "query", "grid", 6),
+                visibility: { when: "verdict", values: ["warn"] },
+            },
+            { ...binding("never", "query", "grid", 7), visibility: { when: "never" } },
+        ];
+        const snap = snapshot();
+        snap.verdict = "pass";
+
+        const terminalIds = resolvePresentation(def, snap).sections[0].widgets.map(
+            (widget) => widget.id,
+        );
+        expect(terminalIds).to.deep.equal(["always", "ready", "nonempty", "complete", "passing"]);
+
+        snap.state = "running";
+        snap.verdict = undefined;
+        snap.nodes[0].outputs![0].rows = 0;
+        const runningIds = resolvePresentation(def, snap).sections[0].widgets.map(
+            (widget) => widget.id,
+        );
+        expect(runningIds).to.deep.equal(["always", "ready"]);
+
+        snap.verdict = "indeterminate";
+        expect(
+            resolvePresentation(def, snap).sections[0].widgets.map((widget) => widget.id),
+        ).to.deep.equal(["always", "ready", "warning"]);
+
+        snap.nodes[0].outputs![0].expired = true;
+        expect(
+            resolvePresentation(def, snap).sections[0].widgets.map((widget) => widget.id),
+        ).to.deep.equal(["always", "warning"]);
+    });
+
     test("upsertOutputPin creates, re-pins, and clears without touching authored widgets", () => {
         // First pin creates the definition + primary section.
         const pinned = upsertOutputPin(undefined, "query", "bar");

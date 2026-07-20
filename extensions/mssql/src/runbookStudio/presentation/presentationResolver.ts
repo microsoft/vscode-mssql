@@ -38,7 +38,7 @@ import {
     RunbookNodeSnapshot,
     RunbookRunSnapshot,
 } from "../../sharedInterfaces/runbookStudio";
-import { isTerminalNodeState } from "../runbookRunModel";
+import { isTerminalNodeState, isTerminalRunState } from "../runbookRunModel";
 
 const VIEW_KINDS: ReadonlySet<string> = new Set<ViewKind>([
     "grid",
@@ -914,7 +914,7 @@ export function resolvePresentation(
         if (binding.source.kind === "activity-output") {
             boundOutputs.add(`${binding.source.nodeId}\u0000${binding.source.slot}`);
         }
-        if (binding.visibility?.when === "never") {
+        if (!visibilityAllows(binding, snapshot, nodesById)) {
             continue;
         }
         if (
@@ -986,6 +986,47 @@ export function resolvePresentation(
             : {}),
         sections,
     };
+}
+
+/** Payload-free visibility evaluation. Policies that depend on output data
+ * use only durable handle metadata; an absent/expired handle or unknown row
+ * count cannot be promoted to ready/non-empty by guesswork. */
+function visibilityAllows(
+    binding: WidgetBinding,
+    snapshot: RunbookRunSnapshot | undefined,
+    nodesById: Map<string, RunbookNodeSnapshot>,
+): boolean {
+    const policy = binding.visibility;
+    if (!policy || policy.when === "always") {
+        return true;
+    }
+    if (policy.when === "never") {
+        return false;
+    }
+    if (policy.when === "run-complete") {
+        return snapshot !== undefined && isTerminalRunState(snapshot.state);
+    }
+    if (policy.when === "verdict") {
+        if (!snapshot?.verdict) {
+            return false;
+        }
+        // The presentation grammar calls the third UI verdict "warn" while
+        // the durable run model calls the same non-pass/non-fail state
+        // "indeterminate". Keep that translation closed at this boundary.
+        const verdict = snapshot.verdict === "indeterminate" ? "warn" : snapshot.verdict;
+        return policy.values.includes(verdict);
+    }
+    if (binding.source.kind !== "activity-output") {
+        // Run-field, metric, and derived source materialization is a separate
+        // evaluator slice. Until then, do not claim they are ready/non-empty.
+        return false;
+    }
+    const node = nodesById.get(binding.source.nodeId);
+    const output = node ? outputForSlot(node.outputs ?? [], binding.source.slot) : undefined;
+    if (!output || output.expired) {
+        return false;
+    }
+    return policy.when === "source-ready" || (output.rows !== undefined && output.rows > 0);
 }
 
 function resolvedUnboundOutput(
