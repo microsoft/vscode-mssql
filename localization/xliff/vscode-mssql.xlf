@@ -2705,6 +2705,10 @@
     <trans-unit id="++CODE++44ef47797353661b06274b2fe94ca033f5bb11ec18c160acc819451520aa50eb">
       <source xml:lang="en">Downloading the Data API builder container image</source>
     </trans-unit>
+    <trans-unit id="++CODE++f7c7c142ca01dab7e38d3a00890fcb188431e504441050da0b8310cb16fc7fd4">
+      <source xml:lang="en">Drag to resize {0}</source>
+      <note>{0} is an output widget title</note>
+    </trans-unit>
     <trans-unit id="++CODE++b52ae04d7e016c9cacdfdac74513dcca25c8ba6c77529a6ed1a56b4ea351b77d">
       <source xml:lang="en">Drag {0} to reorder or move between sections</source>
       <note>{0} is an output widget title</note>

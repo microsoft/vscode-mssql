@@ -4694,6 +4694,10 @@
         "comment": ["{0} is a runbook plan step label"]
     },
     "Width": "Width",
+    "Drag to resize {0}/{0} is an output widget title": {
+        "message": "Drag to resize {0}",
+        "comment": ["{0} is an output widget title"]
+    },
     "Two thirds": "Two thirds",
     "Half": "Half",
     "One third": "One third",

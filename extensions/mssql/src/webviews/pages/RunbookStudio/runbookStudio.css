@@ -349,6 +349,18 @@
     opacity: 0.5;
 }
 
+.rbs-layout-resize-slider {
+    width: 88px;
+    min-width: 64px;
+    accent-color: var(--vscode-focusBorder);
+    cursor: ew-resize;
+}
+
+.rbs-layout-resize-slider:disabled {
+    cursor: default;
+    opacity: 0.5;
+}
+
 .rbs-error-text {
     color: var(--vscode-errorForeground);
     font-size: 11px;

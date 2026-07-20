@@ -10,6 +10,8 @@ import {
     pointerReorderPresentationLayoutEdits,
     pointerMovePresentationLayoutEdits,
     presentationLayoutStrategy,
+    presentationSpanPresetAt,
+    presentationSpanPresetOf,
     rebasePresentationLayoutEdits,
     rebasePresentationLayoutPolicy,
 } from "../../src/webviews/pages/RunbookStudio/presentationDraft";
@@ -208,5 +210,17 @@ suite("presentationDraft", () => {
         expect(
             rebasePresentationLayoutPolicy("flow", "stacked", { strategy: "stacked" }),
         ).to.deep.equal({ policy: { strategy: "stacked" }, conflict: false });
+    });
+
+    test("pointer resize maps only to bounded semantic span presets", () => {
+        expect(presentationSpanPresetAt(-10)).to.equal("third");
+        expect(presentationSpanPresetAt(1)).to.equal("half");
+        expect(presentationSpanPresetAt(2)).to.equal("twoThirds");
+        expect(presentationSpanPresetAt(99)).to.equal("full");
+        expect(presentationSpanPresetAt(Number.NaN)).to.equal("full");
+        expect(presentationSpanPresetOf({ wide: 4 })).to.equal("third");
+        expect(presentationSpanPresetOf({ wide: 6 })).to.equal("half");
+        expect(presentationSpanPresetOf({ wide: 8 })).to.equal("twoThirds");
+        expect(presentationSpanPresetOf({ wide: 11 })).to.equal("full");
     });
 });

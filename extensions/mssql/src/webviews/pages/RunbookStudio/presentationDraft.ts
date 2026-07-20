@@ -41,6 +41,39 @@ export interface PresentationLayoutPolicyRebase {
     conflict: boolean;
 }
 
+/** Semantic width presets shared by pointer and select authoring. The
+ * pointer surface never emits raw pixel geometry. */
+export const PRESENTATION_SPAN_PRESETS = {
+    third: { compact: 1, medium: 2, wide: 4 },
+    half: { compact: 1, medium: 3, wide: 6 },
+    twoThirds: { compact: 1, medium: 4, wide: 8 },
+    full: { compact: 1, medium: 6, wide: 12 },
+} as const;
+
+export type PresentationSpanPreset = keyof typeof PRESENTATION_SPAN_PRESETS;
+
+export const PRESENTATION_SPAN_PRESET_ORDER: readonly PresentationSpanPreset[] = [
+    "third",
+    "half",
+    "twoThirds",
+    "full",
+];
+
+export function presentationSpanPresetOf(
+    span: { wide?: number } | undefined,
+): PresentationSpanPreset {
+    const wide = span?.wide;
+    return wide === 4 ? "third" : wide === 6 ? "half" : wide === 8 ? "twoThirds" : "full";
+}
+
+export function presentationSpanPresetAt(step: number): PresentationSpanPreset {
+    const normalized = Number.isFinite(step)
+        ? Math.round(step)
+        : PRESENTATION_SPAN_PRESET_ORDER.length - 1;
+    const bounded = Math.max(0, Math.min(PRESENTATION_SPAN_PRESET_ORDER.length - 1, normalized));
+    return PRESENTATION_SPAN_PRESET_ORDER[bounded];
+}
+
 /** Normalize optional schema-v2 strategy metadata. Definitions written
  * before strategy authoring used document for flow and dashboard for grid. */
 export function presentationLayoutStrategy(

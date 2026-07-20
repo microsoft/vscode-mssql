@@ -42,9 +42,13 @@ import { PlanGraphView } from "./graphView";
 import { ResolvedWidgetView } from "./widgets";
 import {
     mergePresentationLayoutEdits,
+    PRESENTATION_SPAN_PRESETS,
+    PRESENTATION_SPAN_PRESET_ORDER,
     pointerMovePresentationLayoutEdits,
     presentationLayoutSnapshot,
     presentationLayoutStrategy,
+    presentationSpanPresetAt,
+    presentationSpanPresetOf,
     PresentationLayoutConflict,
     rebasePresentationLayoutEdits,
     rebasePresentationLayoutPolicy,
@@ -2273,18 +2277,7 @@ function PresentationSections({
     );
 }
 
-const SPAN_PRESETS = {
-    full: { compact: 1, medium: 6, wide: 12 },
-    twoThirds: { compact: 1, medium: 4, wide: 8 },
-    half: { compact: 1, medium: 3, wide: 6 },
-    third: { compact: 1, medium: 2, wide: 4 },
-} as const;
 const LAYOUT_DRAG_MIME = "application/vnd.microsoft.runbook-studio-layout-node";
-
-function spanPresetOf(span: { wide?: number } | undefined) {
-    const wide = span?.wide;
-    return wide === 4 ? "third" : wide === 6 ? "half" : wide === 8 ? "twoThirds" : "full";
-}
 
 function presentationSourcesMatch(
     left: PresentationSourceRef | undefined,
@@ -2344,6 +2337,13 @@ function LayoutEditorControls({
     const placement = widget.placement ??
         summary?.placement ??
         configured?.placement ?? { order: 0 };
+    const currentSpanPreset = presentationSpanPresetOf(placement.span);
+    const [resizePreset, setResizePreset] = useState(currentSpanPreset);
+    const lastCommittedResizePreset = useRef(currentSpanPreset);
+    useEffect(() => {
+        setResizePreset(currentSpanPreset);
+        lastCommittedResizePreset.current = currentSpanPreset;
+    }, [currentSpanPreset]);
     const currentSectionId =
         (sections.some((section) => section.id === widget.sectionId)
             ? widget.sectionId
@@ -2381,6 +2381,19 @@ function LayoutEditorControls({
     };
     const commitEdits = (edits: PresentationLayoutEdit[]) => onLayoutEdits?.(edits);
     const commit = (edit: Partial<PresentationLayoutEdit>) => commitEdits([editFor(widget, edit)]);
+    const commitSpanPreset = (preset: keyof typeof PRESENTATION_SPAN_PRESETS) => {
+        setResizePreset(preset);
+        if (lastCommittedResizePreset.current === preset) {
+            return;
+        }
+        lastCommittedResizePreset.current = preset;
+        commit({
+            placement: {
+                ...placement,
+                span: PRESENTATION_SPAN_PRESETS[preset],
+            },
+        });
+    };
     const move = (delta: -1 | 1) => {
         const sibling = siblings[index + delta];
         if (!sibling) {
@@ -2453,15 +2466,12 @@ function LayoutEditorControls({
                 <span className="rbs-muted">{loc.layoutWidth}</span>
                 <select
                     className="rbs-select"
-                    value={spanPresetOf(placement.span)}
+                    value={resizePreset}
                     disabled={disabled}
                     onChange={(event) =>
-                        commit({
-                            placement: {
-                                ...placement,
-                                span: SPAN_PRESETS[event.target.value as keyof typeof SPAN_PRESETS],
-                            },
-                        })
+                        commitSpanPreset(
+                            event.target.value as keyof typeof PRESENTATION_SPAN_PRESETS,
+                        )
                     }>
                     <option value="full">{loc.layoutFull}</option>
                     <option value="twoThirds">{loc.layoutTwoThirds}</option>
@@ -2469,6 +2479,29 @@ function LayoutEditorControls({
                     <option value="third">{loc.layoutThird}</option>
                 </select>
             </label>
+            <input
+                className="rbs-layout-resize-slider"
+                type="range"
+                min={0}
+                max={PRESENTATION_SPAN_PRESET_ORDER.length - 1}
+                step={1}
+                value={PRESENTATION_SPAN_PRESET_ORDER.indexOf(resizePreset)}
+                disabled={disabled}
+                aria-label={loc.resizeOutput(widget.title)}
+                title={loc.resizeOutput(widget.title)}
+                onChange={(event) =>
+                    setResizePreset(presentationSpanPresetAt(Number(event.target.value)))
+                }
+                onPointerUp={(event) =>
+                    commitSpanPreset(presentationSpanPresetAt(Number(event.currentTarget.value)))
+                }
+                onKeyUp={(event) =>
+                    commitSpanPreset(presentationSpanPresetAt(Number(event.currentTarget.value)))
+                }
+                onBlur={(event) =>
+                    commitSpanPreset(presentationSpanPresetAt(Number(event.currentTarget.value)))
+                }
+            />
             <button
                 type="button"
                 className="rbs-btn rbs-btn-quiet rbs-layout-move"
@@ -2613,7 +2646,7 @@ function OutputsDrawer({
                     summary?.placement ??
                     configured?.placement ?? {
                         order: outputs.findIndex((entry) => entry.layoutId === output.layoutId),
-                        span: SPAN_PRESETS.full,
+                        span: PRESENTATION_SPAN_PRESETS.full,
                     },
                 hidden,
             },

@@ -3619,6 +3619,12 @@ export class LocConstants {
                     comment: ["{0} is a runbook plan step label"],
                 }),
             layoutWidth: l10n.t("Width"),
+            resizeOutput: (output: string) =>
+                l10n.t({
+                    message: "Drag to resize {0}",
+                    args: [output],
+                    comment: ["{0} is an output widget title"],
+                }),
             layoutFull: l10n.t("Full"),
             layoutTwoThirds: l10n.t("Two thirds"),
             layoutHalf: l10n.t("Half"),
