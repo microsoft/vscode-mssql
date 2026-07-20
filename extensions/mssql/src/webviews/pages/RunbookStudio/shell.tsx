@@ -46,6 +46,7 @@ import { PlannerConsoleTurn, PlannerFeedEntry, useRbs } from "./state";
 import { displayOrder, PlanStepper } from "./planStepper";
 import { PlanGraphView } from "./graphView";
 import { ResolvedWidgetView } from "./widgets";
+import { compareRunSnapshots, RunComparisonValue } from "./runComparison";
 import {
     buildDerivedSource,
     mergePresentationLayoutEdits,
@@ -1432,6 +1433,253 @@ function ResultsRunPicker() {
     );
 }
 
+function formatComparisonDuration(value: number | undefined): string {
+    if (value === undefined) {
+        return "—";
+    }
+    return Math.abs(value) < 1_000 ? `${value} ms` : `${(value / 1_000).toFixed(1)} s`;
+}
+
+function formatComparisonScalar(value: string | number | boolean | undefined): string {
+    return value === undefined ? "—" : String(value);
+}
+
+function comparisonDelta(
+    value: RunComparisonValue<number>,
+    formatter: (value: number | undefined) => string,
+): string {
+    if (value.delta === undefined) {
+        return "—";
+    }
+    return `${value.delta > 0 ? "+" : ""}${formatter(value.delta)}`;
+}
+
+function RunComparisonPanel({ current }: { current: RunbookRunSnapshot }) {
+    const { state, getRun } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const candidates = (state?.availableRuns ?? []).filter(
+        (run) =>
+            run.runId !== current.runId &&
+            (run.state === "succeeded" || run.state === "failed" || run.state === "cancelled"),
+    );
+    const [baselineRunId, setBaselineRunId] = useState(candidates[0]?.runId ?? "");
+    const [baseline, setBaseline] = useState<RunbookRunSnapshot>();
+    const [loading, setLoading] = useState(false);
+    const [loadFailed, setLoadFailed] = useState(false);
+    const candidateIds = candidates.map((candidate) => candidate.runId).join("|");
+    useEffect(() => {
+        if (!candidates.some((candidate) => candidate.runId === baselineRunId)) {
+            setBaselineRunId(candidates[0]?.runId ?? "");
+        }
+    }, [candidateIds, current.runId]);
+    useEffect(() => {
+        let active = true;
+        setBaseline(undefined);
+        setLoadFailed(false);
+        if (!baselineRunId) {
+            return () => {
+                active = false;
+            };
+        }
+        setLoading(true);
+        void getRun(baselineRunId)
+            .then((snapshot) => {
+                if (!active) {
+                    return;
+                }
+                setBaseline(snapshot);
+                setLoadFailed(snapshot === undefined);
+            })
+            .catch(() => {
+                if (active) {
+                    setLoadFailed(true);
+                }
+            })
+            .finally(() => {
+                if (active) {
+                    setLoading(false);
+                }
+            });
+        return () => {
+            active = false;
+        };
+    }, [baselineRunId, getRun]);
+    if (candidates.length === 0) {
+        return <div className="rbs-inline-notice">{loc.noComparisonRun}</div>;
+    }
+    const comparison = baseline ? compareRunSnapshots(baseline, current) : undefined;
+    const nodeLabels = new Map((state?.artifact?.nodes ?? []).map((node) => [node.id, node.label]));
+    const changedNodes = comparison?.nodes.filter((node) => node.changed) ?? [];
+    const changedMetrics = comparison?.metrics.filter((metric) => metric.changed) ?? [];
+    const facts = comparison
+        ? [
+              {
+                  label: loc.elapsed,
+                  value: comparison.elapsedMs,
+                  formatter: formatComparisonDuration,
+              },
+              {
+                  label: loc.completedSteps,
+                  value: comparison.completedNodes,
+                  formatter: (value: number | undefined) =>
+                      value === undefined ? "—" : String(value),
+              },
+              ...(comparison.warningCount
+                  ? [
+                        {
+                            label: loc.warnings,
+                            value: comparison.warningCount,
+                            formatter: (value: number | undefined) =>
+                                value === undefined ? "—" : String(value),
+                        },
+                    ]
+                  : []),
+              ...(comparison.errorCount
+                  ? [
+                        {
+                            label: loc.errors,
+                            value: comparison.errorCount,
+                            formatter: (value: number | undefined) =>
+                                value === undefined ? "—" : String(value),
+                        },
+                    ]
+                  : []),
+          ]
+        : [];
+    return (
+        <section className="rbs-run-comparison" aria-label={loc.runComparison}>
+            <div className="rbs-run-comparison-header">
+                <div>
+                    <strong>{loc.runComparison}</strong>
+                    <div className="rbs-muted">{loc.runComparisonDetail}</div>
+                </div>
+                <label className="rbs-output-picker">
+                    <span className="rbs-muted">{loc.compareWith}</span>
+                    <select
+                        className="rbs-select"
+                        value={baselineRunId}
+                        disabled={loading}
+                        onChange={(event) => setBaselineRunId(event.target.value)}>
+                        {candidates.map((run) => (
+                            <option key={run.runId} value={run.runId}>
+                                {run.startedEpochMs !== undefined
+                                    ? new Date(run.startedEpochMs).toLocaleString()
+                                    : run.runId}
+                                {" · "}
+                                {run.verdict ?? run.state}
+                            </option>
+                        ))}
+                    </select>
+                </label>
+            </div>
+            {loading ? <div className="rbs-muted">{loc.loadingComparison}</div> : null}
+            {loadFailed ? <div className="rbs-error-text">{loc.comparisonLoadFailed}</div> : null}
+            {comparison && baseline ? (
+                <>
+                    <div className="rbs-comparison-identities">
+                        <span>
+                            {loc.baseline}: {baseline.verdict ?? baseline.state}
+                        </span>
+                        <span>
+                            {loc.current}: {current.verdict ?? current.state}
+                        </span>
+                        <span
+                            className={`rbs-chip ${comparison.samePlan ? "" : "rbs-chip-warning"}`}>
+                            {comparison.samePlan ? loc.samePlan : loc.differentPlan}
+                        </span>
+                    </div>
+                    <div className="rbs-comparison-facts">
+                        {facts.map((fact) => (
+                            <div className="rbs-comparison-fact" key={fact.label}>
+                                <span className="rbs-muted">{fact.label}</span>
+                                <strong>{fact.formatter(fact.value.current)}</strong>
+                                <span className="rbs-muted">
+                                    {loc.baseline}: {fact.formatter(fact.value.baseline)} ·{" "}
+                                    {loc.change}: {comparisonDelta(fact.value, fact.formatter)}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="rbs-muted">{loc.comparisonNoRegressionClaim}</div>
+                    <h3>{loc.changedSteps}</h3>
+                    {changedNodes.length > 0 ? (
+                        <div className="rbs-table-wrap">
+                            <table className="rbs-table">
+                                <thead>
+                                    <tr>
+                                        <th>{loc.step}</th>
+                                        <th>{loc.baseline}</th>
+                                        <th>{loc.current}</th>
+                                        <th>{loc.durationChange}</th>
+                                        <th>{loc.rowChange}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {changedNodes.map((node) => (
+                                        <tr key={node.nodeId}>
+                                            <td>{nodeLabels.get(node.nodeId) ?? node.nodeId}</td>
+                                            <td>
+                                                {node.baselineOutcome ?? node.baselineState ?? "—"}
+                                            </td>
+                                            <td>
+                                                {node.currentOutcome ?? node.currentState ?? "—"}
+                                            </td>
+                                            <td>
+                                                {comparisonDelta(
+                                                    node.durationMs,
+                                                    formatComparisonDuration,
+                                                )}
+                                            </td>
+                                            <td>
+                                                {node.rows.delta === undefined
+                                                    ? "—"
+                                                    : `${node.rows.delta > 0 ? "+" : ""}${node.rows.delta}`}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="rbs-muted">{loc.noChangedSteps}</div>
+                    )}
+                    <h3>{loc.changedMetrics}</h3>
+                    {changedMetrics.length > 0 ? (
+                        <div className="rbs-table-wrap">
+                            <table className="rbs-table">
+                                <thead>
+                                    <tr>
+                                        <th>{loc.metric}</th>
+                                        <th>{loc.baseline}</th>
+                                        <th>{loc.current}</th>
+                                        <th>{loc.change}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {changedMetrics.map((metric) => (
+                                        <tr key={metric.key}>
+                                            <td className="rbs-mono">{metric.key}</td>
+                                            <td>{formatComparisonScalar(metric.baseline)}</td>
+                                            <td>{formatComparisonScalar(metric.current)}</td>
+                                            <td>
+                                                {metric.delta === undefined
+                                                    ? "—"
+                                                    : `${metric.delta > 0 ? "+" : ""}${metric.delta}`}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="rbs-muted">{loc.noChangedMetrics}</div>
+                    )}
+                </>
+            ) : null}
+        </section>
+    );
+}
+
 function EvidenceExportControl() {
     const { state, exportEvidence } = useRbs();
     const loc = locConstants.runbookStudio;
@@ -2107,9 +2355,15 @@ function ResultsPage() {
     const paintedResults = useRef<Map<string, string>>(new Map());
     const [editingLayout, setEditingLayout] = useState(false);
     const [outputsOpen, setOutputsOpen] = useState(false);
+    const [comparisonOpen, setComparisonOpen] = useState(false);
     const widgets = (state?.presentation?.sections ?? []).flatMap((section) => section.widgets);
     const readyWidgets = widgets.filter((widget) => widget.state === "ready");
     const runId = state?.run?.runId;
+    const comparisonAvailable = (state?.availableRuns ?? []).some(
+        (run) =>
+            run.runId !== runId &&
+            (run.state === "succeeded" || run.state === "failed" || run.state === "cancelled"),
+    );
     const draftTarget = useMemo<PresentationDraftTarget | undefined>(
         () => (runId ? { kind: "run", runId } : undefined),
         [runId],
@@ -2150,8 +2404,17 @@ function ResultsPage() {
                 <div className="rbs-run-header">
                     <ResultsRunPicker />
                     <div className="rbs-spacer" />
+                    <button
+                        type="button"
+                        className="rbs-btn rbs-btn-quiet"
+                        aria-pressed={comparisonOpen}
+                        disabled={!comparisonAvailable}
+                        onClick={() => setComparisonOpen((value) => !value)}>
+                        {loc.compareRuns}
+                    </button>
                     <EvidenceExportControl />
                 </div>
+                {comparisonOpen ? <RunComparisonPanel current={state.run} /> : null}
                 <EmptyState title={loc.noOutputsTitle} detail={loc.noOutputsDetail} />
             </div>
         );
@@ -2166,6 +2429,14 @@ function ResultsPage() {
                 ) : null}
                 <ResultsRunPicker />
                 <div className="rbs-spacer" />
+                <button
+                    type="button"
+                    className="rbs-btn rbs-btn-quiet"
+                    aria-pressed={comparisonOpen}
+                    disabled={!comparisonAvailable}
+                    onClick={() => setComparisonOpen((value) => !value)}>
+                    {loc.compareRuns}
+                </button>
                 <button
                     type="button"
                     className="rbs-btn"
@@ -2189,6 +2460,7 @@ function ResultsPage() {
                 ) : null}
                 <EvidenceExportControl />
             </div>
+            {comparisonOpen ? <RunComparisonPanel current={state.run} /> : null}
             <PresentationDraftBanner draft={layoutDraft} />
             <div className={`rbs-results-compose ${outputsOpen ? "with-drawer" : ""}`}>
                 <div>

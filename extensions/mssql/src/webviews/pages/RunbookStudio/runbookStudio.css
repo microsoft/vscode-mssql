@@ -295,6 +295,60 @@
     grid-template-columns: minmax(0, 1fr) minmax(230px, 300px);
 }
 
+.rbs-run-comparison {
+    display: grid;
+    gap: 10px;
+    padding: 10px;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 5px;
+    background: var(--vscode-editorWidget-background, transparent);
+}
+
+.rbs-run-comparison h3 {
+    margin: 4px 0 0;
+    font-size: 12px;
+}
+
+.rbs-run-comparison-header,
+.rbs-comparison-identities {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.rbs-run-comparison-header > :first-child {
+    flex: 1 1 260px;
+}
+
+.rbs-comparison-facts {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
+}
+
+.rbs-comparison-fact {
+    display: grid;
+    gap: 3px;
+    padding: 8px;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+}
+
+.rbs-comparison-fact strong {
+    font-size: 16px;
+}
+
+.rbs-table-wrap {
+    max-width: 100%;
+    overflow: auto;
+}
+
+.rbs-chip-warning {
+    color: var(--vscode-editorWarning-foreground);
+    border-color: var(--vscode-editorWarning-foreground);
+}
+
 .rbs-layout-controls {
     display: flex;
     align-items: center;

@@ -826,6 +826,9 @@
       <source xml:lang="en">Bar chart of {0} by {1}</source>
       <note>{0} is a value column name, {1} is a category column name</note>
     </trans-unit>
+    <trans-unit id="++CODE++cc9ea7f7c64e772c81eb80854c0e7db8f504943549c0675d893a983b8f545152">
+      <source xml:lang="en">Baseline</source>
+    </trans-unit>
     <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
       <source xml:lang="en">Batch execution time: {0}</source>
       <note>{0} is the batch time</note>
@@ -1121,6 +1124,12 @@
       <note>{0} is the database name
 {1} is the server name
 {2} is the document name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++dea170a5dc82f49f31b8c7f65d44997798d08a27d07457fec8c84892ccf93e96">
+      <source xml:lang="en">Changed runtime metrics</source>
+    </trans-unit>
+    <trans-unit id="++CODE++84511d7ca6c963be94b49116365956631012ac1a4bd333b8fcc0fdd686b06b9a">
+      <source xml:lang="en">Changed steps</source>
     </trans-unit>
     <trans-unit id="++CODE++bbd4b6a86bc65b6ac8e79e97afc61499158edb40f7bb404c70637b46d80a7ad2">
       <source xml:lang="en">Changes</source>
@@ -1541,6 +1550,15 @@
     </trans-unit>
     <trans-unit id="++CODE++c76e4efa9bdedc294be4e0c0a7e42040e5c921d0b30a36e1c6249893b941b662">
       <source xml:lang="en">Compare SQL Server editions</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7f8b9d938da2c0634711b4eeb92918f9f592548ff73af013499176158039529b">
+      <source xml:lang="en">Compare durable outcomes, timing, diagnostics, rows, and runtime metrics.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d96c34e8f9cb6edb45cfb1981b189ba6e068e9a04afb46ee558135c20e925319">
+      <source xml:lang="en">Compare runs</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4007acd502c2f9848de63743edadf7a02358953d37d73a38fa1ce4cf5d844638">
+      <source xml:lang="en">Compare with</source>
     </trans-unit>
     <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
       <source xml:lang="en">Comparison Details</source>
@@ -2229,6 +2247,9 @@
       <source xml:lang="en">Credential Error: An error occurred while attempting to refresh account credentials. Please re-authenticate. Error: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++e0d1b68224bf0b31ef16b206c65b5f8f6b89d18161f4a7cdcb8d0ac8d952549a">
+      <source xml:lang="en">Current</source>
+    </trans-unit>
     <trans-unit id="++CODE++31471ef54c94fd1a0ed4fcd85c62277d98a6119305f1ea0862fab2f0aa4a1c3b">
       <source xml:lang="en">Current Schema: {0}, Select the new schema:</source>
     </trans-unit>
@@ -2507,6 +2528,9 @@
     <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
       <source xml:lang="en">Deleting Container...</source>
     </trans-unit>
+    <trans-unit id="++CODE++d93ef52e234dcf9e52ec0ddf17426175aa385b451ae8571c71da3320a2a0930a">
+      <source xml:lang="en">Deltas are observed facts only. No performance baseline or noise policy is applied.</source>
+    </trans-unit>
     <trans-unit id="++CODE++77a283d69258c2ae985dc2343725d0af253da0fc1d87626966f7cefe4a3c7469">
       <source xml:lang="en">Density</source>
     </trans-unit>
@@ -2616,6 +2640,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
       <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5be7cc11b35273bacfc9b60f03306860c698d40ae916b51c7b795e79d6b4b3c4">
+      <source xml:lang="en">Different plan revisions</source>
     </trans-unit>
     <trans-unit id="++CODE++ba142112330ecabeb92c1588f850c838091bcfd621fa97b344e2d9e73a3b7314">
       <source xml:lang="en">Differential</source>
@@ -2801,6 +2828,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4fc52a3c4c558b517c463b22d86d0e3b9cfd4255c98fe3510f9075b37ab419c9">
       <source xml:lang="en">Duration</source>
+    </trans-unit>
+    <trans-unit id="++CODE++937041b8f8c2c0bd2f50753ff761cdfdfb11d519c46d4c49e84be4a34f1460da">
+      <source xml:lang="en">Duration change</source>
     </trans-unit>
     <trans-unit id="++CODE++4a87bc4a6f84b6911fabebc702ad8d32dbb799d7bec2abf53a05c86d91b456bf">
       <source xml:lang="en">EF Core</source>
@@ -3225,6 +3255,9 @@
     <trans-unit id="++CODE++beab8d6b59ef40883dd9887fd21f67e4716b5d4581461c3eae2825e09b698ad0">
       <source xml:lang="en">Error: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++cb702378f31507efa79a2a2c6046050bc9f578f149c88e3c0a3d9532ab4b5300">
+      <source xml:lang="en">Errors</source>
     </trans-unit>
     <trans-unit id="++CODE++a8b7377a6bf2ffa25b15e9b8a56623d97657aadcf02e7a1946c0e892978628d3">
       <source xml:lang="en">Estimated Operator Cost</source>
@@ -4980,6 +5013,9 @@
     <trans-unit id="++CODE++d7bd166a0fcb99c1a76bef916c6d48f1f627d8572d33c48399e2979659c8766f">
       <source xml:lang="en">Loading collations...</source>
     </trans-unit>
+    <trans-unit id="++CODE++66db802f0c3f5aeb09dc5e79b09a953e68007a1358dc81bfc7aac1c1473f90fe">
+      <source xml:lang="en">Loading comparison…</source>
+    </trans-unit>
     <trans-unit id="++CODE++f2b912496817d1e0b2ab2560cbc08d38b2d5080aa631caffae27c4afa2f0c291">
       <source xml:lang="en">Loading database objects</source>
     </trans-unit>
@@ -5805,6 +5841,9 @@
     <trans-unit id="++CODE++5aa25ab8e1d89c0563f5cf32fc56ca21e52cefa7663326b1527eaa567ab33a8c">
       <source xml:lang="en">No objects found</source>
     </trans-unit>
+    <trans-unit id="++CODE++203232ef683fb82ab78f3417c384e353002479457571cc7ff01807f35aaee049">
+      <source xml:lang="en">No other completed run is available to compare.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c753d08b0989bfc30bedc3adb02208f80a0f7a03d31b205ecd73044b8195c673">
       <source xml:lang="en">No outputs yet</source>
     </trans-unit>
@@ -5870,6 +5909,9 @@
     <trans-unit id="++CODE++306b45db20163464c2774564e0d61aaabdcf961067fcddb3a14cbc29e65fd0f7">
       <source xml:lang="en">No runs yet</source>
     </trans-unit>
+    <trans-unit id="++CODE++8ef18bd777c95cc1c482b89d11ffaee67cb904d16df2b687fabc404ea5be4ba7">
+      <source xml:lang="en">No runtime metrics changed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e32e1aa390f5243f880caab46155befbe51dd11233564502e4699d1cd79e56ab">
       <source xml:lang="en">No saved connection profiles found.</source>
     </trans-unit>
@@ -5912,6 +5954,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f22dbb17b16be5bfbac36adfb176f81d7ac2e9da72c6bb8df6ffcaa9e7aaee76">
       <source xml:lang="en">No shortcut</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2f84fb84a46aad68a8cd1be4445b608c61287966ee283d0a29a84ccb16b09dbd">
+      <source xml:lang="en">No step facts changed.</source>
     </trans-unit>
     <trans-unit id="++CODE++ca74b0c5b8a73c286ae5bc0d7802f72e6e591364956dd16f3a5210582b6f4212">
       <source xml:lang="en">No storage accounts found</source>
@@ -7190,6 +7235,9 @@
     <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
       <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable &quot;Use Rosetta for x86_64/amd64 emulation on Apple Silicon&quot; in Docker Desktop &gt; Settings &gt; General.</source>
     </trans-unit>
+    <trans-unit id="++CODE++8ea129c164ff186b70f03d36b33937b450ed8f8a442c4d07df2bd660e45d43c1">
+      <source xml:lang="en">Row change</source>
+    </trans-unit>
     <trans-unit id="++CODE++2f34dcbb175e7163055db4c74f8da053a82783ca89ca052d216bc867598b3ef3">
       <source xml:lang="en">Row created.</source>
     </trans-unit>
@@ -7240,6 +7288,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
       <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f04e7b6bb668a98846ee8937309f07e4201f217a07d17d159d1a667284a5be7b">
+      <source xml:lang="en">Run comparison</source>
     </trans-unit>
     <trans-unit id="++CODE++1e1556ee69c1c2a2aeb46c718ef6de33045f82e13fd79ecd3a978d817c5408a8">
       <source xml:lang="en">Run elapsed time</source>
@@ -7450,6 +7501,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3edb66ea075e148507b4547497333f55f63218596ac3acdad9eb49f8ce686f4c">
       <source xml:lang="en">SVG</source>
+    </trans-unit>
+    <trans-unit id="++CODE++beb03ee81d99da4ef48a2b8962d2b9744a73780484a0b989545409c3e2c87638">
+      <source xml:lang="en">Same plan</source>
     </trans-unit>
     <trans-unit id="++CODE++95a2f1edb08a76120b82cec7c93ca477618639f04beac7d2aeba2dc039d43715">
       <source xml:lang="en">Sample</source>
@@ -8868,6 +8922,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4002a5b20dd0c7a8caf9764ba024343e8f87e2ba8221aaeae4c5112d1d7bb4ed">
       <source xml:lang="en">The columns of the index.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f8267927c428a7776a952e442cb2121a67846f20afb9b7b6134bc6fde7c4f31a">
+      <source xml:lang="en">The comparison run could not be loaded.</source>
     </trans-unit>
     <trans-unit id="++CODE++dd58f7c11046de13e610340db756ed3359784293faa0f658421b023a00a70952">
       <source xml:lang="en">The compiled plan could not be written into the document.</source>

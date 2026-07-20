@@ -30,6 +30,7 @@ import {
     RbsEvidenceExportFormat,
     RbsExecutePlanQueryRequest,
     RbsExportEvidenceRequest,
+    RbsGetRunRequest,
     RbsListConnectionsRequest,
     RbsNavigateNotification,
     RbsOpenDiagnosticsRequest,
@@ -45,6 +46,7 @@ import {
     RbsState,
     RbsUpdateIntentRequest,
     RunbookRunEvent,
+    RunbookRunSnapshot,
 } from "../../../sharedInterfaces/runbookStudio";
 import {
     PresentationLayoutEdit,
@@ -262,6 +264,8 @@ interface RbsContextValue {
     executePlanQuery: (nodeId: string) => Promise<boolean>;
     /** Show a prior run's results (persistence-backed). */
     selectRun: (runId: string) => Promise<boolean>;
+    /** Load one bounded durable snapshot without changing the selected run. */
+    getRun: (runId: string) => Promise<RunbookRunSnapshot | undefined>;
     /** Ask the host to save a secret-safe CI evidence projection. */
     exportEvidence: (runId: string, format: RbsEvidenceExportFormat) => Promise<boolean>;
     startRun: (
@@ -496,6 +500,12 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
         [rpc],
     );
 
+    const getRun = useCallback(
+        async (runId: string): Promise<RunbookRunSnapshot | undefined> =>
+            rpc.sendRequest(RbsGetRunRequest.type, { runId }),
+        [rpc],
+    );
+
     const exportEvidence = useCallback(
         async (runId: string, format: RbsEvidenceExportFormat): Promise<boolean> => {
             setLastError(undefined);
@@ -598,6 +608,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             clearPresentationOverlay,
             executePlanQuery,
             selectRun,
+            getRun,
             exportEvidence,
             startRun,
             cancelRun,
@@ -628,6 +639,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             clearPresentationOverlay,
             executePlanQuery,
             selectRun,
+            getRun,
             exportEvidence,
             startRun,
             cancelRun,
