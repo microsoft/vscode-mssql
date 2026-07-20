@@ -823,6 +823,12 @@
     gap: 6px;
 }
 
+.rbs-step-runtime-description {
+    margin: 0;
+    color: var(--vscode-descriptionForeground);
+    line-height: 1.45;
+}
+
 .rbs-query-detail-label {
     margin-bottom: 4px;
     color: var(--vscode-descriptionForeground);

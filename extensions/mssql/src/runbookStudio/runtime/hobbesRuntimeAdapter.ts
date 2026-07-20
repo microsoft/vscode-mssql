@@ -28,7 +28,14 @@ import * as path from "path";
 import { createHash } from "crypto";
 import { RunbookStudio as LocRunbookStudio } from "../../constants/locConstants";
 import { RbsPlannerProgressEvent, RunbookArtifactFile } from "../../sharedInterfaces/runbookStudio";
-import { PlannedRunbook, PlannerPlanNode } from "../models/plannerMapping";
+import {
+    hasRuntimeLibraryAuthority,
+    PlannedRunbook,
+    PlannerPlanEdge,
+    PlannerPlanNode,
+    projectPlannerEdge,
+    projectPlannerNode,
+} from "../models/plannerMapping";
 import {
     LibraryRunRef,
     parseLibraryDetailResponse,
@@ -289,14 +296,8 @@ interface PlannerAssetPayload {
     title?: string;
     plan?: {
         entryNodeId?: string;
-        nodes?: Array<{
-            id?: string;
-            type?: string;
-            role?: string;
-            strategy?: string;
-            primitiveArgs?: unknown;
-        }>;
-        edges?: Array<{ from?: string; to?: string }>;
+        nodes?: unknown[];
+        edges?: unknown[];
     };
     inputSchema?: Array<{ name?: string; kind?: string }>;
 }
@@ -1051,10 +1052,11 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
                       current.extensionArtifact,
                   )
                 : artifact;
-        const hasNativePlan =
-            artifactNext.lock?.nodes.some(
-                (node) => node.kind === "activity" && node.activityKind === "hobbes.native",
-            ) === true;
+        // The library reference, not the presence of a fallback node, is the
+        // authority signal. A runtime-authored plan containing only mapped SQL
+        // and Report nodes is still one-way and must not be regenerated from
+        // the extension projection on save.
+        const hasNativePlan = hasRuntimeLibraryAuthority(artifactNext);
         const metadataNext: Record<string, unknown> = {
             ...head,
             title: artifactNext.name,
@@ -2310,26 +2312,19 @@ function isRecordValue(value: unknown): value is Record<string, unknown> {
 function mapPlannerAsset(asset: PlannerAssetPayload): PlannedRunbook {
     const nodes: PlannerPlanNode[] = [];
     for (const node of asset.plan?.nodes ?? []) {
-        if (typeof node?.id !== "string" || node.id.length === 0) {
-            continue;
+        const projected = projectPlannerNode(node);
+        if (projected !== undefined) {
+            nodes.push(projected);
         }
-        nodes.push({
-            id: node.id,
-            ...(typeof node.type === "string" && node.type.length > 0 ? { type: node.type } : {}),
-            ...(typeof node.role === "string" && node.role.length > 0 ? { role: node.role } : {}),
-            ...(typeof node.strategy === "string" && node.strategy.length > 0
-                ? { strategy: node.strategy }
-                : {}),
-            ...(isRecordValue(node.primitiveArgs) ? { primitiveArgs: node.primitiveArgs } : {}),
-        });
     }
     if (typeof asset.id !== "string" || asset.id.length === 0 || nodes.length === 0) {
         throw plannerRefusedError("asset-missing-id-or-nodes");
     }
-    const edges: Array<{ from: string; to: string }> = [];
+    const edges: PlannerPlanEdge[] = [];
     for (const edge of asset.plan?.edges ?? []) {
-        if (typeof edge?.from === "string" && typeof edge?.to === "string") {
-            edges.push({ from: edge.from, to: edge.to });
+        const projected = projectPlannerEdge(edge);
+        if (projected !== undefined) {
+            edges.push(projected);
         }
     }
     const inputSchema: Array<{ name: string; kind: string }> = [];

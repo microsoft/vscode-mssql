@@ -709,9 +709,11 @@ export function displayOrder(
 function StepDetails({
     node,
     enableQueryExecution,
+    labelById,
 }: {
     node: RunbookPlanNode;
     enableQueryExecution: boolean;
+    labelById: ReadonlyMap<string, string>;
 }) {
     const { executePlanQuery, state } = useRbs();
     const loc = locConstants.runbookStudio;
@@ -721,11 +723,89 @@ function StepDetails({
     const canExecuteQuery =
         enableQueryExecution && sql !== undefined && node.activityKind === "sql.query.read";
     const rest = inputs.filter(([key]) => key !== "sql");
-    if (!sql && rest.length === 0) {
+    const runtime = node.runtime;
+    const displayNode = (nodeId: string) => labelById.get(nodeId) ?? nodeId;
+    const runtimeRows: Array<[string, string]> = runtime
+        ? [
+              [loc.runtimeNodeType, runtime.nodeType],
+              ...(runtime.role ? [[loc.runtimeRole, runtime.role] as [string, string]] : []),
+              ...(runtime.decision
+                  ? [
+                        [
+                            loc.decisionBranches,
+                            runtime.decision.branches
+                                .map((branch) => {
+                                    const route = loc.labeledRoute(
+                                        branch.label,
+                                        branch.targetNodeIds.map(displayNode).join(", "),
+                                    );
+                                    return branch.expression
+                                        ? `${route} (${branch.expression})`
+                                        : route;
+                                })
+                                .join(" · "),
+                        ] as [string, string],
+                    ]
+                  : []),
+              ...(runtime.parallel
+                  ? [
+                        [
+                            loc.parallelBranches,
+                            runtime.parallel.branchNodeIds.map(displayNode).join(", "),
+                        ] as [string, string],
+                        ...(runtime.parallel.fanInTargetNodeId
+                            ? [
+                                  [
+                                      loc.joinsAt,
+                                      displayNode(runtime.parallel.fanInTargetNodeId),
+                                  ] as [string, string],
+                              ]
+                            : []),
+                    ]
+                  : []),
+              ...(runtime.approval
+                  ? [
+                        [loc.approvalKind, runtime.approval.approvalKind] as [string, string],
+                        [loc.approvalReason, runtime.approval.reason] as [string, string],
+                        [
+                            loc.approvalRoutes,
+                            [
+                                loc.labeledRoute(
+                                    loc.approve,
+                                    displayNode(runtime.approval.onApprove),
+                                ),
+                                ...(runtime.approval.onReject
+                                    ? [
+                                          loc.labeledRoute(
+                                              loc.reject,
+                                              displayNode(runtime.approval.onReject),
+                                          ),
+                                      ]
+                                    : []),
+                            ].join(" · "),
+                        ] as [string, string],
+                    ]
+                  : []),
+          ]
+        : [];
+    if (!sql && rest.length === 0 && runtimeRows.length === 0 && !runtime?.description) {
         return null;
     }
     return (
         <div className="rbs-step-details">
+            {runtime?.description ? (
+                <p className="rbs-step-runtime-description">{runtime.description}</p>
+            ) : null}
+            {runtimeRows.length > 0 ? (
+                <dl className="rbs-kv" aria-label={loc.stepDetails}>
+                    {runtimeRows.map(([key, value]) => (
+                        <div className="rbs-kv-row" key={key}>
+                            <dt className="rbs-kv-key">{key}</dt>
+                            <dd className="rbs-kv-value">{value}</dd>
+                        </div>
+                    ))}
+                </dl>
+            ) : null}
             {sql ? <pre className="rbs-code rbs-mono">{sql}</pre> : null}
             {canExecuteQuery ? (
                 <div className="rbs-step-query-actions">
@@ -763,7 +843,7 @@ function StepDetails({
 }
 
 function hasDetails(node: RunbookPlanNode): boolean {
-    return Object.keys(node.inputs ?? {}).length > 0;
+    return Object.keys(node.inputs ?? {}).length > 0 || node.runtime !== undefined;
 }
 
 function blastRadiusLabel(node: RunbookPlanNode): string | undefined {
@@ -821,14 +901,21 @@ export function PlanStepper({
             {ordered.map((node, index) => {
                 const snapshot = stateByNode.get(node.id);
                 const branchNotes = edges
-                    .filter((e) => e.from === node.id && e.when && e.when !== "success")
-                    .map((e) =>
-                        e.when === "failure"
-                            ? loc.onFailure(labelById.get(e.to) ?? e.to)
-                            : e.when === "rejected"
-                              ? loc.onRejected(labelById.get(e.to) ?? e.to)
-                              : `${e.when} → ${labelById.get(e.to) ?? e.to}`,
-                    );
+                    .filter(
+                        (e) =>
+                            e.from === node.id &&
+                            (e.label !== undefined || (e.when && e.when !== "success")),
+                    )
+                    .map((e) => {
+                        const target = labelById.get(e.to) ?? e.to;
+                        return e.label
+                            ? loc.labeledRoute(e.label, target)
+                            : e.when === "failure"
+                              ? loc.onFailure(labelById.get(e.to) ?? e.to)
+                              : e.when === "rejected"
+                                ? loc.onRejected(labelById.get(e.to) ?? e.to)
+                                : `${e.when} → ${target}`;
+                    });
                 return (
                     <li className="rbs-step" key={node.id}>
                         {index > 0 ? <div className="rbs-step-connector" aria-hidden /> : null}
@@ -858,6 +945,11 @@ export function PlanStepper({
                                 ) : (
                                     <span className="rbs-mono">{node.kind}</span>
                                 )}
+                                {node.runtime ? (
+                                    <span className="rbs-chip">
+                                        Hobbes · {node.runtime.nodeType}
+                                    </span>
+                                ) : null}
                                 {blastRadiusLabel(node) ? (
                                     <span className="rbs-chip">{blastRadiusLabel(node)}</span>
                                 ) : null}
@@ -906,6 +998,7 @@ export function PlanStepper({
                                         <StepDetails
                                             node={node}
                                             enableQueryExecution={enableQueryExecution}
+                                            labelById={labelById}
                                         />
                                     ) : null}
                                 </>

@@ -4903,6 +4903,14 @@
     "Execute query": "Execute query",
     "Opening Query Studio…": "Opening Query Studio…",
     "Step inputs": "Step inputs",
+    "Runtime node": "Runtime node",
+    "Runtime role": "Runtime role",
+    "Decision branches": "Decision branches",
+    "Parallel branches": "Parallel branches",
+    "Joins at": "Joins at",
+    "Approval kind": "Approval kind",
+    "Approval reason": "Approval reason",
+    "Approval routes": "Approval routes",
     "Hide details": "Hide details",
     "Status timeline — what happened": "Status timeline — what happened",
     "Steps": "Steps",
@@ -5189,6 +5197,10 @@
     "if rejected → {0}/{0} is a plan step name": {
         "message": "if rejected → {0}",
         "comment": ["{0} is a plan step name"]
+    },
+    "{0} → {1}/{0} is a runtime-authored branch label{1} is a plan step name": {
+        "message": "{0} → {1}",
+        "comment": ["{0} is a runtime-authored branch label", "{1} is a plan step name"]
     },
     "List": "List",
     "Graph": "Graph",

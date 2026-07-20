@@ -222,6 +222,35 @@ export interface RunbookPlanTarget {
     binding: RunbookTargetBinding;
 }
 
+/** Bounded presentation projection of control-flow semantics owned by a
+ * Hobbes runtime-library plan. The runtime asset remains authoritative for
+ * execution; this metadata lets the native editor explain the plan without
+ * retaining arbitrary runtime JSON or translating it back for launch. */
+export interface RunbookRuntimePlanSemantics {
+    nodeType: string;
+    role?: string;
+    description?: string;
+    decision?: {
+        branches: Array<{
+            branchKey?: string;
+            label: string;
+            targetNodeIds: string[];
+            expression?: string;
+        }>;
+        defaultTargetNodeId?: string;
+    };
+    parallel?: {
+        branchNodeIds: string[];
+        fanInTargetNodeId?: string;
+    };
+    approval?: {
+        reason: string;
+        approvalKind: string;
+        onApprove: string;
+        onReject?: string;
+    };
+}
+
 export interface RunbookPlanNode {
     /** Stable node id; referenced by edges, snapshots, and approvals. */
     id: string;
@@ -238,11 +267,17 @@ export interface RunbookPlanNode {
     /** Contract is executable only in the deterministic fake runtime. */
     previewOnly?: boolean;
     blastRadius?: BlastRadius;
+    /** Native-display projection of a runtime-authored node. This is not an
+     * extension execution contract; libraryAssetRef remains the authority. */
+    runtime?: RunbookRuntimePlanSemantics;
 }
 
 export interface RunbookPlanEdge {
     from: string;
     to: string;
+    /** Runtime-authored route label. It is descriptive unless `when` also
+     * carries one of the extension's closed executable conditions. */
+    label?: string;
     /** Edge condition; absent = unconditional success path. */
     when?: "success" | "failure" | "approved" | "rejected";
 }

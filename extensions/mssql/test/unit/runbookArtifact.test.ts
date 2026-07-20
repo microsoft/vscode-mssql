@@ -157,6 +157,67 @@ suite("runbookArtifact", () => {
             });
         });
 
+        test("round-trips bounded runtime control-flow semantics and edge labels", () => {
+            const artifact = createFixtureRunbookArtifact();
+            artifact.lock!.libraryAssetRef = { assetId: "runtime-plan" };
+            artifact.lock!.nodes[0].runtime = {
+                nodeType: "Decision",
+                role: "decision",
+                description: "Choose the next check from measured evidence.",
+                decision: {
+                    branches: [
+                        {
+                            branchKey: "continue",
+                            label: "Continue",
+                            targetNodeIds: [artifact.lock!.nodes[1].id],
+                            expression: "rowCount > 0",
+                        },
+                    ],
+                    defaultTargetNodeId: artifact.lock!.nodes[2].id,
+                },
+            };
+            artifact.lock!.edges[0].label = "Continue";
+            const parsed = expectSuccess(
+                parseRunbookArtifact(canonicalizeRunbookArtifact(artifact)),
+            );
+            expect(parsed.lock?.nodes[0].runtime).to.deep.equal(artifact.lock!.nodes[0].runtime);
+            expect(parsed.lock?.edges[0].label).to.equal("Continue");
+        });
+
+        test("rejects malformed or dangling runtime control-flow semantics", () => {
+            const malformed = createFixtureRunbookArtifact();
+            (malformed.lock!.nodes[0] as unknown as Record<string, unknown>).runtime = {
+                nodeType: "Decision",
+                decision: { branches: [{ label: "Broken", targetNodeIds: [] }] },
+            };
+            expect(
+                expectFailure(parseRunbookArtifact(JSON.stringify(malformed))).detail,
+            ).to.contain("runtime decision branch invalid");
+
+            const dangling = createFixtureRunbookArtifact();
+            dangling.lock!.libraryAssetRef = { assetId: "runtime-plan" };
+            dangling.lock!.nodes[0].runtime = {
+                nodeType: "Parallel",
+                parallel: { branchNodeIds: ["missing-node"] },
+            };
+            expect(expectFailure(parseRunbookArtifact(JSON.stringify(dangling))).detail).to.contain(
+                "runtime semantics reference unknown node",
+            );
+        });
+
+        test("requires an explicit runtime-library authority for runtime semantics", () => {
+            const artifact = createFixtureRunbookArtifact();
+            artifact.lock!.nodes[0].runtime = { nodeType: "Observation" };
+            expect(expectFailure(parseRunbookArtifact(JSON.stringify(artifact))).detail).to.contain(
+                "require a libraryAssetRef",
+            );
+
+            artifact.lock!.libraryAssetRef = { assetId: "" };
+            expect(expectFailure(parseRunbookArtifact(JSON.stringify(artifact))).detail).to.contain(
+                "libraryAssetRef invalid",
+            );
+        });
+
         test("rejects malformed target bindings", () => {
             const artifact = createFixtureRunbookArtifact();
             (artifact.lock!.nodes[0].target as unknown as Record<string, unknown>).binding = {

@@ -100,6 +100,79 @@ function isNonEmptyString(value: unknown): value is string {
     return typeof value === "string" && value.length > 0;
 }
 
+function runtimeSemanticsShapeError(value: unknown, nodeId: string): string | undefined {
+    if (!isRecord(value) || !isNonEmptyString(value.nodeType)) {
+        return `node '${nodeId}' runtime semantics invalid`;
+    }
+    if (value.role !== undefined && !isNonEmptyString(value.role)) {
+        return `node '${nodeId}' runtime role invalid`;
+    }
+    if (value.description !== undefined && !isNonEmptyString(value.description)) {
+        return `node '${nodeId}' runtime description invalid`;
+    }
+    if (value.decision !== undefined) {
+        if (!isRecord(value.decision) || !Array.isArray(value.decision.branches)) {
+            return `node '${nodeId}' runtime decision invalid`;
+        }
+        if (value.decision.branches.length === 0 || value.decision.branches.length > MAX_NODES) {
+            return `node '${nodeId}' runtime decision branches invalid`;
+        }
+        for (const branch of value.decision.branches) {
+            if (
+                !isRecord(branch) ||
+                !isNonEmptyString(branch.label) ||
+                !Array.isArray(branch.targetNodeIds) ||
+                branch.targetNodeIds.length === 0 ||
+                branch.targetNodeIds.length > MAX_NODES ||
+                !branch.targetNodeIds.every(isNonEmptyString)
+            ) {
+                return `node '${nodeId}' runtime decision branch invalid`;
+            }
+            if (branch.branchKey !== undefined && !isNonEmptyString(branch.branchKey)) {
+                return `node '${nodeId}' runtime decision branch key invalid`;
+            }
+            if (branch.expression !== undefined && !isNonEmptyString(branch.expression)) {
+                return `node '${nodeId}' runtime decision expression invalid`;
+            }
+        }
+        if (
+            value.decision.defaultTargetNodeId !== undefined &&
+            !isNonEmptyString(value.decision.defaultTargetNodeId)
+        ) {
+            return `node '${nodeId}' runtime decision default invalid`;
+        }
+    }
+    if (value.parallel !== undefined) {
+        if (
+            !isRecord(value.parallel) ||
+            !Array.isArray(value.parallel.branchNodeIds) ||
+            value.parallel.branchNodeIds.length === 0 ||
+            value.parallel.branchNodeIds.length > MAX_NODES ||
+            !value.parallel.branchNodeIds.every(isNonEmptyString)
+        ) {
+            return `node '${nodeId}' runtime parallel branches invalid`;
+        }
+        if (
+            value.parallel.fanInTargetNodeId !== undefined &&
+            !isNonEmptyString(value.parallel.fanInTargetNodeId)
+        ) {
+            return `node '${nodeId}' runtime parallel join invalid`;
+        }
+    }
+    if (value.approval !== undefined) {
+        if (
+            !isRecord(value.approval) ||
+            !isNonEmptyString(value.approval.reason) ||
+            !isNonEmptyString(value.approval.approvalKind) ||
+            !isNonEmptyString(value.approval.onApprove) ||
+            (value.approval.onReject !== undefined && !isNonEmptyString(value.approval.onReject))
+        ) {
+            return `node '${nodeId}' runtime approval invalid`;
+        }
+    }
+    return undefined;
+}
+
 export function parseRunbookArtifact(text: string): ArtifactParseResult {
     if (Buffer.byteLength(text, "utf8") > MAX_ARTIFACT_BYTES) {
         return fail("RunbookStudio.InvalidArtifact", "artifact exceeds size limit");
@@ -464,7 +537,18 @@ function validateLock(lock: unknown): ArtifactParseFailure | undefined {
     if (lock.edges.length > MAX_EDGES) {
         return fail("RunbookStudio.InvalidArtifact", "lock exceeds edge limit");
     }
+    if (lock.libraryAssetRef !== undefined) {
+        if (
+            !isRecord(lock.libraryAssetRef) ||
+            !isNonEmptyString(lock.libraryAssetRef.assetId) ||
+            (lock.libraryAssetRef.versionLabel !== undefined &&
+                !isNonEmptyString(lock.libraryAssetRef.versionLabel))
+        ) {
+            return fail("RunbookStudio.InvalidArtifact", "lock libraryAssetRef invalid");
+        }
+    }
     const nodeIds = new Set<string>();
+    let hasRuntimeSemantics = false;
     for (const node of lock.nodes as unknown[]) {
         if (!isRecord(node) || !isNonEmptyString(node.id)) {
             return fail("RunbookStudio.InvalidArtifact", "lock node missing id");
@@ -490,6 +574,13 @@ function validateLock(lock: unknown): ArtifactParseFailure | undefined {
                 "RunbookStudio.InvalidArtifact",
                 `node '${node.id}' previewOnly metadata invalid`,
             );
+        }
+        if (node.runtime !== undefined) {
+            hasRuntimeSemantics = true;
+            const runtimeError = runtimeSemanticsShapeError(node.runtime, node.id);
+            if (runtimeError !== undefined) {
+                return fail("RunbookStudio.InvalidArtifact", runtimeError);
+            }
         }
         if (node.target !== undefined) {
             if (!isRecord(node.target) || !TARGET_KINDS.has(String(node.target.kind))) {
@@ -534,6 +625,45 @@ function validateLock(lock: unknown): ArtifactParseFailure | undefined {
             }
         }
     }
+    if (hasRuntimeSemantics && lock.libraryAssetRef === undefined) {
+        return fail(
+            "RunbookStudio.InvalidArtifact",
+            "runtime semantics require a libraryAssetRef authority",
+        );
+    }
+    for (const node of lock.nodes as Array<Record<string, unknown>>) {
+        if (!isRecord(node.runtime)) {
+            continue;
+        }
+        const references: string[] = [];
+        if (isRecord(node.runtime.decision)) {
+            for (const branch of node.runtime.decision.branches as Array<Record<string, unknown>>) {
+                references.push(...(branch.targetNodeIds as string[]));
+            }
+            if (isNonEmptyString(node.runtime.decision.defaultTargetNodeId)) {
+                references.push(node.runtime.decision.defaultTargetNodeId);
+            }
+        }
+        if (isRecord(node.runtime.parallel)) {
+            references.push(...(node.runtime.parallel.branchNodeIds as string[]));
+            if (isNonEmptyString(node.runtime.parallel.fanInTargetNodeId)) {
+                references.push(node.runtime.parallel.fanInTargetNodeId);
+            }
+        }
+        if (isRecord(node.runtime.approval)) {
+            references.push(node.runtime.approval.onApprove as string);
+            if (isNonEmptyString(node.runtime.approval.onReject)) {
+                references.push(node.runtime.approval.onReject);
+            }
+        }
+        const unknownReference = references.find((reference) => !nodeIds.has(reference));
+        if (unknownReference !== undefined) {
+            return fail(
+                "RunbookStudio.InvalidArtifact",
+                `node '${node.id}' runtime semantics reference unknown node '${unknownReference}'`,
+            );
+        }
+    }
     if (!isNonEmptyString(lock.entryNodeId) || !nodeIds.has(lock.entryNodeId)) {
         return fail("RunbookStudio.InvalidArtifact", "lock entryNodeId not a known node");
     }
@@ -552,6 +682,9 @@ function validateLock(lock: unknown): ArtifactParseFailure | undefined {
             (typeof edge.when !== "string" || !EDGE_WHEN.has(edge.when))
         ) {
             return fail("RunbookStudio.InvalidArtifact", "edge has unknown condition");
+        }
+        if (edge.label !== undefined && !isNonEmptyString(edge.label)) {
+            return fail("RunbookStudio.InvalidArtifact", "edge has invalid label");
         }
     }
     return undefined;

@@ -153,20 +153,23 @@ function GraphEdge({
     const y2 = target.y + NODE_H / 2;
     const bend = Math.max(36, Math.abs(x2 - x1) / 2);
     const path = `M ${x1} ${y1} C ${x1 + bend} ${y1}, ${x2 - bend} ${y2}, ${x2} ${y2}`;
-    const conditional = edge.when !== undefined;
+    const routeLabel = edge.label ?? edge.when;
+    const conditional = routeLabel !== undefined;
     // Cubic midpoint at t=0.5 collapses to the endpoint average for this
     // control-point choice — a stable anchor for the condition chip.
     const midX = (x1 + x2) / 2;
     const midY = (y1 + y2) / 2;
-    const chipWidth = conditional ? (edge.when as string).length * 6 + 12 : 0;
+    const visibleRouteLabel = routeLabel ? truncate(routeLabel, 28) : undefined;
+    const chipWidth = visibleRouteLabel ? visibleRouteLabel.length * 6 + 12 : 0;
     return (
         <g>
+            {routeLabel ? <title>{routeLabel}</title> : null}
             <path
                 className={`rbs-graph-edge ${conditional ? "rbs-graph-edge-conditional" : ""}`}
                 d={path}
                 markerEnd="url(#rbs-graph-arrowhead)"
             />
-            {conditional ? (
+            {visibleRouteLabel ? (
                 <g>
                     <rect
                         className="rbs-graph-edge-chip-bg"
@@ -182,7 +185,7 @@ function GraphEdge({
                         y={midY}
                         textAnchor="middle"
                         dominantBaseline="central">
-                        {edge.when}
+                        {visibleRouteLabel}
                     </text>
                 </g>
             ) : null}
@@ -199,9 +202,11 @@ function GraphNode({
     position: NodePosition;
     snapshot: RunbookNodeSnapshot | undefined;
 }) {
-    const identity = node.activityKind
-        ? `${node.activityKind}@${node.activityVersion ?? 1}`
-        : node.kind;
+    const identity = node.runtime
+        ? `Hobbes · ${node.runtime.nodeType}`
+        : node.activityKind
+          ? `${node.activityKind}@${node.activityVersion ?? 1}`
+          : node.kind;
     const target = node.target
         ? ` — target ${node.target.kind} via ${
               node.target.binding.source === "parameter"
@@ -214,7 +219,7 @@ function GraphNode({
     const preview = node.previewOnly ? " — deterministic preview only" : "";
     return (
         <g className={`rbs-graph-node ${snapshot ? `rbs-graph-node-${snapshot.state}` : ""}`}>
-            <title>{`${node.label} — ${identity}${target}${preview}`}</title>
+            <title>{`${node.label} — ${identity}${target}${preview}${node.runtime?.description ? ` — ${node.runtime.description}` : ""}`}</title>
             <rect
                 className="rbs-graph-node-rect"
                 x={position.x}
@@ -314,7 +319,7 @@ export function PlanGraphView({
                 </defs>
                 {drawableEdges.map((edge, index) => (
                     <GraphEdge
-                        key={`${edge.from}->${edge.to}:${edge.when ?? ""}:${index}`}
+                        key={`${edge.from}->${edge.to}:${edge.label ?? ""}:${edge.when ?? ""}:${index}`}
                         edge={edge}
                         source={positions.get(edge.from)!}
                         target={positions.get(edge.to)!}

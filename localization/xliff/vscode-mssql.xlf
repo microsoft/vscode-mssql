@@ -520,6 +520,12 @@
     <trans-unit id="++CODE++65660be4b1aada743a043b8bfae0d7ab62971f6ef37c3e6860d6449dc85609e5">
       <source xml:lang="en">Applying changes, this might take a while...</source>
     </trans-unit>
+    <trans-unit id="++CODE++d32620207461f67eb3d615d8f6852bccf67c645de9b7d3776b8a750cdf417003">
+      <source xml:lang="en">Approval kind</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c6112829a9c481564a5b0303f73e68a3e3bf646890740fb9decb33b6a747a2b">
+      <source xml:lang="en">Approval reason</source>
+    </trans-unit>
     <trans-unit id="++CODE++64b0e7abe9cde15792207814f2721ed28470182b6a23395a9b43afb2f9cda7b6">
       <source xml:lang="en">Approval rejected</source>
     </trans-unit>
@@ -528,6 +534,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b9548b17d66e75a9113ca21654118cc87e87f0e7b6c3147e10498a9a6263a561">
       <source xml:lang="en">Approval required to continue.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ff80e3d50541ef9fd44183477fa7ec1d005fdd3690eda1e03b45ef01461f54b8">
+      <source xml:lang="en">Approval routes</source>
     </trans-unit>
     <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
       <source xml:lang="en">Approve</source>
@@ -2489,6 +2498,9 @@
     </trans-unit>
     <trans-unit id="++CODE++4dbd051d047c69655a105b1e88920cc3e7ed06f0ed29b160ba660ad9573717a0">
       <source xml:lang="en">Debug &amp; Replay</source>
+    </trans-unit>
+    <trans-unit id="++CODE++48d46c5204a02d30d66df38115df144961e93320435b262bc096a021ee5da292">
+      <source xml:lang="en">Decision branches</source>
     </trans-unit>
     <trans-unit id="++CODE++5191aa33efee0799a1c940701c80f431062de1587ff3fc034a8a963a7fdaac65">
       <source xml:lang="en">Decoded features</source>
@@ -4780,6 +4792,9 @@
     <trans-unit id="++CODE++b91185f63fbbc17c093e3d2b7a50b755ba38d0e3a2bf1c82e079236e0624c673">
       <source xml:lang="en">Join the discussions</source>
     </trans-unit>
+    <trans-unit id="++CODE++18070ed559990926502baec765ce6553817be3a11be7b63184d594e2725f52a1">
+      <source xml:lang="en">Joins at</source>
+    </trans-unit>
     <trans-unit id="++CODE++9fc40891e01f78aea537da3fed4bcf2af4d4cd21a6edbe8303b780a2e024a6aa">
       <source xml:lang="en">Keep as-is</source>
     </trans-unit>
@@ -6381,6 +6396,9 @@
     <trans-unit id="++CODE++0a30a815d67d7dd2018fe18f4e995a26f3b753369cd4327e9b6034b50a2cd153">
       <source xml:lang="en">Page</source>
     </trans-unit>
+    <trans-unit id="++CODE++ca5156172a597744d63c6c50ec600229c54a1197e2b0c046a6dea9a40fa9ab4e">
+      <source xml:lang="en">Parallel branches</source>
+    </trans-unit>
     <trans-unit id="++CODE++dd066ec1bf1d4485d3597f93a32c2f64b88ccdb6c555428ac4af3d17bf691cc2">
       <source xml:lang="en">Parameter</source>
     </trans-unit>
@@ -7502,6 +7520,9 @@
       <source xml:lang="en">Runtime metric: {0}</source>
       <note>{0} is a runtime-published metric key</note>
     </trans-unit>
+    <trans-unit id="++CODE++2e8793324b9927466c3cebecd4db2f46e8eaadc41bc2d0050e1ca06c786630e5">
+      <source xml:lang="en">Runtime node</source>
+    </trans-unit>
     <trans-unit id="++CODE++bc5edaa8725467b32ab2ac33587036fc03fd723ddcc51134330d7a101d705e07">
       <source xml:lang="en">Runtime provider &apos;{0}&apos; is not ready: {1}</source>
       <note>{0} is a provider label, {1} is its bounded readiness reason</note>
@@ -7518,6 +7539,9 @@
     </trans-unit>
     <trans-unit id="++CODE++993975ed330502da75debae2e9247ae6e48b5c3fbafb50cc7cb93229400b44eb">
       <source xml:lang="en">Runtime provider sign-in was cancelled.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5bb1d2ef1627f96bdd4a2a728397aa4ff151d67b61c8e56770fc51e21099ebc3">
+      <source xml:lang="en">Runtime role</source>
     </trans-unit>
     <trans-unit id="++CODE++f19c78bd8ae86d99c792a5c343052ea2851290cbbd70bb58dbd84e995da9bc4e">
       <source xml:lang="en">Runtime-executed SQL</source>
@@ -10647,6 +10671,11 @@
     <trans-unit id="++CODE++788cf6bb35f3399101324a95ab0c2cd16c3c67cf49ad5e337988a31d2036502d">
       <source xml:lang="en">{0} — {1}: {2}</source>
       <note>{0} is a category name, {1} is a series (column) name, {2} is a numeric value</note>
+    </trans-unit>
+    <trans-unit id="++CODE++6de8079c7836d37c3a0c1ca468862d2b27b751ace2d6a62232f1aa0ccf4c7504">
+      <source xml:lang="en">{0} → {1}</source>
+      <note>{0} is a runtime-authored branch label
+{1} is a plan step name</note>
     </trans-unit>
     <trans-unit id="++CODE++b0020ab38fda5f63913e80f99f68a50881b2b83866c16fcd3abb83ce43c4aea3">
       <source xml:lang="en">{0}, +{1} more</source>

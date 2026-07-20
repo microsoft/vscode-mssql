@@ -16,10 +16,13 @@ import { expect } from "chai";
 import {
     buildArtifactFromLibraryAsset,
     buildPlannedArtifact,
+    hasRuntimeLibraryAuthority,
     humanizeNodeId,
     isPlannedArtifactFailure,
     mapPlannerNodeToLockNode,
     PlannedRunbook,
+    projectPlannerEdge,
+    projectPlannerNode,
 } from "../../src/runbookStudio/models/plannerMapping";
 import { createNewRunbookArtifact } from "../../src/runbookStudio/runbookArtifact";
 import { RunbookArtifactFile } from "../../src/sharedInterfaces/runbookStudio";
@@ -68,6 +71,35 @@ suite("plannerMapping", () => {
         expect(humanizeNodeId("")).to.equal("");
     });
 
+    test("untrusted runtime projections keep only bounded plan semantics", () => {
+        expect(
+            projectPlannerNode({
+                id: "decide",
+                type: "Decision",
+                metadata: { title: "Choose", description: "Choose a route", ignored: true },
+                branches: [
+                    {
+                        label: "Continue",
+                        targetNodeId: "next",
+                        expression: "ready",
+                        ignored: "value",
+                    },
+                ],
+                prompt: "not retained",
+            }),
+        ).to.deep.equal({
+            id: "decide",
+            type: "Decision",
+            metadata: { title: "Choose", description: "Choose a route" },
+            branches: [{ label: "Continue", targetNodeIds: ["next"], expression: "ready" }],
+        });
+        expect(
+            projectPlannerEdge({ from: "decide", to: "next", label: "Continue", id: "e1" }),
+        ).to.deep.equal({ from: "decide", to: "next", label: "Continue" });
+        expect(projectPlannerNode({ id: "" })).to.equal(undefined);
+        expect(projectPlannerEdge({ from: "decide" })).to.equal(undefined);
+    });
+
     test("SQL read strategies map to sql.query.read with the connection bind", () => {
         const node = mapPlannerNodeToLockNode(planned().plan.nodes[0], "database");
         expect(node).to.deep.equal({
@@ -84,6 +116,7 @@ suite("plannerMapping", () => {
                 kind: "sqlDatabase",
                 binding: { source: "parameter", parameterId: "database" },
             },
+            runtime: { nodeType: "Observation", role: "observation" },
         });
     });
 
@@ -107,7 +140,12 @@ suite("plannerMapping", () => {
 
     test("Report nodes map to report", () => {
         const node = mapPlannerNodeToLockNode(planned().plan.nodes[2], "database");
-        expect(node).to.deep.equal({ id: "final-report", label: "final-report", kind: "report" });
+        expect(node).to.deep.equal({
+            id: "final-report",
+            label: "Final report",
+            kind: "report",
+            runtime: { nodeType: "Report", role: "report" },
+        });
     });
 
     test("everything else maps to hobbes.native carrying the strategy or type", () => {
@@ -123,6 +161,7 @@ suite("plannerMapping", () => {
                 kind: "sqlDatabase",
                 binding: { source: "parameter", parameterId: "database" },
             },
+            runtime: { nodeType: "Aggregation", role: "aggregation" },
         });
         const waiter = mapPlannerNodeToLockNode(
             { id: "pause-for-approval", strategy: "primitive:wait.signal" },
@@ -155,6 +194,148 @@ suite("plannerMapping", () => {
         // Unnamed runbooks adopt the planner's title.
         expect(artifact.name).to.equal("Blocking Queries");
         expect(artifact.lock?.edges).to.deep.equal(planned().plan.edges);
+        expect(hasRuntimeLibraryAuthority(artifact)).to.equal(true);
+        expect(artifact.lock?.nodes.some((node) => node.activityKind === "hobbes.native")).to.equal(
+            true,
+        );
+    });
+
+    test("library authority does not depend on a hobbes.native fallback node", () => {
+        const sqlAndReportOnly = planned();
+        sqlAndReportOnly.plan.nodes = [
+            sqlAndReportOnly.plan.nodes[0],
+            sqlAndReportOnly.plan.nodes[2],
+        ];
+        sqlAndReportOnly.plan.edges = [
+            { from: "probe-current-request-health", to: "final-report" },
+        ];
+        const result = buildPlannedArtifact(
+            createNewRunbookArtifact("New runbook", "rb-sql-report"),
+            "inspect requests",
+            sqlAndReportOnly,
+        );
+        if (isPlannedArtifactFailure(result)) {
+            throw new Error(result.detail);
+        }
+        expect(
+            result.artifact.lock?.nodes.some((node) => node.activityKind === "hobbes.native"),
+        ).to.equal(false);
+        expect(hasRuntimeLibraryAuthority(result.artifact)).to.equal(true);
+        expect(hasRuntimeLibraryAuthority(createNewRunbookArtifact("Local", "local"))).to.equal(
+            false,
+        );
+    });
+
+    test("runtime-authored titles, control descriptors, and labeled approval routes survive mapping", () => {
+        const controlPlan: PlannedRunbook = {
+            assetId: "control-flow",
+            title: "Control flow",
+            plan: {
+                entryNodeId: "decide",
+                nodes: [
+                    {
+                        id: "decide",
+                        type: "Decision",
+                        role: "decision",
+                        metadata: {
+                            title: "Choose investigation depth",
+                            description: "Use the observed pressure to select the next path.",
+                        },
+                        branches: [
+                            {
+                                branchKey: "high",
+                                label: "Pressure detected",
+                                targetNodeIds: ["parallel"],
+                                expression: "pressure = high",
+                            },
+                            {
+                                label: "No pressure",
+                                targetNodeIds: ["report"],
+                                expression: "pressure != high",
+                            },
+                        ],
+                        defaultTargetNodeId: "report",
+                    },
+                    {
+                        id: "parallel",
+                        type: "Parallel",
+                        branchNodeIds: ["check-a", "check-b"],
+                        fanInTargetNodeId: "approval",
+                    },
+                    { id: "check-a", type: "Observation" },
+                    { id: "check-b", type: "Observation" },
+                    {
+                        id: "approval",
+                        type: "Approval",
+                        reason: "Review the proposed remediation.",
+                        approvalKind: "human-review",
+                        onApprove: "report",
+                        onReject: "rejected-report",
+                    },
+                    { id: "report", type: "Report", role: "report" },
+                    { id: "rejected-report", type: "Report", role: "report" },
+                ],
+                edges: [
+                    { from: "decide", to: "parallel", label: "Pressure detected" },
+                    { from: "decide", to: "report", label: "No pressure" },
+                    { from: "parallel", to: "check-a" },
+                    { from: "parallel", to: "check-b" },
+                    { from: "check-a", to: "approval" },
+                    { from: "check-b", to: "approval" },
+                    { from: "approval", to: "report", label: "Approved" },
+                    { from: "approval", to: "rejected-report", label: "Rejected" },
+                ],
+            },
+            inputSchema: [{ name: "database", kind: "connection" }],
+        };
+        const result = buildPlannedArtifact(
+            createNewRunbookArtifact("New runbook", "rb-control"),
+            "inspect pressure",
+            controlPlan,
+        );
+        if (isPlannedArtifactFailure(result)) {
+            throw new Error(result.detail);
+        }
+        const decision = result.artifact.lock?.nodes.find((node) => node.id === "decide");
+        expect(decision?.label).to.equal("Choose investigation depth");
+        expect(decision?.runtime).to.deep.equal({
+            nodeType: "Decision",
+            role: "decision",
+            description: "Use the observed pressure to select the next path.",
+            decision: {
+                branches: controlPlan.plan.nodes[0].branches,
+                defaultTargetNodeId: "report",
+            },
+        });
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "parallel")?.runtime,
+        ).to.deep.equal({
+            nodeType: "Parallel",
+            parallel: {
+                branchNodeIds: ["check-a", "check-b"],
+                fanInTargetNodeId: "approval",
+            },
+        });
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "approval")?.runtime,
+        ).to.deep.equal({
+            nodeType: "Approval",
+            approval: {
+                reason: "Review the proposed remediation.",
+                approvalKind: "human-review",
+                onApprove: "report",
+                onReject: "rejected-report",
+            },
+        });
+        expect(result.artifact.lock?.edges.slice(-2)).to.deep.equal([
+            { from: "approval", to: "report", label: "Approved", when: "approved" },
+            {
+                from: "approval",
+                to: "rejected-report",
+                label: "Rejected",
+                when: "rejected",
+            },
+        ]);
     });
 
     test("buildPlannedArtifact keeps an existing parameter that matches by id and bumps the revision", () => {
@@ -271,6 +452,7 @@ suite("plannerMapping", () => {
                 kind: "sqlDatabase",
                 binding: { source: "parameter", parameterId: "database" },
             },
+            runtime: { nodeType: "Aggregation", role: "aggregation" },
         });
     });
 
