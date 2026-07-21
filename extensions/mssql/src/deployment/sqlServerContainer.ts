@@ -194,7 +194,7 @@ export async function startSqlServerDockerContainer(
     },
 ): Promise<DockerCommandParams> {
     // DOCK-4: create+start span. Version/port are safe facts; the create
-    // options (SA_PASSWORD env) are NEVER logged or carried on fields.
+    // options (MSSQL_SA_PASSWORD env) are NEVER logged or carried on fields.
     const span = diag.startSpan({
         feature: "deployment",
         kind: "span",
@@ -212,7 +212,7 @@ export async function startSqlServerDockerContainer(
         const imageName = getSqlServerImageName(imageTag);
         const sqlContainerPort = `${defaultPortNumber}/tcp`;
         const hostPort = `${port}`;
-        const containerEnvironment = ["ACCEPT_EULA=Y", `SA_PASSWORD=${password}`];
+        const containerEnvironment = ["ACCEPT_EULA=Y", `MSSQL_SA_PASSWORD=${password}`];
         const createContainerOptions: Dockerode.ContainerCreateOptions = {
             Image: imageName,
             name: safeContainerName,

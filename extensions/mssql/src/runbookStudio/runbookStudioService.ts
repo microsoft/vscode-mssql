@@ -146,6 +146,7 @@ import {
     localSqlContainerLabels,
     localSqlContainerLeaseRef,
     validateLocalSqlContainerIdentity,
+    waitForLocalSqlContainerAuthentication,
 } from "./runtime/localContainerOperations";
 import {
     buildLocalDacpac,
@@ -3052,14 +3053,25 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             const ownerUri = `runbookstudio://container-provision/${sandboxCounter.toString(36)}`;
             let connected = false;
             try {
-                connected = await connectionManager.connect(ownerUri, masterProfile, {
-                    connectionSource: "runbookStudio",
-                    shouldHandleErrors: false,
-                });
+                connected = await waitForLocalSqlContainerAuthentication(
+                    () =>
+                        connectionManager.connect(ownerUri, masterProfile, {
+                            connectionSource: "runbookStudio",
+                            shouldHandleErrors: false,
+                        }),
+                    async () => {
+                        await connectionManager.disconnect(ownerUri);
+                    },
+                    isCancellationRequested,
+                );
                 if (!connected) {
                     throw new LocalActivityError(
-                        LocRunbookStudio.connectFailed,
-                        "RunbookStudio.ActivityFailed",
+                        isCancellationRequested()
+                            ? LocRunbookStudio.dacpacPreviewCancelled
+                            : LocRunbookStudio.connectFailed,
+                        isCancellationRequested()
+                            ? "RunbookStudio.ActivityCancelled"
+                            : "RunbookStudio.ActivityFailed",
                     );
                 }
                 await SqlToolsServerClient.instance.sendRequest(SimpleExecuteRequestType, {

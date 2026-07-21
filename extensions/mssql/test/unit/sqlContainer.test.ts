@@ -246,6 +246,10 @@ suite("SQL Server Container", () => {
         );
 
         expect(createContainerStub).to.have.been.calledOnce;
+        expect(createContainerStub.firstCall.args[0].Env).to.deep.equal([
+            "ACCEPT_EULA=Y",
+            "MSSQL_SA_PASSWORD=Xf9!uDq7@LmB2#cV",
+        ]);
         expect(startStub).to.have.been.calledOnce;
         expect(resultSuccess).to.deep.equal({
             success: true,

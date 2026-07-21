@@ -10,6 +10,7 @@ import {
     localSqlContainerLabels,
     localSqlContainerLeaseRef,
     validateLocalSqlContainerIdentity,
+    waitForLocalSqlContainerAuthentication,
 } from "../../src/runbookStudio/runtime/localContainerOperations";
 
 suite("Runbook Studio local SQL container policy", () => {
@@ -68,5 +69,66 @@ suite("Runbook Studio local SQL container policy", () => {
         const changed = { ...labels };
         changed["com.microsoft.mssql.runbook-studio.kind"] = "other";
         expect(isOwnedLocalSqlContainer(changed, effectId, "run_1")).to.equal(false);
+    });
+
+    test("waits for authenticated readiness after transient startup failures", async () => {
+        let now = 0;
+        let attempts = 0;
+        let resets = 0;
+        const ready = await waitForLocalSqlContainerAuthentication(
+            async () => ++attempts === 3,
+            async () => {
+                resets++;
+            },
+            () => false,
+            {
+                timeoutMs: 3000,
+                retryDelayMs: 1000,
+                now: () => now,
+                wait: async (milliseconds) => {
+                    now += milliseconds;
+                },
+            },
+        );
+
+        expect(ready).to.equal(true);
+        expect(attempts).to.equal(3);
+        expect(resets).to.equal(2);
+    });
+
+    test("bounds authenticated readiness and honors cancellation", async () => {
+        let now = 0;
+        let attempts = 0;
+        const ready = await waitForLocalSqlContainerAuthentication(
+            async () => {
+                attempts++;
+                return false;
+            },
+            async () => undefined,
+            () => false,
+            {
+                timeoutMs: 2000,
+                retryDelayMs: 1000,
+                now: () => now,
+                wait: async (milliseconds) => {
+                    now += milliseconds;
+                },
+            },
+        );
+        expect(ready).to.equal(false);
+        expect(attempts).to.equal(2);
+
+        attempts = 0;
+        expect(
+            await waitForLocalSqlContainerAuthentication(
+                async () => {
+                    attempts++;
+                    return true;
+                },
+                async () => undefined,
+                () => true,
+            ),
+        ).to.equal(false);
+        expect(attempts).to.equal(0);
     });
 });

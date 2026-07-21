@@ -15,6 +15,7 @@ export const RUNBOOK_CONTAINER_KIND = "sql-development-environment";
 
 const CONTAINER_LEASE_PREFIX = "runbook-sql-container-lease:";
 const ALLOWED_SQL_CONTAINER_VERSIONS = new Set(["2019", "2022", "2025"]);
+export const LOCAL_SQL_CONTAINER_AUTH_TIMEOUT_MS = 60_000;
 
 export interface LocalSqlContainerIdentity {
     containerName: string;
@@ -82,6 +83,53 @@ export function isOwnedLocalSqlContainer(
         labels?.[RUNBOOK_CONTAINER_RUN_LABEL] === runId &&
         labels?.[RUNBOOK_CONTAINER_KIND_LABEL] === RUNBOOK_CONTAINER_KIND
     );
+}
+
+/** The SQL image can emit its ready log before first-run password setup and
+ * restart have settled. Runbook provisioning therefore requires a bounded
+ * authenticated probe instead of trusting the log line alone. */
+export async function waitForLocalSqlContainerAuthentication(
+    connect: () => Promise<boolean>,
+    resetFailedAttempt: () => Promise<void>,
+    isCancellationRequested: () => boolean,
+    options: {
+        timeoutMs?: number;
+        retryDelayMs?: number;
+        now?: () => number;
+        wait?: (milliseconds: number) => Promise<void>;
+    } = {},
+): Promise<boolean> {
+    const timeoutMs = Math.max(1, options.timeoutMs ?? LOCAL_SQL_CONTAINER_AUTH_TIMEOUT_MS);
+    const retryDelayMs = Math.max(1, options.retryDelayMs ?? 1000);
+    const now = options.now ?? Date.now;
+    const wait =
+        options.wait ??
+        ((milliseconds: number) =>
+            new Promise<void>((resolve) => {
+                setTimeout(resolve, milliseconds);
+            }));
+    const deadline = now() + timeoutMs;
+    let firstAttempt = true;
+    while (!isCancellationRequested() && (firstAttempt || now() < deadline)) {
+        firstAttempt = false;
+        try {
+            if (await connect()) {
+                return true;
+            }
+        } catch {
+            // Authentication/provider startup failures are retried within the bound.
+        }
+        try {
+            await resetFailedAttempt();
+        } catch {
+            // A failed connect may not have created a session to reset.
+        }
+        if (isCancellationRequested() || now() >= deadline) {
+            return false;
+        }
+        await wait(Math.min(retryDelayMs, Math.max(1, deadline - now())));
+    }
+    return false;
 }
 
 function assertEffectId(effectId: string): void {
