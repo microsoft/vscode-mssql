@@ -314,9 +314,9 @@ suite("planCompiler", () => {
         );
     });
 
-    test("an inspected workload compiles against the same owned SQL container", () => {
+    test("an inspected workload and XEL capture compile against the same owned SQL container", () => {
         const intent =
-            "Provision a local SQL container, run workload.sql in it, and dispose the container.";
+            "Provision a local SQL container, import the dacpac, run workload.sql, collect an XEvent XEL file, and dispose the container.";
         const classified = classifyRunbookIntent(intent);
         const containerBase: RunbookArtifactFile = {
             ...base(),
@@ -333,6 +333,13 @@ suite("planCompiler", () => {
                 { id: "databaseName", label: "Database name", type: "string", required: true },
                 { id: "password", label: "SQL password", type: "secret", required: true },
                 { id: "workload", label: "Workload file", type: "string", required: true },
+                { id: "dacpac", label: "DACPAC file", type: "string", required: true },
+                {
+                    id: "artifactDigest",
+                    label: "DACPAC SHA-256",
+                    type: "string",
+                    required: true,
+                },
             ],
             entryNodeId: "approve-container",
             nodes: [
@@ -350,11 +357,56 @@ suite("planCompiler", () => {
                     },
                 },
                 {
+                    id: "preview-deploy",
+                    label: "Preview DACPAC deployment",
+                    kind: "activity",
+                    activityKind: "dacpac.deploy.preview",
+                    inputs: {
+                        dacpac: "$params.dacpac",
+                        database: "$nodes.container.connectionRef",
+                    },
+                },
+                { id: "approve-deploy", label: "Approve deployment", kind: "gate" },
+                {
+                    id: "deploy",
+                    label: "Deploy DACPAC",
+                    kind: "activity",
+                    activityKind: "dacpac.deploy.container",
+                    inputs: {
+                        dacpac: "$params.dacpac",
+                        database: "$nodes.container.connectionRef",
+                        artifactDigest: "$params.artifactDigest",
+                        previewDigest: "$nodes.preview-deploy.reportSha256",
+                    },
+                },
+                {
+                    id: "verify",
+                    label: "Verify deployed schema",
+                    kind: "activity",
+                    activityKind: "schema.compare",
+                    inputs: {
+                        dacpac: "$params.dacpac",
+                        database: "$nodes.container.connectionRef",
+                    },
+                },
+                {
                     id: "inspect",
                     label: "Inspect workload",
                     kind: "activity",
                     activityKind: "sql.workload.inspect",
                     inputs: { file: "$params.workload" },
+                },
+                { id: "approve-capture", label: "Approve capture", kind: "gate" },
+                {
+                    id: "start-capture",
+                    label: "Start XEvent capture",
+                    kind: "activity",
+                    activityKind: "xevent.session.start",
+                    inputs: {
+                        database: "$nodes.container.connectionRef",
+                        template: "developer-diagnostics",
+                        maxFileSizeMb: 16,
+                    },
                 },
                 { id: "approve-workload", label: "Approve workload", kind: "gate" },
                 {
@@ -371,6 +423,26 @@ suite("planCompiler", () => {
                     },
                 },
                 {
+                    id: "stop-capture",
+                    label: "Stop XEvent capture",
+                    kind: "activity",
+                    activityKind: "xevent.session.stop",
+                    inputs: {
+                        database: "$nodes.container.connectionRef",
+                        session: "$nodes.start-capture.sessionRef",
+                    },
+                },
+                {
+                    id: "collect-xel",
+                    label: "Collect XEL",
+                    kind: "activity",
+                    activityKind: "xevent.xel.collect",
+                    inputs: {
+                        database: "$nodes.container.connectionRef",
+                        capture: "$nodes.stop-capture.captureRef",
+                    },
+                },
+                {
                     id: "dispose",
                     label: "Dispose SQL container",
                     kind: "activity",
@@ -382,11 +454,29 @@ suite("planCompiler", () => {
             edges: [
                 { from: "approve-container", to: "container", when: "approved" },
                 { from: "approve-container", to: "report", when: "rejected" },
-                { from: "container", to: "inspect" },
-                { from: "inspect", to: "approve-workload" },
+                { from: "container", to: "preview-deploy" },
+                { from: "preview-deploy", to: "dispose", when: "failure" },
+                { from: "preview-deploy", to: "approve-deploy" },
+                { from: "approve-deploy", to: "deploy", when: "approved" },
+                { from: "approve-deploy", to: "dispose", when: "rejected" },
+                { from: "deploy", to: "verify" },
+                { from: "deploy", to: "dispose", when: "failure" },
+                { from: "verify", to: "inspect" },
+                { from: "verify", to: "dispose", when: "failure" },
+                { from: "inspect", to: "approve-capture" },
+                { from: "inspect", to: "dispose", when: "failure" },
+                { from: "approve-capture", to: "start-capture", when: "approved" },
+                { from: "approve-capture", to: "dispose", when: "rejected" },
+                { from: "start-capture", to: "approve-workload" },
+                { from: "start-capture", to: "dispose", when: "failure" },
                 { from: "approve-workload", to: "run", when: "approved" },
-                { from: "approve-workload", to: "dispose", when: "rejected" },
-                { from: "run", to: "dispose" },
+                { from: "approve-workload", to: "stop-capture", when: "rejected" },
+                { from: "run", to: "stop-capture" },
+                { from: "run", to: "stop-capture", when: "failure" },
+                { from: "stop-capture", to: "collect-xel" },
+                { from: "stop-capture", to: "dispose", when: "failure" },
+                { from: "collect-xel", to: "dispose" },
+                { from: "collect-xel", to: "dispose", when: "failure" },
                 { from: "dispose", to: "report" },
             ],
         };
@@ -402,8 +492,14 @@ suite("planCompiler", () => {
                 .map((node) => node.activityKind),
         ).to.deep.equal([
             "sql.container.provision",
+            "dacpac.deploy.preview",
+            "dacpac.deploy.container",
+            "schema.compare",
             "sql.workload.inspect",
+            "xevent.session.start",
             "sql.workload.run",
+            "xevent.session.stop",
+            "xevent.xel.collect",
             "sql.container.dispose",
         ]);
     });

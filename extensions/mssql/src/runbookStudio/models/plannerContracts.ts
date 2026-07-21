@@ -144,6 +144,7 @@ export const FAMILY_PLANNER_CONTRACTS: Readonly<Record<RunbookFamily, FamilyPlan
             "Preserve each sub-workflow's typed operational activities; do not collapse a Build or Validate phase into investigation prose.",
             "Pass only typed outputs between phases and keep target changes explicit.",
             "Preview and approval precede mutation; evidence precedes cleanup; the final report summarizes actual typed outcomes only.",
+            "Route failure paths through owned session stop and target disposal whenever those leases may already exist.",
         ],
     },
 };

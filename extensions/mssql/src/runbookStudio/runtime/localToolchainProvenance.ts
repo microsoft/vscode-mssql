@@ -16,7 +16,8 @@ export type LocalToolchainComponentId =
     | "mssqlExtension"
     | "sqlDatabaseProjectsExtension"
     | "sqlToolsService"
-    | "dacFx";
+    | "dacFx"
+    | "dockerEngine";
 
 export interface LocalToolchainComponent {
     id: LocalToolchainComponentId;
@@ -45,6 +46,7 @@ export interface LocalToolchainProvenanceInput {
     sqlToolsServiceRuntimeVersion: unknown;
     sqlToolsServiceConfiguredVersion: unknown;
     sqlToolsServiceRoot?: string;
+    dockerEngineVersion?: unknown;
 }
 
 export function buildLocalToolchainProvenance(
@@ -56,6 +58,7 @@ export function buildLocalToolchainProvenance(
     const stsRuntimeVersion = safeVersion(input.sqlToolsServiceRuntimeVersion);
     const stsConfiguredVersion = safeVersion(input.sqlToolsServiceConfiguredVersion);
     const dacFxVersion = readDacFxVersionFromServiceRoot(input.sqlToolsServiceRoot);
+    const dockerEngineVersion = safeVersion(input.dockerEngineVersion);
     const components: LocalToolchainComponent[] = [
         component("vscode", vscodeVersion, "host"),
         component("mssqlExtension", mssqlExtensionVersion, "extensionManifest"),
@@ -82,6 +85,7 @@ export function buildLocalToolchainProvenance(
             versionSource: dacFxVersion ? "serviceDependencyManifest" : "none",
             hostComponent: "sqlToolsService",
         },
+        component("dockerEngine", dockerEngineVersion, "runtimeRequest"),
     ];
     return {
         complete: components.every((entry) => entry.status === "resolved"),

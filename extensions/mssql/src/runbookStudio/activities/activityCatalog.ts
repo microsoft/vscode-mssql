@@ -449,6 +449,44 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "xevent.session.start",
+        version: 1,
+        label: "Start owned developer XEvent session",
+        description:
+            "Starts one ownership-derived, bounded event-file session on a same-run SQL container using the closed developer-diagnostics template.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to a sql.container.provision connectionRef",
+            },
+            {
+                name: "template",
+                kind: "bind",
+                required: true,
+                description: "Allowlisted template: developer-diagnostics",
+            },
+            {
+                name: "maxFileSizeMb",
+                kind: "bind",
+                required: false,
+                description: "Bounded XEL target size from 1 to 64 MiB (default 16)",
+            },
+        ],
+        outputContract: "xeventSessionLease/1",
+        producedValues: ["sessionRef", "sessionName", "template"],
+        approvalRequired: true,
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "container",
+            operation: "create",
+            targetEnvironment: "ephemeral",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "sql.workload.run",
         version: 1,
         label: "Run approved SQL workload",
@@ -503,6 +541,74 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         blastRadius: {
             resource: "databaseData",
             operation: "execute",
+            targetEnvironment: "ephemeral",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "xevent.session.stop",
+        version: 1,
+        label: "Stop owned developer XEvent session",
+        description:
+            "Stops and removes the exact session created by an upstream xevent.session.start activity and issues an opaque capture reference.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to the same sql.container.provision connectionRef",
+            },
+            {
+                name: "session",
+                kind: "bind",
+                required: true,
+                description: "Bind to xevent.session.start sessionRef",
+            },
+        ],
+        outputContract: "xeventCapture/1",
+        producedValues: ["captureRef", "sessionName", "eventFileName", "eventCount"],
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "container",
+            operation: "delete",
+            targetEnvironment: "ephemeral",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "xevent.xel.collect",
+        version: 1,
+        label: "Collect owned XEL artifact",
+        description:
+            "Copies the exact bounded event file from an owned local SQL container into extension-managed storage and verifies its size and SHA-256.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to the same sql.container.provision connectionRef",
+            },
+            {
+                name: "capture",
+                kind: "bind",
+                required: true,
+                description: "Bind to xevent.session.stop captureRef",
+            },
+        ],
+        outputContract: "xelArtifact/1",
+        producedValues: [
+            "artifactPath",
+            "artifactSha256",
+            "artifactSizeBytes",
+            "eventCount",
+            "captureComplete",
+        ],
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "workspaceFiles",
+            operation: "create",
             targetEnvironment: "ephemeral",
             reversibility: "autoReversible",
             breadth: "bounded",
@@ -890,7 +996,10 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
             if (descriptor.target.kind === "ephemeralSqlDatabase") {
                 const containerActivity =
                     descriptor.kind === "dacpac.deploy.container" ||
+                    descriptor.kind === "xevent.session.start" ||
                     descriptor.kind === "sql.workload.run" ||
+                    descriptor.kind === "xevent.session.stop" ||
+                    descriptor.kind === "xevent.xel.collect" ||
                     descriptor.kind === "sql.container.dispose";
                 const producerKind = containerActivity
                     ? "sql.container.provision"
@@ -917,6 +1026,34 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
             if (descriptor.kind === "sql.workload.run" && !isWorkloadInspectionOutput(lock, node)) {
                 issues.push(
                     `node '${node.id}' must bind workload and workloadDigest to the same upstream sql.workload.inspect node`,
+                );
+            }
+            if (
+                descriptor.kind === "xevent.session.stop" &&
+                !isUpstreamActivityOutput(
+                    lock,
+                    node,
+                    "session",
+                    "sessionRef",
+                    "xevent.session.start",
+                )
+            ) {
+                issues.push(
+                    `node '${node.id}' must bind session to an upstream xevent.session.start sessionRef`,
+                );
+            }
+            if (
+                descriptor.kind === "xevent.xel.collect" &&
+                !isUpstreamActivityOutput(
+                    lock,
+                    node,
+                    "capture",
+                    "captureRef",
+                    "xevent.session.stop",
+                )
+            ) {
+                issues.push(
+                    `node '${node.id}' must bind capture to an upstream xevent.session.stop captureRef`,
                 );
             }
         }
@@ -984,6 +1121,40 @@ function isWorkloadInspectionOutput(lock: CompiledRunbookLock, node: RunbookPlan
     }
     const producer = lock.nodes.find((candidate) => candidate.id === workload[1]);
     if (producer?.kind !== "activity" || producer.activityKind !== "sql.workload.inspect") {
+        return false;
+    }
+    const visited = new Set<string>([producer.id]);
+    const pending = [producer.id];
+    while (pending.length > 0) {
+        const current = pending.shift()!;
+        for (const edge of lock.edges.filter((candidate) => candidate.from === current)) {
+            if (edge.to === node.id) {
+                return true;
+            }
+            if (!visited.has(edge.to)) {
+                visited.add(edge.to);
+                pending.push(edge.to);
+            }
+        }
+    }
+    return false;
+}
+
+function isUpstreamActivityOutput(
+    lock: CompiledRunbookLock,
+    node: RunbookPlanNode,
+    inputName: string,
+    outputName: string,
+    activityKind: string,
+): boolean {
+    const output = /^\$nodes\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/.exec(
+        String(node.inputs?.[inputName] ?? ""),
+    );
+    if (!output || output[2] !== outputName) {
+        return false;
+    }
+    const producer = lock.nodes.find((candidate) => candidate.id === output[1]);
+    if (producer?.kind !== "activity" || producer.activityKind !== activityKind) {
         return false;
     }
     const visited = new Set<string>([producer.id]);

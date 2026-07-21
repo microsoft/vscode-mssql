@@ -68,7 +68,7 @@ interface FetchedPage {
     errorCode?: string;
 }
 
-const FILE_ARTIFACT_CONTRACTS = new Set(["dacpacArtifact/1", "schemaDiff/1"]);
+const FILE_ARTIFACT_CONTRACTS = new Set(["dacpacArtifact/1", "schemaDiff/1", "xelArtifact/1"]);
 
 function OutputArtifactActions({ widget }: { widget: ResolvedWidget }) {
     const { rpc } = useRbs();

@@ -271,6 +271,21 @@
     "The workload contains unsupported SQLCMD directives or server, external, or cross-database effects.": "The workload contains unsupported SQLCMD directives or server, external, or cross-database effects.",
     "The inspected workload snapshot or digest no longer matches the approved workload.": "The inspected workload snapshot or digest no longer matches the approved workload.",
     "Workload execution is allowed only on an ownership-verified SQL container created by this run.": "Workload execution is allowed only on an ownership-verified SQL container created by this run.",
+    "Owned XEvent session '{0}' started./{0} is an ownership-derived Extended Events session name": {
+        "message": "Owned XEvent session '{0}' started.",
+        "comment": ["{0} is an ownership-derived Extended Events session name"]
+    },
+    "Owned XEvent session '{0}' stopped and removed./{0} is an ownership-derived Extended Events session name": {
+        "message": "Owned XEvent session '{0}' stopped and removed.",
+        "comment": ["{0} is an ownership-derived Extended Events session name"]
+    },
+    "Collected and verified a {0}-byte XEL artifact./{0} is a retained artifact size in bytes": {
+        "message": "Collected and verified a {0}-byte XEL artifact.",
+        "comment": ["{0} is a retained artifact size in bytes"]
+    },
+    "The XEvent template, target size, session reference, or server file path is outside the owned-container capture policy.": "The XEvent template, target size, session reference, or server file path is outside the owned-container capture policy.",
+    "The owned XEvent session could not be created, inspected, or removed safely.": "The owned XEvent session could not be created, inspected, or removed safely.",
+    "The owned XEL file could not be collected as one bounded, verifiable artifact.": "The owned XEL file could not be collected as one bounded, verifiable artifact.",
     "The development database name must be a non-system SQL identifier of at most 128 characters.": "The development database name must be a non-system SQL identifier of at most 128 characters.",
     "The named development database already exists. This activity only creates absent targets and will not take ownership of an existing database.": "The named development database already exists. This activity only creates absent targets and will not take ownership of an existing database.",
     "The named development database ownership marker does not match this runbook lease. The operation was refused.": "The named development database ownership marker does not match this runbook lease. The operation was refused.",

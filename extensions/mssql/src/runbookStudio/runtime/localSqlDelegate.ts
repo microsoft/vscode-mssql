@@ -34,6 +34,11 @@ import {
     normalizeLocalTsqltSelection,
     parseLocalTsqltResult,
 } from "./localTsqlt";
+import {
+    LOCAL_XEVENT_TEMPLATE,
+    MAX_LOCAL_XEL_FILE_SIZE_MB,
+    MIN_LOCAL_XEL_FILE_SIZE_MB,
+} from "./localXevent";
 
 export { isReadOnlySql } from "../readOnlySql";
 
@@ -154,6 +159,27 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalWorkloadRunResult>;
+    startXeventSession(
+        nodeId: string,
+        databaseRef: string,
+        template: string,
+        maxFileSizeMb: number,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalXeventSessionResult>;
+    stopXeventSession(
+        databaseRef: string,
+        sessionRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalXeventCaptureResult>;
+    collectXel(
+        nodeId: string,
+        databaseRef: string,
+        captureRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalXelArtifactResult>;
     disposeSandbox(
         nodeId: string,
         leaseRef: string,
@@ -330,6 +356,34 @@ export interface LocalWorkloadRunResult {
     completedAtUtc: string;
 }
 
+export interface LocalXeventSessionResult {
+    effectId: string;
+    sessionRef: string;
+    sessionName: string;
+    template: string;
+    maxFileSizeMb: number;
+    startedAtUtc: string;
+}
+
+export interface LocalXeventCaptureResult {
+    effectId: string;
+    captureRef: string;
+    sessionName: string;
+    eventFileName: string;
+    eventCount: number;
+    stoppedAtUtc: string;
+}
+
+export interface LocalXelArtifactResult {
+    sessionName: string;
+    artifactPath: string;
+    artifactSizeBytes: number;
+    artifactSha256: string;
+    eventCount: number;
+    captureComplete: boolean;
+    collectedAtUtc: string;
+}
+
 /** Expected host refusal with a stable, non-secret error classification. */
 export class LocalActivityError extends Error {
     constructor(
@@ -362,7 +416,10 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "dacpac.deploy",
         "dacpac.deploy.dev",
         "dacpac.deploy.container",
+        "xevent.session.start",
         "sql.workload.run",
+        "xevent.session.stop",
+        "xevent.xel.collect",
         "sql.schema.apply",
         "schema.compare",
         "schema.compare.export",
@@ -411,8 +468,14 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.deployDacpac(node, binding, true);
             case "dacpac.deploy.container":
                 return this.deployDacpac(node, binding, false, true);
+            case "xevent.session.start":
+                return this.startXeventSession(node, binding);
             case "sql.workload.run":
                 return this.runWorkload(node, binding);
+            case "xevent.session.stop":
+                return this.stopXeventSession(node, binding);
+            case "xevent.xel.collect":
+                return this.collectXel(node, binding);
             case "sql.schema.apply":
                 return this.applySchema(node, binding);
             case "schema.compare":
@@ -1090,6 +1153,177 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     executedBatchCount: result.executedBatchCount,
                     failedBatchCount: result.failedBatchCount,
                     totalDurationMs: result.totalDurationMs,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async startXeventSession(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        const template = binding.resolveBind(node.inputs?.template);
+        const fileSizeValue = binding.resolveBind(node.inputs?.maxFileSizeMb);
+        const maxFileSizeMb = fileSizeValue === undefined ? 16 : fileSizeValue;
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        if (template !== LOCAL_XEVENT_TEMPLATE) {
+            return invalidBinding("template");
+        }
+        if (
+            typeof maxFileSizeMb !== "number" ||
+            !Number.isSafeInteger(maxFileSizeMb) ||
+            maxFileSizeMb < MIN_LOCAL_XEL_FILE_SIZE_MB ||
+            maxFileSizeMb > MAX_LOCAL_XEL_FILE_SIZE_MB
+        ) {
+            return invalidBinding("maxFileSizeMb");
+        }
+        try {
+            const result = await this.operations.startXeventSession(
+                node.id,
+                databaseRef.trim(),
+                template,
+                maxFileSizeMb,
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: { "xevent.sessionStarted": true },
+                message: LocRunbookStudio.xeventSessionStarted(result.sessionName),
+                output: {
+                    contract: "xeventSessionLease/1",
+                    scalars: {
+                        effectId: result.effectId,
+                        sessionRef: result.sessionRef,
+                        sessionName: result.sessionName,
+                        template: result.template,
+                        maxFileSizeMb: result.maxFileSizeMb,
+                        startedAtUtc: result.startedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    sessionRef: result.sessionRef,
+                    sessionName: result.sessionName,
+                    template: result.template,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async stopXeventSession(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        const sessionRef = binding.resolveBind(node.inputs?.session);
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        if (typeof sessionRef !== "string" || sessionRef.trim().length === 0) {
+            return invalidBinding("session");
+        }
+        try {
+            const result = await this.operations.stopXeventSession(
+                databaseRef.trim(),
+                sessionRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: { "xevent.sessionStopped": true },
+                message: LocRunbookStudio.xeventSessionStopped(result.sessionName),
+                output: {
+                    contract: "xeventCapture/1",
+                    scalars: {
+                        effectId: result.effectId,
+                        captureRef: result.captureRef,
+                        sessionName: result.sessionName,
+                        eventFileName: result.eventFileName,
+                        eventCount: result.eventCount,
+                        stoppedAtUtc: result.stoppedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    captureRef: result.captureRef,
+                    sessionName: result.sessionName,
+                    eventFileName: result.eventFileName,
+                    eventCount: result.eventCount,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async collectXel(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        const captureRef = binding.resolveBind(node.inputs?.capture);
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        if (typeof captureRef !== "string" || captureRef.trim().length === 0) {
+            return invalidBinding("capture");
+        }
+        try {
+            const result = await this.operations.collectXel(
+                node.id,
+                databaseRef.trim(),
+                captureRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "xevent.artifactSizeBytes": result.artifactSizeBytes,
+                    "xevent.eventCount": result.eventCount,
+                    "xevent.captureComplete": result.captureComplete,
+                },
+                message: LocRunbookStudio.xelArtifactCollected(result.artifactSizeBytes),
+                output: {
+                    contract: "xelArtifact/1",
+                    scalars: {
+                        sessionName: result.sessionName,
+                        artifactPath: result.artifactPath,
+                        artifactSizeBytes: result.artifactSizeBytes,
+                        artifactSha256: result.artifactSha256,
+                        eventCount: result.eventCount,
+                        captureComplete: result.captureComplete,
+                        collectedAtUtc: result.collectedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    artifactPath: result.artifactPath,
+                    artifactSizeBytes: result.artifactSizeBytes,
+                    artifactSha256: result.artifactSha256,
+                    eventCount: result.eventCount,
+                    captureComplete: result.captureComplete,
                 },
             };
         } catch (error) {

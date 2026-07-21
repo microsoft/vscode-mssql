@@ -1503,6 +1503,10 @@
     <trans-unit id="++CODE++2a741bf60e87cb92c5850d89286135aaed0b73927b901114af28ad88fe82951f">
       <source xml:lang="en">Collation</source>
     </trans-unit>
+    <trans-unit id="++CODE++1cf275a42cc4e546a6e1c92514a18088fbe004a0971cbd6936eda1ef70001e2c">
+      <source xml:lang="en">Collected and verified a {0}-byte XEL artifact.</source>
+      <note>{0} is a retained artifact size in bytes</note>
+    </trans-unit>
     <trans-unit id="++CODE++6b73191a0a4b67420e61d51c9f207c35277eaf18fbbf5beb52a320a23fe09653">
       <source xml:lang="en">Color</source>
     </trans-unit>
@@ -6462,6 +6466,14 @@
       <source xml:lang="en">Owned SQL container &apos;{0}&apos; was removed.</source>
       <note>{0} is an owned container name</note>
     </trans-unit>
+    <trans-unit id="++CODE++a20dd7ef1bec132093272c2aedc4a079d9f8e155e3c233d534cc9b66da3671b8">
+      <source xml:lang="en">Owned XEvent session &apos;{0}&apos; started.</source>
+      <note>{0} is an ownership-derived Extended Events session name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++d6243866fd0ca7fb217f94e28388cfd13984256da5b31aafaa14fc4672f939f7">
+      <source xml:lang="en">Owned XEvent session &apos;{0}&apos; stopped and removed.</source>
+      <note>{0} is an ownership-derived Extended Events session name</note>
+    </trans-unit>
     <trans-unit id="++CODE++4b1b8aa3608a26da451ae0630d75b60ab1bc2dd229c41a80838fc7993e835c46">
       <source xml:lang="en">Owner</source>
     </trans-unit>
@@ -9178,6 +9190,9 @@
     <trans-unit id="++CODE++c364da33c97d06acc010a7ee647d4764b8768c9fcd9ab63b247ef14826a2361a">
       <source xml:lang="en">The XEL file was not found.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c5d7b90865fffdc0d340dfd161e45f055089e1baca732bf30e1fc50e105f69f3">
+      <source xml:lang="en">The XEvent template, target size, session reference, or server file path is outside the owned-container capture policy.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2aaa4378deeeca374707ffd306cd16f674e3002b3004770d868ad40b43778fc3">
       <source xml:lang="en">The approval decision could not be saved safely. The operation was not released.</source>
     </trans-unit>
@@ -9335,6 +9350,12 @@
     </trans-unit>
     <trans-unit id="++CODE++bbf9d5878e0f547ff1f5da1612e21b060981abbf3277a23a0ae0d19eb9019861">
       <source xml:lang="en">The owned SQL container could not be provisioned and verified safely.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++75c6f435b4d1b8aa0885c26a385d89a2ee5cb0b109dfda14a439c7a2a2c74428">
+      <source xml:lang="en">The owned XEL file could not be collected as one bounded, verifiable artifact.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++185f771797053e62cfeff87c8af9bf5d5a4aa06b25865e260fac5aaa376674ee">
+      <source xml:lang="en">The owned XEvent session could not be created, inspected, or removed safely.</source>
     </trans-unit>
     <trans-unit id="++CODE++d25cb7cb615b44cf93cbec1c0f74ef7be719ed3131886d1d3424d02502a7f494">
       <source xml:lang="en">The preview uses the compiled activity output contracts and never runs SQL or other effects.</source>

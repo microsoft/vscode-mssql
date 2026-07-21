@@ -18,6 +18,7 @@ import type { RuntimeOutputPayload } from "./runtime/runtimeAdapterTypes";
 const OUTPUT_ARTIFACT_EXTENSIONS = new Map<string, ReadonlySet<string>>([
     ["dacpacArtifact/1", new Set([".dacpac"])],
     ["schemaDiff/1", new Set([".xml"])],
+    ["xelArtifact/1", new Set([".xel"])],
 ]);
 
 export interface RetainedOutputArtifact {

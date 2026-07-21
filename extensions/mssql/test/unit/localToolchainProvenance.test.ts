@@ -36,6 +36,7 @@ suite("Runbook Studio local toolchain provenance", () => {
             sqlToolsServiceRuntimeVersion: "6.0.0.0",
             sqlToolsServiceConfiguredVersion: "6.0.20260713.1",
             sqlToolsServiceRoot: root,
+            dockerEngineVersion: "29.6.1",
         });
 
         expect(result.complete).to.equal(true);
@@ -45,6 +46,7 @@ suite("Runbook Studio local toolchain provenance", () => {
             "sqlDatabaseProjectsExtension",
             "sqlToolsService",
             "dacFx",
+            "dockerEngine",
         ]);
         expect(result.components.find((entry) => entry.id === "sqlToolsService")).to.include({
             version: "6.0.0.0",

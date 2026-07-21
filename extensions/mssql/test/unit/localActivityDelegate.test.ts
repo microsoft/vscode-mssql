@@ -242,6 +242,31 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             ],
             completedAtUtc: "2026-07-20T20:03:02.000Z",
         }),
+        startXeventSession: async () => ({
+            effectId: `effect-${"6".repeat(64)}`,
+            sessionRef: `runbook-xevent-session:effect-${"6".repeat(64)}`,
+            sessionName: "rbs_xe_666666666666666666666666",
+            template: "developer-diagnostics",
+            maxFileSizeMb: 16,
+            startedAtUtc: "2026-07-20T20:03:03.000Z",
+        }),
+        stopXeventSession: async () => ({
+            effectId: `effect-${"6".repeat(64)}`,
+            captureRef: `runbook-xevent-capture:effect-${"6".repeat(64)}`,
+            sessionName: "rbs_xe_666666666666666666666666",
+            eventFileName: "rbs_xe_666666666666666666666666_0_1.xel",
+            eventCount: 12,
+            stoppedAtUtc: "2026-07-20T20:03:04.000Z",
+        }),
+        collectXel: async () => ({
+            sessionName: "rbs_xe_666666666666666666666666",
+            artifactPath: "C:\\managed\\rbs_xe_666666666666666666666666_0_1.xel",
+            artifactSizeBytes: 4096,
+            artifactSha256: "8".repeat(64),
+            eventCount: 12,
+            captureComplete: true,
+            collectedAtUtc: "2026-07-20T20:03:05.000Z",
+        }),
         disposeSandbox: async () => ({
             effectId: `effect-${"d".repeat(64)}`,
             leaseId: "lease-1",
@@ -757,6 +782,59 @@ suite("Runbook Studio local activity delegate", () => {
         });
     });
 
+    test("XEvent start, stop, and collection emit an actionable XEL artifact", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+        const databaseRef = `runbook-sql-container-lease:effect-${"3".repeat(64)}`;
+        const sessionRef = `runbook-xevent-session:effect-${"6".repeat(64)}`;
+        const captureRef = `runbook-xevent-capture:effect-${"6".repeat(64)}`;
+        const values: Record<string, string> = {
+            "$nodes.container.connectionRef": databaseRef,
+            "$nodes.start.sessionRef": sessionRef,
+            "$nodes.stop.captureRef": captureRef,
+        };
+        const resolve = (value: unknown) =>
+            typeof value === "string" ? (values[value] ?? value) : value;
+
+        const start = await delegate.executeActivity(
+            activity("xevent.session.start", {
+                database: "$nodes.container.connectionRef",
+                template: "developer-diagnostics",
+                maxFileSizeMb: 16,
+            }),
+            binding(resolve),
+        );
+        expect(start?.success).to.equal(true);
+        expect(start?.output?.contract).to.equal("xeventSessionLease/1");
+        expect(start?.values?.sessionRef).to.equal(sessionRef);
+
+        const stop = await delegate.executeActivity(
+            activity("xevent.session.stop", {
+                database: "$nodes.container.connectionRef",
+                session: "$nodes.start.sessionRef",
+            }),
+            binding(resolve),
+        );
+        expect(stop?.success).to.equal(true);
+        expect(stop?.output?.contract).to.equal("xeventCapture/1");
+        expect(stop?.values?.captureRef).to.equal(captureRef);
+
+        const collect = await delegate.executeActivity(
+            activity("xevent.xel.collect", {
+                database: "$nodes.container.connectionRef",
+                capture: "$nodes.stop.captureRef",
+            }),
+            binding(resolve),
+        );
+        expect(collect?.success).to.equal(true);
+        expect(collect?.output?.contract).to.equal("xelArtifact/1");
+        expect(collect?.output?.scalars).to.include({
+            artifactSizeBytes: 4096,
+            artifactSha256: "8".repeat(64),
+            eventCount: 12,
+            captureComplete: true,
+        });
+    });
+
     test("guarded deployment and schema verification emit typed evidence", async () => {
         const delegate = new LocalSqlActivityDelegate(operations());
         const resolve = (value: unknown) => {
@@ -1139,8 +1217,11 @@ suite("Runbook Studio local activity delegate", () => {
             "dacpac.deploy",
             "dacpac.deploy.dev",
             "dacpac.deploy.container",
+            "xevent.session.start",
             "sql.schema.apply",
             "sql.workload.run",
+            "xevent.session.stop",
+            "xevent.xel.collect",
             "schema.compare",
             "schema.compare.export",
             "sandbox.dispose",

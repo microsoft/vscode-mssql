@@ -470,6 +470,33 @@ export class RunbookStudio {
     public static workloadOwnedContainerRequired = l10n.t(
         "Workload execution is allowed only on an ownership-verified SQL container created by this run.",
     );
+    public static xeventSessionStarted = (sessionName: string) =>
+        l10n.t({
+            message: "Owned XEvent session '{0}' started.",
+            args: [sessionName],
+            comment: ["{0} is an ownership-derived Extended Events session name"],
+        });
+    public static xeventSessionStopped = (sessionName: string) =>
+        l10n.t({
+            message: "Owned XEvent session '{0}' stopped and removed.",
+            args: [sessionName],
+            comment: ["{0} is an ownership-derived Extended Events session name"],
+        });
+    public static xelArtifactCollected = (sizeBytes: number) =>
+        l10n.t({
+            message: "Collected and verified a {0}-byte XEL artifact.",
+            args: [sizeBytes],
+            comment: ["{0} is a retained artifact size in bytes"],
+        });
+    public static xeventPolicyInvalid = l10n.t(
+        "The XEvent template, target size, session reference, or server file path is outside the owned-container capture policy.",
+    );
+    public static xeventSessionFailed = l10n.t(
+        "The owned XEvent session could not be created, inspected, or removed safely.",
+    );
+    public static xelArtifactInvalid = l10n.t(
+        "The owned XEL file could not be collected as one bounded, verifiable artifact.",
+    );
     public static developmentDatabaseNameInvalid = l10n.t(
         "The development database name must be a non-system SQL identifier of at most 128 characters.",
     );

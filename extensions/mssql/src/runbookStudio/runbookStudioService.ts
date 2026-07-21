@@ -107,6 +107,9 @@ import {
     LocalSandboxLeaseResult,
     LocalSqlContainerCleanupResult,
     LocalSqlContainerLeaseResult,
+    LocalXelArtifactResult,
+    LocalXeventCaptureResult,
+    LocalXeventSessionResult,
     LocalWorkloadPreviewResult,
     LocalWorkloadRunResult,
     LocalSchemaMutationResult,
@@ -202,6 +205,7 @@ import {
     startDocker,
 } from "../docker/dockerUtils";
 import { NULL_CONTAINER_HOST } from "../docker/containerHostAdapter";
+import { getDockerodeClient } from "../docker/dockerodeClient";
 import {
     checkIfSqlServerContainerIsReadyForConnections,
     pullSqlServerContainerImage,
@@ -214,6 +218,15 @@ import {
     MAX_LOCAL_WORKLOAD_BYTES,
     parseLocalWorkload,
 } from "./runtime/localWorkload";
+import {
+    LocalXeventPolicyError,
+    MAX_LOCAL_XEL_ARCHIVE_BYTES,
+    buildStartLocalXeventSql,
+    buildStopLocalXeventSql,
+    extractLocalXelFromDockerArchive,
+    localXeventSessionName,
+    validateLocalXelServerPath,
+} from "./runtime/localXevent";
 
 const SimpleExecuteRequestType = new RequestType<
     { ownerUri: string; queryString: string },
@@ -306,6 +319,20 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         string,
         { plan: LocalWorkloadPlan; fileName: string }
     >();
+    /** A stopped capture is collected only from the exact same-run owned
+     * container path observed before the session was dropped. */
+    private readonly xeventCaptures = new Map<
+        string,
+        {
+            runId: string;
+            startEffectId: string;
+            containerEffectId: string;
+            containerName: string;
+            sessionName: string;
+            serverPath: string;
+            eventCount: number;
+        }
+    >();
 
     private readonly storageRoot: string;
     /** Library-global persistence root (ledger + results). Run history must
@@ -378,6 +405,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         this.activeRunsEmitter.dispose();
         this.containerLeaseProfiles.clear();
         this.workloadPreviews.clear();
+        this.xeventCaptures.clear();
         void this.adapter?.dispose();
         if (this.hobbesAdapter && this.hobbesAdapter !== this.adapter) {
             void this.hobbesAdapter.dispose();
@@ -2344,6 +2372,32 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             invocation,
                             cancelled,
                         ),
+                    startXeventSession: (
+                        nodeId,
+                        databaseRef,
+                        template,
+                        maxFileSizeMb,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.startLocalXeventSession(
+                            nodeId,
+                            databaseRef,
+                            template,
+                            maxFileSizeMb,
+                            invocation,
+                            cancelled,
+                        ),
+                    stopXeventSession: (databaseRef, sessionRef, invocation, cancelled) =>
+                        this.stopLocalXeventSession(databaseRef, sessionRef, invocation, cancelled),
+                    collectXel: (nodeId, databaseRef, captureRef, invocation, cancelled) =>
+                        this.collectLocalXel(
+                            nodeId,
+                            databaseRef,
+                            captureRef,
+                            invocation,
+                            cancelled,
+                        ),
                     previewDacpacDeployment: (dacpacPath, databaseRef, cancelled) =>
                         this.previewLocalDacpacDeployment(dacpacPath, databaseRef, cancelled),
                     deployDacpac: (
@@ -3379,6 +3433,412 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         }
     }
 
+    private async startLocalXeventSession(
+        nodeId: string,
+        databaseRef: string,
+        template: string,
+        maxFileSizeMb: number,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalXeventSessionResult> {
+        const authorization = this.requireApprovedEffect(
+            nodeId,
+            invocation,
+            "xevent.session.start",
+        );
+        const owned = await this.requireOwnedContainerTarget(databaseRef, invocation.runId);
+        const effectId = deriveRunbookEffectId({
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "xevent.session.start",
+            activityVersion: authorization.challenge.activityVersion,
+        });
+        if (this.effectLedger.recoverEffect(effectId)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        const sessionName = localXeventSessionName(effectId);
+        let sql: string;
+        try {
+            sql = buildStartLocalXeventSql(sessionName, template, maxFileSizeMb);
+        } catch (error) {
+            if (error instanceof LocalXeventPolicyError) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.xeventPolicyInvalid,
+                    "RunbookStudio.BindingInvalid",
+                );
+            }
+            throw error;
+        }
+        const sessionRef = localXeventSessionRef(effectId);
+        this.effectLedger.prepareEffect({
+            effectId,
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "xevent.session.start",
+            activityVersion: authorization.challenge.activityVersion,
+            idempotencyKey: digestRunbookValue({
+                effectId,
+                sessionName,
+                template,
+                maxFileSizeMb,
+            }),
+            planHash: invocation.planHash,
+            bindingDigest: authorization.challenge.resolvedArgumentDigest,
+            targetFingerprint: authorization.challenge.targetFingerprint,
+            retrySemantics: "atMostOnceUnknownOutcome",
+            ownerPid: process.pid,
+            policy: {
+                version: authorization.challenge.policyVersion,
+                outcome: "allowed",
+            },
+            approval: authorization.evidence,
+            recovery: {
+                resourceKind: "xeventSession",
+                resourceId: sessionName,
+                connectionProfileId: owned.connectionProfileId,
+                ownershipMarkerDigest: owned.ownershipMarkerDigest,
+            },
+        });
+        try {
+            await this.withLocalActivityConnection(
+                owned.profile,
+                "xevent-start",
+                isCancellationRequested,
+                (ownerUri, cancellationToken) =>
+                    SqlToolsServerClient.instance.sendRequest(
+                        SimpleExecuteRequestType,
+                        { ownerUri, queryString: sql },
+                        cancellationToken,
+                    ),
+            );
+            this.effectLedger.recordEffectObserved(effectId, {
+                resourceKind: "xeventSession",
+                resourceId: sessionName,
+                ownershipMarkerDigest: owned.ownershipMarkerDigest,
+                connectionProfileId: owned.connectionProfileId,
+                outputHandles: [sessionRef, databaseRef],
+            });
+            return {
+                effectId,
+                sessionRef,
+                sessionName,
+                template,
+                maxFileSizeMb,
+                startedAtUtc: new Date().toISOString(),
+            };
+        } catch (error) {
+            if (isCancellationRequested() || error instanceof vscode.CancellationError) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacPreviewCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            throw error instanceof LocalActivityError
+                ? error
+                : new LocalActivityError(
+                      LocRunbookStudio.xeventSessionFailed,
+                      "RunbookStudio.ActivityFailed",
+                  );
+        }
+    }
+
+    private async stopLocalXeventSession(
+        databaseRef: string,
+        sessionRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalXeventCaptureResult> {
+        const startEffectId = effectIdFromLocalXeventSessionRef(sessionRef);
+        const snapshot = startEffectId
+            ? this.effectLedger.recoverEffect(startEffectId)?.snapshot
+            : undefined;
+        const owned = await this.requireOwnedContainerTarget(databaseRef, invocation.runId);
+        const sessionName = startEffectId ? localXeventSessionName(startEffectId) : "";
+        if (
+            !startEffectId ||
+            !snapshot ||
+            snapshot.identity.runId !== invocation.runId ||
+            snapshot.identity.activityKind !== "xevent.session.start" ||
+            snapshot.state !== "effectObserved" ||
+            snapshot.resource?.resourceKind !== "xeventSession" ||
+            snapshot.resource.resourceId !== sessionName ||
+            snapshot.resource.connectionProfileId !== owned.connectionProfileId ||
+            snapshot.resource.ownershipMarkerDigest !== owned.ownershipMarkerDigest
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.xeventPolicyInvalid,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        try {
+            const stopResult = await this.withLocalActivityConnection(
+                owned.profile,
+                "xevent-stop",
+                isCancellationRequested,
+                (ownerUri, cancellationToken) =>
+                    SqlToolsServerClient.instance.sendRequest(
+                        SimpleExecuteRequestType,
+                        {
+                            ownerUri,
+                            queryString: buildStopLocalXeventSql(sessionName),
+                        },
+                        cancellationToken,
+                    ),
+            );
+            const observedPath = stopResult.rows?.[0]?.[0]?.displayValue;
+            if (typeof observedPath !== "string" || !observedPath.trim()) {
+                throw new LocalXeventPolicyError("invalidServerPath");
+            }
+            const serverPath = validateLocalXelServerPath(sessionName, observedPath);
+            const eventCount = Number(stopResult.rows?.[0]?.[1]?.displayValue);
+            if (!Number.isSafeInteger(eventCount) || eventCount < 0) {
+                throw new LocalXeventPolicyError("invalidServerPath");
+            }
+            let current = this.effectLedger.startCleanup(startEffectId);
+            const cleanupDigest = digestRunbookValue({
+                startEffectId,
+                sessionName,
+                serverPath,
+                eventCount,
+                stopped: true,
+            });
+            current = this.effectLedger.completeCleanup(startEffectId, cleanupDigest);
+            const captureRef = localXeventCaptureRef(startEffectId);
+            this.xeventCaptures.set(captureRef, {
+                runId: invocation.runId,
+                startEffectId,
+                containerEffectId: owned.containerEffectId,
+                containerName: owned.containerName,
+                sessionName,
+                serverPath,
+                eventCount,
+            });
+            return {
+                effectId: current.identity.effectId,
+                captureRef,
+                sessionName,
+                eventFileName: path.posix.basename(serverPath),
+                eventCount,
+                stoppedAtUtc: new Date(current.lastUpdatedEpochMs).toISOString(),
+            };
+        } catch (error) {
+            if (isCancellationRequested() || error instanceof vscode.CancellationError) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacPreviewCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            throw error instanceof LocalActivityError
+                ? error
+                : new LocalActivityError(
+                      error instanceof LocalXeventPolicyError
+                          ? LocRunbookStudio.xeventPolicyInvalid
+                          : LocRunbookStudio.xeventSessionFailed,
+                      error instanceof LocalXeventPolicyError
+                          ? "RunbookStudio.TargetChanged"
+                          : "RunbookStudio.ActivityFailed",
+                  );
+        }
+    }
+
+    private async collectLocalXel(
+        nodeId: string,
+        databaseRef: string,
+        captureRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalXelArtifactResult> {
+        const capture = this.xeventCaptures.get(captureRef);
+        const owned = await this.requireOwnedContainerTarget(databaseRef, invocation.runId);
+        if (
+            !capture ||
+            capture.runId !== invocation.runId ||
+            capture.containerEffectId !== owned.containerEffectId ||
+            capture.containerName !== owned.containerName ||
+            capture.startEffectId !== effectIdFromLocalXeventCaptureRef(captureRef)
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.xeventPolicyInvalid,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacPreviewCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const container = await getContainerByName(owned.containerName);
+        const inspected = await container?.inspect();
+        if (
+            !container ||
+            !isOwnedLocalSqlContainer(
+                inspected?.Config?.Labels,
+                owned.containerEffectId,
+                invocation.runId,
+            )
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sqlContainerOwnershipMismatch,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        const outputPath = await this.localManagedArtifactPath(
+            invocation,
+            nodeId,
+            path.posix.basename(capture.serverPath),
+        );
+        if (await pathExists(outputPath)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.runbookArtifactAlreadyExists(outputPath),
+                "RunbookStudio.ArtifactExists",
+            );
+        }
+        let complete = false;
+        try {
+            const stream = await container.getArchive({ path: capture.serverPath });
+            const archive = await readBoundedLocalArchive(
+                stream,
+                MAX_LOCAL_XEL_ARCHIVE_BYTES,
+                isCancellationRequested,
+            );
+            const content = extractLocalXelFromDockerArchive(
+                archive,
+                path.posix.basename(capture.serverPath),
+            );
+            await fs.promises.writeFile(outputPath, content, { flag: "wx" });
+            const stat = await fs.promises.stat(outputPath);
+            if (!stat.isFile() || stat.size !== content.length || stat.size === 0) {
+                throw new LocalXeventPolicyError("invalidArchive");
+            }
+            const artifactSha256 = crypto.createHash("sha256").update(content).digest("hex");
+            complete = true;
+            this.xeventCaptures.delete(captureRef);
+            return {
+                sessionName: capture.sessionName,
+                artifactPath: outputPath,
+                artifactSizeBytes: stat.size,
+                artifactSha256,
+                eventCount: capture.eventCount,
+                captureComplete: true,
+                collectedAtUtc: new Date().toISOString(),
+            };
+        } catch (error) {
+            if (isCancellationRequested() || error instanceof vscode.CancellationError) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacPreviewCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            throw error instanceof LocalActivityError
+                ? error
+                : new LocalActivityError(
+                      LocRunbookStudio.xelArtifactInvalid,
+                      "RunbookStudio.ArtifactInvalid",
+                  );
+        } finally {
+            if (!complete) {
+                await fs.promises.rm(outputPath, { force: true }).catch(() => undefined);
+            }
+        }
+    }
+
+    private async requireOwnedContainerTarget(
+        databaseRef: string,
+        runId: string,
+    ): Promise<{
+        containerEffectId: string;
+        containerName: string;
+        connectionProfileId: string;
+        ownershipMarkerDigest: string;
+        profile: mssql.IConnectionInfo;
+    }> {
+        const containerEffectId = effectIdFromLocalSqlContainerLeaseRef(databaseRef);
+        const snapshot = containerEffectId
+            ? this.effectLedger.recoverEffect(containerEffectId)?.snapshot
+            : undefined;
+        const resolved = await this.resolveRunbookConnection(databaseRef);
+        if (
+            !containerEffectId ||
+            !snapshot ||
+            snapshot.identity.runId !== runId ||
+            snapshot.identity.activityKind !== "sql.container.provision" ||
+            !resolved.container ||
+            resolved.container.effectId !== containerEffectId
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.workloadOwnedContainerRequired,
+                "RunbookStudio.ActivityPolicyDenied",
+            );
+        }
+        const lease = this.containerLeaseProfiles.get(containerEffectId);
+        if (!lease) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sqlContainerCredentialsUnavailable,
+                "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        return {
+            containerEffectId,
+            containerName: lease.containerName,
+            connectionProfileId: resolved.container.connectionProfileId,
+            ownershipMarkerDigest: resolved.container.ownershipMarkerDigest,
+            profile: resolved.profile,
+        };
+    }
+
+    private async withLocalActivityConnection<T>(
+        profile: mssql.IConnectionInfo,
+        operation: string,
+        isCancellationRequested: () => boolean,
+        action: (ownerUri: string, cancellationToken: vscode.CancellationToken) => Thenable<T>,
+    ): Promise<T> {
+        const connectionManager = this.connectionAccess();
+        if (!connectionManager) {
+            throw new LocalActivityError(
+                LocRunbookStudio.connectFailed,
+                "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        sandboxCounter++;
+        const ownerUri = `runbookstudio://${operation}/${sandboxCounter.toString(36)}`;
+        const cancellation = new vscode.CancellationTokenSource();
+        const poll = setInterval(() => {
+            if (isCancellationRequested()) {
+                cancellation.cancel();
+            }
+        }, 50);
+        let connected = false;
+        try {
+            connected = await connectionManager.connect(ownerUri, profile, {
+                connectionSource: "runbookStudio",
+                shouldHandleErrors: false,
+            });
+            if (!connected) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.connectFailed,
+                    "RunbookStudio.ActivityFailed",
+                );
+            }
+            return await action(ownerUri, cancellation.token);
+        } finally {
+            clearInterval(poll);
+            cancellation.dispose();
+            if (connected) {
+                try {
+                    await connectionManager.disconnect(ownerUri);
+                } catch {
+                    // The effect ledger remains authoritative after connection cleanup failure.
+                }
+            }
+        }
+    }
+
     private async runLocalTsqlt(
         nodeId: string,
         databaseRef: string,
@@ -4088,6 +4548,27 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const projectsExtension = vscode.extensions.getExtension(
             constants.sqlDatabaseProjectsExtensionId,
         );
+        let dockerEngineVersion: string | undefined;
+        let dockerTimeout: ReturnType<typeof setTimeout> | undefined;
+        try {
+            const dockerVersion = await Promise.race([
+                getDockerodeClient().version(),
+                new Promise<never>((_, reject) => {
+                    dockerTimeout = setTimeout(
+                        () => reject(new Error("Docker version timeout")),
+                        TOOLCHAIN_VERSION_TIMEOUT_MS,
+                    );
+                }),
+            ]);
+            dockerEngineVersion = dockerVersion.Version;
+        } catch {
+            // A container-backed evidence bundle explicitly becomes
+            // indeterminate when the participating engine cannot be proven.
+        } finally {
+            if (dockerTimeout) {
+                clearTimeout(dockerTimeout);
+            }
+        }
         return buildLocalToolchainProvenance({
             vscodeVersion: vscode.version,
             mssqlExtensionVersion: this.mssqlExtensionVersion,
@@ -4095,6 +4576,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             sqlToolsServiceRuntimeVersion,
             sqlToolsServiceConfiguredVersion: config.service.version,
             sqlToolsServiceRoot: SqlToolsServerClient.instance.sqlToolsServicePath,
+            dockerEngineVersion,
         });
     }
 
@@ -4400,6 +4882,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             ownershipMarkerDigest,
             cleanupEvidenceDigest,
         );
+        for (const [captureRef, capture] of this.xeventCaptures) {
+            if (capture.containerEffectId === effectId) {
+                this.xeventCaptures.delete(captureRef);
+            }
+        }
         if (snapshot.state === "cleanupStarted") {
             snapshot = this.effectLedger.completeCleanup(effectId, cleanupEvidenceDigest);
         }
@@ -4430,9 +4917,12 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             const isWorkload =
                 dependent.identity.activityKind === "sql.workload.run" &&
                 recovery?.resourceKind === "workloadExecution";
+            const isXeventSession =
+                dependent.identity.activityKind === "xevent.session.start" &&
+                recovery?.resourceKind === "xeventSession";
             if (
                 dependent.identity.runId !== runId ||
-                (!isDeployment && !isWorkload) ||
+                (!isDeployment && !isWorkload && !isXeventSession) ||
                 !recovery ||
                 recovery.connectionProfileId !== connectionProfileId ||
                 recovery.ownershipMarkerDigest !== ownershipMarkerDigest ||
@@ -4444,7 +4934,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 dependent = this.effectLedger.recordEffectObserved(dependent.identity.effectId, {
                     resourceKind: isDeployment
                         ? "dacpacDeploymentOutcomeUnknown"
-                        : "workloadExecutionOutcomeUnknown",
+                        : isWorkload
+                          ? "workloadExecutionOutcomeUnknown"
+                          : "xeventSessionOutcomeUnknown",
                     resourceId: recovery.resourceId,
                     ownershipMarkerDigest,
                     connectionProfileId,
@@ -5761,6 +6253,73 @@ function localDacpacStageActivityError(error: unknown): LocalActivityError {
 
 function containerConnectionProfileId(effectId: string): string {
     return `runbook-container-profile:${effectId}`;
+}
+
+function localXeventSessionRef(effectId: string): string {
+    return `runbook-xevent-session:${effectId}`;
+}
+
+function effectIdFromLocalXeventSessionRef(sessionRef: string): string | undefined {
+    return /^runbook-xevent-session:(effect-[a-f0-9]{64})$/i.exec(sessionRef)?.[1];
+}
+
+function localXeventCaptureRef(effectId: string): string {
+    return `runbook-xevent-capture:${effectId}`;
+}
+
+function effectIdFromLocalXeventCaptureRef(captureRef: string): string | undefined {
+    return /^runbook-xevent-capture:(effect-[a-f0-9]{64})$/i.exec(captureRef)?.[1];
+}
+
+function readBoundedLocalArchive(
+    stream: NodeJS.ReadableStream,
+    maxBytes: number,
+    isCancellationRequested: () => boolean,
+): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+        const chunks: Buffer[] = [];
+        let bytes = 0;
+        let settled = false;
+        const destroy = () =>
+            (
+                stream as NodeJS.ReadableStream & {
+                    destroy?: () => void;
+                }
+            ).destroy?.();
+        const fail = (error: unknown) => {
+            if (!settled) {
+                settled = true;
+                clearInterval(cancelPoll);
+                destroy();
+                reject(error);
+            }
+        };
+        const cancelPoll = setInterval(() => {
+            if (isCancellationRequested()) {
+                fail(new vscode.CancellationError());
+            }
+        }, 50);
+        stream.on("data", (chunk: Buffer | string) => {
+            if (settled) {
+                return;
+            }
+            const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+            bytes += buffer.length;
+            if (bytes > maxBytes) {
+                fail(new LocalXeventPolicyError("artifactTooLarge"));
+                return;
+            }
+            chunks.push(buffer);
+        });
+        stream.on("error", fail);
+        stream.on("end", () => {
+            if (!settled) {
+                settled = true;
+                clearInterval(cancelPoll);
+                resolve(Buffer.concat(chunks, bytes));
+            }
+        });
+    });
 }
 
 async function resolveWorkspaceWorkloadPath(

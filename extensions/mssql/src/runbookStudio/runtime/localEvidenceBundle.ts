@@ -177,11 +177,17 @@ function selectRequiredToolchainComponents(
             case "schema.compare.export":
                 required.add("sqlToolsService");
                 required.add("dacFx");
+                if (node.activityKind === "dacpac.deploy.container") {
+                    required.add("dockerEngine");
+                }
                 break;
             case "devdatabase.provision":
             case "sql.schema.apply":
             case "sql.container.provision":
+            case "xevent.session.start":
             case "sql.workload.run":
+            case "xevent.session.stop":
+            case "xevent.xel.collect":
             case "sandbox.provision":
             case "sandbox.dispose":
             case "sql.container.dispose":
@@ -189,6 +195,16 @@ function selectRequiredToolchainComponents(
             case "tsqlt.run":
             case "sql.query.read":
                 required.add("sqlToolsService");
+                if (
+                    node.activityKind === "sql.container.provision" ||
+                    node.activityKind === "xevent.session.start" ||
+                    node.activityKind === "sql.workload.run" ||
+                    node.activityKind === "xevent.session.stop" ||
+                    node.activityKind === "xevent.xel.collect" ||
+                    node.activityKind === "sql.container.dispose"
+                ) {
+                    required.add("dockerEngine");
+                }
                 break;
         }
     }
@@ -198,6 +214,7 @@ function selectRequiredToolchainComponents(
         "sqlDatabaseProjectsExtension",
         "sqlToolsService",
         "dacFx",
+        "dockerEngine",
     ];
     return componentOrder.filter((component) => required.has(component));
 }

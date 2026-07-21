@@ -519,7 +519,10 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "dacpac.deploy.preview",
     "dacpac.deploy",
     "dacpac.deploy.container",
+    "xevent.session.start",
     "sql.workload.run",
+    "xevent.session.stop",
+    "xevent.xel.collect",
     "schema.compare",
     "schema.compare.export",
     "sqltest.run",
@@ -963,6 +966,32 @@ function executeNode(
                 },
             };
         }
+        case "xevent.session.start": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const template = resolveBind(node.inputs?.template, parameterValues, nodeValues);
+            if (typeof database !== "string" || template !== "developer-diagnostics") {
+                return invalidPreviewBinding("xevent.session.start", "database/template");
+            }
+            return {
+                success: true,
+                runMetrics: { "xevent.sessionStarted": true },
+                message: "XEvent session started (deterministic preview)",
+                output: {
+                    contract: "xeventSessionLease/1",
+                    scalars: {
+                        sessionRef: "preview://xevent/session/001",
+                        sessionName: "rbs_xe_preview",
+                        template,
+                        preview: true,
+                    },
+                },
+                values: {
+                    sessionRef: "preview://xevent/session/001",
+                    sessionName: "rbs_xe_preview",
+                    template,
+                },
+            };
+        }
         case "sql.workload.run": {
             const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
             const workload = resolveBind(node.inputs?.workload, parameterValues, nodeValues);
@@ -1019,6 +1048,68 @@ function executeNode(
                     executedBatchCount: 2,
                     failedBatchCount: 0,
                     totalDurationMs: 42,
+                },
+            };
+        }
+        case "xevent.session.stop": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const session = resolveBind(node.inputs?.session, parameterValues, nodeValues);
+            if (typeof database !== "string" || typeof session !== "string") {
+                return invalidPreviewBinding("xevent.session.stop", "database/session");
+            }
+            return {
+                success: true,
+                runMetrics: { "xevent.sessionStopped": true },
+                message: "XEvent session stopped (deterministic preview)",
+                output: {
+                    contract: "xeventCapture/1",
+                    scalars: {
+                        captureRef: "preview://xevent/capture/001",
+                        sessionName: "rbs_xe_preview",
+                        eventFileName: "rbs_xe_preview.xel",
+                        eventCount: 12,
+                        preview: true,
+                    },
+                },
+                values: {
+                    captureRef: "preview://xevent/capture/001",
+                    sessionName: "rbs_xe_preview",
+                    eventFileName: "rbs_xe_preview.xel",
+                    eventCount: 12,
+                },
+            };
+        }
+        case "xevent.xel.collect": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const capture = resolveBind(node.inputs?.capture, parameterValues, nodeValues);
+            if (typeof database !== "string" || typeof capture !== "string") {
+                return invalidPreviewBinding("xevent.xel.collect", "database/capture");
+            }
+            return {
+                success: true,
+                runMetrics: {
+                    "xevent.artifactSizeBytes": 4096,
+                    "xevent.eventCount": 12,
+                    "xevent.captureComplete": true,
+                },
+                message: "XEL artifact collected (deterministic preview)",
+                output: {
+                    contract: "xelArtifact/1",
+                    scalars: {
+                        artifactPath: "preview://artifacts/rbs_xe_preview.xel",
+                        artifactSizeBytes: 4096,
+                        artifactSha256: "preview-xel-sha256",
+                        eventCount: 12,
+                        captureComplete: true,
+                        preview: true,
+                    },
+                },
+                values: {
+                    artifactPath: "preview://artifacts/rbs_xe_preview.xel",
+                    artifactSizeBytes: 4096,
+                    artifactSha256: "preview-xel-sha256",
+                    eventCount: 12,
+                    captureComplete: true,
                 },
             };
         }

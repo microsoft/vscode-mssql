@@ -53,6 +53,26 @@ suite("Runbook Studio output artifact", () => {
         expect(await verifyRetainedOutputArtifact(artifact!, [root])).to.equal(artifactPath);
     });
 
+    test("admits a managed XEL artifact under the closed capture contract", async () => {
+        const xelPath = path.join(root, "rbs_xe_capture.xel");
+        const xelContents = Buffer.from("bounded xel fixture", "utf8");
+        fs.writeFileSync(xelPath, xelContents);
+        const artifact = retainedOutputArtifact({
+            contract: "xelArtifact/1",
+            scalars: {
+                artifactPath: xelPath,
+                artifactSha256: createHash("sha256").update(xelContents).digest("hex"),
+                artifactSizeBytes: xelContents.length,
+            },
+        });
+        expect(artifact).to.include({
+            contract: "xelArtifact/1",
+            artifactPath: xelPath,
+            fileName: "rbs_xe_capture.xel",
+        });
+        expect(await verifyRetainedOutputArtifact(artifact!, [root])).to.equal(xelPath);
+    });
+
     test("refuses unknown contracts, wrong extensions, and non-file paths", () => {
         expect(retainedOutputArtifact({ ...payload(), contract: "rowset/1" })).to.equal(undefined);
         expect(

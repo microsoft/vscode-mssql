@@ -42,6 +42,12 @@ const completeToolchain: LocalToolchainProvenance = {
             versionSource: "serviceDependencyManifest",
             hostComponent: "sqlToolsService",
         },
+        {
+            id: "dockerEngine",
+            version: "29.6.1",
+            status: "resolved",
+            versionSource: "runtimeRequest",
+        },
     ],
 };
 
@@ -222,6 +228,38 @@ suite("Runbook Studio local evidence bundle", () => {
             "mssqlExtension",
             "sqlToolsService",
         ]);
+    });
+
+    test("requires Docker engine identity for retained XEL evidence", () => {
+        const result = buildLocalEvidenceBundle({
+            runId: "run-xel",
+            runbookId: "book-xel",
+            planRevision: "1",
+            planHash: "sha256:plan",
+            runtimeKind: "local",
+            toolchain: {
+                complete: false,
+                components: completeToolchain.components.map((component) =>
+                    component.id === "dockerEngine"
+                        ? { ...component, version: null, status: "unavailable" as const }
+                        : { ...component },
+                ),
+            },
+            nodes: [
+                {
+                    nodeId: "collect",
+                    activityKind: "xevent.xel.collect",
+                    state: "succeeded",
+                    attempt: 1,
+                    outcome: "success",
+                    outputs: [{ handleId: "run-xel/collect/1", contract: "xelArtifact/1" }],
+                },
+            ],
+        });
+
+        const manifest = JSON.parse(result.manifestJson);
+        expect(result.verdict).to.equal("indeterminate");
+        expect(manifest.toolchain.requiredComponents).to.include("dockerEngine");
     });
 
     test("fake preview evidence requires only the host and extension", () => {
