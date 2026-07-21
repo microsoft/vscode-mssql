@@ -40,7 +40,7 @@ export class AddFirewallRuleWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            "AddFirewallRule",
+            "addFirewallRule",
             "addFirewallRule",
             {
                 serverName: initializationProps.serverName,
