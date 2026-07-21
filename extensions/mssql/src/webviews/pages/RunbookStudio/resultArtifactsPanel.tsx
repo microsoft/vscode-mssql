@@ -187,7 +187,9 @@ export function ResultArtifactsPanel({
                                         onClick={() => void perform(artifact, "open")}>
                                         {isBusy && active?.action === "open"
                                             ? loc.artifactActionInProgress
-                                            : loc.openArtifact}
+                                            : artifact.contract === "xelArtifact/1"
+                                              ? loc.viewXelEvents
+                                              : loc.openArtifact}
                                     </button>
                                     <button
                                         type="button"

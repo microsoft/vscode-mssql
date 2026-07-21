@@ -9,8 +9,10 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import {
+    outputArtifactEditorViewType,
     retainedOutputArtifact,
     verifyRetainedOutputArtifact,
+    XEL_CUSTOM_EDITOR_VIEW_TYPE,
 } from "../../src/runbookStudio/outputArtifact";
 import { RunbookResultStore } from "../../src/runbookStudio/runbookResultStore";
 
@@ -71,6 +73,10 @@ suite("Runbook Studio output artifact", () => {
             fileName: "rbs_xe_capture.xel",
         });
         expect(await verifyRetainedOutputArtifact(artifact!, [root])).to.equal(xelPath);
+        expect(outputArtifactEditorViewType(artifact!.contract)).to.equal(
+            XEL_CUSTOM_EDITOR_VIEW_TYPE,
+        );
+        expect(outputArtifactEditorViewType("dacpacArtifact/1")).to.equal(undefined);
     });
 
     test("refuses unknown contracts, wrong extensions, and non-file paths", () => {

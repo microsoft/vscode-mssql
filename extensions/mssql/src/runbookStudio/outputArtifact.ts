@@ -21,6 +21,12 @@ const OUTPUT_ARTIFACT_EXTENSIONS = new Map<string, ReadonlySet<string>>([
     ["xelArtifact/1", new Set([".xel"])],
 ]);
 
+export const XEL_CUSTOM_EDITOR_VIEW_TYPE = "mssql.profilerXelView";
+
+export function outputArtifactEditorViewType(contract: string): string | undefined {
+    return contract === "xelArtifact/1" ? XEL_CUSTOM_EDITOR_VIEW_TYPE : undefined;
+}
+
 export interface RetainedOutputArtifact {
     contract: string;
     artifactPath: string;

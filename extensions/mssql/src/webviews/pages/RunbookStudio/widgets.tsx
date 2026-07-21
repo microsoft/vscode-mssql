@@ -134,7 +134,11 @@ function OutputArtifactActions({ widget }: { widget: ResolvedWidget }) {
                     className="rbs-btn rbs-btn-quiet"
                     disabled={activeAction !== undefined}
                     onClick={() => void perform("open")}>
-                    {activeAction === "open" ? loc.artifactActionInProgress : loc.openArtifact}
+                    {activeAction === "open"
+                        ? loc.artifactActionInProgress
+                        : widget.contract === "xelArtifact/1"
+                          ? loc.viewXelEvents
+                          : loc.openArtifact}
                 </button>
                 <button
                     type="button"

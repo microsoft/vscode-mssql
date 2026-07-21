@@ -4136,6 +4136,7 @@ export class LocConstants {
             exportEvidence: l10n.t("Export evidence"),
             exportingEvidence: l10n.t("Exporting…"),
             openArtifact: l10n.t("Open artifact"),
+            viewXelEvents: l10n.t("View events"),
             revealArtifact: l10n.t("Reveal artifact"),
             exportArtifactCopy: l10n.t("Export copy"),
             artifactActionInProgress: l10n.t("Working…"),

@@ -74,7 +74,7 @@ import {
 
 import { buildEvidenceExport, EvidenceExportError, evidenceExportFileName } from "./evidenceExport";
 import { RunbookResultStore } from "./runbookResultStore";
-import { verifyRetainedOutputArtifact } from "./outputArtifact";
+import { outputArtifactEditorViewType, verifyRetainedOutputArtifact } from "./outputArtifact";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import { compileIntentWithModel } from "./models/planCompiler";
 import {
@@ -864,7 +864,12 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         try {
             const source = vscode.Uri.file(verifiedPath);
             if (action === "open") {
-                await vscode.commands.executeCommand("vscode.open", source);
+                const customEditor = outputArtifactEditorViewType(artifact.contract);
+                await vscode.commands.executeCommand(
+                    customEditor ? "vscode.openWith" : "vscode.open",
+                    source,
+                    ...(customEditor ? [customEditor] : []),
+                );
             } else if (action === "reveal") {
                 await vscode.commands.executeCommand("revealFileInOS", source);
             } else {

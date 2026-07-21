@@ -10128,6 +10128,9 @@
     <trans-unit id="++CODE++201fe6233cf418576171175ad80c1858cb255daf2d06964b57c116445a378cc9">
       <source xml:lang="en">View Table Diagram</source>
     </trans-unit>
+    <trans-unit id="++CODE++c018d4b85c1109af656971b7bdaf2f06e73301e3fc264600bed82dd8bb9fee25">
+      <source xml:lang="en">View events</source>
+    </trans-unit>
     <trans-unit id="++CODE++b0706a7218c2d3344714c4950d6ea917907f1204dfc1b7ab93aa40de6260d55f">
       <source xml:lang="en">View for {0}</source>
       <note>{0} is a result widget title</note>
