@@ -3527,8 +3527,14 @@
     <trans-unit id="++CODE++5be15d5b5b4cc52954f9556226d71e11e6615cc61f77411094cb407fb0327ff1">
       <source xml:lang="en">Export all results to an Excel file</source>
     </trans-unit>
+    <trans-unit id="++CODE++e5d9bf0db07afd10003a4d8449e961a732e46ef4b9106427ceb04d67bd343478">
+      <source xml:lang="en">Export copy</source>
+    </trans-unit>
     <trans-unit id="++CODE++caab91492e0e564bac705e75ec05a209c89241c96046b9228419fbf9a81bce7b">
       <source xml:lang="en">Export evidence</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3296325b0417efa3caef00c03c7def0d18ab5d95743e26121198c858f4502ed2">
+      <source xml:lang="en">Export run artifact copy</source>
     </trans-unit>
     <trans-unit id="++CODE++5bd9f7f4dd89b950170288413c8e828e649cbd447f2e0bee021ef48592ea4114">
       <source xml:lang="en">Export run evidence</source>
@@ -6293,6 +6299,9 @@
     <trans-unit id="++CODE++f22bd213b6a2f93198a3fda9b1dc6e58526c5f68f06380fc6124774c30af6faa">
       <source xml:lang="en">Open an eligible Spatial result tab to see host preparation, worker decode, renderer, interaction, and cleanup evidence here.</source>
     </trans-unit>
+    <trans-unit id="++CODE++61ed4a6247dd5bceb3145efbad12489fe03c05390615ade171cb61398845b701">
+      <source xml:lang="en">Open artifact</source>
+    </trans-unit>
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
     </trans-unit>
@@ -7312,6 +7321,9 @@
     <trans-unit id="++CODE++36b830bdb447f8c758a9b58f190eed468c4bd53e9c7662ee19bca9c53d3a3e3d">
       <source xml:lang="en">Reveal</source>
     </trans-unit>
+    <trans-unit id="++CODE++6667bcf22a346b73af23cc95590f59dc67fc6985f7451d5796574cace190a299">
+      <source xml:lang="en">Reveal artifact</source>
+    </trans-unit>
     <trans-unit id="++CODE++b1d3c17e8d131616e4c9d243a6536aa7c23973e93908621d94b6b7ebf6486863">
       <source xml:lang="en">Reveal in Explorer</source>
     </trans-unit>
@@ -7413,6 +7425,12 @@
     </trans-unit>
     <trans-unit id="++CODE++ac94961d65d453caddfb9b5cdcf79c96671b85462f0c7b9ff25e2a316c6dfa86">
       <source xml:lang="en">Run a query in the current editor, or switch to an editor that has results.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8409074fb1b22fb51ab9c0c1aeec3eb2cd1e2a8a4ec9c48769149d2247726a59">
+      <source xml:lang="en">Run artifact</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e81f5bea731c885314717e2bb8b372e62ad5b6cdc013247f414f353a0258400e">
+      <source xml:lang="en">Run artifact copy exported.</source>
     </trans-unit>
     <trans-unit id="++CODE++f04e7b6bb668a98846ee8937309f07e4201f217a07d17d159d1a667284a5be7b">
       <source xml:lang="en">Run comparison</source>
@@ -9084,6 +9102,9 @@
     <trans-unit id="++CODE++2aaa4378deeeca374707ffd306cd16f674e3002b3004770d868ad40b43778fc3">
       <source xml:lang="en">The approval decision could not be saved safely. The operation was not released.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9e951a9eab57f128c82df31c3f1e2c3caadd8e04a2b6d09f435e3b3bc09a117e">
+      <source xml:lang="en">The artifact action could not be completed. Verify the destination and try again.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3eacf5cf678e2285cae1276d29f034aa0e7ceb3f8940239c1d67a2d486649719">
       <source xml:lang="en">The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.</source>
     </trans-unit>
@@ -9236,6 +9257,9 @@
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c43ec834badec351a57be2ccf7e372bccad0a9bb361af29fc6e5e7c1af21d13c">
+      <source xml:lang="en">The retained artifact is missing or no longer matches the file produced by this run.</source>
+    </trans-unit>
     <trans-unit id="++CODE++11b7e8f9b6b3ff39782af051a6656f5e74340a0a2e296b7b74190097c660d7ae">
       <source xml:lang="en">The retained bundle is incomplete and cannot be exported.</source>
     </trans-unit>
@@ -9371,6 +9395,9 @@
     </trans-unit>
     <trans-unit id="++CODE++461401ab1ef5eb94c409a7d6de3ad223b3733f4a8823944fc070fcfdf5ebed6b">
       <source xml:lang="en">This operation analyzed the input file structure to generate the preview below for up to the first 50 rows.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d073893bf722d23daa190cd15d3bc09436f35b85b7545fb49c5538400a963873">
+      <source xml:lang="en">This output does not contain a retained file artifact.</source>
     </trans-unit>
     <trans-unit id="++CODE++2707987cd5b082566148a1395f98dd1b99f5d5c576778e9a213f51e1f76ad5e4">
       <source xml:lang="en">This output has no numeric column to chart — showing the grid instead.</source>
@@ -10069,6 +10096,9 @@
     <trans-unit id="++CODE++b3acc4df0d8c011a57c3a09a01483123b82fc2b527dc4d3df34c887296cd06dd">
       <source xml:lang="en">Working — {0}s elapsed</source>
       <note>{0} is a whole number of seconds</note>
+    </trans-unit>
+    <trans-unit id="++CODE++75d260f06f2fef7fd13291cef1ee4e79411091bcf5615c2f5abddab7771c3d40">
+      <source xml:lang="en">Working…</source>
     </trans-unit>
     <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
       <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>

@@ -30,6 +30,7 @@ import {
     RbsModelOption,
     RbsModelRole,
     RbsModelRoleConfiguration,
+    RbsOutputArtifactAction,
     RbsPlannerProgressEvent,
     RunbookArtifactFile,
     RunbookParameterDefinition,
@@ -72,6 +73,7 @@ import {
 
 import { buildEvidenceExport, EvidenceExportError, evidenceExportFileName } from "./evidenceExport";
 import { RunbookResultStore } from "./runbookResultStore";
+import { verifyRetainedOutputArtifact } from "./outputArtifact";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import { compileIntentWithModel } from "./models/planCompiler";
 import {
@@ -722,6 +724,91 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             };
         }
         return result;
+    }
+
+    public async outputArtifactAction(
+        model: RunbookStudioDocumentModel,
+        handleId: string,
+        action?: RbsOutputArtifactAction,
+    ): Promise<{
+        available: boolean;
+        fileName?: string;
+        performed?: boolean;
+        cancelled?: boolean;
+        error?: RbsError;
+    }> {
+        const selectedOutput = model.displayRun?.nodes
+            .flatMap((node) => node.outputs ?? [])
+            .find((output) => output.handleId === handleId && output.expired !== true);
+        const artifact = selectedOutput ? this.resultStore.readOutputArtifact(handleId) : undefined;
+        if (!artifact || selectedOutput?.contract !== artifact.contract) {
+            return action
+                ? { available: false, error: outputArtifactUnavailableError() }
+                : { available: false };
+        }
+        const roots = [this.localManagedArtifactRoot()];
+        if (artifact.contract === "dacpacArtifact/1") {
+            roots.push(
+                ...(vscode.workspace.workspaceFolders ?? [])
+                    .filter((folder) => folder.uri.scheme === "file")
+                    .map((folder) => folder.uri.fsPath),
+            );
+        }
+        const verifiedPath = await verifyRetainedOutputArtifact(artifact, roots);
+        if (!verifiedPath) {
+            return action
+                ? { available: false, error: outputArtifactChangedError() }
+                : { available: false };
+        }
+        if (!action) {
+            return { available: true, fileName: artifact.fileName };
+        }
+        try {
+            const source = vscode.Uri.file(verifiedPath);
+            if (action === "open") {
+                await vscode.commands.executeCommand("vscode.open", source);
+            } else if (action === "reveal") {
+                await vscode.commands.executeCommand("revealFileInOS", source);
+            } else {
+                const extension = path.extname(artifact.fileName).slice(1);
+                const workspaceFolder = vscode.workspace.workspaceFolders?.find(
+                    (folder) => folder.uri.scheme === "file",
+                );
+                const target = await vscode.window.showSaveDialog({
+                    title: LocRunbookStudio.outputArtifactExportTitle,
+                    ...(workspaceFolder
+                        ? {
+                              defaultUri: vscode.Uri.joinPath(
+                                  workspaceFolder.uri,
+                                  artifact.fileName,
+                              ),
+                          }
+                        : {}),
+                    filters: { [LocRunbookStudio.outputArtifactFile]: [extension] },
+                });
+                if (!target) {
+                    return {
+                        available: true,
+                        fileName: artifact.fileName,
+                        performed: false,
+                        cancelled: true,
+                    };
+                }
+                await vscode.workspace.fs.copy(source, target, { overwrite: true });
+                void vscode.window.showInformationMessage(LocRunbookStudio.outputArtifactExported);
+            }
+            return { available: true, fileName: artifact.fileName, performed: true };
+        } catch {
+            return {
+                available: true,
+                fileName: artifact.fileName,
+                performed: false,
+                error: {
+                    code: "RunbookStudio.DataUnavailable",
+                    message: LocRunbookStudio.outputArtifactActionFailed,
+                },
+            };
+        }
     }
 
     public async exportEvidence(
@@ -3747,6 +3834,20 @@ function evidenceUnavailableError(): RbsError {
     return {
         code: "RunbookStudio.DataUnavailable",
         message: LocRunbookStudio.evidenceExportUnavailable,
+    };
+}
+
+function outputArtifactUnavailableError(): RbsError {
+    return {
+        code: "RunbookStudio.DataUnavailable",
+        message: LocRunbookStudio.outputArtifactUnavailable,
+    };
+}
+
+function outputArtifactChangedError(): RbsError {
+    return {
+        code: "RunbookStudio.DataUnavailable",
+        message: LocRunbookStudio.outputArtifactChanged,
     };
 }
 

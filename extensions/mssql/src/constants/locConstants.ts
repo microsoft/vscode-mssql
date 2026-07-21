@@ -248,6 +248,18 @@ export class RunbookStudio {
         "No Hobbes runtime executable is configured. Set mssql.runbookStudio.hobbesRuntimePath (or the MSSQL_HOBBES_RUNTIME environment variable) to the runtime executable.",
     );
     public static dataExpired = l10n.t("The detail data for this output has expired.");
+    public static outputArtifactUnavailable = l10n.t(
+        "This output does not contain a retained file artifact.",
+    );
+    public static outputArtifactChanged = l10n.t(
+        "The retained artifact is missing or no longer matches the file produced by this run.",
+    );
+    public static outputArtifactActionFailed = l10n.t(
+        "The artifact action could not be completed. Verify the destination and try again.",
+    );
+    public static outputArtifactExportTitle = l10n.t("Export run artifact copy");
+    public static outputArtifactFile = l10n.t("Run artifact");
+    public static outputArtifactExported = l10n.t("Run artifact copy exported.");
     public static presentationTransformFailed = l10n.t(
         "This derived result could not be produced from the retained output. Review its field mappings and transform steps.",
     );

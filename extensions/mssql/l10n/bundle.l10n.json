@@ -146,6 +146,12 @@
     },
     "No Hobbes runtime executable is configured. Set mssql.runbookStudio.hobbesRuntimePath (or the MSSQL_HOBBES_RUNTIME environment variable) to the runtime executable.": "No Hobbes runtime executable is configured. Set mssql.runbookStudio.hobbesRuntimePath (or the MSSQL_HOBBES_RUNTIME environment variable) to the runtime executable.",
     "The detail data for this output has expired.": "The detail data for this output has expired.",
+    "This output does not contain a retained file artifact.": "This output does not contain a retained file artifact.",
+    "The retained artifact is missing or no longer matches the file produced by this run.": "The retained artifact is missing or no longer matches the file produced by this run.",
+    "The artifact action could not be completed. Verify the destination and try again.": "The artifact action could not be completed. Verify the destination and try again.",
+    "Export run artifact copy": "Export run artifact copy",
+    "Run artifact": "Run artifact",
+    "Run artifact copy exported.": "Run artifact copy exported.",
     "This derived result could not be produced from the retained output. Review its field mappings and transform steps.": "This derived result could not be produced from the retained output. Review its field mappings and transform steps.",
     "Parameter '{0}' is required./{0} is a parameter label": {
         "message": "Parameter '{0}' is required.",
@@ -5096,6 +5102,10 @@
     "Machine JSON": "Machine JSON",
     "Export evidence": "Export evidence",
     "Exporting…": "Exporting…",
+    "Open artifact": "Open artifact",
+    "Reveal artifact": "Reveal artifact",
+    "Export copy": "Export copy",
+    "Working…": "Working…",
     "Waiting on: {0}/{0} comma-separated names of steps this one depends on": {
         "message": "Waiting on: {0}",
         "comment": ["{0} comma-separated names of steps this one depends on"]

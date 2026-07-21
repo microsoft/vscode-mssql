@@ -736,6 +736,13 @@
     margin-bottom: 7px;
 }
 
+.rbs-widget-artifact-actions {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
 .rbs-widget-view-tabs {
     display: inline-flex;
     align-items: center;

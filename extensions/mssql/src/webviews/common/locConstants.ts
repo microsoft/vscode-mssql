@@ -4104,6 +4104,10 @@ export class LocConstants {
             evidenceFormatJson: l10n.t("Machine JSON"),
             exportEvidence: l10n.t("Export evidence"),
             exportingEvidence: l10n.t("Exporting…"),
+            openArtifact: l10n.t("Open artifact"),
+            revealArtifact: l10n.t("Reveal artifact"),
+            exportArtifactCopy: l10n.t("Export copy"),
+            artifactActionInProgress: l10n.t("Working…"),
             waitingOn: (steps: string) =>
                 l10n.t({
                     message: "Waiting on: {0}",

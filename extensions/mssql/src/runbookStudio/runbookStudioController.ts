@@ -33,6 +33,7 @@ import {
     RbsModelConfiguration,
     RbsNavigateNotification,
     RbsOpenDiagnosticsRequest,
+    RbsOutputArtifactRequest,
     RbsPreviewPresentationLayoutRequest,
     RbsRespondToGateRequest,
     RbsRoute,
@@ -711,6 +712,13 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
                 return { exported: false, error: this.runtimeUnavailableError() };
             }
             return this.coordinator.exportEvidence(this.model, runId, format);
+        });
+
+        this.onRequest(RbsOutputArtifactRequest.type, async ({ handleId, action }) => {
+            if (!this.coordinator?.outputArtifactAction) {
+                return { available: false, error: this.runtimeUnavailableError() };
+            }
+            return this.coordinator.outputArtifactAction(this.model, handleId, action);
         });
 
         this.onRequest(RbsOpenDiagnosticsRequest.type, async ({ runId, nodeId }) => {

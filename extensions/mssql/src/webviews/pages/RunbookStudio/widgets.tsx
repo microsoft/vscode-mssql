@@ -25,7 +25,11 @@ import {
     ViewKind,
     ViewRenderSettings,
 } from "../../../sharedInterfaces/runbookPresentation";
-import { RbsFetchOutputPageRequest } from "../../../sharedInterfaces/runbookStudio";
+import {
+    RbsFetchOutputPageRequest,
+    RbsOutputArtifactAction,
+    RbsOutputArtifactRequest,
+} from "../../../sharedInterfaces/runbookStudio";
 import { useRbs } from "./state";
 
 const PAGE_ROWS = 100;
@@ -61,6 +65,101 @@ interface FetchedPage {
     rows?: Array<Array<CellValue>>;
     totalRows?: number;
     errorCode?: string;
+}
+
+const FILE_ARTIFACT_CONTRACTS = new Set(["dacpacArtifact/1", "schemaDiff/1"]);
+
+function OutputArtifactActions({ widget }: { widget: ResolvedWidget }) {
+    const { rpc } = useRbs();
+    const loc = locConstants.runbookStudio;
+    const handleId =
+        widget.state === "ready" &&
+        widget.handleId &&
+        !widget.derivedSourceId &&
+        widget.contract &&
+        FILE_ARTIFACT_CONTRACTS.has(widget.contract)
+            ? widget.handleId
+            : undefined;
+    const [artifact, setArtifact] = useState<{ handleId: string; fileName: string } | undefined>();
+    const [activeAction, setActiveAction] = useState<RbsOutputArtifactAction | undefined>();
+    const [actionError, setActionError] = useState<string | undefined>();
+
+    useEffect(() => {
+        let cancelled = false;
+        setArtifact(undefined);
+        setActionError(undefined);
+        if (!handleId) {
+            return;
+        }
+        void rpc.sendRequest(RbsOutputArtifactRequest.type, { handleId }).then((result) => {
+            if (!cancelled && result.available && result.fileName) {
+                setArtifact({ handleId, fileName: result.fileName });
+            }
+        });
+        return () => {
+            cancelled = true;
+        };
+    }, [handleId, rpc]);
+
+    if (!artifact || artifact.handleId !== handleId) {
+        return null;
+    }
+
+    const perform = async (action: RbsOutputArtifactAction) => {
+        setActiveAction(action);
+        setActionError(undefined);
+        try {
+            const result = await rpc.sendRequest(RbsOutputArtifactRequest.type, {
+                handleId: artifact.handleId,
+                action,
+            });
+            if (result.error) {
+                setActionError(result.error.message);
+            }
+        } catch {
+            setActionError(loc.dataExpiredDetail);
+        } finally {
+            setActiveAction(undefined);
+        }
+    };
+
+    return (
+        <>
+            <span
+                className="rbs-widget-artifact-actions"
+                role="group"
+                aria-label={artifact.fileName}>
+                <button
+                    type="button"
+                    className="rbs-btn rbs-btn-quiet"
+                    disabled={activeAction !== undefined}
+                    onClick={() => void perform("open")}>
+                    {activeAction === "open" ? loc.artifactActionInProgress : loc.openArtifact}
+                </button>
+                <button
+                    type="button"
+                    className="rbs-btn rbs-btn-quiet"
+                    disabled={activeAction !== undefined}
+                    onClick={() => void perform("reveal")}>
+                    {activeAction === "reveal" ? loc.artifactActionInProgress : loc.revealArtifact}
+                </button>
+                <button
+                    type="button"
+                    className="rbs-btn rbs-btn-quiet"
+                    disabled={activeAction !== undefined}
+                    onClick={() => void perform("exportCopy")}>
+                    {activeAction === "exportCopy"
+                        ? loc.artifactActionInProgress
+                        : loc.exportArtifactCopy}
+                </button>
+            </span>
+            {actionError ? (
+                <span className="rbs-drift-notice" role="alert">
+                    {actionError}
+                </span>
+            ) : null}
+        </>
+    );
 }
 
 function usePage(
@@ -968,6 +1067,7 @@ export function ResolvedWidgetView({
                 {widget.contract ? (
                     <span className="rbs-muted rbs-mono">{widget.contract}</span>
                 ) : null}
+                {!sample ? <OutputArtifactActions widget={widget} /> : null}
             </div>
             {widget.drift ? (
                 <div className="rbs-drift-notice" role="status">

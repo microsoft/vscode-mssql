@@ -27,6 +27,11 @@ import {
     PresentationTransformFailureReason,
 } from "./presentation/presentationTransforms";
 import type { RuntimeOutputPayload } from "./runtime/runtimeAdapterTypes";
+import {
+    isOutputArtifactContract,
+    retainedOutputArtifact,
+    RetainedOutputArtifact,
+} from "./outputArtifact";
 
 interface StoredOutput {
     payload: RuntimeOutputPayload;
@@ -177,10 +182,11 @@ export class RunbookResultStore {
             return { columns: ["text"], rows: [[payload.text]], totalRows: 1, ...truncatedMark };
         }
         if (payload.scalars) {
+            const entries = outputScalarEntries(payload);
             return {
                 columns: ["name", "value"],
-                rows: Object.entries(payload.scalars).map(([k, v]) => [k, v]),
-                totalRows: Object.keys(payload.scalars).length,
+                rows: entries.map(([k, v]) => [k, v]),
+                totalRows: entries.length,
                 ...truncatedMark,
             };
         }
@@ -232,6 +238,14 @@ export class RunbookResultStore {
             return undefined;
         }
         return { text: stored.payload.text, truncated: stored.truncated === true };
+    }
+
+    /** Host-only typed artifact metadata. The path never crosses the
+     * controller boundary; the service must still confine and hash-verify it
+     * immediately before any native file action. */
+    public readOutputArtifact(handleId: string): RetainedOutputArtifact | undefined {
+        const stored = this.outputs.get(handleId) ?? this.rehydrate(handleId);
+        return stored ? retainedOutputArtifact(stored.payload) : undefined;
     }
 
     /** Drop a run's payloads from memory AND disk (retention GC / delete). */
@@ -390,7 +404,7 @@ function tableForStoredOutput(stored: StoredOutput): PresentationTable {
     if (payload.scalars) {
         return {
             columns: ["name", "value"],
-            rows: Object.entries(payload.scalars),
+            rows: outputScalarEntries(payload),
             ...(stored.truncated ? { truncated: true } : {}),
         };
     }
@@ -402,6 +416,16 @@ function tableForStoredOutput(stored: StoredOutput): PresentationTable {
         };
     }
     return { columns: [], rows: [], ...(stored.truncated ? { truncated: true } : {}) };
+}
+
+/** File-system locators stay host-only even when the rest of an artifact's
+ * scalar evidence (digest, size, time, database) renders in Results. */
+function outputScalarEntries(
+    payload: RuntimeOutputPayload,
+): Array<[string, string | number | boolean]> {
+    return Object.entries(payload.scalars ?? {}).filter(
+        ([key]) => !(isOutputArtifactContract(payload.contract) && key === "artifactPath"),
+    );
 }
 
 /**

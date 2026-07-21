@@ -886,6 +886,25 @@ export namespace RbsExportEvidenceRequest {
     >("rbs/exportEvidence");
 }
 
+/** Native actions over a typed retained file artifact. The webview supplies
+ * only the opaque output handle; source and destination paths stay in the
+ * trusted extension host. Omitting `action` performs an availability probe. */
+export type RbsOutputArtifactAction = "open" | "reveal" | "exportCopy";
+
+export namespace RbsOutputArtifactRequest {
+    export const type = new RequestType<
+        { handleId: string; action?: RbsOutputArtifactAction },
+        {
+            available: boolean;
+            fileName?: string;
+            performed?: boolean;
+            cancelled?: boolean;
+            error?: RbsError;
+        },
+        void
+    >("rbs/outputArtifact");
+}
+
 /** Open the Debug Console trace for this run/operator (RBS2-7 deep link). */
 export namespace RbsOpenDiagnosticsRequest {
     export const type = new RequestType<

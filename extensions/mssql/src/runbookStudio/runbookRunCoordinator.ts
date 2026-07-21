@@ -14,6 +14,7 @@
 import {
     RbsError,
     RbsEvidenceExportFormat,
+    RbsOutputArtifactAction,
     RbsPlannerProgressEvent,
     RunbookRunSnapshot,
 } from "../sharedInterfaces/runbookStudio";
@@ -72,6 +73,20 @@ export interface RunbookRunCoordinator {
         runId: string,
         format: RbsEvidenceExportFormat,
     ): Promise<{ exported: boolean; cancelled?: boolean; error?: RbsError }>;
+
+    /** Inspect or invoke a native action on a typed file artifact retained by
+     * the selected run. Optional for narrow test/perf coordinators. */
+    outputArtifactAction?(
+        model: RunbookStudioDocumentModel,
+        handleId: string,
+        action?: RbsOutputArtifactAction,
+    ): Promise<{
+        available: boolean;
+        fileName?: string;
+        performed?: boolean;
+        cancelled?: boolean;
+        error?: RbsError;
+    }>;
 
     /** Diagnostics trace for a run this window started (Debug Console link). */
     traceIdOf(runId: string): string | undefined;
