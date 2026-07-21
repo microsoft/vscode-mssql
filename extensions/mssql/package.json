@@ -2440,19 +2440,247 @@
                 },
                 "mssql.format.alignColumnDefinitionsInColumns": {
                     "type": "boolean",
-                    "description": "%mssql.format.alignColumnDefinitionsInColumns%",
+                    "markdownDescription": "%mssql.format.alignColumnDefinitionsInColumns%",
                     "default": false,
                     "scope": "window"
                 },
                 "mssql.format.enablePreviewFormatter": {
                     "type": "boolean",
                     "description": "%mssql.format.enablePreviewFormatter%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.sqlVersion": {
+                    "type": "string",
+                    "description": "%mssql.format.options.sqlVersion%",
+                    "default": "sql170",
+                    "enum": [
+                        "sql80",
+                        "sql90",
+                        "sql100",
+                        "sql110",
+                        "sql120",
+                        "sql130",
+                        "sql140",
+                        "sql150",
+                        "sql160",
+                        "sql170"
+                    ],
+                    "scope": "window"
+                },
+                "mssql.format.options.sqlEngineType": {
+                    "type": "string",
+                    "description": "%mssql.format.options.sqlEngineType%",
+                    "default": "all",
+                    "enum": [
+                        "all",
+                        "standalone",
+                        "sqlAzure"
+                    ],
+                    "scope": "window"
+                },
+                "mssql.format.options.alignClauseBodies": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.alignClauseBodies%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.alignColumnDefinitionFields": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.alignColumnDefinitionFields%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.alignSetClauseItem": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.alignSetClauseItem%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.allowExternalLanguagePaths": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.allowExternalLanguagePaths%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.allowExternalLibraryPaths": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.allowExternalLibraryPaths%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.asKeywordOnOwnLine": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.asKeywordOnOwnLine%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.keywordCasing": {
+                    "type": "string",
+                    "description": "%mssql.format.options.keywordCasing%",
+                    "default": "uppercase",
+                    "enum": [
+                        "uppercase",
+                        "lowercase",
+                        "pascalCase"
+                    ],
+                    "scope": "window"
+                },
+                "mssql.format.options.preserveComments": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.preserveComments%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.indentSetClause": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.indentSetClause%",
                     "default": false,
+                    "scope": "window"
+                },
+                "mssql.format.options.indentViewBody": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.indentViewBody%",
+                    "default": false,
+                    "scope": "window"
+                },
+                "mssql.format.options.multilineInsertSourcesList": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.multilineInsertSourcesList%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.multilineInsertTargetsList": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.multilineInsertTargetsList%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.multilineSelectElementsList": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.multilineSelectElementsList%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.multilineSetClauseItems": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.multilineSetClauseItems%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.multilineViewColumnsList": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.multilineViewColumnsList%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.multilineWherePredicatesList": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.multilineWherePredicatesList%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineBeforeCloseParenthesisInMultilineList": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.newLineBeforeCloseParenthesisInMultilineList%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineBeforeFromClause": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.newLineBeforeFromClause%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineBeforeGroupByClause": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.newLineBeforeGroupByClause%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineBeforeHavingClause": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.newLineBeforeHavingClause%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineBeforeJoinClause": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.newLineBeforeJoinClause%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineBeforeOffsetClause": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.newLineBeforeOffsetClause%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineBeforeOpenParenthesisInMultilineList": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.newLineBeforeOpenParenthesisInMultilineList%",
+                    "default": false,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineBeforeOrderByClause": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.newLineBeforeOrderByClause%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineBeforeOutputClause": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.newLineBeforeOutputClause%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineBeforeWhereClause": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.newLineBeforeWhereClause%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineBeforeWindowClause": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.newLineBeforeWindowClause%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.newlineFormattedCheckConstraint": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.newlineFormattedCheckConstraint%",
+                    "default": false,
+                    "scope": "window"
+                },
+                "mssql.format.options.newLineFormattedIndexDefinition": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.newLineFormattedIndexDefinition%",
+                    "default": false,
+                    "scope": "window"
+                },
+                "mssql.format.options.numNewlinesAfterStatement": {
+                    "type": "integer",
+                    "description": "%mssql.format.options.numNewlinesAfterStatement%",
+                    "default": 1,
+                    "minimum": 0,
+                    "maximum": 5,
+                    "scope": "window"
+                },
+                "mssql.format.options.spaceBetweenDataTypeAndParameters": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.spaceBetweenDataTypeAndParameters%",
+                    "default": true,
+                    "scope": "window"
+                },
+                "mssql.format.options.spaceBetweenParametersInDataType": {
+                    "type": "boolean",
+                    "description": "%mssql.format.options.spaceBetweenParametersInDataType%",
+                    "default": true,
                     "scope": "window"
                 },
                 "mssql.format.datatypeCasing": {
                     "type": "string",
-                    "description": "%mssql.format.datatypeCasing%",
+                    "markdownDescription": "%mssql.format.datatypeCasing%",
                     "default": "none",
                     "enum": [
                         "none",
@@ -2463,7 +2691,7 @@
                 },
                 "mssql.format.keywordCasing": {
                     "type": "string",
-                    "description": "%mssql.format.keywordCasing%",
+                    "markdownDescription": "%mssql.format.keywordCasing%",
                     "default": "none",
                     "enum": [
                         "none",
@@ -2474,13 +2702,13 @@
                 },
                 "mssql.format.placeCommasBeforeNextStatement": {
                     "type": "boolean",
-                    "description": "%mssql.format.placeCommasBeforeNextStatement%",
+                    "markdownDescription": "%mssql.format.placeCommasBeforeNextStatement%",
                     "default": false,
                     "scope": "window"
                 },
                 "mssql.format.placeSelectStatementReferencesOnNewLine": {
                     "type": "boolean",
-                    "description": "%mssql.format.placeSelectStatementReferencesOnNewLine%",
+                    "markdownDescription": "%mssql.format.placeSelectStatementReferencesOnNewLine%",
                     "default": false,
                     "scope": "window"
                 },
