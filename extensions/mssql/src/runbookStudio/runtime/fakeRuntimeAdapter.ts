@@ -511,10 +511,12 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "sqltest.discover",
     "tsqlt.run",
     "dacpac.build",
+    "dacpac.extract",
     "sandbox.provision",
     "dacpac.deploy.preview",
     "dacpac.deploy",
     "schema.compare",
+    "schema.compare.export",
     "sqltest.run",
     "sandbox.dispose",
     "evidence.bundle",
@@ -696,6 +698,34 @@ function executeNode(
                 },
             };
         }
+        case "dacpac.extract": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            if (typeof database !== "string" || database.length === 0) {
+                return invalidPreviewBinding("dacpac.extract", "database");
+            }
+            return {
+                success: true,
+                runMetrics: {
+                    "extract.artifactSizeBytes": 96 * 1024,
+                    "extract.completed": true,
+                },
+                message: "Database DACPAC extracted (deterministic preview)",
+                output: {
+                    contract: "dacpacArtifact/1",
+                    scalars: {
+                        databaseName: "PreviewDatabase",
+                        artifactPath: "preview://artifacts/PreviewDatabase.dacpac",
+                        artifactSha256: "preview-extracted-artifact-sha256",
+                        preview: true,
+                    },
+                },
+                values: {
+                    databaseName: "PreviewDatabase",
+                    artifactPath: "preview://artifacts/PreviewDatabase.dacpac",
+                    artifactSha256: "preview-extracted-artifact-sha256",
+                },
+            };
+        }
         case "sandbox.provision": {
             const sandbox = resolveBind(node.inputs?.sandbox, parameterValues, nodeValues);
             if (typeof sandbox !== "string" || sandbox.length === 0) {
@@ -825,6 +855,43 @@ function executeNode(
                     matches: true,
                     changeCount: 0,
                     reportSha256: "preview-post-deploy-report-sha256",
+                },
+            };
+        }
+        case "schema.compare.export": {
+            const dacpac = resolveBind(node.inputs?.dacpac, parameterValues, nodeValues);
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            if (typeof dacpac !== "string" || typeof database !== "string") {
+                return invalidPreviewBinding("schema.compare.export", "dacpac/database");
+            }
+            return {
+                success: true,
+                runMetrics: {
+                    "schema.alertCount": 0,
+                    "schema.changeCount": 1,
+                    "schema.matches": false,
+                    "schema.exported": true,
+                    "schema.exportSizeBytes": 512,
+                },
+                message: "Schema comparison report exported (deterministic preview)",
+                output: {
+                    contract: "schemaDiff/1",
+                    text: '<DeploymentReport><Operations><Operation Name="Create" /></Operations></DeploymentReport>',
+                    scalars: {
+                        matches: false,
+                        changeCount: 1,
+                        reportSha256: "preview-schema-report-sha256",
+                        artifactPath: "preview://artifacts/schema-comparison.xml",
+                        artifactSha256: "preview-schema-report-sha256",
+                        preview: true,
+                    },
+                },
+                values: {
+                    matches: false,
+                    changeCount: 1,
+                    reportSha256: "preview-schema-report-sha256",
+                    artifactPath: "preview://artifacts/schema-comparison.xml",
+                    artifactSha256: "preview-schema-report-sha256",
                 },
             };
         }

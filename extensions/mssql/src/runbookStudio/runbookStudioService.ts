@@ -98,9 +98,11 @@ import {
 import {
     LocalActivityError,
     LocalDacpacDeploymentResult,
+    LocalDacpacExtractionResult,
     LocalSandboxCleanupResult,
     LocalSandboxLeaseResult,
     LocalSchemaComparisonResult,
+    LocalSchemaComparisonExportResult,
     LocalSqlActivityDelegate,
 } from "./runtime/localSqlDelegate";
 import {
@@ -144,6 +146,10 @@ import {
 } from "./runtime/localToolchainProvenance";
 import { RuntimeSupervisor } from "./runtime/runtimeSupervisor";
 import {
+    executionRuntimeKindForArtifact,
+    manifestRequiresExtensionPlanner,
+} from "./runtime/runbookRuntimeRouting";
+import {
     RunbookRuntimeAdapter,
     RuntimeBoundaryEvent,
     RuntimeCapabilities,
@@ -168,6 +174,7 @@ const ServiceVersionRequestType = new RequestType<Record<string, never>, string,
 
 let runCounter = 0;
 let previewCounter = 0;
+let extractCounter = 0;
 let sandboxCounter = 0;
 
 function nextRunId(): string {
@@ -400,7 +407,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const configuredRuntimeKind = vscode.workspace
             .getConfiguration()
             .get<string>("mssql.runbookStudio.runtime", "local");
-        if (configuredRuntimeKind !== "hobbes") {
+        const executionRuntimeKind = executionRuntimeKindForArtifact(
+            configuredRuntimeKind,
+            artifact,
+        );
+        if (executionRuntimeKind !== "hobbes") {
             const catalogIssues = validateLockAgainstCatalog(artifact.lock);
             if (catalogIssues.length > 0) {
                 return {
@@ -414,7 +425,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         // Library-backed locks execute in Hobbes even when an older saved
         // draft predates host stamping and still says "extension" in source.
         const admissionManifest =
-            configuredRuntimeKind === "hobbes" &&
+            executionRuntimeKind === "hobbes" &&
             artifact.lock.libraryAssetRef &&
             artifact.source.requirements
                 ? {
@@ -426,9 +437,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                   }
                 : artifact.source.requirements;
         const admissionReadiness = preflightRunbookRequirements(admissionManifest, {
-            ...preflightContextForRuntime(configuredRuntimeKind, "admission"),
+            ...preflightContextForRuntime(executionRuntimeKind, "admission"),
             providerAvailable:
-                configuredRuntimeKind !== "local" ||
+                executionRuntimeKind !== "local" ||
                 vscode.extensions.getExtension(constants.sqlDatabaseProjectsExtensionId) !==
                     undefined,
             availableTargetKinds: targetKinds,
@@ -472,7 +483,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             };
         }
 
-        const adapterResult = await this.ensureAdapter(context);
+        const adapterResult = await this.ensureAdapter(context, executionRuntimeKind);
         if ("error" in adapterResult) {
             return { error: adapterResult.error };
         }
@@ -919,7 +930,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             };
         }
         let artifact: RunbookArtifactFile | undefined;
-        if (runtimeKind === "hobbes") {
+        if (
+            runtimeKind === "hobbes" &&
+            !manifestRequiresExtensionPlanner(base.source.requirements)
+        ) {
             try {
                 artifact = await this.compileWithRuntimePlanner(base, intent, context, onProgress);
             } catch (error) {
@@ -1975,10 +1989,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
 
     private async ensureAdapter(
         context: RunbookOperationContext,
+        requestedRuntimeKind?: string,
     ): Promise<{ adapter: RunbookRuntimeAdapter } | { error: RbsError }> {
-        const runtimeKind = vscode.workspace
-            .getConfiguration()
-            .get<string>("mssql.runbookStudio.runtime", "local");
+        const runtimeKind =
+            requestedRuntimeKind ??
+            vscode.workspace.getConfiguration().get<string>("mssql.runbookStudio.runtime", "local");
         if (this.adapter && this.adapterKind === runtimeKind) {
             return { adapter: this.adapter };
         }
@@ -2022,6 +2037,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     runTsqlt: (nodeId, databaseRef, selection, invocation, cancelled) =>
                         this.runLocalTsqlt(nodeId, databaseRef, selection, invocation, cancelled),
                     buildDacpac: buildLocalDacpac,
+                    extractDacpac: (nodeId, databaseRef, invocation, cancelled) =>
+                        this.extractLocalDacpac(nodeId, databaseRef, invocation, cancelled),
                     provisionSandbox: (nodeId, baseConnectionRef, invocation, cancelled) =>
                         this.provisionLocalSandbox(
                             nodeId,
@@ -2060,6 +2077,20 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             matches: preview.changeCount === 0,
                         } satisfies LocalSchemaComparisonResult;
                     },
+                    exportSchemaComparison: (
+                        nodeId,
+                        dacpacPath,
+                        databaseRef,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.exportLocalSchemaComparison(
+                            nodeId,
+                            dacpacPath,
+                            databaseRef,
+                            invocation,
+                            cancelled,
+                        ),
                     disposeSandbox: (nodeId, leaseRef, invocation, cancelled) =>
                         this.disposeLocalSandbox(nodeId, leaseRef, invocation, cancelled),
                     bundleEvidence: (nodeId, invocation, cancelled) =>
@@ -2470,7 +2501,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 "RunbookStudio.ActivityPolicyDenied",
             );
         }
-        const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested);
+        const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested, [
+            this.localManagedArtifactRoot(),
+        ]);
         if (artifact.artifactSha256 !== approvedArtifactDigest) {
             throw new LocalActivityError(
                 LocRunbookStudio.dacpacDeployArtifactChanged,
@@ -3191,12 +3224,212 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         };
     }
 
+    private localManagedArtifactRoot(): string {
+        return path.join(this.persistRoot, "managed-artifacts");
+    }
+
+    private async localManagedArtifactPath(
+        invocation: ActivityInvocationIdentity,
+        nodeId: string,
+        fileName: string,
+    ): Promise<string> {
+        const runDirectory = path.join(
+            this.localManagedArtifactRoot(),
+            sanitizeRunFileId(invocation.runId).slice(0, 96),
+        );
+        await fs.promises.mkdir(runDirectory, { recursive: true });
+        return path.join(
+            runDirectory,
+            `${sanitizeRunFileId(nodeId).slice(0, 64)}-${sanitizeRunFileId(fileName).slice(0, 80)}`,
+        );
+    }
+
+    private async extractLocalDacpac(
+        nodeId: string,
+        databaseRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalDacpacExtractionResult> {
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacExtractCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const connectionManager = this.connectionAccess();
+        const dacFxService = this.dacFxAccess();
+        if (!connectionManager || !dacFxService) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacExtractServiceUnavailable,
+                "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        const resolved = await this.resolveRunbookConnection(databaseRef);
+        const databaseName = resolved.targetDatabase.trim();
+        if (!databaseName) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacExtractDatabaseRequired,
+                "RunbookStudio.BindingInvalid",
+            );
+        }
+        const artifactPath = await this.localManagedArtifactPath(
+            invocation,
+            nodeId,
+            `${databaseName}.dacpac`,
+        );
+        if (await pathExists(artifactPath)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.runbookArtifactAlreadyExists(artifactPath),
+                "RunbookStudio.ArtifactExists",
+            );
+        }
+
+        extractCounter++;
+        const ownerUri = `runbookstudio://dacfx-extract/${extractCounter.toString(36)}`;
+        const cancellation = new vscode.CancellationTokenSource();
+        const cancellationPoll = setInterval(() => {
+            if (isCancellationRequested()) {
+                cancellation.cancel();
+            }
+        }, 50);
+        let connected = false;
+        let complete = false;
+        try {
+            connected = await connectionManager.connect(ownerUri, resolved.profile, {
+                connectionSource: "runbookStudio",
+            });
+            if (!connected) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.connectFailed,
+                    "RunbookStudio.ActivityFailed",
+                );
+            }
+            const result = await dacFxService.extractDacpac(
+                databaseName,
+                artifactPath,
+                databaseName,
+                "1.0.0.0",
+                ownerUri,
+                TaskExecutionMode.execute,
+                cancellation.token,
+            );
+            if (cancellation.token.isCancellationRequested || isCancellationRequested()) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacExtractCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            if (!result.success) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacExtractFailed,
+                    "RunbookStudio.DacpacExtractFailed",
+                );
+            }
+            const artifact = await verifyLocalDacpacArtifact(
+                artifactPath,
+                isCancellationRequested,
+                [this.localManagedArtifactRoot()],
+            );
+            complete = true;
+            return {
+                databaseName,
+                operationId: result.operationId,
+                ...artifact,
+                extractedAtUtc: new Date().toISOString(),
+            };
+        } catch (error) {
+            if (
+                error instanceof vscode.CancellationError ||
+                cancellation.token.isCancellationRequested ||
+                isCancellationRequested()
+            ) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacExtractCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            throw error;
+        } finally {
+            clearInterval(cancellationPoll);
+            cancellation.dispose();
+            if (connected) {
+                try {
+                    await connectionManager.disconnect(ownerUri);
+                } catch {
+                    // Best effort: the extraction request has already settled.
+                }
+            }
+            if (!complete) {
+                await fs.promises.rm(artifactPath, { force: true }).catch(() => undefined);
+            }
+        }
+    }
+
+    private async exportLocalSchemaComparison(
+        nodeId: string,
+        dacpacPath: string,
+        databaseRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSchemaComparisonExportResult> {
+        const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested, [
+            this.localManagedArtifactRoot(),
+        ]);
+        const outputPath = await this.localManagedArtifactPath(
+            invocation,
+            nodeId,
+            "schema-comparison.xml",
+        );
+        if (await pathExists(outputPath)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.runbookArtifactAlreadyExists(outputPath),
+                "RunbookStudio.ArtifactExists",
+            );
+        }
+        let complete = false;
+        try {
+            const preview = await this.generateLocalDacpacDeploymentPreview(
+                artifact.artifactPath,
+                databaseRef,
+                isCancellationRequested,
+                async (report) => {
+                    await fs.promises.writeFile(outputPath, report, {
+                        encoding: "utf8",
+                        flag: "wx",
+                    });
+                },
+            );
+            const outputStat = await fs.promises.stat(outputPath);
+            if (!outputStat.isFile() || outputStat.size === 0) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.schemaComparisonExportFailed,
+                    "RunbookStudio.ArtifactInvalid",
+                );
+            }
+            complete = true;
+            return {
+                ...preview,
+                matches: preview.changeCount === 0,
+                artifactPath: outputPath,
+                artifactSizeBytes: outputStat.size,
+                artifactSha256: preview.reportSha256,
+                exportedAtUtc: new Date().toISOString(),
+            };
+        } finally {
+            if (!complete) {
+                await fs.promises.rm(outputPath, { force: true }).catch(() => undefined);
+            }
+        }
+    }
+
     private async previewLocalDacpacDeployment(
         dacpacPath: string,
         databaseRef: string,
         isCancellationRequested: () => boolean,
     ) {
-        const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested);
+        const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested, [
+            this.localManagedArtifactRoot(),
+        ]);
         return this.generateLocalDacpacDeploymentPreview(
             artifact.artifactPath,
             databaseRef,
@@ -3210,6 +3443,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         verifiedDacpacPath: string,
         databaseRef: string,
         isCancellationRequested: () => boolean,
+        retainFullReport?: (report: string) => Promise<void>,
     ) {
         if (isCancellationRequested()) {
             throw new LocalActivityError(
@@ -3273,12 +3507,16 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     "RunbookStudio.DeploymentPreviewFailed",
                 );
             }
-            return buildLocalDeploymentPreviewResult(
+            const preview = buildLocalDeploymentPreviewResult(
                 verifiedDacpacPath,
                 targetDatabase,
                 result.operationId,
                 result.report,
             );
+            if (retainFullReport) {
+                await retainFullReport(result.report);
+            }
+            return preview;
         } catch (error) {
             if (
                 error instanceof vscode.CancellationError ||
@@ -3613,6 +3851,15 @@ function migrateLegacyRunStorage(legacyRoot: string, persistRoot: string): numbe
 function isPlaceholderRunbookName(name: string): boolean {
     const base = LocRunbookStudio.newRunbookName;
     return name === base || (name.startsWith(`${base} (`) && name.endsWith(")"));
+}
+
+async function pathExists(candidate: string): Promise<boolean> {
+    try {
+        await fs.promises.access(candidate, fs.constants.F_OK);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 function modelRoleConfiguration(

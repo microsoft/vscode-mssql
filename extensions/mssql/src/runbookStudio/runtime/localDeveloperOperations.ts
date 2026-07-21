@@ -271,6 +271,7 @@ export async function buildLocalDacpac(
 export async function verifyLocalDacpacArtifact(
     requestedPath: string,
     isCancellationRequested: () => boolean,
+    trustedRoots: readonly string[] = [],
 ): Promise<{
     artifactPath: string;
     artifactSizeBytes: number;
@@ -284,7 +285,12 @@ export async function verifyLocalDacpacArtifact(
             "RunbookStudio.ArtifactInvalid",
         );
     }
-    await assertPathInWorkspace(artifactPath, folders, LocRunbookStudio.dacpacArtifactLabel);
+    await assertPathInWorkspace(
+        artifactPath,
+        folders,
+        LocRunbookStudio.dacpacArtifactLabel,
+        trustedRoots,
+    );
     let artifactStat: fs.Stats;
     try {
         artifactStat = await fs.promises.stat(artifactPath);
@@ -434,6 +440,7 @@ async function assertPathInWorkspace(
     candidate: string,
     folders: readonly vscode.WorkspaceFolder[],
     label: string,
+    trustedRoots: readonly string[] = [],
 ): Promise<void> {
     let realCandidate: string;
     try {
@@ -444,10 +451,11 @@ async function assertPathInWorkspace(
             "RunbookStudio.PathInvalid",
         );
     }
-    for (const folder of folders) {
+    const roots = [...folders.map((folder) => folder.uri.fsPath), ...trustedRoots];
+    for (const root of roots) {
         let realRoot: string;
         try {
-            realRoot = await fs.promises.realpath(folder.uri.fsPath);
+            realRoot = await fs.promises.realpath(root);
         } catch {
             continue;
         }

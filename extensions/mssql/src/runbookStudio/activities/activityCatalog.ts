@@ -125,6 +125,31 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "dacpac.extract",
+        version: 1,
+        label: "Extract database DACPAC",
+        description:
+            "Extracts a DACPAC from the explicitly bound database through DacFx and retains it as a hashed Runbook Studio artifact.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Saved connection profile for the source database",
+            },
+        ],
+        outputContract: "dacpacArtifact/1",
+        producedValues: ["artifactPath", "artifactSha256", "databaseName"],
+        target: { kind: "sqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "workspaceFiles",
+            operation: "create",
+            targetEnvironment: "development",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "sandbox.provision",
         version: 1,
         label: "Provision disposable local SQL database",
@@ -254,6 +279,43 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
             operation: "read",
             targetEnvironment: "ephemeral",
             reversibility: "noEffect",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "schema.compare.export",
+        version: 1,
+        label: "Export schema comparison report",
+        description:
+            "Generates a DacFx comparison report for an explicitly bound database and retains the complete XML as a hashed Runbook Studio artifact without treating differences as execution failure.",
+        inputs: [
+            {
+                name: "dacpac",
+                kind: "bind",
+                required: true,
+                description: "Bind to a dacpac.build or dacpac.extract artifactPath",
+            },
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Saved connection profile or provisioned database reference",
+            },
+        ],
+        outputContract: "schemaDiff/1",
+        producedValues: [
+            "matches",
+            "changeCount",
+            "reportSha256",
+            "artifactPath",
+            "artifactSha256",
+        ],
+        target: { kind: "sqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "workspaceFiles",
+            operation: "create",
+            targetEnvironment: "development",
+            reversibility: "autoReversible",
             breadth: "bounded",
         },
     },

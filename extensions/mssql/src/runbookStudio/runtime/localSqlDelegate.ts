@@ -59,6 +59,12 @@ export interface LocalSqlOperations {
         projectPath: string,
         isCancellationRequested: () => boolean,
     ): Promise<LocalDacpacBuildResult>;
+    extractDacpac(
+        nodeId: string,
+        databaseRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalDacpacExtractionResult>;
     previewDacpacDeployment(
         dacpacPath: string,
         databaseRef: string,
@@ -78,6 +84,13 @@ export interface LocalSqlOperations {
         databaseRef: string,
         isCancellationRequested: () => boolean,
     ): Promise<LocalSchemaComparisonResult>;
+    exportSchemaComparison(
+        nodeId: string,
+        dacpacPath: string,
+        databaseRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSchemaComparisonExportResult>;
     provisionSandbox(
         nodeId: string,
         baseConnectionRef: string,
@@ -136,6 +149,15 @@ export interface LocalDacpacBuildResult {
     builtAtUtc: string;
 }
 
+export interface LocalDacpacExtractionResult {
+    databaseName: string;
+    operationId: string;
+    artifactPath: string;
+    artifactSizeBytes: number;
+    artifactSha256: string;
+    extractedAtUtc: string;
+}
+
 export interface LocalDeploymentPreviewResult {
     dacpacPath: string;
     targetDatabase: string;
@@ -165,6 +187,13 @@ export interface LocalDacpacDeploymentResult {
 
 export interface LocalSchemaComparisonResult extends LocalDeploymentPreviewResult {
     matches: boolean;
+}
+
+export interface LocalSchemaComparisonExportResult extends LocalSchemaComparisonResult {
+    artifactPath: string;
+    artifactSizeBytes: number;
+    artifactSha256: string;
+    exportedAtUtc: string;
 }
 
 export interface LocalSandboxLeaseResult {
@@ -207,10 +236,12 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "sqltest.discover",
         "tsqlt.run",
         "dacpac.build",
+        "dacpac.extract",
         "sandbox.provision",
         "dacpac.deploy.preview",
         "dacpac.deploy",
         "schema.compare",
+        "schema.compare.export",
         "sandbox.dispose",
         "sqltest.run",
         "evidence.bundle",
@@ -237,6 +268,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.executeTsqlt(node, binding);
             case "dacpac.build":
                 return this.buildDacpac(node, binding);
+            case "dacpac.extract":
+                return this.extractDacpac(node, binding);
             case "sandbox.provision":
                 return this.provisionSandbox(node, binding);
             case "dacpac.deploy.preview":
@@ -245,6 +278,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.deployDacpac(node, binding);
             case "schema.compare":
                 return this.verifyDacpacDeployment(node, binding);
+            case "schema.compare.export":
+                return this.exportSchemaComparison(node, binding);
             case "sandbox.dispose":
                 return this.disposeSandbox(node, binding);
             case "sqltest.run":
@@ -399,6 +434,55 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     artifactPath: result.artifactPath,
                     artifactSha256: result.artifactSha256,
                     diagnosticCount: result.diagnosticCount,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async extractDacpac(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        try {
+            const result = await this.operations.extractDacpac(
+                node.id,
+                databaseRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "extract.artifactSizeBytes": result.artifactSizeBytes,
+                    "extract.completed": true,
+                },
+                message: LocRunbookStudio.dacpacExtracted(result.databaseName, result.artifactPath),
+                output: {
+                    contract: "dacpacArtifact/1",
+                    scalars: {
+                        databaseName: result.databaseName,
+                        operationId: result.operationId,
+                        artifactPath: result.artifactPath,
+                        artifactSizeBytes: result.artifactSizeBytes,
+                        artifactSha256: result.artifactSha256,
+                        extractedAtUtc: result.extractedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    databaseName: result.databaseName,
+                    artifactPath: result.artifactPath,
+                    artifactSha256: result.artifactSha256,
                 },
             };
         } catch (error) {
@@ -704,6 +788,75 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     matches: result.matches,
                     changeCount: result.changeCount,
                     reportSha256: result.reportSha256,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async exportSchemaComparison(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const dacpacPath = binding.resolveBind(node.inputs?.dacpac);
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        if (typeof dacpacPath !== "string" || dacpacPath.trim().length === 0) {
+            return invalidBinding("dacpac");
+        }
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        try {
+            const result = await this.operations.exportSchemaComparison(
+                node.id,
+                dacpacPath.trim(),
+                databaseRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "schema.alertCount": result.alertCount,
+                    "schema.changeCount": result.changeCount,
+                    "schema.matches": result.matches,
+                    "schema.exported": true,
+                    "schema.exportSizeBytes": result.artifactSizeBytes,
+                },
+                message: LocRunbookStudio.schemaComparisonExported(
+                    result.changeCount,
+                    result.artifactPath,
+                ),
+                output: {
+                    contract: "schemaDiff/1",
+                    text: result.reportXml,
+                    scalars: {
+                        matches: result.matches,
+                        targetDatabase: result.targetDatabase,
+                        changeCount: result.changeCount,
+                        alertCount: result.alertCount,
+                        operationSummary: result.operationSummary,
+                        reportSha256: result.reportSha256,
+                        reportTruncated: result.reportTruncated,
+                        artifactPath: result.artifactPath,
+                        artifactSizeBytes: result.artifactSizeBytes,
+                        artifactSha256: result.artifactSha256,
+                        generatedAtUtc: result.generatedAtUtc,
+                        exportedAtUtc: result.exportedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    matches: result.matches,
+                    changeCount: result.changeCount,
+                    reportSha256: result.reportSha256,
+                    artifactPath: result.artifactPath,
+                    artifactSha256: result.artifactSha256,
                 },
             };
         } catch (error) {

@@ -68,6 +68,14 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             errorCount: 1,
             builtAtUtc: "2026-07-19T20:00:00.000Z",
         }),
+        extractDacpac: async () => ({
+            databaseName: "WideWorldImporters",
+            operationId: "extract-op",
+            artifactPath: "C:\\managed\\WideWorldImporters.dacpac",
+            artifactSizeBytes: 4096,
+            artifactSha256: "e".repeat(64),
+            extractedAtUtc: "2026-07-20T20:01:00.000Z",
+        }),
         previewDacpacDeployment: async (dacpacPath) => ({
             dacpacPath,
             targetDatabase: "RunbookTarget",
@@ -110,6 +118,23 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             reportTruncated: false,
             generatedAtUtc: "2026-07-19T20:03:40.000Z",
             matches: true,
+        }),
+        exportSchemaComparison: async (dacpacPath) => ({
+            dacpacPath,
+            targetDatabase: "WWI_2",
+            operationId: "compare-export-op",
+            changeCount: 1,
+            alertCount: 0,
+            operationSummary: "Create: 1",
+            reportSha256: "7".repeat(64),
+            reportXml: "<DeploymentReport />",
+            reportTruncated: false,
+            generatedAtUtc: "2026-07-20T20:02:00.000Z",
+            matches: false,
+            artifactPath: "C:\\managed\\schema-comparison.xml",
+            artifactSizeBytes: 512,
+            artifactSha256: "7".repeat(64),
+            exportedAtUtc: "2026-07-20T20:02:01.000Z",
         }),
         provisionSandbox: async () => ({
             effectId: `effect-${"d".repeat(64)}`,
@@ -330,6 +355,50 @@ suite("Runbook Studio local activity delegate", () => {
         });
     });
 
+    test("dacpacExtractionDelegate emits a reusable hashed artifact", async () => {
+        let requestedDatabase = "";
+        const delegate = new LocalSqlActivityDelegate(
+            operations({
+                extractDacpac: async (_nodeId, databaseRef) => {
+                    requestedDatabase = databaseRef;
+                    return {
+                        databaseName: "WideWorldImporters",
+                        operationId: "extract-op",
+                        artifactPath: "C:\\managed\\WideWorldImporters.dacpac",
+                        artifactSizeBytes: 8192,
+                        artifactSha256: "e".repeat(64),
+                        extractedAtUtc: "2026-07-20T20:01:00.000Z",
+                    };
+                },
+            }),
+        );
+
+        const result = await delegate.executeActivity(
+            activity("dacpac.extract", { database: "$params.source" }),
+            binding((value) => (value === "$params.source" ? " source-profile " : value)),
+        );
+
+        expect(requestedDatabase).to.equal("source-profile");
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("dacpacArtifact/1");
+        expect(result?.output?.scalars).to.deep.include({
+            databaseName: "WideWorldImporters",
+            artifactPath: "C:\\managed\\WideWorldImporters.dacpac",
+            artifactSizeBytes: 8192,
+            artifactSha256: "e".repeat(64),
+            executionMode: "local",
+        });
+        expect(result?.values).to.deep.equal({
+            databaseName: "WideWorldImporters",
+            artifactPath: "C:\\managed\\WideWorldImporters.dacpac",
+            artifactSha256: "e".repeat(64),
+        });
+        expect(result?.runMetrics).to.deep.equal({
+            "extract.artifactSizeBytes": 8192,
+            "extract.completed": true,
+        });
+    });
+
     test("deployment preview emits bounded DacFx report evidence", async () => {
         const delegate = new LocalSqlActivityDelegate(operations());
 
@@ -448,6 +517,43 @@ suite("Runbook Studio local activity delegate", () => {
         });
         expect(verify?.output?.contract).to.equal("schemaDiff/1");
         expect(verify?.values).to.deep.include({ matches: true, changeCount: 0 });
+    });
+
+    test("schemaComparisonExportDelegate retains expected differences", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+        const result = await delegate.executeActivity(
+            activity("schema.compare.export", {
+                dacpac: "$nodes.extract.artifactPath",
+                database: "$params.target",
+            }),
+            binding((value) => {
+                if (value === "$nodes.extract.artifactPath") {
+                    return "C:\\managed\\WideWorldImporters.dacpac";
+                }
+                return value === "$params.target" ? "target-profile" : value;
+            }),
+        );
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("schemaDiff/1");
+        expect(result?.output?.scalars).to.deep.include({
+            matches: false,
+            changeCount: 1,
+            artifactPath: "C:\\managed\\schema-comparison.xml",
+            artifactSizeBytes: 512,
+            artifactSha256: "7".repeat(64),
+            executionMode: "local",
+        });
+        expect(result?.values).to.deep.include({
+            matches: false,
+            changeCount: 1,
+            artifactPath: "C:\\managed\\schema-comparison.xml",
+        });
+        expect(result?.runMetrics).to.deep.include({
+            "schema.matches": false,
+            "schema.exported": true,
+            "schema.exportSizeBytes": 512,
+        });
     });
 
     test("SQL test execution interprets typed rows and always disconnects", async () => {

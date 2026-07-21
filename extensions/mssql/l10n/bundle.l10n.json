@@ -175,10 +175,22 @@
         "message": "Built {0} ({1} diagnostics).",
         "comment": ["{0} is a DACPAC file path", "{1} is a diagnostic count"]
     },
+    "Extracted database '{0}' to {1}./{0} is a database name{1} is a managed DACPAC artifact path": {
+        "message": "Extracted database '{0}' to {1}.",
+        "comment": ["{0} is a database name", "{1} is a managed DACPAC artifact path"]
+    },
     "Open a workspace containing the SQL database project before running this step.": "Open a workspace containing the SQL database project before running this step.",
     "Open a workspace containing the repository SQL tests before running this step.": "Open a workspace containing the repository SQL tests before running this step.",
     "SQL test discovery was cancelled.": "SQL test discovery was cancelled.",
     "DACPAC build was cancelled.": "DACPAC build was cancelled.",
+    "DACPAC extraction was cancelled.": "DACPAC extraction was cancelled.",
+    "The DacFx service is not available for DACPAC extraction.": "The DacFx service is not available for DACPAC extraction.",
+    "The selected source connection must specify a database to extract.": "The selected source connection must specify a database to extract.",
+    "DacFx could not extract a DACPAC from the selected source database.": "DacFx could not extract a DACPAC from the selected source database.",
+    "The managed run artifact already exists at '{0}'. Start a new run before retrying./{0} is a managed run artifact path": {
+        "message": "The managed run artifact already exists at '{0}'. Start a new run before retrying.",
+        "comment": ["{0} is a managed run artifact path"]
+    },
     "DACPAC artifact": "DACPAC artifact",
     "Database project": "Database project",
     "DACPAC evidence collection was cancelled.": "DACPAC evidence collection was cancelled.",
@@ -209,6 +221,11 @@
     "DacFx could not generate a deployment report for the selected target.": "DacFx could not generate a deployment report for the selected target.",
     "DacFx returned an empty or invalid deployment report.": "DacFx returned an empty or invalid deployment report.",
     "No schema changes": "No schema changes",
+    "Exported {0} schema difference(s) to {1}./{0} is a schema change count{1} is a report artifact path": {
+        "message": "Exported {0} schema difference(s) to {1}.",
+        "comment": ["{0} is a schema change count", "{1} is a report artifact path"]
+    },
+    "The schema comparison report could not be retained as a managed artifact.": "The schema comparison report could not be retained as a managed artifact.",
     "Disposable database '{0}' was provisioned./{0} is a generated local database name": {
         "message": "Disposable database '{0}' was provisioned.",
         "comment": ["{0} is a generated local database name"]

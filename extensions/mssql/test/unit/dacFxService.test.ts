@@ -497,6 +497,43 @@ suite("DacFxService Tests", () => {
             cancellation.dispose();
         });
 
+        test("dacpacExtractionCancellation forwards cancellation to DacFx", async () => {
+            const expectedResult = {
+                success: true,
+                errorMessage: "",
+                operationId: "extract-1",
+            };
+            sqlToolsClientStub.sendRequest.resolves(expectedResult);
+            const service = new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
+            const cancellation = new vscode.CancellationTokenSource();
+
+            const result = await service.extractDacpac(
+                "WideWorldImporters",
+                "C:\\managed\\WideWorldImporters.dacpac",
+                "WideWorldImporters",
+                "1.0.0.0",
+                "runbookstudio://extract/1",
+                TaskExecutionMode.execute,
+                cancellation.token,
+            );
+
+            expect(sqlToolsClientStub.sendRequest).to.have.been.calledOnceWith(
+                dacFxContracts.ExtractRequest.type,
+                {
+                    databaseName: "WideWorldImporters",
+                    packageFilePath: "C:\\managed\\WideWorldImporters.dacpac",
+                    applicationName: "WideWorldImporters",
+                    applicationVersion: "1.0.0.0",
+                    ownerUri: "runbookstudio://extract/1",
+                    extractTarget: 0,
+                    taskExecutionMode: TaskExecutionMode.execute,
+                },
+                cancellation.token,
+            );
+            expect(result).to.equal(expectedResult);
+            cancellation.dispose();
+        });
+
         test("should send request with GetCodeAnalysisRulesRequest.type and empty params", async () => {
             // Arrange
             const expectedResult = { success: true, errorMessage: "", rules: [] };

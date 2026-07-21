@@ -2371,11 +2371,17 @@
       <source xml:lang="en">DACPAC extracted successfully to &apos;{0}&apos;</source>
       <note>{0} is the file path</note>
     </trans-unit>
+    <trans-unit id="++CODE++edaafd09a85d1097b24fd18de957a6152a8dc4fd98ff4ac225991a42fae356d1">
+      <source xml:lang="en">DACPAC extraction was cancelled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++859430fa647177df2bca8384a1b91e9f607ab6c35eba8d61c1ff399e80cf0ac2">
       <source xml:lang="en">DACPAC path not found. Please build the project first.</source>
     </trans-unit>
     <trans-unit id="++CODE++b14b10ee4582e30dafe5e5621c1891dfb9f74dcf3b0b58fc93ceb5e1691baa99">
       <source xml:lang="en">DacFx could not deploy the DACPAC to the disposable database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f116a43b4666b66c3113d8528cb9d160ed3a00d28b5298668e7b5c8127bb00e2">
+      <source xml:lang="en">DacFx could not extract a DACPAC from the selected source database.</source>
     </trans-unit>
     <trans-unit id="++CODE++60362ceff08b0d6db80ba99b35761975ee75d521a0b990e0cddaba799c09bc90">
       <source xml:lang="en">DacFx could not generate a deployment report for the selected target.</source>
@@ -3552,6 +3558,11 @@
       <source xml:lang="en">Export toolbar for result set {0}</source>
       <note>{0} is the result set number (1-based index)</note>
     </trans-unit>
+    <trans-unit id="++CODE++64851b6212854c6ddcde2b4e7e809064048cd3cb4ee2780e6d5e4985a361c1dc">
+      <source xml:lang="en">Exported {0} schema difference(s) to {1}.</source>
+      <note>{0} is a schema change count
+{1} is a report artifact path</note>
+    </trans-unit>
     <trans-unit id="++CODE++de5cd90f5341f8bb2ebe10270705fa436ac43f8c5ff653358b9eee3a56323ec4">
       <source xml:lang="en">Exporting BACPAC...</source>
     </trans-unit>
@@ -3606,6 +3617,11 @@
     </trans-unit>
     <trans-unit id="++CODE++ae978d30fd899796154f535e3b3c547d46b2bd0c5e738928c553ce1e1e426fc8">
       <source xml:lang="en">Extract the schema from a SQL database to a .dacpac file</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2db1b69a3c40512ff7bbcd691d2face0cad72082515674a85f2c86c79fbdd154">
+      <source xml:lang="en">Extracted database &apos;{0}&apos; to {1}.</source>
+      <note>{0} is a database name
+{1} is a managed DACPAC artifact path</note>
     </trans-unit>
     <trans-unit id="++CODE++e4c61f0d341293c441bab44693218614d6045d574d51221cd6a65d43ec0e04d4">
       <source xml:lang="en">Extracting DACPAC...</source>
@@ -8996,6 +9012,9 @@
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c146786acfff053f8101c36f5ca59d66684821ec1755798b8eab152943978153">
+      <source xml:lang="en">The DacFx service is not available for DACPAC extraction.</source>
+    </trans-unit>
     <trans-unit id="++CODE++a2b90b68eaa36b468cd402c81b1ae4983b4b93de687e455ecd6b390220d4848b">
       <source xml:lang="en">The DacFx service is not available for deployment preview.</source>
     </trans-unit>
@@ -9170,6 +9189,10 @@
     <trans-unit id="++CODE++577d02ca582344ac419c856b7ba171d6a78519e7b202b0135676e0a5dbc1655e">
       <source xml:lang="en">The layout changed or this edit is no longer valid. Review the latest layout and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++9def3211a272528d53ebea00bababd4dcd9b3e3808c377e8e631e63718ecb7ec">
+      <source xml:lang="en">The managed run artifact already exists at &apos;{0}&apos;. Start a new run before retrying.</source>
+      <note>{0} is a managed run artifact path</note>
+    </trans-unit>
     <trans-unit id="++CODE++fcd9241097659a9ae58a06bd9b762b5aded99a3f82d97e73e75279b098e00c6d">
       <source xml:lang="en">The mapping between foreign key columns and primary key columns.</source>
     </trans-unit>
@@ -9257,6 +9280,9 @@
       <source xml:lang="en">The saved &apos;{0}&apos; view no longer matches this output. Showing &apos;{1}&apos; instead. Review this widget&apos;s presentation before saving the runbook.</source>
       <note>{0} and {1} are renderer kind ids</note>
     </trans-unit>
+    <trans-unit id="++CODE++2c82104ca8243c70fe881f40f7a24a1796202ccdade962a6bdf2a474c2dbd694">
+      <source xml:lang="en">The schema comparison report could not be retained as a managed artifact.</source>
+    </trans-unit>
     <trans-unit id="++CODE++ea13943c4f06ddf0a81173991d20e8cf8252b636b94c0c2476e58098d9fbc1f3">
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
@@ -9285,6 +9311,9 @@
     <trans-unit id="++CODE++2d93cdf980de7a656d499569548c98d27086e3edebb3b89f58b28ec45facf111">
       <source xml:lang="en">The selected profile authenticates using Entra ID &apos;{0}&apos;, but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
       <note>{0} is the account ID or label</note>
+    </trans-unit>
+    <trans-unit id="++CODE++8cb922b5fdbb038315fdfe579920bb72d7b66358e2812160628de60b132c893c">
+      <source xml:lang="en">The selected source connection must specify a database to extract.</source>
     </trans-unit>
     <trans-unit id="++CODE++1aaf914627240cc1be564812eec1b80ac805e7605c3ff3c2dc5188820a5bfff8">
       <source xml:lang="en">The staged layout could not be previewed.</source>

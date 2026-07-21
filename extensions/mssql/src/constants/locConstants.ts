@@ -293,6 +293,12 @@ export class RunbookStudio {
             args: [artifactPath, diagnosticCount],
             comment: ["{0} is a DACPAC file path", "{1} is a diagnostic count"],
         });
+    public static dacpacExtracted = (databaseName: string, artifactPath: string) =>
+        l10n.t({
+            message: "Extracted database '{0}' to {1}.",
+            args: [databaseName, artifactPath],
+            comment: ["{0} is a database name", "{1} is a managed DACPAC artifact path"],
+        });
     public static openWorkspaceForDatabaseProject = l10n.t(
         "Open a workspace containing the SQL database project before running this step.",
     );
@@ -301,6 +307,23 @@ export class RunbookStudio {
     );
     public static sqlTestDiscoveryCancelled = l10n.t("SQL test discovery was cancelled.");
     public static dacpacBuildCancelled = l10n.t("DACPAC build was cancelled.");
+    public static dacpacExtractCancelled = l10n.t("DACPAC extraction was cancelled.");
+    public static dacpacExtractServiceUnavailable = l10n.t(
+        "The DacFx service is not available for DACPAC extraction.",
+    );
+    public static dacpacExtractDatabaseRequired = l10n.t(
+        "The selected source connection must specify a database to extract.",
+    );
+    public static dacpacExtractFailed = l10n.t(
+        "DacFx could not extract a DACPAC from the selected source database.",
+    );
+    public static runbookArtifactAlreadyExists = (artifactPath: string) =>
+        l10n.t({
+            message:
+                "The managed run artifact already exists at '{0}'. Start a new run before retrying.",
+            args: [artifactPath],
+            comment: ["{0} is a managed run artifact path"],
+        });
     public static dacpacArtifactLabel = l10n.t("DACPAC artifact");
     public static databaseProjectLabel = l10n.t("Database project");
     public static dacpacEvidenceCancelled = l10n.t("DACPAC evidence collection was cancelled.");
@@ -351,6 +374,15 @@ export class RunbookStudio {
         "DacFx returned an empty or invalid deployment report.",
     );
     public static dacpacPreviewNoSchemaChanges = l10n.t("No schema changes");
+    public static schemaComparisonExported = (changeCount: number, artifactPath: string) =>
+        l10n.t({
+            message: "Exported {0} schema difference(s) to {1}.",
+            args: [changeCount, artifactPath],
+            comment: ["{0} is a schema change count", "{1} is a report artifact path"],
+        });
+    public static schemaComparisonExportFailed = l10n.t(
+        "The schema comparison report could not be retained as a managed artifact.",
+    );
     public static sandboxProvisioned = (databaseName: string) =>
         l10n.t({
             message: "Disposable database '{0}' was provisioned.",

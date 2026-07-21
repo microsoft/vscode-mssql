@@ -123,6 +123,7 @@ export class DacFxService implements mssql.IDacFxService {
         applicationVersion: string | undefined,
         ownerUri: string,
         taskExecutionMode: TaskExecutionMode,
+        cancellationToken?: vscode.CancellationToken,
     ): Thenable<mssql.DacFxResult> {
         const params: mssql.ExtractParams = {
             databaseName: databaseName,
@@ -133,7 +134,11 @@ export class DacFxService implements mssql.IDacFxService {
             extractTarget: ExtractTarget.dacpac,
             taskExecutionMode: taskExecutionMode,
         };
-        return this._client.sendRequest(dacFxContracts.ExtractRequest.type, params);
+        return this._client.sendRequest(
+            dacFxContracts.ExtractRequest.type,
+            params,
+            cancellationToken,
+        );
     }
 
     public createProjectFromDatabase(

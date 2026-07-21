@@ -133,6 +133,39 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         providerRequirement: "execution",
         outputContract: "dacpacArtifact/1",
     },
+    "dacpac.extract": {
+        target: "sqlDatabase",
+        effect: "mutate",
+        connectionRequirement: "required",
+        rollbackContract: "automatic",
+        outputContract: "dacpacArtifact/1",
+    },
+    "dacpac.deploy.dev": {
+        target: "sqlDatabase",
+        effect: "mutate",
+        approvalRequired: true,
+        connectionRequirement: "required",
+        rollbackContract: "required",
+        providerRequirement: "execution",
+        outputContract: "deploymentEvidence/1",
+    },
+    "dacpac.deploy.container": {
+        target: "ephemeralSqlDatabase",
+        effect: "mutate",
+        approvalRequired: true,
+        connectionRequirement: "provisioned",
+        rollbackContract: "required",
+        providerRequirement: "execution",
+        outputContract: "deploymentEvidence/1",
+    },
+    "sql.schema.apply": {
+        target: "sqlDatabase",
+        effect: "mutate",
+        approvalRequired: true,
+        connectionRequirement: "required",
+        rollbackContract: "required",
+        outputContract: "schemaMutationEvidence/1",
+    },
     "sandbox.provision": {
         target: "ephemeralSqlDatabase",
         effect: "mutate",
@@ -170,6 +203,57 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         connectionRequirement: "required",
         providerRequirement: "execution",
         outputContract: "schemaDiff/1",
+    },
+    "schema.compare.export": {
+        target: "sqlDatabase",
+        effect: "mutate",
+        connectionRequirement: "required",
+        rollbackContract: "automatic",
+        outputContract: "schemaDiff/1",
+    },
+    "sql.container.provision": {
+        target: "ephemeralSqlDatabase",
+        effect: "mutate",
+        approvalRequired: true,
+        secretRequirement: "requiredAtRunTime",
+        rollbackContract: "required",
+        outputContract: "databaseLease/1",
+    },
+    "sql.container.dispose": {
+        target: "ephemeralSqlDatabase",
+        effect: "mutate",
+        connectionRequirement: "provisioned",
+        rollbackContract: "automatic",
+        outputContract: "cleanupEvidence/1",
+    },
+    "xevent.session.start": {
+        target: "sqlDatabase",
+        effect: "mutate",
+        approvalRequired: true,
+        connectionRequirement: "required",
+        rollbackContract: "required",
+        outputContract: "xeventSessionLease/1",
+    },
+    "sql.workload.run": {
+        target: "sqlDatabase",
+        effect: "mutate",
+        approvalRequired: true,
+        connectionRequirement: "required",
+        rollbackContract: "required",
+        outputContract: "workloadResults/1",
+    },
+    "xevent.session.stop": {
+        target: "sqlDatabase",
+        effect: "mutate",
+        connectionRequirement: "required",
+        rollbackContract: "automatic",
+        outputContract: "xeventCapture/1",
+    },
+    "xevent.xel.collect": {
+        target: "workspace",
+        effect: "mutate",
+        rollbackContract: "automatic",
+        outputContract: "xelArtifact/1",
     },
     "sqltest.run": {
         target: "sqlDatabase",
@@ -249,6 +333,26 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         label: "Build the DACPAC",
         description: "Compile the database project and retain the build diagnostics and artifact.",
     },
+    "dacpac.extract": {
+        label: "Extract the source database DACPAC",
+        description:
+            "Use DacFx against the explicitly bound source database and retain a hashed DACPAC artifact.",
+    },
+    "dacpac.deploy.dev": {
+        label: "Deploy to the named development database",
+        description:
+            "Preview, approve, apply, and record rollback evidence for the explicitly named durable development target.",
+    },
+    "dacpac.deploy.container": {
+        label: "Deploy to the provisioned SQL container",
+        description:
+            "Apply the approved DACPAC to the ownership-verified database lease returned by container provisioning.",
+    },
+    "sql.schema.apply": {
+        label: "Apply the requested schema change",
+        description:
+            "Execute the reviewed schema mutation against the explicit target and retain rollback and effect evidence.",
+    },
     "sandbox.provision": {
         label: "Provision an isolated SQL target",
         description: "Create a bounded ephemeral database and record its cleanup lease.",
@@ -265,6 +369,40 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
     "schema.compare": {
         label: "Verify the deployed schema",
         description: "Compare the expected project model with the target and report any drift.",
+    },
+    "schema.compare.export": {
+        label: "Export the schema comparison artifact",
+        description:
+            "Retain the complete DacFx comparison report as a hashed file even when differences are expected.",
+    },
+    "sql.container.provision": {
+        label: "Provision the local SQL container",
+        description:
+            "Create an ownership-labeled local SQL container, wait for readiness, and issue a cleanup lease.",
+    },
+    "sql.container.dispose": {
+        label: "Dispose the local SQL container",
+        description: "Remove the ownership-verified container and prove cleanup completed.",
+    },
+    "xevent.session.start": {
+        label: "Start the XEvent capture",
+        description:
+            "Create and start an ownership-marked bounded XEvent session before the workload begins.",
+    },
+    "sql.workload.run": {
+        label: "Run the SQL workload",
+        description:
+            "Execute the explicitly selected repository workload with bounded batches, timeout, cancellation, and measured results.",
+    },
+    "xevent.session.stop": {
+        label: "Stop the XEvent capture",
+        description:
+            "Stop and remove the owned XEvent session while retaining its server-side capture identity.",
+    },
+    "xevent.xel.collect": {
+        label: "Collect the XEL artifact",
+        description:
+            "Copy the completed capture into managed evidence and record its path, size, and SHA-256 digest.",
     },
     "sqltest.run": {
         label: "Run database tests",
@@ -321,17 +459,28 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "dbproject.create",
         "dbproject.add-object",
         "dacpac.build",
+        "dacpac.extract",
+        "sql.container.provision",
         "sandbox.provision",
         "dacpac.deploy.preview",
+        "dacpac.deploy.dev",
+        "dacpac.deploy.container",
         "dacpac.deploy",
+        "sql.schema.apply",
         "schema.compare",
+        "schema.compare.export",
         "tsqlt.run",
         "sqltest.run",
+        "xevent.session.start",
+        "sql.workload.run",
+        "xevent.session.stop",
+        "xevent.xel.collect",
         "workload.benchmark",
         "baseline.compare",
         "security.permissions.validate",
         "connection.auth.diagnose",
         "incident.replay.sandbox",
+        "sql.container.dispose",
         "sandbox.dispose",
         "evidence.bundle",
     ],
@@ -339,29 +488,46 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "workspace.inspect",
         "sqltest.discover",
         "dacpac.build",
+        "dacpac.extract",
+        "sql.container.provision",
         "sandbox.provision",
         "dacpac.deploy.preview",
+        "dacpac.deploy.dev",
+        "dacpac.deploy.container",
         "dacpac.deploy",
+        "sql.schema.apply",
         "schema.compare",
+        "schema.compare.export",
         "tsqlt.run",
         "sqltest.run",
+        "xevent.session.start",
+        "sql.workload.run",
+        "xevent.session.stop",
+        "xevent.xel.collect",
         "workload.benchmark",
         "baseline.compare",
         "security.permissions.validate",
         "connection.auth.diagnose",
         "incident.replay.sandbox",
         "sql.query.read",
+        "sql.container.dispose",
         "sandbox.dispose",
         "evidence.bundle",
     ],
     investigate: [
         "connection.auth.diagnose",
         "sql.query.read",
+        "sql.container.provision",
+        "xevent.session.start",
+        "sql.workload.run",
+        "xevent.session.stop",
+        "xevent.xel.collect",
         "workload.benchmark",
         "baseline.compare",
         "security.permissions.validate",
         "sandbox.provision",
         "incident.replay.sandbox",
+        "sql.container.dispose",
         "sandbox.dispose",
         "evidence.bundle",
     ],
@@ -371,18 +537,29 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "dbproject.create",
         "dbproject.add-object",
         "dacpac.build",
+        "dacpac.extract",
+        "sql.container.provision",
         "sandbox.provision",
         "dacpac.deploy.preview",
+        "dacpac.deploy.dev",
+        "dacpac.deploy.container",
         "dacpac.deploy",
+        "sql.schema.apply",
         "schema.compare",
+        "schema.compare.export",
         "tsqlt.run",
         "sqltest.run",
         "sql.query.read",
+        "xevent.session.start",
+        "sql.workload.run",
+        "xevent.session.stop",
+        "xevent.xel.collect",
         "workload.benchmark",
         "baseline.compare",
         "security.permissions.validate",
         "connection.auth.diagnose",
         "incident.replay.sandbox",
+        "sql.container.dispose",
         "sandbox.dispose",
         "evidence.bundle",
     ],
@@ -418,6 +595,38 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     const text = intent.trim().toLowerCase();
     const requested = new Set<string>();
 
+    const requestsDacpacExtraction = has(
+        text,
+        /\b(extract|create|generate|make)\b.{0,45}\bdacpac\b.{0,45}\b(from|of)\b|\bdacpac\b.{0,35}\bfrom\b/,
+    );
+    const requestsExistingDacpac =
+        has(text, /\b(import|deploy|publish)\b.{0,40}\b(the\s+|an?\s+)?dacpac\b/) &&
+        !has(text, /\bbuild\b.{0,30}\bdacpac\b|\bdacpac\b.{0,30}\bbuild\b/);
+    const requestsContainer = has(
+        text,
+        /\b(provision|create|start|spin up|launch)\b.{0,45}\b(sql|mssql)\b.{0,20}\bcontainer\b|\b(sql|mssql)\b.{0,20}\bcontainer\b/,
+    );
+    const requestsSchemaMutation = has(
+        text,
+        /\b(create|alter|drop|add)\b.{0,40}\b(tables?|schemas?|foreign keys?|constraints?|indexes?|objects?)\b/,
+    );
+    const requestsProjectAuthoring = has(
+        text,
+        /\b(database|sql)\s+project\b|\.sqlproj\b|\bproject\b.{0,40}\b(tables?|schemas?|foreign keys?|constraints?|indexes?|objects?)\b/,
+    );
+    const requestsNamedDatabaseDeployment = has(
+        text,
+        /\b(deploy|publish|import)\b.{0,35}\bdacpac\b.{0,35}\b(into|to)\b\s+(?!a\s+)?(?:\[[^\]]+\]|[a-z_][a-z0-9_$#@.-]*)/,
+    );
+    const requestsWorkload = has(
+        text,
+        /\b(run|execute|replay)\b.{0,45}\bworkload\b|\bworkload\b.{0,45}\.(sql|tsql)\b|\bworkload\.(sql|tsql)\b/,
+    );
+    const requestsXevent = has(text, /\b(xevent|extended events?|xel)\b/);
+    const requestsSchemaCompareExport = has(
+        text,
+        /\b(schema compare|schema diff|diff)\b.{0,50}\b(file|artifact|report|xml|script)\b|\b(create|save|export|write)\b.{0,35}\b(diff|comparison)\b.{0,20}\b(file|artifact|report|xml|script)\b/,
+    );
     const isPreMerge = has(text, /\b(pre[- ]?merge|pull request|ci\/cd|pipeline|quality gate)\b/);
     const hasBuildWork = has(
         text,
@@ -425,7 +634,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     );
     const hasValidationWork = has(
         text,
-        /\b(sql tests?|database tests?|t-?sqlt|schema drift|benchmark|regression|least privilege|effective access|security gate)\b/,
+        /\b(sql tests?|database tests?|t-?sqlt|schema (drift|compare)|benchmark|regression|least privilege|effective access|security gate)\b/,
     );
     const hasInvestigationWork = has(
         text,
@@ -448,7 +657,9 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
                 : "investigate";
 
     if (family === "build" || family === "composed") {
-        requested.add("workspace.inspect");
+        if ((!requestsDacpacExtraction && !requestsExistingDacpac) || requestsProjectAuthoring) {
+            requested.add("workspace.inspect");
+        }
         if (
             has(
                 text,
@@ -457,13 +668,33 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         ) {
             requested.add("dbproject.create");
         }
-        if (has(text, /\b(tables?|schemas?|foreign keys?|constraints?|indexes?|objects?)\b/)) {
+        if (requestsSchemaMutation && requestsProjectAuthoring) {
             requested.add("dbproject.add-object");
         }
-        if (has(text, /\b(build|dacpac|deploy)\b/)) requested.add("dacpac.build");
+        if (
+            !requestsDacpacExtraction &&
+            !requestsExistingDacpac &&
+            has(text, /\b(build|dacpac|deploy)\b/)
+        ) {
+            requested.add("dacpac.build");
+        }
     }
-    if (isPreMerge || has(text, /\b(build|dacpac)\b/)) requested.add("dacpac.build");
-    if (has(text, /\b(provision|sandbox|scratch|isolated|ephemeral|local target)\b/)) {
+    if (requestsDacpacExtraction) {
+        requested.add("dacpac.extract");
+    }
+    if (requestsSchemaMutation && !requestsProjectAuthoring) {
+        requested.add("sql.schema.apply");
+    }
+    if (
+        isPreMerge ||
+        (!requestsDacpacExtraction && !requestsExistingDacpac && has(text, /\b(build|dacpac)\b/))
+    ) {
+        requested.add("dacpac.build");
+    }
+    if (requestsContainer) {
+        requested.add("sql.container.provision");
+        requested.add("sql.container.dispose");
+    } else if (has(text, /\b(provision|sandbox|scratch|isolated|ephemeral|local target)\b/)) {
         requested.add("sandbox.provision");
         requested.add("sandbox.dispose");
     }
@@ -475,7 +706,8 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         .split(/[.;\n]/)
         .some(
             (clause) =>
-                has(clause, /\b(deploy(ed|ing|s)?|deployment|publish)\b/) &&
+                (has(clause, /\b(deploy(ed|ing|s)?|deployment|publish)\b/) ||
+                    (has(clause, /\bimport\b/) && has(text, /\bdacpac\b/))) &&
                 !has(clause, /\b(preview|report|script|dry[- ]?run|what (would|will) change)\b/),
         );
     if (requestsDeploymentPreview) {
@@ -485,21 +717,40 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         requested.add("dacpac.deploy.preview");
     }
     if (requestsActualDeployment) {
-        // The local mutation lane never deploys to an arbitrary saved target.
-        // An actual deployment implies its disposable lease, convergence
-        // verification, and cleanup even when the prompt omits those safety
-        // mechanics.
-        requested.add("sandbox.provision");
         requested.add("dacpac.deploy.preview");
-        requested.add("dacpac.deploy");
+        if (requestsContainer) {
+            requested.add("dacpac.deploy.container");
+        } else if (requestsNamedDatabaseDeployment) {
+            // The installed deploy executor deliberately accepts only an
+            // ownership-verified disposable lease. Named durable targets need
+            // a separate preview/rollback/effect contract; do not silently
+            // substitute a generated sandbox database.
+            requested.add("dacpac.deploy.dev");
+        } else {
+            requested.add("sandbox.provision");
+            requested.add("dacpac.deploy");
+            requested.add("sandbox.dispose");
+        }
         requested.add("schema.compare");
-        requested.add("sandbox.dispose");
     }
     if (
         has(text, /\b(schema compare|schema drift|drift|verify deployed schema)\b/) ||
         ((family === "build" || family === "composed") && has(text, /\bverify\b/))
     ) {
         requested.add("schema.compare");
+    }
+    if (requestsSchemaCompareExport) {
+        requested.add("schema.compare.export");
+    }
+    if (requestsXevent) {
+        requested.add("xevent.session.start");
+    }
+    if (requestsWorkload) {
+        requested.add("sql.workload.run");
+    }
+    if (requestsXevent) {
+        requested.add("xevent.session.stop");
+        requested.add("xevent.xel.collect");
     }
     const requestsTsqlt = has(text, /\b(t-sqlt|tsqlt)\b/);
     if (isPreMerge || has(text, /\b(sql tests?|database tests?)\b/) || requestsTsqlt) {

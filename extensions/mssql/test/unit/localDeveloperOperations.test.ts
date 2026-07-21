@@ -9,7 +9,10 @@ import * as os from "os";
 import * as path from "path";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
-import { discoverLocalSqlTests } from "../../src/runbookStudio/runtime/localDeveloperOperations";
+import {
+    discoverLocalSqlTests,
+    verifyLocalDacpacArtifact,
+} from "../../src/runbookStudio/runtime/localDeveloperOperations";
 import { LocalActivityError } from "../../src/runbookStudio/runtime/localSqlDelegate";
 
 suite("Runbook Studio local repository SQL test discovery", () => {
@@ -94,5 +97,46 @@ suite("Runbook Studio local repository SQL test discovery", () => {
         expect(error).to.be.instanceOf(LocalActivityError);
         expect((error as LocalActivityError).errorCode).to.equal("RunbookStudio.ActivityCancelled");
         expect(findFiles).not.to.have.been.called;
+    });
+});
+
+suite("managedDacpacArtifactTrust", () => {
+    let sandbox: sinon.SinonSandbox;
+    let testRoot: string;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        testRoot = fs.mkdtempSync(path.join(os.tmpdir(), "rbs-managed-dacpac-"));
+        sandbox.stub(vscode.workspace, "workspaceFolders").value([]);
+    });
+
+    teardown(() => {
+        sandbox.restore();
+        if (path.basename(testRoot).startsWith("rbs-managed-dacpac-")) {
+            fs.rmSync(testRoot, { recursive: true, force: true });
+        }
+    });
+
+    test("admits a nonempty DACPAC only under the exact extension-managed root", async () => {
+        const managedRoot = path.join(testRoot, "managed");
+        const artifactPath = path.join(managedRoot, "source.dacpac");
+        fs.mkdirSync(managedRoot);
+        fs.writeFileSync(artifactPath, "managed-dacpac", "utf8");
+
+        let refused: unknown;
+        try {
+            await verifyLocalDacpacArtifact(artifactPath, () => false);
+        } catch (error) {
+            refused = error;
+        }
+        expect(refused).to.be.instanceOf(LocalActivityError);
+        expect((refused as LocalActivityError).errorCode).to.equal(
+            "RunbookStudio.TargetOutsideWorkspace",
+        );
+
+        const admitted = await verifyLocalDacpacArtifact(artifactPath, () => false, [managedRoot]);
+        expect(admitted.artifactPath).to.equal(path.normalize(artifactPath));
+        expect(admitted.artifactSizeBytes).to.equal(Buffer.byteLength("managed-dacpac"));
+        expect(admitted.artifactSha256).to.match(/^[a-f0-9]{64}$/);
     });
 });

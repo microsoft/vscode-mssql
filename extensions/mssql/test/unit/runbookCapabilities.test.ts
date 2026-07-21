@@ -354,4 +354,76 @@ suite("runbook capability preflight", () => {
         expect(local.status).to.equal("ready");
         expect(local.missingActivityKinds).to.deep.equal([]);
     });
+
+    test("databaseToDacpacCapabilities reports the actual remaining mutation gaps", () => {
+        const classified = classifyRunbookIntent(
+            "Create a dacpac from WideWorldImporters, then import the dacpac into WWI_2, " +
+                "then create a table in WWI_2, then run a schema compare and create a diff file.",
+        );
+        const kinds = classified.requirements.activities.map((activity) => activity.kind);
+        const readiness = preflightRunbookRequirements(classified.requirements);
+
+        expect(classified.family).to.equal("composed");
+        expect(kinds).to.deep.equal([
+            "dacpac.extract",
+            "sql.schema.apply",
+            "dacpac.deploy.preview",
+            "dacpac.deploy.dev",
+            "schema.compare",
+            "schema.compare.export",
+        ]);
+        expect(kinds).not.to.include("workspace.inspect");
+        expect(kinds).not.to.include("dbproject.add-object");
+        expect(kinds).not.to.include("dacpac.build");
+        expect(readiness.status).to.equal("designOnly");
+        expect(readiness.missingActivityKinds).to.deep.equal([
+            "sql.schema.apply@1",
+            "dacpac.deploy.dev@1",
+        ]);
+
+        expect(
+            buildDesignOnlyPlan(classified).steps.map((step) => step.activityKind),
+        ).to.deep.equal([
+            "dacpac.extract",
+            "dacpac.deploy.preview",
+            "dacpac.deploy.dev",
+            "sql.schema.apply",
+            "schema.compare",
+            "schema.compare.export",
+        ]);
+    });
+
+    test("containerWorkloadCapabilities reports provision, workload, and XEvent gaps", () => {
+        const classified = classifyRunbookIntent(
+            "Provision a local SQL container, import the dacpac, run this workload.sql, " +
+                "and collect an XEvent XEL file.",
+        );
+        const kinds = classified.requirements.activities.map((activity) => activity.kind);
+        const readiness = preflightRunbookRequirements(classified.requirements);
+
+        expect(kinds).to.include.members([
+            "sql.container.provision",
+            "dacpac.deploy.preview",
+            "dacpac.deploy.container",
+            "xevent.session.start",
+            "sql.workload.run",
+            "xevent.session.stop",
+            "xevent.xel.collect",
+            "sql.container.dispose",
+        ]);
+        expect(kinds).not.to.include("sandbox.provision");
+        expect(kinds).not.to.include("dacpac.deploy");
+        expect(kinds).not.to.include("workspace.inspect");
+        expect(kinds).not.to.include("dacpac.build");
+        expect(readiness.status).to.equal("designOnly");
+        expect(readiness.missingActivityKinds).to.include.members([
+            "sql.container.provision@1",
+            "dacpac.deploy.container@1",
+            "xevent.session.start@1",
+            "sql.workload.run@1",
+            "xevent.session.stop@1",
+            "xevent.xel.collect@1",
+            "sql.container.dispose@1",
+        ]);
+    });
 });

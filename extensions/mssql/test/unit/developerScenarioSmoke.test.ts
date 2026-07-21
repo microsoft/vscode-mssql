@@ -84,6 +84,11 @@ const landedScenarioClaims = [
         ],
     },
     {
+        id: "B18",
+        scope: "database-to-DACPAC extraction and durable schema comparison artifact",
+        activities: ["dacpac.extract", "schema.compare.export"],
+    },
+    {
         id: "V15",
         scope: "bounded SQL invariant and threshold evidence",
         activities: ["sql.query.read", "assert.threshold", "evidence.bundle"],
@@ -127,8 +132,8 @@ async function waitForEvent(
 }
 
 suite("developer scenario smoke", () => {
-    test("keeps six landed scenario slices anchored to executable catalog activities", () => {
-        expect(landedScenarioClaims).to.have.length(6);
+    test("keeps seven landed scenario slices anchored to executable catalog activities", () => {
+        expect(landedScenarioClaims).to.have.length(7);
         for (const scenario of landedScenarioClaims) {
             for (const activity of scenario.activities) {
                 const descriptor = findActivity(activity);
