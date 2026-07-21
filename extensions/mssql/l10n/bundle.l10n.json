@@ -4954,6 +4954,29 @@
     "Missing capability": "Missing capability",
     "Installed capability": "Installed capability",
     "Target:": "Target:",
+    "Target and safety summary": "Target and safety summary",
+    "Target: {0}/{0} is a compiler-owned target kind": {
+        "message": "Target: {0}",
+        "comment": ["{0} is a compiler-owned target kind"]
+    },
+    "Environment: {0}/{0} is a compiler-owned target environment": {
+        "message": "Environment: {0}",
+        "comment": ["{0} is a compiler-owned target environment"]
+    },
+    "Effect: {0} {1}/{0} is a compiler-owned operation such as read or modify{1} is a compiler-owned resource such as database schema or container": {
+        "message": "Effect: {0} {1}",
+        "comment": [
+            "{0} is a compiler-owned operation such as read or modify",
+            "{1} is a compiler-owned resource such as database schema or container"
+        ]
+    },
+    "Recovery: {0}/{0} is a compiler-owned reversibility classification": {
+        "message": "Recovery: {0}",
+        "comment": ["{0} is a compiler-owned reversibility classification"]
+    },
+    "Approval gate": "Approval gate",
+    "Approval protected": "Approval protected",
+    "Binding:": "Binding:",
     "restricted mode": "restricted mode",
     "Loading…": "Loading…",
     "This file is not a valid runbook": "This file is not a valid runbook",

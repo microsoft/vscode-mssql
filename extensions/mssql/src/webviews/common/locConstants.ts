@@ -3809,6 +3809,37 @@ export class LocConstants {
             missingCapability: l10n.t("Missing capability"),
             installedCapability: l10n.t("Installed capability"),
             targetLabel: l10n.t("Target:"),
+            stepTrustSummary: l10n.t("Target and safety summary"),
+            targetBadge: (target: string) =>
+                l10n.t({
+                    message: "Target: {0}",
+                    args: [target],
+                    comment: ["{0} is a compiler-owned target kind"],
+                }),
+            environmentBadge: (environment: string) =>
+                l10n.t({
+                    message: "Environment: {0}",
+                    args: [environment],
+                    comment: ["{0} is a compiler-owned target environment"],
+                }),
+            effectBadge: (operation: string, resource: string) =>
+                l10n.t({
+                    message: "Effect: {0} {1}",
+                    args: [operation, resource],
+                    comment: [
+                        "{0} is a compiler-owned operation such as read or modify",
+                        "{1} is a compiler-owned resource such as database schema or container",
+                    ],
+                }),
+            recoveryBadge: (reversibility: string) =>
+                l10n.t({
+                    message: "Recovery: {0}",
+                    args: [reversibility],
+                    comment: ["{0} is a compiler-owned reversibility classification"],
+                }),
+            approvalGateBadge: l10n.t("Approval gate"),
+            approvalProtectedBadge: l10n.t("Approval protected"),
+            bindingBadge: l10n.t("Binding:"),
             restrictedMode: l10n.t("restricted mode"),
             untrustedDetail: l10n.t(
                 "Runbook execution is disabled in untrusted workspaces. Trust this workspace to run runbooks.",

@@ -523,8 +523,14 @@
     <trans-unit id="++CODE++65660be4b1aada743a043b8bfae0d7ab62971f6ef37c3e6860d6449dc85609e5">
       <source xml:lang="en">Applying changes, this might take a while...</source>
     </trans-unit>
+    <trans-unit id="++CODE++ba09dfe27d799e4c66e09627174ff9e8f05ff1b344347221d18bc671eff6203e">
+      <source xml:lang="en">Approval gate</source>
+    </trans-unit>
     <trans-unit id="++CODE++d32620207461f67eb3d615d8f6852bccf67c645de9b7d3776b8a750cdf417003">
       <source xml:lang="en">Approval kind</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ae19e8efa7381b9c1ffa432ee4c78420ac8d3720b9effe73596c55b674f6925d">
+      <source xml:lang="en">Approval protected</source>
     </trans-unit>
     <trans-unit id="++CODE++3c6112829a9c481564a5b0303f73e68a3e3bf646890740fb9decb33b6a747a2b">
       <source xml:lang="en">Approval reason</source>
@@ -886,6 +892,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ee8b49c03f6e7beb6c00080fd72847d6a71af8722fd7e426e21d5d32f370f838">
       <source xml:lang="en">Bind parameters and start a run to see live progress here.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5f0896189d4f5975f452fa6fe5ecbf8191f06a79b9fbf9673d39fb674a4187c7">
+      <source xml:lang="en">Binding:</source>
     </trans-unit>
     <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
       <source xml:lang="en">Blanks</source>
@@ -2972,6 +2981,11 @@
       <source xml:lang="en">Edit {0}</source>
       <note>{0} is the name of the connection profile</note>
     </trans-unit>
+    <trans-unit id="++CODE++3b975fa8663717e4cb5cda25aeb6270881a152fe2fe0d1aeb0e3aa7b634345e4">
+      <source xml:lang="en">Effect: {0} {1}</source>
+      <note>{0} is a compiler-owned operation such as read or modify
+{1} is a compiler-owned resource such as database schema or container</note>
+    </trans-unit>
     <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
       <source xml:lang="en">Either profileId or serverName must be provided.</source>
     </trans-unit>
@@ -3204,6 +3218,10 @@
     </trans-unit>
     <trans-unit id="++CODE++47a1436c7090cfb59614a6bee2c6ef99043cddceda2b6df9d996427f6e42077d">
       <source xml:lang="en">Envelope</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c1aaa43baae799a15be92881cd612744998545a97f382da75e991e5dfc0d2896">
+      <source xml:lang="en">Environment: {0}</source>
+      <note>{0} is a compiler-owned target environment</note>
     </trans-unit>
     <trans-unit id="++CODE++6a26ff8ea94b68652cba40696c6b1f68207e110027a0862a3a5e030c2d103eb1">
       <source xml:lang="en">Equal to</source>
@@ -7083,6 +7101,10 @@
     <trans-unit id="++CODE++2098dff03cd74580320592a1308c8be37e30454e389e06fc2ddf1315b4e48551">
       <source xml:lang="en">Recovery state</source>
     </trans-unit>
+    <trans-unit id="++CODE++a7a7a664d31a91b3187f701fec918a8bd765066df2e747176f426d1698c74dac">
+      <source xml:lang="en">Recovery: {0}</source>
+      <note>{0} is a compiler-owned reversibility classification</note>
+    </trans-unit>
     <trans-unit id="++CODE++74273989b0966e2369b6d01aadb23af4ad6a9e724643fa88f2bde99202a36708">
       <source xml:lang="en">Redo</source>
     </trans-unit>
@@ -9068,11 +9090,18 @@
     <trans-unit id="++CODE++feeb64acb5e0f4ebba723e99d26d741bd2621988c8d355449bfddeafc8ef59e2">
       <source xml:lang="en">Target Table</source>
     </trans-unit>
+    <trans-unit id="++CODE++577ed3becb9f0289454b6f8f5fb1b17a25df0f107a0bb6fb7cc24c7efe48631a">
+      <source xml:lang="en">Target and safety summary</source>
+    </trans-unit>
     <trans-unit id="++CODE++f99d2bb5a944aedb608890101ecc1dc452bf30fae0666933bdf944947aff0926">
       <source xml:lang="en">Target connection</source>
     </trans-unit>
     <trans-unit id="++CODE++890d34fffcde315c0575f92eefbdcce15011c60afa718c4a5e6bad4c7b81118f">
       <source xml:lang="en">Target:</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ee38a2b7a7c2e3ffc87cafb76b587283e358338c6db91ab55b21bb780eea6e4c">
+      <source xml:lang="en">Target: {0}</source>
+      <note>{0} is a compiler-owned target kind</note>
     </trans-unit>
     <trans-unit id="++CODE++6e7235c51cdbf5d78d6d31be6dab659515a42b307648229060b6afecb346f1be">
       <source xml:lang="en">Target: {0}</source>

@@ -36,6 +36,12 @@ import {
 } from "../../../sharedInterfaces/runbookPresentation";
 import { useRbs } from "./state";
 import { ResolvedWidgetView } from "./widgets";
+import {
+    humanizePlanTrustToken,
+    planTrustTone,
+    PlanStepTrustSummary,
+    projectPlanStepTrust,
+} from "./planStepTrust";
 
 function defaultSettingsFor(view: ViewKind): ViewRenderSettings | undefined {
     switch (view) {
@@ -846,14 +852,6 @@ function hasDetails(node: RunbookPlanNode): boolean {
     return Object.keys(node.inputs ?? {}).length > 0 || node.runtime !== undefined;
 }
 
-function blastRadiusLabel(node: RunbookPlanNode): string | undefined {
-    const radius = node.blastRadius;
-    if (!radius) {
-        return undefined;
-    }
-    return `${radius.operation}:${radius.resource}@${radius.targetEnvironment}`;
-}
-
 function targetBindingLabel(node: RunbookPlanNode): string | undefined {
     const target = node.target;
     if (!target) {
@@ -868,7 +866,63 @@ function targetBindingLabel(node: RunbookPlanNode): string | undefined {
               : binding.workspaceFolder
                 ? `workspace:${binding.workspaceFolder}`
                 : "workspace";
-    return `${target.kind} ← ${source}`;
+    return source;
+}
+
+function trustChipClass(
+    kind: "environment" | "effect" | "reversibility" | "approval",
+    summary: PlanStepTrustSummary,
+): string {
+    const tone = planTrustTone(kind, summary);
+    return `rbs-chip${tone === "ok" ? " rbs-chip-ok" : tone === "warn" ? " rbs-chip-warn" : ""}`;
+}
+
+function PlanStepTrustBadges({ node, edges }: { node: RunbookPlanNode; edges: RunbookPlanEdge[] }) {
+    const loc = locConstants.runbookStudio;
+    const summary = projectPlanStepTrust(node, edges);
+    if (
+        !summary.environment &&
+        !summary.operation &&
+        !summary.reversibility &&
+        !summary.approval &&
+        !node.target
+    ) {
+        return null;
+    }
+    return (
+        <span className="rbs-step-trust" role="group" aria-label={loc.stepTrustSummary}>
+            {node.target ? (
+                <span className="rbs-chip">
+                    {loc.targetBadge(humanizePlanTrustToken(node.target.kind))}
+                </span>
+            ) : null}
+            {summary.environment ? (
+                <span className={trustChipClass("environment", summary)}>
+                    {loc.environmentBadge(humanizePlanTrustToken(summary.environment))}
+                </span>
+            ) : null}
+            {summary.operation && summary.resource ? (
+                <span className={trustChipClass("effect", summary)}>
+                    {loc.effectBadge(
+                        humanizePlanTrustToken(summary.operation),
+                        humanizePlanTrustToken(summary.resource),
+                    )}
+                </span>
+            ) : null}
+            {summary.reversibility ? (
+                <span className={trustChipClass("reversibility", summary)}>
+                    {loc.recoveryBadge(humanizePlanTrustToken(summary.reversibility))}
+                </span>
+            ) : null}
+            {summary.approval ? (
+                <span className={trustChipClass("approval", summary)}>
+                    {summary.approval === "gate"
+                        ? loc.approvalGateBadge
+                        : loc.approvalProtectedBadge}
+                </span>
+            ) : null}
+        </span>
+    );
 }
 
 export function PlanStepper({
@@ -950,12 +1004,10 @@ export function PlanStepper({
                                         Hobbes · {node.runtime.nodeType}
                                     </span>
                                 ) : null}
-                                {blastRadiusLabel(node) ? (
-                                    <span className="rbs-chip">{blastRadiusLabel(node)}</span>
-                                ) : null}
+                                <PlanStepTrustBadges node={node} edges={edges} />
                                 {targetBindingLabel(node) ? (
                                     <span className="rbs-muted">
-                                        {loc.targetLabel}{" "}
+                                        {loc.bindingBadge}{" "}
                                         <span className="rbs-mono">{targetBindingLabel(node)}</span>
                                     </span>
                                 ) : null}

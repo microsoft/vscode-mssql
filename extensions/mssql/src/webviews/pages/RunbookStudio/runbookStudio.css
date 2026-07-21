@@ -1491,6 +1491,13 @@
     color: var(--vscode-descriptionForeground);
 }
 
+.rbs-step-trust {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px;
+}
+
 .rbs-step-message {
     margin-top: 4px;
 }
