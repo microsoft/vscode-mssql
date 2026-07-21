@@ -42,6 +42,8 @@ import {
 } from "../runbookArtifact";
 import { emitRunbookEvent, metaField, RunbookOperationContext } from "../runbookDiag";
 import { validateTargetBindings } from "../targetBindings";
+import { isValidDacpacSourceDatabaseName } from "../runtime/localDeveloperOperations";
+import { isValidLocalDevelopmentDatabaseName } from "../runtime/localDevelopmentDatabaseOperations";
 
 // ---------------------------------------------------------------------------
 // Pure parsing/validation (unit-tested without vscode)
@@ -165,6 +167,212 @@ export function parseCompiledProposal(
     return { ok: true, artifact: structural.artifact };
 }
 
+const DETERMINISTIC_DACPAC_INVENTORY_ACTIVITIES = new Set([
+    "dacpac.extract",
+    "devdatabase.provision",
+    "dacpac.deploy.preview",
+    "dacpac.deploy.dev",
+    "schema.compare",
+    "database.schema.inventory",
+]);
+
+/**
+ * Compile the closed extract -> named local deploy -> schema inventory
+ * workflow without asking a general-purpose model to rediscover its safety
+ * lifecycle. The capability classifier remains the admission boundary: this
+ * path is selected only when its exact six typed operations were requested
+ * and both database names are explicit in the user's intent.
+ *
+ * Names are surfaced as editable string parameters. This preserves the
+ * literal user request while allowing a typo to be corrected in the Run
+ * parameter sheet without regenerating the plan.
+ */
+export function compileDeterministicDacpacInventory(
+    base: RunbookArtifactFile,
+    intent: string,
+): ProposalParseResult | undefined {
+    const required = base.source.requirements?.activities.map((activity) => activity.kind) ?? [];
+    if (
+        required.length !== DETERMINISTIC_DACPAC_INVENTORY_ACTIVITIES.size ||
+        !required.every((kind) => DETERMINISTIC_DACPAC_INVENTORY_ACTIVITIES.has(kind))
+    ) {
+        return undefined;
+    }
+    const names = extractDacpacRoundTripDatabaseNames(intent);
+    if (!names || names.source.toLowerCase() === names.target.toLowerCase()) {
+        return undefined;
+    }
+
+    const proposal: CompiledProposal = {
+        name: `${names.source} deployment to ${names.target}`,
+        description:
+            `Extracts ${names.source}, provisions ${names.target}, previews and deploys the ` +
+            "DACPAC, verifies schema equality, and inventories the deployed schema.",
+        parameters: [
+            {
+                id: "sourceConnection",
+                label: `${names.source} source server`,
+                type: "connection",
+                required: true,
+            },
+            {
+                id: "targetServer",
+                label: "Local target server",
+                type: "connection",
+                required: true,
+            },
+            {
+                id: "sourceDatabaseName",
+                label: "Source database name",
+                type: "string",
+                required: true,
+                default: names.source,
+            },
+            {
+                id: "targetDatabaseName",
+                label: "New development database name",
+                type: "string",
+                required: true,
+                default: names.target,
+            },
+        ],
+        entryNodeId: "extract",
+        nodes: [
+            {
+                id: "extract",
+                label: "Extract source DACPAC",
+                kind: "activity",
+                activityKind: "dacpac.extract",
+                inputs: {
+                    database: "$params.sourceConnection",
+                    databaseName: "$params.sourceDatabaseName",
+                },
+            },
+            {
+                id: "approve-provision",
+                label: `Approve creation of ${names.target}`,
+                kind: "gate",
+            },
+            {
+                id: "provision",
+                label: `Create ${names.target}`,
+                kind: "activity",
+                activityKind: "devdatabase.provision",
+                inputs: {
+                    server: "$params.targetServer",
+                    databaseName: "$params.targetDatabaseName",
+                },
+            },
+            {
+                id: "preview",
+                label: "Preview DACPAC deployment",
+                kind: "activity",
+                activityKind: "dacpac.deploy.preview",
+                inputs: {
+                    dacpac: "$nodes.extract.artifactPath",
+                    database: "$nodes.provision.connectionRef",
+                },
+            },
+            {
+                id: "approve-deploy",
+                label: `Approve deployment to ${names.target}`,
+                kind: "gate",
+            },
+            {
+                id: "deploy",
+                label: "Deploy DACPAC",
+                kind: "activity",
+                activityKind: "dacpac.deploy.dev",
+                inputs: {
+                    dacpac: "$nodes.extract.artifactPath",
+                    database: "$nodes.provision.connectionRef",
+                    artifactDigest: "$nodes.extract.artifactSha256",
+                    previewDigest: "$nodes.preview.reportSha256",
+                },
+            },
+            {
+                id: "verify",
+                label: "Verify deployed schema",
+                kind: "activity",
+                activityKind: "schema.compare",
+                inputs: {
+                    dacpac: "$nodes.extract.artifactPath",
+                    database: "$nodes.provision.connectionRef",
+                },
+            },
+            {
+                id: "inventory",
+                label: "List tables, views, and stored procedures",
+                kind: "activity",
+                activityKind: "database.schema.inventory",
+                inputs: { database: "$nodes.provision.connectionRef" },
+            },
+            { id: "report", label: "Summarize deployment", kind: "report" },
+        ],
+        edges: [
+            { from: "extract", to: "approve-provision" },
+            { from: "approve-provision", to: "provision", when: "approved" },
+            { from: "approve-provision", to: "report", when: "rejected" },
+            { from: "provision", to: "preview" },
+            { from: "preview", to: "approve-deploy" },
+            { from: "approve-deploy", to: "deploy", when: "approved" },
+            { from: "approve-deploy", to: "report", when: "rejected" },
+            { from: "deploy", to: "verify" },
+            { from: "verify", to: "inventory" },
+            { from: "inventory", to: "report" },
+        ],
+    };
+    return parseCompiledProposal(JSON.stringify(proposal), base, intent);
+}
+
+function extractDacpacRoundTripDatabaseNames(
+    intent: string,
+): { source: string; target: string } | undefined {
+    const identifier = String.raw`(\[[^\]\r\n]{1,128}\]|[A-Za-z_][A-Za-z0-9_$#@-]{0,127})`;
+    const sourcePatterns = [
+        new RegExp(
+            String.raw`\b(?:extract|exact)\s+(?:database\s+)?${identifier}\s+(?:to|into|as)\s+(?:an?\s+)?dacpac\b`,
+            "i",
+        ),
+        new RegExp(
+            String.raw`\b(?:extract|create|generate|make)\s+(?:an?\s+)?dacpac\s+(?:from|of)\s+(?:database\s+)?${identifier}`,
+            "i",
+        ),
+        new RegExp(String.raw`\bdacpac\s+from\s+(?:database\s+)?${identifier}`, "i"),
+    ];
+    const targetPatterns = [
+        // Prefer explicit naming/preposition forms. This deliberately skips
+        // an earlier phrase such as "back to server" in
+        // "deploy it back to server as WWI_2".
+        new RegExp(
+            String.raw`\b(?:deploy|publish|import)\b[^.\r\n]{0,100}?\b(?:as|into)\s+(?:database\s+)?${identifier}`,
+            "i",
+        ),
+        new RegExp(
+            String.raw`\b(?:deploy|publish|import)\b[^.\r\n]{0,100}?\bto\s+(?:database\s+)?${identifier}`,
+            "i",
+        ),
+    ];
+    const source = sourcePatterns.map((pattern) => pattern.exec(intent)?.[1]).find(Boolean);
+    const target = targetPatterns.map((pattern) => pattern.exec(intent)?.[1]).find(Boolean);
+    if (!source || !target) {
+        return undefined;
+    }
+    const normalizedSource = unwrapIdentifier(source);
+    const normalizedTarget = unwrapIdentifier(target);
+    if (
+        !isValidDacpacSourceDatabaseName(normalizedSource) ||
+        !isValidLocalDevelopmentDatabaseName(normalizedTarget)
+    ) {
+        return undefined;
+    }
+    return { source: normalizedSource, target: normalizedTarget };
+}
+
+function unwrapIdentifier(value: string): string {
+    return value.startsWith("[") && value.endsWith("]") ? value.slice(1, -1) : value;
+}
+
 export function buildCompilePrompt(
     intent: string,
     previousError?: string,
@@ -232,6 +440,23 @@ export async function compileIntentWithModel(
             { outcome, nodeCount, modelRole: "compiler" },
             context.traceId,
         );
+
+    const deterministic = compileDeterministicDacpacInventory(base, intent);
+    if (deterministic && !isProposalFailure(deterministic)) {
+        emitRunbookEvent(context, "runbookStudio.compile.accepted", "ok", {
+            compiler: metaField("deterministicDacpacInventory"),
+            nodeCount: metaField(deterministic.artifact.lock?.nodes.length ?? 0),
+            parameterCount: metaField(deterministic.artifact.source.parameters.length),
+        });
+        end("ok", deterministic.artifact.lock?.nodes.length ?? 0);
+        return { artifact: deterministic.artifact };
+    }
+    if (deterministic && isProposalFailure(deterministic)) {
+        emitRunbookEvent(context, "runbookStudio.compile.rejected", "warning", {
+            compiler: metaField("deterministicDacpacInventory"),
+            reasonClass: metaField(deterministic.detail.slice(0, 80)),
+        });
+    }
 
     let models: vscode.LanguageModelChat[] = [];
     try {

@@ -439,6 +439,7 @@ function registerRunbookStudioFeatures(
             return controller ? vscode.Uri.parse(controller.documentUriKey) : undefined;
         },
     );
+    registerRunbookStudioAutomationCommands(context, provider, coordinatorFactory);
     registerRunbookStudioPerfProbe(context, provider, coordinatorFactory);
 }
 
@@ -463,6 +464,175 @@ function activeRunbookController(): RunbookStudioController | undefined {
         chosen ??= controller;
     }
     return chosen;
+}
+
+/**
+ * Structured, non-UI command seam for extension-host automation and future
+ * Copilot Chat tools. It drives the same document model and coordinator as
+ * the webview. Plan generation and execution remain separate commands so a
+ * chat agent can present the compiled plan before requesting authority to
+ * run it. Gates never auto-approve unless the caller explicitly supplies
+ * `approveGates: true` (intended for controlled integration tests).
+ */
+function registerRunbookStudioAutomationCommands(
+    context: vscode.ExtensionContext,
+    provider: RunbookStudioEditorProvider,
+    coordinatorFactory: () => RunbookRunCoordinator | undefined,
+): void {
+    const modelFor = (uri?: string) => {
+        const controller = findRunbookStudioController(uri);
+        return controller ? provider.documents.get(controller.documentUriKey) : undefined;
+    };
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            "mssql.runbookStudio.compileIntentHeadless",
+            async (args?: { uri?: string; intent?: string }) => {
+                const model = modelFor(args?.uri);
+                const coordinator = coordinatorFactory();
+                const intent = args?.intent?.trim();
+                if (!model || !coordinator || !intent) {
+                    return {
+                        ok: false,
+                        errorCode: "RunbookStudio.AutomationInputInvalid",
+                    };
+                }
+                const result = await coordinator.compileIntent(model, intent);
+                const artifact = model.artifact;
+                return {
+                    ok: result.ok,
+                    ...(result.error ? { errorCode: result.error.code } : {}),
+                    ...(artifact?.lock
+                        ? {
+                              runbookId: artifact.id,
+                              planRevision: artifact.lock.planRevision,
+                              planHash: artifact.lock.planHash,
+                              nodeCount: artifact.lock.nodes.length,
+                              activityKinds: artifact.lock.nodes.flatMap((node) =>
+                                  node.activityKind ? [node.activityKind] : [],
+                              ),
+                              parameterIds: artifact.source.parameters.map(
+                                  (parameter) => parameter.id,
+                              ),
+                          }
+                        : {}),
+                };
+            },
+        ),
+        vscode.commands.registerCommand(
+            "mssql.runbookStudio.startRunHeadless",
+            async (args?: {
+                uri?: string;
+                parameterValues?: Record<string, string | number | boolean | null>;
+                approveGates?: boolean;
+                timeoutMs?: number;
+            }) => {
+                const model = modelFor(args?.uri);
+                const coordinator = coordinatorFactory();
+                if (!model || !coordinator) {
+                    return {
+                        state: "refused",
+                        errorCode: "RunbookStudio.AutomationInputInvalid",
+                    };
+                }
+                const started = await coordinator.startRun(model, args?.parameterValues ?? {});
+                if (!started.runId || started.error) {
+                    return {
+                        state: "refused",
+                        ...(started.error ? { errorCode: started.error.code } : {}),
+                    };
+                }
+                return waitForHeadlessRun(
+                    model,
+                    coordinator,
+                    started.runId,
+                    args?.approveGates === true,
+                    boundedAutomationTimeout(args?.timeoutMs),
+                );
+            },
+        ),
+    );
+}
+
+function boundedAutomationTimeout(value: number | undefined): number {
+    return Number.isFinite(value)
+        ? Math.max(1_000, Math.min(30 * 60_000, Math.trunc(value!)))
+        : 10 * 60_000;
+}
+
+function waitForHeadlessRun(
+    model: Parameters<RunbookRunCoordinator["startRun"]>[0],
+    coordinator: RunbookRunCoordinator,
+    runId: string,
+    approveGates: boolean,
+    timeoutMs: number,
+): Promise<Record<string, unknown>> {
+    return new Promise((resolve) => {
+        let settled = false;
+        const approving = new Set<string>();
+        let subscription: vscode.Disposable | undefined;
+        const finish = (result: Record<string, unknown>) => {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            clearTimeout(timer);
+            subscription?.dispose();
+            resolve(result);
+        };
+        const inspect = () => {
+            const run = model.activeRun;
+            if (!run || run.runId !== runId) {
+                return;
+            }
+            if (run.state === "succeeded" || run.state === "failed" || run.state === "cancelled") {
+                finish({
+                    state: run.state,
+                    runId,
+                    ...(run.verdict ? { verdict: run.verdict } : {}),
+                    ...(run.error ? { errorCode: run.error.code } : {}),
+                    nodeStates: run.nodes.map((node) => ({
+                        nodeId: node.nodeId,
+                        state: node.state,
+                        outputCount: node.outputs?.length ?? 0,
+                        ...(node.outcome ? { outcome: node.outcome } : {}),
+                        ...(node.message ? { message: node.message } : {}),
+                    })),
+                });
+                return;
+            }
+            const gate = run.pendingGate;
+            if (!gate) {
+                return;
+            }
+            if (!approveGates) {
+                finish({ state: "waitingForApproval", runId, pendingGateNodeId: gate.nodeId });
+                return;
+            }
+            if (approving.has(gate.nodeId)) {
+                return;
+            }
+            approving.add(gate.nodeId);
+            void coordinator.respondToGate(model, runId, gate.nodeId, true).then((response) => {
+                approving.delete(gate.nodeId);
+                if (!response.accepted) {
+                    finish({
+                        state: "refused",
+                        runId,
+                        errorCode: response.error?.code ?? "RunbookStudio.AutomationGateRefused",
+                    });
+                }
+            });
+        };
+        const timer = setTimeout(() => {
+            finish({
+                state: "timedOut",
+                runId,
+                errorCode: "RunbookStudio.AutomationTimeout",
+            });
+        }, timeoutMs);
+        subscription = model.onDidChange(inspect);
+        inspect();
+    });
 }
 
 /**

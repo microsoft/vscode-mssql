@@ -543,6 +543,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             ...preflightContextForRuntime(executionRuntimeKind, "admission"),
             providerAvailable:
                 executionRuntimeKind !== "local" ||
+                this.dacFxAccess() !== undefined ||
                 vscode.extensions.getExtension(constants.sqlDatabaseProjectsExtensionId) !==
                     undefined,
             availableTargetKinds: targetKinds,
@@ -1055,6 +1056,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             ...(runtimeKind === "local"
                 ? {
                       providerAvailable:
+                          this.dacFxAccess() !== undefined ||
                           vscode.extensions.getExtension(
                               constants.sqlDatabaseProjectsExtensionId,
                           ) !== undefined,

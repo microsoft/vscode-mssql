@@ -3,11 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/** Optional localhost smoke for the exact extract -> named deploy -> schema
- * inventory workflow used by the Runbook Studio repro. The target is created
- * only when WWI_2 is absent, marked with this test's ownership identity, and
- * removed only while that exact marker remains. Credentials are never logged
- * or persisted. */
+/** Optional localhost smoke for the exact Author -> compile -> bind -> gate ->
+ * local coordinator -> DacFx/SQL workflow used by the Runbook Studio repro.
+ * It drives registered extension-host commands rather than a webview, then
+ * independently verifies the deployed inventory. WWI_2 is removed only while
+ * the coordinator's exact ownership marker remains. Credentials are never
+ * logged. */
 
 import { randomBytes } from "crypto";
 import * as fs from "fs";
@@ -16,21 +17,25 @@ import * as path from "path";
 import { expect } from "chai";
 import * as vscode from "vscode";
 import type * as mssql from "vscode-mssql";
-import { TaskExecutionMode } from "../../src/enums";
 import { parseSqlConnectionString } from "../../src/diagnostics/selfTest/connectionString";
 import {
-    buildCreateLocalDevelopmentDatabaseSql,
     buildDropLocalDevelopmentDatabaseSql,
+    buildProbeLocalDevelopmentDatabaseSql,
 } from "../../src/runbookStudio/runtime/localDevelopmentDatabaseOperations";
-import { buildLocalDeploymentPreviewResult } from "../../src/runbookStudio/runtime/localDeveloperOperations";
-import { localManagedArtifactFileName } from "../../src/runbookStudio/runtime/localManagedArtifacts";
 import { LOCAL_SCHEMA_INVENTORY_SQL } from "../../src/runbookStudio/runtime/localSchemaInventory";
+import {
+    canonicalizeRunbookArtifact,
+    createNewRunbookArtifact,
+} from "../../src/runbookStudio/runbookArtifact";
+import { RUNBOOK_STUDIO_VIEW_TYPE } from "../../src/runbookStudio/runbookStudioEditorProvider";
 
 const LIVE_ENABLED = process.env.RBS2_DACPAC_LIVE === "1";
 const CONNECTION_STRING =
     process.env.STS2_SQLSERVER_SQLLOGIN_CONNSTRING ?? process.env.STS2_SQLSERVER_CONNSTRING;
-const SOURCE_DATABASE = "WideWorldImporters";
 const TARGET_DATABASE = "WWI_2";
+const EXACT_INTENT =
+    "Extract WideWorldImporters to a dacpac, import it back as WWI_2, " +
+    "dump all the schema objects from WWI_2 into an output table.";
 
 suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
     this.timeout(360_000);
@@ -50,14 +55,21 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
         }
     });
 
-    test("extracts WideWorldImporters, deploys WWI_2, inventories it, and cleans exact ownership", async () => {
+    test("compiles and runs the exact prompt through the local coordinator", async () => {
         const parsed = parseSqlConnectionString(CONNECTION_STRING!);
         if ("error" in parsed) {
             throw new Error(parsed.error);
         }
+        await vscode.workspace
+            .getConfiguration()
+            .update("mssql.runbookStudio.enabled", true, vscode.ConfigurationTarget.Global);
+        await vscode.workspace
+            .getConfiguration()
+            .update("mssql.runbookStudio.runtime", "local", vscode.ConfigurationTarget.Global);
         const extension = vscode.extensions.getExtension<mssql.IExtension>("ms-mssql.mssql");
         expect(extension).not.to.equal(undefined);
         const api = await extension!.activate();
+        await waitForCommand("mssql.runbookStudio.compileIntentHeadless");
         const baseProfile = {
             server: parsed.parsed.server,
             database: "master",
@@ -69,18 +81,44 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
                 ? { trustServerCertificate: parsed.parsed.trustServerCertificate }
                 : {}),
         } as mssql.IConnectionInfo;
-        const effectId = `effect-${randomBytes(32).toString("hex")}`;
-        const dacpacPath = path.join(
-            os.tmpdir(),
-            localManagedArtifactFileName(
-                "extract",
-                `rbs-WideWorldImporters-${randomBytes(8).toString("hex")}.dacpac`,
-            ),
+        const suffix = randomBytes(8).toString("hex");
+        const profile = {
+            ...baseProfile,
+            id: `rbs-live-${suffix}`,
+            profileName: `Runbook Studio live ${suffix}`,
+            groupId: "ROOT",
+            configSource: vscode.ConfigurationTarget.Global,
+            savePassword: parsed.parsed.password !== undefined,
+            emptyPasswordInput: false,
+        } as never;
+        const controller = await vscode.commands.executeCommand<{
+            connectionManager: {
+                connectionStore: {
+                    saveProfile(value: unknown): Promise<{ id: string }>;
+                    readAllConnections(
+                        includeRecent: boolean,
+                    ): Promise<Array<{ id: string; profileName?: string }>>;
+                    removeProfile(value: unknown): Promise<boolean>;
+                };
+            };
+        }>("mssql.getControllerForTests");
+        expect(controller).not.to.equal(undefined);
+        const savedProfile =
+            await controller!.connectionManager.connectionStore.saveProfile(profile);
+        const persistedProfile = (
+            await controller!.connectionManager.connectionStore.readAllConnections(false)
+        ).find((candidate) => candidate.profileName === `Runbook Studio live ${suffix}`);
+        expect(persistedProfile, "the live connection profile was not persisted").not.to.equal(
+            undefined,
         );
-        let sourceUri: string | undefined;
+        const profileId = persistedProfile!.id;
+        const tempDirectory = await fs.promises.mkdtemp(path.join(os.tmpdir(), "rbs-live-"));
+        const runbookPath = path.join(tempDirectory, `dacpac-${suffix}.runbook.json`);
+        const baseArtifact = createNewRunbookArtifact("New runbook", `rbs-live-${suffix}`);
+        await fs.promises.writeFile(runbookPath, canonicalizeRunbookArtifact(baseArtifact), "utf8");
         let masterUri: string | undefined;
         let targetUri: string | undefined;
-        let created = false;
+        let ownedEffectId: string | undefined;
 
         try {
             masterUri = await api.connect(baseProfile);
@@ -90,48 +128,73 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
             );
             expect(before.rows?.[0]?.[0]?.displayValue).to.equal("0");
 
-            sourceUri = await api.connect({ ...baseProfile, database: SOURCE_DATABASE });
-            const extracted = await api.dacFx.extractDacpac(
-                SOURCE_DATABASE,
-                dacpacPath,
-                SOURCE_DATABASE,
-                "1.0.0.0",
-                sourceUri,
-                TaskExecutionMode.execute,
+            const document = await vscode.workspace.openTextDocument(runbookPath);
+            await vscode.commands.executeCommand(
+                "vscode.openWith",
+                document.uri,
+                RUNBOOK_STUDIO_VIEW_TYPE,
             );
-            expect(extracted.success, extracted.errorMessage).to.equal(true);
-            expect((await fs.promises.stat(dacpacPath)).size).to.be.greaterThan(0);
+            const compile = await vscode.commands.executeCommand<{
+                ok: boolean;
+                errorCode?: string;
+                nodeCount?: number;
+                activityKinds?: string[];
+                parameterIds?: string[];
+            }>("mssql.runbookStudio.compileIntentHeadless", {
+                uri: document.uri.toString(),
+                intent: EXACT_INTENT,
+            });
+            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 9 });
+            expect(compile.activityKinds).to.deep.equal([
+                "dacpac.extract",
+                "devdatabase.provision",
+                "dacpac.deploy.preview",
+                "dacpac.deploy.dev",
+                "schema.compare",
+                "database.schema.inventory",
+            ]);
+            expect(compile.parameterIds).to.deep.equal([
+                "sourceConnection",
+                "targetServer",
+                "sourceDatabaseName",
+                "targetDatabaseName",
+            ]);
+            await document.save();
 
-            await api.connectionSharing.executeSimpleQuery(
+            const run = await vscode.commands.executeCommand<{
+                state: string;
+                errorCode?: string;
+                verdict?: string;
+                nodeStates?: Array<{
+                    nodeId: string;
+                    state: string;
+                    outputCount: number;
+                    message?: string;
+                }>;
+            }>("mssql.runbookStudio.startRunHeadless", {
+                uri: document.uri.toString(),
+                parameterValues: {
+                    sourceConnection: profileId,
+                    targetServer: profileId,
+                },
+                approveGates: true,
+                timeoutMs: 10 * 60_000,
+            });
+            expect(run, JSON.stringify(run)).to.include({ state: "succeeded", verdict: "pass" });
+            expect(run.nodeStates).to.have.length(9);
+            expect(run.nodeStates?.every((node) => node.state === "succeeded")).to.equal(true);
+            expect(
+                run.nodeStates?.find((node) => node.nodeId === "inventory")?.outputCount,
+            ).to.be.greaterThan(0);
+
+            const ownership = await api.connectionSharing.executeSimpleQuery(
                 masterUri,
-                buildCreateLocalDevelopmentDatabaseSql(TARGET_DATABASE, effectId),
+                buildProbeLocalDevelopmentDatabaseSql(TARGET_DATABASE),
             );
-            created = true;
+            ownedEffectId = ownership.rows?.[0]?.[1]?.displayValue;
+            expect(ownedEffectId).to.match(/^effect-[a-f0-9]{64}$/);
+
             targetUri = await api.connect({ ...baseProfile, database: TARGET_DATABASE });
-
-            const previewResult = await api.dacFx.generateDeployPlan(
-                dacpacPath,
-                TARGET_DATABASE,
-                targetUri,
-                TaskExecutionMode.execute,
-            );
-            expect(previewResult.success, previewResult.errorMessage).to.equal(true);
-            const preview = buildLocalDeploymentPreviewResult(
-                dacpacPath,
-                TARGET_DATABASE,
-                previewResult.operationId,
-                previewResult.report,
-            );
-            expect(preview.changeCount).to.be.greaterThan(0);
-
-            const deployed = await api.dacFx.deployDacpac(
-                dacpacPath,
-                TARGET_DATABASE,
-                true,
-                targetUri,
-                TaskExecutionMode.execute,
-            );
-            expect(deployed.success, deployed.errorMessage).to.equal(true);
             const inventory = await api.connectionSharing.executeSimpleQuery(
                 targetUri,
                 LOCAL_SCHEMA_INVENTORY_SQL,
@@ -143,40 +206,40 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
             expect(objectTypes).to.include("Table");
             expect(objectTypes).to.include("View");
             expect(objectTypes).to.include("Stored procedure");
-
-            const verifyResult = await api.dacFx.generateDeployPlan(
-                dacpacPath,
-                TARGET_DATABASE,
-                targetUri,
-                TaskExecutionMode.execute,
-            );
-            expect(verifyResult.success, verifyResult.errorMessage).to.equal(true);
-            const verification = buildLocalDeploymentPreviewResult(
-                dacpacPath,
-                TARGET_DATABASE,
-                verifyResult.operationId,
-                verifyResult.report,
-            );
-            expect(verification.changeCount).to.equal(0);
         } finally {
             if (targetUri) {
                 api.connectionSharing.disconnect(targetUri);
                 targetUri = undefined;
             }
-            if (created && masterUri) {
+            if (ownedEffectId && masterUri) {
                 await api.connectionSharing.executeSimpleQuery(
                     masterUri,
-                    buildDropLocalDevelopmentDatabaseSql(TARGET_DATABASE, effectId),
+                    buildDropLocalDevelopmentDatabaseSql(TARGET_DATABASE, ownedEffectId),
                 );
-                created = false;
-            }
-            if (sourceUri) {
-                api.connectionSharing.disconnect(sourceUri);
             }
             if (masterUri) {
                 api.connectionSharing.disconnect(masterUri);
             }
-            await fs.promises.rm(dacpacPath, { force: true }).catch(() => undefined);
+            await controller!.connectionManager.connectionStore
+                .removeProfile(persistedProfile ?? savedProfile)
+                .catch(() => false);
+            await Promise.resolve(
+                vscode.commands.executeCommand("workbench.action.closeActiveEditor"),
+            ).catch(() => undefined);
+            await fs.promises
+                .rm(tempDirectory, { recursive: true, force: true })
+                .catch(() => undefined);
         }
     });
 });
+
+async function waitForCommand(command: string): Promise<void> {
+    const deadline = Date.now() + 10_000;
+    while (Date.now() < deadline) {
+        if ((await vscode.commands.getCommands(true)).includes(command)) {
+            return;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    throw new Error(`command '${command}' was not registered after enabling Runbook Studio`);
+}

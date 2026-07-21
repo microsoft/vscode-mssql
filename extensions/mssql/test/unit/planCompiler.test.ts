@@ -20,6 +20,7 @@ import {
 } from "../../src/runbookStudio/activities/activityCatalog";
 import {
     buildCompilePrompt,
+    compileDeterministicDacpacInventory,
     extractJsonObject,
     isProposalFailure,
     parseCompiledProposal,
@@ -385,6 +386,97 @@ suite("planCompiler", () => {
                 "activity 'evidence.bundle' is absent from the source capability manifest",
             );
         }
+    });
+
+    test("the exact live DACPAC inventory prompt compiles deterministically without a model", () => {
+        const intent =
+            "Extract WideWorldImporters to a dacpac, import it back as WWI_2, " +
+            "dump all the schema objects from WWI_2 into an output table.";
+        const classified = classifyRunbookIntent(intent);
+        const inventoryBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+
+        const result = compileDeterministicDacpacInventory(inventoryBase, intent);
+        expect(result).not.to.equal(undefined);
+        if (!result) {
+            throw new Error("deterministic workflow was not selected");
+        }
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+        expect(result.artifact.source.parameters).to.deep.include({
+            id: "sourceDatabaseName",
+            label: "Source database name",
+            type: "string",
+            required: true,
+            default: "WideWorldImporters",
+        });
+        expect(result.artifact.source.parameters).to.deep.include({
+            id: "targetDatabaseName",
+            label: "New development database name",
+            type: "string",
+            required: true,
+            default: "WWI_2",
+        });
+        expect(
+            result.artifact
+                .lock!.nodes.filter((node) => node.kind === "activity")
+                .map((node) => node.activityKind),
+        ).to.deep.equal([
+            "dacpac.extract",
+            "devdatabase.provision",
+            "dacpac.deploy.preview",
+            "dacpac.deploy.dev",
+            "schema.compare",
+            "database.schema.inventory",
+        ]);
+        expect(
+            result.artifact.lock!.nodes.find((node) => node.id === "provision")?.inputs,
+        ).to.deep.equal({
+            server: "$params.targetServer",
+            databaseName: "$params.targetDatabaseName",
+        });
+    });
+
+    test("deterministic DACPAC inventory compilation requires explicit safe database names", () => {
+        const intent = "Extract a dacpac and deploy it, then list the schema objects.";
+        const classified = classifyRunbookIntent(
+            "Extract WideWorldImporters to a dacpac, import it as WWI_2, list all tables and views.",
+        );
+        const inventoryBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        expect(compileDeterministicDacpacInventory(inventoryBase, intent)).to.equal(undefined);
+    });
+
+    test("deterministic DACPAC inventory parsing ignores a generic server phrase", () => {
+        const intent =
+            "Exact WideWorldImporter to a dacpac. Deploy the dacpac back to server as WWI_2. " +
+            "Dump all tables, views, and sprocs from WWI_2.";
+        const classified = classifyRunbookIntent(intent);
+        const inventoryBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicDacpacInventory(inventoryBase, intent);
+        if (!result) {
+            throw new Error("deterministic workflow was not selected");
+        }
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+        expect(
+            result.artifact.source.parameters.find(
+                (parameter) => parameter.id === "targetDatabaseName",
+            )?.default,
+        ).to.equal("WWI_2");
     });
 
     test("an owned SQL container lifecycle compiles with a rebind-only secret", () => {

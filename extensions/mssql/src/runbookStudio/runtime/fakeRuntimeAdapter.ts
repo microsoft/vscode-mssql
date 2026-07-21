@@ -326,14 +326,18 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
 
             let edgeCondition: RunbookPlanEdge["when"];
             if (current.kind === "gate") {
+                // Make the gate actionable before publishing it. A webview
+                // naturally responds on a later turn, but headless clients
+                // may approve synchronously from the gateRequested callback.
+                const gateDecision = new Promise<boolean>((resolve) => {
+                    run.pendingGate = { nodeId: current!.id, resolve };
+                });
                 emit({
                     kind: "gateRequested",
                     nodeId: current.id,
                     impactSummary: current.label,
                 });
-                const approved = await new Promise<boolean>((resolve) => {
-                    run.pendingGate = { nodeId: current!.id, resolve };
-                });
+                const approved = await gateDecision;
                 run.pendingGate = undefined;
                 emit({ kind: "gateResponded", nodeId: current.id, approved });
                 if (run.cancelRequested) {
@@ -514,10 +518,12 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "dacpac.build",
     "dacpac.extract",
     "sandbox.provision",
+    "devdatabase.provision",
     "sql.container.provision",
     "sql.workload.inspect",
     "dacpac.deploy.preview",
     "dacpac.deploy",
+    "dacpac.deploy.dev",
     "dacpac.deploy.container",
     "xevent.session.start",
     "sql.workload.run",
@@ -525,6 +531,7 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "xevent.xel.collect",
     "schema.compare",
     "schema.compare.export",
+    "database.schema.inventory",
     "sqltest.run",
     "sandbox.dispose",
     "sql.container.dispose",
@@ -1158,6 +1165,31 @@ function executeNode(
                     changeCount: 0,
                     reportSha256: "preview-post-deploy-report-sha256",
                 },
+            };
+        }
+        case "database.schema.inventory": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            if (typeof database !== "string") {
+                return invalidPreviewBinding("database.schema.inventory", "database");
+            }
+            return {
+                success: true,
+                runMetrics: {
+                    "schemaInventory.objectCount": 3,
+                    "schemaInventory.truncated": false,
+                },
+                message: "3 schema objects inventoried (deterministic preview)",
+                output: {
+                    contract: "databaseSchemaInventory/1",
+                    columns: ["ObjectType", "SchemaName", "ObjectName"],
+                    rows: [
+                        ["Table", "dbo", "PreviewTable"],
+                        ["View", "dbo", "PreviewView"],
+                        ["Stored procedure", "dbo", "PreviewProcedure"],
+                    ],
+                    scalars: { objectCount: 3, truncated: false, preview: true },
+                },
+                values: { objectCount: 3, truncated: false },
             };
         }
         case "schema.compare.export": {

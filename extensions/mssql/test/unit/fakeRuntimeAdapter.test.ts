@@ -263,6 +263,39 @@ suite("fakeRuntimeAdapter", () => {
         ).to.equal(true);
     });
 
+    test("a gate is actionable from the gateRequested callback", async () => {
+        let accepted: boolean | undefined;
+        let terminal: Extract<RuntimeBoundaryEvent, { kind: "terminal" }> | undefined;
+        const finished = new Promise<void>((resolve) => {
+            const observer: RuntimeEventObserver = {
+                onEvent: (event) => {
+                    if (event.kind === "gateRequested") {
+                        void adapter
+                            .respondToGate("r4-sync", event.nodeId, true, ctx())
+                            .then((value) => {
+                                accepted = value;
+                            });
+                    }
+                    if (event.kind === "terminal") {
+                        terminal = event;
+                        resolve();
+                    }
+                },
+                onGap: () => undefined,
+                onExit: () => undefined,
+            };
+            void adapter.startRun(
+                { runId: "r4-sync", artifact: gateArtifact(), parameterValues: {} },
+                observer,
+                ctx(),
+            );
+        });
+
+        await finished;
+        expect(accepted).to.equal(true);
+        expect(terminal?.state).to.equal("succeeded");
+    });
+
     test("gate rejection with no rejected edge fails the run", async () => {
         const observer = new CollectingObserver();
         await adapter.startRun(
