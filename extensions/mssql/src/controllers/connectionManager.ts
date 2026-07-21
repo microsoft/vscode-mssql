@@ -60,6 +60,7 @@ import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
 import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
 import { PreviewFeature, previewService } from "../previews/previewService";
+import { perfSlowdown } from "../perf/perfSlowdown";
 
 /**
  * Information for a document's connection. Exported for testing purposes.
@@ -1397,6 +1398,8 @@ export default class ConnectionManager {
         const { shouldHandleErrors = true, connectionSource = "" } = options;
 
         Perf.marker("mssql.connection.begin", "begin");
+        await perfSlowdown(750);
+
         const connectionActivity = startActivity(
             TelemetryViews.ConnectionManager,
             TelemetryActions.Connect,

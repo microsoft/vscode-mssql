@@ -33,6 +33,7 @@ import { registerPerfApi } from "./perf/perfApi";
 import { DiagnosticsManager } from "./diagnostics/diagnosticsManager";
 import { registerDebugConsole } from "./controllers/debugConsoleWebviewController";
 import { startStsDiagListener } from "./diagnostics/stsDiagListener";
+import { perfSlowdown } from "./perf/perfSlowdown";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -71,6 +72,7 @@ async function activateInternal(context: vscode.ExtensionContext): Promise<IExte
 
     Perf.setActivationState("activating");
     Perf.marker("mssql.activate.begin", "begin");
+    await perfSlowdown(750);
 
     // Create coordinator early so uriOwnershipApi is available for export
     uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
