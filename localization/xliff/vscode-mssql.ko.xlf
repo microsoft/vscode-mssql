@@ -728,10 +728,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
         <target state="translated">자동 정렬은 최적의 레이아웃 알고리즘에 따라 모든 다이어그램 요소의 위치를 자동으로 재배치합니다. 여러분이 만든 사용자 지정 위치는 손실됩니다. 스키마 다이어그램을 자동 정렬하시겠습니까?</target>
       </trans-unit>
-      <trans-unit id="++CODE++762d2d8d0f231dc362dd18f8ee3ef0adc4b55beff276a917db60b3432e2cf8ae">
-        <source xml:lang="en">Auto-execute</source>
-        <target state="translated">자동 실행</target>
-      </trans-unit>
       <trans-unit id="++CODE++4c5540399ea50cb52c6ca24ab5aebf272d0e39920af434bec1fa87fa821f1bbd">
         <source xml:lang="en">Auto-pause</source>
         <target state="translated">자동 일시 중지</target>
@@ -5253,6 +5249,10 @@ Error:
         <source xml:lang="en">Insert</source>
         <target state="translated">삽입</target>
       </trans-unit>
+      <trans-unit id="++CODE++7231a7d45a700048f4057a8040de5fb2afc1ebd67638a7a2fa96da6b8f24e3ba">
+        <source xml:lang="en">Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.</source>
+        <target state="new">Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.</target>
+      </trans-unit>
       <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
         <source xml:lang="en">Install Docker</source>
         <target state="translated">Docker 설치</target>
@@ -8124,6 +8124,10 @@ Query: {2}</source>
 
 쿼리: {2}</target>
       </trans-unit>
+      <trans-unit id="++CODE++0bc00be2d21a631fedf64e0302de168c6a49105158a47fc837faf0df12f53fe4">
+        <source xml:lang="en">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</source>
+        <target state="new">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</target>
+      </trans-unit>
       <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
         <source xml:lang="en">Run, cancel, and create queries</source>
         <target state="translated">쿼리 실행, 취소 및 만들기</target>
@@ -8327,10 +8331,6 @@ Query: {2}</source>
       <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
         <source xml:lang="en">Save connection profile changes without establishing a connection</source>
         <target state="translated">연결하지 않고 연결 프로필 변경 내용을 저장</target>
-      </trans-unit>
-      <trans-unit id="++CODE++3ec8a4f0540db2ba6c43128944d19d2d6d10b0a65523ab185cf4e185e96f7dd6">
-        <source xml:lang="en">Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.</source>
-        <target state="translated">자주 사용하는 SQL 코드 조각을 저장하고, 사용자 지정 키보드 바로 가기로 즉시 실행하거나 열 수 있습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506">
         <source xml:lang="en">Save password</source>
@@ -8881,6 +8881,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++05b335b429fbb422b7e22e8f8b77acd140d21b43c04f04476206cfaf85978d13">
         <source xml:lang="en">Selected backup file does not contain a valid database backup</source>
         <target state="translated">선택한 백업 파일에 유효한 데이터베이스 백업이 없습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2cafc5757485d935e51fd715bb3ad14ec8c53f8875ed9e218b427244de032f15">
+        <source xml:lang="en">Selected query-editor text</source>
+        <target state="new">Selected query-editor text</target>
       </trans-unit>
       <trans-unit id="++CODE++ca4067071fcf618543805e3d94af63144b21f4fae9eade2408f1c24f7e5214e9">
         <source xml:lang="en">Selection</source>
@@ -9969,6 +9973,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++2058e7768297cdc1b7cbeb655cd4f06450ec8900fad7f2b06367934185d5967a">
         <source xml:lang="en">This server supports Microsoft Entra ID and SQL Authentication.</source>
         <target state="translated">이 서버는 Microsoft Entra ID 및 SQL 인증을 지원합니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++30bc13b49dca001aeab4b8447c759c4f374ff741a22f914a7db838cf7aa507e8">
+        <source xml:lang="en">This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.</source>
+        <target state="new">This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.</target>
       </trans-unit>
       <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
         <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
@@ -11442,8 +11450,8 @@ Query: {2}</source>
         <target state="translated">스키마 비교...</target>
       </trans-unit>
       <trans-unit id="mssql.quickQueries">
-        <source xml:lang="en">Configure up to 10 Quick Queries that can be opened or run from commands.</source>
-        <target state="translated">명령에서 열거나 실행할 수 있는 빠른 쿼리를 최대 10개까지 구성합니다.</target>
+        <source xml:lang="en">Configure up to 10 Quick Queries that execute from commands.</source>
+        <target state="new">Configure up to 10 Quick Queries that execute from commands.</target>
       </trans-unit>
       <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect (MSSQL)</source>
@@ -11484,10 +11492,6 @@ Query: {2}</source>
       <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
         <target state="translated">메모리에서 필터링 및 정렬할 수 있는 최대 행 수를 제어합니다. 숫자를 초과하는 경우 정렬과 필터링이 비활성화됩니다. 경고: 이 항목을 늘리면 성능에 영향을 미칠 수 있습니다.</target>
-      </trans-unit>
-      <trans-unit id="mssql.quickQueries.executionMode">
-        <source xml:lang="en">Controls whether this Quick Query opens in an editor or opens and runs immediately.</source>
-        <target state="translated">이 빠른 쿼리를 편집기에서 열지, 아니면 열고 바로 실행할지 제어합니다.</target>
       </trans-unit>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
@@ -11929,14 +11933,6 @@ Start by clicking the filter button next to most folders in the Connections view
         <source xml:lang="en">Open in MSSQL extension</source>
         <target state="translated">MSSQL 확장에서 열기</target>
       </trans-unit>
-      <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
-        <source xml:lang="en">Open the query in a SQL editor and run it immediately.</source>
-        <target state="translated">쿼리를 SQL 편집기에서 열고 바로 실행합니다.</target>
-      </trans-unit>
-      <trans-unit id="mssql.quickQueries.executionMode.open">
-        <source xml:lang="en">Open the query in a SQL editor.</source>
-        <target state="translated">쿼리를 SQL 편집기에서 엽니다.</target>
-      </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
         <target state="translated">쿼리 기록 캡처 일시 중지</target>
@@ -12066,8 +12062,8 @@ Start by clicking the filter button next to most folders in the Connections view
         <target state="translated">SQL 도구(MSSQL)</target>
       </trans-unit>
       <trans-unit id="mssql.quickQueries.query">
-        <source xml:lang="en">SQL text for this Quick Query.</source>
-        <target state="translated">이 빠른 쿼리의 SQL 텍스트입니다.</target>
+        <source xml:lang="en">SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.</source>
+        <target state="new">SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
