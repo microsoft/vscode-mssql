@@ -17,6 +17,7 @@
  */
 
 import * as path from "path";
+import * as crypto from "crypto";
 import * as vscode from "vscode";
 import * as constants from "../constants/constants";
 import { config } from "../configurations/config";
@@ -106,6 +107,8 @@ import {
     LocalSandboxLeaseResult,
     LocalSqlContainerCleanupResult,
     LocalSqlContainerLeaseResult,
+    LocalWorkloadPreviewResult,
+    LocalWorkloadRunResult,
     LocalSchemaMutationResult,
     LocalSchemaComparisonResult,
     LocalSchemaComparisonExportResult,
@@ -205,6 +208,12 @@ import {
     startSqlServerDockerContainer,
     validateSqlServerPassword,
 } from "../deployment/sqlServerContainer";
+import {
+    LocalWorkloadPlan,
+    LocalWorkloadPolicyError,
+    MAX_LOCAL_WORKLOAD_BYTES,
+    parseLocalWorkload,
+} from "./runtime/localWorkload";
 
 const SimpleExecuteRequestType = new RequestType<
     { ownerUri: string; queryString: string },
@@ -291,6 +300,12 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             version: string;
         }
     >();
+    /** Immutable, bounded workload snapshots bind file content to approval
+     * without persisting workspace SQL or reopening a changed path. */
+    private readonly workloadPreviews = new Map<
+        string,
+        { plan: LocalWorkloadPlan; fileName: string }
+    >();
 
     private readonly storageRoot: string;
     /** Library-global persistence root (ledger + results). Run history must
@@ -362,6 +377,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         }
         this.activeRunsEmitter.dispose();
         this.containerLeaseProfiles.clear();
+        this.workloadPreviews.clear();
         void this.adapter?.dispose();
         if (this.hobbesAdapter && this.hobbesAdapter !== this.adapter) {
             void this.hobbesAdapter.dispose();
@@ -2306,6 +2322,28 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             invocation,
                             cancelled,
                         ),
+                    inspectWorkload: (filePath, cancelled) =>
+                        this.inspectLocalWorkload(filePath, cancelled),
+                    runWorkload: (
+                        nodeId,
+                        databaseRef,
+                        workloadRef,
+                        workloadDigest,
+                        repetitions,
+                        timeoutSeconds,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.runLocalWorkload(
+                            nodeId,
+                            databaseRef,
+                            workloadRef,
+                            workloadDigest,
+                            repetitions,
+                            timeoutSeconds,
+                            invocation,
+                            cancelled,
+                        ),
                     previewDacpacDeployment: (dacpacPath, databaseRef, cancelled) =>
                         this.previewLocalDacpacDeployment(dacpacPath, databaseRef, cancelled),
                     deployDacpac: (
@@ -3041,6 +3079,303 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             }
             this.containerLeaseProfiles.delete(effectId);
             throw error;
+        }
+    }
+
+    private async inspectLocalWorkload(
+        filePath: string,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalWorkloadPreviewResult> {
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacPreviewCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const workspaceRoots = (vscode.workspace.workspaceFolders ?? [])
+            .filter((folder) => folder.uri.scheme === "file")
+            .map((folder) => folder.uri.fsPath);
+        const resolvedPath = await resolveWorkspaceWorkloadPath(filePath, workspaceRoots);
+        let stat: fs.Stats;
+        try {
+            stat = await fs.promises.lstat(resolvedPath);
+        } catch {
+            throw new LocalActivityError(
+                LocRunbookStudio.workloadPathInvalid,
+                "RunbookStudio.PathInvalid",
+            );
+        }
+        if (
+            !stat.isFile() ||
+            stat.isSymbolicLink() ||
+            stat.size <= 0 ||
+            stat.size > MAX_LOCAL_WORKLOAD_BYTES ||
+            path.extname(resolvedPath).toLowerCase() !== ".sql"
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.workloadPathInvalid,
+                "RunbookStudio.PathInvalid",
+            );
+        }
+        const content = await fs.promises.readFile(resolvedPath);
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacPreviewCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        let plan: LocalWorkloadPlan;
+        try {
+            plan = parseLocalWorkload(content);
+        } catch (error) {
+            if (error instanceof LocalWorkloadPolicyError) {
+                throw new LocalActivityError(
+                    error.reason === "empty" || error.reason === "tooLarge"
+                        ? LocRunbookStudio.workloadPathInvalid
+                        : LocRunbookStudio.workloadPolicyDenied,
+                    "RunbookStudio.ActivityPolicyDenied",
+                );
+            }
+            throw error;
+        }
+        if (this.workloadPreviews.size >= 32) {
+            const oldestRef = this.workloadPreviews.keys().next().value;
+            if (typeof oldestRef === "string") {
+                this.workloadPreviews.delete(oldestRef);
+            }
+        }
+        const workloadRef = `runbook-workload:${plan.workloadSha256}:${crypto.randomUUID()}`;
+        const fileName = path.basename(resolvedPath);
+        this.workloadPreviews.set(workloadRef, { plan, fileName });
+        return {
+            workloadRef,
+            fileName,
+            workloadSha256: plan.workloadSha256,
+            sourceByteCount: plan.sourceByteCount,
+            batchCount: plan.batchCount,
+            mutating: plan.mutating,
+            inspectedAtUtc: new Date().toISOString(),
+        };
+    }
+
+    private async runLocalWorkload(
+        nodeId: string,
+        databaseRef: string,
+        workloadRef: string,
+        expectedWorkloadSha256: string,
+        repetitions: number,
+        timeoutSeconds: number,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalWorkloadRunResult> {
+        const authorization = this.requireApprovedEffect(nodeId, invocation, "sql.workload.run");
+        const leaseEffectId = effectIdFromLocalSqlContainerLeaseRef(databaseRef);
+        const lease = leaseEffectId
+            ? this.effectLedger.recoverEffect(leaseEffectId)?.snapshot
+            : undefined;
+        if (!leaseEffectId || !lease || lease.identity.runId !== invocation.runId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.workloadOwnedContainerRequired,
+                "RunbookStudio.ActivityPolicyDenied",
+            );
+        }
+        const preview = this.workloadPreviews.get(workloadRef);
+        if (
+            !preview ||
+            preview.plan.workloadSha256 !== expectedWorkloadSha256 ||
+            !/^runbook-workload:[a-f0-9]{64}:[a-f0-9-]{36}$/i.test(workloadRef) ||
+            preview.plan.batchCount * repetitions > 1000
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.workloadPreviewChanged,
+                "RunbookStudio.DeploymentPreviewChanged",
+            );
+        }
+        const resolved = await this.resolveRunbookConnection(databaseRef);
+        if (!resolved.container || resolved.container.effectId !== leaseEffectId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.workloadOwnedContainerRequired,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        const connectionManager = this.connectionAccess();
+        if (!connectionManager) {
+            throw new LocalActivityError(
+                LocRunbookStudio.connectFailed,
+                "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        const effectId = deriveRunbookEffectId({
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "sql.workload.run",
+            activityVersion: authorization.challenge.activityVersion,
+        });
+        if (this.effectLedger.recoverEffect(effectId)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        this.effectLedger.prepareEffect({
+            effectId,
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "sql.workload.run",
+            activityVersion: authorization.challenge.activityVersion,
+            idempotencyKey: digestRunbookValue({
+                effectId,
+                databaseName: resolved.targetDatabase,
+                workloadSha256: expectedWorkloadSha256,
+                repetitions,
+            }),
+            planHash: invocation.planHash,
+            bindingDigest: authorization.challenge.resolvedArgumentDigest,
+            targetFingerprint: authorization.challenge.targetFingerprint,
+            retrySemantics: "atMostOnceUnknownOutcome",
+            ownerPid: process.pid,
+            policy: {
+                version: authorization.challenge.policyVersion,
+                outcome: "allowed",
+            },
+            approval: authorization.evidence,
+            recovery: {
+                resourceKind: "workloadExecution",
+                resourceId: resolved.targetDatabase,
+                connectionProfileId: resolved.container.connectionProfileId,
+                ownershipMarkerDigest: resolved.container.ownershipMarkerDigest,
+            },
+        });
+        sandboxCounter++;
+        const ownerUri = `runbookstudio://workload/${sandboxCounter.toString(36)}`;
+        let connected = false;
+        let effectObserved = false;
+        const results: LocalWorkloadRunResult["results"] = [];
+        const startedAt = Date.now();
+        try {
+            connected = await connectionManager.connect(ownerUri, resolved.profile, {
+                connectionSource: "runbookStudio",
+                shouldHandleErrors: false,
+            });
+            if (!connected) {
+                this.effectLedger.recordNoEffectFailure(effectId, "WorkloadConnectFailed");
+                throw new LocalActivityError(
+                    LocRunbookStudio.connectFailed,
+                    "RunbookStudio.ActivityFailed",
+                );
+            }
+            let stopAfterFailure = false;
+            for (let iteration = 1; iteration <= repetitions && !stopAfterFailure; iteration++) {
+                for (let batchIndex = 0; batchIndex < preview.plan.batches.length; batchIndex++) {
+                    if (isCancellationRequested()) {
+                        throw new LocalActivityError(
+                            LocRunbookStudio.dacpacPreviewCancelled,
+                            "RunbookStudio.ActivityCancelled",
+                        );
+                    }
+                    if (!effectObserved) {
+                        this.effectLedger.recordEffectObserved(effectId, {
+                            resourceKind: "workloadExecution",
+                            resourceId: resolved.targetDatabase,
+                            ownershipMarkerDigest: resolved.container.ownershipMarkerDigest,
+                            connectionProfileId: resolved.container.connectionProfileId,
+                            outputHandles: [databaseRef, workloadRef],
+                        });
+                        effectObserved = true;
+                    }
+                    const batchStartedAt = Date.now();
+                    const cancellation = new vscode.CancellationTokenSource();
+                    let timedOut = false;
+                    const timeout = setTimeout(() => {
+                        timedOut = true;
+                        cancellation.cancel();
+                    }, timeoutSeconds * 1000);
+                    const poll = setInterval(() => {
+                        if (isCancellationRequested()) {
+                            cancellation.cancel();
+                        }
+                    }, 50);
+                    try {
+                        const result = await SqlToolsServerClient.instance.sendRequest(
+                            SimpleExecuteRequestType,
+                            {
+                                ownerUri,
+                                queryString: preview.plan.batches[batchIndex],
+                            },
+                            cancellation.token,
+                        );
+                        const reportedRowCount = Number(result.rowCount ?? 0);
+                        results.push({
+                            iteration,
+                            batch: batchIndex + 1,
+                            durationMs: Math.max(0, Date.now() - batchStartedAt),
+                            rowCount:
+                                Number.isSafeInteger(reportedRowCount) && reportedRowCount >= 0
+                                    ? reportedRowCount
+                                    : 0,
+                            succeeded: true,
+                            errorCode: "",
+                        });
+                    } catch {
+                        if (isCancellationRequested() && !timedOut) {
+                            throw new LocalActivityError(
+                                LocRunbookStudio.dacpacPreviewCancelled,
+                                "RunbookStudio.ActivityCancelled",
+                            );
+                        }
+                        results.push({
+                            iteration,
+                            batch: batchIndex + 1,
+                            durationMs: Math.max(0, Date.now() - batchStartedAt),
+                            rowCount: 0,
+                            succeeded: false,
+                            errorCode: timedOut
+                                ? "RunbookStudio.WorkloadBatchTimeout"
+                                : "RunbookStudio.WorkloadBatchFailed",
+                        });
+                        stopAfterFailure = true;
+                        break;
+                    } finally {
+                        clearTimeout(timeout);
+                        clearInterval(poll);
+                        cancellation.dispose();
+                    }
+                }
+            }
+            const failedBatchCount = results.filter((result) => !result.succeeded).length;
+            const totalDurationMs = Math.max(0, Date.now() - startedAt);
+            this.effectLedger.finalizeEffect(
+                effectId,
+                digestRunbookValue({
+                    effectId,
+                    workloadSha256: expectedWorkloadSha256,
+                    executedBatchCount: results.length,
+                    failedBatchCount,
+                    totalDurationMs,
+                }),
+            );
+            return {
+                effectId,
+                workloadSha256: expectedWorkloadSha256,
+                plannedBatchCount: preview.plan.batchCount * repetitions,
+                executedBatchCount: results.length,
+                failedBatchCount,
+                totalDurationMs,
+                repetitions,
+                results,
+                completedAtUtc: new Date().toISOString(),
+            };
+        } finally {
+            this.workloadPreviews.delete(workloadRef);
+            if (connected) {
+                try {
+                    await connectionManager.disconnect(ownerUri);
+                } catch {
+                    // Effect and container cleanup journals remain authoritative.
+                }
+            }
         }
     }
 
@@ -4089,10 +4424,16 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         for (const entry of this.effectLedger.scanRecovery().outstanding) {
             let dependent = entry.snapshot;
             const recovery = dependent.identity.recovery;
+            const isDeployment =
+                dependent.identity.activityKind === "dacpac.deploy.container" &&
+                recovery?.resourceKind === "dacpacDeployment";
+            const isWorkload =
+                dependent.identity.activityKind === "sql.workload.run" &&
+                recovery?.resourceKind === "workloadExecution";
             if (
                 dependent.identity.runId !== runId ||
-                dependent.identity.activityKind !== "dacpac.deploy.container" ||
-                recovery?.resourceKind !== "dacpacDeployment" ||
+                (!isDeployment && !isWorkload) ||
+                !recovery ||
                 recovery.connectionProfileId !== connectionProfileId ||
                 recovery.ownershipMarkerDigest !== ownershipMarkerDigest ||
                 dependent.state === "needsOperatorDecision"
@@ -4101,7 +4442,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             }
             if (dependent.state === "prepared") {
                 dependent = this.effectLedger.recordEffectObserved(dependent.identity.effectId, {
-                    resourceKind: "dacpacDeploymentOutcomeUnknown",
+                    resourceKind: isDeployment
+                        ? "dacpacDeploymentOutcomeUnknown"
+                        : "workloadExecutionOutcomeUnknown",
                     resourceId: recovery.resourceId,
                     ownershipMarkerDigest,
                     connectionProfileId,
@@ -5418,6 +5761,59 @@ function localDacpacStageActivityError(error: unknown): LocalActivityError {
 
 function containerConnectionProfileId(effectId: string): string {
     return `runbook-container-profile:${effectId}`;
+}
+
+async function resolveWorkspaceWorkloadPath(
+    requestedPath: string,
+    workspaceRoots: readonly string[],
+): Promise<string> {
+    const trimmed = requestedPath.trim();
+    if (!trimmed || workspaceRoots.length === 0) {
+        throw new LocalActivityError(
+            LocRunbookStudio.workloadPathInvalid,
+            "RunbookStudio.PathInvalid",
+        );
+    }
+    const candidates = path.isAbsolute(trimmed)
+        ? [path.resolve(trimmed)]
+        : workspaceRoots.map((root) => path.resolve(root, trimmed));
+    const existing: string[] = [];
+    for (const candidate of candidates) {
+        try {
+            await fs.promises.access(candidate, fs.constants.R_OK);
+            existing.push(candidate);
+        } catch {
+            // Try the next explicitly rooted candidate.
+        }
+    }
+    if (existing.length !== 1) {
+        throw new LocalActivityError(
+            LocRunbookStudio.workloadPathInvalid,
+            existing.length > 1 ? "RunbookStudio.TargetAmbiguous" : "RunbookStudio.PathInvalid",
+        );
+    }
+    const realCandidate = await fs.promises.realpath(existing[0]);
+    for (const root of workspaceRoots) {
+        let realRoot: string;
+        try {
+            realRoot = await fs.promises.realpath(root);
+        } catch {
+            continue;
+        }
+        const relative = path.relative(realRoot, realCandidate);
+        if (
+            relative === "" ||
+            (!relative.startsWith(`..${path.sep}`) &&
+                relative !== ".." &&
+                !path.isAbsolute(relative))
+        ) {
+            return realCandidate;
+        }
+    }
+    throw new LocalActivityError(
+        LocRunbookStudio.workloadPathInvalid,
+        "RunbookStudio.TargetOutsideWorkspace",
+    );
 }
 
 interface ParameterBinding {

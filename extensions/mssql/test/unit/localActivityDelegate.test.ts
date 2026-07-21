@@ -205,6 +205,43 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             port: 14330,
             createdAtUtc: "2026-07-20T20:03:00.000Z",
         }),
+        inspectWorkload: async () => ({
+            workloadRef: `runbook-workload:${"4".repeat(64)}:11111111-1111-4111-8111-111111111111`,
+            fileName: "workload.sql",
+            workloadSha256: "4".repeat(64),
+            sourceByteCount: 128,
+            batchCount: 2,
+            mutating: true,
+            inspectedAtUtc: "2026-07-20T20:03:01.000Z",
+        }),
+        runWorkload: async () => ({
+            effectId: `effect-${"5".repeat(64)}`,
+            workloadSha256: "4".repeat(64),
+            plannedBatchCount: 2,
+            executedBatchCount: 2,
+            failedBatchCount: 0,
+            totalDurationMs: 30,
+            repetitions: 1,
+            results: [
+                {
+                    iteration: 1,
+                    batch: 1,
+                    durationMs: 10,
+                    rowCount: 1,
+                    succeeded: true,
+                    errorCode: "",
+                },
+                {
+                    iteration: 1,
+                    batch: 2,
+                    durationMs: 20,
+                    rowCount: 0,
+                    succeeded: true,
+                    errorCode: "",
+                },
+            ],
+            completedAtUtc: "2026-07-20T20:03:02.000Z",
+        }),
         disposeSandbox: async () => ({
             effectId: `effect-${"d".repeat(64)}`,
             leaseId: "lease-1",
@@ -664,6 +701,62 @@ suite("Runbook Studio local activity delegate", () => {
         });
     });
 
+    test("workload inspection and execution emit digest-bound batch evidence", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+        const workloadRef = `runbook-workload:${"4".repeat(64)}:11111111-1111-4111-8111-111111111111`;
+        const values: Record<string, string> = {
+            "$params.workload": "workload.sql",
+            "$nodes.inspect.workloadRef": workloadRef,
+            "$nodes.inspect.workloadSha256": "4".repeat(64),
+            "$nodes.container.connectionRef": `runbook-sql-container-lease:effect-${"3".repeat(64)}`,
+        };
+        const resolve = (value: unknown) =>
+            typeof value === "string" ? (values[value] ?? value) : value;
+
+        const inspect = await delegate.executeActivity(
+            activity("sql.workload.inspect", { file: "$params.workload" }),
+            binding(resolve),
+        );
+        expect(inspect?.success).to.equal(true);
+        expect(inspect?.output?.contract).to.equal("workloadPreview/1");
+        expect(inspect?.output?.scalars).to.include({
+            fileName: "workload.sql",
+            workloadSha256: "4".repeat(64),
+            batchCount: 2,
+            mutating: true,
+        });
+        expect(inspect?.values).to.deep.include({
+            workloadRef,
+            workloadSha256: "4".repeat(64),
+        });
+
+        const run = await delegate.executeActivity(
+            activity("sql.workload.run", {
+                database: "$nodes.container.connectionRef",
+                workload: "$nodes.inspect.workloadRef",
+                workloadDigest: "$nodes.inspect.workloadSha256",
+                repetitions: 1,
+                timeoutSeconds: 30,
+            }),
+            binding(resolve),
+        );
+        expect(run?.success).to.equal(true);
+        expect(run?.output?.contract).to.equal("workloadResults/1");
+        expect(run?.output?.rows).to.have.length(2);
+        expect(run?.output?.scalars).to.include({
+            workloadSha256: "4".repeat(64),
+            plannedBatchCount: 2,
+            executedBatchCount: 2,
+            failedBatchCount: 0,
+            repetitions: 1,
+        });
+        expect(run?.runMetrics).to.deep.include({
+            "workload.plannedBatchCount": 2,
+            "workload.executedBatchCount": 2,
+            "workload.failedBatchCount": 0,
+        });
+    });
+
     test("guarded deployment and schema verification emit typed evidence", async () => {
         const delegate = new LocalSqlActivityDelegate(operations());
         const resolve = (value: unknown) => {
@@ -1041,11 +1134,13 @@ suite("Runbook Studio local activity delegate", () => {
             "sandbox.provision",
             "devdatabase.provision",
             "sql.container.provision",
+            "sql.workload.inspect",
             "dacpac.deploy.preview",
             "dacpac.deploy",
             "dacpac.deploy.dev",
             "dacpac.deploy.container",
             "sql.schema.apply",
+            "sql.workload.run",
             "schema.compare",
             "schema.compare.export",
             "sandbox.dispose",

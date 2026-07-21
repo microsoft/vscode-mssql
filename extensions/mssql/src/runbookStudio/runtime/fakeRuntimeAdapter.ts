@@ -515,9 +515,11 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "dacpac.extract",
     "sandbox.provision",
     "sql.container.provision",
+    "sql.workload.inspect",
     "dacpac.deploy.preview",
     "dacpac.deploy",
     "dacpac.deploy.container",
+    "sql.workload.run",
     "schema.compare",
     "schema.compare.export",
     "sqltest.run",
@@ -779,6 +781,38 @@ function executeNode(
                 },
             };
         }
+        case "sql.workload.inspect": {
+            const file = resolveBind(node.inputs?.file, parameterValues, nodeValues);
+            if (typeof file !== "string" || file.length === 0) {
+                return invalidPreviewBinding("sql.workload.inspect", "file");
+            }
+            return {
+                success: true,
+                runMetrics: {
+                    "workload.batchCount": 2,
+                    "workload.sourceByteCount": 256,
+                    "workload.mutating": true,
+                },
+                message: "SQL workload inspected (deterministic preview)",
+                output: {
+                    contract: "workloadPreview/1",
+                    scalars: {
+                        workloadRef: "preview://workload/001",
+                        fileName: "workload.sql",
+                        workloadSha256: "preview-workload-sha256",
+                        batchCount: 2,
+                        mutating: true,
+                        preview: true,
+                    },
+                },
+                values: {
+                    workloadRef: "preview://workload/001",
+                    workloadSha256: "preview-workload-sha256",
+                    batchCount: 2,
+                    mutating: true,
+                },
+            };
+        }
         case "sandbox.provision":
         case "devdatabase.provision": {
             const sandbox = resolveBind(
@@ -926,6 +960,65 @@ function executeNode(
                     applied: true,
                     tableName: policy.qualifiedTableName,
                     sqlSha256: policy.sqlSha256,
+                },
+            };
+        }
+        case "sql.workload.run": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const workload = resolveBind(node.inputs?.workload, parameterValues, nodeValues);
+            const workloadDigest = resolveBind(
+                node.inputs?.workloadDigest,
+                parameterValues,
+                nodeValues,
+            );
+            if (
+                typeof database !== "string" ||
+                typeof workload !== "string" ||
+                typeof workloadDigest !== "string"
+            ) {
+                return invalidPreviewBinding(
+                    "sql.workload.run",
+                    "database/workload/workloadDigest",
+                );
+            }
+            return {
+                success: true,
+                verdict: "pass",
+                runMetrics: {
+                    "workload.plannedBatchCount": 2,
+                    "workload.executedBatchCount": 2,
+                    "workload.failedBatchCount": 0,
+                    "workload.totalDurationMs": 42,
+                },
+                message: "SQL workload completed (deterministic preview)",
+                output: {
+                    contract: "workloadResults/1",
+                    columns: [
+                        "iteration",
+                        "batch",
+                        "durationMs",
+                        "rowCount",
+                        "succeeded",
+                        "errorCode",
+                    ],
+                    rows: [
+                        [1, 1, 20, 1, true, ""],
+                        [1, 2, 22, 1, true, ""],
+                    ],
+                    scalars: {
+                        workloadSha256: workloadDigest,
+                        plannedBatchCount: 2,
+                        executedBatchCount: 2,
+                        failedBatchCount: 0,
+                        totalDurationMs: 42,
+                        preview: true,
+                    },
+                },
+                values: {
+                    succeeded: true,
+                    executedBatchCount: 2,
+                    failedBatchCount: 0,
+                    totalDurationMs: 42,
                 },
             };
         }

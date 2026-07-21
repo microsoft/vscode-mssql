@@ -255,6 +255,22 @@
     "The owned SQL container could not be provisioned and verified safely.": "The owned SQL container could not be provisioned and verified safely.",
     "The SQL container credentials are no longer available in this extension host. Dispose the owned lease and rerun provisioning.": "The SQL container credentials are no longer available in this extension host. Dispose the owned lease and rerun provisioning.",
     "The SQL container owner labels do not match this runbook lease. Automatic use or cleanup was refused.": "The SQL container owner labels do not match this runbook lease. Automatic use or cleanup was refused.",
+    "Inspected SQL workload '{0}' with {1} bounded batch(es)./{0} is a file name{1} is a SQL batch count": {
+        "message": "Inspected SQL workload '{0}' with {1} bounded batch(es).",
+        "comment": ["{0} is a file name", "{1} is a SQL batch count"]
+    },
+    "SQL workload completed {0} batch execution(s)./{0} is an executed SQL batch count": {
+        "message": "SQL workload completed {0} batch execution(s).",
+        "comment": ["{0} is an executed SQL batch count"]
+    },
+    "SQL workload completed with {0} failed batch execution(s)./{0} is a failed SQL batch count": {
+        "message": "SQL workload completed with {0} failed batch execution(s).",
+        "comment": ["{0} is a failed SQL batch count"]
+    },
+    "The workload must be a real, workspace-contained .sql file within the size limit.": "The workload must be a real, workspace-contained .sql file within the size limit.",
+    "The workload contains unsupported SQLCMD directives or server, external, or cross-database effects.": "The workload contains unsupported SQLCMD directives or server, external, or cross-database effects.",
+    "The inspected workload snapshot or digest no longer matches the approved workload.": "The inspected workload snapshot or digest no longer matches the approved workload.",
+    "Workload execution is allowed only on an ownership-verified SQL container created by this run.": "Workload execution is allowed only on an ownership-verified SQL container created by this run.",
     "The development database name must be a non-system SQL identifier of at most 128 characters.": "The development database name must be a non-system SQL identifier of at most 128 characters.",
     "The named development database already exists. This activity only creates absent targets and will not take ownership of an existing database.": "The named development database already exists. This activity only creates absent targets and will not take ownership of an existing database.",
     "The named development database ownership marker does not match this runbook lease. The operation was refused.": "The named development database ownership marker does not match this runbook lease. The operation was refused.",

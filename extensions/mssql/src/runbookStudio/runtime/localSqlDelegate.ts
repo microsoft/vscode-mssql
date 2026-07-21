@@ -140,6 +140,20 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalSqlContainerLeaseResult>;
+    inspectWorkload(
+        filePath: string,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalWorkloadPreviewResult>;
+    runWorkload(
+        nodeId: string,
+        databaseRef: string,
+        workloadRef: string,
+        expectedWorkloadSha256: string,
+        repetitions: number,
+        timeoutSeconds: number,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalWorkloadRunResult>;
     disposeSandbox(
         nodeId: string,
         leaseRef: string,
@@ -285,6 +299,37 @@ export interface LocalSqlContainerCleanupResult extends LocalSandboxCleanupResul
     containerName: string;
 }
 
+export interface LocalWorkloadPreviewResult {
+    workloadRef: string;
+    fileName: string;
+    workloadSha256: string;
+    sourceByteCount: number;
+    batchCount: number;
+    mutating: boolean;
+    inspectedAtUtc: string;
+}
+
+export interface LocalWorkloadBatchResult {
+    iteration: number;
+    batch: number;
+    durationMs: number;
+    rowCount: number;
+    succeeded: boolean;
+    errorCode: string;
+}
+
+export interface LocalWorkloadRunResult {
+    effectId: string;
+    workloadSha256: string;
+    plannedBatchCount: number;
+    executedBatchCount: number;
+    failedBatchCount: number;
+    totalDurationMs: number;
+    repetitions: number;
+    results: LocalWorkloadBatchResult[];
+    completedAtUtc: string;
+}
+
 /** Expected host refusal with a stable, non-secret error classification. */
 export class LocalActivityError extends Error {
     constructor(
@@ -312,10 +357,12 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "sandbox.provision",
         "devdatabase.provision",
         "sql.container.provision",
+        "sql.workload.inspect",
         "dacpac.deploy.preview",
         "dacpac.deploy",
         "dacpac.deploy.dev",
         "dacpac.deploy.container",
+        "sql.workload.run",
         "sql.schema.apply",
         "schema.compare",
         "schema.compare.export",
@@ -354,6 +401,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.provisionDevelopmentDatabase(node, binding);
             case "sql.container.provision":
                 return this.provisionSqlContainer(node, binding);
+            case "sql.workload.inspect":
+                return this.inspectWorkload(node, binding);
             case "dacpac.deploy.preview":
                 return this.previewDacpacDeployment(node, binding);
             case "dacpac.deploy":
@@ -362,6 +411,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.deployDacpac(node, binding, true);
             case "dacpac.deploy.container":
                 return this.deployDacpac(node, binding, false, true);
+            case "sql.workload.run":
+                return this.runWorkload(node, binding);
             case "sql.schema.apply":
                 return this.applySchema(node, binding);
             case "schema.compare":
@@ -883,6 +934,162 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     databaseName: result.databaseName,
                     containerName: result.containerName,
                     port: result.port,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async inspectWorkload(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+        },
+    ): Promise<NodeExecution> {
+        const filePath = binding.resolveBind(node.inputs?.file);
+        if (typeof filePath !== "string" || filePath.trim().length === 0) {
+            return invalidBinding("file");
+        }
+        try {
+            const result = await this.operations.inspectWorkload(
+                filePath.trim(),
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "workload.batchCount": result.batchCount,
+                    "workload.sourceByteCount": result.sourceByteCount,
+                    "workload.mutating": result.mutating,
+                },
+                message: LocRunbookStudio.workloadInspected(result.fileName, result.batchCount),
+                output: {
+                    contract: "workloadPreview/1",
+                    scalars: {
+                        workloadRef: result.workloadRef,
+                        fileName: result.fileName,
+                        workloadSha256: result.workloadSha256,
+                        sourceByteCount: result.sourceByteCount,
+                        batchCount: result.batchCount,
+                        mutating: result.mutating,
+                        inspectedAtUtc: result.inspectedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    workloadRef: result.workloadRef,
+                    workloadSha256: result.workloadSha256,
+                    batchCount: result.batchCount,
+                    mutating: result.mutating,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async runWorkload(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        const workloadRef = binding.resolveBind(node.inputs?.workload);
+        const workloadDigest = binding.resolveBind(node.inputs?.workloadDigest);
+        const repetitionValue = binding.resolveBind(node.inputs?.repetitions);
+        const timeoutValue = binding.resolveBind(node.inputs?.timeoutSeconds);
+        const repetitions = repetitionValue === undefined ? 1 : repetitionValue;
+        const timeoutSeconds = timeoutValue === undefined ? 300 : timeoutValue;
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        if (typeof workloadRef !== "string" || workloadRef.trim().length === 0) {
+            return invalidBinding("workload");
+        }
+        if (typeof workloadDigest !== "string" || !/^[a-f0-9]{64}$/i.test(workloadDigest)) {
+            return invalidBinding("workloadDigest");
+        }
+        if (
+            typeof repetitions !== "number" ||
+            !Number.isSafeInteger(repetitions) ||
+            repetitions < 1 ||
+            repetitions > 100
+        ) {
+            return invalidBinding("repetitions");
+        }
+        if (
+            typeof timeoutSeconds !== "number" ||
+            !Number.isSafeInteger(timeoutSeconds) ||
+            timeoutSeconds < 1 ||
+            timeoutSeconds > 3600
+        ) {
+            return invalidBinding("timeoutSeconds");
+        }
+        try {
+            const result = await this.operations.runWorkload(
+                node.id,
+                databaseRef.trim(),
+                workloadRef.trim(),
+                workloadDigest.toLowerCase(),
+                repetitions,
+                timeoutSeconds,
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            const succeeded = result.failedBatchCount === 0;
+            return {
+                success: succeeded,
+                verdict: succeeded ? "pass" : "fail",
+                ...(!succeeded ? { errorCode: "RunbookStudio.WorkloadFailed" } : {}),
+                runMetrics: {
+                    "workload.plannedBatchCount": result.plannedBatchCount,
+                    "workload.executedBatchCount": result.executedBatchCount,
+                    "workload.failedBatchCount": result.failedBatchCount,
+                    "workload.totalDurationMs": result.totalDurationMs,
+                },
+                message: succeeded
+                    ? LocRunbookStudio.workloadCompleted(result.executedBatchCount)
+                    : LocRunbookStudio.workloadFailed(result.failedBatchCount),
+                output: {
+                    contract: "workloadResults/1",
+                    columns: [
+                        "iteration",
+                        "batch",
+                        "durationMs",
+                        "rowCount",
+                        "succeeded",
+                        "errorCode",
+                    ],
+                    rows: result.results.map((item) => [
+                        item.iteration,
+                        item.batch,
+                        item.durationMs,
+                        item.rowCount,
+                        item.succeeded,
+                        item.errorCode,
+                    ]),
+                    scalars: {
+                        effectId: result.effectId,
+                        workloadSha256: result.workloadSha256,
+                        plannedBatchCount: result.plannedBatchCount,
+                        executedBatchCount: result.executedBatchCount,
+                        failedBatchCount: result.failedBatchCount,
+                        totalDurationMs: result.totalDurationMs,
+                        repetitions: result.repetitions,
+                        completedAtUtc: result.completedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    succeeded,
+                    executedBatchCount: result.executedBatchCount,
+                    failedBatchCount: result.failedBatchCount,
+                    totalDurationMs: result.totalDurationMs,
                 },
             };
         } catch (error) {

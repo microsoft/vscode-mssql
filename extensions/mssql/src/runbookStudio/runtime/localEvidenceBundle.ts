@@ -170,14 +170,21 @@ function selectRequiredToolchainComponents(
                 break;
             case "dacpac.deploy.preview":
             case "dacpac.deploy":
+            case "dacpac.deploy.dev":
+            case "dacpac.deploy.container":
             case "dacpac.extract":
             case "schema.compare":
             case "schema.compare.export":
                 required.add("sqlToolsService");
                 required.add("dacFx");
                 break;
+            case "devdatabase.provision":
+            case "sql.schema.apply":
+            case "sql.container.provision":
+            case "sql.workload.run":
             case "sandbox.provision":
             case "sandbox.dispose":
+            case "sql.container.dispose":
             case "sqltest.run":
             case "tsqlt.run":
             case "sql.query.read":

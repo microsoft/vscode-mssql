@@ -234,6 +234,11 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         rollbackContract: "automatic",
         outputContract: "cleanupEvidence/1",
     },
+    "sql.workload.inspect": {
+        target: "workspace",
+        effect: "read",
+        outputContract: "workloadPreview/1",
+    },
     "xevent.session.start": {
         target: "sqlDatabase",
         effect: "mutate",
@@ -243,10 +248,10 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         outputContract: "xeventSessionLease/1",
     },
     "sql.workload.run": {
-        target: "sqlDatabase",
+        target: "ephemeralSqlDatabase",
         effect: "mutate",
         approvalRequired: true,
-        connectionRequirement: "required",
+        connectionRequirement: "provisioned",
         rollbackContract: "required",
         outputContract: "workloadResults/1",
     },
@@ -397,6 +402,11 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         label: "Dispose the local SQL container",
         description: "Remove the ownership-verified container and prove cleanup completed.",
     },
+    "sql.workload.inspect": {
+        label: "Inspect the SQL workload",
+        description:
+            "Snapshot and classify the explicitly selected workspace SQL file before approval.",
+    },
     "xevent.session.start": {
         label: "Start the XEvent capture",
         description:
@@ -486,6 +496,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "tsqlt.run",
         "sqltest.run",
         "xevent.session.start",
+        "sql.workload.inspect",
         "sql.workload.run",
         "xevent.session.stop",
         "xevent.xel.collect",
@@ -516,6 +527,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "tsqlt.run",
         "sqltest.run",
         "xevent.session.start",
+        "sql.workload.inspect",
         "sql.workload.run",
         "xevent.session.stop",
         "xevent.xel.collect",
@@ -534,6 +546,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "sql.query.read",
         "sql.container.provision",
         "xevent.session.start",
+        "sql.workload.inspect",
         "sql.workload.run",
         "xevent.session.stop",
         "xevent.xel.collect",
@@ -567,6 +580,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "sqltest.run",
         "sql.query.read",
         "xevent.session.start",
+        "sql.workload.inspect",
         "sql.workload.run",
         "xevent.session.stop",
         "xevent.xel.collect",
@@ -765,6 +779,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         requested.add("xevent.session.start");
     }
     if (requestsWorkload) {
+        requested.add("sql.workload.inspect");
         requested.add("sql.workload.run");
     }
     if (requestsXevent) {

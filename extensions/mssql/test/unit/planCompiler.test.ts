@@ -314,6 +314,100 @@ suite("planCompiler", () => {
         );
     });
 
+    test("an inspected workload compiles against the same owned SQL container", () => {
+        const intent =
+            "Provision a local SQL container, run workload.sql in it, and dispose the container.";
+        const classified = classifyRunbookIntent(intent);
+        const containerBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: {
+                ...base().source,
+                requirements: classified.requirements,
+            },
+        };
+        const proposal = {
+            name: "Disposable SQL workload",
+            parameters: [
+                { id: "containerName", label: "Container name", type: "string", required: true },
+                { id: "databaseName", label: "Database name", type: "string", required: true },
+                { id: "password", label: "SQL password", type: "secret", required: true },
+                { id: "workload", label: "Workload file", type: "string", required: true },
+            ],
+            entryNodeId: "approve-container",
+            nodes: [
+                { id: "approve-container", label: "Approve container", kind: "gate" },
+                {
+                    id: "container",
+                    label: "Provision SQL container",
+                    kind: "activity",
+                    activityKind: "sql.container.provision",
+                    inputs: {
+                        containerName: "$params.containerName",
+                        databaseName: "$params.databaseName",
+                        version: "2022",
+                        password: "$params.password",
+                    },
+                },
+                {
+                    id: "inspect",
+                    label: "Inspect workload",
+                    kind: "activity",
+                    activityKind: "sql.workload.inspect",
+                    inputs: { file: "$params.workload" },
+                },
+                { id: "approve-workload", label: "Approve workload", kind: "gate" },
+                {
+                    id: "run",
+                    label: "Run workload",
+                    kind: "activity",
+                    activityKind: "sql.workload.run",
+                    inputs: {
+                        database: "$nodes.container.connectionRef",
+                        workload: "$nodes.inspect.workloadRef",
+                        workloadDigest: "$nodes.inspect.workloadSha256",
+                        repetitions: 1,
+                        timeoutSeconds: 300,
+                    },
+                },
+                {
+                    id: "dispose",
+                    label: "Dispose SQL container",
+                    kind: "activity",
+                    activityKind: "sql.container.dispose",
+                    inputs: { database: "$nodes.container.connectionRef" },
+                },
+                { id: "report", label: "Summarize", kind: "report" },
+            ],
+            edges: [
+                { from: "approve-container", to: "container", when: "approved" },
+                { from: "approve-container", to: "report", when: "rejected" },
+                { from: "container", to: "inspect" },
+                { from: "inspect", to: "approve-workload" },
+                { from: "approve-workload", to: "run", when: "approved" },
+                { from: "approve-workload", to: "dispose", when: "rejected" },
+                { from: "run", to: "dispose" },
+                { from: "dispose", to: "report" },
+            ],
+        };
+
+        const result = parseCompiledProposal(JSON.stringify(proposal), containerBase, intent);
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+        expect(
+            result.artifact
+                .lock!.nodes.filter((node) => node.kind === "activity")
+                .map((node) => node.activityKind),
+        ).to.deep.equal([
+            "sql.container.provision",
+            "sql.workload.inspect",
+            "sql.workload.run",
+            "sql.container.dispose",
+        ]);
+    });
+
     test("post-generation family admission rejects a SQL substitute for Build", () => {
         const buildBase = { ...base(), family: "build" as const };
         const result = parseCompiledProposal(

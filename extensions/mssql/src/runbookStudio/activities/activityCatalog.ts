@@ -210,6 +210,31 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "sql.workload.inspect",
+        version: 1,
+        label: "Inspect trusted SQL workload",
+        description:
+            "Reads one workspace-contained .sql file, applies bounded SQLCMD/GO parsing and policy classification, and snapshots an immutable in-memory workload reference for approval.",
+        inputs: [
+            {
+                name: "file",
+                kind: "bind",
+                required: true,
+                description: "Explicit workspace-contained .sql workload file",
+            },
+        ],
+        outputContract: "workloadPreview/1",
+        producedValues: ["workloadRef", "workloadSha256", "batchCount", "mutating"],
+        target: { kind: "workspace", workspace: true },
+        blastRadius: {
+            resource: "workspaceFiles",
+            operation: "read",
+            targetEnvironment: "local",
+            reversibility: "noEffect",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "sql.container.provision",
         version: 1,
         label: "Provision owned local SQL container",
@@ -418,6 +443,66 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         blastRadius: {
             resource: "databaseSchema",
             operation: "modify",
+            targetEnvironment: "ephemeral",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "sql.workload.run",
+        version: 1,
+        label: "Run approved SQL workload",
+        description:
+            "Executes the exact inspected workload snapshot sequentially against a same-run owned SQL container with bounded repetitions, timeout, cancellation, and typed measurements.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to a sql.container.provision connectionRef",
+            },
+            {
+                name: "workload",
+                kind: "bind",
+                required: true,
+                description: "Bind to sql.workload.inspect workloadRef",
+            },
+            {
+                name: "workloadDigest",
+                kind: "bind",
+                required: true,
+                description: "Bind to sql.workload.inspect workloadSha256",
+            },
+            {
+                name: "repetitions",
+                kind: "bind",
+                required: false,
+                description: "Whole-workload repetitions from 1 to 100 (default 1)",
+            },
+            {
+                name: "timeoutSeconds",
+                kind: "bind",
+                required: false,
+                description: "Per-batch timeout from 1 to 3600 seconds (default 300)",
+            },
+        ],
+        outputContract: "workloadResults/1",
+        outputSchema: {
+            fields: [
+                { name: "iteration", valueType: "number", roles: ["category"] },
+                { name: "batch", valueType: "number", roles: ["category"] },
+                { name: "durationMs", valueType: "number", roles: ["measure"] },
+                { name: "rowCount", valueType: "number", roles: ["measure"] },
+                { name: "succeeded", valueType: "boolean" },
+                { name: "errorCode", valueType: "string" },
+            ],
+        },
+        producedValues: ["succeeded", "executedBatchCount", "failedBatchCount", "totalDurationMs"],
+        approvalRequired: true,
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseData",
+            operation: "execute",
             targetEnvironment: "ephemeral",
             reversibility: "autoReversible",
             breadth: "bounded",
@@ -805,6 +890,7 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
             if (descriptor.target.kind === "ephemeralSqlDatabase") {
                 const containerActivity =
                     descriptor.kind === "dacpac.deploy.container" ||
+                    descriptor.kind === "sql.workload.run" ||
                     descriptor.kind === "sql.container.dispose";
                 const producerKind = containerActivity
                     ? "sql.container.provision"
@@ -826,6 +912,11 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
             ) {
                 issues.push(
                     `node '${node.id}' must bind its development target to an upstream devdatabase.provision connectionRef`,
+                );
+            }
+            if (descriptor.kind === "sql.workload.run" && !isWorkloadInspectionOutput(lock, node)) {
+                issues.push(
+                    `node '${node.id}' must bind workload and workloadDigest to the same upstream sql.workload.inspect node`,
                 );
             }
         }
@@ -862,6 +953,37 @@ function isOwnedDatabaseOutput(
         producer.activityKind !== producerKind ||
         binding.output !== "connectionRef"
     ) {
+        return false;
+    }
+    const visited = new Set<string>([producer.id]);
+    const pending = [producer.id];
+    while (pending.length > 0) {
+        const current = pending.shift()!;
+        for (const edge of lock.edges.filter((candidate) => candidate.from === current)) {
+            if (edge.to === node.id) {
+                return true;
+            }
+            if (!visited.has(edge.to)) {
+                visited.add(edge.to);
+                pending.push(edge.to);
+            }
+        }
+    }
+    return false;
+}
+
+function isWorkloadInspectionOutput(lock: CompiledRunbookLock, node: RunbookPlanNode): boolean {
+    const workload = /^\$nodes\.([A-Za-z0-9_-]+)\.workloadRef$/.exec(
+        String(node.inputs?.workload ?? ""),
+    );
+    const digest = /^\$nodes\.([A-Za-z0-9_-]+)\.workloadSha256$/.exec(
+        String(node.inputs?.workloadDigest ?? ""),
+    );
+    if (!workload || workload[1] !== digest?.[1]) {
+        return false;
+    }
+    const producer = lock.nodes.find((candidate) => candidate.id === workload[1]);
+    if (producer?.kind !== "activity" || producer.activityKind !== "sql.workload.inspect") {
         return false;
     }
     const visited = new Set<string>([producer.id]);

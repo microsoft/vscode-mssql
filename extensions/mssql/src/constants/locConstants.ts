@@ -440,6 +440,36 @@ export class RunbookStudio {
     public static sqlContainerOwnershipMismatch = l10n.t(
         "The SQL container owner labels do not match this runbook lease. Automatic use or cleanup was refused.",
     );
+    public static workloadInspected = (fileName: string, batchCount: number) =>
+        l10n.t({
+            message: "Inspected SQL workload '{0}' with {1} bounded batch(es).",
+            args: [fileName, batchCount],
+            comment: ["{0} is a file name", "{1} is a SQL batch count"],
+        });
+    public static workloadCompleted = (batchCount: number) =>
+        l10n.t({
+            message: "SQL workload completed {0} batch execution(s).",
+            args: [batchCount],
+            comment: ["{0} is an executed SQL batch count"],
+        });
+    public static workloadFailed = (failureCount: number) =>
+        l10n.t({
+            message: "SQL workload completed with {0} failed batch execution(s).",
+            args: [failureCount],
+            comment: ["{0} is a failed SQL batch count"],
+        });
+    public static workloadPathInvalid = l10n.t(
+        "The workload must be a real, workspace-contained .sql file within the size limit.",
+    );
+    public static workloadPolicyDenied = l10n.t(
+        "The workload contains unsupported SQLCMD directives or server, external, or cross-database effects.",
+    );
+    public static workloadPreviewChanged = l10n.t(
+        "The inspected workload snapshot or digest no longer matches the approved workload.",
+    );
+    public static workloadOwnedContainerRequired = l10n.t(
+        "Workload execution is allowed only on an ownership-verified SQL container created by this run.",
+    );
     public static developmentDatabaseNameInvalid = l10n.t(
         "The development database name must be a non-system SQL identifier of at most 128 characters.",
     );

@@ -4730,6 +4730,11 @@
     <trans-unit id="++CODE++8aa318eb7eaa233aada0d332bec14cb6a631c8fda25deb2c7d4f402888f1b1e2">
       <source xml:lang="en">Insert</source>
     </trans-unit>
+    <trans-unit id="++CODE++afbd0d35e265cf578d71f54d1148688e20ffea11dbf0ebfe917c01d1ea3b81d8">
+      <source xml:lang="en">Inspected SQL workload &apos;{0}&apos; with {1} bounded batch(es).</source>
+      <note>{0} is a file name
+{1} is a SQL batch count</note>
+    </trans-unit>
     <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
       <source xml:lang="en">Install Docker</source>
     </trans-unit>
@@ -7707,6 +7712,14 @@
     <trans-unit id="++CODE++325085c911ac58a0560d7855e01de1a0960c9c8b9202bdce63d4ca082ec3bb01">
       <source xml:lang="en">SQL test execution was cancelled.</source>
     </trans-unit>
+    <trans-unit id="++CODE++a4b51684ca40d4e67c99065ed0f9a6dea67df6c9bba45945d8d93d8ebeae770f">
+      <source xml:lang="en">SQL workload completed with {0} failed batch execution(s).</source>
+      <note>{0} is a failed SQL batch count</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2cd3d3e18663af4dad709977ea7018e07ade040a58d090340b4b02074ba2b2eb">
+      <source xml:lang="en">SQL workload completed {0} batch execution(s).</source>
+      <note>{0} is an executed SQL batch count</note>
+    </trans-unit>
     <trans-unit id="++CODE++dd0804b065a533eb0198e076460421ada3d861683b408ef39daea67e9aad46a6">
       <source xml:lang="en">SQLAlchemy</source>
     </trans-unit>
@@ -9273,6 +9286,9 @@
       <source xml:lang="en">The following workspace or workspace folder connections are missing the &apos;id&apos; property and are being ignored.  Please manually add the &apos;id&apos; property to the connection in order to use it. &#10;&#10; {0}</source>
       <note>{0} is the list of display names for the connections that have been ignored</note>
     </trans-unit>
+    <trans-unit id="++CODE++aed3fafc99a9382a5cbb32932d5003a679910a57cfc0701075fde3f325c15345">
+      <source xml:lang="en">The inspected workload snapshot or digest no longer matches the approved workload.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0f98888ce39572ae27e642dd46baba8dbf179c6b3c42c522cde8ad1f43323b11">
       <source xml:lang="en">The language model did not return any output.</source>
     </trans-unit>
@@ -9428,6 +9444,12 @@
     </trans-unit>
     <trans-unit id="++CODE++d7f9cfdbfc45384b7521ed4b8082d476a2d3cae5cbb8c57eec64003513cacbf2">
       <source xml:lang="en">The table which contains the primary or unique key column.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d1923d1b57c87aa2a745137d4cccbce05538a70c4da772a1d55622547f1c4f76">
+      <source xml:lang="en">The workload contains unsupported SQLCMD directives or server, external, or cross-database effects.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++26749adcce65a03054eac79c2828e035d0e29a99bbd6c5e0753cc6aad0222e07">
+      <source xml:lang="en">The workload must be a real, workspace-contained .sql file within the size limit.</source>
     </trans-unit>
     <trans-unit id="++CODE++b9742c3b5b5914f9ac72f6be945f6f52a6ce05ffcd743f8cf4373e9fa4400a25">
       <source xml:lang="en">The {0} service has crashed. Details: {1}</source>
@@ -10183,6 +10205,9 @@
     </trans-unit>
     <trans-unit id="++CODE++75d260f06f2fef7fd13291cef1ee4e79411091bcf5615c2f5abddab7771c3d40">
       <source xml:lang="en">Working…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++63a3f492b006333aa8f90a3f2843a8eadb57f95e32c13d818ad7b9d57dc59461">
+      <source xml:lang="en">Workload execution is allowed only on an ownership-verified SQL container created by this run.</source>
     </trans-unit>
     <trans-unit id="++CODE++4c10fe506dfba55de4429a653b9f4b726797e9f52677db4e54d590165b8767e9">
       <source xml:lang="en">Works with VS Code/SSMS and uses Microsoft Entra authentication and Fabric access controls.</source>
