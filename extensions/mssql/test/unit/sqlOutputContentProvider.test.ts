@@ -10,6 +10,7 @@ import {
 import StatusView from "../../src/views/statusView";
 import * as stubs from "./stubs";
 import * as Constants from "../../src/constants/constants";
+import * as LocConstants from "../../src/constants/locConstants";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import * as chai from "chai";
@@ -459,6 +460,62 @@ suite("SqlOutputProvider Tests using mocks", () => {
         await contentProvider.runQuery(statusViewInstance, "test_uri", undefined, "test_title");
         testQueryRunner = contentProvider.getQueryRunner("test_uri");
         expect(testQueryRunner).to.not.be.undefined;
+    });
+
+    test("runQueryString dispatches SQL through the editor's result pipeline", async () => {
+        const uri = "test_uri";
+        const query = "select * from [dbo].[Orders]";
+        const runQueryString = sandbox.stub().resolves();
+        const mockQueryRunner = {
+            uri,
+            runQueryString,
+            onComplete: new vscode.EventEmitter<void>().event,
+        } as unknown as QueryRunner;
+        sandbox
+            .stub(contentProvider as any, "initializeRunnerAndWebviewState")
+            .resolves(mockQueryRunner);
+
+        await contentProvider.runQueryString(statusViewInstance, uri, query, "Quick Query");
+
+        expect(runQueryString).to.have.been.calledWith(query, undefined);
+    });
+
+    test("Quick Query batch messages do not link to unrelated editor text", async () => {
+        const uri = "test_uri";
+        sandbox.stub(QueryRunner.prototype, "runQueryString").callsFake(async function () {
+            this.setupQueryExecution(undefined);
+            (this as unknown as { _executionSource: string })._executionSource = "quickQuery";
+            (this as unknown as { _startEmitter: vscode.EventEmitter<string> })._startEmitter.fire(
+                this.uri,
+            );
+        });
+
+        await contentProvider.runQueryString(statusViewInstance, uri, "select 1", "Quick Query");
+        const runner = contentProvider.getQueryRunner(uri);
+        runner.handleBatchStart({
+            ownerUri: uri,
+            batchSummary: {
+                hasError: false,
+                id: 0,
+                selection: {
+                    startLine: 0,
+                    startColumn: 0,
+                    endLine: 0,
+                    endColumn: 8,
+                },
+                resultSetSummaries: [],
+                executionElapsed: undefined,
+                executionEnd: undefined,
+                executionStart: new Date().toISOString(),
+            },
+        });
+
+        const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+        const batchMessage = state.messages.find(
+            (message) => message.message === LocConstants.runQueryBatchStartMessage,
+        );
+        expect(batchMessage).not.to.be.undefined;
+        expect(batchMessage.link).to.be.undefined;
     });
 
     test("runCurrentStatement calls runStatement with correct options when actual plan is enabled", async () => {

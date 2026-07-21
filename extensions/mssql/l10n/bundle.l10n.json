@@ -29,6 +29,7 @@
         "message": "Quick Query slot must be between 1 and {0}.",
         "comment": ["{0} is the maximum Quick Query slot number"]
     },
+    "This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.": "This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
     "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
     "Please select a database node in Object Explorer to rename.": "Please select a database node in Object Explorer to rename.",
@@ -2436,7 +2437,7 @@
     "Configuration sections": "Configuration sections",
     "Configure Quick Query and Extension shortcuts.": "Configure Quick Query and Extension shortcuts.",
     "Quick Queries": "Quick Queries",
-    "Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.": "Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.",
+    "Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.": "Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.",
     "Quick Queries keyboard shortcuts are managed by Visual Studio Code.": "Quick Queries keyboard shortcuts are managed by Visual Studio Code.",
     "Open Keyboard Shortcuts editor.": "Open Keyboard Shortcuts editor.",
     "Extension Shortcuts": "Extension Shortcuts",
@@ -2484,7 +2485,6 @@
     "Query": "Query",
     "Shortcut": "Shortcut",
     "Keybinding": "Keybinding",
-    "Auto-execute": "Auto-execute",
     "Clear Quick Query": "Clear Quick Query",
     "Clear this Quick Query": "Clear this Quick Query",
     "Show All": "Show All",
@@ -2501,6 +2501,8 @@
         "message": "Query editor for {0}",
         "comment": ["{0} is the Quick Query shortcut name"]
     },
+    "Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.": "Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.",
+    "Selected query-editor text": "Selected query-editor text",
     "No shortcut": "No shortcut",
     "No query set": "No query set",
     "Search extension shortcut": "Search extension shortcut",
