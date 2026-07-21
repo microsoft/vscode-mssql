@@ -595,6 +595,9 @@
     <trans-unit id="++CODE++f0762c4f3bfcd695e32e7fcd087dc2a60bc26cda108b4fc0a643445b397168c7">
       <source xml:lang="en">Are you sure?</source>
     </trans-unit>
+    <trans-unit id="++CODE++520bb00f7cbc8c0ef0cd48e03bc8cc3d4e9463d601c53cce9a257ed432719160">
+      <source xml:lang="en">Artifact unavailable</source>
+    </trans-unit>
     <trans-unit id="++CODE++77184595bde3befc7f5a20efc97caea43f4858e4c97cd2ee406af2c61db3266c">
       <source xml:lang="en">Ascending</source>
     </trans-unit>
@@ -2349,6 +2352,9 @@
     <trans-unit id="++CODE++edb45df4d9dc81d0ba51ac48d83da35e32f4a62efc89a3d227df9e1794fee394">
       <source xml:lang="en">DAB container logs</source>
     </trans-unit>
+    <trans-unit id="++CODE++1ad84ef915b4c3e3fc2417e5c7a091d9797466499814cc9f90b0c282aa5fdf0b">
+      <source xml:lang="en">DACPAC</source>
+    </trans-unit>
     <trans-unit id="++CODE++57f6ed7d8f99dd1173c17a44cab284c33ba8910b911fee633f1bda055e40ea7d">
       <source xml:lang="en">DACPAC artifact</source>
     </trans-unit>
@@ -4100,6 +4106,9 @@
     <trans-unit id="++CODE++e0db2de52edcb8fa8a4b30aba49e39c166fd2a76b92998edc8101d35efadc324">
       <source xml:lang="en">Files of Type</source>
     </trans-unit>
+    <trans-unit id="++CODE++ce7d19b63066186747aee762f039935dfb1755bb7289fd15081b7f2aef153f6e">
+      <source xml:lang="en">Files retained by this run. Availability and actions are verified by the extension host.</source>
+    </trans-unit>
     <trans-unit id="++CODE++638e249f4a15ebb84957da130701d138a6e06d88dceeaa2e6dcd91db70cc1381">
       <source xml:lang="en">Filter</source>
     </trans-unit>
@@ -5448,6 +5457,9 @@
       <source xml:lang="en">Messages ({0})</source>
       <note>{0} is the keyboard shortcut for the messages tab</note>
     </trans-unit>
+    <trans-unit id="++CODE++aa4b4ed647813738cb7d5be7e2648e05fcb72e8f50f75e234c2fc709903fc0eb">
+      <source xml:lang="en">Metadata truncated</source>
+    </trans-unit>
     <trans-unit id="++CODE++2d275a74912cca2e02e6d41f9cae3a75ceef3ed0ef734eff3710e10eb7112228">
       <source xml:lang="en">Metric</source>
     </trans-unit>
@@ -6785,6 +6797,10 @@
     <trans-unit id="++CODE++5271d6ce4f647db55fc114096f1dbb3b2cc6287df8fd299c3635574761ea9fb7">
       <source xml:lang="en">Processing include or exclude all differences operation.</source>
     </trans-unit>
+    <trans-unit id="++CODE++0499b9e497b3ec8ee5ae3d564d75b576bc760d4db65d9978e879db7eaab31bc0">
+      <source xml:lang="en">Produced by {0}</source>
+      <note>{0} is the plan step label that produced a retained artifact</note>
+    </trans-unit>
     <trans-unit id="++CODE++a423b47777783386516c79baa19b0dfcd12cb40e4fba79348ad14ab0169402cd">
       <source xml:lang="en">Profile Name</source>
     </trans-unit>
@@ -7483,6 +7499,9 @@
     <trans-unit id="++CODE++e81f5bea731c885314717e2bb8b372e62ad5b6cdc013247f414f353a0258400e">
       <source xml:lang="en">Run artifact copy exported.</source>
     </trans-unit>
+    <trans-unit id="++CODE++bf81b822698d47f6f2afb018b931b7572272d6eb7d33ec99ab3491f53c737191">
+      <source xml:lang="en">Run artifacts</source>
+    </trans-unit>
     <trans-unit id="++CODE++f04e7b6bb668a98846ee8937309f07e4201f217a07d17d159d1a667284a5be7b">
       <source xml:lang="en">Run comparison</source>
     </trans-unit>
@@ -7936,6 +7955,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fb2d6df34824858331435a647bfed71af76df53c6b1d00c0293d1f2924f5c736">
       <source xml:lang="en">Schema changes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8bc808f1f70d013a6a5ed031827be14c0d70e8494a3456401df1766da2cd57e8">
+      <source xml:lang="en">Schema comparison report</source>
     </trans-unit>
     <trans-unit id="++CODE++33947359fcdacf95ea0b35c3f24a35f28ce24c5017c991c858f10a402c50eb41">
       <source xml:lang="en">Schema comparison summary</source>
@@ -10257,6 +10279,9 @@
     <trans-unit id="++CODE++e288577fddfc0fca255b96b887c869892311ba4f7ba0ecab34268b08e08d1ad3">
       <source xml:lang="en">Write, optimize, and troubleshoot SQL queries with AI-recommended improvements</source>
     </trans-unit>
+    <trans-unit id="++CODE++21ab9180f803712d7873020f60d6507099e79134eb0388029869cdbbd72e1cad">
+      <source xml:lang="en">XEvent data</source>
+    </trans-unit>
     <trans-unit id="++CODE++6f6de37fb2977eca0337685a20e2b2b7312ed4c95f08dde49810954e88511372">
       <source xml:lang="en">Y-axis baseline</source>
     </trans-unit>
@@ -10637,6 +10662,10 @@
       <source xml:lang="en">{0} action for {1}</source>
       <note>{0} is the action name (Create, Read, etc.)
 {1} is the entity name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++471b94a3f26b63661484e4ecedad58f084f76049cd8668bdfd673aae9d021e29">
+      <source xml:lang="en">{0} additional artifacts are omitted from this bounded list.</source>
+      <note>{0} is the number of additional retained run artifacts</note>
     </trans-unit>
     <trans-unit id="++CODE++ddc7424149de22af181995a0c5ae6a24cecfc07dd8fa787bd1fc46f7dddcfc9c">
       <source xml:lang="en">{0} additional operation groups are available in the retained report.</source>

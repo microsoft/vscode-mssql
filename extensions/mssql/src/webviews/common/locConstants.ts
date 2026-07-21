@@ -4108,6 +4108,27 @@ export class LocConstants {
             revealArtifact: l10n.t("Reveal artifact"),
             exportArtifactCopy: l10n.t("Export copy"),
             artifactActionInProgress: l10n.t("Working…"),
+            runArtifacts: l10n.t("Run artifacts"),
+            runArtifactsDetail: l10n.t(
+                "Files retained by this run. Availability and actions are verified by the extension host.",
+            ),
+            artifactProducedBy: (nodeLabel: string) =>
+                l10n.t({
+                    message: "Produced by {0}",
+                    args: [nodeLabel],
+                    comment: ["{0} is the plan step label that produced a retained artifact"],
+                }),
+            artifactUnavailable: l10n.t("Artifact unavailable"),
+            artifactMetadataTruncated: l10n.t("Metadata truncated"),
+            dacpacArtifactType: l10n.t("DACPAC"),
+            schemaComparisonArtifactType: l10n.t("Schema comparison report"),
+            xelArtifactType: l10n.t("XEvent data"),
+            additionalArtifactsOmitted: (count: number) =>
+                l10n.t({
+                    message: "{0} additional artifacts are omitted from this bounded list.",
+                    args: [count],
+                    comment: ["{0} is the number of additional retained run artifacts"],
+                }),
             schemaDiffSummary: l10n.t("Schema comparison summary"),
             schemaChanges: l10n.t("Schema changes"),
             schemaAlerts: l10n.t("Deployment alerts"),

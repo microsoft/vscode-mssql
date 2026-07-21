@@ -365,6 +365,45 @@
     font-size: 14px;
 }
 
+.rbs-result-artifacts {
+    display: grid;
+    gap: 8px;
+    padding: 10px;
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 5px;
+    background: var(--vscode-editorWidget-background, transparent);
+}
+
+.rbs-result-artifacts-head,
+.rbs-result-artifact {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rbs-result-artifacts-head > :first-child,
+.rbs-result-artifact-identity {
+    display: grid;
+    gap: 2px;
+    min-width: min(220px, 100%);
+    flex: 1 1 260px;
+}
+
+.rbs-result-artifact-list {
+    display: grid;
+    gap: 6px;
+}
+
+.rbs-result-artifact {
+    padding: 7px 8px;
+    border-left: 2px solid var(--vscode-panel-border);
+}
+
+.rbs-result-artifact strong {
+    overflow-wrap: anywhere;
+}
+
 .rbs-history-summary {
     display: flex;
     align-items: baseline;

@@ -52,6 +52,7 @@ import { PlannerConsoleTurn, PlannerFeedEntry, useRbs } from "./state";
 import { displayOrder, PlanStepper } from "./planStepper";
 import { PlanGraphView } from "./graphView";
 import { ResolvedWidgetView } from "./widgets";
+import { ResultArtifactsPanel } from "./resultArtifactsPanel";
 import { compareRunSnapshots, RunComparisonValue } from "./runComparison";
 import { buildRunOutcomeSummary, RunEvidenceState } from "./runOutcomeSummary";
 import { presentRunHistoryEntry } from "./runHistoryPresentation";
@@ -2713,6 +2714,7 @@ function ResultsPage() {
                     <EvidenceExportControl />
                 </div>
                 <RunOutcomeSummaryPanel run={state.run} />
+                <ResultArtifactsPanel run={state.run} planNodes={state.artifact?.nodes} />
                 {comparisonOpen ? <RunComparisonPanel current={state.run} /> : null}
                 <EmptyState title={loc.noOutputsTitle} detail={loc.noOutputsDetail} />
             </div>
@@ -2755,6 +2757,7 @@ function ResultsPage() {
                 <EvidenceExportControl />
             </div>
             <RunOutcomeSummaryPanel run={state.run} />
+            <ResultArtifactsPanel run={state.run} planNodes={state.artifact?.nodes} />
             {comparisonOpen ? <RunComparisonPanel current={state.run} /> : null}
             <PresentationDraftBanner draft={layoutDraft} />
             <div className={`rbs-results-compose ${outputsOpen ? "with-drawer" : ""}`}>

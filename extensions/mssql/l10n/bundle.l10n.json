@@ -5170,6 +5170,21 @@
     "Reveal artifact": "Reveal artifact",
     "Export copy": "Export copy",
     "Working…": "Working…",
+    "Run artifacts": "Run artifacts",
+    "Files retained by this run. Availability and actions are verified by the extension host.": "Files retained by this run. Availability and actions are verified by the extension host.",
+    "Produced by {0}/{0} is the plan step label that produced a retained artifact": {
+        "message": "Produced by {0}",
+        "comment": ["{0} is the plan step label that produced a retained artifact"]
+    },
+    "Artifact unavailable": "Artifact unavailable",
+    "Metadata truncated": "Metadata truncated",
+    "DACPAC": "DACPAC",
+    "Schema comparison report": "Schema comparison report",
+    "XEvent data": "XEvent data",
+    "{0} additional artifacts are omitted from this bounded list./{0} is the number of additional retained run artifacts": {
+        "message": "{0} additional artifacts are omitted from this bounded list.",
+        "comment": ["{0} is the number of additional retained run artifacts"]
+    },
     "Schema comparison summary": "Schema comparison summary",
     "Schema changes": "Schema changes",
     "Deployment alerts": "Deployment alerts",

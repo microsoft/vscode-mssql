@@ -32,6 +32,7 @@ import {
 } from "../../../sharedInterfaces/runbookStudio";
 import { projectDacpacSchemaDiff } from "../../../runbookStudio/presentation/schemaDiffProjection";
 import { useRbs } from "./state";
+import { isResultFileArtifactContract } from "./resultArtifacts";
 
 const PAGE_ROWS = 100;
 /** Bar chart shows at most this many rows (with an honest truncation note). */
@@ -68,8 +69,6 @@ interface FetchedPage {
     errorCode?: string;
 }
 
-const FILE_ARTIFACT_CONTRACTS = new Set(["dacpacArtifact/1", "schemaDiff/1", "xelArtifact/1"]);
-
 function OutputArtifactActions({ widget }: { widget: ResolvedWidget }) {
     const { rpc } = useRbs();
     const loc = locConstants.runbookStudio;
@@ -78,7 +77,7 @@ function OutputArtifactActions({ widget }: { widget: ResolvedWidget }) {
         widget.handleId &&
         !widget.derivedSourceId &&
         widget.contract &&
-        FILE_ARTIFACT_CONTRACTS.has(widget.contract)
+        isResultFileArtifactContract(widget.contract)
             ? widget.handleId
             : undefined;
     const [artifact, setArtifact] = useState<{ handleId: string; fileName: string } | undefined>();
