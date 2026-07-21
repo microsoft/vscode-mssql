@@ -72,6 +72,7 @@ export interface LocalSqlOperations {
     extractDacpac(
         nodeId: string,
         databaseRef: string,
+        databaseName: string,
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalDacpacExtractionResult>;
@@ -664,10 +665,15 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
             return invalidBinding("database");
         }
+        const databaseName = binding.resolveBind(node.inputs?.databaseName);
+        if (typeof databaseName !== "string" || databaseName.trim().length === 0) {
+            return invalidBinding("databaseName");
+        }
         try {
             const result = await this.operations.extractDacpac(
                 node.id,
                 databaseRef.trim(),
+                databaseName.trim(),
                 binding.invocation,
                 binding.isCancellationRequested,
             );

@@ -41,6 +41,7 @@ import {
     parseRunbookArtifact,
 } from "../runbookArtifact";
 import { emitRunbookEvent, metaField, RunbookOperationContext } from "../runbookDiag";
+import { validateTargetBindings } from "../targetBindings";
 
 // ---------------------------------------------------------------------------
 // Pure parsing/validation (unit-tested without vscode)
@@ -151,6 +152,15 @@ export function parseCompiledProposal(
     const familyIssues = validateCompiledFamilyContract(candidate);
     if (familyIssues.length > 0) {
         return { ok: false, detail: familyIssues.join("; ") };
+    }
+    // Bound values are intentionally unavailable while authoring, but all
+    // target structure must already agree with both catalog and source
+    // manifest. Do not defer a model-invented target to run admission.
+    const targetIssues = validateTargetBindings(structural.artifact, {}).filter(
+        (issue) => issue.kind !== "valueMissing",
+    );
+    if (targetIssues.length > 0) {
+        return { ok: false, detail: targetIssues.map((issue) => issue.detail).join("; ") };
     }
     return { ok: true, artifact: structural.artifact };
 }

@@ -153,6 +153,7 @@ import {
     buildLocalDeploymentPreviewResult,
     discoverLocalSqlTests,
     inspectLocalWorkspace,
+    isValidDacpacSourceDatabaseName,
     verifyLocalDacpacArtifact,
 } from "./runtime/localDeveloperOperations";
 import {
@@ -2309,8 +2310,14 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     runTsqlt: (nodeId, databaseRef, selection, invocation, cancelled) =>
                         this.runLocalTsqlt(nodeId, databaseRef, selection, invocation, cancelled),
                     buildDacpac: buildLocalDacpac,
-                    extractDacpac: (nodeId, databaseRef, invocation, cancelled) =>
-                        this.extractLocalDacpac(nodeId, databaseRef, invocation, cancelled),
+                    extractDacpac: (nodeId, databaseRef, databaseName, invocation, cancelled) =>
+                        this.extractLocalDacpac(
+                            nodeId,
+                            databaseRef,
+                            databaseName,
+                            invocation,
+                            cancelled,
+                        ),
                     provisionSandbox: (nodeId, baseConnectionRef, invocation, cancelled) =>
                         this.provisionLocalSandbox(
                             nodeId,
@@ -5545,6 +5552,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private async extractLocalDacpac(
         nodeId: string,
         databaseRef: string,
+        sourceDatabaseName: string,
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalDacpacExtractionResult> {
@@ -5563,13 +5571,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             );
         }
         const resolved = await this.resolveRunbookConnection(databaseRef);
-        const databaseName = resolved.targetDatabase.trim();
-        if (!databaseName) {
+        const databaseName = sourceDatabaseName.trim();
+        if (!isValidDacpacSourceDatabaseName(databaseName)) {
             throw new LocalActivityError(
                 LocRunbookStudio.dacpacExtractDatabaseRequired,
                 "RunbookStudio.BindingInvalid",
             );
         }
+        const sourceProfile = {
+            ...resolved.profile,
+            database: databaseName,
+        } as mssql.IConnectionInfo;
         const artifactPath = await this.localManagedArtifactPath(
             invocation,
             nodeId,
@@ -5593,7 +5605,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         let connected = false;
         let complete = false;
         try {
-            connected = await connectionManager.connect(ownerUri, resolved.profile, {
+            connected = await connectionManager.connect(ownerUri, sourceProfile, {
                 connectionSource: "runbookStudio",
             });
             if (!connected) {

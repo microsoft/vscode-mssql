@@ -10,6 +10,7 @@ import {
     buildProbeLocalDevelopmentDatabaseSql,
     effectIdFromLocalDevelopmentDatabaseLeaseRef,
     isValidLocalDevelopmentDatabaseName,
+    localDevelopmentDatabaseOwnershipPropertyName,
     localDevelopmentDatabaseLeaseRef,
 } from "../../src/runbookStudio/runtime/localDevelopmentDatabaseOperations";
 
@@ -43,9 +44,12 @@ suite("localDevelopmentDatabaseOperations", () => {
         const probe = buildProbeLocalDevelopmentDatabaseSql("WWI_2");
 
         expect(create).to.include("CREATE DATABASE [WWI_2]");
-        expect(create).to.include("RunbookStudioDevelopmentLeaseId");
+        expect(create).to.include(localDevelopmentDatabaseOwnershipPropertyName("WWI_2"));
+        expect(create).not.to.include("[WWI_2].sys.sp_addextendedproperty");
         expect(create).to.include(effectId);
         expect(probe).to.include("DB_ID(N'WWI_2')");
+        expect(probe).to.include("master.sys.extended_properties");
+        // Old in-target leases remain readable for guarded recovery.
         expect(probe).to.include("[WWI_2].sys.extended_properties");
     });
 
@@ -57,8 +61,19 @@ suite("localDevelopmentDatabaseOperations", () => {
         expect(markerCheck).to.be.greaterThan(-1);
         expect(drop).to.be.greaterThan(markerCheck);
         expect(sql).to.include(effectId);
+        expect(sql).to.include("AND NOT EXISTS (SELECT 1 FROM master.sys.extended_properties");
+        expect(sql).to.include("ELSE IF EXISTS");
+        expect(sql.match(/sp_dropextendedproperty/g)).to.have.length(2);
         expect(() => buildDropLocalDevelopmentDatabaseSql("master", effectId)).to.throw(
             "invalid local development database name",
         );
+    });
+
+    test("derives a bounded target-specific marker outside the deployed database", () => {
+        const property = localDevelopmentDatabaseOwnershipPropertyName("WWI_2");
+
+        expect(property).to.match(/^RunbookStudioDevelopmentLease_[a-f0-9]{64}$/);
+        expect(property).to.have.length.lessThan(129);
+        expect(localDevelopmentDatabaseOwnershipPropertyName("wwi_2")).to.equal(property);
     });
 });

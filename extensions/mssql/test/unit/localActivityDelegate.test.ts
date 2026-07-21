@@ -491,10 +491,12 @@ suite("Runbook Studio local activity delegate", () => {
 
     test("dacpacExtractionDelegate emits a reusable hashed artifact", async () => {
         let requestedDatabase = "";
+        let requestedDatabaseName = "";
         const delegate = new LocalSqlActivityDelegate(
             operations({
-                extractDacpac: async (_nodeId, databaseRef) => {
+                extractDacpac: async (_nodeId, databaseRef, databaseName) => {
                     requestedDatabase = databaseRef;
+                    requestedDatabaseName = databaseName;
                     return {
                         databaseName: "WideWorldImporters",
                         operationId: "extract-op",
@@ -508,11 +510,15 @@ suite("Runbook Studio local activity delegate", () => {
         );
 
         const result = await delegate.executeActivity(
-            activity("dacpac.extract", { database: "$params.source" }),
+            activity("dacpac.extract", {
+                database: "$params.source",
+                databaseName: "WideWorldImporters",
+            }),
             binding((value) => (value === "$params.source" ? " source-profile " : value)),
         );
 
         expect(requestedDatabase).to.equal("source-profile");
+        expect(requestedDatabaseName).to.equal("WideWorldImporters");
         expect(result?.success).to.equal(true);
         expect(result?.output?.contract).to.equal("dacpacArtifact/1");
         expect(result?.output?.scalars).to.deep.include({

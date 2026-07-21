@@ -458,4 +458,29 @@ suite("runbook capability preflight", () => {
             "database.schema.inventory",
         ]);
     });
+
+    test("recognizes the authored extract typo and dump vocabulary from the UI repro", () => {
+        const classified = classifyRunbookIntent(
+            "Exact WideWorldImporter to a dacpac. Deploy the dacpac back to server as WWI_2. " +
+                "Dump all the tables, views, and sproc from WWI_2 into a grid.",
+        );
+
+        expect(classified.family).to.equal("build");
+        expect(classified.requirements.activities.map((activity) => activity.kind)).to.deep.equal([
+            "dacpac.extract",
+            "dacpac.deploy.preview",
+            "devdatabase.provision",
+            "dacpac.deploy.dev",
+            "schema.compare",
+            "database.schema.inventory",
+        ]);
+        expect(classified.requirements.targets.map((target) => target.kind)).to.deep.equal([
+            "sqlDatabase",
+        ]);
+        expect(
+            classified.requirements.activities.find(
+                (activity) => activity.kind === "dacpac.extract",
+            )?.version,
+        ).to.equal(2);
+    });
 });

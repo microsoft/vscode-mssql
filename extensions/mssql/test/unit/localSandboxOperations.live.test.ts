@@ -15,6 +15,7 @@ import {
     buildDropLocalSandboxSql,
     buildProbeLocalSandboxSql,
     localSandboxDatabaseName,
+    localSandboxOwnershipPropertyName,
 } from "../../src/runbookStudio/runtime/localSandboxOperations";
 
 const CONNECTION_STRING =
@@ -125,7 +126,8 @@ function isLoopbackConnectionString(connectionString: string): boolean {
 }
 
 function updateMarkerSql(databaseName: string, marker: string): string {
-    return `EXEC [${databaseName}].sys.sp_updateextendedproperty @name = N'RunbookStudioLeaseId', @value = N'${marker}';`;
+    const property = localSandboxOwnershipPropertyName(databaseName);
+    return `EXEC sys.sp_updateextendedproperty @name = N'${property}', @value = N'${marker}';`;
 }
 
 function sqlAssertionSql(databaseName: string): string {
@@ -137,10 +139,11 @@ function sqlAssertionSql(databaseName: string): string {
 }
 
 function safeTestCleanupSql(databaseName: string, effectId: string, dropSql: string): string {
+    const property = localSandboxOwnershipPropertyName(databaseName);
     return [
-        `IF EXISTS (SELECT 1 FROM [${databaseName}].sys.extended_properties WHERE [class] = 0 AND [name] = N'RunbookStudioLeaseId' AND CAST([value] AS nvarchar(4000)) IN (N'${effectId}', N'tampered'))`,
+        `IF EXISTS (SELECT 1 FROM master.sys.extended_properties WHERE [class] = 0 AND [name] = N'${property}' AND CAST([value] AS nvarchar(4000)) IN (N'${effectId}', N'tampered'))`,
         "BEGIN",
-        `    EXEC [${databaseName}].sys.sp_updateextendedproperty @name = N'RunbookStudioLeaseId', @value = N'${effectId}';`,
+        `    EXEC sys.sp_updateextendedproperty @name = N'${property}', @value = N'${effectId}';`,
         dropSql,
         "END;",
     ].join("\n");

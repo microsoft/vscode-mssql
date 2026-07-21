@@ -13,6 +13,7 @@ import {
     isStrictLoopbackSqlServer,
     localSandboxDatabaseName,
     localSandboxLeaseRef,
+    localSandboxOwnershipPropertyName,
 } from "../../src/runbookStudio/runtime/localSandboxOperations";
 
 suite("Runbook Studio local sandbox rules", () => {
@@ -62,15 +63,31 @@ suite("Runbook Studio local sandbox rules", () => {
 
         expect(create).to.include(`CREATE DATABASE [${databaseName}]`);
         expect(create).to.include("sp_addextendedproperty");
+        expect(create).to.include(localSandboxOwnershipPropertyName(databaseName));
+        expect(create).not.to.include(`${databaseName}].sys.sp_addextendedproperty`);
         expect(create).to.include(effectId);
         expect(probe).to.include("database_exists");
         expect(probe).to.include("RunbookStudioLeaseId");
         expect(drop).to.include("SET SINGLE_USER WITH ROLLBACK IMMEDIATE");
         expect(drop).to.include(`DROP DATABASE [${databaseName}]`);
         expect(drop).to.include(effectId);
+        expect(drop).to.include("AND NOT EXISTS (SELECT 1 FROM master.sys.extended_properties");
+        expect(drop).to.include("ELSE IF EXISTS");
+        expect(drop.match(/sp_dropextendedproperty/g)).to.have.length(2);
         expect(() => buildDropLocalSandboxSql("master", effectId)).to.throw("does not match");
         expect(() =>
             buildCreateLocalSandboxSql(`RunbookStudio_${"b".repeat(20)}`, effectId),
         ).to.throw("does not match");
+    });
+
+    test("derives a bounded target-specific marker outside the deployed database", () => {
+        const databaseName = localSandboxDatabaseName(effectId);
+        const property = localSandboxOwnershipPropertyName(databaseName);
+
+        expect(property).to.match(/^RunbookStudioLease_[a-f0-9]{64}$/);
+        expect(property).to.have.length.lessThan(129);
+        expect(() => localSandboxOwnershipPropertyName("master")).to.throw(
+            "invalid sandbox database name",
+        );
     });
 });

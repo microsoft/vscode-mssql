@@ -24,7 +24,10 @@ import { Perf } from "../../perf/perfTelemetry";
 import { emitRunbookEvent, metaField, RunbookOperationContext } from "../runbookDiag";
 
 const HEALTH_POLL_INTERVAL_MS = 500;
-const HEALTH_TIMEOUT_MS = 30_000;
+// Debug extension hosts and first-run .NET startup can be substantially slower
+// than an already-warm runtime. A launch remains bounded, but it should not
+// fail merely because the host is doing its initial build/indexing work.
+const HEALTH_TIMEOUT_MS = 90_000;
 
 export interface RuntimeMetadata {
     version: string;
@@ -41,6 +44,37 @@ export interface SupervisedRuntime {
     baseUrl: string;
     metadata: RuntimeMetadata;
     pid: number | undefined;
+}
+
+/** Shares one in-flight launch between all startup callers. Library loading,
+ * execution and settings initialization can ask for the runtime concurrently
+ * while the extension activates; spawning once is both faster and avoids two
+ * Hobbes processes racing over the same data directory and PID file. */
+export class RuntimeLaunchCoordinator<T> {
+    private pending: Promise<T> | undefined;
+
+    public run(operation: () => Promise<T>): Promise<T> {
+        if (this.pending) {
+            return this.pending;
+        }
+        const attempt = Promise.resolve().then(operation);
+        this.pending = attempt;
+        const clear = () => {
+            if (this.pending === attempt) {
+                this.pending = undefined;
+            }
+        };
+        void attempt.then(clear, clear);
+        return attempt;
+    }
+
+    public async settle(): Promise<void> {
+        try {
+            await this.pending;
+        } catch {
+            // A restart replaces a failed launch below.
+        }
+    }
 }
 
 /** Find a free loopback port by binding port 0 and reading the assignment. */
@@ -81,6 +115,7 @@ export class RuntimeSupervisor {
     private runtime: SupervisedRuntime | undefined;
     private exitListeners: Array<(unexpected: boolean) => void> = [];
     private disposing = false;
+    private readonly launchCoordinator = new RuntimeLaunchCoordinator<SupervisedRuntime>();
 
     constructor(
         private readonly executablePath: string,
@@ -106,6 +141,7 @@ export class RuntimeSupervisor {
     public async restart(context: RunbookOperationContext): Promise<SupervisedRuntime> {
         this.restarting = true;
         try {
+            await this.launchCoordinator.settle();
             this.kill();
             return await this.ensureRunning(context);
         } finally {
@@ -120,6 +156,10 @@ export class RuntimeSupervisor {
         if (this.runtime && this.child && this.child.exitCode === null) {
             return this.runtime;
         }
+        return this.launchCoordinator.run(() => this.launch(context));
+    }
+
+    private async launch(context: RunbookOperationContext): Promise<SupervisedRuntime> {
         if (!fs.existsSync(this.executablePath)) {
             throw new Error(`runtime executable not found: ${this.executablePath}`);
         }
@@ -165,9 +205,13 @@ export class RuntimeSupervisor {
         this.child = child;
         this.writePidFile(child.pid);
         child.on("exit", (code) => {
-            const unexpected = !this.disposing && !this.restarting;
-            this.runtime = undefined;
-            this.clearPidFile();
+            const isCurrentChild = this.child === child;
+            const unexpected = isCurrentChild && !this.disposing && !this.restarting;
+            if (isCurrentChild) {
+                this.child = undefined;
+                this.runtime = undefined;
+                this.clearPidFile();
+            }
             emitRunbookEvent(
                 context,
                 "runbookStudio.runtime.processExited",

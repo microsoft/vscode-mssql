@@ -622,7 +622,7 @@ function requirement(kind: string): RunbookActivityRequirement {
     }
     return {
         kind,
-        version: 1,
+        version: findActivity(kind)?.version ?? 1,
         host: "extension",
         effect: defaults.effect,
         approvalRequired: defaults.approvalRequired ?? false,
@@ -643,7 +643,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
 
     const requestsDacpacExtraction = has(
         text,
-        /\b(extract|create|generate|make)\b.{0,45}\bdacpac\b.{0,45}\b(from|of)\b|\bdacpac\b.{0,35}\bfrom\b/,
+        /\b(extract|create|generate|make)\b.{0,45}\bdacpac\b.{0,45}\b(from|of)\b|\bdacpac\b.{0,35}\bfrom\b|\b(extract|exact)\b.{0,65}\b(to|into|as)\s+(an?\s+)?dacpac\b/,
     );
     const requestsExistingDacpac =
         has(text, /\b(import|deploy|publish)\b.{0,40}\b(the\s+|an?\s+)?dacpac\b/) &&
@@ -675,7 +675,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     );
     const requestsSchemaInventory = has(
         text,
-        /\b(show|list|inventory|enumerate)\b.{0,65}\b(tables?|views?|stored procedures?|sprocs?|schema objects?)\b|\b(tables?|views?|stored procedures?|sprocs?)\b.{0,50}\b(show|list|inventory|enumerate)\b/,
+        /\b(show|list|inventory|enumerate|dump)\b.{0,65}\b(tables?|views?|stored procedures?|sprocs?|schema objects?)\b|\b(tables?|views?|stored procedures?|sprocs?)\b.{0,50}\b(show|list|inventory|enumerate|dump)\b/,
     );
     const isPreMerge = has(text, /\b(pre[- ]?merge|pull request|ci\/cd|pipeline|quality gate)\b/);
     const hasBuildWork = has(

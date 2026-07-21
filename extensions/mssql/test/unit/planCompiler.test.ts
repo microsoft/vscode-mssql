@@ -145,7 +145,10 @@ suite("planCompiler", () => {
                     label: "Extract source DACPAC",
                     kind: "activity",
                     activityKind: "dacpac.extract",
-                    inputs: { database: "$params.source" },
+                    inputs: {
+                        database: "$params.source",
+                        databaseName: "WideWorldImporters",
+                    },
                 },
                 { id: "approve-provision", label: "Approve target creation", kind: "gate" },
                 {
@@ -259,7 +262,10 @@ suite("planCompiler", () => {
                     label: "Extract source DACPAC",
                     kind: "activity",
                     activityKind: "dacpac.extract",
-                    inputs: { database: "$params.source" },
+                    inputs: {
+                        database: "$params.source",
+                        databaseName: "WideWorldImporters",
+                    },
                 },
                 { id: "approve-provision", label: "Approve target creation", kind: "gate" },
                 {
@@ -351,6 +357,32 @@ suite("planCompiler", () => {
         if (isProposalFailure(refused)) {
             expect(refused.detail).to.contain(
                 "must inventory the same target as an upstream DACPAC deployment",
+            );
+        }
+
+        const inventedEvidence = JSON.parse(JSON.stringify(proposal));
+        inventedEvidence.nodes.splice(-1, 0, {
+            id: "evidence",
+            label: "Bundle evidence",
+            kind: "activity",
+            activityKind: "evidence.bundle",
+        });
+        inventedEvidence.edges = inventedEvidence.edges.filter(
+            (edge: { from: string; to: string }) => edge.from !== "inventory",
+        );
+        inventedEvidence.edges.push(
+            { from: "inventory", to: "evidence" },
+            { from: "evidence", to: "report" },
+        );
+        const evidenceRefused = parseCompiledProposal(
+            JSON.stringify(inventedEvidence),
+            inventoryBase,
+            intent,
+        );
+        expect(isProposalFailure(evidenceRefused)).to.equal(true);
+        if (isProposalFailure(evidenceRefused)) {
+            expect(evidenceRefused.detail).to.contain(
+                "activity 'evidence.bundle' is absent from the source capability manifest",
             );
         }
     });

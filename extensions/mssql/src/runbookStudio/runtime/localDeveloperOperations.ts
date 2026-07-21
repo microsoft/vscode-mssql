@@ -37,6 +37,14 @@ const MAX_REPOSITORY_SQL_TOTAL_BYTES = 32 * 1024 * 1024;
 const MAX_DEPLOYMENT_REPORT_BYTES = 256 * 1024;
 const CANCEL_POLL_MS = 50;
 
+/** DacFx receives the database name as a structured argument, but still keep
+ * the authored override bounded and free of control characters before it is
+ * copied onto a connection profile or used in an artifact filename. */
+export function isValidDacpacSourceDatabaseName(value: string): boolean {
+    const name = value.trim();
+    return name.length > 0 && name.length <= 128 && !/[\u0000-\u001f\u007f]/.test(name);
+}
+
 export async function inspectLocalWorkspace(): Promise<LocalWorkspaceSnapshot> {
     const folders = vscode.workspace.workspaceFolders ?? [];
     if (folders.length === 0) {

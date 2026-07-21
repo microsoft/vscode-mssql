@@ -3,11 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { createHash } from "crypto";
+
 /** Pure naming, locality, and SQL construction rules for the first disposable
  * SQL target. The executor accepts only a loopback SQL Server profile and only
- * drops databases with both the generated name and exact ownership marker. */
+ * drops databases with both the generated name and exact ownership marker.
+ * New markers live in master so target DACPAC reconciliation cannot remove
+ * the cleanup authority. */
 
 const LEASE_PROPERTY = "RunbookStudioLeaseId";
+const LEASE_PROPERTY_PREFIX = "RunbookStudioLease_";
 const DATABASE_PREFIX = "RunbookStudio_";
 
 export interface LocalSandboxProbe {
@@ -48,10 +53,10 @@ export function buildCreateLocalSandboxSql(databaseName: string, effectId: strin
     assertSandboxIdentity(databaseName, effectId);
     const database = quoteIdentifier(databaseName);
     const marker = quoteString(effectId);
-    const property = quoteString(LEASE_PROPERTY);
+    const property = quoteString(localSandboxOwnershipPropertyName(databaseName));
     return [
         `CREATE DATABASE ${database};`,
-        `EXEC ${database}.sys.sp_addextendedproperty @name = N${property}, @value = N${marker};`,
+        `EXEC sys.sp_addextendedproperty @name = N${property}, @value = N${marker};`,
     ].join("\n");
 }
 
@@ -61,13 +66,22 @@ export function buildProbeLocalSandboxSql(databaseName: string): string {
     }
     const database = quoteIdentifier(databaseName);
     const name = quoteString(databaseName);
-    const property = quoteString(LEASE_PROPERTY);
+    const property = quoteString(localSandboxOwnershipPropertyName(databaseName));
+    const legacyProperty = quoteString(LEASE_PROPERTY);
     return [
         `IF DB_ID(N${name}) IS NULL`,
         "    SELECT CAST(0 AS int) AS database_exists, CAST(NULL AS nvarchar(4000)) AS lease_id;",
         "ELSE",
-        `    SELECT CAST(1 AS int) AS database_exists, CAST((SELECT TOP (1) [value] FROM ${database}.sys.extended_properties WHERE [class] = 0 AND [name] = N${property}) AS nvarchar(4000)) AS lease_id;`,
+        `    SELECT CAST(1 AS int) AS database_exists, CAST(COALESCE((SELECT TOP (1) [value] FROM master.sys.extended_properties WHERE [class] = 0 AND [name] = N${property}), (SELECT TOP (1) [value] FROM ${database}.sys.extended_properties WHERE [class] = 0 AND [name] = N${legacyProperty})) AS nvarchar(4000)) AS lease_id;`,
     ].join("\n");
+}
+
+export function localSandboxOwnershipPropertyName(databaseName: string): string {
+    if (!isRunbookSandboxDatabaseName(databaseName)) {
+        throw new Error("invalid sandbox database name");
+    }
+    const digest = createHash("sha256").update(databaseName.toLowerCase()).digest("hex");
+    return `${LEASE_PROPERTY_PREFIX}${digest}`;
 }
 
 export function buildDropLocalSandboxSql(databaseName: string, effectId: string): string {
@@ -75,15 +89,20 @@ export function buildDropLocalSandboxSql(databaseName: string, effectId: string)
     const database = quoteIdentifier(databaseName);
     const name = quoteString(databaseName);
     const marker = quoteString(effectId);
-    const property = quoteString(LEASE_PROPERTY);
+    const property = quoteString(localSandboxOwnershipPropertyName(databaseName));
+    const legacyProperty = quoteString(LEASE_PROPERTY);
     return [
         `IF DB_ID(N${name}) IS NOT NULL`,
         "BEGIN",
-        `    IF NOT EXISTS (SELECT 1 FROM ${database}.sys.extended_properties WHERE [class] = 0 AND [name] = N${property} AND CAST([value] AS nvarchar(4000)) = N${marker})`,
+        `    IF (EXISTS (SELECT 1 FROM master.sys.extended_properties WHERE [class] = 0 AND [name] = N${property}) AND NOT EXISTS (SELECT 1 FROM master.sys.extended_properties WHERE [class] = 0 AND [name] = N${property} AND CAST([value] AS nvarchar(4000)) = N${marker})) OR (NOT EXISTS (SELECT 1 FROM master.sys.extended_properties WHERE [class] = 0 AND [name] = N${property}) AND NOT EXISTS (SELECT 1 FROM ${database}.sys.extended_properties WHERE [class] = 0 AND [name] = N${legacyProperty} AND CAST([value] AS nvarchar(4000)) = N${marker}))`,
         "        THROW 51000, 'Runbook Studio sandbox ownership mismatch.', 1;",
         `    ALTER DATABASE ${database} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;`,
         `    DROP DATABASE ${database};`,
+        `    IF EXISTS (SELECT 1 FROM master.sys.extended_properties WHERE [class] = 0 AND [name] = N${property} AND CAST([value] AS nvarchar(4000)) = N${marker})`,
+        `        EXEC sys.sp_dropextendedproperty @name = N${property};`,
         "END;",
+        `ELSE IF EXISTS (SELECT 1 FROM master.sys.extended_properties WHERE [class] = 0 AND [name] = N${property} AND CAST([value] AS nvarchar(4000)) = N${marker})`,
+        `    EXEC sys.sp_dropextendedproperty @name = N${property};`,
     ].join("\n");
 }
 

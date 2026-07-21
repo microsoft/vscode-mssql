@@ -128,7 +128,7 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
     },
     {
         kind: "dacpac.extract",
-        version: 1,
+        version: 2,
         label: "Extract database DACPAC",
         description:
             "Extracts a DACPAC from the explicitly bound database through DacFx and retains it as a hashed Runbook Studio artifact.",
@@ -137,7 +137,14 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
                 name: "database",
                 kind: "bind",
                 required: true,
-                description: "Saved connection profile for the source database",
+                description: "Saved connection profile for the source SQL Server",
+            },
+            {
+                name: "databaseName",
+                kind: "string",
+                required: true,
+                description:
+                    "Exact source database name stated by the user, as a literal or string parameter binding",
             },
         ],
         outputContract: "dacpacArtifact/1",

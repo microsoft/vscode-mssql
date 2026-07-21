@@ -190,9 +190,20 @@ export function validateCompiledFamilyContract(artifact: RunbookArtifactFile): s
         }
     }
     const plannedKinds = new Set(activityKinds);
+    const requiredKinds = new Set(
+        (artifact.source.requirements?.activities ?? []).map((requirement) => requirement.kind),
+    );
     for (const requirement of artifact.source.requirements?.activities ?? []) {
         if (!plannedKinds.has(requirement.kind)) {
             issues.push(`required operation '${requirement.kind}' has no executable plan node`);
+        }
+    }
+    if (artifact.source.requirements) {
+        const helperKinds = new Set(contract.helperActivityKinds);
+        for (const kind of plannedKinds) {
+            if (!requiredKinds.has(kind) && !helperKinds.has(kind)) {
+                issues.push(`activity '${kind}' is absent from the source capability manifest`);
+            }
         }
     }
     if (family === "build" && plannedKinds.has("sql.query.read")) {

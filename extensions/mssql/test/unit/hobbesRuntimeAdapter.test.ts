@@ -26,7 +26,11 @@ import {
     summarizeHobbesRegionMetrics,
     terminalNodeSettlementEvents,
 } from "../../src/runbookStudio/runtime/hobbesRuntimeAdapter";
-import { findFreePort, RuntimeSupervisor } from "../../src/runbookStudio/runtime/runtimeSupervisor";
+import {
+    findFreePort,
+    RuntimeLaunchCoordinator,
+    RuntimeSupervisor,
+} from "../../src/runbookStudio/runtime/runtimeSupervisor";
 
 suite("hobbesRuntimeAdapter", () => {
     let sandbox: sinon.SinonSandbox;
@@ -37,6 +41,36 @@ suite("hobbesRuntimeAdapter", () => {
 
     teardown(() => {
         sandbox.restore();
+    });
+
+    test("concurrent runtime callers share one launch and retry after failure", async () => {
+        const coordinator = new RuntimeLaunchCoordinator<string>();
+        let settleFirst: ((value: string) => void) | undefined;
+        const firstLaunch = sandbox.stub().returns(
+            new Promise<string>((resolve) => {
+                settleFirst = resolve;
+            }),
+        );
+
+        const firstCaller = coordinator.run(firstLaunch);
+        const secondCaller = coordinator.run(firstLaunch);
+        expect(firstCaller).to.equal(secondCaller);
+        await Promise.resolve();
+        expect(firstLaunch).to.have.been.calledOnce;
+        settleFirst!("ready");
+        expect(await firstCaller).to.equal("ready");
+
+        const failedLaunch = sandbox.stub().rejects(new Error("startup failed"));
+        let failure: unknown;
+        try {
+            await coordinator.run(failedLaunch);
+        } catch (error) {
+            failure = error;
+        }
+        expect(failure).to.be.an("error").with.property("message", "startup failed");
+        const retryLaunch = sandbox.stub().resolves("recovered");
+        expect(await coordinator.run(retryLaunch)).to.equal("recovered");
+        expect(retryLaunch).to.have.been.calledOnce;
     });
 
     test("planner timeout defaults to ten minutes and stays within supported bounds", () => {

@@ -28,7 +28,7 @@ suite("runbookRuntimeRouting", () => {
             activities: [
                 {
                     kind: "dacpac.extract",
-                    version: 1,
+                    version: 2,
                     host: "extension",
                     effect: "mutate",
                     approvalRequired: false,

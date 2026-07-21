@@ -3,12 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { createHash } from "crypto";
+
 /** Pure identity and SQL-construction rules for retained, user-named local
  * development databases. This lease is deliberately distinct from the
  * generated disposable sandbox lease: creation is absent-target-only and
- * every later mutation must re-prove the exact ownership marker. */
+ * every later mutation must re-prove the exact ownership marker. New leases
+ * live in master so a target DACPAC cannot model or remove their authority. */
 
 const DEVELOPMENT_LEASE_PROPERTY = "RunbookStudioDevelopmentLeaseId";
+const DEVELOPMENT_LEASE_PROPERTY_PREFIX = "RunbookStudioDevelopmentLease_";
 const DEVELOPMENT_LEASE_PREFIX = "runbook-sql-dev-lease:";
 const SYSTEM_DATABASES = new Set(["master", "model", "msdb", "tempdb"]);
 
@@ -45,10 +49,10 @@ export function buildCreateLocalDevelopmentDatabaseSql(
     assertIdentity(databaseName, effectId);
     const database = quoteIdentifier(databaseName);
     const marker = quoteString(effectId);
-    const property = quoteString(DEVELOPMENT_LEASE_PROPERTY);
+    const property = quoteString(localDevelopmentDatabaseOwnershipPropertyName(databaseName));
     return [
         `CREATE DATABASE ${database};`,
-        `EXEC ${database}.sys.sp_addextendedproperty @name = N${property}, @value = N${marker};`,
+        `EXEC sys.sp_addextendedproperty @name = N${property}, @value = N${marker};`,
     ].join("\n");
 }
 
@@ -56,13 +60,20 @@ export function buildProbeLocalDevelopmentDatabaseSql(databaseName: string): str
     assertDatabaseName(databaseName);
     const database = quoteIdentifier(databaseName);
     const name = quoteString(databaseName);
-    const property = quoteString(DEVELOPMENT_LEASE_PROPERTY);
+    const property = quoteString(localDevelopmentDatabaseOwnershipPropertyName(databaseName));
+    const legacyProperty = quoteString(DEVELOPMENT_LEASE_PROPERTY);
     return [
         `IF DB_ID(N${name}) IS NULL`,
         "    SELECT CAST(0 AS int) AS database_exists, CAST(NULL AS nvarchar(4000)) AS lease_id;",
         "ELSE",
-        `    SELECT CAST(1 AS int) AS database_exists, CAST((SELECT TOP (1) [value] FROM ${database}.sys.extended_properties WHERE [class] = 0 AND [name] = N${property}) AS nvarchar(4000)) AS lease_id;`,
+        `    SELECT CAST(1 AS int) AS database_exists, CAST(COALESCE((SELECT TOP (1) [value] FROM master.sys.extended_properties WHERE [class] = 0 AND [name] = N${property}), (SELECT TOP (1) [value] FROM ${database}.sys.extended_properties WHERE [class] = 0 AND [name] = N${legacyProperty})) AS nvarchar(4000)) AS lease_id;`,
     ].join("\n");
+}
+
+export function localDevelopmentDatabaseOwnershipPropertyName(databaseName: string): string {
+    assertDatabaseName(databaseName);
+    const digest = createHash("sha256").update(databaseName.toLowerCase()).digest("hex");
+    return `${DEVELOPMENT_LEASE_PROPERTY_PREFIX}${digest}`;
 }
 
 export function buildDropLocalDevelopmentDatabaseSql(
@@ -73,15 +84,20 @@ export function buildDropLocalDevelopmentDatabaseSql(
     const database = quoteIdentifier(databaseName);
     const name = quoteString(databaseName);
     const marker = quoteString(effectId);
-    const property = quoteString(DEVELOPMENT_LEASE_PROPERTY);
+    const property = quoteString(localDevelopmentDatabaseOwnershipPropertyName(databaseName));
+    const legacyProperty = quoteString(DEVELOPMENT_LEASE_PROPERTY);
     return [
         `IF DB_ID(N${name}) IS NOT NULL`,
         "BEGIN",
-        `    IF NOT EXISTS (SELECT 1 FROM ${database}.sys.extended_properties WHERE [class] = 0 AND [name] = N${property} AND CAST([value] AS nvarchar(4000)) = N${marker})`,
+        `    IF (EXISTS (SELECT 1 FROM master.sys.extended_properties WHERE [class] = 0 AND [name] = N${property}) AND NOT EXISTS (SELECT 1 FROM master.sys.extended_properties WHERE [class] = 0 AND [name] = N${property} AND CAST([value] AS nvarchar(4000)) = N${marker})) OR (NOT EXISTS (SELECT 1 FROM master.sys.extended_properties WHERE [class] = 0 AND [name] = N${property}) AND NOT EXISTS (SELECT 1 FROM ${database}.sys.extended_properties WHERE [class] = 0 AND [name] = N${legacyProperty} AND CAST([value] AS nvarchar(4000)) = N${marker}))`,
         "        THROW 51000, 'Runbook Studio development database ownership mismatch.', 1;",
         `    ALTER DATABASE ${database} SET SINGLE_USER WITH ROLLBACK IMMEDIATE;`,
         `    DROP DATABASE ${database};`,
+        `    IF EXISTS (SELECT 1 FROM master.sys.extended_properties WHERE [class] = 0 AND [name] = N${property} AND CAST([value] AS nvarchar(4000)) = N${marker})`,
+        `        EXEC sys.sp_dropextendedproperty @name = N${property};`,
         "END;",
+        `ELSE IF EXISTS (SELECT 1 FROM master.sys.extended_properties WHERE [class] = 0 AND [name] = N${property} AND CAST([value] AS nvarchar(4000)) = N${marker})`,
+        `    EXEC sys.sp_dropextendedproperty @name = N${property};`,
     ].join("\n");
 }
 
