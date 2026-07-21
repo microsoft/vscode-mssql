@@ -2182,53 +2182,43 @@
                     "default": [
                         {
                             "name": "Query 1",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 2",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 3",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 4",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 5",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 6",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 7",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 8",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 9",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         },
                         {
                             "name": "Query 10",
-                            "query": "",
-                            "executionMode": "open"
+                            "query": ""
                         }
                     ],
                     "minItems": 0,
@@ -2244,18 +2234,6 @@
                             "query": {
                                 "type": "string",
                                 "description": "%mssql.quickQueries.query%"
-                            },
-                            "executionMode": {
-                                "type": "string",
-                                "enum": [
-                                    "open",
-                                    "openAndRun"
-                                ],
-                                "enumDescriptions": [
-                                    "%mssql.quickQueries.executionMode.open%",
-                                    "%mssql.quickQueries.executionMode.openAndRun%"
-                                ],
-                                "description": "%mssql.quickQueries.executionMode%"
                             }
                         }
                     },

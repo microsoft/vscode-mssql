@@ -54,6 +54,7 @@ const controlHeight = "30px";
 const monoFont = "var(--vscode-editor-font-family, 'Cascadia Code', 'Fira Code', monospace)";
 type MonacoEditor = import("monaco-editor").editor.IStandaloneCodeEditor;
 type MonacoRange = import("monaco-editor").IRange;
+type Monaco = typeof import("monaco-editor");
 
 interface CutEdit {
     range: MonacoRange;
@@ -88,6 +89,58 @@ function insertTextIntoEditor(editor: MonacoEditor, text: string): void {
         })),
     );
     editor.pushUndoStop();
+}
+
+function registerSelectedTextCompletionProvider(
+    editor: MonacoEditor,
+    monaco: Monaco,
+    loc: typeof locConstants.shortcutsConfiguration,
+): import("monaco-editor").IDisposable | undefined {
+    const targetModel = editor.getModel();
+    if (!targetModel) {
+        return undefined;
+    }
+
+    return monaco.languages.registerCompletionItemProvider("sql", {
+        triggerCharacters: ["{"],
+        provideCompletionItems: (model, position) => {
+            if (model !== targetModel) {
+                return { suggestions: [] };
+            }
+
+            const lineContent = model.getLineContent(position.lineNumber);
+            const linePrefix = lineContent.slice(0, position.column - 1);
+            const partialArgument = /\{[A-Za-z_]*$/.exec(linePrefix);
+            const hasAutoClosingBrace = partialArgument && lineContent[position.column - 1] === "}";
+            const wordUntilPosition = model.getWordUntilPosition(position);
+            const currentWord =
+                model.getWordAtPosition(position) ||
+                (wordUntilPosition.word ? wordUntilPosition : undefined);
+            const range = new monaco.Range(
+                position.lineNumber,
+                partialArgument
+                    ? partialArgument.index + 1
+                    : (currentWord?.startColumn ?? position.column),
+                position.lineNumber,
+                hasAutoClosingBrace
+                    ? position.column + 1
+                    : (currentWord?.endColumn ?? position.column),
+            );
+
+            return {
+                suggestions: [
+                    {
+                        label: "{arg}",
+                        kind: monaco.languages.CompletionItemKind.Variable,
+                        insertText: "{arg}",
+                        detail: loc.selectedTextCompletionDetail,
+                        documentation: loc.selectedTextArgumentHint,
+                        range,
+                    },
+                ],
+            };
+        },
+    });
 }
 
 function getCutEdits(editor: MonacoEditor): CutEdit[] {
@@ -862,6 +915,9 @@ export const QuickQueryEditorDialog = ({
                     <DialogTitle>{loc.queryDialogTitle(slotName)}</DialogTitle>
                     <DialogContent className={classes.queryDialogContent}>
                         <Field className={classes.field} label={loc.query}>
+                            <MessageBar intent="info">
+                                <MessageBarBody>{loc.selectedTextArgumentHint}</MessageBarBody>
+                            </MessageBar>
                             <div
                                 className={classes.monacoShell}
                                 onKeyDownCapture={onEditorKeyDownCapture}
@@ -894,6 +950,12 @@ export const QuickQueryEditorDialog = ({
                                         draftRef.current = value ?? "";
                                     }}
                                     onMount={(editor, monaco) => {
+                                        const completionProvider =
+                                            registerSelectedTextCompletionProvider(
+                                                editor,
+                                                monaco,
+                                                loc,
+                                            );
                                         editor.addCommand(
                                             monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV,
                                             () => {
@@ -910,6 +972,7 @@ export const QuickQueryEditorDialog = ({
                                         draftRef.current = editor.getValue();
                                         editor.focus();
                                         editor.onDidDispose(() => {
+                                            completionProvider?.dispose();
                                             if (editorRef.current === editor) {
                                                 editorRef.current = null;
                                             }

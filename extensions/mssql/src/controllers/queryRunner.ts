@@ -14,6 +14,8 @@ import {
     QueryExecuteRequest,
     QueryExecuteStatementParams,
     QueryExecuteStatementRequest,
+    QueryExecuteStringParams,
+    QueryExecuteStringRequest,
     QueryExecuteCompleteNotificationResult,
     QueryExecuteSubsetResult,
     QueryExecuteResultSetAvailableNotificationParams,
@@ -73,6 +75,8 @@ export interface QueryExecutionCompleteEvent {
     isRefresh?: boolean;
 }
 
+export type QueryExecutionSource = "document" | "quickQuery";
+
 export interface ExecutionPlanEvent {
     uri: string;
     xml: string;
@@ -115,6 +119,7 @@ export default class QueryRunner {
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
     private _uriToQueryStringMap = new Map<string, string>();
     private _registeredNotificationUris = new Set<string>();
+    private _executionSource: QueryExecutionSource = "document";
     private static _runningQueries = [];
 
     private _startFailedEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>();
@@ -219,6 +224,13 @@ export default class QueryRunner {
         return this._isExecuting;
     }
 
+    /**
+     * Gets the source that initiated the current query execution.
+     */
+    get executionSource(): QueryExecutionSource {
+        return this._executionSource;
+    }
+
     get isSqlCmd(): boolean {
         return this._isSqlCmd;
     }
@@ -309,6 +321,7 @@ export default class QueryRunner {
         column: number,
         executionPlanOptions?: ExecutionPlanOptions,
     ): Promise<void> {
+        this._executionSource = "document";
         await this.setupQueryExecution({
             startLine: line,
             startColumn: column,
@@ -365,6 +378,7 @@ export default class QueryRunner {
         executionPlanOptions?: ExecutionPlanOptions,
         promise?: Deferred<boolean>,
     ): Promise<void> {
+        this._executionSource = "document";
         await this.setupQueryExecution(selection);
 
         // Setting up options
@@ -431,7 +445,68 @@ export default class QueryRunner {
         }
     }
 
-    public setupQueryExecution(_selection: ISelectionData): void {
+    /**
+     * Executes SQL text through the full query results pipeline without reading or changing the
+     * editor document associated with the connection URI.
+     * @param query SQL text to execute.
+     * @param promise Optional deferred operation completed with the query result.
+     * @returns A promise that resolves after the execution request is submitted.
+     */
+    public async runQueryString(query: string, promise?: Deferred<boolean>): Promise<void> {
+        this._executionSource = "quickQuery";
+        await this.setupQueryExecution(undefined);
+
+        this._uriToQueryStringMap.set(this._ownerUri, query);
+        if (promise) {
+            this._uriToQueryPromiseMap.set(this._ownerUri, promise);
+        }
+
+        const executeParams: QueryExecuteStringParams = {
+            ownerUri: this._ownerUri,
+            query,
+        };
+        const runQueryActivity = startActivity(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.RunQuery,
+            undefined,
+            {
+                executionType: "quickQuery",
+                hasExecutionPlan: "false",
+            },
+            undefined,
+            undefined,
+            undefined,
+            true,
+        );
+
+        let runQueryRequestCompleted = false;
+        try {
+            setTimeout(() => {
+                if (!runQueryRequestCompleted) {
+                    runQueryActivity?.endFailed(
+                        new Error("Run Quick Query initialization timed out"),
+                        true,
+                    );
+                }
+            }, Constants.stsImmediateActivityTimeout);
+            await this._client.sendRequest(QueryExecuteStringRequest.type, executeParams);
+            this._startEmitter.fire(this.uri);
+            runQueryRequestCompleted = true;
+            runQueryActivity?.end(ActivityStatus.Succeeded);
+        } catch (error) {
+            runQueryRequestCompleted = true;
+            this._handleQueryCleanup(undefined, error);
+            this._startFailedEmitter.fire(getErrorMessage(error));
+            runQueryActivity?.endFailed(error, false);
+            throw error;
+        }
+    }
+
+    /**
+     * Initializes query execution state and registers the query notification handlers.
+     * @param _selection Optional selection metadata associated with a document-based execution.
+     */
+    public setupQueryExecution(_selection?: ISelectionData): void {
         this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
