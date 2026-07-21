@@ -56,6 +56,7 @@ import * as os from "os";
 import { Deferred } from "../protocol";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { Perf } from "../perf/perfTelemetry";
+import { perfSlowdown } from "../perf/perfSlowdown";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
@@ -430,6 +431,9 @@ export default class QueryRunner {
                 }
             }, Constants.stsImmediateActivityTimeout);
             Perf.marker("mssql.query.submit", "begin");
+            // Dummy perf-regression branch: slow down query execution inside the
+            // measured interval (PERF_MODE only; no-op in the shipped product).
+            await perfSlowdown(750);
             await this._client.sendRequest(QueryExecuteRequest.type, executeOptions);
             this._startEmitter.fire(this.uri);
             runQueryRequestCompleted = true;

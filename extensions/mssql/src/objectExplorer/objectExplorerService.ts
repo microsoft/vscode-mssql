@@ -37,6 +37,7 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionInfo } from "vscode-mssql";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
 import { Perf } from "../perf/perfTelemetry";
+import { perfSlowdown } from "../perf/perfSlowdown";
 import {
     ActivityObject,
     ActivityStatus,
@@ -208,6 +209,9 @@ export class ObjectExplorerService {
             nodePath: node.nodePath ?? "",
             nodeType: node.nodeType ?? "",
         });
+        // Dummy perf-regression branch: slow down Object Explorer expansion inside
+        // the measured interval (PERF_MODE only; no-op in the shipped product).
+        await perfSlowdown(500);
         try {
             const expandParams: ExpandParams = {
                 sessionId: sessionId,

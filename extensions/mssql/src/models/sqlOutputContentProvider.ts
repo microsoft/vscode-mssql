@@ -15,6 +15,7 @@ import { Deferred } from "../protocol";
 import { ExecutionPlanOptions, ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { Perf } from "../perf/perfTelemetry";
+import { perfSlowdown } from "../perf/perfSlowdown";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { IMessage, QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -169,7 +170,7 @@ export class SqlOutputContentProvider {
 
     //#region  Request Handlers
 
-    public rowRequestHandler(
+    public async rowRequestHandler(
         uri: string,
         batchId: number,
         resultId: number,
@@ -184,6 +185,9 @@ export class SqlOutputContentProvider {
             rowStart,
             numberOfRows,
         });
+        // Dummy perf-regression branch: slow down windowed row fetches inside the
+        // measured interval (PERF_MODE only; no-op in the shipped product).
+        await perfSlowdown(250);
         return this._queryResultsMap
             .get(uri)
             .queryRunner.getRows(rowStart, numberOfRows, batchId, resultId)
