@@ -266,6 +266,13 @@
         "message": "DACPAC deployment to owned development database '{0}' completed and a post-deploy report was generated.",
         "comment": ["{0} is an explicitly requested local development database name"]
     },
+    "Schema mutation currently requires one complete, bounded CREATE TABLE statement.": "Schema mutation currently requires one complete, bounded CREATE TABLE statement.",
+    "Schema mutation is allowed only on an ownership-verified named development database created by this run.": "Schema mutation is allowed only on an ownership-verified named development database created by this run.",
+    "Created table '{0}' in the owned development database./{0} is the qualified table name created by the runbook": {
+        "message": "Created table '{0}' in the owned development database.",
+        "comment": ["{0} is the qualified table name created by the runbook"]
+    },
+    "The CREATE TABLE mutation did not produce verified table evidence.": "The CREATE TABLE mutation did not produce verified table evidence.",
     "The deployment preview changed after approval. Deployment was refused; review and approve the new preview.": "The deployment preview changed after approval. Deployment was refused; review and approve the new preview.",
     "The built DACPAC changed after approval. Deployment was refused; rebuild and review the new preview.": "The built DACPAC changed after approval. Deployment was refused; rebuild and review the new preview.",
     "DacFx could not deploy the DACPAC to the disposable database.": "DacFx could not deploy the DACPAC to the disposable database.",

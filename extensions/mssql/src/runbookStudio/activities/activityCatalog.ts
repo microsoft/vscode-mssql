@@ -21,11 +21,13 @@ import {
 } from "../../sharedInterfaces/runbookStudio";
 import type { OutputSchemaDescriptor } from "../../sharedInterfaces/runbookPresentation";
 import { isReadOnlySql } from "../readOnlySql";
+import { validateLocalCreateTableSql } from "../schemaMutationPolicy";
 
 export interface ActivityInputDescriptor {
     name: string;
-    /** "string" | "bind" (accepts $params.X / $nodes.X.Y) | "sql" (read-only statement). */
-    kind: "string" | "bind" | "sql";
+    /** "bind" accepts $params.X / $nodes.X.Y; "sql" is read-only;
+     * "ddl" is admitted only by the registered mutation policy. */
+    kind: "string" | "bind" | "sql" | "ddl";
     required: boolean;
     description: string;
 }
@@ -359,6 +361,39 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "sql.schema.apply",
+        version: 1,
+        label: "Create table in owned development database",
+        description:
+            "Executes one reviewed CREATE TABLE statement transactionally against an ownership-verified named development database.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to a devdatabase.provision connectionRef",
+            },
+            {
+                name: "sql",
+                kind: "ddl",
+                required: true,
+                description:
+                    "One complete CREATE TABLE statement; include the exact table and column definitions requested",
+            },
+        ],
+        outputContract: "schemaMutationEvidence/1",
+        producedValues: ["applied", "tableName", "sqlSha256"],
+        approvalRequired: true,
+        target: { kind: "sqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseSchema",
+            operation: "create",
+            targetEnvironment: "development",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "schema.compare.export",
         version: 1,
         label: "Export schema comparison report",
@@ -624,6 +659,16 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                     );
                 }
             }
+            if (
+                input.kind === "ddl" &&
+                node.inputs &&
+                input.name in node.inputs &&
+                !validateLocalCreateTableSql(node.inputs[input.name])
+            ) {
+                issues.push(
+                    `node '${node.id}' input '${input.name}' must be one bounded CREATE TABLE statement`,
+                );
+            }
         }
         if (descriptor.target) {
             const expectedTarget = targetFromCatalog(node, descriptor);
@@ -648,7 +693,8 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                 );
             }
             if (
-                descriptor.kind === "dacpac.deploy.dev" &&
+                (descriptor.kind === "dacpac.deploy.dev" ||
+                    descriptor.kind === "sql.schema.apply") &&
                 !isOwnedDatabaseOutput(lock, node, "devdatabase.provision")
             ) {
                 issues.push(

@@ -173,7 +173,7 @@ export function buildCompilePrompt(
         "Bind syntax: $params.<parameterId> references a parameter; $nodes.<nodeId>.<value> references a produced value.",
         'Every plan that queries SQL needs exactly one parameter of type "connection". Parameter types: connection, string, int, boolean, enum.',
         'Edges connect node ids; optional "when": success | failure | approved | rejected. Default (no when) is the success path.',
-        "SQL must be a single read-only SELECT (or WITH...SELECT). Never modify data.",
+        "Inputs marked sql must be one read-only SELECT (or WITH...SELECT). Inputs marked ddl must be exactly one complete CREATE TABLE statement. Never place mutation SQL in any other input.",
         "",
         "JSON shape:",
         '{ "name": string, "description": string,',

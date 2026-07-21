@@ -355,7 +355,7 @@ suite("runbook capability preflight", () => {
         expect(local.missingActivityKinds).to.deep.equal([]);
     });
 
-    test("databaseToDacpacCapabilities reports the actual remaining mutation gaps", () => {
+    test("databaseToDacpacCapabilities has a complete executable activity stack", () => {
         const classified = classifyRunbookIntent(
             "Create a dacpac from WideWorldImporters, then import the dacpac into WWI_2, " +
                 "then create a table in WWI_2, then run a schema compare and create a diff file.",
@@ -370,14 +370,13 @@ suite("runbook capability preflight", () => {
             "dacpac.deploy.preview",
             "devdatabase.provision",
             "dacpac.deploy.dev",
-            "schema.compare",
             "schema.compare.export",
         ]);
         expect(kinds).not.to.include("workspace.inspect");
         expect(kinds).not.to.include("dbproject.add-object");
         expect(kinds).not.to.include("dacpac.build");
-        expect(readiness.status).to.equal("designOnly");
-        expect(readiness.missingActivityKinds).to.deep.equal(["sql.schema.apply@1"]);
+        expect(readiness.status).to.equal("readyAfterBinding");
+        expect(readiness.missingActivityKinds).to.deep.equal([]);
 
         expect(
             buildDesignOnlyPlan(classified).steps.map((step) => step.activityKind),
@@ -387,7 +386,6 @@ suite("runbook capability preflight", () => {
             "dacpac.deploy.preview",
             "dacpac.deploy.dev",
             "sql.schema.apply",
-            "schema.compare",
             "schema.compare.export",
         ]);
     });

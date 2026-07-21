@@ -464,6 +464,21 @@ export class RunbookStudio {
             args: [databaseName],
             comment: ["{0} is an explicitly requested local development database name"],
         });
+    public static schemaMutationCreateTableOnly = l10n.t(
+        "Schema mutation currently requires one complete, bounded CREATE TABLE statement.",
+    );
+    public static schemaMutationOwnedTargetRequired = l10n.t(
+        "Schema mutation is allowed only on an ownership-verified named development database created by this run.",
+    );
+    public static schemaMutationApplied = (tableName: string) =>
+        l10n.t({
+            message: "Created table '{0}' in the owned development database.",
+            args: [tableName],
+            comment: ["{0} is the qualified table name created by the runbook"],
+        });
+    public static schemaMutationFailed = l10n.t(
+        "The CREATE TABLE mutation did not produce verified table evidence.",
+    );
     public static dacpacDeployPreviewChanged = l10n.t(
         "The deployment preview changed after approval. Deployment was refused; review and approve the new preview.",
     );

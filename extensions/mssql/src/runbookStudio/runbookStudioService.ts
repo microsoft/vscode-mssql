@@ -104,6 +104,7 @@ import {
     LocalDevelopmentDatabaseLeaseResult,
     LocalSandboxCleanupResult,
     LocalSandboxLeaseResult,
+    LocalSchemaMutationResult,
     LocalSchemaComparisonResult,
     LocalSchemaComparisonExportResult,
     LocalSqlActivityDelegate,
@@ -176,6 +177,10 @@ import { DacFxService } from "../services/dacFxService";
 import { TaskExecutionMode } from "../enums";
 import { digestRunbookValue } from "./runbookDigest";
 import type { IConnectionProfileWithSource } from "../models/interfaces";
+import {
+    buildTransactionalCreateTableSql,
+    validateLocalCreateTableSql,
+} from "./schemaMutationPolicy";
 
 const SimpleExecuteRequestType = new RequestType<
     { ownerUri: string; queryString: string },
@@ -188,6 +193,7 @@ let runCounter = 0;
 let previewCounter = 0;
 let extractCounter = 0;
 let sandboxCounter = 0;
+let schemaMutationCounter = 0;
 
 function nextRunId(): string {
     runCounter++;
@@ -2044,7 +2050,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 const snapshot = entry.snapshot;
                 if (
                     (snapshot.identity.activityKind !== "devdatabase.provision" &&
-                        snapshot.identity.activityKind !== "dacpac.deploy.dev") ||
+                        snapshot.identity.activityKind !== "dacpac.deploy.dev" &&
+                        snapshot.identity.activityKind !== "sql.schema.apply") ||
                     (runId !== undefined && snapshot.identity.runId !== runId)
                 ) {
                     continue;
@@ -2238,6 +2245,14 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             invocation,
                             cancelled,
                             "dacpac.deploy.dev",
+                        ),
+                    applySchema: (nodeId, databaseRef, sql, invocation, cancelled) =>
+                        this.applyLocalSchemaMutation(
+                            nodeId,
+                            databaseRef,
+                            sql,
+                            invocation,
+                            cancelled,
                         ),
                     verifyDacpacDeployment: async (dacpacPath, databaseRef, cancelled) => {
                         const preview = await this.previewLocalDacpacDeployment(
@@ -2826,6 +2841,16 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 "RunbookStudio.ActivityPolicyDenied",
             );
         }
+        if (
+            activityKind === "dacpac.deploy.dev" &&
+            this.effectLedger.recoverEffect(leaseEffectId)?.snapshot.identity.runId !==
+                invocation.runId
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacDeployTargetRequired,
+                "RunbookStudio.TargetChanged",
+            );
+        }
         const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested, [
             this.localManagedArtifactRoot(),
         ]);
@@ -3025,6 +3050,172 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     "warning",
                     { runIdDigest: metaField(shortDigest(invocation.runId)) },
                 );
+            }
+        }
+    }
+
+    private async applyLocalSchemaMutation(
+        nodeId: string,
+        databaseRef: string,
+        sql: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSchemaMutationResult> {
+        const authorization = this.requireApprovedEffect(nodeId, invocation, "sql.schema.apply");
+        const policy = validateLocalCreateTableSql(sql);
+        if (!policy) {
+            throw new LocalActivityError(
+                LocRunbookStudio.schemaMutationCreateTableOnly,
+                "RunbookStudio.ActivityPolicyDenied",
+            );
+        }
+        const leaseEffectId = effectIdFromLocalDevelopmentDatabaseLeaseRef(databaseRef);
+        const lease = leaseEffectId
+            ? this.effectLedger.recoverEffect(leaseEffectId)?.snapshot
+            : undefined;
+        if (!leaseEffectId || !lease || lease.identity.runId !== invocation.runId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.schemaMutationOwnedTargetRequired,
+                "RunbookStudio.ActivityPolicyDenied",
+            );
+        }
+        const resolved = await this.resolveRunbookConnection(databaseRef);
+        if (!resolved.development || resolved.development.effectId !== leaseEffectId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.schemaMutationOwnedTargetRequired,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacPreviewCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const connectionManager = this.connectionAccess();
+        if (!connectionManager) {
+            throw new LocalActivityError(
+                LocRunbookStudio.connectFailed,
+                "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        const effectId = deriveRunbookEffectId({
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "sql.schema.apply",
+            activityVersion: authorization.challenge.activityVersion,
+        });
+        if (this.effectLedger.recoverEffect(effectId)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        schemaMutationCounter++;
+        const ownerUri = `runbookstudio://schema-mutation/${schemaMutationCounter.toString(36)}`;
+        let connected = false;
+        let prepared = false;
+        let executionStarted = false;
+        try {
+            connected = await connectionManager.connect(ownerUri, resolved.profile, {
+                connectionSource: "runbookStudio",
+                shouldHandleErrors: false,
+            });
+            if (!connected) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.connectFailed,
+                    "RunbookStudio.ActivityFailed",
+                );
+            }
+            if (isCancellationRequested()) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacPreviewCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            this.effectLedger.prepareEffect({
+                effectId,
+                runId: invocation.runId,
+                nodeId,
+                attempt: invocation.attempt,
+                activityKind: "sql.schema.apply",
+                activityVersion: authorization.challenge.activityVersion,
+                idempotencyKey: digestRunbookValue({
+                    effectId,
+                    databaseName: resolved.targetDatabase,
+                    tableName: policy.qualifiedTableName,
+                    sqlSha256: policy.sqlSha256,
+                }),
+                planHash: invocation.planHash,
+                bindingDigest: authorization.challenge.resolvedArgumentDigest,
+                targetFingerprint: authorization.challenge.targetFingerprint,
+                retrySemantics: "atMostOnceUnknownOutcome",
+                ownerPid: process.pid,
+                policy: {
+                    version: authorization.challenge.policyVersion,
+                    outcome: "allowed",
+                },
+                approval: authorization.evidence,
+                recovery: {
+                    resourceKind: "schemaMutation",
+                    resourceId: resolved.targetDatabase,
+                    connectionProfileId: resolved.development.connectionProfileId,
+                    ownershipMarkerDigest: resolved.development.ownershipMarkerDigest,
+                },
+            });
+            prepared = true;
+            executionStarted = true;
+            const result = await SqlToolsServerClient.instance.sendRequest(
+                SimpleExecuteRequestType,
+                {
+                    ownerUri,
+                    queryString: buildTransactionalCreateTableSql(policy),
+                },
+            );
+            this.effectLedger.recordEffectObserved(effectId, {
+                resourceKind: "schemaMutation",
+                resourceId: resolved.targetDatabase,
+                ownershipMarkerDigest: resolved.development.ownershipMarkerDigest,
+                connectionProfileId: resolved.development.connectionProfileId,
+                outputHandles: [databaseRef, policy.qualifiedTableName],
+            });
+            if (result.rows?.[0]?.[0]?.displayValue !== "1") {
+                throw new LocalActivityError(
+                    LocRunbookStudio.schemaMutationFailed,
+                    "RunbookStudio.SchemaMutationFailed",
+                );
+            }
+            this.effectLedger.finalizeEffect(
+                effectId,
+                digestRunbookValue({
+                    effectId,
+                    databaseName: resolved.targetDatabase,
+                    tableName: policy.qualifiedTableName,
+                    sqlSha256: policy.sqlSha256,
+                    changedObjectCount: 1,
+                }),
+            );
+            return {
+                effectId,
+                databaseName: resolved.targetDatabase,
+                tableName: policy.qualifiedTableName,
+                sqlSha256: policy.sqlSha256,
+                changedObjectCount: 1,
+                appliedAtUtc: new Date().toISOString(),
+            };
+        } catch (error) {
+            if (prepared && !executionStarted) {
+                this.effectLedger.recordNoEffectFailure(effectId, "SchemaMutationNotStarted");
+            }
+            throw error;
+        } finally {
+            if (connected) {
+                try {
+                    await connectionManager.disconnect(ownerUri);
+                } catch {
+                    // Durable effect state is authoritative after the batch settles.
+                }
             }
         }
     }
@@ -3436,9 +3627,12 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const ownershipMarkerDigest =
             resource?.ownershipMarkerDigest ?? recovery?.ownershipMarkerDigest;
         const validResourceKind =
-            snapshot.identity.activityKind === "devdatabase.provision"
-                ? recovery?.resourceKind === "developmentSqlDatabase"
-                : recovery?.resourceKind === "dacpacDeployment";
+            (snapshot.identity.activityKind === "devdatabase.provision" &&
+                recovery?.resourceKind === "developmentSqlDatabase") ||
+            (snapshot.identity.activityKind === "dacpac.deploy.dev" &&
+                recovery?.resourceKind === "dacpacDeployment") ||
+            (snapshot.identity.activityKind === "sql.schema.apply" &&
+                recovery?.resourceKind === "schemaMutation");
         if (
             !recovery ||
             !validResourceKind ||

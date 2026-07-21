@@ -124,6 +124,14 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             postDeployChangeCount: 0,
             deployedAtUtc: "2026-07-20T20:03:30.000Z",
         }),
+        applySchema: async () => ({
+            effectId: `effect-${"1".repeat(64)}`,
+            databaseName: "WWI_2",
+            tableName: "dbo.RunLog",
+            sqlSha256: "2".repeat(64),
+            changedObjectCount: 1,
+            appliedAtUtc: "2026-07-20T20:04:00.000Z",
+        }),
         verifyDacpacDeployment: async (dacpacPath) => ({
             dacpacPath,
             targetDatabase: `RunbookStudio_${"d".repeat(20)}`,
@@ -542,6 +550,21 @@ suite("Runbook Studio local activity delegate", () => {
             operationId: "development-deploy-op",
             postDeployChangeCount: 0,
         });
+
+        const mutation = await delegate.executeActivity(
+            activity("sql.schema.apply", {
+                database: "$nodes.provision.connectionRef",
+                sql: "CREATE TABLE dbo.RunLog (Id bigint NOT NULL PRIMARY KEY)",
+            }),
+            binding(resolve),
+        );
+        expect(mutation?.success).to.equal(true);
+        expect(mutation?.output?.contract).to.equal("schemaMutationEvidence/1");
+        expect(mutation?.output?.scalars).to.include({
+            databaseName: "WWI_2",
+            tableName: "dbo.RunLog",
+            changedObjectCount: 1,
+        });
     });
 
     test("guarded deployment and schema verification emit typed evidence", async () => {
@@ -923,6 +946,7 @@ suite("Runbook Studio local activity delegate", () => {
             "dacpac.deploy.preview",
             "dacpac.deploy",
             "dacpac.deploy.dev",
+            "sql.schema.apply",
             "schema.compare",
             "schema.compare.export",
             "sandbox.dispose",

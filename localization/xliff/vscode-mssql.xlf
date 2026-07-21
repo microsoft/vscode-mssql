@@ -2243,6 +2243,10 @@
     <trans-unit id="++CODE++ecf28f59dc9c4fc9e2542026550a556b108c9bcbdabe952992e10ca8c7b91f3d">
       <source xml:lang="en">Create time series</source>
     </trans-unit>
+    <trans-unit id="++CODE++cc40079929522a794ec09a364689d365ec5e86f3128b8e07addc8afdaf745aed">
+      <source xml:lang="en">Created table &apos;{0}&apos; in the owned development database.</source>
+      <note>{0} is the qualified table name created by the runbook</note>
+    </trans-unit>
     <trans-unit id="++CODE++28b1fabfaa559d20e2654f3f6e126257916ec09e5923c77149138a2baa3b823a">
       <source xml:lang="en">Created table {0}</source>
       <note>{0} is the qualified table name</note>
@@ -7920,6 +7924,12 @@
     <trans-unit id="++CODE++c55acbc843338cecc106d5428a6c2c6cd65129c6b5c440b6477f06206d844ded">
       <source xml:lang="en">Schema is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++77f46107d0d3b830033a83f59142c8e9523607d8d079a4371cc6934aba7b75ac">
+      <source xml:lang="en">Schema mutation currently requires one complete, bounded CREATE TABLE statement.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d6ca46bba9bae11df91c006bbe6294dd68b3b52794438ee03294413f54e1229a">
+      <source xml:lang="en">Schema mutation is allowed only on an ownership-verified named development database created by this run.</source>
+    </trans-unit>
     <trans-unit id="++CODE++3bde336f399c6d81fa23549703c376fc71c636c1e057f4fab713357194205e8e">
       <source xml:lang="en">Schema verification found {0} remaining deployment change(s).</source>
       <note>{0} is a DacFx deployment change count</note>
@@ -9055,6 +9065,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c2deec07495a278190de83a0820519064e332fc00b050c4fd053bae70c44da8e">
       <source xml:lang="en">The Application (Client) ID of your Microsoft Entra app registration.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bb5ad4f378461e81c2feb0223bc8ab2f9c628388e79bf9c1ba8dfe6485603a10">
+      <source xml:lang="en">The CREATE TABLE mutation did not produce verified table evidence.</source>
     </trans-unit>
     <trans-unit id="++CODE++c146786acfff053f8101c36f5ca59d66684821ec1755798b8eab152943978153">
       <source xml:lang="en">The DacFx service is not available for DACPAC extraction.</source>

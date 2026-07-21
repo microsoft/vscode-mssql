@@ -28,6 +28,7 @@ import { isReadOnlySql } from "../../src/runbookStudio/runtime/localSqlDelegate"
 import { createNewRunbookArtifact } from "../../src/runbookStudio/runbookArtifact";
 import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudio/developerValidationPreview";
 import { RunbookArtifactFile } from "../../src/sharedInterfaces/runbookStudio";
+import { classifyRunbookIntent } from "../../src/runbookStudio/capabilities/runbookCapabilities";
 
 function base(): RunbookArtifactFile {
     return createNewRunbookArtifact("New runbook", "rb-test");
@@ -102,6 +103,137 @@ suite("planCompiler", () => {
         expect(buildCompilePrompt("inspect it", undefined, "investigate")).to.contain(
             "Planner family: investigate",
         );
+        expect(buildCompilePrompt("create it", undefined, "build")).to.contain(
+            "Inputs marked ddl must be exactly one complete CREATE TABLE statement",
+        );
+    });
+
+    test("the advanced extract, named deploy, table, and diff workflow compiles end to end", () => {
+        const intent =
+            "Create a dacpac from WideWorldImporters, then import the dacpac into WWI_2, " +
+            "then create a table in WWI_2, then run a schema compare and create a diff file.";
+        const classified = classifyRunbookIntent(intent);
+        const advancedBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: {
+                ...base().source,
+                requirements: classified.requirements,
+            },
+        };
+        const proposal = {
+            name: "WideWorldImporters development evolution",
+            description: "Extracts, deploys, changes, and compares an owned development database.",
+            parameters: [
+                {
+                    id: "source",
+                    label: "WideWorldImporters source",
+                    type: "connection",
+                    required: true,
+                },
+                {
+                    id: "server",
+                    label: "Local development server",
+                    type: "connection",
+                    required: true,
+                },
+            ],
+            entryNodeId: "extract",
+            nodes: [
+                {
+                    id: "extract",
+                    label: "Extract source DACPAC",
+                    kind: "activity",
+                    activityKind: "dacpac.extract",
+                    inputs: { database: "$params.source" },
+                },
+                { id: "approve-provision", label: "Approve target creation", kind: "gate" },
+                {
+                    id: "provision",
+                    label: "Create WWI_2",
+                    kind: "activity",
+                    activityKind: "devdatabase.provision",
+                    inputs: { server: "$params.server", databaseName: "WWI_2" },
+                },
+                {
+                    id: "preview",
+                    label: "Preview deployment",
+                    kind: "activity",
+                    activityKind: "dacpac.deploy.preview",
+                    inputs: {
+                        dacpac: "$nodes.extract.artifactPath",
+                        database: "$nodes.provision.connectionRef",
+                    },
+                },
+                { id: "approve-deploy", label: "Approve deployment", kind: "gate" },
+                {
+                    id: "deploy",
+                    label: "Deploy DACPAC",
+                    kind: "activity",
+                    activityKind: "dacpac.deploy.dev",
+                    inputs: {
+                        dacpac: "$nodes.extract.artifactPath",
+                        database: "$nodes.provision.connectionRef",
+                        artifactDigest: "$nodes.extract.artifactSha256",
+                        previewDigest: "$nodes.preview.reportSha256",
+                    },
+                },
+                { id: "approve-table", label: "Approve table creation", kind: "gate" },
+                {
+                    id: "create-table",
+                    label: "Create run log table",
+                    kind: "activity",
+                    activityKind: "sql.schema.apply",
+                    inputs: {
+                        database: "$nodes.provision.connectionRef",
+                        sql: "CREATE TABLE dbo.RunLog (Id bigint NOT NULL PRIMARY KEY, CreatedAt datetime2 NOT NULL)",
+                    },
+                },
+                {
+                    id: "export-diff",
+                    label: "Export schema diff",
+                    kind: "activity",
+                    activityKind: "schema.compare.export",
+                    inputs: {
+                        dacpac: "$nodes.extract.artifactPath",
+                        database: "$nodes.provision.connectionRef",
+                    },
+                },
+                { id: "report", label: "Summarize", kind: "report" },
+            ],
+            edges: [
+                { from: "extract", to: "approve-provision" },
+                { from: "approve-provision", to: "provision", when: "approved" },
+                { from: "approve-provision", to: "report", when: "rejected" },
+                { from: "provision", to: "preview" },
+                { from: "preview", to: "approve-deploy" },
+                { from: "approve-deploy", to: "deploy", when: "approved" },
+                { from: "approve-deploy", to: "report", when: "rejected" },
+                { from: "deploy", to: "approve-table" },
+                { from: "approve-table", to: "create-table", when: "approved" },
+                { from: "approve-table", to: "report", when: "rejected" },
+                { from: "create-table", to: "export-diff" },
+                { from: "export-diff", to: "report" },
+            ],
+        };
+
+        const result = parseCompiledProposal(JSON.stringify(proposal), advancedBase, intent);
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+        expect(
+            result.artifact
+                .lock!.nodes.filter((node) => node.kind === "activity")
+                .map((node) => node.activityKind),
+        ).to.deep.equal([
+            "dacpac.extract",
+            "devdatabase.provision",
+            "dacpac.deploy.preview",
+            "dacpac.deploy.dev",
+            "sql.schema.apply",
+            "schema.compare.export",
+        ]);
     });
 
     test("post-generation family admission rejects a SQL substitute for Build", () => {

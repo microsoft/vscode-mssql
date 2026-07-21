@@ -747,11 +747,14 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
             requested.add("dacpac.deploy");
             requested.add("sandbox.dispose");
         }
-        requested.add("schema.compare");
+        if (!requestsSchemaCompareExport) {
+            requested.add("schema.compare");
+        }
     }
     if (
-        has(text, /\b(schema compare|schema drift|drift|verify deployed schema)\b/) ||
-        ((family === "build" || family === "composed") && has(text, /\bverify\b/))
+        !requestsSchemaCompareExport &&
+        (has(text, /\b(schema compare|schema drift|drift|verify deployed schema)\b/) ||
+            ((family === "build" || family === "composed") && has(text, /\bverify\b/)))
     ) {
         requested.add("schema.compare");
     }

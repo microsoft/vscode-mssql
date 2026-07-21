@@ -25,6 +25,7 @@ import type {
     RunbookPlanNode,
 } from "../../sharedInterfaces/runbookStudio";
 import type { RunbookOperationContext } from "../runbookDiag";
+import { validateLocalCreateTableSql } from "../schemaMutationPolicy";
 import { buildLocalEvidenceBundle, LocalEvidenceNodeInput } from "./localEvidenceBundle";
 import type { LocalToolchainProvenance } from "./localToolchainProvenance";
 import type {
@@ -841,6 +842,37 @@ function executeNode(
                     deployed: true,
                     artifactSha256: artifactDigest,
                     postDeployChangeCount: 0,
+                },
+            };
+        }
+        case "sql.schema.apply": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const sql = resolveBind(node.inputs?.sql, parameterValues, nodeValues);
+            const policy = validateLocalCreateTableSql(sql);
+            if (typeof database !== "string" || !policy) {
+                return invalidPreviewBinding("sql.schema.apply", "database/sql");
+            }
+            return {
+                success: true,
+                runMetrics: {
+                    "schemaMutation.applied": true,
+                    "schemaMutation.changedObjectCount": 1,
+                },
+                message: "CREATE TABLE applied (deterministic preview)",
+                output: {
+                    contract: "schemaMutationEvidence/1",
+                    scalars: {
+                        databaseName: "PreviewDatabase",
+                        tableName: policy.qualifiedTableName,
+                        sqlSha256: policy.sqlSha256,
+                        changedObjectCount: 1,
+                        preview: true,
+                    },
+                },
+                values: {
+                    applied: true,
+                    tableName: policy.qualifiedTableName,
+                    sqlSha256: policy.sqlSha256,
                 },
             };
         }

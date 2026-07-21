@@ -27,6 +27,7 @@ import {
     NodeExecution,
 } from "./fakeRuntimeAdapter";
 import type { LocalEvidenceBundleResult } from "./localEvidenceBundle";
+import { validateLocalCreateTableSql } from "../schemaMutationPolicy";
 import {
     LocalTsqltContractError,
     LocalTsqltSelection,
@@ -88,6 +89,13 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalDacpacDeploymentResult>;
+    applySchema(
+        nodeId: string,
+        databaseRef: string,
+        sql: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSchemaMutationResult>;
     verifyDacpacDeployment(
         dacpacPath: string,
         databaseRef: string,
@@ -224,6 +232,15 @@ export interface LocalDevelopmentDatabaseLeaseResult extends LocalSandboxLeaseRe
     retention: "retained";
 }
 
+export interface LocalSchemaMutationResult {
+    effectId: string;
+    databaseName: string;
+    tableName: string;
+    sqlSha256: string;
+    changedObjectCount: number;
+    appliedAtUtc: string;
+}
+
 export interface LocalSandboxCleanupResult {
     effectId: string;
     leaseId: string;
@@ -262,6 +279,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "dacpac.deploy.preview",
         "dacpac.deploy",
         "dacpac.deploy.dev",
+        "sql.schema.apply",
         "schema.compare",
         "schema.compare.export",
         "sandbox.dispose",
@@ -302,6 +320,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.deployDacpac(node, binding);
             case "dacpac.deploy.dev":
                 return this.deployDacpac(node, binding, true);
+            case "sql.schema.apply":
+                return this.applySchema(node, binding);
             case "schema.compare":
                 return this.verifyDacpacDeployment(node, binding);
             case "schema.compare.export":
@@ -813,6 +833,65 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     deployed: true,
                     postDeployChangeCount: result.postDeployChangeCount,
                     artifactSha256: result.artifactSha256,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async applySchema(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        const sql = binding.resolveBind(node.inputs?.sql);
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        const policy = validateLocalCreateTableSql(sql);
+        if (!policy) {
+            return {
+                success: false,
+                message: LocRunbookStudio.schemaMutationCreateTableOnly,
+                errorCode: "RunbookStudio.ActivityPolicyDenied",
+            };
+        }
+        try {
+            const result = await this.operations.applySchema(
+                node.id,
+                databaseRef.trim(),
+                policy.sql,
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "schemaMutation.applied": true,
+                    "schemaMutation.changedObjectCount": result.changedObjectCount,
+                },
+                message: LocRunbookStudio.schemaMutationApplied(result.tableName),
+                output: {
+                    contract: "schemaMutationEvidence/1",
+                    scalars: {
+                        effectId: result.effectId,
+                        databaseName: result.databaseName,
+                        tableName: result.tableName,
+                        sqlSha256: result.sqlSha256,
+                        changedObjectCount: result.changedObjectCount,
+                        appliedAtUtc: result.appliedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    applied: true,
+                    tableName: result.tableName,
+                    sqlSha256: result.sqlSha256,
                 },
             };
         } catch (error) {
