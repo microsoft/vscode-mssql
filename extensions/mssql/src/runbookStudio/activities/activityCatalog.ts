@@ -210,6 +210,56 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "sql.container.provision",
+        version: 1,
+        label: "Provision owned local SQL container",
+        description:
+            "Creates an absent ownership-labeled local SQL Server container with bounded resources, waits for readiness, creates the requested disposable database, and returns an opaque cleanup lease.",
+        inputs: [
+            {
+                name: "containerName",
+                kind: "bind",
+                required: true,
+                description: "Explicit unique name beginning with rbs-",
+            },
+            {
+                name: "databaseName",
+                kind: "bind",
+                required: true,
+                description: "Explicit non-system database name to create inside the container",
+            },
+            {
+                name: "version",
+                kind: "bind",
+                required: true,
+                description: "Allowlisted SQL Server image version: 2019, 2022, or 2025",
+            },
+            {
+                name: "password",
+                kind: "bind",
+                required: true,
+                description: "Bind to a required secret parameter; never persisted in the plan",
+            },
+            {
+                name: "port",
+                kind: "bind",
+                required: false,
+                description: "Optional host port from 1024 to 65535; defaults to an available port",
+            },
+        ],
+        outputContract: "databaseLease/1",
+        producedValues: ["connectionRef", "leaseId", "databaseName", "containerName", "port"],
+        approvalRequired: true,
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "databaseName" },
+        blastRadius: {
+            resource: "container",
+            operation: "provision",
+            targetEnvironment: "ephemeral",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "dacpac.deploy.preview",
         version: 1,
         label: "Preview DACPAC deployment",
@@ -325,6 +375,50 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
             resource: "databaseSchema",
             operation: "modify",
             targetEnvironment: "development",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "dacpac.deploy.container",
+        version: 1,
+        label: "Deploy DACPAC to owned SQL container",
+        description:
+            "Applies the exact approved DACPAC preview only to a same-run ownership-labeled local SQL container lease.",
+        inputs: [
+            {
+                name: "dacpac",
+                kind: "bind",
+                required: true,
+                description: "Bind to a dacpac.build or dacpac.extract artifactPath",
+            },
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to a sql.container.provision connectionRef",
+            },
+            {
+                name: "artifactDigest",
+                kind: "bind",
+                required: true,
+                description: "Bind to the approved DACPAC artifactSha256",
+            },
+            {
+                name: "previewDigest",
+                kind: "bind",
+                required: true,
+                description: "Bind to the approved dacpac.deploy.preview reportSha256",
+            },
+        ],
+        outputContract: "deploymentEvidence/1",
+        producedValues: ["deployed", "postDeployChangeCount", "artifactSha256"],
+        approvalRequired: true,
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseSchema",
+            operation: "modify",
+            targetEnvironment: "ephemeral",
             reversibility: "autoReversible",
             breadth: "bounded",
         },
@@ -549,6 +643,31 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "sql.container.dispose",
+        version: 1,
+        label: "Dispose owned local SQL container",
+        description:
+            "Verifies the exact Runbook Studio owner labels, removes only that container, and records durable cleanup evidence.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to a sql.container.provision connectionRef",
+            },
+        ],
+        outputContract: "cleanupEvidence/1",
+        producedValues: ["cleaned"],
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "container",
+            operation: "delete",
+            targetEnvironment: "ephemeral",
+            reversibility: "irreversible",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "evidence.bundle",
         version: 1,
         label: "Assemble run evidence",
@@ -683,14 +802,22 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                         : "the workspace binding";
                 issues.push(`node '${node.id}' target does not match ${targetSource}`);
             }
-            if (
-                descriptor.target.kind === "ephemeralSqlDatabase" &&
-                descriptor.kind !== "sandbox.provision" &&
-                !isOwnedDatabaseOutput(lock, node, "sandbox.provision")
-            ) {
-                issues.push(
-                    `node '${node.id}' must bind its disposable target to an upstream sandbox.provision connectionRef`,
-                );
+            if (descriptor.target.kind === "ephemeralSqlDatabase") {
+                const containerActivity =
+                    descriptor.kind === "dacpac.deploy.container" ||
+                    descriptor.kind === "sql.container.dispose";
+                const producerKind = containerActivity
+                    ? "sql.container.provision"
+                    : "sandbox.provision";
+                if (
+                    descriptor.kind !== "sandbox.provision" &&
+                    descriptor.kind !== "sql.container.provision" &&
+                    !isOwnedDatabaseOutput(lock, node, producerKind)
+                ) {
+                    issues.push(
+                        `node '${node.id}' must bind its disposable target to an upstream ${producerKind} connectionRef`,
+                    );
+                }
             }
             if (
                 (descriptor.kind === "dacpac.deploy.dev" ||
@@ -723,7 +850,7 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
 function isOwnedDatabaseOutput(
     lock: CompiledRunbookLock,
     node: RunbookPlanNode,
-    producerKind: "sandbox.provision" | "devdatabase.provision",
+    producerKind: "sandbox.provision" | "devdatabase.provision" | "sql.container.provision",
 ): boolean {
     if (node.target?.binding.source !== "nodeOutput") {
         return false;

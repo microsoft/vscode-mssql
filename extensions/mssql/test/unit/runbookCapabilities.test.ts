@@ -390,7 +390,7 @@ suite("runbook capability preflight", () => {
         ]);
     });
 
-    test("containerWorkloadCapabilities reports provision, workload, and XEvent gaps", () => {
+    test("containerWorkloadCapabilities reports only workload and XEvent gaps", () => {
         const classified = classifyRunbookIntent(
             "Provision a local SQL container, import the dacpac, run this workload.sql, " +
                 "and collect an XEvent XEL file.",
@@ -414,12 +414,14 @@ suite("runbook capability preflight", () => {
         expect(kinds).not.to.include("dacpac.build");
         expect(readiness.status).to.equal("designOnly");
         expect(readiness.missingActivityKinds).to.include.members([
-            "sql.container.provision@1",
-            "dacpac.deploy.container@1",
             "xevent.session.start@1",
             "sql.workload.run@1",
             "xevent.session.stop@1",
             "xevent.xel.collect@1",
+        ]);
+        expect(readiness.missingActivityKinds).not.to.include.members([
+            "sql.container.provision@1",
+            "dacpac.deploy.container@1",
             "sql.container.dispose@1",
         ]);
     });

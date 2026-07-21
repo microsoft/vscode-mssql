@@ -236,6 +236,84 @@ suite("planCompiler", () => {
         ]);
     });
 
+    test("an owned SQL container lifecycle compiles with a rebind-only secret", () => {
+        const intent = "Provision and then dispose a local SQL container.";
+        const classified = classifyRunbookIntent(intent);
+        const containerBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: {
+                ...base().source,
+                requirements: classified.requirements,
+            },
+        };
+        const proposal = {
+            name: "Disposable SQL container",
+            parameters: [
+                {
+                    id: "containerName",
+                    label: "Container name",
+                    type: "string",
+                    required: true,
+                },
+                {
+                    id: "databaseName",
+                    label: "Database name",
+                    type: "string",
+                    required: true,
+                },
+                {
+                    id: "password",
+                    label: "SQL administrator password",
+                    type: "secret",
+                    required: true,
+                },
+            ],
+            entryNodeId: "approve",
+            nodes: [
+                { id: "approve", label: "Approve container", kind: "gate" },
+                {
+                    id: "container",
+                    label: "Provision SQL container",
+                    kind: "activity",
+                    activityKind: "sql.container.provision",
+                    inputs: {
+                        containerName: "$params.containerName",
+                        databaseName: "$params.databaseName",
+                        version: "2022",
+                        password: "$params.password",
+                    },
+                },
+                {
+                    id: "dispose",
+                    label: "Dispose SQL container",
+                    kind: "activity",
+                    activityKind: "sql.container.dispose",
+                    inputs: { database: "$nodes.container.connectionRef" },
+                },
+                { id: "report", label: "Summarize", kind: "report" },
+            ],
+            edges: [
+                { from: "approve", to: "container", when: "approved" },
+                { from: "approve", to: "report", when: "rejected" },
+                { from: "container", to: "dispose" },
+                { from: "dispose", to: "report" },
+            ],
+        };
+
+        const result = parseCompiledProposal(JSON.stringify(proposal), containerBase, intent);
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+        expect(result.artifact.source.parameters.find((item) => item.id === "password")).to.include(
+            {
+                type: "secret",
+                required: true,
+            },
+        );
+    });
+
     test("post-generation family admission rejects a SQL substitute for Build", () => {
         const buildBase = { ...base(), family: "build" as const };
         const result = parseCompiledProposal(

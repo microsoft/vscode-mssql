@@ -89,6 +89,15 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalDacpacDeploymentResult>;
+    deployContainerDacpac(
+        nodeId: string,
+        dacpacPath: string,
+        databaseRef: string,
+        approvedArtifactDigest: string,
+        approvedPreviewDigest: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalDacpacDeploymentResult>;
     applySchema(
         nodeId: string,
         databaseRef: string,
@@ -121,12 +130,28 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalDevelopmentDatabaseLeaseResult>;
+    provisionSqlContainer(
+        nodeId: string,
+        containerName: string,
+        databaseName: string,
+        version: string,
+        password: string,
+        port: number | undefined,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSqlContainerLeaseResult>;
     disposeSandbox(
         nodeId: string,
         leaseRef: string,
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalSandboxCleanupResult>;
+    disposeSqlContainer(
+        nodeId: string,
+        leaseRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSqlContainerCleanupResult>;
     bundleEvidence(
         nodeId: string,
         invocation: ActivityInvocationIdentity,
@@ -232,6 +257,12 @@ export interface LocalDevelopmentDatabaseLeaseResult extends LocalSandboxLeaseRe
     retention: "retained";
 }
 
+export interface LocalSqlContainerLeaseResult extends LocalSandboxLeaseResult {
+    containerName: string;
+    port: number;
+    version: string;
+}
+
 export interface LocalSchemaMutationResult {
     effectId: string;
     databaseName: string;
@@ -248,6 +279,10 @@ export interface LocalSandboxCleanupResult {
     cleaned: boolean;
     cleanedAtUtc: string;
     cleanupEvidenceDigest: string;
+}
+
+export interface LocalSqlContainerCleanupResult extends LocalSandboxCleanupResult {
+    containerName: string;
 }
 
 /** Expected host refusal with a stable, non-secret error classification. */
@@ -276,13 +311,16 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "dacpac.extract",
         "sandbox.provision",
         "devdatabase.provision",
+        "sql.container.provision",
         "dacpac.deploy.preview",
         "dacpac.deploy",
         "dacpac.deploy.dev",
+        "dacpac.deploy.container",
         "sql.schema.apply",
         "schema.compare",
         "schema.compare.export",
         "sandbox.dispose",
+        "sql.container.dispose",
         "sqltest.run",
         "evidence.bundle",
         "sql.query.read",
@@ -314,12 +352,16 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.provisionSandbox(node, binding);
             case "devdatabase.provision":
                 return this.provisionDevelopmentDatabase(node, binding);
+            case "sql.container.provision":
+                return this.provisionSqlContainer(node, binding);
             case "dacpac.deploy.preview":
                 return this.previewDacpacDeployment(node, binding);
             case "dacpac.deploy":
                 return this.deployDacpac(node, binding);
             case "dacpac.deploy.dev":
                 return this.deployDacpac(node, binding, true);
+            case "dacpac.deploy.container":
+                return this.deployDacpac(node, binding, false, true);
             case "sql.schema.apply":
                 return this.applySchema(node, binding);
             case "schema.compare":
@@ -328,6 +370,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.exportSchemaComparison(node, binding);
             case "sandbox.dispose":
                 return this.disposeSandbox(node, binding);
+            case "sql.container.dispose":
+                return this.disposeSqlContainer(node, binding);
             case "sqltest.run":
                 return this.executeSqlTests(node, binding);
             case "evidence.bundle":
@@ -766,6 +810,86 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         }
     }
 
+    private async provisionSqlContainer(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const containerName = binding.resolveBind(node.inputs?.containerName);
+        const databaseName = binding.resolveBind(node.inputs?.databaseName);
+        const version = binding.resolveBind(node.inputs?.version);
+        const password = binding.resolveBind(node.inputs?.password);
+        const portValue = binding.resolveBind(node.inputs?.port);
+        if (typeof containerName !== "string" || containerName.trim().length === 0) {
+            return invalidBinding("containerName");
+        }
+        if (typeof databaseName !== "string" || databaseName.trim().length === 0) {
+            return invalidBinding("databaseName");
+        }
+        if (typeof version !== "string" || version.trim().length === 0) {
+            return invalidBinding("version");
+        }
+        if (typeof password !== "string" || password.length === 0) {
+            return invalidBinding("password");
+        }
+        if (
+            portValue !== undefined &&
+            portValue !== null &&
+            (typeof portValue !== "number" || !Number.isSafeInteger(portValue))
+        ) {
+            return invalidBinding("port");
+        }
+        try {
+            const result = await this.operations.provisionSqlContainer(
+                node.id,
+                containerName.trim(),
+                databaseName.trim(),
+                version.trim(),
+                password,
+                typeof portValue === "number" ? portValue : undefined,
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "container.provisioned": true,
+                    "container.port": result.port,
+                },
+                message: LocRunbookStudio.sqlContainerProvisioned(
+                    result.containerName,
+                    result.databaseName,
+                ),
+                output: {
+                    contract: "databaseLease/1",
+                    scalars: {
+                        leaseId: result.leaseId,
+                        connectionRef: result.connectionRef,
+                        databaseName: result.databaseName,
+                        containerName: result.containerName,
+                        port: result.port,
+                        version: result.version,
+                        effectId: result.effectId,
+                        createdAtUtc: result.createdAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    leaseId: result.leaseId,
+                    connectionRef: result.connectionRef,
+                    databaseName: result.databaseName,
+                    containerName: result.containerName,
+                    port: result.port,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
     private async deployDacpac(
         node: RunbookPlanNode,
         binding: {
@@ -774,6 +898,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             invocation: ActivityInvocationIdentity;
         },
         development = false,
+        container = false,
     ): Promise<NodeExecution> {
         const dacpacPath = binding.resolveBind(node.inputs?.dacpac);
         const databaseRef = binding.resolveBind(node.inputs?.database);
@@ -792,9 +917,11 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             return invalidBinding("previewDigest");
         }
         try {
-            const operation = development
-                ? this.operations.deployDevelopmentDacpac.bind(this.operations)
-                : this.operations.deployDacpac.bind(this.operations);
+            const operation = container
+                ? this.operations.deployContainerDacpac.bind(this.operations)
+                : development
+                  ? this.operations.deployDevelopmentDacpac.bind(this.operations)
+                  : this.operations.deployDacpac.bind(this.operations);
             const result = await operation(
                 node.id,
                 dacpacPath.trim(),
@@ -1059,6 +1186,49 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                         effectId: result.effectId,
                         leaseId: result.leaseId,
                         databaseName: result.databaseName,
+                        cleaned: result.cleaned,
+                        cleanedAtUtc: result.cleanedAtUtc,
+                        cleanupEvidenceDigest: result.cleanupEvidenceDigest,
+                        executionMode: "local",
+                    },
+                },
+                values: { cleaned: result.cleaned },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async disposeSqlContainer(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const leaseRef = binding.resolveBind(node.inputs?.database);
+        if (typeof leaseRef !== "string" || leaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        try {
+            const result = await this.operations.disposeSqlContainer(
+                node.id,
+                leaseRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: { "container.cleanupCompleted": result.cleaned },
+                message: LocRunbookStudio.sqlContainerDisposed(result.containerName),
+                output: {
+                    contract: "cleanupEvidence/1",
+                    scalars: {
+                        effectId: result.effectId,
+                        leaseId: result.leaseId,
+                        databaseName: result.databaseName,
+                        containerName: result.containerName,
                         cleaned: result.cleaned,
                         cleanedAtUtc: result.cleanedAtUtc,
                         cleanupEvidenceDigest: result.cleanupEvidenceDigest,

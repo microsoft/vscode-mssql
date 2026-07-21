@@ -187,6 +187,11 @@ export async function startSqlServerDockerContainer(
     version: string,
     hostname: string,
     port: number,
+    runbookPolicy?: {
+        labels: Record<string, string>;
+        memoryBytes: number;
+        nanoCpus: number;
+    },
 ): Promise<DockerCommandParams> {
     // DOCK-4: create+start span. Version/port are safe facts; the create
     // options (SA_PASSWORD env) are NEVER logged or carried on fields.
@@ -212,6 +217,7 @@ export async function startSqlServerDockerContainer(
             Image: imageName,
             name: safeContainerName,
             Env: containerEnvironment,
+            ...(runbookPolicy ? { Labels: runbookPolicy.labels } : {}),
             ExposedPorts: {
                 [sqlContainerPort]: {},
             },
@@ -219,6 +225,12 @@ export async function startSqlServerDockerContainer(
                 PortBindings: {
                     [sqlContainerPort]: [{ HostPort: hostPort }],
                 },
+                ...(runbookPolicy
+                    ? {
+                          Memory: runbookPolicy.memoryBytes,
+                          NanoCpus: runbookPolicy.nanoCpus,
+                      }
+                    : {}),
             },
         };
         if (safeHostname) {

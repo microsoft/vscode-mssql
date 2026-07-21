@@ -123,6 +123,9 @@
     <trans-unit id="++CODE++ac9fb8995fba687acf368ee05b5a54245e4a642be4c7a794cce8a2873e8aa11f">
       <source xml:lang="en">A connection is already being established. Please wait for it to complete before running a query.</source>
     </trans-unit>
+    <trans-unit id="++CODE++faa1d1f6f40f0c452c7934ce3767c4baccd12ed404f6b38869a7209be2e11943">
+      <source xml:lang="en">A container with this name already exists. Runbook Studio will not adopt or replace it.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c8de997b7629be28d0a23b5051675226cd94e8dbce3b837e10491b7d60dc9903">
       <source xml:lang="en">A database with this name already exists on the server</source>
     </trans-unit>
@@ -2839,6 +2842,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a5d38a76e9010d59374fafce6a3d75189df15be61859ee1ffa33da6e9cf97b05">
       <source xml:lang="en">Docker is not installed or not in PATH. Please install Docker Desktop and try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++30b1aac92677c586b6809ebe19aefb33d4ff3adc8c5bd3bbb4d34b192d26e11f">
+      <source xml:lang="en">Docker is not installed, running, or configured for supported Linux SQL containers.</source>
     </trans-unit>
     <trans-unit id="++CODE++319f0296a0199ff55c80367670b4bc2dda57e9856942a4be10ca5a4b1531b6a1">
       <source xml:lang="en">Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.</source>
@@ -6447,6 +6453,10 @@
     <trans-unit id="++CODE++8a873e7be0e559e455bc3cc7bd48853f012838942cceed6ba93199f5e85d7674">
       <source xml:lang="en">Overwrite the existing database</source>
     </trans-unit>
+    <trans-unit id="++CODE++11103f37d56fa553b00adaf2f3e99c12a3f25c59e9a1bf9ac0b4fe85eda49fee">
+      <source xml:lang="en">Owned SQL container &apos;{0}&apos; was removed.</source>
+      <note>{0} is an owned container name</note>
+    </trans-unit>
     <trans-unit id="++CODE++4b1b8aa3608a26da451ae0630d75b60ab1bc2dd229c41a80838fc7993e835c46">
       <source xml:lang="en">Owner</source>
     </trans-unit>
@@ -7678,6 +7688,11 @@
     </trans-unit>
     <trans-unit id="++CODE++6a6bf6063fe6e46acf60d08c0ba2dba1d05dd22efb279588eeca536a4850299b">
       <source xml:lang="en">SQL Tools (MSSQL)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++87aa4423257c51aef1bdd27506ef40b963113519ee9ff918b9d852645811c42c">
+      <source xml:lang="en">SQL container &apos;{0}&apos; and disposable database &apos;{1}&apos; were provisioned.</source>
+      <note>{0} is an owned container name
+{1} is a database name</note>
     </trans-unit>
     <trans-unit id="++CODE++9ae793c44500f6cd1d15d751baaa468f9cf94715473c5cab3bb2603f3c80e942">
       <source xml:lang="en">SQL database in Fabric</source>
@@ -9113,6 +9128,18 @@
       <source xml:lang="en">The SQL Server extension couldn&apos;t start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
       <note>{0} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++e00b5a7309cfe1d506ce76468e90d70bde48fbaf7f7366607069b93fb1c853dd">
+      <source xml:lang="en">The SQL container credentials are no longer available in this extension host. Dispose the owned lease and rerun provisioning.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++154a998dc4ab72535da9752215f628f74604a3e82928b6ccd2756f5f8e9d22c1">
+      <source xml:lang="en">The SQL container name, database, version, or port is outside the Runbook Studio local-container policy.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++770ca4421d8b0717223f31a7e5c1eafb216c5fc57072bcba3720c17277b0e083">
+      <source xml:lang="en">The SQL container owner labels do not match this runbook lease. Automatic use or cleanup was refused.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++42ee3b2bd1aff636ec5597d43397fe507cc3d813bd9955b32be9df5a386151f9">
+      <source xml:lang="en">The SQL container password does not meet SQL Server complexity requirements.</source>
+    </trans-unit>
     <trans-unit id="++CODE++855352d475fa868944e53e607f71f0b81f3ebe80481430862ffd41d0b2ea0d92">
       <source xml:lang="en">The SQL project build completed without creating &apos;{0}&apos;.</source>
       <note>{0} is the expected DACPAC file path</note>
@@ -9289,6 +9316,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d840c7f06b4743166fdebaa91eaf9eef13a471acc167aca7ba55e76b6b6e845d">
       <source xml:lang="en">The output layout could not be saved. Review the selected views and try again.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++bbf9d5878e0f547ff1f5da1612e21b060981abbf3277a23a0ae0d19eb9019861">
+      <source xml:lang="en">The owned SQL container could not be provisioned and verified safely.</source>
     </trans-unit>
     <trans-unit id="++CODE++d25cb7cb615b44cf93cbec1c0f74ef7be719ed3131886d1d3424d02502a7f494">
       <source xml:lang="en">The preview uses the compiled activity output contracts and never runs SQL or other effects.</source>

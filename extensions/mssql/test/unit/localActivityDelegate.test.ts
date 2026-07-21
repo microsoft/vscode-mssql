@@ -124,6 +124,24 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             postDeployChangeCount: 0,
             deployedAtUtc: "2026-07-20T20:03:30.000Z",
         }),
+        deployContainerDacpac: async (
+            _nodeId,
+            dacpacPath,
+            _databaseRef,
+            _artifactDigest,
+            previewDigest,
+        ) => ({
+            effectId: `effect-${"3".repeat(64)}`,
+            dacpacPath,
+            artifactSha256: "b".repeat(64),
+            stagedArtifactSha256: "b".repeat(64),
+            databaseName: "WWI_Container",
+            operationId: "container-deploy-op",
+            approvedPreviewDigest: previewDigest,
+            postDeployReportSha256: "f".repeat(64),
+            postDeployChangeCount: 0,
+            deployedAtUtc: "2026-07-20T20:03:30.000Z",
+        }),
         applySchema: async () => ({
             effectId: `effect-${"1".repeat(64)}`,
             databaseName: "WWI_2",
@@ -177,6 +195,16 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             createdAtUtc: "2026-07-20T20:03:00.000Z",
             retention: "retained",
         }),
+        provisionSqlContainer: async (_nodeId, containerName, databaseName, version) => ({
+            effectId: `effect-${"3".repeat(64)}`,
+            leaseId: `effect-${"3".repeat(64)}`,
+            connectionRef: `runbook-sql-container-lease:effect-${"3".repeat(64)}`,
+            containerName,
+            databaseName,
+            version,
+            port: 14330,
+            createdAtUtc: "2026-07-20T20:03:00.000Z",
+        }),
         disposeSandbox: async () => ({
             effectId: `effect-${"d".repeat(64)}`,
             leaseId: "lease-1",
@@ -184,6 +212,15 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             cleaned: true,
             cleanedAtUtc: "2026-07-19T20:04:00.000Z",
             cleanupEvidenceDigest: "sha256:cleanup",
+        }),
+        disposeSqlContainer: async () => ({
+            effectId: `effect-${"3".repeat(64)}`,
+            leaseId: `effect-${"3".repeat(64)}`,
+            databaseName: "WWI_Container",
+            containerName: "rbs-wwi",
+            cleaned: true,
+            cleanedAtUtc: "2026-07-20T20:04:00.000Z",
+            cleanupEvidenceDigest: "sha256:container-cleanup",
         }),
         bundleEvidence: async () => ({
             bundleSha256: "9".repeat(64),
@@ -567,6 +604,66 @@ suite("Runbook Studio local activity delegate", () => {
         });
     });
 
+    test("container provision, deployment, and disposal retain no secret output", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+        const values: Record<string, string | number> = {
+            "$params.containerName": "rbs-wwi",
+            "$params.databaseName": "WWI_Container",
+            "$params.version": "2022",
+            "$params.password": "Secret1!",
+            "$nodes.extract.artifactPath": "C:\\managed\\WideWorldImporters.dacpac",
+            "$nodes.extract.artifactSha256": "b".repeat(64),
+            "$nodes.container.connectionRef": `runbook-sql-container-lease:effect-${"3".repeat(64)}`,
+            "$nodes.preview.reportSha256": "c".repeat(64),
+        };
+        const resolve = (value: unknown) =>
+            typeof value === "string" ? (values[value] ?? value) : value;
+        const provision = await delegate.executeActivity(
+            activity("sql.container.provision", {
+                containerName: "$params.containerName",
+                databaseName: "$params.databaseName",
+                version: "$params.version",
+                password: "$params.password",
+            }),
+            binding(resolve),
+        );
+        expect(provision?.success).to.equal(true);
+        expect(provision?.output?.scalars).to.include({
+            containerName: "rbs-wwi",
+            databaseName: "WWI_Container",
+            version: "2022",
+            port: 14330,
+        });
+        expect(JSON.stringify(provision?.output)).not.to.include("Secret1!");
+
+        const deploy = await delegate.executeActivity(
+            activity("dacpac.deploy.container", {
+                dacpac: "$nodes.extract.artifactPath",
+                database: "$nodes.container.connectionRef",
+                artifactDigest: "$nodes.extract.artifactSha256",
+                previewDigest: "$nodes.preview.reportSha256",
+            }),
+            binding(resolve),
+        );
+        expect(deploy?.success).to.equal(true);
+        expect(deploy?.output?.scalars).to.include({
+            databaseName: "WWI_Container",
+            operationId: "container-deploy-op",
+        });
+
+        const dispose = await delegate.executeActivity(
+            activity("sql.container.dispose", {
+                database: "$nodes.container.connectionRef",
+            }),
+            binding(resolve),
+        );
+        expect(dispose?.success).to.equal(true);
+        expect(dispose?.output?.scalars).to.include({
+            containerName: "rbs-wwi",
+            cleaned: true,
+        });
+    });
+
     test("guarded deployment and schema verification emit typed evidence", async () => {
         const delegate = new LocalSqlActivityDelegate(operations());
         const resolve = (value: unknown) => {
@@ -943,13 +1040,16 @@ suite("Runbook Studio local activity delegate", () => {
             "dacpac.extract",
             "sandbox.provision",
             "devdatabase.provision",
+            "sql.container.provision",
             "dacpac.deploy.preview",
             "dacpac.deploy",
             "dacpac.deploy.dev",
+            "dacpac.deploy.container",
             "sql.schema.apply",
             "schema.compare",
             "schema.compare.export",
             "sandbox.dispose",
+            "sql.container.dispose",
             "sqltest.run",
             "evidence.bundle",
             "sql.query.read",

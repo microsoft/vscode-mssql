@@ -407,6 +407,39 @@ export class RunbookStudio {
             args: [databaseName],
             comment: ["{0} is an explicitly requested local development database name"],
         });
+    public static sqlContainerProvisioned = (containerName: string, databaseName: string) =>
+        l10n.t({
+            message: "SQL container '{0}' and disposable database '{1}' were provisioned.",
+            args: [containerName, databaseName],
+            comment: ["{0} is an owned container name", "{1} is a database name"],
+        });
+    public static sqlContainerDisposed = (containerName: string) =>
+        l10n.t({
+            message: "Owned SQL container '{0}' was removed.",
+            args: [containerName],
+            comment: ["{0} is an owned container name"],
+        });
+    public static sqlContainerPolicyInvalid = l10n.t(
+        "The SQL container name, database, version, or port is outside the Runbook Studio local-container policy.",
+    );
+    public static sqlContainerPasswordInvalid = l10n.t(
+        "The SQL container password does not meet SQL Server complexity requirements.",
+    );
+    public static sqlContainerUnavailable = l10n.t(
+        "Docker is not installed, running, or configured for supported Linux SQL containers.",
+    );
+    public static sqlContainerNameExists = l10n.t(
+        "A container with this name already exists. Runbook Studio will not adopt or replace it.",
+    );
+    public static sqlContainerProvisionFailed = l10n.t(
+        "The owned SQL container could not be provisioned and verified safely.",
+    );
+    public static sqlContainerCredentialsUnavailable = l10n.t(
+        "The SQL container credentials are no longer available in this extension host. Dispose the owned lease and rerun provisioning.",
+    );
+    public static sqlContainerOwnershipMismatch = l10n.t(
+        "The SQL container owner labels do not match this runbook lease. Automatic use or cleanup was refused.",
+    );
     public static developmentDatabaseNameInvalid = l10n.t(
         "The development database name must be a non-system SQL identifier of at most 128 characters.",
     );

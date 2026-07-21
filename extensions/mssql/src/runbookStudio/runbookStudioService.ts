@@ -104,6 +104,8 @@ import {
     LocalDevelopmentDatabaseLeaseResult,
     LocalSandboxCleanupResult,
     LocalSandboxLeaseResult,
+    LocalSqlContainerCleanupResult,
+    LocalSqlContainerLeaseResult,
     LocalSchemaMutationResult,
     LocalSchemaComparisonResult,
     LocalSchemaComparisonExportResult,
@@ -132,6 +134,13 @@ import {
     localDevelopmentDatabaseLeaseRef,
     type LocalDevelopmentDatabaseProbe,
 } from "./runtime/localDevelopmentDatabaseOperations";
+import {
+    effectIdFromLocalSqlContainerLeaseRef,
+    isOwnedLocalSqlContainer,
+    localSqlContainerLabels,
+    localSqlContainerLeaseRef,
+    validateLocalSqlContainerIdentity,
+} from "./runtime/localContainerOperations";
 import {
     buildLocalDacpac,
     buildLocalDeploymentPreviewResult,
@@ -181,6 +190,21 @@ import {
     buildTransactionalCreateTableSql,
     validateLocalCreateTableSql,
 } from "./schemaMutationPolicy";
+import {
+    checkDockerInstallation,
+    checkEngine,
+    deleteContainer,
+    findAvailablePort,
+    getContainerByName,
+    startDocker,
+} from "../docker/dockerUtils";
+import { NULL_CONTAINER_HOST } from "../docker/containerHostAdapter";
+import {
+    checkIfSqlServerContainerIsReadyForConnections,
+    pullSqlServerContainerImage,
+    startSqlServerDockerContainer,
+    validateSqlServerPassword,
+} from "../deployment/sqlServerContainer";
 
 const SimpleExecuteRequestType = new RequestType<
     { ownerUri: string; queryString: string },
@@ -254,6 +278,19 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private readonly seededModels = new WeakSet<RunbookStudioDocumentModel>();
     /** runId -> trace, retained past terminal for Debug Console links. */
     private readonly traceByRunId = new Map<string, string>();
+    /** Secret-bearing container profiles exist only for this extension-host
+     * lifetime. Durable journals retain enough owner-label identity to clean
+     * a crashed lease, but never enough information to reconnect. */
+    private readonly containerLeaseProfiles = new Map<
+        string,
+        {
+            profile: mssql.IConnectionInfo;
+            containerName: string;
+            databaseName: string;
+            port: number;
+            version: string;
+        }
+    >();
 
     private readonly storageRoot: string;
     /** Library-global persistence root (ledger + results). Run history must
@@ -324,6 +361,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             this.sweepTimer = undefined;
         }
         this.activeRunsEmitter.dispose();
+        this.containerLeaseProfiles.clear();
         void this.adapter?.dispose();
         if (this.hobbesAdapter && this.hobbesAdapter !== this.adapter) {
             void this.hobbesAdapter.dispose();
@@ -1988,8 +2026,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         });
     }
 
-    /** Recover disposable and owned named localhost databases after a
-     * terminal run or host restart. Another live extension host retains
+    /** Recover disposable/named localhost databases and owned containers
+     * after a terminal run or host restart. Another live extension host retains
      * ownership; ambiguous or marker-mismatched effects are surfaced and
      * never dropped blindly. */
     private async recoverOutstandingSandboxEffects(runId?: string): Promise<void> {
@@ -2075,6 +2113,47 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 }
                 try {
                     await this.rollbackOutstandingDevelopmentDatabaseEffect(snapshot);
+                    recovered++;
+                } catch {
+                    const latest = this.effectLedger.recoverEffect(
+                        snapshot.identity.effectId,
+                    )?.snapshot;
+                    if (latest?.state === "cleaned" || latest?.state === "failedNoEffect") {
+                        recovered++;
+                    } else if (latest?.state === "needsOperatorDecision") {
+                        attention++;
+                    } else {
+                        deferred++;
+                    }
+                }
+            }
+            for (const entry of this.effectLedger.scanRecovery().outstanding) {
+                const snapshot = entry.snapshot;
+                if (
+                    snapshot.identity.activityKind !== "sql.container.provision" ||
+                    (runId !== undefined && snapshot.identity.runId !== runId)
+                ) {
+                    continue;
+                }
+                if (this.activeByRunId.has(snapshot.identity.runId)) {
+                    deferred++;
+                    continue;
+                }
+                const ownerPid = snapshot.identity.ownerPid;
+                if (
+                    ownerPid !== undefined &&
+                    ownerPid !== process.pid &&
+                    isProcessAlive(ownerPid)
+                ) {
+                    liveOwner++;
+                    continue;
+                }
+                if (snapshot.state === "needsOperatorDecision") {
+                    attention++;
+                    continue;
+                }
+                try {
+                    await this.cleanupLocalSqlContainerEffect(snapshot);
                     recovered++;
                 } catch {
                     const latest = this.effectLedger.recoverEffect(
@@ -2207,6 +2286,26 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             invocation,
                             cancelled,
                         ),
+                    provisionSqlContainer: (
+                        nodeId,
+                        containerName,
+                        databaseName,
+                        version,
+                        password,
+                        port,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.provisionLocalSqlContainer(
+                            nodeId,
+                            containerName,
+                            databaseName,
+                            version,
+                            password,
+                            port,
+                            invocation,
+                            cancelled,
+                        ),
                     previewDacpacDeployment: (dacpacPath, databaseRef, cancelled) =>
                         this.previewLocalDacpacDeployment(dacpacPath, databaseRef, cancelled),
                     deployDacpac: (
@@ -2246,6 +2345,25 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             cancelled,
                             "dacpac.deploy.dev",
                         ),
+                    deployContainerDacpac: (
+                        nodeId,
+                        dacpacPath,
+                        databaseRef,
+                        artifactDigest,
+                        previewDigest,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.deployLocalDacpac(
+                            nodeId,
+                            dacpacPath,
+                            databaseRef,
+                            artifactDigest,
+                            previewDigest,
+                            invocation,
+                            cancelled,
+                            "dacpac.deploy.container",
+                        ),
                     applySchema: (nodeId, databaseRef, sql, invocation, cancelled) =>
                         this.applyLocalSchemaMutation(
                             nodeId,
@@ -2281,6 +2399,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         ),
                     disposeSandbox: (nodeId, leaseRef, invocation, cancelled) =>
                         this.disposeLocalSandbox(nodeId, leaseRef, invocation, cancelled),
+                    disposeSqlContainer: (nodeId, leaseRef, invocation, cancelled) =>
+                        this.disposeLocalSqlContainer(nodeId, leaseRef, invocation, cancelled),
                     bundleEvidence: (nodeId, invocation, cancelled) =>
                         this.bundleLocalEvidence(nodeId, invocation, cancelled),
                     connect: async (databaseRef, ownerUri) => {
@@ -2641,6 +2761,289 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         );
     }
 
+    private async provisionLocalSqlContainer(
+        nodeId: string,
+        containerName: string,
+        databaseName: string,
+        version: string,
+        password: string,
+        requestedPort: number | undefined,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSqlContainerLeaseResult> {
+        const authorization = this.requireApprovedEffect(
+            nodeId,
+            invocation,
+            "sql.container.provision",
+        );
+        if (validateSqlServerPassword(password).length > 0) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sqlContainerPasswordInvalid,
+                "RunbookStudio.BindingInvalid",
+            );
+        }
+        const dockerInstalled = await checkDockerInstallation();
+        const dockerStarted = dockerInstalled.success
+            ? await startDocker(NULL_CONTAINER_HOST)
+            : dockerInstalled;
+        const dockerEngine = dockerStarted.success ? await checkEngine() : dockerStarted;
+        if (!dockerEngine.success) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sqlContainerUnavailable,
+                "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacPreviewCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        if (await getContainerByName(containerName)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sqlContainerNameExists,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        const availablePort = await findAvailablePort(requestedPort ?? 14330);
+        if (availablePort < 0 || (requestedPort !== undefined && availablePort !== requestedPort)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sqlContainerPolicyInvalid,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        const identity = validateLocalSqlContainerIdentity({
+            containerName,
+            databaseName,
+            version,
+            port: availablePort,
+        });
+        if (!identity) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sqlContainerPolicyInvalid,
+                "RunbookStudio.BindingInvalid",
+            );
+        }
+        const pull = await pullSqlServerContainerImage(identity.version);
+        if (!pull.success || isCancellationRequested()) {
+            throw new LocalActivityError(
+                isCancellationRequested()
+                    ? LocRunbookStudio.dacpacPreviewCancelled
+                    : LocRunbookStudio.sqlContainerProvisionFailed,
+                isCancellationRequested()
+                    ? "RunbookStudio.ActivityCancelled"
+                    : "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        const effectId = deriveRunbookEffectId({
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "sql.container.provision",
+            activityVersion: authorization.challenge.activityVersion,
+        });
+        if (this.effectLedger.recoverEffect(effectId)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        const ownershipMarkerDigest = digestRunbookValue(effectId);
+        const connectionProfileId = containerConnectionProfileId(effectId);
+        this.effectLedger.prepareEffect({
+            effectId,
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "sql.container.provision",
+            activityVersion: authorization.challenge.activityVersion,
+            idempotencyKey: digestRunbookValue({ effectId, ...identity }),
+            planHash: invocation.planHash,
+            bindingDigest: authorization.challenge.resolvedArgumentDigest,
+            targetFingerprint: authorization.challenge.targetFingerprint,
+            retrySemantics: "resumable",
+            ownerPid: process.pid,
+            policy: {
+                version: authorization.challenge.policyVersion,
+                outcome: "allowed",
+            },
+            approval: authorization.evidence,
+            recovery: {
+                resourceKind: "sqlContainer",
+                resourceId: identity.containerName,
+                connectionProfileId,
+                ownershipMarkerDigest,
+            },
+        });
+
+        const masterProfile = {
+            server: constants.localhost,
+            port: identity.port,
+            database: "master",
+            authenticationType: constants.sqlAuthentication,
+            user: constants.sa,
+            password,
+            trustServerCertificate: true,
+            encrypt: "mandatory",
+        } as mssql.IConnectionInfo;
+        this.containerLeaseProfiles.set(effectId, {
+            profile: { ...masterProfile, database: identity.databaseName },
+            ...identity,
+        });
+        try {
+            const started = await startSqlServerDockerContainer(
+                identity.containerName,
+                password,
+                identity.version,
+                identity.containerName,
+                identity.port,
+                {
+                    labels: localSqlContainerLabels(effectId, invocation.runId),
+                    memoryBytes: 2 * 1024 * 1024 * 1024,
+                    nanoCpus: 2_000_000_000,
+                },
+            );
+            if (!started.success) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.sqlContainerProvisionFailed,
+                    "RunbookStudio.ActivityFailed",
+                );
+            }
+            const container = await getContainerByName(identity.containerName);
+            const inspected = await container?.inspect();
+            if (
+                !container ||
+                !isOwnedLocalSqlContainer(inspected?.Config?.Labels, effectId, invocation.runId)
+            ) {
+                this.effectLedger.requireOperatorDecision(effectId, "ContainerLabelsMissing");
+                throw new LocalActivityError(
+                    LocRunbookStudio.sqlContainerOwnershipMismatch,
+                    "RunbookStudio.TargetChanged",
+                );
+            }
+            this.effectLedger.recordEffectObserved(effectId, {
+                resourceKind: "sqlContainer",
+                resourceId: identity.containerName,
+                ownershipMarkerDigest,
+                connectionProfileId,
+                outputHandles: [
+                    localSqlContainerLeaseRef(effectId),
+                    `database:${identity.databaseName}`,
+                ],
+            });
+            const ready = await checkIfSqlServerContainerIsReadyForConnections(
+                identity.containerName,
+            );
+            if (!ready.success || isCancellationRequested()) {
+                throw new LocalActivityError(
+                    isCancellationRequested()
+                        ? LocRunbookStudio.dacpacPreviewCancelled
+                        : LocRunbookStudio.sqlContainerProvisionFailed,
+                    isCancellationRequested()
+                        ? "RunbookStudio.ActivityCancelled"
+                        : "RunbookStudio.ActivityFailed",
+                );
+            }
+            const connectionManager = this.connectionAccess();
+            if (!connectionManager) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.connectFailed,
+                    "RunbookStudio.ProviderUnavailable",
+                );
+            }
+            sandboxCounter++;
+            const ownerUri = `runbookstudio://container-provision/${sandboxCounter.toString(36)}`;
+            let connected = false;
+            try {
+                connected = await connectionManager.connect(ownerUri, masterProfile, {
+                    connectionSource: "runbookStudio",
+                    shouldHandleErrors: false,
+                });
+                if (!connected) {
+                    throw new LocalActivityError(
+                        LocRunbookStudio.connectFailed,
+                        "RunbookStudio.ActivityFailed",
+                    );
+                }
+                await SqlToolsServerClient.instance.sendRequest(SimpleExecuteRequestType, {
+                    ownerUri,
+                    queryString: buildCreateLocalDevelopmentDatabaseSql(
+                        identity.databaseName,
+                        effectId,
+                    ),
+                });
+                const probe = await this.probeLocalDevelopmentDatabase(
+                    ownerUri,
+                    identity.databaseName,
+                );
+                if (!probe.exists || probe.ownershipMarker !== effectId) {
+                    throw new LocalActivityError(
+                        LocRunbookStudio.sqlContainerProvisionFailed,
+                        "RunbookStudio.ActivityFailed",
+                    );
+                }
+            } finally {
+                if (connected) {
+                    await connectionManager.disconnect(ownerUri);
+                }
+            }
+            return {
+                effectId,
+                leaseId: effectId,
+                connectionRef: localSqlContainerLeaseRef(effectId),
+                databaseName: identity.databaseName,
+                containerName: identity.containerName,
+                port: identity.port,
+                version: identity.version,
+                createdAtUtc: new Date().toISOString(),
+            };
+        } catch (error) {
+            const snapshot = this.effectLedger.recoverEffect(effectId)?.snapshot;
+            if (snapshot?.state === "prepared") {
+                const container = await getContainerByName(identity.containerName);
+                if (!container) {
+                    this.effectLedger.recordNoEffectFailure(effectId, "ContainerCreateNotObserved");
+                } else {
+                    const inspected = await container.inspect();
+                    if (
+                        isOwnedLocalSqlContainer(
+                            inspected.Config?.Labels,
+                            effectId,
+                            invocation.runId,
+                        )
+                    ) {
+                        this.effectLedger.recordEffectObserved(effectId, {
+                            resourceKind: "sqlContainer",
+                            resourceId: identity.containerName,
+                            ownershipMarkerDigest,
+                            connectionProfileId,
+                            outputHandles: [
+                                localSqlContainerLeaseRef(effectId),
+                                `database:${identity.databaseName}`,
+                            ],
+                        });
+                    } else {
+                        this.effectLedger.requireOperatorDecision(
+                            effectId,
+                            "ContainerLabelsMissingOrChanged",
+                        );
+                    }
+                }
+            }
+            const latest = this.effectLedger.recoverEffect(effectId)?.snapshot;
+            if (latest?.state === "effectObserved") {
+                try {
+                    await this.cleanupLocalSqlContainerEffect(latest);
+                } catch {
+                    // The cleanup helper has already converted unsafe or
+                    // ambiguous outcomes into durable operator attention.
+                }
+            }
+            this.containerLeaseProfiles.delete(effectId);
+            throw error;
+        }
+    }
+
     private async runLocalTsqlt(
         nodeId: string,
         databaseRef: string,
@@ -2820,6 +3223,35 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         return this.cleanupLocalSandboxEffect(recovered.snapshot);
     }
 
+    private async disposeLocalSqlContainer(
+        _nodeId: string,
+        leaseRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSqlContainerCleanupResult> {
+        const effectId = effectIdFromLocalSqlContainerLeaseRef(leaseRef);
+        if (!effectId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sqlContainerOwnershipMismatch,
+                "RunbookStudio.BindingInvalid",
+            );
+        }
+        const recovered = this.effectLedger.recoverEffect(effectId);
+        if (!recovered || recovered.snapshot.identity.runId !== invocation.runId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sqlContainerOwnershipMismatch,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacPreviewCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        return this.cleanupLocalSqlContainerEffect(recovered.snapshot);
+    }
+
     private async deployLocalDacpac(
         nodeId: string,
         dacpacPath: string,
@@ -2828,13 +3260,18 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         approvedPreviewDigest: string,
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
-        activityKind: "dacpac.deploy" | "dacpac.deploy.dev" = "dacpac.deploy",
+        activityKind:
+            | "dacpac.deploy"
+            | "dacpac.deploy.dev"
+            | "dacpac.deploy.container" = "dacpac.deploy",
     ): Promise<LocalDacpacDeploymentResult> {
         const authorization = this.requireApprovedEffect(nodeId, invocation, activityKind);
         const leaseEffectId =
             activityKind === "dacpac.deploy.dev"
                 ? effectIdFromLocalDevelopmentDatabaseLeaseRef(databaseRef)
-                : effectIdFromLocalSandboxLeaseRef(databaseRef);
+                : activityKind === "dacpac.deploy.container"
+                  ? effectIdFromLocalSqlContainerLeaseRef(databaseRef)
+                  : effectIdFromLocalSandboxLeaseRef(databaseRef);
         if (!leaseEffectId) {
             throw new LocalActivityError(
                 LocRunbookStudio.dacpacDeployTargetRequired,
@@ -2842,7 +3279,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             );
         }
         if (
-            activityKind === "dacpac.deploy.dev" &&
+            activityKind !== "dacpac.deploy" &&
             this.effectLedger.recoverEffect(leaseEffectId)?.snapshot.identity.runId !==
                 invocation.runId
         ) {
@@ -2891,7 +3328,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             }
             const resolved = await this.resolveRunbookConnection(databaseRef);
             const ownedTarget =
-                activityKind === "dacpac.deploy.dev" ? resolved.development : resolved.sandbox;
+                activityKind === "dacpac.deploy.dev"
+                    ? resolved.development
+                    : activityKind === "dacpac.deploy.container"
+                      ? resolved.container
+                      : resolved.sandbox;
             if (!ownedTarget || ownedTarget.effectId !== leaseEffectId) {
                 throw new LocalActivityError(
                     LocRunbookStudio.dacpacDeployTargetRequired,
@@ -3507,6 +3948,180 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         );
     }
 
+    private async cleanupLocalSqlContainerEffect(
+        initial: RunbookEffectSnapshot,
+    ): Promise<LocalSqlContainerCleanupResult> {
+        let snapshot = initial;
+        const effectId = snapshot.identity.effectId;
+        const recovery = snapshot.identity.recovery;
+        const resource = snapshot.resource;
+        const containerName = resource?.resourceId ?? recovery?.resourceId;
+        const connectionProfileId = resource?.connectionProfileId ?? recovery?.connectionProfileId;
+        const ownershipMarkerDigest = digestRunbookValue(effectId);
+        const databaseName =
+            this.containerLeaseProfiles.get(effectId)?.databaseName ??
+            resource?.outputHandles
+                ?.find((value) => value.startsWith("database:"))
+                ?.slice("database:".length) ??
+            "containerDatabase";
+        if (snapshot.state === "cleaned") {
+            return {
+                effectId,
+                leaseId: effectId,
+                databaseName,
+                containerName: containerName ?? "unknown",
+                cleaned: true,
+                cleanedAtUtc: new Date(snapshot.lastUpdatedEpochMs).toISOString(),
+                cleanupEvidenceDigest: snapshot.cleanupEvidenceDigest ?? "sha256:unknown",
+            };
+        }
+        if (snapshot.state === "needsOperatorDecision" || snapshot.state === "failedNoEffect") {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        if (
+            snapshot.identity.activityKind !== "sql.container.provision" ||
+            !recovery ||
+            recovery.resourceKind !== "sqlContainer" ||
+            !containerName ||
+            !/^rbs-[a-z0-9][a-z0-9_.-]{2,62}$/i.test(containerName) ||
+            recovery.resourceId !== containerName ||
+            !connectionProfileId ||
+            connectionProfileId !== containerConnectionProfileId(effectId) ||
+            recovery.connectionProfileId !== connectionProfileId ||
+            recovery.ownershipMarkerDigest !== ownershipMarkerDigest ||
+            (resource !== undefined &&
+                (resource.resourceKind !== "sqlContainer" ||
+                    resource.resourceId !== containerName ||
+                    resource.connectionProfileId !== connectionProfileId ||
+                    resource.ownershipMarkerDigest !== ownershipMarkerDigest))
+        ) {
+            this.effectLedger.requireOperatorDecision(effectId, "RecoveryMetadataInvalid");
+            throw new LocalActivityError(
+                LocRunbookStudio.sqlContainerOwnershipMismatch,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        const container = await getContainerByName(containerName);
+        if (container) {
+            const inspected = await container.inspect();
+            if (
+                !isOwnedLocalSqlContainer(
+                    inspected.Config?.Labels,
+                    effectId,
+                    snapshot.identity.runId,
+                )
+            ) {
+                this.effectLedger.requireOperatorDecision(effectId, "ContainerLabelsChanged");
+                throw new LocalActivityError(
+                    LocRunbookStudio.sqlContainerOwnershipMismatch,
+                    "RunbookStudio.TargetChanged",
+                );
+            }
+        }
+        if (snapshot.state === "prepared") {
+            if (!container) {
+                this.effectLedger.recordNoEffectFailure(effectId, "RecoveredBeforeEffect");
+                throw new LocalActivityError(
+                    LocRunbookStudio.sandboxEffectRecoveryRequired,
+                    "RunbookStudio.EffectRecoveryRequired",
+                );
+            }
+            snapshot = this.effectLedger.recordEffectObserved(effectId, {
+                resourceKind: "sqlContainer",
+                resourceId: containerName,
+                ownershipMarkerDigest,
+                connectionProfileId,
+                outputHandles: [localSqlContainerLeaseRef(effectId), `database:${databaseName}`],
+            });
+        }
+        if (snapshot.state === "effectObserved") {
+            snapshot = this.effectLedger.startCleanup(effectId);
+        }
+        if (container && !(await deleteContainer(containerName))) {
+            this.effectLedger.requireOperatorDecision(effectId, "ContainerDeleteFailed");
+            throw new LocalActivityError(
+                LocRunbookStudio.sqlContainerProvisionFailed,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        if (await getContainerByName(containerName)) {
+            this.effectLedger.requireOperatorDecision(effectId, "ContainerDeleteNotObserved");
+            throw new LocalActivityError(
+                LocRunbookStudio.sqlContainerProvisionFailed,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        const cleanupEvidenceDigest = digestRunbookValue({
+            effectId,
+            containerName,
+            cleaned: true,
+        });
+        this.completeDependentContainerEffects(
+            snapshot.identity.runId,
+            connectionProfileId,
+            ownershipMarkerDigest,
+            cleanupEvidenceDigest,
+        );
+        if (snapshot.state === "cleanupStarted") {
+            snapshot = this.effectLedger.completeCleanup(effectId, cleanupEvidenceDigest);
+        }
+        this.containerLeaseProfiles.delete(effectId);
+        return {
+            effectId,
+            leaseId: effectId,
+            databaseName,
+            containerName,
+            cleaned: true,
+            cleanedAtUtc: new Date(snapshot.lastUpdatedEpochMs).toISOString(),
+            cleanupEvidenceDigest,
+        };
+    }
+
+    private completeDependentContainerEffects(
+        runId: string,
+        connectionProfileId: string,
+        ownershipMarkerDigest: string,
+        cleanupEvidenceDigest: string,
+    ): void {
+        for (const entry of this.effectLedger.scanRecovery().outstanding) {
+            let dependent = entry.snapshot;
+            const recovery = dependent.identity.recovery;
+            if (
+                dependent.identity.runId !== runId ||
+                dependent.identity.activityKind !== "dacpac.deploy.container" ||
+                recovery?.resourceKind !== "dacpacDeployment" ||
+                recovery.connectionProfileId !== connectionProfileId ||
+                recovery.ownershipMarkerDigest !== ownershipMarkerDigest ||
+                dependent.state === "needsOperatorDecision"
+            ) {
+                continue;
+            }
+            if (dependent.state === "prepared") {
+                dependent = this.effectLedger.recordEffectObserved(dependent.identity.effectId, {
+                    resourceKind: "dacpacDeploymentOutcomeUnknown",
+                    resourceId: recovery.resourceId,
+                    ownershipMarkerDigest,
+                    connectionProfileId,
+                });
+            }
+            if (dependent.state === "effectObserved") {
+                dependent = this.effectLedger.startCleanup(dependent.identity.effectId);
+            }
+            if (dependent.state === "cleanupStarted") {
+                this.effectLedger.completeCleanup(
+                    dependent.identity.effectId,
+                    digestRunbookValue({
+                        cleanupEvidenceDigest,
+                        dependentEffectId: dependent.identity.effectId,
+                    }),
+                );
+            }
+        }
+    }
+
     /** A DACPAC deployment is compensated by deleting its owned disposable
      * database. Settle even a prepared/unknown deploy only after the database
      * absence probe succeeds, so a crash window cannot strand effect state. */
@@ -3910,9 +4525,76 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             connectionProfileId: string;
             ownershipMarkerDigest: string;
         };
+        container?: {
+            effectId: string;
+            connectionProfileId: string;
+            ownershipMarkerDigest: string;
+        };
     }> {
         const sandboxEffectId = effectIdFromLocalSandboxLeaseRef(databaseRef);
         const developmentEffectId = effectIdFromLocalDevelopmentDatabaseLeaseRef(databaseRef);
+        const containerEffectId = effectIdFromLocalSqlContainerLeaseRef(databaseRef);
+        if (containerEffectId) {
+            const snapshot = this.effectLedger.recoverEffect(containerEffectId)?.snapshot;
+            const resource = snapshot?.resource;
+            const recovery = snapshot?.identity.recovery;
+            const lease = this.containerLeaseProfiles.get(containerEffectId);
+            const expectedConnectionProfileId = containerConnectionProfileId(containerEffectId);
+            const expectedMarkerDigest = digestRunbookValue(containerEffectId);
+            if (
+                !snapshot ||
+                snapshot.state !== "effectObserved" ||
+                snapshot.identity.activityKind !== "sql.container.provision" ||
+                !resource ||
+                resource.resourceKind !== "sqlContainer" ||
+                resource.connectionProfileId !== expectedConnectionProfileId ||
+                resource.ownershipMarkerDigest !== expectedMarkerDigest ||
+                !recovery ||
+                recovery.resourceKind !== "sqlContainer" ||
+                recovery.resourceId !== resource.resourceId ||
+                recovery.connectionProfileId !== expectedConnectionProfileId ||
+                recovery.ownershipMarkerDigest !== expectedMarkerDigest
+            ) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.sandboxEffectRecoveryRequired,
+                    "RunbookStudio.TargetNotFound",
+                );
+            }
+            const container = await getContainerByName(resource.resourceId);
+            const inspected = await container?.inspect();
+            if (
+                !container ||
+                !isOwnedLocalSqlContainer(
+                    inspected?.Config?.Labels,
+                    containerEffectId,
+                    snapshot.identity.runId,
+                )
+            ) {
+                this.effectLedger.requireOperatorDecision(
+                    containerEffectId,
+                    "ProvisionedContainerMissingOrChanged",
+                );
+                throw new LocalActivityError(
+                    LocRunbookStudio.sqlContainerOwnershipMismatch,
+                    "RunbookStudio.TargetChanged",
+                );
+            }
+            if (!lease || lease.containerName !== resource.resourceId) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.sqlContainerCredentialsUnavailable,
+                    "RunbookStudio.TargetNotFound",
+                );
+            }
+            return {
+                profile: lease.profile,
+                targetDatabase: lease.databaseName,
+                container: {
+                    effectId: containerEffectId,
+                    connectionProfileId: expectedConnectionProfileId,
+                    ownershipMarkerDigest: expectedMarkerDigest,
+                },
+            };
+        }
         const effectId = sandboxEffectId ?? developmentEffectId;
         if (!effectId) {
             const profile = await this.requireSavedConnection(databaseRef);
@@ -4732,6 +5414,10 @@ function localDacpacStageActivityError(error: unknown): LocalActivityError {
         LocRunbookStudio.dacpacDeployArtifactChanged,
         "RunbookStudio.DeploymentPreviewChanged",
     );
+}
+
+function containerConnectionProfileId(effectId: string): string {
+    return `runbook-container-profile:${effectId}`;
 }
 
 interface ParameterBinding {

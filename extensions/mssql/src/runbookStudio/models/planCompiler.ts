@@ -171,7 +171,7 @@ export function buildCompilePrompt(
         "",
         'Node kinds: "activity" (uses an activity above), "gate" (pauses for human approval — include one only when the intent implies a consequential/approval step), "report" (final summary; every plan ends with exactly one report node, no inputs).',
         "Bind syntax: $params.<parameterId> references a parameter; $nodes.<nodeId>.<value> references a produced value.",
-        'Every plan that queries SQL needs exactly one parameter of type "connection". Parameter types: connection, string, int, boolean, enum.',
+        'Every plan that queries a pre-existing SQL target needs exactly one parameter of type "connection". Parameter types: connection, string, int, boolean, enum, secret. A container password must be a required secret parameter with no default.',
         'Edges connect node ids; optional "when": success | failure | approved | rejected. Default (no when) is the success path.',
         "Inputs marked sql must be one read-only SELECT (or WITH...SELECT). Inputs marked ddl must be exactly one complete CREATE TABLE statement. Never place mutation SQL in any other input.",
         "",

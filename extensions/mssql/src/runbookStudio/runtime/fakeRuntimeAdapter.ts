@@ -514,12 +514,15 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "dacpac.build",
     "dacpac.extract",
     "sandbox.provision",
+    "sql.container.provision",
     "dacpac.deploy.preview",
     "dacpac.deploy",
+    "dacpac.deploy.container",
     "schema.compare",
     "schema.compare.export",
     "sqltest.run",
     "sandbox.dispose",
+    "sql.container.dispose",
     "evidence.bundle",
 ]);
 
@@ -727,6 +730,55 @@ function executeNode(
                 },
             };
         }
+        case "sql.container.provision": {
+            const containerName = resolveBind(
+                node.inputs?.containerName,
+                parameterValues,
+                nodeValues,
+            );
+            const databaseName = resolveBind(
+                node.inputs?.databaseName,
+                parameterValues,
+                nodeValues,
+            );
+            const version = resolveBind(node.inputs?.version, parameterValues, nodeValues);
+            const password = resolveBind(node.inputs?.password, parameterValues, nodeValues);
+            if (
+                typeof containerName !== "string" ||
+                typeof databaseName !== "string" ||
+                typeof version !== "string" ||
+                typeof password !== "string"
+            ) {
+                return invalidPreviewBinding(
+                    "sql.container.provision",
+                    "containerName/databaseName/version/password",
+                );
+            }
+            return {
+                success: true,
+                runMetrics: { "container.provisioned": true },
+                message: "SQL container lease created (deterministic preview)",
+                output: {
+                    contract: "databaseLease/1",
+                    scalars: {
+                        leaseId: "preview-container-lease-001",
+                        connectionRef: "preview://sql/container",
+                        containerName,
+                        databaseName,
+                        version,
+                        port: 14330,
+                        preview: true,
+                    },
+                },
+                values: {
+                    leaseId: "preview-container-lease-001",
+                    connectionRef: "preview://sql/container",
+                    containerName,
+                    databaseName,
+                    port: 14330,
+                },
+            };
+        }
         case "sandbox.provision":
         case "devdatabase.provision": {
             const sandbox = resolveBind(
@@ -797,6 +849,7 @@ function executeNode(
             };
         }
         case "dacpac.deploy":
+        case "dacpac.deploy.container":
         case "dacpac.deploy.dev": {
             const dacpac = resolveBind(node.inputs?.dacpac, parameterValues, nodeValues);
             const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
@@ -874,6 +927,22 @@ function executeNode(
                     tableName: policy.qualifiedTableName,
                     sqlSha256: policy.sqlSha256,
                 },
+            };
+        }
+        case "sql.container.dispose": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            if (typeof database !== "string") {
+                return invalidPreviewBinding("sql.container.dispose", "database");
+            }
+            return {
+                success: true,
+                runMetrics: { "container.cleanupCompleted": true },
+                message: "SQL container removed (deterministic preview)",
+                output: {
+                    contract: "cleanupEvidence/1",
+                    scalars: { cleaned: true, preview: true },
+                },
+                values: { cleaned: true },
             };
         }
         case "schema.compare": {

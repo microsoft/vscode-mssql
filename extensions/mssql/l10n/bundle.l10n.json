@@ -240,6 +240,21 @@
         "message": "Named development database '{0}' was provisioned and retained.",
         "comment": ["{0} is an explicitly requested local development database name"]
     },
+    "SQL container '{0}' and disposable database '{1}' were provisioned./{0} is an owned container name{1} is a database name": {
+        "message": "SQL container '{0}' and disposable database '{1}' were provisioned.",
+        "comment": ["{0} is an owned container name", "{1} is a database name"]
+    },
+    "Owned SQL container '{0}' was removed./{0} is an owned container name": {
+        "message": "Owned SQL container '{0}' was removed.",
+        "comment": ["{0} is an owned container name"]
+    },
+    "The SQL container name, database, version, or port is outside the Runbook Studio local-container policy.": "The SQL container name, database, version, or port is outside the Runbook Studio local-container policy.",
+    "The SQL container password does not meet SQL Server complexity requirements.": "The SQL container password does not meet SQL Server complexity requirements.",
+    "Docker is not installed, running, or configured for supported Linux SQL containers.": "Docker is not installed, running, or configured for supported Linux SQL containers.",
+    "A container with this name already exists. Runbook Studio will not adopt or replace it.": "A container with this name already exists. Runbook Studio will not adopt or replace it.",
+    "The owned SQL container could not be provisioned and verified safely.": "The owned SQL container could not be provisioned and verified safely.",
+    "The SQL container credentials are no longer available in this extension host. Dispose the owned lease and rerun provisioning.": "The SQL container credentials are no longer available in this extension host. Dispose the owned lease and rerun provisioning.",
+    "The SQL container owner labels do not match this runbook lease. Automatic use or cleanup was refused.": "The SQL container owner labels do not match this runbook lease. Automatic use or cleanup was refused.",
     "The development database name must be a non-system SQL identifier of at most 128 characters.": "The development database name must be a non-system SQL identifier of at most 128 characters.",
     "The named development database already exists. This activity only creates absent targets and will not take ownership of an existing database.": "The named development database already exists. This activity only creates absent targets and will not take ownership of an existing database.",
     "The named development database ownership marker does not match this runbook lease. The operation was refused.": "The named development database ownership marker does not match this runbook lease. The operation was refused.",
