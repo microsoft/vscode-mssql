@@ -37,7 +37,7 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            "ConnectionGroup",
+            "connectionGroup",
             "ConnectionGroup",
             {
                 existingGroupName: connectionGroupToEdit?.name,
