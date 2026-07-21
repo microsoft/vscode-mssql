@@ -246,10 +246,11 @@ suite("hobbesRuntimeAdapter", () => {
         expect(rebased.presentation).to.deep.equal(local.presentation);
     });
 
-    test("library save retains an extension-native plan without Hobbes translation", async () => {
+    test("[artifact-folder-routing] library save preserves folder and local plan", async () => {
         const artifact = createFixtureRunbookArtifact();
         artifact.id = "rb-extension-native";
         artifact.name = "Extract and inspect schema";
+        artifact.family = "build";
         artifact.lock!.nodes[0].activityKind = "dacpac.extract";
         const original = {
             ...createFixtureRunbookArtifact(),
@@ -261,7 +262,7 @@ suite("hobbesRuntimeAdapter", () => {
             revisionId: "revision-1",
             title: original.name,
             description: original.description,
-            category: original.family,
+            category: "Testing3",
             plan: { nodes: [], edges: [] },
             clientExtensions: { vscodeMssqlArtifact: original },
         };
@@ -311,6 +312,7 @@ suite("hobbesRuntimeAdapter", () => {
         expect(result.status).to.equal("committed");
         expect(fetchStub).to.have.been.calledTwice;
         expect(savedBody?.plan).to.deep.equal(head.plan);
+        expect(savedBody?.category).to.equal("Testing3");
         expect(savedBody).to.have.nested.property(
             "clientExtensions.vscodeMssqlArtifact.lock.nodes[0].activityKind",
             "dacpac.extract",

@@ -356,13 +356,13 @@ export class RunbookStudio {
         });
     public static dacpacArtifactNotCreated = (artifactPath: string) =>
         l10n.t({
-            message: "The SQL project build completed without creating '{0}'.",
+            message: "The expected DACPAC artifact was not created at '{0}'.",
             args: [artifactPath],
             comment: ["{0} is the expected DACPAC file path"],
         });
     public static dacpacArtifactInvalid = (artifactPath: string) =>
         l10n.t({
-            message: "The SQL project build produced an empty or invalid artifact at '{0}'.",
+            message: "The DACPAC artifact is empty or invalid at '{0}'.",
             args: [artifactPath],
             comment: ["{0} is the DACPAC file path"],
         });

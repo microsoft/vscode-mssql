@@ -199,12 +199,12 @@ suite("runbookLibraryModel", () => {
     });
 
     suite("remainingPendingFolders", () => {
-        test("drops names whose category now holds a non-archived asset", () => {
+        test("[artifact-folder-routing] keeps explicit folders after materialization", () => {
             const remaining = remainingPendingFolders(
                 ["alerts", "reports"],
                 [asset({ id: "a", category: "Alerts" })],
             );
-            expect(remaining).to.deep.equal(["reports"]);
+            expect(remaining).to.deep.equal(["alerts", "reports"]);
         });
 
         test("archived assets do NOT materialize a pending folder", () => {

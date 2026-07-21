@@ -209,12 +209,12 @@
         "message": "The SQL project build did not report a DACPAC for '{0}'.",
         "comment": ["{0} is a SQL project file path"]
     },
-    "The SQL project build completed without creating '{0}'./{0} is the expected DACPAC file path": {
-        "message": "The SQL project build completed without creating '{0}'.",
+    "The expected DACPAC artifact was not created at '{0}'./{0} is the expected DACPAC file path": {
+        "message": "The expected DACPAC artifact was not created at '{0}'.",
         "comment": ["{0} is the expected DACPAC file path"]
     },
-    "The SQL project build produced an empty or invalid artifact at '{0}'./{0} is the DACPAC file path": {
-        "message": "The SQL project build produced an empty or invalid artifact at '{0}'.",
+    "The DACPAC artifact is empty or invalid at '{0}'./{0} is the DACPAC file path": {
+        "message": "The DACPAC artifact is empty or invalid at '{0}'.",
         "comment": ["{0} is the DACPAC file path"]
     },
     "Deployment preview found {0} schema changes and {1} alerts./{0} is a schema change count{1} is a DacFx alert count": {

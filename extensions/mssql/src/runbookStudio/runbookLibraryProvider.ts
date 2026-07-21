@@ -12,8 +12,8 @@
  * a single informational node (never a silently blank tree).
  *
  * Explorer semantics on top of categories:
- * - New Folder keeps a pending (empty) category name — persisted to
- *   workspaceState so it survives reloads — until a runbook lands in it.
+ * - New Folder keeps an explicit category name in workspaceState so the
+ *   folder survives reloads and remains present if its last runbook moves.
  * - Move/Rename ride the runtime's GET+PUT If-Match metadata round-trip.
  * - Archived assets render in a dedicated bottom group with Restore.
  * - Delete purges the runbook, its full run history, and the local stash.
@@ -48,7 +48,8 @@ export const RUNBOOK_LIBRARY_VIEW_ID = "mssql.runbookLibrary";
  *  (that module registers this one — an import here would be a cycle). */
 const RUNBOOK_EDITOR_VIEW_TYPE = "mssql.runbookStudio";
 
-/** workspaceState key holding pending (still empty) folder names. */
+/** workspaceState key holding explicitly created folder names. The historical
+ * key remains stable so existing empty folders migrate without data loss. */
 const PENDING_FOLDERS_STATE_KEY = "mssql.runbookStudio.library.pendingFolders";
 
 /** Category for New Runbook when not invoked on a folder node. */
@@ -94,7 +95,7 @@ export class RunbookLibraryProvider
     private readonly changeEmitter = new vscode.EventEmitter<void>();
     public readonly onDidChangeTreeData = this.changeEmitter.event;
 
-    /** Pending (still empty) folder names, first-created order. */
+    /** Explicitly created folder names, first-created order. */
     private pendingFolders: string[] = [];
     /** The most recent listing — folder pickers work off this snapshot. */
     private lastAssets: RunbookLibraryAsset[] = [];
@@ -132,7 +133,15 @@ export class RunbookLibraryProvider
         return this.knownFolderNames().some((folder) => folder.toLowerCase() === key);
     }
 
+    public isExplicitFolder(name: string): boolean {
+        const key = name.trim().toLowerCase();
+        return this.pendingFolders.some((folder) => folder.trim().toLowerCase() === key);
+    }
+
     public addPendingFolder(name: string): void {
+        if (this.isExplicitFolder(name)) {
+            return;
+        }
         this.pendingFolders.push(name.trim());
         this.persistPendingFolders();
     }
@@ -265,8 +274,8 @@ export class RunbookLibraryProvider
         }
         const assets = result.assets ?? [];
         this.lastAssets = assets;
-        // Pending folders that now hold a runbook have materialized into
-        // real category groups — drop them from the pending set.
+        // Normalize legacy/duplicate state without dropping explicit folders
+        // merely because they currently contain a runbook.
         const pruned = remainingPendingFolders(this.pendingFolders, assets);
         if (JSON.stringify(pruned) !== JSON.stringify(this.pendingFolders)) {
             this.pendingFolders = pruned;
@@ -588,6 +597,7 @@ export function registerRunbookLibrary(
                     return;
                 }
                 let target = picked.label;
+                let createdTarget = false;
                 if (target === newFolderLabel) {
                     const name = await promptFolderName(
                         provider,
@@ -597,6 +607,7 @@ export function registerRunbookLibrary(
                         return;
                     }
                     target = name;
+                    createdTarget = true;
                 }
                 if (target.toLowerCase() === (node.asset.category ?? "").trim().toLowerCase()) {
                     return;
@@ -607,6 +618,9 @@ export function registerRunbookLibrary(
                 if (result.error) {
                     void vscode.window.showErrorMessage(result.error.message);
                     return;
+                }
+                if (createdTarget) {
+                    provider.addPendingFolder(target);
                 }
                 provider.refresh();
                 void vscode.window.showInformationMessage(
@@ -642,7 +656,7 @@ export function registerRunbookLibrary(
                 if (!target || target === node.category) {
                     return;
                 }
-                // A pending (still empty) folder renames locally; a real
+                // An empty explicit folder renames locally; a populated
                 // category renames by moving every runbook, sequentially,
                 // with partial failures reported honestly.
                 if (node.items.length === 0) {
@@ -665,6 +679,7 @@ export function registerRunbookLibrary(
                 }
                 let succeeded = 0;
                 let failed = 0;
+                const wasExplicit = provider.isExplicitFolder(node.category);
                 for (const asset of node.items) {
                     const result = await service.updateLibraryRunbook(asset.id, {
                         category: target,
@@ -674,6 +689,17 @@ export function registerRunbookLibrary(
                     } else {
                         succeeded++;
                     }
+                }
+                if (failed === 0) {
+                    if (wasExplicit) {
+                        provider.renamePendingFolder(node.category, target);
+                    } else {
+                        provider.addPendingFolder(target);
+                    }
+                } else if (succeeded > 0) {
+                    // Partial movement leaves both real categories; keep the
+                    // target explicit so it cannot vanish during recovery.
+                    provider.addPendingFolder(target);
                 }
                 emitRunbookEvent(
                     newRunbookRootContext("library"),

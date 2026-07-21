@@ -156,6 +156,7 @@ import {
     isValidDacpacSourceDatabaseName,
     verifyLocalDacpacArtifact,
 } from "./runtime/localDeveloperOperations";
+import { localManagedArtifactFileName } from "./runtime/localManagedArtifacts";
 import {
     cleanupStaleLocalDacpacArtifacts,
     disposeStagedLocalDacpacArtifact,
@@ -5543,10 +5544,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             sanitizeRunFileId(invocation.runId).slice(0, 96),
         );
         await fs.promises.mkdir(runDirectory, { recursive: true });
-        return path.join(
-            runDirectory,
-            `${sanitizeRunFileId(nodeId).slice(0, 64)}-${sanitizeRunFileId(fileName).slice(0, 80)}`,
-        );
+        return path.join(runDirectory, localManagedArtifactFileName(nodeId, fileName));
     }
 
     private async extractLocalDacpac(

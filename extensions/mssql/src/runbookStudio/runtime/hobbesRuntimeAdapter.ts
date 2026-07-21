@@ -1083,7 +1083,9 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
             ...head,
             title: artifactNext.name,
             description: artifactNext.description ?? artifactNext.source.intent,
-            ...(artifactNext.family ? { category: artifactNext.family } : {}),
+            // Runtime category is the user's Library folder. The compiled
+            // family lives in the extension artifact and must never move a
+            // runbook out of its folder when generation assigns a real title.
             sourcePromptText: artifactNext.source.intent,
             clientExtensions: {
                 ...(isRecordValue(head.clientExtensions) ? head.clientExtensions : {}),

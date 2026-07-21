@@ -23,6 +23,7 @@ import {
     buildDropLocalDevelopmentDatabaseSql,
 } from "../../src/runbookStudio/runtime/localDevelopmentDatabaseOperations";
 import { buildLocalDeploymentPreviewResult } from "../../src/runbookStudio/runtime/localDeveloperOperations";
+import { localManagedArtifactFileName } from "../../src/runbookStudio/runtime/localManagedArtifacts";
 import { LOCAL_SCHEMA_INVENTORY_SQL } from "../../src/runbookStudio/runtime/localSchemaInventory";
 
 const LIVE_ENABLED = process.env.RBS2_DACPAC_LIVE === "1";
@@ -71,7 +72,10 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
         const effectId = `effect-${randomBytes(32).toString("hex")}`;
         const dacpacPath = path.join(
             os.tmpdir(),
-            `rbs-WideWorldImporters-${randomBytes(8).toString("hex")}.dacpac`,
+            localManagedArtifactFileName(
+                "extract",
+                `rbs-WideWorldImporters-${randomBytes(8).toString("hex")}.dacpac`,
+            ),
         );
         let sourceUri: string | undefined;
         let masterUri: string | undefined;

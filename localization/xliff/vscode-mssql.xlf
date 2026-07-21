@@ -9160,6 +9160,10 @@
     <trans-unit id="++CODE++bb5ad4f378461e81c2feb0223bc8ab2f9c628388e79bf9c1ba8dfe6485603a10">
       <source xml:lang="en">The CREATE TABLE mutation did not produce verified table evidence.</source>
     </trans-unit>
+    <trans-unit id="++CODE++983d5b911cca671683de233f39f572305d802dfbf548b0f73f8b5decced714a6">
+      <source xml:lang="en">The DACPAC artifact is empty or invalid at &apos;{0}&apos;.</source>
+      <note>{0} is the DACPAC file path</note>
+    </trans-unit>
     <trans-unit id="++CODE++c146786acfff053f8101c36f5ca59d66684821ec1755798b8eab152943978153">
       <source xml:lang="en">The DacFx service is not available for DACPAC extraction.</source>
     </trans-unit>
@@ -9216,17 +9220,9 @@
     <trans-unit id="++CODE++42ee3b2bd1aff636ec5597d43397fe507cc3d813bd9955b32be9df5a386151f9">
       <source xml:lang="en">The SQL container password does not meet SQL Server complexity requirements.</source>
     </trans-unit>
-    <trans-unit id="++CODE++855352d475fa868944e53e607f71f0b81f3ebe80481430862ffd41d0b2ea0d92">
-      <source xml:lang="en">The SQL project build completed without creating &apos;{0}&apos;.</source>
-      <note>{0} is the expected DACPAC file path</note>
-    </trans-unit>
     <trans-unit id="++CODE++b2dec1797840fb944170f4a5f009b7c1ccd7a89765e8843a830b5cc411783142">
       <source xml:lang="en">The SQL project build did not report a DACPAC for &apos;{0}&apos;.</source>
       <note>{0} is a SQL project file path</note>
-    </trans-unit>
-    <trans-unit id="++CODE++b8f35d7818d7118cd923582949c2e285bc01391842dc64b313e69ac569305452">
-      <source xml:lang="en">The SQL project build produced an empty or invalid artifact at &apos;{0}&apos;.</source>
-      <note>{0} is the DACPAC file path</note>
     </trans-unit>
     <trans-unit id="++CODE++c76de16a4f7a14ee1519c572ded5a00c9e2891888acc311e27e91b86688229a4">
       <source xml:lang="en">The SQL test query exceeded the limit of {0} test cases.</source>
@@ -9330,6 +9326,10 @@
     </trans-unit>
     <trans-unit id="++CODE++de500fc7d20cce68c1e98039f85e314553104518f2a48724c0143d1f5459c3de">
       <source xml:lang="en">The evidence detail expired under the retention policy.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++db24e78bbbff90caaef32bf422ed70ee25ced2a3e8352fddee9774afa6f21b3d">
+      <source xml:lang="en">The expected DACPAC artifact was not created at &apos;{0}&apos;.</source>
+      <note>{0} is the expected DACPAC file path</note>
     </trans-unit>
     <trans-unit id="++CODE++ff83ab307bf5543897d2c5781d880385ba86a704904fb08dc5c67c990688d5ec">
       <source xml:lang="en">The expression defining the check constraint.</source>

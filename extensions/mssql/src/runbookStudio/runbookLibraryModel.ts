@@ -275,11 +275,11 @@ export function groupLibraryItems(assets: RunbookLibraryAsset[]): RunbookLibrary
 
 /**
  * The full file-explorer projection: non-archived assets grouped by
- * category, pending (still empty) folders merged alphabetically among the
+ * category, explicitly created empty folders merged alphabetically among the
  * named groups, the "other" fallback bucket after the named groups, and a
  * single archived bucket (all archived assets regardless of category)
- * strictly last. Pending names that duplicate a real category (or each
- * other, case-insensitively) are dropped — they have materialized.
+ * strictly last. Explicit names that duplicate a real category render through
+ * that category group and remain in the durable folder-name set.
  */
 export function collectLibraryGroups(
     assets: RunbookLibraryAsset[],
@@ -323,30 +323,20 @@ export function collectLibraryGroups(
 }
 
 /**
- * Pending folders that are STILL empty: names whose category now holds at
- * least one non-archived asset drop out (they materialized), as do blank
- * and duplicate names (case-insensitive; first spelling wins).
+ * Normalize explicitly created folders. The assets argument remains for the
+ * persisted-state migration call shape, but a folder no longer loses its
+ * identity merely because it currently contains a runbook.
  */
 export function remainingPendingFolders(
     pendingFolders: string[],
-    assets: RunbookLibraryAsset[],
+    _assets: RunbookLibraryAsset[],
 ): string[] {
-    const materialized = new Set<string>();
-    for (const asset of assets) {
-        if (isArchivedLibraryAsset(asset)) {
-            continue;
-        }
-        const category = asset.category?.trim();
-        if (category) {
-            materialized.add(category.toLowerCase());
-        }
-    }
     const seen = new Set<string>();
     const remaining: string[] = [];
     for (const raw of pendingFolders) {
         const name = raw.trim();
         const key = name.toLowerCase();
-        if (!name || materialized.has(key) || seen.has(key)) {
+        if (!name || seen.has(key)) {
             continue;
         }
         seen.add(key);

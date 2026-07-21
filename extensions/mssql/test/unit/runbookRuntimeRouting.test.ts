@@ -55,6 +55,15 @@ suite("runbookRuntimeRouting", () => {
         expect(artifactRequiresExtensionRuntime(artifact)).to.equal(false);
     });
 
+    test("[artifact-folder-routing] keeps runtime-native control flow on Hobbes", () => {
+        const artifact = createFixtureRunbookArtifact();
+        artifact.lock!.libraryAssetRef = { assetId: artifact.id };
+        artifact.lock!.nodes[0].activityKind = "hobbes.native";
+
+        expect(artifactRequiresExtensionRuntime(artifact)).to.equal(false);
+        expect(executionRuntimeKindForArtifact("hobbes", artifact)).to.equal("hobbes");
+    });
+
     test("preserves explicit local and fake runtime selections", () => {
         const artifact = createFixtureRunbookArtifact();
         artifact.lock!.nodes[0].activityKind = "dacpac.extract";

@@ -16,6 +16,7 @@ export const HOBBES_TRANSLATABLE_ACTIVITY_KINDS: ReadonlySet<string> = new Set([
     "sql.query.read",
     "assert.threshold",
 ]);
+const HOBBES_NATIVE_ACTIVITY_KIND = "hobbes.native";
 
 export function manifestRequiresExtensionPlanner(
     manifest: RunbookCapabilityManifest | undefined,
@@ -36,6 +37,7 @@ export function artifactRequiresExtensionRuntime(artifact: RunbookArtifactFile):
         artifact.lock?.nodes.some(
             (node) =>
                 node.kind === "activity" &&
+                node.activityKind !== HOBBES_NATIVE_ACTIVITY_KIND &&
                 !HOBBES_TRANSLATABLE_ACTIVITY_KINDS.has(node.activityKind ?? ""),
         ) === true
     );
