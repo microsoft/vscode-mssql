@@ -426,4 +426,36 @@ suite("runbook capability preflight", () => {
             "sql.container.dispose@1",
         ]);
     });
+
+    test("extract, named deploy, and schema inventory is executable after binding", () => {
+        const classified = classifyRunbookIntent(
+            "Extract a dacpac from WideWorldImporters and deploy it as WWI_2. " +
+                "Show all the tables, views, and sproc from the new database.",
+        );
+        const kinds = classified.requirements.activities.map((activity) => activity.kind);
+        const readiness = preflightRunbookRequirements(classified.requirements);
+
+        expect(classified.family).to.equal("build");
+        expect(kinds).to.deep.equal([
+            "dacpac.extract",
+            "dacpac.deploy.preview",
+            "devdatabase.provision",
+            "dacpac.deploy.dev",
+            "schema.compare",
+            "database.schema.inventory",
+        ]);
+        expect(kinds).not.to.include("sql.query.read");
+        expect(readiness.status).to.equal("readyAfterBinding");
+        expect(readiness.missingActivityKinds).to.deep.equal([]);
+        expect(
+            buildDesignOnlyPlan(classified).steps.map((step) => step.activityKind),
+        ).to.deep.equal([
+            "dacpac.extract",
+            "devdatabase.provision",
+            "dacpac.deploy.preview",
+            "dacpac.deploy.dev",
+            "schema.compare",
+            "database.schema.inventory",
+        ]);
+    });
 });

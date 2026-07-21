@@ -859,6 +859,39 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "database.schema.inventory",
+        version: 1,
+        label: "Inventory deployed schema objects",
+        description:
+            "Runs a closed bounded catalog query against an upstream deployed database and returns its user tables, views, and stored procedures as a typed grid.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description:
+                    "Bind to the connectionRef of the upstream owned database provisioning activity",
+            },
+        ],
+        outputContract: "databaseSchemaInventory/1",
+        outputSchema: {
+            fields: [
+                { name: "ObjectType", valueType: "string", roles: ["category"] },
+                { name: "SchemaName", valueType: "string", roles: ["category"] },
+                { name: "ObjectName", valueType: "string", roles: ["label"] },
+            ],
+        },
+        producedValues: ["objectCount", "truncated"],
+        target: { kind: "sqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseSchema",
+            operation: "read",
+            targetEnvironment: "development",
+            reversibility: "noEffect",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "evidence.bundle",
         version: 1,
         label: "Assemble run evidence",
@@ -1023,6 +1056,14 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                     `node '${node.id}' must bind its development target to an upstream devdatabase.provision connectionRef`,
                 );
             }
+            if (
+                descriptor.kind === "database.schema.inventory" &&
+                !hasUpstreamDeploymentForSameTarget(lock, node)
+            ) {
+                issues.push(
+                    `node '${node.id}' must inventory the same target as an upstream DACPAC deployment`,
+                );
+            }
             if (descriptor.kind === "sql.workload.run" && !isWorkloadInspectionOutput(lock, node)) {
                 issues.push(
                     `node '${node.id}' must bind workload and workloadDigest to the same upstream sql.workload.inspect node`,
@@ -1107,6 +1148,44 @@ function isOwnedDatabaseOutput(
         }
     }
     return false;
+}
+
+function hasUpstreamDeploymentForSameTarget(
+    lock: CompiledRunbookLock,
+    node: RunbookPlanNode,
+): boolean {
+    if (node.target?.binding.source !== "nodeOutput") {
+        return false;
+    }
+    const target = node.target.binding;
+    return lock.nodes.some((candidate) => {
+        if (
+            candidate.kind !== "activity" ||
+            !["dacpac.deploy", "dacpac.deploy.dev", "dacpac.deploy.container"].includes(
+                candidate.activityKind ?? "",
+            ) ||
+            candidate.target?.binding.source !== "nodeOutput" ||
+            candidate.target.binding.nodeId !== target.nodeId ||
+            candidate.target.binding.output !== target.output
+        ) {
+            return false;
+        }
+        const visited = new Set<string>([candidate.id]);
+        const pending = [candidate.id];
+        while (pending.length > 0) {
+            const current = pending.shift()!;
+            for (const edge of lock.edges.filter((item) => item.from === current)) {
+                if (edge.to === node.id) {
+                    return true;
+                }
+                if (!visited.has(edge.to)) {
+                    visited.add(edge.to);
+                    pending.push(edge.to);
+                }
+            }
+        }
+        return false;
+    });
 }
 
 function isWorkloadInspectionOutput(lock: CompiledRunbookLock, node: RunbookPlanNode): boolean {

@@ -12,6 +12,7 @@ import {
     LocalSqlOperations,
 } from "../../src/runbookStudio/runtime/localSqlDelegate";
 import { buildLocalDeploymentPreviewResult } from "../../src/runbookStudio/runtime/localDeveloperOperations";
+import { LOCAL_SCHEMA_INVENTORY_SQL } from "../../src/runbookStudio/runtime/localSchemaInventory";
 
 function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperations {
     return {
@@ -1224,12 +1225,82 @@ suite("Runbook Studio local activity delegate", () => {
             "xevent.xel.collect",
             "schema.compare",
             "schema.compare.export",
+            "database.schema.inventory",
             "sandbox.dispose",
             "sql.container.dispose",
             "sqltest.run",
             "evidence.bundle",
             "sql.query.read",
         ]);
+    });
+
+    test("schema inventory uses closed SQL and returns a typed bounded grid", async () => {
+        let executedSql = "";
+        let disconnects = 0;
+        const delegate = new LocalSqlActivityDelegate(
+            operations({
+                execute: async (_ownerUri, sql) => {
+                    executedSql = sql;
+                    return {
+                        rowCount: 3,
+                        columnInfo: [
+                            column("ObjectType"),
+                            column("SchemaName"),
+                            column("ObjectName"),
+                        ],
+                        rows: [
+                            [cell("Table"), cell("dbo"), cell("Orders")],
+                            [cell("View"), cell("sales"), cell("OrderSummary")],
+                            [cell("Stored procedure"), cell("dbo"), cell("GetOrders")],
+                        ],
+                    };
+                },
+                disconnect: async () => {
+                    disconnects++;
+                },
+            }),
+        );
+
+        const result = await delegate.executeActivity(
+            activity("database.schema.inventory", { database: "owned-target" }),
+            binding(),
+        );
+
+        expect(executedSql).to.equal(LOCAL_SCHEMA_INVENTORY_SQL);
+        expect(result?.success).to.equal(true);
+        expect(result?.output).to.deep.include({
+            contract: "databaseSchemaInventory/1",
+            columns: ["ObjectType", "SchemaName", "ObjectName"],
+        });
+        expect(result?.output?.rows).to.deep.equal([
+            ["Table", "dbo", "Orders"],
+            ["View", "sales", "OrderSummary"],
+            ["Stored procedure", "dbo", "GetOrders"],
+        ]);
+        expect(result?.output?.scalars).to.deep.include({ objectCount: 3, truncated: false });
+        expect(result?.values).to.deep.equal({ objectCount: 3, truncated: false });
+        expect(disconnects).to.equal(1);
+    });
+
+    test("schema inventory reports upstream row truncation honestly", async () => {
+        const delegate = new LocalSqlActivityDelegate(
+            operations({
+                execute: async () => ({
+                    rowCount: 5001,
+                    columnInfo: [column("ObjectType"), column("SchemaName"), column("ObjectName")],
+                    rows: [[cell("Table"), cell("dbo"), cell("Orders")]],
+                }),
+            }),
+        );
+
+        const result = await delegate.executeActivity(
+            activity("database.schema.inventory", { database: "owned-target" }),
+            binding(),
+        );
+
+        expect(result?.output?.scalars).to.deep.include({ objectCount: 1, truncated: true });
+        expect(result?.values).to.deep.equal({ objectCount: 1, truncated: true });
+        expect(result?.runMetrics).to.deep.include({ "schemaInventory.truncated": true });
     });
 
     test("deployment report summarization counts operations and alerts", () => {

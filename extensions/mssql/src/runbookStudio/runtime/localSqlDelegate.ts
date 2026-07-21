@@ -39,6 +39,10 @@ import {
     MAX_LOCAL_XEL_FILE_SIZE_MB,
     MIN_LOCAL_XEL_FILE_SIZE_MB,
 } from "./localXevent";
+import {
+    LOCAL_SCHEMA_INVENTORY_ROW_LIMIT,
+    LOCAL_SCHEMA_INVENTORY_SQL,
+} from "./localSchemaInventory";
 
 export { isReadOnlySql } from "../readOnlySql";
 
@@ -423,6 +427,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "sql.schema.apply",
         "schema.compare",
         "schema.compare.export",
+        "database.schema.inventory",
         "sandbox.dispose",
         "sql.container.dispose",
         "sqltest.run",
@@ -482,6 +487,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.verifyDacpacDeployment(node, binding);
             case "schema.compare.export":
                 return this.exportSchemaComparison(node, binding);
+            case "database.schema.inventory":
+                return this.inventoryDatabaseSchema(node, binding);
             case "sandbox.dispose":
                 return this.disposeSandbox(node, binding);
             case "sql.container.dispose":
@@ -755,6 +762,67 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     await this.operations.disconnect(ownerUri);
                 } catch {
                     // best-effort cleanup; the run outcome is already decided
+                }
+            }
+        }
+    }
+
+    private async inventoryDatabaseSchema(
+        node: RunbookPlanNode,
+        binding: { resolveBind: (input: unknown) => unknown },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+
+        queryCounter++;
+        const ownerUri = `runbookstudio://schema-inventory/${queryCounter.toString(36)}/${node.id}`;
+        let connected = false;
+        try {
+            connected = await this.operations.connect(databaseRef.trim(), ownerUri);
+            if (!connected) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.connectFailed,
+                    "RunbookStudio.ActivityFailed",
+                );
+            }
+            const result = await this.operations.execute(ownerUri, LOCAL_SCHEMA_INVENTORY_SQL);
+            const availableRows = result.rows ?? [];
+            const truncated =
+                availableRows.length > LOCAL_SCHEMA_INVENTORY_ROW_LIMIT ||
+                result.rowCount > LOCAL_SCHEMA_INVENTORY_ROW_LIMIT ||
+                result.rowCount > availableRows.length;
+            const rows = availableRows
+                .slice(0, LOCAL_SCHEMA_INVENTORY_ROW_LIMIT)
+                .map((row) => row.map((cell) => (cell.isNull ? null : cell.displayValue)));
+            return {
+                success: true,
+                runMetrics: {
+                    "schemaInventory.objectCount": rows.length,
+                    "schemaInventory.truncated": truncated,
+                },
+                message: `${rows.length} schema objects`,
+                output: {
+                    contract: "databaseSchemaInventory/1",
+                    columns: ["ObjectType", "SchemaName", "ObjectName"],
+                    rows,
+                    scalars: {
+                        objectCount: rows.length,
+                        truncated,
+                        executionMode: "local",
+                    },
+                },
+                values: { objectCount: rows.length, truncated },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        } finally {
+            if (connected) {
+                try {
+                    await this.operations.disconnect(ownerUri);
+                } catch {
+                    // Best effort: inventory execution has already settled.
                 }
             }
         }

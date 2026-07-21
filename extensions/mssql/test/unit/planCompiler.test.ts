@@ -236,6 +236,125 @@ suite("planCompiler", () => {
         ]);
     });
 
+    test("extract, named deploy, and typed schema inventory compiles end to end", () => {
+        const intent =
+            "Extract a dacpac from WideWorldImporters and deploy it as WWI_2. " +
+            "Show all the tables, views, and sproc from the new database.";
+        const classified = classifyRunbookIntent(intent);
+        const inventoryBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const proposal = {
+            name: "WideWorldImporters schema inventory",
+            parameters: [
+                { id: "source", label: "WideWorldImporters source", type: "connection" },
+                { id: "server", label: "Local development server", type: "connection" },
+            ],
+            entryNodeId: "extract",
+            nodes: [
+                {
+                    id: "extract",
+                    label: "Extract source DACPAC",
+                    kind: "activity",
+                    activityKind: "dacpac.extract",
+                    inputs: { database: "$params.source" },
+                },
+                { id: "approve-provision", label: "Approve target creation", kind: "gate" },
+                {
+                    id: "provision",
+                    label: "Create WWI_2",
+                    kind: "activity",
+                    activityKind: "devdatabase.provision",
+                    inputs: { server: "$params.server", databaseName: "WWI_2" },
+                },
+                {
+                    id: "preview",
+                    label: "Preview deployment",
+                    kind: "activity",
+                    activityKind: "dacpac.deploy.preview",
+                    inputs: {
+                        dacpac: "$nodes.extract.artifactPath",
+                        database: "$nodes.provision.connectionRef",
+                    },
+                },
+                { id: "approve-deploy", label: "Approve deployment", kind: "gate" },
+                {
+                    id: "deploy",
+                    label: "Deploy DACPAC",
+                    kind: "activity",
+                    activityKind: "dacpac.deploy.dev",
+                    inputs: {
+                        dacpac: "$nodes.extract.artifactPath",
+                        database: "$nodes.provision.connectionRef",
+                        artifactDigest: "$nodes.extract.artifactSha256",
+                        previewDigest: "$nodes.preview.reportSha256",
+                    },
+                },
+                {
+                    id: "verify",
+                    label: "Verify deployed schema",
+                    kind: "activity",
+                    activityKind: "schema.compare",
+                    inputs: {
+                        dacpac: "$nodes.extract.artifactPath",
+                        database: "$nodes.provision.connectionRef",
+                    },
+                },
+                {
+                    id: "inventory",
+                    label: "List tables, views, and stored procedures",
+                    kind: "activity",
+                    activityKind: "database.schema.inventory",
+                    inputs: { database: "$nodes.provision.connectionRef" },
+                },
+                { id: "report", label: "Summarize", kind: "report" },
+            ],
+            edges: [
+                { from: "extract", to: "approve-provision" },
+                { from: "approve-provision", to: "provision", when: "approved" },
+                { from: "approve-provision", to: "report", when: "rejected" },
+                { from: "provision", to: "preview" },
+                { from: "preview", to: "approve-deploy" },
+                { from: "approve-deploy", to: "deploy", when: "approved" },
+                { from: "approve-deploy", to: "report", when: "rejected" },
+                { from: "deploy", to: "verify" },
+                { from: "verify", to: "inventory" },
+                { from: "inventory", to: "report" },
+            ],
+        };
+
+        const result = parseCompiledProposal(JSON.stringify(proposal), inventoryBase, intent);
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+        expect(
+            result.artifact
+                .lock!.nodes.filter((node) => node.kind === "activity")
+                .map((node) => node.activityKind),
+        ).to.deep.equal([
+            "dacpac.extract",
+            "devdatabase.provision",
+            "dacpac.deploy.preview",
+            "dacpac.deploy.dev",
+            "schema.compare",
+            "database.schema.inventory",
+        ]);
+
+        const wrongTarget = JSON.parse(JSON.stringify(proposal));
+        wrongTarget.nodes.find((node: { id: string }) => node.id === "inventory").inputs.database =
+            "$params.source";
+        const refused = parseCompiledProposal(JSON.stringify(wrongTarget), inventoryBase, intent);
+        expect(isProposalFailure(refused)).to.equal(true);
+        if (isProposalFailure(refused)) {
+            expect(refused.detail).to.contain(
+                "must inventory the same target as an upstream DACPAC deployment",
+            );
+        }
+    });
+
     test("an owned SQL container lifecycle compiles with a rebind-only secret", () => {
         const intent = "Provision and then dispose a local SQL container.";
         const classified = classifyRunbookIntent(intent);

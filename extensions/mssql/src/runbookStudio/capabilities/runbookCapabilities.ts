@@ -105,6 +105,12 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         connectionRequirement: "required",
         outputContract: "rowset/1",
     },
+    "database.schema.inventory": {
+        target: "sqlDatabase",
+        effect: "read",
+        connectionRequirement: "provisioned",
+        outputContract: "databaseSchemaInventory/1",
+    },
     "workspace.inspect": {
         target: "workspace",
         effect: "read",
@@ -394,6 +400,11 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         description:
             "Retain the complete DacFx comparison report as a hashed file even when differences are expected.",
     },
+    "database.schema.inventory": {
+        label: "Inventory the deployed schema",
+        description:
+            "List the deployed user tables, views, and stored procedures in a bounded typed results grid.",
+    },
     "sql.container.provision": {
         label: "Provision the local SQL container",
         description:
@@ -494,6 +505,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "sql.schema.apply",
         "schema.compare",
         "schema.compare.export",
+        "database.schema.inventory",
         "tsqlt.run",
         "sqltest.run",
         "xevent.session.start",
@@ -525,6 +537,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "sql.schema.apply",
         "schema.compare",
         "schema.compare.export",
+        "database.schema.inventory",
         "tsqlt.run",
         "sqltest.run",
         "xevent.session.start",
@@ -545,6 +558,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
     investigate: [
         "connection.auth.diagnose",
         "sql.query.read",
+        "database.schema.inventory",
         "sql.container.provision",
         "xevent.session.start",
         "sql.workload.inspect",
@@ -577,6 +591,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "sql.schema.apply",
         "schema.compare",
         "schema.compare.export",
+        "database.schema.inventory",
         "tsqlt.run",
         "sqltest.run",
         "sql.query.read",
@@ -647,7 +662,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     );
     const requestsNamedDatabaseDeployment = has(
         text,
-        /\b(deploy|publish|import)\b.{0,35}\bdacpac\b.{0,35}\b(into|to)\b\s+(?!a\s+)?(?:\[[^\]]+\]|[a-z_][a-z0-9_$#@.-]*)/,
+        /\b(deploy|publish|import)\b.{0,35}\b(dacpac|it)\b.{0,20}\b(as|into|to)\b\s+(?!a\s+)?(?:\[[^\]]+\]|[a-z_][a-z0-9_$#@.-]*)/,
     );
     const requestsWorkload = has(
         text,
@@ -657,6 +672,10 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     const requestsSchemaCompareExport = has(
         text,
         /\b(schema compare|schema diff|diff)\b.{0,50}\b(file|artifact|report|xml|script)\b|\b(create|save|export|write)\b.{0,35}\b(diff|comparison)\b.{0,20}\b(file|artifact|report|xml|script)\b/,
+    );
+    const requestsSchemaInventory = has(
+        text,
+        /\b(show|list|inventory|enumerate)\b.{0,65}\b(tables?|views?|stored procedures?|sprocs?|schema objects?)\b|\b(tables?|views?|stored procedures?|sprocs?)\b.{0,50}\b(show|list|inventory|enumerate)\b/,
     );
     const isPreMerge = has(text, /\b(pre[- ]?merge|pull request|ci\/cd|pipeline|quality gate)\b/);
     const hasBuildWork = has(
@@ -765,6 +784,9 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         if (!requestsSchemaCompareExport) {
             requested.add("schema.compare");
         }
+    }
+    if (requestsSchemaInventory) {
+        requested.add(requestsActualDeployment ? "database.schema.inventory" : "sql.query.read");
     }
     if (
         !requestsSchemaCompareExport &&
