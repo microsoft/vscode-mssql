@@ -45,7 +45,7 @@ export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration (Previe
 export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
 export let quickQuerySlotOutOfRange = (maxSlot: number) =>
     l10n.t({
-        message: "quick query slot must be between 1 and {0}.",
+        message: "Quick Query slot must be between 1 and {0}.",
         args: [maxSlot],
         comment: ["{0} is the maximum Quick Query slot number"],
     });

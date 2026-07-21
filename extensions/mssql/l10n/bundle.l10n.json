@@ -25,8 +25,8 @@
     "Rename Database": "Rename Database",
     "Shortcuts Configuration (Preview)": "Shortcuts Configuration (Preview)",
     "Configuration saved.": "Configuration saved.",
-    "quick query slot must be between 1 and {0}./{0} is the maximum Quick Query slot number": {
-        "message": "quick query slot must be between 1 and {0}.",
+    "Quick Query slot must be between 1 and {0}./{0} is the maximum Quick Query slot number": {
+        "message": "Quick Query slot must be between 1 and {0}.",
         "comment": ["{0} is the maximum Quick Query slot number"]
     },
     "This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.": "This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.",

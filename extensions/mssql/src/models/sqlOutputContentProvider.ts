@@ -374,6 +374,12 @@ export class SqlOutputContentProvider {
     /**
      * Runs SQL text against the connection owned by an editor URI without reading or changing the
      * editor document. Results remain associated with that editor's normal results view.
+     * @param statusView Status view updated while the query executes.
+     * @param uri URI identifying the editor connection and results view.
+     * @param query SQL text to execute.
+     * @param title Title used when initializing the query results view.
+     * @param promise Optional deferred operation completed with the query result.
+     * @returns A promise that resolves after the execution request is submitted.
      */
     public async runQueryString(
         statusView: StatusView,

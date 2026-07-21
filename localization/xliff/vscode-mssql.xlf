@@ -5796,6 +5796,10 @@
     <trans-unit id="++CODE++51296d3c3409d0fc43f3c4da5cfe61aac838f739a5bf5691479a224e36341234">
       <source xml:lang="en">Quick Queries keyboard shortcuts are managed by Visual Studio Code.</source>
     </trans-unit>
+    <trans-unit id="++CODE++ce38eb0f7362769e116cea50e7d6bd644efdc36bd9c75a5b6a6987bfb126629d">
+      <source xml:lang="en">Quick Query slot must be between 1 and {0}.</source>
+      <note>{0} is the maximum Quick Query slot number</note>
+    </trans-unit>
     <trans-unit id="++CODE++f9a9448d6e0b500626f784c1ea716af295bd4d8b7ef836710ab8c14a44204dc5">
       <source xml:lang="en">Quick filter all columns...</source>
     </trans-unit>
@@ -8264,10 +8268,6 @@
     </trans-unit>
     <trans-unit id="++CODE++738dce14f9c7825c6601ed72dce22b095491c097fc1c76d6352399229c9262f8">
       <source xml:lang="en">profiler_events</source>
-    </trans-unit>
-    <trans-unit id="++CODE++6c2fe0f3b926bdee99be6ec193198a2f414e083fc44960a72b946916fb344d69">
-      <source xml:lang="en">quick query slot must be between 1 and {0}.</source>
-      <note>{0} is the maximum Quick Query slot number</note>
     </trans-unit>
     <trans-unit id="++CODE++35a1031e991d85c2d12e5768b98c031dcc6394f3ccfb766314b8a3d0ab2242db">
       <source xml:lang="en">resource group</source>

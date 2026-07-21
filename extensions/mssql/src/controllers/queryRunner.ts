@@ -224,6 +224,9 @@ export default class QueryRunner {
         return this._isExecuting;
     }
 
+    /**
+     * Gets the source that initiated the current query execution.
+     */
     get executionSource(): QueryExecutionSource {
         return this._executionSource;
     }
@@ -445,6 +448,9 @@ export default class QueryRunner {
     /**
      * Executes SQL text through the full query results pipeline without reading or changing the
      * editor document associated with the connection URI.
+     * @param query SQL text to execute.
+     * @param promise Optional deferred operation completed with the query result.
+     * @returns A promise that resolves after the execution request is submitted.
      */
     public async runQueryString(query: string, promise?: Deferred<boolean>): Promise<void> {
         this._executionSource = "quickQuery";
@@ -496,7 +502,11 @@ export default class QueryRunner {
         }
     }
 
-    public setupQueryExecution(_selection: ISelectionData): void {
+    /**
+     * Initializes query execution state and registers the query notification handlers.
+     * @param _selection Optional selection metadata associated with a document-based execution.
+     */
+    public setupQueryExecution(_selection?: ISelectionData): void {
         this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;

@@ -109,11 +109,9 @@ const useStyles = makeStyles({
     },
     quickQueryGridCard: {
         borderRadius: 0,
-        height: "432px",
         width: "100%",
     },
     quickQueryGridScroller: {
-        height: "100%",
         overflowX: "auto",
         overflowY: "hidden",
     },
