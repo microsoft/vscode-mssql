@@ -52,7 +52,7 @@ const COMPATIBILITY: Record<string, ViewKind[]> = {
     "databaseLease/1": ["scalar-cards", "json"],
     "deploymentPreview/1": ["log-view", "json"],
     "deploymentEvidence/1": ["scalar-cards", "json"],
-    "schemaDiff/1": ["log-view", "json"],
+    "schemaDiff/1": ["diff", "log-view", "json"],
     "testResults/1": ["grid", "bar", "json"],
     "cleanupEvidence/1": ["scalar-cards", "json"],
     "evidenceBundle/1": ["log-view", "json"],

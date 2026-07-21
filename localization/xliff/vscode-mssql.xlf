@@ -2628,6 +2628,9 @@
     <trans-unit id="++CODE++d88868890471c6cc2ac101b2e2d848718a71936be8158d3c57ec81840fbefa54">
       <source xml:lang="en">Deployment Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++4d94b982269c908ac37bfb529fb614e23adea3e55bea29d44b433b65643014a9">
+      <source xml:lang="en">Deployment alerts</source>
+    </trans-unit>
     <trans-unit id="++CODE++658cfc002aa81e1127e8652d0514d231cb7414501f5932b093e1939c4305781f">
       <source xml:lang="en">Deployment failed</source>
     </trans-unit>
@@ -6030,6 +6033,9 @@
     <trans-unit id="++CODE++5ff556be3ff560aacea9a07aef13fb661fbc12bbea9b817564d16111a62980c7">
       <source xml:lang="en">No schema changes</source>
     </trans-unit>
+    <trans-unit id="++CODE++c7ed6cdd254c961f4d2c03fc40d7f715c8f1bdfc27af27c16d807f6117e75db8">
+      <source xml:lang="en">No schema changes were found.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0affa67640b3025de7e70ca5091dd93bcd11bedecbd01aad309a6013841386af">
       <source xml:lang="en">No schema differences were found.</source>
     </trans-unit>
@@ -6130,6 +6136,9 @@
     <trans-unit id="++CODE++544330f40460cbf3595ddb51445d81c643d5cd9dc72d601db887c01169b5f388">
       <source xml:lang="en">Not Starts With</source>
     </trans-unit>
+    <trans-unit id="++CODE++67a926f7008e2b0e7f2b3f7a4b37597834830110be1d51138f425d6f3449bc09">
+      <source xml:lang="en">Not available</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b63db09b404fbb32d9a1c00b76e17be0b11b81dac474a8aa6dc39fb0304cee6">
       <source xml:lang="en">Not available for read-only file sessions</source>
     </trans-unit>
@@ -6194,6 +6203,9 @@
     </trans-unit>
     <trans-unit id="++CODE++17353b3f8f54bed0a811ad1ed6fb9f3505a0e039df3b934afb3e8bc11976a2ca">
       <source xml:lang="en">OLTP, built on Azure SQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++62a6da8735c18e2d66fe5de3dc5440252a1da49e3cbaa7c1d2d5068ad73ffba0">
+      <source xml:lang="en">Object</source>
     </trans-unit>
     <trans-unit id="++CODE++501ec8c3629bcdcd52b9d7895c90d04b0c0b969f1134ba024efe021f0a25d867">
       <source xml:lang="en">Object Explorer Filter</source>
@@ -7870,6 +7882,12 @@
     <trans-unit id="++CODE++dba1b57d1ef7b24e6af478caa5f6a62ed50fd58c825abf1eb053ca847d56be65">
       <source xml:lang="en">Schema Diff</source>
     </trans-unit>
+    <trans-unit id="++CODE++fb2d6df34824858331435a647bfed71af76df53c6b1d00c0293d1f2924f5c736">
+      <source xml:lang="en">Schema changes</source>
+    </trans-unit>
+    <trans-unit id="++CODE++33947359fcdacf95ea0b35c3f24a35f28ce24c5017c991c858f10a402c50eb41">
+      <source xml:lang="en">Schema comparison summary</source>
+    </trans-unit>
     <trans-unit id="++CODE++a94ae9ca78147a7fc9bac5fbe59284cb1cbdcc897f002bd839fe49769ab093aa">
       <source xml:lang="en">Schema designer details are not available.</source>
     </trans-unit>
@@ -9374,6 +9392,9 @@
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
+    <trans-unit id="++CODE++90b0c0dc9b88babfc8e6bdd9b655ee32f29a1eee511a2232f458bba31a2c9edc">
+      <source xml:lang="en">This deployment report could not be interpreted as a schema diff. Showing the retained report instead.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d78994e8cd03343752f75d9cc3b38fab2160b8425c05868fc6a5fca8ce3d08e8">
       <source xml:lang="en">This derived result could not be produced from the retained output. Review its field mappings and transform steps.</source>
     </trans-unit>
@@ -9734,6 +9755,9 @@
     </trans-unit>
     <trans-unit id="++CODE++e4dd0ac78c7663f350454bad4258d3b6d38971181470082487d131decc61880b">
       <source xml:lang="en">Unnamed Profile</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ad8312ac2caf4ea8337ec34e0984dd227ad99abc70c6a1671213cfa7290d8669">
+      <source xml:lang="en">Unnamed schema object</source>
     </trans-unit>
     <trans-unit id="++CODE++f507179bd454425eee383ca39b8686483dfe06eae90e62bfd2eeeb5095cb5eac">
       <source xml:lang="en">Unsaved Changes</source>
@@ -10507,6 +10531,10 @@
       <source xml:lang="en">{0} action for {1}</source>
       <note>{0} is the action name (Create, Read, etc.)
 {1} is the entity name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++ddc7424149de22af181995a0c5ae6a24cecfc07dd8fa787bd1fc46f7dddcfc9c">
+      <source xml:lang="en">{0} additional operation groups are available in the retained report.</source>
+      <note>{0} is a count of DacFx operation groups</note>
     </trans-unit>
     <trans-unit id="++CODE++6e07ced08068b360240b9b30256acc97c938d5684067a52d596bd8da9bf089f5">
       <source xml:lang="en">{0} branch not taken</source>

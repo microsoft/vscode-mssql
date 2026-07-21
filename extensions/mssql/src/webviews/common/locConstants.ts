@@ -4108,6 +4108,25 @@ export class LocConstants {
             revealArtifact: l10n.t("Reveal artifact"),
             exportArtifactCopy: l10n.t("Export copy"),
             artifactActionInProgress: l10n.t("Working…"),
+            schemaDiffSummary: l10n.t("Schema comparison summary"),
+            schemaChanges: l10n.t("Schema changes"),
+            schemaAlerts: l10n.t("Deployment alerts"),
+            schemaOperation: l10n.t("Operation"),
+            schemaObjectType: l10n.t("Object type"),
+            schemaObject: l10n.t("Object"),
+            noSchemaChanges: l10n.t("No schema changes were found."),
+            schemaDiffUnavailable: l10n.t(
+                "This deployment report could not be interpreted as a schema diff. Showing the retained report instead.",
+            ),
+            additionalOperationGroups: (count: number) =>
+                l10n.t({
+                    message:
+                        "{0} additional operation groups are available in the retained report.",
+                    args: [count],
+                    comment: ["{0} is a count of DacFx operation groups"],
+                }),
+            notAvailable: l10n.t("Not available"),
+            unnamedSchemaObject: l10n.t("Unnamed schema object"),
             waitingOn: (steps: string) =>
                 l10n.t({
                     message: "Waiting on: {0}",

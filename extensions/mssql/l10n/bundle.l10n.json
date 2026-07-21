@@ -5106,6 +5106,18 @@
     "Reveal artifact": "Reveal artifact",
     "Export copy": "Export copy",
     "Working…": "Working…",
+    "Schema comparison summary": "Schema comparison summary",
+    "Schema changes": "Schema changes",
+    "Deployment alerts": "Deployment alerts",
+    "Object": "Object",
+    "No schema changes were found.": "No schema changes were found.",
+    "This deployment report could not be interpreted as a schema diff. Showing the retained report instead.": "This deployment report could not be interpreted as a schema diff. Showing the retained report instead.",
+    "{0} additional operation groups are available in the retained report./{0} is a count of DacFx operation groups": {
+        "message": "{0} additional operation groups are available in the retained report.",
+        "comment": ["{0} is a count of DacFx operation groups"]
+    },
+    "Not available": "Not available",
+    "Unnamed schema object": "Unnamed schema object",
     "Waiting on: {0}/{0} comma-separated names of steps this one depends on": {
         "message": "Waiting on: {0}",
         "comment": ["{0} comma-separated names of steps this one depends on"]

@@ -30,6 +30,7 @@ import {
     RbsOutputArtifactAction,
     RbsOutputArtifactRequest,
 } from "../../../sharedInterfaces/runbookStudio";
+import { projectDacpacSchemaDiff } from "../../../runbookStudio/presentation/schemaDiffProjection";
 import { useRbs } from "./state";
 
 const PAGE_ROWS = 100;
@@ -395,6 +396,110 @@ function JsonView({ page }: { page: FetchedPage }) {
         <pre className="rbs-text-block rbs-mono">
             {JSON.stringify({ columns: page.columns, rows: page.rows }, undefined, 2)}
         </pre>
+    );
+}
+
+function SchemaDiffView({ page }: { page: FetchedPage }) {
+    const loc = locConstants.runbookStudio;
+    const raw = page.rows?.[0]?.[0];
+    let diff: ReturnType<typeof projectDacpacSchemaDiff>;
+    try {
+        if (typeof raw !== "string") {
+            throw new Error("missing report");
+        }
+        const document = new DOMParser().parseFromString(raw, "application/xml");
+        if (document.getElementsByTagName("parsererror").length > 0) {
+            throw new Error("invalid report");
+        }
+        diff = projectDacpacSchemaDiff(document);
+    } catch {
+        diff = undefined;
+    }
+    if (!diff) {
+        return (
+            <>
+                <div className="rbs-drift-notice" role="status">
+                    {loc.schemaDiffUnavailable}
+                </div>
+                <TextView page={page} mono />
+            </>
+        );
+    }
+    return (
+        <div className="rbs-schema-diff">
+            <div className="rbs-schema-diff-summary" aria-label={loc.schemaDiffSummary}>
+                <div className="rbs-card">
+                    <div className="rbs-card-label">{loc.schemaChanges}</div>
+                    <div className="rbs-card-value">{diff.changeCount.toLocaleString()}</div>
+                </div>
+                <div className="rbs-card">
+                    <div className="rbs-card-label">{loc.schemaAlerts}</div>
+                    <div className="rbs-card-value">{diff.alertCount.toLocaleString()}</div>
+                </div>
+                {diff.operationGroups.map((group) => (
+                    <div className="rbs-card" key={group.name}>
+                        <div className="rbs-card-label">{group.name}</div>
+                        <div className="rbs-card-value">{group.count.toLocaleString()}</div>
+                    </div>
+                ))}
+            </div>
+            {diff.omittedOperationGroupCount > 0 ? (
+                <div className="rbs-muted">
+                    {loc.additionalOperationGroups(diff.omittedOperationGroupCount)}
+                </div>
+            ) : null}
+            {diff.alerts.length > 0 ? (
+                <section className="rbs-schema-diff-alerts" aria-label={loc.schemaAlerts}>
+                    <h4>{loc.schemaAlerts}</h4>
+                    <ul>
+                        {diff.alerts.map((alert, index) => (
+                            <li key={`${alert.kind}:${index}`}>
+                                <strong>{alert.kind}</strong>
+                                {alert.detail ? ` — ${alert.detail}` : ""}
+                            </li>
+                        ))}
+                    </ul>
+                    {diff.omittedAlertCount > 0 ? (
+                        <div className="rbs-muted">
+                            {loc.showingRows(diff.alerts.length, diff.alertCount)}
+                        </div>
+                    ) : null}
+                </section>
+            ) : null}
+            {diff.changes.length === 0 ? (
+                <div className="rbs-muted">{loc.noSchemaChanges}</div>
+            ) : (
+                <div className="rbs-grid-view">
+                    <div className="rbs-grid-viewport">
+                        <table className="rbs-table">
+                            <thead>
+                                <tr>
+                                    <th>{loc.schemaOperation}</th>
+                                    <th>{loc.schemaObjectType}</th>
+                                    <th>{loc.schemaObject}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {diff.changes.map((change, index) => (
+                                    <tr key={`${change.operation}:${change.name}:${index}`}>
+                                        <td>{change.operation}</td>
+                                        <td>{change.objectType || loc.notAvailable}</td>
+                                        <td className="rbs-mono">
+                                            {change.name || loc.unnamedSchemaObject}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                    {diff.omittedChangeCount > 0 ? (
+                        <div className="rbs-muted">
+                            {loc.showingRows(diff.changes.length, diff.changeCount)}
+                        </div>
+                    ) : null}
+                </div>
+            )}
+        </div>
     );
 }
 
@@ -914,6 +1019,8 @@ export function ResolvedWidgetView({
                         );
                     case "json":
                         return <JsonView page={page} />;
+                    case "diff":
+                        return <SchemaDiffView page={page} />;
                     case "bar":
                         return <BarChartView page={page} settings={settings} />;
                     case "timeseries":
