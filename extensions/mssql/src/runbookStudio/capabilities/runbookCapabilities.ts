@@ -140,6 +140,14 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         rollbackContract: "automatic",
         outputContract: "dacpacArtifact/1",
     },
+    "devdatabase.provision": {
+        target: "sqlDatabase",
+        effect: "mutate",
+        approvalRequired: true,
+        connectionRequirement: "required",
+        rollbackContract: "automatic",
+        outputContract: "databaseLease/1",
+    },
     "dacpac.deploy.dev": {
         target: "sqlDatabase",
         effect: "mutate",
@@ -338,6 +346,11 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         description:
             "Use DacFx against the explicitly bound source database and retain a hashed DACPAC artifact.",
     },
+    "devdatabase.provision": {
+        label: "Provision the named development database",
+        description:
+            "Create the requested local database only when the name is absent, mark Runbook Studio ownership, and retain a governed lease.",
+    },
     "dacpac.deploy.dev": {
         label: "Deploy to the named development database",
         description:
@@ -460,6 +473,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "dbproject.add-object",
         "dacpac.build",
         "dacpac.extract",
+        "devdatabase.provision",
         "sql.container.provision",
         "sandbox.provision",
         "dacpac.deploy.preview",
@@ -489,6 +503,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "sqltest.discover",
         "dacpac.build",
         "dacpac.extract",
+        "devdatabase.provision",
         "sql.container.provision",
         "sandbox.provision",
         "dacpac.deploy.preview",
@@ -538,6 +553,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "dbproject.add-object",
         "dacpac.build",
         "dacpac.extract",
+        "devdatabase.provision",
         "sql.container.provision",
         "sandbox.provision",
         "dacpac.deploy.preview",
@@ -721,10 +737,10 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         if (requestsContainer) {
             requested.add("dacpac.deploy.container");
         } else if (requestsNamedDatabaseDeployment) {
-            // The installed deploy executor deliberately accepts only an
-            // ownership-verified disposable lease. Named durable targets need
-            // a separate preview/rollback/effect contract; do not silently
-            // substitute a generated sandbox database.
+            // A named target gets a distinct absent-target-only ownership
+            // lease; never substitute the generated disposable sandbox or
+            // take ownership of a pre-existing database.
+            requested.add("devdatabase.provision");
             requested.add("dacpac.deploy.dev");
         } else {
             requested.add("sandbox.provision");

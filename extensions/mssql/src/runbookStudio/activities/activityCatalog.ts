@@ -176,6 +176,38 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "devdatabase.provision",
+        version: 1,
+        label: "Provision named local development database",
+        description:
+            "Creates an absent, explicitly named database on a bound loopback SQL Server and retains an ownership-verified development lease.",
+        inputs: [
+            {
+                name: "server",
+                kind: "bind",
+                required: true,
+                description: "Saved localhost SQL Server connection profile",
+            },
+            {
+                name: "databaseName",
+                kind: "bind",
+                required: true,
+                description: "Explicit name for a new development database",
+            },
+        ],
+        outputContract: "databaseLease/1",
+        producedValues: ["connectionRef", "leaseId", "databaseName"],
+        approvalRequired: true,
+        target: { kind: "sqlDatabase", bindingInput: "server" },
+        blastRadius: {
+            resource: "databaseSchema",
+            operation: "provision",
+            targetEnvironment: "development",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "dacpac.deploy.preview",
         version: 1,
         label: "Preview DACPAC deployment",
@@ -247,6 +279,50 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
             resource: "databaseSchema",
             operation: "modify",
             targetEnvironment: "ephemeral",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "dacpac.deploy.dev",
+        version: 1,
+        label: "Deploy DACPAC to owned development database",
+        description:
+            "Applies the exact approved DACPAC preview only to an ownership-verified, absent-target-created named local development database.",
+        inputs: [
+            {
+                name: "dacpac",
+                kind: "bind",
+                required: true,
+                description: "Bind to a dacpac.build or dacpac.extract artifactPath",
+            },
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to a devdatabase.provision connectionRef",
+            },
+            {
+                name: "artifactDigest",
+                kind: "bind",
+                required: true,
+                description: "Bind to the approved DACPAC artifactSha256",
+            },
+            {
+                name: "previewDigest",
+                kind: "bind",
+                required: true,
+                description: "Bind to the approved dacpac.deploy.preview reportSha256",
+            },
+        ],
+        outputContract: "deploymentEvidence/1",
+        producedValues: ["deployed", "postDeployChangeCount", "artifactSha256"],
+        approvalRequired: true,
+        target: { kind: "sqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseSchema",
+            operation: "modify",
+            targetEnvironment: "development",
             reversibility: "autoReversible",
             breadth: "bounded",
         },
@@ -565,10 +641,18 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
             if (
                 descriptor.target.kind === "ephemeralSqlDatabase" &&
                 descriptor.kind !== "sandbox.provision" &&
-                !isOwnedSandboxOutput(lock, node)
+                !isOwnedDatabaseOutput(lock, node, "sandbox.provision")
             ) {
                 issues.push(
                     `node '${node.id}' must bind its disposable target to an upstream sandbox.provision connectionRef`,
+                );
+            }
+            if (
+                descriptor.kind === "dacpac.deploy.dev" &&
+                !isOwnedDatabaseOutput(lock, node, "devdatabase.provision")
+            ) {
+                issues.push(
+                    `node '${node.id}' must bind its development target to an upstream devdatabase.provision connectionRef`,
                 );
             }
         }
@@ -590,7 +674,11 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
     return issues;
 }
 
-function isOwnedSandboxOutput(lock: CompiledRunbookLock, node: RunbookPlanNode): boolean {
+function isOwnedDatabaseOutput(
+    lock: CompiledRunbookLock,
+    node: RunbookPlanNode,
+    producerKind: "sandbox.provision" | "devdatabase.provision",
+): boolean {
     if (node.target?.binding.source !== "nodeOutput") {
         return false;
     }
@@ -598,7 +686,7 @@ function isOwnedSandboxOutput(lock: CompiledRunbookLock, node: RunbookPlanNode):
     const producer = lock.nodes.find((candidate) => candidate.id === binding.nodeId);
     if (
         producer?.kind !== "activity" ||
-        producer.activityKind !== "sandbox.provision" ||
+        producer.activityKind !== producerKind ||
         binding.output !== "connectionRef"
     ) {
         return false;

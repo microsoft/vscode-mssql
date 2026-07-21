@@ -726,10 +726,24 @@ function executeNode(
                 },
             };
         }
-        case "sandbox.provision": {
-            const sandbox = resolveBind(node.inputs?.sandbox, parameterValues, nodeValues);
+        case "sandbox.provision":
+        case "devdatabase.provision": {
+            const sandbox = resolveBind(
+                node.activityKind === "devdatabase.provision"
+                    ? node.inputs?.server
+                    : node.inputs?.sandbox,
+                parameterValues,
+                nodeValues,
+            );
             if (typeof sandbox !== "string" || sandbox.length === 0) {
-                return invalidPreviewBinding("sandbox.provision", "sandbox");
+                return invalidPreviewBinding(node.activityKind, "server/sandbox");
+            }
+            const databaseName =
+                node.activityKind === "devdatabase.provision"
+                    ? resolveBind(node.inputs?.databaseName, parameterValues, nodeValues)
+                    : "PreviewDatabase";
+            if (typeof databaseName !== "string" || databaseName.length === 0) {
+                return invalidPreviewBinding(node.activityKind, "databaseName");
             }
             return {
                 success: true,
@@ -740,12 +754,14 @@ function executeNode(
                     scalars: {
                         leaseId: "preview-lease-001",
                         connectionRef: "preview://sql/sandbox",
+                        databaseName,
                         preview: true,
                     },
                 },
                 values: {
                     leaseId: "preview-lease-001",
                     connectionRef: "preview://sql/sandbox",
+                    databaseName,
                 },
             };
         }
@@ -779,7 +795,8 @@ function executeNode(
                 },
             };
         }
-        case "dacpac.deploy": {
+        case "dacpac.deploy":
+        case "dacpac.deploy.dev": {
             const dacpac = resolveBind(node.inputs?.dacpac, parameterValues, nodeValues);
             const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
             const artifactDigest = resolveBind(
@@ -799,7 +816,7 @@ function executeNode(
                 typeof previewDigest !== "string"
             ) {
                 return invalidPreviewBinding(
-                    "dacpac.deploy",
+                    node.activityKind,
                     "dacpac/database/artifactDigest/previewDigest",
                 );
             }

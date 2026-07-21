@@ -368,6 +368,7 @@ suite("runbook capability preflight", () => {
             "dacpac.extract",
             "sql.schema.apply",
             "dacpac.deploy.preview",
+            "devdatabase.provision",
             "dacpac.deploy.dev",
             "schema.compare",
             "schema.compare.export",
@@ -376,15 +377,13 @@ suite("runbook capability preflight", () => {
         expect(kinds).not.to.include("dbproject.add-object");
         expect(kinds).not.to.include("dacpac.build");
         expect(readiness.status).to.equal("designOnly");
-        expect(readiness.missingActivityKinds).to.deep.equal([
-            "sql.schema.apply@1",
-            "dacpac.deploy.dev@1",
-        ]);
+        expect(readiness.missingActivityKinds).to.deep.equal(["sql.schema.apply@1"]);
 
         expect(
             buildDesignOnlyPlan(classified).steps.map((step) => step.activityKind),
         ).to.deep.equal([
             "dacpac.extract",
+            "devdatabase.provision",
             "dacpac.deploy.preview",
             "dacpac.deploy.dev",
             "sql.schema.apply",

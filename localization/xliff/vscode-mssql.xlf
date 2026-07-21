@@ -2361,6 +2361,10 @@
       <source xml:lang="en">DACPAC deployment to disposable database &apos;{0}&apos; completed and a post-deploy report was generated.</source>
       <note>{0} is a generated disposable database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++86fd88f1a95860b58e15cd498d678b5d20fdf4f1331518f4eb4615250215c4a1">
+      <source xml:lang="en">DACPAC deployment to owned development database &apos;{0}&apos; completed and a post-deploy report was generated.</source>
+      <note>{0} is an explicitly requested local development database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++0609a32cfa46dae87152f2ffa8ed3dea85080ad1acf25effef9c8b188f373be7">
       <source xml:lang="en">DACPAC evidence collection was cancelled.</source>
     </trans-unit>
@@ -5632,6 +5636,10 @@
     </trans-unit>
     <trans-unit id="++CODE++ad4811485a0a0f3f000987d581730b04c0bf33a9d4ccf59a9ff1c127b33d76d1">
       <source xml:lang="en">Name of the primary key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5dadc7f9ceb96c061936442f82235e533fd3443016074b18d1bc84943c1448ba">
+      <source xml:lang="en">Named development database &apos;{0}&apos; was provisioned and retained.</source>
+      <note>{0} is an explicitly requested local development database name</note>
     </trans-unit>
     <trans-unit id="++CODE++2b7cfe25c7ec50bed3130625cf2450de919a7f1961b5081b5e069d3bc41bb9f5">
       <source xml:lang="en">Navigate to this item in the diagram</source>
@@ -9183,6 +9191,9 @@
     <trans-unit id="++CODE++baadb07c802b54c6a6777b0c539ee88a41fcacd184f31195df3d08f47816eb7c">
       <source xml:lang="en">The detail data for this output has expired. The run record remains available.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d902129d9dee5b57d8594a3c21a1839e7d5d31c9fb1fe05680a615ac542905a5">
+      <source xml:lang="en">The development database name must be a non-system SQL identifier of at most 128 characters.</source>
+    </trans-unit>
     <trans-unit id="++CODE++85015c1a95bddecb9d2798a75e0eba075ce8492f3f1ebf7d86333502c0564a45">
       <source xml:lang="en">The disposable database could not be provisioned safely.</source>
     </trans-unit>
@@ -9256,6 +9267,12 @@
     </trans-unit>
     <trans-unit id="++CODE++644a28f160d2df093fab1a8c94e5176f21c1af3bee1915315edd409d14397021">
       <source xml:lang="en">The name of the index.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++61d96d3ed2cd6269ab3e9d0299a84e73a2c1fb1662fbb942e97f8b1295d65abc">
+      <source xml:lang="en">The named development database already exists. This activity only creates absent targets and will not take ownership of an existing database.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++77f5b98358674a65245857a88c70625a5ac42c92f13a7e5ac1cdfee1e0aadc3d">
+      <source xml:lang="en">The named development database ownership marker does not match this runbook lease. The operation was refused.</source>
     </trans-unit>
     <trans-unit id="++CODE++d840c7f06b4743166fdebaa91eaf9eef13a471acc167aca7ba55e76b6b6e845d">
       <source xml:lang="en">The output layout could not be saved. Review the selected views and try again.</source>

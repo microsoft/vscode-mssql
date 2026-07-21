@@ -401,6 +401,21 @@ export class RunbookStudio {
             args: [databaseName],
             comment: ["{0} is a generated local database name"],
         });
+    public static developmentDatabaseProvisioned = (databaseName: string) =>
+        l10n.t({
+            message: "Named development database '{0}' was provisioned and retained.",
+            args: [databaseName],
+            comment: ["{0} is an explicitly requested local development database name"],
+        });
+    public static developmentDatabaseNameInvalid = l10n.t(
+        "The development database name must be a non-system SQL identifier of at most 128 characters.",
+    );
+    public static developmentDatabaseTargetExists = l10n.t(
+        "The named development database already exists. This activity only creates absent targets and will not take ownership of an existing database.",
+    );
+    public static developmentDatabaseOwnershipMismatch = l10n.t(
+        "The named development database ownership marker does not match this runbook lease. The operation was refused.",
+    );
     public static sandboxDisposed = (databaseName: string) =>
         l10n.t({
             message: "Disposable database '{0}' was removed.",
@@ -441,6 +456,13 @@ export class RunbookStudio {
                 "DACPAC deployment to disposable database '{0}' completed and a post-deploy report was generated.",
             args: [databaseName],
             comment: ["{0} is a generated disposable database name"],
+        });
+    public static developmentDacpacDeployed = (databaseName: string) =>
+        l10n.t({
+            message:
+                "DACPAC deployment to owned development database '{0}' completed and a post-deploy report was generated.",
+            args: [databaseName],
+            comment: ["{0} is an explicitly requested local development database name"],
         });
     public static dacpacDeployPreviewChanged = l10n.t(
         "The deployment preview changed after approval. Deployment was refused; review and approve the new preview.",

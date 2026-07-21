@@ -79,6 +79,15 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalDacpacDeploymentResult>;
+    deployDevelopmentDacpac(
+        nodeId: string,
+        dacpacPath: string,
+        databaseRef: string,
+        approvedArtifactDigest: string,
+        approvedPreviewDigest: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalDacpacDeploymentResult>;
     verifyDacpacDeployment(
         dacpacPath: string,
         databaseRef: string,
@@ -97,6 +106,13 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalSandboxLeaseResult>;
+    provisionDevelopmentDatabase(
+        nodeId: string,
+        baseConnectionRef: string,
+        databaseName: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalDevelopmentDatabaseLeaseResult>;
     disposeSandbox(
         nodeId: string,
         leaseRef: string,
@@ -204,6 +220,10 @@ export interface LocalSandboxLeaseResult {
     createdAtUtc: string;
 }
 
+export interface LocalDevelopmentDatabaseLeaseResult extends LocalSandboxLeaseResult {
+    retention: "retained";
+}
+
 export interface LocalSandboxCleanupResult {
     effectId: string;
     leaseId: string;
@@ -238,8 +258,10 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "dacpac.build",
         "dacpac.extract",
         "sandbox.provision",
+        "devdatabase.provision",
         "dacpac.deploy.preview",
         "dacpac.deploy",
+        "dacpac.deploy.dev",
         "schema.compare",
         "schema.compare.export",
         "sandbox.dispose",
@@ -272,10 +294,14 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.extractDacpac(node, binding);
             case "sandbox.provision":
                 return this.provisionSandbox(node, binding);
+            case "devdatabase.provision":
+                return this.provisionDevelopmentDatabase(node, binding);
             case "dacpac.deploy.preview":
                 return this.previewDacpacDeployment(node, binding);
             case "dacpac.deploy":
                 return this.deployDacpac(node, binding);
+            case "dacpac.deploy.dev":
+                return this.deployDacpac(node, binding, true);
             case "schema.compare":
                 return this.verifyDacpacDeployment(node, binding);
             case "schema.compare.export":
@@ -669,6 +695,57 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         }
     }
 
+    private async provisionDevelopmentDatabase(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const baseConnectionRef = binding.resolveBind(node.inputs?.server);
+        const databaseName = binding.resolveBind(node.inputs?.databaseName);
+        if (typeof baseConnectionRef !== "string" || baseConnectionRef.trim().length === 0) {
+            return invalidBinding("server");
+        }
+        if (typeof databaseName !== "string" || databaseName.trim().length === 0) {
+            return invalidBinding("databaseName");
+        }
+        try {
+            const result = await this.operations.provisionDevelopmentDatabase(
+                node.id,
+                baseConnectionRef.trim(),
+                databaseName.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: { "developmentDatabase.provisioned": true },
+                message: LocRunbookStudio.developmentDatabaseProvisioned(result.databaseName),
+                output: {
+                    contract: "databaseLease/1",
+                    scalars: {
+                        leaseId: result.leaseId,
+                        connectionRef: result.connectionRef,
+                        databaseName: result.databaseName,
+                        effectId: result.effectId,
+                        createdAtUtc: result.createdAtUtc,
+                        retention: result.retention,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    leaseId: result.leaseId,
+                    connectionRef: result.connectionRef,
+                    databaseName: result.databaseName,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
     private async deployDacpac(
         node: RunbookPlanNode,
         binding: {
@@ -676,6 +753,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             isCancellationRequested: () => boolean;
             invocation: ActivityInvocationIdentity;
         },
+        development = false,
     ): Promise<NodeExecution> {
         const dacpacPath = binding.resolveBind(node.inputs?.dacpac);
         const databaseRef = binding.resolveBind(node.inputs?.database);
@@ -694,7 +772,10 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             return invalidBinding("previewDigest");
         }
         try {
-            const result = await this.operations.deployDacpac(
+            const operation = development
+                ? this.operations.deployDevelopmentDacpac.bind(this.operations)
+                : this.operations.deployDacpac.bind(this.operations);
+            const result = await operation(
                 node.id,
                 dacpacPath.trim(),
                 databaseRef.trim(),
@@ -709,7 +790,9 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     "deployment.applied": true,
                     "deployment.postDeployChangeCount": result.postDeployChangeCount,
                 },
-                message: LocRunbookStudio.dacpacDeployed(result.databaseName),
+                message: development
+                    ? LocRunbookStudio.developmentDacpacDeployed(result.databaseName)
+                    : LocRunbookStudio.dacpacDeployed(result.databaseName),
                 output: {
                     contract: "deploymentEvidence/1",
                     scalars: {

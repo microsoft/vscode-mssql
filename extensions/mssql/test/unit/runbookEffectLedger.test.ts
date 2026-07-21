@@ -105,6 +105,18 @@ suite("runbookEffectLedger", () => {
         expect(ledger.scanRecovery().outstanding).to.deep.equal([]);
     });
 
+    test("verified retained effects can be finalized without entering cleanup recovery", () => {
+        const effect = identity({ activityKind: "devdatabase.provision" });
+        ledger.prepareEffect(effect, 1000);
+        ledger.recordEffectObserved(effect.effectId, resource, 1001);
+        const finalized = ledger.finalizeEffect(effect.effectId, "sha256:retained", 1002);
+
+        expect(finalized.state).to.equal("finalized");
+        expect(finalized.finalizedEvidenceDigest).to.equal("sha256:retained");
+        expect(finalized.resource).to.deep.equal(resource);
+        expect(ledger.scanRecovery().outstanding).to.deep.equal([]);
+    });
+
     test("unknown outcome requires an explicit operator decision", () => {
         const effect = identity();
         ledger.prepareEffect(effect, 1000);

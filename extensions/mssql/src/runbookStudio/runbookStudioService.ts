@@ -101,6 +101,7 @@ import {
     LocalActivityError,
     LocalDacpacDeploymentResult,
     LocalDacpacExtractionResult,
+    LocalDevelopmentDatabaseLeaseResult,
     LocalSandboxCleanupResult,
     LocalSandboxLeaseResult,
     LocalSchemaComparisonResult,
@@ -121,6 +122,15 @@ import {
     localSandboxLeaseRef,
     LocalSandboxProbe,
 } from "./runtime/localSandboxOperations";
+import {
+    buildCreateLocalDevelopmentDatabaseSql,
+    buildDropLocalDevelopmentDatabaseSql,
+    buildProbeLocalDevelopmentDatabaseSql,
+    effectIdFromLocalDevelopmentDatabaseLeaseRef,
+    isValidLocalDevelopmentDatabaseName,
+    localDevelopmentDatabaseLeaseRef,
+    type LocalDevelopmentDatabaseProbe,
+} from "./runtime/localDevelopmentDatabaseOperations";
 import {
     buildLocalDacpac,
     buildLocalDeploymentPreviewResult,
@@ -1972,9 +1982,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         });
     }
 
-    /** Recover disposable localhost databases after a terminal run or a host
-     * restart. Another live extension host retains ownership; ambiguous or
-     * marker-mismatched effects are surfaced and never dropped blindly. */
+    /** Recover disposable and owned named localhost databases after a
+     * terminal run or host restart. Another live extension host retains
+     * ownership; ambiguous or marker-mismatched effects are surfaced and
+     * never dropped blindly. */
     private async recoverOutstandingSandboxEffects(runId?: string): Promise<void> {
         if (this.effectRecoveryInProgress) {
             return;
@@ -2015,6 +2026,48 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 }
                 try {
                     await this.cleanupLocalSandboxEffect(snapshot);
+                    recovered++;
+                } catch {
+                    const latest = this.effectLedger.recoverEffect(
+                        snapshot.identity.effectId,
+                    )?.snapshot;
+                    if (latest?.state === "cleaned" || latest?.state === "failedNoEffect") {
+                        recovered++;
+                    } else if (latest?.state === "needsOperatorDecision") {
+                        attention++;
+                    } else {
+                        deferred++;
+                    }
+                }
+            }
+            for (const entry of this.effectLedger.scanRecovery().outstanding) {
+                const snapshot = entry.snapshot;
+                if (
+                    (snapshot.identity.activityKind !== "devdatabase.provision" &&
+                        snapshot.identity.activityKind !== "dacpac.deploy.dev") ||
+                    (runId !== undefined && snapshot.identity.runId !== runId)
+                ) {
+                    continue;
+                }
+                if (this.activeByRunId.has(snapshot.identity.runId)) {
+                    deferred++;
+                    continue;
+                }
+                const ownerPid = snapshot.identity.ownerPid;
+                if (
+                    ownerPid !== undefined &&
+                    ownerPid !== process.pid &&
+                    isProcessAlive(ownerPid)
+                ) {
+                    liveOwner++;
+                    continue;
+                }
+                if (snapshot.state === "needsOperatorDecision") {
+                    attention++;
+                    continue;
+                }
+                try {
+                    await this.rollbackOutstandingDevelopmentDatabaseEffect(snapshot);
                     recovered++;
                 } catch {
                     const latest = this.effectLedger.recoverEffect(
@@ -2133,6 +2186,20 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             invocation,
                             cancelled,
                         ),
+                    provisionDevelopmentDatabase: (
+                        nodeId,
+                        baseConnectionRef,
+                        databaseName,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.provisionLocalDevelopmentDatabase(
+                            nodeId,
+                            baseConnectionRef,
+                            databaseName,
+                            invocation,
+                            cancelled,
+                        ),
                     previewDacpacDeployment: (dacpacPath, databaseRef, cancelled) =>
                         this.previewLocalDacpacDeployment(dacpacPath, databaseRef, cancelled),
                     deployDacpac: (
@@ -2152,6 +2219,25 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             previewDigest,
                             invocation,
                             cancelled,
+                        ),
+                    deployDevelopmentDacpac: (
+                        nodeId,
+                        dacpacPath,
+                        databaseRef,
+                        artifactDigest,
+                        previewDigest,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.deployLocalDacpac(
+                            nodeId,
+                            dacpacPath,
+                            databaseRef,
+                            artifactDigest,
+                            previewDigest,
+                            invocation,
+                            cancelled,
+                            "dacpac.deploy.dev",
                         ),
                     verifyDacpacDeployment: async (dacpacPath, databaseRef, cancelled) => {
                         const preview = await this.previewLocalDacpacDeployment(
@@ -2392,6 +2478,154 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         );
     }
 
+    private async provisionLocalDevelopmentDatabase(
+        nodeId: string,
+        baseConnectionRef: string,
+        databaseName: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalDevelopmentDatabaseLeaseResult> {
+        const authorization = this.requireApprovedEffect(
+            nodeId,
+            invocation,
+            "devdatabase.provision",
+        );
+        if (!isValidLocalDevelopmentDatabaseName(databaseName)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.developmentDatabaseNameInvalid,
+                "RunbookStudio.BindingInvalid",
+            );
+        }
+        const baseProfile = await this.requireSavedConnection(baseConnectionRef);
+        this.assertSandboxBaseProfile(baseProfile);
+        const effectId = deriveRunbookEffectId({
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "devdatabase.provision",
+            activityVersion: authorization.challenge.activityVersion,
+        });
+        if (this.effectLedger.recoverEffect(effectId)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        const ownershipMarkerDigest = digestRunbookValue(effectId);
+        this.effectLedger.prepareEffect({
+            effectId,
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "devdatabase.provision",
+            activityVersion: authorization.challenge.activityVersion,
+            idempotencyKey: digestRunbookValue({ effectId, databaseName }),
+            planHash: invocation.planHash,
+            bindingDigest: authorization.challenge.resolvedArgumentDigest,
+            targetFingerprint: authorization.challenge.targetFingerprint,
+            retrySemantics: "resumable",
+            ownerPid: process.pid,
+            policy: {
+                version: authorization.challenge.policyVersion,
+                outcome: "allowed",
+            },
+            approval: authorization.evidence,
+            recovery: {
+                resourceKind: "developmentSqlDatabase",
+                resourceId: databaseName,
+                connectionProfileId: baseProfile.id,
+                ownershipMarkerDigest,
+            },
+        });
+
+        return this.withSandboxConnection(
+            baseProfile,
+            "development-provision",
+            isCancellationRequested,
+            async (ownerUri, cancellationToken) => {
+                try {
+                    const before = await this.probeLocalDevelopmentDatabase(ownerUri, databaseName);
+                    if (before.exists) {
+                        this.effectLedger.recordNoEffectFailure(effectId, "DatabaseAlreadyExists");
+                        throw new LocalActivityError(
+                            LocRunbookStudio.developmentDatabaseTargetExists,
+                            "RunbookStudio.TargetChanged",
+                        );
+                    }
+                    await SqlToolsServerClient.instance.sendRequest(
+                        SimpleExecuteRequestType,
+                        {
+                            ownerUri,
+                            queryString: buildCreateLocalDevelopmentDatabaseSql(
+                                databaseName,
+                                effectId,
+                            ),
+                        },
+                        cancellationToken,
+                    );
+                    const created = await this.probeLocalDevelopmentDatabase(
+                        ownerUri,
+                        databaseName,
+                    );
+                    if (!created.exists || created.ownershipMarker !== effectId) {
+                        if (created.exists) {
+                            this.effectLedger.requireOperatorDecision(
+                                effectId,
+                                "OwnershipMarkerMissingOrChanged",
+                            );
+                        } else {
+                            this.effectLedger.recordNoEffectFailure(
+                                effectId,
+                                "DatabaseCreateNotObserved",
+                            );
+                        }
+                        throw new LocalActivityError(
+                            LocRunbookStudio.sandboxProvisionFailed,
+                            "RunbookStudio.ActivityFailed",
+                        );
+                    }
+                    this.effectLedger.recordEffectObserved(effectId, {
+                        resourceKind: "developmentSqlDatabase",
+                        resourceId: databaseName,
+                        ownershipMarkerDigest,
+                        connectionProfileId: baseProfile.id,
+                        outputHandles: [localDevelopmentDatabaseLeaseRef(effectId)],
+                    });
+                    this.effectLedger.finalizeEffect(
+                        effectId,
+                        digestRunbookValue({
+                            effectId,
+                            databaseName,
+                            ownershipMarkerDigest,
+                            retention: "retained",
+                        }),
+                    );
+                    return {
+                        effectId,
+                        leaseId: effectId,
+                        connectionRef: localDevelopmentDatabaseLeaseRef(effectId),
+                        databaseName,
+                        createdAtUtc: new Date().toISOString(),
+                        retention: "retained",
+                    };
+                } catch (error) {
+                    await this.settleDevelopmentProvisionFailure(ownerUri, effectId, databaseName);
+                    if (
+                        error instanceof vscode.CancellationError ||
+                        cancellationToken.isCancellationRequested ||
+                        isCancellationRequested()
+                    ) {
+                        throw new LocalActivityError(
+                            LocRunbookStudio.dacpacPreviewCancelled,
+                            "RunbookStudio.ActivityCancelled",
+                        );
+                    }
+                    throw error;
+                }
+            },
+        );
+    }
+
     private async runLocalTsqlt(
         nodeId: string,
         databaseRef: string,
@@ -2579,9 +2813,13 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         approvedPreviewDigest: string,
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
+        activityKind: "dacpac.deploy" | "dacpac.deploy.dev" = "dacpac.deploy",
     ): Promise<LocalDacpacDeploymentResult> {
-        const authorization = this.requireApprovedEffect(nodeId, invocation, "dacpac.deploy");
-        const leaseEffectId = effectIdFromLocalSandboxLeaseRef(databaseRef);
+        const authorization = this.requireApprovedEffect(nodeId, invocation, activityKind);
+        const leaseEffectId =
+            activityKind === "dacpac.deploy.dev"
+                ? effectIdFromLocalDevelopmentDatabaseLeaseRef(databaseRef)
+                : effectIdFromLocalSandboxLeaseRef(databaseRef);
         if (!leaseEffectId) {
             throw new LocalActivityError(
                 LocRunbookStudio.dacpacDeployTargetRequired,
@@ -2627,13 +2865,15 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 );
             }
             const resolved = await this.resolveRunbookConnection(databaseRef);
-            if (!resolved.sandbox || resolved.sandbox.effectId !== leaseEffectId) {
+            const ownedTarget =
+                activityKind === "dacpac.deploy.dev" ? resolved.development : resolved.sandbox;
+            if (!ownedTarget || ownedTarget.effectId !== leaseEffectId) {
                 throw new LocalActivityError(
                     LocRunbookStudio.dacpacDeployTargetRequired,
                     "RunbookStudio.ActivityPolicyDenied",
                 );
             }
-            const sandbox = resolved.sandbox;
+            const sandbox = ownedTarget;
             const connectionManager = this.connectionAccess();
             const dacFxService = this.dacFxAccess();
             if (!connectionManager || !dacFxService) {
@@ -2646,7 +2886,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 runId: invocation.runId,
                 nodeId,
                 attempt: invocation.attempt,
-                activityKind: "dacpac.deploy",
+                activityKind,
                 activityVersion: authorization.challenge.activityVersion,
             });
             if (this.effectLedger.recoverEffect(effectId)) {
@@ -2660,7 +2900,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 runId: invocation.runId,
                 nodeId,
                 attempt: invocation.attempt,
-                activityKind: "dacpac.deploy",
+                activityKind,
                 activityVersion: authorization.challenge.activityVersion,
                 idempotencyKey: digestRunbookValue({
                     effectId,
@@ -2751,6 +2991,18 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 databaseRef,
                 () => false,
             );
+            if (activityKind === "dacpac.deploy.dev") {
+                this.effectLedger.finalizeEffect(
+                    effectId,
+                    digestRunbookValue({
+                        effectId,
+                        artifactSha256: stagedArtifact.artifactSha256,
+                        approvedPreviewDigest,
+                        postDeployReportSha256: postDeploy.reportSha256,
+                        postDeployChangeCount: postDeploy.changeCount,
+                    }),
+                );
+            }
             return {
                 effectId,
                 dacpacPath: artifact.artifactPath,
@@ -3170,6 +3422,211 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         };
     }
 
+    /** Roll back an interrupted mutation by removing only the exact named
+     * database whose ownership marker hashes to the prepared recovery record.
+     * A finalized retained effect never enters this path. */
+    private async rollbackOutstandingDevelopmentDatabaseEffect(
+        initial: RunbookEffectSnapshot,
+    ): Promise<void> {
+        let snapshot = initial;
+        const recovery = snapshot.identity.recovery;
+        const resource = snapshot.resource;
+        const databaseName = resource?.resourceId ?? recovery?.resourceId;
+        const connectionProfileId = resource?.connectionProfileId ?? recovery?.connectionProfileId;
+        const ownershipMarkerDigest =
+            resource?.ownershipMarkerDigest ?? recovery?.ownershipMarkerDigest;
+        const validResourceKind =
+            snapshot.identity.activityKind === "devdatabase.provision"
+                ? recovery?.resourceKind === "developmentSqlDatabase"
+                : recovery?.resourceKind === "dacpacDeployment";
+        if (
+            !recovery ||
+            !validResourceKind ||
+            !databaseName ||
+            !isValidLocalDevelopmentDatabaseName(databaseName) ||
+            !connectionProfileId ||
+            !ownershipMarkerDigest ||
+            recovery.resourceId !== databaseName ||
+            recovery.connectionProfileId !== connectionProfileId ||
+            recovery.ownershipMarkerDigest !== ownershipMarkerDigest ||
+            (resource !== undefined &&
+                (resource.resourceId !== databaseName ||
+                    resource.connectionProfileId !== connectionProfileId ||
+                    resource.ownershipMarkerDigest !== ownershipMarkerDigest))
+        ) {
+            this.effectLedger.requireOperatorDecision(
+                snapshot.identity.effectId,
+                "RecoveryMetadataInvalid",
+            );
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        const baseProfile = await this.requireSavedConnection(connectionProfileId);
+        this.assertSandboxBaseProfile(baseProfile);
+        await this.withSandboxConnection(
+            baseProfile,
+            "development-rollback",
+            () => false,
+            async (ownerUri) => {
+                const probe = await this.probeLocalDevelopmentDatabase(ownerUri, databaseName);
+                if (
+                    probe.exists &&
+                    (!probe.ownershipMarker ||
+                        digestRunbookValue(probe.ownershipMarker) !== ownershipMarkerDigest)
+                ) {
+                    this.effectLedger.requireOperatorDecision(
+                        snapshot.identity.effectId,
+                        "OwnershipMarkerMissingOrChanged",
+                    );
+                    throw new LocalActivityError(
+                        LocRunbookStudio.developmentDatabaseOwnershipMismatch,
+                        "RunbookStudio.TargetChanged",
+                    );
+                }
+                if (snapshot.state === "prepared") {
+                    if (!probe.exists) {
+                        this.effectLedger.recordNoEffectFailure(
+                            snapshot.identity.effectId,
+                            "RecoveredBeforeEffect",
+                        );
+                        return;
+                    }
+                    snapshot = this.effectLedger.recordEffectObserved(snapshot.identity.effectId, {
+                        resourceKind: `${snapshot.identity.activityKind}.outcomeUnknown`,
+                        resourceId: databaseName,
+                        ownershipMarkerDigest,
+                        connectionProfileId,
+                    });
+                }
+                if (snapshot.state === "effectObserved") {
+                    snapshot = this.effectLedger.startCleanup(snapshot.identity.effectId);
+                }
+                if (probe.exists) {
+                    await SqlToolsServerClient.instance.sendRequest(SimpleExecuteRequestType, {
+                        ownerUri,
+                        queryString: buildDropLocalDevelopmentDatabaseSql(
+                            databaseName,
+                            probe.ownershipMarker!,
+                        ),
+                    });
+                }
+                const after = await this.probeLocalDevelopmentDatabase(ownerUri, databaseName);
+                if (after.exists) {
+                    this.effectLedger.requireOperatorDecision(
+                        snapshot.identity.effectId,
+                        "RollbackDidNotRemoveDatabase",
+                    );
+                    throw new LocalActivityError(
+                        LocRunbookStudio.sandboxCleanupFailed,
+                        "RunbookStudio.EffectRecoveryRequired",
+                    );
+                }
+                if (snapshot.state === "cleanupStarted") {
+                    this.effectLedger.completeCleanup(
+                        snapshot.identity.effectId,
+                        digestRunbookValue({
+                            effectId: snapshot.identity.effectId,
+                            databaseName,
+                            rolledBack: true,
+                        }),
+                    );
+                }
+            },
+        );
+    }
+
+    private async probeLocalDevelopmentDatabase(
+        ownerUri: string,
+        databaseName: string,
+    ): Promise<LocalDevelopmentDatabaseProbe> {
+        const result = await SqlToolsServerClient.instance.sendRequest(SimpleExecuteRequestType, {
+            ownerUri,
+            queryString: buildProbeLocalDevelopmentDatabaseSql(databaseName),
+        });
+        const row = result.rows?.[0];
+        const exists = row?.[0]?.displayValue === "1";
+        const marker = row?.[1];
+        return {
+            exists,
+            ...(!marker || marker.isNull ? {} : { ownershipMarker: marker.displayValue }),
+        };
+    }
+
+    private async settleDevelopmentProvisionFailure(
+        ownerUri: string,
+        effectId: string,
+        databaseName: string,
+    ): Promise<void> {
+        let current = this.effectLedger.recoverEffect(effectId)?.snapshot;
+        if (!current || current.state === "failedNoEffect" || current.state === "cleaned") {
+            return;
+        }
+        try {
+            const probe = await this.probeLocalDevelopmentDatabase(ownerUri, databaseName);
+            if (!probe.exists) {
+                if (current.state === "prepared") {
+                    this.effectLedger.recordNoEffectFailure(
+                        effectId,
+                        "ProvisionFailedBeforeEffect",
+                    );
+                } else {
+                    if (current.state === "effectObserved") {
+                        current = this.effectLedger.startCleanup(effectId);
+                    }
+                    if (current.state === "cleanupStarted") {
+                        this.effectLedger.completeCleanup(
+                            effectId,
+                            digestRunbookValue({ effectId, databaseName, rolledBack: true }),
+                        );
+                    }
+                }
+                return;
+            }
+            if (probe.ownershipMarker !== effectId) {
+                this.effectLedger.requireOperatorDecision(effectId, "ProvisionOutcomeUnknown");
+                return;
+            }
+            const recovery = current.identity.recovery!;
+            if (current.state === "prepared") {
+                current = this.effectLedger.recordEffectObserved(effectId, {
+                    resourceKind: "developmentSqlDatabase",
+                    resourceId: databaseName,
+                    ownershipMarkerDigest: recovery.ownershipMarkerDigest,
+                    connectionProfileId: recovery.connectionProfileId,
+                    outputHandles: [localDevelopmentDatabaseLeaseRef(effectId)],
+                });
+            }
+            if (current.state === "effectObserved") {
+                current = this.effectLedger.startCleanup(effectId);
+            }
+            if (current.state === "cleanupStarted") {
+                await SqlToolsServerClient.instance.sendRequest(SimpleExecuteRequestType, {
+                    ownerUri,
+                    queryString: buildDropLocalDevelopmentDatabaseSql(databaseName, effectId),
+                });
+                const after = await this.probeLocalDevelopmentDatabase(ownerUri, databaseName);
+                if (after.exists) {
+                    this.effectLedger.requireOperatorDecision(
+                        effectId,
+                        "RollbackDidNotRemoveDatabase",
+                    );
+                    return;
+                }
+                this.effectLedger.completeCleanup(
+                    effectId,
+                    digestRunbookValue({ effectId, databaseName, rolledBack: true }),
+                );
+            }
+        } catch {
+            const latest = this.effectLedger.recoverEffect(effectId)?.snapshot;
+            if (latest && latest.state !== "cleaned" && latest.state !== "failedNoEffect") {
+                this.effectLedger.requireOperatorDecision(effectId, "ProvisionRollbackFailed");
+            }
+        }
+    }
+
     private async withSandboxConnection<T>(
         baseProfile: IConnectionProfileWithSource,
         purpose: string,
@@ -3254,8 +3711,15 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             connectionProfileId: string;
             ownershipMarkerDigest: string;
         };
+        development?: {
+            effectId: string;
+            connectionProfileId: string;
+            ownershipMarkerDigest: string;
+        };
     }> {
-        const effectId = effectIdFromLocalSandboxLeaseRef(databaseRef);
+        const sandboxEffectId = effectIdFromLocalSandboxLeaseRef(databaseRef);
+        const developmentEffectId = effectIdFromLocalDevelopmentDatabaseLeaseRef(databaseRef);
+        const effectId = sandboxEffectId ?? developmentEffectId;
         if (!effectId) {
             const profile = await this.requireSavedConnection(databaseRef);
             return { profile, targetDatabase: profile.database };
@@ -3263,16 +3727,26 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const snapshot = this.effectLedger.recoverEffect(effectId)?.snapshot;
         const resource = snapshot?.resource;
         const recovery = snapshot?.identity.recovery;
-        const expectedDatabaseName = localSandboxDatabaseName(effectId);
+        const expectedDatabaseName = sandboxEffectId
+            ? localSandboxDatabaseName(effectId)
+            : (resource?.resourceId ?? recovery?.resourceId);
         const expectedMarkerDigest = digestRunbookValue(effectId);
         if (
             !snapshot ||
-            snapshot.state !== "effectObserved" ||
+            (sandboxEffectId
+                ? snapshot.state !== "effectObserved"
+                : snapshot.state !== "finalized") ||
+            !expectedDatabaseName ||
+            (developmentEffectId !== undefined &&
+                !isValidLocalDevelopmentDatabaseName(expectedDatabaseName)) ||
             !resource?.connectionProfileId ||
-            resource.resourceKind !== "sqlDatabase" ||
+            resource.resourceKind !==
+                (sandboxEffectId ? "sqlDatabase" : "developmentSqlDatabase") ||
             resource.resourceId !== expectedDatabaseName ||
             resource.ownershipMarkerDigest !== expectedMarkerDigest ||
             !recovery ||
+            recovery.resourceKind !==
+                (sandboxEffectId ? "sqlDatabase" : "developmentSqlDatabase") ||
             recovery.resourceId !== expectedDatabaseName ||
             recovery.connectionProfileId !== resource.connectionProfileId ||
             recovery.ownershipMarkerDigest !== expectedMarkerDigest
@@ -3288,7 +3762,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             baseProfile,
             "verify",
             () => false,
-            async (ownerUri) => this.probeLocalSandbox(ownerUri, expectedDatabaseName),
+            async (ownerUri) =>
+                sandboxEffectId
+                    ? this.probeLocalSandbox(ownerUri, expectedDatabaseName)
+                    : this.probeLocalDevelopmentDatabase(ownerUri, expectedDatabaseName),
         );
         if (!probe.exists || probe.ownershipMarker !== effectId) {
             this.effectLedger.requireOperatorDecision(
@@ -3303,11 +3780,21 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         return {
             profile: { ...baseProfile, database: resource.resourceId } as mssql.IConnectionInfo,
             targetDatabase: resource.resourceId,
-            sandbox: {
-                effectId,
-                connectionProfileId: resource.connectionProfileId,
-                ownershipMarkerDigest: resource.ownershipMarkerDigest,
-            },
+            ...(sandboxEffectId
+                ? {
+                      sandbox: {
+                          effectId,
+                          connectionProfileId: resource.connectionProfileId,
+                          ownershipMarkerDigest: resource.ownershipMarkerDigest,
+                      },
+                  }
+                : {
+                      development: {
+                          effectId,
+                          connectionProfileId: resource.connectionProfileId,
+                          ownershipMarkerDigest: resource.ownershipMarkerDigest,
+                      },
+                  }),
         };
     }
 

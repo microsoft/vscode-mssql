@@ -106,6 +106,24 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             postDeployChangeCount: 0,
             deployedAtUtc: "2026-07-19T20:03:30.000Z",
         }),
+        deployDevelopmentDacpac: async (
+            _nodeId,
+            dacpacPath,
+            _databaseRef,
+            _artifactDigest,
+            previewDigest,
+        ) => ({
+            effectId: `effect-${"f".repeat(64)}`,
+            dacpacPath,
+            artifactSha256: "b".repeat(64),
+            stagedArtifactSha256: "b".repeat(64),
+            databaseName: "WWI_2",
+            operationId: "development-deploy-op",
+            approvedPreviewDigest: previewDigest,
+            postDeployReportSha256: "f".repeat(64),
+            postDeployChangeCount: 0,
+            deployedAtUtc: "2026-07-20T20:03:30.000Z",
+        }),
         verifyDacpacDeployment: async (dacpacPath) => ({
             dacpacPath,
             targetDatabase: `RunbookStudio_${"d".repeat(20)}`,
@@ -142,6 +160,14 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             connectionRef: `runbook-sql-lease:effect-${"d".repeat(64)}`,
             databaseName: `RunbookStudio_${"d".repeat(20)}`,
             createdAtUtc: "2026-07-19T20:03:00.000Z",
+        }),
+        provisionDevelopmentDatabase: async (_nodeId, _baseConnectionRef, databaseName) => ({
+            effectId: `effect-${"f".repeat(64)}`,
+            leaseId: `effect-${"f".repeat(64)}`,
+            connectionRef: `runbook-sql-dev-lease:effect-${"f".repeat(64)}`,
+            databaseName,
+            createdAtUtc: "2026-07-20T20:03:00.000Z",
+            retention: "retained",
         }),
         disposeSandbox: async () => ({
             effectId: `effect-${"d".repeat(64)}`,
@@ -466,6 +492,55 @@ suite("Runbook Studio local activity delegate", () => {
             cleaned: true,
             cleanupEvidenceDigest: "sha256:cleanup",
             executionMode: "local",
+        });
+    });
+
+    test("named development provision and deploy retain typed ownership evidence", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+        const values: Record<string, string> = {
+            "$params.server": "profile-id",
+            "$params.databaseName": "WWI_2",
+            "$nodes.extract.artifactPath": "C:\\managed\\WideWorldImporters.dacpac",
+            "$nodes.extract.artifactSha256": "b".repeat(64),
+            "$nodes.provision.connectionRef": `runbook-sql-dev-lease:effect-${"f".repeat(64)}`,
+            "$nodes.preview.reportSha256": "c".repeat(64),
+        };
+        const resolve = (value: unknown) =>
+            typeof value === "string" ? (values[value] ?? value) : value;
+        const provision = await delegate.executeActivity(
+            activity("devdatabase.provision", {
+                server: "$params.server",
+                databaseName: "$params.databaseName",
+            }),
+            binding(resolve),
+        );
+
+        expect(provision?.success).to.equal(true);
+        expect(provision?.runMetrics).to.deep.equal({
+            "developmentDatabase.provisioned": true,
+        });
+        expect(provision?.output?.scalars).to.include({
+            databaseName: "WWI_2",
+            retention: "retained",
+            executionMode: "local",
+        });
+        expect(provision?.values?.connectionRef).to.match(/^runbook-sql-dev-lease:effect-/);
+
+        const deploy = await delegate.executeActivity(
+            activity("dacpac.deploy.dev", {
+                dacpac: "$nodes.extract.artifactPath",
+                database: "$nodes.provision.connectionRef",
+                artifactDigest: "$nodes.extract.artifactSha256",
+                previewDigest: "$nodes.preview.reportSha256",
+            }),
+            binding(resolve),
+        );
+        expect(deploy?.success).to.equal(true);
+        expect(deploy?.output?.contract).to.equal("deploymentEvidence/1");
+        expect(deploy?.output?.scalars).to.include({
+            databaseName: "WWI_2",
+            operationId: "development-deploy-op",
+            postDeployChangeCount: 0,
         });
     });
 
@@ -844,8 +919,10 @@ suite("Runbook Studio local activity delegate", () => {
             "dacpac.build",
             "dacpac.extract",
             "sandbox.provision",
+            "devdatabase.provision",
             "dacpac.deploy.preview",
             "dacpac.deploy",
+            "dacpac.deploy.dev",
             "schema.compare",
             "schema.compare.export",
             "sandbox.dispose",

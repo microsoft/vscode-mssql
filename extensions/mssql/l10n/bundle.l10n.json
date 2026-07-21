@@ -236,6 +236,13 @@
         "message": "Disposable database '{0}' was provisioned.",
         "comment": ["{0} is a generated local database name"]
     },
+    "Named development database '{0}' was provisioned and retained./{0} is an explicitly requested local development database name": {
+        "message": "Named development database '{0}' was provisioned and retained.",
+        "comment": ["{0} is an explicitly requested local development database name"]
+    },
+    "The development database name must be a non-system SQL identifier of at most 128 characters.": "The development database name must be a non-system SQL identifier of at most 128 characters.",
+    "The named development database already exists. This activity only creates absent targets and will not take ownership of an existing database.": "The named development database already exists. This activity only creates absent targets and will not take ownership of an existing database.",
+    "The named development database ownership marker does not match this runbook lease. The operation was refused.": "The named development database ownership marker does not match this runbook lease. The operation was refused.",
     "Disposable database '{0}' was removed./{0} is a generated local database name": {
         "message": "Disposable database '{0}' was removed.",
         "comment": ["{0} is a generated local database name"]
@@ -254,6 +261,10 @@
     "DACPAC deployment to disposable database '{0}' completed and a post-deploy report was generated./{0} is a generated disposable database name": {
         "message": "DACPAC deployment to disposable database '{0}' completed and a post-deploy report was generated.",
         "comment": ["{0} is a generated disposable database name"]
+    },
+    "DACPAC deployment to owned development database '{0}' completed and a post-deploy report was generated./{0} is an explicitly requested local development database name": {
+        "message": "DACPAC deployment to owned development database '{0}' completed and a post-deploy report was generated.",
+        "comment": ["{0} is an explicitly requested local development database name"]
     },
     "The deployment preview changed after approval. Deployment was refused; review and approve the new preview.": "The deployment preview changed after approval. Deployment was refused; review and approve the new preview.",
     "The built DACPAC changed after approval. Deployment was refused; rebuild and review the new preview.": "The built DACPAC changed after approval. Deployment was refused; rebuild and review the new preview.",

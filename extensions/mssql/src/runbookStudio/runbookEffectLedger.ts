@@ -81,6 +81,7 @@ export interface RunbookEffectResource {
 export type RunbookEffectState =
     | "prepared"
     | "effectObserved"
+    | "finalized"
     | "failedNoEffect"
     | "cleanupStarted"
     | "cleaned"
@@ -97,6 +98,7 @@ export type RunbookEffectEvent = RunbookEffectEventBase &
     (
         | { type: "effect.prepared"; identity: RunbookEffectIdentity }
         | { type: "effect.observed"; resource: RunbookEffectResource }
+        | { type: "effect.finalized"; evidenceDigest: string }
         | { type: "effect.failedNoEffect"; errorCode: string }
         | { type: "cleanup.started" }
         | { type: "cleanup.completed"; evidenceDigest: string }
@@ -110,6 +112,7 @@ export interface RunbookEffectSnapshot {
     preparedEpochMs: number;
     lastUpdatedEpochMs: number;
     resource?: RunbookEffectResource;
+    finalizedEvidenceDigest?: string;
     errorCode?: string;
     cleanupEvidenceDigest?: string;
     recoveryReasonCode?: string;
@@ -199,6 +202,16 @@ export class RunbookEffectLedger {
             resource,
             epochMs,
         });
+    }
+
+    /** Make an intentionally retained effect terminal after its externally
+     * observable result and verification evidence have both been persisted. */
+    public finalizeEffect(
+        effectId: string,
+        evidenceDigest: string,
+        epochMs = Date.now(),
+    ): RunbookEffectSnapshot {
+        return this.append(effectId, { type: "effect.finalized", evidenceDigest, epochMs });
     }
 
     /** Terminal proof that the operation failed before creating an effect. */
@@ -309,6 +322,7 @@ export class RunbookEffectLedger {
         effectId: string,
         event:
             | { type: "effect.observed"; resource: RunbookEffectResource; epochMs: number }
+            | { type: "effect.finalized"; evidenceDigest: string; epochMs: number }
             | { type: "effect.failedNoEffect"; errorCode: string; epochMs: number }
             | { type: "cleanup.started"; epochMs: number }
             | { type: "cleanup.completed"; evidenceDigest: string; epochMs: number }
@@ -431,6 +445,14 @@ function applyEffectEvent(
             requireState(snapshot, event, "prepared");
             validateResource(event.resource);
             return { ...next, state: "effectObserved", resource: event.resource };
+        case "effect.finalized":
+            requireState(snapshot, event, "effectObserved");
+            requireNonEmpty(event.evidenceDigest, "evidenceDigest");
+            return {
+                ...next,
+                state: "finalized",
+                finalizedEvidenceDigest: event.evidenceDigest,
+            };
         case "effect.failedNoEffect":
             requireState(snapshot, event, "prepared");
             requireNonEmpty(event.errorCode, "errorCode");
@@ -482,7 +504,7 @@ function invalidTransition(snapshot: RunbookEffectSnapshot, event: RunbookEffect
 }
 
 function isOutstanding(state: RunbookEffectState): boolean {
-    return state !== "failedNoEffect" && state !== "cleaned";
+    return state !== "failedNoEffect" && state !== "cleaned" && state !== "finalized";
 }
 
 function validateIdentity(identity: RunbookEffectIdentity): void {
