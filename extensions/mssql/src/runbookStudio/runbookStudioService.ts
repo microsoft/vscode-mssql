@@ -1164,21 +1164,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         if (isPlaceholderRunbookName(artifact.name)) {
             artifact = { ...artifact, name: deriveRunbookName(intent) };
         }
-        // Keep the LIBRARY title in sync (AI-chat naming model, owner ask):
-        // when compilation produced a real name for a library-backed book,
-        // push it to the asset so the tree matches the document. The name
-        // dedupes against OTHER library titles first — similar prompts
-        // generate similar names ("Memory Pressure" twice, autonames.png).
-        // Best effort — a plain-file doc simply 404s and stays untouched.
+        // Keep generated names unique in the library. For a virtual library
+        // document, applyArtifactEdit -> document.save commits the title and
+        // artifact in ONE optimistic transaction. A separate metadata PUT
+        // here used to advance the head first and made every generated plan
+        // immediately conflict with its own editor baseline.
         if (isPlaceholderRunbookName(base.name) && artifact.name !== base.name) {
             const assetId = artifact.lock?.libraryAssetRef?.assetId ?? artifact.id;
             const unique = await this.dedupeTitleAgainstLibrary(artifact.name, assetId);
             if (unique !== artifact.name) {
                 artifact = { ...artifact, name: unique };
             }
-            void this.updateLibraryRunbook(assetId, { title: unique }).then(() =>
-                this.activeRunsEmitter.fire(),
-            );
         }
         const applied = await model.applyArtifactEdit(artifact);
         if (!applied) {

@@ -27,6 +27,20 @@ export function manifestRequiresExtensionPlanner(
     );
 }
 
+/** The locked plan contains execution that only the extension host owns.
+ * This is also the persistence boundary: such a plan is retained in the
+ * library's namespaced client projection and must not be translated into the
+ * Hobbes plan field during an ordinary document save. */
+export function artifactRequiresExtensionRuntime(artifact: RunbookArtifactFile): boolean {
+    return (
+        artifact.lock?.nodes.some(
+            (node) =>
+                node.kind === "activity" &&
+                !HOBBES_TRANSLATABLE_ACTIVITY_KINDS.has(node.activityKind ?? ""),
+        ) === true
+    );
+}
+
 /** Select execution authority per locked plan. The user-facing runtime
  * setting still selects Hobbes for runtime-authored/publishable plans; a lock
  * containing extension-native activities routes to the guarded local walker.
@@ -38,11 +52,5 @@ export function executionRuntimeKindForArtifact(
     if (configuredRuntimeKind !== "hobbes") {
         return configuredRuntimeKind;
     }
-    const hasExtensionActivity =
-        artifact.lock?.nodes.some(
-            (node) =>
-                node.kind === "activity" &&
-                !HOBBES_TRANSLATABLE_ACTIVITY_KINDS.has(node.activityKind ?? ""),
-        ) === true;
-    return hasExtensionActivity ? "local" : "hobbes";
+    return artifactRequiresExtensionRuntime(artifact) ? "local" : "hobbes";
 }

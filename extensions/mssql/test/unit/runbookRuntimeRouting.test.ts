@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import { createFixtureRunbookArtifact } from "../../src/runbookStudio/runbookArtifact";
 import {
+    artifactRequiresExtensionRuntime,
     executionRuntimeKindForArtifact,
     manifestRequiresExtensionPlanner,
 } from "../../src/runbookStudio/runtime/runbookRuntimeRouting";
@@ -40,7 +41,18 @@ suite("runbookRuntimeRouting", () => {
         };
 
         expect(executionRuntimeKindForArtifact("hobbes", artifact)).to.equal("local");
+        expect(artifactRequiresExtensionRuntime(artifact)).to.equal(true);
         expect(manifestRequiresExtensionPlanner(artifact.source.requirements)).to.equal(true);
+    });
+
+    test("keeps extension-native plans out of the Hobbes persistence translation path", () => {
+        const artifact = createFixtureRunbookArtifact();
+        artifact.lock!.nodes[0].activityKind = "database.schema.inventory";
+
+        expect(artifactRequiresExtensionRuntime(artifact)).to.equal(true);
+
+        artifact.lock!.nodes[0].activityKind = "sql.query.read";
+        expect(artifactRequiresExtensionRuntime(artifact)).to.equal(false);
     });
 
     test("preserves explicit local and fake runtime selections", () => {

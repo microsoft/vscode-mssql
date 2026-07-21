@@ -11,7 +11,10 @@
  */
 
 import { expect } from "chai";
+import * as sinon from "sinon";
+import { createFixtureRunbookArtifact } from "../../src/runbookStudio/runbookArtifact";
 import {
+    HobbesRuntimeAdapter,
     launchRefusalError,
     libraryContentFingerprint,
     mapRegionStatus,
@@ -23,9 +26,19 @@ import {
     summarizeHobbesRegionMetrics,
     terminalNodeSettlementEvents,
 } from "../../src/runbookStudio/runtime/hobbesRuntimeAdapter";
-import { findFreePort } from "../../src/runbookStudio/runtime/runtimeSupervisor";
+import { findFreePort, RuntimeSupervisor } from "../../src/runbookStudio/runtime/runtimeSupervisor";
 
 suite("hobbesRuntimeAdapter", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
     test("planner timeout defaults to ten minutes and stays within supported bounds", () => {
         expect(plannerTimeoutMilliseconds(undefined)).to.equal(10 * 60_000);
         expect(plannerTimeoutMilliseconds(Number.NaN)).to.equal(10 * 60_000);
@@ -197,6 +210,77 @@ suite("hobbesRuntimeAdapter", () => {
         expect(rebased.name).to.equal("Blocking analysis");
         expect(rebased.lock?.planRevision).to.equal("2");
         expect(rebased.presentation).to.deep.equal(local.presentation);
+    });
+
+    test("library save retains an extension-native plan without Hobbes translation", async () => {
+        const artifact = createFixtureRunbookArtifact();
+        artifact.id = "rb-extension-native";
+        artifact.name = "Extract and inspect schema";
+        artifact.lock!.nodes[0].activityKind = "dacpac.extract";
+        const original = {
+            ...createFixtureRunbookArtifact(),
+            id: artifact.id,
+            name: "New runbook",
+        };
+        const head = {
+            id: artifact.id,
+            revisionId: "revision-1",
+            title: original.name,
+            description: original.description,
+            category: original.family,
+            plan: { nodes: [], edges: [] },
+            clientExtensions: { vscodeMssqlArtifact: original },
+        };
+        const supervisor = sandbox.createStubInstance(RuntimeSupervisor);
+        supervisor.ensureRunning.resolves({
+            baseUrl: "http://127.0.0.1:43119",
+            metadata: { version: "test" },
+            pid: 1,
+        });
+        const fetchStub = sandbox.stub(globalThis, "fetch");
+        fetchStub.onFirstCall().resolves(
+            new Response(JSON.stringify(head), {
+                status: 200,
+                headers: { "content-type": "application/json" },
+            }),
+        );
+        let savedBody: Record<string, unknown> | undefined;
+        fetchStub.onSecondCall().callsFake(async (_input, init) => {
+            savedBody = JSON.parse(String(init?.body)) as Record<string, unknown>;
+            return new Response(
+                JSON.stringify({
+                    ...savedBody,
+                    revisionId: "revision-2",
+                }),
+                {
+                    status: 200,
+                    headers: { "content-type": "application/json" },
+                },
+            );
+        });
+        const adapter = new HobbesRuntimeAdapter(supervisor);
+
+        const result = await adapter.commitLibraryDocument(
+            artifact.id,
+            artifact,
+            {
+                assetId: artifact.id,
+                revisionId: "revision-1",
+                contentFingerprint: "content-1",
+                extensionFingerprint: "extension-1",
+                extensionArtifact: original,
+            },
+            "normal",
+            { traceId: "trace-library-save", operationId: "operation-library-save" },
+        );
+
+        expect(result.status).to.equal("committed");
+        expect(fetchStub).to.have.been.calledTwice;
+        expect(savedBody?.plan).to.deep.equal(head.plan);
+        expect(savedBody).to.have.nested.property(
+            "clientExtensions.vscodeMssqlArtifact.lock.nodes[0].activityKind",
+            "dacpac.extract",
+        );
     });
 
     test("findFreePort returns a bindable loopback port", async () => {

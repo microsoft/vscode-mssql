@@ -49,6 +49,7 @@ import {
     mergeConnectionEntry,
     translateArtifactToHobbesPlan,
 } from "./hobbesPlanTranslator";
+import { artifactRequiresExtensionRuntime } from "./runbookRuntimeRouting";
 import { RuntimeSupervisor } from "./runtimeSupervisor";
 import {
     RunbookRuntimeAdapter,
@@ -1039,7 +1040,9 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
      *  Runtime-planner (`hobbes.native`) locks are intentionally one-way:
      *  save preserves the runtime's rich plan while committing extension-
      *  owned metadata/source projection. Catalog-native locks are translated
-     *  and replace the runtime plan. */
+     *  and replace the runtime plan only when every activity is in the closed
+     *  Hobbes translation subset. Extension-native plans remain executable
+     *  from clientExtensions.vscodeMssqlArtifact through the local walker. */
     public async commitLibraryDocument(
         id: string,
         artifact: RunbookArtifactFile,
@@ -1099,7 +1102,11 @@ export class HobbesRuntimeAdapter implements RunbookRuntimeAdapter {
         }
 
         let planPatch: Record<string, unknown> = {};
-        if (artifactNext.lock && !hasNativePlan) {
+        if (
+            artifactNext.lock &&
+            !hasNativePlan &&
+            !artifactRequiresExtensionRuntime(artifactNext)
+        ) {
             const translation = translateArtifactToHobbesPlan(artifactNext);
             if (!translation.plan) {
                 throw new RuntimeStartRefusedError(
