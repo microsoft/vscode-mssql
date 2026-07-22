@@ -6,8 +6,8 @@
 /** Small STS v2/SQL Data Plane query seam for bounded Runbook providers. */
 
 import { PreparedConnection } from "../../services/metadata/profileAuthAdapter";
-import { IQueryEventSink } from "../../services/sqlDataPlane/api";
 import { SqlDataPlaneService } from "../../services/sqlDataPlane/sqlDataPlaneService";
+import { DataPlaneQueryCoreError, runDataPlaneQueryCore } from "./dataPlaneQueryCore";
 
 export interface RunbookDataPlaneQueryRequest {
     prepared: PreparedConnection;
@@ -33,75 +33,28 @@ export class RunbookDataPlaneQueryError extends Error {
 export async function runRunbookDataPlaneQuery(
     request: RunbookDataPlaneQueryRequest,
 ): Promise<unknown[][]> {
-    if (request.isCancellationRequested()) {
-        throw new RunbookDataPlaneQueryError("The query was cancelled.", "cancelled");
-    }
     const service = await SqlDataPlaneService.get().serviceForProfile(
         request.prepared.profileRef.profileFingerprint,
     );
-    const session = await service.openSession({
-        profile: request.prepared.profileRef,
-        database: request.database,
-        applicationName: request.applicationName,
-        auth: request.prepared.auth,
-    });
-    const maxRows = request.maxRows ?? 1000;
-    const rows: unknown[][] = [];
-    let errorMessage: string | undefined;
-    let handle: ReturnType<typeof session.execute> | undefined;
-    const cancellationPoll = setInterval(() => {
-        if (request.isCancellationRequested() && handle) {
-            void handle.cancel().catch(() => undefined);
-        }
-    }, 50);
     try {
-        const sink: IQueryEventSink = {
-            onResultSetStarted: () => undefined,
-            onRowsPage: (page) => {
-                if (rows.length + page.compact.values.length > maxRows) {
-                    throw new RunbookDataPlaneQueryError(
-                        "The SQL data plane returned more rows than the provider contract allows.",
-                        "resultTooLarge",
-                    );
-                }
-                rows.push(...page.compact.values);
-            },
-            onMessage: (message) => {
-                if (message.kind === "error") {
-                    errorMessage = message.text;
-                }
-            },
-            onComplete: () => undefined,
-        };
-        handle = session.execute(
-            request.sql,
-            {
-                priority: "background",
-                commandKind: "metadata",
+        return (
+            await runDataPlaneQueryCore({
+                service,
+                profile: request.prepared.profileRef,
+                auth: request.prepared.auth,
+                database: request.database,
+                applicationName: request.applicationName,
+                sql: request.sql,
                 tag: request.tag,
-                pageRows: Math.min(256, maxRows),
-                pageBytes: 256 * 1024,
-                maxCellBytes: 64 * 1024,
-                timeoutMs: request.timeoutMs ?? 120_000,
-                expectedDatabase: request.database,
-            },
-            sink,
-        );
-        const completion = await handle.completion;
-        if (request.isCancellationRequested() || completion.status === "canceled") {
-            throw new RunbookDataPlaneQueryError("The query was cancelled.", "cancelled");
+                isCancellationRequested: request.isCancellationRequested,
+                ...(request.maxRows !== undefined ? { maxRows: request.maxRows } : {}),
+                ...(request.timeoutMs !== undefined ? { timeoutMs: request.timeoutMs } : {}),
+            })
+        ).rows;
+    } catch (error) {
+        if (error instanceof DataPlaneQueryCoreError) {
+            throw new RunbookDataPlaneQueryError(error.message, error.code);
         }
-        if (completion.status !== "succeeded") {
-            throw new RunbookDataPlaneQueryError(
-                errorMessage ??
-                    completion.error?.message ??
-                    `The query completed with status '${completion.status}' without provider error details. Verify the bound server and database.`,
-                "queryFailed",
-            );
-        }
-        return rows;
-    } finally {
-        clearInterval(cancellationPoll);
-        await session.close({ reason: "runbookProviderComplete" }).catch(() => undefined);
+        throw error;
     }
 }

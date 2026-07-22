@@ -121,6 +121,9 @@ export function headlessCapabilities(): Record<string, unknown> {
             "ef.relational-model.compare",
             "migration.data-loss.analyze",
             "migration.script.generate",
+            "sql.container.provision",
+            "sql.query.read",
+            "sql.container.dispose",
         ],
     };
 }

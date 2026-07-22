@@ -63,6 +63,9 @@ suite("Runbook Studio headless deterministic preview", () => {
             "ef.relational-model.compare",
             "migration.data-loss.analyze",
             "migration.script.generate",
+            "sql.container.provision",
+            "sql.query.read",
+            "sql.container.dispose",
         ]);
         expect(capabilities.executionProviderContracts).to.deep.equal({
             secret: "environmentIndirection",

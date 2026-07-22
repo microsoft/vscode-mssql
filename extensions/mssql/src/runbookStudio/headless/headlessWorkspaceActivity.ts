@@ -9,6 +9,8 @@ import type { ActivityExecutionDelegate, NodeExecution } from "../runtime/fakeRu
 import type { RunbookPlanNode } from "../../sharedInterfaces/runbookStudio";
 import { HeadlessGitActivityDelegate, HeadlessGitActivityError } from "./headlessGitActivity";
 import { HeadlessEfActivityDelegate } from "./headlessEfActivity";
+import { HeadlessEffectAuthority } from "./headlessEffectAuthority";
+import { HeadlessSqlActivityDelegate } from "./headlessSqlActivity";
 
 const MAX_PROJECTS = 100;
 const MAX_VISITED_ENTRIES = 20_000;
@@ -53,14 +55,20 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
         "ef.relational-model.compare",
         "migration.data-loss.analyze",
         "migration.script.generate",
+        "sql.container.provision",
+        "sql.query.read",
+        "sql.container.dispose",
     ]);
     private readonly gitDelegate: HeadlessGitActivityDelegate;
     private readonly efDelegate: HeadlessEfActivityDelegate;
+    private readonly sqlDelegate: HeadlessSqlActivityDelegate | undefined;
 
     constructor(
         private readonly trustedWorkspaceRoot: string,
         artifactRoot: string,
         extensionRoot: string,
+        effectAuthority: HeadlessEffectAuthority,
+        enableSqlActivities: boolean,
     ) {
         this.gitDelegate = new HeadlessGitActivityDelegate(trustedWorkspaceRoot, artifactRoot);
         this.efDelegate = new HeadlessEfActivityDelegate(
@@ -68,6 +76,9 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
             artifactRoot,
             extensionRoot,
         );
+        this.sqlDelegate = enableSqlActivities
+            ? new HeadlessSqlActivityDelegate(artifactRoot, extensionRoot, effectAuthority)
+            : undefined;
     }
 
     public async executeActivity(
@@ -79,6 +90,9 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
         }
         if (this.efDelegate.supportedActivityKinds.has(node.activityKind ?? "")) {
             return this.efDelegate.executeActivity(node, binding);
+        }
+        if (this.sqlDelegate?.supportedActivityKinds.has(node.activityKind ?? "")) {
+            return this.sqlDelegate.executeActivity(node, binding);
         }
         if (
             node.activityKind !== "workspace.inspect" &&
@@ -104,6 +118,10 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
                 message: "The bounded workspace inspection failed.",
             };
         }
+    }
+
+    public dispose(): Promise<void> {
+        return this.sqlDelegate?.dispose() ?? Promise.resolve();
     }
 }
 

@@ -26,6 +26,7 @@ import {
     resolveHeadlessParameters,
 } from "./headlessExecutionProviders";
 import { HeadlessWorkspaceActivityDelegate } from "./headlessWorkspaceActivity";
+import { HeadlessEffectAuthority } from "./headlessEffectAuthority";
 import { HEADLESS_EXIT_CODES, HeadlessOutcome } from "./headlessRunner";
 
 const RUN_TIMEOUT_MS = 10 * 60_000;
@@ -38,6 +39,9 @@ export const PRODUCTION_HEADLESS_ACTIVITY_KINDS = [
     "ef.relational-model.compare",
     "migration.data-loss.analyze",
     "migration.script.generate",
+    "sql.container.provision",
+    "sql.query.read",
+    "sql.container.dispose",
 ] as const;
 
 export interface HeadlessActivityValidationResult {
@@ -211,11 +215,6 @@ export async function validateHeadlessActivities(
 export async function runHeadlessActivities(
     options: HeadlessActivityOptions,
 ): Promise<HeadlessActivityResult> {
-    const delegate = new HeadlessWorkspaceActivityDelegate(
-        options.trustedWorkspaceRoot,
-        options.activityArtifactRoot,
-        options.extensionRoot,
-    );
     const checked = await validateHeadlessActivities(
         options.artifactText,
         options.parameterValues ?? {},
@@ -225,7 +224,6 @@ export async function runHeadlessActivities(
                 ? { allowInlineSecrets: options.allowInlineSecrets }
                 : {}),
         },
-        delegate,
     );
     const base = {
         schemaVersion: 1 as const,
@@ -276,6 +274,20 @@ export async function runHeadlessActivities(
         };
     }
 
+    const effectAuthority = new HeadlessEffectAuthority(runId, checked.artifact, checked.values);
+    const delegate = new HeadlessWorkspaceActivityDelegate(
+        options.trustedWorkspaceRoot,
+        options.activityArtifactRoot,
+        options.extensionRoot,
+        effectAuthority,
+        checked.artifact.lock!.nodes.some(
+            (node) =>
+                node.kind === "activity" &&
+                ["sql.container.provision", "sql.query.read", "sql.container.dispose"].includes(
+                    node.activityKind ?? "",
+                ),
+        ),
+    );
     const adapter = new FakeRuntimeAdapter(delegate);
     const context = headlessContext(runId);
     const events: RuntimeBoundaryEvent[] = [];
@@ -311,7 +323,14 @@ export async function runHeadlessActivities(
                                         });
                                         approved = decision.approved;
                                         if (approved && decision.policyDigest) {
+                                            effectAuthority.recordApprovedGate(
+                                                event.nodeId,
+                                                decision.policyDigest,
+                                                outputs,
+                                            );
                                             approvalPolicyDigest ??= decision.policyDigest;
+                                        } else if (approved) {
+                                            approved = false;
                                         }
                                     } catch {
                                         approved = false;

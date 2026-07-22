@@ -273,6 +273,9 @@ suite("Runbook Studio headless Git activity", () => {
             "ef.relational-model.compare",
             "migration.data-loss.analyze",
             "migration.script.generate",
+            "sql.container.provision",
+            "sql.container.dispose",
+            "sql.query.read",
         ]);
     });
 
@@ -385,7 +388,7 @@ suite("Runbook Studio headless EF exact-ref activity live smoke (gated)", functi
                     Promise.resolve({
                         approved: true,
                         providerKind: "liveTest",
-                        policyDigest: "live-test-policy",
+                        policyDigest: `sha256:${"b".repeat(64)}`,
                     }),
             },
         });

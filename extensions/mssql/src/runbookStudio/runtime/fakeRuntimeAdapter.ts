@@ -130,6 +130,8 @@ export interface ActivityExecutionDelegate {
             invocation: ActivityInvocationIdentity;
         },
     ): Promise<NodeExecution | undefined>;
+    /** Optional host-owned provider teardown after run termination. */
+    dispose?(): Promise<void>;
 }
 
 export interface ActivityInvocationIdentity {
@@ -241,13 +243,13 @@ export class FakeRuntimeAdapter implements RunbookRuntimeAdapter {
         return Promise.resolve(true);
     }
 
-    public dispose(): Promise<void> {
+    public async dispose(): Promise<void> {
         this.disposed = true;
         for (const run of this.activeRuns.values()) {
             run.cancelRequested = true;
             run.pendingGate?.resolve(false);
         }
-        return Promise.resolve();
+        await this.delegate?.dispose?.();
     }
 
     // -----------------------------------------------------------------------
