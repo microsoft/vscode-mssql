@@ -113,7 +113,11 @@ export function headlessCapabilities(): Record<string, unknown> {
         })),
         productionHeadlessActivityHostAvailable: false,
         productionHeadlessActivitySubsetAvailable: true,
-        productionHeadlessActivityKinds: ["git.change-set.inspect"],
+        productionHeadlessActivityKinds: [
+            "workspace.inspect",
+            "git.change-set.inspect",
+            "ef.project.discover",
+        ],
     };
 }
 

@@ -56,7 +56,9 @@ suite("Runbook Studio headless deterministic preview", () => {
         expect(capabilities.evidenceFormats).to.deep.equal(["json", "junit", "sarif", "markdown"]);
         expect(capabilities.productionHeadlessActivitySubsetAvailable).to.equal(true);
         expect(capabilities.productionHeadlessActivityKinds).to.deep.equal([
+            "workspace.inspect",
             "git.change-set.inspect",
+            "ef.project.discover",
         ]);
         expect(capabilities.executionProviderContracts).to.deep.equal({
             secret: "environmentIndirection",

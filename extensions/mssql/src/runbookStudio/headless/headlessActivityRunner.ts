@@ -25,12 +25,16 @@ import {
     HeadlessSecretProvider,
     resolveHeadlessParameters,
 } from "./headlessExecutionProviders";
-import { HeadlessGitActivityDelegate } from "./headlessGitActivity";
+import { HeadlessWorkspaceActivityDelegate } from "./headlessWorkspaceActivity";
 import { HEADLESS_EXIT_CODES, HeadlessOutcome } from "./headlessRunner";
 
 const RUN_TIMEOUT_MS = 10 * 60_000;
 const SAFE_RUN_ID = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/;
-export const PRODUCTION_HEADLESS_ACTIVITY_KINDS = ["git.change-set.inspect"] as const;
+export const PRODUCTION_HEADLESS_ACTIVITY_KINDS = [
+    "workspace.inspect",
+    "git.change-set.inspect",
+    "ef.project.discover",
+] as const;
 
 export interface HeadlessActivityValidationResult {
     valid: boolean;
@@ -202,7 +206,7 @@ export async function validateHeadlessActivities(
 export async function runHeadlessActivities(
     options: HeadlessActivityOptions,
 ): Promise<HeadlessActivityResult> {
-    const delegate = new HeadlessGitActivityDelegate(
+    const delegate = new HeadlessWorkspaceActivityDelegate(
         options.trustedWorkspaceRoot,
         options.activityArtifactRoot,
     );

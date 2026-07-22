@@ -14,16 +14,21 @@ import {
     HeadlessGitActivityError,
     parseHeadlessGitNameStatus,
 } from "../../src/runbookStudio/headless/headlessGitActivity";
-import type { RunbookPlanNode } from "../../src/sharedInterfaces/runbookStudio";
+import {
+    RUNBOOK_LOCK_SCHEMA_VERSION,
+    type RunbookPlanNode,
+} from "../../src/sharedInterfaces/runbookStudio";
 import {
     productionHeadlessActivityCapabilities,
     runHeadlessActivities,
 } from "../../src/runbookStudio/headless/headlessActivityRunner";
 import {
     canonicalizeRunbookArtifact,
+    computePlanHash,
     createFixtureRunbookArtifact,
     createNewRunbookArtifact,
 } from "../../src/runbookStudio/runbookArtifact";
+import { stampCatalogMetadata } from "../../src/runbookStudio/activities/activityCatalog";
 import { classifyRunbookIntent } from "../../src/runbookStudio/capabilities/runbookCapabilities";
 import {
     compileDeterministicGitChangeSet,
@@ -166,6 +171,72 @@ suite("Runbook Studio headless Git activity", () => {
         ).to.equal(true);
     });
 
+    test("discovers real workspace and EF metadata without executing repository code", async () => {
+        const artifact = createNewRunbookArtifact("Workspace discovery", "headless-workspace");
+        artifact.lock = {
+            schemaVersion: RUNBOOK_LOCK_SCHEMA_VERSION,
+            planRevision: "1",
+            planHash: "sha256:pending",
+            entryNodeId: "workspace",
+            nodes: stampCatalogMetadata([
+                {
+                    id: "workspace",
+                    label: "Inspect workspace",
+                    kind: "activity",
+                    activityKind: "workspace.inspect",
+                    activityVersion: 1,
+                },
+                {
+                    id: "ef",
+                    label: "Discover EF projects",
+                    kind: "activity",
+                    activityKind: "ef.project.discover",
+                    activityVersion: 1,
+                },
+                { id: "report", label: "Summarize discovery", kind: "report" },
+            ]),
+            edges: [
+                { from: "workspace", to: "ef" },
+                { from: "ef", to: "report" },
+            ],
+        };
+        artifact.lock.planHash = computePlanHash(artifact.source, artifact.lock);
+
+        const result = await runHeadlessActivities({
+            artifactText: canonicalizeRunbookArtifact(artifact),
+            trustedWorkspaceRoot: FIXTURE_ROOT,
+            activityArtifactRoot: artifactRoot,
+            runId: "headless-workspace-discovery",
+        });
+
+        expect(result).to.include({ outcome: "pass", terminalState: "succeeded" });
+        expect(result.validation.realActivityCount).to.equal(2);
+        expect(result.outputs?.workspace.scalars).to.include({
+            workspaceFolderCount: 1,
+            projectCount: 0,
+            executionMode: "headless",
+        });
+        expect(result.outputs?.ef.rows).to.deep.equal([
+            [
+                "src/MyApp.Data/MyApp.Data.csproj",
+                "net8.0",
+                "Microsoft.EntityFrameworkCore.SqlServer",
+                "AppDbContext",
+                4,
+                false,
+            ],
+        ]);
+        expect(result.outputs?.ef.scalars).to.include({
+            projectCount: 1,
+            dbContextCount: 1,
+            providerCount: 1,
+            entitySourceFileCount: 4,
+            truncated: false,
+            executionMode: "headless",
+        });
+        expect(fs.readdirSync(artifactRoot)).to.deep.equal([]);
+    });
+
     test("blocks unsupported real activities at admission without preview fallback", async () => {
         const result = await runHeadlessActivities({
             artifactText: canonicalizeRunbookArtifact(createFixtureRunbookArtifact()),
@@ -189,7 +260,9 @@ suite("Runbook Studio headless Git activity", () => {
         expect(capabilities.productionHeadlessActivityHostAvailable).to.equal(false);
         expect(capabilities.productionHeadlessActivitySubsetAvailable).to.equal(true);
         expect(capabilities.activities.map((activity) => activity.kind)).to.deep.equal([
+            "workspace.inspect",
             "git.change-set.inspect",
+            "ef.project.discover",
         ]);
     });
 
