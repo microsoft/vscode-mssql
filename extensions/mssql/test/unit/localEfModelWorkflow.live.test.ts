@@ -26,10 +26,12 @@ import {
     createNewRunbookArtifact,
 } from "../../src/runbookStudio/runbookArtifact";
 import { RUNBOOK_STUDIO_VIEW_TYPE } from "../../src/runbookStudio/runbookStudioEditorProvider";
+import { DEMO_RUNBOOK_INTENT } from "./demoRunbookPrompt";
 
 const LIVE_ENABLED = process.env.RBS2_EF_LIVE === "1";
 const REHEARSAL_LIVE_ENABLED = process.env.RBS2_EF_REHEARSAL_LIVE === "1";
 const PERFORMANCE_LIVE_ENABLED = process.env.RBS2_EF_PERFORMANCE_LIVE === "1";
+const DEMO_PERFORMANCE_LIVE_ENABLED = process.env.RBS2_EF_DEMO_LIVE === "1";
 const DACPAC_CONNECTION_STRING =
     process.env.STS2_SQLSERVER_CONNSTRING ?? process.env.STS2_SQLSERVER_SQLLOGIN_CONNSTRING;
 const FIXTURE_ROOT =
@@ -49,10 +51,23 @@ const DACPAC_REHEARSAL_INTENT =
     "deploy the DACPAC, apply the migration, run a schema compare and save the diff output, visualize " +
     "the schema, roll it back, and visualize the rolled-back schema.";
 const PERFORMANCE_REHEARSAL_INTENT =
-    "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
-    "clone the WideWorldImporters staging database through a DACPAC into a SQL Server 2025 container, " +
-    "apply it, compare and visualize the schema, run scripts/workload.sql with full DMV and XEvent " +
-    "performance analysis, and produce a release candidate DACPAC.";
+    process.env.RBS2_EF_PERFORMANCE_INTENT ??
+    (DEMO_PERFORMANCE_LIVE_ENABLED
+        ? DEMO_RUNBOOK_INTENT
+        : "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
+          "clone the WideWorldImporters staging database through a DACPAC into a SQL Server 2025 container, " +
+          "apply it, compare and visualize the schema, run scripts/workload.sql with full DMV and XEvent " +
+          "performance analysis, and produce a release candidate DACPAC.");
+const PERFORMANCE_HEAD_REF =
+    process.env.RBS2_EF_PERFORMANCE_HEAD_REF ??
+    (DEMO_PERFORMANCE_LIVE_ENABLED ? "demo" : "rehearsal-additive");
+const PERFORMANCE_SOURCE_DATABASE =
+    process.env.RBS2_EF_PERFORMANCE_SOURCE_DATABASE ??
+    (DEMO_PERFORMANCE_LIVE_ENABLED ? "HobbesDemo_MyApp_Staging" : "WideWorldImporters");
+const PERFORMANCE_EXPECTED_NODE_COUNT = Number(
+    process.env.RBS2_EF_PERFORMANCE_EXPECTED_NODE_COUNT ??
+        (DEMO_PERFORMANCE_LIVE_ENABLED ? "45" : "44"),
+);
 
 suite("Runbook Studio EF model workflow live smoke (gated)", function () {
     this.timeout(12 * 60_000);
@@ -592,7 +607,10 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 uri: document.uri.toString(),
                 intent: PERFORMANCE_REHEARSAL_INTENT,
             });
-            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 44 });
+            expect(compile, compile?.errorCode).to.include({
+                ok: true,
+                nodeCount: PERFORMANCE_EXPECTED_NODE_COUNT,
+            });
             expect(compile.activityKinds).to.include.members([
                 "sql.workload.inspect",
                 "database.schema.fingerprint",
@@ -624,12 +642,12 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 parameterValues: {
                     repository: FIXTURE_ROOT,
                     baseRef: "main",
-                    headRef: "rehearsal-additive",
+                    headRef: PERFORMANCE_HEAD_REF,
                     project: PROJECT_PATH,
                     dbContext: "AppDbContext",
                     renameDecisions: "[]",
                     sourceConnection: persistedProfile!.id,
-                    sourceDatabaseName: "WideWorldImporters",
+                    sourceDatabaseName: PERFORMANCE_SOURCE_DATABASE,
                     containerName,
                     databaseName,
                     sqlVersion: "2025",
@@ -644,7 +662,9 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 timeoutMs: 15 * 60_000,
             });
             expect(run, JSON.stringify(run)).to.include({ state: "succeeded", verdict: "pass" });
-            expect(run.nodeStates?.filter((node) => node.state === "succeeded")).to.have.length(39);
+            expect(run.nodeStates?.filter((node) => node.state === "succeeded")).to.have.length(
+                PERFORMANCE_EXPECTED_NODE_COUNT - 5,
+            );
             expect(run.nodeStates?.filter((node) => node.state === "skipped")).to.have.length(5);
             for (const nodeId of [
                 "verify-base-deployment",

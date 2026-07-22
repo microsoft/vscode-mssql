@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import { DEMO_RUNBOOK_INTENT } from "./demoRunbookPrompt";
 import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudio/developerValidationPreview";
 import { parseHeadlessCliArguments } from "../../src/runbookStudio/headless/headlessCliArguments";
 import {
@@ -363,11 +364,7 @@ suite("Runbook Studio headless deterministic preview", () => {
     });
 
     test("previews the complete EF staging-clone validation lock without VS Code or a model", async () => {
-        const intent =
-            "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
-            "clone the WideWorldImporters staging database through a DACPAC into a SQL Server 2025 container, " +
-            "apply it, compare and visualize the schema, run scripts/workload.sql with full DMV and XEvent " +
-            "performance analysis, and produce a release candidate DACPAC.";
+        const intent = DEMO_RUNBOOK_INTENT;
         const classified = classifyRunbookIntent(intent);
         const base = createNewRunbookArtifact("New runbook", "headless-ef-release-candidate");
         base.family = classified.family;
@@ -385,12 +382,12 @@ suite("Runbook Studio headless deterministic preview", () => {
             parameterValues: {
                 repository: "C:\\preview\\myapp",
                 baseRef: "main",
-                headRef: "rehearsal-additive",
+                headRef: "demo",
                 project: "src/MyApp.Data/MyApp.Data.csproj",
                 dbContext: "AppDbContext",
                 renameDecisions: "[]",
                 sourceConnection: "preview-staging-profile",
-                sourceDatabaseName: "WideWorldImporters",
+                sourceDatabaseName: "HobbesDemo_MyApp_Staging",
                 containerName: "preview-myapp-sql2025",
                 databaseName: "MyAppCandidate",
                 sqlVersion: "2025",
@@ -414,7 +411,7 @@ suite("Runbook Studio headless deterministic preview", () => {
             evidenceAvailable: false,
         });
         expect(result.nodeCounts).to.deep.equal({
-            succeeded: 39,
+            succeeded: 40,
             failed: 0,
             skipped: 5,
             cancelled: 0,
