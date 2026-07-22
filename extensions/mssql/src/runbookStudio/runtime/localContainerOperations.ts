@@ -25,6 +25,36 @@ export interface LocalSqlContainerIdentity {
     port: number;
 }
 
+export type LocalSqlContainerDependentOutcomeKind =
+    | "dacpacDeploymentOutcomeUnknown"
+    | "workloadExecutionOutcomeUnknown"
+    | "xeventSessionOutcomeUnknown"
+    | "migrationExecutionOutcomeUnknown";
+
+/**
+ * Closed mapping for effects whose only durable target is the current run's
+ * owned disposable container. Once exact-label deletion and absence have
+ * both been proved, these unknown outcomes are compensated without replaying
+ * the mutation or claiming that it originally succeeded.
+ */
+export function classifyLocalSqlContainerDependentEffect(
+    activityKind: string,
+    recoveryResourceKind: string | undefined,
+): LocalSqlContainerDependentOutcomeKind | undefined {
+    switch (`${activityKind}\u0000${recoveryResourceKind ?? ""}`) {
+        case "dacpac.deploy.container\u0000dacpacDeployment":
+            return "dacpacDeploymentOutcomeUnknown";
+        case "sql.workload.run\u0000workloadExecution":
+            return "workloadExecutionOutcomeUnknown";
+        case "xevent.session.start\u0000xeventSession":
+            return "xeventSessionOutcomeUnknown";
+        case "migration.apply\u0000migrationExecution":
+            return "migrationExecutionOutcomeUnknown";
+        default:
+            return undefined;
+    }
+}
+
 export function validateLocalSqlContainerIdentity(input: {
     containerName: string;
     databaseName: string;

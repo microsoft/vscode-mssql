@@ -180,6 +180,7 @@ import {
     validateLocalSqlContainerIdentity,
     waitForLocalSqlContainerAuthentication,
 } from "./runtime/localContainerOperations";
+import { settleVerifiedAbsentContainerEffects } from "./runtime/localContainerEffectRecovery";
 import {
     buildLocalDacpac,
     buildLocalDeploymentPreviewResult,
@@ -6151,53 +6152,14 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         ownershipMarkerDigest: string,
         cleanupEvidenceDigest: string,
     ): void {
-        for (const entry of this.effectLedger.scanRecovery().outstanding) {
-            let dependent = entry.snapshot;
-            const recovery = dependent.identity.recovery;
-            const isDeployment =
-                dependent.identity.activityKind === "dacpac.deploy.container" &&
-                recovery?.resourceKind === "dacpacDeployment";
-            const isWorkload =
-                dependent.identity.activityKind === "sql.workload.run" &&
-                recovery?.resourceKind === "workloadExecution";
-            const isXeventSession =
-                dependent.identity.activityKind === "xevent.session.start" &&
-                recovery?.resourceKind === "xeventSession";
-            if (
-                dependent.identity.runId !== runId ||
-                (!isDeployment && !isWorkload && !isXeventSession) ||
-                !recovery ||
-                recovery.connectionProfileId !== connectionProfileId ||
-                recovery.ownershipMarkerDigest !== ownershipMarkerDigest ||
-                dependent.state === "needsOperatorDecision"
-            ) {
-                continue;
-            }
-            if (dependent.state === "prepared") {
-                dependent = this.effectLedger.recordEffectObserved(dependent.identity.effectId, {
-                    resourceKind: isDeployment
-                        ? "dacpacDeploymentOutcomeUnknown"
-                        : isWorkload
-                          ? "workloadExecutionOutcomeUnknown"
-                          : "xeventSessionOutcomeUnknown",
-                    resourceId: recovery.resourceId,
-                    ownershipMarkerDigest,
-                    connectionProfileId,
-                });
-            }
-            if (dependent.state === "effectObserved") {
-                dependent = this.effectLedger.startCleanup(dependent.identity.effectId);
-            }
-            if (dependent.state === "cleanupStarted") {
-                this.effectLedger.completeCleanup(
-                    dependent.identity.effectId,
-                    digestRunbookValue({
-                        cleanupEvidenceDigest,
-                        dependentEffectId: dependent.identity.effectId,
-                    }),
-                );
-            }
-        }
+        settleVerifiedAbsentContainerEffects({
+            ledger: this.effectLedger,
+            runId,
+            connectionProfileId,
+            ownershipMarkerDigest,
+            containerCleanupEvidenceDigest: cleanupEvidenceDigest,
+            containerAbsent: true,
+        });
     }
 
     /** A DACPAC deployment is compensated by deleting its owned disposable

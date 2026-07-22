@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import {
+    classifyLocalSqlContainerDependentEffect,
     effectIdFromLocalSqlContainerLeaseRef,
     isOwnedLocalSqlContainer,
     localSqlContainerLabels,
@@ -70,6 +71,27 @@ suite("Runbook Studio local SQL container policy", () => {
         const changed = { ...labels };
         changed["com.microsoft.mssql.runbook-studio.kind"] = "other";
         expect(isOwnedLocalSqlContainer(changed, effectId, "run_1")).to.equal(false);
+    });
+
+    test("settles only closed same-container unknown effects after verified deletion", () => {
+        expect(
+            classifyLocalSqlContainerDependentEffect("dacpac.deploy.container", "dacpacDeployment"),
+        ).to.equal("dacpacDeploymentOutcomeUnknown");
+        expect(
+            classifyLocalSqlContainerDependentEffect("sql.workload.run", "workloadExecution"),
+        ).to.equal("workloadExecutionOutcomeUnknown");
+        expect(
+            classifyLocalSqlContainerDependentEffect("xevent.session.start", "xeventSession"),
+        ).to.equal("xeventSessionOutcomeUnknown");
+        expect(
+            classifyLocalSqlContainerDependentEffect("migration.apply", "migrationExecution"),
+        ).to.equal("migrationExecutionOutcomeUnknown");
+        expect(
+            classifyLocalSqlContainerDependentEffect("release.promote", "migrationExecution"),
+        ).to.equal(undefined);
+        expect(
+            classifyLocalSqlContainerDependentEffect("migration.apply", "schemaMutation"),
+        ).to.equal(undefined);
     });
 
     test("waits for authenticated readiness after transient startup failures", async () => {
