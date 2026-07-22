@@ -30,6 +30,7 @@ import { canonicalizeRunbookArtifact, createNewRunbookArtifact } from "./runbook
 import { RUNBOOK_FS_SCHEME, runbookVirtualUri } from "./runbookFileSystem";
 import {
     collectLibraryGroups,
+    deleteLibraryFolderAssets,
     isArchivedLibraryAsset,
     knownLibraryCategories,
     libraryCategoryLabel,
@@ -726,11 +727,44 @@ export function registerRunbookLibrary(
                     return;
                 }
                 if (node.items.length > 0) {
-                    // Folders are categories on assets — a non-empty one has
-                    // nothing to delete except its runbooks. Direct honestly.
-                    void vscode.window.showInformationMessage(
-                        LocRunbookStudio.libraryFolderNotEmpty(node.items.length),
+                    const service = requireService();
+                    if (!service) {
+                        return;
+                    }
+                    const choice = await vscode.window.showWarningMessage(
+                        LocRunbookStudio.libraryDeleteFolderConfirm(
+                            node.category,
+                            node.items.length,
+                        ),
+                        { modal: true },
+                        LocRunbookStudio.libraryDeleteFolderAction,
                     );
+                    if (choice !== LocRunbookStudio.libraryDeleteFolderAction) {
+                        return;
+                    }
+                    const { deleted, failed } = await deleteLibraryFolderAssets(
+                        node.items,
+                        async (id) => !(await service.deleteLibraryRunbookPermanently(id)).error,
+                    );
+                    if (failed === 0) {
+                        provider.removePendingFolder(node.category);
+                    }
+                    emitRunbookEvent(
+                        newRunbookRootContext("library"),
+                        "runbookStudio.library.deleteFolder",
+                        failed > 0 ? "warning" : "ok",
+                        { assetCount: metaField(deleted), failedCount: metaField(failed) },
+                    );
+                    provider.refresh();
+                    if (failed > 0) {
+                        void vscode.window.showWarningMessage(
+                            LocRunbookStudio.libraryFolderDeletePartial(deleted, failed),
+                        );
+                    } else {
+                        void vscode.window.showInformationMessage(
+                            LocRunbookStudio.libraryFolderDeleted(node.category, deleted),
+                        );
+                    }
                     return;
                 }
                 provider.removePendingFolder(node.category);

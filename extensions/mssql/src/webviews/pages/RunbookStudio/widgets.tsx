@@ -17,7 +17,7 @@
  * host-authoritative presentation edit path.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { locConstants } from "../../common/locConstants";
 import {
     compatibleViews,
@@ -33,6 +33,7 @@ import {
 import { projectDacpacSchemaDiff } from "../../../runbookStudio/presentation/schemaDiffProjection";
 import { useRbs } from "./state";
 import { isResultFileArtifactContract } from "./resultArtifacts";
+import { projectLogContent } from "./logViewProjection";
 
 const PAGE_ROWS = 100;
 /** Bar chart shows at most this many rows (with an honest truncation note). */
@@ -384,14 +385,45 @@ function TextView({
     mono: boolean;
     wrap?: boolean;
 }) {
-    const text = (page.rows ?? [])
-        .map((row) => row.map((cell) => (cell === null ? "" : String(cell))).join(" "))
-        .join("\n");
+    const text = pageText(page);
     return (
         <pre className={`rbs-text-block ${mono ? "rbs-mono" : ""} ${wrap ? "rbs-text-wrap" : ""}`}>
             {text}
         </pre>
     );
+}
+
+function LogView({ page, wrap = false }: { page: FetchedPage; wrap?: boolean }) {
+    const loc = locConstants.runbookStudio;
+    const raw = pageText(page);
+    const content = useMemo(() => projectLogContent(raw), [raw]);
+    const format =
+        content.language === "xml"
+            ? loc.logFormatXml
+            : content.language === "json"
+              ? loc.logFormatJson
+              : loc.logFormatText;
+    return (
+        <div className="rbs-log-view">
+            <div className="rbs-log-toolbar">
+                <span>{format}</span>
+                <span>{loc.logLineCount(content.lineCount)}</span>
+            </div>
+            <pre
+                className={`rbs-log-content rbs-mono ${wrap ? "rbs-text-wrap" : ""}`}
+                aria-label={loc.logViewer}
+                role="region"
+                tabIndex={0}>
+                {content.text}
+            </pre>
+        </div>
+    );
+}
+
+function pageText(page: FetchedPage): string {
+    return (page.rows ?? [])
+        .map((row) => row.map((cell) => (cell === null ? "" : String(cell))).join(" "))
+        .join("\n");
 }
 
 function JsonView({ page }: { page: FetchedPage }) {
@@ -424,7 +456,7 @@ function SchemaDiffView({ page }: { page: FetchedPage }) {
                 <div className="rbs-drift-notice" role="status">
                     {loc.schemaDiffUnavailable}
                 </div>
-                <TextView page={page} mono />
+                <LogView page={page} />
             </>
         );
     }
@@ -1012,14 +1044,9 @@ export function ResolvedWidgetView({
                     case "scalar-cards":
                         return <ScalarCardsView page={page} settings={settings} />;
                     case "markdown":
+                        return <TextView page={page} mono={false} />;
                     case "log-view":
-                        return (
-                            <TextView
-                                page={page}
-                                mono={renderView === "log-view"}
-                                wrap={renderView === "log-view" && settings?.wrap}
-                            />
-                        );
+                        return <LogView page={page} wrap={settings?.wrap} />;
                     case "json":
                         return <JsonView page={page} />;
                     case "diff":

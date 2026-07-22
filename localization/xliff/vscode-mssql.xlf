@@ -96,6 +96,9 @@
     <trans-unit id="++CODE++6b86b273ff34fce19d6b804eff5a3f5747ada4eaa22f1d49c01e52ddb7875b4b">
       <source xml:lang="en">1</source>
     </trans-unit>
+    <trans-unit id="++CODE++7de203a2e088001752135c695cf840f4623207ec7f27cbeeac8371bdda02b61d">
+      <source xml:lang="en">1 line</source>
+    </trans-unit>
     <trans-unit id="++CODE++07c30a3a0d752e12c0b2a23084bf77b6747f3b7fa00b7e9d820a3bc18040418a">
       <source xml:lang="en">1 row</source>
     </trans-unit>
@@ -2598,6 +2601,9 @@
     <trans-unit id="++CODE++129eabad7bcc761eb7966091c2bc01163b650ca0613f42c58db97eae5420a7bb">
       <source xml:lang="en">Delete Contents</source>
     </trans-unit>
+    <trans-unit id="++CODE++f62efe2d3dcf60682a70d5efb41dd55114526e9987e88c8ab5d06fb8b5796c8b">
+      <source xml:lang="en">Delete Folder and Runbooks</source>
+    </trans-unit>
     <trans-unit id="++CODE++43654c6556c7d0fca93516d81791b323c7746bb3becdcb8800aa9f31300fe30c">
       <source xml:lang="en">Delete Row</source>
     </trans-unit>
@@ -2622,6 +2628,15 @@
     <trans-unit id="++CODE++9ca6b97465f4c8972f542c20c953a0d541166912d083694710d9cb1acc8b7e5d">
       <source xml:lang="en">Deleted column &apos;{0}&apos;</source>
       <note>{0} is the column name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++15e1f58cda70dca6741f1ed828af2de7f7a421f0f82ab35ae6d3b3d3e7fd8bfc">
+      <source xml:lang="en">Deleted folder &apos;{0}&apos; and its runbook.</source>
+      <note>{0} is the folder name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++78a7bea0e6f7faa9425429400dd6f044df333beb1d4cba6a5a1f0cf3fb4041c9">
+      <source xml:lang="en">Deleted folder &apos;{0}&apos; and {1} runbooks.</source>
+      <note>{0} is the folder name
+{1} is the number of deleted runbooks</note>
     </trans-unit>
     <trans-unit id="++CODE++1927927f4e169b240939c3ed252262deee4fe1099424c667f89b962549c01dd9">
       <source xml:lang="en">Deleted foreign key &apos;{0}&apos;</source>
@@ -4299,10 +4314,6 @@
     </trans-unit>
     <trans-unit id="++CODE++13fc8c5ffacfa92740bde97ad456803b31784d6451d83afd89f0a993d75c59e5">
       <source xml:lang="en">Folder Structure</source>
-    </trans-unit>
-    <trans-unit id="++CODE++5bf0eacff32293f23129e18a83839be437abfc38eada7895ee916622f197e478">
-      <source xml:lang="en">Folder contains {0} runbooks — move them to another folder first.</source>
-      <note>{0} is the number of runbooks in the folder</note>
     </trans-unit>
     <trans-unit id="++CODE++e3d91814a2d89326a2afb1cc16c31bbae8c0e2b80db75026503b604e9eea23d3">
       <source xml:lang="en">Folder is required</source>
@@ -7073,6 +7084,9 @@
       <source xml:lang="en">Read-only disconnected mode for &apos;{0}&apos;. Cannot create or start live sessions without a database connection.</source>
       <note>{0} is the XEL file name</note>
     </trans-unit>
+    <trans-unit id="++CODE++57818666684230a39d4ddddf72eb68451adf492623d6e9c247f91c167aa94007">
+      <source xml:lang="en">Read-only log content</source>
+    </trans-unit>
     <trans-unit id="++CODE++a516318800606fe414db4c4c713a00b3e9a41b4c28f10df08ecba0fd43b8f9c8">
       <source xml:lang="en">Ready after binding</source>
     </trans-unit>
@@ -7670,6 +7684,11 @@
     </trans-unit>
     <trans-unit id="++CODE++28cf150e0977602318ff34f2c33379d9d744422960aacda14d9400114ff6c151">
       <source xml:lang="en">Runbook: running…</source>
+    </trans-unit>
+    <trans-unit id="++CODE++47345b3cb416b9bc7df8240f8b2e740dba4a1ea8dd92c44fa5305aefd0821ec4">
+      <source xml:lang="en">Runbooks deleted: {0}. Could not delete: {1}. The folder was kept so you can retry.</source>
+      <note>{0} is the number of deleted runbooks
+{1} is the number of runbooks that could not be deleted</note>
     </trans-unit>
     <trans-unit id="++CODE++f4ccae29e1bb0c20a124570a1b43f4347ea94bba9f84ffdfddd9c7445b126128">
       <source xml:lang="en">Running</source>
@@ -9381,6 +9400,15 @@
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
     </trans-unit>
+    <trans-unit id="++CODE++b6be17c1249c3e0858c7f0a59ff41154196ca77d5c98afcc59e2384e496308dd">
+      <source xml:lang="en">The folder &apos;{0}&apos; contains 1 runbook. Permanently delete the folder, its runbook, run history, results, and retained files?</source>
+      <note>{0} is the folder name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++cf1b4af2e381a40badb27046a6f832f4da44ed2e423a3bf70adb9a5fdb844378">
+      <source xml:lang="en">The folder &apos;{0}&apos; contains {1} runbooks. Permanently delete the folder, its runbooks, run history, results, and retained files?</source>
+      <note>{0} is the folder name
+{1} is the number of runbooks in the folder</note>
+    </trans-unit>
     <trans-unit id="++CODE++9f0bbf0f3fc1ec45ca02debcaf080ecd6f40e8a11bae6e0189136badee4946a7">
       <source xml:lang="en">The following workspace or workspace folder connections are missing the &apos;id&apos; property and are being ignored.  Please manually add the &apos;id&apos; property to the connection in order to use it. &#10;&#10; {0}</source>
       <note>{0} is the list of display names for the connections that have been ignored</note>
@@ -10359,6 +10387,9 @@
     <trans-unit id="++CODE++21ab9180f803712d7873020f60d6507099e79134eb0388029869cdbbd72e1cad">
       <source xml:lang="en">XEvent data</source>
     </trans-unit>
+    <trans-unit id="++CODE++40658e9af8fd92229ae162dc98547cb75eb96999edd7dc214582ac6c23ef6585">
+      <source xml:lang="en">XML</source>
+    </trans-unit>
     <trans-unit id="++CODE++6f6de37fb2977eca0337685a20e2b2b7312ed4c95f08dde49810954e88511372">
       <source xml:lang="en">Y-axis baseline</source>
     </trans-unit>
@@ -10839,6 +10870,10 @@
     <trans-unit id="++CODE++4960928686dec57850ef0fde437021e4bec60d6d0fcc3e196448bb01c88d3920">
       <source xml:lang="en">{0} issues</source>
       <note>{0} is the number of issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++0cdaed5a71f429ec04f1faf833b82e1183271718f167c99cf8ee13903648fb94">
+      <source xml:lang="en">{0} lines</source>
+      <note>{0} is the number of lines in the log viewer</note>
     </trans-unit>
     <trans-unit id="++CODE++9036be410595c4d0fe76e148babe0f758e2912c78d4f8bfe95819982c171e5b2">
       <source xml:lang="en">{0} model set to {1}.</source>

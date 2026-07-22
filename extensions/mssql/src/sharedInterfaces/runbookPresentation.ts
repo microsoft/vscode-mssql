@@ -55,7 +55,7 @@ const COMPATIBILITY: Record<string, ViewKind[]> = {
     "xeventSessionLease/1": ["scalar-cards", "json"],
     "xeventCapture/1": ["scalar-cards", "json"],
     "xelArtifact/1": ["scalar-cards", "json"],
-    "deploymentPreview/1": ["log-view", "json"],
+    "deploymentPreview/1": ["diff", "log-view", "json"],
     "deploymentEvidence/1": ["scalar-cards", "json"],
     "schemaMutationEvidence/1": ["scalar-cards", "json"],
     "schemaDiff/1": ["diff", "log-view", "json"],

@@ -859,11 +859,45 @@ export class RunbookStudio {
                 "{1} is the number of runbooks that failed to move",
             ],
         });
-    public static libraryFolderNotEmpty = (count: number) =>
+    public static libraryDeleteFolderConfirm = (name: string, count: number) =>
+        count === 1
+            ? l10n.t({
+                  message:
+                      "The folder '{0}' contains 1 runbook. Permanently delete the folder, its runbook, run history, results, and retained files?",
+                  args: [name],
+                  comment: ["{0} is the folder name"],
+              })
+            : l10n.t({
+                  message:
+                      "The folder '{0}' contains {1} runbooks. Permanently delete the folder, its runbooks, run history, results, and retained files?",
+                  args: [name, count],
+                  comment: [
+                      "{0} is the folder name",
+                      "{1} is the number of runbooks in the folder",
+                  ],
+              });
+    public static libraryDeleteFolderAction = l10n.t("Delete Folder and Runbooks");
+    public static libraryFolderDeleted = (name: string, count: number) =>
+        count === 1
+            ? l10n.t({
+                  message: "Deleted folder '{0}' and its runbook.",
+                  args: [name],
+                  comment: ["{0} is the folder name"],
+              })
+            : l10n.t({
+                  message: "Deleted folder '{0}' and {1} runbooks.",
+                  args: [name, count],
+                  comment: ["{0} is the folder name", "{1} is the number of deleted runbooks"],
+              });
+    public static libraryFolderDeletePartial = (deleted: number, failed: number) =>
         l10n.t({
-            message: "Folder contains {0} runbooks — move them to another folder first.",
-            args: [count],
-            comment: ["{0} is the number of runbooks in the folder"],
+            message:
+                "Runbooks deleted: {0}. Could not delete: {1}. The folder was kept so you can retry.",
+            args: [deleted, failed],
+            comment: [
+                "{0} is the number of deleted runbooks",
+                "{1} is the number of runbooks that could not be deleted",
+            ],
         });
 }
 

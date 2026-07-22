@@ -13,6 +13,7 @@ import { expect } from "chai";
 import {
     activeLibraryAssetId,
     collectLibraryGroups,
+    deleteLibraryFolderAssets,
     groupLibraryItems,
     isArchivedLibraryAsset,
     knownLibraryCategories,
@@ -33,6 +34,34 @@ function asset(partial: Partial<RunbookLibraryAsset> & { id: string }): RunbookL
 }
 
 suite("runbookLibraryModel", () => {
+    suite("deleteLibraryFolderAssets", () => {
+        test("attempts every runbook and summarizes failures without aborting", async () => {
+            const attempted: string[] = [];
+            const summary = await deleteLibraryFolderAssets(
+                [asset({ id: "a" }), asset({ id: "b" }), asset({ id: "c" })],
+                async (id) => {
+                    attempted.push(id);
+                    if (id === "b") {
+                        throw new Error("runtime unavailable");
+                    }
+                    return id !== "c";
+                },
+            );
+
+            expect(attempted).to.deep.equal(["a", "b", "c"]);
+            expect(summary).to.deep.equal({ deleted: 1, failed: 2 });
+        });
+
+        test("reports complete deletion", async () => {
+            const summary = await deleteLibraryFolderAssets(
+                [asset({ id: "a" }), asset({ id: "b" })],
+                async () => true,
+            );
+
+            expect(summary).to.deep.equal({ deleted: 2, failed: 0 });
+        });
+    });
+
     suite("parseLibraryListResponse", () => {
         test("accepts a bare array and ignores unknown fields", () => {
             const parsed = parseLibraryListResponse([
@@ -77,7 +106,7 @@ suite("runbookLibraryModel", () => {
                                 requirements: {
                                     activities: [
                                         { kind: "sql.query.read", version: 1 },
-                                        { kind: "dacpac.build", version: 1 },
+                                        { kind: "catalog.missing.activity", version: 1 },
                                     ],
                                 },
                             },
@@ -86,7 +115,7 @@ suite("runbookLibraryModel", () => {
                 },
             ]);
 
-            expect(parsed[0].missingActivityKinds).to.deep.equal(["dacpac.build@1"]);
+            expect(parsed[0].missingActivityKinds).to.deep.equal(["catalog.missing.activity@1"]);
         });
 
         test("drops malformed entries and falls back title to id", () => {

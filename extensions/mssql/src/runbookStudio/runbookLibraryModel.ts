@@ -29,6 +29,37 @@ export interface RunbookLibraryAsset {
     missingActivityKinds?: string[];
 }
 
+export interface LibraryFolderDeleteSummary {
+    deleted: number;
+    failed: number;
+}
+
+/**
+ * Permanently delete every asset represented by a Library category. Deletion
+ * is deliberately sequential so the runtime and local result stores are not
+ * asked to purge several histories at once. One failed asset does not prevent
+ * the remaining assets from being attempted.
+ */
+export async function deleteLibraryFolderAssets(
+    assets: readonly Pick<RunbookLibraryAsset, "id">[],
+    deleteAsset: (id: string) => Promise<boolean>,
+): Promise<LibraryFolderDeleteSummary> {
+    let deleted = 0;
+    let failed = 0;
+    for (const asset of assets) {
+        try {
+            if (await deleteAsset(asset.id)) {
+                deleted++;
+            } else {
+                failed++;
+            }
+        } catch {
+            failed++;
+        }
+    }
+    return { deleted, failed };
+}
+
 function missingActivitiesFromClientExtension(record: Record<string, unknown>): string[] {
     const clientExtensions = record.clientExtensions;
     if (

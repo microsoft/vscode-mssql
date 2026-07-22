@@ -495,9 +495,29 @@
             "{1} is the number of runbooks that failed to move"
         ]
     },
-    "Folder contains {0} runbooks — move them to another folder first./{0} is the number of runbooks in the folder": {
-        "message": "Folder contains {0} runbooks — move them to another folder first.",
-        "comment": ["{0} is the number of runbooks in the folder"]
+    "The folder '{0}' contains 1 runbook. Permanently delete the folder, its runbook, run history, results, and retained files?/{0} is the folder name": {
+        "message": "The folder '{0}' contains 1 runbook. Permanently delete the folder, its runbook, run history, results, and retained files?",
+        "comment": ["{0} is the folder name"]
+    },
+    "The folder '{0}' contains {1} runbooks. Permanently delete the folder, its runbooks, run history, results, and retained files?/{0} is the folder name{1} is the number of runbooks in the folder": {
+        "message": "The folder '{0}' contains {1} runbooks. Permanently delete the folder, its runbooks, run history, results, and retained files?",
+        "comment": ["{0} is the folder name", "{1} is the number of runbooks in the folder"]
+    },
+    "Delete Folder and Runbooks": "Delete Folder and Runbooks",
+    "Deleted folder '{0}' and its runbook./{0} is the folder name": {
+        "message": "Deleted folder '{0}' and its runbook.",
+        "comment": ["{0} is the folder name"]
+    },
+    "Deleted folder '{0}' and {1} runbooks./{0} is the folder name{1} is the number of deleted runbooks": {
+        "message": "Deleted folder '{0}' and {1} runbooks.",
+        "comment": ["{0} is the folder name", "{1} is the number of deleted runbooks"]
+    },
+    "Runbooks deleted: {0}. Could not delete: {1}. The folder was kept so you can retry./{0} is the number of deleted runbooks{1} is the number of runbooks that could not be deleted": {
+        "message": "Runbooks deleted: {0}. Could not delete: {1}. The folder was kept so you can retry.",
+        "comment": [
+            "{0} is the number of deleted runbooks",
+            "{1} is the number of runbooks that could not be deleted"
+        ]
     },
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
@@ -5350,6 +5370,13 @@
     "Run with Auto-Approve": "Run with Auto-Approve",
     "Rerun with Auto-Approve": "Rerun with Auto-Approve",
     "Run options": "Run options",
+    "Read-only log content": "Read-only log content",
+    "XML": "XML",
+    "1 line": "1 line",
+    "{0} lines/{0} is the number of lines in the log viewer": {
+        "message": "{0} lines",
+        "comment": ["{0} is the number of lines in the log viewer"]
+    },
     "Collapse navigation": "Collapse navigation",
     "Expand navigation": "Expand navigation",
     "Cancel run": "Cancel run",

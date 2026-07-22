@@ -964,12 +964,65 @@
     margin-top: 2px;
 }
 
+.rbs-cards .rbs-card-value {
+    margin-top: 3px;
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+}
+
 .rbs-text-block {
     margin: 0;
     white-space: pre-wrap;
     word-break: break-word;
     font-size: 12px;
     line-height: 1.5;
+}
+
+.rbs-log-view {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    border-radius: 4px;
+    background: var(--vscode-editor-background);
+}
+
+.rbs-log-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 4px 8px;
+    color: var(--vscode-descriptionForeground);
+    background: var(--vscode-editorGroupHeader-tabsBackground, var(--vscode-sideBar-background));
+    border-bottom: 1px solid var(--vscode-editorWidget-border, var(--vscode-panel-border));
+    font-size: 11px;
+}
+
+.rbs-log-content {
+    box-sizing: border-box;
+    width: 100%;
+    height: clamp(180px, 32vh, 340px);
+    margin: 0;
+    padding: 8px 10px;
+    overflow: auto;
+    white-space: pre;
+    overflow-wrap: normal;
+    word-break: normal;
+    line-height: 1.45;
+    tab-size: 4;
+}
+
+.rbs-log-content:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
+.rbs-log-content.rbs-text-wrap {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
 }
 
 .rbs-link-button {

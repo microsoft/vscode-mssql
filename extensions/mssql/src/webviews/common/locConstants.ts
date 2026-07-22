@@ -4367,6 +4367,18 @@ export class LocConstants {
             runWithAutoApprove: l10n.t("Run with Auto-Approve"),
             rerunWithAutoApprove: l10n.t("Rerun with Auto-Approve"),
             runOptions: l10n.t("Run options"),
+            logViewer: l10n.t("Read-only log content"),
+            logFormatXml: l10n.t("XML"),
+            logFormatJson: l10n.t("JSON"),
+            logFormatText: l10n.t("Text"),
+            logLineCount: (count: number) =>
+                count === 1
+                    ? l10n.t("1 line")
+                    : l10n.t({
+                          message: "{0} lines",
+                          args: [count],
+                          comment: ["{0} is the number of lines in the log viewer"],
+                      }),
             collapseNavigation: l10n.t("Collapse navigation"),
             expandNavigation: l10n.t("Expand navigation"),
             cancelRun: l10n.t("Cancel run"),
