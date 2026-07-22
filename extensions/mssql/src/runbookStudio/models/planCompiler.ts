@@ -299,8 +299,37 @@ export function compileDeterministicEfModelComparison(
     const deployBaseDacpac = required.includes("dacpac.deploy.container");
     const verifyBaseDacpac = required.includes("schema.compare");
     const exportSchemaDelta = required.includes("schema.compare.export");
+    const inspectWorkload = required.includes("sql.workload.inspect");
+    const startXevent = required.includes("xevent.session.start");
+    const runWorkload = required.includes("sql.workload.run");
+    const stopXevent = required.includes("xevent.session.stop");
+    const analyzeXel = required.includes("xevent.xel.analyze");
+    const collectXel = required.includes("xevent.xel.collect");
+    const fingerprintSchema = required.includes("database.schema.fingerprint");
+    const snapshotPerformance = required.includes("performance.dmv.snapshot");
+    const comparePerformance = required.includes("performance.dmv.delta");
+    const summarizePerformance = required.includes("workload.benchmark");
     const baseCloneParts = [extractBaseDacpac, previewBaseDacpac, deployBaseDacpac];
     const hasBaseClone = baseCloneParts.every(Boolean);
+    const performanceParts = [
+        inspectWorkload,
+        startXevent,
+        runWorkload,
+        stopXevent,
+        analyzeXel,
+        collectXel,
+        fingerprintSchema,
+        snapshotPerformance,
+        comparePerformance,
+        summarizePerformance,
+    ];
+    const hasPerformanceValidation = performanceParts.every(Boolean);
+    const requestsAnyPerformanceValidation = performanceParts.some(Boolean);
+    const extractReleaseCandidate =
+        hasBaseClone &&
+        /\b(?:produce|create|extract|generate|build)?\s*(?:an?\s+)?release[- ]candidate\s+dacpac\b/i.test(
+            intent,
+        );
     const rehearseRollback = applyMigration && /\b(roll(?:\s+it)?\s+back|rollback)\b/i.test(intent);
     const analyzeMigrationRisk = requestedMigrationRisk || generateMigration;
     const optionalRehearsalActivities = new Set([
@@ -314,6 +343,16 @@ export function compileDeterministicEfModelComparison(
         "dacpac.deploy.container",
         "schema.compare",
         "schema.compare.export",
+        "sql.workload.inspect",
+        "xevent.session.start",
+        "sql.workload.run",
+        "xevent.session.stop",
+        "xevent.xel.analyze",
+        "xevent.xel.collect",
+        "database.schema.fingerprint",
+        "performance.dmv.snapshot",
+        "performance.dmv.delta",
+        "workload.benchmark",
     ]);
     if (
         required.length !==
@@ -329,7 +368,17 @@ export function compileDeterministicEfModelComparison(
                 (previewBaseDacpac ? 1 : 0) +
                 (deployBaseDacpac ? 1 : 0) +
                 (verifyBaseDacpac ? 1 : 0) +
-                (exportSchemaDelta ? 1 : 0) ||
+                (exportSchemaDelta ? 1 : 0) +
+                (inspectWorkload ? 1 : 0) +
+                (startXevent ? 1 : 0) +
+                (runWorkload ? 1 : 0) +
+                (stopXevent ? 1 : 0) +
+                (analyzeXel ? 1 : 0) +
+                (collectXel ? 1 : 0) +
+                (fingerprintSchema ? 1 : 0) +
+                (snapshotPerformance ? 1 : 0) +
+                (comparePerformance ? 1 : 0) +
+                (summarizePerformance ? 1 : 0) ||
         !required.every(
             (kind) =>
                 DETERMINISTIC_EF_COMPARISON_ACTIVITIES.has(kind) ||
@@ -347,12 +396,28 @@ export function compileDeterministicEfModelComparison(
         (baseCloneParts.some(Boolean) && !hasBaseClone) ||
         (hasBaseClone && (!applyMigration || !verifyBaseDacpac)) ||
         (exportSchemaDelta && !hasBaseClone) ||
+        (requestsAnyPerformanceValidation && !hasPerformanceValidation) ||
+        (hasPerformanceValidation && (!applyMigration || !hasBaseClone)) ||
         (visualizeSchema && !applyMigration) ||
         !/\b(entity\s*framework|entityframework|ef\s*core|dbcontext|entities)\b/i.test(intent)
     ) {
         return undefined;
     }
     const sourceDatabaseName = hasBaseClone ? extractDacpacSourceDatabaseName(intent) : undefined;
+    const workloadFile = hasPerformanceValidation ? extractWorkspaceSqlFile(intent) : undefined;
+    const postForwardSuccess = hasPerformanceValidation
+        ? "schema-fingerprint-before"
+        : extractReleaseCandidate
+          ? "extract-release-candidate"
+          : rehearseRollback
+            ? "approve-rollback-migration"
+            : "dispose-rehearsal-container";
+    const postForwardFailure = rehearseRollback
+        ? "approve-rollback-migration"
+        : "dispose-rehearsal-container";
+    const postCandidateSuccess = rehearseRollback
+        ? "approve-rollback-migration"
+        : "dispose-rehearsal-container";
     const proposal: CompiledProposal = {
         name: "Entity Framework model comparison",
         description: applyMigration
@@ -460,6 +525,38 @@ export function compileDeterministicEfModelComparison(
                           required: true,
                           default: 300,
                       },
+                      ...(hasPerformanceValidation
+                          ? [
+                                {
+                                    id: "workloadFile",
+                                    label: "Workspace workload SQL file",
+                                    type: "string" as const,
+                                    required: true,
+                                    default: workloadFile ?? "scripts/workload.sql",
+                                },
+                                {
+                                    id: "workloadRepetitions",
+                                    label: "Measured workload repetitions",
+                                    type: "int" as const,
+                                    required: true,
+                                    default: 5,
+                                },
+                                {
+                                    id: "workloadTimeoutSeconds",
+                                    label: "Per-batch workload timeout (seconds)",
+                                    type: "int" as const,
+                                    required: true,
+                                    default: 300,
+                                },
+                                {
+                                    id: "xeventMaxFileSizeMb",
+                                    label: "Maximum XEvent file size (MiB)",
+                                    type: "int" as const,
+                                    required: true,
+                                    default: 16,
+                                },
+                            ]
+                          : []),
                   ]
                 : []),
         ],
@@ -572,8 +669,21 @@ export function compileDeterministicEfModelComparison(
                       },
                   ]
                 : []),
-            ...(applyMigration
+            ...(hasPerformanceValidation
                 ? [
+                      {
+                          id: "inspect-workload",
+                          label: "Inspect exact workspace workload",
+                          kind: "activity" as const,
+                          activityKind: "sql.workload.inspect",
+                          inputs: {
+                              file: "$params.workloadFile",
+                          },
+                      },
+                  ]
+                : []),
+            ...(applyMigration
+                ? ([
                       {
                           id: "approve-rehearsal-container",
                           label: "Approve owned SQL container provisioning",
@@ -703,6 +813,237 @@ export function compileDeterministicEfModelComparison(
                                 },
                             ]
                           : []),
+                      ...(hasPerformanceValidation
+                          ? [
+                                {
+                                    id: "schema-fingerprint-before",
+                                    label: "Fingerprint migrated schema before workload",
+                                    kind: "activity" as const,
+                                    activityKind: "database.schema.fingerprint",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                    },
+                                },
+                                {
+                                    id: "snapshot-before",
+                                    label: "Capture performance snapshot before workload",
+                                    kind: "activity" as const,
+                                    activityKind: "performance.dmv.snapshot",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                    },
+                                },
+                                {
+                                    id: "approve-capture",
+                                    label: "Approve bounded XEvent capture",
+                                    kind: "gate" as const,
+                                },
+                                {
+                                    id: "start-capture",
+                                    label: "Start correlated XEvent capture",
+                                    kind: "activity" as const,
+                                    activityKind: "xevent.session.start",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        template: "developer-diagnostics",
+                                        maxFileSizeMb: "$params.xeventMaxFileSizeMb",
+                                    },
+                                },
+                                {
+                                    id: "approve-workload",
+                                    label: "Approve inspected workload execution",
+                                    kind: "gate" as const,
+                                },
+                                {
+                                    id: "run-workload",
+                                    label: "Run inspected workload",
+                                    kind: "activity" as const,
+                                    activityKind: "sql.workload.run",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        workload: "$nodes.inspect-workload.workloadRef",
+                                        workloadDigest: "$nodes.inspect-workload.workloadSha256",
+                                        repetitions: "$params.workloadRepetitions",
+                                        timeoutSeconds: "$params.workloadTimeoutSeconds",
+                                    },
+                                },
+                                {
+                                    id: "stop-capture",
+                                    label: "Stop correlated XEvent capture",
+                                    kind: "activity" as const,
+                                    activityKind: "xevent.session.stop",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        session: "$nodes.start-capture.sessionRef",
+                                    },
+                                },
+                                {
+                                    id: "schema-fingerprint-after",
+                                    label: "Fingerprint migrated schema after workload",
+                                    kind: "activity" as const,
+                                    activityKind: "database.schema.fingerprint",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                    },
+                                },
+                                {
+                                    id: "snapshot-after",
+                                    label: "Capture performance snapshot after workload",
+                                    kind: "activity" as const,
+                                    activityKind: "performance.dmv.snapshot",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                    },
+                                },
+                                {
+                                    id: "compare-snapshots",
+                                    label: "Compare before and after performance snapshots",
+                                    kind: "activity" as const,
+                                    activityKind: "performance.dmv.delta",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        before: "$nodes.snapshot-before.snapshotRef",
+                                        after: "$nodes.snapshot-after.snapshotRef",
+                                        beforeSchema:
+                                            "$nodes.schema-fingerprint-before.schemaFingerprintRef",
+                                        afterSchema:
+                                            "$nodes.schema-fingerprint-after.schemaFingerprintRef",
+                                    },
+                                },
+                                {
+                                    id: "analyze-capture",
+                                    label: "Analyze correlated XEvent trace",
+                                    kind: "activity" as const,
+                                    activityKind: "xevent.xel.analyze",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        capture: "$nodes.stop-capture.captureRef",
+                                    },
+                                },
+                                {
+                                    id: "collect-capture",
+                                    label: "Retain XEL run artifact",
+                                    kind: "activity" as const,
+                                    activityKind: "xevent.xel.collect",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        capture: "$nodes.stop-capture.captureRef",
+                                    },
+                                },
+                                {
+                                    id: "analyze-incomplete-capture",
+                                    label: "Analyze XEvent trace after evidence failure",
+                                    kind: "activity" as const,
+                                    activityKind: "xevent.xel.analyze",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        capture: "$nodes.stop-capture.captureRef",
+                                    },
+                                },
+                                {
+                                    id: "collect-incomplete-capture",
+                                    label: "Retain XEL after evidence failure",
+                                    kind: "activity" as const,
+                                    activityKind: "xevent.xel.collect",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        capture: "$nodes.stop-capture.captureRef",
+                                    },
+                                },
+                                {
+                                    id: "summarize-performance",
+                                    label: "Summarize migrated workload performance",
+                                    kind: "activity" as const,
+                                    activityKind: "workload.benchmark",
+                                    inputs: {
+                                        workloadFingerprint:
+                                            "$nodes.inspect-workload.workloadFingerprint",
+                                        environmentFingerprint:
+                                            "$nodes.provision-rehearsal-container.environmentFingerprint",
+                                        workloadDurationMs: "$nodes.run-workload.totalDurationMs",
+                                        executedBatchCount:
+                                            "$nodes.run-workload.executedBatchCount",
+                                        failedBatchCount: "$nodes.run-workload.failedBatchCount",
+                                        repetitions: "$nodes.run-workload.repetitions",
+                                        measurementSampleCount:
+                                            "$nodes.run-workload.measurementSampleCount",
+                                        meanDurationMs: "$nodes.run-workload.meanDurationMs",
+                                        p50DurationMs: "$nodes.run-workload.p50DurationMs",
+                                        p95DurationMs: "$nodes.run-workload.p95DurationMs",
+                                        minDurationMs: "$nodes.run-workload.minDurationMs",
+                                        maxDurationMs: "$nodes.run-workload.maxDurationMs",
+                                        standardDeviationMs:
+                                            "$nodes.run-workload.standardDeviationMs",
+                                        xeventDurationMs: "$nodes.analyze-capture.durationMs",
+                                        xeventCpuMs: "$nodes.analyze-capture.cpuMs",
+                                        logicalReads: "$nodes.analyze-capture.logicalReads",
+                                        physicalReads: "$nodes.analyze-capture.physicalReads",
+                                        writes: "$nodes.analyze-capture.writes",
+                                    },
+                                },
+                                {
+                                    id: "stop-failed-capture",
+                                    label: "Stop XEvent capture after workload refusal or failure",
+                                    kind: "activity" as const,
+                                    activityKind: "xevent.session.stop",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        session: "$nodes.start-capture.sessionRef",
+                                    },
+                                },
+                                {
+                                    id: "analyze-failed-capture",
+                                    label: "Analyze retained failure-path XEvent trace",
+                                    kind: "activity" as const,
+                                    activityKind: "xevent.xel.analyze",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        capture: "$nodes.stop-failed-capture.captureRef",
+                                    },
+                                },
+                                {
+                                    id: "collect-failed-capture",
+                                    label: "Retain failure-path XEL artifact",
+                                    kind: "activity" as const,
+                                    activityKind: "xevent.xel.collect",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        capture: "$nodes.stop-failed-capture.captureRef",
+                                    },
+                                },
+                            ]
+                          : []),
+                      ...(extractReleaseCandidate
+                          ? [
+                                {
+                                    id: "extract-release-candidate",
+                                    label: "Extract tested release-candidate DACPAC",
+                                    kind: "activity" as const,
+                                    activityKind: "dacpac.extract",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        databaseName:
+                                            "$nodes.provision-rehearsal-container.databaseName",
+                                    },
+                                },
+                            ]
+                          : []),
                       ...(rehearseRollback
                           ? [
                                 {
@@ -787,7 +1128,7 @@ export function compileDeterministicEfModelComparison(
                               database: "$nodes.provision-rehearsal-container.connectionRef",
                           },
                       },
-                  ]
+                  ] as CompiledProposal["nodes"])
                 : []),
             { id: "report", label: "Summarize Entity Framework changes", kind: "report" },
         ],
@@ -845,10 +1186,25 @@ export function compileDeterministicEfModelComparison(
                 ? [
                       {
                           from: "extract-base-dacpac",
-                          to: "approve-rehearsal-container",
+                          to: hasPerformanceValidation
+                              ? "inspect-workload"
+                              : "approve-rehearsal-container",
                       },
                       {
                           from: "extract-base-dacpac",
+                          to: "report",
+                          when: "failure" as const,
+                      },
+                  ]
+                : []),
+            ...(hasPerformanceValidation
+                ? [
+                      {
+                          from: "inspect-workload",
+                          to: "approve-rehearsal-container",
+                      },
+                      {
+                          from: "inspect-workload",
                           to: "report",
                           when: "failure" as const,
                       },
@@ -932,11 +1288,11 @@ export function compileDeterministicEfModelComparison(
                           from: "apply-forward-migration",
                           to: validateMigrationScope
                               ? "validate-forward-migration"
-                              : visualizeSchema
-                                ? "visualize-forward-schema"
-                                : rehearseRollback
-                                  ? "approve-rollback-migration"
-                                  : "dispose-rehearsal-container",
+                              : exportSchemaDelta
+                                ? "compare-forward-schema"
+                                : visualizeSchema
+                                  ? "visualize-forward-schema"
+                                  : postForwardSuccess,
                       },
                       {
                           from: "apply-forward-migration",
@@ -951,19 +1307,11 @@ export function compileDeterministicEfModelComparison(
                                         ? "compare-forward-schema"
                                         : visualizeSchema
                                           ? "visualize-forward-schema"
-                                          : rehearseRollback
-                                            ? "approve-rollback-migration"
-                                            : "dispose-rehearsal-container",
+                                          : postForwardSuccess,
                                 },
                                 {
                                     from: "validate-forward-migration",
-                                    to: exportSchemaDelta
-                                        ? "compare-forward-schema"
-                                        : visualizeSchema
-                                          ? "visualize-forward-schema"
-                                          : rehearseRollback
-                                            ? "approve-rollback-migration"
-                                            : "dispose-rehearsal-container",
+                                    to: postForwardFailure,
                                     when: "failure" as const,
                                 },
                             ]
@@ -974,17 +1322,11 @@ export function compileDeterministicEfModelComparison(
                                     from: "compare-forward-schema",
                                     to: visualizeSchema
                                         ? "visualize-forward-schema"
-                                        : rehearseRollback
-                                          ? "approve-rollback-migration"
-                                          : "dispose-rehearsal-container",
+                                        : postForwardSuccess,
                                 },
                                 {
                                     from: "compare-forward-schema",
-                                    to: visualizeSchema
-                                        ? "visualize-forward-schema"
-                                        : rehearseRollback
-                                          ? "approve-rollback-migration"
-                                          : "dispose-rehearsal-container",
+                                    to: postForwardFailure,
                                     when: "failure" as const,
                                 },
                             ]
@@ -993,15 +1335,175 @@ export function compileDeterministicEfModelComparison(
                           ? [
                                 {
                                     from: "visualize-forward-schema",
-                                    to: rehearseRollback
-                                        ? "approve-rollback-migration"
-                                        : "dispose-rehearsal-container",
+                                    to: postForwardSuccess,
                                 },
                                 {
                                     from: "visualize-forward-schema",
-                                    to: rehearseRollback
-                                        ? "approve-rollback-migration"
-                                        : "dispose-rehearsal-container",
+                                    to: postForwardFailure,
+                                    when: "failure" as const,
+                                },
+                            ]
+                          : []),
+                      ...(hasPerformanceValidation
+                          ? [
+                                {
+                                    from: "schema-fingerprint-before",
+                                    to: "snapshot-before",
+                                },
+                                {
+                                    from: "schema-fingerprint-before",
+                                    to: "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                                { from: "snapshot-before", to: "approve-capture" },
+                                {
+                                    from: "snapshot-before",
+                                    to: "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                                {
+                                    from: "approve-capture",
+                                    to: "start-capture",
+                                    when: "approved" as const,
+                                },
+                                {
+                                    from: "approve-capture",
+                                    to: "dispose-rehearsal-container",
+                                    when: "rejected" as const,
+                                },
+                                { from: "start-capture", to: "approve-workload" },
+                                {
+                                    from: "start-capture",
+                                    to: "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                                {
+                                    from: "approve-workload",
+                                    to: "run-workload",
+                                    when: "approved" as const,
+                                },
+                                {
+                                    from: "approve-workload",
+                                    to: "stop-failed-capture",
+                                    when: "rejected" as const,
+                                },
+                                { from: "run-workload", to: "stop-capture" },
+                                {
+                                    from: "run-workload",
+                                    to: "stop-failed-capture",
+                                    when: "failure" as const,
+                                },
+                                {
+                                    from: "stop-failed-capture",
+                                    to: "analyze-failed-capture",
+                                },
+                                {
+                                    from: "stop-failed-capture",
+                                    to: "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                                {
+                                    from: "analyze-failed-capture",
+                                    to: "collect-failed-capture",
+                                },
+                                {
+                                    from: "analyze-failed-capture",
+                                    to: "collect-failed-capture",
+                                    when: "failure" as const,
+                                },
+                                {
+                                    from: "collect-failed-capture",
+                                    to: "dispose-rehearsal-container",
+                                },
+                                {
+                                    from: "collect-failed-capture",
+                                    to: "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                                { from: "stop-capture", to: "schema-fingerprint-after" },
+                                {
+                                    from: "stop-capture",
+                                    to: "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                                {
+                                    from: "schema-fingerprint-after",
+                                    to: "snapshot-after",
+                                },
+                                {
+                                    from: "schema-fingerprint-after",
+                                    to: "analyze-incomplete-capture",
+                                    when: "failure" as const,
+                                },
+                                { from: "snapshot-after", to: "compare-snapshots" },
+                                {
+                                    from: "snapshot-after",
+                                    to: "analyze-incomplete-capture",
+                                    when: "failure" as const,
+                                },
+                                { from: "compare-snapshots", to: "analyze-capture" },
+                                {
+                                    from: "compare-snapshots",
+                                    to: "analyze-incomplete-capture",
+                                    when: "failure" as const,
+                                },
+                                {
+                                    from: "analyze-incomplete-capture",
+                                    to: "collect-incomplete-capture",
+                                },
+                                {
+                                    from: "analyze-incomplete-capture",
+                                    to: "collect-incomplete-capture",
+                                    when: "failure" as const,
+                                },
+                                {
+                                    from: "collect-incomplete-capture",
+                                    to: "dispose-rehearsal-container",
+                                },
+                                {
+                                    from: "collect-incomplete-capture",
+                                    to: "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                                { from: "analyze-capture", to: "collect-capture" },
+                                {
+                                    from: "analyze-capture",
+                                    to: "collect-incomplete-capture",
+                                    when: "failure" as const,
+                                },
+                                {
+                                    from: "collect-capture",
+                                    to: "summarize-performance",
+                                },
+                                {
+                                    from: "collect-capture",
+                                    to: "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                                {
+                                    from: "summarize-performance",
+                                    to: extractReleaseCandidate
+                                        ? "extract-release-candidate"
+                                        : rehearseRollback
+                                          ? "approve-rollback-migration"
+                                          : "dispose-rehearsal-container",
+                                },
+                                {
+                                    from: "summarize-performance",
+                                    to: "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                            ]
+                          : []),
+                      ...(extractReleaseCandidate
+                          ? [
+                                {
+                                    from: "extract-release-candidate",
+                                    to: postCandidateSuccess,
+                                },
+                                {
+                                    from: "extract-release-candidate",
+                                    to: "dispose-rehearsal-container",
                                     when: "failure" as const,
                                 },
                             ]
@@ -1798,6 +2300,24 @@ function extractDacpacSourceDatabaseName(intent: string): string | undefined {
         return undefined;
     }
     return value;
+}
+
+function extractWorkspaceSqlFile(intent: string): string | undefined {
+    const quoted = /["'`]([^"'`\r\n]{1,260}\.sql)["'`]/i.exec(intent)?.[1];
+    const unquoted =
+        /(?:^|[\s(])((?:[A-Za-z]:)?(?:[A-Za-z0-9_.@#$ -]+[\\/])+[A-Za-z0-9_.@#$ -]+\.sql)\b/i.exec(
+            intent,
+        )?.[1];
+    const candidate = (quoted ?? unquoted)?.trim();
+    if (!candidate || candidate.includes("..")) {
+        return undefined;
+    }
+    if (/^[A-Za-z]:[\\/]/.test(candidate) || /^[\\/]/.test(candidate)) {
+        return candidate;
+    }
+    const normalized = candidate.replace(/\\/g, "/");
+    const scriptsIndex = normalized.toLowerCase().lastIndexOf("scripts/");
+    return scriptsIndex >= 0 ? normalized.slice(scriptsIndex) : normalized;
 }
 
 function extractRepresentativeLoggingTable(

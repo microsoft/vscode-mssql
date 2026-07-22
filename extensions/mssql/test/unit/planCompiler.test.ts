@@ -472,6 +472,90 @@ suite("planCompiler", () => {
         expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
     });
 
+    test("a migrated staging clone composes workload evidence and candidate extraction", () => {
+        const intent =
+            "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
+            "clone the WideWorldImporters staging database through a DACPAC into a SQL Server 2025 container, " +
+            "apply it, compare and visualize the schema, run scripts/workload.sql with full DMV and XEvent " +
+            "performance analysis, and produce a release candidate DACPAC.";
+        const classified = classifyRunbookIntent(intent);
+        const rehearsalBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicEfModelComparison(rehearsalBase, intent);
+        if (!result || isProposalFailure(result)) {
+            throw new Error(result && isProposalFailure(result) ? result.detail : "no plan");
+        }
+
+        expect(result.artifact.lock?.nodes).to.have.length(43);
+        expect(result.artifact.source.parameters).to.deep.include({
+            id: "workloadFile",
+            label: "Workspace workload SQL file",
+            type: "string",
+            required: true,
+            default: "scripts/workload.sql",
+        });
+        expect(
+            result.artifact.lock?.nodes
+                .filter((node) =>
+                    [
+                        "sql.workload.inspect",
+                        "database.schema.fingerprint",
+                        "performance.dmv.snapshot",
+                        "performance.dmv.delta",
+                        "xevent.session.start",
+                        "sql.workload.run",
+                        "xevent.session.stop",
+                        "xevent.xel.analyze",
+                        "xevent.xel.collect",
+                        "workload.benchmark",
+                    ].includes(node.activityKind ?? ""),
+                )
+                .map((node) => node.id),
+        ).to.include.members([
+            "inspect-workload",
+            "schema-fingerprint-before",
+            "snapshot-before",
+            "start-capture",
+            "run-workload",
+            "stop-capture",
+            "schema-fingerprint-after",
+            "snapshot-after",
+            "compare-snapshots",
+            "analyze-capture",
+            "collect-capture",
+            "summarize-performance",
+        ]);
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "extract-release-candidate")
+                ?.inputs,
+        ).to.deep.equal({
+            database: "$nodes.provision-rehearsal-container.connectionRef",
+            databaseName: "$nodes.provision-rehearsal-container.databaseName",
+        });
+        expect(result.artifact.lock?.edges).to.deep.include.members([
+            { from: "summarize-performance", to: "extract-release-candidate" },
+            { from: "extract-release-candidate", to: "dispose-rehearsal-container" },
+            {
+                from: "run-workload",
+                to: "stop-failed-capture",
+                when: "failure",
+            },
+            { from: "collect-failed-capture", to: "dispose-rehearsal-container" },
+        ]);
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+
+        const candidate = result.artifact.lock!.nodes.find(
+            (node) => node.id === "extract-release-candidate",
+        )!;
+        candidate.inputs!.databaseName = "$params.sourceDatabaseName";
+        expect(validateLockAgainstCatalog(result.artifact.lock!).join(" ")).to.contain(
+            "must extract an owned-container candidate from the exact databaseName",
+        );
+    });
+
     test("a stop-before-rehearsal intent does not request migration application", () => {
         const classified = classifyRunbookIntent(
             "Compare Entity Framework changes, generate the migration DDL, analyze possible data loss, " +

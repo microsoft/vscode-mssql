@@ -1935,6 +1935,17 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                     `node '${node.id}' must inventory the same target as an upstream DACPAC deployment`,
                 );
             }
+            if (
+                descriptor.kind === "dacpac.extract" &&
+                node.target?.binding.source === "nodeOutput" &&
+                (!isOwnedDatabaseOutput(lock, node, "sql.container.provision") ||
+                    node.inputs?.databaseName !==
+                        `$nodes.${node.target.binding.nodeId}.databaseName`)
+            ) {
+                issues.push(
+                    `node '${node.id}' must extract an owned-container candidate from the exact databaseName produced by the same upstream sql.container.provision node`,
+                );
+            }
             if (descriptor.kind === "sql.workload.run" && !isWorkloadSourceOutput(lock, node)) {
                 issues.push(
                     `node '${node.id}' must bind workload and workloadDigest to the same upstream sql.workload.inspect or sql.workload.generate node`,

@@ -56,6 +56,7 @@ const BUILD_ACTIVITIES = [
     "xevent.xel.analyze",
     "xevent.xel.collect",
     "database.schema.fingerprint",
+    "workload.benchmark",
     "performance.dmv.snapshot",
     "performance.dmv.delta",
     "xevent.capture.reconcile",

@@ -1037,7 +1037,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     );
     const hasValidationWork = has(
         text,
-        /\b(sql tests?|database tests?|t-?sqlt|schema (drift|compare)|benchmark|regression|least privilege|effective access|security gate)\b/,
+        /\b(sql tests?|database tests?|t-?sqlt|schema (drift|compare)|benchmark|regression|performance analysis|dmvs?|xevents?|extended events?|least privilege|effective access|security gate)\b/,
     );
     const hasInvestigationWork = has(
         text,
@@ -1238,7 +1238,8 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         has(
             text,
             /\b(performance|latency|benchmark|regression|activity metrics?|server statistics)\b/,
-        )
+        ) ||
+        (requestsWorkload && requestsDmvSnapshot)
     ) {
         requested.add("workload.benchmark");
     }
