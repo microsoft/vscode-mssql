@@ -511,6 +511,11 @@
     <trans-unit id="++CODE++70e9cc5a50f7eb5ba95c18dffd367c22caeef8814be8188d6af4f5654a8fc728">
       <source xml:lang="en">Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)</source>
     </trans-unit>
+    <trans-unit id="++CODE++4e39b11d433ba17373dc5e2497bb32db20232d0fd311b86ae412a3d7403ade4d">
+      <source xml:lang="en">Applied the {0} migration with {1} reviewed operation(s).</source>
+      <note>{0} is forward or rollback
+{1} is the number of reviewed migration operations</note>
+    </trans-unit>
     <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
       <source xml:lang="en">Apply</source>
     </trans-unit>
@@ -3286,6 +3291,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f889729267bd3b6e2a0a503ad9228cced8a1d16ad04a3384dc6df5dc89d6ba4c">
       <source xml:lang="en">Entity Endpoints</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8b16f28f24e925c4790c6279d32587bbb7114580d06496c10872847edfd13ad2">
+      <source xml:lang="en">Entity Framework migration application was cancelled.</source>
     </trans-unit>
     <trans-unit id="++CODE++ff550b8dfbfdd5f34fcb412759d5f7a1bfc2f573acd5ae25c69eb659d25ef157">
       <source xml:lang="en">Entity Framework migration generation failed.</source>
@@ -9671,6 +9679,12 @@
     </trans-unit>
     <trans-unit id="++CODE++d1064c4be5501ba70e913c59b71239377d9787c3f9c7fc98b8fb2a378e96679b">
       <source xml:lang="en">The retained schema diagram is invalid or no longer supported.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a40cbc71f9c2155a0350ec01171d7495142cc1b55073f973f3d6c335f37b91da">
+      <source xml:lang="en">The reviewed Entity Framework migration artifact changed before execution.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5425744efe9ee73ccd1ce262be861e49a0ba330bf283ab1e6986e3d7db4c502f">
+      <source xml:lang="en">The reviewed Entity Framework migration could not be applied.</source>
     </trans-unit>
     <trans-unit id="++CODE++c7d829370bbb3bcf3ed575fa0340eb0fa89e3c5fea172b4421403e679e266ca1">
       <source xml:lang="en">The runbook default could not be saved. The selected view still applies to this run only.</source>

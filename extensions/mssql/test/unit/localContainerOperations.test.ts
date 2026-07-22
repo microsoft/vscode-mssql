@@ -9,6 +9,7 @@ import {
     isOwnedLocalSqlContainer,
     localSqlContainerLabels,
     localSqlContainerLeaseRef,
+    summarizeLocalSqlConnectionFailure,
     validateLocalSqlContainerIdentity,
     waitForLocalSqlContainerAuthentication,
 } from "../../src/runbookStudio/runtime/localContainerOperations";
@@ -130,5 +131,16 @@ suite("Runbook Studio local SQL container policy", () => {
             ),
         ).to.equal(false);
         expect(attempts).to.equal(0);
+    });
+
+    test("bounds provider connection failures and redacts credentials", () => {
+        const detail = summarizeLocalSqlConnectionFailure(
+            "System.IO.FileNotFoundException:\r\nFile name: 'Missing.dll'\r\n   at Hidden.Stack()",
+            `Server=localhost;Password=do-not-emit; ${"x".repeat(700)}`,
+        );
+
+        expect(detail).to.equal("System.IO.FileNotFoundException: File name: 'Missing.dll'");
+        expect(detail).not.to.contain("do-not-emit");
+        expect(detail!.length).to.be.at.most(512);
     });
 });

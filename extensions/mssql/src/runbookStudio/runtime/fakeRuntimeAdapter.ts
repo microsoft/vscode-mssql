@@ -932,6 +932,70 @@ function executeNode(
                 },
             };
         }
+        case "migration.apply": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const migration = resolveBind(node.inputs?.migration, parameterValues, nodeValues);
+            const manifestDigest = resolveBind(
+                node.inputs?.manifestDigest,
+                parameterValues,
+                nodeValues,
+            );
+            const forwardScriptDigest = resolveBind(
+                node.inputs?.forwardScriptDigest,
+                parameterValues,
+                nodeValues,
+            );
+            const rollbackScriptDigest = resolveBind(
+                node.inputs?.rollbackScriptDigest,
+                parameterValues,
+                nodeValues,
+            );
+            const direction = resolveBind(node.inputs?.direction, parameterValues, nodeValues);
+            if (
+                typeof database !== "string" ||
+                typeof migration !== "string" ||
+                typeof manifestDigest !== "string" ||
+                typeof forwardScriptDigest !== "string" ||
+                typeof rollbackScriptDigest !== "string" ||
+                (direction !== "forward" && direction !== "rollback")
+            ) {
+                return invalidPreviewBinding("migration.apply", "reviewed migration inputs");
+            }
+            const scriptSha256 =
+                direction === "forward" ? forwardScriptDigest : rollbackScriptDigest;
+            return {
+                success: true,
+                runMetrics: {
+                    "migration.applied": true,
+                    "migration.applyDirection": direction,
+                    "migration.applyDurationMs": 0,
+                    "migration.appliedOperationCount": 2,
+                },
+                message: `Applied ${direction} migration (deterministic preview)`,
+                output: {
+                    contract: "migrationExecution/1",
+                    scalars: {
+                        applied: true,
+                        direction,
+                        manifestSha256: manifestDigest,
+                        scriptSha256,
+                        operationCount: 2,
+                        potentialDataLoss: false,
+                        rollbackCompleteness: "complete",
+                        durationMs: 0,
+                        preview: true,
+                    },
+                },
+                values: {
+                    applied: true,
+                    direction,
+                    manifestSha256: manifestDigest,
+                    scriptSha256,
+                    operationCount: 2,
+                    durationMs: 0,
+                },
+            };
+        }
         case "git.change-set.inspect": {
             const repository = resolveBind(node.inputs?.repository, parameterValues, nodeValues);
             const baseRef = resolveBind(node.inputs?.baseRef, parameterValues, nodeValues);

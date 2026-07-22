@@ -107,6 +107,19 @@ export interface LocalEfMigrationExecutionResult {
     rollbackScriptSizeBytes: number;
 }
 
+export interface LocalEfMigrationApplyResult {
+    effectId: string;
+    applied: true;
+    direction: "forward" | "rollback";
+    manifestSha256: string;
+    scriptSha256: string;
+    operationCount: number;
+    potentialDataLoss: boolean;
+    rollbackCompleteness: "complete" | "schemaOnly";
+    durationMs: number;
+    completedAtUtc: string;
+}
+
 export { isReadOnlySql } from "../readOnlySql";
 
 /** Injected host operations (real implementations wire ConnectionManager +
@@ -153,6 +166,18 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalEfMigrationExecutionResult>;
+    applyEfMigration(
+        nodeId: string,
+        databaseRef: string,
+        migrationRef: string,
+        manifestDigest: string,
+        forwardScriptDigest: string,
+        rollbackScriptDigest: string,
+        direction: "forward" | "rollback",
+        timeoutSeconds: number,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEfMigrationApplyResult>;
     inspectGitChangeSet(
         nodeId: string,
         repository: string,
@@ -657,6 +682,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "ef.relational-model.compare",
         "migration.data-loss.analyze",
         "migration.script.generate",
+        "migration.apply",
         "sqltest.discover",
         "tsqlt.run",
         "dacpac.build",
@@ -717,6 +743,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.analyzeEfMigrationRisk(node, binding);
             case "migration.script.generate":
                 return this.generateEfMigration(node, binding);
+            case "migration.apply":
+                return this.applyEfMigration(node, binding);
             case "sqltest.discover":
                 return this.discoverSqlTests(binding);
             case "tsqlt.run":
@@ -1240,6 +1268,90 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     operationCount: result.manifest.operations.length,
                     potentialDataLoss: result.manifest.potentialDataLoss,
                     rollbackCompleteness: result.manifest.rollbackCompleteness,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async applyEfMigration(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        const migrationRef = binding.resolveBind(node.inputs?.migration);
+        const manifestDigest = binding.resolveBind(node.inputs?.manifestDigest);
+        const forwardScriptDigest = binding.resolveBind(node.inputs?.forwardScriptDigest);
+        const rollbackScriptDigest = binding.resolveBind(node.inputs?.rollbackScriptDigest);
+        const direction = binding.resolveBind(node.inputs?.direction);
+        const timeoutValue = binding.resolveBind(node.inputs?.timeoutSeconds);
+        for (const [name, value] of Object.entries({
+            database: databaseRef,
+            migration: migrationRef,
+            manifestDigest,
+            forwardScriptDigest,
+            rollbackScriptDigest,
+        })) {
+            if (typeof value !== "string" || value.trim().length === 0) {
+                return invalidBinding(name);
+            }
+        }
+        if (direction !== "forward" && direction !== "rollback") {
+            return invalidBinding("direction");
+        }
+        const timeoutSeconds = timeoutValue === undefined ? 300 : timeoutValue;
+        if (
+            typeof timeoutSeconds !== "number" ||
+            !Number.isSafeInteger(timeoutSeconds) ||
+            timeoutSeconds < 1 ||
+            timeoutSeconds > 3600
+        ) {
+            return invalidBinding("timeoutSeconds");
+        }
+        try {
+            const result = await this.operations.applyEfMigration(
+                node.id,
+                databaseRef as string,
+                migrationRef as string,
+                manifestDigest as string,
+                forwardScriptDigest as string,
+                rollbackScriptDigest as string,
+                direction,
+                timeoutSeconds,
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "migration.applied": true,
+                    "migration.applyDirection": result.direction,
+                    "migration.applyDurationMs": result.durationMs,
+                    "migration.appliedOperationCount": result.operationCount,
+                },
+                message: LocRunbookStudio.efMigrationApplied(
+                    result.direction,
+                    result.operationCount,
+                ),
+                output: {
+                    contract: "migrationExecution/1",
+                    scalars: {
+                        ...result,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    applied: result.applied,
+                    direction: result.direction,
+                    manifestSha256: result.manifestSha256,
+                    scriptSha256: result.scriptSha256,
+                    operationCount: result.operationCount,
+                    durationMs: result.durationMs,
                 },
             };
         } catch (error) {

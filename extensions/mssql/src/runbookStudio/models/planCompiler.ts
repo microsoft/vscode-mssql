@@ -289,27 +289,51 @@ export function compileDeterministicEfModelComparison(
     const required = base.source.requirements?.activities.map((activity) => activity.kind) ?? [];
     const requestedMigrationRisk = required.includes("migration.data-loss.analyze");
     const generateMigration = required.includes("migration.script.generate");
+    const applyMigration = required.includes("migration.apply");
+    const provisionContainer = required.includes("sql.container.provision");
+    const disposeContainer = required.includes("sql.container.dispose");
+    const visualizeSchema = required.includes("database.schema.visualize");
+    const rehearseRollback = applyMigration && /\b(roll(?:\s+it)?\s+back|rollback)\b/i.test(intent);
     const analyzeMigrationRisk = requestedMigrationRisk || generateMigration;
+    const optionalRehearsalActivities = new Set([
+        "migration.apply",
+        "sql.container.provision",
+        "sql.container.dispose",
+        "database.schema.visualize",
+    ]);
     if (
         required.length !==
             DETERMINISTIC_EF_COMPARISON_ACTIVITIES.size +
                 (requestedMigrationRisk ? 1 : 0) +
-                (generateMigration ? 1 : 0) ||
+                (generateMigration ? 1 : 0) +
+                (applyMigration ? 1 : 0) +
+                (provisionContainer ? 1 : 0) +
+                (disposeContainer ? 1 : 0) +
+                (visualizeSchema ? 1 : 0) ||
         !required.every(
             (kind) =>
                 DETERMINISTIC_EF_COMPARISON_ACTIVITIES.has(kind) ||
                 kind === "migration.data-loss.analyze" ||
-                kind === "migration.script.generate",
+                kind === "migration.script.generate" ||
+                optionalRehearsalActivities.has(kind),
         ) ||
+        (applyMigration &&
+            (!generateMigration ||
+                !requestedMigrationRisk ||
+                !provisionContainer ||
+                !disposeContainer)) ||
+        (visualizeSchema && !applyMigration) ||
         !/\b(entity\s*framework|entityframework|ef\s*core|dbcontext|entities)\b/i.test(intent)
     ) {
         return undefined;
     }
     const proposal: CompiledProposal = {
         name: "Entity Framework model comparison",
-        description: generateMigration
-            ? "Captures two approved exact Entity Framework revisions, analyzes their semantic risk, and generates reviewed forward/rollback SQL artifacts without applying them."
-            : "Captures the source change set, restores and builds two approved exact revisions, and reports their semantic SQL Server relational-model changes and requested factual migration risk without generating or applying DDL.",
+        description: applyMigration
+            ? "Captures two approved exact Entity Framework revisions, generates reviewed forward/rollback SQL, and rehearses the exact approved digest only in an owned disposable SQL container."
+            : generateMigration
+              ? "Captures two approved exact Entity Framework revisions, analyzes their semantic risk, and generates reviewed forward/rollback SQL artifacts without applying them."
+              : "Captures the source change set, restores and builds two approved exact revisions, and reports their semantic SQL Server relational-model changes and requested factual migration risk without generating or applying DDL.",
         parameters: [
             {
                 id: "repository",
@@ -351,6 +375,45 @@ export function compileDeterministicEfModelComparison(
                           type: "string" as const,
                           required: true,
                           default: "[]",
+                      },
+                  ]
+                : []),
+            ...(applyMigration
+                ? [
+                      {
+                          id: "containerName",
+                          label: "Owned rehearsal container name",
+                          type: "string" as const,
+                          required: true,
+                          default: "rbs-ef-migration-rehearsal",
+                      },
+                      {
+                          id: "databaseName",
+                          label: "Rehearsal database name",
+                          type: "string" as const,
+                          required: true,
+                          default: "RunbookEfRehearsal",
+                      },
+                      {
+                          id: "sqlVersion",
+                          label: "SQL Server version",
+                          type: "enum" as const,
+                          required: true,
+                          default: "2025",
+                          enumValues: ["2019", "2022", "2025"],
+                      },
+                      {
+                          id: "saPassword",
+                          label: "Container SA password",
+                          type: "secret" as const,
+                          required: true,
+                      },
+                      {
+                          id: "migrationTimeoutSeconds",
+                          label: "Migration timeout (seconds)",
+                          type: "int" as const,
+                          required: true,
+                          default: 300,
                       },
                   ]
                 : []),
@@ -450,6 +513,112 @@ export function compileDeterministicEfModelComparison(
                       },
                   ]
                 : []),
+            ...(applyMigration
+                ? [
+                      {
+                          id: "approve-rehearsal-container",
+                          label: "Approve owned SQL container provisioning",
+                          kind: "gate" as const,
+                      },
+                      {
+                          id: "provision-rehearsal-container",
+                          label: "Provision owned SQL rehearsal container",
+                          kind: "activity" as const,
+                          activityKind: "sql.container.provision",
+                          inputs: {
+                              containerName: "$params.containerName",
+                              databaseName: "$params.databaseName",
+                              version: "$params.sqlVersion",
+                              password: "$params.saPassword",
+                          },
+                      },
+                      {
+                          id: "approve-forward-migration",
+                          label: "Approve exact forward migration digest",
+                          kind: "gate" as const,
+                      },
+                      {
+                          id: "apply-forward-migration",
+                          label: "Apply reviewed forward migration",
+                          kind: "activity" as const,
+                          activityKind: "migration.apply",
+                          inputs: {
+                              database: "$nodes.provision-rehearsal-container.connectionRef",
+                              migration: "$nodes.generate-migration.migrationRef",
+                              manifestDigest: "$nodes.generate-migration.manifestSha256",
+                              forwardScriptDigest: "$nodes.generate-migration.forwardScriptSha256",
+                              rollbackScriptDigest:
+                                  "$nodes.generate-migration.rollbackScriptSha256",
+                              direction: "forward",
+                              timeoutSeconds: "$params.migrationTimeoutSeconds",
+                          },
+                      },
+                      ...(visualizeSchema
+                          ? [
+                                {
+                                    id: "visualize-forward-schema",
+                                    label: "Visualize schema after forward migration",
+                                    kind: "activity" as const,
+                                    activityKind: "database.schema.visualize",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                    },
+                                },
+                            ]
+                          : []),
+                      ...(rehearseRollback
+                          ? [
+                                {
+                                    id: "approve-rollback-migration",
+                                    label: "Approve exact rollback migration digest",
+                                    kind: "gate" as const,
+                                },
+                                {
+                                    id: "apply-rollback-migration",
+                                    label: "Apply reviewed rollback migration",
+                                    kind: "activity" as const,
+                                    activityKind: "migration.apply",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        migration: "$nodes.generate-migration.migrationRef",
+                                        manifestDigest: "$nodes.generate-migration.manifestSha256",
+                                        forwardScriptDigest:
+                                            "$nodes.generate-migration.forwardScriptSha256",
+                                        rollbackScriptDigest:
+                                            "$nodes.generate-migration.rollbackScriptSha256",
+                                        direction: "rollback",
+                                        timeoutSeconds: "$params.migrationTimeoutSeconds",
+                                    },
+                                },
+                                ...(visualizeSchema
+                                    ? [
+                                          {
+                                              id: "visualize-rollback-schema",
+                                              label: "Visualize schema after rollback",
+                                              kind: "activity" as const,
+                                              activityKind: "database.schema.visualize",
+                                              inputs: {
+                                                  database:
+                                                      "$nodes.provision-rehearsal-container.connectionRef",
+                                              },
+                                          },
+                                      ]
+                                    : []),
+                            ]
+                          : []),
+                      {
+                          id: "dispose-rehearsal-container",
+                          label: "Dispose owned SQL rehearsal container",
+                          kind: "activity" as const,
+                          activityKind: "sql.container.dispose",
+                          inputs: {
+                              database: "$nodes.provision-rehearsal-container.connectionRef",
+                          },
+                      },
+                  ]
+                : []),
             { id: "report", label: "Summarize Entity Framework changes", kind: "report" },
         ],
         edges: [
@@ -491,8 +660,120 @@ export function compileDeterministicEfModelComparison(
                           to: "report",
                           when: "rejected" as const,
                       },
-                      { from: "generate-migration", to: "report" },
+                      {
+                          from: "generate-migration",
+                          to: applyMigration ? "approve-rehearsal-container" : "report",
+                      },
                       { from: "generate-migration", to: "report", when: "failure" as const },
+                  ]
+                : []),
+            ...(applyMigration
+                ? [
+                      {
+                          from: "approve-rehearsal-container",
+                          to: "provision-rehearsal-container",
+                          when: "approved" as const,
+                      },
+                      {
+                          from: "approve-rehearsal-container",
+                          to: "report",
+                          when: "rejected" as const,
+                      },
+                      {
+                          from: "provision-rehearsal-container",
+                          to: "approve-forward-migration",
+                      },
+                      {
+                          from: "provision-rehearsal-container",
+                          to: "report",
+                          when: "failure" as const,
+                      },
+                      {
+                          from: "approve-forward-migration",
+                          to: "apply-forward-migration",
+                          when: "approved" as const,
+                      },
+                      {
+                          from: "approve-forward-migration",
+                          to: "dispose-rehearsal-container",
+                          when: "rejected" as const,
+                      },
+                      {
+                          from: "apply-forward-migration",
+                          to: visualizeSchema
+                              ? "visualize-forward-schema"
+                              : rehearseRollback
+                                ? "approve-rollback-migration"
+                                : "dispose-rehearsal-container",
+                      },
+                      {
+                          from: "apply-forward-migration",
+                          to: "dispose-rehearsal-container",
+                          when: "failure" as const,
+                      },
+                      ...(visualizeSchema
+                          ? [
+                                {
+                                    from: "visualize-forward-schema",
+                                    to: rehearseRollback
+                                        ? "approve-rollback-migration"
+                                        : "dispose-rehearsal-container",
+                                },
+                                {
+                                    from: "visualize-forward-schema",
+                                    to: rehearseRollback
+                                        ? "approve-rollback-migration"
+                                        : "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                            ]
+                          : []),
+                      ...(rehearseRollback
+                          ? [
+                                {
+                                    from: "approve-rollback-migration",
+                                    to: "apply-rollback-migration",
+                                    when: "approved" as const,
+                                },
+                                {
+                                    from: "approve-rollback-migration",
+                                    to: "dispose-rehearsal-container",
+                                    when: "rejected" as const,
+                                },
+                                {
+                                    from: "apply-rollback-migration",
+                                    to: visualizeSchema
+                                        ? "visualize-rollback-schema"
+                                        : "dispose-rehearsal-container",
+                                },
+                                {
+                                    from: "apply-rollback-migration",
+                                    to: visualizeSchema
+                                        ? "visualize-rollback-schema"
+                                        : "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                                ...(visualizeSchema
+                                    ? [
+                                          {
+                                              from: "visualize-rollback-schema",
+                                              to: "dispose-rehearsal-container",
+                                          },
+                                          {
+                                              from: "visualize-rollback-schema",
+                                              to: "dispose-rehearsal-container",
+                                              when: "failure" as const,
+                                          },
+                                      ]
+                                    : []),
+                            ]
+                          : []),
+                      { from: "dispose-rehearsal-container", to: "report" },
+                      {
+                          from: "dispose-rehearsal-container",
+                          to: "report",
+                          when: "failure" as const,
+                      },
                   ]
                 : []),
         ],

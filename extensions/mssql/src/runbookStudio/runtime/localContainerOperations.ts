@@ -16,6 +16,7 @@ export const RUNBOOK_CONTAINER_KIND = "sql-development-environment";
 const CONTAINER_LEASE_PREFIX = "runbook-sql-container-lease:";
 const ALLOWED_SQL_CONTAINER_VERSIONS = new Set(["2019", "2022", "2025"]);
 export const LOCAL_SQL_CONTAINER_AUTH_TIMEOUT_MS = 60_000;
+const LOCAL_SQL_CONNECTION_DETAIL_LIMIT = 512;
 
 export interface LocalSqlContainerIdentity {
     containerName: string;
@@ -130,6 +131,31 @@ export async function waitForLocalSqlContainerAuthentication(
         await wait(Math.min(retryDelayMs, Math.max(1, deadline - now())));
     }
     return false;
+}
+
+/** Keeps provider failures useful in the run log without copying an
+ * unbounded stack trace or connection-string credential into user-facing
+ * evidence. */
+export function summarizeLocalSqlConnectionFailure(
+    errorMessage: string | undefined,
+    providerMessages: string | undefined,
+): string | undefined {
+    const lines = [errorMessage, providerMessages]
+        .flatMap((value) => (value ?? "").split(/\r?\n/u))
+        .map((line) => line.trim())
+        .filter((line) => line.length > 0 && !/^at\s/u.test(line))
+        .slice(0, 2);
+    if (lines.length === 0) {
+        return undefined;
+    }
+    const safe = lines
+        .join(" ")
+        .replace(/\b(?:password|pwd)\s*=\s*[^;\s]*/giu, "credential=<redacted>")
+        .replace(/\s+/gu, " ")
+        .trim();
+    return safe.length > LOCAL_SQL_CONNECTION_DETAIL_LIMIT
+        ? `${safe.slice(0, LOCAL_SQL_CONNECTION_DETAIL_LIMIT - 1)}…`
+        : safe;
 }
 
 function assertEffectId(effectId: string): void {

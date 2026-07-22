@@ -161,6 +161,15 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         providerRequirement: "execution",
         outputContract: "migrationManifest/1",
     },
+    "migration.apply": {
+        target: "ephemeralSqlDatabase",
+        effect: "mutate",
+        approvalRequired: true,
+        connectionRequirement: "provisioned",
+        rollbackContract: "required",
+        providerRequirement: "execution",
+        outputContract: "migrationExecution/1",
+    },
     "migration.data-loss.analyze": {
         target: "workspace",
         effect: "read",
@@ -480,6 +489,11 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         description:
             "Turn the exact semantic model delta and explicit rename decisions into validated forward and rollback evidence.",
     },
+    "migration.apply": {
+        label: "Apply the reviewed migration in the owned container",
+        description:
+            "Execute only the approved migration digest against the same-run disposable SQL target.",
+    },
     "migration.data-loss.analyze": {
         label: "Analyze migration data-loss risk",
         description:
@@ -699,6 +713,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "ef.relational-model.compare",
         "migration.data-loss.analyze",
         "migration.script.generate",
+        "migration.apply",
         "workspace.inspect",
         "sqltest.discover",
         "dbproject.create",
@@ -745,6 +760,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "ef.relational-model.compare",
         "migration.data-loss.analyze",
         "migration.script.generate",
+        "migration.apply",
         "workspace.inspect",
         "sqltest.discover",
         "dacpac.build",
@@ -820,6 +836,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "ef.relational-model.compare",
         "migration.data-loss.analyze",
         "migration.script.generate",
+        "migration.apply",
         "workspace.inspect",
         "sqltest.discover",
         "dbproject.create",
@@ -918,6 +935,16 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     const requestsMigrationGeneration =
         requestsEfModelChange &&
         has(text, /\b(ddl|migration|create|alter|drop|update the database)\b/);
+    const requestsMigrationApplication =
+        requestsMigrationGeneration &&
+        has(
+            text,
+            /\b(apply|execute|run|rehears(?:e|al|ing|ed))\b.{0,60}\b(migration|ddl|schema script)\b|\b(migration|ddl|schema script)\b.{0,60}\b(apply|execute|run|rehears(?:e|al|ing|ed))\b|\bapply\s+(it|the\s+(generated\s+)?(script|changes?))\b|\brehears(?:e|al|ing|ed)\b/,
+        ) &&
+        !has(
+            text,
+            /\b(stop|pause)\b.{0,60}\bbefore\b.{0,30}\b(rehears|apply)|\b(do not|don't|without)\b.{0,30}\b(apply|execute|run|rehears)/,
+        );
     const requestsMigrationRiskAnalysis = has(
         text,
         /\b(data[\s-]+loss|destructive migration|narrow(?:s|ing|ed)?\b.{0,35}\bcolumn|drop(?:s|ping|ped)?\b.{0,35}\btable)\b/,
@@ -990,7 +1017,9 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         text,
         /\b(investigate|diagnos(e|is)|root cause|why|blocking|deadlock|database health)\b/,
     );
-    const isBuild = !isPreMerge && hasBuildWork;
+    const isBuild =
+        !isPreMerge &&
+        (hasBuildWork || requestsMigrationGeneration || requestsMigrationApplication);
     const isValidate =
         isPreMerge ||
         has(
@@ -1016,6 +1045,9 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     }
     if (requestsMigrationGeneration) {
         requested.add("migration.script.generate");
+    }
+    if (requestsMigrationApplication) {
+        requested.add("migration.apply");
     }
     // Script generation consumes the factual risk document even when the
     // author did not spell out "data loss". Keep the declared capability
@@ -1045,7 +1077,10 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     }
 
     if (family === "build" || family === "composed") {
-        if ((!requestsDacpacExtraction && !requestsExistingDacpac) || requestsProjectAuthoring) {
+        if (
+            (!requestsDacpacExtraction && !requestsExistingDacpac && !requestsEfModelChange) ||
+            requestsProjectAuthoring
+        ) {
             requested.add("workspace.inspect");
         }
         if (
@@ -1079,7 +1114,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     ) {
         requested.add("dacpac.build");
     }
-    if (requestsContainer || requestsGeneratedWorkload) {
+    if (requestsContainer || requestsGeneratedWorkload || requestsMigrationApplication) {
         requested.add("sql.container.provision");
         requested.add("sql.container.dispose");
     } else if (has(text, /\b(provision|sandbox|scratch|isolated|ephemeral|local target)\b/)) {

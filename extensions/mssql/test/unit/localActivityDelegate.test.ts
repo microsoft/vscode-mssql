@@ -153,6 +153,26 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
                 rollbackScriptSizeBytes: proposal.rollbackSql.length,
             };
         },
+        applyEfMigration: async (
+            _nodeId,
+            _databaseRef,
+            _migrationRef,
+            manifestDigest,
+            forwardScriptDigest,
+            rollbackScriptDigest,
+            direction,
+        ) => ({
+            effectId: "effect-migration-apply",
+            applied: true,
+            direction,
+            manifestSha256: manifestDigest,
+            scriptSha256: direction === "forward" ? forwardScriptDigest : rollbackScriptDigest,
+            operationCount: 2,
+            potentialDataLoss: false,
+            rollbackCompleteness: "complete",
+            durationMs: 25,
+            completedAtUtc: "2026-07-22T12:00:00.000Z",
+        }),
         capturePerformanceSnapshot: async () => ({
             snapshotRef: "runbook-performance-snapshot:before",
             capturedAtUtc: "2026-07-22T08:00:00.000Z",
@@ -808,6 +828,36 @@ suite("Runbook Studio local activity delegate", () => {
         });
         expect(JSON.stringify(result?.output)).not.to.contain("migration-forward.sql");
         expect(JSON.stringify(result?.output)).not.to.contain("migration-rollback.sql");
+    });
+
+    test("migration application emits digest-bound execution evidence", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+
+        const result = await delegate.executeActivity(
+            activity("migration.apply", {
+                database: "runbook-sql-container-lease:owned",
+                migration: "runbook-ef-migration:run-1",
+                manifestDigest: "a".repeat(64),
+                forwardScriptDigest: "b".repeat(64),
+                rollbackScriptDigest: "c".repeat(64),
+                direction: "forward",
+                timeoutSeconds: 300,
+            }),
+            binding(),
+        );
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("migrationExecution/1");
+        expect(result?.output?.scalars).to.deep.include({
+            applied: true,
+            direction: "forward",
+            manifestSha256: "a".repeat(64),
+            scriptSha256: "b".repeat(64),
+            operationCount: 2,
+            durationMs: 25,
+            executionMode: "local",
+        });
+        expect(JSON.stringify(result?.output)).not.to.match(/\b(?:CREATE|ALTER|DROP)\s/i);
     });
 
     test("repository test discovery emits bounded typed rows and completeness", async () => {
@@ -1931,6 +1981,7 @@ suite("Runbook Studio local activity delegate", () => {
             "ef.relational-model.compare",
             "migration.data-loss.analyze",
             "migration.script.generate",
+            "migration.apply",
             "sqltest.discover",
             "tsqlt.run",
             "dacpac.build",

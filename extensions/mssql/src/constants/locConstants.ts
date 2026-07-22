@@ -398,6 +398,24 @@ export class RunbookStudio {
             args: [operationCount, rollbackStatus],
             comment: ["{0} is an operation count", "{1} is complete or schemaOnly"],
         });
+    public static efMigrationApplied = (direction: string, operationCount: number) =>
+        l10n.t({
+            message: "Applied the {0} migration with {1} reviewed operation(s).",
+            args: [direction, operationCount],
+            comment: [
+                "{0} is forward or rollback",
+                "{1} is the number of reviewed migration operations",
+            ],
+        });
+    public static efMigrationApplyCancelled = l10n.t(
+        "Entity Framework migration application was cancelled.",
+    );
+    public static efMigrationApplyFailed = l10n.t(
+        "The reviewed Entity Framework migration could not be applied.",
+    );
+    public static efMigrationApplyArtifactChanged = l10n.t(
+        "The reviewed Entity Framework migration artifact changed before execution.",
+    );
     public static efMigrationGenerationCancelled = l10n.t(
         "Entity Framework migration generation was cancelled.",
     );

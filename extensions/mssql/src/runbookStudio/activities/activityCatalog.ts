@@ -359,6 +359,76 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "migration.apply",
+        version: 1,
+        label: "Apply reviewed migration to owned container",
+        description:
+            "Executes the exact digest-bound forward or rollback script from a same-run migration artifact only against a same-run ownership-verified disposable SQL container.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to sql.container.provision connectionRef",
+            },
+            {
+                name: "migration",
+                kind: "bind",
+                required: true,
+                description: "Bind to migration.script.generate migrationRef",
+            },
+            {
+                name: "manifestDigest",
+                kind: "bind",
+                required: true,
+                description: "Bind to migration.script.generate manifestSha256",
+            },
+            {
+                name: "forwardScriptDigest",
+                kind: "bind",
+                required: true,
+                description: "Bind to migration.script.generate forwardScriptSha256",
+            },
+            {
+                name: "rollbackScriptDigest",
+                kind: "bind",
+                required: true,
+                description: "Bind to migration.script.generate rollbackScriptSha256",
+            },
+            {
+                name: "direction",
+                kind: "bind",
+                required: true,
+                description: "Exact direction: forward or rollback",
+            },
+            {
+                name: "timeoutSeconds",
+                kind: "bind",
+                required: false,
+                description: "Execution timeout from 1 to 3600 seconds (default 300)",
+            },
+        ],
+        outputContract: "migrationExecution/1",
+        producedValues: [
+            "applied",
+            "direction",
+            "manifestSha256",
+            "scriptSha256",
+            "operationCount",
+            "durationMs",
+        ],
+        approvalRequired: true,
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseSchema",
+            operation: "modify",
+            targetEnvironment: "ephemeral",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+            dataSensitivity: "internal",
+        },
+    },
+    {
         kind: "sqltest.discover",
         version: 1,
         label: "Discover repository SQL tests",
@@ -1777,6 +1847,7 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                     descriptor.kind === "database.schema.fingerprint" ||
                     descriptor.kind === "performance.dmv.snapshot" ||
                     descriptor.kind === "performance.dmv.delta" ||
+                    descriptor.kind === "migration.apply" ||
                     descriptor.kind === "sql.container.dispose";
                 const producerKind = containerActivity
                     ? "sql.container.provision"
@@ -1941,6 +2012,41 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
             ) {
                 issues.push(
                     `node '${node.id}' must bind upstream EF diff and migration-risk handles`,
+                );
+            }
+            if (
+                descriptor.kind === "migration.apply" &&
+                (!isUpstreamActivityOutput(
+                    lock,
+                    node,
+                    "migration",
+                    "migrationRef",
+                    "migration.script.generate",
+                ) ||
+                    !isUpstreamActivityOutput(
+                        lock,
+                        node,
+                        "manifestDigest",
+                        "manifestSha256",
+                        "migration.script.generate",
+                    ) ||
+                    !isUpstreamActivityOutput(
+                        lock,
+                        node,
+                        "forwardScriptDigest",
+                        "forwardScriptSha256",
+                        "migration.script.generate",
+                    ) ||
+                    !isUpstreamActivityOutput(
+                        lock,
+                        node,
+                        "rollbackScriptDigest",
+                        "rollbackScriptSha256",
+                        "migration.script.generate",
+                    ))
+            ) {
+                issues.push(
+                    `node '${node.id}' must bind one upstream migration reference and all reviewed digests`,
                 );
             }
         }

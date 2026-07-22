@@ -225,6 +225,16 @@
         "message": "Generated {0} reviewed migration operation(s); rollback evidence is {1}.",
         "comment": ["{0} is an operation count", "{1} is complete or schemaOnly"]
     },
+    "Applied the {0} migration with {1} reviewed operation(s)./{0} is forward or rollback{1} is the number of reviewed migration operations": {
+        "message": "Applied the {0} migration with {1} reviewed operation(s).",
+        "comment": [
+            "{0} is forward or rollback",
+            "{1} is the number of reviewed migration operations"
+        ]
+    },
+    "Entity Framework migration application was cancelled.": "Entity Framework migration application was cancelled.",
+    "The reviewed Entity Framework migration could not be applied.": "The reviewed Entity Framework migration could not be applied.",
+    "The reviewed Entity Framework migration artifact changed before execution.": "The reviewed Entity Framework migration artifact changed before execution.",
     "Entity Framework migration generation was cancelled.": "Entity Framework migration generation was cancelled.",
     "The Entity Framework migration inputs do not belong to this run or were changed.": "The Entity Framework migration inputs do not belong to this run or were changed.",
     "Choose Rename or Drop and add for every Entity Framework rename candidate before generating migration SQL.": "Choose Rename or Drop and add for every Entity Framework rename candidate before generating migration SQL.",

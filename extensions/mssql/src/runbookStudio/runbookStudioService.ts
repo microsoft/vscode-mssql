@@ -104,6 +104,7 @@ import {
     LocalDacpacDeploymentResult,
     LocalDacpacExtractionResult,
     LocalDevelopmentDatabaseLeaseResult,
+    LocalEfMigrationApplyResult,
     LocalEfMigrationExecutionResult,
     LocalEfRelationalDiffExecutionResult,
     LocalEfMigrationRiskExecutionResult,
@@ -164,6 +165,7 @@ import {
     isOwnedLocalSqlContainer,
     localSqlContainerLabels,
     localSqlContainerLeaseRef,
+    summarizeLocalSqlConnectionFailure,
     validateLocalSqlContainerIdentity,
     waitForLocalSqlContainerAuthentication,
 } from "./runtime/localContainerOperations";
@@ -2617,6 +2619,30 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             invocation,
                             cancelled,
                         ),
+                    applyEfMigration: (
+                        nodeId,
+                        databaseRef,
+                        migrationRef,
+                        manifestDigest,
+                        forwardScriptDigest,
+                        rollbackScriptDigest,
+                        direction,
+                        timeoutSeconds,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.applyLocalEfMigration(
+                            nodeId,
+                            databaseRef,
+                            migrationRef,
+                            manifestDigest,
+                            forwardScriptDigest,
+                            rollbackScriptDigest,
+                            direction,
+                            timeoutSeconds,
+                            invocation,
+                            cancelled,
+                        ),
                     inspectGitChangeSet: (
                         nodeId,
                         repository,
@@ -3353,14 +3379,19 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         });
 
         const masterProfile = {
-            server: constants.localhost,
+            // Match the canonical SQL Server endpoint spelling used by the
+            // local-container UI while retaining the numeric port for profile
+            // consumers that keep it as a separate field.
+            server: `${constants.localhost},${identity.port}`,
             port: identity.port,
             database: "master",
             authenticationType: constants.sqlAuthentication,
             user: constants.sa,
             password,
             trustServerCertificate: true,
-            encrypt: "mandatory",
+            // STS treats the string enum as case-sensitive. Match the
+            // canonical EncryptOptions spelling used by saved profiles.
+            encrypt: "Mandatory",
         } as mssql.IConnectionInfo;
         this.containerLeaseProfiles.set(effectId, {
             profile: { ...masterProfile, database: identity.databaseName },
@@ -3433,13 +3464,24 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             sandboxCounter++;
             const ownerUri = `runbookstudio://container-provision/${sandboxCounter.toString(36)}`;
             let connected = false;
+            let connectionFailureDetail = "";
             try {
                 connected = await waitForLocalSqlContainerAuthentication(
-                    () =>
-                        connectionManager.connect(ownerUri, masterProfile, {
+                    async () => {
+                        const result = await connectionManager.connect(ownerUri, masterProfile, {
                             connectionSource: "runbookStudio",
                             shouldHandleErrors: false,
-                        }),
+                        });
+                        if (!result) {
+                            const failed = connectionManager.getConnectionInfo(ownerUri);
+                            connectionFailureDetail =
+                                summarizeLocalSqlConnectionFailure(
+                                    failed?.errorMessage,
+                                    failed?.messages,
+                                ) ?? "";
+                        }
+                        return result;
+                    },
                     async () => {
                         await connectionManager.disconnect(ownerUri);
                     },
@@ -3449,7 +3491,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     throw new LocalActivityError(
                         isCancellationRequested()
                             ? LocRunbookStudio.dacpacPreviewCancelled
-                            : LocRunbookStudio.connectFailed,
+                            : `${LocRunbookStudio.connectFailed}${connectionFailureDetail ? ` ${connectionFailureDetail}` : ""}`,
                         isCancellationRequested()
                             ? "RunbookStudio.ActivityCancelled"
                             : "RunbookStudio.ActivityFailed",
@@ -6786,6 +6828,229 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         fs.promises.rm(artifactPath, { force: true }).catch(() => undefined),
                     ),
                 );
+            }
+        }
+    }
+
+    private async applyLocalEfMigration(
+        nodeId: string,
+        databaseRef: string,
+        migrationRef: string,
+        manifestDigest: string,
+        forwardScriptDigest: string,
+        rollbackScriptDigest: string,
+        direction: "forward" | "rollback",
+        timeoutSeconds: number,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEfMigrationApplyResult> {
+        const authorization = this.requireApprovedEffect(nodeId, invocation, "migration.apply");
+        const owned = await this.requireOwnedContainerTarget(databaseRef, invocation.runId);
+        const migration = this.efMigrations.get(migrationRef);
+        if (
+            !migration ||
+            migration.runId !== invocation.runId ||
+            !/^runbook-ef-migration:[A-Za-z0-9_-]{1,160}:[a-f0-9]{64}:[a-f0-9-]{36}$/i.test(
+                migrationRef,
+            ) ||
+            manifestDigest !== migration.manifest.manifestSha256 ||
+            forwardScriptDigest !== migration.manifest.forwardScriptSha256 ||
+            rollbackScriptDigest !== migration.manifest.rollbackScriptSha256
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.efMigrationApplyArtifactChanged,
+                "RunbookStudio.DeploymentPreviewChanged",
+            );
+        }
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.efMigrationApplyCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const scriptPath =
+            direction === "forward" ? migration.forwardScriptPath : migration.rollbackScriptPath;
+        const expectedScriptDigest =
+            direction === "forward" ? forwardScriptDigest : rollbackScriptDigest;
+        let script: Buffer;
+        try {
+            const stat = await fs.promises.stat(scriptPath);
+            if (!stat.isFile() || stat.size <= 0 || stat.size > 8 * 1024 * 1024) {
+                throw new Error("invalid migration script size");
+            }
+            script = await fs.promises.readFile(scriptPath);
+        } catch {
+            throw new LocalActivityError(
+                LocRunbookStudio.efMigrationApplyArtifactChanged,
+                "RunbookStudio.DeploymentPreviewChanged",
+            );
+        }
+        if (
+            script.byteLength === 0 ||
+            crypto.createHash("sha256").update(script).digest("hex") !== expectedScriptDigest
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.efMigrationApplyArtifactChanged,
+                "RunbookStudio.DeploymentPreviewChanged",
+            );
+        }
+        const resolved = await this.resolveRunbookConnection(databaseRef);
+        if (!resolved.container || resolved.container.effectId !== owned.containerEffectId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.workloadOwnedContainerRequired,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        const connectionManager = this.connectionAccess();
+        if (!connectionManager) {
+            throw new LocalActivityError(
+                LocRunbookStudio.connectFailed,
+                "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        const effectId = deriveRunbookEffectId({
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "migration.apply",
+            activityVersion: authorization.challenge.activityVersion,
+        });
+        if (this.effectLedger.recoverEffect(effectId)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.sandboxEffectRecoveryRequired,
+                "RunbookStudio.EffectRecoveryRequired",
+            );
+        }
+        this.effectLedger.prepareEffect({
+            effectId,
+            runId: invocation.runId,
+            nodeId,
+            attempt: invocation.attempt,
+            activityKind: "migration.apply",
+            activityVersion: authorization.challenge.activityVersion,
+            idempotencyKey: digestRunbookValue({
+                effectId,
+                databaseName: resolved.targetDatabase,
+                manifestDigest,
+                scriptDigest: expectedScriptDigest,
+                direction,
+            }),
+            planHash: invocation.planHash,
+            bindingDigest: authorization.challenge.resolvedArgumentDigest,
+            targetFingerprint: authorization.challenge.targetFingerprint,
+            retrySemantics: "atMostOnceUnknownOutcome",
+            ownerPid: process.pid,
+            policy: {
+                version: authorization.challenge.policyVersion,
+                outcome: "allowed",
+            },
+            approval: authorization.evidence,
+            recovery: {
+                resourceKind: "migrationExecution",
+                resourceId: resolved.targetDatabase,
+                connectionProfileId: resolved.container.connectionProfileId,
+                ownershipMarkerDigest: resolved.container.ownershipMarkerDigest,
+            },
+        });
+        sandboxCounter++;
+        const ownerUri = `runbookstudio://migration/${sandboxCounter.toString(36)}`;
+        let connected = false;
+        const startedAt = Date.now();
+        try {
+            connected = await connectionManager.connect(ownerUri, resolved.profile, {
+                connectionSource: "runbookStudio",
+                shouldHandleErrors: false,
+            });
+            if (!connected) {
+                this.effectLedger.recordNoEffectFailure(effectId, "MigrationConnectFailed");
+                throw new LocalActivityError(
+                    LocRunbookStudio.connectFailed,
+                    "RunbookStudio.ActivityFailed",
+                );
+            }
+            if (isCancellationRequested()) {
+                this.effectLedger.recordNoEffectFailure(
+                    effectId,
+                    "MigrationCancelledBeforeExecute",
+                );
+                throw new LocalActivityError(
+                    LocRunbookStudio.efMigrationApplyCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            this.effectLedger.recordEffectObserved(effectId, {
+                resourceKind: "migrationExecution",
+                resourceId: resolved.targetDatabase,
+                ownershipMarkerDigest: resolved.container.ownershipMarkerDigest,
+                connectionProfileId: resolved.container.connectionProfileId,
+                outputHandles: [databaseRef, migrationRef],
+            });
+            const cancellation = new vscode.CancellationTokenSource();
+            let timedOut = false;
+            const timeout = setTimeout(() => {
+                timedOut = true;
+                cancellation.cancel();
+            }, timeoutSeconds * 1000);
+            const poll = setInterval(() => {
+                if (isCancellationRequested()) {
+                    cancellation.cancel();
+                }
+            }, 50);
+            try {
+                await SqlToolsServerClient.instance.sendRequest(
+                    SimpleExecuteRequestType,
+                    { ownerUri, queryString: script.toString("utf8") },
+                    cancellation.token,
+                );
+            } catch {
+                if (isCancellationRequested() && !timedOut) {
+                    throw new LocalActivityError(
+                        LocRunbookStudio.efMigrationApplyCancelled,
+                        "RunbookStudio.ActivityCancelled",
+                    );
+                }
+                throw new LocalActivityError(
+                    timedOut
+                        ? `${LocRunbookStudio.efMigrationApplyFailed} (${timeoutSeconds}s timeout)`
+                        : LocRunbookStudio.efMigrationApplyFailed,
+                    timedOut ? "RunbookStudio.ActivityTimeout" : "RunbookStudio.ActivityFailed",
+                );
+            } finally {
+                clearTimeout(timeout);
+                clearInterval(poll);
+                cancellation.dispose();
+            }
+            const durationMs = Math.max(0, Date.now() - startedAt);
+            this.effectLedger.finalizeEffect(
+                effectId,
+                digestRunbookValue({
+                    effectId,
+                    manifestDigest,
+                    scriptDigest: expectedScriptDigest,
+                    direction,
+                    durationMs,
+                    operationCount: migration.manifest.operations.length,
+                }),
+            );
+            return {
+                effectId,
+                applied: true,
+                direction,
+                manifestSha256: manifestDigest,
+                scriptSha256: expectedScriptDigest,
+                operationCount: migration.manifest.operations.length,
+                potentialDataLoss: migration.manifest.potentialDataLoss,
+                rollbackCompleteness: migration.manifest.rollbackCompleteness,
+                durationMs,
+                completedAtUtc: new Date().toISOString(),
+            };
+        } finally {
+            if (connected) {
+                try {
+                    await connectionManager.disconnect(ownerUri);
+                } catch {
+                    // The effect ledger and owned-container cleanup remain authoritative.
+                }
             }
         }
     }

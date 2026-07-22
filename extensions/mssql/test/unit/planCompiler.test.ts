@@ -350,6 +350,63 @@ suite("planCompiler", () => {
         expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
     });
 
+    test("an additive EF migration compiles to owned-container forward and rollback rehearsal", () => {
+        const intent =
+            "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
+            "provision a SQL Server 2025 container, apply the migration, visualize the schema, roll it back, " +
+            "and visualize the rolled-back schema.";
+        const classified = classifyRunbookIntent(intent);
+        const rehearsalBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicEfModelComparison(rehearsalBase, intent);
+        if (!result || isProposalFailure(result)) {
+            throw new Error(result && isProposalFailure(result) ? result.detail : "no plan");
+        }
+
+        expect(result.artifact.lock?.nodes).to.have.length(20);
+        expect(
+            result.artifact.lock?.nodes
+                .filter((node) => node.activityKind === "migration.apply")
+                .map((node) => node.inputs?.direction),
+        ).to.deep.equal(["forward", "rollback"]);
+        expect(
+            result.artifact.lock?.nodes
+                .filter((node) => node.activityKind === "database.schema.visualize")
+                .map((node) => node.id),
+        ).to.deep.equal(["visualize-forward-schema", "visualize-rollback-schema"]);
+        expect(
+            classified.requirements.activities.map((activity) => activity.kind),
+        ).to.include.members([
+            "migration.script.generate",
+            "migration.apply",
+            "sql.container.provision",
+            "database.schema.visualize",
+            "sql.container.dispose",
+        ]);
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+
+        const forward = result.artifact.lock!.nodes.find(
+            (node) => node.id === "apply-forward-migration",
+        )!;
+        forward.inputs!.forwardScriptDigest = "$nodes.generate-migration.rollbackScriptSha256";
+        expect(validateLockAgainstCatalog(result.artifact.lock!).join(" ")).to.contain(
+            "must bind one upstream migration reference and all reviewed digests",
+        );
+    });
+
+    test("a stop-before-rehearsal intent does not request migration application", () => {
+        const classified = classifyRunbookIntent(
+            "Compare Entity Framework changes, generate the migration DDL, analyze possible data loss, " +
+                "and stop for an explicit decision before rehearsal.",
+        );
+        expect(classified.requirements.activities.map((activity) => activity.kind)).not.to.include(
+            "migration.apply",
+        );
+    });
+
     test("complex EF branch workflows request semantic migration generation instead of one-table DDL", () => {
         const classified = classifyRunbookIntent(
             "Diff the development branch against main, inspect EntityFramework entities, and create CREATE, ALTER, and DROP DDL to update the database.",
