@@ -519,6 +519,10 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "ef.project.discover",
     "ef.relational-model.extract",
     "ef.relational-model.compare",
+    "migration.data-loss.analyze",
+    "migration.script.generate",
+    "migration.apply",
+    "migration.scope.validate",
     "sqltest.discover",
     "tsqlt.run",
     "dacpac.build",
@@ -1294,7 +1298,7 @@ function executeNode(
                     scalars: {
                         workloadRef: "preview://workload/001",
                         fileName: "workload.sql",
-                        workloadSha256: "preview-workload-sha256",
+                        workloadSha256: "b".repeat(64),
                         workloadFingerprint: "d".repeat(64),
                         batchCount: 2,
                         mutating: true,
@@ -1303,7 +1307,7 @@ function executeNode(
                 },
                 values: {
                     workloadRef: "preview://workload/001",
-                    workloadSha256: "preview-workload-sha256",
+                    workloadSha256: "b".repeat(64),
                     workloadFingerprint: "d".repeat(64),
                     batchCount: 2,
                     mutating: true,

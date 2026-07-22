@@ -23,6 +23,7 @@ import {
     compileDeterministicCitiesWorkload,
     compileDeterministicDacpacEvolution,
     compileDeterministicDacpacInventory,
+    compileDeterministicEfModelComparison,
     isProposalFailure,
 } from "../../src/runbookStudio/models/planCompiler";
 
@@ -359,6 +360,69 @@ suite("Runbook Studio headless deterministic preview", () => {
             simulatedMutationCount: 7,
         });
         expect(JSON.stringify(result)).not.to.contain("preview-secret-canary");
+    });
+
+    test("previews the complete EF staging-clone validation lock without VS Code or a model", async () => {
+        const intent =
+            "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
+            "clone the WideWorldImporters staging database through a DACPAC into a SQL Server 2025 container, " +
+            "apply it, compare and visualize the schema, run scripts/workload.sql with full DMV and XEvent " +
+            "performance analysis, and produce a release candidate DACPAC.";
+        const classified = classifyRunbookIntent(intent);
+        const base = createNewRunbookArtifact("New runbook", "headless-ef-release-candidate");
+        base.family = classified.family;
+        base.source.requirements = classified.requirements;
+        const compiled = compileDeterministicEfModelComparison(base, intent);
+        if (!compiled) {
+            throw new Error("deterministic EF release-candidate workflow was not selected");
+        }
+        if (isProposalFailure(compiled)) {
+            throw new Error(compiled.detail);
+        }
+
+        const result = await runHeadlessPreview({
+            artifactText: canonicalizeRunbookArtifact(compiled.artifact),
+            parameterValues: {
+                repository: "C:\\preview\\myapp",
+                baseRef: "main",
+                headRef: "rehearsal-additive",
+                project: "src/MyApp.Data/MyApp.Data.csproj",
+                dbContext: "AppDbContext",
+                renameDecisions: "[]",
+                sourceConnection: "preview-staging-profile",
+                sourceDatabaseName: "WideWorldImporters",
+                containerName: "preview-myapp-sql2025",
+                databaseName: "MyAppCandidate",
+                sqlVersion: "2025",
+                saPassword: "preview-secret-canary",
+                migrationTimeoutSeconds: 300,
+                workloadFile: "scripts/workload.sql",
+                workloadRepetitions: 2,
+                workloadTimeoutSeconds: 300,
+                xeventMaxFileSizeMb: 16,
+            },
+            runId: "ef-release-candidate-preview",
+            deterministicPreviewAcknowledged: true,
+            approvePreviewGates: true,
+        });
+
+        expect(result, JSON.stringify(result, undefined, 2)).to.include({
+            outcome: "pass",
+            exitCode: HEADLESS_EXIT_CODES.pass,
+            terminalState: "succeeded",
+            verdict: "pass",
+            evidenceAvailable: false,
+        });
+        expect(result.nodeCounts).to.deep.equal({
+            succeeded: 39,
+            failed: 0,
+            skipped: 5,
+            cancelled: 0,
+        });
+        expect(result.validation).to.include({ valid: true, executable: true });
+        expect(result.validation.simulatedMutationCount).to.be.greaterThan(10);
+        expect(JSON.stringify(result)).not.to.contain("preview-secret-canary");
+        expect(JSON.stringify(result)).not.to.contain("preview-staging-profile");
     });
 
     test("refuses unsafe caller-provided run identities", async () => {
