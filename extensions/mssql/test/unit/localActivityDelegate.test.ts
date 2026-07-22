@@ -18,6 +18,7 @@ import {
     createLocalEfRelationalModel,
 } from "../../src/runbookStudio/runtime/localEfRelationalModel";
 import { analyzeLocalEfMigrationRisk } from "../../src/runbookStudio/runtime/localEfMigrationRisk";
+import { generateLocalEfMigrationProposal } from "../../src/runbookStudio/runtime/localEfMigrationGenerator";
 
 function efModel(commit: string, modelShaSeed: string) {
     return createLocalEfRelationalModel({
@@ -127,6 +128,29 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
                 artifactPath: "C:\\managed\\migration-risk.json",
                 artifactSizeBytes: 512,
                 artifactSha256: "e".repeat(64),
+            };
+        },
+        generateEfMigration: async () => {
+            const base = efModel("1".repeat(40), "a");
+            const head = efModel("2".repeat(40), "b");
+            const diff = compareLocalEfRelationalModels(base, head);
+            const proposal = generateLocalEfMigrationProposal({
+                base,
+                head,
+                diff,
+                risk: analyzeLocalEfMigrationRisk(diff),
+                renameDecisions: [],
+            });
+            return {
+                manifest: proposal.manifest,
+                migrationRef: `runbook-ef-migration:run-1:${proposal.manifest.manifestSha256}:00000000-0000-4000-8000-000000000004`,
+                manifestArtifactPath: "C:\\managed\\migration-manifest.json",
+                manifestArtifactSizeBytes: 768,
+                manifestArtifactSha256: "f".repeat(64),
+                forwardScriptPath: "C:\\managed\\migration-forward.sql",
+                forwardScriptSizeBytes: proposal.forwardSql.length,
+                rollbackScriptPath: "C:\\managed\\migration-rollback.sql",
+                rollbackScriptSizeBytes: proposal.rollbackSql.length,
             };
         },
         capturePerformanceSnapshot: async () => ({
@@ -759,6 +783,31 @@ suite("Runbook Studio local activity delegate", () => {
             executionMode: "local",
         });
         expect(JSON.stringify(result?.output)).not.to.match(/\b(?:CREATE|ALTER|DROP)\s/i);
+    });
+
+    test("migration generation emits digests and operations without leaking script paths", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+
+        const result = await delegate.executeActivity(
+            activity("migration.script.generate", {
+                diff: "runbook-ef-diff:run-1",
+                risk: "runbook-ef-risk:run-1",
+                renameDecisions: "[]",
+            }),
+            binding(),
+        );
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("migrationManifest/1");
+        expect(result?.output?.scalars).to.deep.include({
+            operationCount: 0,
+            potentialDataLoss: false,
+            rollbackCompleteness: "complete",
+            artifactPath: "C:\\managed\\migration-manifest.json",
+            executionMode: "local",
+        });
+        expect(JSON.stringify(result?.output)).not.to.contain("migration-forward.sql");
+        expect(JSON.stringify(result?.output)).not.to.contain("migration-rollback.sql");
     });
 
     test("repository test discovery emits bounded typed rows and completeness", async () => {
@@ -1881,6 +1930,7 @@ suite("Runbook Studio local activity delegate", () => {
             "ef.relational-model.extract",
             "ef.relational-model.compare",
             "migration.data-loss.analyze",
+            "migration.script.generate",
             "sqltest.discover",
             "tsqlt.run",
             "dacpac.build",

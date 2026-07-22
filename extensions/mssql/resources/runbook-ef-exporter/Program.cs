@@ -4,6 +4,7 @@
 using System.Reflection;
 using System.Runtime.Versioning;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -85,20 +86,41 @@ foreach (var table in relationalModel.Tables.OrderBy(value => value.Schema).Then
         {
             unsupported.Add(new("column", $"{table.Schema}.{table.Name}.{column.Name}", "No mapped EF property was available."));
         }
-        var defaultSql = property?.GetDefaultValueSql(storeObject);
-        var defaultValue = property?.GetDefaultValue(storeObject);
-        var computedSql = property?.GetComputedColumnSql(storeObject);
         var strategy = property?.FindAnnotation("SqlServer:ValueGenerationStrategy")?.Value?.ToString();
+        var identity = strategy?.Contains("Identity", StringComparison.OrdinalIgnoreCase) == true;
+        var defaultSql = identity ? null : property?.GetDefaultValueSql(storeObject);
+        // EF returns the CLR default for some store-generated properties even
+        // when no SQL DEFAULT constraint exists. Identity semantics are
+        // represented explicitly and must not be misclassified as a default.
+        var defaultValue = identity
+            ? null
+            : property?.FindAnnotation(RelationalAnnotationNames.DefaultValue)?.Value;
+        var computedSql = property?.GetComputedColumnSql(storeObject);
+        var identitySeed = identity
+            ? Convert.ToInt64(property?.FindAnnotation("SqlServer:IdentitySeed")?.Value ?? 1)
+            : (long?)null;
+        var identityIncrement = identity
+            ? Convert.ToInt64(property?.FindAnnotation("SqlServer:IdentityIncrement")?.Value ?? 1)
+            : (long?)null;
+        var defaultFingerprint = defaultSql is not null
+            ? defaultSql
+            : defaultValue is not null
+                ? JsonSerializer.Serialize(defaultValue, defaultValue.GetType())
+                : null;
         columns.Add(new(
             column.Name,
             column.StoreType,
             column.IsNullable,
-            strategy?.Contains("Identity", StringComparison.OrdinalIgnoreCase) == true,
+            identity,
+            identitySeed,
+            identityIncrement,
             computedSql is not null,
             property?.GetMaxLength(),
             property?.GetPrecision(),
             property?.GetScale(),
             defaultSql is not null ? "sql" : defaultValue is not null ? "constant" : "none",
+            defaultFingerprint is null ? null : Sha256(defaultFingerprint),
+            computedSql is null ? null : Sha256(computedSql),
             property?.GetCollation()));
     }
 
@@ -108,11 +130,16 @@ foreach (var table in relationalModel.Tables.OrderBy(value => value.Schema).Then
         .OrderBy(value => value.Name)
         .Select(KeyOf)
         .ToArray();
-    var indexes = table.Indexes.OrderBy(value => value.Name).Select(value => new IndexDocument(
-        value.Name,
-        value.Columns.Select(column => column.Name).ToArray(),
-        value.IsUnique,
-        string.IsNullOrWhiteSpace(value.Filter) ? null : Sha256(value.Filter))).ToArray();
+    var indexes = table.Indexes.OrderBy(value => value.Name).Select(value =>
+    {
+        var indexColumns = value.Columns.Select(column => column.Name).ToArray();
+        return new IndexDocument(
+            value.Name,
+            indexColumns,
+            value.IsUnique,
+            string.IsNullOrWhiteSpace(value.Filter) ? null : Sha256(value.Filter),
+            ParseNotNullFilterColumns(value.Filter, indexColumns));
+    }).ToArray();
     var foreignKeys = table.ForeignKeyConstraints.OrderBy(value => value.Name).Select(value =>
         new ForeignKeyDocument(
             value.Name,
@@ -171,6 +198,37 @@ static string Sha256(string value) =>
     Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(
         System.Text.Encoding.UTF8.GetBytes(value))).ToLowerInvariant();
 
+static string[]? ParseNotNullFilterColumns(string? filter, IReadOnlyCollection<string> indexColumns)
+{
+    if (string.IsNullOrWhiteSpace(filter))
+    {
+        return null;
+    }
+    var allowed = indexColumns.ToHashSet(StringComparer.OrdinalIgnoreCase);
+    var result = new List<string>();
+    foreach (var clause in Regex.Split(
+        filter.Trim(),
+        @"\s+AND\s+",
+        RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+    {
+        var match = Regex.Match(
+            clause.Trim(),
+            @"^\[(?<name>(?:[^\]]|\]\])+)\]\s+IS\s+NOT\s+NULL$",
+            RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        if (!match.Success)
+        {
+            return null;
+        }
+        var name = match.Groups["name"].Value.Replace("]]", "]", StringComparison.Ordinal);
+        if (!allowed.Contains(name) || result.Contains(name, StringComparer.OrdinalIgnoreCase))
+        {
+            return null;
+        }
+        result.Add(indexColumns.First(value => value.Equals(name, StringComparison.OrdinalIgnoreCase)));
+    }
+    return result.Count == 0 ? null : result.ToArray();
+}
+
 internal sealed record ExportDocument(
     ProviderDocument Provider,
     string TargetFramework,
@@ -194,18 +252,23 @@ internal sealed record ColumnDocument(
     string StoreType,
     bool Nullable,
     bool Identity,
+    long? IdentitySeed,
+    long? IdentityIncrement,
     bool Computed,
     int? MaxLength,
     int? Precision,
     int? Scale,
     string DefaultKind,
+    string? DefaultSha256,
+    string? ComputedSha256,
     string? Collation);
 internal record KeyDocument(string Name, string[] Columns);
 internal sealed record IndexDocument(
     string Name,
     string[] Columns,
     bool Unique,
-    string? FilterSha256) : KeyDocument(Name, Columns);
+    string? FilterSha256,
+    string[]? NotNullFilterColumns) : KeyDocument(Name, Columns);
 internal sealed record ForeignKeyDocument(
     string Name,
     string[] Columns,

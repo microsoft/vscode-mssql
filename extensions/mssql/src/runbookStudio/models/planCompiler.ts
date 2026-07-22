@@ -287,14 +287,19 @@ export function compileDeterministicEfModelComparison(
     intent: string,
 ): ProposalParseResult | undefined {
     const required = base.source.requirements?.activities.map((activity) => activity.kind) ?? [];
-    const analyzeMigrationRisk = required.includes("migration.data-loss.analyze");
+    const requestedMigrationRisk = required.includes("migration.data-loss.analyze");
+    const generateMigration = required.includes("migration.script.generate");
+    const analyzeMigrationRisk = requestedMigrationRisk || generateMigration;
     if (
         required.length !==
-            DETERMINISTIC_EF_COMPARISON_ACTIVITIES.size + (analyzeMigrationRisk ? 1 : 0) ||
+            DETERMINISTIC_EF_COMPARISON_ACTIVITIES.size +
+                (requestedMigrationRisk ? 1 : 0) +
+                (generateMigration ? 1 : 0) ||
         !required.every(
             (kind) =>
                 DETERMINISTIC_EF_COMPARISON_ACTIVITIES.has(kind) ||
-                kind === "migration.data-loss.analyze",
+                kind === "migration.data-loss.analyze" ||
+                kind === "migration.script.generate",
         ) ||
         !/\b(entity\s*framework|entityframework|ef\s*core|dbcontext|entities)\b/i.test(intent)
     ) {
@@ -302,8 +307,9 @@ export function compileDeterministicEfModelComparison(
     }
     const proposal: CompiledProposal = {
         name: "Entity Framework model comparison",
-        description:
-            "Captures the source change set, restores and builds two approved exact revisions, and reports their semantic SQL Server relational-model changes and requested factual migration risk without generating or applying DDL.",
+        description: generateMigration
+            ? "Captures two approved exact Entity Framework revisions, analyzes their semantic risk, and generates reviewed forward/rollback SQL artifacts without applying them."
+            : "Captures the source change set, restores and builds two approved exact revisions, and reports their semantic SQL Server relational-model changes and requested factual migration risk without generating or applying DDL.",
         parameters: [
             {
                 id: "repository",
@@ -337,6 +343,17 @@ export function compileDeterministicEfModelComparison(
                 type: "string",
                 required: true,
             },
+            ...(generateMigration
+                ? [
+                      {
+                          id: "renameDecisions",
+                          label: "Rename decisions (JSON)",
+                          type: "string" as const,
+                          required: true,
+                          default: "[]",
+                      },
+                  ]
+                : []),
         ],
         entryNodeId: "capture-change-set",
         nodes: [
@@ -413,6 +430,26 @@ export function compileDeterministicEfModelComparison(
                       },
                   ]
                 : []),
+            ...(generateMigration
+                ? [
+                      {
+                          id: "approve-migration-generation",
+                          label: "Approve migration decisions and artifact generation",
+                          kind: "gate" as const,
+                      },
+                      {
+                          id: "generate-migration",
+                          label: "Generate forward and rollback migration scripts",
+                          kind: "activity" as const,
+                          activityKind: "migration.script.generate",
+                          inputs: {
+                              diff: "$nodes.compare-models.diffRef",
+                              risk: "$nodes.analyze-migration-risk.riskRef",
+                              renameDecisions: "$params.renameDecisions",
+                          },
+                      },
+                  ]
+                : []),
             { id: "report", label: "Summarize Entity Framework changes", kind: "report" },
         ],
         edges: [
@@ -435,8 +472,27 @@ export function compileDeterministicEfModelComparison(
             { from: "compare-models", to: "report", when: "failure" },
             ...(analyzeMigrationRisk
                 ? [
-                      { from: "analyze-migration-risk", to: "report" },
+                      {
+                          from: "analyze-migration-risk",
+                          to: generateMigration ? "approve-migration-generation" : "report",
+                      },
                       { from: "analyze-migration-risk", to: "report", when: "failure" as const },
+                  ]
+                : []),
+            ...(generateMigration
+                ? [
+                      {
+                          from: "approve-migration-generation",
+                          to: "generate-migration",
+                          when: "approved" as const,
+                      },
+                      {
+                          from: "approve-migration-generation",
+                          to: "report",
+                          when: "rejected" as const,
+                      },
+                      { from: "generate-migration", to: "report" },
+                      { from: "generate-migration", to: "report", when: "failure" as const },
                   ]
                 : []),
         ],

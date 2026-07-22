@@ -104,6 +104,7 @@ import {
     LocalDacpacDeploymentResult,
     LocalDacpacExtractionResult,
     LocalDevelopmentDatabaseLeaseResult,
+    LocalEfMigrationExecutionResult,
     LocalEfRelationalDiffExecutionResult,
     LocalEfMigrationRiskExecutionResult,
     LocalEfRelationalModelExecutionResult,
@@ -227,6 +228,12 @@ import {
     analyzeLocalEfMigrationRisk,
     type LocalEfMigrationRiskDocument,
 } from "./runtime/localEfMigrationRisk";
+import {
+    generateLocalEfMigrationProposal,
+    LocalEfMigrationGenerationError,
+    parseLocalEfRenameDecisions,
+    type LocalEfMigrationManifest,
+} from "./runtime/localEfMigrationGenerator";
 import type { IConnectionProfileWithSource } from "../models/interfaces";
 import {
     buildTransactionalCreateTableSql,
@@ -432,11 +439,25 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     >();
     private readonly efRelationalDiffs = new Map<
         string,
-        { runId: string; diff: LocalEfRelationalDiff }
+        {
+            runId: string;
+            diff: LocalEfRelationalDiff;
+            base: LocalEfRelationalModel;
+            head: LocalEfRelationalModel;
+        }
     >();
     private readonly efMigrationRisks = new Map<
         string,
-        { runId: string; risk: LocalEfMigrationRiskDocument }
+        { runId: string; diffRef: string; risk: LocalEfMigrationRiskDocument }
+    >();
+    private readonly efMigrations = new Map<
+        string,
+        {
+            runId: string;
+            manifest: LocalEfMigrationManifest;
+            forwardScriptPath: string;
+            rollbackScriptPath: string;
+        }
     >();
 
     private readonly storageRoot: string;
@@ -524,6 +545,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         this.efRelationalModels.clear();
         this.efRelationalDiffs.clear();
         this.efMigrationRisks.clear();
+        this.efMigrations.clear();
         void this.adapter?.dispose();
         if (this.hobbesAdapter && this.hobbesAdapter !== this.adapter) {
             void this.hobbesAdapter.dispose();
@@ -2579,6 +2601,22 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         ),
                     analyzeEfMigrationRisk: (nodeId, diffRef, invocation, cancelled) =>
                         this.analyzeLocalEfMigrationRisk(nodeId, diffRef, invocation, cancelled),
+                    generateEfMigration: (
+                        nodeId,
+                        diffRef,
+                        riskRef,
+                        renameDecisions,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.generateLocalEfMigration(
+                            nodeId,
+                            diffRef,
+                            riskRef,
+                            renameDecisions,
+                            invocation,
+                            cancelled,
+                        ),
                     inspectGitChangeSet: (
                         nodeId,
                         repository,
@@ -6506,7 +6544,12 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 }
             }
             const diffRef = `runbook-ef-diff:${invocation.runId}:${diff.diffSha256}:${crypto.randomUUID()}`;
-            this.efRelationalDiffs.set(diffRef, { runId: invocation.runId, diff });
+            this.efRelationalDiffs.set(diffRef, {
+                runId: invocation.runId,
+                diff,
+                base: base.model,
+                head: head.model,
+            });
             complete = true;
             return {
                 diff,
@@ -6576,7 +6619,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 }
             }
             const riskRef = `runbook-ef-risk:${invocation.runId}:${risk.riskSha256}:${crypto.randomUUID()}`;
-            this.efMigrationRisks.set(riskRef, { runId: invocation.runId, risk });
+            this.efMigrationRisks.set(riskRef, {
+                runId: invocation.runId,
+                diffRef,
+                risk,
+            });
             complete = true;
             return {
                 risk,
@@ -6588,6 +6635,157 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         } finally {
             if (!complete) {
                 await fs.promises.rm(artifactPath, { force: true }).catch(() => undefined);
+            }
+        }
+    }
+
+    private async generateLocalEfMigration(
+        nodeId: string,
+        diffRef: string,
+        riskRef: string,
+        renameDecisionsJson: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEfMigrationExecutionResult> {
+        this.requireApprovedEffect(nodeId, invocation, "migration.script.generate");
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.efMigrationGenerationCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const source = this.efRelationalDiffs.get(diffRef);
+        const risk = this.efMigrationRisks.get(riskRef);
+        if (
+            !source ||
+            !risk ||
+            source.runId !== invocation.runId ||
+            risk.runId !== invocation.runId ||
+            risk.diffRef !== diffRef ||
+            !/^runbook-ef-diff:[A-Za-z0-9_-]{1,160}:[a-f0-9]{64}:[a-f0-9-]{36}$/i.test(diffRef) ||
+            !/^runbook-ef-risk:[A-Za-z0-9_-]{1,160}:[a-f0-9]{64}:[a-f0-9-]{36}$/i.test(riskRef)
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.efMigrationInputsInvalid,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        const manifestArtifactPath = await this.localManagedArtifactPath(
+            invocation,
+            nodeId,
+            "migration-manifest.json",
+        );
+        const forwardScriptPath = await this.localManagedArtifactPath(
+            invocation,
+            nodeId,
+            "migration-forward.sql",
+        );
+        const rollbackScriptPath = await this.localManagedArtifactPath(
+            invocation,
+            nodeId,
+            "migration-rollback.sql",
+        );
+        const paths = [manifestArtifactPath, forwardScriptPath, rollbackScriptPath];
+        if ((await Promise.all(paths.map(pathExists))).some(Boolean)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.runbookArtifactAlreadyExists(manifestArtifactPath),
+                "RunbookStudio.ArtifactExists",
+            );
+        }
+        let complete = false;
+        try {
+            const proposal = generateLocalEfMigrationProposal({
+                base: source.base,
+                head: source.head,
+                diff: source.diff,
+                risk: risk.risk,
+                renameDecisions: parseLocalEfRenameDecisions(renameDecisionsJson),
+            });
+            const forwardBytes = Buffer.from(proposal.forwardSql, "utf8");
+            const rollbackBytes = Buffer.from(proposal.rollbackSql, "utf8");
+            const manifestBytes = Buffer.from(canonicalRunbookJson(proposal.manifest), "utf8");
+            await fs.promises.writeFile(forwardScriptPath, forwardBytes, { flag: "wx" });
+            await fs.promises.writeFile(rollbackScriptPath, rollbackBytes, { flag: "wx" });
+            await fs.promises.writeFile(manifestArtifactPath, manifestBytes, { flag: "wx" });
+            const [forwardStat, rollbackStat, manifestStat] = await Promise.all([
+                fs.promises.stat(forwardScriptPath),
+                fs.promises.stat(rollbackScriptPath),
+                fs.promises.stat(manifestArtifactPath),
+            ]);
+            if (
+                !forwardStat.isFile() ||
+                forwardStat.size !== forwardBytes.byteLength ||
+                !rollbackStat.isFile() ||
+                rollbackStat.size !== rollbackBytes.byteLength ||
+                !manifestStat.isFile() ||
+                manifestStat.size !== manifestBytes.byteLength ||
+                crypto.createHash("sha256").update(forwardBytes).digest("hex") !==
+                    proposal.manifest.forwardScriptSha256 ||
+                crypto.createHash("sha256").update(rollbackBytes).digest("hex") !==
+                    proposal.manifest.rollbackScriptSha256
+            ) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.efMigrationArtifactInvalid,
+                    "RunbookStudio.ArtifactInvalid",
+                );
+            }
+            if (this.efMigrations.size >= 64) {
+                const oldest = this.efMigrations.keys().next().value;
+                if (typeof oldest === "string") {
+                    this.efMigrations.delete(oldest);
+                }
+            }
+            const migrationRef = `runbook-ef-migration:${invocation.runId}:${proposal.manifest.manifestSha256}:${crypto.randomUUID()}`;
+            this.efMigrations.set(migrationRef, {
+                runId: invocation.runId,
+                manifest: proposal.manifest,
+                forwardScriptPath,
+                rollbackScriptPath,
+            });
+            complete = true;
+            return {
+                manifest: proposal.manifest,
+                migrationRef,
+                manifestArtifactPath,
+                manifestArtifactSizeBytes: manifestStat.size,
+                manifestArtifactSha256: crypto
+                    .createHash("sha256")
+                    .update(manifestBytes)
+                    .digest("hex"),
+                forwardScriptPath,
+                forwardScriptSizeBytes: forwardStat.size,
+                rollbackScriptPath,
+                rollbackScriptSizeBytes: rollbackStat.size,
+            };
+        } catch (error) {
+            if (error instanceof LocalActivityError) {
+                throw error;
+            }
+            if (error instanceof LocalEfMigrationGenerationError) {
+                throw new LocalActivityError(
+                    error.code === "renameDecisionRequired"
+                        ? LocRunbookStudio.efMigrationRenameDecisionRequired
+                        : error.code === "unsupportedOperation"
+                          ? LocRunbookStudio.efMigrationUnsupportedDetail(error.message)
+                          : LocRunbookStudio.efMigrationInputsInvalid,
+                    error.code === "renameDecisionRequired"
+                        ? "RunbookStudio.BindingInvalid"
+                        : error.code === "unsupportedOperation"
+                          ? "RunbookStudio.ActivityUnsupported"
+                          : "RunbookStudio.TargetChanged",
+                );
+            }
+            throw new LocalActivityError(
+                LocRunbookStudio.efMigrationGenerationFailed,
+                "RunbookStudio.ActivityFailed",
+            );
+        } finally {
+            if (!complete) {
+                await Promise.all(
+                    paths.map((artifactPath) =>
+                        fs.promises.rm(artifactPath, { force: true }).catch(() => undefined),
+                    ),
+                );
             }
         }
     }
@@ -7243,6 +7441,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         for (const [riskRef, entry] of this.efMigrationRisks) {
             if (entry.runId === active.runId) {
                 this.efMigrationRisks.delete(riskRef);
+            }
+        }
+        for (const [migrationRef, entry] of this.efMigrations) {
+            if (entry.runId === active.runId) {
+                this.efMigrations.delete(migrationRef);
             }
         }
         this.activeByRunId.delete(active.runId);

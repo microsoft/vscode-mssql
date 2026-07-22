@@ -6,6 +6,11 @@
 import { expect } from "chai";
 import { analyzeLocalEfMigrationRisk } from "../../src/runbookStudio/runtime/localEfMigrationRisk";
 import {
+    generateLocalEfMigrationProposal,
+    LocalEfMigrationGenerationError,
+    parseLocalEfRenameDecisions,
+} from "../../src/runbookStudio/runtime/localEfMigrationGenerator";
+import {
     compareLocalEfRelationalModels,
     createLocalEfRelationalModel,
     LocalEfRelationalModelInput,
@@ -314,5 +319,124 @@ suite("Runbook Studio EF migration risk", () => {
             code: "modelIncomparable",
             detail: "incompleteModel",
         });
+    });
+});
+
+suite("Runbook Studio EF migration proposal", () => {
+    test("renders additive DDL and an explicitly accepted column rename with rollback", () => {
+        const orders = table("Orders", [
+            column("OrdersId", "int"),
+            column("Description", "nvarchar(200)", true),
+        ]);
+        const base = model([orders]);
+        const head = model(
+            [
+                {
+                    ...orders,
+                    columns: [
+                        column("OrdersId", "int"),
+                        column("Summary", "nvarchar(200)", true),
+                        column("Email", "nvarchar(320)", true),
+                    ],
+                    indexes: [
+                        {
+                            name: "IX_Orders_Email",
+                            columns: ["Email"],
+                            unique: true,
+                            filterSha256: "f".repeat(64),
+                            notNullFilterColumns: ["Email"],
+                        },
+                    ],
+                },
+                table("AuditLogs", [
+                    column("AuditLogsId", "bigint"),
+                    column("Message", "nvarchar(1000)"),
+                ]),
+            ],
+            {
+                source: {
+                    ...base.source,
+                    commit: commitB,
+                    sourceSnapshotSha256: "c".repeat(64),
+                },
+            },
+        );
+        const diff = compareLocalEfRelationalModels(base, head);
+        const risk = analyzeLocalEfMigrationRisk(diff);
+        const decisions = parseLocalEfRenameDecisions(
+            JSON.stringify([
+                {
+                    objectType: "column",
+                    fromPath: "[dbo].[Orders].[Description]",
+                    toPath: "[dbo].[Orders].[Summary]",
+                    action: "rename",
+                },
+            ]),
+        );
+
+        const proposal = generateLocalEfMigrationProposal({
+            base,
+            head,
+            diff,
+            risk,
+            renameDecisions: decisions,
+        });
+
+        expect(proposal.forwardSql).to.contain(
+            "EXEC sys.sp_rename N'[dbo].[Orders].[Description]', N'Summary', N'COLUMN';",
+        );
+        expect(proposal.forwardSql).to.contain("CREATE TABLE [dbo].[AuditLogs]");
+        expect(proposal.forwardSql).to.contain(
+            "ALTER TABLE [dbo].[Orders] ADD [Email] nvarchar(320) NULL;",
+        );
+        expect(proposal.forwardSql).to.contain(
+            "CREATE UNIQUE INDEX [IX_Orders_Email] ON [dbo].[Orders] ([Email]) WHERE [Email] IS NOT NULL;",
+        );
+        expect(proposal.forwardSql).not.to.contain("DROP COLUMN [Description]");
+        expect(proposal.rollbackSql).to.contain(
+            "EXEC sys.sp_rename N'[dbo].[Orders].[Summary]', N'Description', N'COLUMN';",
+        );
+        expect(proposal.manifest).to.deep.include({
+            potentialDataLoss: false,
+            rollbackCompleteness: "complete",
+        });
+        expect(proposal.manifest.operations).to.have.length(4);
+        expect(proposal.manifest.manifestSha256).to.match(/^[a-f0-9]{64}$/);
+    });
+
+    test("requires exact decisions and refuses expression-backed columns", () => {
+        const before = model([table("Customers", [column("CustomersId", "int")])]);
+        const renamed = model([table("Customers", [column("CustomerId", "int")])]);
+        const renameDiff = compareLocalEfRelationalModels(before, renamed);
+        expect(() =>
+            generateLocalEfMigrationProposal({
+                base: before,
+                head: renamed,
+                diff: renameDiff,
+                risk: analyzeLocalEfMigrationRisk(renameDiff),
+                renameDecisions: [],
+            }),
+        ).to.throw(LocalEfMigrationGenerationError, "Every ambiguous rename group");
+
+        const expressionHead = model([
+            table("Customers", [
+                column("CustomersId", "int"),
+                {
+                    ...column("CreatedAt", "datetime2"),
+                    defaultKind: "sql",
+                    defaultSha256: "e".repeat(64),
+                },
+            ]),
+        ]);
+        const expressionDiff = compareLocalEfRelationalModels(before, expressionHead);
+        expect(() =>
+            generateLocalEfMigrationProposal({
+                base: before,
+                head: expressionHead,
+                diff: expressionDiff,
+                risk: analyzeLocalEfMigrationRisk(expressionDiff),
+                renameDecisions: [],
+            }),
+        ).to.throw(LocalEfMigrationGenerationError, "retained only as a digest");
     });
 });

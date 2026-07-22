@@ -392,6 +392,39 @@ export class RunbookStudio {
             args: [blockerCount, reviewCount],
             comment: ["{0} is a blocker count", "{1} is a review-item count"],
         });
+    public static efMigrationGenerated = (operationCount: number, rollbackStatus: string) =>
+        l10n.t({
+            message: "Generated {0} reviewed migration operation(s); rollback evidence is {1}.",
+            args: [operationCount, rollbackStatus],
+            comment: ["{0} is an operation count", "{1} is complete or schemaOnly"],
+        });
+    public static efMigrationGenerationCancelled = l10n.t(
+        "Entity Framework migration generation was cancelled.",
+    );
+    public static efMigrationInputsInvalid = l10n.t(
+        "The Entity Framework migration inputs do not belong to this run or were changed.",
+    );
+    public static efMigrationRenameDecisionRequired = l10n.t(
+        "Choose Rename or Drop and add for every Entity Framework rename candidate before generating migration SQL.",
+    );
+    public static efMigrationUnsupported = l10n.t(
+        "This Entity Framework change contains SQL or dependency semantics that the closed migration generator cannot reproduce exactly.",
+    );
+    public static efMigrationUnsupportedDetail = (detail: string) =>
+        l10n.t({
+            message:
+                "This Entity Framework change contains SQL or dependency semantics that the closed migration generator cannot reproduce exactly. {0}",
+            args: [detail],
+            comment: [
+                "{0} is a bounded, secret-safe description of the unsupported model construct",
+            ],
+        });
+    public static efMigrationArtifactInvalid = l10n.t(
+        "The generated Entity Framework migration artifacts are incomplete or invalid.",
+    );
+    public static efMigrationGenerationFailed = l10n.t(
+        "Entity Framework migration generation failed.",
+    );
     public static performanceSnapshotCaptured = (metricCount: number) =>
         l10n.t({
             message: "Captured {0} bounded SQL Server performance metric(s).",

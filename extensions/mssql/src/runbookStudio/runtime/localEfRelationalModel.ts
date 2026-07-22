@@ -29,11 +29,15 @@ export interface LocalEfRelationalColumn {
     storeType: string;
     nullable: boolean;
     identity: boolean;
+    identitySeed?: number;
+    identityIncrement?: number;
     computed: boolean;
     maxLength?: number;
     precision?: number;
     scale?: number;
     defaultKind?: "none" | "constant" | "sql";
+    defaultSha256?: string;
+    computedSha256?: string;
     collation?: string;
 }
 
@@ -45,6 +49,9 @@ export interface LocalEfRelationalKey {
 export interface LocalEfRelationalIndex extends LocalEfRelationalKey {
     unique: boolean;
     filterSha256?: string;
+    /** Closed projection of SQL Server's conventional `[Column] IS NOT NULL`
+     * filtered-index predicate. The raw predicate is never exposed. */
+    notNullFilterColumns?: string[];
 }
 
 export interface LocalEfRelationalForeignKey extends LocalEfRelationalKey {
@@ -449,6 +456,8 @@ function finalizeDiff(
                             "precision",
                             "scale",
                             "identity",
+                            "identitySeed",
+                            "identityIncrement",
                             "computed",
                         ].includes(property),
                     ),
@@ -510,7 +519,13 @@ function normalizeTable(table: LocalEfRelationalTable): LocalEfRelationalTable {
                 typeof column.identity !== "boolean" ||
                 typeof column.computed !== "boolean" ||
                 (column.defaultKind !== undefined &&
-                    !["none", "constant", "sql"].includes(column.defaultKind))
+                    !["none", "constant", "sql"].includes(column.defaultKind)) ||
+                (!column.identity &&
+                    (column.identitySeed !== undefined ||
+                        column.identityIncrement !== undefined)) ||
+                ((column.defaultKind ?? "none") === "none") !==
+                    (column.defaultSha256 === undefined) ||
+                column.computed !== (column.computedSha256 !== undefined)
             ) {
                 throw new Error(`Column '${column.name}' has invalid relational facets`);
             }
@@ -519,6 +534,12 @@ function normalizeTable(table: LocalEfRelationalTable): LocalEfRelationalTable {
                 storeType: boundedText(column.storeType, "store type"),
                 nullable: column.nullable,
                 identity: column.identity,
+                ...(column.identity
+                    ? {
+                          identitySeed: boundedSignedInteger(column.identitySeed ?? 1),
+                          identityIncrement: boundedSignedInteger(column.identityIncrement ?? 1),
+                      }
+                    : {}),
                 computed: column.computed,
                 ...(column.maxLength === undefined
                     ? {}
@@ -528,6 +549,12 @@ function normalizeTable(table: LocalEfRelationalTable): LocalEfRelationalTable {
                     : { precision: boundedInteger(column.precision) }),
                 ...(column.scale === undefined ? {} : { scale: boundedInteger(column.scale) }),
                 defaultKind: column.defaultKind ?? "none",
+                ...(column.defaultSha256
+                    ? { defaultSha256: sha256(column.defaultSha256, "column default") }
+                    : {}),
+                ...(column.computedSha256
+                    ? { computedSha256: sha256(column.computedSha256, "computed column") }
+                    : {}),
                 ...(column.collation === undefined
                     ? {}
                     : { collation: boundedText(column.collation, "collation") }),
@@ -553,6 +580,11 @@ function normalizeTable(table: LocalEfRelationalTable): LocalEfRelationalTable {
                 ...(index.filterSha256
                     ? { filterSha256: sha256(index.filterSha256, "index filter") }
                     : {}),
+                ...(index.notNullFilterColumns
+                    ? {
+                          notNullFilterColumns: boundedColumnReferences(index.notNullFilterColumns),
+                      }
+                    : {}),
             };
         })
         .sort(compareNamed);
@@ -573,6 +605,15 @@ function normalizeTable(table: LocalEfRelationalTable): LocalEfRelationalTable {
         .sort(compareNamed);
     assertUnique(uniqueConstraints, (item) => item.name, "unique constraint");
     assertUnique(indexes, (item) => item.name, "index");
+    for (const index of indexes) {
+        if (
+            !!index.notNullFilterColumns !== !!index.filterSha256 ||
+            ((index.notNullFilterColumns?.length ?? 0) === 0 && !!index.notNullFilterColumns) ||
+            index.notNullFilterColumns?.some((column) => !index.columns.includes(column))
+        ) {
+            throw new Error(`Index '${index.name}' has invalid closed filter metadata`);
+        }
+    }
     assertUnique(foreignKeys, (item) => item.name, "foreign key");
     assertUnique(checks, (item) => item.name, "check");
     return {
@@ -610,6 +651,13 @@ function boundedColumnReferences(values: readonly string[]): string[] {
     return normalized;
 }
 
+function boundedSignedInteger(value: number): number {
+    if (!Number.isSafeInteger(value) || value === 0) {
+        throw new Error("Entity Framework identity metadata is invalid");
+    }
+    return value;
+}
+
 function validateKeyColumns(
     key: LocalEfRelationalKey | undefined,
     available: ReadonlySet<string>,
@@ -634,11 +682,15 @@ function columnSimilarity(before: LocalEfRelationalColumn, after: LocalEfRelatio
         "storeType",
         "nullable",
         "identity",
+        "identitySeed",
+        "identityIncrement",
         "computed",
         "maxLength",
         "precision",
         "scale",
         "defaultKind",
+        "defaultSha256",
+        "computedSha256",
         "collation",
     ];
     const equal = properties.filter((property) => before[property] === after[property]).length;
@@ -659,6 +711,8 @@ function columnAlterRisk(
             after.precision !== undefined &&
             after.precision < before.precision) ||
         before.identity !== after.identity ||
+        before.identitySeed !== after.identitySeed ||
+        before.identityIncrement !== after.identityIncrement ||
         before.computed !== after.computed
     ) {
         return "review";

@@ -301,6 +301,64 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         blastRadius: { ...READ_ONLY_LOCAL, resource: "none" },
     },
     {
+        kind: "migration.script.generate",
+        version: 1,
+        label: "Generate reviewed migration scripts",
+        description:
+            "Creates deterministic forward, rollback, and manifest artifacts from a same-run EF diff, factual risk analysis, and explicit rename decisions. Unsupported SQL fragments fail closed.",
+        inputs: [
+            {
+                name: "diff",
+                kind: "bind",
+                required: true,
+                description: "Upstream ef.relational-model.compare diffRef",
+            },
+            {
+                name: "risk",
+                kind: "bind",
+                required: true,
+                description: "Upstream migration.data-loss.analyze riskRef",
+            },
+            {
+                name: "renameDecisions",
+                kind: "bind",
+                required: true,
+                description:
+                    "Bounded JSON array with one explicit action for every rename candidate",
+            },
+        ],
+        outputContract: "migrationManifest/1",
+        outputSchema: {
+            fields: [
+                { name: "sequence", valueType: "number", roles: ["measure"] },
+                { name: "kind", valueType: "string", roles: ["category"] },
+                { name: "objectType", valueType: "string", roles: ["category"] },
+                { name: "path", valueType: "string", roles: ["label"] },
+                { name: "risk", valueType: "string", roles: ["category"] },
+                { name: "forwardStatements", valueType: "number", roles: ["measure"] },
+                { name: "rollbackStatements", valueType: "number", roles: ["measure"] },
+            ],
+        },
+        producedValues: [
+            "migrationRef",
+            "manifestSha256",
+            "forwardScriptSha256",
+            "rollbackScriptSha256",
+            "operationCount",
+            "potentialDataLoss",
+            "rollbackCompleteness",
+        ],
+        approvalRequired: true,
+        target: { kind: "workspace", workspace: true },
+        blastRadius: {
+            resource: "workspaceFiles",
+            operation: "create",
+            targetEnvironment: "local",
+            reversibility: "autoReversible",
+            dataSensitivity: "internal",
+        },
+    },
+    {
         kind: "sqltest.discover",
         version: 1,
         label: "Discover repository SQL tests",
@@ -1862,6 +1920,27 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
             ) {
                 issues.push(
                     `node '${node.id}' must bind its diff to an upstream ef.relational-model.compare diffRef`,
+                );
+            }
+            if (
+                descriptor.kind === "migration.script.generate" &&
+                (!isUpstreamActivityOutput(
+                    lock,
+                    node,
+                    "diff",
+                    "diffRef",
+                    "ef.relational-model.compare",
+                ) ||
+                    !isUpstreamActivityOutput(
+                        lock,
+                        node,
+                        "risk",
+                        "riskRef",
+                        "migration.data-loss.analyze",
+                    ))
+            ) {
+                issues.push(
+                    `node '${node.id}' must bind upstream EF diff and migration-risk handles`,
                 );
             }
         }

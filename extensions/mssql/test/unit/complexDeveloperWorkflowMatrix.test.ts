@@ -22,7 +22,7 @@ const scenarios = [
             "Compare development with main, analyze Entity Framework entity changes, generate migration DDL, " +
             "clone staging to a SQL Server 2025 Docker container, apply it, compare and visualize the schema, " +
             "run scripts/workload.sql with DMV and XEvent analysis, and produce a release candidate DACPAC.",
-        missing: ["migration.script.generate@1"],
+        missing: [],
     },
     {
         id: "cities-generated-workload-with-dmv",
@@ -53,7 +53,8 @@ const scenarios = [
             "Compare Entity Framework changes on the development branch with main where a nullable column is " +
             "narrowed and a table is dropped, generate the migration DDL, analyze possible data loss, and stop " +
             "for an explicit decision before rehearsal.",
-        missing: ["migration.script.generate@1"],
+        missing: [],
+        expectedReadiness: "ready",
     },
     {
         id: "target-drift",
@@ -95,7 +96,11 @@ suite("complex developer workflow capability matrix", () => {
             ).to.have.members(classified.requirements.activities.map((activity) => activity.kind));
             const readiness = preflightRunbookRequirements(classified.requirements);
             if (scenario.missing.length === 0) {
-                expect(readiness.status, scenario.id).to.equal("readyAfterBinding");
+                expect(readiness.status, scenario.id).to.equal(
+                    "expectedReadiness" in scenario
+                        ? scenario.expectedReadiness
+                        : "readyAfterBinding",
+                );
                 expect(readiness.missingActivityKinds, scenario.id).to.deep.equal([]);
             } else {
                 expect(readiness.status, scenario.id).to.equal("designOnly");

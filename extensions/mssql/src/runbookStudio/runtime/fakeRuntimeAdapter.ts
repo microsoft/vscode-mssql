@@ -865,6 +865,73 @@ function executeNode(
                 },
             };
         }
+        case "migration.script.generate": {
+            const diff = resolveBind(node.inputs?.diff, parameterValues, nodeValues);
+            const risk = resolveBind(node.inputs?.risk, parameterValues, nodeValues);
+            const renameDecisions = resolveBind(
+                node.inputs?.renameDecisions,
+                parameterValues,
+                nodeValues,
+            );
+            if (
+                typeof diff !== "string" ||
+                typeof risk !== "string" ||
+                typeof renameDecisions !== "string"
+            ) {
+                return invalidPreviewBinding(
+                    "migration.script.generate",
+                    "diff/risk/renameDecisions",
+                );
+            }
+            const digest = crypto
+                .createHash("sha256")
+                .update(`${diff}\0${risk}\0${renameDecisions}`)
+                .digest("hex");
+            return {
+                success: true,
+                runMetrics: {
+                    "migration.operationCount": 2,
+                    "migration.potentialDataLoss": false,
+                    "migration.rollbackComplete": true,
+                },
+                message: "2 migration operations (deterministic preview)",
+                output: {
+                    contract: "migrationManifest/1",
+                    columns: [
+                        "sequence",
+                        "kind",
+                        "objectType",
+                        "path",
+                        "risk",
+                        "forwardStatements",
+                        "rollbackStatements",
+                    ],
+                    rows: [
+                        [1, "addTable", "table", "[dbo].[AuditLogs]", "safe", 1, 1],
+                        [2, "addColumn", "column", "[dbo].[Customers].[Email]", "safe", 1, 1],
+                    ],
+                    scalars: {
+                        migrationRef: `preview-ef-migration:${digest}`,
+                        manifestSha256: digest,
+                        forwardScriptSha256: "f".repeat(64),
+                        rollbackScriptSha256: "e".repeat(64),
+                        operationCount: 2,
+                        potentialDataLoss: false,
+                        rollbackCompleteness: "complete",
+                        preview: true,
+                    },
+                },
+                values: {
+                    migrationRef: `preview-ef-migration:${digest}`,
+                    manifestSha256: digest,
+                    forwardScriptSha256: "f".repeat(64),
+                    rollbackScriptSha256: "e".repeat(64),
+                    operationCount: 2,
+                    potentialDataLoss: false,
+                    rollbackCompleteness: "complete",
+                },
+            };
+        }
         case "git.change-set.inspect": {
             const repository = resolveBind(node.inputs?.repository, parameterValues, nodeValues);
             const baseRef = resolveBind(node.inputs?.baseRef, parameterValues, nodeValues);

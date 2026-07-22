@@ -27,7 +27,7 @@ const FIXTURE_ROOT =
 const PROJECT_PATH = "src/MyApp.Data/MyApp.Data.csproj";
 const EXACT_INTENT =
     "Compare the Entity Framework entity changes between development and main in this repository " +
-    "and analyze possible data loss.";
+    "and generate migration DDL with possible data-loss analysis.";
 
 suite("Runbook Studio EF model workflow live smoke (gated)", function () {
     this.timeout(12 * 60_000);
@@ -76,7 +76,7 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 uri: document.uri.toString(),
                 intent: EXACT_INTENT,
             });
-            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 9 });
+            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 11 });
             expect(compile.activityKinds).to.deep.equal([
                 "git.change-set.inspect",
                 "ef.project.discover",
@@ -84,6 +84,7 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 "ef.relational-model.extract",
                 "ef.relational-model.compare",
                 "migration.data-loss.analyze",
+                "migration.script.generate",
             ]);
             expect(compile.parameterIds).to.deep.equal([
                 "repository",
@@ -91,6 +92,7 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 "headRef",
                 "project",
                 "dbContext",
+                "renameDecisions",
             ]);
             await document.save();
 
@@ -112,13 +114,21 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                     headRef: "development",
                     project: PROJECT_PATH,
                     dbContext: "AppDbContext",
+                    renameDecisions: JSON.stringify([
+                        {
+                            objectType: "column",
+                            fromPath: "[Sales].[Orders].[Description]",
+                            toPath: "[Sales].[Orders].[Summary]",
+                            action: "rename",
+                        },
+                    ]),
                 },
                 approveGates: true,
                 timeoutMs: 10 * 60_000,
             });
 
             expect(run, JSON.stringify(run)).to.include({ state: "succeeded", verdict: "pass" });
-            expect(run.nodeStates).to.have.length(9);
+            expect(run.nodeStates).to.have.length(11);
             expect(run.nodeStates?.every((node) => node.state === "succeeded")).to.equal(true);
             expect(
                 run.nodeStates?.find((node) => node.nodeId === "extract-base-model")?.outputCount,
@@ -132,6 +142,9 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
             expect(
                 run.nodeStates?.find((node) => node.nodeId === "analyze-migration-risk")
                     ?.outputCount,
+            ).to.be.greaterThan(0);
+            expect(
+                run.nodeStates?.find((node) => node.nodeId === "generate-migration")?.outputCount,
             ).to.be.greaterThan(0);
             expect(git("rev-parse", "HEAD")).to.equal(beforeHead);
             expect(git("status", "--porcelain")).to.equal(beforeStatus);

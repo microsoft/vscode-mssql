@@ -697,8 +697,8 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "ef.project.discover",
         "ef.relational-model.extract",
         "ef.relational-model.compare",
-        "migration.script.generate",
         "migration.data-loss.analyze",
+        "migration.script.generate",
         "workspace.inspect",
         "sqltest.discover",
         "dbproject.create",
@@ -743,8 +743,8 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "ef.project.discover",
         "ef.relational-model.extract",
         "ef.relational-model.compare",
-        "migration.script.generate",
         "migration.data-loss.analyze",
+        "migration.script.generate",
         "workspace.inspect",
         "sqltest.discover",
         "dacpac.build",
@@ -818,8 +818,8 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "ef.project.discover",
         "ef.relational-model.extract",
         "ef.relational-model.compare",
-        "migration.script.generate",
         "migration.data-loss.analyze",
+        "migration.script.generate",
         "workspace.inspect",
         "sqltest.discover",
         "dbproject.create",
@@ -920,7 +920,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         has(text, /\b(ddl|migration|create|alter|drop|update the database)\b/);
     const requestsMigrationRiskAnalysis = has(
         text,
-        /\b(data loss|destructive migration|narrow(?:s|ing|ed)?\b.{0,35}\bcolumn|drop(?:s|ping|ped)?\b.{0,35}\btable)\b/,
+        /\b(data[\s-]+loss|destructive migration|narrow(?:s|ing|ed)?\b.{0,35}\bcolumn|drop(?:s|ping|ped)?\b.{0,35}\btable)\b/,
     );
     const requestsDmvSnapshot = has(
         text,
@@ -1017,7 +1017,10 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     if (requestsMigrationGeneration) {
         requested.add("migration.script.generate");
     }
-    if (requestsMigrationRiskAnalysis) {
+    // Script generation consumes the factual risk document even when the
+    // author did not spell out "data loss". Keep the declared capability
+    // requirements aligned with the executable plan's dependency graph.
+    if (requestsMigrationRiskAnalysis || requestsMigrationGeneration) {
         requested.add("migration.data-loss.analyze");
     }
     if (requestsDmvSnapshot) {

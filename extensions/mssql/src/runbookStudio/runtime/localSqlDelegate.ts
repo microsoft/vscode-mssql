@@ -56,6 +56,7 @@ import type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot"
 import type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
 import type { LocalEfRelationalDiff, LocalEfRelationalModel } from "./localEfRelationalModel";
 import type { LocalEfMigrationRiskDocument } from "./localEfMigrationRisk";
+import type { LocalEfMigrationManifest } from "./localEfMigrationGenerator";
 
 export type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot";
 export type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
@@ -92,6 +93,18 @@ export interface LocalEfMigrationRiskExecutionResult {
     artifactPath: string;
     artifactSizeBytes: number;
     artifactSha256: string;
+}
+
+export interface LocalEfMigrationExecutionResult {
+    manifest: LocalEfMigrationManifest;
+    migrationRef: string;
+    manifestArtifactPath: string;
+    manifestArtifactSizeBytes: number;
+    manifestArtifactSha256: string;
+    forwardScriptPath: string;
+    forwardScriptSizeBytes: number;
+    rollbackScriptPath: string;
+    rollbackScriptSizeBytes: number;
 }
 
 export { isReadOnlySql } from "../readOnlySql";
@@ -132,6 +145,14 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalEfMigrationRiskExecutionResult>;
+    generateEfMigration(
+        nodeId: string,
+        diffRef: string,
+        riskRef: string,
+        renameDecisions: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEfMigrationExecutionResult>;
     inspectGitChangeSet(
         nodeId: string,
         repository: string,
@@ -635,6 +656,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "ef.relational-model.extract",
         "ef.relational-model.compare",
         "migration.data-loss.analyze",
+        "migration.script.generate",
         "sqltest.discover",
         "tsqlt.run",
         "dacpac.build",
@@ -693,6 +715,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.compareEfRelationalModels(node, binding);
             case "migration.data-loss.analyze":
                 return this.analyzeEfMigrationRisk(node, binding);
+            case "migration.script.generate":
+                return this.generateEfMigration(node, binding);
             case "sqltest.discover":
                 return this.discoverSqlTests(binding);
             case "tsqlt.run":
@@ -1124,6 +1148,98 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     requiresRenameDecision: result.risk.requiresRenameDecision,
                     blockerCount: result.risk.blockerCount,
                     reviewCount: result.risk.reviewCount,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async generateEfMigration(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const diffRef = binding.resolveBind(node.inputs?.diff);
+        const riskRef = binding.resolveBind(node.inputs?.risk);
+        const renameDecisions = binding.resolveBind(node.inputs?.renameDecisions);
+        for (const [name, value] of Object.entries({
+            diff: diffRef,
+            risk: riskRef,
+            renameDecisions,
+        })) {
+            if (typeof value !== "string") {
+                return invalidBinding(name);
+            }
+        }
+        try {
+            const result = await this.operations.generateEfMigration(
+                node.id,
+                diffRef as string,
+                riskRef as string,
+                renameDecisions as string,
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "migration.operationCount": result.manifest.operations.length,
+                    "migration.potentialDataLoss": result.manifest.potentialDataLoss,
+                    "migration.rollbackComplete":
+                        result.manifest.rollbackCompleteness === "complete",
+                    "migration.forwardScriptSizeBytes": result.forwardScriptSizeBytes,
+                    "migration.rollbackScriptSizeBytes": result.rollbackScriptSizeBytes,
+                },
+                message: LocRunbookStudio.efMigrationGenerated(
+                    result.manifest.operations.length,
+                    result.manifest.rollbackCompleteness,
+                ),
+                output: {
+                    contract: "migrationManifest/1",
+                    columns: [
+                        "sequence",
+                        "kind",
+                        "objectType",
+                        "path",
+                        "risk",
+                        "forwardStatements",
+                        "rollbackStatements",
+                    ],
+                    rows: result.manifest.operations.map((operation) => [
+                        operation.sequence,
+                        operation.kind,
+                        operation.objectType,
+                        operation.path,
+                        operation.risk,
+                        operation.forwardStatementCount,
+                        operation.rollbackStatementCount,
+                    ]),
+                    scalars: {
+                        migrationRef: result.migrationRef,
+                        manifestSha256: result.manifest.manifestSha256,
+                        forwardScriptSha256: result.manifest.forwardScriptSha256,
+                        rollbackScriptSha256: result.manifest.rollbackScriptSha256,
+                        operationCount: result.manifest.operations.length,
+                        potentialDataLoss: result.manifest.potentialDataLoss,
+                        rollbackCompleteness: result.manifest.rollbackCompleteness,
+                        artifactPath: result.manifestArtifactPath,
+                        artifactSizeBytes: result.manifestArtifactSizeBytes,
+                        artifactSha256: result.manifestArtifactSha256,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    migrationRef: result.migrationRef,
+                    manifestSha256: result.manifest.manifestSha256,
+                    forwardScriptSha256: result.manifest.forwardScriptSha256,
+                    rollbackScriptSha256: result.manifest.rollbackScriptSha256,
+                    operationCount: result.manifest.operations.length,
+                    potentialDataLoss: result.manifest.potentialDataLoss,
+                    rollbackCompleteness: result.manifest.rollbackCompleteness,
                 },
             };
         } catch (error) {

@@ -311,7 +311,46 @@ suite("planCompiler", () => {
         expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
     });
 
-    test("complex EF branch workflows name semantic migration blockers instead of one-table DDL", () => {
+    test("EF branch changes compile to reviewed migration artifacts without applying SQL", () => {
+        const intent =
+            "Compare Entity Framework changes between development and main, generate migration DDL, and analyze possible data loss.";
+        const classified = classifyRunbookIntent(intent);
+        const efBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicEfModelComparison(efBase, intent);
+        expect(result).not.to.equal(undefined);
+        if (!result || isProposalFailure(result)) {
+            throw new Error(result && isProposalFailure(result) ? result.detail : "no plan");
+        }
+
+        expect(result.artifact.lock?.nodes).to.have.length(11);
+        expect(result.artifact.source.parameters).to.deep.include({
+            id: "renameDecisions",
+            label: "Rename decisions (JSON)",
+            type: "string",
+            required: true,
+            default: "[]",
+        });
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "generate-migration"),
+        ).to.deep.include({
+            activityKind: "migration.script.generate",
+            inputs: {
+                diff: "$nodes.compare-models.diffRef",
+                risk: "$nodes.analyze-migration-risk.riskRef",
+                renameDecisions: "$params.renameDecisions",
+            },
+        });
+        expect(
+            result.artifact.lock?.nodes.some((node) => node.activityKind === "sql.schema.apply"),
+        ).to.equal(false);
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+    });
+
+    test("complex EF branch workflows request semantic migration generation instead of one-table DDL", () => {
         const classified = classifyRunbookIntent(
             "Diff the development branch against main, inspect EntityFramework entities, and create CREATE, ALTER, and DROP DDL to update the database.",
         );

@@ -581,11 +581,15 @@ function parseColumn(value: unknown, index: number): LocalEfRelationalColumn {
         storeType: text(item.storeType, "column.storeType"),
         nullable: boolean(item.nullable, "column.nullable"),
         identity: boolean(item.identity, "column.identity"),
+        identitySeed: optionalInteger(item.identitySeed, "column.identitySeed"),
+        identityIncrement: optionalInteger(item.identityIncrement, "column.identityIncrement"),
         computed: boolean(item.computed, "column.computed"),
         maxLength: optionalInteger(item.maxLength, "column.maxLength"),
         precision: optionalInteger(item.precision, "column.precision"),
         scale: optionalInteger(item.scale, "column.scale"),
         defaultKind,
+        defaultSha256: optionalText(item.defaultSha256, "column.defaultSha256"),
+        computedSha256: optionalText(item.computedSha256, "column.computedSha256"),
         collation: optionalText(item.collation, "column.collation"),
     };
 }
@@ -604,6 +608,10 @@ function parseIndex(value: unknown, index: number): LocalEfRelationalIndex {
         ...parseKey(item, `indexes[${index}]`),
         unique: boolean(item.unique, "index.unique"),
         filterSha256: optionalText(item.filterSha256, "index.filterSha256"),
+        notNullFilterColumns:
+            item.notNullFilterColumns === undefined || item.notNullFilterColumns === null
+                ? undefined
+                : stringArray(item.notNullFilterColumns, "index.notNullFilterColumns"),
     };
 }
 
