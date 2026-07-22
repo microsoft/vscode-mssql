@@ -303,6 +303,9 @@
     <trans-unit id="++CODE++cfbdd6edf1303a7731f7ba735eee41c3618043e3cb424fe470dced0126aa8c71">
       <source xml:lang="en">Advanced restore options</source>
     </trans-unit>
+    <trans-unit id="++CODE++9273e47b2772e54616e881165737b64eca4d6db0c0eac30621a74e29696c1860">
+      <source xml:lang="en">Affected child objects</source>
+    </trans-unit>
     <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
       <source xml:lang="en">After</source>
     </trans-unit>
@@ -1637,6 +1640,18 @@
     </trans-unit>
     <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
       <source xml:lang="en">Consider adding a name for this foreign key</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1fb78b59d106ba2e4cd956f77e6e0c4bb1090e2d57ac69e73e49aef3fc65d6aa">
+      <source xml:lang="en">Constraints added: {0}</source>
+      <note>{0} is a comma-separated list of fully-qualified object names (e.g. &apos;[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]&apos;) that will be added under the selected parent object when the diff is applied.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++bbbe9ad1983802ef25e78bbea25d0abdc86664e6a53f1459d4cc71cda0a25d8e">
+      <source xml:lang="en">Constraints changed: {0}</source>
+      <note>{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c9d2fd860eb492e6f42e47058e7242c10daec76480b280a0886b242619243760">
+      <source xml:lang="en">Constraints dropped: {0}</source>
+      <note>{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.</note>
     </trans-unit>
     <trans-unit id="++CODE++ca0fa7ee8e0d9d4e742094db2e8d59b963dce003cc884c8573d64d59fcfe16dd">
       <source xml:lang="en">Container Name</source>
@@ -5468,6 +5483,10 @@
     <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
     </trans-unit>
+    <trans-unit id="++CODE++0ebf49b00afe5216591811e98012e4f67f136b9b32efc1d28fd78cbd12b90f85">
+      <source xml:lang="en">Platform: {0}</source>
+      <note>{0} is the DacFx SqlServerVersion short name (e.g. &apos;SqlDwUnified&apos;, &apos;Sql160&apos;, &apos;SqlAzure&apos;) that the comparison ran under. Shown as a badge under each endpoint after the comparison runs.</note>
+    </trans-unit>
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
       <source xml:lang="en">Please Accept the SQL Server EULA</source>
     </trans-unit>
@@ -8448,6 +8467,11 @@
     </trans-unit>
     <trans-unit id="++CODE++0a6a65ea9882252d0abde519b647d2bd091f9a3a4ad1ddd0b8f79de88c4173e6">
       <source xml:lang="en">{0} password doesn&apos;t match the confirmation password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++240eff1ef118eecdda0485068208c349d347a3b00bb89ce6ba24050468bbc68b">
+      <source xml:lang="en">{0} platform: {1}</source>
+      <note>{0} is &apos;Source&apos; or &apos;Target&apos;
+{1} is the DacFx SqlServerVersion short name</note>
     </trans-unit>
     <trans-unit id="++CODE++a97848c89e7bbdc7d3064ed718beef4138a0b3e6fba815d496df332bbc3773ed">
       <source xml:lang="en">{0} properties</source>

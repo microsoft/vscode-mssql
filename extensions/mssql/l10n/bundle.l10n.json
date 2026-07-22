@@ -3514,6 +3514,35 @@
     "Database Project": "Database Project",
     "Target": "Target",
     "Comparison Details": "Comparison Details",
+    "Platform: {0}/{0} is the DacFx SqlServerVersion short name (e.g. 'SqlDwUnified', 'Sql160', 'SqlAzure') that the comparison ran under. Shown as a badge under each endpoint after the comparison runs.": {
+        "message": "Platform: {0}",
+        "comment": [
+            "{0} is the DacFx SqlServerVersion short name (e.g. 'SqlDwUnified', 'Sql160', 'SqlAzure') that the comparison ran under. Shown as a badge under each endpoint after the comparison runs."
+        ]
+    },
+    "{0} platform: {1}/{0} is 'Source' or 'Target'{1} is the DacFx SqlServerVersion short name": {
+        "message": "{0} platform: {1}",
+        "comment": ["{0} is 'Source' or 'Target'", "{1} is the DacFx SqlServerVersion short name"]
+    },
+    "Affected child objects": "Affected child objects",
+    "Constraints added: {0}/{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.": {
+        "message": "Constraints added: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied."
+        ]
+    },
+    "Constraints changed: {0}/{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.": {
+        "message": "Constraints changed: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied."
+        ]
+    },
+    "Constraints dropped: {0}/{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.": {
+        "message": "Constraints dropped: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied."
+        ]
+    },
     "There was an error updating the project": "There was an error updating the project",
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
     "Publish Project - {0}/{0} is the name of the project being published": {

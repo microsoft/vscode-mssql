@@ -5,7 +5,14 @@
 
 import * as mssql from "vscode-mssql";
 import { useContext } from "react";
-import { Button, makeStyles, mergeClasses, shorthands, useId } from "@fluentui/react-components";
+import {
+    Badge,
+    Button,
+    makeStyles,
+    mergeClasses,
+    shorthands,
+    useId,
+} from "@fluentui/react-components";
 import SelectSchemaInput from "./SelectSchemaInput";
 import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
@@ -25,6 +32,11 @@ const useStyles = makeStyles({
         flexDirection: "row",
     },
 
+    layoutVertically: {
+        display: "flex",
+        flexDirection: "column",
+    },
+
     center: {
         justifyContent: "center",
     },
@@ -37,6 +49,14 @@ const useStyles = makeStyles({
 
     buttonLeftMargin: {
         marginLeft: "32px",
+    },
+
+    platformBadgeRow: {
+        // Reserve a row of vertical space even when no badge is shown so that the
+        // Compare button stays vertically aligned with the inputs both before and
+        // after the first comparison.
+        minHeight: "20px",
+        marginTop: "4px",
     },
 });
 
@@ -68,6 +88,10 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
     );
     const isComparisonInProgress = useSchemaCompareSelector((s) => s.isComparisonInProgress);
     const isApplyInProgress = useSchemaCompareSelector((s) => s.isApplyInProgress);
+    // The DacFx platforms are only populated on schemaCompareResult after a comparison runs;
+    // pull them via a targeted selector so the panel does not re-render on every state change.
+    const sourcePlatform = useSchemaCompareSelector((s) => s.schemaCompareResult?.sourcePlatform);
+    const targetPlatform = useSchemaCompareSelector((s) => s.schemaCompareResult?.targetPlatform);
 
     let sourceEndpointDisplay = getEndpointDisplayName(sourceEndpointInfo);
     let targetEndpointDisplay = getEndpointDisplayName(targetEndpointInfo);
@@ -90,27 +114,45 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
         return true;
     };
 
+    const renderPlatformBadge = (platform: string | undefined, endpointLabel: string) => (
+        <div className={classes.platformBadgeRow}>
+            {platform ? (
+                <Badge
+                    appearance="outline"
+                    size="small"
+                    aria-label={loc.schemaCompare.platformBadgeAriaLabel(endpointLabel, platform)}>
+                    {loc.schemaCompare.platformBadge(platform)}
+                </Badge>
+            ) : null}
+        </div>
+    );
+
     return (
         <div
             className={mergeClasses(classes.layoutHorizontally, classes.center, classes.topMargin)}>
-            <SelectSchemaInput
-                id={sourceId}
-                label={loc.schemaCompare.source}
-                buttonAriaLabel={loc.schemaCompare.selectSourceSchema}
-                value={sourceEndpointDisplay}
-                disableBrowseButton={isComparisonInProgress || isApplyInProgress}
-                selectFile={() => onSelectSchemaClicked("source")}
-                className={classes.marginRight}
-            />
+            <div className={mergeClasses(classes.layoutVertically, classes.marginRight)}>
+                <SelectSchemaInput
+                    id={sourceId}
+                    label={loc.schemaCompare.source}
+                    buttonAriaLabel={loc.schemaCompare.selectSourceSchema}
+                    value={sourceEndpointDisplay}
+                    disableBrowseButton={isComparisonInProgress || isApplyInProgress}
+                    selectFile={() => onSelectSchemaClicked("source")}
+                />
+                {renderPlatformBadge(sourcePlatform, loc.schemaCompare.source)}
+            </div>
 
-            <SelectSchemaInput
-                id={targetId}
-                label={loc.schemaCompare.target}
-                buttonAriaLabel={loc.schemaCompare.selectTargetSchema}
-                value={targetEndpointDisplay}
-                disableBrowseButton={isComparisonInProgress || isApplyInProgress}
-                selectFile={() => onSelectSchemaClicked("target")}
-            />
+            <div className={classes.layoutVertically}>
+                <SelectSchemaInput
+                    id={targetId}
+                    label={loc.schemaCompare.target}
+                    buttonAriaLabel={loc.schemaCompare.selectTargetSchema}
+                    value={targetEndpointDisplay}
+                    disableBrowseButton={isComparisonInProgress || isApplyInProgress}
+                    selectFile={() => onSelectSchemaClicked("target")}
+                />
+                {renderPlatformBadge(targetPlatform, loc.schemaCompare.target)}
+            </div>
 
             <Button
                 className={mergeClasses(classes.button, classes.buttonLeftMargin)}

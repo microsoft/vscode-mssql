@@ -2180,6 +2180,48 @@ export class LocConstants {
             source: l10n.t("Source"),
             target: l10n.t("Target"),
             compareDetails: l10n.t("Comparison Details"),
+            platformBadge: (platform: string) =>
+                l10n.t({
+                    message: "Platform: {0}",
+                    args: [platform],
+                    comment: [
+                        "{0} is the DacFx SqlServerVersion short name (e.g. 'SqlDwUnified', 'Sql160', 'SqlAzure') that the comparison ran under. Shown as a badge under each endpoint after the comparison runs.",
+                    ],
+                }),
+            platformBadgeAriaLabel: (endpointLabel: string, platform: string) =>
+                l10n.t({
+                    message: "{0} platform: {1}",
+                    args: [endpointLabel, platform],
+                    comment: [
+                        "{0} is 'Source' or 'Target'",
+                        "{1} is the DacFx SqlServerVersion short name",
+                    ],
+                }),
+            affectedChildrenRegionLabel: l10n.t("Affected child objects"),
+            affectedChildrenAdded: (names: string) =>
+                l10n.t({
+                    message: "Constraints added: {0}",
+                    args: [names],
+                    comment: [
+                        "{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.",
+                    ],
+                }),
+            affectedChildrenChanged: (names: string) =>
+                l10n.t({
+                    message: "Constraints changed: {0}",
+                    args: [names],
+                    comment: [
+                        "{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.",
+                    ],
+                }),
+            affectedChildrenDropped: (names: string) =>
+                l10n.t({
+                    message: "Constraints dropped: {0}",
+                    args: [names],
+                    comment: [
+                        "{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.",
+                    ],
+                }),
             areYouSureYouWantToUpdateTheTarget: l10n.t(
                 "Are you sure you want to update the target?",
             ),
