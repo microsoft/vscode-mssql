@@ -24,6 +24,7 @@ import {
     compileDeterministicCitiesWorkload,
     compileDeterministicDacpacEvolution,
     compileDeterministicDacpacInventory,
+    compileDeterministicDacpacRoundTrip,
     compileDeterministicEfModelComparison,
     isProposalFailure,
 } from "../../src/runbookStudio/models/planCompiler";
@@ -293,6 +294,53 @@ suite("Runbook Studio headless deterministic preview", () => {
             expect(artifact.content).not.to.contain("preview-profile-secret-canary");
             expect(artifact.content).not.to.contain("fake/");
         }
+    });
+
+    test("drives the simple DACPAC round-trip repro through the headless plan runner", async () => {
+        const intent =
+            "Extract a wideworldimporter dacpac. Import the dacpac back into the server and name WWI_Import.";
+        const classified = classifyRunbookIntent(intent);
+        const base = createNewRunbookArtifact("New runbook", "headless-dacpac-round-trip");
+        base.family = classified.family;
+        base.source.requirements = classified.requirements;
+        const compiled = compileDeterministicDacpacRoundTrip(base, intent);
+        if (!compiled) {
+            throw new Error("deterministic DACPAC round trip was not selected");
+        }
+        if (isProposalFailure(compiled)) {
+            throw new Error(compiled.detail);
+        }
+
+        const result = await runHeadlessPreview({
+            artifactText: canonicalizeRunbookArtifact(compiled.artifact),
+            parameterValues: {
+                sourceConnection: "preview-source-profile",
+                targetServer: "preview-localhost-profile",
+                sourceDatabaseName: "WideWorldImporters",
+            },
+            runId: "dacpac-round-trip-preview",
+            deterministicPreviewAcknowledged: true,
+            approvePreviewGates: true,
+        });
+
+        expect(result).to.include({
+            outcome: "pass",
+            exitCode: HEADLESS_EXIT_CODES.pass,
+            terminalState: "succeeded",
+            verdict: "pass",
+            evidenceAvailable: false,
+        });
+        expect(result.nodeCounts).to.deep.equal({
+            succeeded: 8,
+            failed: 0,
+            skipped: 0,
+            cancelled: 0,
+        });
+        expect(result.validation).to.include({
+            valid: true,
+            executable: true,
+            simulatedMutationCount: 3,
+        });
     });
 
     test("drives the exact DACPAC inventory prompt through the headless plan runner", async () => {

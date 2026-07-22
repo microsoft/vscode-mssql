@@ -23,6 +23,7 @@ import {
     compileDeterministicCitiesWorkload,
     compileDeterministicDacpacEvolution,
     compileDeterministicDacpacInventory,
+    compileDeterministicDacpacRoundTrip,
     compileDeterministicEfModelComparison,
     compileDeterministicGitChangeSet,
     extractJsonObject,
@@ -861,6 +862,73 @@ suite("planCompiler", () => {
             { from: "compare", to: "visualize-schema" },
             { from: "visualize-schema", to: "report" },
         ]);
+    });
+
+    test("the exact simple DACPAC round-trip repro compiles deterministically", () => {
+        const intent =
+            "Extract a wideworldimporter dacpac. Import the dacpac back into the server and name WWI_Import.";
+        const classified = classifyRunbookIntent(intent);
+        const roundTripBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+
+        const result = compileDeterministicDacpacRoundTrip(roundTripBase, intent);
+        if (!result) {
+            throw new Error("deterministic DACPAC round trip was not selected");
+        }
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+        expect(
+            result.artifact.source.parameters.find(
+                (parameter) => parameter.id === "sourceDatabaseName",
+            )?.default,
+        ).to.equal("wideworldimporter");
+        expect(
+            result.artifact.source.parameters.find(
+                (parameter) => parameter.id === "targetDatabaseName",
+            )?.default,
+        ).to.equal("WWI_Import");
+        expect(
+            result.artifact
+                .lock!.nodes.filter((node) => node.kind === "activity")
+                .map((node) => node.activityKind),
+        ).to.deep.equal([
+            "dacpac.extract",
+            "devdatabase.provision",
+            "dacpac.deploy.preview",
+            "dacpac.deploy.dev",
+            "schema.compare",
+        ]);
+        expect(result.artifact.lock!.nodes).to.have.length(8);
+    });
+
+    test("the corrected basic DACPAC demo wording preserves both database names", () => {
+        const intent =
+            "Extract the WideWorldImporters database to a DACPAC. Import the DACPAC as WWI_Import on the same server.";
+        const classified = classifyRunbookIntent(intent);
+        const roundTripBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicDacpacRoundTrip(roundTripBase, intent);
+        if (!result) {
+            throw new Error("deterministic workflow was not selected");
+        }
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+
+        expect(
+            result.artifact.source.parameters
+                .filter((parameter) => parameter.id.endsWith("DatabaseName"))
+                .map((parameter) => parameter.default),
+        ).to.deep.equal(["WideWorldImporters", "WWI_Import"]);
     });
 
     test("extract, named deploy, and typed schema inventory compiles end to end", () => {

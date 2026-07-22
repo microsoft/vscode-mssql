@@ -177,6 +177,14 @@ const DETERMINISTIC_DACPAC_INVENTORY_ACTIVITIES = new Set([
     "database.schema.inventory",
 ]);
 
+const DETERMINISTIC_DACPAC_ROUND_TRIP_ACTIVITIES = new Set([
+    "dacpac.extract",
+    "devdatabase.provision",
+    "dacpac.deploy.preview",
+    "dacpac.deploy.dev",
+    "schema.compare",
+]);
+
 const DETERMINISTIC_DACPAC_EVOLUTION_ACTIVITIES = new Set([
     "dacpac.extract",
     "devdatabase.provision",
@@ -2036,6 +2044,142 @@ export function compileDeterministicCitiesWorkload(
 }
 
 /**
+ * Compile the minimal extract -> named local deploy -> equality check workflow
+ * without asking a model to recreate its ownership and approval lifecycle.
+ * The source connection is extraction-only and the target must be a newly
+ * provisioned, explicitly named development database.
+ */
+export function compileDeterministicDacpacRoundTrip(
+    base: RunbookArtifactFile,
+    intent: string,
+): ProposalParseResult | undefined {
+    const required = base.source.requirements?.activities.map((activity) => activity.kind) ?? [];
+    if (
+        required.length !== DETERMINISTIC_DACPAC_ROUND_TRIP_ACTIVITIES.size ||
+        !required.every((kind) => DETERMINISTIC_DACPAC_ROUND_TRIP_ACTIVITIES.has(kind))
+    ) {
+        return undefined;
+    }
+    const names = extractDacpacRoundTripDatabaseNames(intent);
+    if (!names || names.source.toLowerCase() === names.target.toLowerCase()) {
+        return undefined;
+    }
+
+    const proposal: CompiledProposal = {
+        name: `${names.source} deployment to ${names.target}`,
+        description:
+            `Extracts ${names.source} to a retained DACPAC, provisions the owned development ` +
+            `database ${names.target}, deploys the exact artifact, and verifies schema equality.`,
+        parameters: [
+            {
+                id: "sourceConnection",
+                label: `${names.source} source server`,
+                type: "connection",
+                required: true,
+            },
+            {
+                id: "targetServer",
+                label: "Local target server",
+                type: "connection",
+                required: true,
+            },
+            {
+                id: "sourceDatabaseName",
+                label: "Source database name",
+                type: "string",
+                required: true,
+                default: names.source,
+            },
+            {
+                id: "targetDatabaseName",
+                label: "New development database name",
+                type: "string",
+                required: true,
+                default: names.target,
+            },
+        ],
+        entryNodeId: "extract",
+        nodes: [
+            {
+                id: "extract",
+                label: "Extract source DACPAC",
+                kind: "activity",
+                activityKind: "dacpac.extract",
+                inputs: {
+                    database: "$params.sourceConnection",
+                    databaseName: "$params.sourceDatabaseName",
+                },
+            },
+            {
+                id: "approve-provision",
+                label: `Approve creation of ${names.target}`,
+                kind: "gate",
+            },
+            {
+                id: "provision",
+                label: `Create ${names.target}`,
+                kind: "activity",
+                activityKind: "devdatabase.provision",
+                inputs: {
+                    server: "$params.targetServer",
+                    databaseName: "$params.targetDatabaseName",
+                },
+            },
+            {
+                id: "preview",
+                label: "Preview DACPAC deployment",
+                kind: "activity",
+                activityKind: "dacpac.deploy.preview",
+                inputs: {
+                    dacpac: "$nodes.extract.artifactPath",
+                    database: "$nodes.provision.connectionRef",
+                },
+            },
+            {
+                id: "approve-deploy",
+                label: `Approve deployment to ${names.target}`,
+                kind: "gate",
+            },
+            {
+                id: "deploy",
+                label: "Deploy DACPAC",
+                kind: "activity",
+                activityKind: "dacpac.deploy.dev",
+                inputs: {
+                    dacpac: "$nodes.extract.artifactPath",
+                    database: "$nodes.provision.connectionRef",
+                    artifactDigest: "$nodes.extract.artifactSha256",
+                    previewDigest: "$nodes.preview.reportSha256",
+                },
+            },
+            {
+                id: "verify",
+                label: "Verify deployed schema",
+                kind: "activity",
+                activityKind: "schema.compare",
+                inputs: {
+                    dacpac: "$nodes.extract.artifactPath",
+                    database: "$nodes.provision.connectionRef",
+                },
+            },
+            { id: "report", label: "Summarize deployment", kind: "report" },
+        ],
+        edges: [
+            { from: "extract", to: "approve-provision" },
+            { from: "approve-provision", to: "provision", when: "approved" },
+            { from: "approve-provision", to: "report", when: "rejected" },
+            { from: "provision", to: "preview" },
+            { from: "preview", to: "approve-deploy" },
+            { from: "approve-deploy", to: "deploy", when: "approved" },
+            { from: "approve-deploy", to: "report", when: "rejected" },
+            { from: "deploy", to: "verify" },
+            { from: "verify", to: "report" },
+        ],
+    };
+    return parseCompiledProposal(JSON.stringify(proposal), base, intent);
+}
+
+/**
  * Compile the first closed schema-evolution workflow without asking the
  * language model to reconstruct its ownership and approval lifecycle. This
  * deliberately supports only an explicitly named representative logging
@@ -2378,7 +2522,11 @@ function extractDacpacRoundTripDatabaseNames(
     const identifier = String.raw`(\[[^\]\r\n]{1,128}\]|[A-Za-z_][A-Za-z0-9_$#@-]{0,127})`;
     const sourcePatterns = [
         new RegExp(
-            String.raw`\b(?:extract|exact)\s+(?:database\s+)?${identifier}\s+(?:database\s+)?(?:to|into|as)\s+(?:an?\s+)?dacpac\b`,
+            String.raw`\b(?:extract|exact)\s+(?:(?:an?|the|my)\s+)?(?:database\s+)?${identifier}\s+(?:database\s+)?dacpac\b`,
+            "i",
+        ),
+        new RegExp(
+            String.raw`\b(?:extract|exact)\s+(?:(?:the|my)\s+)?(?:database\s+)?${identifier}\s+(?:database\s+)?(?:to|into|as)\s+(?:an?\s+)?dacpac\b`,
             "i",
         ),
         new RegExp(
@@ -2388,7 +2536,10 @@ function extractDacpacRoundTripDatabaseNames(
         new RegExp(String.raw`\bdacpac\s+from\s+(?:database\s+)?${identifier}`, "i"),
     ];
     const targetPatterns = [
-        new RegExp(String.raw`\bname\s+(?:it|the\s+(?:target\s+)?database)\s+${identifier}`, "i"),
+        new RegExp(
+            String.raw`\bname\s+(?:(?:it|the\s+(?:target\s+)?database)\s+)?${identifier}`,
+            "i",
+        ),
         // Prefer explicit naming/preposition forms. This deliberately skips
         // an earlier phrase such as "back to server" in
         // "deploy it back to server as WWI_2".
@@ -2634,6 +2785,25 @@ export async function compileIntentWithModel(
         emitRunbookEvent(context, "runbookStudio.compile.rejected", "warning", {
             compiler: metaField("deterministicCitiesWorkload"),
             reasonClass: metaField(deterministicWorkload.detail.slice(0, 80)),
+        });
+    }
+
+    const deterministicDacpacRoundTrip = compileDeterministicDacpacRoundTrip(base, intent);
+    if (deterministicDacpacRoundTrip && !isProposalFailure(deterministicDacpacRoundTrip)) {
+        emitRunbookEvent(context, "runbookStudio.compile.accepted", "ok", {
+            compiler: metaField("deterministicDacpacRoundTrip"),
+            nodeCount: metaField(deterministicDacpacRoundTrip.artifact.lock?.nodes.length ?? 0),
+            parameterCount: metaField(
+                deterministicDacpacRoundTrip.artifact.source.parameters.length,
+            ),
+        });
+        end("ok", deterministicDacpacRoundTrip.artifact.lock?.nodes.length ?? 0);
+        return { artifact: deterministicDacpacRoundTrip.artifact };
+    }
+    if (deterministicDacpacRoundTrip && isProposalFailure(deterministicDacpacRoundTrip)) {
+        emitRunbookEvent(context, "runbookStudio.compile.rejected", "warning", {
+            compiler: metaField("deterministicDacpacRoundTrip"),
+            reasonClass: metaField(deterministicDacpacRoundTrip.detail.slice(0, 80)),
         });
     }
 

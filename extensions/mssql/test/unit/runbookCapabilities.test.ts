@@ -485,6 +485,30 @@ suite("runbook capability preflight", () => {
         ]);
     });
 
+    test("simple extract and named import repro is executable after binding", () => {
+        const classified = classifyRunbookIntent(
+            "Extract a wideworldimporter dacpac. Import the dacpac back into the server and name WWI_Import.",
+        );
+        const kinds = classified.requirements.activities.map((activity) => activity.kind);
+        const readiness = preflightRunbookRequirements(classified.requirements);
+
+        expect(classified.family).to.equal("build");
+        expect(kinds).to.deep.equal([
+            "dacpac.extract",
+            "dacpac.deploy.preview",
+            "devdatabase.provision",
+            "dacpac.deploy.dev",
+            "schema.compare",
+        ]);
+        expect(kinds).not.to.include.members([
+            "dacpac.build",
+            "sandbox.provision",
+            "database.schema.inventory",
+        ]);
+        expect(readiness.status).to.equal("readyAfterBinding");
+        expect(readiness.missingActivityKinds).to.deep.equal([]);
+    });
+
     test("sampled Cities performance intent is executable without baseline-only activities", () => {
         const classified = classifyRunbookIntent(
             "Look at data in WideWorldImporters Application.Cities, sample 20 rows, generate a workload " +

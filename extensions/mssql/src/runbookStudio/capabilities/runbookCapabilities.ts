@@ -946,7 +946,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         requestsReleaseCandidateDacpac ||
         has(
             text,
-            /\b(extract|create|generate|make)\b.{0,45}\bdacpac\b.{0,45}\b(from|of)\b|\bdacpac\b.{0,35}\bfrom\b|\b(extract|exact)\b.{0,65}\b(to|into|as)\s+(an?\s+)?dacpac\b/,
+            /\b(extract|create|generate|make)\b.{0,45}\bdacpac\b.{0,45}\b(from|of)\b|\bdacpac\b.{0,35}\bfrom\b|\b(extract|exact)\b.{0,65}\b(to|into|as)\s+(an?\s+)?dacpac\b|\b(?:extract|exact)\s+(?:(?:an?|the|my)\s+)?(?:database\s+)?(?:\[[^\]\r\n]{1,128}\]|[a-z_][a-z0-9_$#@-]{0,127})\s+(?:database\s+)?dacpac\b/,
         );
     const requestsExistingDacpac =
         has(text, /\b(import|deploy|publish)\b.{0,40}\b(the\s+|an?\s+)?dacpac\b/) &&
@@ -1009,10 +1009,15 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         text,
         /\b(database|sql)\s+project\b|\.sqlproj\b|\bproject\b.{0,40}\b(tables?|schemas?|foreign keys?|constraints?|indexes?|objects?)\b/,
     );
-    const requestsNamedDatabaseDeployment = has(
-        text,
-        /\b(deploy|publish|import)\b.{0,35}\b(dacpac|it)\b.{0,20}\b(as|into|to)\b\s+(?!a\s+)?(?:\[[^\]]+\]|[a-z_][a-z0-9_$#@.-]*)/,
-    );
+    const requestsNamedDatabaseDeployment =
+        has(
+            text,
+            /\b(deploy|publish|import)\b.{0,35}\b(dacpac|it)\b.{0,20}\b(as|into|to)\b\s+(?!a\s+)?(?:\[[^\]]+\]|[a-z_][a-z0-9_$#@.-]*)/,
+        ) ||
+        has(
+            text,
+            /\bname\s+(?:(?:it|the\s+(?:target\s+)?database)\s+)?(?:\[[^\]\r\n]{1,128}\]|[a-z_][a-z0-9_$#@-]{0,127})\b/,
+        );
     const requestsGeneratedWorkload = has(
         text,
         /\b(generate|create|author)\b.{0,45}\bworkload\b|\bworkload\s+generation\b|\binserts?\b.{0,25}\bdeletes?\b.{0,45}\b(loop|times|iterations?)\b/,
