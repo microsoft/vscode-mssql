@@ -891,6 +891,15 @@ export class RunbookStudio {
             comment: ["{0} is fail or indeterminate"],
         });
     public static evidenceBundleCancelled = l10n.t("Evidence bundle creation was cancelled.");
+    public static releaseManifestInputsInvalid = l10n.t(
+        "The release manifest inputs did not resolve to the exact required evidence values.",
+    );
+    public static releaseManifestCreated = (evidenceCount: number) =>
+        l10n.t({
+            message: "Release manifest bound {0} tested evidence digest(s).",
+            args: [evidenceCount],
+            comment: ["{0} is the number of evidence digests in the release manifest"],
+        });
     public static evidenceExportTitle = l10n.t("Export run evidence");
     public static evidenceExported = l10n.t("Run evidence exported.");
     public static evidenceExportUnavailable = l10n.t(

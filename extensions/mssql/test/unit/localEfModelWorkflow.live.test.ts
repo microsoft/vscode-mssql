@@ -592,7 +592,7 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 uri: document.uri.toString(),
                 intent: PERFORMANCE_REHEARSAL_INTENT,
             });
-            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 43 });
+            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 44 });
             expect(compile.activityKinds).to.include.members([
                 "sql.workload.inspect",
                 "database.schema.fingerprint",
@@ -604,6 +604,7 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 "xevent.xel.analyze",
                 "xevent.xel.collect",
                 "workload.benchmark",
+                "release.manifest.create",
                 "dacpac.extract",
             ]);
             await document.save();
@@ -643,7 +644,7 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 timeoutMs: 15 * 60_000,
             });
             expect(run, JSON.stringify(run)).to.include({ state: "succeeded", verdict: "pass" });
-            expect(run.nodeStates?.filter((node) => node.state === "succeeded")).to.have.length(38);
+            expect(run.nodeStates?.filter((node) => node.state === "succeeded")).to.have.length(39);
             expect(run.nodeStates?.filter((node) => node.state === "skipped")).to.have.length(5);
             for (const nodeId of [
                 "verify-base-deployment",
@@ -659,6 +660,7 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 "collect-capture",
                 "summarize-performance",
                 "extract-release-candidate",
+                "create-release-manifest",
             ]) {
                 expect(
                     run.nodeStates?.find((node) => node.nodeId === nodeId)?.outputCount,

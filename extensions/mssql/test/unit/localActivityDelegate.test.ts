@@ -647,6 +647,17 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             cleanedAtUtc: "2026-07-20T20:04:00.000Z",
             cleanupEvidenceDigest: "sha256:container-cleanup",
         }),
+        createReleaseManifest: async () => ({
+            manifestSha256: "8".repeat(64),
+            manifestJson: '{"contract":"releaseManifest/1"}',
+            evidenceCount: 16,
+            evidenceComplete: true,
+            protectedDeploymentAuthorized: false,
+            generatedAtUtc: "2026-07-21T20:05:00.000Z",
+            artifactPath: "C:\\managed\\release-manifest.json",
+            artifactSha256: "7".repeat(64),
+            artifactSizeBytes: 2048,
+        }),
         bundleEvidence: async () => ({
             bundleSha256: "9".repeat(64),
             manifestJson: '{"contract":"evidenceBundle/1","verdict":"pass"}',
@@ -2033,6 +2044,48 @@ suite("Runbook Studio local activity delegate", () => {
         });
     });
 
+    test("release manifest exposes the retained candidate artifact without deploy authority", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+        const digest = (value: string) => value.repeat(64);
+        const result = await delegate.executeActivity(
+            activity("release.manifest.create", {
+                baseCommit: "1".repeat(40),
+                headCommit: "2".repeat(40),
+                changeSetDigest: digest("3"),
+                baseModelDigest: digest("4"),
+                headModelDigest: digest("5"),
+                modelDiffDigest: digest("6"),
+                migrationManifestDigest: digest("7"),
+                baseDacpacDigest: digest("8"),
+                baseSchemaReportDigest: digest("9"),
+                forwardConvergenceDigest: digest("a"),
+                forwardConverged: true,
+                workloadDigest: digest("b"),
+                workloadFingerprint: digest("c"),
+                environmentFingerprint: digest("d"),
+                beforeSchemaDigest: digest("e"),
+                afterSchemaDigest: digest("e"),
+                performanceDeltaDigest: digest("f"),
+                schemaComparability: "same",
+                failedBatchCount: 0,
+                xelDigest: digest("1"),
+                captureComplete: true,
+                candidateDacpacDigest: digest("2"),
+            }),
+            binding(),
+        );
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("releaseManifest/1");
+        expect(result?.output?.scalars).to.deep.include({
+            evidenceCount: 16,
+            evidenceComplete: true,
+            protectedDeploymentAuthorized: false,
+            artifactPath: "C:\\managed\\release-manifest.json",
+        });
+        expect(result?.values?.protectedDeploymentAuthorized).to.equal(false);
+    });
+
     test("advertises only locally implemented activities", () => {
         const delegate = new LocalSqlActivityDelegate(operations());
         expect([...delegate.supportedActivityKinds]).to.have.members([
@@ -2075,6 +2128,7 @@ suite("Runbook Studio local activity delegate", () => {
             "sandbox.dispose",
             "sql.container.dispose",
             "sqltest.run",
+            "release.manifest.create",
             "evidence.bundle",
             "sql.query.read",
         ]);

@@ -1757,6 +1757,165 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "release.manifest.create",
+        version: 1,
+        label: "Create tested release-candidate manifest",
+        description:
+            "Binds exact same-run source, migration, clone, workload, trace, schema, performance, and candidate DACPAC digests into a canonical release manifest without authorizing a protected deployment.",
+        inputs: [
+            {
+                name: "baseCommit",
+                kind: "bind",
+                required: true,
+                description: "Exact base EF model commit",
+            },
+            {
+                name: "headCommit",
+                kind: "bind",
+                required: true,
+                description: "Exact head EF model commit",
+            },
+            {
+                name: "changeSetDigest",
+                kind: "bind",
+                required: true,
+                description: "Same-run Git patch digest",
+            },
+            {
+                name: "baseModelDigest",
+                kind: "bind",
+                required: true,
+                description: "Same-run base EF model digest",
+            },
+            {
+                name: "headModelDigest",
+                kind: "bind",
+                required: true,
+                description: "Same-run head EF model digest",
+            },
+            {
+                name: "modelDiffDigest",
+                kind: "bind",
+                required: true,
+                description: "Same-run EF model diff digest",
+            },
+            {
+                name: "migrationManifestDigest",
+                kind: "bind",
+                required: true,
+                description: "Reviewed migration manifest digest",
+            },
+            {
+                name: "baseDacpacDigest",
+                kind: "bind",
+                required: true,
+                description: "Source DACPAC digest",
+            },
+            {
+                name: "baseSchemaReportDigest",
+                kind: "bind",
+                required: true,
+                description: "Base-clone schema comparison digest",
+            },
+            {
+                name: "forwardConvergenceDigest",
+                kind: "bind",
+                required: true,
+                description: "Forward migration convergence digest",
+            },
+            {
+                name: "forwardConverged",
+                kind: "bind",
+                required: true,
+                description: "Forward migration convergence verdict",
+            },
+            {
+                name: "workloadDigest",
+                kind: "bind",
+                required: true,
+                description: "Inspected workload digest",
+            },
+            {
+                name: "workloadFingerprint",
+                kind: "bind",
+                required: true,
+                description: "Inspected workload fingerprint",
+            },
+            {
+                name: "environmentFingerprint",
+                kind: "bind",
+                required: true,
+                description: "Owned-container environment fingerprint",
+            },
+            {
+                name: "beforeSchemaDigest",
+                kind: "bind",
+                required: true,
+                description: "Pre-workload schema digest",
+            },
+            {
+                name: "afterSchemaDigest",
+                kind: "bind",
+                required: true,
+                description: "Post-workload schema digest",
+            },
+            {
+                name: "performanceDeltaDigest",
+                kind: "bind",
+                required: true,
+                description: "DMV performance delta digest",
+            },
+            {
+                name: "schemaComparability",
+                kind: "bind",
+                required: true,
+                description: "Performance schema comparability verdict",
+            },
+            {
+                name: "failedBatchCount",
+                kind: "bind",
+                required: true,
+                description: "Measured failed workload batch count",
+            },
+            {
+                name: "xelDigest",
+                kind: "bind",
+                required: true,
+                description: "Retained XEL artifact digest",
+            },
+            {
+                name: "captureComplete",
+                kind: "bind",
+                required: true,
+                description: "Retained XEL capture completeness",
+            },
+            {
+                name: "candidateDacpacDigest",
+                kind: "bind",
+                required: true,
+                description: "Tested candidate DACPAC digest",
+            },
+        ],
+        outputContract: "releaseManifest/1",
+        producedValues: [
+            "manifestSha256",
+            "artifactPath",
+            "artifactSha256",
+            "evidenceCount",
+            "evidenceComplete",
+            "protectedDeploymentAuthorized",
+        ],
+        target: { kind: "workspace", workspace: true },
+        blastRadius: {
+            resource: "workspaceFiles",
+            operation: "create",
+            targetEnvironment: "local",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+            dataSensitivity: "internal",
+        },
+    },
+    {
         kind: "evidence.bundle",
         version: 1,
         label: "Assemble run evidence",
@@ -2138,6 +2297,14 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                     `node '${node.id}' must follow a matching forward/head or rollback/base migration apply and bind its reviewed migration inputs`,
                 );
             }
+            if (
+                descriptor.kind === "release.manifest.create" &&
+                !hasValidReleaseManifestEvidence(lock, node)
+            ) {
+                issues.push(
+                    `node '${node.id}' must bind every release-manifest field to its exact upstream same-run evidence producer`,
+                );
+            }
         }
         if (descriptor.approvalRequired) {
             const approvingGates = lock.edges
@@ -2295,6 +2462,61 @@ function isUpstreamActivityOutput(
         }
     }
     return false;
+}
+
+function hasValidReleaseManifestEvidence(
+    lock: CompiledRunbookLock,
+    node: RunbookPlanNode,
+): boolean {
+    const expected: ReadonlyArray<[string, string, string]> = [
+        ["baseCommit", "commit", "ef.relational-model.extract"],
+        ["headCommit", "commit", "ef.relational-model.extract"],
+        ["changeSetDigest", "artifactSha256", "git.change-set.inspect"],
+        ["baseModelDigest", "modelSha256", "ef.relational-model.extract"],
+        ["headModelDigest", "modelSha256", "ef.relational-model.extract"],
+        ["modelDiffDigest", "diffSha256", "ef.relational-model.compare"],
+        ["migrationManifestDigest", "manifestSha256", "migration.script.generate"],
+        ["baseDacpacDigest", "artifactSha256", "dacpac.extract"],
+        ["baseSchemaReportDigest", "reportSha256", "schema.compare"],
+        ["forwardConvergenceDigest", "comparisonSha256", "migration.scope.validate"],
+        ["forwardConverged", "converged", "migration.scope.validate"],
+        ["workloadDigest", "workloadSha256", "sql.workload.inspect"],
+        ["workloadFingerprint", "workloadFingerprint", "sql.workload.inspect"],
+        ["environmentFingerprint", "environmentFingerprint", "sql.container.provision"],
+        ["beforeSchemaDigest", "schemaSha256", "database.schema.fingerprint"],
+        ["afterSchemaDigest", "schemaSha256", "database.schema.fingerprint"],
+        ["performanceDeltaDigest", "deltaSha256", "performance.dmv.delta"],
+        ["schemaComparability", "schemaComparability", "performance.dmv.delta"],
+        ["failedBatchCount", "failedBatchCount", "workload.benchmark"],
+        ["xelDigest", "artifactSha256", "xevent.xel.collect"],
+        ["captureComplete", "captureComplete", "xevent.xel.collect"],
+        ["candidateDacpacDigest", "artifactSha256", "dacpac.extract"],
+    ];
+    if (
+        !expected.every(([input, output, activity]) =>
+            isUpstreamActivityOutput(lock, node, input, output, activity),
+        ) ||
+        node.inputs?.baseCommit === node.inputs?.headCommit ||
+        node.inputs?.baseModelDigest === node.inputs?.headModelDigest ||
+        node.inputs?.beforeSchemaDigest === node.inputs?.afterSchemaDigest
+    ) {
+        return false;
+    }
+    const producerFor = (input: string) => NODE_BIND.exec(String(node.inputs?.[input] ?? ""))?.[1];
+    const baseDacpac = lock.nodes.find(
+        (candidate) => candidate.id === producerFor("baseDacpacDigest"),
+    );
+    const candidateDacpac = lock.nodes.find(
+        (candidate) => candidate.id === producerFor("candidateDacpacDigest"),
+    );
+    return (
+        baseDacpac?.kind === "activity" &&
+        baseDacpac.target?.binding.source === "parameter" &&
+        candidateDacpac?.kind === "activity" &&
+        candidateDacpac.target?.binding.source === "nodeOutput" &&
+        candidateDacpac.inputs?.databaseName ===
+            `$nodes.${candidateDacpac.target.binding.nodeId}.databaseName`
+    );
 }
 
 function hasMatchingUpstreamMigrationApply(

@@ -489,7 +489,7 @@ suite("planCompiler", () => {
             throw new Error(result && isProposalFailure(result) ? result.detail : "no plan");
         }
 
-        expect(result.artifact.lock?.nodes).to.have.length(43);
+        expect(result.artifact.lock?.nodes).to.have.length(44);
         expect(result.artifact.source.parameters).to.deep.include({
             id: "workloadFile",
             label: "Workspace workload SQL file",
@@ -535,9 +535,20 @@ suite("planCompiler", () => {
             database: "$nodes.provision-rehearsal-container.connectionRef",
             databaseName: "$nodes.provision-rehearsal-container.databaseName",
         });
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "create-release-manifest")
+                ?.inputs,
+        ).to.include({
+            baseCommit: "$nodes.extract-base-model.commit",
+            headCommit: "$nodes.extract-head-model.commit",
+            forwardConverged: "$nodes.validate-forward-migration.converged",
+            failedBatchCount: "$nodes.summarize-performance.failedBatchCount",
+            candidateDacpacDigest: "$nodes.extract-release-candidate.artifactSha256",
+        });
         expect(result.artifact.lock?.edges).to.deep.include.members([
             { from: "summarize-performance", to: "extract-release-candidate" },
-            { from: "extract-release-candidate", to: "dispose-rehearsal-container" },
+            { from: "extract-release-candidate", to: "create-release-manifest" },
+            { from: "create-release-manifest", to: "dispose-rehearsal-container" },
             {
                 from: "run-workload",
                 to: "stop-failed-capture",

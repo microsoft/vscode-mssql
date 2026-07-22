@@ -75,12 +75,7 @@ const scenarios = [
         prompt:
             "Create a release manifest for the tested DACPAC, back up a staging target, promote the package, " +
             "inject a deployment failure, reconcile the target, and report rollback or operator attention.",
-        missing: [
-            "release.manifest.create@1",
-            "database.backup@1",
-            "release.promote@1",
-            "deployment.reconcile@1",
-        ],
+        missing: ["database.backup@1", "release.promote@1", "deployment.reconcile@1"],
     },
 ] as const;
 

@@ -317,6 +317,7 @@ export const ACTIVITY_OUTPUT_CONTRACTS: Record<string, string> = {
     "sqltest.run": "testResults/1",
     "sandbox.dispose": "cleanupEvidence/1",
     "sql.container.dispose": "cleanupEvidence/1",
+    "release.manifest.create": "releaseManifest/1",
     "evidence.bundle": "evidenceBundle/1",
 };
 

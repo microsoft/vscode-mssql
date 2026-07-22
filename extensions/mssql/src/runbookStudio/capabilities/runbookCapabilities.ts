@@ -764,6 +764,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "incident.replay.sandbox",
         "sql.container.dispose",
         "sandbox.dispose",
+        "release.manifest.create",
         "evidence.bundle",
     ],
     validate: [
@@ -811,6 +812,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "sql.query.read",
         "sql.container.dispose",
         "sandbox.dispose",
+        "release.manifest.create",
         "evidence.bundle",
     ],
     investigate: [
@@ -841,6 +843,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "incident.replay.sandbox",
         "sql.container.dispose",
         "sandbox.dispose",
+        "release.manifest.create",
         "evidence.bundle",
     ],
     composed: [
@@ -890,6 +893,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "incident.replay.sandbox",
         "sql.container.dispose",
         "sandbox.dispose",
+        "release.manifest.create",
         "evidence.bundle",
     ],
 };
@@ -1090,7 +1094,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     if (requestsIncompleteCaptureRecovery) {
         requested.add("xevent.capture.reconcile");
     }
-    if (requestsReleaseManifest) {
+    if (requestsReleaseManifest || requestsReleaseCandidateDacpac) {
         requested.add("release.manifest.create");
     }
     if (requestsDatabaseBackup) {

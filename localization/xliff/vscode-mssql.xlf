@@ -7314,6 +7314,10 @@
     <trans-unit id="++CODE++ab604a360777735fe2993aec7d4ffae415f1515b0a4c989269603fd3d5c07b61">
       <source xml:lang="en">Reject</source>
     </trans-unit>
+    <trans-unit id="++CODE++433369c6d957777fbb7ab5e2aca1226e2b0e2ad8276e5c9b33aea42ea1637af0">
+      <source xml:lang="en">Release manifest bound {0} tested evidence digest(s).</source>
+      <note>{0} is the number of evidence digests in the release manifest</note>
+    </trans-unit>
     <trans-unit id="++CODE++71d0acd46556424657f3866a5dc46d45d66b0849904e0a66d712764f95fa16bb">
       <source xml:lang="en">Reliability</source>
     </trans-unit>
@@ -9667,6 +9671,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a579bc312ec6b0ac71c5bdac08c2b3b84ab4e5eed469637e128c9ef1051d6d36">
       <source xml:lang="en">The registered output fields changed since this view was saved. Review the field mapping below and save to accept it.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4e37e5ce6bbe00bad0d0fdeddc7db1969c86a1b88c662bfb99f3bb8fef8547da">
+      <source xml:lang="en">The release manifest inputs did not resolve to the exact required evidence values.</source>
     </trans-unit>
     <trans-unit id="++CODE++7c87a1e292c0a2c7954418ceaeed3a67d467fa6e82d1f1f55ff2bc60bb1552bd">
       <source xml:lang="en">The repository change exceeds the bounded patch or file-count limit.</source>

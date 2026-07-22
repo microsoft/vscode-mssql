@@ -110,6 +110,7 @@ import {
     LocalEfRelationalDiffExecutionResult,
     LocalEfMigrationRiskExecutionResult,
     LocalEfRelationalModelExecutionResult,
+    LocalReleaseManifestExecutionResult,
     LocalSandboxCleanupResult,
     LocalSandboxLeaseResult,
     LocalSqlContainerCleanupResult,
@@ -142,6 +143,10 @@ import {
     buildLocalEvidenceBundle,
     type LocalEvidenceBundleResult,
 } from "./runtime/localEvidenceBundle";
+import {
+    buildLocalReleaseManifest,
+    type LocalReleaseManifestInput,
+} from "./runtime/localReleaseManifest";
 import {
     buildCreateLocalSandboxSql,
     buildDropLocalSandboxSql,
@@ -2929,6 +2934,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         this.disposeLocalSandbox(nodeId, leaseRef, invocation, cancelled),
                     disposeSqlContainer: (nodeId, leaseRef, invocation, cancelled) =>
                         this.disposeLocalSqlContainer(nodeId, leaseRef, invocation, cancelled),
+                    createReleaseManifest: (nodeId, input, invocation, cancelled) =>
+                        this.createLocalReleaseManifest(nodeId, input, invocation, cancelled),
                     bundleEvidence: (nodeId, invocation, cancelled) =>
                         this.bundleLocalEvidence(nodeId, invocation, cancelled),
                     connect: async (databaseRef, ownerUri) => {
@@ -5434,6 +5441,77 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         : {}),
                 })),
         });
+    }
+
+    private async createLocalReleaseManifest(
+        nodeId: string,
+        input: Omit<
+            LocalReleaseManifestInput,
+            "runId" | "runbookId" | "planRevision" | "planHash" | "toolchain"
+        >,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalReleaseManifestExecutionResult> {
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.evidenceBundleCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const active = this.activeByRunId.get(invocation.runId);
+        if (
+            !active ||
+            active.artifact.lock?.planRevision !== invocation.planRevision ||
+            active.artifact.lock.planHash !== invocation.planHash
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.runtimeStartFailed,
+                "RunbookStudio.BindingInvalid",
+            );
+        }
+        const toolchain = await this.collectLocalToolchainProvenance(isCancellationRequested);
+        const result = buildLocalReleaseManifest({
+            ...input,
+            runId: invocation.runId,
+            runbookId: active.artifact.id,
+            planRevision: invocation.planRevision,
+            planHash: invocation.planHash,
+            toolchain,
+        });
+        const artifactPath = await this.localManagedArtifactPath(
+            invocation,
+            nodeId,
+            "release-manifest.json",
+        );
+        if (await pathExists(artifactPath)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.runbookArtifactAlreadyExists(artifactPath),
+                "RunbookStudio.ArtifactAlreadyExists",
+            );
+        }
+        const bytes = Buffer.from(result.manifestJson, "utf8");
+        let complete = false;
+        try {
+            await fs.promises.writeFile(artifactPath, bytes, { flag: "wx" });
+            const stat = await fs.promises.stat(artifactPath);
+            if (!stat.isFile() || stat.size !== bytes.length) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.runtimeStartFailed,
+                    "RunbookStudio.ArtifactInvalid",
+                );
+            }
+            complete = true;
+            return {
+                ...result,
+                artifactPath,
+                artifactSha256: crypto.createHash("sha256").update(bytes).digest("hex"),
+                artifactSizeBytes: stat.size,
+            };
+        } finally {
+            if (!complete) {
+                await fs.promises.rm(artifactPath, { force: true }).catch(() => undefined);
+            }
+        }
     }
 
     private async collectLocalToolchainProvenance(

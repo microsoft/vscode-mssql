@@ -58,6 +58,7 @@ import type { LocalEfRelationalDiff, LocalEfRelationalModel } from "./localEfRel
 import type { LocalEfMigrationRiskDocument } from "./localEfMigrationRisk";
 import type { LocalEfMigrationManifest } from "./localEfMigrationGenerator";
 import type { LocalEfMigrationConvergenceResult } from "./localEfMigrationConvergence";
+import type { LocalReleaseManifestInput, LocalReleaseManifestResult } from "./localReleaseManifest";
 
 export type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot";
 export type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
@@ -123,6 +124,12 @@ export interface LocalEfMigrationApplyResult {
 
 export interface LocalEfMigrationConvergenceExecutionResult {
     result: LocalEfMigrationConvergenceResult;
+}
+
+export interface LocalReleaseManifestExecutionResult extends LocalReleaseManifestResult {
+    artifactPath: string;
+    artifactSha256: string;
+    artifactSizeBytes: number;
 }
 
 export { isReadOnlySql } from "../readOnlySql";
@@ -384,6 +391,15 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalEvidenceBundleResult>;
+    createReleaseManifest(
+        nodeId: string,
+        input: Omit<
+            LocalReleaseManifestInput,
+            "runId" | "runbookId" | "planRevision" | "planHash" | "toolchain"
+        >,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalReleaseManifestExecutionResult>;
 }
 
 export interface LocalWorkspaceSnapshot {
@@ -727,6 +743,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "sandbox.dispose",
         "sql.container.dispose",
         "sqltest.run",
+        "release.manifest.create",
         "evidence.bundle",
         "sql.query.read",
     ]);
@@ -821,6 +838,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.disposeSqlContainer(node, binding);
             case "sqltest.run":
                 return this.executeSqlTests(node, binding);
+            case "release.manifest.create":
+                return this.createReleaseManifest(node, binding);
             case "evidence.bundle":
                 return this.bundleEvidence(node, binding);
             case "sql.query.read":
@@ -3694,6 +3713,122 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     bundleSha256: result.bundleSha256,
                     nodeCount: result.nodeCount,
                     verdict: result.verdict,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async createReleaseManifest(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        try {
+            const resolve = (name: string) => binding.resolveBind(node.inputs?.[name]);
+            const stringFields = [
+                "baseCommit",
+                "headCommit",
+                "changeSetDigest",
+                "baseModelDigest",
+                "headModelDigest",
+                "modelDiffDigest",
+                "migrationManifestDigest",
+                "baseDacpacDigest",
+                "baseSchemaReportDigest",
+                "forwardConvergenceDigest",
+                "workloadDigest",
+                "workloadFingerprint",
+                "environmentFingerprint",
+                "beforeSchemaDigest",
+                "afterSchemaDigest",
+                "performanceDeltaDigest",
+                "schemaComparability",
+                "xelDigest",
+                "candidateDacpacDigest",
+            ] as const;
+            const strings = Object.fromEntries(
+                stringFields.map((name) => [name, resolve(name)]),
+            ) as Record<(typeof stringFields)[number], unknown>;
+            const forwardConverged = resolve("forwardConverged");
+            const failedBatchCount = resolve("failedBatchCount");
+            const captureComplete = resolve("captureComplete");
+            if (
+                stringFields.some((name) => typeof strings[name] !== "string") ||
+                typeof forwardConverged !== "boolean" ||
+                typeof failedBatchCount !== "number" ||
+                !Number.isSafeInteger(failedBatchCount) ||
+                typeof captureComplete !== "boolean"
+            ) {
+                return {
+                    success: false,
+                    message: LocRunbookStudio.releaseManifestInputsInvalid,
+                    errorCode: "RunbookStudio.BindingInvalid",
+                };
+            }
+            const result = await this.operations.createReleaseManifest(
+                node.id,
+                {
+                    baseCommit: strings.baseCommit as string,
+                    headCommit: strings.headCommit as string,
+                    changeSetSha256: strings.changeSetDigest as string,
+                    baseModelSha256: strings.baseModelDigest as string,
+                    headModelSha256: strings.headModelDigest as string,
+                    modelDiffSha256: strings.modelDiffDigest as string,
+                    migrationManifestSha256: strings.migrationManifestDigest as string,
+                    baseDacpacSha256: strings.baseDacpacDigest as string,
+                    baseSchemaReportSha256: strings.baseSchemaReportDigest as string,
+                    forwardConvergenceSha256: strings.forwardConvergenceDigest as string,
+                    forwardConverged,
+                    workloadSha256: strings.workloadDigest as string,
+                    workloadFingerprint: strings.workloadFingerprint as string,
+                    environmentFingerprint: strings.environmentFingerprint as string,
+                    beforeSchemaSha256: strings.beforeSchemaDigest as string,
+                    afterSchemaSha256: strings.afterSchemaDigest as string,
+                    performanceDeltaSha256: strings.performanceDeltaDigest as string,
+                    schemaComparability: strings.schemaComparability as string,
+                    failedBatchCount,
+                    xelSha256: strings.xelDigest as string,
+                    captureComplete,
+                    candidateDacpacSha256: strings.candidateDacpacDigest as string,
+                },
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "releaseManifest.evidenceCount": result.evidenceCount,
+                    "releaseManifest.evidenceComplete": result.evidenceComplete,
+                    "releaseManifest.protectedDeploymentAuthorized": false,
+                },
+                message: LocRunbookStudio.releaseManifestCreated(result.evidenceCount),
+                output: {
+                    contract: "releaseManifest/1",
+                    text: result.manifestJson,
+                    scalars: {
+                        manifestSha256: result.manifestSha256,
+                        artifactPath: result.artifactPath,
+                        artifactSha256: result.artifactSha256,
+                        artifactSizeBytes: result.artifactSizeBytes,
+                        evidenceCount: result.evidenceCount,
+                        evidenceComplete: result.evidenceComplete,
+                        protectedDeploymentAuthorized: false,
+                        generatedAtUtc: result.generatedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    manifestSha256: result.manifestSha256,
+                    artifactPath: result.artifactPath,
+                    artifactSha256: result.artifactSha256,
+                    evidenceCount: result.evidenceCount,
+                    evidenceComplete: result.evidenceComplete,
+                    protectedDeploymentAuthorized: false,
                 },
             };
         } catch (error) {

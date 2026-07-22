@@ -28,6 +28,7 @@ import type {
 import type { RunbookOperationContext } from "../runbookDiag";
 import { validateLocalCreateTableSql } from "../schemaMutationPolicy";
 import { buildLocalEvidenceBundle, LocalEvidenceNodeInput } from "./localEvidenceBundle";
+import { buildLocalReleaseManifest } from "./localReleaseManifest";
 import type { LocalToolchainProvenance } from "./localToolchainProvenance";
 import type {
     RunbookRuntimeAdapter,
@@ -548,6 +549,7 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "sqltest.run",
     "sandbox.dispose",
     "sql.container.dispose",
+    "release.manifest.create",
     "evidence.bundle",
 ]);
 
@@ -1207,14 +1209,14 @@ function executeNode(
                     scalars: {
                         databaseName: "PreviewDatabase",
                         artifactPath: "preview://artifacts/PreviewDatabase.dacpac",
-                        artifactSha256: "preview-extracted-artifact-sha256",
+                        artifactSha256: "8".repeat(64),
                         preview: true,
                     },
                 },
                 values: {
                     databaseName: "PreviewDatabase",
                     artifactPath: "preview://artifacts/PreviewDatabase.dacpac",
-                    artifactSha256: "preview-extracted-artifact-sha256",
+                    artifactSha256: "8".repeat(64),
                 },
             };
         }
@@ -1660,7 +1662,7 @@ function executeNode(
                     scalars: {
                         artifactPath: "preview://artifacts/rbs_xe_preview.xel",
                         artifactSizeBytes: 4096,
-                        artifactSha256: "preview-xel-sha256",
+                        artifactSha256: "9".repeat(64),
                         eventCount: 12,
                         captureComplete: true,
                         preview: true,
@@ -1669,7 +1671,7 @@ function executeNode(
                 values: {
                     artifactPath: "preview://artifacts/rbs_xe_preview.xel",
                     artifactSizeBytes: 4096,
-                    artifactSha256: "preview-xel-sha256",
+                    artifactSha256: "9".repeat(64),
                     eventCount: 12,
                     captureComplete: true,
                 },
@@ -2144,14 +2146,14 @@ function executeNode(
                     scalars: {
                         matches: true,
                         changeCount: 0,
-                        reportSha256: "preview-post-deploy-report-sha256",
+                        reportSha256: "7".repeat(64),
                         preview: true,
                     },
                 },
                 values: {
                     matches: true,
                     changeCount: 0,
-                    reportSha256: "preview-post-deploy-report-sha256",
+                    reportSha256: "7".repeat(64),
                 },
             };
         }
@@ -2467,6 +2469,65 @@ function executeNode(
                     bundleSha256: bundle.bundleSha256,
                     nodeCount: bundle.nodeCount,
                     verdict: bundle.verdict,
+                },
+            };
+        }
+        case "release.manifest.create": {
+            const resolve = (name: string) =>
+                resolveBind(node.inputs?.[name], parameterValues, nodeValues);
+            const result = buildLocalReleaseManifest({
+                runId: evidenceContext.runId,
+                runbookId: evidenceContext.runbookId,
+                planRevision: evidenceContext.planRevision,
+                planHash: evidenceContext.planHash,
+                baseCommit: String(resolve("baseCommit")),
+                headCommit: String(resolve("headCommit")),
+                changeSetSha256: String(resolve("changeSetDigest")),
+                baseModelSha256: String(resolve("baseModelDigest")),
+                headModelSha256: String(resolve("headModelDigest")),
+                modelDiffSha256: String(resolve("modelDiffDigest")),
+                migrationManifestSha256: String(resolve("migrationManifestDigest")),
+                baseDacpacSha256: String(resolve("baseDacpacDigest")),
+                baseSchemaReportSha256: String(resolve("baseSchemaReportDigest")),
+                forwardConvergenceSha256: String(resolve("forwardConvergenceDigest")),
+                forwardConverged: resolve("forwardConverged") === true,
+                workloadSha256: String(resolve("workloadDigest")),
+                workloadFingerprint: String(resolve("workloadFingerprint")),
+                environmentFingerprint: String(resolve("environmentFingerprint")),
+                beforeSchemaSha256: String(resolve("beforeSchemaDigest")),
+                afterSchemaSha256: String(resolve("afterSchemaDigest")),
+                performanceDeltaSha256: String(resolve("performanceDeltaDigest")),
+                schemaComparability: String(resolve("schemaComparability")),
+                failedBatchCount: Number(resolve("failedBatchCount")),
+                xelSha256: String(resolve("xelDigest")),
+                captureComplete: resolve("captureComplete") === true,
+                candidateDacpacSha256: String(resolve("candidateDacpacDigest")),
+                toolchain: FAKE_TOOLCHAIN,
+                generatedAtUtc: "1970-01-01T00:00:00.000Z",
+            });
+            return {
+                success: true,
+                message: "Release manifest created (deterministic preview)",
+                output: {
+                    contract: "releaseManifest/1",
+                    text: result.manifestJson,
+                    scalars: {
+                        manifestSha256: result.manifestSha256,
+                        artifactPath: "preview://artifacts/release-manifest.json",
+                        artifactSha256: result.manifestSha256,
+                        evidenceCount: result.evidenceCount,
+                        evidenceComplete: result.evidenceComplete,
+                        protectedDeploymentAuthorized: false,
+                        preview: true,
+                    },
+                },
+                values: {
+                    manifestSha256: result.manifestSha256,
+                    artifactPath: "preview://artifacts/release-manifest.json",
+                    artifactSha256: result.manifestSha256,
+                    evidenceCount: result.evidenceCount,
+                    evidenceComplete: result.evidenceComplete,
+                    protectedDeploymentAuthorized: false,
                 },
             };
         }

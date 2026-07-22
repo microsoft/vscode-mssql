@@ -309,6 +309,7 @@ export function compileDeterministicEfModelComparison(
     const snapshotPerformance = required.includes("performance.dmv.snapshot");
     const comparePerformance = required.includes("performance.dmv.delta");
     const summarizePerformance = required.includes("workload.benchmark");
+    const createReleaseManifest = required.includes("release.manifest.create");
     const baseCloneParts = [extractBaseDacpac, previewBaseDacpac, deployBaseDacpac];
     const hasBaseClone = baseCloneParts.every(Boolean);
     const performanceParts = [
@@ -353,6 +354,7 @@ export function compileDeterministicEfModelComparison(
         "performance.dmv.snapshot",
         "performance.dmv.delta",
         "workload.benchmark",
+        "release.manifest.create",
     ]);
     if (
         required.length !==
@@ -378,7 +380,8 @@ export function compileDeterministicEfModelComparison(
                 (fingerprintSchema ? 1 : 0) +
                 (snapshotPerformance ? 1 : 0) +
                 (comparePerformance ? 1 : 0) +
-                (summarizePerformance ? 1 : 0) ||
+                (summarizePerformance ? 1 : 0) +
+                (createReleaseManifest ? 1 : 0) ||
         !required.every(
             (kind) =>
                 DETERMINISTIC_EF_COMPARISON_ACTIVITIES.has(kind) ||
@@ -398,6 +401,7 @@ export function compileDeterministicEfModelComparison(
         (exportSchemaDelta && !hasBaseClone) ||
         (requestsAnyPerformanceValidation && !hasPerformanceValidation) ||
         (hasPerformanceValidation && (!applyMigration || !hasBaseClone)) ||
+        (createReleaseManifest && (!extractReleaseCandidate || !hasPerformanceValidation)) ||
         (visualizeSchema && !applyMigration) ||
         !/\b(entity\s*framework|entityframework|ef\s*core|dbcontext|entities)\b/i.test(intent)
     ) {
@@ -415,7 +419,12 @@ export function compileDeterministicEfModelComparison(
     const postForwardFailure = rehearseRollback
         ? "approve-rollback-migration"
         : "dispose-rehearsal-container";
-    const postCandidateSuccess = rehearseRollback
+    const postCandidateSuccess = createReleaseManifest
+        ? "create-release-manifest"
+        : rehearseRollback
+          ? "approve-rollback-migration"
+          : "dispose-rehearsal-container";
+    const postReleaseManifestSuccess = rehearseRollback
         ? "approve-rollback-migration"
         : "dispose-rehearsal-container";
     const proposal: CompiledProposal = {
@@ -1044,6 +1053,53 @@ export function compileDeterministicEfModelComparison(
                                 },
                             ]
                           : []),
+                      ...(createReleaseManifest
+                          ? [
+                                {
+                                    id: "create-release-manifest",
+                                    label: "Bind tested candidate release manifest",
+                                    kind: "activity" as const,
+                                    activityKind: "release.manifest.create",
+                                    inputs: {
+                                        baseCommit: "$nodes.extract-base-model.commit",
+                                        headCommit: "$nodes.extract-head-model.commit",
+                                        changeSetDigest: "$nodes.capture-change-set.artifactSha256",
+                                        baseModelDigest: "$nodes.extract-base-model.modelSha256",
+                                        headModelDigest: "$nodes.extract-head-model.modelSha256",
+                                        modelDiffDigest: "$nodes.compare-models.diffSha256",
+                                        migrationManifestDigest:
+                                            "$nodes.generate-migration.manifestSha256",
+                                        baseDacpacDigest:
+                                            "$nodes.extract-base-dacpac.artifactSha256",
+                                        baseSchemaReportDigest:
+                                            "$nodes.verify-base-deployment.reportSha256",
+                                        forwardConvergenceDigest:
+                                            "$nodes.validate-forward-migration.comparisonSha256",
+                                        forwardConverged:
+                                            "$nodes.validate-forward-migration.converged",
+                                        workloadDigest: "$nodes.inspect-workload.workloadSha256",
+                                        workloadFingerprint:
+                                            "$nodes.inspect-workload.workloadFingerprint",
+                                        environmentFingerprint:
+                                            "$nodes.provision-rehearsal-container.environmentFingerprint",
+                                        beforeSchemaDigest:
+                                            "$nodes.schema-fingerprint-before.schemaSha256",
+                                        afterSchemaDigest:
+                                            "$nodes.schema-fingerprint-after.schemaSha256",
+                                        performanceDeltaDigest:
+                                            "$nodes.compare-snapshots.deltaSha256",
+                                        schemaComparability:
+                                            "$nodes.compare-snapshots.schemaComparability",
+                                        failedBatchCount:
+                                            "$nodes.summarize-performance.failedBatchCount",
+                                        xelDigest: "$nodes.collect-capture.artifactSha256",
+                                        captureComplete: "$nodes.collect-capture.captureComplete",
+                                        candidateDacpacDigest:
+                                            "$nodes.extract-release-candidate.artifactSha256",
+                                    },
+                                },
+                            ]
+                          : []),
                       ...(rehearseRollback
                           ? [
                                 {
@@ -1503,6 +1559,19 @@ export function compileDeterministicEfModelComparison(
                                 },
                                 {
                                     from: "extract-release-candidate",
+                                    to: "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                            ]
+                          : []),
+                      ...(createReleaseManifest
+                          ? [
+                                {
+                                    from: "create-release-manifest",
+                                    to: postReleaseManifestSuccess,
+                                },
+                                {
+                                    from: "create-release-manifest",
                                     to: "dispose-rehearsal-container",
                                     when: "failure" as const,
                                 },
