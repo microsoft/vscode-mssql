@@ -4,76 +4,66 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * No-VS-Code deterministic-preview runner. This is intentionally narrower
- * than the future production headless Activity Host: it executes the same
- * immutable lock through the effect-free FakeRuntimeAdapter and refuses to
- * imply that workspace, SQL, DacFx, or provider effects occurred.
+ * No-VS-Code production activity runner. The first deliberately closed slice
+ * executes a real, read-only Git change-set capture. Unsupported activities
+ * are blocked at admission; this host never falls through to deterministic
+ * preview behavior for an activity node.
  */
 
 import { ACTIVITY_CATALOG, validateLockAgainstCatalog } from "../activities/activityCatalog";
-import { buildEvidenceExport, EvidenceExportArtifact } from "../evidenceExport";
 import { isArtifactParseFailure, parseRunbookArtifact } from "../runbookArtifact";
-import { validateTargetBindings } from "../targetBindings";
-import { FakeRuntimeAdapter } from "../runtime/fakeRuntimeAdapter";
-import type { RuntimeBoundaryEvent, RuntimeEventObserver } from "../runtime/runtimeAdapterTypes";
+import { ActivityExecutionDelegate, FakeRuntimeAdapter } from "../runtime/fakeRuntimeAdapter";
 import type {
-    RbsEvidenceExportFormat,
-    RunbookArtifactFile,
-} from "../../sharedInterfaces/runbookStudio";
+    RuntimeBoundaryEvent,
+    RuntimeEventObserver,
+    RuntimeOutputPayload,
+} from "../runtime/runtimeAdapterTypes";
+import type { RunbookArtifactFile } from "../../sharedInterfaces/runbookStudio";
+import { validateTargetBindings } from "../targetBindings";
 import {
     HeadlessApprovalProvider,
     HeadlessSecretProvider,
     resolveHeadlessParameters,
 } from "./headlessExecutionProviders";
+import { HeadlessGitActivityDelegate } from "./headlessGitActivity";
+import { HEADLESS_EXIT_CODES, HeadlessOutcome } from "./headlessRunner";
 
-const RUN_TIMEOUT_MS = 30_000;
+const RUN_TIMEOUT_MS = 10 * 60_000;
 const SAFE_RUN_ID = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/;
-const EXPORT_FORMATS: RbsEvidenceExportFormat[] = ["json", "junit", "sarif", "markdown"];
+export const PRODUCTION_HEADLESS_ACTIVITY_KINDS = ["git.change-set.inspect"] as const;
 
-export const HEADLESS_EXIT_CODES = {
-    pass: 0,
-    fail: 2,
-    blocked: 3,
-    invalid: 4,
-    cancelled: 5,
-    internal: 10,
-} as const;
-
-export type HeadlessOutcome = keyof typeof HEADLESS_EXIT_CODES;
-
-export interface HeadlessValidationResult {
+export interface HeadlessActivityValidationResult {
     valid: boolean;
     executable: boolean;
-    mode: "deterministicPreview";
+    mode: "productionActivityHost";
     runbookId?: string;
     planRevision?: string;
     planHash?: string;
     issues: Array<{
-        kind: "artifact" | "parameter" | "catalog" | "target" | "capability" | "policy";
+        kind: "artifact" | "parameter" | "catalog" | "target" | "capability";
         code: string;
         nodeId?: string;
         parameterId?: string;
     }>;
-    /** True when the lock contains activities that would mutate in the real
-     * local lane. They remain synthetic here. */
-    simulatedMutationCount: number;
+    realActivityCount: number;
 }
 
-export interface HeadlessPreviewOptions {
+export interface HeadlessActivityOptions {
     artifactText: string;
+    trustedWorkspaceRoot: string;
+    activityArtifactRoot: string;
     parameterValues?: Record<string, string | number | boolean | null>;
     runId?: string;
-    deterministicPreviewAcknowledged: boolean;
-    approvePreviewGates?: boolean;
     secretProvider?: HeadlessSecretProvider;
     approvalProvider?: HeadlessApprovalProvider;
     allowInlineSecrets?: boolean;
     cancellationSignal?: AbortSignal;
 }
 
-export interface HeadlessPreviewResult {
+export interface HeadlessActivityResult {
     schemaVersion: 1;
-    mode: "deterministicPreview";
+    mode: "productionActivityHost";
+    effects: "real";
     outcome: HeadlessOutcome;
     exitCode: number;
     runId?: string;
@@ -84,50 +74,45 @@ export interface HeadlessPreviewResult {
     verdict?: "pass" | "fail" | "indeterminate";
     blockedGateId?: string;
     approvalPolicyDigest?: string;
-    internalStage?: "runtime" | "evidence" | "identity";
     nodeCounts?: { succeeded: number; failed: number; skipped: number; cancelled: number };
-    evidenceAvailable: boolean;
-    exports?: Partial<Record<RbsEvidenceExportFormat, EvidenceExportArtifact>>;
-    validation: HeadlessValidationResult;
+    outputs?: Record<string, RuntimeOutputPayload>;
+    validation: HeadlessActivityValidationResult;
 }
 
-export function headlessCapabilities(): Record<string, unknown> {
+export function productionHeadlessActivityCapabilities(): Record<string, unknown> {
     return {
         schemaVersion: 1,
-        runtimeKind: "fake",
-        mode: "deterministicPreview",
+        mode: "productionActivityHost",
+        runtimeKind: "local",
         modelRequired: false,
-        effects: "none",
-        approvalMode: "explicitPreviewAcknowledgement",
-        executionProviderContracts: {
-            secret: "environmentIndirection",
-            approval: "runPlanGateDigestBoundManifest",
-            machineOutput: "createNewAtomicSummaryLast",
-        },
-        evidenceFormats: [...EXPORT_FORMATS],
-        activities: ACTIVITY_CATALOG.map((activity) => ({
+        effects: "real",
+        activities: ACTIVITY_CATALOG.filter((activity) =>
+            (PRODUCTION_HEADLESS_ACTIVITY_KINDS as readonly string[]).includes(activity.kind),
+        ).map((activity) => ({
             kind: activity.kind,
             version: activity.version,
             outputContract: activity.outputContract,
-            simulatedOnly: true,
         })),
+        unsupportedActivityPolicy: "blockAtAdmission",
+        workspacePolicy: "realpathContained",
+        artifactPolicy: "boundedCreateNew",
         productionHeadlessActivityHostAvailable: false,
         productionHeadlessActivitySubsetAvailable: true,
-        productionHeadlessActivityKinds: ["git.change-set.inspect"],
     };
 }
 
-export async function validateHeadlessPreview(
+export async function validateHeadlessActivities(
     artifactText: string,
     parameterValues: Record<string, string | number | boolean | null> = {},
     providers: {
         secretProvider?: HeadlessSecretProvider;
         allowInlineSecrets?: boolean;
     } = {},
+    delegate: ActivityExecutionDelegate = admissionDelegate(),
 ): Promise<{
     artifact?: RunbookArtifactFile;
     values?: Record<string, string | number | boolean | null>;
-    result: HeadlessValidationResult;
+    result: HeadlessActivityValidationResult;
 }> {
     const parsed = parseRunbookArtifact(artifactText);
     if (isArtifactParseFailure(parsed)) {
@@ -135,9 +120,9 @@ export async function validateHeadlessPreview(
             result: {
                 valid: false,
                 executable: false,
-                mode: "deterministicPreview",
+                mode: "productionActivityHost",
                 issues: [{ kind: "artifact", code: parsed.code }],
-                simulatedMutationCount: 0,
+                realActivityCount: 0,
             },
         };
     }
@@ -153,15 +138,15 @@ export async function validateHeadlessPreview(
             result: {
                 valid: true,
                 executable: false,
-                mode: "deterministicPreview",
+                mode: "productionActivityHost",
                 ...identity,
                 issues: [{ kind: "capability", code: "RunbookStudio.NotCompiled" }],
-                simulatedMutationCount: 0,
+                realActivityCount: 0,
             },
         };
     }
 
-    const issues: HeadlessValidationResult["issues"] = [];
+    const issues: HeadlessActivityValidationResult["issues"] = [];
     for (const detail of validateLockAgainstCatalog(artifact.lock)) {
         issues.push({
             kind: "catalog",
@@ -183,40 +168,45 @@ export async function validateHeadlessPreview(
             });
         }
     }
-    const adapter = new FakeRuntimeAdapter();
-    try {
-        const validation = await adapter.validate(artifact, headlessContext("validate"));
-        for (const issue of validation.issues) {
+    for (const node of artifact.lock.nodes) {
+        if (
+            node.kind === "activity" &&
+            delegate.supportedActivityKinds?.has(node.activityKind ?? "") !== true
+        ) {
             issues.push({
                 kind: "capability",
-                code: "HeadlessPreview.ActivityUnsupported",
-                ...(issue.nodeId ? { nodeId: issue.nodeId } : {}),
+                code: "HeadlessActivity.ActivityUnsupported",
+                nodeId: node.id,
             });
         }
-    } finally {
-        await adapter.dispose();
     }
-    const simulatedMutationCount = artifact.lock.nodes.filter(
-        (node) => node.kind === "activity" && node.blastRadius?.reversibility !== "noEffect",
+    const realActivityCount = artifact.lock.nodes.filter(
+        (node) =>
+            node.kind === "activity" &&
+            delegate.supportedActivityKinds?.has(node.activityKind ?? "") === true,
     ).length;
     return {
         artifact,
         values: bound.values,
         result: {
             valid: issues.every((issue) => issue.kind === "capability"),
-            executable: issues.length === 0,
-            mode: "deterministicPreview",
+            executable: issues.length === 0 && realActivityCount > 0,
+            mode: "productionActivityHost",
             ...identity,
             issues,
-            simulatedMutationCount,
+            realActivityCount,
         },
     };
 }
 
-export async function runHeadlessPreview(
-    options: HeadlessPreviewOptions,
-): Promise<HeadlessPreviewResult> {
-    const checked = await validateHeadlessPreview(
+export async function runHeadlessActivities(
+    options: HeadlessActivityOptions,
+): Promise<HeadlessActivityResult> {
+    const delegate = new HeadlessGitActivityDelegate(
+        options.trustedWorkspaceRoot,
+        options.activityArtifactRoot,
+    );
+    const checked = await validateHeadlessActivities(
         options.artifactText,
         options.parameterValues ?? {},
         {
@@ -225,10 +215,12 @@ export async function runHeadlessPreview(
                 ? { allowInlineSecrets: options.allowInlineSecrets }
                 : {}),
         },
+        delegate,
     );
     const base = {
         schemaVersion: 1 as const,
-        mode: "deterministicPreview" as const,
+        mode: "productionActivityHost" as const,
+        effects: "real" as const,
         ...(checked.result.runbookId ? { runbookId: checked.result.runbookId } : {}),
         ...(checked.result.planRevision ? { planRevision: checked.result.planRevision } : {}),
         ...(checked.result.planHash ? { planHash: checked.result.planHash } : {}),
@@ -239,7 +231,6 @@ export async function runHeadlessPreview(
             ...base,
             outcome: "invalid",
             exitCode: HEADLESS_EXIT_CODES.invalid,
-            evidenceAvailable: false,
         };
     }
     if (!checked.result.executable || !checked.artifact || !checked.values) {
@@ -247,23 +238,6 @@ export async function runHeadlessPreview(
             ...base,
             outcome: "blocked",
             exitCode: HEADLESS_EXIT_CODES.blocked,
-            evidenceAvailable: false,
-        };
-    }
-    if (!options.deterministicPreviewAcknowledged) {
-        return {
-            ...base,
-            outcome: "blocked",
-            exitCode: HEADLESS_EXIT_CODES.blocked,
-            evidenceAvailable: false,
-            validation: {
-                ...checked.result,
-                executable: false,
-                issues: checked.result.issues.concat({
-                    kind: "policy",
-                    code: "HeadlessPreview.AcknowledgementRequired",
-                }),
-            },
         };
     }
     const runId = options.runId ?? `run_${Date.now().toString(36)}`;
@@ -272,14 +246,13 @@ export async function runHeadlessPreview(
             ...base,
             outcome: "invalid",
             exitCode: HEADLESS_EXIT_CODES.invalid,
-            evidenceAvailable: false,
             validation: {
                 ...checked.result,
                 valid: false,
                 executable: false,
                 issues: checked.result.issues.concat({
                     kind: "artifact",
-                    code: "HeadlessPreview.RunIdInvalid",
+                    code: "HeadlessActivity.RunIdInvalid",
                 }),
             },
         };
@@ -290,37 +263,33 @@ export async function runHeadlessPreview(
             outcome: "cancelled",
             exitCode: HEADLESS_EXIT_CODES.cancelled,
             runId,
-            evidenceAvailable: false,
         };
     }
 
-    const adapter = new FakeRuntimeAdapter();
+    const adapter = new FakeRuntimeAdapter(delegate);
     const context = headlessContext(runId);
+    const events: RuntimeBoundaryEvent[] = [];
+    const outputs: Record<string, RuntimeOutputPayload> = {};
     let cancellationRequested = false;
+    let blockedGateId: string | undefined;
+    let approvalPolicyDigest: string | undefined;
     const onCancellation = () => {
         cancellationRequested = true;
         void adapter.cancelRun(runId, context);
     };
     options.cancellationSignal?.addEventListener("abort", onCancellation, { once: true });
-    let blockedGateId: string | undefined;
-    let approvalPolicyDigest: string | undefined;
-    let evidenceManifest: string | undefined;
-    const events: RuntimeBoundaryEvent[] = [];
     const terminalPromise = new Promise<Extract<RuntimeBoundaryEvent, { kind: "terminal" }>>(
         (resolve, reject) => {
             const observer: RuntimeEventObserver = {
                 onEvent: (event) => {
                     events.push(event);
-                    if (
-                        event.kind === "nodeState" &&
-                        event.output?.contract === "evidenceBundle/1"
-                    ) {
-                        evidenceManifest = event.output.text;
+                    if (event.kind === "nodeState" && event.output) {
+                        outputs[event.nodeId] = event.output;
                     }
                     if (event.kind === "gateRequested") {
                         queueMicrotask(() => {
                             void (async () => {
-                                let approve = options.approvePreviewGates === true;
+                                let approved = false;
                                 if (options.approvalProvider) {
                                     try {
                                         const decision = await options.approvalProvider.decide({
@@ -330,25 +299,25 @@ export async function runHeadlessPreview(
                                             planHash: checked.artifact!.lock!.planHash,
                                             gateId: event.nodeId,
                                         });
-                                        approve = decision.approved;
-                                        if (decision.approved && decision.policyDigest) {
+                                        approved = decision.approved;
+                                        if (approved && decision.policyDigest) {
                                             approvalPolicyDigest ??= decision.policyDigest;
                                         }
                                     } catch {
-                                        approve = false;
+                                        approved = false;
                                     }
                                 }
-                                if (!approve) {
+                                if (!approved) {
                                     blockedGateId ??= event.nodeId;
                                 }
                                 const accepted = await adapter.respondToGate(
                                     runId,
                                     event.nodeId,
-                                    approve,
+                                    approved,
                                     context,
                                 );
                                 if (!accepted) {
-                                    reject(new Error("preview gate was not pending"));
+                                    reject(new Error("activity gate was not pending"));
                                 }
                             })().catch(reject);
                         });
@@ -357,8 +326,8 @@ export async function runHeadlessPreview(
                         resolve(event);
                     }
                 },
-                onGap: () => reject(new Error("deterministic preview dropped state")),
-                onExit: () => reject(new Error("deterministic preview runtime exited")),
+                onGap: () => reject(new Error("headless activity host dropped state")),
+                onExit: () => reject(new Error("headless activity host exited")),
             };
             void adapter
                 .startRun(
@@ -370,40 +339,16 @@ export async function runHeadlessPreview(
         },
     );
     let timeout: ReturnType<typeof setTimeout> | undefined;
-    let internalStage: HeadlessPreviewResult["internalStage"] = "runtime";
     try {
         const terminal = await Promise.race([
             terminalPromise,
             new Promise<never>((_resolve, reject) => {
                 timeout = setTimeout(
-                    () => reject(new Error("deterministic preview timed out")),
+                    () => reject(new Error("headless activity run timed out")),
                     RUN_TIMEOUT_MS,
                 );
             }),
         ]);
-        internalStage = "evidence";
-        const evidenceExports = evidenceManifest
-            ? Object.fromEntries(
-                  EXPORT_FORMATS.map((format) => [
-                      format,
-                      buildEvidenceExport(evidenceManifest!, format),
-                  ]),
-              )
-            : undefined;
-        internalStage = "identity";
-        if (evidenceExports) {
-            const identity = evidenceExports.json.sourceIdentity;
-            if (
-                identity.runId !== runId ||
-                identity.runbookId !== checked.artifact.id ||
-                identity.planRevision !== checked.artifact.lock!.planRevision ||
-                identity.planHash !== checked.artifact.lock!.planHash ||
-                identity.verdict !== terminal.verdict
-            ) {
-                throw new Error("evidence identity mismatch");
-            }
-        }
-        const nodeCounts = countNodeStates(events);
         const outcome: HeadlessOutcome =
             cancellationRequested || terminal.state === "cancelled"
                 ? "cancelled"
@@ -421,9 +366,8 @@ export async function runHeadlessPreview(
             ...(terminal.verdict ? { verdict: terminal.verdict } : {}),
             ...(blockedGateId ? { blockedGateId } : {}),
             ...(approvalPolicyDigest ? { approvalPolicyDigest } : {}),
-            nodeCounts,
-            evidenceAvailable: evidenceExports !== undefined,
-            ...(evidenceExports ? { exports: evidenceExports } : {}),
+            nodeCounts: countNodeStates(events),
+            outputs,
         };
     } catch {
         return {
@@ -431,8 +375,6 @@ export async function runHeadlessPreview(
             outcome: "internal",
             exitCode: HEADLESS_EXIT_CODES.internal,
             runId,
-            evidenceAvailable: false,
-            internalStage,
         };
     } finally {
         if (timeout) {
@@ -443,7 +385,15 @@ export async function runHeadlessPreview(
     }
 }
 
-function countNodeStates(events: RuntimeBoundaryEvent[]): HeadlessPreviewResult["nodeCounts"] {
+function admissionDelegate(): ActivityExecutionDelegate {
+    return {
+        runtimeKind: "local",
+        supportedActivityKinds: new Set(PRODUCTION_HEADLESS_ACTIVITY_KINDS),
+        executeActivity: () => Promise.resolve(undefined),
+    };
+}
+
+function countNodeStates(events: RuntimeBoundaryEvent[]): HeadlessActivityResult["nodeCounts"] {
     const finalStates = new Map<string, string>();
     for (const event of events) {
         if (event.kind === "nodeState") {
@@ -459,7 +409,7 @@ function countNodeStates(events: RuntimeBoundaryEvent[]): HeadlessPreviewResult[
 }
 
 function headlessContext(operationId: string) {
-    return { traceId: "headless-preview", operationId };
+    return { traceId: "headless-activity", operationId };
 }
 
 function nodeIdFromDetail(detail: string): string | undefined {
@@ -468,16 +418,13 @@ function nodeIdFromDetail(detail: string): string | undefined {
 
 function structuralIssueCode(detail: string): string {
     if (detail.includes("unregistered activity")) {
-        return "HeadlessPreview.ActivityUnregistered";
+        return "HeadlessActivity.ActivityUnregistered";
     }
     if (detail.includes("missing required input")) {
-        return "HeadlessPreview.InputRequired";
-    }
-    if (detail.includes("read-only SELECT")) {
-        return "HeadlessPreview.SqlPolicyDenied";
+        return "HeadlessActivity.InputRequired";
     }
     if (detail.includes("target")) {
-        return "HeadlessPreview.TargetInvalid";
+        return "HeadlessActivity.TargetInvalid";
     }
-    return "HeadlessPreview.CatalogMismatch";
+    return "HeadlessActivity.CatalogMismatch";
 }

@@ -4,13 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 export interface HeadlessCliArguments {
-    command?: "capabilities" | "validate" | "run";
+    command?: "capabilities" | "validate" | "run" | "run-activities";
     artifactPath?: string;
     paramsPath?: string;
     outputDirectory?: string;
     runId?: string;
     secretEnvironmentMapPath?: string;
     approvalManifestPath?: string;
+    trustedWorkspaceRoot?: string;
+    activityArtifactRoot?: string;
     deterministicPreview: boolean;
     approvePreview: boolean;
     error?:
@@ -22,17 +24,22 @@ export interface HeadlessCliArguments {
         | "HeadlessPreview.ArgumentUnexpected";
 }
 
-const COMMANDS = new Set(["capabilities", "validate", "run"]);
+const COMMANDS = new Set(["capabilities", "validate", "run", "run-activities"]);
 const VALUE_OPTIONS = new Set([
     "--params",
     "--output",
     "--run-id",
     "--secret-env-map",
     "--approval-manifest",
+    "--workspace",
+    "--activity-artifacts",
 ]);
 const BOOLEAN_OPTIONS = new Set(["--json", "--deterministic-preview", "--approve-preview"]);
 
-const ALLOWED_OPTIONS: Record<"capabilities" | "validate" | "run", ReadonlySet<string>> = {
+const ALLOWED_OPTIONS: Record<
+    "capabilities" | "validate" | "run" | "run-activities",
+    ReadonlySet<string>
+> = {
     capabilities: new Set(["--json"]),
     validate: new Set(["--params"]),
     run: new Set([
@@ -43,6 +50,15 @@ const ALLOWED_OPTIONS: Record<"capabilities" | "validate" | "run", ReadonlySet<s
         "--approval-manifest",
         "--deterministic-preview",
         "--approve-preview",
+    ]),
+    "run-activities": new Set([
+        "--params",
+        "--output",
+        "--run-id",
+        "--secret-env-map",
+        "--approval-manifest",
+        "--workspace",
+        "--activity-artifacts",
     ]),
 };
 
@@ -98,8 +114,12 @@ export function parseHeadlessCliArguments(values: string[]): HeadlessCliArgument
                 result.runId = optionValue;
             } else if (value === "--secret-env-map") {
                 result.secretEnvironmentMapPath = optionValue;
-            } else {
+            } else if (value === "--approval-manifest") {
                 result.approvalManifestPath = optionValue;
+            } else if (value === "--workspace") {
+                result.trustedWorkspaceRoot = optionValue;
+            } else {
+                result.activityArtifactRoot = optionValue;
             }
         } else if (value === "--deterministic-preview") {
             result.deterministicPreview = true;

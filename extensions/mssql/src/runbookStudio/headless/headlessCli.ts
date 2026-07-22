@@ -18,6 +18,7 @@ import {
     HeadlessApprovalManifest,
     ManifestHeadlessApprovalProvider,
 } from "./headlessExecutionProviders";
+import { runHeadlessActivities } from "./headlessActivityRunner";
 
 const MAX_PARAMETER_BYTES = 1024 * 1024;
 
@@ -31,6 +32,7 @@ async function main(): Promise<number> {
                 "runbookHeadless capabilities --json",
                 "runbookHeadless validate <artifact> [--params <json>]",
                 "runbookHeadless run <artifact> --deterministic-preview [--approve-preview | --approval-manifest <json>] [--secret-env-map <json>] [--params <json>] [--output <dir>] [--run-id <id>]",
+                "runbookHeadless run-activities <artifact> --workspace <trusted-root> --activity-artifacts <dir> [--approval-manifest <json>] [--secret-env-map <json>] [--params <json>] [--output <dir>] [--run-id <id>]",
             ],
         });
         return HEADLESS_EXIT_CODES.invalid;
@@ -65,13 +67,29 @@ async function main(): Promise<number> {
                   ) as HeadlessApprovalManifest,
               )
             : undefined;
-        const result = await runWithInterruptCancellation(
-            artifactText,
-            parameters,
-            args,
-            secretProvider,
-            approvalProvider,
-        );
+        if (
+            args.command === "run-activities" &&
+            (!args.trustedWorkspaceRoot || !args.activityArtifactRoot)
+        ) {
+            writeJson({ schemaVersion: 1, error: "HeadlessActivity.HostPathsRequired" });
+            return HEADLESS_EXIT_CODES.invalid;
+        }
+        const result =
+            args.command === "run-activities"
+                ? await runActivitiesWithInterruptCancellation(
+                      artifactText,
+                      parameters,
+                      args,
+                      secretProvider,
+                      approvalProvider,
+                  )
+                : await runWithInterruptCancellation(
+                      artifactText,
+                      parameters,
+                      args,
+                      secretProvider,
+                      approvalProvider,
+                  );
         const summary = {
             schemaVersion: result.schemaVersion,
             mode: result.mode,
@@ -86,12 +104,18 @@ async function main(): Promise<number> {
             blockedGateId: result.blockedGateId,
             approvalPolicyDigest: result.approvalPolicyDigest,
             nodeCounts: result.nodeCounts,
-            evidenceAvailable: result.evidenceAvailable,
+            ...(result.mode === "productionActivityHost"
+                ? { effects: result.effects, outputs: result.outputs }
+                : { evidenceAvailable: result.evidenceAvailable }),
             validation: result.validation,
         };
         if (args.outputDirectory) {
             try {
-                writeHeadlessRunOutputs(args.outputDirectory, summary, result.exports);
+                writeHeadlessRunOutputs(
+                    args.outputDirectory,
+                    summary,
+                    result.mode === "deterministicPreview" ? result.exports : undefined,
+                );
             } catch {
                 writeJson({ schemaVersion: 1, error: "HeadlessPreview.OutputUnwritable" });
                 return HEADLESS_EXIT_CODES.internal;
@@ -102,6 +126,32 @@ async function main(): Promise<number> {
     } catch {
         writeJson({ schemaVersion: 1, error: "HeadlessPreview.InputUnreadable" });
         return HEADLESS_EXIT_CODES.invalid;
+    }
+}
+
+async function runActivitiesWithInterruptCancellation(
+    artifactText: string,
+    parameters: Record<string, string | number | boolean | null>,
+    args: ReturnType<typeof parseHeadlessCliArguments>,
+    secretProvider: EnvironmentHeadlessSecretProvider | undefined,
+    approvalProvider: ManifestHeadlessApprovalProvider | undefined,
+) {
+    const cancellation = new AbortController();
+    const onInterrupt = () => cancellation.abort();
+    process.once("SIGINT", onInterrupt);
+    try {
+        return await runHeadlessActivities({
+            artifactText,
+            trustedWorkspaceRoot: args.trustedWorkspaceRoot!,
+            activityArtifactRoot: args.activityArtifactRoot!,
+            parameterValues: parameters,
+            ...(args.runId ? { runId: args.runId } : {}),
+            ...(secretProvider ? { secretProvider, allowInlineSecrets: false } : {}),
+            ...(approvalProvider ? { approvalProvider } : {}),
+            cancellationSignal: cancellation.signal,
+        });
+    } finally {
+        process.removeListener("SIGINT", onInterrupt);
     }
 }
 

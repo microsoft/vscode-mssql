@@ -41,6 +41,8 @@ suite("Runbook Studio headless deterministic preview", () => {
             modelRequired: boolean;
             effects: string;
             productionHeadlessActivityHostAvailable: boolean;
+            productionHeadlessActivitySubsetAvailable: boolean;
+            productionHeadlessActivityKinds: string[];
             evidenceFormats: string[];
             executionProviderContracts: Record<string, string>;
         };
@@ -52,6 +54,10 @@ suite("Runbook Studio headless deterministic preview", () => {
             productionHeadlessActivityHostAvailable: false,
         });
         expect(capabilities.evidenceFormats).to.deep.equal(["json", "junit", "sarif", "markdown"]);
+        expect(capabilities.productionHeadlessActivitySubsetAvailable).to.equal(true);
+        expect(capabilities.productionHeadlessActivityKinds).to.deep.equal([
+            "git.change-set.inspect",
+        ]);
         expect(capabilities.executionProviderContracts).to.deep.equal({
             secret: "environmentIndirection",
             approval: "runPlanGateDigestBoundManifest",
@@ -131,6 +137,28 @@ suite("Runbook Studio headless deterministic preview", () => {
         ).to.equal("HeadlessPreview.OptionConflict");
         expect(
             parseHeadlessCliArguments(["validate", "book.json", "--output", "out"]).error,
+        ).to.equal("HeadlessPreview.OptionUnknown");
+        expect(
+            parseHeadlessCliArguments([
+                "run-activities",
+                "book.json",
+                "--workspace",
+                "repo",
+                "--activity-artifacts",
+                "activity-drop",
+                "--output",
+                "machine-output",
+            ]),
+        ).to.include({
+            command: "run-activities",
+            artifactPath: "book.json",
+            trustedWorkspaceRoot: "repo",
+            activityArtifactRoot: "activity-drop",
+            outputDirectory: "machine-output",
+        });
+        expect(
+            parseHeadlessCliArguments(["run-activities", "book.json", "--deterministic-preview"])
+                .error,
         ).to.equal("HeadlessPreview.OptionUnknown");
     });
 
