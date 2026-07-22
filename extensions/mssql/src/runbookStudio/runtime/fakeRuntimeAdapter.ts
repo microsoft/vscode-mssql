@@ -531,6 +531,7 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "xevent.xel.collect",
     "schema.compare",
     "schema.compare.export",
+    "sql.schema.apply",
     "database.schema.inventory",
     "sqltest.run",
     "sandbox.dispose",

@@ -44,6 +44,7 @@ import { emitRunbookEvent, metaField, RunbookOperationContext } from "../runbook
 import { validateTargetBindings } from "../targetBindings";
 import { isValidDacpacSourceDatabaseName } from "../runtime/localDeveloperOperations";
 import { isValidLocalDevelopmentDatabaseName } from "../runtime/localDevelopmentDatabaseOperations";
+import { validateLocalCreateTableSql } from "../schemaMutationPolicy";
 
 // ---------------------------------------------------------------------------
 // Pure parsing/validation (unit-tested without vscode)
@@ -175,6 +176,176 @@ const DETERMINISTIC_DACPAC_INVENTORY_ACTIVITIES = new Set([
     "schema.compare",
     "database.schema.inventory",
 ]);
+
+const DETERMINISTIC_DACPAC_EVOLUTION_ACTIVITIES = new Set([
+    "dacpac.extract",
+    "devdatabase.provision",
+    "dacpac.deploy.preview",
+    "dacpac.deploy.dev",
+    "sql.schema.apply",
+    "schema.compare.export",
+]);
+
+/**
+ * Compile the first closed schema-evolution workflow without asking the
+ * language model to reconstruct its ownership and approval lifecycle. This
+ * deliberately supports only an explicitly named representative logging
+ * table. Arbitrary DDL remains on the catalog-governed model path until each
+ * mutation shape has its own admission policy.
+ */
+export function compileDeterministicDacpacEvolution(
+    base: RunbookArtifactFile,
+    intent: string,
+): ProposalParseResult | undefined {
+    const required = base.source.requirements?.activities.map((activity) => activity.kind) ?? [];
+    if (
+        required.length !== DETERMINISTIC_DACPAC_EVOLUTION_ACTIVITIES.size ||
+        !required.every((kind) => DETERMINISTIC_DACPAC_EVOLUTION_ACTIVITIES.has(kind))
+    ) {
+        return undefined;
+    }
+    const names = extractDacpacRoundTripDatabaseNames(intent);
+    const table = extractRepresentativeLoggingTable(intent);
+    if (!names || !table || names.source.toLowerCase() === names.target.toLowerCase()) {
+        return undefined;
+    }
+    const ddl = buildRepresentativeLoggingTableSql(table.schema, table.table);
+    if (!validateLocalCreateTableSql(ddl)) {
+        return undefined;
+    }
+
+    const qualifiedTableName = `${table.schema}.${table.table}`;
+    const proposal: CompiledProposal = {
+        name: `${names.target} schema evolution`,
+        description:
+            `Extracts ${names.source}, deploys it to the owned development database ` +
+            `${names.target}, creates ${qualifiedTableName}, and reports the resulting schema deltas.`,
+        parameters: [
+            {
+                id: "sourceConnection",
+                label: `${names.source} source server`,
+                type: "connection",
+                required: true,
+            },
+            {
+                id: "targetServer",
+                label: "Local target server",
+                type: "connection",
+                required: true,
+            },
+            {
+                id: "sourceDatabaseName",
+                label: "Source database name",
+                type: "string",
+                required: true,
+                default: names.source,
+            },
+            {
+                id: "targetDatabaseName",
+                label: "New development database name",
+                type: "string",
+                required: true,
+                default: names.target,
+            },
+        ],
+        entryNodeId: "extract",
+        nodes: [
+            {
+                id: "extract",
+                label: "Extract source DACPAC",
+                kind: "activity",
+                activityKind: "dacpac.extract",
+                inputs: {
+                    database: "$params.sourceConnection",
+                    databaseName: "$params.sourceDatabaseName",
+                },
+            },
+            {
+                id: "approve-provision",
+                label: `Approve creation of ${names.target}`,
+                kind: "gate",
+            },
+            {
+                id: "provision",
+                label: `Create ${names.target}`,
+                kind: "activity",
+                activityKind: "devdatabase.provision",
+                inputs: {
+                    server: "$params.targetServer",
+                    databaseName: "$params.targetDatabaseName",
+                },
+            },
+            {
+                id: "preview",
+                label: "Preview DACPAC deployment",
+                kind: "activity",
+                activityKind: "dacpac.deploy.preview",
+                inputs: {
+                    dacpac: "$nodes.extract.artifactPath",
+                    database: "$nodes.provision.connectionRef",
+                },
+            },
+            {
+                id: "approve-deploy",
+                label: `Approve deployment to ${names.target}`,
+                kind: "gate",
+            },
+            {
+                id: "deploy",
+                label: "Deploy DACPAC",
+                kind: "activity",
+                activityKind: "dacpac.deploy.dev",
+                inputs: {
+                    dacpac: "$nodes.extract.artifactPath",
+                    database: "$nodes.provision.connectionRef",
+                    artifactDigest: "$nodes.extract.artifactSha256",
+                    previewDigest: "$nodes.preview.reportSha256",
+                },
+            },
+            {
+                id: "approve-schema",
+                label: `Approve creation of ${qualifiedTableName}`,
+                kind: "gate",
+            },
+            {
+                id: "create-logging-table",
+                label: `Create ${qualifiedTableName}`,
+                kind: "activity",
+                activityKind: "sql.schema.apply",
+                inputs: {
+                    database: "$nodes.provision.connectionRef",
+                    sql: ddl,
+                },
+            },
+            {
+                id: "compare",
+                label: "Report schema deltas",
+                kind: "activity",
+                activityKind: "schema.compare.export",
+                inputs: {
+                    dacpac: "$nodes.extract.artifactPath",
+                    database: "$nodes.provision.connectionRef",
+                },
+            },
+            { id: "report", label: "Summarize schema evolution", kind: "report" },
+        ],
+        edges: [
+            { from: "extract", to: "approve-provision" },
+            { from: "approve-provision", to: "provision", when: "approved" },
+            { from: "approve-provision", to: "report", when: "rejected" },
+            { from: "provision", to: "preview" },
+            { from: "preview", to: "approve-deploy" },
+            { from: "approve-deploy", to: "deploy", when: "approved" },
+            { from: "approve-deploy", to: "report", when: "rejected" },
+            { from: "deploy", to: "approve-schema" },
+            { from: "approve-schema", to: "create-logging-table", when: "approved" },
+            { from: "approve-schema", to: "report", when: "rejected" },
+            { from: "create-logging-table", to: "compare" },
+            { from: "compare", to: "report" },
+        ],
+    };
+    return parseCompiledProposal(JSON.stringify(proposal), base, intent);
+}
 
 /**
  * Compile the closed extract -> named local deploy -> schema inventory
@@ -331,7 +502,7 @@ function extractDacpacRoundTripDatabaseNames(
     const identifier = String.raw`(\[[^\]\r\n]{1,128}\]|[A-Za-z_][A-Za-z0-9_$#@-]{0,127})`;
     const sourcePatterns = [
         new RegExp(
-            String.raw`\b(?:extract|exact)\s+(?:database\s+)?${identifier}\s+(?:to|into|as)\s+(?:an?\s+)?dacpac\b`,
+            String.raw`\b(?:extract|exact)\s+(?:database\s+)?${identifier}\s+(?:database\s+)?(?:to|into|as)\s+(?:an?\s+)?dacpac\b`,
             "i",
         ),
         new RegExp(
@@ -341,6 +512,7 @@ function extractDacpacRoundTripDatabaseNames(
         new RegExp(String.raw`\bdacpac\s+from\s+(?:database\s+)?${identifier}`, "i"),
     ];
     const targetPatterns = [
+        new RegExp(String.raw`\bname\s+(?:it|the\s+(?:target\s+)?database)\s+${identifier}`, "i"),
         // Prefer explicit naming/preposition forms. This deliberately skips
         // an earlier phrase such as "back to server" in
         // "deploy it back to server as WWI_2".
@@ -367,6 +539,55 @@ function extractDacpacRoundTripDatabaseNames(
         return undefined;
     }
     return { source: normalizedSource, target: normalizedTarget };
+}
+
+function extractRepresentativeLoggingTable(
+    intent: string,
+): { schema: string; table: string } | undefined {
+    if (!/\b(?:representative\s+)?(?:logging|log|audit)\s+table\b/i.test(intent)) {
+        return undefined;
+    }
+    const part = String.raw`(?:\[[^\]\r\n]{1,128}\]|[A-Za-z_][A-Za-z0-9_$#@-]{0,127})`;
+    const qualified = String.raw`(${part})(?:\s*\.\s*(${part}))?`;
+    const patterns = [
+        new RegExp(String.raw`\btable\b[^\r\n]{0,100}?\bthat\s+is\s+${qualified}`, "i"),
+        new RegExp(String.raw`\btable\b[^\r\n]{0,60}?\b(?:named|called)\s+${qualified}`, "i"),
+    ];
+    const match = patterns.map((pattern) => pattern.exec(intent)).find(Boolean);
+    if (!match) {
+        return undefined;
+    }
+    const first = unwrapIdentifier(match[1]);
+    const second = match[2] ? unwrapIdentifier(match[2]) : undefined;
+    const schema = second ? first : "dbo";
+    const table = second ?? first;
+    if (
+        !/^[A-Za-z_][A-Za-z0-9_$#@-]{0,127}$/.test(schema) ||
+        !/^[A-Za-z_][A-Za-z0-9_$#@-]{0,127}$/.test(table)
+    ) {
+        return undefined;
+    }
+    return { schema, table };
+}
+
+function buildRepresentativeLoggingTableSql(schema: string, table: string): string {
+    const qualified = `${quoteSqlIdentifier(schema)}.${quoteSqlIdentifier(table)}`;
+    const constraintStem = table.replace(/[^A-Za-z0-9_]/g, "_").slice(0, 100);
+    return [
+        `CREATE TABLE ${qualified} (`,
+        `    [LogId] bigint IDENTITY(1,1) NOT NULL CONSTRAINT ${quoteSqlIdentifier(`PK_${constraintStem}`)} PRIMARY KEY,`,
+        `    [LoggedAtUtc] datetime2(7) NOT NULL CONSTRAINT ${quoteSqlIdentifier(`DF_${constraintStem}_LoggedAtUtc`)} DEFAULT (SYSUTCDATETIME()),`,
+        "    [Level] nvarchar(32) NOT NULL,",
+        "    [Message] nvarchar(4000) NOT NULL,",
+        "    [Category] nvarchar(256) NULL,",
+        "    [CorrelationId] uniqueidentifier NULL,",
+        "    [PropertiesJson] nvarchar(max) NULL",
+        ");",
+    ].join("\n");
+}
+
+function quoteSqlIdentifier(value: string): string {
+    return `[${value.replace(/]/g, "]]")}]`;
 }
 
 function unwrapIdentifier(value: string): string {
@@ -440,6 +661,23 @@ export async function compileIntentWithModel(
             { outcome, nodeCount, modelRole: "compiler" },
             context.traceId,
         );
+
+    const deterministicEvolution = compileDeterministicDacpacEvolution(base, intent);
+    if (deterministicEvolution && !isProposalFailure(deterministicEvolution)) {
+        emitRunbookEvent(context, "runbookStudio.compile.accepted", "ok", {
+            compiler: metaField("deterministicDacpacEvolution"),
+            nodeCount: metaField(deterministicEvolution.artifact.lock?.nodes.length ?? 0),
+            parameterCount: metaField(deterministicEvolution.artifact.source.parameters.length),
+        });
+        end("ok", deterministicEvolution.artifact.lock?.nodes.length ?? 0);
+        return { artifact: deterministicEvolution.artifact };
+    }
+    if (deterministicEvolution && isProposalFailure(deterministicEvolution)) {
+        emitRunbookEvent(context, "runbookStudio.compile.rejected", "warning", {
+            compiler: metaField("deterministicDacpacEvolution"),
+            reasonClass: metaField(deterministicEvolution.detail.slice(0, 80)),
+        });
+    }
 
     const deterministic = compileDeterministicDacpacInventory(base, intent);
     if (deterministic && !isProposalFailure(deterministic)) {

@@ -671,11 +671,11 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     const requestsXevent = has(text, /\b(xevent|extended events?|xel)\b/);
     const requestsSchemaCompareExport = has(
         text,
-        /\b(schema compare|schema diff|diff)\b.{0,50}\b(file|artifact|report|xml|script)\b|\b(create|save|export|write)\b.{0,35}\b(diff|comparison)\b.{0,20}\b(file|artifact|report|xml|script)\b/,
+        /\b(schema compare|schema diff|diff)\b.{0,120}\b(file|artifact|report|xml|script|output|patch(?:es)?)\b|\bschema deltas?\b.{0,40}\b(diff|patch|output)\b|\b(create|save|export|write|show)\b.{0,35}\b(diff|comparison|deltas?)\b.{0,20}\b(file|artifact|report|xml|script|output|patch(?:es)?)\b/,
     );
     const requestsSchemaInventory = has(
         text,
-        /\b(show|list|inventory|enumerate|dump)\b.{0,65}\b(tables?|views?|stored procedures?|sprocs?|schema objects?)\b|\b(tables?|views?|stored procedures?|sprocs?)\b.{0,50}\b(show|list|inventory|enumerate|dump)\b/,
+        /\b(show|list|inventory|enumerate|dump)\b[^.\r\n]{0,65}\b(tables?|views?|stored procedures?|sprocs?|schema objects?)\b|\b(tables?|views?|stored procedures?|sprocs?)\b[^.\r\n]{0,50}\b(show|list|inventory|enumerate|dump)\b/,
     );
     const isPreMerge = has(text, /\b(pre[- ]?merge|pull request|ci\/cd|pipeline|quality gate)\b/);
     const hasBuildWork = has(

@@ -20,6 +20,7 @@ import {
 } from "../../src/runbookStudio/activities/activityCatalog";
 import {
     buildCompilePrompt,
+    compileDeterministicDacpacEvolution,
     compileDeterministicDacpacInventory,
     extractJsonObject,
     isProposalFailure,
@@ -238,6 +239,63 @@ suite("planCompiler", () => {
             "sql.schema.apply",
             "schema.compare.export",
         ]);
+    });
+
+    test("the exact schema evolution prompt compiles deterministically", () => {
+        const intent =
+            "Extract WideWorldImporters database to a dacpac. Deploy the dacpac back to the " +
+            "same server and name it WideWorld_WIP. Now add a new table to WideWorld_WIP that " +
+            "is dbo.Logs and add a representative logging table. Then run a schema compare " +
+            "between the orginal database and the database, and show the schema deltas as diff output.";
+        const classified = classifyRunbookIntent(intent);
+        const evolutionBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+
+        const result = compileDeterministicDacpacEvolution(evolutionBase, intent);
+        if (!result) {
+            throw new Error("deterministic schema evolution workflow was not selected");
+        }
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+        expect(
+            result.artifact.source.parameters.find(
+                (parameter) => parameter.id === "sourceDatabaseName",
+            )?.default,
+        ).to.equal("WideWorldImporters");
+        expect(
+            result.artifact.source.parameters.find(
+                (parameter) => parameter.id === "targetDatabaseName",
+            )?.default,
+        ).to.equal("WideWorld_WIP");
+        expect(
+            result.artifact
+                .lock!.nodes.filter((node) => node.kind === "activity")
+                .map((node) => node.activityKind),
+        ).to.deep.equal([
+            "dacpac.extract",
+            "devdatabase.provision",
+            "dacpac.deploy.preview",
+            "dacpac.deploy.dev",
+            "sql.schema.apply",
+            "schema.compare.export",
+        ]);
+        const mutation = result.artifact.lock!.nodes.find(
+            (node) => node.id === "create-logging-table",
+        );
+        expect(mutation?.inputs?.sql).to.contain("CREATE TABLE [dbo].[Logs]");
+        expect(mutation?.inputs?.sql).to.contain("[LoggedAtUtc] datetime2(7)");
+        expect(
+            result.artifact.lock!.nodes.find((node) => node.id === "compare")?.inputs,
+        ).to.deep.equal({
+            dacpac: "$nodes.extract.artifactPath",
+            database: "$nodes.provision.connectionRef",
+        });
     });
 
     test("extract, named deploy, and typed schema inventory compiles end to end", () => {

@@ -390,6 +390,18 @@ suite("runbook capability preflight", () => {
         ]);
     });
 
+    test("schema delta output is an expected-difference export, not an equality assertion", () => {
+        const classified = classifyRunbookIntent(
+            "Extract WideWorldImporters database to a dacpac. Deploy the dacpac back to the " +
+                "same server and name it WideWorld_WIP. Add a new table that is dbo.Logs and " +
+                "a representative logging table. Run schema compare and show schema deltas as diff output.",
+        );
+        const kinds = classified.requirements.activities.map((activity) => activity.kind);
+
+        expect(kinds).to.include("schema.compare.export");
+        expect(kinds).not.to.include("schema.compare");
+    });
+
     test("containerWorkloadCapabilities admits the complete owned capture lifecycle", () => {
         const classified = classifyRunbookIntent(
             "Provision a local SQL container, import the dacpac, run this workload.sql, " +

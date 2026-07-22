@@ -20,6 +20,7 @@ import {
 } from "../../src/runbookStudio/runbookArtifact";
 import { classifyRunbookIntent } from "../../src/runbookStudio/capabilities/runbookCapabilities";
 import {
+    compileDeterministicDacpacEvolution,
     compileDeterministicDacpacInventory,
     isProposalFailure,
 } from "../../src/runbookStudio/models/planCompiler";
@@ -258,6 +259,55 @@ suite("Runbook Studio headless deterministic preview", () => {
             valid: true,
             executable: true,
             simulatedMutationCount: 3,
+        });
+    });
+
+    test("drives schema evolution and expected diff output through the headless plan runner", async () => {
+        const intent =
+            "Extract WideWorldImporters database to a dacpac. Deploy the dacpac back to the " +
+            "same server and name it WideWorld_WIP. Now add a new table to WideWorld_WIP that " +
+            "is dbo.Logs and add a representative logging table. Then run a schema compare " +
+            "and show the schema deltas as diff output.";
+        const classified = classifyRunbookIntent(intent);
+        const base = createNewRunbookArtifact("New runbook", "headless-schema-evolution");
+        base.family = classified.family;
+        base.source.requirements = classified.requirements;
+        const compiled = compileDeterministicDacpacEvolution(base, intent);
+        if (!compiled) {
+            throw new Error("deterministic schema evolution workflow was not selected");
+        }
+        if (isProposalFailure(compiled)) {
+            throw new Error(compiled.detail);
+        }
+
+        const result = await runHeadlessPreview({
+            artifactText: canonicalizeRunbookArtifact(compiled.artifact),
+            parameterValues: {
+                sourceConnection: "preview-source-profile",
+                targetServer: "preview-localhost-profile",
+            },
+            runId: "schema-evolution-preview",
+            deterministicPreviewAcknowledged: true,
+            approvePreviewGates: true,
+        });
+
+        expect(result).to.include({
+            outcome: "pass",
+            exitCode: HEADLESS_EXIT_CODES.pass,
+            terminalState: "succeeded",
+            verdict: "pass",
+            evidenceAvailable: false,
+        });
+        expect(result.nodeCounts).to.deep.equal({
+            succeeded: 10,
+            failed: 0,
+            skipped: 0,
+            cancelled: 0,
+        });
+        expect(result.validation).to.include({
+            valid: true,
+            executable: true,
+            simulatedMutationCount: 5,
         });
     });
 
