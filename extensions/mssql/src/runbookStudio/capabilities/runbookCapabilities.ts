@@ -128,6 +128,11 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         effect: "read",
         outputContract: "gitChangeSet/1",
     },
+    "ef.project.discover": {
+        target: "workspace",
+        effect: "read",
+        outputContract: "efProjectDiscovery/1",
+    },
     "ef.relational-model.compare": {
         target: "workspace",
         effect: "read",
@@ -141,6 +146,12 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         rollbackContract: "required",
         providerRequirement: "execution",
         outputContract: "migrationManifest/1",
+    },
+    "migration.data-loss.analyze": {
+        target: "workspace",
+        effect: "read",
+        providerRequirement: "execution",
+        outputContract: "migrationRisk/1",
     },
     "sqltest.discover": {
         target: "workspace",
@@ -322,6 +333,20 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         effect: "read",
         outputContract: "performanceMetrics/1",
     },
+    "performance.dmv.snapshot": {
+        target: "sqlDatabase",
+        effect: "read",
+        connectionRequirement: "provisioned",
+        providerRequirement: "execution",
+        outputContract: "performanceSnapshot/1",
+    },
+    "xevent.capture.reconcile": {
+        target: "ephemeralSqlDatabase",
+        effect: "read",
+        connectionRequirement: "provisioned",
+        providerRequirement: "execution",
+        outputContract: "captureIntegrity/1",
+    },
     "sqltest.run": {
         target: "sqlDatabase",
         effect: "read",
@@ -340,6 +365,39 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         target: "workspace",
         effect: "read",
         outputContract: "regressionComparison/1",
+    },
+    "database.backup": {
+        target: "sqlDatabase",
+        effect: "mutate",
+        approvalRequired: true,
+        connectionRequirement: "required",
+        rollbackContract: "automatic",
+        providerRequirement: "execution",
+        outputContract: "databaseBackup/1",
+    },
+    "release.manifest.create": {
+        target: "workspace",
+        effect: "mutate",
+        rollbackContract: "automatic",
+        outputContract: "releaseManifest/1",
+    },
+    "release.promote": {
+        target: "sqlDatabase",
+        effect: "mutate",
+        approvalRequired: true,
+        connectionRequirement: "required",
+        rollbackContract: "required",
+        providerRequirement: "execution",
+        outputContract: "promotionEvidence/1",
+    },
+    "deployment.reconcile": {
+        target: "sqlDatabase",
+        effect: "mutate",
+        approvalRequired: true,
+        connectionRequirement: "required",
+        rollbackContract: "required",
+        providerRequirement: "execution",
+        outputContract: "reconciliationEvidence/1",
     },
     "security.permissions.validate": {
         target: "sqlDatabase",
@@ -561,6 +619,7 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
 const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> = {
     build: [
         "git.change-set.inspect",
+        "ef.project.discover",
         "ef.relational-model.compare",
         "migration.script.generate",
         "workspace.inspect",
@@ -601,6 +660,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
     ],
     validate: [
         "git.change-set.inspect",
+        "ef.project.discover",
         "ef.relational-model.compare",
         "migration.script.generate",
         "workspace.inspect",
@@ -640,6 +700,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
     ],
     investigate: [
         "git.change-set.inspect",
+        "ef.project.discover",
         "ef.relational-model.compare",
         "connection.auth.diagnose",
         "sql.query.read",
@@ -664,6 +725,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
     ],
     composed: [
         "git.change-set.inspect",
+        "ef.project.discover",
         "ef.relational-model.compare",
         "migration.script.generate",
         "workspace.inspect",
@@ -761,6 +823,31 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     const requestsMigrationGeneration =
         requestsEfModelChange &&
         has(text, /\b(ddl|migration|create|alter|drop|update the database)\b/);
+    const requestsMigrationRiskAnalysis = has(
+        text,
+        /\b(data loss|destructive migration|narrow(?:s|ing|ed)?\b.{0,35}\bcolumn|drop(?:s|ping|ped)?\b.{0,35}\btable)\b/,
+    );
+    const requestsDmvSnapshot = has(
+        text,
+        /\b(dmvs?|dynamic management views?|dm_os_|dm_exec_|dm_io_)\b/,
+    );
+    const requestsIncompleteCaptureRecovery = has(
+        text,
+        /\b(partial|incomplete|interrupted|failed)\b.{0,40}\b(xevent|extended event|xel|capture|trace)\b|\b(xevent|extended event|xel|capture|trace)\b.{0,40}\b(partial|incomplete|interrupted|failed)\b/,
+    );
+    const requestsReleaseManifest = has(text, /\brelease\s+manifest\b/);
+    const requestsDatabaseBackup = has(
+        text,
+        /\b(back\s*up|backup)\b.{0,40}\b(database|target|staging)\b|\b(database|target|staging)\b.{0,40}\b(back\s*up|backup)\b/,
+    );
+    const requestsPromotion = has(
+        text,
+        /\b(promote|promotion)\b|\bdeploy\b.{0,45}\bback\b.{0,35}\b(staging|production)\b/,
+    );
+    const requestsDeploymentReconciliation = has(
+        text,
+        /\b(reconcile|rollback|roll back|operator attention|deployment recovery)\b/,
+    );
     const requestsProjectAuthoring = has(
         text,
         /\b(database|sql)\s+project\b|\.sqlproj\b|\bproject\b.{0,40}\b(tables?|schemas?|foreign keys?|constraints?|indexes?|objects?)\b/,
@@ -828,10 +915,32 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         requested.add("git.change-set.inspect");
     }
     if (requestsEfModelChange) {
+        requested.add("ef.project.discover");
         requested.add("ef.relational-model.compare");
     }
     if (requestsMigrationGeneration) {
         requested.add("migration.script.generate");
+    }
+    if (requestsMigrationRiskAnalysis) {
+        requested.add("migration.data-loss.analyze");
+    }
+    if (requestsDmvSnapshot) {
+        requested.add("performance.dmv.snapshot");
+    }
+    if (requestsIncompleteCaptureRecovery) {
+        requested.add("xevent.capture.reconcile");
+    }
+    if (requestsReleaseManifest) {
+        requested.add("release.manifest.create");
+    }
+    if (requestsDatabaseBackup) {
+        requested.add("database.backup");
+    }
+    if (requestsPromotion) {
+        requested.add("release.promote");
+    }
+    if (requestsDeploymentReconciliation) {
+        requested.add("deployment.reconcile");
     }
 
     if (family === "build" || family === "composed") {

@@ -23,6 +23,27 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             workspaceFolderCount: 1,
             projectPaths: ["C:\\repo\\B.sqlproj", "C:\\repo\\A.sqlproj"],
         }),
+        discoverEfProjects: async () => ({
+            workspaceFolderCount: 1,
+            projects: [
+                {
+                    projectPath: "C:\\repo\\src\\MyApp.csproj",
+                    relativeProjectPath: "src/MyApp.csproj",
+                    targetFrameworks: ["net8.0"],
+                    providers: ["Microsoft.EntityFrameworkCore.SqlServer"],
+                    dbContexts: [{ name: "AppDbContext", relativePath: "src/AppDbContext.cs" }],
+                    entitySourceFileCount: 2,
+                    scannedSourceFileCount: 3,
+                    truncated: false,
+                },
+            ],
+            projectCount: 1,
+            dbContextCount: 1,
+            providerCount: 1,
+            entitySourceFileCount: 2,
+            scannedSourceFileCount: 3,
+            truncated: false,
+        }),
         inspectGitChangeSet: async () => ({
             repositoryRoot: "C:\\repo",
             baseRef: "main",
@@ -482,6 +503,42 @@ suite("Runbook Studio local activity delegate", () => {
             "workspace.truncated": true,
         });
         expect(result?.values).to.deep.equal({ projectCount: 2 });
+    });
+
+    test("EF project discovery emits typed project metadata without source content", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+
+        const result = await delegate.executeActivity(activity("ef.project.discover"), binding());
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("efProjectDiscovery/1");
+        expect(result?.output?.rows).to.deep.equal([
+            [
+                "src/MyApp.csproj",
+                "net8.0",
+                "Microsoft.EntityFrameworkCore.SqlServer",
+                "AppDbContext",
+                2,
+                false,
+            ],
+        ]);
+        expect(result?.output?.scalars).to.deep.include({
+            projectCount: 1,
+            dbContextCount: 1,
+            providerCount: 1,
+            entitySourceFileCount: 2,
+            scannedSourceFileCount: 3,
+            truncated: false,
+            executionMode: "local",
+        });
+        expect(JSON.stringify(result?.output)).not.to.contain("class AppDbContext");
+        expect(result?.runMetrics).to.deep.equal({
+            "ef.projectCount": 1,
+            "ef.dbContextCount": 1,
+            "ef.providerCount": 1,
+            "ef.entitySourceFileCount": 2,
+            "ef.discoveryTruncated": false,
+        });
     });
 
     test("repository test discovery emits bounded typed rows and completeness", async () => {
@@ -1475,6 +1532,7 @@ suite("Runbook Studio local activity delegate", () => {
         expect([...delegate.supportedActivityKinds]).to.have.members([
             "workspace.inspect",
             "git.change-set.inspect",
+            "ef.project.discover",
             "sqltest.discover",
             "tsqlt.run",
             "dacpac.build",

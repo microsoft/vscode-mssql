@@ -26,6 +26,8 @@ import {
     LocalActivityError,
     LocalDacpacBuildResult,
     LocalDeploymentPreviewResult,
+    LocalEfProjectCandidate,
+    LocalEfProjectDiscoveryResult,
     LocalGitChangeSetResult,
     LocalSqlTestDiscoveryResult,
     LocalWorkspaceSnapshot,
@@ -33,6 +35,11 @@ import {
 import { analyzeRepositorySqlTests, RepositorySqlTestSource } from "./repositorySqlTestDiscovery";
 
 const MAX_DISCOVERED_PROJECTS = 100;
+const MAX_EF_SOURCE_FILES = 2000;
+const MAX_EF_PROJECT_BYTES = 512 * 1024;
+const MAX_EF_SOURCE_FILE_BYTES = 256 * 1024;
+const MAX_EF_SOURCE_TOTAL_BYTES = 16 * 1024 * 1024;
+const MAX_EF_CONTEXTS_PER_PROJECT = 100;
 const MAX_REPOSITORY_SQL_FILES = 2000;
 const MAX_REPOSITORY_SQL_FILE_BYTES = 512 * 1024;
 const MAX_REPOSITORY_SQL_TOTAL_BYTES = 32 * 1024 * 1024;
@@ -80,6 +87,200 @@ export async function inspectLocalWorkspace(): Promise<LocalWorkspaceSnapshot> {
             .slice(0, MAX_DISCOVERED_PROJECTS),
         truncated: truncated || paths.size > MAX_DISCOVERED_PROJECTS,
     };
+}
+
+/** Read-only EF candidate discovery. This inventories project metadata and
+ * source declarations only; it does not restore/build a project or load its
+ * design-time code. Those effects require a separate explicit trust gate. */
+export async function discoverLocalEfProjects(
+    isCancellationRequested: () => boolean,
+): Promise<LocalEfProjectDiscoveryResult> {
+    if (!vscode.workspace.isTrusted) {
+        throw new LocalActivityError(
+            LocRunbookStudio.efWorkspaceTrustRequired,
+            "RunbookStudio.WorkspaceUntrusted",
+        );
+    }
+    const folders = vscode.workspace.workspaceFolders ?? [];
+    if (folders.length === 0) {
+        throw new LocalActivityError(
+            LocRunbookStudio.efWorkspaceRequired,
+            "RunbookStudio.WorkspaceUnavailable",
+        );
+    }
+    const projectUris = new Map<string, vscode.Uri>();
+    let truncated = false;
+    for (const folder of folders) {
+        const matches = await vscode.workspace.findFiles(
+            new vscode.RelativePattern(folder, "**/*.csproj"),
+            "**/{.git,.vs,.vscode,node_modules,bin,obj,TestResults}/**",
+            MAX_DISCOVERED_PROJECTS + 1,
+        );
+        if (matches.length > MAX_DISCOVERED_PROJECTS) {
+            truncated = true;
+        }
+        for (const uri of matches.slice(0, MAX_DISCOVERED_PROJECTS)) {
+            projectUris.set(path.normalize(uri.fsPath).toLowerCase(), uri);
+        }
+    }
+
+    const projects: LocalEfProjectCandidate[] = [];
+    let remainingSourceFiles = MAX_EF_SOURCE_FILES;
+    let remainingSourceBytes = MAX_EF_SOURCE_TOTAL_BYTES;
+    for (const uri of [...projectUris.values()]
+        .sort((left, right) => left.fsPath.localeCompare(right.fsPath))
+        .slice(0, MAX_DISCOVERED_PROJECTS)) {
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.efDiscoveryCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        await assertPathInWorkspace(uri.fsPath, folders, LocRunbookStudio.efProjectLabel);
+        const projectStat = await fs.promises.stat(uri.fsPath);
+        if (!projectStat.isFile() || projectStat.size > MAX_EF_PROJECT_BYTES) {
+            truncated = true;
+            continue;
+        }
+        const projectText = await fs.promises.readFile(uri.fsPath, "utf8");
+        const projectXml = new DOMParser().parseFromString(projectText, "application/xml");
+        const targetFrameworks = readProjectValues(projectXml, [
+            "TargetFramework",
+            "TargetFrameworks",
+        ]).flatMap((value) =>
+            value
+                .split(";")
+                .map((item) => item.trim())
+                .filter(Boolean),
+        );
+        const providers = readEfProviderReferences(projectXml);
+        const projectDirectory = path.dirname(uri.fsPath);
+        const matchLimit = Math.min(remainingSourceFiles + 1, MAX_EF_SOURCE_FILES + 1);
+        const sourceUris = await vscode.workspace.findFiles(
+            new vscode.RelativePattern(projectDirectory, "**/*.cs"),
+            "**/{.git,.vs,.vscode,node_modules,bin,obj,TestResults}/**",
+            matchLimit,
+        );
+        let projectTruncated = sourceUris.length > remainingSourceFiles;
+        const dbContexts: LocalEfProjectCandidate["dbContexts"] = [];
+        let entitySourceFileCount = 0;
+        let scannedSourceFileCount = 0;
+        for (const sourceUri of sourceUris.slice(0, remainingSourceFiles)) {
+            if (isCancellationRequested()) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.efDiscoveryCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            await assertPathInWorkspace(
+                sourceUri.fsPath,
+                folders,
+                LocRunbookStudio.efSourceFileLabel,
+            );
+            const sourceStat = await fs.promises.stat(sourceUri.fsPath);
+            if (
+                !sourceStat.isFile() ||
+                sourceStat.size > MAX_EF_SOURCE_FILE_BYTES ||
+                sourceStat.size > remainingSourceBytes
+            ) {
+                projectTruncated = true;
+                continue;
+            }
+            const source = await fs.promises.readFile(sourceUri.fsPath, "utf8");
+            remainingSourceFiles--;
+            remainingSourceBytes -= sourceStat.size;
+            scannedSourceFileCount++;
+            const relativePath = vscode.workspace.asRelativePath(sourceUri, false);
+            const contextPattern =
+                /\b(?:partial\s+)?class\s+([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(?:[A-Za-z_][A-Za-z0-9_.]*\.)?DbContext\b/g;
+            let contextMatch: RegExpExecArray | null;
+            while (
+                dbContexts.length < MAX_EF_CONTEXTS_PER_PROJECT &&
+                (contextMatch = contextPattern.exec(source)) !== null
+            ) {
+                dbContexts.push({ name: contextMatch[1], relativePath });
+            }
+            if (contextPattern.exec(source) !== null) {
+                projectTruncated = true;
+            }
+            if (
+                /\bDbSet\s*</.test(source) ||
+                /\bIEntityTypeConfiguration\s*</.test(source) ||
+                /\[\s*Table\s*(?:\(|\])/.test(source) ||
+                /(?:^|[\\/])Entities(?:[\\/]|$)/i.test(relativePath)
+            ) {
+                entitySourceFileCount++;
+            }
+            if (remainingSourceFiles === 0 || remainingSourceBytes === 0) {
+                projectTruncated = sourceUris.length > scannedSourceFileCount;
+                break;
+            }
+        }
+        projects.push({
+            projectPath: path.normalize(uri.fsPath),
+            relativeProjectPath: vscode.workspace.asRelativePath(uri, false),
+            targetFrameworks: [...new Set(targetFrameworks)].sort((left, right) =>
+                left.localeCompare(right),
+            ),
+            providers,
+            dbContexts: dbContexts.sort((left, right) =>
+                `${left.name}\u0000${left.relativePath}`.localeCompare(
+                    `${right.name}\u0000${right.relativePath}`,
+                ),
+            ),
+            entitySourceFileCount,
+            scannedSourceFileCount,
+            truncated: projectTruncated,
+        });
+        truncated ||= projectTruncated;
+        if (remainingSourceFiles === 0 || remainingSourceBytes === 0) {
+            truncated = true;
+            break;
+        }
+    }
+    return {
+        workspaceFolderCount: folders.length,
+        projects,
+        projectCount: projects.length,
+        dbContextCount: projects.reduce((sum, project) => sum + project.dbContexts.length, 0),
+        providerCount: new Set(projects.flatMap((project) => project.providers)).size,
+        entitySourceFileCount: projects.reduce(
+            (sum, project) => sum + project.entitySourceFileCount,
+            0,
+        ),
+        scannedSourceFileCount: projects.reduce(
+            (sum, project) => sum + project.scannedSourceFileCount,
+            0,
+        ),
+        truncated: truncated || projectUris.size > MAX_DISCOVERED_PROJECTS,
+    };
+}
+
+function readProjectValues(document: XmlDocument, elementNames: readonly string[]): string[] {
+    const values: string[] = [];
+    for (const elementName of elementNames) {
+        const nodes = document.getElementsByTagName(elementName);
+        for (let index = 0; index < nodes.length; index++) {
+            const value = nodes.item(index)?.textContent?.trim();
+            if (value) {
+                values.push(value);
+            }
+        }
+    }
+    return values;
+}
+
+function readEfProviderReferences(document: XmlDocument): string[] {
+    const providers = new Set<string>();
+    const nodes = document.getElementsByTagName("PackageReference");
+    for (let index = 0; index < nodes.length; index++) {
+        const node = nodes.item(index);
+        const packageName = node?.getAttribute("Include") ?? node?.getAttribute("Update") ?? "";
+        if (/entityframework/i.test(packageName)) {
+            providers.add(packageName.trim());
+        }
+    }
+    return [...providers].sort((left, right) => left.localeCompare(right));
 }
 
 /** Capture one immutable, content-addressed source change without checking

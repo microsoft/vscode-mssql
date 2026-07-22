@@ -136,6 +136,34 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         blastRadius: { ...READ_ONLY_LOCAL, resource: "workspaceFiles" },
     },
     {
+        kind: "ef.project.discover",
+        version: 1,
+        label: "Discover Entity Framework projects",
+        description:
+            "Inventories bounded project metadata, DbContext declarations, providers, and entity-related source counts in the trusted workspace without restoring or loading project code.",
+        inputs: [],
+        outputContract: "efProjectDiscovery/1",
+        outputSchema: {
+            fields: [
+                { name: "project", valueType: "string", roles: ["label"] },
+                { name: "targetFrameworks", valueType: "string" },
+                { name: "providers", valueType: "string", roles: ["category"] },
+                { name: "dbContexts", valueType: "string" },
+                { name: "entitySourceFiles", valueType: "number", roles: ["measure"] },
+                { name: "truncated", valueType: "boolean" },
+            ],
+        },
+        producedValues: [
+            "projectCount",
+            "dbContextCount",
+            "providerCount",
+            "entitySourceFileCount",
+            "truncated",
+        ],
+        target: { kind: "workspace", workspace: true },
+        blastRadius: { ...READ_ONLY_LOCAL, resource: "workspaceFiles" },
+    },
+    {
         kind: "sqltest.discover",
         version: 1,
         label: "Discover repository SQL tests",

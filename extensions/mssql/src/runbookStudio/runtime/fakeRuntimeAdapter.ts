@@ -514,6 +514,7 @@ function hasEdge(edges: RunbookPlanEdge[], from: string, when: RunbookPlanEdge["
 const PREVIEW_ACTIVITY_KINDS = new Set([
     "workspace.inspect",
     "git.change-set.inspect",
+    "ef.project.discover",
     "sqltest.discover",
     "tsqlt.run",
     "dacpac.build",
@@ -645,6 +646,55 @@ function executeNode(
                 values: {
                     projectCount: 1,
                     projectPath: "preview://workspace/Database.sqlproj",
+                },
+            };
+        case "ef.project.discover":
+            return {
+                success: true,
+                runMetrics: {
+                    "ef.projectCount": 1,
+                    "ef.dbContextCount": 1,
+                    "ef.providerCount": 1,
+                    "ef.entitySourceFileCount": 2,
+                    "ef.discoveryTruncated": false,
+                },
+                message: "1 Entity Framework project candidate (deterministic preview)",
+                output: {
+                    contract: "efProjectDiscovery/1",
+                    columns: [
+                        "project",
+                        "targetFrameworks",
+                        "providers",
+                        "dbContexts",
+                        "entitySourceFiles",
+                        "truncated",
+                    ],
+                    rows: [
+                        [
+                            "src/MyApp.csproj",
+                            "net8.0",
+                            "Microsoft.EntityFrameworkCore.SqlServer",
+                            "AppDbContext",
+                            2,
+                            false,
+                        ],
+                    ],
+                    scalars: {
+                        projectCount: 1,
+                        dbContextCount: 1,
+                        providerCount: 1,
+                        entitySourceFileCount: 2,
+                        scannedSourceFileCount: 3,
+                        truncated: false,
+                        preview: true,
+                    },
+                },
+                values: {
+                    projectCount: 1,
+                    dbContextCount: 1,
+                    providerCount: 1,
+                    entitySourceFileCount: 2,
+                    truncated: false,
                 },
             };
         case "git.change-set.inspect": {

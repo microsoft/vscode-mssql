@@ -180,6 +180,7 @@ function sampleRows(contract: string): {
 } {
     switch (contract) {
         case "rowset/1":
+        case "efProjectDiscovery/1":
         case "testSuiteDiscovery/1":
         case "testResults/1":
             return {

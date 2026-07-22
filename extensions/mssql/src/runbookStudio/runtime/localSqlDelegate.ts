@@ -65,6 +65,9 @@ export interface LocalSqlOperations {
     ): Promise<mssql.SimpleExecuteResult>;
     disconnect(ownerUri: string): Promise<void>;
     inspectWorkspace(): Promise<LocalWorkspaceSnapshot>;
+    discoverEfProjects(
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEfProjectDiscoveryResult>;
     inspectGitChangeSet(
         nodeId: string,
         repository: string,
@@ -246,6 +249,33 @@ export interface LocalWorkspaceSnapshot {
     /** Absolute, workspace-contained project paths in stable sort order. */
     projectPaths: string[];
     truncated?: boolean;
+}
+
+export interface LocalEfDbContextCandidate {
+    name: string;
+    relativePath: string;
+}
+
+export interface LocalEfProjectCandidate {
+    projectPath: string;
+    relativeProjectPath: string;
+    targetFrameworks: string[];
+    providers: string[];
+    dbContexts: LocalEfDbContextCandidate[];
+    entitySourceFileCount: number;
+    scannedSourceFileCount: number;
+    truncated: boolean;
+}
+
+export interface LocalEfProjectDiscoveryResult {
+    workspaceFolderCount: number;
+    projects: LocalEfProjectCandidate[];
+    projectCount: number;
+    dbContextCount: number;
+    providerCount: number;
+    entitySourceFileCount: number;
+    scannedSourceFileCount: number;
+    truncated: boolean;
 }
 
 export interface LocalGitChangeSetFile {
@@ -518,6 +548,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
     public readonly supportedActivityKinds = new Set([
         "workspace.inspect",
         "git.change-set.inspect",
+        "ef.project.discover",
         "sqltest.discover",
         "tsqlt.run",
         "dacpac.build",
@@ -565,6 +596,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.inspectWorkspace();
             case "git.change-set.inspect":
                 return this.inspectGitChangeSet(node, binding);
+            case "ef.project.discover":
+                return this.discoverEfProjects(binding);
             case "sqltest.discover":
                 return this.discoverSqlTests(binding);
             case "tsqlt.run":
@@ -653,6 +686,67 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     },
                 },
                 values: { projectCount: projectPaths.length },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async discoverEfProjects(binding: {
+        isCancellationRequested: () => boolean;
+    }): Promise<NodeExecution> {
+        try {
+            const result = await this.operations.discoverEfProjects(
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "ef.projectCount": result.projectCount,
+                    "ef.dbContextCount": result.dbContextCount,
+                    "ef.providerCount": result.providerCount,
+                    "ef.entitySourceFileCount": result.entitySourceFileCount,
+                    "ef.discoveryTruncated": result.truncated,
+                },
+                message: LocRunbookStudio.efProjectsDiscovered(
+                    result.projectCount,
+                    result.dbContextCount,
+                ),
+                output: {
+                    contract: "efProjectDiscovery/1",
+                    columns: [
+                        "project",
+                        "targetFrameworks",
+                        "providers",
+                        "dbContexts",
+                        "entitySourceFiles",
+                        "truncated",
+                    ],
+                    rows: result.projects.map((project) => [
+                        project.relativeProjectPath,
+                        project.targetFrameworks.join(", "),
+                        project.providers.join(", "),
+                        project.dbContexts.map((context) => context.name).join(", "),
+                        project.entitySourceFileCount,
+                        project.truncated,
+                    ]),
+                    scalars: {
+                        projectCount: result.projectCount,
+                        dbContextCount: result.dbContextCount,
+                        providerCount: result.providerCount,
+                        entitySourceFileCount: result.entitySourceFileCount,
+                        scannedSourceFileCount: result.scannedSourceFileCount,
+                        truncated: result.truncated,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    projectCount: result.projectCount,
+                    dbContextCount: result.dbContextCount,
+                    providerCount: result.providerCount,
+                    entitySourceFileCount: result.entitySourceFileCount,
+                    truncated: result.truncated,
+                },
             };
         } catch (error) {
             return activityFailure(error);

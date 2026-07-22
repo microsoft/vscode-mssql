@@ -191,6 +191,15 @@
     "Git change-set capture was cancelled.": "Git change-set capture was cancelled.",
     "Git is unavailable for the local Runbook Studio provider.": "Git is unavailable for the local Runbook Studio provider.",
     "Git could not resolve or compare the selected repository refs.": "Git could not resolve or compare the selected repository refs.",
+    "Discovered {0} Entity Framework project candidate(s) and {1} DbContext(s)./{0} is an EF project count{1} is a DbContext count": {
+        "message": "Discovered {0} Entity Framework project candidate(s) and {1} DbContext(s).",
+        "comment": ["{0} is an EF project count", "{1} is a DbContext count"]
+    },
+    "Trust this workspace before discovering Entity Framework project metadata.": "Trust this workspace before discovering Entity Framework project metadata.",
+    "Open a workspace containing the Entity Framework project before running this step.": "Open a workspace containing the Entity Framework project before running this step.",
+    "Entity Framework project": "Entity Framework project",
+    "Entity Framework source file": "Entity Framework source file",
+    "Entity Framework project discovery was cancelled.": "Entity Framework project discovery was cancelled.",
     "Discovered {0} tSQLt test(s) in {1} test class(es)./{0} is a test count{1} is a tSQLt test class count": {
         "message": "Discovered {0} tSQLt test(s) in {1} test class(es).",
         "comment": ["{0} is a test count", "{1} is a tSQLt test class count"]

@@ -334,6 +334,23 @@ export class RunbookStudio {
     public static gitOperationFailed = l10n.t(
         "Git could not resolve or compare the selected repository refs.",
     );
+    public static efProjectsDiscovered = (projectCount: number, contextCount: number) =>
+        l10n.t({
+            message: "Discovered {0} Entity Framework project candidate(s) and {1} DbContext(s).",
+            args: [projectCount, contextCount],
+            comment: ["{0} is an EF project count", "{1} is a DbContext count"],
+        });
+    public static efWorkspaceTrustRequired = l10n.t(
+        "Trust this workspace before discovering Entity Framework project metadata.",
+    );
+    public static efWorkspaceRequired = l10n.t(
+        "Open a workspace containing the Entity Framework project before running this step.",
+    );
+    public static efProjectLabel = l10n.t("Entity Framework project");
+    public static efSourceFileLabel = l10n.t("Entity Framework source file");
+    public static efDiscoveryCancelled = l10n.t(
+        "Entity Framework project discovery was cancelled.",
+    );
     public static sqlTestsDiscovered = (testCount: number, classCount: number) =>
         l10n.t({
             message: "Discovered {0} tSQLt test(s) in {1} test class(es).",

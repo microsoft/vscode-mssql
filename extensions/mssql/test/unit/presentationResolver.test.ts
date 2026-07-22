@@ -343,6 +343,10 @@ suite("presentationResolver", () => {
             expect(expectedContractFor("activity", activityKind)).to.equal(contract);
             expect(compatibleViews(contract)).to.deep.equal(["scalar-cards", "json"]);
         }
+        expect(expectedContractFor("activity", "ef.project.discover")).to.equal(
+            "efProjectDiscovery/1",
+        );
+        expect(compatibleViews("efProjectDiscovery/1")).to.deep.equal(["grid", "json"]);
         expect(expectedContractFor("activity", "dacpac.deploy.preview")).to.equal(
             "deploymentPreview/1",
         );

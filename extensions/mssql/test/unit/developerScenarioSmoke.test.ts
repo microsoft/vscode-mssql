@@ -98,6 +98,26 @@ const landedScenarioClaims = [
         scope: "workspace and read-only database health evidence",
         activities: ["workspace.inspect", "sql.query.read", "evidence.bundle"],
     },
+    {
+        id: "DCR13-GIT",
+        scope: "bounded non-mutating repository change-set capture",
+        activities: ["git.change-set.inspect"],
+    },
+    {
+        id: "V17",
+        scope: "measured workload with correlated XEvent evidence",
+        activities: [
+            "sql.container.provision",
+            "sql.workload.inspect",
+            "xevent.session.start",
+            "sql.workload.run",
+            "xevent.session.stop",
+            "xevent.xel.analyze",
+            "xevent.xel.collect",
+            "workload.benchmark",
+            "sql.container.dispose",
+        ],
+    },
 ] as const;
 
 const unsupportedScenarioClaims = [
@@ -105,7 +125,6 @@ const unsupportedScenarioClaims = [
     { id: "B04", title: "Author FK and supporting indexes", missing: "db.schema.apply" },
     { id: "B16", title: "Constraint-aware sample data", missing: "data.generate.constraint-aware" },
     { id: "V06", title: "Upgrade previous release", missing: "db.upgrade.validate" },
-    { id: "V17", title: "Performance regression benchmark", missing: "workload.benchmark" },
     { id: "V20", title: "Security and permissions", missing: "security.permissions.validate" },
     { id: "I01", title: "Query latency regression", missing: "perf.baseline.compare" },
     { id: "I19", title: "Connection/auth diagnosis", missing: "connection.auth.diagnose" },
@@ -132,8 +151,8 @@ async function waitForEvent(
 }
 
 suite("developer scenario smoke", () => {
-    test("keeps seven landed scenario slices anchored to executable catalog activities", () => {
-        expect(landedScenarioClaims).to.have.length(7);
+    test("keeps nine landed scenario slices anchored to executable catalog activities", () => {
+        expect(landedScenarioClaims).to.have.length(9);
         for (const scenario of landedScenarioClaims) {
             for (const activity of scenario.activities) {
                 const descriptor = findActivity(activity);
@@ -228,8 +247,8 @@ suite("developer scenario smoke", () => {
         }
     });
 
-    test("keeps nine unsupported scenario operations design-only", () => {
-        expect(unsupportedScenarioClaims).to.have.length(9);
+    test("keeps eight unsupported scenario operations design-only", () => {
+        expect(unsupportedScenarioClaims).to.have.length(8);
         for (const scenario of unsupportedScenarioClaims) {
             expect(
                 findActivity(scenario.missing),

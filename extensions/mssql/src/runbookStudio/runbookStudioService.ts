@@ -154,6 +154,7 @@ import {
 import {
     buildLocalDacpac,
     buildLocalDeploymentPreviewResult,
+    discoverLocalEfProjects,
     discoverLocalSqlTests,
     inspectLocalGitChangeSet,
     inspectLocalWorkspace,
@@ -2472,6 +2473,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             adapter = new FakeRuntimeAdapter(
                 new LocalSqlActivityDelegate({
                     inspectWorkspace: inspectLocalWorkspace,
+                    discoverEfProjects: discoverLocalEfProjects,
                     inspectGitChangeSet: (
                         nodeId,
                         repository,
