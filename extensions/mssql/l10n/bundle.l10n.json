@@ -2839,6 +2839,7 @@
     },
     "Copy As": "Copy As",
     "Copy as INSERT INTO": "Copy as INSERT INTO",
+    "Copying as an IN clause requires selecting exactly one column.": "Copying as an IN clause requires selecting exactly one column.",
     "NULL": "NULL",
     "Blanks": "Blanks",
     "Search...": "Search...",

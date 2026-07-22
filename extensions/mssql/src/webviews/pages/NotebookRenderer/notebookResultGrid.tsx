@@ -23,6 +23,7 @@ export interface NotebookResultGridProps {
     rows: DbCellValue[][];
     rowCount: number;
     addBottomSpacing?: boolean;
+    postMessage?: (message: unknown) => void;
 }
 
 const ROW_HEIGHT = 24;
@@ -106,6 +107,7 @@ export function NotebookResultGrid({
     columnInfo,
     rows,
     addBottomSpacing,
+    postMessage,
 }: NotebookResultGridProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const gridRef = useRef<Slick.Grid<Slick.SlickData> | null>(null);
@@ -230,7 +232,7 @@ export function NotebookResultGrid({
         grid.setSelectionModel(selectionModel);
 
         // Register context menu (right-click) with copy operations
-        const contextMenu = new NotebookContextMenu<Slick.SlickData>();
+        const contextMenu = new NotebookContextMenu<Slick.SlickData>(columnInfo, postMessage);
         grid.registerPlugin(contextMenu);
 
         // Reuse Query Result auto-size behavior for double-clicking a resize handle.

@@ -32,6 +32,7 @@ export function NotebookResultsOutput({ blocks, postMessage }: NotebookResultsOu
                                     columnInfo={block.columnInfo}
                                     rows={block.rows}
                                     rowCount={block.rowCount}
+                                    postMessage={postMessage}
                                 />
                             </div>
                         );

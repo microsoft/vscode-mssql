@@ -23,6 +23,7 @@ import type {
     NotebookQueryResultGridBlock,
     NotebookQueryResultOutputData,
     NotebookSaveAsMessage,
+    NotebookShowErrorMessage,
 } from "../sharedInterfaces/notebookQueryResult";
 import { saveNotebookResults } from "./notebookResultsSerializer";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
@@ -196,11 +197,15 @@ export class SqlNotebookController implements vscode.Disposable {
         const messaging = vscode.notebooks.createRendererMessaging(NOTEBOOK_RESULT_RENDERER_ID);
         this.disposables.push(
             messaging.onDidReceiveMessage((e) => {
-                const message = e.message as NotebookSaveAsMessage | undefined;
-                if (message?.type !== "saveAs") {
-                    return;
+                const message = e.message as
+                    | NotebookSaveAsMessage
+                    | NotebookShowErrorMessage
+                    | undefined;
+                if (message?.type === "saveAs") {
+                    void this.handleSaveAs(e.editor.notebook, message);
+                } else if (message?.type === "showError") {
+                    void vscode.window.showErrorMessage(message.message);
                 }
-                void this.handleSaveAs(e.editor.notebook, message);
             }),
         );
 

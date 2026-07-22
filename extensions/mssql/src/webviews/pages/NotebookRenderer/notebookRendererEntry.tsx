@@ -123,6 +123,7 @@ export const activate: ActivationFunction = (context: RendererContext) => {
                             rows={parsedData.rows}
                             rowCount={parsedData.rowCount}
                             addBottomSpacing={parsedData.addBottomSpacing}
+                            postMessage={postMessage}
                         />
                     </>,
                 );
