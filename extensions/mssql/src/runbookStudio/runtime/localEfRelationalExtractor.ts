@@ -16,10 +16,7 @@ import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import { DOMParser, type Element as XmlElement } from "@xmldom/xmldom";
-import {
-    LocalGitRevisionSnapshotResult,
-    materializeLocalGitRevision,
-} from "./localDeveloperOperations";
+import { GitRevisionSnapshotResult, materializeGitRevision } from "./gitRevisionMaterializer";
 import {
     createLocalEfRelationalModel,
     LocalEfRelationalColumn,
@@ -46,12 +43,13 @@ export interface LocalEfRelationalExtractionRequest {
     dbContext: string;
     temporaryParentPath: string;
     exporterProgramPath: string;
+    trustedWorkspaceRoots: readonly string[];
     timeoutMs?: number;
 }
 
 export interface LocalEfRelationalExtractionResult {
     model: LocalEfRelationalModel;
-    snapshot: LocalGitRevisionSnapshotResult;
+    snapshot: GitRevisionSnapshotResult;
     dotnetVersion: string;
     providerPackageVersion: string;
     designPackageVersion: string;
@@ -109,16 +107,17 @@ export async function extractLocalEfRelationalModel(
     const scratchRoot = path.join(scratchParent, `.rbs-ef-${crypto.randomUUID()}`);
     const snapshotRoot = path.join(scratchRoot, "source");
     const toolRoot = path.join(scratchRoot, "exporter");
-    let snapshot: LocalGitRevisionSnapshotResult;
+    let snapshot: GitRevisionSnapshotResult;
     try {
         await fs.promises.mkdir(scratchRoot);
         try {
-            snapshot = await materializeLocalGitRevision(
-                request.repositoryPath,
-                request.revision,
-                snapshotRoot,
+            snapshot = await materializeGitRevision({
+                trustedWorkspaceRoots: request.trustedWorkspaceRoots,
+                requestedRepository: request.repositoryPath,
+                requestedRef: request.revision,
+                destinationRoot: snapshotRoot,
                 isCancellationRequested,
-            );
+            });
         } catch (error) {
             throw extractionError(
                 "snapshot",

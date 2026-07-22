@@ -124,6 +124,7 @@ suite("Runbook Studio EF exact-revision extraction live smoke (gated)", function
             dbContext: "AppDbContext",
             temporaryParentPath: temporaryParent,
             exporterProgramPath: EXPORTER_PROGRAM,
+            trustedWorkspaceRoots: [FIXTURE_ROOT],
         };
 
         const main = await extractLocalEfRelationalModel(

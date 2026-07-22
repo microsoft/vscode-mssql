@@ -117,6 +117,10 @@ export function headlessCapabilities(): Record<string, unknown> {
             "workspace.inspect",
             "git.change-set.inspect",
             "ef.project.discover",
+            "ef.relational-model.extract",
+            "ef.relational-model.compare",
+            "migration.data-loss.analyze",
+            "migration.script.generate",
         ],
     };
 }

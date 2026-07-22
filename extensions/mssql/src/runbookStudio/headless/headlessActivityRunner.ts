@@ -34,6 +34,10 @@ export const PRODUCTION_HEADLESS_ACTIVITY_KINDS = [
     "workspace.inspect",
     "git.change-set.inspect",
     "ef.project.discover",
+    "ef.relational-model.extract",
+    "ef.relational-model.compare",
+    "migration.data-loss.analyze",
+    "migration.script.generate",
 ] as const;
 
 export interface HeadlessActivityValidationResult {
@@ -56,6 +60,7 @@ export interface HeadlessActivityOptions {
     artifactText: string;
     trustedWorkspaceRoot: string;
     activityArtifactRoot: string;
+    extensionRoot: string;
     parameterValues?: Record<string, string | number | boolean | null>;
     runId?: string;
     secretProvider?: HeadlessSecretProvider;
@@ -209,6 +214,7 @@ export async function runHeadlessActivities(
     const delegate = new HeadlessWorkspaceActivityDelegate(
         options.trustedWorkspaceRoot,
         options.activityArtifactRoot,
+        options.extensionRoot,
     );
     const checked = await validateHeadlessActivities(
         options.artifactText,

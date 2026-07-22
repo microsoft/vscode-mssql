@@ -144,6 +144,7 @@ async function runActivitiesWithInterruptCancellation(
             artifactText,
             trustedWorkspaceRoot: args.trustedWorkspaceRoot!,
             activityArtifactRoot: args.activityArtifactRoot!,
+            extensionRoot: path.resolve(__dirname, ".."),
             parameterValues: parameters,
             ...(args.runId ? { runId: args.runId } : {}),
             ...(secretProvider ? { secretProvider, allowInlineSecrets: false } : {}),

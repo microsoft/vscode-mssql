@@ -6758,6 +6758,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         "runbook-ef-exporter",
                         "Program.cs",
                     ),
+                    trustedWorkspaceRoots:
+                        vscode.workspace.workspaceFolders?.map((folder) => folder.uri.fsPath) ?? [],
                 },
                 isCancellationRequested,
             );

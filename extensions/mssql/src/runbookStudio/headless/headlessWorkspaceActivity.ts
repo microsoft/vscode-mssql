@@ -8,6 +8,7 @@ import * as path from "path";
 import type { ActivityExecutionDelegate, NodeExecution } from "../runtime/fakeRuntimeAdapter";
 import type { RunbookPlanNode } from "../../sharedInterfaces/runbookStudio";
 import { HeadlessGitActivityDelegate, HeadlessGitActivityError } from "./headlessGitActivity";
+import { HeadlessEfActivityDelegate } from "./headlessEfActivity";
 
 const MAX_PROJECTS = 100;
 const MAX_VISITED_ENTRIES = 20_000;
@@ -48,14 +49,25 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
         "workspace.inspect",
         "git.change-set.inspect",
         "ef.project.discover",
+        "ef.relational-model.extract",
+        "ef.relational-model.compare",
+        "migration.data-loss.analyze",
+        "migration.script.generate",
     ]);
     private readonly gitDelegate: HeadlessGitActivityDelegate;
+    private readonly efDelegate: HeadlessEfActivityDelegate;
 
     constructor(
         private readonly trustedWorkspaceRoot: string,
         artifactRoot: string,
+        extensionRoot: string,
     ) {
         this.gitDelegate = new HeadlessGitActivityDelegate(trustedWorkspaceRoot, artifactRoot);
+        this.efDelegate = new HeadlessEfActivityDelegate(
+            trustedWorkspaceRoot,
+            artifactRoot,
+            extensionRoot,
+        );
     }
 
     public async executeActivity(
@@ -64,6 +76,9 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
     ): Promise<NodeExecution | undefined> {
         if (node.activityKind === "git.change-set.inspect") {
             return this.gitDelegate.executeActivity(node, binding);
+        }
+        if (this.efDelegate.supportedActivityKinds.has(node.activityKind ?? "")) {
+            return this.efDelegate.executeActivity(node, binding);
         }
         if (
             node.activityKind !== "workspace.inspect" &&

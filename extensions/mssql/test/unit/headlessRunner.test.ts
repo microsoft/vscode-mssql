@@ -59,6 +59,10 @@ suite("Runbook Studio headless deterministic preview", () => {
             "workspace.inspect",
             "git.change-set.inspect",
             "ef.project.discover",
+            "ef.relational-model.extract",
+            "ef.relational-model.compare",
+            "migration.data-loss.analyze",
+            "migration.script.generate",
         ]);
         expect(capabilities.executionProviderContracts).to.deep.equal({
             secret: "environmentIndirection",

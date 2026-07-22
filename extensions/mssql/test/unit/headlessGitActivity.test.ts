@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import { spawnSync } from "child_process";
 import * as crypto from "crypto";
 import * as fs from "fs";
 import * as os from "os";
@@ -31,6 +32,7 @@ import {
 import { stampCatalogMetadata } from "../../src/runbookStudio/activities/activityCatalog";
 import { classifyRunbookIntent } from "../../src/runbookStudio/capabilities/runbookCapabilities";
 import {
+    compileDeterministicEfModelComparison,
     compileDeterministicGitChangeSet,
     isProposalFailure,
 } from "../../src/runbookStudio/models/planCompiler";
@@ -42,6 +44,7 @@ const FIXTURE_ROOT = path.resolve(
     "hobbes-ef-model",
     "myapp",
 );
+const EXTENSION_ROOT = path.resolve(__dirname, "../../..");
 
 suite("Runbook Studio headless Git activity", () => {
     let artifactRoot: string;
@@ -138,6 +141,7 @@ suite("Runbook Studio headless Git activity", () => {
             artifactText: canonicalizeRunbookArtifact(compiled.artifact),
             trustedWorkspaceRoot: FIXTURE_ROOT,
             activityArtifactRoot: artifactRoot,
+            extensionRoot: EXTENSION_ROOT,
             parameterValues: {
                 repository: FIXTURE_ROOT,
                 baseRef: "main",
@@ -206,6 +210,7 @@ suite("Runbook Studio headless Git activity", () => {
             artifactText: canonicalizeRunbookArtifact(artifact),
             trustedWorkspaceRoot: FIXTURE_ROOT,
             activityArtifactRoot: artifactRoot,
+            extensionRoot: EXTENSION_ROOT,
             runId: "headless-workspace-discovery",
         });
 
@@ -242,6 +247,7 @@ suite("Runbook Studio headless Git activity", () => {
             artifactText: canonicalizeRunbookArtifact(createFixtureRunbookArtifact()),
             trustedWorkspaceRoot: FIXTURE_ROOT,
             activityArtifactRoot: artifactRoot,
+            extensionRoot: EXTENSION_ROOT,
             parameterValues: { target: "not-used", maxCount: 1 },
             runId: "headless-no-preview-fallback",
         });
@@ -263,6 +269,10 @@ suite("Runbook Studio headless Git activity", () => {
             "workspace.inspect",
             "git.change-set.inspect",
             "ef.project.discover",
+            "ef.relational-model.extract",
+            "ef.relational-model.compare",
+            "migration.data-loss.analyze",
+            "migration.script.generate",
         ]);
     });
 
@@ -316,6 +326,196 @@ suite("Runbook Studio headless Git activity", () => {
             HeadlessGitActivityError,
             "HeadlessActivityHost.GitChangeSetInvalid",
         );
+    });
+});
+
+suite("Runbook Studio headless EF exact-ref activity live smoke (gated)", function () {
+    this.timeout(10 * 60 * 1000);
+    let artifactRoot: string;
+
+    suiteSetup(function () {
+        if (
+            process.env.RBS2_EF_LIVE !== "1" ||
+            !fs.existsSync(path.join(FIXTURE_ROOT, ".git")) ||
+            !fs.existsSync(
+                path.join(EXTENSION_ROOT, "resources", "runbook-ef-exporter", "Program.cs"),
+            )
+        ) {
+            this.skip();
+        }
+    });
+
+    setup(() => {
+        artifactRoot = fs.mkdtempSync(path.join(os.tmpdir(), "rbs-headless-ef-"));
+    });
+
+    teardown(() => {
+        fs.rmSync(artifactRoot, { recursive: true, force: true });
+    });
+
+    test("extracts and compares main and demo through the production host", async () => {
+        const intent =
+            "Compare Entity Framework changes between development and main, generate migration DDL, and analyze possible data loss.";
+        const classified = classifyRunbookIntent(intent);
+        const base = createNewRunbookArtifact("EF comparison", "headless-real-ef");
+        base.family = classified.family;
+        base.source.requirements = classified.requirements;
+        const compiled = compileDeterministicEfModelComparison(base, intent);
+        if (!compiled || isProposalFailure(compiled)) {
+            throw new Error("the deterministic EF comparison plan did not compile");
+        }
+        const beforeHead = fs.readFileSync(path.join(FIXTURE_ROOT, ".git", "HEAD"), "utf8");
+        const result = await runHeadlessActivities({
+            artifactText: canonicalizeRunbookArtifact(compiled.artifact),
+            trustedWorkspaceRoot: FIXTURE_ROOT,
+            activityArtifactRoot: artifactRoot,
+            extensionRoot: EXTENSION_ROOT,
+            parameterValues: {
+                repository: FIXTURE_ROOT,
+                baseRef: "main",
+                headRef: "demo",
+                project: "src/MyApp.Data/MyApp.Data.csproj",
+                dbContext: "AppDbContext",
+                renameDecisions: "[]",
+            },
+            runId: "headless-real-ef-run",
+            approvalProvider: {
+                kind: "liveTest",
+                decide: () =>
+                    Promise.resolve({
+                        approved: true,
+                        providerKind: "liveTest",
+                        policyDigest: "live-test-policy",
+                    }),
+            },
+        });
+
+        expect(result, JSON.stringify(result, undefined, 2)).to.include({
+            outcome: "pass",
+            terminalState: "succeeded",
+        });
+        expect(result.nodeCounts).to.deep.equal({
+            succeeded: 11,
+            failed: 0,
+            skipped: 0,
+            cancelled: 0,
+        });
+        expect(result.outputs?.["extract-base-model"].contract).to.equal("efRelationalModel/1");
+        expect(result.outputs?.["extract-head-model"].contract).to.equal("efRelationalModel/1");
+        expect(result.outputs?.["compare-models"].contract).to.equal("efModelDiff/1");
+        expect(result.outputs?.["compare-models"].scalars).to.include({
+            comparable: true,
+            potentialDataLoss: false,
+            executionMode: "headless",
+        });
+        expect(result.outputs?.["compare-models"].scalars?.changeCount).to.be.greaterThan(0);
+        expect(result.outputs?.["analyze-migration-risk"].contract).to.equal("migrationRisk/1");
+        expect(result.outputs?.["generate-migration"].contract).to.equal("migrationManifest/1");
+        expect(result.outputs?.["generate-migration"].scalars).to.include({
+            operationCount: 2,
+            potentialDataLoss: false,
+            rollbackCompleteness: "complete",
+            executionMode: "headless",
+        });
+        const forwardScriptPath = result.outputs?.["generate-migration"].scalars
+            ?.forwardScriptPath as string;
+        expect(fs.readFileSync(forwardScriptPath, "utf8")).to.include(
+            "CREATE TABLE [dbo].[RehearsalEvents]",
+        );
+        expect(fs.readFileSync(path.join(FIXTURE_ROOT, ".git", "HEAD"), "utf8")).to.equal(
+            beforeHead,
+        );
+        expect(fs.existsSync(path.join(artifactRoot, ".scratch"))).to.equal(true);
+        expect(fs.readdirSync(path.join(artifactRoot, ".scratch"))).to.deep.equal([]);
+    });
+
+    test("runs the approved EF/DDL lock through the bundled CLI process", () => {
+        const intent =
+            "Compare Entity Framework changes between development and main, generate migration DDL, and analyze possible data loss.";
+        const classified = classifyRunbookIntent(intent);
+        const base = createNewRunbookArtifact("EF CLI comparison", "headless-cli-ef");
+        base.family = classified.family;
+        base.source.requirements = classified.requirements;
+        const compiled = compileDeterministicEfModelComparison(base, intent);
+        if (!compiled || isProposalFailure(compiled) || !compiled.artifact.lock) {
+            throw new Error("the deterministic EF CLI plan did not compile");
+        }
+        const runId = "headless-cli-ef-run";
+        const artifactPath = path.join(artifactRoot, "ef.runbook.json");
+        const parametersPath = path.join(artifactRoot, "params.json");
+        const approvalPath = path.join(artifactRoot, "approval.json");
+        const activityArtifacts = path.join(artifactRoot, "activity-artifacts");
+        fs.writeFileSync(artifactPath, canonicalizeRunbookArtifact(compiled.artifact), "utf8");
+        fs.writeFileSync(
+            parametersPath,
+            JSON.stringify({
+                repository: FIXTURE_ROOT,
+                baseRef: "main",
+                headRef: "demo",
+                project: "src/MyApp.Data/MyApp.Data.csproj",
+                dbContext: "AppDbContext",
+                renameDecisions: "[]",
+            }),
+            "utf8",
+        );
+        fs.writeFileSync(
+            approvalPath,
+            JSON.stringify({
+                schemaVersion: 1,
+                runId,
+                runbookId: compiled.artifact.id,
+                planRevision: compiled.artifact.lock.planRevision,
+                planHash: compiled.artifact.lock.planHash,
+                approvedGateIds: compiled.artifact.lock.nodes
+                    .filter((node) => node.kind === "gate")
+                    .map((node) => node.id),
+                expiresEpochMs: Date.now() + 10 * 60_000,
+            }),
+            "utf8",
+        );
+
+        const executed = spawnSync(
+            process.execPath,
+            [
+                path.join(EXTENSION_ROOT, "dist", "runbookHeadless.js"),
+                "run-activities",
+                artifactPath,
+                "--workspace",
+                FIXTURE_ROOT,
+                "--activity-artifacts",
+                activityArtifacts,
+                "--params",
+                parametersPath,
+                "--approval-manifest",
+                approvalPath,
+                "--run-id",
+                runId,
+            ],
+            {
+                cwd: EXTENSION_ROOT,
+                encoding: "utf8",
+                maxBuffer: 4 * 1024 * 1024,
+                windowsHide: true,
+            },
+        );
+
+        expect(executed.status, executed.stderr).to.equal(0);
+        const summary = JSON.parse(executed.stdout) as {
+            mode: string;
+            effects: string;
+            outcome: string;
+            approvalPolicyDigest?: string;
+            nodeCounts: Record<string, number>;
+            outputs: Record<string, { contract: string }>;
+        };
+        expect(summary).to.include({
+            mode: "productionActivityHost",
+            effects: "real",
+            outcome: "pass",
+        });
+        expect(summary.approvalPolicyDigest).to.match(/^sha256:[a-f0-9]{64}$/u);
+        expect(summary.nodeCounts.succeeded).to.equal(11);
+        expect(summary.outputs["generate-migration"].contract).to.equal("migrationManifest/1");
     });
 });
 
