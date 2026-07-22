@@ -120,6 +120,27 @@ suite("Runbook Studio output artifact", () => {
         expect(await verifyRetainedOutputArtifact(artifact!, [root])).to.equal(patchPath);
     });
 
+    test("admits retained EF model and semantic diff JSON contracts", async () => {
+        for (const [contract, fileName] of [
+            ["efRelationalModel/1", "ef-relational-model.json"],
+            ["efModelDiff/1", "ef-model-diff.json"],
+        ]) {
+            const jsonPath = path.join(root, fileName);
+            const jsonContents = Buffer.from('{"schemaVersion":1}', "utf8");
+            fs.writeFileSync(jsonPath, jsonContents);
+            const artifact = retainedOutputArtifact({
+                contract,
+                scalars: {
+                    artifactPath: jsonPath,
+                    artifactSha256: createHash("sha256").update(jsonContents).digest("hex"),
+                    artifactSizeBytes: jsonContents.length,
+                },
+            });
+            expect(artifact).to.include({ contract, artifactPath: jsonPath, fileName });
+            expect(await verifyRetainedOutputArtifact(artifact!, [root])).to.equal(jsonPath);
+        }
+    });
+
     test("refuses unknown contracts, wrong extensions, and non-file paths", () => {
         expect(retainedOutputArtifact({ ...payload(), contract: "rowset/1" })).to.equal(undefined);
         expect(

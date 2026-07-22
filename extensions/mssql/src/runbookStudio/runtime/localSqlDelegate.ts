@@ -54,6 +54,7 @@ import type { RunbookSchemaFingerprintDocument } from "../../sharedInterfaces/ru
 import type { RunbookSchemaGraphDocument } from "../../sharedInterfaces/runbookSchemaGraph";
 import type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot";
 import type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
+import type { LocalEfRelationalDiff, LocalEfRelationalModel } from "./localEfRelationalModel";
 
 export type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot";
 export type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
@@ -65,6 +66,23 @@ export interface LocalPerformanceSnapshotExecutionResult extends LocalPerformanc
 export interface LocalSchemaFingerprintExecutionResult {
     document: RunbookSchemaFingerprintDocument;
     fingerprintRef: string;
+}
+
+export interface LocalEfRelationalModelExecutionResult {
+    model: LocalEfRelationalModel;
+    modelRef: string;
+    artifactPath: string;
+    artifactSizeBytes: number;
+    artifactSha256: string;
+    diagnosticCount: number;
+}
+
+export interface LocalEfRelationalDiffExecutionResult {
+    diff: LocalEfRelationalDiff;
+    diffRef: string;
+    artifactPath: string;
+    artifactSizeBytes: number;
+    artifactSha256: string;
 }
 
 export { isReadOnlySql } from "../readOnlySql";
@@ -83,6 +101,22 @@ export interface LocalSqlOperations {
     discoverEfProjects(
         isCancellationRequested: () => boolean,
     ): Promise<LocalEfProjectDiscoveryResult>;
+    extractEfRelationalModel(
+        nodeId: string,
+        repository: string,
+        revision: string,
+        projectPath: string,
+        dbContext: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEfRelationalModelExecutionResult>;
+    compareEfRelationalModels(
+        nodeId: string,
+        baseModelRef: string,
+        headModelRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEfRelationalDiffExecutionResult>;
     inspectGitChangeSet(
         nodeId: string,
         repository: string,
@@ -583,6 +617,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "workspace.inspect",
         "git.change-set.inspect",
         "ef.project.discover",
+        "ef.relational-model.extract",
+        "ef.relational-model.compare",
         "sqltest.discover",
         "tsqlt.run",
         "dacpac.build",
@@ -635,6 +671,10 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.inspectGitChangeSet(node, binding);
             case "ef.project.discover":
                 return this.discoverEfProjects(binding);
+            case "ef.relational-model.extract":
+                return this.extractEfRelationalModel(node, binding);
+            case "ef.relational-model.compare":
+                return this.compareEfRelationalModels(node, binding);
             case "sqltest.discover":
                 return this.discoverSqlTests(binding);
             case "tsqlt.run":
@@ -789,6 +829,201 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     providerCount: result.providerCount,
                     entitySourceFileCount: result.entitySourceFileCount,
                     truncated: result.truncated,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async extractEfRelationalModel(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const repository = binding.resolveBind(node.inputs?.repository);
+        const revision = binding.resolveBind(node.inputs?.revision);
+        const projectPath = binding.resolveBind(node.inputs?.project);
+        const dbContext = binding.resolveBind(node.inputs?.dbContext);
+        for (const [name, value] of Object.entries({
+            repository,
+            revision,
+            project: projectPath,
+            dbContext,
+        })) {
+            if (typeof value !== "string" || value.trim().length === 0) {
+                return invalidBinding(name);
+            }
+        }
+        try {
+            const result = await this.operations.extractEfRelationalModel(
+                node.id,
+                (repository as string).trim(),
+                (revision as string).trim(),
+                (projectPath as string).trim(),
+                (dbContext as string).trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            const columnCount = result.model.tables.reduce(
+                (total, table) => total + table.columns.length,
+                0,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "ef.modelTableCount": result.model.tables.length,
+                    "ef.modelColumnCount": columnCount,
+                    "ef.modelComplete": result.model.complete,
+                    "ef.modelUnsupportedCount": result.model.unsupported.length,
+                },
+                message: LocRunbookStudio.efRelationalModelExtracted(
+                    result.model.tables.length,
+                    columnCount,
+                ),
+                output: {
+                    contract: "efRelationalModel/1",
+                    columns: ["schema", "table", "columns", "indexes", "foreignKeys", "temporal"],
+                    rows: result.model.tables.map((table) => [
+                        table.schema,
+                        table.name,
+                        table.columns.length,
+                        table.indexes.length,
+                        table.foreignKeys.length,
+                        table.temporal,
+                    ]),
+                    scalars: {
+                        modelRef: result.modelRef,
+                        modelSha256: result.model.modelSha256,
+                        commitSha256: result.model.source.commit,
+                        provider: result.model.provider.name,
+                        providerVersion: result.model.provider.version,
+                        targetFramework: result.model.source.targetFramework,
+                        tableCount: result.model.tables.length,
+                        columnCount,
+                        unsupportedCount: result.model.unsupported.length,
+                        complete: result.model.complete,
+                        diagnosticCount: result.diagnosticCount,
+                        artifactPath: result.artifactPath,
+                        artifactSizeBytes: result.artifactSizeBytes,
+                        artifactSha256: result.artifactSha256,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    modelRef: result.modelRef,
+                    modelSha256: result.model.modelSha256,
+                    commit: result.model.source.commit,
+                    tableCount: result.model.tables.length,
+                    complete: result.model.complete,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async compareEfRelationalModels(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const baseModelRef = binding.resolveBind(node.inputs?.base);
+        const headModelRef = binding.resolveBind(node.inputs?.head);
+        if (typeof baseModelRef !== "string" || baseModelRef.trim().length === 0) {
+            return invalidBinding("base");
+        }
+        if (typeof headModelRef !== "string" || headModelRef.trim().length === 0) {
+            return invalidBinding("head");
+        }
+        try {
+            const result = await this.operations.compareEfRelationalModels(
+                node.id,
+                baseModelRef.trim(),
+                headModelRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            const changeRows = result.diff.changes.map((change) => [
+                "change",
+                change.kind,
+                change.objectType,
+                change.path,
+                change.risk,
+                change.changedProperties.join(", "),
+                null,
+                null,
+                null,
+            ]);
+            const renameRows = result.diff.renameCandidates.map((candidate) => [
+                "renameCandidate",
+                "reviewRename",
+                candidate.objectType,
+                candidate.toPath,
+                "review",
+                "name",
+                candidate.fromPath,
+                candidate.toPath,
+                candidate.similarity,
+            ]);
+            return {
+                success: true,
+                runMetrics: {
+                    "ef.diffChangeCount": result.diff.changes.length,
+                    "ef.diffDestructiveCount": result.diff.destructiveChangeCount,
+                    "ef.diffRenameCandidateCount": result.diff.renameCandidates.length,
+                    "ef.diffComparable": result.diff.comparable,
+                },
+                message: LocRunbookStudio.efRelationalModelsCompared(
+                    result.diff.changes.length,
+                    result.diff.renameCandidates.length,
+                ),
+                output: {
+                    contract: "efModelDiff/1",
+                    columns: [
+                        "recordType",
+                        "kind",
+                        "objectType",
+                        "path",
+                        "risk",
+                        "changedProperties",
+                        "candidateFrom",
+                        "candidateTo",
+                        "similarity",
+                    ],
+                    rows: [...changeRows, ...renameRows],
+                    scalars: {
+                        diffRef: result.diffRef,
+                        diffSha256: result.diff.diffSha256,
+                        baseModelSha256: result.diff.baseModelSha256,
+                        headModelSha256: result.diff.headModelSha256,
+                        comparable: result.diff.comparable,
+                        reason: result.diff.reason,
+                        changeCount: result.diff.changes.length,
+                        destructiveChangeCount: result.diff.destructiveChangeCount,
+                        reviewChangeCount: result.diff.reviewChangeCount,
+                        renameCandidateCount: result.diff.renameCandidates.length,
+                        requiresRenameDecision: result.diff.requiresRenameDecision,
+                        potentialDataLoss: result.diff.potentialDataLoss,
+                        artifactPath: result.artifactPath,
+                        artifactSizeBytes: result.artifactSizeBytes,
+                        artifactSha256: result.artifactSha256,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    diffRef: result.diffRef,
+                    diffSha256: result.diff.diffSha256,
+                    comparable: result.diff.comparable,
+                    changeCount: result.diff.changes.length,
+                    requiresRenameDecision: result.diff.requiresRenameDecision,
+                    potentialDataLoss: result.diff.potentialDataLoss,
                 },
             };
         } catch (error) {

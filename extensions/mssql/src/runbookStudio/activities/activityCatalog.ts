@@ -164,6 +164,105 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         blastRadius: { ...READ_ONLY_LOCAL, resource: "workspaceFiles" },
     },
     {
+        kind: "ef.relational-model.extract",
+        version: 1,
+        label: "Extract Entity Framework relational model",
+        description:
+            "Restores, builds, and executes one explicitly selected design-time DbContext from an exact committed Git revision, then retains a bounded relational manifest. Repository code executes under this approval.",
+        inputs: [
+            {
+                name: "repository",
+                kind: "bind",
+                required: true,
+                description: "Workspace-contained Git repository root",
+            },
+            {
+                name: "revision",
+                kind: "bind",
+                required: true,
+                description: "Exact branch, tag, or commit to materialize",
+            },
+            {
+                name: "project",
+                kind: "bind",
+                required: true,
+                description: "Repository-relative Entity Framework project path",
+            },
+            {
+                name: "dbContext",
+                kind: "bind",
+                required: true,
+                description: "Explicit design-time DbContext type name",
+            },
+        ],
+        outputContract: "efRelationalModel/1",
+        outputSchema: {
+            fields: [
+                { name: "schema", valueType: "string", roles: ["category"] },
+                { name: "table", valueType: "string", roles: ["label"] },
+                { name: "columns", valueType: "number", roles: ["measure"] },
+                { name: "indexes", valueType: "number", roles: ["measure"] },
+                { name: "foreignKeys", valueType: "number", roles: ["measure"] },
+                { name: "temporal", valueType: "boolean" },
+            ],
+        },
+        producedValues: ["modelRef", "modelSha256", "commit", "tableCount", "complete"],
+        approvalRequired: true,
+        target: { kind: "workspace", bindingInput: "repository" },
+        blastRadius: {
+            resource: "process",
+            operation: "execute",
+            targetEnvironment: "local",
+            reversibility: "irreversible",
+            dataSensitivity: "internal",
+        },
+    },
+    {
+        kind: "ef.relational-model.compare",
+        version: 1,
+        label: "Compare Entity Framework relational models",
+        description:
+            "Compares two same-run host-owned relational manifests and reports typed changes, data-loss risk, and unresolved rename candidates without generating or applying SQL.",
+        inputs: [
+            {
+                name: "base",
+                kind: "bind",
+                required: true,
+                description: "Upstream base ef.relational-model.extract modelRef",
+            },
+            {
+                name: "head",
+                kind: "bind",
+                required: true,
+                description: "Upstream head ef.relational-model.extract modelRef",
+            },
+        ],
+        outputContract: "efModelDiff/1",
+        outputSchema: {
+            fields: [
+                { name: "recordType", valueType: "string", roles: ["category"] },
+                { name: "kind", valueType: "string", roles: ["category"] },
+                { name: "objectType", valueType: "string", roles: ["category"] },
+                { name: "path", valueType: "string", roles: ["label"] },
+                { name: "risk", valueType: "string", roles: ["category"] },
+                { name: "changedProperties", valueType: "string" },
+                { name: "candidateFrom", valueType: "string" },
+                { name: "candidateTo", valueType: "string" },
+                { name: "similarity", valueType: "number", roles: ["measure"] },
+            ],
+        },
+        producedValues: [
+            "diffRef",
+            "diffSha256",
+            "comparable",
+            "changeCount",
+            "requiresRenameDecision",
+            "potentialDataLoss",
+        ],
+        target: { kind: "workspace", workspace: true },
+        blastRadius: { ...READ_ONLY_LOCAL, resource: "none" },
+    },
+    {
         kind: "sqltest.discover",
         version: 1,
         label: "Discover repository SQL tests",
@@ -1689,6 +1788,28 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
             ) {
                 issues.push(
                     `node '${node.id}' must bind distinct before/after refs from upstream database.schema.fingerprint nodes`,
+                );
+            }
+            if (
+                descriptor.kind === "ef.relational-model.compare" &&
+                (!isUpstreamActivityOutput(
+                    lock,
+                    node,
+                    "base",
+                    "modelRef",
+                    "ef.relational-model.extract",
+                ) ||
+                    !isUpstreamActivityOutput(
+                        lock,
+                        node,
+                        "head",
+                        "modelRef",
+                        "ef.relational-model.extract",
+                    ) ||
+                    node.inputs?.base === node.inputs?.head)
+            ) {
+                issues.push(
+                    `node '${node.id}' must bind distinct base/head refs from upstream ef.relational-model.extract nodes`,
                 );
             }
         }

@@ -10,6 +10,7 @@
 
 import { expect } from "chai";
 import {
+    buildDesignOnlyPlan,
     classifyRunbookIntent,
     preflightRunbookRequirements,
 } from "../../src/runbookStudio/capabilities/runbookCapabilities";
@@ -21,7 +22,7 @@ const scenarios = [
             "Compare development with main, analyze Entity Framework entity changes, generate migration DDL, " +
             "clone staging to a SQL Server 2025 Docker container, apply it, compare and visualize the schema, " +
             "run scripts/workload.sql with DMV and XEvent analysis, and produce a release candidate DACPAC.",
-        missing: ["ef.relational-model.compare@1", "migration.script.generate@1"],
+        missing: ["migration.script.generate@1"],
     },
     {
         id: "cities-generated-workload-with-dmv",
@@ -52,11 +53,7 @@ const scenarios = [
             "Compare Entity Framework changes on the development branch with main where a nullable column is " +
             "narrowed and a table is dropped, generate the migration DDL, analyze possible data loss, and stop " +
             "for an explicit decision before rehearsal.",
-        missing: [
-            "ef.relational-model.compare@1",
-            "migration.script.generate@1",
-            "migration.data-loss.analyze@1",
-        ],
+        missing: ["migration.script.generate@1", "migration.data-loss.analyze@1"],
     },
     {
         id: "target-drift",
@@ -91,6 +88,11 @@ suite("complex developer workflow capability matrix", () => {
         expect(scenarios).to.have.length(8);
         for (const scenario of scenarios) {
             const classified = classifyRunbookIntent(scenario.prompt);
+            const design = buildDesignOnlyPlan(classified);
+            expect(
+                design.steps.map((step) => step.activityKind),
+                `${scenario.id} design grammar`,
+            ).to.have.members(classified.requirements.activities.map((activity) => activity.kind));
             const readiness = preflightRunbookRequirements(classified.requirements);
             if (scenario.missing.length === 0) {
                 expect(readiness.status, scenario.id).to.equal("readyAfterBinding");

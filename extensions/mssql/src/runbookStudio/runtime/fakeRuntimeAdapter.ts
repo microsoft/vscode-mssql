@@ -18,6 +18,7 @@
  *     processes, containers, networks, or databases.
  */
 
+import * as crypto from "crypto";
 import type {
     RunbookArtifactFile,
     RunbookDiagnosticCounts,
@@ -515,6 +516,8 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "workspace.inspect",
     "git.change-set.inspect",
     "ef.project.discover",
+    "ef.relational-model.extract",
+    "ef.relational-model.compare",
     "sqltest.discover",
     "tsqlt.run",
     "dacpac.build",
@@ -700,6 +703,119 @@ function executeNode(
                     truncated: false,
                 },
             };
+        case "ef.relational-model.extract": {
+            const revision = resolveBind(node.inputs?.revision, parameterValues, nodeValues);
+            if (typeof revision !== "string") {
+                return invalidPreviewBinding("ef.relational-model.extract", "revision");
+            }
+            const digest = crypto.createHash("sha256").update(revision).digest("hex");
+            return {
+                success: true,
+                runMetrics: {
+                    "ef.modelTableCount": 2,
+                    "ef.modelColumnCount": 8,
+                    "ef.modelComplete": true,
+                    "ef.modelUnsupportedCount": 0,
+                },
+                message: "2-table EF relational model (deterministic preview)",
+                output: {
+                    contract: "efRelationalModel/1",
+                    columns: ["schema", "table", "columns", "indexes", "foreignKeys", "temporal"],
+                    rows: [
+                        ["dbo", "Customers", 3, 1, 0, false],
+                        ["dbo", "Orders", 5, 1, 1, false],
+                    ],
+                    scalars: {
+                        modelRef: `preview-ef-model:${digest}`,
+                        modelSha256: digest,
+                        tableCount: 2,
+                        columnCount: 8,
+                        complete: true,
+                        preview: true,
+                    },
+                },
+                values: {
+                    modelRef: `preview-ef-model:${digest}`,
+                    modelSha256: digest,
+                    commit: digest.slice(0, 40),
+                    tableCount: 2,
+                    complete: true,
+                },
+            };
+        }
+        case "ef.relational-model.compare": {
+            const base = resolveBind(node.inputs?.base, parameterValues, nodeValues);
+            const head = resolveBind(node.inputs?.head, parameterValues, nodeValues);
+            if (typeof base !== "string" || typeof head !== "string" || base === head) {
+                return invalidPreviewBinding("ef.relational-model.compare", "base/head");
+            }
+            const digest = crypto.createHash("sha256").update(`${base}\0${head}`).digest("hex");
+            return {
+                success: true,
+                runMetrics: {
+                    "ef.diffChangeCount": 2,
+                    "ef.diffDestructiveCount": 0,
+                    "ef.diffRenameCandidateCount": 0,
+                    "ef.diffComparable": true,
+                },
+                message: "2 EF relational changes (deterministic preview)",
+                output: {
+                    contract: "efModelDiff/1",
+                    columns: [
+                        "recordType",
+                        "kind",
+                        "objectType",
+                        "path",
+                        "risk",
+                        "changedProperties",
+                        "candidateFrom",
+                        "candidateTo",
+                        "similarity",
+                    ],
+                    rows: [
+                        [
+                            "change",
+                            "addTable",
+                            "table",
+                            "[dbo].[AuditLogs]",
+                            "safe",
+                            "",
+                            null,
+                            null,
+                            null,
+                        ],
+                        [
+                            "change",
+                            "addColumn",
+                            "column",
+                            "[dbo].[Customers].[Email]",
+                            "safe",
+                            "",
+                            null,
+                            null,
+                            null,
+                        ],
+                    ],
+                    scalars: {
+                        diffRef: `preview-ef-diff:${digest}`,
+                        diffSha256: digest,
+                        comparable: true,
+                        changeCount: 2,
+                        requiresRenameDecision: false,
+                        potentialDataLoss: false,
+                        preview: true,
+                    },
+                },
+                values: {
+                    diffRef: `preview-ef-diff:${digest}`,
+                    diffSha256: digest,
+                    comparable: true,
+                    changeCount: 2,
+                    requiresRenameDecision: false,
+                    potentialDataLoss: false,
+                },
+            };
+        }
         case "git.change-set.inspect": {
             const repository = resolveBind(node.inputs?.repository, parameterValues, nodeValues);
             const baseRef = resolveBind(node.inputs?.baseRef, parameterValues, nodeValues);

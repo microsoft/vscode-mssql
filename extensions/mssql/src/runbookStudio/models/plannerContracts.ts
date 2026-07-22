@@ -22,6 +22,7 @@ export interface FamilyPlannerContract {
 const BUILD_ACTIVITIES = [
     "git.change-set.inspect",
     "ef.project.discover",
+    "ef.relational-model.extract",
     "ef.relational-model.compare",
     "migration.script.generate",
     "migration.data-loss.analyze",
@@ -68,6 +69,7 @@ const BUILD_ACTIVITIES = [
 const VALIDATE_ACTIVITIES = [
     "git.change-set.inspect",
     "ef.project.discover",
+    "ef.relational-model.extract",
     "ef.relational-model.compare",
     "migration.script.generate",
     "migration.data-loss.analyze",
@@ -117,6 +119,7 @@ const VALIDATE_ACTIVITIES = [
 const INVESTIGATE_ACTIVITIES = [
     "git.change-set.inspect",
     "ef.project.discover",
+    "ef.relational-model.extract",
     "ef.relational-model.compare",
     "migration.script.generate",
     "migration.data-loss.analyze",

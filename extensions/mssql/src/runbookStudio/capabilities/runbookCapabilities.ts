@@ -140,6 +140,13 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         effect: "read",
         outputContract: "efProjectDiscovery/1",
     },
+    "ef.relational-model.extract": {
+        target: "workspace",
+        effect: "mutate",
+        approvalRequired: true,
+        providerRequirement: "execution",
+        outputContract: "efRelationalModel/1",
+    },
     "ef.relational-model.compare": {
         target: "workspace",
         effect: "read",
@@ -453,6 +460,16 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         description:
             "Resolve the selected base/head refs and retain the exact bounded patch without changing the checkout.",
     },
+    "ef.project.discover": {
+        label: "Discover Entity Framework projects",
+        description:
+            "Inventory bounded project metadata, SQL Server providers, and DbContext declarations without loading repository code.",
+    },
+    "ef.relational-model.extract": {
+        label: "Extract the Entity Framework relational models",
+        description:
+            "After explicit code-execution approval, restore and build the exact base/head revisions and retain their closed relational manifests.",
+    },
     "ef.relational-model.compare": {
         label: "Compare the Entity Framework relational models",
         description:
@@ -462,6 +479,11 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         label: "Generate the reviewed migration artifact",
         description:
             "Turn the exact semantic model delta and explicit rename decisions into validated forward and rollback evidence.",
+    },
+    "migration.data-loss.analyze": {
+        label: "Analyze migration data-loss risk",
+        description:
+            "Classify destructive, narrowing, and ambiguous operations and require explicit decisions before rehearsal.",
     },
     "sqltest.discover": {
         label: "Discover repository SQL tests",
@@ -537,6 +559,11 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         description:
             "Render a bounded read-only ER diagram from the STS v2 MetadataStore catalog snapshot.",
     },
+    "database.schema.fingerprint": {
+        label: "Fingerprint the database schema",
+        description:
+            "Capture a complete provider-neutral STS v2 catalog identity for later comparability checks.",
+    },
     "sql.container.provision": {
         label: "Provision the local SQL container",
         description:
@@ -581,6 +608,11 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         description:
             "Correlate bounded XEL activity to this run and project duration, CPU, reads, writes, rows, and errors.",
     },
+    "xevent.capture.reconcile": {
+        label: "Reconcile the XEvent capture",
+        description:
+            "Classify interrupted or incomplete capture state and retain partial evidence without overstating completeness.",
+    },
     "sqltest.run": {
         label: "Run database tests",
         description:
@@ -596,10 +628,40 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         description:
             "Execute the bounded workload and capture latency, throughput, and error evidence.",
     },
+    "performance.dmv.snapshot": {
+        label: "Capture database performance facts",
+        description:
+            "Collect bounded STS v2 IO, wait, request, blocking, and server-lifetime measurements.",
+    },
+    "performance.dmv.delta": {
+        label: "Compare performance snapshots",
+        description:
+            "Calculate factual before/after metric deltas with schema and counter comparability reasons.",
+    },
     "baseline.compare": {
         label: "Compare with the approved baseline",
         description:
             "Detect statistically meaningful regressions against versioned baseline evidence.",
+    },
+    "release.manifest.create": {
+        label: "Create the release manifest",
+        description:
+            "Bind the tested package, schema, workload, evidence, target policy, and approvals into immutable release evidence.",
+    },
+    "database.backup": {
+        label: "Back up the protected target",
+        description:
+            "Create and verify the policy-required recovery point before any protected deployment begins.",
+    },
+    "release.promote": {
+        label: "Promote the tested release",
+        description:
+            "Revalidate target drift and apply the exact approved release artifact under protected-target policy.",
+    },
+    "deployment.reconcile": {
+        label: "Reconcile deployment state",
+        description:
+            "Determine whether an interrupted protected deployment converged, rolled back, or requires operator attention.",
     },
     "security.permissions.validate": {
         label: "Validate effective permissions",
@@ -633,6 +695,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
     build: [
         "git.change-set.inspect",
         "ef.project.discover",
+        "ef.relational-model.extract",
         "ef.relational-model.compare",
         "migration.script.generate",
         "workspace.inspect",
@@ -677,6 +740,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
     validate: [
         "git.change-set.inspect",
         "ef.project.discover",
+        "ef.relational-model.extract",
         "ef.relational-model.compare",
         "migration.script.generate",
         "workspace.inspect",
@@ -720,6 +784,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
     investigate: [
         "git.change-set.inspect",
         "ef.project.discover",
+        "ef.relational-model.extract",
         "ef.relational-model.compare",
         "connection.auth.diagnose",
         "sql.query.read",
@@ -748,6 +813,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
     composed: [
         "git.change-set.inspect",
         "ef.project.discover",
+        "ef.relational-model.extract",
         "ef.relational-model.compare",
         "migration.script.generate",
         "workspace.inspect",
@@ -941,6 +1007,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     }
     if (requestsEfModelChange) {
         requested.add("ef.project.discover");
+        requested.add("ef.relational-model.extract");
         requested.add("ef.relational-model.compare");
     }
     if (requestsMigrationGeneration) {

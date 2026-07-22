@@ -12,6 +12,11 @@ import { createMochaConfig, defaultCoverageConfig } from "../../scripts/vscode-t
 const tmpBaseDir = process.platform === "darwin" ? "/tmp" : os.tmpdir();
 const userDataDir = fs.mkdtempSync(path.join(tmpBaseDir, "vsc-mssql-"));
 const requestedGrep = process.env.MSSQL_TEST_GREP?.trim();
+const requestedWorkspace = process.env.MSSQL_TEST_WORKSPACE?.trim();
+const workspaceLaunchArgument =
+    requestedWorkspace && fs.existsSync(path.resolve(requestedWorkspace))
+        ? path.resolve(requestedWorkspace)
+        : undefined;
 process.on("exit", () => {
     fs.rmSync(userDataDir, { recursive: true, force: true });
 });
@@ -22,7 +27,11 @@ export default defineConfig({
             label: "Unit Tests",
             files: "out/test/unit/**/*.test.js",
             version: "insiders",
-            launchArgs: ["--user-data-dir", userDataDir],
+            launchArgs: [
+                "--user-data-dir",
+                userDataDir,
+                ...(workspaceLaunchArgument ? [workspaceLaunchArgument] : []),
+            ],
             env: {
                 VSCODE_LOG_LEVEL: "error",
             },

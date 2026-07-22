@@ -200,6 +200,21 @@
     "Entity Framework project": "Entity Framework project",
     "Entity Framework source file": "Entity Framework source file",
     "Entity Framework project discovery was cancelled.": "Entity Framework project discovery was cancelled.",
+    "Extracted an Entity Framework relational model with {0} table(s) and {1} column(s)./{0} is a table count{1} is a column count": {
+        "message": "Extracted an Entity Framework relational model with {0} table(s) and {1} column(s).",
+        "comment": ["{0} is a table count", "{1} is a column count"]
+    },
+    "Compared the Entity Framework models: {0} change(s) and {1} unresolved rename candidate(s)./{0} is a schema change count{1} is a rename candidate count": {
+        "message": "Compared the Entity Framework models: {0} change(s) and {1} unresolved rename candidate(s).",
+        "comment": ["{0} is a schema change count", "{1} is a rename candidate count"]
+    },
+    "Entity Framework relational-model extraction was cancelled.": "Entity Framework relational-model extraction was cancelled.",
+    "Entity Framework relational-model extraction failed during {0}./{0} is a fixed extraction stage such as restore or build": {
+        "message": "Entity Framework relational-model extraction failed during {0}.",
+        "comment": ["{0} is a fixed extraction stage such as restore or build"]
+    },
+    "The Entity Framework relational-model artifact is incomplete or invalid.": "The Entity Framework relational-model artifact is incomplete or invalid.",
+    "The Entity Framework models do not belong to this run or were changed.": "The Entity Framework models do not belong to this run or were changed.",
     "Captured {0} bounded SQL Server performance metric(s)./{0} is a performance metric row count": {
         "message": "Captured {0} bounded SQL Server performance metric(s).",
         "comment": ["{0} is a performance metric row count"]

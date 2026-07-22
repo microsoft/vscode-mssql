@@ -1654,6 +1654,11 @@
     <trans-unit id="++CODE++4007acd502c2f9848de63743edadf7a02358953d37d73a38fa1ce4cf5d844638">
       <source xml:lang="en">Compare with</source>
     </trans-unit>
+    <trans-unit id="++CODE++301123786fa7dfa0affaa845ff01c6214d5df6bf238994a166d4f22ebd6dfd5e">
+      <source xml:lang="en">Compared the Entity Framework models: {0} change(s) and {1} unresolved rename candidate(s).</source>
+      <note>{0} is a schema change count
+{1} is a rename candidate count</note>
+    </trans-unit>
     <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
       <source xml:lang="en">Comparison Details</source>
     </trans-unit>
@@ -3280,6 +3285,13 @@
     <trans-unit id="++CODE++a0a6c78ee6e05721f2fc70ff6688c95ce8f4d65a94600b48426ca1deb1bebac9">
       <source xml:lang="en">Entity Framework project discovery was cancelled.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d9784275e85fb82ce08b73f2c52f7bf9105895d522c1041b73049ce23c757fbe">
+      <source xml:lang="en">Entity Framework relational-model extraction failed during {0}.</source>
+      <note>{0} is a fixed extraction stage such as restore or build</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4d39f85de3ee0b8675806a2c426d2a089eb9f71cf9e9d93628a308e9e50f03b1">
+      <source xml:lang="en">Entity Framework relational-model extraction was cancelled.</source>
+    </trans-unit>
     <trans-unit id="++CODE++536c7d58c0d97e562e966cf1ea7984c759640973b8b404a46b390c243ed68678">
       <source xml:lang="en">Entity Framework source file</source>
     </trans-unit>
@@ -3755,6 +3767,11 @@
     </trans-unit>
     <trans-unit id="++CODE++ae978d30fd899796154f535e3b3c547d46b2bd0c5e738928c553ce1e1e426fc8">
       <source xml:lang="en">Extract the schema from a SQL database to a .dacpac file</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a501f0a50dc33d0079ef4dde353d4450f3e6045272f6863bb27ad3213af349fd">
+      <source xml:lang="en">Extracted an Entity Framework relational model with {0} table(s) and {1} column(s).</source>
+      <note>{0} is a table count
+{1} is a column count</note>
     </trans-unit>
     <trans-unit id="++CODE++2db1b69a3c40512ff7bbcd691d2face0cad72082515674a85f2c86c79fbdd154">
       <source xml:lang="en">Extracted database &apos;{0}&apos; to {1}.</source>
@@ -9325,6 +9342,12 @@
     </trans-unit>
     <trans-unit id="++CODE++a2b90b68eaa36b468cd402c81b1ae4983b4b93de687e455ecd6b390220d4848b">
       <source xml:lang="en">The DacFx service is not available for deployment preview.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f83b6e0c29a7434c2066fc56457c8ae9fe01594816638b60780f3b0c755db287">
+      <source xml:lang="en">The Entity Framework models do not belong to this run or were changed.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fd1427a5932a54838255f740e3e4d6e1416788a6b5895c769292b92d51a3d37a">
+      <source xml:lang="en">The Entity Framework relational-model artifact is incomplete or invalid.</source>
     </trans-unit>
     <trans-unit id="++CODE++3cd1b8006c9db7c3ebec96a04ce2b6d3164a0a375c2424708c116c128d93cdfd">
       <source xml:lang="en">The Hobbes runtime could not resolve the connection alias for this run.</source>

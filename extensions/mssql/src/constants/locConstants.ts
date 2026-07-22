@@ -351,6 +351,35 @@ export class RunbookStudio {
     public static efDiscoveryCancelled = l10n.t(
         "Entity Framework project discovery was cancelled.",
     );
+    public static efRelationalModelExtracted = (tableCount: number, columnCount: number) =>
+        l10n.t({
+            message:
+                "Extracted an Entity Framework relational model with {0} table(s) and {1} column(s).",
+            args: [tableCount, columnCount],
+            comment: ["{0} is a table count", "{1} is a column count"],
+        });
+    public static efRelationalModelsCompared = (changeCount: number, renameCount: number) =>
+        l10n.t({
+            message:
+                "Compared the Entity Framework models: {0} change(s) and {1} unresolved rename candidate(s).",
+            args: [changeCount, renameCount],
+            comment: ["{0} is a schema change count", "{1} is a rename candidate count"],
+        });
+    public static efRelationalModelCancelled = l10n.t(
+        "Entity Framework relational-model extraction was cancelled.",
+    );
+    public static efRelationalModelExtractionFailed = (stage: string) =>
+        l10n.t({
+            message: "Entity Framework relational-model extraction failed during {0}.",
+            args: [stage],
+            comment: ["{0} is a fixed extraction stage such as restore or build"],
+        });
+    public static efRelationalModelInvalid = l10n.t(
+        "The Entity Framework relational-model artifact is incomplete or invalid.",
+    );
+    public static efRelationalModelReferenceInvalid = l10n.t(
+        "The Entity Framework models do not belong to this run or were changed.",
+    );
     public static performanceSnapshotCaptured = (metricCount: number) =>
         l10n.t({
             message: "Captured {0} bounded SQL Server performance metric(s).",

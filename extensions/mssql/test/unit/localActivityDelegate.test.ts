@@ -13,6 +13,48 @@ import {
 } from "../../src/runbookStudio/runtime/localSqlDelegate";
 import { buildLocalDeploymentPreviewResult } from "../../src/runbookStudio/runtime/localDeveloperOperations";
 import { LOCAL_SCHEMA_INVENTORY_SQL } from "../../src/runbookStudio/runtime/localSchemaInventory";
+import {
+    compareLocalEfRelationalModels,
+    createLocalEfRelationalModel,
+} from "../../src/runbookStudio/runtime/localEfRelationalModel";
+
+function efModel(commit: string, modelShaSeed: string) {
+    return createLocalEfRelationalModel({
+        provider: { name: "Microsoft.EntityFrameworkCore.SqlServer", version: "8.0.19.0" },
+        source: {
+            commit,
+            projectPath: "src/MyApp.Data/MyApp.Data.csproj",
+            dbContext: "AppDbContext",
+            targetFramework: "net8.0",
+            sourceSnapshotSha256: modelShaSeed.repeat(64),
+            toolchainSha256: "f".repeat(64),
+        },
+        complete: true,
+        unsupported: [],
+        tables: [
+            {
+                schema: "dbo",
+                name: "Customers",
+                columns: [
+                    {
+                        name: "CustomerId",
+                        storeType: "int",
+                        nullable: false,
+                        identity: true,
+                        computed: false,
+                        defaultKind: "none",
+                    },
+                ],
+                primaryKey: { name: "PK_Customers", columns: ["CustomerId"] },
+                uniqueConstraints: [],
+                indexes: [],
+                foreignKeys: [],
+                checks: [],
+                temporal: false,
+            },
+        ],
+    });
+}
 
 function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperations {
     return {
@@ -44,6 +86,33 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             scannedSourceFileCount: 3,
             truncated: false,
         }),
+        extractEfRelationalModel: async (_nodeId, _repository, revision) => {
+            const model = efModel(
+                revision === "main" ? "1".repeat(40) : "2".repeat(40),
+                revision === "main" ? "a" : "b",
+            );
+            return {
+                model,
+                modelRef: `runbook-ef-model:run-1:${model.modelSha256}:00000000-0000-4000-8000-000000000001`,
+                artifactPath: "C:\\managed\\ef-relational-model.json",
+                artifactSizeBytes: 2048,
+                artifactSha256: "c".repeat(64),
+                diagnosticCount: 0,
+            };
+        },
+        compareEfRelationalModels: async () => {
+            const diff = compareLocalEfRelationalModels(
+                efModel("1".repeat(40), "a"),
+                efModel("2".repeat(40), "b"),
+            );
+            return {
+                diff,
+                diffRef: `runbook-ef-diff:run-1:${diff.diffSha256}:00000000-0000-4000-8000-000000000002`,
+                artifactPath: "C:\\managed\\ef-model-diff.json",
+                artifactSizeBytes: 1024,
+                artifactSha256: "d".repeat(64),
+            };
+        },
         capturePerformanceSnapshot: async () => ({
             snapshotRef: "runbook-performance-snapshot:before",
             capturedAtUtc: "2026-07-22T08:00:00.000Z",
@@ -599,6 +668,58 @@ suite("Runbook Studio local activity delegate", () => {
             "ef.entitySourceFileCount": 2,
             "ef.discoveryTruncated": false,
         });
+    });
+
+    test("EF model extraction emits a retained manifest and opaque binding", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+
+        const result = await delegate.executeActivity(
+            activity("ef.relational-model.extract", {
+                repository: "C:\\repo",
+                revision: "main",
+                project: "src/MyApp.Data/MyApp.Data.csproj",
+                dbContext: "AppDbContext",
+            }),
+            binding(),
+        );
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("efRelationalModel/1");
+        expect(result?.output?.rows).to.deep.equal([["dbo", "Customers", 1, 0, 0, false]]);
+        expect(result?.output?.scalars).to.deep.include({
+            tableCount: 1,
+            columnCount: 1,
+            complete: true,
+            artifactPath: "C:\\managed\\ef-relational-model.json",
+            executionMode: "local",
+        });
+        expect(result?.values?.modelRef).to.match(/^runbook-ef-model:/);
+        expect(JSON.stringify(result?.output)).not.to.contain("Password");
+    });
+
+    test("EF model comparison emits factual changes and no generated SQL", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+
+        const result = await delegate.executeActivity(
+            activity("ef.relational-model.compare", {
+                base: "runbook-ef-model:base",
+                head: "runbook-ef-model:head",
+            }),
+            binding(),
+        );
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("efModelDiff/1");
+        expect(result?.output?.scalars).to.deep.include({
+            comparable: true,
+            changeCount: 0,
+            requiresRenameDecision: false,
+            potentialDataLoss: false,
+            artifactPath: "C:\\managed\\ef-model-diff.json",
+            executionMode: "local",
+        });
+        expect(result?.values?.diffRef).to.match(/^runbook-ef-diff:/);
+        expect(JSON.stringify(result?.output)).not.to.match(/\b(?:CREATE|ALTER|DROP)\b/i);
     });
 
     test("repository test discovery emits bounded typed rows and completeness", async () => {
@@ -1718,6 +1839,8 @@ suite("Runbook Studio local activity delegate", () => {
             "workspace.inspect",
             "git.change-set.inspect",
             "ef.project.discover",
+            "ef.relational-model.extract",
+            "ef.relational-model.compare",
             "sqltest.discover",
             "tsqlt.run",
             "dacpac.build",
@@ -1737,6 +1860,7 @@ suite("Runbook Studio local activity delegate", () => {
             "xevent.session.stop",
             "xevent.xel.collect",
             "xevent.xel.analyze",
+            "database.schema.fingerprint",
             "performance.dmv.snapshot",
             "performance.dmv.delta",
             "workload.benchmark",

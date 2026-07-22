@@ -185,6 +185,12 @@ const DETERMINISTIC_DACPAC_EVOLUTION_ACTIVITIES = new Set([
     "sql.schema.apply",
     "schema.compare.export",
 ]);
+const DETERMINISTIC_EF_COMPARISON_ACTIVITIES = new Set([
+    "git.change-set.inspect",
+    "ef.project.discover",
+    "ef.relational-model.extract",
+    "ef.relational-model.compare",
+]);
 const DETERMINISTIC_SCHEMA_VISUALIZATION_ACTIVITY = "database.schema.visualize";
 const DETERMINISTIC_CITIES_WORKLOAD_ACTIVITIES = new Set([
     "sql.container.provision",
@@ -268,6 +274,145 @@ export function compileDeterministicGitChangeSet(
         edges: [
             { from: "capture-change-set", to: "report" },
             { from: "capture-change-set", to: "report", when: "failure" },
+        ],
+    };
+    return parseCompiledProposal(JSON.stringify(proposal), base, intent);
+}
+
+/** Compile the approval-governed exact-ref EF comparison without a model.
+ * Repository code executes only in the two explicitly gated extraction
+ * nodes; the comparison itself consumes same-run opaque model handles. */
+export function compileDeterministicEfModelComparison(
+    base: RunbookArtifactFile,
+    intent: string,
+): ProposalParseResult | undefined {
+    const required = base.source.requirements?.activities.map((activity) => activity.kind) ?? [];
+    if (
+        required.length !== DETERMINISTIC_EF_COMPARISON_ACTIVITIES.size ||
+        !required.every((kind) => DETERMINISTIC_EF_COMPARISON_ACTIVITIES.has(kind)) ||
+        !/\b(entity\s*framework|entityframework|ef\s*core|dbcontext|entities)\b/i.test(intent)
+    ) {
+        return undefined;
+    }
+    const proposal: CompiledProposal = {
+        name: "Entity Framework model comparison",
+        description:
+            "Captures the source change set, restores and builds two approved exact revisions, and reports their semantic SQL Server relational-model changes without generating or applying DDL.",
+        parameters: [
+            {
+                id: "repository",
+                label: "Repository root",
+                type: "string",
+                required: true,
+            },
+            {
+                id: "baseRef",
+                label: "Base ref",
+                type: "string",
+                required: true,
+                default: "main",
+            },
+            {
+                id: "headRef",
+                label: "Head ref",
+                type: "string",
+                required: true,
+                default: "development",
+            },
+            {
+                id: "project",
+                label: "EF project path",
+                type: "string",
+                required: true,
+            },
+            {
+                id: "dbContext",
+                label: "DbContext",
+                type: "string",
+                required: true,
+            },
+        ],
+        entryNodeId: "capture-change-set",
+        nodes: [
+            {
+                id: "capture-change-set",
+                label: "Capture repository change set",
+                kind: "activity",
+                activityKind: "git.change-set.inspect",
+                inputs: {
+                    repository: "$params.repository",
+                    baseRef: "$params.baseRef",
+                    headRef: "$params.headRef",
+                    includeWorkingTree: false,
+                },
+            },
+            {
+                id: "discover-ef-projects",
+                label: "Discover Entity Framework projects",
+                kind: "activity",
+                activityKind: "ef.project.discover",
+            },
+            {
+                id: "approve-base-model",
+                label: "Approve base revision build and design-time code execution",
+                kind: "gate",
+            },
+            {
+                id: "extract-base-model",
+                label: "Extract base Entity Framework model",
+                kind: "activity",
+                activityKind: "ef.relational-model.extract",
+                inputs: {
+                    repository: "$params.repository",
+                    revision: "$params.baseRef",
+                    project: "$params.project",
+                    dbContext: "$params.dbContext",
+                },
+            },
+            {
+                id: "approve-head-model",
+                label: "Approve head revision build and design-time code execution",
+                kind: "gate",
+            },
+            {
+                id: "extract-head-model",
+                label: "Extract head Entity Framework model",
+                kind: "activity",
+                activityKind: "ef.relational-model.extract",
+                inputs: {
+                    repository: "$params.repository",
+                    revision: "$params.headRef",
+                    project: "$params.project",
+                    dbContext: "$params.dbContext",
+                },
+            },
+            {
+                id: "compare-models",
+                label: "Compare Entity Framework relational models",
+                kind: "activity",
+                activityKind: "ef.relational-model.compare",
+                inputs: {
+                    base: "$nodes.extract-base-model.modelRef",
+                    head: "$nodes.extract-head-model.modelRef",
+                },
+            },
+            { id: "report", label: "Summarize Entity Framework changes", kind: "report" },
+        ],
+        edges: [
+            { from: "capture-change-set", to: "discover-ef-projects" },
+            { from: "capture-change-set", to: "report", when: "failure" },
+            { from: "discover-ef-projects", to: "approve-base-model" },
+            { from: "discover-ef-projects", to: "report", when: "failure" },
+            { from: "approve-base-model", to: "extract-base-model", when: "approved" },
+            { from: "approve-base-model", to: "report", when: "rejected" },
+            { from: "extract-base-model", to: "approve-head-model" },
+            { from: "extract-base-model", to: "report", when: "failure" },
+            { from: "approve-head-model", to: "extract-head-model", when: "approved" },
+            { from: "approve-head-model", to: "report", when: "rejected" },
+            { from: "extract-head-model", to: "compare-models" },
+            { from: "extract-head-model", to: "report", when: "failure" },
+            { from: "compare-models", to: "report" },
+            { from: "compare-models", to: "report", when: "failure" },
         ],
     };
     return parseCompiledProposal(JSON.stringify(proposal), base, intent);
@@ -1079,6 +1224,23 @@ export async function compileIntentWithModel(
         emitRunbookEvent(context, "runbookStudio.compile.rejected", "warning", {
             compiler: metaField("deterministicGitChangeSet"),
             reasonClass: metaField(deterministicGit.detail.slice(0, 80)),
+        });
+    }
+
+    const deterministicEfComparison = compileDeterministicEfModelComparison(base, intent);
+    if (deterministicEfComparison && !isProposalFailure(deterministicEfComparison)) {
+        emitRunbookEvent(context, "runbookStudio.compile.accepted", "ok", {
+            compiler: metaField("deterministicEfModelComparison"),
+            nodeCount: metaField(deterministicEfComparison.artifact.lock?.nodes.length ?? 0),
+            parameterCount: metaField(deterministicEfComparison.artifact.source.parameters.length),
+        });
+        end("ok", deterministicEfComparison.artifact.lock?.nodes.length ?? 0);
+        return { artifact: deterministicEfComparison.artifact };
+    }
+    if (deterministicEfComparison && isProposalFailure(deterministicEfComparison)) {
+        emitRunbookEvent(context, "runbookStudio.compile.rejected", "warning", {
+            compiler: metaField("deterministicEfModelComparison"),
+            reasonClass: metaField(deterministicEfComparison.detail.slice(0, 80)),
         });
     }
 

@@ -23,6 +23,7 @@ import {
     compileDeterministicCitiesWorkload,
     compileDeterministicDacpacEvolution,
     compileDeterministicDacpacInventory,
+    compileDeterministicEfModelComparison,
     compileDeterministicGitChangeSet,
     extractJsonObject,
     isProposalFailure,
@@ -237,6 +238,51 @@ suite("planCompiler", () => {
         expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
     });
 
+    test("EF branch comparison compiles to two approved exact-ref extractions", () => {
+        const intent =
+            "Compare the Entity Framework entity changes between development and main in this repository.";
+        const classified = classifyRunbookIntent(intent);
+        const efBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicEfModelComparison(efBase, intent);
+        expect(result).not.to.equal(undefined);
+        if (!result || isProposalFailure(result)) {
+            throw new Error(result && isProposalFailure(result) ? result.detail : "no plan");
+        }
+
+        expect(result.artifact.lock?.nodes).to.have.length(8);
+        expect(
+            result.artifact.lock?.nodes.filter(
+                (node) => node.activityKind === "ef.relational-model.extract",
+            ),
+        ).to.have.length(2);
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "extract-base-model"),
+        ).to.deep.include({
+            target: {
+                kind: "workspace",
+                binding: { source: "parameter", parameterId: "repository" },
+            },
+            blastRadius: {
+                resource: "process",
+                operation: "execute",
+                targetEnvironment: "local",
+                reversibility: "irreversible",
+                dataSensitivity: "internal",
+            },
+        });
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "compare-models")?.inputs,
+        ).to.deep.equal({
+            base: "$nodes.extract-base-model.modelRef",
+            head: "$nodes.extract-head-model.modelRef",
+        });
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+    });
+
     test("complex EF branch workflows name semantic migration blockers instead of one-table DDL", () => {
         const classified = classifyRunbookIntent(
             "Diff the development branch against main, inspect EntityFramework entities, and create CREATE, ALTER, and DROP DDL to update the database.",
@@ -244,6 +290,7 @@ suite("planCompiler", () => {
         const kinds = classified.requirements.activities.map((activity) => activity.kind);
         expect(kinds).to.include.members([
             "git.change-set.inspect",
+            "ef.relational-model.extract",
             "ef.relational-model.compare",
             "migration.script.generate",
         ]);

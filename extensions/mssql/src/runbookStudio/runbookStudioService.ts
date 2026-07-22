@@ -104,6 +104,8 @@ import {
     LocalDacpacDeploymentResult,
     LocalDacpacExtractionResult,
     LocalDevelopmentDatabaseLeaseResult,
+    LocalEfRelationalDiffExecutionResult,
+    LocalEfRelationalModelExecutionResult,
     LocalSandboxCleanupResult,
     LocalSandboxLeaseResult,
     LocalSqlContainerCleanupResult,
@@ -210,7 +212,16 @@ import * as fs from "fs";
 import { DacFxService } from "../services/dacFxService";
 import { SchemaCompareService } from "../services/schemaCompareService";
 import { TaskExecutionMode } from "../enums";
-import { digestRunbookValue } from "./runbookDigest";
+import { canonicalRunbookJson, digestRunbookValue } from "./runbookDigest";
+import {
+    extractLocalEfRelationalModel,
+    LocalEfRelationalExtractionError,
+} from "./runtime/localEfRelationalExtractor";
+import {
+    compareLocalEfRelationalModels,
+    type LocalEfRelationalDiff,
+    type LocalEfRelationalModel,
+} from "./runtime/localEfRelationalModel";
 import type { IConnectionProfileWithSource } from "../models/interfaces";
 import {
     buildTransactionalCreateTableSql,
@@ -407,6 +418,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             document: RunbookSchemaFingerprintDocument;
         }
     >();
+    /** Host-owned exact-ref EF models. Opaque handles are accepted only by
+     * later activities in the same run; source code and model JSON never
+     * travel through plan inputs or the language model. */
+    private readonly efRelationalModels = new Map<
+        string,
+        { runId: string; model: LocalEfRelationalModel }
+    >();
+    private readonly efRelationalDiffs = new Map<
+        string,
+        { runId: string; diff: LocalEfRelationalDiff }
+    >();
 
     private readonly storageRoot: string;
     /** Library-global persistence root (ledger + results). Run history must
@@ -416,6 +438,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private readonly persistRoot: string;
     /** Global (workspace-independent) storage root for the library stash. */
     private readonly globalStorageUri: vscode.Uri;
+    private readonly extensionRoot: string;
     private readonly mssqlExtensionVersion: unknown;
     private sweepTimer: ReturnType<typeof setTimeout> | undefined;
     private effectRecoveryInProgress = false;
@@ -436,6 +459,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             "runbookStudio",
         );
         this.globalStorageUri = context.globalStorageUri;
+        this.extensionRoot = context.extensionUri.fsPath;
         this.mssqlExtensionVersion = context.extension.packageJSON.version;
         this.persistRoot = path.join(context.globalStorageUri.fsPath, "runbookStudio");
         // One-time migration BEFORE the ledger opens: hoist records this
@@ -488,6 +512,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         this.xeventCaptures.clear();
         this.performanceSnapshots.clear();
         this.schemaFingerprints.clear();
+        this.efRelationalModels.clear();
+        this.efRelationalDiffs.clear();
         void this.adapter?.dispose();
         if (this.hobbesAdapter && this.hobbesAdapter !== this.adapter) {
             void this.hobbesAdapter.dispose();
@@ -2509,6 +2535,38 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 new LocalSqlActivityDelegate({
                     inspectWorkspace: inspectLocalWorkspace,
                     discoverEfProjects: discoverLocalEfProjects,
+                    extractEfRelationalModel: (
+                        nodeId,
+                        repository,
+                        revision,
+                        projectPath,
+                        dbContext,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.extractLocalEfModel(
+                            nodeId,
+                            repository,
+                            revision,
+                            projectPath,
+                            dbContext,
+                            invocation,
+                            cancelled,
+                        ),
+                    compareEfRelationalModels: (
+                        nodeId,
+                        baseModelRef,
+                        headModelRef,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.compareLocalEfModels(
+                            nodeId,
+                            baseModelRef,
+                            headModelRef,
+                            invocation,
+                            cancelled,
+                        ),
                     inspectGitChangeSet: (
                         nodeId,
                         repository,
@@ -6274,6 +6332,184 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         return this.runDropStore.artifactPath(invocation.runId, nodeId, fileName);
     }
 
+    private async extractLocalEfModel(
+        nodeId: string,
+        repository: string,
+        revision: string,
+        projectPath: string,
+        dbContext: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEfRelationalModelExecutionResult> {
+        this.requireApprovedEffect(nodeId, invocation, "ef.relational-model.extract");
+        const artifactPath = await this.localManagedArtifactPath(
+            invocation,
+            nodeId,
+            "ef-relational-model.json",
+        );
+        if (await pathExists(artifactPath)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.runbookArtifactAlreadyExists(artifactPath),
+                "RunbookStudio.ArtifactExists",
+            );
+        }
+        let complete = false;
+        try {
+            const extracted = await extractLocalEfRelationalModel(
+                {
+                    repositoryPath: repository,
+                    revision,
+                    projectPath,
+                    dbContext,
+                    temporaryParentPath: path.join(this.persistRoot, "ef-scratch"),
+                    exporterProgramPath: path.join(
+                        this.extensionRoot,
+                        "resources",
+                        "runbook-ef-exporter",
+                        "Program.cs",
+                    ),
+                },
+                isCancellationRequested,
+            );
+            const artifactBytes = Buffer.from(canonicalRunbookJson(extracted.model), "utf8");
+            await fs.promises.writeFile(artifactPath, artifactBytes, { flag: "wx" });
+            const artifactStat = await fs.promises.stat(artifactPath);
+            const artifactSha256 = crypto.createHash("sha256").update(artifactBytes).digest("hex");
+            if (!artifactStat.isFile() || artifactStat.size !== artifactBytes.byteLength) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.efRelationalModelInvalid,
+                    "RunbookStudio.ArtifactInvalid",
+                );
+            }
+            if (this.efRelationalModels.size >= 64) {
+                const oldest = this.efRelationalModels.keys().next().value;
+                if (typeof oldest === "string") {
+                    this.efRelationalModels.delete(oldest);
+                }
+            }
+            const modelRef = `runbook-ef-model:${invocation.runId}:${extracted.model.modelSha256}:${crypto.randomUUID()}`;
+            this.efRelationalModels.set(modelRef, {
+                runId: invocation.runId,
+                model: extracted.model,
+            });
+            complete = true;
+            return {
+                model: extracted.model,
+                modelRef,
+                artifactPath,
+                artifactSizeBytes: artifactStat.size,
+                artifactSha256,
+                diagnosticCount: extracted.diagnostics.length,
+            };
+        } catch (error) {
+            if (error instanceof LocalActivityError) {
+                throw error;
+            }
+            if (
+                isCancellationRequested() ||
+                (error instanceof LocalEfRelationalExtractionError &&
+                    /cancelled/i.test(error.message))
+            ) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.efRelationalModelCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            throw new LocalActivityError(
+                LocRunbookStudio.efRelationalModelExtractionFailed(
+                    error instanceof LocalEfRelationalExtractionError ? error.stage : "unknown",
+                ),
+                error instanceof LocalEfRelationalExtractionError && error.stage === "validate"
+                    ? "RunbookStudio.BindingInvalid"
+                    : "RunbookStudio.ActivityFailed",
+            );
+        } finally {
+            if (!complete) {
+                await fs.promises.rm(artifactPath, { force: true }).catch(() => undefined);
+            }
+        }
+    }
+
+    private async compareLocalEfModels(
+        nodeId: string,
+        baseModelRef: string,
+        headModelRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEfRelationalDiffExecutionResult> {
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.efRelationalModelCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const base = this.efRelationalModels.get(baseModelRef);
+        const head = this.efRelationalModels.get(headModelRef);
+        if (
+            baseModelRef === headModelRef ||
+            !base ||
+            !head ||
+            base.runId !== invocation.runId ||
+            head.runId !== invocation.runId ||
+            !/^runbook-ef-model:[A-Za-z0-9_-]{1,160}:[a-f0-9]{64}:[a-f0-9-]{36}$/i.test(
+                baseModelRef,
+            ) ||
+            !/^runbook-ef-model:[A-Za-z0-9_-]{1,160}:[a-f0-9]{64}:[a-f0-9-]{36}$/i.test(
+                headModelRef,
+            )
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.efRelationalModelReferenceInvalid,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        const diff = compareLocalEfRelationalModels(base.model, head.model);
+        const artifactPath = await this.localManagedArtifactPath(
+            invocation,
+            nodeId,
+            "ef-model-diff.json",
+        );
+        if (await pathExists(artifactPath)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.runbookArtifactAlreadyExists(artifactPath),
+                "RunbookStudio.ArtifactExists",
+            );
+        }
+        let complete = false;
+        try {
+            const artifactBytes = Buffer.from(canonicalRunbookJson(diff), "utf8");
+            await fs.promises.writeFile(artifactPath, artifactBytes, { flag: "wx" });
+            const artifactStat = await fs.promises.stat(artifactPath);
+            const artifactSha256 = crypto.createHash("sha256").update(artifactBytes).digest("hex");
+            if (!artifactStat.isFile() || artifactStat.size !== artifactBytes.byteLength) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.efRelationalModelInvalid,
+                    "RunbookStudio.ArtifactInvalid",
+                );
+            }
+            if (this.efRelationalDiffs.size >= 64) {
+                const oldest = this.efRelationalDiffs.keys().next().value;
+                if (typeof oldest === "string") {
+                    this.efRelationalDiffs.delete(oldest);
+                }
+            }
+            const diffRef = `runbook-ef-diff:${invocation.runId}:${diff.diffSha256}:${crypto.randomUUID()}`;
+            this.efRelationalDiffs.set(diffRef, { runId: invocation.runId, diff });
+            complete = true;
+            return {
+                diff,
+                diffRef,
+                artifactPath,
+                artifactSizeBytes: artifactStat.size,
+                artifactSha256,
+            };
+        } finally {
+            if (!complete) {
+                await fs.promises.rm(artifactPath, { force: true }).catch(() => undefined);
+            }
+        }
+    }
+
     private async inspectLocalGitChangeSet(
         nodeId: string,
         repository: string,
@@ -6911,6 +7147,16 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         });
         if (snapshot) {
             active.model.setActiveRun(snapshot);
+        }
+        for (const [modelRef, entry] of this.efRelationalModels) {
+            if (entry.runId === active.runId) {
+                this.efRelationalModels.delete(modelRef);
+            }
+        }
+        for (const [diffRef, entry] of this.efRelationalDiffs) {
+            if (entry.runId === active.runId) {
+                this.efRelationalDiffs.delete(diffRef);
+            }
         }
         this.activeByRunId.delete(active.runId);
         const current = this.activeByDocument.get(active.model.uriKey);
