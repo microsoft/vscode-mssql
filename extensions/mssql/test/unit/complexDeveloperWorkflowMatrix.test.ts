@@ -68,7 +68,7 @@ const scenarios = [
         prompt:
             "Run the workload when XEvent collection is incomplete, retain the partial XEL, return an " +
             "incomplete performance verdict, and clean up the owned SQL container.",
-        missing: ["xevent.capture.reconcile@1"],
+        missing: [],
     },
     {
         id: "promotion-recovery",

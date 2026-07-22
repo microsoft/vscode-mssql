@@ -7,6 +7,7 @@ import { expect } from "chai";
 import {
     LOCAL_XEVENT_TEMPLATE,
     LocalXeventPolicyError,
+    buildReconcileLocalXeventSql,
     buildReadLocalXeventFilePathSql,
     buildAnalyzeLocalXeventSql,
     buildStartLocalXeventSql,
@@ -32,6 +33,10 @@ suite("Runbook Studio local XEvent policy", () => {
         expect(stop).to.contain(`DROP EVENT SESSION [${session}]`);
         expect(stop).to.contain("sys.fn_xe_file_target_read_file");
         expect(stop).to.contain("EventCount");
+        const reconcile = buildReconcileLocalXeventSql(session);
+        expect(reconcile).to.contain(`DROP EVENT SESSION [${session}]`);
+        expect(reconcile).to.contain(`${session}*.xel`);
+        expect(reconcile).to.contain("could not be reconciled");
     });
 
     test("refuses invented templates, oversized targets, and foreign paths", () => {

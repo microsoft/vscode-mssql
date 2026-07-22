@@ -512,6 +512,23 @@ suite("runbook capability preflight", () => {
         );
     });
 
+    test("keeps interrupted XEvent reconciliation separate from deployment recovery", () => {
+        const classified = classifyRunbookIntent(
+            "If the XEvent capture is interrupted, reconcile it and retain the partial XEL trace.",
+        );
+        const kinds = classified.requirements.activities.map((activity) => activity.kind);
+        const designKinds = buildDesignOnlyPlan(classified).steps.map((step) => step.activityKind);
+
+        expect(kinds).to.include("xevent.capture.reconcile");
+        expect(kinds).not.to.include("deployment.reconcile");
+        expect(designKinds.indexOf("xevent.session.stop")).to.be.lessThan(
+            designKinds.indexOf("xevent.capture.reconcile"),
+        );
+        expect(designKinds.indexOf("xevent.capture.reconcile")).to.be.lessThan(
+            designKinds.indexOf("xevent.xel.analyze"),
+        );
+    });
+
     test("recognizes the authored extract typo and dump vocabulary from the UI repro", () => {
         const classified = classifyRunbookIntent(
             "Exact WideWorldImporter to a dacpac. Deploy the dacpac back to server as WWI_2. " +

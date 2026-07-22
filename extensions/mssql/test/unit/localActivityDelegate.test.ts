@@ -596,7 +596,19 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             sessionName: "rbs_xe_666666666666666666666666",
             eventFileName: "rbs_xe_666666666666666666666666_0_1.xel",
             eventCount: 12,
+            captureComplete: true,
+            reconciliationStatus: "complete",
             stoppedAtUtc: "2026-07-20T20:03:04.000Z",
+        }),
+        reconcileXeventCapture: async () => ({
+            effectId: `effect-${"6".repeat(64)}`,
+            captureRef: `runbook-xevent-capture:effect-${"6".repeat(64)}`,
+            sessionName: "rbs_xe_666666666666666666666666",
+            eventFileName: "rbs_xe_666666666666666666666666_0_1.xel",
+            eventCount: 8,
+            captureComplete: false,
+            reconciliationStatus: "recoveredIncomplete",
+            stoppedAtUtc: "2026-07-20T20:03:04.500Z",
         }),
         collectXel: async () => ({
             sessionName: "rbs_xe_666666666666666666666666",
@@ -1592,6 +1604,22 @@ suite("Runbook Studio local activity delegate", () => {
         expect(stop?.success).to.equal(true);
         expect(stop?.output?.contract).to.equal("xeventCapture/1");
         expect(stop?.values?.captureRef).to.equal(captureRef);
+
+        const reconcile = await delegate.executeActivity(
+            activity("xevent.capture.reconcile", {
+                database: "$nodes.container.connectionRef",
+                session: "$nodes.start.sessionRef",
+            }),
+            binding(resolve),
+        );
+        expect(reconcile?.success).to.equal(true);
+        expect(reconcile?.output?.contract).to.equal("captureIntegrity/1");
+        expect(reconcile?.output?.scalars).to.include({
+            captureRef,
+            eventCount: 8,
+            captureComplete: false,
+            reconciliationStatus: "recoveredIncomplete",
+        });
 
         const collect = await delegate.executeActivity(
             activity("xevent.xel.collect", {

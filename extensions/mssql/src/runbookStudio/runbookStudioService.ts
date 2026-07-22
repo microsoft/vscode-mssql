@@ -290,6 +290,7 @@ import {
     LocalXeventPolicyError,
     MAX_LOCAL_XEVENT_ANALYSIS_ROWS,
     MAX_LOCAL_XEL_ARCHIVE_BYTES,
+    buildReconcileLocalXeventSql,
     buildStartLocalXeventSql,
     buildStopLocalXeventSql,
     extractLocalXelFromDockerArchive,
@@ -427,6 +428,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             sessionName: string;
             serverPath: string;
             eventCount: number;
+            captureComplete: boolean;
         }
     >();
     /** Same-run in-memory authority for deterministic before/after deltas.
@@ -2848,6 +2850,13 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         ),
                     stopXeventSession: (databaseRef, sessionRef, invocation, cancelled) =>
                         this.stopLocalXeventSession(databaseRef, sessionRef, invocation, cancelled),
+                    reconcileXeventCapture: (databaseRef, sessionRef, invocation, cancelled) =>
+                        this.reconcileLocalXeventCapture(
+                            databaseRef,
+                            sessionRef,
+                            invocation,
+                            cancelled,
+                        ),
                     collectXel: (nodeId, databaseRef, captureRef, invocation, cancelled) =>
                         this.collectLocalXel(
                             nodeId,
@@ -4327,6 +4336,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 sessionName,
                 serverPath,
                 eventCount,
+                captureComplete: true,
             });
             return {
                 effectId: current.identity.effectId,
@@ -4334,7 +4344,136 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 sessionName,
                 eventFileName: path.posix.basename(serverPath),
                 eventCount,
+                captureComplete: true,
+                reconciliationStatus: "complete",
                 stoppedAtUtc: new Date(current.lastUpdatedEpochMs).toISOString(),
+            };
+        } catch (error) {
+            if (isCancellationRequested() || error instanceof vscode.CancellationError) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.dacpacPreviewCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                );
+            }
+            throw error instanceof LocalActivityError
+                ? error
+                : new LocalActivityError(
+                      error instanceof LocalXeventPolicyError
+                          ? LocRunbookStudio.xeventPolicyInvalid
+                          : LocRunbookStudio.xeventSessionFailed,
+                      error instanceof LocalXeventPolicyError
+                          ? "RunbookStudio.TargetChanged"
+                          : "RunbookStudio.ActivityFailed",
+                  );
+        }
+    }
+
+    private async reconcileLocalXeventCapture(
+        databaseRef: string,
+        sessionRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalXeventCaptureResult> {
+        const startEffectId = effectIdFromLocalXeventSessionRef(sessionRef);
+        let snapshot = startEffectId
+            ? this.effectLedger.recoverEffect(startEffectId)?.snapshot
+            : undefined;
+        const owned = await this.requireOwnedContainerTarget(databaseRef, invocation.runId);
+        const sessionName = startEffectId ? localXeventSessionName(startEffectId) : "";
+        const recovery = snapshot?.identity.recovery;
+        const resource = snapshot?.resource;
+        if (
+            !startEffectId ||
+            !snapshot ||
+            snapshot.identity.runId !== invocation.runId ||
+            snapshot.identity.activityKind !== "xevent.session.start" ||
+            snapshot.state === "finalized" ||
+            snapshot.state === "failedNoEffect" ||
+            snapshot.state === "needsOperatorDecision" ||
+            recovery?.resourceKind !== "xeventSession" ||
+            recovery.resourceId !== sessionName ||
+            recovery.connectionProfileId !== owned.connectionProfileId ||
+            recovery.ownershipMarkerDigest !== owned.ownershipMarkerDigest ||
+            (resource !== undefined &&
+                (resource.resourceKind !== "xeventSession" ||
+                    resource.resourceId !== sessionName ||
+                    resource.connectionProfileId !== owned.connectionProfileId ||
+                    resource.ownershipMarkerDigest !== owned.ownershipMarkerDigest))
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.xeventPolicyInvalid,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        try {
+            const reconcileResult = await this.withLocalActivityConnection(
+                owned.profile,
+                "xevent-reconcile",
+                isCancellationRequested,
+                (ownerUri, cancellationToken) =>
+                    SqlToolsServerClient.instance.sendRequest(
+                        SimpleExecuteRequestType,
+                        {
+                            ownerUri,
+                            queryString: buildReconcileLocalXeventSql(sessionName),
+                        },
+                        cancellationToken,
+                    ),
+            );
+            const observedPath = reconcileResult.rows?.[0]?.[0]?.displayValue;
+            if (typeof observedPath !== "string" || !observedPath.trim()) {
+                throw new LocalXeventPolicyError("invalidServerPath");
+            }
+            const serverPath = validateLocalXelServerPath(sessionName, observedPath);
+            const eventCount = Number(reconcileResult.rows?.[0]?.[1]?.displayValue);
+            if (!Number.isSafeInteger(eventCount) || eventCount < 0) {
+                throw new LocalXeventPolicyError("invalidServerPath");
+            }
+            if (snapshot.state === "prepared") {
+                snapshot = this.effectLedger.recordEffectObserved(startEffectId, {
+                    resourceKind: "xeventSession",
+                    resourceId: sessionName,
+                    ownershipMarkerDigest: owned.ownershipMarkerDigest,
+                    connectionProfileId: owned.connectionProfileId,
+                    outputHandles: [sessionRef, databaseRef],
+                });
+            }
+            if (snapshot.state === "effectObserved") {
+                snapshot = this.effectLedger.startCleanup(startEffectId);
+            }
+            if (snapshot.state === "cleanupStarted") {
+                snapshot = this.effectLedger.completeCleanup(
+                    startEffectId,
+                    digestRunbookValue({
+                        startEffectId,
+                        sessionName,
+                        serverPath,
+                        eventCount,
+                        reconciled: true,
+                        captureComplete: false,
+                    }),
+                );
+            }
+            const captureRef = localXeventCaptureRef(startEffectId);
+            this.xeventCaptures.set(captureRef, {
+                runId: invocation.runId,
+                startEffectId,
+                containerEffectId: owned.containerEffectId,
+                containerName: owned.containerName,
+                sessionName,
+                serverPath,
+                eventCount,
+                captureComplete: false,
+            });
+            return {
+                effectId: snapshot.identity.effectId,
+                captureRef,
+                sessionName,
+                eventFileName: path.posix.basename(serverPath),
+                eventCount,
+                captureComplete: false,
+                reconciliationStatus: "recoveredIncomplete",
+                stoppedAtUtc: new Date(snapshot.lastUpdatedEpochMs).toISOString(),
             };
         } catch (error) {
             if (isCancellationRequested() || error instanceof vscode.CancellationError) {
@@ -4444,7 +4583,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 artifactSizeBytes: stat.size,
                 artifactSha256,
                 eventCount: capture.eventCount,
-                captureComplete: true,
+                captureComplete: capture.captureComplete,
                 collectedAtUtc: new Date().toISOString(),
             };
         } catch (error) {

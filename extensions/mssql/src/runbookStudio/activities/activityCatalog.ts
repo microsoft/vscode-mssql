@@ -1072,6 +1072,44 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "xevent.capture.reconcile",
+        version: 1,
+        label: "Reconcile interrupted XEvent capture",
+        description:
+            "Stops and removes the exact ownership-derived XEvent session after an interrupted stop, rediscovers its bounded XEL file, and marks the recovered capture incomplete.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to the same sql.container.provision connectionRef",
+            },
+            {
+                name: "session",
+                kind: "bind",
+                required: true,
+                description: "Bind to an upstream xevent.session.start sessionRef",
+            },
+        ],
+        outputContract: "captureIntegrity/1",
+        producedValues: [
+            "captureRef",
+            "sessionName",
+            "eventFileName",
+            "eventCount",
+            "captureComplete",
+            "reconciliationStatus",
+        ],
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "container",
+            operation: "delete",
+            targetEnvironment: "ephemeral",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "xevent.xel.collect",
         version: 1,
         label: "Collect owned XEL artifact",
@@ -2056,6 +2094,7 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                     descriptor.kind === "xevent.session.start" ||
                     descriptor.kind === "sql.workload.run" ||
                     descriptor.kind === "xevent.session.stop" ||
+                    descriptor.kind === "xevent.capture.reconcile" ||
                     descriptor.kind === "xevent.xel.analyze" ||
                     descriptor.kind === "xevent.xel.collect" ||
                     descriptor.kind === "database.schema.fingerprint" ||
@@ -2111,7 +2150,8 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                 );
             }
             if (
-                descriptor.kind === "xevent.session.stop" &&
+                (descriptor.kind === "xevent.session.stop" ||
+                    descriptor.kind === "xevent.capture.reconcile") &&
                 !isUpstreamActivityOutput(
                     lock,
                     node,
@@ -2127,16 +2167,25 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
             if (
                 (descriptor.kind === "xevent.xel.collect" ||
                     descriptor.kind === "xevent.xel.analyze") &&
-                !isUpstreamActivityOutput(
-                    lock,
-                    node,
-                    "capture",
-                    "captureRef",
-                    "xevent.session.stop",
+                !(
+                    isUpstreamActivityOutput(
+                        lock,
+                        node,
+                        "capture",
+                        "captureRef",
+                        "xevent.session.stop",
+                    ) ||
+                    isUpstreamActivityOutput(
+                        lock,
+                        node,
+                        "capture",
+                        "captureRef",
+                        "xevent.capture.reconcile",
+                    )
                 )
             ) {
                 issues.push(
-                    `node '${node.id}' must bind capture to an upstream xevent.session.stop captureRef`,
+                    `node '${node.id}' must bind capture to an upstream xevent.session.stop or xevent.capture.reconcile captureRef`,
                 );
             }
             if (

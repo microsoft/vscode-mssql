@@ -114,6 +114,46 @@ export function buildStopLocalXeventSql(sessionName: string): string {
     ].join("\n");
 }
 
+/**
+ * Idempotent failure-path cleanup. It accepts only the ownership-derived
+ * session name, stops/drops that exact session when it still exists, and can
+ * rediscover its single retained rollover file after a crash between the SQL
+ * effect and the local ledger append. A recovered capture is intentionally
+ * classified incomplete by the caller; this query never promotes it to
+ * release evidence.
+ */
+export function buildReconcileLocalXeventSql(sessionName: string): string {
+    requireSessionName(sessionName);
+    const basePath = localXeventBasePath(sessionName);
+    const wildcardPath = `${XEL_DIRECTORY}/${sessionName}*.xel`;
+    return [
+        "SET NOCOUNT ON;",
+        "DECLARE @rbsXelPath nvarchar(4000);",
+        `IF EXISTS (SELECT 1 FROM sys.server_event_sessions WHERE name = N'${sessionName}')`,
+        "BEGIN",
+        "    SELECT @rbsXelPath = CAST(t.target_data AS xml).value('(/EventFileTarget/File/@name)[1]', 'nvarchar(4000)')",
+        "    FROM sys.dm_xe_session_targets AS t",
+        "    INNER JOIN sys.dm_xe_sessions AS s ON s.address = t.event_session_address",
+        `    WHERE s.name = N'${sessionName}' AND t.target_name = N'event_file';`,
+        `    IF EXISTS (SELECT 1 FROM sys.dm_xe_sessions WHERE name = N'${sessionName}')`,
+        `        ALTER EVENT SESSION [${sessionName}] ON SERVER STATE = STOP;`,
+        `    DROP EVENT SESSION [${sessionName}] ON SERVER;`,
+        "END;",
+        "IF @rbsXelPath IS NULL",
+        "BEGIN",
+        "    SELECT TOP (1) @rbsXelPath = [file_name]",
+        `    FROM sys.fn_xe_file_target_read_file(N'${wildcardPath}', NULL, NULL, NULL)`,
+        "    ORDER BY [file_name] DESC;",
+        "END;",
+        "IF @rbsXelPath IS NULL",
+        "    THROW 51004, 'Runbook Studio XEvent capture could not be reconciled.', 1;",
+        `IF @rbsXelPath <> N'${basePath}' AND @rbsXelPath NOT LIKE N'${XEL_DIRECTORY}/${sessionName}[_]%.xel'`,
+        "    THROW 51003, 'Runbook Studio XEvent file target changed.', 1;",
+        "DECLARE @rbsEventCount bigint = (SELECT COUNT_BIG(*) FROM sys.fn_xe_file_target_read_file(@rbsXelPath, NULL, NULL, NULL));",
+        "SELECT @rbsXelPath AS [XelFilePath], @rbsEventCount AS [EventCount];",
+    ].join("\n");
+}
+
 /** Perftest-style correlation over the retained XEL. Prefer the exact
  * run-specific application name. Some classic STS hosts replace the supplied
  * application name; in that case, fall back to the unique database on the

@@ -391,6 +391,10 @@
         "message": "Owned XEvent session '{0}' stopped and removed.",
         "comment": ["{0} is an ownership-derived Extended Events session name"]
     },
+    "Interrupted XEvent session '{0}' was removed and its partial capture was retained as incomplete evidence./{0} is an ownership-derived Extended Events session name": {
+        "message": "Interrupted XEvent session '{0}' was removed and its partial capture was retained as incomplete evidence.",
+        "comment": ["{0} is an ownership-derived Extended Events session name"]
+    },
     "Collected and verified a {0}-byte XEL artifact./{0} is a retained artifact size in bytes": {
         "message": "Collected and verified a {0}-byte XEL artifact.",
         "comment": ["{0} is a retained artifact size in bytes"]

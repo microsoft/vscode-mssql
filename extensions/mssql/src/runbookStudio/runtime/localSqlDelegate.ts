@@ -342,6 +342,12 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalXeventCaptureResult>;
+    reconcileXeventCapture(
+        databaseRef: string,
+        sessionRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalXeventCaptureResult>;
     collectXel(
         nodeId: string,
         databaseRef: string,
@@ -650,6 +656,8 @@ export interface LocalXeventCaptureResult {
     sessionName: string;
     eventFileName: string;
     eventCount: number;
+    captureComplete: boolean;
+    reconciliationStatus: "complete" | "recoveredIncomplete";
     stoppedAtUtc: string;
 }
 
@@ -729,6 +737,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "xevent.session.start",
         "sql.workload.run",
         "xevent.session.stop",
+        "xevent.capture.reconcile",
         "xevent.xel.collect",
         "xevent.xel.analyze",
         "database.schema.fingerprint",
@@ -810,6 +819,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.runWorkload(node, binding);
             case "xevent.session.stop":
                 return this.stopXeventSession(node, binding);
+            case "xevent.capture.reconcile":
+                return this.reconcileXeventCapture(node, binding);
             case "xevent.xel.collect":
                 return this.collectXel(node, binding);
             case "xevent.xel.analyze":
@@ -2482,6 +2493,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                         sessionName: result.sessionName,
                         eventFileName: result.eventFileName,
                         eventCount: result.eventCount,
+                        captureComplete: result.captureComplete,
+                        reconciliationStatus: result.reconciliationStatus,
                         stoppedAtUtc: result.stoppedAtUtc,
                         executionMode: "local",
                     },
@@ -2491,6 +2504,67 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     sessionName: result.sessionName,
                     eventFileName: result.eventFileName,
                     eventCount: result.eventCount,
+                    captureComplete: result.captureComplete,
+                    reconciliationStatus: result.reconciliationStatus,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async reconcileXeventCapture(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        const sessionRef = binding.resolveBind(node.inputs?.session);
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        if (typeof sessionRef !== "string" || sessionRef.trim().length === 0) {
+            return invalidBinding("session");
+        }
+        try {
+            const result = await this.operations.reconcileXeventCapture(
+                databaseRef.trim(),
+                sessionRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "xevent.captureReconciled": true,
+                    "xevent.captureComplete": result.captureComplete,
+                    "xevent.eventCount": result.eventCount,
+                },
+                message: LocRunbookStudio.xeventCaptureReconciled(result.sessionName),
+                output: {
+                    contract: "captureIntegrity/1",
+                    scalars: {
+                        effectId: result.effectId,
+                        captureRef: result.captureRef,
+                        sessionName: result.sessionName,
+                        eventFileName: result.eventFileName,
+                        eventCount: result.eventCount,
+                        captureComplete: result.captureComplete,
+                        reconciliationStatus: result.reconciliationStatus,
+                        stoppedAtUtc: result.stoppedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    captureRef: result.captureRef,
+                    sessionName: result.sessionName,
+                    eventFileName: result.eventFileName,
+                    eventCount: result.eventCount,
+                    captureComplete: result.captureComplete,
+                    reconciliationStatus: result.reconciliationStatus,
                 },
             };
         } catch (error) {

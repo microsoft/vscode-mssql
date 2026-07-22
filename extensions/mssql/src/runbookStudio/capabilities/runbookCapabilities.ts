@@ -378,9 +378,10 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
     },
     "xevent.capture.reconcile": {
         target: "ephemeralSqlDatabase",
-        effect: "read",
+        effect: "mutate",
         connectionRequirement: "provisioned",
         providerRequirement: "execution",
+        rollbackContract: "automatic",
         outputContract: "captureIntegrity/1",
     },
     "sqltest.run": {
@@ -752,6 +753,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "sql.workload.inspect",
         "sql.workload.run",
         "xevent.session.stop",
+        "xevent.capture.reconcile",
         "xevent.xel.analyze",
         "xevent.xel.collect",
         "database.schema.fingerprint",
@@ -799,6 +801,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "sql.workload.inspect",
         "sql.workload.run",
         "xevent.session.stop",
+        "xevent.capture.reconcile",
         "xevent.xel.analyze",
         "xevent.xel.collect",
         "database.schema.fingerprint",
@@ -831,6 +834,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "sql.workload.inspect",
         "sql.workload.run",
         "xevent.session.stop",
+        "xevent.capture.reconcile",
         "xevent.xel.analyze",
         "xevent.xel.collect",
         "database.schema.fingerprint",
@@ -881,6 +885,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "sql.workload.inspect",
         "sql.workload.run",
         "xevent.session.stop",
+        "xevent.capture.reconcile",
         "xevent.xel.analyze",
         "xevent.xel.collect",
         "database.schema.fingerprint",
@@ -998,7 +1003,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     );
     const requestsDeploymentReconciliation = has(
         text,
-        /\b(reconcile|rollback|roll back|operator attention|deployment recovery)\b/,
+        /\b(?:reconcile|rollback|roll back)\b.{0,45}\b(?:deploy(?:ment|ed)?|promotion|staging|production)\b|\b(?:deploy(?:ment|ed)?|promotion|staging|production)\b.{0,45}\b(?:reconcile|rollback|roll back|operator attention|recovery)\b|\boperator attention\b.{0,35}\bdeploy(?:ment|ed)?\b/,
     );
     const requestsProjectAuthoring = has(
         text,

@@ -539,6 +539,7 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "xevent.session.start",
     "sql.workload.run",
     "xevent.session.stop",
+    "xevent.capture.reconcile",
     "xevent.xel.collect",
     "xevent.xel.analyze",
     "database.schema.fingerprint",
@@ -1636,6 +1637,8 @@ function executeNode(
                         sessionName: "rbs_xe_preview",
                         eventFileName: "rbs_xe_preview.xel",
                         eventCount: 12,
+                        captureComplete: true,
+                        reconciliationStatus: "complete",
                         preview: true,
                     },
                 },
@@ -1644,6 +1647,44 @@ function executeNode(
                     sessionName: "rbs_xe_preview",
                     eventFileName: "rbs_xe_preview.xel",
                     eventCount: 12,
+                    captureComplete: true,
+                    reconciliationStatus: "complete",
+                },
+            };
+        }
+        case "xevent.capture.reconcile": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const session = resolveBind(node.inputs?.session, parameterValues, nodeValues);
+            if (typeof database !== "string" || typeof session !== "string") {
+                return invalidPreviewBinding("xevent.capture.reconcile", "database/session");
+            }
+            return {
+                success: true,
+                runMetrics: {
+                    "xevent.captureReconciled": true,
+                    "xevent.captureComplete": false,
+                    "xevent.eventCount": 8,
+                },
+                message: "Interrupted XEvent capture reconciled (deterministic preview)",
+                output: {
+                    contract: "captureIntegrity/1",
+                    scalars: {
+                        captureRef: "preview://xevent/recovered/001",
+                        sessionName: "rbs_xe_preview",
+                        eventFileName: "rbs_xe_preview.xel",
+                        eventCount: 8,
+                        captureComplete: false,
+                        reconciliationStatus: "recoveredIncomplete",
+                        preview: true,
+                    },
+                },
+                values: {
+                    captureRef: "preview://xevent/recovered/001",
+                    sessionName: "rbs_xe_preview",
+                    eventFileName: "rbs_xe_preview.xel",
+                    eventCount: 8,
+                    captureComplete: false,
+                    reconciliationStatus: "recoveredIncomplete",
                 },
             };
         }

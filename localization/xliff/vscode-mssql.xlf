@@ -4943,6 +4943,10 @@
     <trans-unit id="++CODE++29131ad07db3d306af181c950497e1b60401b182def2732bfc2683833157d4a7">
       <source xml:lang="en">Intent</source>
     </trans-unit>
+    <trans-unit id="++CODE++d31bf31002d7af3d707caf0dd2b6bea2bd48852959804659da2cdc5c1730fc5d">
+      <source xml:lang="en">Interrupted XEvent session &apos;{0}&apos; was removed and its partial capture was retained as incomplete evidence.</source>
+      <note>{0} is an ownership-derived Extended Events session name</note>
+    </trans-unit>
     <trans-unit id="++CODE++eced7daa046aa47caa62c3306d8114cb2f558fd2f53ebd2cc4d3b802857d200b">
       <source xml:lang="en">Invalid Firewall rule name</source>
     </trans-unit>

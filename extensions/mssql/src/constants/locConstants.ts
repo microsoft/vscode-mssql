@@ -696,6 +696,13 @@ export class RunbookStudio {
             args: [sessionName],
             comment: ["{0} is an ownership-derived Extended Events session name"],
         });
+    public static xeventCaptureReconciled = (sessionName: string) =>
+        l10n.t({
+            message:
+                "Interrupted XEvent session '{0}' was removed and its partial capture was retained as incomplete evidence.",
+            args: [sessionName],
+            comment: ["{0} is an ownership-derived Extended Events session name"],
+        });
     public static xelArtifactCollected = (sizeBytes: number) =>
         l10n.t({
             message: "Collected and verified a {0}-byte XEL artifact.",

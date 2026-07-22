@@ -303,6 +303,7 @@ export function compileDeterministicEfModelComparison(
     const startXevent = required.includes("xevent.session.start");
     const runWorkload = required.includes("sql.workload.run");
     const stopXevent = required.includes("xevent.session.stop");
+    const reconcileXevent = required.includes("xevent.capture.reconcile");
     const analyzeXel = required.includes("xevent.xel.analyze");
     const collectXel = required.includes("xevent.xel.collect");
     const fingerprintSchema = required.includes("database.schema.fingerprint");
@@ -348,6 +349,7 @@ export function compileDeterministicEfModelComparison(
         "xevent.session.start",
         "sql.workload.run",
         "xevent.session.stop",
+        "xevent.capture.reconcile",
         "xevent.xel.analyze",
         "xevent.xel.collect",
         "database.schema.fingerprint",
@@ -375,6 +377,7 @@ export function compileDeterministicEfModelComparison(
                 (startXevent ? 1 : 0) +
                 (runWorkload ? 1 : 0) +
                 (stopXevent ? 1 : 0) +
+                (reconcileXevent ? 1 : 0) +
                 (analyzeXel ? 1 : 0) +
                 (collectXel ? 1 : 0) +
                 (fingerprintSchema ? 1 : 0) +
@@ -400,6 +403,7 @@ export function compileDeterministicEfModelComparison(
         (hasBaseClone && (!applyMigration || !verifyBaseDacpac)) ||
         (exportSchemaDelta && !hasBaseClone) ||
         (requestsAnyPerformanceValidation && !hasPerformanceValidation) ||
+        (reconcileXevent && !hasPerformanceValidation) ||
         (hasPerformanceValidation && (!applyMigration || !hasBaseClone)) ||
         (createReleaseManifest && (!extractReleaseCandidate || !hasPerformanceValidation)) ||
         (visualizeSchema && !applyMigration) ||
@@ -1035,6 +1039,43 @@ export function compileDeterministicEfModelComparison(
                                         capture: "$nodes.stop-failed-capture.captureRef",
                                     },
                                 },
+                                ...(reconcileXevent
+                                    ? [
+                                          {
+                                              id: "reconcile-capture",
+                                              label: "Reconcile interrupted XEvent capture",
+                                              kind: "activity" as const,
+                                              activityKind: "xevent.capture.reconcile",
+                                              inputs: {
+                                                  database:
+                                                      "$nodes.provision-rehearsal-container.connectionRef",
+                                                  session: "$nodes.start-capture.sessionRef",
+                                              },
+                                          },
+                                          {
+                                              id: "analyze-reconciled-capture",
+                                              label: "Analyze reconciled partial XEvent trace",
+                                              kind: "activity" as const,
+                                              activityKind: "xevent.xel.analyze",
+                                              inputs: {
+                                                  database:
+                                                      "$nodes.provision-rehearsal-container.connectionRef",
+                                                  capture: "$nodes.reconcile-capture.captureRef",
+                                              },
+                                          },
+                                          {
+                                              id: "collect-reconciled-capture",
+                                              label: "Retain reconciled partial XEL artifact",
+                                              kind: "activity" as const,
+                                              activityKind: "xevent.xel.collect",
+                                              inputs: {
+                                                  database:
+                                                      "$nodes.provision-rehearsal-container.connectionRef",
+                                                  capture: "$nodes.reconcile-capture.captureRef",
+                                              },
+                                          },
+                                      ]
+                                    : []),
                             ]
                           : []),
                       ...(extractReleaseCandidate
@@ -1455,7 +1496,9 @@ export function compileDeterministicEfModelComparison(
                                 },
                                 {
                                     from: "stop-failed-capture",
-                                    to: "dispose-rehearsal-container",
+                                    to: reconcileXevent
+                                        ? "reconcile-capture"
+                                        : "dispose-rehearsal-container",
                                     when: "failure" as const,
                                 },
                                 {
@@ -1479,9 +1522,42 @@ export function compileDeterministicEfModelComparison(
                                 { from: "stop-capture", to: "schema-fingerprint-after" },
                                 {
                                     from: "stop-capture",
-                                    to: "dispose-rehearsal-container",
+                                    to: reconcileXevent
+                                        ? "reconcile-capture"
+                                        : "dispose-rehearsal-container",
                                     when: "failure" as const,
                                 },
+                                ...(reconcileXevent
+                                    ? [
+                                          {
+                                              from: "reconcile-capture",
+                                              to: "analyze-reconciled-capture",
+                                          },
+                                          {
+                                              from: "reconcile-capture",
+                                              to: "dispose-rehearsal-container",
+                                              when: "failure" as const,
+                                          },
+                                          {
+                                              from: "analyze-reconciled-capture",
+                                              to: "collect-reconciled-capture",
+                                          },
+                                          {
+                                              from: "analyze-reconciled-capture",
+                                              to: "collect-reconciled-capture",
+                                              when: "failure" as const,
+                                          },
+                                          {
+                                              from: "collect-reconciled-capture",
+                                              to: "dispose-rehearsal-container",
+                                          },
+                                          {
+                                              from: "collect-reconciled-capture",
+                                              to: "dispose-rehearsal-container",
+                                              when: "failure" as const,
+                                          },
+                                      ]
+                                    : []),
                                 {
                                     from: "schema-fingerprint-after",
                                     to: "snapshot-after",

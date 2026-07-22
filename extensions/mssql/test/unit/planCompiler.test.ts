@@ -567,6 +567,51 @@ suite("planCompiler", () => {
         );
     });
 
+    test("an interrupted XEvent request gets an incomplete-capture reconciliation branch", () => {
+        const intent =
+            "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
+            "clone the WideWorldImporters staging database through a DACPAC into a SQL Server 2025 container, " +
+            "apply it, compare and visualize the schema, run scripts/workload.sql with full DMV and XEvent " +
+            "performance analysis, and produce a release candidate DACPAC. If the XEvent capture is interrupted, " +
+            "reconcile it and retain the partial XEL trace.";
+        const classified = classifyRunbookIntent(intent);
+        const rehearsalBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicEfModelComparison(rehearsalBase, intent);
+        if (!result || isProposalFailure(result)) {
+            throw new Error(result && isProposalFailure(result) ? result.detail : "no plan");
+        }
+
+        expect(result.artifact.lock?.nodes).to.have.length(47);
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "reconcile-capture"),
+        ).to.deep.include({
+            activityKind: "xevent.capture.reconcile",
+            inputs: {
+                database: "$nodes.provision-rehearsal-container.connectionRef",
+                session: "$nodes.start-capture.sessionRef",
+            },
+        });
+        expect(result.artifact.lock?.edges).to.deep.include.members([
+            {
+                from: "stop-capture",
+                to: "reconcile-capture",
+                when: "failure",
+            },
+            {
+                from: "stop-failed-capture",
+                to: "reconcile-capture",
+                when: "failure",
+            },
+            { from: "reconcile-capture", to: "analyze-reconciled-capture" },
+            { from: "collect-reconciled-capture", to: "dispose-rehearsal-container" },
+        ]);
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+    });
+
     test("a stop-before-rehearsal intent does not request migration application", () => {
         const classified = classifyRunbookIntent(
             "Compare Entity Framework changes, generate the migration DDL, analyze possible data loss, " +
