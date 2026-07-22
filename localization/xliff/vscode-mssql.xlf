@@ -9601,6 +9601,18 @@
     <trans-unit id="++CODE++ee33dcb49174e212fabe894df8373991cebe8d617d56b472934c7dcea6335b5b">
       <source xml:lang="en">The maximum length (in characters) that can be stored in this database object.</source>
     </trans-unit>
+    <trans-unit id="++CODE++f9e839826d2aaa46850894512844561d4f05dec867f457ce29638ac081b9e57c">
+      <source xml:lang="en">The migrated schema differs from the expected model in {0} migration-scope fact(s).</source>
+      <note>{0} is a schema difference count</note>
+    </trans-unit>
+    <trans-unit id="++CODE++4e0c2cf5d09a72cb2424ce31f2bd4ed66e8f99feb7ee4e800aa9614d3cec095e">
+      <source xml:lang="en">The migrated schema evidence is incomplete, invalid, or no longer belongs to this run.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e3e6cc752de946668becefedb902ceaaefa0d72ced8f1d414a575fa534cf466d">
+      <source xml:lang="en">The migrated schema matches the expected {0} model across {1} changed table(s).</source>
+      <note>{0} is head or base
+{1} is the number of migration-scope tables</note>
+    </trans-unit>
     <trans-unit id="++CODE++828c5945f21d90c2bccc1b0fb342a18c982139a430a47526ed9a9adb7d5a163f">
       <source xml:lang="en">The model could not produce a valid plan from this intent ({0}). Try rephrasing the intent.</source>
       <note>{0} is a technical validation detail</note>

@@ -407,6 +407,23 @@ export class RunbookStudio {
                 "{1} is the number of reviewed migration operations",
             ],
         });
+    public static efMigrationScopeConverged = (expectedState: string, tableCount: number) =>
+        l10n.t({
+            message:
+                "The migrated schema matches the expected {0} model across {1} changed table(s).",
+            args: [expectedState, tableCount],
+            comment: ["{0} is head or base", "{1} is the number of migration-scope tables"],
+        });
+    public static efMigrationScopeDriftDetected = (differenceCount: number) =>
+        l10n.t({
+            message:
+                "The migrated schema differs from the expected model in {0} migration-scope fact(s).",
+            args: [differenceCount],
+            comment: ["{0} is a schema difference count"],
+        });
+    public static efMigrationScopeInvalid = l10n.t(
+        "The migrated schema evidence is incomplete, invalid, or no longer belongs to this run.",
+    );
     public static efMigrationApplyCancelled = l10n.t(
         "Entity Framework migration application was cancelled.",
     );

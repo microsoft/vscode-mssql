@@ -996,6 +996,70 @@ function executeNode(
                 },
             };
         }
+        case "migration.scope.validate": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const migration = resolveBind(node.inputs?.migration, parameterValues, nodeValues);
+            const manifestDigest = resolveBind(
+                node.inputs?.manifestDigest,
+                parameterValues,
+                nodeValues,
+            );
+            const expectedState = resolveBind(
+                node.inputs?.expectedState,
+                parameterValues,
+                nodeValues,
+            );
+            if (
+                typeof database !== "string" ||
+                typeof migration !== "string" ||
+                typeof manifestDigest !== "string" ||
+                (expectedState !== "head" && expectedState !== "base")
+            ) {
+                return invalidPreviewBinding(
+                    "migration.scope.validate",
+                    "reviewed migration convergence inputs",
+                );
+            }
+            const comparisonSha256 = crypto
+                .createHash("sha256")
+                .update(`${migration}\0${manifestDigest}\0${expectedState}`)
+                .digest("hex");
+            return {
+                success: true,
+                verdict: "pass",
+                runMetrics: {
+                    "migration.converged": true,
+                    "migration.convergenceDifferenceCount": 0,
+                    "migration.convergenceScopeTableCount": 1,
+                    "migration.convergenceCheckedObjectCount": expectedState === "head" ? 4 : 0,
+                },
+                message: `Validated ${expectedState} migration scope (deterministic preview)`,
+                output: {
+                    contract: "migrationConvergence/1",
+                    columns: ["kind", "objectType", "path", "property", "expected", "actual"],
+                    rows: [],
+                    scalars: {
+                        schemaVersion: 1,
+                        expectedState,
+                        manifestSha256: manifestDigest,
+                        scopeTableCount: 1,
+                        checkedObjectCount: expectedState === "head" ? 4 : 0,
+                        differenceCount: 0,
+                        differencesTruncated: false,
+                        complete: true,
+                        converged: true,
+                        comparisonSha256,
+                        preview: true,
+                    },
+                },
+                values: {
+                    converged: true,
+                    differenceCount: 0,
+                    comparisonSha256,
+                    expectedState,
+                },
+            };
+        }
         case "git.change-set.inspect": {
             const repository = resolveBind(node.inputs?.repository, parameterValues, nodeValues);
             const baseRef = resolveBind(node.inputs?.baseRef, parameterValues, nodeValues);

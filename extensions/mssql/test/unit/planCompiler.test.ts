@@ -366,7 +366,7 @@ suite("planCompiler", () => {
             throw new Error(result && isProposalFailure(result) ? result.detail : "no plan");
         }
 
-        expect(result.artifact.lock?.nodes).to.have.length(20);
+        expect(result.artifact.lock?.nodes).to.have.length(22);
         expect(
             result.artifact.lock?.nodes
                 .filter((node) => node.activityKind === "migration.apply")
@@ -378,10 +378,16 @@ suite("planCompiler", () => {
                 .map((node) => node.id),
         ).to.deep.equal(["visualize-forward-schema", "visualize-rollback-schema"]);
         expect(
+            result.artifact.lock?.nodes
+                .filter((node) => node.activityKind === "migration.scope.validate")
+                .map((node) => node.inputs?.expectedState),
+        ).to.deep.equal(["head", "base"]);
+        expect(
             classified.requirements.activities.map((activity) => activity.kind),
         ).to.include.members([
             "migration.script.generate",
             "migration.apply",
+            "migration.scope.validate",
             "sql.container.provision",
             "database.schema.visualize",
             "sql.container.dispose",
@@ -394,6 +400,14 @@ suite("planCompiler", () => {
         forward.inputs!.forwardScriptDigest = "$nodes.generate-migration.rollbackScriptSha256";
         expect(validateLockAgainstCatalog(result.artifact.lock!).join(" ")).to.contain(
             "must bind one upstream migration reference and all reviewed digests",
+        );
+
+        const validation = result.artifact.lock!.nodes.find(
+            (node) => node.id === "validate-forward-migration",
+        )!;
+        validation.inputs!.expectedState = "base";
+        expect(validateLockAgainstCatalog(result.artifact.lock!).join(" ")).to.contain(
+            "must follow a matching forward/head or rollback/base migration apply",
         );
     });
 

@@ -57,6 +57,7 @@ import type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
 import type { LocalEfRelationalDiff, LocalEfRelationalModel } from "./localEfRelationalModel";
 import type { LocalEfMigrationRiskDocument } from "./localEfMigrationRisk";
 import type { LocalEfMigrationManifest } from "./localEfMigrationGenerator";
+import type { LocalEfMigrationConvergenceResult } from "./localEfMigrationConvergence";
 
 export type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot";
 export type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
@@ -120,6 +121,10 @@ export interface LocalEfMigrationApplyResult {
     completedAtUtc: string;
 }
 
+export interface LocalEfMigrationConvergenceExecutionResult {
+    result: LocalEfMigrationConvergenceResult;
+}
+
 export { isReadOnlySql } from "../readOnlySql";
 
 /** Injected host operations (real implementations wire ConnectionManager +
@@ -178,6 +183,14 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalEfMigrationApplyResult>;
+    verifyEfMigrationScope(
+        databaseRef: string,
+        migrationRef: string,
+        manifestDigest: string,
+        expectedState: "head" | "base",
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEfMigrationConvergenceExecutionResult>;
     inspectGitChangeSet(
         nodeId: string,
         repository: string,
@@ -683,6 +696,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "migration.data-loss.analyze",
         "migration.script.generate",
         "migration.apply",
+        "migration.scope.validate",
         "sqltest.discover",
         "tsqlt.run",
         "dacpac.build",
@@ -745,6 +759,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.generateEfMigration(node, binding);
             case "migration.apply":
                 return this.applyEfMigration(node, binding);
+            case "migration.scope.validate":
+                return this.verifyEfMigrationScope(node, binding);
             case "sqltest.discover":
                 return this.discoverSqlTests(binding);
             case "tsqlt.run":
@@ -1352,6 +1368,84 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     scriptSha256: result.scriptSha256,
                     operationCount: result.operationCount,
                     durationMs: result.durationMs,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async verifyEfMigrationScope(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        const migrationRef = binding.resolveBind(node.inputs?.migration);
+        const manifestDigest = binding.resolveBind(node.inputs?.manifestDigest);
+        const expectedState = binding.resolveBind(node.inputs?.expectedState);
+        for (const [name, value] of Object.entries({
+            database: databaseRef,
+            migration: migrationRef,
+            manifestDigest,
+        })) {
+            if (typeof value !== "string" || value.trim().length === 0) {
+                return invalidBinding(name);
+            }
+        }
+        if (expectedState !== "head" && expectedState !== "base") {
+            return invalidBinding("expectedState");
+        }
+        try {
+            const { result } = await this.operations.verifyEfMigrationScope(
+                databaseRef as string,
+                migrationRef as string,
+                manifestDigest as string,
+                expectedState,
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            const { differences, ...summary } = result;
+            return {
+                success: result.converged,
+                verdict: result.converged ? "pass" : "fail",
+                runMetrics: {
+                    "migration.converged": result.converged,
+                    "migration.convergenceDifferenceCount": result.differenceCount,
+                    "migration.convergenceScopeTableCount": result.scopeTableCount,
+                    "migration.convergenceCheckedObjectCount": result.checkedObjectCount,
+                },
+                message: result.converged
+                    ? LocRunbookStudio.efMigrationScopeConverged(
+                          result.expectedState,
+                          result.scopeTableCount,
+                      )
+                    : LocRunbookStudio.efMigrationScopeDriftDetected(result.differenceCount),
+                ...(!result.converged ? { errorCode: "RunbookStudio.SchemaDriftDetected" } : {}),
+                output: {
+                    contract: "migrationConvergence/1",
+                    columns: ["kind", "objectType", "path", "property", "expected", "actual"],
+                    rows: differences.map((difference) => [
+                        difference.kind,
+                        difference.objectType,
+                        difference.path,
+                        difference.property,
+                        difference.expected,
+                        difference.actual,
+                    ]),
+                    scalars: {
+                        ...summary,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    converged: result.converged,
+                    differenceCount: result.differenceCount,
+                    comparisonSha256: result.comparisonSha256,
+                    expectedState: result.expectedState,
                 },
             };
         } catch (error) {

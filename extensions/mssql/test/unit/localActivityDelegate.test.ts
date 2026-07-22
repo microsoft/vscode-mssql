@@ -173,6 +173,28 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             durationMs: 25,
             completedAtUtc: "2026-07-22T12:00:00.000Z",
         }),
+        verifyEfMigrationScope: async (
+            _databaseRef,
+            _migrationRef,
+            manifestDigest,
+            expectedState,
+        ) => ({
+            result: {
+                schemaVersion: 1,
+                expectedState,
+                expectedModelSha256: "a".repeat(64),
+                manifestSha256: manifestDigest,
+                scopeTableCount: 1,
+                checkedObjectCount: expectedState === "head" ? 3 : 0,
+                differenceCount: 0,
+                differences: [],
+                differencesTruncated: false,
+                complete: true,
+                converged: true,
+                comparisonSha256: "b".repeat(64),
+                verifiedAtUtc: "2026-07-22T12:00:01.000Z",
+            },
+        }),
         capturePerformanceSnapshot: async () => ({
             snapshotRef: "runbook-performance-snapshot:before",
             capturedAtUtc: "2026-07-22T08:00:00.000Z",
@@ -858,6 +880,46 @@ suite("Runbook Studio local activity delegate", () => {
             executionMode: "local",
         });
         expect(JSON.stringify(result?.output)).not.to.match(/\b(?:CREATE|ALTER|DROP)\s/i);
+    });
+
+    test("migration-scope validation emits typed STS v2 convergence evidence", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+
+        const result = await delegate.executeActivity(
+            activity("migration.scope.validate", {
+                database: "runbook-sql-container-lease:owned",
+                migration: "runbook-ef-migration:run-1",
+                manifestDigest: "a".repeat(64),
+                expectedState: "head",
+            }),
+            binding(),
+        );
+
+        expect(result?.success).to.equal(true);
+        expect(result?.verdict).to.equal("pass");
+        expect(result?.output?.contract).to.equal("migrationConvergence/1");
+        expect(result?.output?.columns).to.deep.equal([
+            "kind",
+            "objectType",
+            "path",
+            "property",
+            "expected",
+            "actual",
+        ]);
+        expect(result?.output?.scalars).to.deep.include({
+            expectedState: "head",
+            scopeTableCount: 1,
+            checkedObjectCount: 3,
+            differenceCount: 0,
+            converged: true,
+            executionMode: "local",
+        });
+        expect(result?.values).to.deep.equal({
+            converged: true,
+            differenceCount: 0,
+            comparisonSha256: "b".repeat(64),
+            expectedState: "head",
+        });
     });
 
     test("repository test discovery emits bounded typed rows and completeness", async () => {
@@ -1982,6 +2044,7 @@ suite("Runbook Studio local activity delegate", () => {
             "migration.data-loss.analyze",
             "migration.script.generate",
             "migration.apply",
+            "migration.scope.validate",
             "sqltest.discover",
             "tsqlt.run",
             "dacpac.build",

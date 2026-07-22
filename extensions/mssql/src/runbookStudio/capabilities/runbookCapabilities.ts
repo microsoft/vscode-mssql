@@ -170,6 +170,13 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         providerRequirement: "execution",
         outputContract: "migrationExecution/1",
     },
+    "migration.scope.validate": {
+        target: "ephemeralSqlDatabase",
+        effect: "read",
+        connectionRequirement: "provisioned",
+        providerRequirement: "execution",
+        outputContract: "migrationConvergence/1",
+    },
     "migration.data-loss.analyze": {
         target: "workspace",
         effect: "read",
@@ -494,6 +501,11 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         description:
             "Execute only the approved migration digest against the same-run disposable SQL target.",
     },
+    "migration.scope.validate": {
+        label: "Validate the migrated schema scope",
+        description:
+            "Compare every table touched by the reviewed migration with the exact expected EF model through the STS v2 catalog data plane.",
+    },
     "migration.data-loss.analyze": {
         label: "Analyze migration data-loss risk",
         description:
@@ -714,6 +726,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "migration.data-loss.analyze",
         "migration.script.generate",
         "migration.apply",
+        "migration.scope.validate",
         "workspace.inspect",
         "sqltest.discover",
         "dbproject.create",
@@ -761,6 +774,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "migration.data-loss.analyze",
         "migration.script.generate",
         "migration.apply",
+        "migration.scope.validate",
         "workspace.inspect",
         "sqltest.discover",
         "dacpac.build",
@@ -837,6 +851,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "migration.data-loss.analyze",
         "migration.script.generate",
         "migration.apply",
+        "migration.scope.validate",
         "workspace.inspect",
         "sqltest.discover",
         "dbproject.create",
@@ -1048,6 +1063,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     }
     if (requestsMigrationApplication) {
         requested.add("migration.apply");
+        requested.add("migration.scope.validate");
     }
     // Script generation consumes the factual risk document even when the
     // author did not spell out "data loss". Keep the declared capability

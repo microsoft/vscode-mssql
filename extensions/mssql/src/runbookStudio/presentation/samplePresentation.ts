@@ -218,6 +218,11 @@ function sampleRows(contract: string): {
                     ["2026-07-21T09:00:01Z", "sql_batch_completed", 21.1, 5.1, 42],
                 ],
             };
+        case "migrationConvergence/1":
+            return {
+                columns: ["kind", "objectType", "path", "property", "expected", "actual"],
+                rows: [],
+            };
         case "performanceMetrics/1":
             return {
                 columns: ["metric", "value", "unit"],

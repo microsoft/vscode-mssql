@@ -290,6 +290,7 @@ export function compileDeterministicEfModelComparison(
     const requestedMigrationRisk = required.includes("migration.data-loss.analyze");
     const generateMigration = required.includes("migration.script.generate");
     const applyMigration = required.includes("migration.apply");
+    const validateMigrationScope = required.includes("migration.scope.validate");
     const provisionContainer = required.includes("sql.container.provision");
     const disposeContainer = required.includes("sql.container.dispose");
     const visualizeSchema = required.includes("database.schema.visualize");
@@ -297,6 +298,7 @@ export function compileDeterministicEfModelComparison(
     const analyzeMigrationRisk = requestedMigrationRisk || generateMigration;
     const optionalRehearsalActivities = new Set([
         "migration.apply",
+        "migration.scope.validate",
         "sql.container.provision",
         "sql.container.dispose",
         "database.schema.visualize",
@@ -307,6 +309,7 @@ export function compileDeterministicEfModelComparison(
                 (requestedMigrationRisk ? 1 : 0) +
                 (generateMigration ? 1 : 0) +
                 (applyMigration ? 1 : 0) +
+                (validateMigrationScope ? 1 : 0) +
                 (provisionContainer ? 1 : 0) +
                 (disposeContainer ? 1 : 0) +
                 (visualizeSchema ? 1 : 0) ||
@@ -320,8 +323,10 @@ export function compileDeterministicEfModelComparison(
         (applyMigration &&
             (!generateMigration ||
                 !requestedMigrationRisk ||
+                !validateMigrationScope ||
                 !provisionContainer ||
                 !disposeContainer)) ||
+        (validateMigrationScope && !applyMigration) ||
         (visualizeSchema && !applyMigration) ||
         !/\b(entity\s*framework|entityframework|ef\s*core|dbcontext|entities)\b/i.test(intent)
     ) {
@@ -553,6 +558,23 @@ export function compileDeterministicEfModelComparison(
                               timeoutSeconds: "$params.migrationTimeoutSeconds",
                           },
                       },
+                      ...(validateMigrationScope
+                          ? [
+                                {
+                                    id: "validate-forward-migration",
+                                    label: "Validate forward migration schema scope",
+                                    kind: "activity" as const,
+                                    activityKind: "migration.scope.validate",
+                                    inputs: {
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        migration: "$nodes.generate-migration.migrationRef",
+                                        manifestDigest: "$nodes.generate-migration.manifestSha256",
+                                        expectedState: "head",
+                                    },
+                                },
+                            ]
+                          : []),
                       ...(visualizeSchema
                           ? [
                                 {
@@ -592,6 +614,25 @@ export function compileDeterministicEfModelComparison(
                                         timeoutSeconds: "$params.migrationTimeoutSeconds",
                                     },
                                 },
+                                ...(validateMigrationScope
+                                    ? [
+                                          {
+                                              id: "validate-rollback-migration",
+                                              label: "Validate rollback migration schema scope",
+                                              kind: "activity" as const,
+                                              activityKind: "migration.scope.validate",
+                                              inputs: {
+                                                  database:
+                                                      "$nodes.provision-rehearsal-container.connectionRef",
+                                                  migration:
+                                                      "$nodes.generate-migration.migrationRef",
+                                                  manifestDigest:
+                                                      "$nodes.generate-migration.manifestSha256",
+                                                  expectedState: "base",
+                                              },
+                                          },
+                                      ]
+                                    : []),
                                 ...(visualizeSchema
                                     ? [
                                           {
@@ -700,17 +741,40 @@ export function compileDeterministicEfModelComparison(
                       },
                       {
                           from: "apply-forward-migration",
-                          to: visualizeSchema
-                              ? "visualize-forward-schema"
-                              : rehearseRollback
-                                ? "approve-rollback-migration"
-                                : "dispose-rehearsal-container",
+                          to: validateMigrationScope
+                              ? "validate-forward-migration"
+                              : visualizeSchema
+                                ? "visualize-forward-schema"
+                                : rehearseRollback
+                                  ? "approve-rollback-migration"
+                                  : "dispose-rehearsal-container",
                       },
                       {
                           from: "apply-forward-migration",
                           to: "dispose-rehearsal-container",
                           when: "failure" as const,
                       },
+                      ...(validateMigrationScope
+                          ? [
+                                {
+                                    from: "validate-forward-migration",
+                                    to: visualizeSchema
+                                        ? "visualize-forward-schema"
+                                        : rehearseRollback
+                                          ? "approve-rollback-migration"
+                                          : "dispose-rehearsal-container",
+                                },
+                                {
+                                    from: "validate-forward-migration",
+                                    to: visualizeSchema
+                                        ? "visualize-forward-schema"
+                                        : rehearseRollback
+                                          ? "approve-rollback-migration"
+                                          : "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                            ]
+                          : []),
                       ...(visualizeSchema
                           ? [
                                 {
@@ -742,9 +806,11 @@ export function compileDeterministicEfModelComparison(
                                 },
                                 {
                                     from: "apply-rollback-migration",
-                                    to: visualizeSchema
-                                        ? "visualize-rollback-schema"
-                                        : "dispose-rehearsal-container",
+                                    to: validateMigrationScope
+                                        ? "validate-rollback-migration"
+                                        : visualizeSchema
+                                          ? "visualize-rollback-schema"
+                                          : "dispose-rehearsal-container",
                                 },
                                 {
                                     from: "apply-rollback-migration",
@@ -753,6 +819,23 @@ export function compileDeterministicEfModelComparison(
                                         : "dispose-rehearsal-container",
                                     when: "failure" as const,
                                 },
+                                ...(validateMigrationScope
+                                    ? [
+                                          {
+                                              from: "validate-rollback-migration",
+                                              to: visualizeSchema
+                                                  ? "visualize-rollback-schema"
+                                                  : "dispose-rehearsal-container",
+                                          },
+                                          {
+                                              from: "validate-rollback-migration",
+                                              to: visualizeSchema
+                                                  ? "visualize-rollback-schema"
+                                                  : "dispose-rehearsal-container",
+                                              when: "failure" as const,
+                                          },
+                                      ]
+                                    : []),
                                 ...(visualizeSchema
                                     ? [
                                           {

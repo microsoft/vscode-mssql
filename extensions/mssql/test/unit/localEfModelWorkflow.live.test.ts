@@ -227,12 +227,13 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 uri: document.uri.toString(),
                 intent: REHEARSAL_INTENT,
             });
-            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 20 });
+            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 22 });
             expect(
                 compile.activityKinds?.filter((kind) => kind === "migration.apply"),
             ).to.have.length(2);
             expect(compile.activityKinds).to.include.members([
                 "migration.script.generate",
+                "migration.scope.validate",
                 "sql.container.provision",
                 "database.schema.visualize",
                 "sql.container.dispose",
@@ -269,7 +270,7 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
             });
 
             expect(run, JSON.stringify(run)).to.include({ state: "succeeded", verdict: "pass" });
-            expect(run.nodeStates).to.have.length(20);
+            expect(run.nodeStates).to.have.length(22);
             expect(run.nodeStates?.every((node) => node.state === "succeeded")).to.equal(true);
             expect(
                 run.nodeStates?.find((node) => node.nodeId === "apply-forward-migration")?.message,
@@ -277,6 +278,14 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
             expect(
                 run.nodeStates?.find((node) => node.nodeId === "apply-rollback-migration")?.message,
             ).to.match(/^Applied the rollback migration/);
+            expect(
+                run.nodeStates?.find((node) => node.nodeId === "validate-forward-migration")
+                    ?.message,
+            ).to.match(/^The migrated schema matches the expected head model/);
+            expect(
+                run.nodeStates?.find((node) => node.nodeId === "validate-rollback-migration")
+                    ?.message,
+            ).to.match(/^The migrated schema matches the expected base model/);
             expect(
                 run.nodeStates?.find((node) => node.nodeId === "visualize-forward-schema")
                     ?.outputCount,

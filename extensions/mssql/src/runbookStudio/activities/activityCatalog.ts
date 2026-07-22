@@ -429,6 +429,61 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "migration.scope.validate",
+        version: 1,
+        label: "Validate migrated schema scope",
+        description:
+            "Reads SQL catalog metadata through the STS v2 data plane and compares every table touched by the same-run reviewed migration with its exact head or base EF relational model.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to sql.container.provision connectionRef",
+            },
+            {
+                name: "migration",
+                kind: "bind",
+                required: true,
+                description: "Bind to migration.script.generate migrationRef",
+            },
+            {
+                name: "manifestDigest",
+                kind: "bind",
+                required: true,
+                description: "Bind to migration.script.generate manifestSha256",
+            },
+            {
+                name: "expectedState",
+                kind: "bind",
+                required: true,
+                description:
+                    "Exact expected state: head after forward apply or base after rollback",
+            },
+        ],
+        outputContract: "migrationConvergence/1",
+        outputSchema: {
+            fields: [
+                { name: "kind", valueType: "string", roles: ["category"] },
+                { name: "objectType", valueType: "string", roles: ["category"] },
+                { name: "path", valueType: "string", roles: ["label"] },
+                { name: "property", valueType: "string", roles: ["category"] },
+                { name: "expected", valueType: "string" },
+                { name: "actual", valueType: "string" },
+            ],
+        },
+        producedValues: ["converged", "differenceCount", "comparisonSha256", "expectedState"],
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseSchema",
+            operation: "read",
+            targetEnvironment: "ephemeral",
+            reversibility: "noEffect",
+            breadth: "bounded",
+            dataSensitivity: "internal",
+        },
+    },
+    {
         kind: "sqltest.discover",
         version: 1,
         label: "Discover repository SQL tests",
@@ -1848,6 +1903,7 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                     descriptor.kind === "performance.dmv.snapshot" ||
                     descriptor.kind === "performance.dmv.delta" ||
                     descriptor.kind === "migration.apply" ||
+                    descriptor.kind === "migration.scope.validate" ||
                     descriptor.kind === "sql.container.dispose";
                 const producerKind = containerActivity
                     ? "sql.container.provision"
@@ -2049,6 +2105,28 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                     `node '${node.id}' must bind one upstream migration reference and all reviewed digests`,
                 );
             }
+            if (
+                descriptor.kind === "migration.scope.validate" &&
+                (!isUpstreamActivityOutput(
+                    lock,
+                    node,
+                    "migration",
+                    "migrationRef",
+                    "migration.script.generate",
+                ) ||
+                    !isUpstreamActivityOutput(
+                        lock,
+                        node,
+                        "manifestDigest",
+                        "manifestSha256",
+                        "migration.script.generate",
+                    ) ||
+                    !hasMatchingUpstreamMigrationApply(lock, node))
+            ) {
+                issues.push(
+                    `node '${node.id}' must follow a matching forward/head or rollback/base migration apply and bind its reviewed migration inputs`,
+                );
+            }
         }
         if (descriptor.approvalRequired) {
             const approvingGates = lock.edges
@@ -2122,21 +2200,9 @@ function hasUpstreamDeploymentForSameTarget(
         ) {
             return false;
         }
-        const visited = new Set<string>([candidate.id]);
-        const pending = [candidate.id];
-        while (pending.length > 0) {
-            const current = pending.shift()!;
-            for (const edge of lock.edges.filter((item) => item.from === current)) {
-                if (edge.to === node.id) {
-                    return true;
-                }
-                if (!visited.has(edge.to)) {
-                    visited.add(edge.to);
-                    pending.push(edge.to);
-                }
-            }
-        }
-        return false;
+        return lock.edges.some(
+            (edge) => edge.from === candidate.id && edge.to === node.id && edge.when === undefined,
+        );
     });
 }
 
@@ -2206,6 +2272,45 @@ function isUpstreamActivityOutput(
         }
     }
     return false;
+}
+
+function hasMatchingUpstreamMigrationApply(
+    lock: CompiledRunbookLock,
+    node: RunbookPlanNode,
+): boolean {
+    const expectedState = node.inputs?.expectedState;
+    const expectedDirection =
+        expectedState === "head" ? "forward" : expectedState === "base" ? "rollback" : undefined;
+    if (!expectedDirection) {
+        return false;
+    }
+    return lock.nodes.some((candidate) => {
+        if (
+            candidate.kind !== "activity" ||
+            candidate.activityKind !== "migration.apply" ||
+            candidate.inputs?.direction !== expectedDirection ||
+            candidate.inputs?.migration !== node.inputs?.migration ||
+            candidate.inputs?.manifestDigest !== node.inputs?.manifestDigest ||
+            candidate.inputs?.database !== node.inputs?.database
+        ) {
+            return false;
+        }
+        const visited = new Set<string>([candidate.id]);
+        const pending = [candidate.id];
+        while (pending.length > 0) {
+            const current = pending.shift()!;
+            for (const edge of lock.edges.filter((item) => item.from === current)) {
+                if (edge.to === node.id) {
+                    return true;
+                }
+                if (!visited.has(edge.to)) {
+                    visited.add(edge.to);
+                    pending.push(edge.to);
+                }
+            }
+        }
+        return false;
+    });
 }
 
 const PARAMETER_BIND = /^\$params\.([A-Za-z0-9_-]+)$/;

@@ -105,6 +105,7 @@ import {
     LocalDacpacExtractionResult,
     LocalDevelopmentDatabaseLeaseResult,
     LocalEfMigrationApplyResult,
+    LocalEfMigrationConvergenceExecutionResult,
     LocalEfMigrationExecutionResult,
     LocalEfRelationalDiffExecutionResult,
     LocalEfMigrationRiskExecutionResult,
@@ -236,6 +237,13 @@ import {
     parseLocalEfRenameDecisions,
     type LocalEfMigrationManifest,
 } from "./runtime/localEfMigrationGenerator";
+import {
+    LOCAL_EF_SCHEMA_SCOPE_SQL,
+    LocalEfMigrationConvergenceError,
+    MAX_LOCAL_EF_SCHEMA_ROWS,
+    projectLocalEfLiveSchema,
+    verifyLocalEfMigrationScope,
+} from "./runtime/localEfMigrationConvergence";
 import type { IConnectionProfileWithSource } from "../models/interfaces";
 import {
     buildTransactionalCreateTableSql,
@@ -457,6 +465,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         {
             runId: string;
             manifest: LocalEfMigrationManifest;
+            base: LocalEfRelationalModel;
+            head: LocalEfRelationalModel;
             forwardScriptPath: string;
             rollbackScriptPath: string;
         }
@@ -2640,6 +2650,22 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             rollbackScriptDigest,
                             direction,
                             timeoutSeconds,
+                            invocation,
+                            cancelled,
+                        ),
+                    verifyEfMigrationScope: (
+                        databaseRef,
+                        migrationRef,
+                        manifestDigest,
+                        expectedState,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.verifyLocalEfMigrationScope(
+                            databaseRef,
+                            migrationRef,
+                            manifestDigest,
+                            expectedState,
                             invocation,
                             cancelled,
                         ),
@@ -6781,6 +6807,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             this.efMigrations.set(migrationRef, {
                 runId: invocation.runId,
                 manifest: proposal.manifest,
+                base: source.base,
+                head: source.head,
                 forwardScriptPath,
                 rollbackScriptPath,
             });
@@ -7052,6 +7080,76 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     // The effect ledger and owned-container cleanup remain authoritative.
                 }
             }
+        }
+    }
+
+    private async verifyLocalEfMigrationScope(
+        databaseRef: string,
+        migrationRef: string,
+        manifestDigest: string,
+        expectedState: "head" | "base",
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEfMigrationConvergenceExecutionResult> {
+        const owned = await this.requireOwnedContainerTarget(databaseRef, invocation.runId);
+        const migration = this.efMigrations.get(migrationRef);
+        if (
+            !migration ||
+            migration.runId !== invocation.runId ||
+            !/^runbook-ef-migration:[A-Za-z0-9_-]{1,160}:[a-f0-9]{64}:[a-f0-9-]{36}$/i.test(
+                migrationRef,
+            ) ||
+            migration.manifest.manifestSha256 !== manifestDigest
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.efMigrationScopeInvalid,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        const resolved = await this.resolveRunbookConnection(databaseRef);
+        if (!resolved.container || resolved.container.effectId !== owned.containerEffectId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.workloadOwnedContainerRequired,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        const prepared = this.prepareLocalDataPlaneConnection(
+            resolved.profile,
+            resolved.targetDatabase,
+        );
+        try {
+            const rawRows = await runRunbookDataPlaneQuery({
+                prepared,
+                database: resolved.targetDatabase,
+                applicationName: "vscode-mssql-runbook-migration-convergence",
+                sql: LOCAL_EF_SCHEMA_SCOPE_SQL,
+                tag: "runbook.migration.convergence",
+                isCancellationRequested,
+                maxRows: MAX_LOCAL_EF_SCHEMA_ROWS,
+            });
+            const result = verifyLocalEfMigrationScope({
+                expectedState,
+                expected: expectedState === "head" ? migration.head : migration.base,
+                manifest: migration.manifest,
+                live: projectLocalEfLiveSchema(rawRows),
+            });
+            return { result };
+        } catch (error) {
+            if (error instanceof RunbookDataPlaneQueryError) {
+                throw new LocalActivityError(
+                    error.message,
+                    error.code === "cancelled"
+                        ? "RunbookStudio.ActivityCancelled"
+                        : "RunbookStudio.ActivityFailed",
+                );
+            }
+            if (error instanceof LocalEfMigrationConvergenceError) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.efMigrationScopeInvalid,
+                    "RunbookStudio.ActivityFailed",
+                );
+            }
+            throw error;
         }
     }
 

@@ -232,6 +232,15 @@
             "{1} is the number of reviewed migration operations"
         ]
     },
+    "The migrated schema matches the expected {0} model across {1} changed table(s)./{0} is head or base{1} is the number of migration-scope tables": {
+        "message": "The migrated schema matches the expected {0} model across {1} changed table(s).",
+        "comment": ["{0} is head or base", "{1} is the number of migration-scope tables"]
+    },
+    "The migrated schema differs from the expected model in {0} migration-scope fact(s)./{0} is a schema difference count": {
+        "message": "The migrated schema differs from the expected model in {0} migration-scope fact(s).",
+        "comment": ["{0} is a schema difference count"]
+    },
+    "The migrated schema evidence is incomplete, invalid, or no longer belongs to this run.": "The migrated schema evidence is incomplete, invalid, or no longer belongs to this run.",
     "Entity Framework migration application was cancelled.": "Entity Framework migration application was cancelled.",
     "The reviewed Entity Framework migration could not be applied.": "The reviewed Entity Framework migration could not be applied.",
     "The reviewed Entity Framework migration artifact changed before execution.": "The reviewed Entity Framework migration artifact changed before execution.",
