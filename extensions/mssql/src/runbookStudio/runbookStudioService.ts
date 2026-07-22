@@ -112,6 +112,7 @@ import {
     LocalPerformanceDeltaResult,
     LocalPerformanceSnapshotExecutionResult,
     LocalPerformanceSnapshotResult,
+    LocalSchemaFingerprintExecutionResult,
     LocalXelArtifactResult,
     LocalXeventAnalysisResult,
     LocalXeventCaptureResult,
@@ -130,6 +131,7 @@ import {
     projectLocalPerformanceSnapshot,
 } from "./runtime/localPerformanceSnapshot";
 import { compareLocalPerformanceSnapshots } from "./runtime/localPerformanceDelta";
+import type { RunbookSchemaFingerprintDocument } from "../sharedInterfaces/runbookSchemaFingerprint";
 import {
     buildLocalEvidenceBundle,
     type LocalEvidenceBundleResult,
@@ -395,6 +397,16 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             snapshot: LocalPerformanceSnapshotResult;
         }
     >();
+    /** Same-run opaque schema identities used only for factual performance
+     * comparability. Object metadata stays in the STS v2 store. */
+    private readonly schemaFingerprints = new Map<
+        string,
+        {
+            runId: string;
+            containerEffectId: string;
+            document: RunbookSchemaFingerprintDocument;
+        }
+    >();
 
     private readonly storageRoot: string;
     /** Library-global persistence root (ledger + results). Run history must
@@ -475,6 +487,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         this.workloadPreviews.clear();
         this.xeventCaptures.clear();
         this.performanceSnapshots.clear();
+        this.schemaFingerprints.clear();
         void this.adapter?.dispose();
         if (this.hobbesAdapter && this.hobbesAdapter !== this.adapter) {
             void this.hobbesAdapter.dispose();
@@ -2639,10 +2652,14 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         this.analyzeLocalXel(databaseRef, captureRef, invocation, cancelled),
                     capturePerformanceSnapshot: (databaseRef, invocation, cancelled) =>
                         this.captureLocalPerformanceSnapshot(databaseRef, invocation, cancelled),
+                    captureSchemaFingerprint: (databaseRef, invocation, cancelled) =>
+                        this.captureLocalSchemaFingerprint(databaseRef, invocation, cancelled),
                     comparePerformanceSnapshots: (
                         databaseRef,
                         beforeSnapshotRef,
                         afterSnapshotRef,
+                        beforeSchemaFingerprintRef,
+                        afterSchemaFingerprintRef,
                         invocation,
                         cancelled,
                     ) =>
@@ -2650,6 +2667,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             databaseRef,
                             beforeSnapshotRef,
                             afterSnapshotRef,
+                            beforeSchemaFingerprintRef,
+                            afterSchemaFingerprintRef,
                             invocation,
                             cancelled,
                         ),
@@ -4378,6 +4397,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         databaseRef: string,
         beforeSnapshotRef: string,
         afterSnapshotRef: string,
+        beforeSchemaFingerprintRef: string,
+        afterSchemaFingerprintRef: string,
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalPerformanceDeltaResult> {
@@ -4390,27 +4411,87 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const owned = await this.requireOwnedContainerTarget(databaseRef, invocation.runId);
         const before = this.performanceSnapshots.get(beforeSnapshotRef);
         const after = this.performanceSnapshots.get(afterSnapshotRef);
+        const beforeSchema = this.schemaFingerprints.get(beforeSchemaFingerprintRef);
+        const afterSchema = this.schemaFingerprints.get(afterSchemaFingerprintRef);
         if (
             !before ||
             !after ||
+            !beforeSchema ||
+            !afterSchema ||
             before.runId !== invocation.runId ||
             after.runId !== invocation.runId ||
             before.containerEffectId !== owned.containerEffectId ||
             after.containerEffectId !== owned.containerEffectId ||
-            beforeSnapshotRef === afterSnapshotRef
+            beforeSchema.runId !== invocation.runId ||
+            afterSchema.runId !== invocation.runId ||
+            beforeSchema.containerEffectId !== owned.containerEffectId ||
+            afterSchema.containerEffectId !== owned.containerEffectId ||
+            beforeSnapshotRef === afterSnapshotRef ||
+            beforeSchemaFingerprintRef === afterSchemaFingerprintRef
         ) {
             throw new LocalActivityError(
-                LocRunbookStudio.performanceSnapshotReferenceInvalid,
+                LocRunbookStudio.performanceComparisonReferenceInvalid,
                 "RunbookStudio.TargetChanged",
             );
         }
         try {
-            return compareLocalPerformanceSnapshots(before.snapshot, after.snapshot);
+            return compareLocalPerformanceSnapshots(before.snapshot, after.snapshot, {
+                beforeSchemaSha256: beforeSchema.document.schemaSha256,
+                afterSchemaSha256: afterSchema.document.schemaSha256,
+                beforeComplete: beforeSchema.document.complete,
+                afterComplete: afterSchema.document.complete,
+            });
         } catch {
             throw new LocalActivityError(
                 LocRunbookStudio.performanceSnapshotInvalid,
                 "RunbookStudio.ActivityFailed",
             );
+        }
+    }
+
+    private async captureLocalSchemaFingerprint(
+        databaseRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSchemaFingerprintExecutionResult> {
+        const owned = await this.requireOwnedContainerTarget(databaseRef, invocation.runId);
+        const resolved = await this.resolveRunbookConnection(databaseRef);
+        const prepared = this.prepareLocalDataPlaneConnection(
+            resolved.profile,
+            resolved.targetDatabase,
+        );
+        try {
+            const provider = new MetadataStoreRunbookSchemaGraphProvider(
+                MetadataStoreService.get().store(),
+            );
+            const document = await provider.fingerprint({
+                prepared,
+                database: resolved.targetDatabase,
+                isCancellationRequested,
+            });
+            if (this.schemaFingerprints.size >= 64) {
+                const oldestRef = this.schemaFingerprints.keys().next().value;
+                if (typeof oldestRef === "string") {
+                    this.schemaFingerprints.delete(oldestRef);
+                }
+            }
+            const fingerprintRef = `runbook-schema-fingerprint:${crypto.randomUUID()}`;
+            this.schemaFingerprints.set(fingerprintRef, {
+                runId: invocation.runId,
+                containerEffectId: owned.containerEffectId,
+                document,
+            });
+            return { document, fingerprintRef };
+        } catch (error) {
+            if (error instanceof RunbookSchemaGraphProviderError) {
+                throw new LocalActivityError(
+                    error.message,
+                    error.code === "cancelled"
+                        ? "RunbookStudio.ActivityCancelled"
+                        : "RunbookStudio.ActivityFailed",
+                );
+            }
+            throw error;
         }
     }
 
@@ -5556,6 +5637,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         for (const [snapshotRef, snapshot] of this.performanceSnapshots) {
             if (snapshot.containerEffectId === effectId) {
                 this.performanceSnapshots.delete(snapshotRef);
+            }
+        }
+        for (const [fingerprintRef, fingerprint] of this.schemaFingerprints) {
+            if (fingerprint.containerEffectId === effectId) {
+                this.schemaFingerprints.delete(fingerprintRef);
             }
         }
         if (snapshot.state === "cleanupStarted") {

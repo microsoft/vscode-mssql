@@ -116,5 +116,8 @@ suite("complex developer workflow capability matrix", () => {
         expect(classified.requirements.activities.map((activity) => activity.kind)).to.include(
             "performance.dmv.snapshot",
         );
+        expect(classified.requirements.activities.map((activity) => activity.kind)).to.include(
+            "database.schema.fingerprint",
+        );
     });
 });

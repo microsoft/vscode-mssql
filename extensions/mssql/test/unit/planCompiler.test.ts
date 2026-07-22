@@ -132,7 +132,7 @@ suite("planCompiler", () => {
         if (isProposalFailure(result)) {
             throw new Error(result.detail);
         }
-        expect(result.artifact.lock?.nodes).to.have.length(16);
+        expect(result.artifact.lock?.nodes).to.have.length(18);
         expect(result.artifact.lock?.entryNodeId).to.equal("generate-workload");
         expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
         const activityKinds = result.artifact.lock?.nodes
@@ -172,6 +172,10 @@ suite("planCompiler", () => {
             result.artifact.lock?.nodes.find((node) => node.id === "run-workload")?.inputs,
         ).to.include({ repetitions: "$params.repetitions" });
         expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "schema-fingerprint-before")
+                ?.inputs,
+        ).to.deep.equal({ database: "$nodes.provision.connectionRef" });
+        expect(
             result.artifact.lock?.nodes.find((node) => node.id === "snapshot-before")?.inputs,
         ).to.deep.equal({ database: "$nodes.provision.connectionRef" });
         expect(
@@ -183,6 +187,8 @@ suite("planCompiler", () => {
             database: "$nodes.provision.connectionRef",
             before: "$nodes.snapshot-before.snapshotRef",
             after: "$nodes.snapshot-after.snapshotRef",
+            beforeSchema: "$nodes.schema-fingerprint-before.schemaFingerprintRef",
+            afterSchema: "$nodes.schema-fingerprint-after.schemaFingerprintRef",
         });
         expect(
             result.artifact.lock?.nodes.find((node) => node.id === "summarize-performance")?.inputs,

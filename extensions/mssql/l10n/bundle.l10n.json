@@ -204,6 +204,15 @@
         "message": "Captured {0} bounded SQL Server performance metric(s).",
         "comment": ["{0} is a performance metric row count"]
     },
+    "complete": "complete",
+    "partial": "partial",
+    "Captured a {1} schema fingerprint for {0} table(s)./{0} is a database table count{1} is either the localized word complete or partial": {
+        "message": "Captured a {1} schema fingerprint for {0} table(s).",
+        "comment": [
+            "{0} is a database table count",
+            "{1} is either the localized word complete or partial"
+        ]
+    },
     "SQL Server returned an invalid performance snapshot.": "SQL Server returned an invalid performance snapshot.",
     "Computed {0} comparable performance metric delta(s); {1} metric(s) remain incomplete or incomparable./{0} is a comparable metric count{1} is an incomplete or incomparable metric count": {
         "message": "Computed {0} comparable performance metric delta(s); {1} metric(s) remain incomplete or incomparable.",
@@ -213,6 +222,7 @@
         ]
     },
     "The performance snapshots do not belong to this run and owned SQL container.": "The performance snapshots do not belong to this run and owned SQL container.",
+    "The performance snapshots or schema fingerprints do not belong to this run and owned SQL container.": "The performance snapshots or schema fingerprints do not belong to this run and owned SQL container.",
     "Discovered {0} tSQLt test(s) in {1} test class(es)./{0} is a test count{1} is a tSQLt test class count": {
         "message": "Discovered {0} tSQLt test(s) in {1} test class(es).",
         "comment": ["{0} is a test count", "{1} is a tSQLt test class count"]

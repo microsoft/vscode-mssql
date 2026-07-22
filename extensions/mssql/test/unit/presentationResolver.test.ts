@@ -384,6 +384,12 @@ suite("presentationResolver", () => {
             "performanceDelta/1",
         );
         expect(compatibleViews("performanceDelta/1")).to.deep.equal(["grid", "bar", "json"]);
+        expect(compatibleViews("databaseSchemaFingerprint/1")[0]).to.equal("scalar-cards");
+        expect(compatibleViews("databaseSchemaFingerprint/1")).to.deep.equal([
+            "scalar-cards",
+            "grid",
+            "json",
+        ]);
         expect(expectedContractFor("activity", "sqltest.discover")).to.equal(
             "testSuiteDiscovery/1",
         );

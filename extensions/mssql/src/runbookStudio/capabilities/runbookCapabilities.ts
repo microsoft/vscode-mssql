@@ -118,6 +118,13 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         providerRequirement: "execution",
         outputContract: "databaseSchemaGraph/1",
     },
+    "database.schema.fingerprint": {
+        target: "ephemeralSqlDatabase",
+        effect: "read",
+        connectionRequirement: "provisioned",
+        providerRequirement: "execution",
+        outputContract: "databaseSchemaFingerprint/1",
+    },
     "workspace.inspect": {
         target: "workspace",
         effect: "read",
@@ -655,6 +662,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "xevent.session.stop",
         "xevent.xel.analyze",
         "xevent.xel.collect",
+        "database.schema.fingerprint",
         "performance.dmv.snapshot",
         "performance.dmv.delta",
         "workload.benchmark",
@@ -696,6 +704,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "xevent.session.stop",
         "xevent.xel.analyze",
         "xevent.xel.collect",
+        "database.schema.fingerprint",
         "performance.dmv.snapshot",
         "performance.dmv.delta",
         "workload.benchmark",
@@ -724,6 +733,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "xevent.session.stop",
         "xevent.xel.analyze",
         "xevent.xel.collect",
+        "database.schema.fingerprint",
         "performance.dmv.snapshot",
         "performance.dmv.delta",
         "workload.benchmark",
@@ -768,6 +778,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "xevent.session.stop",
         "xevent.xel.analyze",
         "xevent.xel.collect",
+        "database.schema.fingerprint",
         "performance.dmv.snapshot",
         "performance.dmv.delta",
         "workload.benchmark",
@@ -939,6 +950,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         requested.add("migration.data-loss.analyze");
     }
     if (requestsDmvSnapshot) {
+        requested.add("database.schema.fingerprint");
         requested.add("performance.dmv.snapshot");
         requested.add("performance.dmv.delta");
     }

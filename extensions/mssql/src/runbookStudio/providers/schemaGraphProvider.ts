@@ -17,6 +17,10 @@ import {
     RUNBOOK_SCHEMA_GRAPH_DOCUMENT_SCHEMA_VERSION,
     RunbookSchemaGraphDocument,
 } from "../../sharedInterfaces/runbookSchemaGraph";
+import {
+    RUNBOOK_SCHEMA_FINGERPRINT_SCHEMA_VERSION,
+    RunbookSchemaFingerprintDocument,
+} from "../../sharedInterfaces/runbookSchemaFingerprint";
 
 export const RUNBOOK_SCHEMA_GRAPH_MAX_TABLES = 100;
 export const RUNBOOK_SCHEMA_GRAPH_MAX_COLUMNS_PER_TABLE = 40;
@@ -68,6 +72,43 @@ export class MetadataStoreRunbookSchemaGraphProvider {
                 throwIfCancelled(request);
             }
             return projectRunbookSchemaGraphDocument(selected, initial.totalTables);
+        } catch (error) {
+            if (error instanceof RunbookSchemaGraphProviderError) {
+                throw error;
+            }
+            throw new RunbookSchemaGraphProviderError(
+                error instanceof Error ? error.message : "Schema metadata is unavailable.",
+                "metadataUnavailable",
+            );
+        } finally {
+            session.dispose();
+        }
+    }
+
+    /** Force one live STS v2 refresh and retain only its complete-catalog
+     * identity. The visualizer session computes the fingerprint from the
+     * full model even when its render payload is search-first. */
+    async fingerprint(
+        request: RunbookSchemaGraphProviderRequest,
+    ): Promise<RunbookSchemaFingerprintDocument> {
+        throwIfCancelled(request);
+        const session = new SchemaVisualizerSession(this.store, {
+            prepared: request.prepared,
+            database: request.database,
+        });
+        try {
+            const result = await session.refresh();
+            throwIfCancelled(request);
+            return {
+                schemaVersion: RUNBOOK_SCHEMA_FINGERPRINT_SCHEMA_VERSION,
+                databaseLabel: request.database,
+                schemaSha256: result.fingerprint,
+                complete: result.fingerprintComplete,
+                tableCount: result.totalTables,
+                capturedAtUtc: new Date().toISOString(),
+                freshness: { ...result.freshness },
+                provider: { kind: "sts-v2-metadata-store", contractVersion: 2 },
+            };
         } catch (error) {
             if (error instanceof RunbookSchemaGraphProviderError) {
                 throw error;

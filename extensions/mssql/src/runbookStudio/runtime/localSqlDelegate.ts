@@ -50,6 +50,7 @@ import {
     LOCAL_SCHEMA_INVENTORY_SQL,
 } from "./localSchemaInventory";
 import type { RunbookSchemaCompareDocument } from "../../sharedInterfaces/runbookSchemaCompare";
+import type { RunbookSchemaFingerprintDocument } from "../../sharedInterfaces/runbookSchemaFingerprint";
 import type { RunbookSchemaGraphDocument } from "../../sharedInterfaces/runbookSchemaGraph";
 import type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot";
 import type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
@@ -59,6 +60,11 @@ export type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
 
 export interface LocalPerformanceSnapshotExecutionResult extends LocalPerformanceSnapshotResult {
     snapshotRef: string;
+}
+
+export interface LocalSchemaFingerprintExecutionResult {
+    document: RunbookSchemaFingerprintDocument;
+    fingerprintRef: string;
 }
 
 export { isReadOnlySql } from "../readOnlySql";
@@ -239,10 +245,17 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalPerformanceSnapshotExecutionResult>;
+    captureSchemaFingerprint(
+        databaseRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSchemaFingerprintExecutionResult>;
     comparePerformanceSnapshots(
         databaseRef: string,
         beforeSnapshotRef: string,
         afterSnapshotRef: string,
+        beforeSchemaFingerprintRef: string,
+        afterSchemaFingerprintRef: string,
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalPerformanceDeltaResult>;
@@ -588,6 +601,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "xevent.session.stop",
         "xevent.xel.collect",
         "xevent.xel.analyze",
+        "database.schema.fingerprint",
         "performance.dmv.snapshot",
         "performance.dmv.delta",
         "workload.benchmark",
@@ -657,6 +671,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.collectXel(node, binding);
             case "xevent.xel.analyze":
                 return this.analyzeXel(node, binding);
+            case "database.schema.fingerprint":
+                return this.captureSchemaFingerprint(node, binding);
             case "performance.dmv.snapshot":
                 return this.capturePerformanceSnapshot(node, binding);
             case "performance.dmv.delta":
@@ -2032,6 +2048,68 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         }
     }
 
+    private async captureSchemaFingerprint(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        try {
+            const result = await this.operations.captureSchemaFingerprint(
+                databaseRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            const document = result.document;
+            return {
+                success: true,
+                runMetrics: {
+                    "schemaFingerprint.tableCount": document.tableCount,
+                    "schemaFingerprint.complete": document.complete,
+                },
+                message: LocRunbookStudio.schemaFingerprintCaptured(
+                    document.tableCount,
+                    document.complete,
+                ),
+                output: {
+                    contract: "databaseSchemaFingerprint/1",
+                    columns: ["property", "value"],
+                    rows: [
+                        ["tableCount", document.tableCount],
+                        ["complete", document.complete],
+                        ["freshness", document.freshness.freshness],
+                        ["validation", document.freshness.validation],
+                        ["provider", document.provider.kind],
+                    ],
+                    text: JSON.stringify(document),
+                    scalars: {
+                        databaseName: document.databaseLabel,
+                        schemaSha256: document.schemaSha256,
+                        complete: document.complete,
+                        tableCount: document.tableCount,
+                        capturedAtUtc: document.capturedAtUtc,
+                        provider: document.provider.kind,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    schemaSha256: document.schemaSha256,
+                    schemaFingerprintRef: result.fingerprintRef,
+                    complete: document.complete,
+                    tableCount: document.tableCount,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
     private async comparePerformanceSnapshots(
         node: RunbookPlanNode,
         binding: {
@@ -2043,6 +2121,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         const databaseRef = binding.resolveBind(node.inputs?.database);
         const beforeSnapshotRef = binding.resolveBind(node.inputs?.before);
         const afterSnapshotRef = binding.resolveBind(node.inputs?.after);
+        const beforeSchemaFingerprintRef = binding.resolveBind(node.inputs?.beforeSchema);
+        const afterSchemaFingerprintRef = binding.resolveBind(node.inputs?.afterSchema);
         if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
             return invalidBinding("database");
         }
@@ -2052,11 +2132,25 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         if (typeof afterSnapshotRef !== "string" || afterSnapshotRef.trim().length === 0) {
             return invalidBinding("after");
         }
+        if (
+            typeof beforeSchemaFingerprintRef !== "string" ||
+            beforeSchemaFingerprintRef.trim().length === 0
+        ) {
+            return invalidBinding("beforeSchema");
+        }
+        if (
+            typeof afterSchemaFingerprintRef !== "string" ||
+            afterSchemaFingerprintRef.trim().length === 0
+        ) {
+            return invalidBinding("afterSchema");
+        }
         try {
             const result = await this.operations.comparePerformanceSnapshots(
                 databaseRef.trim(),
                 beforeSnapshotRef.trim(),
                 afterSnapshotRef.trim(),
+                beforeSchemaFingerprintRef.trim(),
+                afterSchemaFingerprintRef.trim(),
                 binding.invocation,
                 binding.isCancellationRequested,
             );
@@ -2069,6 +2163,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     "performanceDelta.counterResetMetricCount": result.counterResetMetricCount,
                     "performanceDelta.inputTruncated": result.inputTruncated,
                     "performanceDelta.truncated": result.truncated,
+                    "performanceDelta.schemaComparable": result.schemaComparability === "same",
                 },
                 message: LocRunbookStudio.performanceDeltaComputed(
                     result.comparableMetricCount,
@@ -2108,6 +2203,9 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                         comparableMetricCount: result.comparableMetricCount,
                         incompleteMetricCount: result.incompleteMetricCount,
                         counterResetMetricCount: result.counterResetMetricCount,
+                        beforeSchemaSha256: result.beforeSchemaSha256,
+                        afterSchemaSha256: result.afterSchemaSha256,
+                        schemaComparability: result.schemaComparability,
                         inputTruncated: result.inputTruncated,
                         truncated: result.truncated,
                         verdict: "notEvaluated",
@@ -2120,6 +2218,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     comparableMetricCount: result.comparableMetricCount,
                     incompleteMetricCount: result.incompleteMetricCount,
                     counterResetMetricCount: result.counterResetMetricCount,
+                    schemaComparability: result.schemaComparability,
                     inputTruncated: result.inputTruncated,
                     truncated: result.truncated,
                 },

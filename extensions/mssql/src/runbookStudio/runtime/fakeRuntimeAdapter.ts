@@ -533,6 +533,7 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "xevent.session.stop",
     "xevent.xel.collect",
     "xevent.xel.analyze",
+    "database.schema.fingerprint",
     "performance.dmv.snapshot",
     "performance.dmv.delta",
     "workload.benchmark",
@@ -1377,6 +1378,47 @@ function executeNode(
                 },
             };
         }
+        case "database.schema.fingerprint": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            if (typeof database !== "string") {
+                return invalidPreviewBinding("database.schema.fingerprint", "database");
+            }
+            const schemaSha256 = "c".repeat(64);
+            const schemaFingerprintRef = `preview://schema-fingerprint/${node.id}`;
+            return {
+                success: true,
+                runMetrics: {
+                    "schemaFingerprint.tableCount": 1,
+                    "schemaFingerprint.complete": true,
+                },
+                message: "Complete schema fingerprint for 1 table (deterministic preview)",
+                output: {
+                    contract: "databaseSchemaFingerprint/1",
+                    columns: ["property", "value"],
+                    rows: [
+                        ["tableCount", 1],
+                        ["complete", true],
+                        ["freshness", "fresh"],
+                        ["provider", "deterministic-preview"],
+                    ],
+                    scalars: {
+                        databaseName: "CitiesWorkload",
+                        schemaSha256,
+                        complete: true,
+                        tableCount: 1,
+                        capturedAtUtc: "2026-07-22T07:59:59.000Z",
+                        provider: "deterministic-preview",
+                        preview: true,
+                    },
+                },
+                values: {
+                    schemaSha256,
+                    schemaFingerprintRef,
+                    complete: true,
+                    tableCount: 1,
+                },
+            };
+        }
         case "performance.dmv.snapshot": {
             const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
             if (typeof database !== "string") {
@@ -1472,13 +1514,25 @@ function executeNode(
             const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
             const before = resolveBind(node.inputs?.before, parameterValues, nodeValues);
             const after = resolveBind(node.inputs?.after, parameterValues, nodeValues);
+            const beforeSchema = resolveBind(
+                node.inputs?.beforeSchema,
+                parameterValues,
+                nodeValues,
+            );
+            const afterSchema = resolveBind(node.inputs?.afterSchema, parameterValues, nodeValues);
             if (
                 typeof database !== "string" ||
                 typeof before !== "string" ||
                 typeof after !== "string" ||
-                before === after
+                typeof beforeSchema !== "string" ||
+                typeof afterSchema !== "string" ||
+                before === after ||
+                beforeSchema === afterSchema
             ) {
-                return invalidPreviewBinding("performance.dmv.delta", "database/before/after");
+                return invalidPreviewBinding(
+                    "performance.dmv.delta",
+                    "database/before/after/beforeSchema/afterSchema",
+                );
             }
             const deltaSha256 = "e".repeat(64);
             return {
@@ -1490,6 +1544,7 @@ function executeNode(
                     "performanceDelta.counterResetMetricCount": 0,
                     "performanceDelta.inputTruncated": false,
                     "performanceDelta.truncated": false,
+                    "performanceDelta.schemaComparable": true,
                 },
                 message: "2 comparable performance metric deltas (deterministic preview)",
                 output: {
@@ -1537,6 +1592,9 @@ function executeNode(
                         comparableMetricCount: 2,
                         incompleteMetricCount: 0,
                         counterResetMetricCount: 0,
+                        beforeSchemaSha256: "c".repeat(64),
+                        afterSchemaSha256: "c".repeat(64),
+                        schemaComparability: "same",
                         inputTruncated: false,
                         truncated: false,
                         verdict: "notEvaluated",
@@ -1549,6 +1607,7 @@ function executeNode(
                     comparableMetricCount: 2,
                     incompleteMetricCount: 0,
                     counterResetMetricCount: 0,
+                    schemaComparability: "same",
                     inputTruncated: false,
                     truncated: false,
                 },

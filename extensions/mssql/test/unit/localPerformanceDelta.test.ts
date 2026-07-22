@@ -33,6 +33,13 @@ function snapshot(
     };
 }
 
+const comparableSchema = {
+    beforeSchemaSha256: "c".repeat(64),
+    afterSchemaSha256: "c".repeat(64),
+    beforeComplete: true,
+    afterComplete: true,
+};
+
 suite("Runbook Studio local performance delta", () => {
     test("computes cumulative and point-in-time deltas without assigning a verdict", () => {
         const result = compareLocalPerformanceSnapshots(
@@ -44,6 +51,7 @@ suite("Runbook Studio local performance delta", () => {
                 ["database_io", "ROWS:Db", "reads", 52],
                 ["database_space", "ROWS:Db", "allocated", 96],
             ]),
+            comparableSchema,
         );
 
         expect(result.rows).to.deep.include.members([
@@ -76,6 +84,7 @@ suite("Runbook Studio local performance delta", () => {
             counterResetMetricCount: 0,
             inputTruncated: false,
             truncated: false,
+            schemaComparability: "same",
         });
         expect(result).not.to.have.property("verdict");
         expect(result.deltaSha256).to.match(/^[a-f0-9]{64}$/);
@@ -95,6 +104,10 @@ suite("Runbook Studio local performance delta", () => {
                 ],
                 true,
             ),
+            {
+                ...comparableSchema,
+                afterSchemaSha256: "d".repeat(64),
+            },
         );
 
         expect(result.rows.map((row) => row.comparability)).to.have.members([
@@ -107,6 +120,7 @@ suite("Runbook Studio local performance delta", () => {
             incompleteMetricCount: 3,
             counterResetMetricCount: 1,
             inputTruncated: true,
+            schemaComparability: "different",
         });
     });
 
@@ -117,15 +131,24 @@ suite("Runbook Studio local performance delta", () => {
         const after = snapshot("2026-07-22T08:00:00.000Z", [
             ["database_io", "ROWS:Db", "reads", 2],
         ]);
-        expect(() => compareLocalPerformanceSnapshots(before, after)).to.throw(
+        expect(() => compareLocalPerformanceSnapshots(before, after, comparableSchema)).to.throw(
             "chronological order",
         );
 
         before.capturedAtUtc = "2026-07-22T08:00:00.000Z";
         after.capturedAtUtc = "2026-07-22T08:01:00.000Z";
         before.rows.push({ ...before.rows[0] });
-        expect(() => compareLocalPerformanceSnapshots(before, after)).to.throw(
+        expect(() => compareLocalPerformanceSnapshots(before, after, comparableSchema)).to.throw(
             "duplicate metric identity",
         );
+    });
+
+    test("marks the comparison incomplete when either full-schema fingerprint is incomplete", () => {
+        const result = compareLocalPerformanceSnapshots(
+            snapshot("2026-07-22T08:00:00.000Z", [["database_io", "ROWS:Db", "reads", 1]]),
+            snapshot("2026-07-22T08:01:00.000Z", [["database_io", "ROWS:Db", "reads", 2]]),
+            { ...comparableSchema, afterComplete: false },
+        );
+        expect(result.schemaComparability).to.equal("incomplete");
     });
 });

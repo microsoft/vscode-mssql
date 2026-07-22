@@ -44,6 +44,9 @@ export interface LocalPerformanceDeltaResult {
     comparableMetricCount: number;
     incompleteMetricCount: number;
     counterResetMetricCount: number;
+    beforeSchemaSha256: string;
+    afterSchemaSha256: string;
+    schemaComparability: "same" | "different" | "incomplete";
     inputTruncated: boolean;
     truncated: boolean;
     deltaSha256: string;
@@ -54,6 +57,12 @@ const POINT_IN_TIME_CATEGORIES = new Set(["active_requests", "database_space"]);
 export function compareLocalPerformanceSnapshots(
     before: LocalPerformanceSnapshotResult,
     after: LocalPerformanceSnapshotResult,
+    schema: {
+        beforeSchemaSha256: string;
+        afterSchemaSha256: string;
+        beforeComplete: boolean;
+        afterComplete: boolean;
+    },
 ): LocalPerformanceDeltaResult {
     const beforeEpoch = Date.parse(before.capturedAtUtc);
     const afterEpoch = Date.parse(after.capturedAtUtc);
@@ -109,10 +118,18 @@ export function compareLocalPerformanceSnapshots(
     const incompleteMetricCount = rows.length - comparableMetricCount;
     const inputTruncated = before.truncated || after.truncated;
     const truncated = keys.length > rows.length;
+    const schemaComparability =
+        !schema.beforeComplete || !schema.afterComplete
+            ? "incomplete"
+            : schema.beforeSchemaSha256 === schema.afterSchemaSha256
+              ? "same"
+              : "different";
     const digestInput = {
         beforeSnapshotSha256: before.snapshotSha256,
         afterSnapshotSha256: after.snapshotSha256,
         rows,
+        schema,
+        schemaComparability,
         inputTruncated,
         truncated,
     };
@@ -125,6 +142,9 @@ export function compareLocalPerformanceSnapshots(
         comparableMetricCount,
         incompleteMetricCount,
         counterResetMetricCount,
+        beforeSchemaSha256: schema.beforeSchemaSha256,
+        afterSchemaSha256: schema.afterSchemaSha256,
+        schemaComparability,
         inputTruncated,
         truncated,
         deltaSha256: crypto

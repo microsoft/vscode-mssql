@@ -114,6 +114,7 @@ const landedScenarioClaims = [
             "xevent.session.stop",
             "xevent.xel.analyze",
             "xevent.xel.collect",
+            "database.schema.fingerprint",
             "performance.dmv.snapshot",
             "performance.dmv.delta",
             "workload.benchmark",

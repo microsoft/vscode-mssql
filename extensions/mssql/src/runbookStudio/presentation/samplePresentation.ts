@@ -251,6 +251,16 @@ function sampleRows(contract: string): {
                     ],
                 ],
             };
+        case "databaseSchemaFingerprint/1":
+            return {
+                columns: ["property", "value"],
+                rows: [
+                    ["tableCount", 42],
+                    ["complete", true],
+                    ["freshness", "fresh"],
+                    ["provider", "sts-v2-metadata-store"],
+                ],
+            };
         case "performanceDelta/1":
             return {
                 columns: [

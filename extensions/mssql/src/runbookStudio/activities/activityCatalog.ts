@@ -841,6 +841,37 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "database.schema.fingerprint",
+        version: 1,
+        label: "Capture database schema fingerprint",
+        description:
+            "Forces a live STS v2 MetadataStore refresh on a same-run owned SQL container and emits a complete-catalog schema identity without returning object definitions.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to sql.container.provision connectionRef",
+            },
+        ],
+        outputContract: "databaseSchemaFingerprint/1",
+        outputSchema: {
+            fields: [
+                { name: "property", valueType: "string", roles: ["label"] },
+                { name: "value", valueType: "unknown" },
+            ],
+        },
+        producedValues: ["schemaSha256", "schemaFingerprintRef", "complete", "tableCount"],
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseSchema",
+            operation: "read",
+            targetEnvironment: "ephemeral",
+            reversibility: "noEffect",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "performance.dmv.snapshot",
         version: 1,
         label: "Capture SQL Server performance snapshot",
@@ -908,6 +939,18 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
                 required: true,
                 description: "Bind to the after performance.dmv.snapshot snapshotRef",
             },
+            {
+                name: "beforeSchema",
+                kind: "bind",
+                required: true,
+                description: "Bind to the before database.schema.fingerprint schemaFingerprintRef",
+            },
+            {
+                name: "afterSchema",
+                kind: "bind",
+                required: true,
+                description: "Bind to the after database.schema.fingerprint schemaFingerprintRef",
+            },
         ],
         outputContract: "performanceDelta/1",
         outputSchema: {
@@ -929,6 +972,7 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
             "comparableMetricCount",
             "incompleteMetricCount",
             "counterResetMetricCount",
+            "schemaComparability",
             "inputTruncated",
             "truncated",
         ],
@@ -1535,6 +1579,7 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                     descriptor.kind === "xevent.session.stop" ||
                     descriptor.kind === "xevent.xel.analyze" ||
                     descriptor.kind === "xevent.xel.collect" ||
+                    descriptor.kind === "database.schema.fingerprint" ||
                     descriptor.kind === "performance.dmv.snapshot" ||
                     descriptor.kind === "performance.dmv.delta" ||
                     descriptor.kind === "sql.container.dispose";
@@ -1622,6 +1667,28 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
             ) {
                 issues.push(
                     `node '${node.id}' must bind distinct before/after refs from upstream performance.dmv.snapshot nodes`,
+                );
+            }
+            if (
+                descriptor.kind === "performance.dmv.delta" &&
+                (!isUpstreamActivityOutput(
+                    lock,
+                    node,
+                    "beforeSchema",
+                    "schemaFingerprintRef",
+                    "database.schema.fingerprint",
+                ) ||
+                    !isUpstreamActivityOutput(
+                        lock,
+                        node,
+                        "afterSchema",
+                        "schemaFingerprintRef",
+                        "database.schema.fingerprint",
+                    ) ||
+                    node.inputs?.beforeSchema === node.inputs?.afterSchema)
+            ) {
+                issues.push(
+                    `node '${node.id}' must bind distinct before/after refs from upstream database.schema.fingerprint nodes`,
                 );
             }
         }

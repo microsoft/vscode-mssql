@@ -357,6 +357,15 @@ export class RunbookStudio {
             args: [metricCount],
             comment: ["{0} is a performance metric row count"],
         });
+    public static schemaFingerprintCaptured = (tableCount: number, complete: boolean) =>
+        l10n.t({
+            message: "Captured a {1} schema fingerprint for {0} table(s).",
+            args: [tableCount, complete ? l10n.t("complete") : l10n.t("partial")],
+            comment: [
+                "{0} is a database table count",
+                "{1} is either the localized word complete or partial",
+            ],
+        });
     public static performanceSnapshotInvalid = l10n.t(
         "SQL Server returned an invalid performance snapshot.",
     );
@@ -372,6 +381,9 @@ export class RunbookStudio {
         });
     public static performanceSnapshotReferenceInvalid = l10n.t(
         "The performance snapshots do not belong to this run and owned SQL container.",
+    );
+    public static performanceComparisonReferenceInvalid = l10n.t(
+        "The performance snapshots or schema fingerprints do not belong to this run and owned SQL container.",
     );
     public static sqlTestsDiscovered = (testCount: number, classCount: number) =>
         l10n.t({

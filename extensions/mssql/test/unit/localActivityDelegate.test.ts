@@ -63,6 +63,19 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             snapshotSha256: "d".repeat(64),
             categoryCounts: { database_io: 1 },
         }),
+        captureSchemaFingerprint: async () => ({
+            fingerprintRef: "runbook-schema-fingerprint:before",
+            document: {
+                schemaVersion: 1,
+                databaseLabel: "CitiesWorkload",
+                schemaSha256: "c".repeat(64),
+                complete: true,
+                tableCount: 1,
+                capturedAtUtc: "2026-07-22T07:59:59.000Z",
+                freshness: { source: "live", freshness: "fresh", validation: "live" },
+                provider: { kind: "sts-v2-metadata-store", contractVersion: 2 },
+            },
+        }),
         comparePerformanceSnapshots: async () => ({
             beforeCapturedAtUtc: "2026-07-22T08:00:00.000Z",
             afterCapturedAtUtc: "2026-07-22T08:01:00.000Z",
@@ -84,6 +97,9 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             comparableMetricCount: 1,
             incompleteMetricCount: 0,
             counterResetMetricCount: 0,
+            beforeSchemaSha256: "c".repeat(64),
+            afterSchemaSha256: "c".repeat(64),
+            schemaComparability: "same",
             inputTruncated: false,
             truncated: false,
             deltaSha256: "f".repeat(64),
@@ -660,6 +676,33 @@ suite("Runbook Studio local activity delegate", () => {
         });
     });
 
+    test("schema fingerprint emits only complete STS v2 identity facts", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+        const result = await delegate.executeActivity(
+            activity("database.schema.fingerprint", {
+                database: "$nodes.provision.connectionRef",
+            }),
+            binding((input) =>
+                input === "$nodes.provision.connectionRef" ? "runbook-container:owned" : input,
+            ),
+        );
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("databaseSchemaFingerprint/1");
+        expect(result?.output?.scalars).to.deep.include({
+            schemaSha256: "c".repeat(64),
+            complete: true,
+            tableCount: 1,
+            provider: "sts-v2-metadata-store",
+        });
+        expect(result?.values).to.deep.equal({
+            schemaSha256: "c".repeat(64),
+            schemaFingerprintRef: "runbook-schema-fingerprint:before",
+            complete: true,
+            tableCount: 1,
+        });
+    });
+
     test("performance delta emits comparable facts and explicitly withholds a verdict", async () => {
         const delegate = new LocalSqlActivityDelegate(operations());
 
@@ -668,6 +711,8 @@ suite("Runbook Studio local activity delegate", () => {
                 database: "$nodes.provision.connectionRef",
                 before: "$nodes.snapshot-before.snapshotRef",
                 after: "$nodes.snapshot-after.snapshotRef",
+                beforeSchema: "$nodes.schema-fingerprint-before.schemaFingerprintRef",
+                afterSchema: "$nodes.schema-fingerprint-after.schemaFingerprintRef",
             }),
             binding((input) => {
                 if (input === "$nodes.provision.connectionRef") {
@@ -678,6 +723,12 @@ suite("Runbook Studio local activity delegate", () => {
                 }
                 if (input === "$nodes.snapshot-after.snapshotRef") {
                     return "runbook-performance-snapshot:after";
+                }
+                if (input === "$nodes.schema-fingerprint-before.schemaFingerprintRef") {
+                    return "runbook-schema-fingerprint:before";
+                }
+                if (input === "$nodes.schema-fingerprint-after.schemaFingerprintRef") {
+                    return "runbook-schema-fingerprint:after";
                 }
                 return input;
             }),
@@ -700,6 +751,7 @@ suite("Runbook Studio local activity delegate", () => {
             comparableMetricCount: 1,
             incompleteMetricCount: 0,
             deltaSha256: "f".repeat(64),
+            schemaComparability: "same",
             verdict: "notEvaluated",
         });
         expect(result?.verdict).to.equal(undefined);

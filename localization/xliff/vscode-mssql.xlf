@@ -1129,6 +1129,11 @@
     <trans-unit id="++CODE++3824a9f4dafe92c6f1b80b40656a59784c03a824c27d58125d7d0ace753e2df2">
       <source xml:lang="en">Canvas</source>
     </trans-unit>
+    <trans-unit id="++CODE++ce7dfffab1e0ed6c23e05bb31a3a7be814cad670c18865bf3a983354d719ece2">
+      <source xml:lang="en">Captured a {1} schema fingerprint for {0} table(s).</source>
+      <note>{0} is a database table count
+{1} is either the localized word complete or partial</note>
+    </trans-unit>
     <trans-unit id="++CODE++cf63dc411bae256449dfa3ef7dad52001baca146bfb5fe8886c42b93c413b0f5">
       <source xml:lang="en">Captured {0} bounded SQL Server performance metric(s).</source>
       <note>{0} is a performance metric row count</note>
@@ -9574,6 +9579,9 @@
     <trans-unit id="++CODE++7f09224bfa0aa1e383e69bfc241b718f0172d7be7bc4fce56e767171d9078416">
       <source xml:lang="en">The performance snapshots do not belong to this run and owned SQL container.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2dba2666bbd0593a334d787298412de780870eb1974b3a04b7af884573d0c964">
+      <source xml:lang="en">The performance snapshots or schema fingerprints do not belong to this run and owned SQL container.</source>
+    </trans-unit>
     <trans-unit id="++CODE++d25cb7cb615b44cf93cbec1c0f74ef7be719ed3131886d1d3424d02502a7f494">
       <source xml:lang="en">The preview uses the compiled activity output contracts and never runs SQL or other effects.</source>
     </trans-unit>
@@ -10638,6 +10646,9 @@
       <source xml:lang="en">compiled v{0}</source>
       <note>{0} is a plan revision number</note>
     </trans-unit>
+    <trans-unit id="++CODE++eebbf6457e46a7f63acdf9b97390f790ba443d60cfa44b607da7e5c40aa1cc1d">
+      <source xml:lang="en">complete</source>
+    </trans-unit>
     <trans-unit id="++CODE++beeb20fbd67695085c26c5dfa7b5ece4d1985d201cb6f0dd9aa66a36ed987ce5">
       <source xml:lang="en">contains</source>
     </trans-unit>
@@ -10770,6 +10781,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9d13eacfb1a28a13841bc3f8f6099899abfa95376c457ecd8d17e59a6d4f95ea">
       <source xml:lang="en">output removed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9834a14ab9bcaa0f6a8da71073617eac8f004e596a3fa11d807b84631b825d9d">
+      <source xml:lang="en">partial</source>
     </trans-unit>
     <trans-unit id="++CODE++fdf8725a10ac51a045849e27e508be68c40eec79ce3696734e1bf6f740280d37">
       <source xml:lang="en">policy blocked</source>
