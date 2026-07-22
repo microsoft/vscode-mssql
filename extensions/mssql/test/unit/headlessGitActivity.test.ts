@@ -73,6 +73,8 @@ suite("Runbook Studio headless Git activity", () => {
 
         expect(result.files.map((file) => [file.status, file.relativePath])).to.deep.equal([
             ["A", "README.md"],
+            ["A", "demo.params.example.json"],
+            ["A", "demo.secret-env-map.example.json"],
             ["A", "myapp_schema.sql"],
             ["A", "scripts/workload.sql"],
             ["A", "setup_local_staging.sql"],
