@@ -148,6 +148,11 @@ import {
     type LocalReleaseManifestInput,
 } from "./runtime/localReleaseManifest";
 import {
+    LocalReleaseManifestArtifactError,
+    persistLocalReleaseManifestArtifact,
+    verifyLocalReleaseEvidenceArtifacts,
+} from "./runtime/localReleaseManifestArtifact";
+import {
     buildCreateLocalSandboxSql,
     buildDropLocalSandboxSql,
     buildProbeLocalSandboxSql,
@@ -5469,6 +5474,58 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 "RunbookStudio.BindingInvalid",
             );
         }
+        const manifestNode = active.artifact.lock.nodes.find((node) => node.id === nodeId);
+        const producerId = (inputName: string): string | undefined => {
+            const binding = /^\$nodes\.([A-Za-z0-9_-]+)\.[A-Za-z0-9_-]+$/.exec(
+                String(manifestNode?.inputs?.[inputName] ?? ""),
+            );
+            return binding?.[1];
+        };
+        const baseDacpacNodeId = producerId("baseDacpacDigest");
+        const xelNodeId = producerId("xelDigest");
+        const candidateDacpacNodeId = producerId("candidateDacpacDigest");
+        if (!baseDacpacNodeId || !xelNodeId || !candidateDacpacNodeId) {
+            throw new LocalActivityError(
+                LocRunbookStudio.releaseManifestArtifactChanged,
+                "RunbookStudio.BindingInvalid",
+            );
+        }
+        try {
+            await verifyLocalReleaseEvidenceArtifacts({
+                evidenceValues: active.evidenceValues,
+                required: [
+                    {
+                        nodeId: baseDacpacNodeId,
+                        contract: "dacpacArtifact/1",
+                        expectedSha256: input.baseDacpacSha256,
+                    },
+                    {
+                        nodeId: xelNodeId,
+                        contract: "xelArtifact/1",
+                        expectedSha256: input.xelSha256,
+                    },
+                    {
+                        nodeId: candidateDacpacNodeId,
+                        contract: "dacpacArtifact/1",
+                        expectedSha256: input.candidateDacpacSha256,
+                    },
+                ],
+                trustedRoots: this.runDropStore.trustedArtifactRoots(),
+                isCancellationRequested,
+            });
+        } catch (error) {
+            if (error instanceof LocalReleaseManifestArtifactError) {
+                throw new LocalActivityError(
+                    error.reason === "cancelled"
+                        ? LocRunbookStudio.evidenceBundleCancelled
+                        : LocRunbookStudio.releaseManifestArtifactChanged,
+                    error.reason === "cancelled"
+                        ? "RunbookStudio.ActivityCancelled"
+                        : "RunbookStudio.ArtifactChanged",
+                );
+            }
+            throw error;
+        }
         const toolchain = await this.collectLocalToolchainProvenance(isCancellationRequested);
         const result = buildLocalReleaseManifest({
             ...input,
@@ -5483,34 +5540,32 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             nodeId,
             "release-manifest.json",
         );
-        if (await pathExists(artifactPath)) {
-            throw new LocalActivityError(
-                LocRunbookStudio.runbookArtifactAlreadyExists(artifactPath),
-                "RunbookStudio.ArtifactAlreadyExists",
-            );
-        }
-        const bytes = Buffer.from(result.manifestJson, "utf8");
-        let complete = false;
         try {
-            await fs.promises.writeFile(artifactPath, bytes, { flag: "wx" });
-            const stat = await fs.promises.stat(artifactPath);
-            if (!stat.isFile() || stat.size !== bytes.length) {
-                throw new LocalActivityError(
-                    LocRunbookStudio.runtimeStartFailed,
-                    "RunbookStudio.ArtifactInvalid",
-                );
-            }
-            complete = true;
+            const artifact = await persistLocalReleaseManifestArtifact(
+                artifactPath,
+                result,
+                isCancellationRequested,
+            );
             return {
                 ...result,
-                artifactPath,
-                artifactSha256: crypto.createHash("sha256").update(bytes).digest("hex"),
-                artifactSizeBytes: stat.size,
+                ...artifact,
             };
-        } finally {
-            if (!complete) {
-                await fs.promises.rm(artifactPath, { force: true }).catch(() => undefined);
+        } catch (error) {
+            if (error instanceof LocalReleaseManifestArtifactError) {
+                throw new LocalActivityError(
+                    error.reason === "cancelled"
+                        ? LocRunbookStudio.evidenceBundleCancelled
+                        : error.reason === "targetExists"
+                          ? LocRunbookStudio.runbookArtifactAlreadyExists(artifactPath)
+                          : LocRunbookStudio.releaseManifestWriteFailed,
+                    error.reason === "cancelled"
+                        ? "RunbookStudio.ActivityCancelled"
+                        : error.reason === "targetExists"
+                          ? "RunbookStudio.ArtifactAlreadyExists"
+                          : "RunbookStudio.ArtifactInvalid",
+                );
             }
+            throw error;
         }
     }
 

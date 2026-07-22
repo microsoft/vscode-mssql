@@ -154,6 +154,9 @@
     <trans-unit id="++CODE++c9cc5580497f31a6459320e9857b20d5c7638e934bf3e7ec2ba1b0f4c13a13ab">
       <source xml:lang="en">A required .NET runtime could not be found or installed.</source>
     </trans-unit>
+    <trans-unit id="++CODE++dcd1ed795c0a474bf737128f24e571bc5c63fb85da14cb85640e53fbb497d4c0">
+      <source xml:lang="en">A retained candidate evidence artifact changed before release manifest creation.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9945e065a0da35b71524b2d0b83d84f243d546c369c41928acd577ef54b2e3f1">
       <source xml:lang="en">A run is already active for this runbook.</source>
     </trans-unit>
@@ -9671,6 +9674,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a579bc312ec6b0ac71c5bdac08c2b3b84ab4e5eed469637e128c9ef1051d6d36">
       <source xml:lang="en">The registered output fields changed since this view was saved. Review the field mapping below and save to accept it.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++994794f98c82a7b8ccb21070c94aa615163a28b6b9e23447991d6b573d180cc4">
+      <source xml:lang="en">The release manifest could not be retained atomically in the run drop.</source>
     </trans-unit>
     <trans-unit id="++CODE++4e37e5ce6bbe00bad0d0fdeddc7db1969c86a1b88c662bfb99f3bb8fef8547da">
       <source xml:lang="en">The release manifest inputs did not resolve to the exact required evidence values.</source>

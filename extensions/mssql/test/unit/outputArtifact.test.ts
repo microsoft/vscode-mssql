@@ -126,6 +126,7 @@ suite("Runbook Studio output artifact", () => {
             ["efModelDiff/1", "ef-model-diff.json"],
             ["migrationRisk/1", "migration-risk.json"],
             ["migrationManifest/1", "migration-manifest.json"],
+            ["releaseManifest/1", "release-manifest.json"],
         ]) {
             const jsonPath = path.join(root, fileName);
             const jsonContents = Buffer.from('{"schemaVersion":1}', "utf8");

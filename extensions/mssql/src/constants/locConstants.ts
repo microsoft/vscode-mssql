@@ -900,6 +900,12 @@ export class RunbookStudio {
             args: [evidenceCount],
             comment: ["{0} is the number of evidence digests in the release manifest"],
         });
+    public static releaseManifestArtifactChanged = l10n.t(
+        "A retained candidate evidence artifact changed before release manifest creation.",
+    );
+    public static releaseManifestWriteFailed = l10n.t(
+        "The release manifest could not be retained atomically in the run drop.",
+    );
     public static evidenceExportTitle = l10n.t("Export run evidence");
     public static evidenceExported = l10n.t("Run evidence exported.");
     public static evidenceExportUnavailable = l10n.t(

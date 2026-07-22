@@ -58,12 +58,40 @@ suite("RunbookRunDropStore", () => {
             planHash: "hash",
             startedEpochMs: 42,
         });
+        drops.createRun({
+            runId: "run_keep",
+            runbookId: "book_1",
+            planRevision: "1",
+            planHash: "hash",
+            startedEpochMs: 43,
+        });
+        const candidatePath = drops.artifactPath(
+            "run_delete",
+            "extract-release-candidate",
+            "candidate.dacpac",
+        );
+        const manifestPath = drops.artifactPath(
+            "run_delete",
+            "create-release-manifest",
+            "release-manifest.json",
+        );
+        const retainedPath = drops.artifactPath(
+            "run_keep",
+            "create-release-manifest",
+            "release-manifest.json",
+        );
+        fs.writeFileSync(candidatePath, "candidate");
+        fs.writeFileSync(manifestPath, "manifest");
+        fs.writeFileSync(retainedPath, "retained");
         fs.mkdirSync(path.join(legacyRoot, "run_delete"), { recursive: true });
         fs.mkdirSync(path.join(legacyRoot, "run_keep"), { recursive: true });
 
         expect(drops.deleteRun("run_delete")).to.equal(true);
         expect(fs.existsSync(path.join(dropRoot, "run_delete"))).to.equal(false);
         expect(fs.existsSync(path.join(legacyRoot, "run_delete"))).to.equal(false);
+        expect(fs.existsSync(candidatePath)).to.equal(false);
+        expect(fs.existsSync(manifestPath)).to.equal(false);
+        expect(fs.readFileSync(retainedPath, "utf8")).to.equal("retained");
         expect(fs.existsSync(path.join(legacyRoot, "run_keep"))).to.equal(true);
     });
 });

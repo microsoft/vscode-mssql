@@ -26,6 +26,7 @@ const OUTPUT_ARTIFACT_EXTENSIONS = new Map<string, ReadonlySet<string>>([
     ["efModelDiff/1", new Set([".json"])],
     ["migrationRisk/1", new Set([".json"])],
     ["migrationManifest/1", new Set([".json"])],
+    ["releaseManifest/1", new Set([".json"])],
 ]);
 
 export const XEL_CUSTOM_EDITOR_VIEW_TYPE = "mssql.profilerXelView";

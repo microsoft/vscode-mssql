@@ -498,6 +498,8 @@
         "message": "Release manifest bound {0} tested evidence digest(s).",
         "comment": ["{0} is the number of evidence digests in the release manifest"]
     },
+    "A retained candidate evidence artifact changed before release manifest creation.": "A retained candidate evidence artifact changed before release manifest creation.",
+    "The release manifest could not be retained atomically in the run drop.": "The release manifest could not be retained atomically in the run drop.",
     "Export run evidence": "Export run evidence",
     "Run evidence exported.": "Run evidence exported.",
     "This run does not have a complete evidence bundle to export.": "This run does not have a complete evidence bundle to export.",
