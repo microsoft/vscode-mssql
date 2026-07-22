@@ -743,9 +743,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 },
             };
         }
-        if (approve && options?.approveAll) {
-            active.autoApproveRemaining = true;
-        }
+        const enableAutoApprove = approve && options?.approveAll === true;
         const pendingApproval = active.pendingApprovals.get(nodeId);
         if (pendingApproval) {
             try {
@@ -795,6 +793,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     message: LocRunbookStudio.gateNotPending,
                 },
             };
+        }
+        if (enableAutoApprove) {
+            active.autoApproveRemaining = true;
         }
         active.pendingApprovals.delete(nodeId);
         if (active.autoApproveRemaining) {
