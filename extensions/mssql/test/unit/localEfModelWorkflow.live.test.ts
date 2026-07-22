@@ -26,7 +26,8 @@ const FIXTURE_ROOT =
     path.resolve(__dirname, "../../../../../..", "test_assets", "hobbes-ef-model", "myapp");
 const PROJECT_PATH = "src/MyApp.Data/MyApp.Data.csproj";
 const EXACT_INTENT =
-    "Compare the Entity Framework entity changes between development and main in this repository.";
+    "Compare the Entity Framework entity changes between development and main in this repository " +
+    "and analyze possible data loss.";
 
 suite("Runbook Studio EF model workflow live smoke (gated)", function () {
     this.timeout(12 * 60_000);
@@ -75,13 +76,14 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 uri: document.uri.toString(),
                 intent: EXACT_INTENT,
             });
-            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 8 });
+            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 9 });
             expect(compile.activityKinds).to.deep.equal([
                 "git.change-set.inspect",
                 "ef.project.discover",
                 "ef.relational-model.extract",
                 "ef.relational-model.extract",
                 "ef.relational-model.compare",
+                "migration.data-loss.analyze",
             ]);
             expect(compile.parameterIds).to.deep.equal([
                 "repository",
@@ -116,7 +118,7 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
             });
 
             expect(run, JSON.stringify(run)).to.include({ state: "succeeded", verdict: "pass" });
-            expect(run.nodeStates).to.have.length(8);
+            expect(run.nodeStates).to.have.length(9);
             expect(run.nodeStates?.every((node) => node.state === "succeeded")).to.equal(true);
             expect(
                 run.nodeStates?.find((node) => node.nodeId === "extract-base-model")?.outputCount,
@@ -126,6 +128,10 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
             ).to.be.greaterThan(0);
             expect(
                 run.nodeStates?.find((node) => node.nodeId === "compare-models")?.outputCount,
+            ).to.be.greaterThan(0);
+            expect(
+                run.nodeStates?.find((node) => node.nodeId === "analyze-migration-risk")
+                    ?.outputCount,
             ).to.be.greaterThan(0);
             expect(git("rev-parse", "HEAD")).to.equal(beforeHead);
             expect(git("status", "--porcelain")).to.equal(beforeStatus);

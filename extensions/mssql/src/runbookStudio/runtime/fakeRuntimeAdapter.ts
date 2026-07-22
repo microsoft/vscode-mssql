@@ -816,6 +816,55 @@ function executeNode(
                 },
             };
         }
+        case "migration.data-loss.analyze": {
+            const diff = resolveBind(node.inputs?.diff, parameterValues, nodeValues);
+            if (typeof diff !== "string") {
+                return invalidPreviewBinding("migration.data-loss.analyze", "diff");
+            }
+            const digest = crypto.createHash("sha256").update(diff).digest("hex");
+            return {
+                success: true,
+                runMetrics: {
+                    "migration.riskBlockerCount": 0,
+                    "migration.riskReviewCount": 0,
+                    "migration.potentialDataLoss": false,
+                    "migration.renameDecisionRequired": false,
+                },
+                message: "No migration risk items (deterministic preview)",
+                output: {
+                    contract: "migrationRisk/1",
+                    columns: [
+                        "code",
+                        "severity",
+                        "objectType",
+                        "path",
+                        "changeKind",
+                        "potentialDataLoss",
+                        "detail",
+                    ],
+                    rows: [],
+                    scalars: {
+                        riskRef: `preview-ef-risk:${digest}`,
+                        riskSha256: digest,
+                        status: "safe",
+                        potentialDataLoss: false,
+                        requiresRenameDecision: false,
+                        blockerCount: 0,
+                        reviewCount: 0,
+                        preview: true,
+                    },
+                },
+                values: {
+                    riskRef: `preview-ef-risk:${digest}`,
+                    riskSha256: digest,
+                    status: "safe",
+                    potentialDataLoss: false,
+                    requiresRenameDecision: false,
+                    blockerCount: 0,
+                    reviewCount: 0,
+                },
+            };
+        }
         case "git.change-set.inspect": {
             const repository = resolveBind(node.inputs?.repository, parameterValues, nodeValues);
             const baseRef = resolveBind(node.inputs?.baseRef, parameterValues, nodeValues);

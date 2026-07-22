@@ -283,6 +283,34 @@ suite("planCompiler", () => {
         expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
     });
 
+    test("EF branch comparison can append factual migration risk without generating SQL", () => {
+        const intent =
+            "Compare the Entity Framework changes between development and main and analyze possible data loss.";
+        const classified = classifyRunbookIntent(intent);
+        const efBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicEfModelComparison(efBase, intent);
+        expect(result).not.to.equal(undefined);
+        if (!result || isProposalFailure(result)) {
+            throw new Error(result && isProposalFailure(result) ? result.detail : "no plan");
+        }
+
+        expect(result.artifact.lock?.nodes).to.have.length(9);
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "analyze-migration-risk"),
+        ).to.deep.include({
+            activityKind: "migration.data-loss.analyze",
+            inputs: { diff: "$nodes.compare-models.diffRef" },
+        });
+        expect(
+            result.artifact.lock?.nodes.some((node) => node.activityKind?.includes("script")),
+        ).to.equal(false);
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+    });
+
     test("complex EF branch workflows name semantic migration blockers instead of one-table DDL", () => {
         const classified = classifyRunbookIntent(
             "Diff the development branch against main, inspect EntityFramework entities, and create CREATE, ALTER, and DROP DDL to update the database.",

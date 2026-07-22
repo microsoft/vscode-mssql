@@ -287,9 +287,15 @@ export function compileDeterministicEfModelComparison(
     intent: string,
 ): ProposalParseResult | undefined {
     const required = base.source.requirements?.activities.map((activity) => activity.kind) ?? [];
+    const analyzeMigrationRisk = required.includes("migration.data-loss.analyze");
     if (
-        required.length !== DETERMINISTIC_EF_COMPARISON_ACTIVITIES.size ||
-        !required.every((kind) => DETERMINISTIC_EF_COMPARISON_ACTIVITIES.has(kind)) ||
+        required.length !==
+            DETERMINISTIC_EF_COMPARISON_ACTIVITIES.size + (analyzeMigrationRisk ? 1 : 0) ||
+        !required.every(
+            (kind) =>
+                DETERMINISTIC_EF_COMPARISON_ACTIVITIES.has(kind) ||
+                kind === "migration.data-loss.analyze",
+        ) ||
         !/\b(entity\s*framework|entityframework|ef\s*core|dbcontext|entities)\b/i.test(intent)
     ) {
         return undefined;
@@ -297,7 +303,7 @@ export function compileDeterministicEfModelComparison(
     const proposal: CompiledProposal = {
         name: "Entity Framework model comparison",
         description:
-            "Captures the source change set, restores and builds two approved exact revisions, and reports their semantic SQL Server relational-model changes without generating or applying DDL.",
+            "Captures the source change set, restores and builds two approved exact revisions, and reports their semantic SQL Server relational-model changes and requested factual migration risk without generating or applying DDL.",
         parameters: [
             {
                 id: "repository",
@@ -396,6 +402,17 @@ export function compileDeterministicEfModelComparison(
                     head: "$nodes.extract-head-model.modelRef",
                 },
             },
+            ...(analyzeMigrationRisk
+                ? [
+                      {
+                          id: "analyze-migration-risk",
+                          label: "Analyze migration data-loss risk",
+                          kind: "activity" as const,
+                          activityKind: "migration.data-loss.analyze",
+                          inputs: { diff: "$nodes.compare-models.diffRef" },
+                      },
+                  ]
+                : []),
             { id: "report", label: "Summarize Entity Framework changes", kind: "report" },
         ],
         edges: [
@@ -411,8 +428,17 @@ export function compileDeterministicEfModelComparison(
             { from: "approve-head-model", to: "report", when: "rejected" },
             { from: "extract-head-model", to: "compare-models" },
             { from: "extract-head-model", to: "report", when: "failure" },
-            { from: "compare-models", to: "report" },
+            {
+                from: "compare-models",
+                to: analyzeMigrationRisk ? "analyze-migration-risk" : "report",
+            },
             { from: "compare-models", to: "report", when: "failure" },
+            ...(analyzeMigrationRisk
+                ? [
+                      { from: "analyze-migration-risk", to: "report" },
+                      { from: "analyze-migration-risk", to: "report", when: "failure" as const },
+                  ]
+                : []),
         ],
     };
     return parseCompiledProposal(JSON.stringify(proposal), base, intent);

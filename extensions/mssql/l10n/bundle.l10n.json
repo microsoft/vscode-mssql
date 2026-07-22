@@ -215,6 +215,12 @@
     },
     "The Entity Framework relational-model artifact is incomplete or invalid.": "The Entity Framework relational-model artifact is incomplete or invalid.",
     "The Entity Framework models do not belong to this run or were changed.": "The Entity Framework models do not belong to this run or were changed.",
+    "The Entity Framework semantic diff does not belong to this run or was changed.": "The Entity Framework semantic diff does not belong to this run or was changed.",
+    "The Entity Framework migration-risk artifact is incomplete or invalid.": "The Entity Framework migration-risk artifact is incomplete or invalid.",
+    "Analyzed migration risk: {0} blocker(s) and {1} review item(s)./{0} is a blocker count{1} is a review-item count": {
+        "message": "Analyzed migration risk: {0} blocker(s) and {1} review item(s).",
+        "comment": ["{0} is a blocker count", "{1} is a review-item count"]
+    },
     "Captured {0} bounded SQL Server performance metric(s)./{0} is a performance metric row count": {
         "message": "Captured {0} bounded SQL Server performance metric(s).",
         "comment": ["{0} is a performance metric row count"]

@@ -55,6 +55,7 @@ import type { RunbookSchemaGraphDocument } from "../../sharedInterfaces/runbookS
 import type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot";
 import type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
 import type { LocalEfRelationalDiff, LocalEfRelationalModel } from "./localEfRelationalModel";
+import type { LocalEfMigrationRiskDocument } from "./localEfMigrationRisk";
 
 export type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot";
 export type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
@@ -80,6 +81,14 @@ export interface LocalEfRelationalModelExecutionResult {
 export interface LocalEfRelationalDiffExecutionResult {
     diff: LocalEfRelationalDiff;
     diffRef: string;
+    artifactPath: string;
+    artifactSizeBytes: number;
+    artifactSha256: string;
+}
+
+export interface LocalEfMigrationRiskExecutionResult {
+    risk: LocalEfMigrationRiskDocument;
+    riskRef: string;
     artifactPath: string;
     artifactSizeBytes: number;
     artifactSha256: string;
@@ -117,6 +126,12 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalEfRelationalDiffExecutionResult>;
+    analyzeEfMigrationRisk(
+        nodeId: string,
+        diffRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEfMigrationRiskExecutionResult>;
     inspectGitChangeSet(
         nodeId: string,
         repository: string,
@@ -619,6 +634,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "ef.project.discover",
         "ef.relational-model.extract",
         "ef.relational-model.compare",
+        "migration.data-loss.analyze",
         "sqltest.discover",
         "tsqlt.run",
         "dacpac.build",
@@ -675,6 +691,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.extractEfRelationalModel(node, binding);
             case "ef.relational-model.compare":
                 return this.compareEfRelationalModels(node, binding);
+            case "migration.data-loss.analyze":
+                return this.analyzeEfMigrationRisk(node, binding);
             case "sqltest.discover":
                 return this.discoverSqlTests(binding);
             case "tsqlt.run":
@@ -1024,6 +1042,88 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     changeCount: result.diff.changes.length,
                     requiresRenameDecision: result.diff.requiresRenameDecision,
                     potentialDataLoss: result.diff.potentialDataLoss,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async analyzeEfMigrationRisk(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const diffRef = binding.resolveBind(node.inputs?.diff);
+        if (typeof diffRef !== "string" || diffRef.trim().length === 0) {
+            return invalidBinding("diff");
+        }
+        try {
+            const result = await this.operations.analyzeEfMigrationRisk(
+                node.id,
+                diffRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "migration.riskBlockerCount": result.risk.blockerCount,
+                    "migration.riskReviewCount": result.risk.reviewCount,
+                    "migration.potentialDataLoss": result.risk.potentialDataLoss,
+                    "migration.renameDecisionRequired": result.risk.requiresRenameDecision,
+                },
+                message: LocRunbookStudio.efMigrationRiskAnalyzed(
+                    result.risk.blockerCount,
+                    result.risk.reviewCount,
+                ),
+                output: {
+                    contract: "migrationRisk/1",
+                    columns: [
+                        "code",
+                        "severity",
+                        "objectType",
+                        "path",
+                        "changeKind",
+                        "potentialDataLoss",
+                        "detail",
+                    ],
+                    rows: result.risk.items.map((item) => [
+                        item.code,
+                        item.severity,
+                        item.objectType,
+                        item.path,
+                        item.changeKind,
+                        item.potentialDataLoss,
+                        item.detail,
+                    ]),
+                    scalars: {
+                        riskRef: result.riskRef,
+                        riskSha256: result.risk.riskSha256,
+                        diffSha256: result.risk.diffSha256,
+                        status: result.risk.status,
+                        comparable: result.risk.comparable,
+                        potentialDataLoss: result.risk.potentialDataLoss,
+                        requiresRenameDecision: result.risk.requiresRenameDecision,
+                        blockerCount: result.risk.blockerCount,
+                        reviewCount: result.risk.reviewCount,
+                        artifactPath: result.artifactPath,
+                        artifactSizeBytes: result.artifactSizeBytes,
+                        artifactSha256: result.artifactSha256,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    riskRef: result.riskRef,
+                    riskSha256: result.risk.riskSha256,
+                    status: result.risk.status,
+                    potentialDataLoss: result.risk.potentialDataLoss,
+                    requiresRenameDecision: result.risk.requiresRenameDecision,
+                    blockerCount: result.risk.blockerCount,
+                    reviewCount: result.risk.reviewCount,
                 },
             };
         } catch (error) {

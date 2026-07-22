@@ -263,6 +263,44 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         blastRadius: { ...READ_ONLY_LOCAL, resource: "none" },
     },
     {
+        kind: "migration.data-loss.analyze",
+        version: 1,
+        label: "Analyze migration data-loss risk",
+        description:
+            "Projects a same-run EF semantic diff into factual blockers and review items. It does not inspect database rows, resolve renames, generate SQL, or approve a migration.",
+        inputs: [
+            {
+                name: "diff",
+                kind: "bind",
+                required: true,
+                description: "Upstream ef.relational-model.compare diffRef",
+            },
+        ],
+        outputContract: "migrationRisk/1",
+        outputSchema: {
+            fields: [
+                { name: "code", valueType: "string", roles: ["category"] },
+                { name: "severity", valueType: "string", roles: ["category"] },
+                { name: "objectType", valueType: "string", roles: ["category"] },
+                { name: "path", valueType: "string", roles: ["label"] },
+                { name: "changeKind", valueType: "string", roles: ["category"] },
+                { name: "potentialDataLoss", valueType: "boolean" },
+                { name: "detail", valueType: "string" },
+            ],
+        },
+        producedValues: [
+            "riskRef",
+            "riskSha256",
+            "status",
+            "potentialDataLoss",
+            "requiresRenameDecision",
+            "blockerCount",
+            "reviewCount",
+        ],
+        target: { kind: "workspace", workspace: true },
+        blastRadius: { ...READ_ONLY_LOCAL, resource: "none" },
+    },
+    {
         kind: "sqltest.discover",
         version: 1,
         label: "Discover repository SQL tests",
@@ -1810,6 +1848,20 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
             ) {
                 issues.push(
                     `node '${node.id}' must bind distinct base/head refs from upstream ef.relational-model.extract nodes`,
+                );
+            }
+            if (
+                descriptor.kind === "migration.data-loss.analyze" &&
+                !isUpstreamActivityOutput(
+                    lock,
+                    node,
+                    "diff",
+                    "diffRef",
+                    "ef.relational-model.compare",
+                )
+            ) {
+                issues.push(
+                    `node '${node.id}' must bind its diff to an upstream ef.relational-model.compare diffRef`,
                 );
             }
         }

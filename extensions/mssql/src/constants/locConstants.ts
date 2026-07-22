@@ -380,6 +380,18 @@ export class RunbookStudio {
     public static efRelationalModelReferenceInvalid = l10n.t(
         "The Entity Framework models do not belong to this run or were changed.",
     );
+    public static efRelationalDiffReferenceInvalid = l10n.t(
+        "The Entity Framework semantic diff does not belong to this run or was changed.",
+    );
+    public static efMigrationRiskInvalid = l10n.t(
+        "The Entity Framework migration-risk artifact is incomplete or invalid.",
+    );
+    public static efMigrationRiskAnalyzed = (blockerCount: number, reviewCount: number) =>
+        l10n.t({
+            message: "Analyzed migration risk: {0} blocker(s) and {1} review item(s).",
+            args: [blockerCount, reviewCount],
+            comment: ["{0} is a blocker count", "{1} is a review-item count"],
+        });
     public static performanceSnapshotCaptured = (metricCount: number) =>
         l10n.t({
             message: "Captured {0} bounded SQL Server performance metric(s).",

@@ -469,6 +469,11 @@
     <trans-unit id="++CODE++44b00c0e282443ba0669be2f57be8a112820909a49b2e026121d446409e42d21">
       <source xml:lang="en">Analyze static code with customizable rulesets in SQL Database Projects.</source>
     </trans-unit>
+    <trans-unit id="++CODE++b36e2b483a30b0b094f1403f8d657aecb330349b5a627974717498ee75093e63">
+      <source xml:lang="en">Analyzed migration risk: {0} blocker(s) and {1} review item(s).</source>
+      <note>{0} is a blocker count
+{1} is a review-item count</note>
+    </trans-unit>
     <trans-unit id="++CODE++6f4d96cdabe8db21078957a99ef33b4fe05ffa90b817ea6923ebbb67a0b6f0d6">
       <source xml:lang="en">Analyzed {0} correlated Extended Events event(s).</source>
       <note>{0} is an Extended Events event count</note>
@@ -9343,11 +9348,17 @@
     <trans-unit id="++CODE++a2b90b68eaa36b468cd402c81b1ae4983b4b93de687e455ecd6b390220d4848b">
       <source xml:lang="en">The DacFx service is not available for deployment preview.</source>
     </trans-unit>
+    <trans-unit id="++CODE++6ed2e1ce8560c66cfee0183053491e6629112f9cc44b05fbef7bdabb0115ed77">
+      <source xml:lang="en">The Entity Framework migration-risk artifact is incomplete or invalid.</source>
+    </trans-unit>
     <trans-unit id="++CODE++f83b6e0c29a7434c2066fc56457c8ae9fe01594816638b60780f3b0c755db287">
       <source xml:lang="en">The Entity Framework models do not belong to this run or were changed.</source>
     </trans-unit>
     <trans-unit id="++CODE++fd1427a5932a54838255f740e3e4d6e1416788a6b5895c769292b92d51a3d37a">
       <source xml:lang="en">The Entity Framework relational-model artifact is incomplete or invalid.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++933cee0c64d860518698464d4be15208d42caf7b6cd1f90bc08359acc1420881">
+      <source xml:lang="en">The Entity Framework semantic diff does not belong to this run or was changed.</source>
     </trans-unit>
     <trans-unit id="++CODE++3cd1b8006c9db7c3ebec96a04ce2b6d3164a0a375c2424708c116c128d93cdfd">
       <source xml:lang="en">The Hobbes runtime could not resolve the connection alias for this run.</source>

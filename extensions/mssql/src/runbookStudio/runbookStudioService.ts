@@ -105,6 +105,7 @@ import {
     LocalDacpacExtractionResult,
     LocalDevelopmentDatabaseLeaseResult,
     LocalEfRelationalDiffExecutionResult,
+    LocalEfMigrationRiskExecutionResult,
     LocalEfRelationalModelExecutionResult,
     LocalSandboxCleanupResult,
     LocalSandboxLeaseResult,
@@ -222,6 +223,10 @@ import {
     type LocalEfRelationalDiff,
     type LocalEfRelationalModel,
 } from "./runtime/localEfRelationalModel";
+import {
+    analyzeLocalEfMigrationRisk,
+    type LocalEfMigrationRiskDocument,
+} from "./runtime/localEfMigrationRisk";
 import type { IConnectionProfileWithSource } from "../models/interfaces";
 import {
     buildTransactionalCreateTableSql,
@@ -429,6 +434,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         string,
         { runId: string; diff: LocalEfRelationalDiff }
     >();
+    private readonly efMigrationRisks = new Map<
+        string,
+        { runId: string; risk: LocalEfMigrationRiskDocument }
+    >();
 
     private readonly storageRoot: string;
     /** Library-global persistence root (ledger + results). Run history must
@@ -514,6 +523,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         this.schemaFingerprints.clear();
         this.efRelationalModels.clear();
         this.efRelationalDiffs.clear();
+        this.efMigrationRisks.clear();
         void this.adapter?.dispose();
         if (this.hobbesAdapter && this.hobbesAdapter !== this.adapter) {
             void this.hobbesAdapter.dispose();
@@ -2567,6 +2577,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             invocation,
                             cancelled,
                         ),
+                    analyzeEfMigrationRisk: (nodeId, diffRef, invocation, cancelled) =>
+                        this.analyzeLocalEfMigrationRisk(nodeId, diffRef, invocation, cancelled),
                     inspectGitChangeSet: (
                         nodeId,
                         repository,
@@ -6510,6 +6522,76 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         }
     }
 
+    private async analyzeLocalEfMigrationRisk(
+        nodeId: string,
+        diffRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalEfMigrationRiskExecutionResult> {
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.efRelationalModelCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const source = this.efRelationalDiffs.get(diffRef);
+        if (
+            !source ||
+            source.runId !== invocation.runId ||
+            !/^runbook-ef-diff:[A-Za-z0-9_-]{1,160}:[a-f0-9]{64}:[a-f0-9-]{36}$/i.test(diffRef)
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.efRelationalDiffReferenceInvalid,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        const risk = analyzeLocalEfMigrationRisk(source.diff);
+        const artifactPath = await this.localManagedArtifactPath(
+            invocation,
+            nodeId,
+            "migration-risk.json",
+        );
+        if (await pathExists(artifactPath)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.runbookArtifactAlreadyExists(artifactPath),
+                "RunbookStudio.ArtifactExists",
+            );
+        }
+        let complete = false;
+        try {
+            const artifactBytes = Buffer.from(canonicalRunbookJson(risk), "utf8");
+            await fs.promises.writeFile(artifactPath, artifactBytes, { flag: "wx" });
+            const artifactStat = await fs.promises.stat(artifactPath);
+            const artifactSha256 = crypto.createHash("sha256").update(artifactBytes).digest("hex");
+            if (!artifactStat.isFile() || artifactStat.size !== artifactBytes.byteLength) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.efMigrationRiskInvalid,
+                    "RunbookStudio.ArtifactInvalid",
+                );
+            }
+            if (this.efMigrationRisks.size >= 64) {
+                const oldest = this.efMigrationRisks.keys().next().value;
+                if (typeof oldest === "string") {
+                    this.efMigrationRisks.delete(oldest);
+                }
+            }
+            const riskRef = `runbook-ef-risk:${invocation.runId}:${risk.riskSha256}:${crypto.randomUUID()}`;
+            this.efMigrationRisks.set(riskRef, { runId: invocation.runId, risk });
+            complete = true;
+            return {
+                risk,
+                riskRef,
+                artifactPath,
+                artifactSizeBytes: artifactStat.size,
+                artifactSha256,
+            };
+        } finally {
+            if (!complete) {
+                await fs.promises.rm(artifactPath, { force: true }).catch(() => undefined);
+            }
+        }
+    }
+
     private async inspectLocalGitChangeSet(
         nodeId: string,
         repository: string,
@@ -7156,6 +7238,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         for (const [diffRef, entry] of this.efRelationalDiffs) {
             if (entry.runId === active.runId) {
                 this.efRelationalDiffs.delete(diffRef);
+            }
+        }
+        for (const [riskRef, entry] of this.efMigrationRisks) {
+            if (entry.runId === active.runId) {
+                this.efMigrationRisks.delete(riskRef);
             }
         }
         this.activeByRunId.delete(active.runId);

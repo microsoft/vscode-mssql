@@ -53,7 +53,7 @@ const scenarios = [
             "Compare Entity Framework changes on the development branch with main where a nullable column is " +
             "narrowed and a table is dropped, generate the migration DDL, analyze possible data loss, and stop " +
             "for an explicit decision before rehearsal.",
-        missing: ["migration.script.generate@1", "migration.data-loss.analyze@1"],
+        missing: ["migration.script.generate@1"],
     },
     {
         id: "target-drift",

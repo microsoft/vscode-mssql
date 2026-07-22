@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import { analyzeLocalEfMigrationRisk } from "../../src/runbookStudio/runtime/localEfMigrationRisk";
 import {
     compareLocalEfRelationalModels,
     createLocalEfRelationalModel,
@@ -241,5 +242,77 @@ suite("Runbook Studio EF relational model core", () => {
                 }),
             ]),
         ).to.throw("absent table");
+    });
+});
+
+suite("Runbook Studio EF migration risk", () => {
+    test("blocks unresolved renames while preserving the underlying drop risks", () => {
+        const before = table("Customers", [
+            column("CustomersId", "int"),
+            column("DisplayName", "nvarchar(200)", true),
+        ]);
+        const after = {
+            ...before,
+            columns: [column("CustomersId", "int"), column("Name", "nvarchar(200)", true)],
+        };
+        const diff = compareLocalEfRelationalModels(model([before]), model([after]));
+
+        const risk = analyzeLocalEfMigrationRisk(diff);
+
+        expect(risk).to.deep.include({
+            comparable: true,
+            status: "blocked",
+            potentialDataLoss: true,
+            requiresRenameDecision: true,
+            blockerCount: 1,
+            reviewCount: 1,
+        });
+        expect(risk.items.map((item) => item.code)).to.have.members([
+            "objectDrop",
+            "renameDecisionRequired",
+        ]);
+        expect(risk.riskSha256).to.match(/^[a-f0-9]{64}$/);
+    });
+
+    test("returns reviewRequired for narrowing and blocked for incomparable models", () => {
+        const wide = table("Customers", [
+            column("CustomersId", "int"),
+            { ...column("Name", "nvarchar(200)", true), maxLength: 200 },
+        ]);
+        const narrow = {
+            ...wide,
+            columns: [
+                column("CustomersId", "int"),
+                { ...column("Name", "nvarchar(100)"), maxLength: 100 },
+            ],
+        };
+        const review = analyzeLocalEfMigrationRisk(
+            compareLocalEfRelationalModels(model([wide]), model([narrow])),
+        );
+        expect(review).to.deep.include({
+            status: "reviewRequired",
+            potentialDataLoss: true,
+            blockerCount: 0,
+            reviewCount: 1,
+        });
+        expect(review.items[0]).to.deep.include({
+            code: "columnConversion",
+            changeKind: "alterColumn",
+        });
+
+        const incomplete = model([wide], { complete: false });
+        const blocked = analyzeLocalEfMigrationRisk(
+            compareLocalEfRelationalModels(model([wide]), incomplete),
+        );
+        expect(blocked).to.deep.include({
+            comparable: false,
+            status: "blocked",
+            potentialDataLoss: false,
+            blockerCount: 1,
+        });
+        expect(blocked.items[0]).to.deep.include({
+            code: "modelIncomparable",
+            detail: "incompleteModel",
+        });
     });
 });

@@ -6,11 +6,10 @@
 /**
  * Provider-neutral EF relational model and semantic comparison core.
  *
- * This module does not load or execute repository code. A future trusted
- * design-time provider must produce this closed manifest from an isolated
- * exact-ref snapshot and pass it through `createLocalEfRelationalModel`.
- * Until that provider lands, `ef.relational-model.compare@1` remains absent
- * from the executable activity catalog.
+ * This module does not load or execute repository code. The separately
+ * approval-governed exact-ref provider produces this closed manifest and
+ * passes it through `createLocalEfRelationalModel`; comparison stays a pure
+ * operation over two host-owned same-run values.
  */
 
 import * as crypto from "crypto";

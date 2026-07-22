@@ -17,6 +17,7 @@ import {
     compareLocalEfRelationalModels,
     createLocalEfRelationalModel,
 } from "../../src/runbookStudio/runtime/localEfRelationalModel";
+import { analyzeLocalEfMigrationRisk } from "../../src/runbookStudio/runtime/localEfMigrationRisk";
 
 function efModel(commit: string, modelShaSeed: string) {
     return createLocalEfRelationalModel({
@@ -111,6 +112,21 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
                 artifactPath: "C:\\managed\\ef-model-diff.json",
                 artifactSizeBytes: 1024,
                 artifactSha256: "d".repeat(64),
+            };
+        },
+        analyzeEfMigrationRisk: async () => {
+            const risk = analyzeLocalEfMigrationRisk(
+                compareLocalEfRelationalModels(
+                    efModel("1".repeat(40), "a"),
+                    efModel("2".repeat(40), "b"),
+                ),
+            );
+            return {
+                risk,
+                riskRef: `runbook-ef-risk:run-1:${risk.riskSha256}:00000000-0000-4000-8000-000000000003`,
+                artifactPath: "C:\\managed\\migration-risk.json",
+                artifactSizeBytes: 512,
+                artifactSha256: "e".repeat(64),
             };
         },
         capturePerformanceSnapshot: async () => ({
@@ -720,6 +736,29 @@ suite("Runbook Studio local activity delegate", () => {
         });
         expect(result?.values?.diffRef).to.match(/^runbook-ef-diff:/);
         expect(JSON.stringify(result?.output)).not.to.match(/\b(?:CREATE|ALTER|DROP)\b/i);
+    });
+
+    test("migration risk analysis emits factual blockers without generated SQL", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+
+        const result = await delegate.executeActivity(
+            activity("migration.data-loss.analyze", {
+                diff: "runbook-ef-diff:run-1",
+            }),
+            binding(),
+        );
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("migrationRisk/1");
+        expect(result?.output?.scalars).to.deep.include({
+            status: "safe",
+            blockerCount: 0,
+            reviewCount: 0,
+            potentialDataLoss: false,
+            artifactPath: "C:\\managed\\migration-risk.json",
+            executionMode: "local",
+        });
+        expect(JSON.stringify(result?.output)).not.to.match(/\b(?:CREATE|ALTER|DROP)\s/i);
     });
 
     test("repository test discovery emits bounded typed rows and completeness", async () => {
@@ -1841,6 +1880,7 @@ suite("Runbook Studio local activity delegate", () => {
             "ef.project.discover",
             "ef.relational-model.extract",
             "ef.relational-model.compare",
+            "migration.data-loss.analyze",
             "sqltest.discover",
             "tsqlt.run",
             "dacpac.build",
