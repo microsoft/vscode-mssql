@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
+import { spawnSync } from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -11,6 +12,8 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import {
     discoverLocalSqlTests,
+    inspectLocalGitChangeSet,
+    parseGitNameStatus,
     verifyLocalDacpacArtifact,
 } from "../../src/runbookStudio/runtime/localDeveloperOperations";
 import { LocalActivityError } from "../../src/runbookStudio/runtime/localSqlDelegate";
@@ -100,6 +103,130 @@ suite("Runbook Studio local repository SQL test discovery", () => {
     });
 });
 
+suite("Runbook Studio Git change-set parsing", () => {
+    test("classifies entity files and preserves rename provenance", () => {
+        expect(
+            parseGitNameStatus(
+                [
+                    "A\tsrc/MyApp.Data/Entities/AuditLog.cs",
+                    "M\tsrc/MyApp.Data/Entities/Order.cs",
+                    "R100\tsrc/OldContext.cs\tsrc/AppDbContext.cs",
+                    "M\tREADME.md",
+                ].join("\n"),
+            ),
+        ).to.deep.equal([
+            {
+                status: "M",
+                relativePath: "README.md",
+                entityRelated: false,
+            },
+            {
+                status: "R100",
+                relativePath: "src/AppDbContext.cs",
+                previousPath: "src/OldContext.cs",
+                entityRelated: true,
+            },
+            {
+                status: "A",
+                relativePath: "src/MyApp.Data/Entities/AuditLog.cs",
+                entityRelated: true,
+            },
+            {
+                status: "M",
+                relativePath: "src/MyApp.Data/Entities/Order.cs",
+                entityRelated: true,
+            },
+        ]);
+    });
+
+    test("refuses traversal and malformed name-status rows", () => {
+        for (const value of ["M\t../secret.cs", "M\tC:/secret.cs", "R100\tonly-one-path"]) {
+            expect(() => parseGitNameStatus(value), value).to.throw(LocalActivityError);
+        }
+    });
+});
+
+suite("Runbook Studio local Git change-set capture", () => {
+    let sandbox: sinon.SinonSandbox;
+    let repository: string;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        repository = fs.mkdtempSync(path.join(os.tmpdir(), "rbs-git-change-set-"));
+        sandbox.stub(vscode.workspace, "isTrusted").value(true);
+        sandbox.stub(vscode.workspace, "workspaceFolders").value([
+            {
+                uri: vscode.Uri.file(repository),
+                name: "repo",
+                index: 0,
+            } as vscode.WorkspaceFolder,
+        ]);
+        runGit(repository, ["init", "-b", "main"]);
+        runGit(repository, ["config", "user.name", "Runbook Fixture"]);
+        runGit(repository, ["config", "user.email", "runbook@example.invalid"]);
+        const entities = path.join(repository, "src", "Entities");
+        fs.mkdirSync(entities, { recursive: true });
+        fs.writeFileSync(path.join(entities, "Order.cs"), "class Order { }\n", "utf8");
+        runGit(repository, ["add", "."]);
+        runGit(repository, ["commit", "-m", "main"]);
+        runGit(repository, ["switch", "-c", "development"]);
+        fs.writeFileSync(
+            path.join(entities, "Order.cs"),
+            "class Order { public string Status { get; set; } }\n",
+            "utf8",
+        );
+        fs.writeFileSync(path.join(entities, "AuditLog.cs"), "class AuditLog { }\n", "utf8");
+        runGit(repository, ["add", "."]);
+        runGit(repository, ["commit", "-m", "development"]);
+    });
+
+    teardown(() => {
+        sandbox.restore();
+        if (path.basename(repository).startsWith("rbs-git-change-set-")) {
+            try {
+                fs.rmSync(repository, {
+                    recursive: true,
+                    force: true,
+                    maxRetries: 5,
+                    retryDelay: 100,
+                });
+            } catch (error) {
+                // VS Code's Windows file watcher can retain the temporary
+                // repository until the extension host exits. The OS temp
+                // directory owns final cleanup; fail for every other error.
+                if ((error as NodeJS.ErrnoException).code !== "EPERM") {
+                    throw error;
+                }
+            }
+        }
+    });
+
+    test("captures exact refs into a non-mutating retained patch", async () => {
+        const beforeStatus = runGit(repository, ["status", "--porcelain"]);
+        const artifactPath = path.join(repository, "changes.patch");
+        const result = await inspectLocalGitChangeSet(
+            repository,
+            "main",
+            "development",
+            false,
+            artifactPath,
+            () => false,
+        );
+
+        expect(result.files.map((file) => file.relativePath)).to.deep.equal([
+            "src/Entities/AuditLog.cs",
+            "src/Entities/Order.cs",
+        ]);
+        expect(result.entityRelatedFileCount).to.equal(2);
+        expect(result.baseCommit).to.match(/^[a-f0-9]{40}$/);
+        expect(result.headCommit).to.match(/^[a-f0-9]{40}$/);
+        expect(result.artifactSha256).to.match(/^[a-f0-9]{64}$/);
+        expect(fs.readFileSync(artifactPath, "utf8")).to.contain("src/Entities/AuditLog.cs");
+        fs.rmSync(artifactPath);
+        expect(runGit(repository, ["status", "--porcelain"])).to.equal(beforeStatus);
+    });
+});
+
 suite("managedDacpacArtifactTrust", () => {
     let sandbox: sinon.SinonSandbox;
     let testRoot: string;
@@ -140,3 +267,15 @@ suite("managedDacpacArtifactTrust", () => {
         expect(admitted.artifactSha256).to.match(/^[a-f0-9]{64}$/);
     });
 });
+
+function runGit(repository: string, args: string[]): string {
+    const result = spawnSync("git", args, {
+        cwd: repository,
+        encoding: "utf8",
+        windowsHide: true,
+    });
+    if (result.status !== 0) {
+        throw new Error(`Git fixture command failed: ${result.stderr}`);
+    }
+    return result.stdout;
+}

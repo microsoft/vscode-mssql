@@ -177,6 +177,20 @@
         "message": "Found {0} database projects in the open workspace.",
         "comment": ["{0} is a count of SQL database project files"]
     },
+    "Captured {0} changed file(s), including {1} Entity Framework-related file(s)./{0} is a changed file count{1} is an EF-related file count": {
+        "message": "Captured {0} changed file(s), including {1} Entity Framework-related file(s).",
+        "comment": ["{0} is a changed file count", "{1} is an EF-related file count"]
+    },
+    "Trust this workspace before inspecting repository changes.": "Trust this workspace before inspecting repository changes.",
+    "Open and explicitly bind a Git repository in the current workspace.": "Open and explicitly bind a Git repository in the current workspace.",
+    "Git repository": "Git repository",
+    "Working-tree capture requires the selected head ref to resolve to the currently checked-out HEAD.": "Working-tree capture requires the selected head ref to resolve to the currently checked-out HEAD.",
+    "The repository change exceeds the bounded patch or file-count limit.": "The repository change exceeds the bounded patch or file-count limit.",
+    "Git returned an invalid or unsafe changed-file path.": "Git returned an invalid or unsafe changed-file path.",
+    "The selected Git base or head ref is invalid or absent.": "The selected Git base or head ref is invalid or absent.",
+    "Git change-set capture was cancelled.": "Git change-set capture was cancelled.",
+    "Git is unavailable for the local Runbook Studio provider.": "Git is unavailable for the local Runbook Studio provider.",
+    "Git could not resolve or compare the selected repository refs.": "Git could not resolve or compare the selected repository refs.",
     "Discovered {0} tSQLt test(s) in {1} test class(es)./{0} is a test count{1} is a tSQLt test class count": {
         "message": "Discovered {0} tSQLt test(s) in {1} test class(es).",
         "comment": ["{0} is a test count", "{1} is a tSQLt test class count"]

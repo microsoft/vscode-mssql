@@ -21,6 +21,7 @@ const OUTPUT_ARTIFACT_EXTENSIONS = new Map<string, ReadonlySet<string>>([
     ["schemaCompareDocument/1", new Set([".json"])],
     ["workloadArtifact/1", new Set([".sql"])],
     ["xelArtifact/1", new Set([".xel"])],
+    ["gitChangeSet/1", new Set([".patch"])],
 ]);
 
 export const XEL_CUSTOM_EDITOR_VIEW_TYPE = "mssql.profilerXelView";

@@ -1129,6 +1129,11 @@
     <trans-unit id="++CODE++3824a9f4dafe92c6f1b80b40656a59784c03a824c27d58125d7d0ace753e2df2">
       <source xml:lang="en">Canvas</source>
     </trans-unit>
+    <trans-unit id="++CODE++76aa3a2e7467fde8d080d706afab68c507942b126b79c7e3976eec7092dee04f">
+      <source xml:lang="en">Captured {0} changed file(s), including {1} Entity Framework-related file(s).</source>
+      <note>{0} is a changed file count
+{1} is an EF-related file count</note>
+    </trans-unit>
     <trans-unit id="++CODE++ba09f9b2d9321bb620f3d114b159c5650a166bb15a0d91e973d4d52e686f0abb">
       <source xml:lang="en">Card columns</source>
     </trans-unit>
@@ -4547,6 +4552,21 @@
     <trans-unit id="++CODE++bccb449867268397632519e5695a6bb611a30529b735cac4f7d5ecbaee80e785">
       <source xml:lang="en">Getting definition ...</source>
     </trans-unit>
+    <trans-unit id="++CODE++519ee8ca0dd07b6c411706aaee585cd61a36d52227965a930dba20307ca19740">
+      <source xml:lang="en">Git change-set capture was cancelled.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d13555b2d14555828e5f08c1793e3cbdbc4d6e41a7a34ebf1783572cb045cc45">
+      <source xml:lang="en">Git could not resolve or compare the selected repository refs.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++03aec9bea6402228c26ec19babb1731416a779b5df4be6f853f145ac028af355">
+      <source xml:lang="en">Git is unavailable for the local Runbook Studio provider.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fe8dcd07a9edd4cda139c3ca4bdbbbe83bc22cbd9921411ecef339d5f022905d">
+      <source xml:lang="en">Git repository</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7436072ca57e808fa2893bdfe8d5fdf7e28286842a23c2293be8fb1721f4d7dd">
+      <source xml:lang="en">Git returned an invalid or unsafe changed-file path.</source>
+    </trans-unit>
     <trans-unit id="++CODE++4ca83197033d1e5e20827525979b5a9323123783e32732e26731412bc6d59ce7">
       <source xml:lang="en">GitHub Copilot - VS Code walkthrough</source>
     </trans-unit>
@@ -6428,6 +6448,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f22bd213b6a2f93198a3fda9b1dc6e58526c5f68f06380fc6124774c30af6faa">
       <source xml:lang="en">Open an eligible Spatial result tab to see host preparation, worker decode, renderer, interaction, and cleanup evidence here.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ecc3b3a19b69ea6de9fd76a6ab3b85e6726560513e783c31c6d14664f5c826c1">
+      <source xml:lang="en">Open and explicitly bind a Git repository in the current workspace.</source>
     </trans-unit>
     <trans-unit id="++CODE++61ed4a6247dd5bceb3145efbad12489fe03c05390615ade171cb61398845b701">
       <source xml:lang="en">Open artifact</source>
@@ -9531,6 +9554,9 @@
     <trans-unit id="++CODE++a579bc312ec6b0ac71c5bdac08c2b3b84ab4e5eed469637e128c9ef1051d6d36">
       <source xml:lang="en">The registered output fields changed since this view was saved. Review the field mapping below and save to accept it.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7c87a1e292c0a2c7954418ceaeed3a67d467fa6e82d1f1f55ff2bc60bb1552bd">
+      <source xml:lang="en">The repository change exceeds the bounded patch or file-count limit.</source>
+    </trans-unit>
     <trans-unit id="++CODE++deb45b7a599eba6e761de31bae73238f9ec60e62517a88c934b81cb6743fcfbb">
       <source xml:lang="en">The requested model could not be found. Please check model availability or try a different model.</source>
     </trans-unit>
@@ -9594,6 +9620,9 @@
       <source xml:lang="en">The second value must be set for the {0} operator in the {1} filter</source>
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
+    </trans-unit>
+    <trans-unit id="++CODE++755b05ef9a25882e170761bfafd3ce2a30fcd520402bc33ee08743d379668d29">
+      <source xml:lang="en">The selected Git base or head ref is invalid or absent.</source>
     </trans-unit>
     <trans-unit id="++CODE++47017ba7a201bcf5268bb94b5ef5baf30a5b7e7d1b951cd763e9bd7be468c8aa">
       <source xml:lang="en">The selected connection must specify a target database for deployment preview.</source>
@@ -9904,6 +9933,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d9d9fcf3bd8af3458a4bceab8b07cf7739b980fd0f8418ea73f7738ec9127abe">
       <source xml:lang="en">Truncated</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5251b7c0fb3f5c8bb6204102fbc0c3c681fac654bbfdd3451d2b30645e90aee0">
+      <source xml:lang="en">Trust this workspace before inspecting repository changes.</source>
     </trans-unit>
     <trans-unit id="++CODE++d7f5ff6e4dad9f838e47b0ebe6e7599c967ad07620a3329436b4887f723d649e">
       <source xml:lang="en">Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.</source>
@@ -10403,6 +10435,9 @@
     <trans-unit id="++CODE++b3acc4df0d8c011a57c3a09a01483123b82fc2b527dc4d3df34c887296cd06dd">
       <source xml:lang="en">Working — {0}s elapsed</source>
       <note>{0} is a whole number of seconds</note>
+    </trans-unit>
+    <trans-unit id="++CODE++e3c421142c2ec029d9aeb8dd0c76be457d04989a3a17c86f046b2eec9b69f6be">
+      <source xml:lang="en">Working-tree capture requires the selected head ref to resolve to the currently checked-out HEAD.</source>
     </trans-unit>
     <trans-unit id="++CODE++75d260f06f2fef7fd13291cef1ee4e79411091bcf5615c2f5abddab7771c3d40">
       <source xml:lang="en">Working…</source>

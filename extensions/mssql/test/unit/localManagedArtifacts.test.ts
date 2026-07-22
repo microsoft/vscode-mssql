@@ -23,6 +23,7 @@ suite("Runbook Studio managed artifact filenames", () => {
         expect(localManagedArtifactFileName("generate", "workload.sql")).to.equal(
             "generate-workload.sql",
         );
+        expect(localManagedArtifactFileName("git", "changes.patch")).to.equal("git-changes.patch");
     });
 
     test("[artifact-folder-routing] refuses unregistered extensions", () => {

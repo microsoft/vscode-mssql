@@ -6,7 +6,7 @@
 import * as path from "path";
 import { sanitizeRunFileId } from "../runbookRunLedger";
 
-const MANAGED_ARTIFACT_EXTENSIONS = new Set([".dacpac", ".json", ".sql", ".xml", ".xel"]);
+const MANAGED_ARTIFACT_EXTENSIONS = new Set([".dacpac", ".json", ".patch", ".sql", ".xml", ".xel"]);
 
 /** Build one filesystem-safe managed-artifact filename while retaining the
  * closed semantic extension. DacFx and the native artifact actions use the

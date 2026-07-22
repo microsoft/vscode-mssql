@@ -100,6 +100,26 @@ suite("Runbook Studio output artifact", () => {
         expect(outputArtifactEditorViewType(artifact!.contract)).to.equal(undefined);
     });
 
+    test("admits a retained Git patch under its closed change-set contract", async () => {
+        const patchPath = path.join(root, "changes.patch");
+        const patchContents = Buffer.from("diff --git a/a.cs b/a.cs\n", "utf8");
+        fs.writeFileSync(patchPath, patchContents);
+        const artifact = retainedOutputArtifact({
+            contract: "gitChangeSet/1",
+            scalars: {
+                artifactPath: patchPath,
+                artifactSha256: createHash("sha256").update(patchContents).digest("hex"),
+                artifactSizeBytes: patchContents.length,
+            },
+        });
+        expect(artifact).to.include({
+            contract: "gitChangeSet/1",
+            artifactPath: patchPath,
+            fileName: "changes.patch",
+        });
+        expect(await verifyRetainedOutputArtifact(artifact!, [root])).to.equal(patchPath);
+    });
+
     test("refuses unknown contracts, wrong extensions, and non-file paths", () => {
         expect(retainedOutputArtifact({ ...payload(), contract: "rowset/1" })).to.equal(undefined);
         expect(

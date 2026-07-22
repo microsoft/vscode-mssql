@@ -81,6 +81,61 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         blastRadius: { ...READ_ONLY_LOCAL, resource: "workspaceFiles" },
     },
     {
+        kind: "git.change-set.inspect",
+        version: 1,
+        label: "Capture Git change set",
+        description:
+            "Resolves two refs in an explicitly bound trusted workspace repository and retains a bounded unified patch without changing the checkout.",
+        inputs: [
+            {
+                name: "repository",
+                kind: "bind",
+                required: true,
+                description: "Workspace-contained Git repository root",
+            },
+            {
+                name: "baseRef",
+                kind: "bind",
+                required: true,
+                description: "Base branch, tag, or commit",
+            },
+            {
+                name: "headRef",
+                kind: "bind",
+                required: true,
+                description: "Head branch, tag, or commit",
+            },
+            {
+                name: "includeWorkingTree",
+                kind: "bind",
+                required: true,
+                description:
+                    "Include the current checked-out working tree when head resolves to HEAD",
+            },
+        ],
+        outputContract: "gitChangeSet/1",
+        outputSchema: {
+            fields: [
+                { name: "status", valueType: "string", roles: ["category"] },
+                { name: "path", valueType: "string", roles: ["label"] },
+                { name: "previousPath", valueType: "string" },
+                { name: "entityRelated", valueType: "boolean" },
+            ],
+        },
+        producedValues: [
+            "artifactPath",
+            "artifactSha256",
+            "changedFileCount",
+            "entityRelatedFileCount",
+            "baseCommit",
+            "headCommit",
+            "mergeBase",
+            "dirty",
+        ],
+        target: { kind: "workspace", bindingInput: "repository" },
+        blastRadius: { ...READ_ONLY_LOCAL, resource: "workspaceFiles" },
+    },
+    {
         kind: "sqltest.discover",
         version: 1,
         label: "Discover repository SQL tests",

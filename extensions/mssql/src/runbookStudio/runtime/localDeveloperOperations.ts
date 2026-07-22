@@ -11,6 +11,7 @@
  */
 
 import * as crypto from "crypto";
+import { spawn } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import * as vscode from "vscode";
@@ -25,6 +26,7 @@ import {
     LocalActivityError,
     LocalDacpacBuildResult,
     LocalDeploymentPreviewResult,
+    LocalGitChangeSetResult,
     LocalSqlTestDiscoveryResult,
     LocalWorkspaceSnapshot,
 } from "./localSqlDelegate";
@@ -36,6 +38,9 @@ const MAX_REPOSITORY_SQL_FILE_BYTES = 512 * 1024;
 const MAX_REPOSITORY_SQL_TOTAL_BYTES = 32 * 1024 * 1024;
 const MAX_DEPLOYMENT_REPORT_BYTES = 256 * 1024;
 const CANCEL_POLL_MS = 50;
+const MAX_GIT_PATCH_BYTES = 8 * 1024 * 1024;
+const MAX_GIT_METADATA_BYTES = 512 * 1024;
+const MAX_GIT_CHANGED_FILES = 2000;
 
 /** DacFx receives the database name as a structured argument, but still keep
  * the authored override bounded and free of control characters before it is
@@ -75,6 +80,318 @@ export async function inspectLocalWorkspace(): Promise<LocalWorkspaceSnapshot> {
             .slice(0, MAX_DISCOVERED_PROJECTS),
         truncated: truncated || paths.size > MAX_DISCOVERED_PROJECTS,
     };
+}
+
+/** Capture one immutable, content-addressed source change without checking
+ * out, resetting, stashing, or otherwise changing the user's repository. */
+export async function inspectLocalGitChangeSet(
+    requestedRepository: string,
+    baseRef: string,
+    headRef: string,
+    includeWorkingTree: boolean,
+    artifactPath: string,
+    isCancellationRequested: () => boolean,
+): Promise<LocalGitChangeSetResult> {
+    if (!vscode.workspace.isTrusted) {
+        throw new LocalActivityError(
+            LocRunbookStudio.gitWorkspaceTrustRequired,
+            "RunbookStudio.WorkspaceUntrusted",
+        );
+    }
+    const folders = vscode.workspace.workspaceFolders ?? [];
+    if (folders.length === 0) {
+        throw new LocalActivityError(
+            LocRunbookStudio.gitRepositoryRequired,
+            "RunbookStudio.WorkspaceUnavailable",
+        );
+    }
+    const repository = path.resolve(requestedRepository.trim());
+    await assertPathInWorkspace(repository, folders, LocRunbookStudio.gitRepositoryLabel);
+    const normalizedBaseRef = validateGitRef(baseRef);
+    const normalizedHeadRef = validateGitRef(headRef);
+    const rootText = await runBoundedGit(
+        repository,
+        ["rev-parse", "--show-toplevel"],
+        MAX_GIT_METADATA_BYTES,
+        isCancellationRequested,
+    );
+    const repositoryRoot = path.normalize(rootText.trim());
+    await assertPathInWorkspace(repositoryRoot, folders, LocRunbookStudio.gitRepositoryLabel);
+    const baseCommit = await resolveGitCommit(
+        repositoryRoot,
+        normalizedBaseRef,
+        isCancellationRequested,
+    );
+    const headCommit = await resolveGitCommit(
+        repositoryRoot,
+        normalizedHeadRef,
+        isCancellationRequested,
+    );
+    const currentHead = await resolveGitCommit(repositoryRoot, "HEAD", isCancellationRequested);
+    if (includeWorkingTree && currentHead !== headCommit) {
+        throw new LocalActivityError(
+            LocRunbookStudio.gitWorkingTreeHeadRequired,
+            "RunbookStudio.BindingInvalid",
+        );
+    }
+    const mergeBase = (
+        await runBoundedGit(
+            repositoryRoot,
+            ["merge-base", baseCommit, headCommit],
+            MAX_GIT_METADATA_BYTES,
+            isCancellationRequested,
+        )
+    ).trim();
+    const statusText = await runBoundedGit(
+        repositoryRoot,
+        ["status", "--porcelain=v1", "-z", "--untracked-files=all"],
+        MAX_GIT_METADATA_BYTES,
+        isCancellationRequested,
+    );
+    const dirtyFileCount = statusText.split("\0").filter(Boolean).length;
+    const range = includeWorkingTree ? [baseCommit] : [baseCommit, headCommit];
+    const commonDiffArguments = [
+        "-c",
+        "core.quotepath=false",
+        "diff",
+        "--find-renames",
+        "--no-ext-diff",
+        "--no-textconv",
+        "--no-color",
+        ...range,
+        "--",
+    ];
+    const nameStatus = await runBoundedGit(
+        repositoryRoot,
+        [...commonDiffArguments.slice(0, 4), "--name-status", ...commonDiffArguments.slice(4)],
+        MAX_GIT_METADATA_BYTES,
+        isCancellationRequested,
+    );
+    const files = parseGitNameStatus(nameStatus);
+    if (files.length > MAX_GIT_CHANGED_FILES) {
+        throw new LocalActivityError(
+            LocRunbookStudio.gitChangeSetTooLarge,
+            "RunbookStudio.ResultTooLarge",
+        );
+    }
+    const patch = await runBoundedGit(
+        repositoryRoot,
+        [
+            ...commonDiffArguments.slice(0, 4),
+            "--binary",
+            "--full-index",
+            ...commonDiffArguments.slice(4),
+        ],
+        MAX_GIT_PATCH_BYTES,
+        isCancellationRequested,
+    );
+    const patchBytes = Buffer.from(
+        patch ||
+            `# No changes between ${normalizedBaseRef} (${baseCommit}) and ${normalizedHeadRef} (${headCommit}).\n`,
+        "utf8",
+    );
+    try {
+        await fs.promises.writeFile(artifactPath, patchBytes, { flag: "wx" });
+        const artifactSha256 = crypto.createHash("sha256").update(patchBytes).digest("hex");
+        return {
+            repositoryRoot,
+            baseRef: normalizedBaseRef,
+            headRef: normalizedHeadRef,
+            baseCommit,
+            headCommit,
+            mergeBase,
+            includeWorkingTree,
+            dirty: dirtyFileCount > 0,
+            dirtyFileCount,
+            files,
+            entityRelatedFileCount: files.filter((file) => file.entityRelated).length,
+            artifactPath,
+            artifactSizeBytes: patchBytes.byteLength,
+            artifactSha256,
+        };
+    } catch (error) {
+        await fs.promises.rm(artifactPath, { force: true }).catch(() => undefined);
+        throw error;
+    }
+}
+
+export function parseGitNameStatus(value: string): LocalGitChangeSetResult["files"] {
+    const files: LocalGitChangeSetResult["files"] = [];
+    for (const line of value.split(/\r?\n/)) {
+        if (!line) {
+            continue;
+        }
+        const fields = line.split("\t");
+        const status = fields[0];
+        const renamed = /^[RC]\d{0,3}$/.test(status);
+        const expectedFields = renamed ? 3 : 2;
+        if (!/^(?:[ACDMRTUXB]|[RC]\d{0,3})$/.test(status) || fields.length !== expectedFields) {
+            throw new LocalActivityError(
+                LocRunbookStudio.gitChangeSetInvalid,
+                "RunbookStudio.ArtifactInvalid",
+            );
+        }
+        const previousPath = renamed ? validateGitRelativePath(fields[1]) : undefined;
+        const relativePath = validateGitRelativePath(fields[renamed ? 2 : 1]);
+        files.push({
+            status,
+            relativePath,
+            ...(previousPath ? { previousPath } : {}),
+            entityRelated: isEntityRelatedPath(relativePath),
+        });
+    }
+    return files.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+}
+
+function validateGitRef(value: string): string {
+    const ref = value.trim();
+    if (!ref || ref.length > 256 || ref.startsWith("-") || /[\u0000-\u001f\u007f]/.test(ref)) {
+        throw new LocalActivityError(
+            LocRunbookStudio.gitRefInvalid,
+            "RunbookStudio.BindingInvalid",
+        );
+    }
+    return ref;
+}
+
+function validateGitRelativePath(value: string): string {
+    const relativePath = value.replace(/\\/g, "/");
+    if (
+        !relativePath ||
+        relativePath === ".." ||
+        relativePath.startsWith("../") ||
+        path.posix.isAbsolute(relativePath) ||
+        /^[A-Za-z]:\//.test(relativePath) ||
+        /[\u0000-\u001f\u007f]/.test(relativePath)
+    ) {
+        throw new LocalActivityError(
+            LocRunbookStudio.gitChangeSetInvalid,
+            "RunbookStudio.ArtifactInvalid",
+        );
+    }
+    return relativePath;
+}
+
+function isEntityRelatedPath(relativePath: string): boolean {
+    return (
+        /(?:^|\/)(?:entities|models|migrations)(?:\/|$)/i.test(relativePath) ||
+        /(?:dbcontext|modelsnapshot)\.cs$/i.test(relativePath) ||
+        /\.csproj$/i.test(relativePath)
+    );
+}
+
+async function resolveGitCommit(
+    repositoryRoot: string,
+    ref: string,
+    isCancellationRequested: () => boolean,
+): Promise<string> {
+    const commit = (
+        await runBoundedGit(
+            repositoryRoot,
+            ["rev-parse", "--verify", "--end-of-options", `${ref}^{commit}`],
+            MAX_GIT_METADATA_BYTES,
+            isCancellationRequested,
+        )
+    ).trim();
+    if (!/^[a-f0-9]{40,64}$/i.test(commit)) {
+        throw new LocalActivityError(
+            LocRunbookStudio.gitRefInvalid,
+            "RunbookStudio.TargetNotFound",
+        );
+    }
+    return commit.toLowerCase();
+}
+
+function runBoundedGit(
+    repositoryRoot: string,
+    args: readonly string[],
+    maxOutputBytes: number,
+    isCancellationRequested: () => boolean,
+): Promise<string> {
+    return new Promise((resolve, reject) => {
+        if (isCancellationRequested()) {
+            reject(
+                new LocalActivityError(
+                    LocRunbookStudio.gitChangeSetCancelled,
+                    "RunbookStudio.ActivityCancelled",
+                ),
+            );
+            return;
+        }
+        const child = spawn("git", [...args], {
+            cwd: repositoryRoot,
+            windowsHide: true,
+            shell: false,
+            stdio: ["ignore", "pipe", "pipe"],
+        });
+        const stdout: Buffer[] = [];
+        const stderr: Buffer[] = [];
+        let stdoutBytes = 0;
+        let stderrBytes = 0;
+        let outputExceeded = false;
+        let cancelled = false;
+        const cancellationPoll = setInterval(() => {
+            if (isCancellationRequested()) {
+                cancelled = true;
+                child.kill();
+            }
+        }, CANCEL_POLL_MS);
+        child.stdout.on("data", (chunk: Buffer) => {
+            stdoutBytes += chunk.byteLength;
+            if (stdoutBytes > maxOutputBytes) {
+                outputExceeded = true;
+                child.kill();
+                return;
+            }
+            stdout.push(Buffer.from(chunk));
+        });
+        child.stderr.on("data", (chunk: Buffer) => {
+            stderrBytes += chunk.byteLength;
+            if (stderrBytes <= 32 * 1024) {
+                stderr.push(Buffer.from(chunk));
+            }
+        });
+        child.on("error", () => {
+            clearInterval(cancellationPoll);
+            reject(
+                new LocalActivityError(
+                    LocRunbookStudio.gitProviderUnavailable,
+                    "RunbookStudio.ProviderUnavailable",
+                ),
+            );
+        });
+        child.on("close", (code) => {
+            clearInterval(cancellationPoll);
+            if (cancelled) {
+                reject(
+                    new LocalActivityError(
+                        LocRunbookStudio.gitChangeSetCancelled,
+                        "RunbookStudio.ActivityCancelled",
+                    ),
+                );
+                return;
+            }
+            if (outputExceeded) {
+                reject(
+                    new LocalActivityError(
+                        LocRunbookStudio.gitChangeSetTooLarge,
+                        "RunbookStudio.ResultTooLarge",
+                    ),
+                );
+                return;
+            }
+            if (code !== 0) {
+                reject(
+                    new LocalActivityError(
+                        LocRunbookStudio.gitOperationFailed,
+                        "RunbookStudio.ActivityFailed",
+                    ),
+                );
+                return;
+            }
+            resolve(Buffer.concat(stdout, stdoutBytes).toString("utf8"));
+        });
+    });
 }
 
 export async function discoverLocalSqlTests(

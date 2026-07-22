@@ -155,6 +155,7 @@ import {
     buildLocalDacpac,
     buildLocalDeploymentPreviewResult,
     discoverLocalSqlTests,
+    inspectLocalGitChangeSet,
     inspectLocalWorkspace,
     isValidDacpacSourceDatabaseName,
     verifyLocalDacpacArtifact,
@@ -2467,6 +2468,24 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             adapter = new FakeRuntimeAdapter(
                 new LocalSqlActivityDelegate({
                     inspectWorkspace: inspectLocalWorkspace,
+                    inspectGitChangeSet: (
+                        nodeId,
+                        repository,
+                        baseRef,
+                        headRef,
+                        includeWorkingTree,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.inspectLocalGitChangeSet(
+                            nodeId,
+                            repository,
+                            baseRef,
+                            headRef,
+                            includeWorkingTree,
+                            invocation,
+                            cancelled,
+                        ),
                     discoverSqlTests: discoverLocalSqlTests,
                     runTsqlt: (nodeId, databaseRef, selection, invocation, cancelled) =>
                         this.runLocalTsqlt(nodeId, databaseRef, selection, invocation, cancelled),
@@ -6005,6 +6024,30 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         fileName: string,
     ): Promise<string> {
         return this.runDropStore.artifactPath(invocation.runId, nodeId, fileName);
+    }
+
+    private async inspectLocalGitChangeSet(
+        nodeId: string,
+        repository: string,
+        baseRef: string,
+        headRef: string,
+        includeWorkingTree: boolean,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ) {
+        const artifactPath = await this.localManagedArtifactPath(
+            invocation,
+            nodeId,
+            "changes.patch",
+        );
+        return inspectLocalGitChangeSet(
+            repository,
+            baseRef,
+            headRef,
+            includeWorkingTree,
+            artifactPath,
+            isCancellationRequested,
+        );
     }
 
     private async extractLocalDacpac(

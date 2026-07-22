@@ -20,6 +20,7 @@ export interface FamilyPlannerContract {
 }
 
 const BUILD_ACTIVITIES = [
+    "git.change-set.inspect",
     "workspace.inspect",
     "sqltest.discover",
     "dbproject.create",
@@ -53,6 +54,7 @@ const BUILD_ACTIVITIES = [
 ] as const;
 
 const VALIDATE_ACTIVITIES = [
+    "git.change-set.inspect",
     "workspace.inspect",
     "sqltest.discover",
     "dacpac.build",
@@ -89,6 +91,7 @@ const VALIDATE_ACTIVITIES = [
 ] as const;
 
 const INVESTIGATE_ACTIVITIES = [
+    "git.change-set.inspect",
     "sql.query.read",
     "database.schema.inventory",
     "database.schema.visualize",

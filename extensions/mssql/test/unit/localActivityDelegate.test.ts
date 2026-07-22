@@ -23,6 +23,33 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             workspaceFolderCount: 1,
             projectPaths: ["C:\\repo\\B.sqlproj", "C:\\repo\\A.sqlproj"],
         }),
+        inspectGitChangeSet: async () => ({
+            repositoryRoot: "C:\\repo",
+            baseRef: "main",
+            headRef: "development",
+            baseCommit: "1".repeat(40),
+            headCommit: "2".repeat(40),
+            mergeBase: "1".repeat(40),
+            includeWorkingTree: false,
+            dirty: false,
+            dirtyFileCount: 0,
+            files: [
+                {
+                    status: "A",
+                    relativePath: "src/Entities/AuditLog.cs",
+                    entityRelated: true,
+                },
+                {
+                    status: "M",
+                    relativePath: "src/Entities/Order.cs",
+                    entityRelated: true,
+                },
+            ],
+            entityRelatedFileCount: 2,
+            artifactPath: "C:\\managed\\changes.patch",
+            artifactSizeBytes: 1024,
+            artifactSha256: "a".repeat(64),
+        }),
         discoverSqlTests: async () => ({
             candidateSqlFileCount: 2,
             scannedSqlFileCount: 2,
@@ -930,6 +957,32 @@ suite("Runbook Studio local activity delegate", () => {
         });
     });
 
+    test("Git change capture emits a retained patch and typed changed-file inventory", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+        const result = await delegate.executeActivity(
+            activity("git.change-set.inspect", {
+                repository: "C:\\repo",
+                baseRef: "main",
+                headRef: "development",
+                includeWorkingTree: false,
+            }),
+            binding(),
+        );
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("gitChangeSet/1");
+        expect(result?.output?.rows).to.deep.equal([
+            ["A", "src/Entities/AuditLog.cs", null, true],
+            ["M", "src/Entities/Order.cs", null, true],
+        ]);
+        expect(result?.output?.scalars).to.deep.include({
+            artifactPath: "C:\\managed\\changes.patch",
+            artifactSha256: "a".repeat(64),
+            changedFileCount: 2,
+            entityRelatedFileCount: 2,
+            dirty: false,
+        });
+    });
+
     test("XEvent start, stop, and collection emit an actionable XEL artifact", async () => {
         const delegate = new LocalSqlActivityDelegate(operations());
         const databaseRef = `runbook-sql-container-lease:effect-${"3".repeat(64)}`;
@@ -1420,6 +1473,7 @@ suite("Runbook Studio local activity delegate", () => {
         const delegate = new LocalSqlActivityDelegate(operations());
         expect([...delegate.supportedActivityKinds]).to.have.members([
             "workspace.inspect",
+            "git.change-set.inspect",
             "sqltest.discover",
             "tsqlt.run",
             "dacpac.build",

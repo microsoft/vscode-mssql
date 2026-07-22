@@ -11,6 +11,7 @@ export const RESULT_FILE_ARTIFACT_CONTRACTS = new Set([
     "schemaCompareDocument/1",
     "workloadArtifact/1",
     "xelArtifact/1",
+    "gitChangeSet/1",
 ]);
 
 const MAX_RESULT_ARTIFACTS = 32;
@@ -20,6 +21,7 @@ const RESULT_FILE_ARTIFACT_PRODUCERS: Record<string, ReadonlySet<string>> = {
     "schemaCompareDocument/1": new Set(["schema.compare.export"]),
     "workloadArtifact/1": new Set(["sql.workload.generate"]),
     "xelArtifact/1": new Set(["xevent.xel.collect"]),
+    "gitChangeSet/1": new Set(["git.change-set.inspect"]),
 };
 
 export interface ResultArtifactCandidate {

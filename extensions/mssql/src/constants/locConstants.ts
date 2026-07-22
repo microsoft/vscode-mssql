@@ -303,6 +303,37 @@ export class RunbookStudio {
             args: [count],
             comment: ["{0} is a count of SQL database project files"],
         });
+    public static gitChangeSetCaptured = (fileCount: number, entityFileCount: number) =>
+        l10n.t({
+            message:
+                "Captured {0} changed file(s), including {1} Entity Framework-related file(s).",
+            args: [fileCount, entityFileCount],
+            comment: ["{0} is a changed file count", "{1} is an EF-related file count"],
+        });
+    public static gitWorkspaceTrustRequired = l10n.t(
+        "Trust this workspace before inspecting repository changes.",
+    );
+    public static gitRepositoryRequired = l10n.t(
+        "Open and explicitly bind a Git repository in the current workspace.",
+    );
+    public static gitRepositoryLabel = l10n.t("Git repository");
+    public static gitWorkingTreeHeadRequired = l10n.t(
+        "Working-tree capture requires the selected head ref to resolve to the currently checked-out HEAD.",
+    );
+    public static gitChangeSetTooLarge = l10n.t(
+        "The repository change exceeds the bounded patch or file-count limit.",
+    );
+    public static gitChangeSetInvalid = l10n.t(
+        "Git returned an invalid or unsafe changed-file path.",
+    );
+    public static gitRefInvalid = l10n.t("The selected Git base or head ref is invalid or absent.");
+    public static gitChangeSetCancelled = l10n.t("Git change-set capture was cancelled.");
+    public static gitProviderUnavailable = l10n.t(
+        "Git is unavailable for the local Runbook Studio provider.",
+    );
+    public static gitOperationFailed = l10n.t(
+        "Git could not resolve or compare the selected repository refs.",
+    );
     public static sqlTestsDiscovered = (testCount: number, classCount: number) =>
         l10n.t({
             message: "Discovered {0} tSQLt test(s) in {1} test class(es).",

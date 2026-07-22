@@ -513,6 +513,7 @@ function hasEdge(edges: RunbookPlanEdge[], from: string, when: RunbookPlanEdge["
 
 const PREVIEW_ACTIVITY_KINDS = new Set([
     "workspace.inspect",
+    "git.change-set.inspect",
     "sqltest.discover",
     "tsqlt.run",
     "dacpac.build",
@@ -646,6 +647,63 @@ function executeNode(
                     projectPath: "preview://workspace/Database.sqlproj",
                 },
             };
+        case "git.change-set.inspect": {
+            const repository = resolveBind(node.inputs?.repository, parameterValues, nodeValues);
+            const baseRef = resolveBind(node.inputs?.baseRef, parameterValues, nodeValues);
+            const headRef = resolveBind(node.inputs?.headRef, parameterValues, nodeValues);
+            const includeWorkingTree = resolveBind(
+                node.inputs?.includeWorkingTree,
+                parameterValues,
+                nodeValues,
+            );
+            if (
+                typeof repository !== "string" ||
+                typeof baseRef !== "string" ||
+                typeof headRef !== "string" ||
+                typeof includeWorkingTree !== "boolean"
+            ) {
+                return invalidPreviewBinding(
+                    "git.change-set.inspect",
+                    "repository/baseRef/headRef/includeWorkingTree",
+                );
+            }
+            return {
+                success: true,
+                runMetrics: {
+                    "git.changedFileCount": 2,
+                    "git.entityRelatedFileCount": 2,
+                    "git.dirty": includeWorkingTree,
+                    "git.includeWorkingTree": includeWorkingTree,
+                },
+                message: "2 repository files changed (deterministic preview)",
+                output: {
+                    contract: "gitChangeSet/1",
+                    columns: ["status", "path", "previousPath", "entityRelated"],
+                    rows: [
+                        ["A", "src/Entities/AuditLog.cs", null, true],
+                        ["M", "src/Entities/Order.cs", null, true],
+                    ],
+                    scalars: {
+                        artifactPath: "preview://artifacts/changes.patch",
+                        artifactSha256: "a".repeat(64),
+                        artifactSizeBytes: 1024,
+                        baseRef,
+                        headRef,
+                        changedFileCount: 2,
+                        entityRelatedFileCount: 2,
+                        dirty: includeWorkingTree,
+                        preview: true,
+                    },
+                },
+                values: {
+                    artifactPath: "preview://artifacts/changes.patch",
+                    artifactSha256: "a".repeat(64),
+                    changedFileCount: 2,
+                    entityRelatedFileCount: 2,
+                    dirty: includeWorkingTree,
+                },
+            };
+        }
         case "sqltest.discover":
             return {
                 success: true,

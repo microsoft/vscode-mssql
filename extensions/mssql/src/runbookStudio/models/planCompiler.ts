@@ -198,6 +198,78 @@ const DETERMINISTIC_CITIES_WORKLOAD_ACTIVITIES = new Set([
     "sql.container.dispose",
 ]);
 
+/** Compile the closed read-only repository evidence workflow without a model.
+ * It never changes refs or the working tree; the local provider resolves and
+ * hashes the exact commits and retained patch at execution time. */
+export function compileDeterministicGitChangeSet(
+    base: RunbookArtifactFile,
+    intent: string,
+): ProposalParseResult | undefined {
+    const required = base.source.requirements?.activities.map((activity) => activity.kind) ?? [];
+    if (
+        required.length !== 1 ||
+        required[0] !== "git.change-set.inspect" ||
+        !/\b(?:git\s+diff|diff|changes?)\b/i.test(intent)
+    ) {
+        return undefined;
+    }
+    const proposal: CompiledProposal = {
+        name: "Repository change set",
+        description:
+            "Captures a bounded immutable patch and changed-file inventory between two explicit Git refs without changing the checkout.",
+        parameters: [
+            {
+                id: "repository",
+                label: "Repository root",
+                type: "string",
+                required: true,
+            },
+            {
+                id: "baseRef",
+                label: "Base ref",
+                type: "string",
+                required: true,
+                default: "main",
+            },
+            {
+                id: "headRef",
+                label: "Head ref",
+                type: "string",
+                required: true,
+                default: "development",
+            },
+            {
+                id: "includeWorkingTree",
+                label: "Include current working tree",
+                type: "boolean",
+                required: true,
+                default: false,
+            },
+        ],
+        entryNodeId: "capture-change-set",
+        nodes: [
+            {
+                id: "capture-change-set",
+                label: "Capture repository change set",
+                kind: "activity",
+                activityKind: "git.change-set.inspect",
+                inputs: {
+                    repository: "$params.repository",
+                    baseRef: "$params.baseRef",
+                    headRef: "$params.headRef",
+                    includeWorkingTree: "$params.includeWorkingTree",
+                },
+            },
+            { id: "report", label: "Summarize repository changes", kind: "report" },
+        ],
+        edges: [
+            { from: "capture-change-set", to: "report" },
+            { from: "capture-change-set", to: "report", when: "failure" },
+        ],
+    };
+    return parseCompiledProposal(JSON.stringify(proposal), base, intent);
+}
+
 /** Compile the first closed data-driven workload workflow. Source rows are
  * sampled by the host and never enter the planner; the generated mutations
  * target a disposable shadow table inside an owned SQL container. */
@@ -938,6 +1010,23 @@ export async function compileIntentWithModel(
             { outcome, nodeCount, modelRole: "compiler" },
             context.traceId,
         );
+
+    const deterministicGit = compileDeterministicGitChangeSet(base, intent);
+    if (deterministicGit && !isProposalFailure(deterministicGit)) {
+        emitRunbookEvent(context, "runbookStudio.compile.accepted", "ok", {
+            compiler: metaField("deterministicGitChangeSet"),
+            nodeCount: metaField(deterministicGit.artifact.lock?.nodes.length ?? 0),
+            parameterCount: metaField(deterministicGit.artifact.source.parameters.length),
+        });
+        end("ok", deterministicGit.artifact.lock?.nodes.length ?? 0);
+        return { artifact: deterministicGit.artifact };
+    }
+    if (deterministicGit && isProposalFailure(deterministicGit)) {
+        emitRunbookEvent(context, "runbookStudio.compile.rejected", "warning", {
+            compiler: metaField("deterministicGitChangeSet"),
+            reasonClass: metaField(deterministicGit.detail.slice(0, 80)),
+        });
+    }
 
     const deterministicWorkload = compileDeterministicCitiesWorkload(base, intent);
     if (deterministicWorkload && !isProposalFailure(deterministicWorkload)) {

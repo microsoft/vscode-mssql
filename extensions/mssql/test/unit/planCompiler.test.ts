@@ -23,6 +23,7 @@ import {
     compileDeterministicCitiesWorkload,
     compileDeterministicDacpacEvolution,
     compileDeterministicDacpacInventory,
+    compileDeterministicGitChangeSet,
     extractJsonObject,
     isProposalFailure,
     parseCompiledProposal,
@@ -174,6 +175,54 @@ suite("planCompiler", () => {
         expect(
             result.artifact.source.parameters.find((parameter) => parameter.id === "saPassword"),
         ).to.include({ type: "secret", required: true });
+    });
+
+    test("repository diff prompts compile to immutable Git evidence without a model", () => {
+        const intent = "Show the Git diff between development and main for this repository.";
+        const classified = classifyRunbookIntent(intent);
+        const gitBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicGitChangeSet(gitBase, intent);
+        expect(result).not.to.equal(undefined);
+        if (!result) {
+            throw new Error("deterministic Git compiler did not match");
+        }
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+        expect(result.artifact.lock?.nodes).to.have.length(2);
+        expect(result.artifact.lock?.nodes[0]).to.deep.include({
+            id: "capture-change-set",
+            activityKind: "git.change-set.inspect",
+            target: {
+                kind: "workspace",
+                binding: { source: "parameter", parameterId: "repository" },
+            },
+        });
+        expect(result.artifact.source.parameters).to.deep.include({
+            id: "baseRef",
+            label: "Base ref",
+            type: "string",
+            required: true,
+            default: "main",
+        });
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+    });
+
+    test("complex EF branch workflows name semantic migration blockers instead of one-table DDL", () => {
+        const classified = classifyRunbookIntent(
+            "Diff the development branch against main, inspect EntityFramework entities, and create CREATE, ALTER, and DROP DDL to update the database.",
+        );
+        const kinds = classified.requirements.activities.map((activity) => activity.kind);
+        expect(kinds).to.include.members([
+            "git.change-set.inspect",
+            "ef.relational-model.compare",
+            "migration.script.generate",
+        ]);
+        expect(kinds).not.to.include("sql.schema.apply");
     });
 
     test("the advanced extract, named deploy, table, and diff workflow compiles end to end", () => {

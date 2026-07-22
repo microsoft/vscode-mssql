@@ -123,6 +123,25 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         effect: "read",
         outputContract: "workspaceSnapshot/1",
     },
+    "git.change-set.inspect": {
+        target: "workspace",
+        effect: "read",
+        outputContract: "gitChangeSet/1",
+    },
+    "ef.relational-model.compare": {
+        target: "workspace",
+        effect: "read",
+        providerRequirement: "execution",
+        outputContract: "efModelDiff/1",
+    },
+    "migration.script.generate": {
+        target: "workspace",
+        effect: "mutate",
+        approvalRequired: true,
+        rollbackContract: "required",
+        providerRequirement: "execution",
+        outputContract: "migrationManifest/1",
+    },
     "sqltest.discover": {
         target: "workspace",
         effect: "read",
@@ -358,6 +377,21 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         label: "Inspect the workspace",
         description: "Discover the existing database projects, source files, and build inputs.",
     },
+    "git.change-set.inspect": {
+        label: "Capture the repository change set",
+        description:
+            "Resolve the selected base/head refs and retain the exact bounded patch without changing the checkout.",
+    },
+    "ef.relational-model.compare": {
+        label: "Compare the Entity Framework relational models",
+        description:
+            "Build isolated base/head project snapshots and produce a semantic relational-model delta.",
+    },
+    "migration.script.generate": {
+        label: "Generate the reviewed migration artifact",
+        description:
+            "Turn the exact semantic model delta and explicit rename decisions into validated forward and rollback evidence.",
+    },
     "sqltest.discover": {
         label: "Discover repository SQL tests",
         description:
@@ -526,6 +560,9 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
  * read query for an unavailable operational verb. */
 const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> = {
     build: [
+        "git.change-set.inspect",
+        "ef.relational-model.compare",
+        "migration.script.generate",
         "workspace.inspect",
         "sqltest.discover",
         "dbproject.create",
@@ -563,6 +600,9 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "evidence.bundle",
     ],
     validate: [
+        "git.change-set.inspect",
+        "ef.relational-model.compare",
+        "migration.script.generate",
         "workspace.inspect",
         "sqltest.discover",
         "dacpac.build",
@@ -599,6 +639,8 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "evidence.bundle",
     ],
     investigate: [
+        "git.change-set.inspect",
+        "ef.relational-model.compare",
         "connection.auth.diagnose",
         "sql.query.read",
         "database.schema.inventory",
@@ -621,6 +663,9 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "evidence.bundle",
     ],
     composed: [
+        "git.change-set.inspect",
+        "ef.relational-model.compare",
+        "migration.script.generate",
         "workspace.inspect",
         "sqltest.discover",
         "dbproject.create",
@@ -705,6 +750,17 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         text,
         /\b(create|alter|drop|add)\b.{0,40}\b(tables?|schemas?|foreign keys?|constraints?|indexes?|objects?)\b/,
     );
+    const requestsGitChangeSet = has(
+        text,
+        /\bgit\s+(?:diff|change(?:s| set)?)\b|\b(?:diff|changes?)\b.{0,60}\b(?:branches?|main|development|commits?|repository|repo)\b|\b(?:branches?|main|development)\b.{0,60}\b(?:diff|changes?)\b/,
+    );
+    const requestsEfModelChange = has(
+        text,
+        /\b(entity\s*framework|entityframework|ef\s*core|dbcontext|entities)\b.{0,100}\b(diff|changes?|schema|ddl|migration|create|alter|drop)\b|\b(diff|changes?)\b.{0,100}\b(entity\s*framework|entityframework|ef\s*core|dbcontext|entities)\b/,
+    );
+    const requestsMigrationGeneration =
+        requestsEfModelChange &&
+        has(text, /\b(ddl|migration|create|alter|drop|update the database)\b/);
     const requestsProjectAuthoring = has(
         text,
         /\b(database|sql)\s+project\b|\.sqlproj\b|\bproject\b.{0,40}\b(tables?|schemas?|foreign keys?|constraints?|indexes?|objects?)\b/,
@@ -768,6 +824,16 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
                 ? "validate"
                 : "investigate";
 
+    if (requestsGitChangeSet) {
+        requested.add("git.change-set.inspect");
+    }
+    if (requestsEfModelChange) {
+        requested.add("ef.relational-model.compare");
+    }
+    if (requestsMigrationGeneration) {
+        requested.add("migration.script.generate");
+    }
+
     if (family === "build" || family === "composed") {
         if ((!requestsDacpacExtraction && !requestsExistingDacpac) || requestsProjectAuthoring) {
             requested.add("workspace.inspect");
@@ -794,7 +860,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     if (requestsDacpacExtraction) {
         requested.add("dacpac.extract");
     }
-    if (requestsSchemaMutation && !requestsProjectAuthoring) {
+    if (requestsSchemaMutation && !requestsProjectAuthoring && !requestsEfModelChange) {
         requested.add("sql.schema.apply");
     }
     if (

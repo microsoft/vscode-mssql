@@ -65,6 +65,15 @@ export interface LocalSqlOperations {
     ): Promise<mssql.SimpleExecuteResult>;
     disconnect(ownerUri: string): Promise<void>;
     inspectWorkspace(): Promise<LocalWorkspaceSnapshot>;
+    inspectGitChangeSet(
+        nodeId: string,
+        repository: string,
+        baseRef: string,
+        headRef: string,
+        includeWorkingTree: boolean,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalGitChangeSetResult>;
     discoverSqlTests(isCancellationRequested: () => boolean): Promise<LocalSqlTestDiscoveryResult>;
     runTsqlt(
         nodeId: string,
@@ -237,6 +246,30 @@ export interface LocalWorkspaceSnapshot {
     /** Absolute, workspace-contained project paths in stable sort order. */
     projectPaths: string[];
     truncated?: boolean;
+}
+
+export interface LocalGitChangeSetFile {
+    status: string;
+    relativePath: string;
+    previousPath?: string;
+    entityRelated: boolean;
+}
+
+export interface LocalGitChangeSetResult {
+    repositoryRoot: string;
+    baseRef: string;
+    headRef: string;
+    baseCommit: string;
+    headCommit: string;
+    mergeBase: string;
+    includeWorkingTree: boolean;
+    dirty: boolean;
+    dirtyFileCount: number;
+    files: LocalGitChangeSetFile[];
+    entityRelatedFileCount: number;
+    artifactPath: string;
+    artifactSizeBytes: number;
+    artifactSha256: string;
 }
 
 export interface LocalSqlTestDiscoveryResult {
@@ -484,6 +517,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
     public readonly runtimeKind = "local" as const;
     public readonly supportedActivityKinds = new Set([
         "workspace.inspect",
+        "git.change-set.inspect",
         "sqltest.discover",
         "tsqlt.run",
         "dacpac.build",
@@ -529,6 +563,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         switch (node.activityKind) {
             case "workspace.inspect":
                 return this.inspectWorkspace();
+            case "git.change-set.inspect":
+                return this.inspectGitChangeSet(node, binding);
             case "sqltest.discover":
                 return this.discoverSqlTests(binding);
             case "tsqlt.run":
@@ -617,6 +653,94 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     },
                 },
                 values: { projectCount: projectPaths.length },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async inspectGitChangeSet(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const repository = binding.resolveBind(node.inputs?.repository);
+        const baseRef = binding.resolveBind(node.inputs?.baseRef);
+        const headRef = binding.resolveBind(node.inputs?.headRef);
+        const includeWorkingTree = binding.resolveBind(node.inputs?.includeWorkingTree);
+        if (typeof repository !== "string" || repository.trim().length === 0) {
+            return invalidBinding("repository");
+        }
+        if (typeof baseRef !== "string" || baseRef.trim().length === 0) {
+            return invalidBinding("baseRef");
+        }
+        if (typeof headRef !== "string" || headRef.trim().length === 0) {
+            return invalidBinding("headRef");
+        }
+        if (typeof includeWorkingTree !== "boolean") {
+            return invalidBinding("includeWorkingTree");
+        }
+        try {
+            const result = await this.operations.inspectGitChangeSet(
+                node.id,
+                repository.trim(),
+                baseRef.trim(),
+                headRef.trim(),
+                includeWorkingTree,
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "git.changedFileCount": result.files.length,
+                    "git.entityRelatedFileCount": result.entityRelatedFileCount,
+                    "git.dirty": result.dirty,
+                    "git.includeWorkingTree": result.includeWorkingTree,
+                },
+                message: LocRunbookStudio.gitChangeSetCaptured(
+                    result.files.length,
+                    result.entityRelatedFileCount,
+                ),
+                output: {
+                    contract: "gitChangeSet/1",
+                    columns: ["status", "path", "previousPath", "entityRelated"],
+                    rows: result.files.map((file) => [
+                        file.status,
+                        file.relativePath,
+                        file.previousPath ?? null,
+                        file.entityRelated,
+                    ]),
+                    scalars: {
+                        artifactPath: result.artifactPath,
+                        artifactSha256: result.artifactSha256,
+                        artifactSizeBytes: result.artifactSizeBytes,
+                        baseRef: result.baseRef,
+                        headRef: result.headRef,
+                        baseCommitSha256: result.baseCommit,
+                        headCommitSha256: result.headCommit,
+                        mergeBaseSha256: result.mergeBase,
+                        changedFileCount: result.files.length,
+                        entityRelatedFileCount: result.entityRelatedFileCount,
+                        dirty: result.dirty,
+                        dirtyFileCount: result.dirtyFileCount,
+                        includeWorkingTree: result.includeWorkingTree,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    artifactPath: result.artifactPath,
+                    artifactSha256: result.artifactSha256,
+                    changedFileCount: result.files.length,
+                    entityRelatedFileCount: result.entityRelatedFileCount,
+                    baseCommit: result.baseCommit,
+                    headCommit: result.headCommit,
+                    mergeBase: result.mergeBase,
+                    dirty: result.dirty,
+                },
             };
         } catch (error) {
             return activityFailure(error);

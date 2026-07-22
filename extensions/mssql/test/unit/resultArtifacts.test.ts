@@ -27,7 +27,9 @@ function planNode(id: string, label: string): RunbookPlanNode {
               ? "schema.compare.export"
               : id === "collect"
                 ? "xevent.xel.collect"
-                : "test.activity";
+                : id === "git"
+                  ? "git.change-set.inspect"
+                  : "test.activity";
     return { id, label, kind: "activity", activityKind, activityVersion: 1 };
 }
 
@@ -157,5 +159,26 @@ suite("resultArtifacts", () => {
         expect(
             projectResultArtifacts(run, [planNode("generate", "Wrong producer")]).artifacts,
         ).to.deep.equal([]);
+    });
+
+    test("projects a Git patch only from the registered change-set producer", () => {
+        const run = snapshot([
+            {
+                nodeId: "git",
+                state: "succeeded",
+                attempt: 1,
+                outputs: [{ handleId: "patch", contract: "gitChangeSet/1" }],
+            },
+        ]);
+        expect(
+            projectResultArtifacts(run, [planNode("git", "Capture changes")]).artifacts,
+        ).to.deep.include({
+            handleId: "patch",
+            contract: "gitChangeSet/1",
+            nodeId: "git",
+            nodeLabel: "Capture changes",
+            expired: false,
+            truncated: false,
+        });
     });
 });
