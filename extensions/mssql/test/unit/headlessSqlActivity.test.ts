@@ -26,6 +26,11 @@ import {
 } from "../../src/runbookStudio/runbookArtifact";
 import type { ActivityInvocationIdentity } from "../../src/runbookStudio/runtime/fakeRuntimeAdapter";
 import { FakeBackend } from "../../src/services/sqlDataPlane/fakeBackend";
+import { digestRunbookValue } from "../../src/runbookStudio/runbookDigest";
+import {
+    localSqlContainerLabels,
+    localSqlContainerLeaseRef,
+} from "../../src/runbookStudio/runtime/localContainerOperations";
 import {
     RUNBOOK_LOCK_SCHEMA_VERSION,
     type RunbookArtifactFile,
@@ -135,6 +140,77 @@ suite("Runbook Studio headless SQL activity", () => {
             .map((file) => fs.readFileSync(path.join(stateRoot, "effects", file), "utf8"))
             .join("\n");
         expect(journals).not.to.contain(password);
+        await delegate.dispose();
+    });
+
+    test("recovers an abandoned ownership-labelled container before admitting a new activity", async () => {
+        const runId = "headless-sql-crashed-run";
+        const artifact = containerArtifact("headless-sql-crash-recovery-book");
+        const effectId = deriveRunbookEffectId({
+            runId,
+            nodeId: "provision",
+            attempt: 1,
+            activityKind: "sql.container.provision",
+            activityVersion: 1,
+        });
+        const containerName = "rbs-headless-crash-recovery";
+        const markerDigest = digestRunbookValue(effectId);
+        const connectionProfileId = `runbook-container-profile:${effectId}`;
+        const ledger = new RunbookEffectLedger(stateRoot);
+        ledger.prepareEffect({
+            effectId,
+            runId,
+            nodeId: "provision",
+            attempt: 1,
+            activityKind: "sql.container.provision",
+            activityVersion: 1,
+            idempotencyKey: digestRunbookValue({ effectId, containerName }),
+            planHash: artifact.lock!.planHash,
+            bindingDigest: digestRunbookValue("binding"),
+            targetFingerprint: digestRunbookValue("target"),
+            retrySemantics: "resumable",
+            ownerPid: 2_147_483_647,
+            policy: { version: "runbook-policy/1", outcome: "allowed" },
+            approval: {
+                approvalId: "headless-crash-recovery",
+                approvalDigest: digestRunbookValue("approval"),
+            },
+            recovery: {
+                resourceKind: "sqlContainer",
+                resourceId: containerName,
+                connectionProfileId,
+                ownershipMarkerDigest: markerDigest,
+            },
+        });
+        ledger.recordEffectObserved(effectId, {
+            resourceKind: "sqlContainer",
+            resourceId: containerName,
+            connectionProfileId,
+            ownershipMarkerDigest: markerDigest,
+            outputHandles: [localSqlContainerLeaseRef(effectId), "database:HeadlessSqlDb"],
+        });
+        const fakeDocker = new FakeDocker();
+        fakeDocker.seed(localSqlContainerLabels(effectId, runId));
+        const delegate = new HeadlessSqlActivityDelegate(
+            stateRoot,
+            EXTENSION_ROOT,
+            new HeadlessEffectAuthority("new-run", artifact, {}),
+            { docker: fakeDocker as unknown as Dockerode },
+        );
+        const result = await delegate.executeActivity(artifact.lock!.nodes[2], {
+            parameterValues: {},
+            resolveBind: () => "missing-lease",
+            isCancellationRequested: () => false,
+            invocation: {
+                runId: "new-run",
+                planRevision: artifact.lock!.planRevision,
+                planHash: artifact.lock!.planHash,
+                attempt: 1,
+            },
+        });
+        expect(result?.success).to.equal(false);
+        expect(fakeDocker.present).to.equal(false);
+        expect(new RunbookEffectLedger(stateRoot).scanRecovery().outstanding).to.deep.equal([]);
         await delegate.dispose();
     });
 });
@@ -479,6 +555,11 @@ class FakeDocker {
 
     public ping(): Promise<string> {
         return Promise.resolve("OK");
+    }
+
+    public seed(labels: Record<string, string>): void {
+        this.options = { Image: "fake", Labels: labels };
+        this.present = true;
     }
 
     public getImage() {
