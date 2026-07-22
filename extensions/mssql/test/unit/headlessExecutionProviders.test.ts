@@ -32,6 +32,12 @@ suite("Runbook Studio headless execution providers", () => {
                 required: true,
             },
             {
+                id: "sourceConnection",
+                label: "Source connection",
+                type: "connection" as const,
+                required: true,
+            },
+            {
                 id: "repetitions",
                 label: "Repetitions",
                 type: "int" as const,
@@ -44,20 +50,55 @@ suite("Runbook Studio headless execution providers", () => {
             { allowInlineSecrets: false, secretProvider: provider },
         );
 
-        expect(resolved.issues).to.deep.equal([]);
-        expect(resolved.values).to.deep.equal({
+        expect(resolved.issues).to.deep.include({
+            kind: "parameter",
+            code: "HeadlessActivityHost.ConnectionUnavailable",
+            parameterId: "sourceConnection",
+        });
+
+        const withConnection = await resolveHeadlessParameters(
+            definitions,
+            { repetitions: 2 },
+            {
+                allowInlineSecrets: false,
+                secretProvider: new EnvironmentHeadlessSecretProvider(
+                    {
+                        saPassword: "MYAPP_SA_PASSWORD",
+                        sourceConnection: "MYAPP_SOURCE_CONNECTION",
+                    },
+                    {
+                        MYAPP_SA_PASSWORD: "secret-canary-value",
+                        MYAPP_SOURCE_CONNECTION:
+                            "Server=localhost;Integrated Security=true;Database=MyApp",
+                    },
+                ),
+            },
+        );
+
+        expect(withConnection.issues).to.deep.equal([]);
+        expect(withConnection.values).to.deep.equal({
             saPassword: "secret-canary-value",
+            sourceConnection: "Server=localhost;Integrated Security=true;Database=MyApp",
             repetitions: 2,
         });
         const denied = await resolveHeadlessParameters(
             definitions,
-            { repetitions: 2, saPassword: "inline-secret-canary" },
+            {
+                repetitions: 2,
+                saPassword: "inline-secret-canary",
+                sourceConnection: "inline-connection-canary",
+            },
             { allowInlineSecrets: false, secretProvider: provider },
         );
         expect(denied.issues).to.deep.include({
             kind: "parameter",
             code: "HeadlessActivityHost.InlineSecretDenied",
             parameterId: "saPassword",
+        });
+        expect(denied.issues).to.deep.include({
+            kind: "parameter",
+            code: "HeadlessActivityHost.InlineConnectionDenied",
+            parameterId: "sourceConnection",
         });
         expect(JSON.stringify(denied.issues)).not.to.contain("inline-secret-canary");
 
@@ -165,11 +206,16 @@ suite("Runbook Studio headless execution providers", () => {
             artifactText: canonicalizeRunbookArtifact(artifact),
             parameterValues: {
                 projectPath: "Database.sqlproj",
-                sandboxConnection: "preview-profile",
             },
             secretProvider: new EnvironmentHeadlessSecretProvider(
-                { runtimeSecret: "RBS_RUNTIME_SECRET" },
-                { RBS_RUNTIME_SECRET: "provider-secret-canary" },
+                {
+                    runtimeSecret: "RBS_RUNTIME_SECRET",
+                    sandboxConnection: "RBS_SANDBOX_CONNECTION",
+                },
+                {
+                    RBS_RUNTIME_SECRET: "provider-secret-canary",
+                    RBS_SANDBOX_CONNECTION: "preview-profile",
+                },
             ),
             approvalProvider,
             allowInlineSecrets: false,
@@ -189,11 +235,16 @@ suite("Runbook Studio headless execution providers", () => {
             artifactText: canonicalizeRunbookArtifact(artifact),
             parameterValues: {
                 projectPath: "Database.sqlproj",
-                sandboxConnection: "preview-profile",
             },
             secretProvider: new EnvironmentHeadlessSecretProvider(
-                { runtimeSecret: "RBS_RUNTIME_SECRET" },
-                { RBS_RUNTIME_SECRET: "provider-secret-canary" },
+                {
+                    runtimeSecret: "RBS_RUNTIME_SECRET",
+                    sandboxConnection: "RBS_SANDBOX_CONNECTION",
+                },
+                {
+                    RBS_RUNTIME_SECRET: "provider-secret-canary",
+                    RBS_SANDBOX_CONNECTION: "preview-profile",
+                },
             ),
             approvalProvider: new ManifestHeadlessApprovalProvider({
                 schemaVersion: 1,

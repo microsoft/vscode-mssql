@@ -121,9 +121,17 @@ export function headlessCapabilities(): Record<string, unknown> {
             "ef.relational-model.compare",
             "migration.data-loss.analyze",
             "migration.script.generate",
+            "migration.apply",
+            "migration.scope.validate",
+            "dacpac.extract",
             "sql.container.provision",
-            "sql.query.read",
+            "dacpac.deploy.preview",
+            "dacpac.deploy.container",
+            "schema.compare",
+            "schema.compare.export",
+            "database.schema.visualize",
             "sql.container.dispose",
+            "sql.query.read",
         ],
     };
 }

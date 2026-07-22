@@ -11,6 +11,7 @@ import { HeadlessGitActivityDelegate, HeadlessGitActivityError } from "./headles
 import { HeadlessEfActivityDelegate } from "./headlessEfActivity";
 import { HeadlessEffectAuthority } from "./headlessEffectAuthority";
 import { HeadlessSqlActivityDelegate } from "./headlessSqlActivity";
+import { HeadlessDacpacActivityDelegate } from "./headlessDacpacActivity";
 
 const MAX_PROJECTS = 100;
 const MAX_VISITED_ENTRIES = 20_000;
@@ -55,13 +56,22 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
         "ef.relational-model.compare",
         "migration.data-loss.analyze",
         "migration.script.generate",
+        "migration.apply",
+        "migration.scope.validate",
         "sql.container.provision",
+        "dacpac.extract",
+        "dacpac.deploy.preview",
+        "dacpac.deploy.container",
+        "schema.compare",
+        "schema.compare.export",
+        "database.schema.visualize",
         "sql.query.read",
         "sql.container.dispose",
     ]);
     private readonly gitDelegate: HeadlessGitActivityDelegate;
     private readonly efDelegate: HeadlessEfActivityDelegate;
     private readonly sqlDelegate: HeadlessSqlActivityDelegate | undefined;
+    private readonly dacpacDelegate: HeadlessDacpacActivityDelegate | undefined;
 
     constructor(
         private readonly trustedWorkspaceRoot: string,
@@ -79,6 +89,15 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
         this.sqlDelegate = enableSqlActivities
             ? new HeadlessSqlActivityDelegate(artifactRoot, extensionRoot, effectAuthority)
             : undefined;
+        this.dacpacDelegate = this.sqlDelegate
+            ? new HeadlessDacpacActivityDelegate(
+                  artifactRoot,
+                  extensionRoot,
+                  effectAuthority,
+                  this.sqlDelegate,
+                  this.efDelegate,
+              )
+            : undefined;
     }
 
     public async executeActivity(
@@ -93,6 +112,9 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
         }
         if (this.sqlDelegate?.supportedActivityKinds.has(node.activityKind ?? "")) {
             return this.sqlDelegate.executeActivity(node, binding);
+        }
+        if (this.dacpacDelegate?.supportedActivityKinds.has(node.activityKind ?? "")) {
+            return this.dacpacDelegate.executeActivity(node, binding);
         }
         if (
             node.activityKind !== "workspace.inspect" &&
@@ -120,8 +142,9 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
         }
     }
 
-    public dispose(): Promise<void> {
-        return this.sqlDelegate?.dispose() ?? Promise.resolve();
+    public async dispose(): Promise<void> {
+        await this.dacpacDelegate?.dispose();
+        await this.sqlDelegate?.dispose();
     }
 }
 

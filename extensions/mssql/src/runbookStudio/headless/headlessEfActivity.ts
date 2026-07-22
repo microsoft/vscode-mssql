@@ -33,6 +33,7 @@ const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,159}$/;
 const MAX_MODELS = 16;
 const MAX_DIFFS = 8;
 const MAX_RISKS = 8;
+const MAX_MIGRATIONS = 8;
 
 interface RetainedModel {
     runId: string;
@@ -58,6 +59,16 @@ interface RetainedJson {
     artifactSha256: string;
 }
 
+export interface HeadlessEfMigrationArtifact {
+    runId: string;
+    manifest: LocalEfMigrationManifest;
+    base: LocalEfRelationalModel;
+    head: LocalEfRelationalModel;
+    manifestPath: string;
+    forwardScriptPath: string;
+    rollbackScriptPath: string;
+}
+
 export class HeadlessEfActivityDelegate implements ActivityExecutionDelegate {
     public readonly runtimeKind = "local" as const;
     public readonly supportedActivityKinds = new Set([
@@ -69,6 +80,7 @@ export class HeadlessEfActivityDelegate implements ActivityExecutionDelegate {
     private readonly models = new Map<string, RetainedModel>();
     private readonly diffs = new Map<string, RetainedDiff>();
     private readonly risks = new Map<string, RetainedRisk>();
+    private readonly migrations = new Map<string, HeadlessEfMigrationArtifact>();
 
     constructor(
         private readonly trustedWorkspaceRoot: string,
@@ -93,6 +105,14 @@ export class HeadlessEfActivityDelegate implements ActivityExecutionDelegate {
             return this.generateMigration(node, binding);
         }
         return undefined;
+    }
+
+    public resolveMigration(
+        migrationRef: string,
+        runId: string,
+    ): HeadlessEfMigrationArtifact | undefined {
+        const migration = this.migrations.get(migrationRef);
+        return migration?.runId === runId ? migration : undefined;
     }
 
     private async extract(
@@ -487,6 +507,20 @@ export class HeadlessEfActivityDelegate implements ActivityExecutionDelegate {
                 return cancelled();
             }
             const migrationRef = `headless-ef-migration:${binding.invocation.runId}:${node.id}:${proposal.manifest.manifestSha256}`;
+            boundedSet(
+                this.migrations,
+                migrationRef,
+                {
+                    runId: binding.invocation.runId,
+                    manifest: proposal.manifest,
+                    base: source.base,
+                    head: source.head,
+                    manifestPath: manifest.artifactPath,
+                    forwardScriptPath: forward.artifactPath,
+                    rollbackScriptPath: rollback.artifactPath,
+                },
+                MAX_MIGRATIONS,
+            );
             return migrationExecution(proposal.manifest, migrationRef, manifest, forward, rollback);
         } catch {
             for (const artifactPath of createdArtifacts) {

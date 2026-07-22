@@ -39,9 +39,17 @@ export const PRODUCTION_HEADLESS_ACTIVITY_KINDS = [
     "ef.relational-model.compare",
     "migration.data-loss.analyze",
     "migration.script.generate",
+    "migration.apply",
+    "migration.scope.validate",
+    "dacpac.extract",
     "sql.container.provision",
-    "sql.query.read",
+    "dacpac.deploy.preview",
+    "dacpac.deploy.container",
+    "schema.compare",
+    "schema.compare.export",
+    "database.schema.visualize",
     "sql.container.dispose",
+    "sql.query.read",
 ] as const;
 
 export interface HeadlessActivityValidationResult {
@@ -283,9 +291,19 @@ export async function runHeadlessActivities(
         checked.artifact.lock!.nodes.some(
             (node) =>
                 node.kind === "activity" &&
-                ["sql.container.provision", "sql.query.read", "sql.container.dispose"].includes(
-                    node.activityKind ?? "",
-                ),
+                [
+                    "sql.container.provision",
+                    "dacpac.extract",
+                    "dacpac.deploy.preview",
+                    "dacpac.deploy.container",
+                    "migration.apply",
+                    "migration.scope.validate",
+                    "schema.compare",
+                    "schema.compare.export",
+                    "database.schema.visualize",
+                    "sql.query.read",
+                    "sql.container.dispose",
+                ].includes(node.activityKind ?? ""),
         ),
     );
     const adapter = new FakeRuntimeAdapter(delegate);

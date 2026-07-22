@@ -14,6 +14,7 @@ import type {
     ISqlConnectionService,
     SqlConnectionProfileRef,
 } from "../../services/sqlDataPlane/api";
+import type { PreparedConnection } from "../../services/metadata/profileAuthAdapter";
 import { isReadOnlySql } from "../readOnlySql";
 import { digestRunbookValue } from "../runbookDigest";
 import {
@@ -61,6 +62,17 @@ interface ContainerLease {
     port: number;
     password: string;
     imageDigest: string;
+    environmentFingerprint: string;
+}
+
+/** Secret-bearing same-process capability. Callers must never serialize it. */
+export interface HeadlessOwnedSqlConnection {
+    runId: string;
+    effectId: string;
+    connectionRef: string;
+    connectionString: string;
+    containerName: string;
+    databaseName: string;
     environmentFingerprint: string;
 }
 
@@ -140,6 +152,76 @@ export class HeadlessSqlActivityDelegate implements ActivityExecutionDelegate {
             | undefined;
         await disposable?.dispose?.().catch(() => undefined);
         this.sqlService = undefined;
+    }
+
+    public async resolveOwnedConnection(
+        connectionRef: string,
+        invocation: ActivityInvocationIdentity,
+    ): Promise<HeadlessOwnedSqlConnection> {
+        const lease = await this.requireLease(connectionRef, invocation);
+        return {
+            runId: lease.runId,
+            effectId: lease.effectId,
+            connectionRef,
+            connectionString: [
+                `Server=localhost,${lease.port}`,
+                `Database=${quoteConnectionValue(lease.databaseName)}`,
+                "User ID=sa",
+                `Password=${quoteConnectionValue(lease.password)}`,
+                "Encrypt=Mandatory",
+                "TrustServerCertificate=True",
+                "Connect Timeout=30",
+            ].join(";"),
+            containerName: lease.containerName,
+            databaseName: lease.databaseName,
+            environmentFingerprint: lease.environmentFingerprint,
+        };
+    }
+
+    public async executeOwnedSql(
+        connectionRef: string,
+        sql: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+        options: { tag: string; maxRows?: number; timeoutMs?: number },
+    ) {
+        const lease = await this.requireLease(connectionRef, invocation);
+        return this.executeLeaseQuery(
+            lease,
+            lease.databaseName,
+            sql,
+            options.tag,
+            isCancellationRequested,
+            options.maxRows ?? MAX_QUERY_ROWS,
+            options.timeoutMs,
+        );
+    }
+
+    public async ownedMetadataContext(
+        connectionRef: string,
+        invocation: ActivityInvocationIdentity,
+    ): Promise<{
+        prepared: PreparedConnection;
+        database: string;
+        service: ISqlConnectionService;
+    }> {
+        const lease = await this.requireLease(connectionRef, invocation);
+        const profileRef = this.profileForLease(lease, lease.databaseName);
+        return {
+            prepared: {
+                profileRef,
+                auth: { passwordProvider: () => Promise.resolve(lease.password) },
+                authKind: "sql",
+                serverFingerprint: digestRunbookValue({
+                    provider: "headlessOwnedContainerServer",
+                    effectId: lease.effectId,
+                }),
+                defaultDatabase: lease.databaseName,
+                displayName: lease.containerName,
+            },
+            database: lease.databaseName,
+            service: await this.service(),
+        };
     }
 
     private async initialize(isCancellationRequested: () => boolean): Promise<void> {
@@ -450,9 +532,26 @@ export class HeadlessSqlActivityDelegate implements ActivityExecutionDelegate {
         tag: string,
         isCancellationRequested: () => boolean,
         maxRows: number,
+        timeoutMs = 120_000,
     ) {
         const service = await this.service();
-        const profile: SqlConnectionProfileRef = {
+        const profile = this.profileForLease(lease, database);
+        return runDataPlaneQueryCore({
+            service,
+            profile,
+            auth: { passwordProvider: () => Promise.resolve(lease.password) },
+            database,
+            applicationName: "mssql-runbook-headless",
+            sql,
+            tag,
+            isCancellationRequested,
+            maxRows,
+            timeoutMs,
+        });
+    }
+
+    private profileForLease(lease: ContainerLease, database: string): SqlConnectionProfileRef {
+        return {
             profileFingerprint: digestRunbookValue({
                 provider: "headlessOwnedContainer",
                 effectId: lease.effectId,
@@ -465,18 +564,6 @@ export class HeadlessSqlActivityDelegate implements ActivityExecutionDelegate {
             trustServerCertificate: true,
             displayName: lease.containerName,
         };
-        return runDataPlaneQueryCore({
-            service,
-            profile,
-            auth: { passwordProvider: () => Promise.resolve(lease.password) },
-            database,
-            applicationName: "mssql-runbook-headless",
-            sql,
-            tag,
-            isCancellationRequested,
-            maxRows,
-            timeoutMs: 120_000,
-        });
     }
 
     private async waitUntilAuthenticated(
@@ -745,6 +832,10 @@ export class HeadlessSqlActivityDelegate implements ActivityExecutionDelegate {
         });
         return matches[0]?.Id ? this.docker.getContainer(matches[0].Id) : undefined;
     }
+}
+
+function quoteConnectionValue(value: string): string {
+    return `"${value.replace(/"/gu, '""')}"`;
 }
 
 async function loadSqlService(extensionRoot: string): Promise<ISqlConnectionService> {

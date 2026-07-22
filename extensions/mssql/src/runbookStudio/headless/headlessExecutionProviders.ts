@@ -36,7 +36,9 @@ export class HeadlessProviderConfigurationError extends Error {
 }
 
 /** Runtime environment indirection: the mapping is non-secret and the
- * environment value is read only for one declared secret parameter. */
+ * environment value is read only for one declared secret or connection
+ * parameter. Connection strings are credential-bearing even though the
+ * artifact models them as connection bindings. */
 export class EnvironmentHeadlessSecretProvider implements HeadlessSecretProvider {
     public readonly kind = "environment";
     private readonly mapping: Readonly<Record<string, string>>;
@@ -64,7 +66,10 @@ export class EnvironmentHeadlessSecretProvider implements HeadlessSecretProvider
     }
 
     public resolveSecret(parameter: RunbookParameterDefinition): Promise<string | undefined> {
-        if (parameter.type !== "secret" || !PARAMETER_ID.test(parameter.id)) {
+        if (
+            (parameter.type !== "secret" && parameter.type !== "connection") ||
+            !PARAMETER_ID.test(parameter.id)
+        ) {
             return Promise.resolve(undefined);
         }
         const environmentName = this.mapping[parameter.id];
@@ -79,13 +84,16 @@ export class EnvironmentHeadlessSecretProvider implements HeadlessSecretProvider
     }
 
     public validateParameters(definitions: RunbookParameterDefinition[]): HeadlessParameterIssue[] {
-        const secrets = new Set(
+        const sensitiveParameters = new Set(
             definitions
-                .filter((definition) => definition.type === "secret")
+                .filter(
+                    (definition) =>
+                        definition.type === "secret" || definition.type === "connection",
+                )
                 .map((definition) => definition.id),
         );
         return Object.keys(this.mapping)
-            .filter((parameterId) => !secrets.has(parameterId))
+            .filter((parameterId) => !sensitiveParameters.has(parameterId))
             .map((parameterId) => ({
                 kind: "parameter" as const,
                 code: "HeadlessActivityHost.SecretMappingUnknown",
@@ -120,12 +128,15 @@ export async function resolveHeadlessParameters(
     }
     for (const definition of definitions) {
         const raw = provided[definition.id];
-        if (definition.type === "secret") {
+        if (definition.type === "secret" || definition.type === "connection") {
             if (raw !== undefined && raw !== null && raw !== "") {
                 if (!options.allowInlineSecrets) {
                     issues.push({
                         kind: "parameter",
-                        code: "HeadlessActivityHost.InlineSecretDenied",
+                        code:
+                            definition.type === "secret"
+                                ? "HeadlessActivityHost.InlineSecretDenied"
+                                : "HeadlessActivityHost.InlineConnectionDenied",
                         parameterId: definition.id,
                     });
                 } else if (typeof raw !== "string") {
@@ -151,7 +162,9 @@ export async function resolveHeadlessParameters(
                 issues.push({
                     kind: "parameter",
                     code: options.secretProvider
-                        ? "HeadlessActivityHost.SecretUnavailable"
+                        ? definition.type === "secret"
+                            ? "HeadlessActivityHost.SecretUnavailable"
+                            : "HeadlessActivityHost.ConnectionUnavailable"
                         : "HeadlessPreview.ParameterRequired",
                     parameterId: definition.id,
                 });
