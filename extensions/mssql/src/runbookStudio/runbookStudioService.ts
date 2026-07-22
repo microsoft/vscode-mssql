@@ -2292,6 +2292,41 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const context = newRunbookRootContext("persistence");
         const sealedInterrupted = this.ledger.sealInterruptedRuns(LocRunbookStudio.runInterrupted);
         const runs = this.ledger.listAllRuns();
+        let reconciledRunDropManifests = 0;
+        const sealedRunIds: string[] = [];
+        for (const run of runs) {
+            if (!run.sealed || this.activeByRunId.has(run.runId)) {
+                continue;
+            }
+            sealedRunIds.push(run.runId);
+        }
+        const deletedRunDropTemporaryFiles = this.runDropStore.cleanupTemporaryFiles(sealedRunIds);
+        let runDropReconcileFailures = 0;
+        for (const runId of sealedRunIds) {
+            const snapshot = this.ledger.snapshotOf(runId);
+            if (
+                snapshot &&
+                (snapshot.state === "succeeded" ||
+                    snapshot.state === "failed" ||
+                    snapshot.state === "cancelled")
+            ) {
+                try {
+                    if (
+                        this.runDropStore.markTerminal(
+                            runId,
+                            snapshot.state,
+                            snapshot.endedEpochMs ?? Date.now(),
+                        )
+                    ) {
+                        reconciledRunDropManifests++;
+                    }
+                } catch {
+                    // The sealed ledger remains authoritative. A malformed or
+                    // inaccessible drop must not prevent retention recovery.
+                    runDropReconcileFailures++;
+                }
+            }
+        }
         const expired = selectExpiredRuns(runs, RETAINED_RUNS_PER_RUNBOOK);
         let deletedRuns = 0;
         let deletedEffectJournals = 0;
@@ -2337,6 +2372,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             expiredRuns: metaField(deletedRuns),
             deletedResultDirs: metaField(deletedResultDirs),
             deletedRunDropDirs: metaField(deletedRunDropDirs),
+            reconciledRunDropManifests: metaField(reconciledRunDropManifests),
+            deletedRunDropTemporaryFiles: metaField(deletedRunDropTemporaryFiles),
+            runDropReconcileFailures: metaField(runDropReconcileFailures),
             deletedEffectJournals: metaField(deletedEffectJournals),
             deletedApprovalRecords: metaField(deletedApprovalRecords),
             deletedStagedDacpacs: metaField(stagedDacpacCleanup.deletedFiles),

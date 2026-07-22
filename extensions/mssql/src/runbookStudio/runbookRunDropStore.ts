@@ -65,13 +65,43 @@ export class RunbookRunDropStore {
         runId: string,
         state: Extract<RunbookRunStateKind, "succeeded" | "failed" | "cancelled">,
         endedEpochMs: number,
-    ): void {
+    ): boolean {
         const directory = this.runDirectory(runId);
         const manifest = this.readManifest(directory);
         if (!manifest || manifest.runId !== runId) {
-            return;
+            return false;
         }
         this.writeManifest(directory, { ...manifest, state, endedEpochMs });
+        return true;
+    }
+
+    /**
+     * Remove atomic-write remnants for runs that the durable ledger has
+     * already sealed. The search is deliberately shallow and admits only
+     * regular files ending in `.tmp`; a plan cannot turn this into a general
+     * directory traversal or cleanup primitive.
+     */
+    public cleanupTemporaryFiles(runIds: readonly string[]): number {
+        let deleted = 0;
+        for (const runId of new Set(runIds)) {
+            const directory = this.runDirectory(runId);
+            deleted += removeRegularTemporaryFile(path.join(directory, "manifest.json.tmp"));
+            const artifacts = path.join(directory, "artifacts");
+            try {
+                if (fs.lstatSync(artifacts).isSymbolicLink()) {
+                    continue;
+                }
+                for (const entry of fs.readdirSync(artifacts, { withFileTypes: true })) {
+                    if (entry.isFile() && entry.name.endsWith(".tmp")) {
+                        deleted += removeRegularTemporaryFile(path.join(artifacts, entry.name));
+                    }
+                }
+            } catch {
+                // Missing/inaccessible artifact directories are normal for
+                // interrupted runs that failed before producing outputs.
+            }
+        }
+        return deleted;
     }
 
     /** New drop first; fall back to the old managed-artifact directory. */
@@ -149,8 +179,22 @@ export class RunbookRunDropStore {
     private writeManifest(directory: string, manifest: RunbookRunDropManifest): void {
         const target = path.join(directory, "manifest.json");
         const temp = `${target}.tmp`;
-        fs.writeFileSync(temp, JSON.stringify(manifest, undefined, 2) + "\n");
-        fs.renameSync(temp, target);
+        let descriptor: number | undefined;
+        try {
+            // Exclusive creation refuses a stale file or link rather than
+            // following it. Startup cleanup handles a genuine crash remnant.
+            descriptor = fs.openSync(temp, "wx");
+            fs.writeFileSync(descriptor, JSON.stringify(manifest, undefined, 2) + "\n");
+            fs.fsyncSync(descriptor);
+            fs.closeSync(descriptor);
+            descriptor = undefined;
+            fs.renameSync(temp, target);
+        } catch (error) {
+            if (descriptor !== undefined) {
+                fs.closeSync(descriptor);
+            }
+            throw error;
+        }
     }
 }
 
@@ -159,5 +203,18 @@ function isDirectory(candidate: string): boolean {
         return fs.statSync(candidate).isDirectory();
     } catch {
         return false;
+    }
+}
+
+function removeRegularTemporaryFile(candidate: string): number {
+    try {
+        const stat = fs.lstatSync(candidate);
+        if (!stat.isFile() || stat.isSymbolicLink()) {
+            return 0;
+        }
+        fs.rmSync(candidate);
+        return 1;
+    } catch {
+        return 0;
     }
 }

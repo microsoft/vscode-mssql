@@ -94,4 +94,44 @@ suite("RunbookRunDropStore", () => {
         expect(fs.readFileSync(retainedPath, "utf8")).to.equal("retained");
         expect(fs.existsSync(path.join(legacyRoot, "run_keep"))).to.equal(true);
     });
+
+    test("cleans atomic-write remnants only for explicitly sealed runs", () => {
+        const dropRoot = path.join(root, "drops");
+        const drops = new RunbookRunDropStore(dropRoot);
+        for (const runId of ["run_interrupted", "run_active"]) {
+            drops.createRun({
+                runId,
+                runbookId: "book_1",
+                planRevision: "1",
+                planHash: "hash",
+                startedEpochMs: 42,
+            });
+        }
+        const interruptedManifestTemp = path.join(dropRoot, "run_interrupted", "manifest.json.tmp");
+        const interruptedArtifactTemp = `${drops.artifactPath(
+            "run_interrupted",
+            "create-release-manifest",
+            "release-manifest.json",
+        )}.tmp`;
+        const retainedArtifact = drops.artifactPath(
+            "run_interrupted",
+            "extract-release-candidate",
+            "candidate.dacpac",
+        );
+        const activeArtifactTemp = `${drops.artifactPath(
+            "run_active",
+            "create-release-manifest",
+            "release-manifest.json",
+        )}.tmp`;
+        fs.writeFileSync(interruptedManifestTemp, "partial manifest");
+        fs.writeFileSync(interruptedArtifactTemp, "partial artifact");
+        fs.writeFileSync(retainedArtifact, "candidate");
+        fs.writeFileSync(activeArtifactTemp, "active write");
+
+        expect(drops.cleanupTemporaryFiles(["run_interrupted", "run_interrupted"])).to.equal(2);
+        expect(fs.existsSync(interruptedManifestTemp)).to.equal(false);
+        expect(fs.existsSync(interruptedArtifactTemp)).to.equal(false);
+        expect(fs.readFileSync(retainedArtifact, "utf8")).to.equal("candidate");
+        expect(fs.readFileSync(activeArtifactTemp, "utf8")).to.equal("active write");
+    });
 });
