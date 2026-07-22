@@ -127,6 +127,7 @@ class MssqlActivation {
                 context,
                 () => controller?.connectionManager,
                 () => controller?.dacFxService,
+                () => controller?.schemaCompareService,
             ),
         );
         registerSqlDataPlane(context);

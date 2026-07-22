@@ -8033,6 +8033,9 @@
     <trans-unit id="++CODE++8bc808f1f70d013a6a5ed031827be14c0d70e8494a3456401df1766da2cd57e8">
       <source xml:lang="en">Schema comparison report</source>
     </trans-unit>
+    <trans-unit id="++CODE++8eb2ece76dcf55246813ad98a3fda233f8c851bae9f4386afdceef11cc9fb673">
+      <source xml:lang="en">Schema comparison result</source>
+    </trans-unit>
     <trans-unit id="++CODE++33947359fcdacf95ea0b35c3f24a35f28ce24c5017c991c858f10a402c50eb41">
       <source xml:lang="en">Schema comparison summary</source>
     </trans-unit>
@@ -8255,6 +8258,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d80286a389f6cbd72a837db93310e6ca50fa84e403f2bfa5e55d39e3e521279f">
       <source xml:lang="en">Select a resource group</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d08fd99291aeae9ac90619cb957a8d1d790b2ca8e36f94d87ccfe2a732f3867b">
+      <source xml:lang="en">Select a schema difference to inspect its SQL.</source>
     </trans-unit>
     <trans-unit id="++CODE++8a953dbed756a0be682ea17fe4c3be30e723ec8c98816d4b73fd86719df8dcc0">
       <source xml:lang="en">Select a server</source>
@@ -8754,6 +8760,10 @@
     <trans-unit id="++CODE++dc2ec826bf30a7434d345d8b1e114e649e2c0bea7e4d34741a81996f6022bc90">
       <source xml:lang="en">Source row</source>
     </trans-unit>
+    <trans-unit id="++CODE++679c56d7eba57861604a793b1387779df69216e9b80d7ffadb4eaa03049de8ef">
+      <source xml:lang="en">Source · {0}</source>
+      <note>{0} is the source schema label</note>
+    </trans-unit>
     <trans-unit id="++CODE++7d1b71b2bde7aa8e3125b606f3738980a13371ad3458ddd00b1193d72aad45dd">
       <source xml:lang="en">Source: {0}</source>
       <note>{0} is the fully qualified DAB source object name</note>
@@ -9148,6 +9158,10 @@
     <trans-unit id="++CODE++f99d2bb5a944aedb608890101ecc1dc452bf30fae0666933bdf944947aff0926">
       <source xml:lang="en">Target connection</source>
     </trans-unit>
+    <trans-unit id="++CODE++390386e6c59382f5c07f92d86c60db774a7c0a402d0b98f8fcd9603e7d8382e8">
+      <source xml:lang="en">Target · {0}</source>
+      <note>{0} is the target schema label</note>
+    </trans-unit>
     <trans-unit id="++CODE++890d34fffcde315c0575f92eefbdcce15011c60afa718c4a5e6bad4c7b81118f">
       <source xml:lang="en">Target:</source>
     </trans-unit>
@@ -9498,6 +9512,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0f24d889cc308e06f1ae9fcaf7a0a5a6f00faa9ee8fb928cb3f677166833c89a">
       <source xml:lang="en">The retained executed query is unavailable.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0b3eeaa70b800002d2c74cfacc79a79f4a5d21c6ef6887f810bc4adc4b9ba149">
+      <source xml:lang="en">The retained schema comparison document is invalid or no longer supported.</source>
     </trans-unit>
     <trans-unit id="++CODE++c7d829370bbb3bcf3ed575fa0340eb0fa89e3c5fea172b4421403e679e266ca1">
       <source xml:lang="en">The runbook default could not be saved. The selected view still applies to this run only.</source>
@@ -10775,6 +10792,10 @@
       <source xml:lang="en">{0} additional artifacts are omitted from this bounded list.</source>
       <note>{0} is the number of additional retained run artifacts</note>
     </trans-unit>
+    <trans-unit id="++CODE++6ed0cc7d3448f9bc7add0836ed4b62d9ec3ada4199c0cecba02b1965f2b31c9f">
+      <source xml:lang="en">{0} additional differences are available in the retained artifact.</source>
+      <note>{0} is the omitted schema difference count</note>
+    </trans-unit>
     <trans-unit id="++CODE++ddc7424149de22af181995a0c5ae6a24cecfc07dd8fa787bd1fc46f7dddcfc9c">
       <source xml:lang="en">{0} additional operation groups are available in the retained report.</source>
       <note>{0} is a count of DacFx operation groups</note>
@@ -10968,6 +10989,10 @@
       <source xml:lang="en">{0} rules</source>
       <note>{0} is the number of code analysis rules</note>
     </trans-unit>
+    <trans-unit id="++CODE++b61a5b1a9ec8221588bf06d31704ae91a771d69f10880cad8063a4038dee27d9">
+      <source xml:lang="en">{0} schema differences</source>
+      <note>{0} is a schema difference count</note>
+    </trans-unit>
     <trans-unit id="++CODE++0d43a65b231aab5ce9c1a1fcaa614526a6c2cefb7137de400a2a1feae95e1156">
       <source xml:lang="en">{0} selected</source>
       <note>{0} is the number of selected filter values</note>
@@ -11029,6 +11054,11 @@
       <source xml:lang="en">{0} → {1}</source>
       <note>{0} is a runtime-authored branch label
 {1} is a plan step name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++884ee8e93f43465d68e0a94cf7bc8012cae07c0a60c49afd214b9b21cdea5d99">
+      <source xml:lang="en">{0} → {1}</source>
+      <note>{0} is the source schema label
+{1} is the target schema label</note>
     </trans-unit>
     <trans-unit id="++CODE++b0020ab38fda5f63913e80f99f68a50881b2b83866c16fcd3abb83ce43c4aea3">
       <source xml:lang="en">{0}, +{1} more</source>

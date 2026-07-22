@@ -4179,6 +4179,41 @@ export class LocConstants {
             schemaDiffUnavailable: l10n.t(
                 "This deployment report could not be interpreted as a schema diff. Showing the retained report instead.",
             ),
+            schemaCompareResult: l10n.t("Schema comparison result"),
+            schemaCompareDocumentInvalid: l10n.t(
+                "The retained schema comparison document is invalid or no longer supported.",
+            ),
+            schemaCompareEndpoints: (source: string, target: string) =>
+                l10n.t({
+                    message: "{0} → {1}",
+                    args: [source, target],
+                    comment: ["{0} is the source schema label", "{1} is the target schema label"],
+                }),
+            schemaCompareDifferenceCount: (count: number) =>
+                l10n.t({
+                    message: "{0} schema differences",
+                    args: [count],
+                    comment: ["{0} is a schema difference count"],
+                }),
+            schemaCompareOmitted: (count: number) =>
+                l10n.t({
+                    message: "{0} additional differences are available in the retained artifact.",
+                    args: [count],
+                    comment: ["{0} is the omitted schema difference count"],
+                }),
+            schemaCompareSource: (source: string) =>
+                l10n.t({
+                    message: "Source · {0}",
+                    args: [source],
+                    comment: ["{0} is the source schema label"],
+                }),
+            schemaCompareTarget: (target: string) =>
+                l10n.t({
+                    message: "Target · {0}",
+                    args: [target],
+                    comment: ["{0} is the target schema label"],
+                }),
+            schemaCompareSelectDifference: l10n.t("Select a schema difference to inspect its SQL."),
             additionalOperationGroups: (count: number) =>
                 l10n.t({
                     message:

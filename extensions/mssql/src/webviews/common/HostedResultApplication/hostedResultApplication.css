@@ -1,0 +1,47 @@
+.hosted-result-app {
+    display: flex;
+    flex-direction: column;
+    min-height: 280px;
+    height: min(540px, 68vh);
+    max-height: 720px;
+    overflow: hidden;
+    border: 1px solid var(--vscode-panel-border, var(--vscode-widget-border));
+    background: var(--vscode-editor-background);
+}
+
+.hosted-result-app-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 4px 8px;
+    border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border));
+    background: var(--vscode-sideBarSectionHeader-background);
+    color: var(--vscode-sideBarSectionHeader-foreground);
+}
+
+.hosted-result-app-readonly {
+    padding: 1px 6px;
+    border: 1px solid var(--vscode-badge-background);
+    border-radius: 10px;
+    color: var(--vscode-badge-foreground);
+    background: var(--vscode-badge-background);
+    font-size: 11px;
+}
+
+.hosted-result-app-summary {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hosted-result-app-actions {
+    margin-left: auto;
+}
+
+.hosted-result-app-body {
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
+}

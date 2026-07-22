@@ -34,6 +34,10 @@ import { projectDacpacSchemaDiff } from "../../../runbookStudio/presentation/sch
 import { useRbs } from "./state";
 import { isResultFileArtifactContract } from "./resultArtifacts";
 import { projectLogContent } from "./logViewProjection";
+import {
+    parseRunbookSchemaCompareDocument,
+    SchemaCompareResultApplication,
+} from "./schemaCompareResultApplication";
 
 const PAGE_ROWS = 100;
 /** Bar chart shows at most this many rows (with an honest truncation note). */
@@ -1050,6 +1054,16 @@ export function ResolvedWidgetView({
                     case "json":
                         return <JsonView page={page} />;
                     case "diff":
+                        if (widget.contract === "schemaCompareDocument/1") {
+                            const document = parseRunbookSchemaCompareDocument(page.rows?.[0]?.[0]);
+                            return document ? (
+                                <SchemaCompareResultApplication document={document} />
+                            ) : (
+                                <div className="rbs-drift-notice" role="alert">
+                                    {loc.schemaCompareDocumentInvalid}
+                                </div>
+                            );
+                        }
                         return <SchemaDiffView page={page} />;
                     case "bar":
                         return <BarChartView page={page} settings={settings} />;

@@ -5244,6 +5244,29 @@
     "Object": "Object",
     "No schema changes were found.": "No schema changes were found.",
     "This deployment report could not be interpreted as a schema diff. Showing the retained report instead.": "This deployment report could not be interpreted as a schema diff. Showing the retained report instead.",
+    "Schema comparison result": "Schema comparison result",
+    "The retained schema comparison document is invalid or no longer supported.": "The retained schema comparison document is invalid or no longer supported.",
+    "{0} → {1}/{0} is the source schema label{1} is the target schema label": {
+        "message": "{0} → {1}",
+        "comment": ["{0} is the source schema label", "{1} is the target schema label"]
+    },
+    "{0} schema differences/{0} is a schema difference count": {
+        "message": "{0} schema differences",
+        "comment": ["{0} is a schema difference count"]
+    },
+    "{0} additional differences are available in the retained artifact./{0} is the omitted schema difference count": {
+        "message": "{0} additional differences are available in the retained artifact.",
+        "comment": ["{0} is the omitted schema difference count"]
+    },
+    "Source · {0}/{0} is the source schema label": {
+        "message": "Source · {0}",
+        "comment": ["{0} is the source schema label"]
+    },
+    "Target · {0}/{0} is the target schema label": {
+        "message": "Target · {0}",
+        "comment": ["{0} is the target schema label"]
+    },
+    "Select a schema difference to inspect its SQL.": "Select a schema difference to inspect its SQL.",
     "{0} additional operation groups are available in the retained report./{0} is a count of DacFx operation groups": {
         "message": "{0} additional operation groups are available in the retained report.",
         "comment": ["{0} is a count of DacFx operation groups"]

@@ -43,6 +43,7 @@ import {
     LOCAL_SCHEMA_INVENTORY_ROW_LIMIT,
     LOCAL_SCHEMA_INVENTORY_SQL,
 } from "./localSchemaInventory";
+import type { RunbookSchemaCompareDocument } from "../../sharedInterfaces/runbookSchemaCompare";
 
 export { isReadOnlySql } from "../readOnlySql";
 
@@ -287,6 +288,8 @@ export interface LocalSchemaComparisonExportResult extends LocalSchemaComparison
     artifactPath: string;
     artifactSizeBytes: number;
     artifactSha256: string;
+    deploymentReportArtifactPath: string;
+    document: RunbookSchemaCompareDocument;
     exportedAtUtc: string;
 }
 
@@ -1637,8 +1640,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     result.artifactPath,
                 ),
                 output: {
-                    contract: "schemaDiff/1",
-                    text: result.reportXml,
+                    contract: "schemaCompareDocument/1",
+                    text: JSON.stringify(result.document),
                     scalars: {
                         matches: result.matches,
                         targetDatabase: result.targetDatabase,
@@ -1650,6 +1653,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                         artifactPath: result.artifactPath,
                         artifactSizeBytes: result.artifactSizeBytes,
                         artifactSha256: result.artifactSha256,
+                        deploymentReportArtifactPath: result.deploymentReportArtifactPath,
                         generatedAtUtc: result.generatedAtUtc,
                         exportedAtUtc: result.exportedAtUtc,
                         executionMode: "local",

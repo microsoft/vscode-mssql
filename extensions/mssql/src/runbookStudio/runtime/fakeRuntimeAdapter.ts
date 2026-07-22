@@ -1210,8 +1210,26 @@ function executeNode(
                 },
                 message: "Schema comparison report exported (deterministic preview)",
                 output: {
-                    contract: "schemaDiff/1",
-                    text: '<DeploymentReport><Operations><Operation Name="Create" /></Operations></DeploymentReport>',
+                    contract: "schemaCompareDocument/1",
+                    text: JSON.stringify({
+                        schemaVersion: 1,
+                        source: { kind: "dacpac", label: "Preview.dacpac" },
+                        target: { kind: "database", label: "PreviewDatabase" },
+                        areEqual: false,
+                        totalDifferences: 1,
+                        items: [
+                            {
+                                id: "difference-1",
+                                action: "add",
+                                objectType: "Table",
+                                targetName: "dbo.PreviewTable",
+                                targetSql: "CREATE TABLE [dbo].[PreviewTable] ([Id] int NOT NULL);",
+                            },
+                        ],
+                        truncated: false,
+                        omittedCount: 0,
+                        provider: { kind: "deterministic-preview", contractVersion: 1 },
+                    }),
                     scalars: {
                         matches: false,
                         changeCount: 1,

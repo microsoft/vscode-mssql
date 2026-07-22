@@ -349,6 +349,10 @@ suite("presentationResolver", () => {
         expect(compatibleViews("deploymentPreview/1")).to.deep.equal(["diff", "log-view", "json"]);
         expect(expectedContractFor("activity", "schema.compare")).to.equal("schemaDiff/1");
         expect(compatibleViews("schemaDiff/1")).to.deep.equal(["diff", "log-view", "json"]);
+        expect(expectedContractFor("activity", "schema.compare.export")).to.equal(
+            "schemaCompareDocument/1",
+        );
+        expect(compatibleViews("schemaCompareDocument/1")).to.deep.equal(["diff", "json"]);
         expect(expectedContractFor("activity", "sqltest.discover")).to.equal(
             "testSuiteDiscovery/1",
         );

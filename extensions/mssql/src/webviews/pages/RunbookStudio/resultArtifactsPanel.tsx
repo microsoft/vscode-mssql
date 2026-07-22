@@ -28,6 +28,7 @@ function artifactTypeLabel(contract: string): string {
         case "dacpacArtifact/1":
             return loc.dacpacArtifactType;
         case "schemaDiff/1":
+        case "schemaCompareDocument/1":
             return loc.schemaComparisonArtifactType;
         case "xelArtifact/1":
             return loc.xelArtifactType;

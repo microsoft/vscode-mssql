@@ -14,6 +14,9 @@ suite("Runbook Studio managed artifact filenames", () => {
         expect(localManagedArtifactFileName("compare/report", "schema-comparison.XML")).to.equal(
             "compare_report-schema-comparison.xml",
         );
+        expect(localManagedArtifactFileName("compare", "schema-comparison.json")).to.equal(
+            "compare-schema-comparison.json",
+        );
         expect(localManagedArtifactFileName("collect", "../../capture 1.xel")).to.equal(
             "collect-capture_1.xel",
         );

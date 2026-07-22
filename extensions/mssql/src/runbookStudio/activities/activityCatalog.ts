@@ -690,7 +690,7 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         version: 1,
         label: "Export schema comparison report",
         description:
-            "Generates a DacFx comparison report for an explicitly bound database and retains the complete XML as a hashed Runbook Studio artifact without treating differences as execution failure.",
+            "Compares a DACPAC with an explicitly bound database, retains the deployment report, and produces a bounded object/script comparison document without treating expected differences as execution failure.",
         inputs: [
             {
                 name: "dacpac",
@@ -705,7 +705,7 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
                 description: "Saved connection profile or provisioned database reference",
             },
         ],
-        outputContract: "schemaDiff/1",
+        outputContract: "schemaCompareDocument/1",
         producedValues: [
             "matches",
             "changeCount",

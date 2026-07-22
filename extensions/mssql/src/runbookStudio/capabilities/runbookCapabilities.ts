@@ -223,7 +223,8 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         effect: "mutate",
         connectionRequirement: "required",
         rollbackContract: "automatic",
-        outputContract: "schemaDiff/1",
+        providerRequirement: "execution",
+        outputContract: "schemaCompareDocument/1",
     },
     "sql.container.provision": {
         target: "ephemeralSqlDatabase",

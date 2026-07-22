@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 /** Optional localhost smoke for the exact Author -> compile -> bind -> gate ->
- * local coordinator -> DacFx/SQL workflow used by the Runbook Studio repro.
- * It drives registered extension-host commands rather than a webview, then
- * independently verifies the deployed inventory. WWI_2 is removed only while
- * the coordinator's exact ownership marker remains. Credentials are never
- * logged. */
+ * local coordinator -> DacFx/SQL schema-evolution workflow used by the
+ * Runbook Studio repro. It drives registered extension-host commands rather
+ * than a webview, then independently verifies deployment and DDL. The unique
+ * target is removed only while the coordinator's exact ownership marker
+ * remains. Credentials are never logged. */
 
 import { randomBytes } from "crypto";
 import * as fs from "fs";
@@ -32,10 +32,12 @@ import { RUNBOOK_STUDIO_VIEW_TYPE } from "../../src/runbookStudio/runbookStudioE
 const LIVE_ENABLED = process.env.RBS2_DACPAC_LIVE === "1";
 const CONNECTION_STRING =
     process.env.STS2_SQLSERVER_CONNSTRING ?? process.env.STS2_SQLSERVER_SQLLOGIN_CONNSTRING;
-const TARGET_DATABASE = "WWI_2";
+const TARGET_DATABASE = `RbsSchemaEvolution_${randomBytes(5).toString("hex")}`;
 const EXACT_INTENT =
-    "Extract WideWorldImporters to a dacpac, import it back as WWI_2, " +
-    "dump all the schema objects from WWI_2 into an output table.";
+    "Extract WideWorldImporters database to a dacpac. Deploy the dacpac back to the " +
+    "same server and name it WideWorld_WIP. Now add a new table to WideWorld_WIP that " +
+    "is dbo.Logs and add a representative logging table. Then run a schema compare " +
+    "between the orginal database and the database, and show the schema deltas as diff output.";
 
 suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
     this.timeout(360_000);
@@ -55,7 +57,7 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
         }
     });
 
-    test("compiles and runs the exact prompt through the local coordinator", async () => {
+    test("compiles and runs the exact schema evolution prompt through the local coordinator", async () => {
         const parsed = parseSqlConnectionString(CONNECTION_STRING!);
         if ("error" in parsed) {
             throw new Error(parsed.error);
@@ -144,14 +146,14 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
                 uri: document.uri.toString(),
                 intent: EXACT_INTENT,
             });
-            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 9 });
+            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 10 });
             expect(compile.activityKinds).to.deep.equal([
                 "dacpac.extract",
                 "devdatabase.provision",
                 "dacpac.deploy.preview",
                 "dacpac.deploy.dev",
-                "schema.compare",
-                "database.schema.inventory",
+                "sql.schema.apply",
+                "schema.compare.export",
             ]);
             expect(compile.parameterIds).to.deep.equal([
                 "sourceConnection",
@@ -176,15 +178,16 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
                 parameterValues: {
                     sourceConnection: profileId,
                     targetServer: profileId,
+                    targetDatabaseName: TARGET_DATABASE,
                 },
                 approveGates: true,
                 timeoutMs: 10 * 60_000,
             });
             expect(run, JSON.stringify(run)).to.include({ state: "succeeded", verdict: "pass" });
-            expect(run.nodeStates).to.have.length(9);
+            expect(run.nodeStates).to.have.length(10);
             expect(run.nodeStates?.every((node) => node.state === "succeeded")).to.equal(true);
             expect(
-                run.nodeStates?.find((node) => node.nodeId === "inventory")?.outputCount,
+                run.nodeStates?.find((node) => node.nodeId === "compare")?.outputCount,
             ).to.be.greaterThan(0);
 
             const ownership = await api.connectionSharing.executeSimpleQuery(
@@ -211,6 +214,11 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
             expect(objectTypes).to.include("Table");
             expect(objectTypes).to.include("View");
             expect(objectTypes).to.include("Stored procedure");
+            const logs = await api.connectionSharing.executeSimpleQuery(
+                targetUri,
+                "SELECT COUNT_BIG(*) AS object_count FROM sys.tables AS t INNER JOIN sys.schemas AS s ON s.schema_id = t.schema_id WHERE s.name = N'dbo' AND t.name = N'Logs';",
+            );
+            expect(logs.rows?.[0]?.[0]?.displayValue).to.equal("1");
         } finally {
             if (targetUri) {
                 api.connectionSharing.disconnect(targetUri);

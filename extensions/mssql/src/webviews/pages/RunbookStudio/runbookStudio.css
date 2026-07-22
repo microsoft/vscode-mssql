@@ -860,6 +860,148 @@
     padding-inline-start: 20px;
 }
 
+.rbs-schema-compare-app {
+    display: grid;
+    grid-template-columns: minmax(220px, 34%) minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+}
+
+.rbs-schema-compare-list-pane,
+.rbs-schema-compare-diff-pane {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+}
+
+.rbs-schema-compare-list-pane {
+    border-right: 1px solid var(--vscode-panel-border, var(--vscode-widget-border));
+}
+
+.rbs-schema-compare-list-heading,
+.rbs-schema-compare-diff-heading {
+    flex: none;
+    min-height: 28px;
+    padding: 5px 8px;
+    box-sizing: border-box;
+    border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border));
+    background: var(--vscode-keybindingTable-headerBackground);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.rbs-schema-compare-diff-heading {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.rbs-schema-compare-list {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    outline: none;
+}
+
+.rbs-schema-compare-list:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
+.rbs-schema-compare-list-content {
+    position: relative;
+    width: 100%;
+}
+
+.rbs-schema-compare-row {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 5px 8px;
+    box-sizing: border-box;
+    border: 0;
+    border-bottom: 1px solid var(--vscode-tree-tableColumnsBorder, transparent);
+    color: var(--vscode-foreground);
+    background: transparent;
+    text-align: left;
+    cursor: pointer;
+}
+
+.rbs-schema-compare-row:hover {
+    background: var(--vscode-list-hoverBackground);
+    color: var(--vscode-list-hoverForeground);
+}
+
+.rbs-schema-compare-row.selected {
+    background: var(--vscode-list-activeSelectionBackground);
+    color: var(--vscode-list-activeSelectionForeground);
+}
+
+.rbs-schema-compare-row-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.rbs-schema-compare-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.rbs-schema-action {
+    flex: none;
+    min-width: 46px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.rbs-schema-action-add {
+    color: var(--vscode-gitDecoration-addedResourceForeground);
+}
+
+.rbs-schema-action-change {
+    color: var(--vscode-gitDecoration-modifiedResourceForeground);
+}
+
+.rbs-schema-action-delete {
+    color: var(--vscode-gitDecoration-deletedResourceForeground);
+}
+
+.rbs-schema-compare-omitted {
+    flex: none;
+    padding: 5px 8px;
+    border-top: 1px solid var(--vscode-panel-border, var(--vscode-widget-border));
+    color: var(--vscode-descriptionForeground);
+    font-size: 11px;
+}
+
+.rbs-hosted-empty {
+    display: grid;
+    height: 100%;
+    place-items: center;
+    padding: 16px;
+    box-sizing: border-box;
+    color: var(--vscode-descriptionForeground);
+}
+
+@media (max-width: 760px) {
+    .rbs-schema-compare-app {
+        grid-template-columns: 1fr;
+        grid-template-rows: minmax(150px, 38%) minmax(220px, 1fr);
+    }
+
+    .rbs-schema-compare-list-pane {
+        border-right: 0;
+        border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border));
+    }
+}
+
 .rbs-widget-view-tabs {
     display: inline-flex;
     align-items: center;

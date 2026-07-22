@@ -176,9 +176,29 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             reportTruncated: false,
             generatedAtUtc: "2026-07-20T20:02:00.000Z",
             matches: false,
-            artifactPath: "C:\\managed\\schema-comparison.xml",
+            artifactPath: "C:\\managed\\schema-comparison.json",
             artifactSizeBytes: 512,
             artifactSha256: "7".repeat(64),
+            deploymentReportArtifactPath: "C:\\managed\\schema-comparison.xml",
+            document: {
+                schemaVersion: 1,
+                source: { kind: "dacpac", label: "WideWorldImporters.dacpac" },
+                target: { kind: "database", label: "WWI_2" },
+                areEqual: false,
+                totalDifferences: 1,
+                items: [
+                    {
+                        id: "difference-1",
+                        action: "add",
+                        objectType: "Table",
+                        targetName: "dbo.RunLog",
+                        targetSql: "CREATE TABLE dbo.RunLog (Id int NOT NULL);",
+                    },
+                ],
+                truncated: false,
+                omittedCount: 0,
+                provider: { kind: "test", contractVersion: 1 },
+            },
             exportedAtUtc: "2026-07-20T20:02:01.000Z",
         }),
         provisionSandbox: async () => ({
@@ -908,11 +928,11 @@ suite("Runbook Studio local activity delegate", () => {
         );
 
         expect(result?.success).to.equal(true);
-        expect(result?.output?.contract).to.equal("schemaDiff/1");
+        expect(result?.output?.contract).to.equal("schemaCompareDocument/1");
         expect(result?.output?.scalars).to.deep.include({
             matches: false,
             changeCount: 1,
-            artifactPath: "C:\\managed\\schema-comparison.xml",
+            artifactPath: "C:\\managed\\schema-comparison.json",
             artifactSizeBytes: 512,
             artifactSha256: "7".repeat(64),
             executionMode: "local",
@@ -920,7 +940,7 @@ suite("Runbook Studio local activity delegate", () => {
         expect(result?.values).to.deep.include({
             matches: false,
             changeCount: 1,
-            artifactPath: "C:\\managed\\schema-comparison.xml",
+            artifactPath: "C:\\managed\\schema-comparison.json",
         });
         expect(result?.runMetrics).to.deep.include({
             "schema.matches": false,

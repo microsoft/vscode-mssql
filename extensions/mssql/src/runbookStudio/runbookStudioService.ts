@@ -192,6 +192,7 @@ import type ConnectionManager from "../controllers/connectionManager";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as fs from "fs";
 import { DacFxService } from "../services/dacFxService";
+import { SchemaCompareService } from "../services/schemaCompareService";
 import { TaskExecutionMode } from "../enums";
 import { digestRunbookValue } from "./runbookDigest";
 import type { IConnectionProfileWithSource } from "../models/interfaces";
@@ -230,6 +231,10 @@ import {
     localXeventSessionName,
     validateLocalXelServerPath,
 } from "./runtime/localXevent";
+import {
+    SchemaCompareProviderError,
+    StsV1RunbookSchemaCompareProvider,
+} from "./providers/schemaCompareProvider";
 
 const SimpleExecuteRequestType = new RequestType<
     { ownerUri: string; queryString: string },
@@ -358,6 +363,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         /** Lazy — MainController constructs after feature registration. */
         private readonly connectionAccess: () => ConnectionManager | undefined,
         private readonly dacFxAccess: () => DacFxService | undefined = () => undefined,
+        private readonly schemaCompareAccess: () => SchemaCompareService | undefined = () =>
+            undefined,
     ) {
         // Workspace-scoped root retained for the runtime supervisor's data
         // dir (its library/logs stay where existing sessions put them).
@@ -5803,12 +5810,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested, [
             ...this.runDropStore.trustedArtifactRoots(),
         ]);
-        const outputPath = await this.localManagedArtifactPath(
+        const reportPath = await this.localManagedArtifactPath(
             invocation,
             nodeId,
             "schema-comparison.xml",
         );
-        if (await pathExists(outputPath)) {
+        const outputPath = await this.localManagedArtifactPath(
+            invocation,
+            nodeId,
+            "schema-comparison.json",
+        );
+        if ((await pathExists(reportPath)) || (await pathExists(outputPath))) {
             throw new LocalActivityError(
                 LocRunbookStudio.runbookArtifactAlreadyExists(outputPath),
                 "RunbookStudio.ArtifactExists",
@@ -5816,17 +5828,50 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         }
         let complete = false;
         try {
+            const schemaCompare = this.schemaCompareAccess();
+            const dacFx = this.dacFxAccess();
+            if (!schemaCompare || !dacFx) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.schemaComparisonExportFailed,
+                    "RunbookStudio.ProviderUnavailable",
+                );
+            }
+            let document: LocalSchemaComparisonExportResult["document"] | undefined;
             const preview = await this.generateLocalDacpacDeploymentPreview(
                 artifact.artifactPath,
                 databaseRef,
                 isCancellationRequested,
-                async (report) => {
-                    await fs.promises.writeFile(outputPath, report, {
+                async (report, target) => {
+                    await fs.promises.writeFile(reportPath, report, {
                         encoding: "utf8",
                         flag: "wx",
                     });
+                    const provider = new StsV1RunbookSchemaCompareProvider(schemaCompare, dacFx);
+                    document = await provider.compare({
+                        operationId: crypto.randomUUID(),
+                        dacpacPath: artifact.artifactPath,
+                        sourceLabel: path.basename(artifact.artifactPath),
+                        targetServer: target.serverName,
+                        targetDatabase: target.databaseName,
+                        ownerUri: target.ownerUri,
+                        isCancellationRequested,
+                    });
+                    await fs.promises.writeFile(
+                        outputPath,
+                        JSON.stringify(document, undefined, 2),
+                        {
+                            encoding: "utf8",
+                            flag: "wx",
+                        },
+                    );
                 },
             );
+            if (!document) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.schemaComparisonExportFailed,
+                    "RunbookStudio.ActivityFailed",
+                );
+            }
             const outputStat = await fs.promises.stat(outputPath);
             if (!outputStat.isFile() || outputStat.size === 0) {
                 throw new LocalActivityError(
@@ -5835,17 +5880,31 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 );
             }
             complete = true;
+            const documentBytes = await fs.promises.readFile(outputPath);
             return {
                 ...preview,
                 matches: preview.changeCount === 0,
                 artifactPath: outputPath,
                 artifactSizeBytes: outputStat.size,
-                artifactSha256: preview.reportSha256,
+                artifactSha256: crypto.createHash("sha256").update(documentBytes).digest("hex"),
+                deploymentReportArtifactPath: reportPath,
+                document,
                 exportedAtUtc: new Date().toISOString(),
             };
+        } catch (error) {
+            if (error instanceof SchemaCompareProviderError) {
+                throw new LocalActivityError(
+                    error.message,
+                    error.code === "cancelled"
+                        ? "RunbookStudio.ActivityCancelled"
+                        : "RunbookStudio.ActivityFailed",
+                );
+            }
+            throw error;
         } finally {
             if (!complete) {
                 await fs.promises.rm(outputPath, { force: true }).catch(() => undefined);
+                await fs.promises.rm(reportPath, { force: true }).catch(() => undefined);
             }
         }
     }
@@ -5871,7 +5930,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         verifiedDacpacPath: string,
         databaseRef: string,
         isCancellationRequested: () => boolean,
-        retainFullReport?: (report: string) => Promise<void>,
+        retainFullReport?: (
+            report: string,
+            target: { ownerUri: string; serverName: string; databaseName: string },
+        ) => Promise<void>,
     ) {
         if (isCancellationRequested()) {
             throw new LocalActivityError(
@@ -5942,7 +6004,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 result.report,
             );
             if (retainFullReport) {
-                await retainFullReport(result.report);
+                await retainFullReport(result.report, {
+                    ownerUri,
+                    serverName: profile.server,
+                    databaseName: targetDatabase,
+                });
             }
             return preview;
         } catch (error) {
@@ -6249,9 +6315,15 @@ export function getRunbookStudioService(
     context: vscode.ExtensionContext,
     connectionAccess: () => ConnectionManager | undefined = () => undefined,
     dacFxAccess: () => DacFxService | undefined = () => undefined,
+    schemaCompareAccess: () => SchemaCompareService | undefined = () => undefined,
 ): RunbookStudioService {
     if (!serviceInstance) {
-        serviceInstance = new RunbookStudioService(context, connectionAccess, dacFxAccess);
+        serviceInstance = new RunbookStudioService(
+            context,
+            connectionAccess,
+            dacFxAccess,
+            schemaCompareAccess,
+        );
         context.subscriptions.push({
             dispose: () => {
                 serviceInstance?.dispose();
