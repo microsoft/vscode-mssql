@@ -151,6 +151,14 @@ suite("planCompiler", () => {
             result.artifact.source.parameters.find((parameter) => parameter.id === "iterations"),
         ).to.include({ type: "int", default: 1000 });
         expect(
+            result.artifact.source.parameters.find(
+                (parameter) => parameter.id === "sourceDatabaseName",
+            ),
+        ).to.include({ type: "string", default: "WideWorldImporters" });
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "generate-workload")?.inputs,
+        ).to.include({ sourceDatabaseName: "$params.sourceDatabaseName" });
+        expect(
             result.artifact.source.parameters.find((parameter) => parameter.id === "repetitions"),
         ).to.include({ type: "int", default: 5 });
         expect(

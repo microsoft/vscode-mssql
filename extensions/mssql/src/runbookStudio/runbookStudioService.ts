@@ -2525,6 +2525,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     generateWorkload: (
                         nodeId,
                         databaseRef,
+                        sourceDatabaseName,
                         template,
                         sampleRows,
                         iterations,
@@ -2534,6 +2535,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         this.generateLocalWorkload(
                             nodeId,
                             databaseRef,
+                            sourceDatabaseName,
                             template,
                             sampleRows,
                             iterations,
@@ -3429,6 +3431,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private async generateLocalWorkload(
         nodeId: string,
         databaseRef: string,
+        sourceDatabaseName: string,
         template: string,
         sampleRows: number,
         iterations: number,
@@ -3446,10 +3449,14 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             );
         }
         const resolved = await this.resolveRunbookConnection(databaseRef);
-        const prepared = this.prepareLocalDataPlaneConnection(
-            resolved.profile,
-            resolved.targetDatabase,
-        );
+        const sourceDatabase = sourceDatabaseName.trim();
+        if (!isValidDacpacSourceDatabaseName(sourceDatabase)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.dacpacExtractDatabaseRequired,
+                "RunbookStudio.BindingInvalid",
+            );
+        }
+        const prepared = this.prepareLocalDataPlaneConnection(resolved.profile, sourceDatabase);
         const query = [
             `SELECT TOP (${sampleRows})`,
             "    CONVERT(nvarchar(100), [CityName]) AS [CityName],",
@@ -3463,7 +3470,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         try {
             sampled = await runRunbookDataPlaneQuery({
                 prepared,
-                database: resolved.targetDatabase,
+                database: sourceDatabase,
                 applicationName: "vscode-mssql-runbook-workload-generator",
                 sql: query,
                 tag: "runbook.workload.sample-cities",

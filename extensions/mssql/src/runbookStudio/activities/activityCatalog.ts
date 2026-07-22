@@ -227,7 +227,13 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
                 name: "database",
                 kind: "bind",
                 required: true,
-                description: "Saved source connection containing WideWorldImporters",
+                description: "Saved source server connection",
+            },
+            {
+                name: "sourceDatabaseName",
+                kind: "bind",
+                required: true,
+                description: "Explicit source database containing Application.Cities",
             },
             {
                 name: "template",

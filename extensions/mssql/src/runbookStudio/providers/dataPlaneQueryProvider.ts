@@ -93,7 +93,9 @@ export async function runRunbookDataPlaneQuery(
         }
         if (completion.status !== "succeeded") {
             throw new RunbookDataPlaneQueryError(
-                errorMessage ?? `The query completed with status '${completion.status}'.`,
+                errorMessage ??
+                    completion.error?.message ??
+                    `The query completed with status '${completion.status}' without provider error details. Verify the bound server and database.`,
                 "queryFailed",
             );
         }

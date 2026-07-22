@@ -169,6 +169,7 @@ export interface LocalSqlOperations {
     generateWorkload(
         nodeId: string,
         databaseRef: string,
+        sourceDatabaseName: string,
         template: string,
         sampleRows: number,
         iterations: number,
@@ -1178,6 +1179,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         },
     ): Promise<NodeExecution> {
         const databaseRef = binding.resolveBind(node.inputs?.database);
+        const sourceDatabaseName = binding.resolveBind(node.inputs?.sourceDatabaseName);
         const template = binding.resolveBind(node.inputs?.template);
         const sampleRowsValue = binding.resolveBind(node.inputs?.sampleRows);
         const iterationsValue = binding.resolveBind(node.inputs?.iterations);
@@ -1185,6 +1187,14 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         const iterations = iterationsValue === undefined ? 1000 : iterationsValue;
         if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
             return invalidBinding("database");
+        }
+        if (
+            typeof sourceDatabaseName !== "string" ||
+            sourceDatabaseName.trim().length === 0 ||
+            sourceDatabaseName.trim().length > 128 ||
+            /[\u0000-\u001f\u007f]/.test(sourceDatabaseName)
+        ) {
+            return invalidBinding("sourceDatabaseName");
         }
         if (template !== LOCAL_CITIES_WORKLOAD_TEMPLATE) {
             return invalidBinding("template");
@@ -1209,6 +1219,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             const result = await this.operations.generateWorkload(
                 node.id,
                 databaseRef.trim(),
+                sourceDatabaseName.trim(),
                 template,
                 sampleRows,
                 iterations,

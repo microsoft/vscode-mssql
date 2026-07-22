@@ -905,6 +905,7 @@ suite("Runbook Studio local activity delegate", () => {
         const result = await delegate.executeActivity(
             activity("sql.workload.generate", {
                 database: "source-profile",
+                sourceDatabaseName: "WideWorldImporters",
                 template: "application-cities-shadow",
                 sampleRows: 20,
                 iterations: 1000,

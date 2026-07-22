@@ -226,9 +226,16 @@ export function compileDeterministicCitiesWorkload(
         parameters: [
             {
                 id: "sourceConnection",
-                label: "WideWorldImporters source",
+                label: "WideWorldImporters server",
                 type: "connection",
                 required: true,
+            },
+            {
+                id: "sourceDatabaseName",
+                label: "Source database",
+                type: "string",
+                required: true,
+                default: "WideWorldImporters",
             },
             {
                 id: "containerName",
@@ -289,6 +296,7 @@ export function compileDeterministicCitiesWorkload(
                 activityKind: "sql.workload.generate",
                 inputs: {
                     database: "$params.sourceConnection",
+                    sourceDatabaseName: "$params.sourceDatabaseName",
                     template: "application-cities-shadow",
                     sampleRows: "$params.sampleRows",
                     iterations: "$params.iterations",
