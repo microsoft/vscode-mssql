@@ -235,6 +235,17 @@ import {
     SchemaCompareProviderError,
     StsV1RunbookSchemaCompareProvider,
 } from "./providers/schemaCompareProvider";
+import {
+    MetadataStoreRunbookSchemaGraphProvider,
+    RunbookSchemaGraphProviderError,
+} from "./providers/schemaGraphProvider";
+import { MetadataStoreService } from "../services/metadata/metadataStoreService";
+import {
+    prepareConnection,
+    ProfileSecretSource,
+    StoredConnectionProfile,
+} from "../services/metadata/profileAuthAdapter";
+import { vscodeSqlTokenSource } from "../services/sqlDataPlane/vscodeSqlTokenSource";
 
 const SimpleExecuteRequestType = new RequestType<
     { ownerUri: string; queryString: string },
@@ -2635,6 +2646,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             invocation,
                             cancelled,
                         ),
+                    visualizeSchema: (databaseRef, cancelled) =>
+                        this.visualizeLocalDatabaseSchema(databaseRef, cancelled),
                     disposeSandbox: (nodeId, leaseRef, invocation, cancelled) =>
                         this.disposeLocalSandbox(nodeId, leaseRef, invocation, cancelled),
                     disposeSqlContainer: (nodeId, leaseRef, invocation, cancelled) =>
@@ -5906,6 +5919,65 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 await fs.promises.rm(outputPath, { force: true }).catch(() => undefined);
                 await fs.promises.rm(reportPath, { force: true }).catch(() => undefined);
             }
+        }
+    }
+
+    private async visualizeLocalDatabaseSchema(
+        databaseRef: string,
+        isCancellationRequested: () => boolean,
+    ) {
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.stepCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const resolved = await this.resolveRunbookConnection(databaseRef);
+        const connectionManager = this.connectionAccess();
+        if (!connectionManager) {
+            throw new LocalActivityError(
+                LocRunbookStudio.connectFailed,
+                "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        const profile = {
+            ...resolved.profile,
+            database: resolved.targetDatabase,
+        } as mssql.IConnectionInfo & { password?: string };
+        const inlinePassword = profile.password;
+        const secrets: ProfileSecretSource = {
+            lookupPassword: async (credentials, isConnectionString) =>
+                inlinePassword ??
+                connectionManager.connectionStore.lookupPassword(
+                    credentials as mssql.IConnectionInfo,
+                    isConnectionString,
+                ),
+        };
+        const prepared = prepareConnection(
+            profile as StoredConnectionProfile,
+            secrets,
+            vscodeSqlTokenSource,
+        );
+        try {
+            const provider = new MetadataStoreRunbookSchemaGraphProvider(
+                MetadataStoreService.get().store(),
+            );
+            const document = await provider.visualize({
+                prepared,
+                database: resolved.targetDatabase,
+                isCancellationRequested,
+            });
+            return { document };
+        } catch (error) {
+            if (error instanceof RunbookSchemaGraphProviderError) {
+                throw new LocalActivityError(
+                    error.message,
+                    error.code === "cancelled"
+                        ? "RunbookStudio.ActivityCancelled"
+                        : "RunbookStudio.ActivityFailed",
+                );
+            }
+            throw error;
         }
     }
 

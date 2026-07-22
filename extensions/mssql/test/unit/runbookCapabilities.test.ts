@@ -402,6 +402,20 @@ suite("runbook capability preflight", () => {
         expect(kinds).not.to.include("schema.compare");
     });
 
+    test("ERD intent selects the installed MetadataStore schema visualization activity", () => {
+        const classified = classifyRunbookIntent(
+            "Add dbo.Logs to the new database and visualize the resulting schema as an ERD.",
+        );
+        const kinds = classified.requirements.activities.map((activity) => activity.kind);
+
+        expect(kinds).to.include("database.schema.visualize");
+        expect(
+            classified.requirements.activities.find(
+                (activity) => activity.kind === "database.schema.visualize",
+            )?.outputContract,
+        ).to.equal("databaseSchemaGraph/1");
+    });
+
     test("containerWorkloadCapabilities admits the complete owned capture lifecycle", () => {
         const classified = classifyRunbookIntent(
             "Provision a local SQL container, import the dacpac, run this workload.sql, " +

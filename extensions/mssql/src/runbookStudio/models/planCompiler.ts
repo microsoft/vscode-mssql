@@ -185,6 +185,7 @@ const DETERMINISTIC_DACPAC_EVOLUTION_ACTIVITIES = new Set([
     "sql.schema.apply",
     "schema.compare.export",
 ]);
+const DETERMINISTIC_SCHEMA_VISUALIZATION_ACTIVITY = "database.schema.visualize";
 
 /**
  * Compile the first closed schema-evolution workflow without asking the
@@ -198,9 +199,18 @@ export function compileDeterministicDacpacEvolution(
     intent: string,
 ): ProposalParseResult | undefined {
     const required = base.source.requirements?.activities.map((activity) => activity.kind) ?? [];
+    const includesSchemaVisualization = required.includes(
+        DETERMINISTIC_SCHEMA_VISUALIZATION_ACTIVITY,
+    );
     if (
-        required.length !== DETERMINISTIC_DACPAC_EVOLUTION_ACTIVITIES.size ||
-        !required.every((kind) => DETERMINISTIC_DACPAC_EVOLUTION_ACTIVITIES.has(kind))
+        required.length !==
+            DETERMINISTIC_DACPAC_EVOLUTION_ACTIVITIES.size +
+                (includesSchemaVisualization ? 1 : 0) ||
+        !required.every(
+            (kind) =>
+                DETERMINISTIC_DACPAC_EVOLUTION_ACTIVITIES.has(kind) ||
+                kind === DETERMINISTIC_SCHEMA_VISUALIZATION_ACTIVITY,
+        )
     ) {
         return undefined;
     }
@@ -219,7 +229,8 @@ export function compileDeterministicDacpacEvolution(
         name: `${names.target} schema evolution`,
         description:
             `Extracts ${names.source}, deploys it to the owned development database ` +
-            `${names.target}, creates ${qualifiedTableName}, and reports the resulting schema deltas.`,
+            `${names.target}, creates ${qualifiedTableName}, and reports the resulting schema deltas` +
+            `${includesSchemaVisualization ? " with a read-only ER diagram" : ""}.`,
         parameters: [
             {
                 id: "sourceConnection",
@@ -327,6 +338,19 @@ export function compileDeterministicDacpacEvolution(
                     database: "$nodes.provision.connectionRef",
                 },
             },
+            ...(includesSchemaVisualization
+                ? [
+                      {
+                          id: "visualize-schema",
+                          label: "Visualize evolved schema",
+                          kind: "activity" as const,
+                          activityKind: DETERMINISTIC_SCHEMA_VISUALIZATION_ACTIVITY,
+                          inputs: {
+                              database: "$nodes.provision.connectionRef",
+                          },
+                      },
+                  ]
+                : []),
             { id: "report", label: "Summarize schema evolution", kind: "report" },
         ],
         edges: [
@@ -341,7 +365,11 @@ export function compileDeterministicDacpacEvolution(
             { from: "approve-schema", to: "create-logging-table", when: "approved" },
             { from: "approve-schema", to: "report", when: "rejected" },
             { from: "create-logging-table", to: "compare" },
-            { from: "compare", to: "report" },
+            {
+                from: "compare",
+                to: includesSchemaVisualization ? "visualize-schema" : "report",
+            },
+            ...(includesSchemaVisualization ? [{ from: "visualize-schema", to: "report" }] : []),
         ],
     };
     return parseCompiledProposal(JSON.stringify(proposal), base, intent);

@@ -353,6 +353,10 @@ suite("presentationResolver", () => {
             "schemaCompareDocument/1",
         );
         expect(compatibleViews("schemaCompareDocument/1")).to.deep.equal(["diff", "json"]);
+        expect(expectedContractFor("activity", "database.schema.visualize")).to.equal(
+            "databaseSchemaGraph/1",
+        );
+        expect(compatibleViews("databaseSchemaGraph/1")).to.deep.equal(["er-diagram", "json"]);
         expect(expectedContractFor("activity", "sqltest.discover")).to.equal(
             "testSuiteDiscovery/1",
         );

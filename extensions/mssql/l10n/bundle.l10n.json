@@ -236,6 +236,10 @@
         "comment": ["{0} is a schema change count", "{1} is a report artifact path"]
     },
     "The schema comparison report could not be retained as a managed artifact.": "The schema comparison report could not be retained as a managed artifact.",
+    "Created a schema diagram with {0} table(s) and {1} relationship(s)./{0} is a table count{1} is a foreign-key relationship count": {
+        "message": "Created a schema diagram with {0} table(s) and {1} relationship(s).",
+        "comment": ["{0} is a table count", "{1} is a foreign-key relationship count"]
+    },
     "Disposable database '{0}' was provisioned./{0} is a generated local database name": {
         "message": "Disposable database '{0}' was provisioned.",
         "comment": ["{0} is a generated local database name"]
@@ -5267,6 +5271,25 @@
         "comment": ["{0} is the target schema label"]
     },
     "Select a schema difference to inspect its SQL.": "Select a schema difference to inspect its SQL.",
+    "Database schema diagram": "Database schema diagram",
+    "The retained schema diagram is invalid or no longer supported.": "The retained schema diagram is invalid or no longer supported.",
+    "{0} · {1} of {2} tables/{0} is a database name{1} is a rendered table count{2} is a total table count": {
+        "message": "{0} · {1} of {2} tables",
+        "comment": [
+            "{0} is a database name",
+            "{1} is a rendered table count",
+            "{2} is a total table count"
+        ]
+    },
+    "Bounded diagram: {0} table(s) and {1} relationship(s) omitted; {2} relationship(s) had an endpoint outside the retained subset./{0} is an omitted table count{1} is an omitted relationship count{2} is a dangling relationship count": {
+        "message": "Bounded diagram: {0} table(s) and {1} relationship(s) omitted; {2} relationship(s) had an endpoint outside the retained subset.",
+        "comment": [
+            "{0} is an omitted table count",
+            "{1} is an omitted relationship count",
+            "{2} is a dangling relationship count"
+        ]
+    },
+    "No user tables were available to diagram.": "No user tables were available to diagram.",
     "{0} additional operation groups are available in the retained report./{0} is a count of DacFx operation groups": {
         "message": "{0} additional operation groups are available in the retained report.",
         "comment": ["{0} is a count of DacFx operation groups"]

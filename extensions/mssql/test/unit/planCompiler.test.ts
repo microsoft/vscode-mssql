@@ -298,6 +298,45 @@ suite("planCompiler", () => {
         });
     });
 
+    test("schema evolution can append an STS v2 ER diagram result", () => {
+        const intent =
+            "Extract WideWorldImporters database to a dacpac. Deploy the dacpac back to the " +
+            "same server and name it WideWorld_WIP. Add a new table that is dbo.Logs and add " +
+            "a representative logging table. Run schema compare, show the schema deltas as " +
+            "diff output, and visualize the new database schema as an ERD.";
+        const classified = classifyRunbookIntent(intent);
+        const evolutionBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicDacpacEvolution(evolutionBase, intent);
+        if (!result) {
+            throw new Error("deterministic workflow was not selected");
+        }
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+
+        expect(
+            result.artifact
+                .lock!.nodes.filter((node) => node.kind === "activity")
+                .map((node) => node.activityKind),
+        ).to.deep.equal([
+            "dacpac.extract",
+            "devdatabase.provision",
+            "dacpac.deploy.preview",
+            "dacpac.deploy.dev",
+            "sql.schema.apply",
+            "schema.compare.export",
+            "database.schema.visualize",
+        ]);
+        expect(result.artifact.lock!.edges).to.deep.include.members([
+            { from: "compare", to: "visualize-schema" },
+            { from: "visualize-schema", to: "report" },
+        ]);
+    });
+
     test("extract, named deploy, and typed schema inventory compiles end to end", () => {
         const intent =
             "Extract a dacpac from WideWorldImporters and deploy it as WWI_2. " +

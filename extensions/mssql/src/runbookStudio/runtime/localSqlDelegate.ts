@@ -44,6 +44,7 @@ import {
     LOCAL_SCHEMA_INVENTORY_SQL,
 } from "./localSchemaInventory";
 import type { RunbookSchemaCompareDocument } from "../../sharedInterfaces/runbookSchemaCompare";
+import type { RunbookSchemaGraphDocument } from "../../sharedInterfaces/runbookSchemaGraph";
 
 export { isReadOnlySql } from "../readOnlySql";
 
@@ -128,6 +129,10 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalSchemaComparisonExportResult>;
+    visualizeSchema(
+        databaseRef: string,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalSchemaGraphResult>;
     provisionSandbox(
         nodeId: string,
         baseConnectionRef: string,
@@ -293,6 +298,10 @@ export interface LocalSchemaComparisonExportResult extends LocalSchemaComparison
     exportedAtUtc: string;
 }
 
+export interface LocalSchemaGraphResult {
+    document: RunbookSchemaGraphDocument;
+}
+
 export interface LocalSandboxLeaseResult {
     effectId: string;
     leaseId: string;
@@ -431,6 +440,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "sql.schema.apply",
         "schema.compare",
         "schema.compare.export",
+        "database.schema.visualize",
         "database.schema.inventory",
         "sandbox.dispose",
         "sql.container.dispose",
@@ -491,6 +501,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.verifyDacpacDeployment(node, binding);
             case "schema.compare.export":
                 return this.exportSchemaComparison(node, binding);
+            case "database.schema.visualize":
+                return this.visualizeDatabaseSchema(node, binding);
             case "database.schema.inventory":
                 return this.inventoryDatabaseSchema(node, binding);
             case "sandbox.dispose":
@@ -1665,6 +1677,61 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     reportSha256: result.reportSha256,
                     artifactPath: result.artifactPath,
                     artifactSha256: result.artifactSha256,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async visualizeDatabaseSchema(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        try {
+            const result = await this.operations.visualizeSchema(
+                databaseRef.trim(),
+                binding.isCancellationRequested,
+            );
+            const document = result.document;
+            return {
+                success: true,
+                runMetrics: {
+                    "schemaGraph.totalTables": document.totalTables,
+                    "schemaGraph.renderedTables": document.tables.length,
+                    "schemaGraph.relationships": document.relationships.length,
+                    "schemaGraph.truncated": document.truncated,
+                },
+                message: LocRunbookStudio.schemaGraphCreated(
+                    document.tables.length,
+                    document.relationships.length,
+                ),
+                output: {
+                    contract: "databaseSchemaGraph/1",
+                    text: JSON.stringify(document),
+                    scalars: {
+                        databaseName: document.databaseLabel,
+                        totalTables: document.totalTables,
+                        renderedTables: document.tables.length,
+                        relationshipCount: document.relationships.length,
+                        omittedTableCount: document.omittedTableCount,
+                        omittedRelationshipCount: document.omittedRelationshipCount,
+                        truncated: document.truncated,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    totalTables: document.totalTables,
+                    renderedTables: document.tables.length,
+                    relationshipCount: document.relationships.length,
+                    truncated: document.truncated,
                 },
             };
         } catch (error) {

@@ -531,6 +531,7 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "xevent.xel.collect",
     "schema.compare",
     "schema.compare.export",
+    "database.schema.visualize",
     "sql.schema.apply",
     "database.schema.inventory",
     "sqltest.run",
@@ -1245,6 +1246,104 @@ function executeNode(
                     reportSha256: "preview-schema-report-sha256",
                     artifactPath: "preview://artifacts/schema-comparison.xml",
                     artifactSha256: "preview-schema-report-sha256",
+                },
+            };
+        }
+        case "database.schema.visualize": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            if (typeof database !== "string") {
+                return invalidPreviewBinding("database.schema.visualize", "database");
+            }
+            return {
+                success: true,
+                runMetrics: {
+                    "schemaGraph.totalTables": 2,
+                    "schemaGraph.renderedTables": 2,
+                    "schemaGraph.relationships": 1,
+                    "schemaGraph.truncated": false,
+                },
+                message: "Schema diagram created (deterministic preview)",
+                output: {
+                    contract: "databaseSchemaGraph/1",
+                    text: JSON.stringify({
+                        schemaVersion: 1,
+                        databaseLabel: "PreviewDatabase",
+                        totalTables: 2,
+                        tables: [
+                            {
+                                id: "table:1",
+                                schema: "dbo",
+                                name: "Parent",
+                                totalColumns: 1,
+                                columns: [
+                                    {
+                                        id: "column:1:1",
+                                        name: "Id",
+                                        typeDisplay: "int",
+                                        nullable: false,
+                                        isPrimaryKey: true,
+                                        isForeignKey: false,
+                                        isIdentity: true,
+                                        isComputed: false,
+                                    },
+                                ],
+                                columnsTruncated: false,
+                            },
+                            {
+                                id: "table:2",
+                                schema: "dbo",
+                                name: "Child",
+                                totalColumns: 1,
+                                columns: [
+                                    {
+                                        id: "column:2:1",
+                                        name: "ParentId",
+                                        typeDisplay: "int",
+                                        nullable: false,
+                                        isPrimaryKey: false,
+                                        isForeignKey: true,
+                                        isIdentity: false,
+                                        isComputed: false,
+                                    },
+                                ],
+                                columnsTruncated: false,
+                            },
+                        ],
+                        relationships: [
+                            {
+                                id: "fk:3",
+                                name: "FK_Child_Parent",
+                                sourceTableId: "table:2",
+                                targetTableId: "table:1",
+                                columnPairs: [{ fromColumnName: "ParentId", toColumnName: "Id" }],
+                                onDeleteLabel: "NO_ACTION",
+                                onUpdateLabel: "NO_ACTION",
+                            },
+                        ],
+                        omittedTableCount: 0,
+                        omittedRelationshipCount: 0,
+                        danglingRelationshipCount: 0,
+                        truncated: false,
+                        freshness: {
+                            source: "live",
+                            freshness: "fresh",
+                            validation: "full",
+                        },
+                        provider: { kind: "deterministic-preview", contractVersion: 1 },
+                    }),
+                    scalars: {
+                        totalTables: 2,
+                        renderedTables: 2,
+                        relationshipCount: 1,
+                        truncated: false,
+                        preview: true,
+                    },
+                },
+                values: {
+                    totalTables: 2,
+                    renderedTables: 2,
+                    relationshipCount: 1,
+                    truncated: false,
                 },
             };
         }

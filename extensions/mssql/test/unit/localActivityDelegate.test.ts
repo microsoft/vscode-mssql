@@ -201,6 +201,41 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             },
             exportedAtUtc: "2026-07-20T20:02:01.000Z",
         }),
+        visualizeSchema: async () => ({
+            document: {
+                schemaVersion: 1,
+                databaseLabel: "WWI_2",
+                totalTables: 2,
+                tables: [
+                    {
+                        id: "table:1",
+                        schema: "dbo",
+                        name: "Logs",
+                        totalColumns: 1,
+                        columns: [
+                            {
+                                id: "column:1:1",
+                                name: "LogId",
+                                typeDisplay: "bigint",
+                                nullable: false,
+                                isPrimaryKey: true,
+                                isForeignKey: false,
+                                isIdentity: true,
+                                isComputed: false,
+                            },
+                        ],
+                        columnsTruncated: false,
+                    },
+                ],
+                relationships: [],
+                omittedTableCount: 1,
+                omittedRelationshipCount: 0,
+                danglingRelationshipCount: 0,
+                truncated: true,
+                freshness: { source: "live", freshness: "fresh", validation: "full" },
+                provider: { kind: "test", contractVersion: 2 },
+            },
+        }),
         provisionSandbox: async () => ({
             effectId: `effect-${"d".repeat(64)}`,
             leaseId: "lease-1",
@@ -949,6 +984,28 @@ suite("Runbook Studio local activity delegate", () => {
         });
     });
 
+    test("schema visualization emits a bounded ER diagram document", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+        const result = await delegate.executeActivity(
+            activity("database.schema.visualize", { database: "$params.target" }),
+            binding((value) => (value === "$params.target" ? "target-profile" : value)),
+        );
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("databaseSchemaGraph/1");
+        expect(result?.output?.scalars).to.deep.include({
+            databaseName: "WWI_2",
+            totalTables: 2,
+            renderedTables: 1,
+            omittedTableCount: 1,
+            truncated: true,
+        });
+        expect(JSON.parse(result?.output?.text ?? "{}")).to.deep.include({
+            schemaVersion: 1,
+            databaseLabel: "WWI_2",
+        });
+    });
+
     test("SQL test execution interprets typed rows and always disconnects", async () => {
         let disconnects = 0;
         const delegate = new LocalSqlActivityDelegate(
@@ -1252,6 +1309,7 @@ suite("Runbook Studio local activity delegate", () => {
             "schema.compare",
             "schema.compare.export",
             "database.schema.inventory",
+            "database.schema.visualize",
             "sandbox.dispose",
             "sql.container.dispose",
             "sqltest.run",

@@ -990,6 +990,27 @@
     color: var(--vscode-descriptionForeground);
 }
 
+.rbs-schema-graph-result {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.rbs-schema-graph-notice {
+    flex: none;
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border));
+    color: var(--vscode-descriptionForeground);
+    background: var(--vscode-editorInfo-background);
+    font-size: 11px;
+}
+
+.rbs-schema-graph-canvas {
+    flex: 1;
+    min-height: 0;
+}
+
 @media (max-width: 760px) {
     .rbs-schema-compare-app {
         grid-template-columns: 1fr;

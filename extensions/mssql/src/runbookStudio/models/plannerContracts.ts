@@ -37,6 +37,7 @@ const BUILD_ACTIVITIES = [
     "schema.compare",
     "schema.compare.export",
     "database.schema.inventory",
+    "database.schema.visualize",
     "tsqlt.run",
     "sqltest.run",
     "xevent.session.start",
@@ -65,6 +66,7 @@ const VALIDATE_ACTIVITIES = [
     "schema.compare",
     "schema.compare.export",
     "database.schema.inventory",
+    "database.schema.visualize",
     "tsqlt.run",
     "sqltest.run",
     "xevent.session.start",
@@ -85,6 +87,7 @@ const VALIDATE_ACTIVITIES = [
 const INVESTIGATE_ACTIVITIES = [
     "sql.query.read",
     "database.schema.inventory",
+    "database.schema.visualize",
     "workload.benchmark",
     "baseline.compare",
     "security.permissions.validate",

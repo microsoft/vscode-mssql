@@ -935,6 +935,12 @@
     <trans-unit id="++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7">
       <source xml:lang="en">Both</source>
     </trans-unit>
+    <trans-unit id="++CODE++514b45ae519a4c26ec39d8f0f966ef5aabe55dfaf2e9d43b397027f07c1d666c">
+      <source xml:lang="en">Bounded diagram: {0} table(s) and {1} relationship(s) omitted; {2} relationship(s) had an endpoint outside the retained subset.</source>
+      <note>{0} is an omitted table count
+{1} is an omitted relationship count
+{2} is a dangling relationship count</note>
+    </trans-unit>
     <trans-unit id="++CODE++81dada55e6b96d153da31eee9f63ba3d6788cda16e96934e50aacac61972b76d">
       <source xml:lang="en">Branch not taken</source>
     </trans-unit>
@@ -2274,6 +2280,11 @@
     <trans-unit id="++CODE++ecf28f59dc9c4fc9e2542026550a556b108c9bcbdabe952992e10ca8c7b91f3d">
       <source xml:lang="en">Create time series</source>
     </trans-unit>
+    <trans-unit id="++CODE++4d12a324844479168424e6ca0f789b89b72071b9137cafc9740d48282ca73b99">
+      <source xml:lang="en">Created a schema diagram with {0} table(s) and {1} relationship(s).</source>
+      <note>{0} is a table count
+{1} is a foreign-key relationship count</note>
+    </trans-unit>
     <trans-unit id="++CODE++cc40079929522a794ec09a364689d365ec5e86f3128b8e07addc8afdaf745aed">
       <source xml:lang="en">Created table &apos;{0}&apos; in the owned development database.</source>
       <note>{0} is the qualified table name created by the runbook</note>
@@ -2549,6 +2560,9 @@
     <trans-unit id="++CODE++6407d1c42c8729b05cf6905e76d7680de80b5cb7dedb9015eeab04a338aac8c1">
       <source xml:lang="en">Database project target &apos;{0}&apos; must be a .sqlproj file.</source>
       <note>{0} is the requested project path</note>
+    </trans-unit>
+    <trans-unit id="++CODE++2a69a8290e88d93826fe342aa7727c08adb492c01e6ab746396c413fc1840816">
+      <source xml:lang="en">Database schema diagram</source>
     </trans-unit>
     <trans-unit id="++CODE++dc235092072ac5817e5dbd55f1d76a649819cab27de89743dfd611f78bd52c5e">
       <source xml:lang="en">Database the table is created in</source>
@@ -6186,6 +6200,9 @@
     <trans-unit id="++CODE++1714986c355ccdf8acce319f8df2b13f9ccae0f5ee87915f3fa4bbc917b155a7">
       <source xml:lang="en">No tools to process.</source>
     </trans-unit>
+    <trans-unit id="++CODE++61e53d85670ac505f1ee87b6f34d2f26632e6a7d2d99bd772c2663933b52634e">
+      <source xml:lang="en">No user tables were available to diagram.</source>
+    </trans-unit>
     <trans-unit id="++CODE++751ae077912b834895870d0d5210c09ca02659375aab7843a26689a7aa50a0fc">
       <source xml:lang="en">No workspace folder is open. Open a folder to add the MCP server configuration.</source>
     </trans-unit>
@@ -9516,6 +9533,9 @@
     <trans-unit id="++CODE++0b3eeaa70b800002d2c74cfacc79a79f4a5d21c6ef6887f810bc4adc4b9ba149">
       <source xml:lang="en">The retained schema comparison document is invalid or no longer supported.</source>
     </trans-unit>
+    <trans-unit id="++CODE++d1064c4be5501ba70e913c59b71239377d9787c3f9c7fc98b8fb2a378e96679b">
+      <source xml:lang="en">The retained schema diagram is invalid or no longer supported.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c7d829370bbb3bcf3ed575fa0340eb0fa89e3c5fea172b4421403e679e266ca1">
       <source xml:lang="en">The runbook default could not be saved. The selected view still applies to this run only.</source>
     </trans-unit>
@@ -11045,6 +11065,12 @@
     </trans-unit>
     <trans-unit id="++CODE++bd704d982ce6b1817d67a2dd5cf111819c382c799a14527875e56eff0807f3e1">
       <source xml:lang="en">{0} · online</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7ae8d5c4de090c8c77de24e663cc6757a297d649262767ad343affdf06d64787">
+      <source xml:lang="en">{0} · {1} of {2} tables</source>
+      <note>{0} is a database name
+{1} is a rendered table count
+{2} is a total table count</note>
     </trans-unit>
     <trans-unit id="++CODE++788cf6bb35f3399101324a95ab0c2cd16c3c67cf49ad5e337988a31d2036502d">
       <source xml:lang="en">{0} — {1}: {2}</source>

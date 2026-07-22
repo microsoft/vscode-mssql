@@ -111,6 +111,13 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         connectionRequirement: "provisioned",
         outputContract: "databaseSchemaInventory/1",
     },
+    "database.schema.visualize": {
+        target: "sqlDatabase",
+        effect: "read",
+        connectionRequirement: "required",
+        providerRequirement: "execution",
+        outputContract: "databaseSchemaGraph/1",
+    },
     "workspace.inspect": {
         target: "workspace",
         effect: "read",
@@ -406,6 +413,11 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         description:
             "List the deployed user tables, views, and stored procedures in a bounded typed results grid.",
     },
+    "database.schema.visualize": {
+        label: "Visualize the database schema",
+        description:
+            "Render a bounded read-only ER diagram from the STS v2 MetadataStore catalog snapshot.",
+    },
     "sql.container.provision": {
         label: "Provision the local SQL container",
         description:
@@ -507,6 +519,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "schema.compare",
         "schema.compare.export",
         "database.schema.inventory",
+        "database.schema.visualize",
         "tsqlt.run",
         "sqltest.run",
         "xevent.session.start",
@@ -539,6 +552,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "schema.compare",
         "schema.compare.export",
         "database.schema.inventory",
+        "database.schema.visualize",
         "tsqlt.run",
         "sqltest.run",
         "xevent.session.start",
@@ -560,6 +574,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "connection.auth.diagnose",
         "sql.query.read",
         "database.schema.inventory",
+        "database.schema.visualize",
         "sql.container.provision",
         "xevent.session.start",
         "sql.workload.inspect",
@@ -593,6 +608,7 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "schema.compare",
         "schema.compare.export",
         "database.schema.inventory",
+        "database.schema.visualize",
         "tsqlt.run",
         "sqltest.run",
         "sql.query.read",
@@ -677,6 +693,10 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     const requestsSchemaInventory = has(
         text,
         /\b(show|list|inventory|enumerate|dump)\b[^.\r\n]{0,65}\b(tables?|views?|stored procedures?|sprocs?|schema objects?)\b|\b(tables?|views?|stored procedures?|sprocs?)\b[^.\r\n]{0,50}\b(show|list|inventory|enumerate|dump)\b/,
+    );
+    const requestsSchemaVisualization = has(
+        text,
+        /\b(erd|entity[- ]relationship diagram|schema (diagram|visuali[sz](?:e|ation))|visuali[sz]e (?:the )?(?:database )?schema)\b/,
     );
     const isPreMerge = has(text, /\b(pre[- ]?merge|pull request|ci\/cd|pipeline|quality gate)\b/);
     const hasBuildWork = has(
@@ -788,6 +808,9 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     }
     if (requestsSchemaInventory) {
         requested.add(requestsActualDeployment ? "database.schema.inventory" : "sql.query.read");
+    }
+    if (requestsSchemaVisualization) {
+        requested.add("database.schema.visualize");
     }
     if (
         !requestsSchemaCompareExport &&

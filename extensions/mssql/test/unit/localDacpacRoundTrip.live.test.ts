@@ -37,7 +37,8 @@ const EXACT_INTENT =
     "Extract WideWorldImporters database to a dacpac. Deploy the dacpac back to the " +
     "same server and name it WideWorld_WIP. Now add a new table to WideWorld_WIP that " +
     "is dbo.Logs and add a representative logging table. Then run a schema compare " +
-    "between the orginal database and the database, and show the schema deltas as diff output.";
+    "between the orginal database and the database, show the schema deltas as diff output, " +
+    "and visualize the new database schema as an ERD.";
 
 suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
     this.timeout(360_000);
@@ -68,6 +69,9 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
         await vscode.workspace
             .getConfiguration()
             .update("mssql.runbookStudio.runtime", "local", vscode.ConfigurationTarget.Global);
+        await vscode.workspace
+            .getConfiguration()
+            .update("mssql.sqlDataPlane.enabled", true, vscode.ConfigurationTarget.Global);
         const extension = vscode.extensions.getExtension<mssql.IExtension>("ms-mssql.mssql");
         expect(extension).not.to.equal(undefined);
         const api = await extension!.activate();
@@ -146,7 +150,7 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
                 uri: document.uri.toString(),
                 intent: EXACT_INTENT,
             });
-            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 10 });
+            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 11 });
             expect(compile.activityKinds).to.deep.equal([
                 "dacpac.extract",
                 "devdatabase.provision",
@@ -154,6 +158,7 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
                 "dacpac.deploy.dev",
                 "sql.schema.apply",
                 "schema.compare.export",
+                "database.schema.visualize",
             ]);
             expect(compile.parameterIds).to.deep.equal([
                 "sourceConnection",
@@ -184,10 +189,13 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
                 timeoutMs: 10 * 60_000,
             });
             expect(run, JSON.stringify(run)).to.include({ state: "succeeded", verdict: "pass" });
-            expect(run.nodeStates).to.have.length(10);
+            expect(run.nodeStates).to.have.length(11);
             expect(run.nodeStates?.every((node) => node.state === "succeeded")).to.equal(true);
             expect(
                 run.nodeStates?.find((node) => node.nodeId === "compare")?.outputCount,
+            ).to.be.greaterThan(0);
+            expect(
+                run.nodeStates?.find((node) => node.nodeId === "visualize-schema")?.outputCount,
             ).to.be.greaterThan(0);
 
             const ownership = await api.connectionSharing.executeSimpleQuery(

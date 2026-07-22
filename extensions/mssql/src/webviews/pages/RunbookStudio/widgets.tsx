@@ -38,6 +38,10 @@ import {
     parseRunbookSchemaCompareDocument,
     SchemaCompareResultApplication,
 } from "./schemaCompareResultApplication";
+import {
+    parseRunbookSchemaGraphDocument,
+    SchemaGraphResultApplication,
+} from "./schemaGraphResultApplication";
 
 const PAGE_ROWS = 100;
 /** Bar chart shows at most this many rows (with an honest truncation note). */
@@ -1069,6 +1073,16 @@ export function ResolvedWidgetView({
                         return <BarChartView page={page} settings={settings} />;
                     case "timeseries":
                         return <TimeseriesView page={page} settings={settings} />;
+                    case "er-diagram": {
+                        const document = parseRunbookSchemaGraphDocument(page.rows?.[0]?.[0]);
+                        return document ? (
+                            <SchemaGraphResultApplication document={document} />
+                        ) : (
+                            <div className="rbs-drift-notice" role="alert">
+                                {loc.schemaGraphDocumentInvalid}
+                            </div>
+                        );
+                    }
                     default:
                         // Honest degrade: registered-but-unimplemented kinds
                         // say so rather than rendering a blank panel.

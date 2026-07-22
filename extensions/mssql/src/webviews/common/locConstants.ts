@@ -4214,6 +4214,32 @@ export class LocConstants {
                     comment: ["{0} is the target schema label"],
                 }),
             schemaCompareSelectDifference: l10n.t("Select a schema difference to inspect its SQL."),
+            schemaGraphResult: l10n.t("Database schema diagram"),
+            schemaGraphDocumentInvalid: l10n.t(
+                "The retained schema diagram is invalid or no longer supported.",
+            ),
+            schemaGraphSummary: (database: string, rendered: number, total: number) =>
+                l10n.t({
+                    message: "{0} · {1} of {2} tables",
+                    args: [database, rendered, total],
+                    comment: [
+                        "{0} is a database name",
+                        "{1} is a rendered table count",
+                        "{2} is a total table count",
+                    ],
+                }),
+            schemaGraphTruncated: (tables: number, relationships: number, dangling: number) =>
+                l10n.t({
+                    message:
+                        "Bounded diagram: {0} table(s) and {1} relationship(s) omitted; {2} relationship(s) had an endpoint outside the retained subset.",
+                    args: [tables, relationships, dangling],
+                    comment: [
+                        "{0} is an omitted table count",
+                        "{1} is an omitted relationship count",
+                        "{2} is a dangling relationship count",
+                    ],
+                }),
+            schemaGraphEmpty: l10n.t("No user tables were available to diagram."),
             additionalOperationGroups: (count: number) =>
                 l10n.t({
                     message:

@@ -199,6 +199,7 @@ function sampleRows(contract: string): {
         case "deploymentPreview/1":
         case "schemaDiff/1":
         case "schemaCompareDocument/1":
+        case "databaseSchemaGraph/1":
         case "evidenceBundle/1":
             return {
                 columns: ["Message"],

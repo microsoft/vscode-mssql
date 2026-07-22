@@ -405,6 +405,12 @@ export class RunbookStudio {
     public static schemaComparisonExportFailed = l10n.t(
         "The schema comparison report could not be retained as a managed artifact.",
     );
+    public static schemaGraphCreated = (tableCount: number, relationshipCount: number) =>
+        l10n.t({
+            message: "Created a schema diagram with {0} table(s) and {1} relationship(s).",
+            args: [tableCount, relationshipCount],
+            comment: ["{0} is a table count", "{1} is a foreign-key relationship count"],
+        });
     public static sandboxProvisioned = (databaseName: string) =>
         l10n.t({
             message: "Disposable database '{0}' was provisioned.",

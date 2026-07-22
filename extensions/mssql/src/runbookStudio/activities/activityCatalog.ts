@@ -723,6 +723,31 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "database.schema.visualize",
+        version: 1,
+        label: "Visualize database schema",
+        description:
+            "Loads a bounded MetadataStore catalog snapshot over the SQL data plane and emits a reusable read-only ER diagram document.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Saved connection profile or provisioned database reference",
+            },
+        ],
+        outputContract: "databaseSchemaGraph/1",
+        producedValues: ["totalTables", "renderedTables", "relationshipCount", "truncated"],
+        target: { kind: "sqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseSchema",
+            operation: "read",
+            targetEnvironment: "development",
+            reversibility: "noEffect",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "sqltest.run",
         version: 1,
         label: "Run SQL assertion suite",
