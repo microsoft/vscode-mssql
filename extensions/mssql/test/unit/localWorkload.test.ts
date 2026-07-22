@@ -6,9 +6,11 @@
 import { expect } from "chai";
 import {
     buildLocalCitiesShadowWorkload,
+    localCitiesWorkloadFingerprint,
     LocalWorkloadPolicyError,
     MAX_LOCAL_WORKLOAD_BYTES,
     parseLocalWorkload,
+    summarizeLocalWorkloadMeasurements,
 } from "../../src/runbookStudio/runtime/localWorkload";
 
 suite("Runbook Studio local workload policy", () => {
@@ -85,5 +87,48 @@ suite("Runbook Studio local workload policy", () => {
         expect(() => buildLocalCitiesShadowWorkload(rows.slice(0, 9), 1001, "bad")).to.throw(
             LocalWorkloadPolicyError,
         );
+    });
+
+    test("uses sampled values and protocol settings for stable workload identity", () => {
+        const rows = Array.from({ length: 10 }, (_, index) => ({
+            cityName: `City ${index}`,
+            stateProvinceId: index + 1,
+            latestRecordedPopulation: 1000 + index,
+            lastEditedBy: 1,
+        }));
+        const first = localCitiesWorkloadFingerprint(rows, 1000);
+        expect(first).to.match(/^[a-f0-9]{64}$/);
+        expect(localCitiesWorkloadFingerprint(rows, 1000)).to.equal(first);
+        expect(localCitiesWorkloadFingerprint(rows, 999)).not.to.equal(first);
+        expect(
+            localCitiesWorkloadFingerprint(
+                rows.map((row, index) =>
+                    index === 0 ? { ...row, cityName: "Changed City" } : row,
+                ),
+                1000,
+            ),
+        ).not.to.equal(first);
+    });
+
+    test("summarizes complete successful repetitions and excludes partial failures", () => {
+        const summary = summarizeLocalWorkloadMeasurements(
+            [
+                { iteration: 1, durationMs: 10, succeeded: true },
+                { iteration: 1, durationMs: 20, succeeded: true },
+                { iteration: 2, durationMs: 20, succeeded: true },
+                { iteration: 2, durationMs: 30, succeeded: true },
+                { iteration: 3, durationMs: 40, succeeded: false },
+            ],
+            2,
+        );
+        expect(summary).to.deep.equal({
+            measurementSampleCount: 2,
+            meanDurationMs: 40,
+            p50DurationMs: 30,
+            p95DurationMs: 50,
+            minDurationMs: 30,
+            maxDurationMs: 50,
+            standardDeviationMs: 10,
+        });
     });
 });

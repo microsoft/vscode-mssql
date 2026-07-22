@@ -220,11 +220,13 @@ import {
 } from "../deployment/sqlServerContainer";
 import {
     buildLocalCitiesShadowWorkload,
+    localCitiesWorkloadFingerprint,
     LOCAL_CITIES_WORKLOAD_TEMPLATE,
     LocalWorkloadPlan,
     LocalWorkloadPolicyError,
     MAX_LOCAL_WORKLOAD_BYTES,
     parseLocalWorkload,
+    summarizeLocalWorkloadMeasurements,
 } from "./runtime/localWorkload";
 import {
     buildAnalyzeLocalXeventSql,
@@ -3195,7 +3197,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             const inspected = await container?.inspect();
             if (
                 !container ||
-                !isOwnedLocalSqlContainer(inspected?.Config?.Labels, effectId, invocation.runId)
+                !isOwnedLocalSqlContainer(inspected?.Config?.Labels, effectId, invocation.runId) ||
+                typeof inspected?.Image !== "string" ||
+                !/^sha256:[a-f0-9]{64}$/i.test(inspected.Image)
             ) {
                 this.effectLedger.requireOperatorDecision(effectId, "ContainerLabelsMissing");
                 throw new LocalActivityError(
@@ -3288,6 +3292,15 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 containerName: identity.containerName,
                 port: identity.port,
                 version: identity.version,
+                imageDigest: inspected.Image.toLowerCase(),
+                environmentFingerprint: digestRunbookValue({
+                    schemaVersion: 1,
+                    provider: "docker",
+                    imageDigest: inspected.Image.toLowerCase(),
+                    version: identity.version,
+                    memoryBytes: 2 * 1024 * 1024 * 1024,
+                    nanoCpus: 2_000_000_000,
+                }),
                 createdAtUtc: new Date().toISOString(),
             };
         } catch (error) {
@@ -3500,9 +3513,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             .slice(0, 12);
         let source: string;
         let plan: LocalWorkloadPlan;
+        let workloadFingerprint: string;
         try {
             source = buildLocalCitiesShadowWorkload(rows, iterations, tableSuffix);
             plan = parseLocalWorkload(Buffer.from(source, "utf8"));
+            workloadFingerprint = localCitiesWorkloadFingerprint(rows, iterations);
         } catch (error) {
             if (error instanceof LocalWorkloadPolicyError) {
                 throw new LocalActivityError(
@@ -3562,6 +3577,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 sampleRowCount: rows.length,
                 iterations,
                 template,
+                workloadFingerprint,
             };
         } catch (error) {
             throw error instanceof LocalActivityError
@@ -3772,6 +3788,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             }
             const failedBatchCount = results.filter((result) => !result.succeeded).length;
             const totalDurationMs = Math.max(0, Date.now() - startedAt);
+            const measurements = summarizeLocalWorkloadMeasurements(
+                results,
+                preview.plan.batchCount,
+            );
             this.effectLedger.finalizeEffect(
                 effectId,
                 digestRunbookValue({
@@ -3780,6 +3800,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     executedBatchCount: results.length,
                     failedBatchCount,
                     totalDurationMs,
+                    ...measurements,
                 }),
             );
             return {
@@ -3790,6 +3811,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 failedBatchCount,
                 totalDurationMs,
                 repetitions,
+                ...measurements,
                 results,
                 completedAtUtc: new Date().toISOString(),
             };

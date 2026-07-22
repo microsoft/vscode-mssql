@@ -35,6 +35,16 @@ export interface LocalWorkloadPlan {
     batches: string[];
 }
 
+export interface LocalWorkloadMeasurementSummary {
+    measurementSampleCount: number;
+    meanDurationMs: number;
+    p50DurationMs: number;
+    p95DurationMs: number;
+    minDurationMs: number;
+    maxDurationMs: number;
+    standardDeviationMs: number;
+}
+
 export class LocalWorkloadPolicyError extends Error {
     constructor(
         public readonly reason:
@@ -200,6 +210,105 @@ export function buildLocalCitiesShadowWorkload(
         "END;",
         `DROP TABLE ${tableName};`,
     ].join("\n");
+}
+
+/** Stable identity for comparison across runs. The run-specific shadow-table
+ * suffix is deliberately excluded, while sampled source values and the
+ * requested iteration count participate in the digest. */
+export function localCitiesWorkloadFingerprint(
+    rows: readonly LocalCitiesSampleRow[],
+    iterations: number,
+): string {
+    if (
+        rows.length < MIN_LOCAL_CITIES_SAMPLE_ROWS ||
+        rows.length > MAX_LOCAL_CITIES_SAMPLE_ROWS ||
+        !Number.isSafeInteger(iterations) ||
+        iterations < 1 ||
+        iterations > MAX_LOCAL_CITIES_ITERATIONS
+    ) {
+        throw new LocalWorkloadPolicyError("unsafeStatement");
+    }
+    const normalizedRows = rows.map((row) => {
+        escapeSqlString(row.cityName);
+        integerSql(row.stateProvinceId);
+        if (row.latestRecordedPopulation !== null) {
+            integerSql(row.latestRecordedPopulation);
+        }
+        integerSql(row.lastEditedBy);
+        return [row.cityName, row.stateProvinceId, row.latestRecordedPopulation, row.lastEditedBy];
+    });
+    return crypto
+        .createHash("sha256")
+        .update(
+            JSON.stringify({
+                schemaVersion: 1,
+                template: LOCAL_CITIES_WORKLOAD_TEMPLATE,
+                iterations,
+                rows: normalizedRows,
+            }),
+        )
+        .digest("hex");
+}
+
+/** Summarizes only complete successful repetitions. Percentiles use the
+ * nearest-rank definition and variance is population variance because the
+ * emitted values describe the captured sample. */
+export function summarizeLocalWorkloadMeasurements(
+    results: readonly {
+        iteration: number;
+        durationMs: number;
+        succeeded: boolean;
+    }[],
+    batchesPerRepetition: number,
+): LocalWorkloadMeasurementSummary {
+    if (!Number.isSafeInteger(batchesPerRepetition) || batchesPerRepetition < 1) {
+        throw new LocalWorkloadPolicyError("unsafeStatement");
+    }
+    const byIteration = new Map<number, typeof results>();
+    for (const result of results) {
+        if (
+            !Number.isSafeInteger(result.iteration) ||
+            result.iteration < 1 ||
+            !Number.isFinite(result.durationMs) ||
+            result.durationMs < 0
+        ) {
+            throw new LocalWorkloadPolicyError("unsafeStatement");
+        }
+        const items = byIteration.get(result.iteration) ?? [];
+        byIteration.set(result.iteration, [...items, result]);
+    }
+    const durations = [...byIteration.values()]
+        .filter(
+            (items) =>
+                items.length === batchesPerRepetition && items.every((item) => item.succeeded),
+        )
+        .map((items) => items.reduce((sum, item) => sum + item.durationMs, 0))
+        .sort((left, right) => left - right);
+    if (durations.length === 0) {
+        return {
+            measurementSampleCount: 0,
+            meanDurationMs: 0,
+            p50DurationMs: 0,
+            p95DurationMs: 0,
+            minDurationMs: 0,
+            maxDurationMs: 0,
+            standardDeviationMs: 0,
+        };
+    }
+    const meanDurationMs = durations.reduce((sum, value) => sum + value, 0) / durations.length;
+    const percentile = (value: number) =>
+        durations[Math.max(0, Math.ceil((value / 100) * durations.length) - 1)];
+    const variance =
+        durations.reduce((sum, value) => sum + (value - meanDurationMs) ** 2, 0) / durations.length;
+    return {
+        measurementSampleCount: durations.length,
+        meanDurationMs,
+        p50DurationMs: percentile(50),
+        p95DurationMs: percentile(95),
+        minDurationMs: durations[0],
+        maxDurationMs: durations[durations.length - 1],
+        standardDeviationMs: Math.sqrt(variance),
+    };
 }
 
 function escapeSqlString(value: string): string {

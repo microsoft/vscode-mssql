@@ -259,6 +259,8 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             databaseName,
             version,
             port: 14330,
+            imageDigest: `sha256:${"a".repeat(64)}`,
+            environmentFingerprint: "b".repeat(64),
             createdAtUtc: "2026-07-20T20:03:00.000Z",
         }),
         inspectWorkload: async () => ({
@@ -284,6 +286,7 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             sampleRowCount: 20,
             iterations: 1000,
             template: "application-cities-shadow",
+            workloadFingerprint: "c".repeat(64),
         }),
         runWorkload: async () => ({
             effectId: `effect-${"5".repeat(64)}`,
@@ -293,6 +296,13 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             failedBatchCount: 0,
             totalDurationMs: 30,
             repetitions: 1,
+            measurementSampleCount: 1,
+            meanDurationMs: 30,
+            p50DurationMs: 30,
+            p95DurationMs: 30,
+            minDurationMs: 30,
+            maxDurationMs: 30,
+            standardDeviationMs: 0,
             results: [
                 {
                     iteration: 1,
@@ -795,6 +805,8 @@ suite("Runbook Studio local activity delegate", () => {
             databaseName: "WWI_Container",
             version: "2022",
             port: 14330,
+            imageDigest: `sha256:${"a".repeat(64)}`,
+            environmentFingerprint: "b".repeat(64),
         });
         expect(JSON.stringify(provision?.output)).not.to.include("Secret1!");
 
@@ -847,6 +859,7 @@ suite("Runbook Studio local activity delegate", () => {
         expect(inspect?.output?.scalars).to.include({
             fileName: "workload.sql",
             workloadSha256: "4".repeat(64),
+            workloadFingerprint: "4".repeat(64),
             batchCount: 2,
             mutating: true,
         });
@@ -874,6 +887,11 @@ suite("Runbook Studio local activity delegate", () => {
             executedBatchCount: 2,
             failedBatchCount: 0,
             repetitions: 1,
+            measurementSampleCount: 1,
+            meanDurationMs: 30,
+            p50DurationMs: 30,
+            p95DurationMs: 30,
+            standardDeviationMs: 0,
         });
         expect(run?.runMetrics).to.deep.include({
             "workload.plannedBatchCount": 2,
@@ -901,11 +919,13 @@ suite("Runbook Studio local activity delegate", () => {
             sampleRowCount: 20,
             iterations: 1000,
             template: "application-cities-shadow",
+            workloadFingerprint: "c".repeat(64),
         });
         expect(result?.values).to.deep.include({
             workloadSha256: "4".repeat(64),
             sampleRowCount: 20,
             iterations: 1000,
+            workloadFingerprint: "c".repeat(64),
         });
     });
 
@@ -981,9 +1001,19 @@ suite("Runbook Studio local activity delegate", () => {
 
         const benchmark = await delegate.executeActivity(
             activity("workload.benchmark", {
+                workloadFingerprint: "c".repeat(64),
+                environmentFingerprint: "b".repeat(64),
                 workloadDurationMs: 30,
                 executedBatchCount: 2,
                 failedBatchCount: 0,
+                repetitions: 1,
+                measurementSampleCount: 1,
+                meanDurationMs: 30,
+                p50DurationMs: 30,
+                p95DurationMs: 30,
+                minDurationMs: 30,
+                maxDurationMs: 30,
+                standardDeviationMs: 0,
                 xeventDurationMs: 22.5,
                 xeventCpuMs: 4,
                 logicalReads: 30,

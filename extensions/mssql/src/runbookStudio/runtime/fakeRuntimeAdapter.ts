@@ -748,6 +748,8 @@ function executeNode(
             };
         }
         case "sql.container.provision": {
+            const imageDigest = `sha256:${"a".repeat(64)}`;
+            const environmentFingerprint = "b".repeat(64);
             const containerName = resolveBind(
                 node.inputs?.containerName,
                 parameterValues,
@@ -783,6 +785,8 @@ function executeNode(
                         containerName,
                         databaseName,
                         version,
+                        imageDigest,
+                        environmentFingerprint,
                         port: 14330,
                         preview: true,
                     },
@@ -793,6 +797,9 @@ function executeNode(
                     containerName,
                     databaseName,
                     port: 14330,
+                    version,
+                    imageDigest,
+                    environmentFingerprint,
                 },
             };
         }
@@ -815,6 +822,7 @@ function executeNode(
                         workloadRef: "preview://workload/001",
                         fileName: "workload.sql",
                         workloadSha256: "preview-workload-sha256",
+                        workloadFingerprint: "d".repeat(64),
                         batchCount: 2,
                         mutating: true,
                         preview: true,
@@ -823,12 +831,14 @@ function executeNode(
                 values: {
                     workloadRef: "preview://workload/001",
                     workloadSha256: "preview-workload-sha256",
+                    workloadFingerprint: "d".repeat(64),
                     batchCount: 2,
                     mutating: true,
                 },
             };
         }
         case "sql.workload.generate": {
+            const workloadFingerprint = "c".repeat(64);
             const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
             const template = resolveBind(node.inputs?.template, parameterValues, nodeValues);
             const sampleRows = resolveBind(node.inputs?.sampleRows, parameterValues, nodeValues);
@@ -862,6 +872,7 @@ function executeNode(
                         sampleRowCount: sampleRows,
                         iterations,
                         template,
+                        workloadFingerprint,
                         preview: true,
                     },
                 },
@@ -871,6 +882,7 @@ function executeNode(
                     artifactPath: "preview://artifacts/generated-cities-workload.sql",
                     sampleRowCount: sampleRows,
                     iterations,
+                    workloadFingerprint,
                 },
             };
         }
@@ -1058,10 +1070,12 @@ function executeNode(
                 parameterValues,
                 nodeValues,
             );
+            const repetitions = resolveBind(node.inputs?.repetitions, parameterValues, nodeValues);
             if (
                 typeof database !== "string" ||
                 typeof workload !== "string" ||
-                typeof workloadDigest !== "string"
+                typeof workloadDigest !== "string" ||
+                typeof repetitions !== "number"
             ) {
                 return invalidPreviewBinding(
                     "sql.workload.run",
@@ -1076,6 +1090,9 @@ function executeNode(
                     "workload.executedBatchCount": 2,
                     "workload.failedBatchCount": 0,
                     "workload.totalDurationMs": 42,
+                    "workload.measurementSampleCount": repetitions,
+                    "workload.meanDurationMs": 42,
+                    "workload.p95DurationMs": 44,
                 },
                 message: "SQL workload completed (deterministic preview)",
                 output: {
@@ -1098,6 +1115,14 @@ function executeNode(
                         executedBatchCount: 2,
                         failedBatchCount: 0,
                         totalDurationMs: 42,
+                        repetitions,
+                        measurementSampleCount: repetitions,
+                        meanDurationMs: 42,
+                        p50DurationMs: 42,
+                        p95DurationMs: 44,
+                        minDurationMs: 40,
+                        maxDurationMs: 44,
+                        standardDeviationMs: 1.5,
                         preview: true,
                     },
                 },
@@ -1106,6 +1131,14 @@ function executeNode(
                     executedBatchCount: 2,
                     failedBatchCount: 0,
                     totalDurationMs: 42,
+                    repetitions,
+                    measurementSampleCount: repetitions,
+                    meanDurationMs: 42,
+                    p50DurationMs: 42,
+                    p95DurationMs: 44,
+                    minDurationMs: 40,
+                    maxDurationMs: 44,
+                    standardDeviationMs: 1.5,
                 },
             };
         }
@@ -1235,6 +1268,16 @@ function executeNode(
             };
         }
         case "workload.benchmark": {
+            const workloadFingerprint = resolveBind(
+                node.inputs?.workloadFingerprint,
+                parameterValues,
+                nodeValues,
+            );
+            const environmentFingerprint = resolveBind(
+                node.inputs?.environmentFingerprint,
+                parameterValues,
+                nodeValues,
+            );
             const durationMs = resolveBind(
                 node.inputs?.workloadDurationMs,
                 parameterValues,
@@ -1250,10 +1293,56 @@ function executeNode(
                 parameterValues,
                 nodeValues,
             );
+            const repetitions = resolveBind(node.inputs?.repetitions, parameterValues, nodeValues);
+            const measurementSampleCount = resolveBind(
+                node.inputs?.measurementSampleCount,
+                parameterValues,
+                nodeValues,
+            );
+            const meanDurationMs = resolveBind(
+                node.inputs?.meanDurationMs,
+                parameterValues,
+                nodeValues,
+            );
+            const p50DurationMs = resolveBind(
+                node.inputs?.p50DurationMs,
+                parameterValues,
+                nodeValues,
+            );
+            const p95DurationMs = resolveBind(
+                node.inputs?.p95DurationMs,
+                parameterValues,
+                nodeValues,
+            );
+            const minDurationMs = resolveBind(
+                node.inputs?.minDurationMs,
+                parameterValues,
+                nodeValues,
+            );
+            const maxDurationMs = resolveBind(
+                node.inputs?.maxDurationMs,
+                parameterValues,
+                nodeValues,
+            );
+            const standardDeviationMs = resolveBind(
+                node.inputs?.standardDeviationMs,
+                parameterValues,
+                nodeValues,
+            );
             if (
+                typeof workloadFingerprint !== "string" ||
+                typeof environmentFingerprint !== "string" ||
                 typeof durationMs !== "number" ||
                 typeof executedBatchCount !== "number" ||
-                typeof failedBatchCount !== "number"
+                typeof failedBatchCount !== "number" ||
+                typeof repetitions !== "number" ||
+                typeof measurementSampleCount !== "number" ||
+                typeof meanDurationMs !== "number" ||
+                typeof p50DurationMs !== "number" ||
+                typeof p95DurationMs !== "number" ||
+                typeof minDurationMs !== "number" ||
+                typeof maxDurationMs !== "number" ||
+                typeof standardDeviationMs !== "number"
             ) {
                 return invalidPreviewBinding(
                     "workload.benchmark",
@@ -1271,10 +1360,46 @@ function executeNode(
                         ["Workload duration", durationMs, "ms"],
                         ["Executed batches", executedBatchCount, "count"],
                         ["Failed batches", failedBatchCount, "count"],
+                        ["Measured repetitions", measurementSampleCount, "count"],
+                        ["Mean repetition duration", meanDurationMs, "ms"],
+                        ["P50 repetition duration", p50DurationMs, "ms"],
+                        ["P95 repetition duration", p95DurationMs, "ms"],
+                        ["Minimum repetition duration", minDurationMs, "ms"],
+                        ["Maximum repetition duration", maxDurationMs, "ms"],
+                        ["Duration standard deviation", standardDeviationMs, "ms"],
                     ],
-                    scalars: { durationMs, executedBatchCount, failedBatchCount, preview: true },
+                    scalars: {
+                        durationMs,
+                        executedBatchCount,
+                        failedBatchCount,
+                        workloadFingerprint,
+                        environmentFingerprint,
+                        repetitions,
+                        measurementSampleCount,
+                        meanDurationMs,
+                        p50DurationMs,
+                        p95DurationMs,
+                        minDurationMs,
+                        maxDurationMs,
+                        standardDeviationMs,
+                        preview: true,
+                    },
                 },
-                values: { durationMs, executedBatchCount, failedBatchCount },
+                values: {
+                    durationMs,
+                    executedBatchCount,
+                    failedBatchCount,
+                    workloadFingerprint,
+                    environmentFingerprint,
+                    repetitions,
+                    measurementSampleCount,
+                    meanDurationMs,
+                    p50DurationMs,
+                    p95DurationMs,
+                    minDurationMs,
+                    maxDurationMs,
+                    standardDeviationMs,
+                },
             };
         }
         case "sql.container.dispose": {

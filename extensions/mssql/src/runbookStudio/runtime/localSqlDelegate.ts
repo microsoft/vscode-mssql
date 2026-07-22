@@ -339,6 +339,8 @@ export interface LocalSqlContainerLeaseResult extends LocalSandboxLeaseResult {
     containerName: string;
     port: number;
     version: string;
+    imageDigest: string;
+    environmentFingerprint: string;
 }
 
 export interface LocalSchemaMutationResult {
@@ -380,6 +382,7 @@ export interface LocalGeneratedWorkloadResult extends LocalWorkloadPreviewResult
     sampleRowCount: number;
     iterations: number;
     template: string;
+    workloadFingerprint: string;
 }
 
 export interface LocalWorkloadBatchResult {
@@ -399,6 +402,13 @@ export interface LocalWorkloadRunResult {
     failedBatchCount: number;
     totalDurationMs: number;
     repetitions: number;
+    measurementSampleCount: number;
+    meanDurationMs: number;
+    p50DurationMs: number;
+    p95DurationMs: number;
+    minDurationMs: number;
+    maxDurationMs: number;
+    standardDeviationMs: number;
     results: LocalWorkloadBatchResult[];
     completedAtUtc: string;
 }
@@ -1136,6 +1146,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                         containerName: result.containerName,
                         port: result.port,
                         version: result.version,
+                        imageDigest: result.imageDigest,
+                        environmentFingerprint: result.environmentFingerprint,
                         effectId: result.effectId,
                         createdAtUtc: result.createdAtUtc,
                         executionMode: "local",
@@ -1147,6 +1159,9 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     databaseName: result.databaseName,
                     containerName: result.containerName,
                     port: result.port,
+                    version: result.version,
+                    imageDigest: result.imageDigest,
+                    environmentFingerprint: result.environmentFingerprint,
                 },
             };
         } catch (error) {
@@ -1227,6 +1242,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                         sampleRowCount: result.sampleRowCount,
                         iterations: result.iterations,
                         template: result.template,
+                        workloadFingerprint: result.workloadFingerprint,
                         generatedAtUtc: result.inspectedAtUtc,
                         executionMode: "local",
                     },
@@ -1237,6 +1253,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     artifactPath: result.artifactPath,
                     sampleRowCount: result.sampleRowCount,
                     iterations: result.iterations,
+                    workloadFingerprint: result.workloadFingerprint,
                 },
             };
         } catch (error) {
@@ -1274,6 +1291,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                         workloadRef: result.workloadRef,
                         fileName: result.fileName,
                         workloadSha256: result.workloadSha256,
+                        workloadFingerprint: result.workloadSha256,
                         sourceByteCount: result.sourceByteCount,
                         batchCount: result.batchCount,
                         mutating: result.mutating,
@@ -1284,6 +1302,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 values: {
                     workloadRef: result.workloadRef,
                     workloadSha256: result.workloadSha256,
+                    workloadFingerprint: result.workloadSha256,
                     batchCount: result.batchCount,
                     mutating: result.mutating,
                 },
@@ -1354,6 +1373,9 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     "workload.executedBatchCount": result.executedBatchCount,
                     "workload.failedBatchCount": result.failedBatchCount,
                     "workload.totalDurationMs": result.totalDurationMs,
+                    "workload.measurementSampleCount": result.measurementSampleCount,
+                    "workload.meanDurationMs": result.meanDurationMs,
+                    "workload.p95DurationMs": result.p95DurationMs,
                 },
                 message: succeeded
                     ? LocRunbookStudio.workloadCompleted(result.executedBatchCount)
@@ -1384,6 +1406,13 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                         failedBatchCount: result.failedBatchCount,
                         totalDurationMs: result.totalDurationMs,
                         repetitions: result.repetitions,
+                        measurementSampleCount: result.measurementSampleCount,
+                        meanDurationMs: result.meanDurationMs,
+                        p50DurationMs: result.p50DurationMs,
+                        p95DurationMs: result.p95DurationMs,
+                        minDurationMs: result.minDurationMs,
+                        maxDurationMs: result.maxDurationMs,
+                        standardDeviationMs: result.standardDeviationMs,
                         completedAtUtc: result.completedAtUtc,
                         executionMode: "local",
                     },
@@ -1393,6 +1422,14 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     executedBatchCount: result.executedBatchCount,
                     failedBatchCount: result.failedBatchCount,
                     totalDurationMs: result.totalDurationMs,
+                    repetitions: result.repetitions,
+                    measurementSampleCount: result.measurementSampleCount,
+                    meanDurationMs: result.meanDurationMs,
+                    p50DurationMs: result.p50DurationMs,
+                    p95DurationMs: result.p95DurationMs,
+                    minDurationMs: result.minDurationMs,
+                    maxDurationMs: result.maxDurationMs,
+                    standardDeviationMs: result.standardDeviationMs,
                 },
             };
         } catch (error) {
@@ -1666,12 +1703,42 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             binding.resolveBind(node.inputs?.executedBatchCount),
         );
         const failedBatchCount = finiteMetric(binding.resolveBind(node.inputs?.failedBatchCount));
+        const workloadFingerprint = sha256Binding(
+            binding.resolveBind(node.inputs?.workloadFingerprint),
+        );
+        const environmentFingerprint = sha256Binding(
+            binding.resolveBind(node.inputs?.environmentFingerprint),
+        );
+        const repetitions = finiteMetric(binding.resolveBind(node.inputs?.repetitions));
+        const measurementSampleCount = finiteMetric(
+            binding.resolveBind(node.inputs?.measurementSampleCount),
+        );
+        const meanDurationMs = finiteMetric(binding.resolveBind(node.inputs?.meanDurationMs));
+        const p50DurationMs = finiteMetric(binding.resolveBind(node.inputs?.p50DurationMs));
+        const p95DurationMs = finiteMetric(binding.resolveBind(node.inputs?.p95DurationMs));
+        const minDurationMs = finiteMetric(binding.resolveBind(node.inputs?.minDurationMs));
+        const maxDurationMs = finiteMetric(binding.resolveBind(node.inputs?.maxDurationMs));
+        const standardDeviationMs = finiteMetric(
+            binding.resolveBind(node.inputs?.standardDeviationMs),
+        );
         if (
             workloadDurationMs === undefined ||
             executedBatchCount === undefined ||
-            failedBatchCount === undefined
+            failedBatchCount === undefined ||
+            workloadFingerprint === undefined ||
+            environmentFingerprint === undefined ||
+            repetitions === undefined ||
+            measurementSampleCount === undefined ||
+            meanDurationMs === undefined ||
+            p50DurationMs === undefined ||
+            p95DurationMs === undefined ||
+            minDurationMs === undefined ||
+            maxDurationMs === undefined ||
+            standardDeviationMs === undefined
         ) {
-            return invalidBinding("workloadDurationMs/executedBatchCount/failedBatchCount");
+            return invalidBinding(
+                "workload identity, environment identity, or measurement statistics",
+            );
         }
         const optional = [
             [
@@ -1696,6 +1763,13 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
             ["Workload duration", workloadDurationMs, "ms"],
             ["Executed batches", executedBatchCount, "count"],
             ["Failed batches", failedBatchCount, "count"],
+            ["Measured repetitions", measurementSampleCount, "count"],
+            ["Mean repetition duration", meanDurationMs, "ms"],
+            ["P50 repetition duration", p50DurationMs, "ms"],
+            ["P95 repetition duration", p95DurationMs, "ms"],
+            ["Minimum repetition duration", minDurationMs, "ms"],
+            ["Maximum repetition duration", maxDurationMs, "ms"],
+            ["Duration standard deviation", standardDeviationMs, "ms"],
         ];
         for (const [name, value, unit] of optional) {
             if (value !== undefined) {
@@ -1716,9 +1790,33 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     executedBatchCount,
                     failedBatchCount,
                     metricCount: rows.length,
+                    workloadFingerprint,
+                    environmentFingerprint,
+                    repetitions,
+                    measurementSampleCount,
+                    meanDurationMs,
+                    p50DurationMs,
+                    p95DurationMs,
+                    minDurationMs,
+                    maxDurationMs,
+                    standardDeviationMs,
                 },
             },
-            values: { durationMs: workloadDurationMs, executedBatchCount, failedBatchCount },
+            values: {
+                durationMs: workloadDurationMs,
+                executedBatchCount,
+                failedBatchCount,
+                workloadFingerprint,
+                environmentFingerprint,
+                repetitions,
+                measurementSampleCount,
+                meanDurationMs,
+                p50DurationMs,
+                p95DurationMs,
+                minDurationMs,
+                maxDurationMs,
+                standardDeviationMs,
+            },
         };
     }
 
@@ -2500,4 +2598,10 @@ function invalidBinding(name: string): NodeExecution {
 
 function finiteMetric(value: unknown): number | undefined {
     return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : undefined;
+}
+
+function sha256Binding(value: unknown): string | undefined {
+    return typeof value === "string" && /^[a-f0-9]{64}$/i.test(value)
+        ? value.toLowerCase()
+        : undefined;
 }

@@ -151,6 +151,19 @@ suite("planCompiler", () => {
             result.artifact.source.parameters.find((parameter) => parameter.id === "iterations"),
         ).to.include({ type: "int", default: 1000 });
         expect(
+            result.artifact.source.parameters.find((parameter) => parameter.id === "repetitions"),
+        ).to.include({ type: "int", default: 5 });
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "run-workload")?.inputs,
+        ).to.include({ repetitions: "$params.repetitions" });
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "summarize-performance")?.inputs,
+        ).to.include({
+            workloadFingerprint: "$nodes.generate-workload.workloadFingerprint",
+            environmentFingerprint: "$nodes.provision.environmentFingerprint",
+            p95DurationMs: "$nodes.run-workload.p95DurationMs",
+        });
+        expect(
             result.artifact.source.parameters.find((parameter) => parameter.id === "saPassword"),
         ).to.include({ type: "secret", required: true });
     });
