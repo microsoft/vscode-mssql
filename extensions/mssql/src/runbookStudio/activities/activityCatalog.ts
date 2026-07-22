@@ -2200,9 +2200,21 @@ function hasUpstreamDeploymentForSameTarget(
         ) {
             return false;
         }
-        return lock.edges.some(
-            (edge) => edge.from === candidate.id && edge.to === node.id && edge.when === undefined,
-        );
+        const visited = new Set<string>([candidate.id]);
+        const pending = [candidate.id];
+        while (pending.length > 0) {
+            const current = pending.shift()!;
+            for (const edge of lock.edges.filter((item) => item.from === current)) {
+                if (edge.to === node.id) {
+                    return true;
+                }
+                if (!visited.has(edge.to)) {
+                    visited.add(edge.to);
+                    pending.push(edge.to);
+                }
+            }
+        }
+        return false;
     });
 }
 

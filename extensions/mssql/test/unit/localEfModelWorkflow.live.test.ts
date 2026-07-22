@@ -16,6 +16,7 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 import type * as mssql from "vscode-mssql";
 import { getContainerByName } from "../../src/docker/dockerUtils";
+import { parseSqlConnectionString } from "../../src/diagnostics/selfTest/connectionString";
 import {
     RUNBOOK_CONTAINER_KIND,
     RUNBOOK_CONTAINER_KIND_LABEL,
@@ -28,6 +29,8 @@ import { RUNBOOK_STUDIO_VIEW_TYPE } from "../../src/runbookStudio/runbookStudioE
 
 const LIVE_ENABLED = process.env.RBS2_EF_LIVE === "1";
 const REHEARSAL_LIVE_ENABLED = process.env.RBS2_EF_REHEARSAL_LIVE === "1";
+const DACPAC_CONNECTION_STRING =
+    process.env.STS2_SQLSERVER_CONNSTRING ?? process.env.STS2_SQLSERVER_SQLLOGIN_CONNSTRING;
 const FIXTURE_ROOT =
     process.env.RBS2_EF_FIXTURE_ROOT ??
     path.resolve(__dirname, "../../../../../..", "test_assets", "hobbes-ef-model", "myapp");
@@ -39,6 +42,11 @@ const REHEARSAL_INTENT =
     "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
     "provision a SQL Server 2025 container, apply the migration, visualize the schema, roll it back, " +
     "and visualize the rolled-back schema.";
+const DACPAC_REHEARSAL_INTENT =
+    "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
+    "extract a DACPAC from WideWorldImporters staging database, provision a SQL Server 2025 container, " +
+    "deploy the DACPAC, apply the migration, run a schema compare and save the diff output, visualize " +
+    "the schema, roll it back, and visualize the rolled-back schema.";
 
 suite("Runbook Studio EF model workflow live smoke (gated)", function () {
     this.timeout(12 * 60_000);
@@ -309,6 +317,180 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 }
                 await leaked.remove({ force: true });
             }
+            await Promise.resolve(
+                vscode.commands.executeCommand("workbench.action.closeActiveEditor"),
+            ).catch(() => undefined);
+            await fs.promises
+                .rm(temporaryDirectory, { recursive: true, force: true })
+                .catch(() => undefined);
+        }
+    });
+
+    test("rehearses the EF migration on an exact staging DACPAC clone", async function () {
+        if (!REHEARSAL_LIVE_ENABLED || !DACPAC_CONNECTION_STRING) {
+            this.skip();
+            return;
+        }
+        const parsed = parseSqlConnectionString(DACPAC_CONNECTION_STRING);
+        if (
+            "error" in parsed ||
+            !/^(localhost|127\.0\.0\.1|\[::1\]|\.|\(local\))(?:[\,].+)?$/i.test(
+                parsed.parsed.server.replace(/^tcp:/i, ""),
+            )
+        ) {
+            this.skip();
+            return;
+        }
+        const extension = vscode.extensions.getExtension<mssql.IExtension>("ms-mssql.mssql");
+        expect(extension).not.to.equal(undefined);
+        await extension!.activate();
+        await waitForCommand("mssql.runbookStudio.compileIntentHeadless");
+        const beforeHead = git("rev-parse", "HEAD");
+        const beforeStatus = git("status", "--porcelain");
+        const suffix = randomBytes(6).toString("hex");
+        const containerName = `rbs-ef-dacpac-${suffix}`;
+        const databaseName = `EfDacpac${suffix}`;
+        const password = `Rbs!${randomBytes(12).toString("hex")}aA9`;
+        const temporaryDirectory = await fs.promises.mkdtemp(
+            path.join(os.tmpdir(), "rbs-ef-dacpac-rehearsal-"),
+        );
+        const runbookPath = path.join(temporaryDirectory, "ef-dacpac-rehearsal.runbook.json");
+        const artifact = createNewRunbookArtifact("New runbook", "rbs-ef-dacpac-rehearsal-live");
+        await fs.promises.writeFile(runbookPath, canonicalizeRunbookArtifact(artifact), "utf8");
+        const baseProfile = {
+            server: parsed.parsed.server,
+            database: "master",
+            authenticationType: parsed.parsed.integrated ? "Integrated" : "SqlLogin",
+            ...(parsed.parsed.user ? { user: parsed.parsed.user } : {}),
+            ...(parsed.parsed.password ? { password: parsed.parsed.password } : {}),
+            ...(parsed.parsed.encrypt ? { encrypt: parsed.parsed.encrypt } : {}),
+            ...(parsed.parsed.trustServerCertificate !== undefined
+                ? { trustServerCertificate: parsed.parsed.trustServerCertificate }
+                : {}),
+        } as mssql.IConnectionInfo;
+        const profileName = `Runbook Studio EF DACPAC ${suffix}`;
+        const controller = await vscode.commands.executeCommand<{
+            connectionManager: {
+                connectionStore: {
+                    saveProfile(value: unknown): Promise<{ id: string }>;
+                    readAllConnections(
+                        includeRecent: boolean,
+                    ): Promise<Array<{ id: string; profileName?: string }>>;
+                    removeProfile(value: unknown): Promise<boolean>;
+                };
+            };
+        }>("mssql.getControllerForTests");
+        expect(controller).not.to.equal(undefined);
+        const savedProfile = await controller!.connectionManager.connectionStore.saveProfile({
+            ...baseProfile,
+            id: `rbs-ef-dacpac-${suffix}`,
+            profileName,
+            groupId: "ROOT",
+            configSource: vscode.ConfigurationTarget.Global,
+            savePassword: parsed.parsed.password !== undefined,
+            emptyPasswordInput: false,
+        } as never);
+        const persistedProfile = (
+            await controller!.connectionManager.connectionStore.readAllConnections(false)
+        ).find((candidate) => candidate.profileName === profileName);
+        expect(persistedProfile).not.to.equal(undefined);
+
+        try {
+            const document = await vscode.workspace.openTextDocument(runbookPath);
+            await vscode.commands.executeCommand(
+                "vscode.openWith",
+                document.uri,
+                RUNBOOK_STUDIO_VIEW_TYPE,
+            );
+            const compile = await vscode.commands.executeCommand<{
+                ok: boolean;
+                errorCode?: string;
+                nodeCount?: number;
+                activityKinds?: string[];
+                parameterIds?: string[];
+            }>("mssql.runbookStudio.compileIntentHeadless", {
+                uri: document.uri.toString(),
+                intent: DACPAC_REHEARSAL_INTENT,
+            });
+            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 29 });
+            expect(compile.activityKinds).to.include.members([
+                "dacpac.extract",
+                "dacpac.deploy.preview",
+                "dacpac.deploy.container",
+                "schema.compare",
+                "schema.compare.export",
+                "migration.apply",
+                "migration.scope.validate",
+                "database.schema.visualize",
+                "sql.container.dispose",
+            ]);
+            await document.save();
+
+            const run = await vscode.commands.executeCommand<{
+                state: string;
+                errorCode?: string;
+                verdict?: string;
+                nodeStates?: Array<{
+                    nodeId: string;
+                    state: string;
+                    outputCount: number;
+                    message?: string;
+                }>;
+            }>("mssql.runbookStudio.startRunHeadless", {
+                uri: document.uri.toString(),
+                parameterValues: {
+                    repository: FIXTURE_ROOT,
+                    baseRef: "main",
+                    headRef: "rehearsal-additive",
+                    project: PROJECT_PATH,
+                    dbContext: "AppDbContext",
+                    renameDecisions: "[]",
+                    sourceConnection: persistedProfile!.id,
+                    sourceDatabaseName: "WideWorldImporters",
+                    containerName,
+                    databaseName,
+                    sqlVersion: "2025",
+                    saPassword: password,
+                    migrationTimeoutSeconds: 300,
+                },
+                approveGates: true,
+                timeoutMs: 12 * 60_000,
+            });
+            expect(run, JSON.stringify(run)).to.include({ state: "succeeded", verdict: "pass" });
+            expect(run.nodeStates).to.have.length(29);
+            expect(run.nodeStates?.every((node) => node.state === "succeeded")).to.equal(true);
+            for (const nodeId of [
+                "verify-base-deployment",
+                "validate-forward-migration",
+                "compare-forward-schema",
+                "visualize-forward-schema",
+                "validate-rollback-migration",
+                "verify-rollback-base",
+                "visualize-rollback-schema",
+            ]) {
+                expect(
+                    run.nodeStates?.find((node) => node.nodeId === nodeId)?.outputCount,
+                    nodeId,
+                ).to.be.greaterThan(0);
+            }
+            expect(await getContainerByName(containerName)).to.equal(undefined);
+            expect(git("rev-parse", "HEAD")).to.equal(beforeHead);
+            expect(git("status", "--porcelain")).to.equal(beforeStatus);
+        } finally {
+            const leaked = await getContainerByName(containerName);
+            if (leaked) {
+                const inspected = await leaked.inspect();
+                if (
+                    inspected.Config?.Labels?.[RUNBOOK_CONTAINER_KIND_LABEL] !==
+                    RUNBOOK_CONTAINER_KIND
+                ) {
+                    throw new Error("Live smoke container ownership changed; refusing cleanup.");
+                }
+                await leaked.remove({ force: true });
+            }
+            await controller!.connectionManager.connectionStore
+                .removeProfile(persistedProfile ?? savedProfile)
+                .catch(() => false);
             await Promise.resolve(
                 vscode.commands.executeCommand("workbench.action.closeActiveEditor"),
             ).catch(() => undefined);

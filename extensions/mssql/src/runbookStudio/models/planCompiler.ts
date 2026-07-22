@@ -294,6 +294,13 @@ export function compileDeterministicEfModelComparison(
     const provisionContainer = required.includes("sql.container.provision");
     const disposeContainer = required.includes("sql.container.dispose");
     const visualizeSchema = required.includes("database.schema.visualize");
+    const extractBaseDacpac = required.includes("dacpac.extract");
+    const previewBaseDacpac = required.includes("dacpac.deploy.preview");
+    const deployBaseDacpac = required.includes("dacpac.deploy.container");
+    const verifyBaseDacpac = required.includes("schema.compare");
+    const exportSchemaDelta = required.includes("schema.compare.export");
+    const baseCloneParts = [extractBaseDacpac, previewBaseDacpac, deployBaseDacpac];
+    const hasBaseClone = baseCloneParts.every(Boolean);
     const rehearseRollback = applyMigration && /\b(roll(?:\s+it)?\s+back|rollback)\b/i.test(intent);
     const analyzeMigrationRisk = requestedMigrationRisk || generateMigration;
     const optionalRehearsalActivities = new Set([
@@ -302,6 +309,11 @@ export function compileDeterministicEfModelComparison(
         "sql.container.provision",
         "sql.container.dispose",
         "database.schema.visualize",
+        "dacpac.extract",
+        "dacpac.deploy.preview",
+        "dacpac.deploy.container",
+        "schema.compare",
+        "schema.compare.export",
     ]);
     if (
         required.length !==
@@ -312,7 +324,12 @@ export function compileDeterministicEfModelComparison(
                 (validateMigrationScope ? 1 : 0) +
                 (provisionContainer ? 1 : 0) +
                 (disposeContainer ? 1 : 0) +
-                (visualizeSchema ? 1 : 0) ||
+                (visualizeSchema ? 1 : 0) +
+                (extractBaseDacpac ? 1 : 0) +
+                (previewBaseDacpac ? 1 : 0) +
+                (deployBaseDacpac ? 1 : 0) +
+                (verifyBaseDacpac ? 1 : 0) +
+                (exportSchemaDelta ? 1 : 0) ||
         !required.every(
             (kind) =>
                 DETERMINISTIC_EF_COMPARISON_ACTIVITIES.has(kind) ||
@@ -327,15 +344,21 @@ export function compileDeterministicEfModelComparison(
                 !provisionContainer ||
                 !disposeContainer)) ||
         (validateMigrationScope && !applyMigration) ||
+        (baseCloneParts.some(Boolean) && !hasBaseClone) ||
+        (hasBaseClone && (!applyMigration || !verifyBaseDacpac)) ||
+        (exportSchemaDelta && !hasBaseClone) ||
         (visualizeSchema && !applyMigration) ||
         !/\b(entity\s*framework|entityframework|ef\s*core|dbcontext|entities)\b/i.test(intent)
     ) {
         return undefined;
     }
+    const sourceDatabaseName = hasBaseClone ? extractDacpacSourceDatabaseName(intent) : undefined;
     const proposal: CompiledProposal = {
         name: "Entity Framework model comparison",
         description: applyMigration
-            ? "Captures two approved exact Entity Framework revisions, generates reviewed forward/rollback SQL, and rehearses the exact approved digest only in an owned disposable SQL container."
+            ? hasBaseClone
+                ? "Captures two approved exact Entity Framework revisions, materializes an exact source DACPAC in an owned SQL container, applies and validates the reviewed migration, and retains structural comparison evidence."
+                : "Captures two approved exact Entity Framework revisions, generates reviewed forward/rollback SQL, and rehearses the exact approved digest only in an owned disposable SQL container."
             : generateMigration
               ? "Captures two approved exact Entity Framework revisions, analyzes their semantic risk, and generates reviewed forward/rollback SQL artifacts without applying them."
               : "Captures the source change set, restores and builds two approved exact revisions, and reports their semantic SQL Server relational-model changes and requested factual migration risk without generating or applying DDL.",
@@ -385,6 +408,23 @@ export function compileDeterministicEfModelComparison(
                 : []),
             ...(applyMigration
                 ? [
+                      ...(hasBaseClone
+                          ? [
+                                {
+                                    id: "sourceConnection",
+                                    label: "Staging/source SQL server",
+                                    type: "connection" as const,
+                                    required: true,
+                                },
+                                {
+                                    id: "sourceDatabaseName",
+                                    label: "Staging/source database name",
+                                    type: "string" as const,
+                                    required: true,
+                                    ...(sourceDatabaseName ? { default: sourceDatabaseName } : {}),
+                                },
+                            ]
+                          : []),
                       {
                           id: "containerName",
                           label: "Owned rehearsal container name",
@@ -518,6 +558,20 @@ export function compileDeterministicEfModelComparison(
                       },
                   ]
                 : []),
+            ...(hasBaseClone
+                ? [
+                      {
+                          id: "extract-base-dacpac",
+                          label: "Extract exact staging/source DACPAC",
+                          kind: "activity" as const,
+                          activityKind: "dacpac.extract",
+                          inputs: {
+                              database: "$params.sourceConnection",
+                              databaseName: "$params.sourceDatabaseName",
+                          },
+                      },
+                  ]
+                : []),
             ...(applyMigration
                 ? [
                       {
@@ -537,6 +591,51 @@ export function compileDeterministicEfModelComparison(
                               password: "$params.saPassword",
                           },
                       },
+                      ...(hasBaseClone
+                          ? [
+                                {
+                                    id: "preview-base-deployment",
+                                    label: "Preview base DACPAC deployment",
+                                    kind: "activity" as const,
+                                    activityKind: "dacpac.deploy.preview",
+                                    inputs: {
+                                        dacpac: "$nodes.extract-base-dacpac.artifactPath",
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                    },
+                                },
+                                {
+                                    id: "approve-base-deployment",
+                                    label: "Approve exact base DACPAC deployment",
+                                    kind: "gate" as const,
+                                },
+                                {
+                                    id: "deploy-base-dacpac",
+                                    label: "Deploy exact base DACPAC",
+                                    kind: "activity" as const,
+                                    activityKind: "dacpac.deploy.container",
+                                    inputs: {
+                                        dacpac: "$nodes.extract-base-dacpac.artifactPath",
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                        artifactDigest: "$nodes.extract-base-dacpac.artifactSha256",
+                                        previewDigest:
+                                            "$nodes.preview-base-deployment.reportSha256",
+                                    },
+                                },
+                                {
+                                    id: "verify-base-deployment",
+                                    label: "Verify exact base schema",
+                                    kind: "activity" as const,
+                                    activityKind: "schema.compare",
+                                    inputs: {
+                                        dacpac: "$nodes.extract-base-dacpac.artifactPath",
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
+                                    },
+                                },
+                            ]
+                          : []),
                       {
                           id: "approve-forward-migration",
                           label: "Approve exact forward migration digest",
@@ -571,6 +670,21 @@ export function compileDeterministicEfModelComparison(
                                         migration: "$nodes.generate-migration.migrationRef",
                                         manifestDigest: "$nodes.generate-migration.manifestSha256",
                                         expectedState: "head",
+                                    },
+                                },
+                            ]
+                          : []),
+                      ...(exportSchemaDelta
+                          ? [
+                                {
+                                    id: "compare-forward-schema",
+                                    label: "Compare migrated schema with base DACPAC",
+                                    kind: "activity" as const,
+                                    activityKind: "schema.compare.export",
+                                    inputs: {
+                                        dacpac: "$nodes.extract-base-dacpac.artifactPath",
+                                        database:
+                                            "$nodes.provision-rehearsal-container.connectionRef",
                                     },
                                 },
                             ]
@@ -629,6 +743,21 @@ export function compileDeterministicEfModelComparison(
                                                   manifestDigest:
                                                       "$nodes.generate-migration.manifestSha256",
                                                   expectedState: "base",
+                                              },
+                                          },
+                                      ]
+                                    : []),
+                                ...(hasBaseClone
+                                    ? [
+                                          {
+                                              id: "verify-rollback-base",
+                                              label: "Verify rollback restored the exact base schema",
+                                              kind: "activity" as const,
+                                              activityKind: "schema.compare",
+                                              inputs: {
+                                                  dacpac: "$nodes.extract-base-dacpac.artifactPath",
+                                                  database:
+                                                      "$nodes.provision-rehearsal-container.connectionRef",
                                               },
                                           },
                                       ]
@@ -703,9 +832,26 @@ export function compileDeterministicEfModelComparison(
                       },
                       {
                           from: "generate-migration",
-                          to: applyMigration ? "approve-rehearsal-container" : "report",
+                          to: hasBaseClone
+                              ? "extract-base-dacpac"
+                              : applyMigration
+                                ? "approve-rehearsal-container"
+                                : "report",
                       },
                       { from: "generate-migration", to: "report", when: "failure" as const },
+                  ]
+                : []),
+            ...(hasBaseClone
+                ? [
+                      {
+                          from: "extract-base-dacpac",
+                          to: "approve-rehearsal-container",
+                      },
+                      {
+                          from: "extract-base-dacpac",
+                          to: "report",
+                          when: "failure" as const,
+                      },
                   ]
                 : []),
             ...(applyMigration
@@ -722,13 +868,56 @@ export function compileDeterministicEfModelComparison(
                       },
                       {
                           from: "provision-rehearsal-container",
-                          to: "approve-forward-migration",
+                          to: hasBaseClone
+                              ? "preview-base-deployment"
+                              : "approve-forward-migration",
                       },
                       {
                           from: "provision-rehearsal-container",
                           to: "report",
                           when: "failure" as const,
                       },
+                      ...(hasBaseClone
+                          ? [
+                                {
+                                    from: "preview-base-deployment",
+                                    to: "approve-base-deployment",
+                                },
+                                {
+                                    from: "preview-base-deployment",
+                                    to: "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                                {
+                                    from: "approve-base-deployment",
+                                    to: "deploy-base-dacpac",
+                                    when: "approved" as const,
+                                },
+                                {
+                                    from: "approve-base-deployment",
+                                    to: "dispose-rehearsal-container",
+                                    when: "rejected" as const,
+                                },
+                                {
+                                    from: "deploy-base-dacpac",
+                                    to: "verify-base-deployment",
+                                },
+                                {
+                                    from: "deploy-base-dacpac",
+                                    to: "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                                {
+                                    from: "verify-base-deployment",
+                                    to: "approve-forward-migration",
+                                },
+                                {
+                                    from: "verify-base-deployment",
+                                    to: "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                            ]
+                          : []),
                       {
                           from: "approve-forward-migration",
                           to: "apply-forward-migration",
@@ -758,6 +947,31 @@ export function compileDeterministicEfModelComparison(
                           ? [
                                 {
                                     from: "validate-forward-migration",
+                                    to: exportSchemaDelta
+                                        ? "compare-forward-schema"
+                                        : visualizeSchema
+                                          ? "visualize-forward-schema"
+                                          : rehearseRollback
+                                            ? "approve-rollback-migration"
+                                            : "dispose-rehearsal-container",
+                                },
+                                {
+                                    from: "validate-forward-migration",
+                                    to: exportSchemaDelta
+                                        ? "compare-forward-schema"
+                                        : visualizeSchema
+                                          ? "visualize-forward-schema"
+                                          : rehearseRollback
+                                            ? "approve-rollback-migration"
+                                            : "dispose-rehearsal-container",
+                                    when: "failure" as const,
+                                },
+                            ]
+                          : []),
+                      ...(exportSchemaDelta
+                          ? [
+                                {
+                                    from: "compare-forward-schema",
                                     to: visualizeSchema
                                         ? "visualize-forward-schema"
                                         : rehearseRollback
@@ -765,7 +979,7 @@ export function compileDeterministicEfModelComparison(
                                           : "dispose-rehearsal-container",
                                 },
                                 {
-                                    from: "validate-forward-migration",
+                                    from: "compare-forward-schema",
                                     to: visualizeSchema
                                         ? "visualize-forward-schema"
                                         : rehearseRollback
@@ -823,12 +1037,33 @@ export function compileDeterministicEfModelComparison(
                                     ? [
                                           {
                                               from: "validate-rollback-migration",
+                                              to: hasBaseClone
+                                                  ? "verify-rollback-base"
+                                                  : visualizeSchema
+                                                    ? "visualize-rollback-schema"
+                                                    : "dispose-rehearsal-container",
+                                          },
+                                          {
+                                              from: "validate-rollback-migration",
+                                              to: hasBaseClone
+                                                  ? "verify-rollback-base"
+                                                  : visualizeSchema
+                                                    ? "visualize-rollback-schema"
+                                                    : "dispose-rehearsal-container",
+                                              when: "failure" as const,
+                                          },
+                                      ]
+                                    : []),
+                                ...(hasBaseClone
+                                    ? [
+                                          {
+                                              from: "verify-rollback-base",
                                               to: visualizeSchema
                                                   ? "visualize-rollback-schema"
                                                   : "dispose-rehearsal-container",
                                           },
                                           {
-                                              from: "validate-rollback-migration",
+                                              from: "verify-rollback-base",
                                               to: visualizeSchema
                                                   ? "visualize-rollback-schema"
                                                   : "dispose-rehearsal-container",
@@ -1533,6 +1768,36 @@ function extractDacpacRoundTripDatabaseNames(
         return undefined;
     }
     return { source: normalizedSource, target: normalizedTarget };
+}
+
+function extractDacpacSourceDatabaseName(intent: string): string | undefined {
+    const identifier = String.raw`(\[[^\]\r\n]{1,128}\]|[A-Za-z_][A-Za-z0-9_$#@-]{0,127})`;
+    const patterns = [
+        new RegExp(
+            String.raw`\b(?:dacpac|package)\s+from\s+(?:the\s+|my\s+)?(?:database\s+)?${identifier}(?:\s+(?:staging|stage)\s+database)?`,
+            "i",
+        ),
+        new RegExp(
+            String.raw`\b(?:extract|clone|copy|materialize)\b[^.\r\n]{0,80}?\bfrom\s+(?:the\s+|my\s+)?(?:database\s+)?${identifier}(?:\s+(?:staging|stage)\s+database)?`,
+            "i",
+        ),
+        new RegExp(
+            String.raw`\b(?:staging|stage)\s+database\s+(?:named|called)\s+${identifier}`,
+            "i",
+        ),
+    ];
+    const candidate = patterns.map((pattern) => pattern.exec(intent)?.[1]).find(Boolean);
+    if (!candidate) {
+        return undefined;
+    }
+    const value = unwrapIdentifier(candidate);
+    if (
+        ["staging", "stage", "database", "my", "the"].includes(value.toLowerCase()) ||
+        !isValidDacpacSourceDatabaseName(value)
+    ) {
+        return undefined;
+    }
+    return value;
 }
 
 function extractRepresentativeLoggingTable(

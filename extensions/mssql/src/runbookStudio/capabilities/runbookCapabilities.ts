@@ -924,10 +924,21 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     const text = intent.trim().toLowerCase();
     const requested = new Set<string>();
 
-    const requestsDacpacExtraction = has(
+    const requestsStagingClone = has(
         text,
-        /\b(extract|create|generate|make)\b.{0,45}\bdacpac\b.{0,45}\b(from|of)\b|\bdacpac\b.{0,35}\bfrom\b|\b(extract|exact)\b.{0,65}\b(to|into|as)\s+(an?\s+)?dacpac\b/,
+        /\b(?:clone|copy|materialize|take)\b.{0,80}\b(?:staging|stage)\b.{0,50}\b(?:database|dacpac|container)\b|\b(?:dacpac|database)\b.{0,50}\bfrom\b.{0,35}\b(?:staging|stage)\b/,
     );
+    const requestsReleaseCandidateDacpac = has(
+        text,
+        /\b(?:extract|create|produce|generate|build)\b.{0,45}\brelease[- ]candidate\b.{0,25}\bdacpac\b|\brelease[- ]candidate\b.{0,25}\bdacpac\b/,
+    );
+    const requestsDacpacExtraction =
+        requestsStagingClone ||
+        requestsReleaseCandidateDacpac ||
+        has(
+            text,
+            /\b(extract|create|generate|make)\b.{0,45}\bdacpac\b.{0,45}\b(from|of)\b|\bdacpac\b.{0,35}\bfrom\b|\b(extract|exact)\b.{0,65}\b(to|into|as)\s+(an?\s+)?dacpac\b/,
+        );
     const requestsExistingDacpac =
         has(text, /\b(import|deploy|publish)\b.{0,40}\b(the\s+|an?\s+)?dacpac\b/) &&
         !has(text, /\bbuild\b.{0,30}\bdacpac\b|\bdacpac\b.{0,30}\bbuild\b/);
@@ -1141,14 +1152,19 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         text,
         /\bdeployment\s+(change\s+)?(preview|report|script)\b|\b(preview|dry[- ]?run)\b.{0,30}\bdeploy(ment)?\b|\bwhat (would|will) change\b.{0,30}\bdeploy(ment)?\b/,
     );
-    const requestsActualDeployment = text
-        .split(/[.;\n]/)
-        .some(
-            (clause) =>
-                (has(clause, /\b(deploy(ed|ing|s)?|deployment|publish)\b/) ||
-                    (has(clause, /\bimport\b/) && has(text, /\bdacpac\b/))) &&
-                !has(clause, /\b(preview|report|script|dry[- ]?run|what (would|will) change)\b/),
-        );
+    const requestsActualDeployment =
+        requestsStagingClone ||
+        text
+            .split(/[.;\n]/)
+            .some(
+                (clause) =>
+                    (has(clause, /\b(deploy(ed|ing|s)?|deployment|publish)\b/) ||
+                        (has(clause, /\bimport\b/) && has(text, /\bdacpac\b/))) &&
+                    !has(
+                        clause,
+                        /\b(preview|report|script|dry[- ]?run|what (would|will) change)\b/,
+                    ),
+            );
     if (requestsDeploymentPreview) {
         if (has(text, /\b(database|sql) project\b/)) {
             requested.add("dacpac.build");
@@ -1173,6 +1189,12 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         if (!requestsSchemaCompareExport) {
             requested.add("schema.compare");
         }
+    }
+    if (requestsStagingClone) {
+        // The exact staging/base package must be proven converged before a
+        // generated migration is allowed to run, even when the author also
+        // asks for a post-migration exported diff.
+        requested.add("schema.compare");
     }
     if (requestsSchemaInventory) {
         requested.add(requestsActualDeployment ? "database.schema.inventory" : "sql.query.read");

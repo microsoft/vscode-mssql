@@ -411,6 +411,67 @@ suite("planCompiler", () => {
         );
     });
 
+    test("an EF migration can rehearse on an exact staging DACPAC clone", () => {
+        const intent =
+            "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
+            "extract a DACPAC from WideWorldImporters staging database, provision a SQL Server 2025 container, " +
+            "deploy the DACPAC, apply the migration, run a schema compare and save the diff output, visualize " +
+            "the schema, roll it back, and visualize the rolled-back schema.";
+        const classified = classifyRunbookIntent(intent);
+        const rehearsalBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicEfModelComparison(rehearsalBase, intent);
+        if (!result || isProposalFailure(result)) {
+            throw new Error(result && isProposalFailure(result) ? result.detail : "no plan");
+        }
+
+        expect(result.artifact.lock?.nodes).to.have.length(29);
+        expect(result.artifact.source.parameters).to.deep.include({
+            id: "sourceDatabaseName",
+            label: "Staging/source database name",
+            type: "string",
+            required: true,
+            default: "WideWorldImporters",
+        });
+        expect(
+            result.artifact.lock?.nodes
+                .filter((node) =>
+                    [
+                        "dacpac.extract",
+                        "dacpac.deploy.preview",
+                        "dacpac.deploy.container",
+                        "schema.compare",
+                        "schema.compare.export",
+                    ].includes(node.activityKind ?? ""),
+                )
+                .map((node) => `${node.id}:${node.activityKind}`),
+        ).to.deep.equal([
+            "extract-base-dacpac:dacpac.extract",
+            "preview-base-deployment:dacpac.deploy.preview",
+            "deploy-base-dacpac:dacpac.deploy.container",
+            "verify-base-deployment:schema.compare",
+            "compare-forward-schema:schema.compare.export",
+            "verify-rollback-base:schema.compare",
+        ]);
+        expect(
+            result.artifact.lock?.edges.find(
+                (edge) =>
+                    edge.from === "deploy-base-dacpac" && edge.to === "verify-base-deployment",
+            ),
+        ).to.not.equal(undefined);
+        expect(
+            result.artifact.lock?.edges.find(
+                (edge) =>
+                    edge.from === "validate-rollback-migration" &&
+                    edge.to === "verify-rollback-base",
+            ),
+        ).to.not.equal(undefined);
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+    });
+
     test("a stop-before-rehearsal intent does not request migration application", () => {
         const classified = classifyRunbookIntent(
             "Compare Entity Framework changes, generate the migration DDL, analyze possible data loss, " +
