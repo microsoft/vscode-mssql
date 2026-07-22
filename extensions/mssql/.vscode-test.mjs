@@ -20,7 +20,8 @@ export default defineConfig({
         {
             label: "Unit Tests",
             files: "out/test/unit/**/*.test.js",
-            version: "insiders",
+            // TODO: Switch back to Insiders after https://github.com/microsoft/vscode-test/issues/349.
+            version: "stable",
             launchArgs: ["--user-data-dir", userDataDir],
             env: {
                 VSCODE_LOG_LEVEL: "error",
