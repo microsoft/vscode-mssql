@@ -33,6 +33,7 @@ import {
     LocalWorkspaceSnapshot,
 } from "./localSqlDelegate";
 import { analyzeRepositorySqlTests, RepositorySqlTestSource } from "./repositorySqlTestDiscovery";
+import { canonicalRunbookJson } from "../runbookDigest";
 
 const MAX_DISCOVERED_PROJECTS = 100;
 const MAX_EF_SOURCE_FILES = 2000;
@@ -48,6 +49,9 @@ const CANCEL_POLL_MS = 50;
 const MAX_GIT_PATCH_BYTES = 8 * 1024 * 1024;
 const MAX_GIT_METADATA_BYTES = 512 * 1024;
 const MAX_GIT_CHANGED_FILES = 2000;
+const MAX_GIT_SNAPSHOT_FILES = 10_000;
+const MAX_GIT_SNAPSHOT_BYTES = 128 * 1024 * 1024;
+const MAX_GIT_TREE_METADATA_BYTES = 4 * 1024 * 1024;
 
 /** DacFx receives the database name as a structured argument, but still keep
  * the authored override bounded and free of control characters before it is
@@ -416,6 +420,236 @@ export async function inspectLocalGitChangeSet(
     }
 }
 
+export interface LocalGitRevisionSnapshotResult {
+    repositoryRoot: string;
+    requestedRef: string;
+    commit: string;
+    destinationRoot: string;
+    fileCount: number;
+    totalBytes: number;
+    executableFileCount: number;
+    snapshotSha256: string;
+}
+
+interface LocalGitTreeFile {
+    mode: "100644" | "100755";
+    size: number;
+    relativePath: string;
+}
+
+/** Materialize one exact committed Git tree without checking out, stashing,
+ * resetting, or changing the repository index. A private temporary index is
+ * used so later EF design-time work can build base/head revisions in
+ * isolation. Links, submodules, control-character paths, and oversized trees
+ * are refused before any source file is written. */
+export async function materializeLocalGitRevision(
+    requestedRepository: string,
+    requestedRef: string,
+    destinationRoot: string,
+    isCancellationRequested: () => boolean,
+): Promise<LocalGitRevisionSnapshotResult> {
+    if (!vscode.workspace.isTrusted) {
+        throw new LocalActivityError(
+            LocRunbookStudio.gitWorkspaceTrustRequired,
+            "RunbookStudio.WorkspaceUntrusted",
+        );
+    }
+    const folders = vscode.workspace.workspaceFolders ?? [];
+    if (folders.length === 0) {
+        throw new LocalActivityError(
+            LocRunbookStudio.gitRepositoryRequired,
+            "RunbookStudio.WorkspaceUnavailable",
+        );
+    }
+    const repository = path.resolve(requestedRepository.trim());
+    await assertPathInWorkspace(repository, folders, LocRunbookStudio.gitRepositoryLabel);
+    const repositoryRoot = path.normalize(
+        (
+            await runBoundedGit(
+                repository,
+                ["rev-parse", "--show-toplevel"],
+                MAX_GIT_METADATA_BYTES,
+                isCancellationRequested,
+            )
+        ).trim(),
+    );
+    await assertPathInWorkspace(repositoryRoot, folders, LocRunbookStudio.gitRepositoryLabel);
+    const normalizedRef = validateGitRef(requestedRef);
+    const commit = await resolveGitCommit(repositoryRoot, normalizedRef, isCancellationRequested);
+    const treeText = await runBoundedGit(
+        repositoryRoot,
+        ["ls-tree", "-r", "-l", "-z", commit],
+        MAX_GIT_TREE_METADATA_BYTES,
+        isCancellationRequested,
+    );
+    const files = parseGitRevisionTree(treeText);
+    const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+    if (files.length > MAX_GIT_SNAPSHOT_FILES || totalBytes > MAX_GIT_SNAPSHOT_BYTES) {
+        throw new LocalActivityError(
+            LocRunbookStudio.gitChangeSetTooLarge,
+            "RunbookStudio.ResultTooLarge",
+        );
+    }
+    const destination = path.resolve(destinationRoot);
+    if (await localPathExists(destination)) {
+        throw new LocalActivityError(
+            LocRunbookStudio.runbookArtifactAlreadyExists(destination),
+            "RunbookStudio.ArtifactExists",
+        );
+    }
+    await fs.promises.mkdir(path.dirname(destination), { recursive: true });
+    const indexPath = path.join(
+        path.dirname(destination),
+        `.${path.basename(destination)}.${crypto.randomUUID()}.index`,
+    );
+    const gitEnvironment = { GIT_INDEX_FILE: indexPath };
+    let complete = false;
+    try {
+        await fs.promises.mkdir(destination);
+        await runBoundedGit(
+            repositoryRoot,
+            ["read-tree", commit],
+            MAX_GIT_METADATA_BYTES,
+            isCancellationRequested,
+            gitEnvironment,
+        );
+        await runBoundedGit(
+            repositoryRoot,
+            [
+                "-c",
+                "core.autocrlf=false",
+                "-c",
+                "core.eol=lf",
+                "checkout-index",
+                "--all",
+                "--force",
+                `--prefix=${destination}${path.sep}`,
+            ],
+            MAX_GIT_METADATA_BYTES,
+            isCancellationRequested,
+            gitEnvironment,
+        );
+        const extracted = await inventoryMaterializedRevision(destination, isCancellationRequested);
+        if (
+            extracted.fileCount !== files.length ||
+            extracted.totalBytes !== totalBytes ||
+            extracted.relativePaths.some(
+                (relativePath, index) => relativePath !== files[index].relativePath,
+            )
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.gitChangeSetInvalid,
+                "RunbookStudio.ArtifactInvalid",
+            );
+        }
+        const snapshotSha256 = crypto
+            .createHash("sha256")
+            .update(
+                canonicalRunbookJson({
+                    commit,
+                    files: files.map((file) => ({
+                        mode: file.mode,
+                        size: file.size,
+                        relativePath: file.relativePath,
+                    })),
+                }),
+            )
+            .digest("hex");
+        complete = true;
+        return {
+            repositoryRoot,
+            requestedRef: normalizedRef,
+            commit,
+            destinationRoot: destination,
+            fileCount: files.length,
+            totalBytes,
+            executableFileCount: files.filter((file) => file.mode === "100755").length,
+            snapshotSha256,
+        };
+    } finally {
+        await fs.promises.rm(indexPath, { force: true }).catch(() => undefined);
+        if (!complete) {
+            await fs.promises
+                .rm(destination, { recursive: true, force: true })
+                .catch(() => undefined);
+        }
+    }
+}
+
+export function parseGitRevisionTree(value: string): LocalGitTreeFile[] {
+    const files: LocalGitTreeFile[] = [];
+    for (const row of value.split("\0")) {
+        if (!row) {
+            continue;
+        }
+        const match = /^(\d{6}) (blob|commit) ([a-f0-9]{40,64})\s+(-|\d+)\t([\s\S]+)$/.exec(row);
+        if (!match || (match[1] !== "100644" && match[1] !== "100755") || match[2] !== "blob") {
+            throw new LocalActivityError(
+                LocRunbookStudio.gitChangeSetInvalid,
+                "RunbookStudio.ArtifactInvalid",
+            );
+        }
+        const size = Number(match[4]);
+        if (!Number.isSafeInteger(size) || size < 0) {
+            throw new LocalActivityError(
+                LocRunbookStudio.gitChangeSetInvalid,
+                "RunbookStudio.ArtifactInvalid",
+            );
+        }
+        files.push({
+            mode: match[1],
+            size,
+            relativePath: validateGitRelativePath(match[5]),
+        });
+    }
+    return files.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+}
+
+async function inventoryMaterializedRevision(
+    root: string,
+    isCancellationRequested: () => boolean,
+): Promise<{ fileCount: number; totalBytes: number; relativePaths: string[] }> {
+    const relativePaths: string[] = [];
+    let totalBytes = 0;
+    const pending = [root];
+    while (pending.length > 0) {
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.gitChangeSetCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const directory = pending.pop()!;
+        for (const entry of await fs.promises.readdir(directory, { withFileTypes: true })) {
+            const candidate = path.join(directory, entry.name);
+            if (entry.isSymbolicLink() || (!entry.isFile() && !entry.isDirectory())) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.gitChangeSetInvalid,
+                    "RunbookStudio.ArtifactInvalid",
+                );
+            }
+            if (entry.isDirectory()) {
+                pending.push(candidate);
+                continue;
+            }
+            const stat = await fs.promises.stat(candidate);
+            totalBytes += stat.size;
+            relativePaths.push(validateGitRelativePath(path.relative(root, candidate)));
+            if (
+                relativePaths.length > MAX_GIT_SNAPSHOT_FILES ||
+                totalBytes > MAX_GIT_SNAPSHOT_BYTES
+            ) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.gitChangeSetTooLarge,
+                    "RunbookStudio.ResultTooLarge",
+                );
+            }
+        }
+    }
+    relativePaths.sort((left, right) => left.localeCompare(right));
+    return { fileCount: relativePaths.length, totalBytes, relativePaths };
+}
+
 export function parseGitNameStatus(value: string): LocalGitChangeSetResult["files"] {
     const files: LocalGitChangeSetResult["files"] = [];
     for (const line of value.split(/\r?\n/)) {
@@ -508,6 +742,7 @@ function runBoundedGit(
     args: readonly string[],
     maxOutputBytes: number,
     isCancellationRequested: () => boolean,
+    environment?: Readonly<Record<string, string>>,
 ): Promise<string> {
     return new Promise((resolve, reject) => {
         if (isCancellationRequested()) {
@@ -521,6 +756,7 @@ function runBoundedGit(
         }
         const child = spawn("git", [...args], {
             cwd: repositoryRoot,
+            ...(environment ? { env: { ...process.env, ...environment } } : {}),
             windowsHide: true,
             shell: false,
             stdio: ["ignore", "pipe", "pipe"],
@@ -1047,6 +1283,15 @@ function sha256File(filePath: string, isCancellationRequested: () => boolean): P
         stream.on("error", reject);
         stream.on("end", () => resolve(hash.digest("hex")));
     });
+}
+
+async function localPathExists(candidate: string): Promise<boolean> {
+    try {
+        await fs.promises.access(candidate);
+        return true;
+    } catch {
+        return false;
+    }
 }
 
 function sqlTestDiscoveryCancelled(): LocalActivityError {

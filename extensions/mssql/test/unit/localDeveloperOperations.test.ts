@@ -13,6 +13,8 @@ import * as vscode from "vscode";
 import {
     discoverLocalSqlTests,
     inspectLocalGitChangeSet,
+    materializeLocalGitRevision,
+    parseGitRevisionTree,
     parseGitNameStatus,
     verifyLocalDacpacArtifact,
 } from "../../src/runbookStudio/runtime/localDeveloperOperations";
@@ -144,15 +146,29 @@ suite("Runbook Studio Git change-set parsing", () => {
             expect(() => parseGitNameStatus(value), value).to.throw(LocalActivityError);
         }
     });
+
+    test("refuses links, submodules, and unsafe paths in exact revision trees", () => {
+        expect(() =>
+            parseGitRevisionTree(`120000 blob ${"a".repeat(40)}       6\tlink\0`),
+        ).to.throw(LocalActivityError);
+        expect(() =>
+            parseGitRevisionTree(`160000 commit ${"b".repeat(40)}       -\tmodule\0`),
+        ).to.throw(LocalActivityError);
+        expect(() =>
+            parseGitRevisionTree(`100644 blob ${"c".repeat(40)}       1\t../escape.cs\0`),
+        ).to.throw(LocalActivityError);
+    });
 });
 
 suite("Runbook Studio local Git change-set capture", () => {
     let sandbox: sinon.SinonSandbox;
     let repository: string;
+    let snapshotParent: string;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         repository = fs.mkdtempSync(path.join(os.tmpdir(), "rbs-git-change-set-"));
+        snapshotParent = fs.mkdtempSync(path.join(os.tmpdir(), "rbs-git-snapshot-"));
         sandbox.stub(vscode.workspace, "isTrusted").value(true);
         sandbox.stub(vscode.workspace, "workspaceFolders").value([
             {
@@ -182,6 +198,9 @@ suite("Runbook Studio local Git change-set capture", () => {
 
     teardown(() => {
         sandbox.restore();
+        if (path.basename(snapshotParent).startsWith("rbs-git-snapshot-")) {
+            fs.rmSync(snapshotParent, { recursive: true, force: true });
+        }
         if (path.basename(repository).startsWith("rbs-git-change-set-")) {
             try {
                 fs.rmSync(repository, {
@@ -223,6 +242,42 @@ suite("Runbook Studio local Git change-set capture", () => {
         expect(result.artifactSha256).to.match(/^[a-f0-9]{64}$/);
         expect(fs.readFileSync(artifactPath, "utf8")).to.contain("src/Entities/AuditLog.cs");
         fs.rmSync(artifactPath);
+        expect(runGit(repository, ["status", "--porcelain"])).to.equal(beforeStatus);
+    });
+
+    test("materializes deterministic exact-ref snapshots without changing the checkout", async () => {
+        fs.writeFileSync(path.join(repository, "dirty.txt"), "not committed\n", "utf8");
+        const beforeHead = runGit(repository, ["rev-parse", "HEAD"]);
+        const beforeStatus = runGit(repository, ["status", "--porcelain"]);
+        const mainRoot = path.join(snapshotParent, "main");
+        const repeatedRoot = path.join(snapshotParent, "main-again");
+        const developmentRoot = path.join(snapshotParent, "development");
+
+        const main = await materializeLocalGitRevision(repository, "main", mainRoot, () => false);
+        const repeated = await materializeLocalGitRevision(
+            repository,
+            "main",
+            repeatedRoot,
+            () => false,
+        );
+        const development = await materializeLocalGitRevision(
+            repository,
+            "development",
+            developmentRoot,
+            () => false,
+        );
+
+        expect(main.commit).to.match(/^[a-f0-9]{40}$/);
+        expect(main.snapshotSha256).to.equal(repeated.snapshotSha256);
+        expect(development.snapshotSha256).not.to.equal(main.snapshotSha256);
+        expect(fs.existsSync(path.join(mainRoot, "dirty.txt"))).to.equal(false);
+        expect(fs.existsSync(path.join(mainRoot, "src", "Entities", "AuditLog.cs"))).to.equal(
+            false,
+        );
+        expect(
+            fs.readFileSync(path.join(developmentRoot, "src", "Entities", "AuditLog.cs"), "utf8"),
+        ).to.equal("class AuditLog { }\n");
+        expect(runGit(repository, ["rev-parse", "HEAD"])).to.equal(beforeHead);
         expect(runGit(repository, ["status", "--porcelain"])).to.equal(beforeStatus);
     });
 });
