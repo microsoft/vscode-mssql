@@ -127,4 +127,35 @@ suite("resultArtifacts", () => {
             outputs.slice(0, 32).map((output) => output.handleId),
         );
     });
+
+    test("projects a generated workload only from its registered producer", () => {
+        const run = snapshot([
+            {
+                nodeId: "generate",
+                state: "succeeded",
+                attempt: 1,
+                outputs: [{ handleId: "workload", contract: "workloadArtifact/1" }],
+            },
+        ]);
+        const valid = projectResultArtifacts(run, [
+            {
+                id: "generate",
+                label: "Generate workload",
+                kind: "activity",
+                activityKind: "sql.workload.generate",
+                activityVersion: 1,
+            },
+        ]);
+        expect(valid.artifacts).to.deep.include({
+            handleId: "workload",
+            contract: "workloadArtifact/1",
+            nodeId: "generate",
+            nodeLabel: "Generate workload",
+            expired: false,
+            truncated: false,
+        });
+        expect(
+            projectResultArtifacts(run, [planNode("generate", "Wrong producer")]).artifacts,
+        ).to.deep.equal([]);
+    });
 });

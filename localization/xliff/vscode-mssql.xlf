@@ -469,6 +469,10 @@
     <trans-unit id="++CODE++44b00c0e282443ba0669be2f57be8a112820909a49b2e026121d446409e42d21">
       <source xml:lang="en">Analyze static code with customizable rulesets in SQL Database Projects.</source>
     </trans-unit>
+    <trans-unit id="++CODE++6f4d96cdabe8db21078957a99ef33b4fe05ffa90b817ea6923ebbb67a0b6f0d6">
+      <source xml:lang="en">Analyzed {0} correlated Extended Events event(s).</source>
+      <note>{0} is an Extended Events event count</note>
+    </trans-unit>
     <trans-unit id="++CODE++0f67514b901da8b9c613167848294cb0010b3c0e696732aa1a0c9737e5be69b1">
       <source xml:lang="en">And</source>
     </trans-unit>
@@ -4458,6 +4462,14 @@
     </trans-unit>
     <trans-unit id="++CODE++553f9778e20ce771fa5313659bcd804d36168900a284dde2d5f1cf7e1f43446b">
       <source xml:lang="en">Generate sqlpackage command</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e4f557f71dc50bada1e0a76540c8176bbebfce2bbd0d68070336e961aeef8191">
+      <source xml:lang="en">Generated SQL workload</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e7d7fb3b25c0c193be6e4682c9329fc573d41dd79161a06a30ef61ac21cc47b4">
+      <source xml:lang="en">Generated a reviewable SQL workload from {0} sampled row(s) for {1} iteration(s).</source>
+      <note>{0} is a sampled row count
+{1} is a workload iteration count</note>
     </trans-unit>
     <trans-unit id="++CODE++2617124e87bf1506e42eea651c54fa179c29090a0a58e9829860984f03eca2fa">
       <source xml:lang="en">Generated file added to {0}</source>
@@ -9018,6 +9030,10 @@
     </trans-unit>
     <trans-unit id="++CODE++066774e14b870e6efa063f08209e18529c6426dcb79892c04ce4fb9800c83bb1">
       <source xml:lang="en">Summarize rows</source>
+    </trans-unit>
+    <trans-unit id="++CODE++57ea5c7f6811545d05c4a17d27d409b8cab93fef4b80e20485d080b0d959cf36">
+      <source xml:lang="en">Summarized {0} workload performance metric(s).</source>
+      <note>{0} is a performance metric count</note>
     </trans-unit>
     <trans-unit id="++CODE++8e76a94ac8320d515375e625bef1829238b097ecbd33611b59eeefd4ffefebfb">
       <source xml:lang="en">Summary</source>

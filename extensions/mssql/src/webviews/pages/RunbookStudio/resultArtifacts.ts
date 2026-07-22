@@ -9,6 +9,7 @@ export const RESULT_FILE_ARTIFACT_CONTRACTS = new Set([
     "dacpacArtifact/1",
     "schemaDiff/1",
     "schemaCompareDocument/1",
+    "workloadArtifact/1",
     "xelArtifact/1",
 ]);
 
@@ -17,6 +18,7 @@ const RESULT_FILE_ARTIFACT_PRODUCERS: Record<string, ReadonlySet<string>> = {
     "dacpacArtifact/1": new Set(["dacpac.build", "dacpac.extract"]),
     "schemaDiff/1": new Set(["schema.compare.export"]),
     "schemaCompareDocument/1": new Set(["schema.compare.export"]),
+    "workloadArtifact/1": new Set(["sql.workload.generate"]),
     "xelArtifact/1": new Set(["xevent.xel.collect"]),
 };
 

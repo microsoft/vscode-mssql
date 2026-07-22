@@ -19,6 +19,7 @@ const OUTPUT_ARTIFACT_EXTENSIONS = new Map<string, ReadonlySet<string>>([
     ["dacpacArtifact/1", new Set([".dacpac"])],
     ["schemaDiff/1", new Set([".xml"])],
     ["schemaCompareDocument/1", new Set([".json"])],
+    ["workloadArtifact/1", new Set([".sql"])],
     ["xelArtifact/1", new Set([".xel"])],
 ]);
 

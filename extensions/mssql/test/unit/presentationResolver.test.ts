@@ -357,6 +357,21 @@ suite("presentationResolver", () => {
             "databaseSchemaGraph/1",
         );
         expect(compatibleViews("databaseSchemaGraph/1")).to.deep.equal(["er-diagram", "json"]);
+        expect(expectedContractFor("activity", "sql.workload.generate")).to.equal(
+            "workloadArtifact/1",
+        );
+        expect(compatibleViews("workloadArtifact/1")).to.deep.equal(["scalar-cards", "json"]);
+        expect(expectedContractFor("activity", "xevent.xel.analyze")).to.equal("xeventAnalysis/1");
+        expect(compatibleViews("xeventAnalysis/1")).to.deep.equal([
+            "grid",
+            "timeseries",
+            "bar",
+            "json",
+        ]);
+        expect(expectedContractFor("activity", "workload.benchmark")).to.equal(
+            "performanceMetrics/1",
+        );
+        expect(compatibleViews("performanceMetrics/1")).to.deep.equal(["grid", "bar", "json"]);
         expect(expectedContractFor("activity", "sqltest.discover")).to.equal(
             "testSuiteDiscovery/1",
         );

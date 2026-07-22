@@ -11,6 +11,7 @@ export const MIN_LOCAL_XEL_FILE_SIZE_MB = 1;
 export const MAX_LOCAL_XEL_FILE_SIZE_MB = 64;
 export const MAX_LOCAL_XEL_ARTIFACT_BYTES = 64 * 1024 * 1024;
 export const MAX_LOCAL_XEL_ARCHIVE_BYTES = MAX_LOCAL_XEL_ARTIFACT_BYTES + 1024 * 1024;
+export const MAX_LOCAL_XEVENT_ANALYSIS_ROWS = 1000;
 
 const XEVENT_SESSION_NAME = /^rbs_xe_[a-f0-9]{24}$/;
 const XEL_DIRECTORY = "/var/opt/mssql/log";
@@ -37,6 +38,10 @@ export function localXeventSessionName(effectId: string): string {
 export function localXeventBasePath(sessionName: string): string {
     requireSessionName(sessionName);
     return `${XEL_DIRECTORY}/${sessionName}.xel`;
+}
+
+export function workloadApplicationName(runId: string): string {
+    return `vscode-mssql-runbook/${createHash("sha256").update(runId).digest("hex").slice(0, 24)}`;
 }
 
 export function buildStartLocalXeventSql(
@@ -109,6 +114,71 @@ export function buildStopLocalXeventSql(sessionName: string): string {
     ].join("\n");
 }
 
+/** Perftest-style, exact application-name correlation over the retained XEL.
+ * SQL text is deliberately excluded from the result contract. */
+export function buildAnalyzeLocalXeventSql(
+    sessionName: string,
+    serverPath: string,
+    databaseName: string,
+    applicationName: string,
+): string {
+    const validatedPath = validateLocalXelServerPath(sessionName, serverPath);
+    if (
+        !databaseName ||
+        databaseName.length > 128 ||
+        !applicationName ||
+        applicationName.length > 128
+    ) {
+        throw new LocalXeventPolicyError("invalidServerPath");
+    }
+    const pathLiteral = sqlLiteral(validatedPath);
+    const databaseLiteral = sqlLiteral(databaseName);
+    const applicationLiteral = sqlLiteral(applicationName);
+    return [
+        "SET NOCOUNT ON;",
+        "WITH [raw] AS (",
+        "    SELECT CAST([event_data] AS xml) AS [event_xml]",
+        `    FROM sys.fn_xe_file_target_read_file(N'${pathLiteral}', NULL, NULL, NULL)`,
+        "), [parsed] AS (",
+        "    SELECT",
+        "        [event_xml].value('(/event/@name)[1]', 'nvarchar(64)') AS [event_name],",
+        "        [event_xml].value('(/event/@timestamp)[1]', 'datetime2(7)') AS [timestamp_utc],",
+        "        [event_xml].value('(/event/action[@name=''client_app_name'']/value)[1]', 'nvarchar(256)') AS [client_app_name],",
+        "        [event_xml].value('(/event/action[@name=''database_name'']/value)[1]', 'nvarchar(128)') AS [database_name],",
+        "        [event_xml].value('(/event/data[@name=''duration'']/value)[1]', 'bigint') AS [duration_us],",
+        "        [event_xml].value('(/event/data[@name=''cpu_time'']/value)[1]', 'bigint') AS [cpu_time_us],",
+        "        [event_xml].value('(/event/data[@name=''logical_reads'']/value)[1]', 'bigint') AS [logical_reads],",
+        "        [event_xml].value('(/event/data[@name=''physical_reads'']/value)[1]', 'bigint') AS [physical_reads],",
+        "        [event_xml].value('(/event/data[@name=''writes'']/value)[1]', 'bigint') AS [writes],",
+        "        [event_xml].value('(/event/data[@name=''row_count'']/value)[1]', 'bigint') AS [row_count],",
+        "        [event_xml].value('(/event/data[@name=''object_name'']/value)[1]', 'nvarchar(256)') AS [object_name],",
+        "        [event_xml].value('(/event/data[@name=''error_number'']/value)[1]', 'int') AS [error_number]",
+        "    FROM [raw]",
+        "), [correlated] AS (",
+        "    SELECT * FROM [parsed]",
+        `    WHERE [client_app_name] = N'${applicationLiteral}' AND [database_name] = N'${databaseLiteral}'`,
+        ")",
+        `SELECT TOP (${MAX_LOCAL_XEVENT_ANALYSIS_ROWS})`,
+        "    [timestamp_utc], [event_name],",
+        "    CAST(COALESCE([duration_us], 0) / 1000.0 AS decimal(18,3)) AS [duration_ms],",
+        "    CAST(COALESCE([cpu_time_us], 0) / 1000.0 AS decimal(18,3)) AS [cpu_ms],",
+        "    COALESCE([logical_reads], 0) AS [logical_reads],",
+        "    COALESCE([physical_reads], 0) AS [physical_reads],",
+        "    COALESCE([writes], 0) AS [writes],",
+        "    COALESCE([row_count], 0) AS [row_count],",
+        "    COALESCE([object_name], N'') AS [object_name],",
+        "    COALESCE([error_number], 0) AS [error_number],",
+        "    COUNT_BIG(*) OVER () AS [total_event_count],",
+        "    CAST(SUM(COALESCE([duration_us], 0)) OVER () / 1000.0 AS decimal(18,3)) AS [total_duration_ms],",
+        "    CAST(SUM(COALESCE([cpu_time_us], 0)) OVER () / 1000.0 AS decimal(18,3)) AS [total_cpu_ms],",
+        "    SUM(COALESCE([logical_reads], 0)) OVER () AS [total_logical_reads],",
+        "    SUM(COALESCE([physical_reads], 0)) OVER () AS [total_physical_reads],",
+        "    SUM(COALESCE([writes], 0)) OVER () AS [total_writes]",
+        "FROM [correlated]",
+        "ORDER BY [timestamp_utc], [event_name];",
+    ].join("\n");
+}
+
 export function validateLocalXelServerPath(sessionName: string, serverPath: string): string {
     requireSessionName(sessionName);
     const normalized = path.posix.normalize(serverPath.trim().replace(/\\/g, "/"));
@@ -176,6 +246,13 @@ function requireSessionName(sessionName: string): void {
     if (!XEVENT_SESSION_NAME.test(sessionName)) {
         throw new LocalXeventPolicyError("invalidSession");
     }
+}
+
+function sqlLiteral(value: string): string {
+    if (/\u0000/.test(value)) {
+        throw new LocalXeventPolicyError("invalidServerPath");
+    }
+    return value.replace(/'/g, "''");
 }
 
 function readTarString(bytes: Buffer): string {

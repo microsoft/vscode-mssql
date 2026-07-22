@@ -20,14 +20,17 @@ suite("Runbook Studio managed artifact filenames", () => {
         expect(localManagedArtifactFileName("collect", "../../capture 1.xel")).to.equal(
             "collect-capture_1.xel",
         );
+        expect(localManagedArtifactFileName("generate", "workload.sql")).to.equal(
+            "generate-workload.sql",
+        );
     });
 
     test("[artifact-folder-routing] refuses unregistered extensions", () => {
         expect(() => localManagedArtifactFileName("extract", "database_dacpac")).to.throw(
             "unsupported managed artifact extension '(none)'",
         );
-        expect(() => localManagedArtifactFileName("report", "report.sql")).to.throw(
-            "unsupported managed artifact extension '.sql'",
+        expect(() => localManagedArtifactFileName("report", "report.exe")).to.throw(
+            "unsupported managed artifact extension '.exe'",
         );
     });
 });

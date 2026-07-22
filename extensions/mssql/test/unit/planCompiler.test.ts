@@ -20,6 +20,7 @@ import {
 } from "../../src/runbookStudio/activities/activityCatalog";
 import {
     buildCompilePrompt,
+    compileDeterministicCitiesWorkload,
     compileDeterministicDacpacEvolution,
     compileDeterministicDacpacInventory,
     extractJsonObject,
@@ -108,6 +109,50 @@ suite("planCompiler", () => {
         expect(buildCompilePrompt("create it", undefined, "build")).to.contain(
             "Inputs marked ddl must be exactly one complete CREATE TABLE statement",
         );
+    });
+
+    test("the sampled Cities workload and XEvent analysis compile deterministically", () => {
+        const intent =
+            "Can you look at some data in the WideWorldImporters database, in the Application.Cities table, " +
+            "sample like 10-20 rows, generate a workload generation script that does inserts and deletes in a loop " +
+            "with data that is similar to the sampled data. Run those insert/deletes in a script ~1000 times. " +
+            "Collect server statistics around IO, blocking, etc. And present performance activity metrics.";
+        const classified = classifyRunbookIntent(intent);
+        const workloadBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicCitiesWorkload(workloadBase, intent);
+        expect(result).not.to.equal(undefined);
+        if (!result) {
+            throw new Error("deterministic workload compiler did not match");
+        }
+        if (isProposalFailure(result)) {
+            throw new Error(result.detail);
+        }
+        expect(result.artifact.lock?.nodes).to.have.length(13);
+        expect(result.artifact.lock?.entryNodeId).to.equal("generate-workload");
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+        expect(
+            result.artifact.lock?.nodes.map((node) => node.activityKind).filter(Boolean),
+        ).to.have.members([
+            "sql.workload.generate",
+            "sql.container.provision",
+            "xevent.session.start",
+            "sql.workload.run",
+            "xevent.session.stop",
+            "xevent.xel.analyze",
+            "xevent.xel.collect",
+            "workload.benchmark",
+            "sql.container.dispose",
+        ]);
+        expect(
+            result.artifact.source.parameters.find((parameter) => parameter.id === "iterations"),
+        ).to.include({ type: "int", default: 1000 });
+        expect(
+            result.artifact.source.parameters.find((parameter) => parameter.id === "saPassword"),
+        ).to.include({ type: "secret", required: true });
     });
 
     test("the advanced extract, named deploy, table, and diff workflow compiles end to end", () => {
@@ -773,6 +818,16 @@ suite("planCompiler", () => {
                     },
                 },
                 {
+                    id: "analyze-xel",
+                    label: "Analyze XEL",
+                    kind: "activity",
+                    activityKind: "xevent.xel.analyze",
+                    inputs: {
+                        database: "$nodes.container.connectionRef",
+                        capture: "$nodes.stop-capture.captureRef",
+                    },
+                },
+                {
                     id: "collect-xel",
                     label: "Collect XEL",
                     kind: "activity",
@@ -813,8 +868,10 @@ suite("planCompiler", () => {
                 { from: "approve-workload", to: "stop-capture", when: "rejected" },
                 { from: "run", to: "stop-capture" },
                 { from: "run", to: "stop-capture", when: "failure" },
-                { from: "stop-capture", to: "collect-xel" },
+                { from: "stop-capture", to: "analyze-xel" },
                 { from: "stop-capture", to: "dispose", when: "failure" },
+                { from: "analyze-xel", to: "collect-xel" },
+                { from: "analyze-xel", to: "dispose", when: "failure" },
                 { from: "collect-xel", to: "dispose" },
                 { from: "collect-xel", to: "dispose", when: "failure" },
                 { from: "dispose", to: "report" },
@@ -839,6 +896,7 @@ suite("planCompiler", () => {
             "xevent.session.start",
             "sql.workload.run",
             "xevent.session.stop",
+            "xevent.xel.analyze",
             "xevent.xel.collect",
             "sql.container.dispose",
         ]);

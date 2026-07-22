@@ -32,6 +32,8 @@ function artifactTypeLabel(contract: string): string {
             return loc.schemaComparisonArtifactType;
         case "xelArtifact/1":
             return loc.xelArtifactType;
+        case "workloadArtifact/1":
+            return loc.workloadArtifactType;
         default:
             return contract;
     }

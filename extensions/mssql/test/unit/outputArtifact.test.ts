@@ -79,6 +79,27 @@ suite("Runbook Studio output artifact", () => {
         expect(outputArtifactEditorViewType("dacpacArtifact/1")).to.equal(undefined);
     });
 
+    test("admits a generated SQL workload under its closed artifact contract", async () => {
+        const workloadPath = path.join(root, "generated-workload.sql");
+        const workloadContents = Buffer.from("SELECT 1;", "utf8");
+        fs.writeFileSync(workloadPath, workloadContents);
+        const artifact = retainedOutputArtifact({
+            contract: "workloadArtifact/1",
+            scalars: {
+                artifactPath: workloadPath,
+                artifactSha256: createHash("sha256").update(workloadContents).digest("hex"),
+                artifactSizeBytes: workloadContents.length,
+            },
+        });
+        expect(artifact).to.include({
+            contract: "workloadArtifact/1",
+            artifactPath: workloadPath,
+            fileName: "generated-workload.sql",
+        });
+        expect(await verifyRetainedOutputArtifact(artifact!, [root])).to.equal(workloadPath);
+        expect(outputArtifactEditorViewType(artifact!.contract)).to.equal(undefined);
+    });
+
     test("refuses unknown contracts, wrong extensions, and non-file paths", () => {
         expect(retainedOutputArtifact({ ...payload(), contract: "rowset/1" })).to.equal(undefined);
         expect(

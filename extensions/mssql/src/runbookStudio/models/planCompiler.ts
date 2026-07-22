@@ -186,6 +186,230 @@ const DETERMINISTIC_DACPAC_EVOLUTION_ACTIVITIES = new Set([
     "schema.compare.export",
 ]);
 const DETERMINISTIC_SCHEMA_VISUALIZATION_ACTIVITY = "database.schema.visualize";
+const DETERMINISTIC_CITIES_WORKLOAD_ACTIVITIES = new Set([
+    "sql.container.provision",
+    "sql.workload.generate",
+    "xevent.session.start",
+    "sql.workload.run",
+    "xevent.session.stop",
+    "xevent.xel.analyze",
+    "xevent.xel.collect",
+    "workload.benchmark",
+    "sql.container.dispose",
+]);
+
+/** Compile the first closed data-driven workload workflow. Source rows are
+ * sampled by the host and never enter the planner; the generated mutations
+ * target a disposable shadow table inside an owned SQL container. */
+export function compileDeterministicCitiesWorkload(
+    base: RunbookArtifactFile,
+    intent: string,
+): ProposalParseResult | undefined {
+    const required = base.source.requirements?.activities.map((activity) => activity.kind) ?? [];
+    if (
+        required.length !== DETERMINISTIC_CITIES_WORKLOAD_ACTIVITIES.size ||
+        !required.every((kind) => DETERMINISTIC_CITIES_WORKLOAD_ACTIVITIES.has(kind)) ||
+        !/\bwideworldimporters\b/i.test(intent) ||
+        !/\bapplication\s*\.\s*cities\b/i.test(intent)
+    ) {
+        return undefined;
+    }
+    const identity =
+        base.id
+            .replace(/[^A-Za-z0-9]/g, "")
+            .slice(-20)
+            .toLowerCase() || "workload";
+    const proposal: CompiledProposal = {
+        name: "Application.Cities workload analysis",
+        description:
+            "Samples Application.Cities without model exposure, generates a reviewable shadow-table workload, runs it in an owned SQL container, and presents correlated XEvent performance metrics.",
+        parameters: [
+            {
+                id: "sourceConnection",
+                label: "WideWorldImporters source",
+                type: "connection",
+                required: true,
+            },
+            {
+                id: "containerName",
+                label: "Disposable container name",
+                type: "string",
+                required: true,
+                default: `rbs-cities-${identity}`,
+            },
+            {
+                id: "containerDatabase",
+                label: "Disposable database name",
+                type: "string",
+                required: true,
+                default: "CitiesWorkload",
+            },
+            {
+                id: "sqlVersion",
+                label: "SQL Server container version",
+                type: "enum",
+                required: true,
+                default: "2025",
+                enumValues: ["2025", "2022", "2019"],
+            },
+            {
+                id: "saPassword",
+                label: "Container administrator password",
+                type: "secret",
+                required: true,
+            },
+            {
+                id: "sampleRows",
+                label: "Rows to sample",
+                type: "int",
+                required: true,
+                default: 20,
+            },
+            {
+                id: "iterations",
+                label: "Insert/delete iterations",
+                type: "int",
+                required: true,
+                default: 1000,
+            },
+        ],
+        entryNodeId: "generate-workload",
+        nodes: [
+            {
+                id: "generate-workload",
+                label: "Sample Cities and generate workload",
+                kind: "activity",
+                activityKind: "sql.workload.generate",
+                inputs: {
+                    database: "$params.sourceConnection",
+                    template: "application-cities-shadow",
+                    sampleRows: "$params.sampleRows",
+                    iterations: "$params.iterations",
+                },
+            },
+            { id: "approve-provision", label: "Approve disposable SQL container", kind: "gate" },
+            {
+                id: "provision",
+                label: "Provision disposable SQL container",
+                kind: "activity",
+                activityKind: "sql.container.provision",
+                inputs: {
+                    containerName: "$params.containerName",
+                    databaseName: "$params.containerDatabase",
+                    version: "$params.sqlVersion",
+                    password: "$params.saPassword",
+                },
+            },
+            { id: "approve-capture", label: "Approve bounded XEvent capture", kind: "gate" },
+            {
+                id: "start-capture",
+                label: "Collect XEvent trace",
+                kind: "activity",
+                activityKind: "xevent.session.start",
+                inputs: {
+                    database: "$nodes.provision.connectionRef",
+                    template: "developer-diagnostics",
+                    maxFileSizeMb: 16,
+                },
+            },
+            { id: "approve-workload", label: "Approve generated workload execution", kind: "gate" },
+            {
+                id: "run-workload",
+                label: "Run generated workload",
+                kind: "activity",
+                activityKind: "sql.workload.run",
+                inputs: {
+                    database: "$nodes.provision.connectionRef",
+                    workload: "$nodes.generate-workload.workloadRef",
+                    workloadDigest: "$nodes.generate-workload.workloadSha256",
+                    repetitions: 1,
+                    timeoutSeconds: 300,
+                },
+            },
+            {
+                id: "stop-capture",
+                label: "Stop XEvent trace",
+                kind: "activity",
+                activityKind: "xevent.session.stop",
+                inputs: {
+                    database: "$nodes.provision.connectionRef",
+                    session: "$nodes.start-capture.sessionRef",
+                },
+            },
+            {
+                id: "analyze-capture",
+                label: "Analyze XEvent trace",
+                kind: "activity",
+                activityKind: "xevent.xel.analyze",
+                inputs: {
+                    database: "$nodes.provision.connectionRef",
+                    capture: "$nodes.stop-capture.captureRef",
+                },
+            },
+            {
+                id: "collect-capture",
+                label: "Retain XEL run artifact",
+                kind: "activity",
+                activityKind: "xevent.xel.collect",
+                inputs: {
+                    database: "$nodes.provision.connectionRef",
+                    capture: "$nodes.stop-capture.captureRef",
+                },
+            },
+            {
+                id: "summarize-performance",
+                label: "Summarize workload performance",
+                kind: "activity",
+                activityKind: "workload.benchmark",
+                inputs: {
+                    workloadDurationMs: "$nodes.run-workload.totalDurationMs",
+                    executedBatchCount: "$nodes.run-workload.executedBatchCount",
+                    failedBatchCount: "$nodes.run-workload.failedBatchCount",
+                    xeventDurationMs: "$nodes.analyze-capture.durationMs",
+                    xeventCpuMs: "$nodes.analyze-capture.cpuMs",
+                    logicalReads: "$nodes.analyze-capture.logicalReads",
+                    physicalReads: "$nodes.analyze-capture.physicalReads",
+                    writes: "$nodes.analyze-capture.writes",
+                },
+            },
+            {
+                id: "dispose",
+                label: "Remove disposable SQL container",
+                kind: "activity",
+                activityKind: "sql.container.dispose",
+                inputs: { database: "$nodes.provision.connectionRef" },
+            },
+            { id: "report", label: "Summarize workload analysis", kind: "report" },
+        ],
+        edges: [
+            { from: "generate-workload", to: "approve-provision" },
+            { from: "generate-workload", to: "report", when: "failure" },
+            { from: "approve-provision", to: "provision", when: "approved" },
+            { from: "approve-provision", to: "report", when: "rejected" },
+            { from: "provision", to: "approve-capture" },
+            { from: "provision", to: "report", when: "failure" },
+            { from: "approve-capture", to: "start-capture", when: "approved" },
+            { from: "approve-capture", to: "dispose", when: "rejected" },
+            { from: "start-capture", to: "approve-workload" },
+            { from: "start-capture", to: "dispose", when: "failure" },
+            { from: "approve-workload", to: "run-workload", when: "approved" },
+            { from: "approve-workload", to: "stop-capture", when: "rejected" },
+            { from: "run-workload", to: "stop-capture" },
+            { from: "run-workload", to: "stop-capture", when: "failure" },
+            { from: "stop-capture", to: "analyze-capture" },
+            { from: "stop-capture", to: "dispose", when: "failure" },
+            { from: "analyze-capture", to: "collect-capture" },
+            { from: "analyze-capture", to: "dispose", when: "failure" },
+            { from: "collect-capture", to: "summarize-performance" },
+            { from: "collect-capture", to: "summarize-performance", when: "failure" },
+            { from: "summarize-performance", to: "dispose" },
+            { from: "summarize-performance", to: "dispose", when: "failure" },
+            { from: "dispose", to: "report" },
+            { from: "dispose", to: "report", when: "failure" },
+        ],
+    };
+    return parseCompiledProposal(JSON.stringify(proposal), base, intent);
+}
 
 /**
  * Compile the first closed schema-evolution workflow without asking the
@@ -689,6 +913,23 @@ export async function compileIntentWithModel(
             { outcome, nodeCount, modelRole: "compiler" },
             context.traceId,
         );
+
+    const deterministicWorkload = compileDeterministicCitiesWorkload(base, intent);
+    if (deterministicWorkload && !isProposalFailure(deterministicWorkload)) {
+        emitRunbookEvent(context, "runbookStudio.compile.accepted", "ok", {
+            compiler: metaField("deterministicCitiesWorkload"),
+            nodeCount: metaField(deterministicWorkload.artifact.lock?.nodes.length ?? 0),
+            parameterCount: metaField(deterministicWorkload.artifact.source.parameters.length),
+        });
+        end("ok", deterministicWorkload.artifact.lock?.nodes.length ?? 0);
+        return { artifact: deterministicWorkload.artifact };
+    }
+    if (deterministicWorkload && isProposalFailure(deterministicWorkload)) {
+        emitRunbookEvent(context, "runbookStudio.compile.rejected", "warning", {
+            compiler: metaField("deterministicCitiesWorkload"),
+            reasonClass: metaField(deterministicWorkload.detail.slice(0, 80)),
+        });
+    }
 
     const deterministicEvolution = compileDeterministicDacpacEvolution(base, intent);
     if (deterministicEvolution && !isProposalFailure(deterministicEvolution)) {

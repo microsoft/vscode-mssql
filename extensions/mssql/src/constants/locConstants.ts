@@ -462,6 +462,13 @@ export class RunbookStudio {
             args: [fileName, batchCount],
             comment: ["{0} is a file name", "{1} is a SQL batch count"],
         });
+    public static workloadGenerated = (sampleRowCount: number, iterations: number) =>
+        l10n.t({
+            message:
+                "Generated a reviewable SQL workload from {0} sampled row(s) for {1} iteration(s).",
+            args: [sampleRowCount, iterations],
+            comment: ["{0} is a sampled row count", "{1} is a workload iteration count"],
+        });
     public static workloadCompleted = (batchCount: number) =>
         l10n.t({
             message: "SQL workload completed {0} batch execution(s).",
@@ -503,6 +510,18 @@ export class RunbookStudio {
             message: "Collected and verified a {0}-byte XEL artifact.",
             args: [sizeBytes],
             comment: ["{0} is a retained artifact size in bytes"],
+        });
+    public static xeventAnalysisCompleted = (eventCount: number) =>
+        l10n.t({
+            message: "Analyzed {0} correlated Extended Events event(s).",
+            args: [eventCount],
+            comment: ["{0} is an Extended Events event count"],
+        });
+    public static workloadBenchmarkSummarized = (metricCount: number) =>
+        l10n.t({
+            message: "Summarized {0} workload performance metric(s).",
+            args: [metricCount],
+            comment: ["{0} is a performance metric count"],
         });
     public static xeventPolicyInvalid = l10n.t(
         "The XEvent template, target size, session reference, or server file path is outside the owned-container capture policy.",

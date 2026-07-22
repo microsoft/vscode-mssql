@@ -209,6 +209,23 @@ function sampleRows(contract: string): {
                     ["Sample · evidence bundle ready"],
                 ],
             };
+        case "xeventAnalysis/1":
+            return {
+                columns: ["timestampUtc", "eventName", "durationMs", "cpuMs", "logicalReads"],
+                rows: [
+                    ["2026-07-21T09:00:00Z", "sql_batch_completed", 18.4, 4.2, 36],
+                    ["2026-07-21T09:00:01Z", "sql_batch_completed", 21.1, 5.1, 42],
+                ],
+            };
+        case "performanceMetrics/1":
+            return {
+                columns: ["metric", "value", "unit"],
+                rows: [
+                    ["Workload duration", 248, "ms"],
+                    ["Logical reads", 78, "reads"],
+                    ["Writes", 12, "writes"],
+                ],
+            };
         default:
             return {
                 columns: ["Metric", "Value"],

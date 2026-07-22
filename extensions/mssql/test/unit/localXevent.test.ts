@@ -8,11 +8,13 @@ import {
     LOCAL_XEVENT_TEMPLATE,
     LocalXeventPolicyError,
     buildReadLocalXeventFilePathSql,
+    buildAnalyzeLocalXeventSql,
     buildStartLocalXeventSql,
     buildStopLocalXeventSql,
     extractLocalXelFromDockerArchive,
     localXeventSessionName,
     validateLocalXelServerPath,
+    workloadApplicationName,
 } from "../../src/runbookStudio/runtime/localXevent";
 
 suite("Runbook Studio local XEvent policy", () => {
@@ -57,6 +59,30 @@ suite("Runbook Studio local XEvent policy", () => {
         expect(() => extractLocalXelFromDockerArchive(archive, "other.xel")).to.throw(
             LocalXeventPolicyError,
         );
+    });
+
+    test("builds bounded application-correlated XEL analysis without SQL text output", () => {
+        const session = localXeventSessionName("owned-effect");
+        const app = workloadApplicationName("run-123");
+        const sql = buildAnalyzeLocalXeventSql(
+            session,
+            `/var/opt/mssql/log/${session}_0_123.xel`,
+            "CitiesWorkload",
+            app,
+        );
+        expect(app).to.match(/^vscode-mssql-runbook\/[a-f0-9]{24}$/);
+        expect(sql).to.contain("SELECT TOP (1000)");
+        expect(sql).to.contain(`[client_app_name] = N'${app}'`);
+        expect(sql).to.contain("[database_name] = N'CitiesWorkload'");
+        expect(sql).not.to.contain("AS [sql_text]");
+        expect(() =>
+            buildAnalyzeLocalXeventSql(
+                session,
+                "/var/opt/mssql/data/foreign.xel",
+                "CitiesWorkload",
+                app,
+            ),
+        ).to.throw(LocalXeventPolicyError);
     });
 });
 

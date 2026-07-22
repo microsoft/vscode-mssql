@@ -253,6 +253,14 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         effect: "read",
         outputContract: "workloadPreview/1",
     },
+    "sql.workload.generate": {
+        target: "sqlDatabase",
+        effect: "mutate",
+        connectionRequirement: "required",
+        providerRequirement: "execution",
+        rollbackContract: "automatic",
+        outputContract: "workloadArtifact/1",
+    },
     "xevent.session.start": {
         target: "ephemeralSqlDatabase",
         effect: "mutate",
@@ -283,6 +291,18 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         rollbackContract: "automatic",
         outputContract: "xelArtifact/1",
     },
+    "xevent.xel.analyze": {
+        target: "ephemeralSqlDatabase",
+        effect: "read",
+        connectionRequirement: "provisioned",
+        providerRequirement: "execution",
+        outputContract: "xeventAnalysis/1",
+    },
+    "workload.benchmark": {
+        target: "workspace",
+        effect: "read",
+        outputContract: "performanceMetrics/1",
+    },
     "sqltest.run": {
         target: "sqlDatabase",
         effect: "read",
@@ -296,12 +316,6 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         connectionRequirement: "provisioned",
         rollbackContract: "automatic",
         outputContract: "testResults/1",
-    },
-    "workload.benchmark": {
-        target: "sqlDatabase",
-        effect: "read",
-        connectionRequirement: "required",
-        outputContract: "benchmarkResults/1",
     },
     "baseline.compare": {
         target: "workspace",
@@ -432,6 +446,11 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         description:
             "Snapshot and classify the explicitly selected workspace SQL file before approval.",
     },
+    "sql.workload.generate": {
+        label: "Generate the sampled SQL workload",
+        description:
+            "Sample the allowlisted source table and retain a reviewable disposable shadow-table workload.",
+    },
     "xevent.session.start": {
         label: "Start the XEvent capture",
         description:
@@ -451,6 +470,11 @@ const DESIGN_COPY: Readonly<Record<string, { label: string; description: string 
         label: "Collect the XEL artifact",
         description:
             "Copy the completed capture into managed evidence and record its path, size, and SHA-256 digest.",
+    },
+    "xevent.xel.analyze": {
+        label: "Analyze the XEvent trace",
+        description:
+            "Correlate bounded XEL activity to this run and project duration, CPU, reads, writes, rows, and errors.",
     },
     "sqltest.run": {
         label: "Run database tests",
@@ -523,9 +547,11 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "tsqlt.run",
         "sqltest.run",
         "xevent.session.start",
+        "sql.workload.generate",
         "sql.workload.inspect",
         "sql.workload.run",
         "xevent.session.stop",
+        "xevent.xel.analyze",
         "xevent.xel.collect",
         "workload.benchmark",
         "baseline.compare",
@@ -556,9 +582,11 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "tsqlt.run",
         "sqltest.run",
         "xevent.session.start",
+        "sql.workload.generate",
         "sql.workload.inspect",
         "sql.workload.run",
         "xevent.session.stop",
+        "xevent.xel.analyze",
         "xevent.xel.collect",
         "workload.benchmark",
         "baseline.compare",
@@ -577,9 +605,11 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "database.schema.visualize",
         "sql.container.provision",
         "xevent.session.start",
+        "sql.workload.generate",
         "sql.workload.inspect",
         "sql.workload.run",
         "xevent.session.stop",
+        "xevent.xel.analyze",
         "xevent.xel.collect",
         "workload.benchmark",
         "baseline.compare",
@@ -613,9 +643,11 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "sqltest.run",
         "sql.query.read",
         "xevent.session.start",
+        "sql.workload.generate",
         "sql.workload.inspect",
         "sql.workload.run",
         "xevent.session.stop",
+        "xevent.xel.analyze",
         "xevent.xel.collect",
         "workload.benchmark",
         "baseline.compare",
@@ -681,11 +713,20 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         text,
         /\b(deploy|publish|import)\b.{0,35}\b(dacpac|it)\b.{0,20}\b(as|into|to)\b\s+(?!a\s+)?(?:\[[^\]]+\]|[a-z_][a-z0-9_$#@.-]*)/,
     );
-    const requestsWorkload = has(
+    const requestsGeneratedWorkload = has(
         text,
-        /\b(run|execute|replay)\b.{0,45}\bworkload\b|\bworkload\b.{0,45}\.(sql|tsql)\b|\bworkload\.(sql|tsql)\b/,
+        /\b(generate|create|author)\b.{0,45}\bworkload\b|\bworkload\s+generation\b|\binserts?\b.{0,25}\bdeletes?\b.{0,45}\b(loop|times|iterations?)\b/,
     );
-    const requestsXevent = has(text, /\b(xevent|extended events?|xel)\b/);
+    const requestsWorkload =
+        requestsGeneratedWorkload ||
+        has(
+            text,
+            /\b(run|execute|replay)\b.{0,45}\bworkload\b|\bworkload\b.{0,45}\.(sql|tsql)\b|\bworkload\.(sql|tsql)\b/,
+        );
+    const requestsXevent = has(
+        text,
+        /\b(xevent|extended events?|xel|server statistics|logical reads?|physical reads?|blocking)\b/,
+    );
     const requestsSchemaCompareExport = has(
         text,
         /\b(schema compare|schema diff|diff)\b.{0,120}\b(file|artifact|report|xml|script|output|patch(?:es)?)\b|\bschema deltas?\b.{0,40}\b(diff|patch|output)\b|\b(create|save|export|write|show)\b.{0,35}\b(diff|comparison|deltas?)\b.{0,20}\b(file|artifact|report|xml|script|output|patch(?:es)?)\b/,
@@ -762,7 +803,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     ) {
         requested.add("dacpac.build");
     }
-    if (requestsContainer) {
+    if (requestsContainer || requestsGeneratedWorkload) {
         requested.add("sql.container.provision");
         requested.add("sql.container.dispose");
     } else if (has(text, /\b(provision|sandbox|scratch|isolated|ephemeral|local target)\b/)) {
@@ -826,11 +867,12 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         requested.add("xevent.session.start");
     }
     if (requestsWorkload) {
-        requested.add("sql.workload.inspect");
+        requested.add(requestsGeneratedWorkload ? "sql.workload.generate" : "sql.workload.inspect");
         requested.add("sql.workload.run");
     }
     if (requestsXevent) {
         requested.add("xevent.session.stop");
+        requested.add("xevent.xel.analyze");
         requested.add("xevent.xel.collect");
     }
     const requestsTsqlt = has(text, /\b(t-sqlt|tsqlt)\b/);
@@ -843,8 +885,15 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     if (isPreMerge || has(text, /\b(sql tests?|database tests?)\b/)) {
         requested.add("sqltest.run");
     }
-    if (has(text, /\b(performance|latency|benchmark|regression)\b/)) {
+    if (
+        has(
+            text,
+            /\b(performance|latency|benchmark|regression|activity metrics?|server statistics)\b/,
+        )
+    ) {
         requested.add("workload.benchmark");
+    }
+    if (has(text, /\b(regression|baseline|head[- ]?to[- ]?head)\b/)) {
         requested.add("baseline.compare");
     }
     if (has(text, /\b(permission|least privilege|effective access|security)\b/)) {

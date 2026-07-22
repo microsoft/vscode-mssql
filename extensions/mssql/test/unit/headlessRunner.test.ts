@@ -20,6 +20,7 @@ import {
 } from "../../src/runbookStudio/runbookArtifact";
 import { classifyRunbookIntent } from "../../src/runbookStudio/capabilities/runbookCapabilities";
 import {
+    compileDeterministicCitiesWorkload,
     compileDeterministicDacpacEvolution,
     compileDeterministicDacpacInventory,
     isProposalFailure,
@@ -309,6 +310,55 @@ suite("Runbook Studio headless deterministic preview", () => {
             executable: true,
             simulatedMutationCount: 5,
         });
+    });
+
+    test("drives sampled Cities workload capture and metrics through the headless plan runner", async () => {
+        const intent =
+            "Look at data in the WideWorldImporters database Application.Cities table, sample 20 rows, " +
+            "generate a workload that does inserts and deletes in a loop 1000 times, collect server " +
+            "statistics around IO and blocking, and present performance activity metrics.";
+        const classified = classifyRunbookIntent(intent);
+        const base = createNewRunbookArtifact("New runbook", "headless-cities-workload");
+        base.family = classified.family;
+        base.source.requirements = classified.requirements;
+        const compiled = compileDeterministicCitiesWorkload(base, intent);
+        if (!compiled) {
+            throw new Error("deterministic Cities workload workflow was not selected");
+        }
+        if (isProposalFailure(compiled)) {
+            throw new Error(compiled.detail);
+        }
+
+        const result = await runHeadlessPreview({
+            artifactText: canonicalizeRunbookArtifact(compiled.artifact),
+            parameterValues: {
+                sourceConnection: "preview-wideworldimporters-profile",
+                saPassword: "preview-secret-canary",
+            },
+            runId: "cities-workload-preview",
+            deterministicPreviewAcknowledged: true,
+            approvePreviewGates: true,
+        });
+
+        expect(result, JSON.stringify(result, undefined, 2)).to.include({
+            outcome: "pass",
+            exitCode: HEADLESS_EXIT_CODES.pass,
+            terminalState: "succeeded",
+            verdict: "pass",
+            evidenceAvailable: false,
+        });
+        expect(result.nodeCounts).to.deep.equal({
+            succeeded: 13,
+            failed: 0,
+            skipped: 0,
+            cancelled: 0,
+        });
+        expect(result.validation).to.include({
+            valid: true,
+            executable: true,
+            simulatedMutationCount: 7,
+        });
+        expect(JSON.stringify(result)).not.to.contain("preview-secret-canary");
     });
 
     test("refuses unsafe caller-provided run identities", async () => {

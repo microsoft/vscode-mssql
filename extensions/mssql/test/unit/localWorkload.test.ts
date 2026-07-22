@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import {
+    buildLocalCitiesShadowWorkload,
     LocalWorkloadPolicyError,
     MAX_LOCAL_WORKLOAD_BYTES,
     parseLocalWorkload,
@@ -48,6 +49,40 @@ suite("Runbook Studio local workload policy", () => {
     test("refuses unresolved variables and excessive content", () => {
         expect(() => parseLocalWorkload("SELECT '$(Missing)';")).to.throw(LocalWorkloadPolicyError);
         expect(() => parseLocalWorkload(Buffer.alloc(MAX_LOCAL_WORKLOAD_BYTES + 1, 65))).to.throw(
+            LocalWorkloadPolicyError,
+        );
+    });
+
+    test("builds an admitted closed Cities shadow-table workload", () => {
+        const source = buildLocalCitiesShadowWorkload(
+            Array.from({ length: 10 }, (_, index) => ({
+                cityName: index === 0 ? "O'Brien" : `City ${index}`,
+                stateProvinceId: index + 1,
+                latestRecordedPopulation: index === 1 ? null : 1000 + index,
+                lastEditedBy: 1,
+            })),
+            1000,
+            "abcdef123456",
+        );
+        const plan = parseLocalWorkload(source);
+        expect(plan.batchCount).to.equal(1);
+        expect(plan.mutating).to.equal(true);
+        expect(source).to.contain("WHILE @rbsIteration <= 1000");
+        expect(source).to.contain("O''Brien");
+        expect(source).to.contain("DROP TABLE [rbs_workload].[Cities_abcdef123456]");
+    });
+
+    test("rejects unsafe generated samples and iteration bounds", () => {
+        const rows = Array.from({ length: 10 }, (_, index) => ({
+            cityName: `City ${index}\u0000`,
+            stateProvinceId: 1,
+            latestRecordedPopulation: 1000,
+            lastEditedBy: 1,
+        }));
+        expect(() => buildLocalCitiesShadowWorkload(rows, 1000, "abcdef123456")).to.throw(
+            LocalWorkloadPolicyError,
+        );
+        expect(() => buildLocalCitiesShadowWorkload(rows.slice(0, 9), 1001, "bad")).to.throw(
             LocalWorkloadPolicyError,
         );
     });

@@ -485,6 +485,30 @@ suite("runbook capability preflight", () => {
         ]);
     });
 
+    test("sampled Cities performance intent is executable without baseline-only activities", () => {
+        const classified = classifyRunbookIntent(
+            "Look at data in WideWorldImporters Application.Cities, sample 20 rows, generate a workload " +
+                "that does inserts and deletes in a loop 1000 times, collect server statistics around IO and blocking, " +
+                "and present performance activity metrics.",
+        );
+        const kinds = classified.requirements.activities.map((activity) => activity.kind);
+        expect(kinds).to.have.members([
+            "sql.container.provision",
+            "sql.container.dispose",
+            "sql.workload.generate",
+            "xevent.session.start",
+            "sql.workload.run",
+            "xevent.session.stop",
+            "xevent.xel.analyze",
+            "xevent.xel.collect",
+            "workload.benchmark",
+        ]);
+        expect(kinds).not.to.include("baseline.compare");
+        expect(preflightRunbookRequirements(classified.requirements).status).to.equal(
+            "readyAfterBinding",
+        );
+    });
+
     test("recognizes the authored extract typo and dump vocabulary from the UI repro", () => {
         const classified = classifyRunbookIntent(
             "Exact WideWorldImporter to a dacpac. Deploy the dacpac back to server as WWI_2. " +

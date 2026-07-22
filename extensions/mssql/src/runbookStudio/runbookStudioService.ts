@@ -108,7 +108,9 @@ import {
     LocalSandboxLeaseResult,
     LocalSqlContainerCleanupResult,
     LocalSqlContainerLeaseResult,
+    LocalGeneratedWorkloadResult,
     LocalXelArtifactResult,
+    LocalXeventAnalysisResult,
     LocalXeventCaptureResult,
     LocalXeventSessionResult,
     LocalWorkloadPreviewResult,
@@ -217,19 +219,24 @@ import {
     validateSqlServerPassword,
 } from "../deployment/sqlServerContainer";
 import {
+    buildLocalCitiesShadowWorkload,
+    LOCAL_CITIES_WORKLOAD_TEMPLATE,
     LocalWorkloadPlan,
     LocalWorkloadPolicyError,
     MAX_LOCAL_WORKLOAD_BYTES,
     parseLocalWorkload,
 } from "./runtime/localWorkload";
 import {
+    buildAnalyzeLocalXeventSql,
     LocalXeventPolicyError,
+    MAX_LOCAL_XEVENT_ANALYSIS_ROWS,
     MAX_LOCAL_XEL_ARCHIVE_BYTES,
     buildStartLocalXeventSql,
     buildStopLocalXeventSql,
     extractLocalXelFromDockerArchive,
     localXeventSessionName,
     validateLocalXelServerPath,
+    workloadApplicationName,
 } from "./runtime/localXevent";
 import {
     SchemaCompareProviderError,
@@ -246,6 +253,10 @@ import {
     StoredConnectionProfile,
 } from "../services/metadata/profileAuthAdapter";
 import { vscodeSqlTokenSource } from "../services/sqlDataPlane/vscodeSqlTokenSource";
+import {
+    runRunbookDataPlaneQuery,
+    RunbookDataPlaneQueryError,
+} from "./providers/dataPlaneQueryProvider";
 
 const SimpleExecuteRequestType = new RequestType<
     { ownerUri: string; queryString: string },
@@ -2509,6 +2520,24 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         ),
                     inspectWorkload: (filePath, cancelled) =>
                         this.inspectLocalWorkload(filePath, cancelled),
+                    generateWorkload: (
+                        nodeId,
+                        databaseRef,
+                        template,
+                        sampleRows,
+                        iterations,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.generateLocalWorkload(
+                            nodeId,
+                            databaseRef,
+                            template,
+                            sampleRows,
+                            iterations,
+                            invocation,
+                            cancelled,
+                        ),
                     runWorkload: (
                         nodeId,
                         databaseRef,
@@ -2555,6 +2584,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                             invocation,
                             cancelled,
                         ),
+                    analyzeXel: (databaseRef, captureRef, invocation, cancelled) =>
+                        this.analyzeLocalXel(databaseRef, captureRef, invocation, cancelled),
                     previewDacpacDeployment: (dacpacPath, databaseRef, cancelled) =>
                         this.previewLocalDacpacDeployment(dacpacPath, databaseRef, cancelled),
                     deployDacpac: (
@@ -3382,6 +3413,170 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         };
     }
 
+    private async generateLocalWorkload(
+        nodeId: string,
+        databaseRef: string,
+        template: string,
+        sampleRows: number,
+        iterations: number,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalGeneratedWorkloadResult> {
+        if (template !== LOCAL_CITIES_WORKLOAD_TEMPLATE || isCancellationRequested()) {
+            throw new LocalActivityError(
+                isCancellationRequested()
+                    ? LocRunbookStudio.dacpacPreviewCancelled
+                    : LocRunbookStudio.workloadPolicyDenied,
+                isCancellationRequested()
+                    ? "RunbookStudio.ActivityCancelled"
+                    : "RunbookStudio.ActivityPolicyDenied",
+            );
+        }
+        const resolved = await this.resolveRunbookConnection(databaseRef);
+        const prepared = this.prepareLocalDataPlaneConnection(
+            resolved.profile,
+            resolved.targetDatabase,
+        );
+        const query = [
+            `SELECT TOP (${sampleRows})`,
+            "    CONVERT(nvarchar(100), [CityName]) AS [CityName],",
+            "    CONVERT(bigint, [StateProvinceID]) AS [StateProvinceID],",
+            "    CONVERT(bigint, [LatestRecordedPopulation]) AS [LatestRecordedPopulation],",
+            "    CONVERT(bigint, [LastEditedBy]) AS [LastEditedBy]",
+            "FROM [Application].[Cities]",
+            "ORDER BY [CityID];",
+        ].join("\n");
+        let sampled: unknown[][];
+        try {
+            sampled = await runRunbookDataPlaneQuery({
+                prepared,
+                database: resolved.targetDatabase,
+                applicationName: "vscode-mssql-runbook-workload-generator",
+                sql: query,
+                tag: "runbook.workload.sample-cities",
+                isCancellationRequested,
+                maxRows: sampleRows,
+            });
+        } catch (error) {
+            if (error instanceof RunbookDataPlaneQueryError) {
+                throw new LocalActivityError(
+                    error.message,
+                    error.code === "cancelled"
+                        ? "RunbookStudio.ActivityCancelled"
+                        : "RunbookStudio.ActivityFailed",
+                );
+            }
+            throw error;
+        }
+        if (sampled.length < sampleRows) {
+            throw new LocalActivityError(
+                LocRunbookStudio.workloadPolicyDenied,
+                "RunbookStudio.ActivityPolicyDenied",
+            );
+        }
+        const rows = sampled.map((row) => {
+            const cityName = typeof row[0] === "string" ? row[0] : undefined;
+            const stateProvinceId = runbookSafeInteger(row[1]);
+            const latestRecordedPopulation =
+                row[2] === null || row[2] === undefined ? null : runbookSafeInteger(row[2]);
+            const lastEditedBy = runbookSafeInteger(row[3]);
+            if (
+                cityName === undefined ||
+                stateProvinceId === undefined ||
+                latestRecordedPopulation === undefined ||
+                lastEditedBy === undefined
+            ) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.workloadPolicyDenied,
+                    "RunbookStudio.ActivityPolicyDenied",
+                );
+            }
+            return { cityName, stateProvinceId, latestRecordedPopulation, lastEditedBy };
+        });
+        const tableSuffix = crypto
+            .createHash("sha256")
+            .update(`${invocation.runId}\u0000${nodeId}\u0000${invocation.attempt}`)
+            .digest("hex")
+            .slice(0, 12);
+        let source: string;
+        let plan: LocalWorkloadPlan;
+        try {
+            source = buildLocalCitiesShadowWorkload(rows, iterations, tableSuffix);
+            plan = parseLocalWorkload(Buffer.from(source, "utf8"));
+        } catch (error) {
+            if (error instanceof LocalWorkloadPolicyError) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.workloadPolicyDenied,
+                    "RunbookStudio.ActivityPolicyDenied",
+                );
+            }
+            throw error;
+        }
+        const artifactPath = await this.localManagedArtifactPath(
+            invocation,
+            nodeId,
+            "generated-cities-workload.sql",
+        );
+        if (await pathExists(artifactPath)) {
+            throw new LocalActivityError(
+                LocRunbookStudio.runbookArtifactAlreadyExists(artifactPath),
+                "RunbookStudio.ArtifactExists",
+            );
+        }
+        let complete = false;
+        try {
+            await fs.promises.writeFile(artifactPath, source, { encoding: "utf8", flag: "wx" });
+            const stat = await fs.promises.stat(artifactPath);
+            const artifactSha256 = crypto
+                .createHash("sha256")
+                .update(Buffer.from(source, "utf8"))
+                .digest("hex");
+            if (
+                !stat.isFile() ||
+                stat.size !== plan.sourceByteCount ||
+                artifactSha256 !== plan.workloadSha256
+            ) {
+                throw new LocalWorkloadPolicyError("unsafeStatement");
+            }
+            if (this.workloadPreviews.size >= 32) {
+                const oldestRef = this.workloadPreviews.keys().next().value;
+                if (typeof oldestRef === "string") {
+                    this.workloadPreviews.delete(oldestRef);
+                }
+            }
+            const workloadRef = `runbook-workload:${plan.workloadSha256}:${crypto.randomUUID()}`;
+            const fileName = path.basename(artifactPath);
+            this.workloadPreviews.set(workloadRef, { plan, fileName });
+            complete = true;
+            return {
+                workloadRef,
+                fileName,
+                workloadSha256: plan.workloadSha256,
+                sourceByteCount: plan.sourceByteCount,
+                batchCount: plan.batchCount,
+                mutating: plan.mutating,
+                inspectedAtUtc: new Date().toISOString(),
+                artifactPath,
+                artifactSizeBytes: stat.size,
+                artifactSha256,
+                sampleRowCount: rows.length,
+                iterations,
+                template,
+            };
+        } catch (error) {
+            throw error instanceof LocalActivityError
+                ? error
+                : new LocalActivityError(
+                      LocRunbookStudio.workloadPolicyDenied,
+                      "RunbookStudio.ActivityPolicyDenied",
+                  );
+        } finally {
+            if (!complete) {
+                await fs.promises.rm(artifactPath, { force: true }).catch(() => undefined);
+            }
+        }
+    }
+
     private async runLocalWorkload(
         nodeId: string,
         databaseRef: string,
@@ -3479,10 +3674,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const results: LocalWorkloadRunResult["results"] = [];
         const startedAt = Date.now();
         try {
-            connected = await connectionManager.connect(ownerUri, resolved.profile, {
-                connectionSource: "runbookStudio",
-                shouldHandleErrors: false,
-            });
+            connected = await connectionManager.connect(
+                ownerUri,
+                {
+                    ...resolved.profile,
+                    applicationName: workloadApplicationName(invocation.runId),
+                },
+                {
+                    connectionSource: "runbookStudio",
+                    shouldHandleErrors: false,
+                },
+            );
             if (!connected) {
                 this.effectLedger.recordNoEffectFailure(effectId, "WorkloadConnectFailed");
                 throw new LocalActivityError(
@@ -3915,6 +4117,95 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             if (!complete) {
                 await fs.promises.rm(outputPath, { force: true }).catch(() => undefined);
             }
+        }
+    }
+
+    private async analyzeLocalXel(
+        databaseRef: string,
+        captureRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalXeventAnalysisResult> {
+        const capture = this.xeventCaptures.get(captureRef);
+        const owned = await this.requireOwnedContainerTarget(databaseRef, invocation.runId);
+        if (
+            !capture ||
+            capture.runId !== invocation.runId ||
+            capture.containerEffectId !== owned.containerEffectId ||
+            capture.containerName !== owned.containerName ||
+            capture.startEffectId !== effectIdFromLocalXeventCaptureRef(captureRef)
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.xeventPolicyInvalid,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        const resolved = await this.resolveRunbookConnection(databaseRef);
+        const prepared = this.prepareLocalDataPlaneConnection(
+            resolved.profile,
+            resolved.targetDatabase,
+        );
+        let sql: string;
+        try {
+            sql = buildAnalyzeLocalXeventSql(
+                capture.sessionName,
+                capture.serverPath,
+                resolved.targetDatabase,
+                workloadApplicationName(invocation.runId),
+            );
+        } catch (error) {
+            if (error instanceof LocalXeventPolicyError) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.xeventPolicyInvalid,
+                    "RunbookStudio.TargetChanged",
+                );
+            }
+            throw error;
+        }
+        try {
+            const rawRows = await runRunbookDataPlaneQuery({
+                prepared,
+                database: resolved.targetDatabase,
+                applicationName: "vscode-mssql-runbook-xevent-analysis",
+                sql,
+                tag: "runbook.xevent.analyze",
+                isCancellationRequested,
+                maxRows: MAX_LOCAL_XEVENT_ANALYSIS_ROWS,
+            });
+            const rows = rawRows.map((row) => ({
+                timestampUtc: runbookDisplayString(row[0]),
+                eventName: runbookDisplayString(row[1]),
+                durationMs: runbookMetric(row[2]),
+                cpuMs: runbookMetric(row[3]),
+                logicalReads: runbookMetric(row[4]),
+                physicalReads: runbookMetric(row[5]),
+                writes: runbookMetric(row[6]),
+                rowCount: runbookMetric(row[7]),
+                objectName: runbookDisplayString(row[8]),
+                errorNumber: runbookMetric(row[9]),
+            }));
+            const first = rawRows[0];
+            const eventCount = first ? runbookMetric(first[10]) : 0;
+            return {
+                rows,
+                eventCount,
+                durationMs: first ? runbookMetric(first[11]) : 0,
+                cpuMs: first ? runbookMetric(first[12]) : 0,
+                logicalReads: first ? runbookMetric(first[13]) : 0,
+                physicalReads: first ? runbookMetric(first[14]) : 0,
+                writes: first ? runbookMetric(first[15]) : 0,
+                truncated: eventCount > rows.length,
+            };
+        } catch (error) {
+            if (error instanceof RunbookDataPlaneQueryError) {
+                throw new LocalActivityError(
+                    error.message,
+                    error.code === "cancelled"
+                        ? "RunbookStudio.ActivityCancelled"
+                        : "RunbookStudio.ActivityFailed",
+                );
+            }
+            throw error;
         }
     }
 
@@ -5933,30 +6224,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             );
         }
         const resolved = await this.resolveRunbookConnection(databaseRef);
-        const connectionManager = this.connectionAccess();
-        if (!connectionManager) {
-            throw new LocalActivityError(
-                LocRunbookStudio.connectFailed,
-                "RunbookStudio.ProviderUnavailable",
-            );
-        }
-        const profile = {
-            ...resolved.profile,
-            database: resolved.targetDatabase,
-        } as mssql.IConnectionInfo & { password?: string };
-        const inlinePassword = profile.password;
-        const secrets: ProfileSecretSource = {
-            lookupPassword: async (credentials, isConnectionString) =>
-                inlinePassword ??
-                connectionManager.connectionStore.lookupPassword(
-                    credentials as mssql.IConnectionInfo,
-                    isConnectionString,
-                ),
-        };
-        const prepared = prepareConnection(
-            profile as StoredConnectionProfile,
-            secrets,
-            vscodeSqlTokenSource,
+        const prepared = this.prepareLocalDataPlaneConnection(
+            resolved.profile,
+            resolved.targetDatabase,
         );
         try {
             const provider = new MetadataStoreRunbookSchemaGraphProvider(
@@ -5979,6 +6249,33 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             }
             throw error;
         }
+    }
+
+    private prepareLocalDataPlaneConnection(
+        sourceProfile: mssql.IConnectionInfo,
+        database: string,
+    ) {
+        const connectionManager = this.connectionAccess();
+        if (!connectionManager) {
+            throw new LocalActivityError(
+                LocRunbookStudio.connectFailed,
+                "RunbookStudio.ProviderUnavailable",
+            );
+        }
+        const profile = {
+            ...sourceProfile,
+            database,
+        } as mssql.IConnectionInfo & { password?: string };
+        const inlinePassword = profile.password;
+        const secrets: ProfileSecretSource = {
+            lookupPassword: async (credentials, isConnectionString) =>
+                inlinePassword ??
+                connectionManager.connectionStore.lookupPassword(
+                    credentials as mssql.IConnectionInfo,
+                    isConnectionString,
+                ),
+        };
+        return prepareConnection(profile as StoredConnectionProfile, secrets, vscodeSqlTokenSource);
     }
 
     private async previewLocalDacpacDeployment(
@@ -6571,6 +6868,37 @@ function effectIdFromLocalXeventSessionRef(sessionRef: string): string | undefin
 
 function localXeventCaptureRef(effectId: string): string {
     return `runbook-xevent-capture:${effectId}`;
+}
+
+function runbookSafeInteger(value: unknown): number | undefined {
+    const parsed =
+        typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
+    return Number.isSafeInteger(parsed) ? parsed : undefined;
+}
+
+function runbookMetric(value: unknown): number {
+    const parsed =
+        typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
+    if (!Number.isFinite(parsed) || parsed < 0) {
+        throw new LocalActivityError(
+            LocRunbookStudio.xeventPolicyInvalid,
+            "RunbookStudio.ActivityFailed",
+        );
+    }
+    return parsed;
+}
+
+function runbookDisplayString(value: unknown): string {
+    if (value === null || value === undefined) {
+        return "";
+    }
+    if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        return String(value);
+    }
+    throw new LocalActivityError(
+        LocRunbookStudio.xeventPolicyInvalid,
+        "RunbookStudio.ActivityFailed",
+    );
 }
 
 function effectIdFromLocalXeventCaptureRef(captureRef: string): string | undefined {

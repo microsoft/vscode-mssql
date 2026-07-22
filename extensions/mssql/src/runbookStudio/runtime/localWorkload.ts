@@ -8,6 +8,17 @@ import * as crypto from "crypto";
 export const MAX_LOCAL_WORKLOAD_BYTES = 1024 * 1024;
 export const MAX_LOCAL_WORKLOAD_BATCHES = 256;
 export const MAX_LOCAL_WORKLOAD_GO_REPETITION = 100;
+export const LOCAL_CITIES_WORKLOAD_TEMPLATE = "application-cities-shadow";
+export const MIN_LOCAL_CITIES_SAMPLE_ROWS = 10;
+export const MAX_LOCAL_CITIES_SAMPLE_ROWS = 20;
+export const MAX_LOCAL_CITIES_ITERATIONS = 1000;
+
+export interface LocalCitiesSampleRow {
+    cityName: string;
+    stateProvinceId: number;
+    latestRecordedPopulation: number | null;
+    lastEditedBy: number;
+}
 
 const BLOCKED_WORKLOAD_POLICY =
     /\b(?:use\s+|backup\s+(?:database|log)|restore\s+(?:database|log)|(?:create|alter|drop)\s+database|alter\s+server|(?:create|alter|drop)\s+server\s+role|shutdown\b|kill\s+\d+|dbcc\b|reconfigure\b|sp_configure\b|xp_[a-z0-9_]*\b|create\s+(?:login|credential|external\s+(?:data\s+source|file\s+format|table|library))|alter\s+login|drop\s+login|execute\s+as\s+login|openrowset\b|opendatasource\b|bulk\s+insert)\b/i;
@@ -129,6 +140,80 @@ export function parseLocalWorkload(content: Buffer | string): LocalWorkloadPlan 
         mutating: batches.some((batch) => MUTATION_SIGNAL.test(maskSqlStringsAndComments(batch))),
         batches,
     };
+}
+
+/** Closed workload generator for the first data-driven developer scenario.
+ * Sample values never enter a model call; they are projected by the host
+ * directly into a disposable shadow table in the owned target container. */
+export function buildLocalCitiesShadowWorkload(
+    rows: readonly LocalCitiesSampleRow[],
+    iterations: number,
+    tableSuffix: string,
+): string {
+    if (
+        rows.length < MIN_LOCAL_CITIES_SAMPLE_ROWS ||
+        rows.length > MAX_LOCAL_CITIES_SAMPLE_ROWS ||
+        !Number.isSafeInteger(iterations) ||
+        iterations < 1 ||
+        iterations > MAX_LOCAL_CITIES_ITERATIONS ||
+        !/^[a-f0-9]{12}$/.test(tableSuffix)
+    ) {
+        throw new LocalWorkloadPolicyError("unsafeStatement");
+    }
+    const values = rows
+        .map(
+            (row) =>
+                `(N'${escapeSqlString(row.cityName)}', ${integerSql(row.stateProvinceId)}, ${
+                    row.latestRecordedPopulation === null
+                        ? "NULL"
+                        : integerSql(row.latestRecordedPopulation)
+                }, ${integerSql(row.lastEditedBy)})`,
+        )
+        .join(",\n    ");
+    const tableName = `[rbs_workload].[Cities_${tableSuffix}]`;
+    return [
+        "SET NOCOUNT ON;",
+        "SET XACT_ABORT ON;",
+        "IF SCHEMA_ID(N'rbs_workload') IS NULL EXEC(N'CREATE SCHEMA [rbs_workload] AUTHORIZATION [dbo]');",
+        `IF OBJECT_ID(N'${tableName}', N'U') IS NOT NULL THROW 51020, 'Runbook workload shadow table already exists.', 1;`,
+        `CREATE TABLE ${tableName}(`,
+        "    [WorkloadRowId] bigint IDENTITY(1,1) NOT NULL PRIMARY KEY,",
+        "    [CityName] nvarchar(100) NOT NULL,",
+        "    [StateProvinceID] int NOT NULL,",
+        "    [LatestRecordedPopulation] bigint NULL,",
+        "    [LastEditedBy] int NOT NULL",
+        ");",
+        `INSERT ${tableName} ([CityName], [StateProvinceID], [LatestRecordedPopulation], [LastEditedBy]) VALUES`,
+        `    ${values};`,
+        "DECLARE @rbsIteration int = 1;",
+        "DECLARE @rbsInsertedId bigint;",
+        `WHILE @rbsIteration <= ${iterations}`,
+        "BEGIN",
+        `    INSERT ${tableName} ([CityName], [StateProvinceID], [LatestRecordedPopulation], [LastEditedBy])`,
+        "    SELECT CONCAT(LEFT([CityName], 72), N'_rbs_', @rbsIteration), [StateProvinceID], [LatestRecordedPopulation], [LastEditedBy]",
+        `    FROM ${tableName}`,
+        "    ORDER BY [WorkloadRowId]",
+        "    OFFSET ((@rbsIteration - 1) % " + rows.length + ") ROWS FETCH NEXT 1 ROWS ONLY;",
+        "    SET @rbsInsertedId = SCOPE_IDENTITY();",
+        `    DELETE FROM ${tableName} WHERE [WorkloadRowId] = @rbsInsertedId;`,
+        "    SET @rbsIteration += 1;",
+        "END;",
+        `DROP TABLE ${tableName};`,
+    ].join("\n");
+}
+
+function escapeSqlString(value: string): string {
+    if (value.length === 0 || value.length > 100 || /[\u0000-\u001f]/.test(value)) {
+        throw new LocalWorkloadPolicyError("unsafeStatement");
+    }
+    return value.replace(/'/g, "''");
+}
+
+function integerSql(value: number): string {
+    if (!Number.isSafeInteger(value)) {
+        throw new LocalWorkloadPolicyError("unsafeStatement");
+    }
+    return String(value);
 }
 
 /** Retains token boundaries while removing quoted/comment text so policy

@@ -24,8 +24,12 @@ import {
     waitForLocalSqlContainerAuthentication,
 } from "../../src/runbookStudio/runtime/localContainerOperations";
 import { buildCreateLocalDevelopmentDatabaseSql } from "../../src/runbookStudio/runtime/localDevelopmentDatabaseOperations";
-import { parseLocalWorkload } from "../../src/runbookStudio/runtime/localWorkload";
 import {
+    buildLocalCitiesShadowWorkload,
+    parseLocalWorkload,
+} from "../../src/runbookStudio/runtime/localWorkload";
+import {
+    buildAnalyzeLocalXeventSql,
     buildStartLocalXeventSql,
     buildStopLocalXeventSql,
     extractLocalXelFromDockerArchive,
@@ -110,18 +114,31 @@ suite("Runbook Studio owned SQL container workflow live smoke (gated)", function
             );
 
             const workload = parseLocalWorkload(
-                [
-                    "CREATE TABLE dbo.RunbookSmoke(Id int NOT NULL PRIMARY KEY, Value nvarchar(100) NOT NULL);",
-                    "GO",
-                    "INSERT dbo.RunbookSmoke VALUES(1, N'captured');",
-                    "GO",
-                    "SELECT COUNT_BIG(*) AS [CapturedRows] FROM dbo.RunbookSmoke;",
-                ].join("\n"),
+                buildLocalCitiesShadowWorkload(
+                    Array.from({ length: 10 }, (_, index) => ({
+                        cityName: `Live City ${index + 1}`,
+                        stateProvinceId: index + 1,
+                        latestRecordedPopulation: 10_000 + index,
+                        lastEditedBy: 1,
+                    })),
+                    1000,
+                    suffix,
+                ),
             );
             expect(workload.mutating).to.equal(true);
             for (const batch of workload.batches) {
                 runSql(containerName, password, databaseName, batch);
             }
+            const applicationName = runSql(
+                containerName,
+                password,
+                databaseName,
+                "SET NOCOUNT ON; SELECT APP_NAME();",
+            )
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .find((line) => line.length > 0 && !/^\(/.test(line));
+            expect(applicationName).not.to.equal(undefined);
 
             const stopped = runSql(
                 containerName,
@@ -137,6 +154,20 @@ suite("Runbook Studio owned SQL container workflow live smoke (gated)", function
             const [reportedPath, countText] = capture!.split("|");
             const serverPath = validateLocalXelServerPath(sessionName, reportedPath);
             expect(Number(countText)).to.be.greaterThan(0);
+
+            const analysis = runSql(
+                containerName,
+                password,
+                "master",
+                buildAnalyzeLocalXeventSql(sessionName, serverPath, databaseName, applicationName!),
+            );
+            expect(analysis).to.contain("sql_batch_completed");
+            const analyzedRows = analysis
+                .split(/\r?\n/)
+                .map((line) => line.trim())
+                .filter((line) => line.includes("|sql_batch_completed|"));
+            expect(analyzedRows.length).to.be.greaterThan(0);
+            expect(analyzedRows[0].split("|")).to.have.length(16);
 
             const archive = await readBoundedArchive(
                 (await container!.getArchive({ path: serverPath })) as Readable,

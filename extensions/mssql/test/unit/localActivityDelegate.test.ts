@@ -270,6 +270,21 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             mutating: true,
             inspectedAtUtc: "2026-07-20T20:03:01.000Z",
         }),
+        generateWorkload: async () => ({
+            workloadRef: `runbook-workload:${"4".repeat(64)}:11111111-1111-4111-8111-111111111111`,
+            fileName: "generated-cities-workload.sql",
+            workloadSha256: "4".repeat(64),
+            sourceByteCount: 1024,
+            batchCount: 1,
+            mutating: true,
+            inspectedAtUtc: "2026-07-20T20:03:01.000Z",
+            artifactPath: "C:\\managed\\generated-cities-workload.sql",
+            artifactSizeBytes: 1024,
+            artifactSha256: "4".repeat(64),
+            sampleRowCount: 20,
+            iterations: 1000,
+            template: "application-cities-shadow",
+        }),
         runWorkload: async () => ({
             effectId: `effect-${"5".repeat(64)}`,
             workloadSha256: "4".repeat(64),
@@ -322,6 +337,29 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             eventCount: 12,
             captureComplete: true,
             collectedAtUtc: "2026-07-20T20:03:05.000Z",
+        }),
+        analyzeXel: async () => ({
+            rows: [
+                {
+                    timestampUtc: "2026-07-20T20:03:03.500Z",
+                    eventName: "sql_batch_completed",
+                    durationMs: 22.5,
+                    cpuMs: 4,
+                    logicalReads: 30,
+                    physicalReads: 1,
+                    writes: 3,
+                    rowCount: 2,
+                    objectName: "",
+                    errorNumber: 0,
+                },
+            ],
+            eventCount: 1,
+            durationMs: 22.5,
+            cpuMs: 4,
+            logicalReads: 30,
+            physicalReads: 1,
+            writes: 3,
+            truncated: false,
         }),
         disposeSandbox: async () => ({
             effectId: `effect-${"d".repeat(64)}`,
@@ -844,6 +882,33 @@ suite("Runbook Studio local activity delegate", () => {
         });
     });
 
+    test("sampled workload generation emits a reviewable managed artifact", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+        const result = await delegate.executeActivity(
+            activity("sql.workload.generate", {
+                database: "source-profile",
+                template: "application-cities-shadow",
+                sampleRows: 20,
+                iterations: 1000,
+            }),
+            binding(),
+        );
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("workloadArtifact/1");
+        expect(result?.output?.scalars).to.deep.include({
+            artifactPath: "C:\\managed\\generated-cities-workload.sql",
+            artifactSha256: "4".repeat(64),
+            sampleRowCount: 20,
+            iterations: 1000,
+            template: "application-cities-shadow",
+        });
+        expect(result?.values).to.deep.include({
+            workloadSha256: "4".repeat(64),
+            sampleRowCount: 20,
+            iterations: 1000,
+        });
+    });
+
     test("XEvent start, stop, and collection emit an actionable XEL artifact", async () => {
         const delegate = new LocalSqlActivityDelegate(operations());
         const databaseRef = `runbook-sql-container-lease:effect-${"3".repeat(64)}`;
@@ -895,6 +960,41 @@ suite("Runbook Studio local activity delegate", () => {
             eventCount: 12,
             captureComplete: true,
         });
+
+        const analyze = await delegate.executeActivity(
+            activity("xevent.xel.analyze", {
+                database: "$nodes.container.connectionRef",
+                capture: "$nodes.stop.captureRef",
+            }),
+            binding(resolve),
+        );
+        expect(analyze?.success).to.equal(true);
+        expect(analyze?.output?.contract).to.equal("xeventAnalysis/1");
+        expect(analyze?.output?.rows).to.have.length(1);
+        expect(analyze?.values).to.deep.include({
+            eventCount: 1,
+            durationMs: 22.5,
+            cpuMs: 4,
+            logicalReads: 30,
+            writes: 3,
+        });
+
+        const benchmark = await delegate.executeActivity(
+            activity("workload.benchmark", {
+                workloadDurationMs: 30,
+                executedBatchCount: 2,
+                failedBatchCount: 0,
+                xeventDurationMs: 22.5,
+                xeventCpuMs: 4,
+                logicalReads: 30,
+                physicalReads: 1,
+                writes: 3,
+            }),
+            binding(),
+        );
+        expect(benchmark?.success).to.equal(true);
+        expect(benchmark?.output?.contract).to.equal("performanceMetrics/1");
+        expect(benchmark?.output?.rows).to.deep.include(["Logical reads", 30, "reads"]);
     });
 
     test("guarded deployment and schema verification emit typed evidence", async () => {
@@ -1296,6 +1396,7 @@ suite("Runbook Studio local activity delegate", () => {
             "sandbox.provision",
             "devdatabase.provision",
             "sql.container.provision",
+            "sql.workload.generate",
             "sql.workload.inspect",
             "dacpac.deploy.preview",
             "dacpac.deploy",
@@ -1306,6 +1407,8 @@ suite("Runbook Studio local activity delegate", () => {
             "sql.workload.run",
             "xevent.session.stop",
             "xevent.xel.collect",
+            "xevent.xel.analyze",
+            "workload.benchmark",
             "schema.compare",
             "schema.compare.export",
             "database.schema.inventory",

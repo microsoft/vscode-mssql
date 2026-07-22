@@ -267,6 +267,10 @@
         "message": "Inspected SQL workload '{0}' with {1} bounded batch(es).",
         "comment": ["{0} is a file name", "{1} is a SQL batch count"]
     },
+    "Generated a reviewable SQL workload from {0} sampled row(s) for {1} iteration(s)./{0} is a sampled row count{1} is a workload iteration count": {
+        "message": "Generated a reviewable SQL workload from {0} sampled row(s) for {1} iteration(s).",
+        "comment": ["{0} is a sampled row count", "{1} is a workload iteration count"]
+    },
     "SQL workload completed {0} batch execution(s)./{0} is an executed SQL batch count": {
         "message": "SQL workload completed {0} batch execution(s).",
         "comment": ["{0} is an executed SQL batch count"]
@@ -290,6 +294,14 @@
     "Collected and verified a {0}-byte XEL artifact./{0} is a retained artifact size in bytes": {
         "message": "Collected and verified a {0}-byte XEL artifact.",
         "comment": ["{0} is a retained artifact size in bytes"]
+    },
+    "Analyzed {0} correlated Extended Events event(s)./{0} is an Extended Events event count": {
+        "message": "Analyzed {0} correlated Extended Events event(s).",
+        "comment": ["{0} is an Extended Events event count"]
+    },
+    "Summarized {0} workload performance metric(s)./{0} is a performance metric count": {
+        "message": "Summarized {0} workload performance metric(s).",
+        "comment": ["{0} is a performance metric count"]
     },
     "The XEvent template, target size, session reference, or server file path is outside the owned-container capture policy.": "The XEvent template, target size, session reference, or server file path is outside the owned-container capture policy.",
     "The owned XEvent session could not be created, inspected, or removed safely.": "The owned XEvent session could not be created, inspected, or removed safely.",
@@ -5238,6 +5250,7 @@
     "DACPAC": "DACPAC",
     "Schema comparison report": "Schema comparison report",
     "XEvent data": "XEvent data",
+    "Generated SQL workload": "Generated SQL workload",
     "{0} additional artifacts are omitted from this bounded list./{0} is the number of additional retained run artifacts": {
         "message": "{0} additional artifacts are omitted from this bounded list.",
         "comment": ["{0} is the number of additional retained run artifacts"]

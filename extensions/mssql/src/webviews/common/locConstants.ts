@@ -4163,6 +4163,7 @@ export class LocConstants {
             dacpacArtifactType: l10n.t("DACPAC"),
             schemaComparisonArtifactType: l10n.t("Schema comparison report"),
             xelArtifactType: l10n.t("XEvent data"),
+            workloadArtifactType: l10n.t("Generated SQL workload"),
             additionalArtifactsOmitted: (count: number) =>
                 l10n.t({
                     message: "{0} additional artifacts are omitted from this bounded list.",

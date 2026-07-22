@@ -217,6 +217,55 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "sql.workload.generate",
+        version: 1,
+        label: "Generate sampled SQL workload",
+        description:
+            "Samples a closed allowlisted source table through the SQL data plane and retains a reviewable workload that runs only against an owned target.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Saved source connection containing WideWorldImporters",
+            },
+            {
+                name: "template",
+                kind: "bind",
+                required: true,
+                description: "Allowlisted template: application-cities-shadow",
+            },
+            {
+                name: "sampleRows",
+                kind: "bind",
+                required: false,
+                description: "Source sample size from 10 to 20 rows (default 20)",
+            },
+            {
+                name: "iterations",
+                kind: "bind",
+                required: false,
+                description: "Insert/delete loop iterations from 1 to 1000 (default 1000)",
+            },
+        ],
+        outputContract: "workloadArtifact/1",
+        producedValues: [
+            "workloadRef",
+            "workloadSha256",
+            "artifactPath",
+            "sampleRowCount",
+            "iterations",
+        ],
+        target: { kind: "sqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "workspaceFiles",
+            operation: "create",
+            targetEnvironment: "development",
+            reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "sql.workload.inspect",
         version: 1,
         label: "Inspect trusted SQL workload",
@@ -618,6 +667,132 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
             operation: "create",
             targetEnvironment: "ephemeral",
             reversibility: "autoReversible",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "xevent.xel.analyze",
+        version: 1,
+        label: "Analyze owned XEvent trace",
+        description:
+            "Reads the exact retained XEL through the SQL data plane, correlates events to this run's workload application name, and emits bounded server activity rows without SQL text.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to the same sql.container.provision connectionRef",
+            },
+            {
+                name: "capture",
+                kind: "bind",
+                required: true,
+                description: "Bind to xevent.session.stop captureRef",
+            },
+        ],
+        outputContract: "xeventAnalysis/1",
+        outputSchema: {
+            fields: [
+                { name: "timestampUtc", valueType: "dateTime", roles: ["time"] },
+                { name: "eventName", valueType: "string", roles: ["category"] },
+                { name: "durationMs", valueType: "number", roles: ["measure"] },
+                { name: "cpuMs", valueType: "number", roles: ["measure"] },
+                { name: "logicalReads", valueType: "number", roles: ["measure"] },
+                { name: "physicalReads", valueType: "number", roles: ["measure"] },
+                { name: "writes", valueType: "number", roles: ["measure"] },
+                { name: "rowCount", valueType: "number", roles: ["measure"] },
+                { name: "objectName", valueType: "string" },
+                { name: "errorNumber", valueType: "number" },
+            ],
+        },
+        producedValues: [
+            "eventCount",
+            "durationMs",
+            "cpuMs",
+            "logicalReads",
+            "physicalReads",
+            "writes",
+        ],
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseData",
+            operation: "read",
+            targetEnvironment: "ephemeral",
+            reversibility: "noEffect",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "workload.benchmark",
+        version: 1,
+        label: "Summarize workload performance",
+        description:
+            "Combines measured workload and optional correlated XEvent totals into a deterministic performance metrics grid.",
+        inputs: [
+            {
+                name: "workloadDurationMs",
+                kind: "bind",
+                required: true,
+                description: "Bind to sql.workload.run totalDurationMs",
+            },
+            {
+                name: "executedBatchCount",
+                kind: "bind",
+                required: true,
+                description: "Bind to sql.workload.run executedBatchCount",
+            },
+            {
+                name: "failedBatchCount",
+                kind: "bind",
+                required: true,
+                description: "Bind to sql.workload.run failedBatchCount",
+            },
+            {
+                name: "xeventDurationMs",
+                kind: "bind",
+                required: false,
+                description: "Optional xevent.xel.analyze durationMs",
+            },
+            {
+                name: "xeventCpuMs",
+                kind: "bind",
+                required: false,
+                description: "Optional xevent.xel.analyze cpuMs",
+            },
+            {
+                name: "logicalReads",
+                kind: "bind",
+                required: false,
+                description: "Optional xevent.xel.analyze logicalReads",
+            },
+            {
+                name: "physicalReads",
+                kind: "bind",
+                required: false,
+                description: "Optional xevent.xel.analyze physicalReads",
+            },
+            {
+                name: "writes",
+                kind: "bind",
+                required: false,
+                description: "Optional xevent.xel.analyze writes",
+            },
+        ],
+        outputContract: "performanceMetrics/1",
+        outputSchema: {
+            fields: [
+                { name: "metric", valueType: "string", roles: ["category", "label"] },
+                { name: "value", valueType: "number", roles: ["measure"] },
+                { name: "unit", valueType: "string" },
+            ],
+        },
+        producedValues: ["durationMs", "executedBatchCount", "failedBatchCount"],
+        target: { kind: "workspace", workspace: true },
+        blastRadius: {
+            resource: "workspaceFiles",
+            operation: "read",
+            targetEnvironment: "development",
+            reversibility: "noEffect",
             breadth: "bounded",
         },
     },
@@ -1064,6 +1239,7 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                     descriptor.kind === "xevent.session.start" ||
                     descriptor.kind === "sql.workload.run" ||
                     descriptor.kind === "xevent.session.stop" ||
+                    descriptor.kind === "xevent.xel.analyze" ||
                     descriptor.kind === "xevent.xel.collect" ||
                     descriptor.kind === "sql.container.dispose";
                 const producerKind = containerActivity
@@ -1096,9 +1272,9 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                     `node '${node.id}' must inventory the same target as an upstream DACPAC deployment`,
                 );
             }
-            if (descriptor.kind === "sql.workload.run" && !isWorkloadInspectionOutput(lock, node)) {
+            if (descriptor.kind === "sql.workload.run" && !isWorkloadSourceOutput(lock, node)) {
                 issues.push(
-                    `node '${node.id}' must bind workload and workloadDigest to the same upstream sql.workload.inspect node`,
+                    `node '${node.id}' must bind workload and workloadDigest to the same upstream sql.workload.inspect or sql.workload.generate node`,
                 );
             }
             if (
@@ -1116,7 +1292,8 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                 );
             }
             if (
-                descriptor.kind === "xevent.xel.collect" &&
+                (descriptor.kind === "xevent.xel.collect" ||
+                    descriptor.kind === "xevent.xel.analyze") &&
                 !isUpstreamActivityOutput(
                     lock,
                     node,
@@ -1220,7 +1397,7 @@ function hasUpstreamDeploymentForSameTarget(
     });
 }
 
-function isWorkloadInspectionOutput(lock: CompiledRunbookLock, node: RunbookPlanNode): boolean {
+function isWorkloadSourceOutput(lock: CompiledRunbookLock, node: RunbookPlanNode): boolean {
     const workload = /^\$nodes\.([A-Za-z0-9_-]+)\.workloadRef$/.exec(
         String(node.inputs?.workload ?? ""),
     );
@@ -1231,7 +1408,10 @@ function isWorkloadInspectionOutput(lock: CompiledRunbookLock, node: RunbookPlan
         return false;
     }
     const producer = lock.nodes.find((candidate) => candidate.id === workload[1]);
-    if (producer?.kind !== "activity" || producer.activityKind !== "sql.workload.inspect") {
+    if (
+        producer?.kind !== "activity" ||
+        !["sql.workload.inspect", "sql.workload.generate"].includes(producer.activityKind ?? "")
+    ) {
         return false;
     }
     const visited = new Set<string>([producer.id]);

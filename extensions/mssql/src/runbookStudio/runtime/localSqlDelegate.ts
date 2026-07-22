@@ -35,6 +35,12 @@ import {
     parseLocalTsqltResult,
 } from "./localTsqlt";
 import {
+    LOCAL_CITIES_WORKLOAD_TEMPLATE,
+    MAX_LOCAL_CITIES_ITERATIONS,
+    MAX_LOCAL_CITIES_SAMPLE_ROWS,
+    MIN_LOCAL_CITIES_SAMPLE_ROWS,
+} from "./localWorkload";
+import {
     LOCAL_XEVENT_TEMPLATE,
     MAX_LOCAL_XEL_FILE_SIZE_MB,
     MIN_LOCAL_XEL_FILE_SIZE_MB,
@@ -160,6 +166,15 @@ export interface LocalSqlOperations {
         filePath: string,
         isCancellationRequested: () => boolean,
     ): Promise<LocalWorkloadPreviewResult>;
+    generateWorkload(
+        nodeId: string,
+        databaseRef: string,
+        template: string,
+        sampleRows: number,
+        iterations: number,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalGeneratedWorkloadResult>;
     runWorkload(
         nodeId: string,
         databaseRef: string,
@@ -191,6 +206,12 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalXelArtifactResult>;
+    analyzeXel(
+        databaseRef: string,
+        captureRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalXeventAnalysisResult>;
     disposeSandbox(
         nodeId: string,
         leaseRef: string,
@@ -352,6 +373,15 @@ export interface LocalWorkloadPreviewResult {
     inspectedAtUtc: string;
 }
 
+export interface LocalGeneratedWorkloadResult extends LocalWorkloadPreviewResult {
+    artifactPath: string;
+    artifactSizeBytes: number;
+    artifactSha256: string;
+    sampleRowCount: number;
+    iterations: number;
+    template: string;
+}
+
 export interface LocalWorkloadBatchResult {
     iteration: number;
     batch: number;
@@ -401,6 +431,28 @@ export interface LocalXelArtifactResult {
     collectedAtUtc: string;
 }
 
+export interface LocalXeventAnalysisResult {
+    rows: Array<{
+        timestampUtc: string;
+        eventName: string;
+        durationMs: number;
+        cpuMs: number;
+        logicalReads: number;
+        physicalReads: number;
+        writes: number;
+        rowCount: number;
+        objectName: string;
+        errorNumber: number;
+    }>;
+    eventCount: number;
+    durationMs: number;
+    cpuMs: number;
+    logicalReads: number;
+    physicalReads: number;
+    writes: number;
+    truncated: boolean;
+}
+
 /** Expected host refusal with a stable, non-secret error classification. */
 export class LocalActivityError extends Error {
     constructor(
@@ -428,6 +480,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "sandbox.provision",
         "devdatabase.provision",
         "sql.container.provision",
+        "sql.workload.generate",
         "sql.workload.inspect",
         "dacpac.deploy.preview",
         "dacpac.deploy",
@@ -437,6 +490,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "sql.workload.run",
         "xevent.session.stop",
         "xevent.xel.collect",
+        "xevent.xel.analyze",
+        "workload.benchmark",
         "sql.schema.apply",
         "schema.compare",
         "schema.compare.export",
@@ -477,6 +532,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.provisionDevelopmentDatabase(node, binding);
             case "sql.container.provision":
                 return this.provisionSqlContainer(node, binding);
+            case "sql.workload.generate":
+                return this.generateWorkload(node, binding);
             case "sql.workload.inspect":
                 return this.inspectWorkload(node, binding);
             case "dacpac.deploy.preview":
@@ -495,6 +552,10 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.stopXeventSession(node, binding);
             case "xevent.xel.collect":
                 return this.collectXel(node, binding);
+            case "xevent.xel.analyze":
+                return this.analyzeXel(node, binding);
+            case "workload.benchmark":
+                return this.summarizeBenchmark(node, binding);
             case "sql.schema.apply":
                 return this.applySchema(node, binding);
             case "schema.compare":
@@ -1093,6 +1154,96 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         }
     }
 
+    private async generateWorkload(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        const template = binding.resolveBind(node.inputs?.template);
+        const sampleRowsValue = binding.resolveBind(node.inputs?.sampleRows);
+        const iterationsValue = binding.resolveBind(node.inputs?.iterations);
+        const sampleRows = sampleRowsValue === undefined ? 20 : sampleRowsValue;
+        const iterations = iterationsValue === undefined ? 1000 : iterationsValue;
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        if (template !== LOCAL_CITIES_WORKLOAD_TEMPLATE) {
+            return invalidBinding("template");
+        }
+        if (
+            typeof sampleRows !== "number" ||
+            !Number.isSafeInteger(sampleRows) ||
+            sampleRows < MIN_LOCAL_CITIES_SAMPLE_ROWS ||
+            sampleRows > MAX_LOCAL_CITIES_SAMPLE_ROWS
+        ) {
+            return invalidBinding("sampleRows");
+        }
+        if (
+            typeof iterations !== "number" ||
+            !Number.isSafeInteger(iterations) ||
+            iterations < 1 ||
+            iterations > MAX_LOCAL_CITIES_ITERATIONS
+        ) {
+            return invalidBinding("iterations");
+        }
+        try {
+            const result = await this.operations.generateWorkload(
+                node.id,
+                databaseRef.trim(),
+                template,
+                sampleRows,
+                iterations,
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "workload.generated": true,
+                    "workload.sampleRowCount": result.sampleRowCount,
+                    "workload.iterations": result.iterations,
+                    "workload.sourceByteCount": result.sourceByteCount,
+                },
+                message: LocRunbookStudio.workloadGenerated(
+                    result.sampleRowCount,
+                    result.iterations,
+                ),
+                output: {
+                    contract: "workloadArtifact/1",
+                    text: result.fileName,
+                    scalars: {
+                        workloadRef: result.workloadRef,
+                        workloadSha256: result.workloadSha256,
+                        sourceByteCount: result.sourceByteCount,
+                        batchCount: result.batchCount,
+                        mutating: result.mutating,
+                        artifactPath: result.artifactPath,
+                        artifactSizeBytes: result.artifactSizeBytes,
+                        artifactSha256: result.artifactSha256,
+                        sampleRowCount: result.sampleRowCount,
+                        iterations: result.iterations,
+                        template: result.template,
+                        generatedAtUtc: result.inspectedAtUtc,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    workloadRef: result.workloadRef,
+                    workloadSha256: result.workloadSha256,
+                    artifactPath: result.artifactPath,
+                    sampleRowCount: result.sampleRowCount,
+                    iterations: result.iterations,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
     private async inspectWorkload(
         node: RunbookPlanNode,
         binding: {
@@ -1418,6 +1569,157 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         } catch (error) {
             return activityFailure(error);
         }
+    }
+
+    private async analyzeXel(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        const captureRef = binding.resolveBind(node.inputs?.capture);
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        if (typeof captureRef !== "string" || captureRef.trim().length === 0) {
+            return invalidBinding("capture");
+        }
+        try {
+            const result = await this.operations.analyzeXel(
+                databaseRef.trim(),
+                captureRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "xevent.analyzedEventCount": result.eventCount,
+                    "xevent.logicalReads": result.logicalReads,
+                    "xevent.physicalReads": result.physicalReads,
+                    "xevent.writes": result.writes,
+                    "xevent.analysisTruncated": result.truncated,
+                },
+                message: LocRunbookStudio.xeventAnalysisCompleted(result.eventCount),
+                output: {
+                    contract: "xeventAnalysis/1",
+                    columns: [
+                        "timestampUtc",
+                        "eventName",
+                        "durationMs",
+                        "cpuMs",
+                        "logicalReads",
+                        "physicalReads",
+                        "writes",
+                        "rowCount",
+                        "objectName",
+                        "errorNumber",
+                    ],
+                    rows: result.rows.map((row) => [
+                        row.timestampUtc,
+                        row.eventName,
+                        row.durationMs,
+                        row.cpuMs,
+                        row.logicalReads,
+                        row.physicalReads,
+                        row.writes,
+                        row.rowCount,
+                        row.objectName,
+                        row.errorNumber,
+                    ]),
+                    scalars: {
+                        eventCount: result.eventCount,
+                        durationMs: result.durationMs,
+                        cpuMs: result.cpuMs,
+                        logicalReads: result.logicalReads,
+                        physicalReads: result.physicalReads,
+                        writes: result.writes,
+                        truncated: result.truncated,
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    eventCount: result.eventCount,
+                    durationMs: result.durationMs,
+                    cpuMs: result.cpuMs,
+                    logicalReads: result.logicalReads,
+                    physicalReads: result.physicalReads,
+                    writes: result.writes,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async summarizeBenchmark(
+        node: RunbookPlanNode,
+        binding: { resolveBind: (input: unknown) => unknown },
+    ): Promise<NodeExecution> {
+        const workloadDurationMs = finiteMetric(
+            binding.resolveBind(node.inputs?.workloadDurationMs),
+        );
+        const executedBatchCount = finiteMetric(
+            binding.resolveBind(node.inputs?.executedBatchCount),
+        );
+        const failedBatchCount = finiteMetric(binding.resolveBind(node.inputs?.failedBatchCount));
+        if (
+            workloadDurationMs === undefined ||
+            executedBatchCount === undefined ||
+            failedBatchCount === undefined
+        ) {
+            return invalidBinding("workloadDurationMs/executedBatchCount/failedBatchCount");
+        }
+        const optional = [
+            [
+                "SQL Server duration",
+                finiteMetric(binding.resolveBind(node.inputs?.xeventDurationMs)),
+                "ms",
+            ],
+            ["SQL Server CPU", finiteMetric(binding.resolveBind(node.inputs?.xeventCpuMs)), "ms"],
+            [
+                "Logical reads",
+                finiteMetric(binding.resolveBind(node.inputs?.logicalReads)),
+                "reads",
+            ],
+            [
+                "Physical reads",
+                finiteMetric(binding.resolveBind(node.inputs?.physicalReads)),
+                "reads",
+            ],
+            ["Writes", finiteMetric(binding.resolveBind(node.inputs?.writes)), "writes"],
+        ] as const;
+        const rows: Array<Array<string | number>> = [
+            ["Workload duration", workloadDurationMs, "ms"],
+            ["Executed batches", executedBatchCount, "count"],
+            ["Failed batches", failedBatchCount, "count"],
+        ];
+        for (const [name, value, unit] of optional) {
+            if (value !== undefined) {
+                rows.push([name, value, unit]);
+            }
+        }
+        return {
+            success: failedBatchCount === 0,
+            verdict: failedBatchCount === 0 ? "pass" : "fail",
+            ...(failedBatchCount > 0 ? { errorCode: "RunbookStudio.WorkloadFailed" } : {}),
+            message: LocRunbookStudio.workloadBenchmarkSummarized(rows.length),
+            output: {
+                contract: "performanceMetrics/1",
+                columns: ["metric", "value", "unit"],
+                rows,
+                scalars: {
+                    durationMs: workloadDurationMs,
+                    executedBatchCount,
+                    failedBatchCount,
+                    metricCount: rows.length,
+                },
+            },
+            values: { durationMs: workloadDurationMs, executedBatchCount, failedBatchCount },
+        };
     }
 
     private async deployDacpac(
@@ -2194,4 +2496,8 @@ function invalidBinding(name: string): NodeExecution {
         message: LocRunbookStudio.parameterRequired(name),
         errorCode: "RunbookStudio.BindingInvalid",
     };
+}
+
+function finiteMetric(value: unknown): number | undefined {
+    return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : undefined;
 }

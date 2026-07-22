@@ -520,6 +520,7 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "sandbox.provision",
     "devdatabase.provision",
     "sql.container.provision",
+    "sql.workload.generate",
     "sql.workload.inspect",
     "dacpac.deploy.preview",
     "dacpac.deploy",
@@ -529,6 +530,8 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "sql.workload.run",
     "xevent.session.stop",
     "xevent.xel.collect",
+    "xevent.xel.analyze",
+    "workload.benchmark",
     "schema.compare",
     "schema.compare.export",
     "database.schema.visualize",
@@ -822,6 +825,52 @@ function executeNode(
                     workloadSha256: "preview-workload-sha256",
                     batchCount: 2,
                     mutating: true,
+                },
+            };
+        }
+        case "sql.workload.generate": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const template = resolveBind(node.inputs?.template, parameterValues, nodeValues);
+            const sampleRows = resolveBind(node.inputs?.sampleRows, parameterValues, nodeValues);
+            const iterations = resolveBind(node.inputs?.iterations, parameterValues, nodeValues);
+            if (
+                typeof database !== "string" ||
+                template !== "application-cities-shadow" ||
+                typeof sampleRows !== "number" ||
+                typeof iterations !== "number"
+            ) {
+                return invalidPreviewBinding(
+                    "sql.workload.generate",
+                    "database/template/sampleRows/iterations",
+                );
+            }
+            return {
+                success: true,
+                runMetrics: {
+                    "workload.generated": true,
+                    "workload.sampleRowCount": sampleRows,
+                    "workload.iterations": iterations,
+                },
+                message: "SQL workload generated (deterministic preview)",
+                output: {
+                    contract: "workloadArtifact/1",
+                    text: "generated-cities-workload.sql",
+                    scalars: {
+                        workloadRef: "preview://workload/generated/001",
+                        workloadSha256: "preview-generated-workload-sha256",
+                        artifactPath: "preview://artifacts/generated-cities-workload.sql",
+                        sampleRowCount: sampleRows,
+                        iterations,
+                        template,
+                        preview: true,
+                    },
+                },
+                values: {
+                    workloadRef: "preview://workload/generated/001",
+                    workloadSha256: "preview-generated-workload-sha256",
+                    artifactPath: "preview://artifacts/generated-cities-workload.sql",
+                    sampleRowCount: sampleRows,
+                    iterations,
                 },
             };
         }
@@ -1120,6 +1169,112 @@ function executeNode(
                     eventCount: 12,
                     captureComplete: true,
                 },
+            };
+        }
+        case "xevent.xel.analyze": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const capture = resolveBind(node.inputs?.capture, parameterValues, nodeValues);
+            if (typeof database !== "string" || typeof capture !== "string") {
+                return invalidPreviewBinding("xevent.xel.analyze", "database/capture");
+            }
+            return {
+                success: true,
+                runMetrics: {
+                    "xevent.analyzedEventCount": 12,
+                    "xevent.logicalReads": 180,
+                    "xevent.physicalReads": 2,
+                    "xevent.writes": 24,
+                },
+                message: "XEL metrics analyzed (deterministic preview)",
+                output: {
+                    contract: "xeventAnalysis/1",
+                    columns: [
+                        "timestampUtc",
+                        "eventName",
+                        "durationMs",
+                        "cpuMs",
+                        "logicalReads",
+                        "physicalReads",
+                        "writes",
+                        "rowCount",
+                        "objectName",
+                        "errorNumber",
+                    ],
+                    rows: [
+                        [
+                            "2026-07-21T09:00:00Z",
+                            "sql_batch_completed",
+                            42,
+                            8,
+                            180,
+                            2,
+                            24,
+                            2000,
+                            "",
+                            0,
+                        ],
+                    ],
+                    scalars: {
+                        eventCount: 12,
+                        durationMs: 42,
+                        cpuMs: 8,
+                        logicalReads: 180,
+                        physicalReads: 2,
+                        writes: 24,
+                        preview: true,
+                    },
+                },
+                values: {
+                    eventCount: 12,
+                    durationMs: 42,
+                    cpuMs: 8,
+                    logicalReads: 180,
+                    physicalReads: 2,
+                    writes: 24,
+                },
+            };
+        }
+        case "workload.benchmark": {
+            const durationMs = resolveBind(
+                node.inputs?.workloadDurationMs,
+                parameterValues,
+                nodeValues,
+            );
+            const executedBatchCount = resolveBind(
+                node.inputs?.executedBatchCount,
+                parameterValues,
+                nodeValues,
+            );
+            const failedBatchCount = resolveBind(
+                node.inputs?.failedBatchCount,
+                parameterValues,
+                nodeValues,
+            );
+            if (
+                typeof durationMs !== "number" ||
+                typeof executedBatchCount !== "number" ||
+                typeof failedBatchCount !== "number"
+            ) {
+                return invalidPreviewBinding(
+                    "workload.benchmark",
+                    "workloadDurationMs/executedBatchCount/failedBatchCount",
+                );
+            }
+            return {
+                success: failedBatchCount === 0,
+                verdict: failedBatchCount === 0 ? "pass" : "fail",
+                message: "Workload metrics summarized (deterministic preview)",
+                output: {
+                    contract: "performanceMetrics/1",
+                    columns: ["metric", "value", "unit"],
+                    rows: [
+                        ["Workload duration", durationMs, "ms"],
+                        ["Executed batches", executedBatchCount, "count"],
+                        ["Failed batches", failedBatchCount, "count"],
+                    ],
+                    scalars: { durationMs, executedBatchCount, failedBatchCount, preview: true },
+                },
+                values: { durationMs, executedBatchCount, failedBatchCount },
             };
         }
         case "sql.container.dispose": {
@@ -1551,18 +1706,14 @@ function resolveBind(
     }
     const paramMatch = /^\$params\.([A-Za-z0-9_-]+)$/.exec(input);
     if (paramMatch) {
-        return coerceNumber(parameterValues[paramMatch[1]]);
+        // Parameter validation already preserves the declared type. Numeric
+        // enum and string values (for example SQL Server version "2025")
+        // must not be silently converted into numbers at execution time.
+        return parameterValues[paramMatch[1]] ?? undefined;
     }
     const nodeMatch = /^\$nodes\.([A-Za-z0-9_-]+)\.([A-Za-z0-9_-]+)$/.exec(input);
     if (nodeMatch) {
         return nodeValues.get(nodeMatch[1])?.[nodeMatch[2]];
     }
     return input;
-}
-
-function coerceNumber(value: string | number | boolean | null | undefined): unknown {
-    if (typeof value === "string" && value.trim() !== "" && !Number.isNaN(Number(value))) {
-        return Number(value);
-    }
-    return value ?? undefined;
 }
