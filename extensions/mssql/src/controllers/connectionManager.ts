@@ -481,6 +481,45 @@ export default class ConnectionManager {
     }
 
     /**
+     * Registers interest in the `connection/complete` notification for a URI and returns a
+     * promise that resolves with the completion params. The `connection/connect` request only
+     * acknowledges that a connection attempt started; the actual outcome arrives later via
+     * this notification. Callers that send ConnectionRequest directly (e.g. notebook cell
+     * IntelliSense registration) use this to observe the real result — call BEFORE sending
+     * the request, and pair with {@link cancelConnectionCompleteExpectation} on timeout so
+     * the pending entry doesn't leak.
+     */
+    public expectConnectionComplete(
+        ownerUri: string,
+    ): Promise<ConnectionContracts.ConnectionCompleteParams> {
+        const deferred = new Deferred<ConnectionContracts.ConnectionCompleteParams>();
+        this._uriToConnectionCompleteParamsMap.set(ownerUri, deferred);
+        return deferred.promise;
+    }
+
+    /**
+     * Removes a pending `connection/complete` expectation registered via
+     * {@link expectConnectionComplete} (no-op if it already resolved).
+     * @param expectation When provided, the entry is only removed if it still
+     * belongs to this expectation — a later expectConnectionComplete call for
+     * the same URI supersedes the old one, and a stale caller's cleanup must
+     * not cancel the newer expectation.
+     */
+    public cancelConnectionCompleteExpectation(
+        ownerUri: string,
+        expectation?: Promise<ConnectionContracts.ConnectionCompleteParams>,
+    ): void {
+        const pending = this._uriToConnectionCompleteParamsMap.get(ownerUri);
+        if (!pending) {
+            return;
+        }
+        if (expectation && pending.promise !== expectation) {
+            return;
+        }
+        this._uriToConnectionCompleteParamsMap.delete(ownerUri);
+    }
+
+    /**
      * Exposed for testing purposes.
      */
     public getConnectionInfo(fileUri: string): ConnectionInfo {
