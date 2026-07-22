@@ -114,8 +114,11 @@ export function buildStopLocalXeventSql(sessionName: string): string {
     ].join("\n");
 }
 
-/** Perftest-style, exact application-name correlation over the retained XEL.
- * SQL text is deliberately excluded from the result contract. */
+/** Perftest-style correlation over the retained XEL. Prefer the exact
+ * run-specific application name. Some classic STS hosts replace the supplied
+ * application name; in that case, fall back to the unique database on the
+ * same-run owned disposable container. SQL text is deliberately excluded
+ * from the result contract. */
 export function buildAnalyzeLocalXeventSql(
     sessionName: string,
     serverPath: string,
@@ -154,14 +157,21 @@ export function buildAnalyzeLocalXeventSql(
         "        [event_xml].value('(/event/data[@name=''object_name'']/value)[1]', 'nvarchar(256)') AS [object_name],",
         "        [event_xml].value('(/event/data[@name=''error_number'']/value)[1]', 'int') AS [error_number]",
         "    FROM [raw]",
-        "), [correlated] AS (",
+        "), [database_events] AS (",
         "    SELECT * FROM [parsed]",
-        `    WHERE [client_app_name] = N'${applicationLiteral}' AND [database_name] = N'${databaseLiteral}'`,
+        `    WHERE [database_name] = N'${databaseLiteral}'`,
+        "), [correlated] AS (",
+        "    SELECT * FROM [database_events]",
+        `    WHERE [client_app_name] = N'${applicationLiteral}'`,
+        "       OR NOT EXISTS (",
+        "           SELECT 1 FROM [database_events]",
+        `           WHERE [client_app_name] = N'${applicationLiteral}'`,
+        "       )",
         ")",
         `SELECT TOP (${MAX_LOCAL_XEVENT_ANALYSIS_ROWS})`,
-        "    [timestamp_utc], [event_name],",
-        "    CAST(COALESCE([duration_us], 0) / 1000.0 AS decimal(18,3)) AS [duration_ms],",
-        "    CAST(COALESCE([cpu_time_us], 0) / 1000.0 AS decimal(18,3)) AS [cpu_ms],",
+        "    CONVERT(nvarchar(33), [timestamp_utc], 127) AS [timestamp_utc], [event_name],",
+        "    CAST(COALESCE([duration_us], 0) / 1000.0 AS float) AS [duration_ms],",
+        "    CAST(COALESCE([cpu_time_us], 0) / 1000.0 AS float) AS [cpu_ms],",
         "    COALESCE([logical_reads], 0) AS [logical_reads],",
         "    COALESCE([physical_reads], 0) AS [physical_reads],",
         "    COALESCE([writes], 0) AS [writes],",
@@ -169,8 +179,8 @@ export function buildAnalyzeLocalXeventSql(
         "    COALESCE([object_name], N'') AS [object_name],",
         "    COALESCE([error_number], 0) AS [error_number],",
         "    COUNT_BIG(*) OVER () AS [total_event_count],",
-        "    CAST(SUM(COALESCE([duration_us], 0)) OVER () / 1000.0 AS decimal(18,3)) AS [total_duration_ms],",
-        "    CAST(SUM(COALESCE([cpu_time_us], 0)) OVER () / 1000.0 AS decimal(18,3)) AS [total_cpu_ms],",
+        "    CAST(SUM(COALESCE([duration_us], 0)) OVER () / 1000.0 AS float) AS [total_duration_ms],",
+        "    CAST(SUM(COALESCE([cpu_time_us], 0)) OVER () / 1000.0 AS float) AS [total_cpu_ms],",
         "    SUM(COALESCE([logical_reads], 0)) OVER () AS [total_logical_reads],",
         "    SUM(COALESCE([physical_reads], 0)) OVER () AS [total_physical_reads],",
         "    SUM(COALESCE([writes], 0)) OVER () AS [total_writes]",

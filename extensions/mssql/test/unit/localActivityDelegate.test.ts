@@ -1056,7 +1056,7 @@ suite("Runbook Studio local activity delegate", () => {
         const benchmark = await delegate.executeActivity(
             activity("workload.benchmark", {
                 workloadFingerprint: "c".repeat(64),
-                environmentFingerprint: "b".repeat(64),
+                environmentFingerprint: `sha256:${"b".repeat(64)}`,
                 workloadDurationMs: 30,
                 executedBatchCount: 2,
                 failedBatchCount: 0,
@@ -1079,6 +1079,7 @@ suite("Runbook Studio local activity delegate", () => {
         expect(benchmark?.success).to.equal(true);
         expect(benchmark?.output?.contract).to.equal("performanceMetrics/1");
         expect(benchmark?.output?.rows).to.deep.include(["Logical reads", 30, "reads"]);
+        expect(benchmark?.output?.scalars?.environmentFingerprint).to.equal("b".repeat(64));
     });
 
     test("guarded deployment and schema verification emit typed evidence", async () => {

@@ -343,6 +343,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         string,
         {
             profile: mssql.IConnectionInfo;
+            /** Kept separately because ConnectionManager.connect may sanitize
+             * the mutable profile object that it receives. Every activity gets
+             * a fresh profile assembled from this run-scoped secret. */
+            password: string;
             containerName: string;
             databaseName: string;
             port: number;
@@ -3193,6 +3197,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         } as mssql.IConnectionInfo;
         this.containerLeaseProfiles.set(effectId, {
             profile: { ...masterProfile, database: identity.databaseName },
+            password,
             ...identity,
         });
         try {
@@ -4082,8 +4087,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             capture.containerName !== owned.containerName ||
             capture.startEffectId !== effectIdFromLocalXeventCaptureRef(captureRef)
         ) {
+            const reason = !capture
+                ? "captureMissing"
+                : capture.runId !== invocation.runId
+                  ? "runMismatch"
+                  : capture.containerEffectId !== owned.containerEffectId
+                    ? "containerMismatch"
+                    : capture.containerName !== owned.containerName
+                      ? "containerNameMismatch"
+                      : "captureReferenceMismatch";
             throw new LocalActivityError(
-                LocRunbookStudio.xeventPolicyInvalid,
+                `${LocRunbookStudio.xeventPolicyInvalid} (${reason})`,
                 "RunbookStudio.TargetChanged",
             );
         }
@@ -4183,8 +4197,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             capture.containerName !== owned.containerName ||
             capture.startEffectId !== effectIdFromLocalXeventCaptureRef(captureRef)
         ) {
+            const reason = !capture
+                ? "captureMissing"
+                : capture.runId !== invocation.runId
+                  ? "runMismatch"
+                  : capture.containerEffectId !== owned.containerEffectId
+                    ? "containerMismatch"
+                    : capture.containerName !== owned.containerName
+                      ? "containerNameMismatch"
+                      : "captureReferenceMismatch";
             throw new LocalActivityError(
-                LocRunbookStudio.xeventPolicyInvalid,
+                `${LocRunbookStudio.xeventPolicyInvalid} (${reason})`,
                 "RunbookStudio.TargetChanged",
             );
         }
@@ -4204,7 +4227,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         } catch (error) {
             if (error instanceof LocalXeventPolicyError) {
                 throw new LocalActivityError(
-                    LocRunbookStudio.xeventPolicyInvalid,
+                    `${LocRunbookStudio.xeventPolicyInvalid} (${error.reason})`,
                     "RunbookStudio.TargetChanged",
                 );
             }
@@ -4221,27 +4244,27 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 maxRows: MAX_LOCAL_XEVENT_ANALYSIS_ROWS,
             });
             const rows = rawRows.map((row) => ({
-                timestampUtc: runbookDisplayString(row[0]),
-                eventName: runbookDisplayString(row[1]),
-                durationMs: runbookMetric(row[2]),
-                cpuMs: runbookMetric(row[3]),
-                logicalReads: runbookMetric(row[4]),
-                physicalReads: runbookMetric(row[5]),
-                writes: runbookMetric(row[6]),
-                rowCount: runbookMetric(row[7]),
-                objectName: runbookDisplayString(row[8]),
-                errorNumber: runbookMetric(row[9]),
+                timestampUtc: runbookDisplayString(row[0], "timestampUtc"),
+                eventName: runbookDisplayString(row[1], "eventName"),
+                durationMs: runbookMetric(row[2], "durationMs"),
+                cpuMs: runbookMetric(row[3], "cpuMs"),
+                logicalReads: runbookMetric(row[4], "logicalReads"),
+                physicalReads: runbookMetric(row[5], "physicalReads"),
+                writes: runbookMetric(row[6], "writes"),
+                rowCount: runbookMetric(row[7], "rowCount"),
+                objectName: runbookDisplayString(row[8], "objectName"),
+                errorNumber: runbookMetric(row[9], "errorNumber"),
             }));
             const first = rawRows[0];
-            const eventCount = first ? runbookMetric(first[10]) : 0;
+            const eventCount = first ? runbookMetric(first[10], "eventCount") : 0;
             return {
                 rows,
                 eventCount,
-                durationMs: first ? runbookMetric(first[11]) : 0,
-                cpuMs: first ? runbookMetric(first[12]) : 0,
-                logicalReads: first ? runbookMetric(first[13]) : 0,
-                physicalReads: first ? runbookMetric(first[14]) : 0,
-                writes: first ? runbookMetric(first[15]) : 0,
+                durationMs: first ? runbookMetric(first[11], "totalDurationMs") : 0,
+                cpuMs: first ? runbookMetric(first[12], "totalCpuMs") : 0,
+                logicalReads: first ? runbookMetric(first[13], "totalLogicalReads") : 0,
+                physicalReads: first ? runbookMetric(first[14], "totalPhysicalReads") : 0,
+                writes: first ? runbookMetric(first[15], "totalWrites") : 0,
                 truncated: eventCount > rows.length,
             };
         } catch (error) {
@@ -4297,7 +4320,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             containerName: lease.containerName,
             connectionProfileId: resolved.container.connectionProfileId,
             ownershipMarkerDigest: resolved.container.ownershipMarkerDigest,
-            profile: resolved.profile,
+            profile: { ...resolved.profile },
         };
     }
 
@@ -5930,7 +5953,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 );
             }
             return {
-                profile: lease.profile,
+                profile: { ...lease.profile, password: lease.password },
                 targetDatabase: lease.databaseName,
                 container: {
                     effectId: containerEffectId,
@@ -6948,27 +6971,30 @@ function runbookSafeInteger(value: unknown): number | undefined {
     return Number.isSafeInteger(parsed) ? parsed : undefined;
 }
 
-function runbookMetric(value: unknown): number {
+function runbookMetric(value: unknown, field = "metric"): number {
     const parsed =
         typeof value === "number" ? value : typeof value === "string" ? Number(value) : NaN;
     if (!Number.isFinite(parsed) || parsed < 0) {
         throw new LocalActivityError(
-            LocRunbookStudio.xeventPolicyInvalid,
+            `${LocRunbookStudio.xeventPolicyInvalid} (invalid ${field})`,
             "RunbookStudio.ActivityFailed",
         );
     }
     return parsed;
 }
 
-function runbookDisplayString(value: unknown): string {
+function runbookDisplayString(value: unknown, field = "display value"): string {
     if (value === null || value === undefined) {
         return "";
     }
     if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
         return String(value);
     }
+    if (value instanceof Date && Number.isFinite(value.getTime())) {
+        return value.toISOString();
+    }
     throw new LocalActivityError(
-        LocRunbookStudio.xeventPolicyInvalid,
+        `${LocRunbookStudio.xeventPolicyInvalid} (invalid ${field})`,
         "RunbookStudio.ActivityFailed",
     );
 }

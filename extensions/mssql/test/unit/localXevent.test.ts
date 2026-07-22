@@ -61,7 +61,7 @@ suite("Runbook Studio local XEvent policy", () => {
         );
     });
 
-    test("builds bounded application-correlated XEL analysis without SQL text output", () => {
+    test("builds bounded owned-database XEL analysis with an application preference", () => {
         const session = localXeventSessionName("owned-effect");
         const app = workloadApplicationName("run-123");
         const sql = buildAnalyzeLocalXeventSql(
@@ -72,8 +72,10 @@ suite("Runbook Studio local XEvent policy", () => {
         );
         expect(app).to.match(/^vscode-mssql-runbook\/[a-f0-9]{24}$/);
         expect(sql).to.contain("SELECT TOP (1000)");
+        expect(sql).to.contain("CONVERT(nvarchar(33), [timestamp_utc], 127)");
         expect(sql).to.contain(`[client_app_name] = N'${app}'`);
         expect(sql).to.contain("[database_name] = N'CitiesWorkload'");
+        expect(sql).to.contain("OR NOT EXISTS (");
         expect(sql).not.to.contain("AS [sql_text]");
         expect(() =>
             buildAnalyzeLocalXeventSql(

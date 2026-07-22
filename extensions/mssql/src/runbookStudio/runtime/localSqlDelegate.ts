@@ -2736,7 +2736,9 @@ function finiteMetric(value: unknown): number | undefined {
 }
 
 function sha256Binding(value: unknown): string | undefined {
-    return typeof value === "string" && /^[a-f0-9]{64}$/i.test(value)
-        ? value.toLowerCase()
-        : undefined;
+    if (typeof value !== "string") {
+        return undefined;
+    }
+    const digest = value.startsWith("sha256:") ? value.slice("sha256:".length) : value;
+    return /^[a-f0-9]{64}$/i.test(digest) ? digest.toLowerCase() : undefined;
 }
