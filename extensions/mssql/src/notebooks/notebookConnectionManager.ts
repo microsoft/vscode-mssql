@@ -506,6 +506,13 @@ export class NotebookConnectionManager implements vscode.Disposable {
                 // cell document open) retries instead of silently leaving the
                 // cell with keyword-only completions.
                 this.registeredCellUris.delete(cellDocumentUri);
+                if (!completeParams) {
+                    // Timed out: the STS-side connect may still land later,
+                    // and this URI is no longer tracked for release on
+                    // disconnect — best-effort disconnect so a late-completing
+                    // connection doesn't linger untracked.
+                    this.disconnectCellUri(cellDocumentUri);
+                }
                 this.log.warn(
                     `[connectCellForIntellisense] STS connection did not complete ` +
                         `(${completeParams ? `error=${completeParams.errorMessage ?? completeParams.messages ?? "unknown"}` : "timed out"}) cell=${cellDocumentUri}`,

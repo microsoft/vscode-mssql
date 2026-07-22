@@ -255,10 +255,7 @@ export class SqlNotebookController implements vscode.Disposable {
                 if (doc.uri.scheme !== "vscode-notebook-cell" || doc.languageId !== "sql") {
                     return;
                 }
-                const cellUri = doc.uri.toString();
-                const notebook = vscode.workspace.notebookDocuments.find((nb) =>
-                    nb.getCells().some((cell) => cell.document.uri.toString() === cellUri),
-                );
+                const notebook = this.findNotebookForCellDocument(doc);
                 if (!notebook) {
                     return;
                 }
@@ -266,6 +263,7 @@ export class SqlNotebookController implements vscode.Disposable {
                 if (!mgr?.isConnected()) {
                     return;
                 }
+                const cellUri = doc.uri.toString();
                 this.log.debug(`[onDidOpenTextDocument] Registering opened cell ${cellUri}`);
                 void mgr.connectCellForIntellisense(cellUri);
             }),
@@ -573,6 +571,30 @@ export class SqlNotebookController implements vscode.Disposable {
     }
 
     /**
+     * Finds the open notebook that owns a cell text document. VS Code derives
+     * cell URIs from the notebook URI (scheme swapped, fragment added), so
+     * path-matching notebooks are checked first and membership is always
+     * verified against the notebook's actual cells; a full scan remains as
+     * fallback in case the derivation ever changes.
+     */
+    private findNotebookForCellDocument(
+        doc: vscode.TextDocument,
+    ): vscode.NotebookDocument | undefined {
+        const cellUri = doc.uri.toString();
+        const ownsCell = (nb: vscode.NotebookDocument) =>
+            nb.getCells().some((cell) => cell.document.uri.toString() === cellUri);
+
+        for (const nb of vscode.workspace.notebookDocuments) {
+            if (nb.uri.path === doc.uri.path && ownsCell(nb)) {
+                return nb;
+            }
+        }
+        return vscode.workspace.notebookDocuments.find(
+            (nb) => nb.uri.path !== doc.uri.path && ownsCell(nb),
+        );
+    }
+
+    /**
      * Record when a notebook opened (pruning stale entries) so the park-time
      * adoption scan can restrict itself to notebooks opened around the save
      * transition.
@@ -647,12 +669,25 @@ export class SqlNotebookController implements vscode.Disposable {
      * across the transition; cap the length to bound comparison cost.
      */
     private notebookContentSignature(notebook: vscode.NotebookDocument): string {
+        // Accumulate the capped prefix and total length incrementally so a
+        // large notebook never materializes its full concatenated content
+        // just to produce a 10k-char signature.
         const maxChars = 10000;
         const cells = notebook.getCells();
-        const content = cells.map((cell) => cell.document.getText()).join("\u0000");
+        const separator = "\u0000";
+        let totalLength = 0;
+        let prefix = "";
+        for (let i = 0; i < cells.length; i++) {
+            const text =
+                i === 0 ? cells[i].document.getText() : separator + cells[i].document.getText();
+            totalLength += text.length;
+            if (prefix.length < maxChars) {
+                prefix += text.slice(0, maxChars - prefix.length);
+            }
+        }
         // Include the full content length so notebooks that differ only past
         // the comparison cap still get distinct signatures.
-        return `${cells.length}:${content.length}:${content.slice(0, maxChars)}`;
+        return `${cells.length}:${totalLength}:${prefix}`;
     }
 
     /**

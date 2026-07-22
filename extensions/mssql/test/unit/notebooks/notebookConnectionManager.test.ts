@@ -869,6 +869,13 @@ suite("NotebookConnectionManager", () => {
                 "vscode-notebook-cell://cell1",
             );
 
+            // A best-effort disconnect must be sent — the connect may still
+            // land in STS later and this URI is no longer tracked for release.
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                DisconnectRequest.type,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+
             clock.restore();
 
             // Retry — must fire a new connect request.
