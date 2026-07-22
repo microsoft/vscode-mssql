@@ -109,6 +109,8 @@ import {
     LocalSqlContainerCleanupResult,
     LocalSqlContainerLeaseResult,
     LocalGeneratedWorkloadResult,
+    LocalPerformanceDeltaResult,
+    LocalPerformanceSnapshotExecutionResult,
     LocalPerformanceSnapshotResult,
     LocalXelArtifactResult,
     LocalXeventAnalysisResult,
@@ -127,6 +129,7 @@ import {
     MAX_LOCAL_PERFORMANCE_SNAPSHOT_ROWS,
     projectLocalPerformanceSnapshot,
 } from "./runtime/localPerformanceSnapshot";
+import { compareLocalPerformanceSnapshots } from "./runtime/localPerformanceDelta";
 import {
     buildLocalEvidenceBundle,
     type LocalEvidenceBundleResult,
@@ -381,6 +384,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             eventCount: number;
         }
     >();
+    /** Same-run in-memory authority for deterministic before/after deltas.
+     * Durable Results retain the two snapshots and computed delta; these
+     * opaque refs cannot be reused by another run or container. */
+    private readonly performanceSnapshots = new Map<
+        string,
+        {
+            runId: string;
+            containerEffectId: string;
+            snapshot: LocalPerformanceSnapshotResult;
+        }
+    >();
 
     private readonly storageRoot: string;
     /** Library-global persistence root (ledger + results). Run history must
@@ -460,6 +474,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         this.containerLeaseProfiles.clear();
         this.workloadPreviews.clear();
         this.xeventCaptures.clear();
+        this.performanceSnapshots.clear();
         void this.adapter?.dispose();
         if (this.hobbesAdapter && this.hobbesAdapter !== this.adapter) {
             void this.hobbesAdapter.dispose();
@@ -2624,6 +2639,20 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         this.analyzeLocalXel(databaseRef, captureRef, invocation, cancelled),
                     capturePerformanceSnapshot: (databaseRef, invocation, cancelled) =>
                         this.captureLocalPerformanceSnapshot(databaseRef, invocation, cancelled),
+                    comparePerformanceSnapshots: (
+                        databaseRef,
+                        beforeSnapshotRef,
+                        afterSnapshotRef,
+                        invocation,
+                        cancelled,
+                    ) =>
+                        this.compareLocalPerformanceSnapshots(
+                            databaseRef,
+                            beforeSnapshotRef,
+                            afterSnapshotRef,
+                            invocation,
+                            cancelled,
+                        ),
                     previewDacpacDeployment: (dacpacPath, databaseRef, cancelled) =>
                         this.previewLocalDacpacDeployment(dacpacPath, databaseRef, cancelled),
                     deployDacpac: (
@@ -4295,8 +4324,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         databaseRef: string,
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
-    ): Promise<LocalPerformanceSnapshotResult> {
-        await this.requireOwnedContainerTarget(databaseRef, invocation.runId);
+    ): Promise<LocalPerformanceSnapshotExecutionResult> {
+        const owned = await this.requireOwnedContainerTarget(databaseRef, invocation.runId);
         const resolved = await this.resolveRunbookConnection(databaseRef);
         const prepared = this.prepareLocalDataPlaneConnection(
             resolved.profile,
@@ -4312,7 +4341,20 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 isCancellationRequested,
                 maxRows: MAX_LOCAL_PERFORMANCE_SNAPSHOT_ROWS,
             });
-            return projectLocalPerformanceSnapshot(rawRows);
+            const snapshot = projectLocalPerformanceSnapshot(rawRows);
+            if (this.performanceSnapshots.size >= 64) {
+                const oldestRef = this.performanceSnapshots.keys().next().value;
+                if (typeof oldestRef === "string") {
+                    this.performanceSnapshots.delete(oldestRef);
+                }
+            }
+            const snapshotRef = `runbook-performance-snapshot:${crypto.randomUUID()}`;
+            this.performanceSnapshots.set(snapshotRef, {
+                runId: invocation.runId,
+                containerEffectId: owned.containerEffectId,
+                snapshot,
+            });
+            return { ...snapshot, snapshotRef };
         } catch (error) {
             if (error instanceof RunbookDataPlaneQueryError) {
                 throw new LocalActivityError(
@@ -4329,6 +4371,46 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 );
             }
             throw error;
+        }
+    }
+
+    private async compareLocalPerformanceSnapshots(
+        databaseRef: string,
+        beforeSnapshotRef: string,
+        afterSnapshotRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalPerformanceDeltaResult> {
+        if (isCancellationRequested()) {
+            throw new LocalActivityError(
+                LocRunbookStudio.stepCancelled,
+                "RunbookStudio.ActivityCancelled",
+            );
+        }
+        const owned = await this.requireOwnedContainerTarget(databaseRef, invocation.runId);
+        const before = this.performanceSnapshots.get(beforeSnapshotRef);
+        const after = this.performanceSnapshots.get(afterSnapshotRef);
+        if (
+            !before ||
+            !after ||
+            before.runId !== invocation.runId ||
+            after.runId !== invocation.runId ||
+            before.containerEffectId !== owned.containerEffectId ||
+            after.containerEffectId !== owned.containerEffectId ||
+            beforeSnapshotRef === afterSnapshotRef
+        ) {
+            throw new LocalActivityError(
+                LocRunbookStudio.performanceSnapshotReferenceInvalid,
+                "RunbookStudio.TargetChanged",
+            );
+        }
+        try {
+            return compareLocalPerformanceSnapshots(before.snapshot, after.snapshot);
+        } catch {
+            throw new LocalActivityError(
+                LocRunbookStudio.performanceSnapshotInvalid,
+                "RunbookStudio.ActivityFailed",
+            );
         }
     }
 
@@ -5469,6 +5551,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         for (const [captureRef, capture] of this.xeventCaptures) {
             if (capture.containerEffectId === effectId) {
                 this.xeventCaptures.delete(captureRef);
+            }
+        }
+        for (const [snapshotRef, snapshot] of this.performanceSnapshots) {
+            if (snapshot.containerEffectId === effectId) {
+                this.performanceSnapshots.delete(snapshotRef);
             }
         }
         if (snapshot.state === "cleanupStarted") {

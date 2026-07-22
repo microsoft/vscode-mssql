@@ -348,7 +348,7 @@ suite("Runbook Studio headless deterministic preview", () => {
             evidenceAvailable: false,
         });
         expect(result.nodeCounts).to.deep.equal({
-            succeeded: 15,
+            succeeded: 16,
             failed: 0,
             skipped: 0,
             cancelled: 0,

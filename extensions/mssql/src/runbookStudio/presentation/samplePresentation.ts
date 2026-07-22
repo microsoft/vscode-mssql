@@ -251,6 +251,33 @@ function sampleRows(contract: string): {
                     ],
                 ],
             };
+        case "performanceDelta/1":
+            return {
+                columns: [
+                    "scope",
+                    "category",
+                    "item",
+                    "metric",
+                    "unit",
+                    "beforeValue",
+                    "afterValue",
+                    "deltaValue",
+                    "comparability",
+                ],
+                rows: [
+                    [
+                        "database",
+                        "database_io",
+                        "ROWS:CitiesWorkload",
+                        "reads",
+                        "count",
+                        10,
+                        52,
+                        42,
+                        "comparable",
+                    ],
+                ],
+            };
         default:
             return {
                 columns: ["Metric", "Value"],

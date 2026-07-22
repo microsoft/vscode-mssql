@@ -205,6 +205,14 @@
         "comment": ["{0} is a performance metric row count"]
     },
     "SQL Server returned an invalid performance snapshot.": "SQL Server returned an invalid performance snapshot.",
+    "Computed {0} comparable performance metric delta(s); {1} metric(s) remain incomplete or incomparable./{0} is a comparable metric count{1} is an incomplete or incomparable metric count": {
+        "message": "Computed {0} comparable performance metric delta(s); {1} metric(s) remain incomplete or incomparable.",
+        "comment": [
+            "{0} is a comparable metric count",
+            "{1} is an incomplete or incomparable metric count"
+        ]
+    },
+    "The performance snapshots do not belong to this run and owned SQL container.": "The performance snapshots do not belong to this run and owned SQL container.",
     "Discovered {0} tSQLt test(s) in {1} test class(es)./{0} is a test count{1} is a tSQLt test class count": {
         "message": "Discovered {0} tSQLt test(s) in {1} test class(es).",
         "comment": ["{0} is a test count", "{1} is a tSQLt test class count"]

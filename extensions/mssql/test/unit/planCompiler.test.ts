@@ -132,7 +132,7 @@ suite("planCompiler", () => {
         if (isProposalFailure(result)) {
             throw new Error(result.detail);
         }
-        expect(result.artifact.lock?.nodes).to.have.length(15);
+        expect(result.artifact.lock?.nodes).to.have.length(16);
         expect(result.artifact.lock?.entryNodeId).to.equal("generate-workload");
         expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
         const activityKinds = result.artifact.lock?.nodes
@@ -147,6 +147,7 @@ suite("planCompiler", () => {
             "xevent.xel.analyze",
             "xevent.xel.collect",
             "performance.dmv.snapshot",
+            "performance.dmv.delta",
             "workload.benchmark",
             "sql.container.dispose",
         ]);
@@ -176,6 +177,13 @@ suite("planCompiler", () => {
         expect(
             result.artifact.lock?.nodes.find((node) => node.id === "snapshot-after")?.inputs,
         ).to.deep.equal({ database: "$nodes.provision.connectionRef" });
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "compare-snapshots")?.inputs,
+        ).to.deep.equal({
+            database: "$nodes.provision.connectionRef",
+            before: "$nodes.snapshot-before.snapshotRef",
+            after: "$nodes.snapshot-after.snapshotRef",
+        });
         expect(
             result.artifact.lock?.nodes.find((node) => node.id === "summarize-performance")?.inputs,
         ).to.include({

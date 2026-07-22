@@ -1683,6 +1683,11 @@
     <trans-unit id="++CODE++cbd2167917b36ef54fa6044f33009b01e0793c6fda74f2488762f9cdb26793fc">
       <source xml:lang="en">Compute + Storage</source>
     </trans-unit>
+    <trans-unit id="++CODE++b963de1db98b4ec2beb404df266c8c2d04644f126307d94e0cb0847b9bd494ab">
+      <source xml:lang="en">Computed {0} comparable performance metric delta(s); {1} metric(s) remain incomplete or incomparable.</source>
+      <note>{0} is a comparable metric count
+{1} is an incomplete or incomparable metric count</note>
+    </trans-unit>
     <trans-unit id="++CODE++7ddbffc16744c2642445a4ec489967d4201fe93f5ec6af10738ba783cbd78680">
       <source xml:lang="en">Config copied to clipboard</source>
     </trans-unit>
@@ -9565,6 +9570,9 @@
     </trans-unit>
     <trans-unit id="++CODE++185f771797053e62cfeff87c8af9bf5d5a4aa06b25865e260fac5aaa376674ee">
       <source xml:lang="en">The owned XEvent session could not be created, inspected, or removed safely.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7f09224bfa0aa1e383e69bfc241b718f0172d7be7bc4fce56e767171d9078416">
+      <source xml:lang="en">The performance snapshots do not belong to this run and owned SQL container.</source>
     </trans-unit>
     <trans-unit id="++CODE++d25cb7cb615b44cf93cbec1c0f74ef7be719ed3131886d1d3424d02502a7f494">
       <source xml:lang="en">The preview uses the compiled activity output contracts and never runs SQL or other effects.</source>

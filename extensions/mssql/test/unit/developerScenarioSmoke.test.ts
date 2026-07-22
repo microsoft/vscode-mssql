@@ -115,6 +115,7 @@ const landedScenarioClaims = [
             "xevent.xel.analyze",
             "xevent.xel.collect",
             "performance.dmv.snapshot",
+            "performance.dmv.delta",
             "workload.benchmark",
             "sql.container.dispose",
         ],

@@ -196,6 +196,7 @@ const DETERMINISTIC_CITIES_WORKLOAD_ACTIVITIES = new Set([
     "xevent.xel.collect",
     "workload.benchmark",
     "performance.dmv.snapshot",
+    "performance.dmv.delta",
     "sql.container.dispose",
 ]);
 
@@ -439,6 +440,17 @@ export function compileDeterministicCitiesWorkload(
                 inputs: { database: "$nodes.provision.connectionRef" },
             },
             {
+                id: "compare-snapshots",
+                label: "Compare before and after performance snapshots",
+                kind: "activity",
+                activityKind: "performance.dmv.delta",
+                inputs: {
+                    database: "$nodes.provision.connectionRef",
+                    before: "$nodes.snapshot-before.snapshotRef",
+                    after: "$nodes.snapshot-after.snapshotRef",
+                },
+            },
+            {
                 id: "analyze-capture",
                 label: "Analyze XEvent trace",
                 kind: "activity",
@@ -512,8 +524,10 @@ export function compileDeterministicCitiesWorkload(
             { from: "run-workload", to: "stop-capture", when: "failure" },
             { from: "stop-capture", to: "snapshot-after" },
             { from: "stop-capture", to: "dispose", when: "failure" },
-            { from: "snapshot-after", to: "analyze-capture" },
+            { from: "snapshot-after", to: "compare-snapshots" },
             { from: "snapshot-after", to: "analyze-capture", when: "failure" },
+            { from: "compare-snapshots", to: "analyze-capture" },
+            { from: "compare-snapshots", to: "analyze-capture", when: "failure" },
             { from: "analyze-capture", to: "collect-capture" },
             { from: "analyze-capture", to: "dispose", when: "failure" },
             { from: "collect-capture", to: "summarize-performance" },

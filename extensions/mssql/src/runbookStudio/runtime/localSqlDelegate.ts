@@ -52,8 +52,14 @@ import {
 import type { RunbookSchemaCompareDocument } from "../../sharedInterfaces/runbookSchemaCompare";
 import type { RunbookSchemaGraphDocument } from "../../sharedInterfaces/runbookSchemaGraph";
 import type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot";
+import type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
 
 export type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot";
+export type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
+
+export interface LocalPerformanceSnapshotExecutionResult extends LocalPerformanceSnapshotResult {
+    snapshotRef: string;
+}
 
 export { isReadOnlySql } from "../readOnlySql";
 
@@ -232,7 +238,14 @@ export interface LocalSqlOperations {
         databaseRef: string,
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
-    ): Promise<LocalPerformanceSnapshotResult>;
+    ): Promise<LocalPerformanceSnapshotExecutionResult>;
+    comparePerformanceSnapshots(
+        databaseRef: string,
+        beforeSnapshotRef: string,
+        afterSnapshotRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalPerformanceDeltaResult>;
     disposeSandbox(
         nodeId: string,
         leaseRef: string,
@@ -576,6 +589,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "xevent.xel.collect",
         "xevent.xel.analyze",
         "performance.dmv.snapshot",
+        "performance.dmv.delta",
         "workload.benchmark",
         "sql.schema.apply",
         "schema.compare",
@@ -645,6 +659,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.analyzeXel(node, binding);
             case "performance.dmv.snapshot":
                 return this.capturePerformanceSnapshot(node, binding);
+            case "performance.dmv.delta":
+                return this.comparePerformanceSnapshots(node, binding);
             case "workload.benchmark":
                 return this.summarizeBenchmark(node, binding);
             case "sql.schema.apply":
@@ -1995,6 +2011,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                         queryMetricCount: result.categoryCounts.query_counters_cumulative ?? 0,
                         activeRequestMetricCount: result.categoryCounts.active_requests ?? 0,
                         snapshotSha256: result.snapshotSha256,
+                        snapshotRef: result.snapshotRef,
                         truncated: result.truncated,
                         interpretation:
                             "Point-in-time and cumulative counters; no regression verdict.",
@@ -2006,6 +2023,104 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     metricCount: result.rows.length,
                     totalMetricCount: result.totalMetricCount,
                     snapshotSha256: result.snapshotSha256,
+                    snapshotRef: result.snapshotRef,
+                    truncated: result.truncated,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async comparePerformanceSnapshots(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        const beforeSnapshotRef = binding.resolveBind(node.inputs?.before);
+        const afterSnapshotRef = binding.resolveBind(node.inputs?.after);
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        if (typeof beforeSnapshotRef !== "string" || beforeSnapshotRef.trim().length === 0) {
+            return invalidBinding("before");
+        }
+        if (typeof afterSnapshotRef !== "string" || afterSnapshotRef.trim().length === 0) {
+            return invalidBinding("after");
+        }
+        try {
+            const result = await this.operations.comparePerformanceSnapshots(
+                databaseRef.trim(),
+                beforeSnapshotRef.trim(),
+                afterSnapshotRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "performanceDelta.metricCount": result.rows.length,
+                    "performanceDelta.comparableMetricCount": result.comparableMetricCount,
+                    "performanceDelta.incompleteMetricCount": result.incompleteMetricCount,
+                    "performanceDelta.counterResetMetricCount": result.counterResetMetricCount,
+                    "performanceDelta.inputTruncated": result.inputTruncated,
+                    "performanceDelta.truncated": result.truncated,
+                },
+                message: LocRunbookStudio.performanceDeltaComputed(
+                    result.comparableMetricCount,
+                    result.incompleteMetricCount,
+                ),
+                output: {
+                    contract: "performanceDelta/1",
+                    columns: [
+                        "scope",
+                        "category",
+                        "item",
+                        "metric",
+                        "unit",
+                        "beforeValue",
+                        "afterValue",
+                        "deltaValue",
+                        "comparability",
+                    ],
+                    rows: result.rows.map((row) => [
+                        row.scope,
+                        row.category,
+                        row.item,
+                        row.metric,
+                        row.unit,
+                        row.beforeValue,
+                        row.afterValue,
+                        row.deltaValue,
+                        row.comparability,
+                    ]),
+                    scalars: {
+                        beforeCapturedAtUtc: result.beforeCapturedAtUtc,
+                        afterCapturedAtUtc: result.afterCapturedAtUtc,
+                        beforeSnapshotSha256: result.beforeSnapshotSha256,
+                        afterSnapshotSha256: result.afterSnapshotSha256,
+                        deltaSha256: result.deltaSha256,
+                        metricCount: result.rows.length,
+                        comparableMetricCount: result.comparableMetricCount,
+                        incompleteMetricCount: result.incompleteMetricCount,
+                        counterResetMetricCount: result.counterResetMetricCount,
+                        inputTruncated: result.inputTruncated,
+                        truncated: result.truncated,
+                        verdict: "notEvaluated",
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    deltaSha256: result.deltaSha256,
+                    metricCount: result.rows.length,
+                    comparableMetricCount: result.comparableMetricCount,
+                    incompleteMetricCount: result.incompleteMetricCount,
+                    counterResetMetricCount: result.counterResetMetricCount,
+                    inputTruncated: result.inputTruncated,
                     truncated: result.truncated,
                 },
             };

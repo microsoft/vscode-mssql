@@ -340,6 +340,12 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         providerRequirement: "execution",
         outputContract: "performanceSnapshot/1",
     },
+    "performance.dmv.delta": {
+        target: "ephemeralSqlDatabase",
+        effect: "read",
+        connectionRequirement: "provisioned",
+        outputContract: "performanceDelta/1",
+    },
     "xevent.capture.reconcile": {
         target: "ephemeralSqlDatabase",
         effect: "read",
@@ -649,6 +655,8 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "xevent.session.stop",
         "xevent.xel.analyze",
         "xevent.xel.collect",
+        "performance.dmv.snapshot",
+        "performance.dmv.delta",
         "workload.benchmark",
         "baseline.compare",
         "security.permissions.validate",
@@ -688,6 +696,8 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "xevent.session.stop",
         "xevent.xel.analyze",
         "xevent.xel.collect",
+        "performance.dmv.snapshot",
+        "performance.dmv.delta",
         "workload.benchmark",
         "baseline.compare",
         "security.permissions.validate",
@@ -714,6 +724,8 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "xevent.session.stop",
         "xevent.xel.analyze",
         "xevent.xel.collect",
+        "performance.dmv.snapshot",
+        "performance.dmv.delta",
         "workload.benchmark",
         "baseline.compare",
         "security.permissions.validate",
@@ -756,6 +768,8 @@ const DESIGN_ACTIVITY_ORDER: Readonly<Record<RunbookFamily, readonly string[]>> 
         "xevent.session.stop",
         "xevent.xel.analyze",
         "xevent.xel.collect",
+        "performance.dmv.snapshot",
+        "performance.dmv.delta",
         "workload.benchmark",
         "baseline.compare",
         "security.permissions.validate",
@@ -926,6 +940,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     }
     if (requestsDmvSnapshot) {
         requested.add("performance.dmv.snapshot");
+        requested.add("performance.dmv.delta");
     }
     if (requestsIncompleteCaptureRecovery) {
         requested.add("xevent.capture.reconcile");

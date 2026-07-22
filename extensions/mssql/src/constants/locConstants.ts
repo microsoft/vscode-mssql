@@ -360,6 +360,19 @@ export class RunbookStudio {
     public static performanceSnapshotInvalid = l10n.t(
         "SQL Server returned an invalid performance snapshot.",
     );
+    public static performanceDeltaComputed = (comparableCount: number, incompleteCount: number) =>
+        l10n.t({
+            message:
+                "Computed {0} comparable performance metric delta(s); {1} metric(s) remain incomplete or incomparable.",
+            args: [comparableCount, incompleteCount],
+            comment: [
+                "{0} is a comparable metric count",
+                "{1} is an incomplete or incomparable metric count",
+            ],
+        });
+    public static performanceSnapshotReferenceInvalid = l10n.t(
+        "The performance snapshots do not belong to this run and owned SQL container.",
+    );
     public static sqlTestsDiscovered = (testCount: number, classCount: number) =>
         l10n.t({
             message: "Discovered {0} tSQLt test(s) in {1} test class(es).",

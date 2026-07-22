@@ -534,6 +534,7 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "xevent.xel.collect",
     "xevent.xel.analyze",
     "performance.dmv.snapshot",
+    "performance.dmv.delta",
     "workload.benchmark",
     "schema.compare",
     "schema.compare.export",
@@ -1383,6 +1384,7 @@ function executeNode(
             }
             const capturedAtUtc = "2026-07-22T08:00:00.000Z";
             const snapshotSha256 = "d".repeat(64);
+            const snapshotRef = `preview://performance-snapshot/${node.id}`;
             return {
                 success: true,
                 runMetrics: {
@@ -1449,6 +1451,7 @@ function executeNode(
                         metricCount: 4,
                         totalMetricCount: 4,
                         snapshotSha256,
+                        snapshotRef,
                         truncated: false,
                         interpretation:
                             "Point-in-time and cumulative counters; no regression verdict.",
@@ -1460,6 +1463,93 @@ function executeNode(
                     metricCount: 4,
                     totalMetricCount: 4,
                     snapshotSha256,
+                    snapshotRef,
+                    truncated: false,
+                },
+            };
+        }
+        case "performance.dmv.delta": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            const before = resolveBind(node.inputs?.before, parameterValues, nodeValues);
+            const after = resolveBind(node.inputs?.after, parameterValues, nodeValues);
+            if (
+                typeof database !== "string" ||
+                typeof before !== "string" ||
+                typeof after !== "string" ||
+                before === after
+            ) {
+                return invalidPreviewBinding("performance.dmv.delta", "database/before/after");
+            }
+            const deltaSha256 = "e".repeat(64);
+            return {
+                success: true,
+                runMetrics: {
+                    "performanceDelta.metricCount": 2,
+                    "performanceDelta.comparableMetricCount": 2,
+                    "performanceDelta.incompleteMetricCount": 0,
+                    "performanceDelta.counterResetMetricCount": 0,
+                    "performanceDelta.inputTruncated": false,
+                    "performanceDelta.truncated": false,
+                },
+                message: "2 comparable performance metric deltas (deterministic preview)",
+                output: {
+                    contract: "performanceDelta/1",
+                    columns: [
+                        "scope",
+                        "category",
+                        "item",
+                        "metric",
+                        "unit",
+                        "beforeValue",
+                        "afterValue",
+                        "deltaValue",
+                        "comparability",
+                    ],
+                    rows: [
+                        [
+                            "database",
+                            "database_io",
+                            "ROWS:CitiesWorkload",
+                            "reads",
+                            "count",
+                            10,
+                            52,
+                            42,
+                            "comparable",
+                        ],
+                        [
+                            "server",
+                            "server_waits_cumulative",
+                            "WRITELOG",
+                            "wait_time",
+                            "ms",
+                            4,
+                            12,
+                            8,
+                            "comparable",
+                        ],
+                    ],
+                    scalars: {
+                        beforeSnapshotSha256: "d".repeat(64),
+                        afterSnapshotSha256: "d".repeat(64),
+                        deltaSha256,
+                        metricCount: 2,
+                        comparableMetricCount: 2,
+                        incompleteMetricCount: 0,
+                        counterResetMetricCount: 0,
+                        inputTruncated: false,
+                        truncated: false,
+                        verdict: "notEvaluated",
+                        preview: true,
+                    },
+                },
+                values: {
+                    deltaSha256,
+                    metricCount: 2,
+                    comparableMetricCount: 2,
+                    incompleteMetricCount: 0,
+                    counterResetMetricCount: 0,
+                    inputTruncated: false,
                     truncated: false,
                 },
             };

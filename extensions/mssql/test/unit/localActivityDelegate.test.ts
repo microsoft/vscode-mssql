@@ -45,6 +45,7 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             truncated: false,
         }),
         capturePerformanceSnapshot: async () => ({
+            snapshotRef: "runbook-performance-snapshot:before",
             capturedAtUtc: "2026-07-22T08:00:00.000Z",
             rows: [
                 {
@@ -61,6 +62,31 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             truncated: false,
             snapshotSha256: "d".repeat(64),
             categoryCounts: { database_io: 1 },
+        }),
+        comparePerformanceSnapshots: async () => ({
+            beforeCapturedAtUtc: "2026-07-22T08:00:00.000Z",
+            afterCapturedAtUtc: "2026-07-22T08:01:00.000Z",
+            beforeSnapshotSha256: "d".repeat(64),
+            afterSnapshotSha256: "e".repeat(64),
+            rows: [
+                {
+                    scope: "database",
+                    category: "database_io",
+                    item: "ROWS:CitiesWorkload",
+                    metric: "reads",
+                    unit: "count",
+                    beforeValue: 10,
+                    afterValue: 52,
+                    deltaValue: 42,
+                    comparability: "comparable",
+                },
+            ],
+            comparableMetricCount: 1,
+            incompleteMetricCount: 0,
+            counterResetMetricCount: 0,
+            inputTruncated: false,
+            truncated: false,
+            deltaSha256: "f".repeat(64),
         }),
         inspectGitChangeSet: async () => ({
             repositoryRoot: "C:\\repo",
@@ -629,8 +655,54 @@ suite("Runbook Studio local activity delegate", () => {
             metricCount: 1,
             totalMetricCount: 1,
             snapshotSha256: "d".repeat(64),
+            snapshotRef: "runbook-performance-snapshot:before",
             truncated: false,
         });
+    });
+
+    test("performance delta emits comparable facts and explicitly withholds a verdict", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+
+        const result = await delegate.executeActivity(
+            activity("performance.dmv.delta", {
+                database: "$nodes.provision.connectionRef",
+                before: "$nodes.snapshot-before.snapshotRef",
+                after: "$nodes.snapshot-after.snapshotRef",
+            }),
+            binding((input) => {
+                if (input === "$nodes.provision.connectionRef") {
+                    return "runbook-container:owned";
+                }
+                if (input === "$nodes.snapshot-before.snapshotRef") {
+                    return "runbook-performance-snapshot:before";
+                }
+                if (input === "$nodes.snapshot-after.snapshotRef") {
+                    return "runbook-performance-snapshot:after";
+                }
+                return input;
+            }),
+        );
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("performanceDelta/1");
+        expect(result?.output?.rows?.[0]).to.deep.equal([
+            "database",
+            "database_io",
+            "ROWS:CitiesWorkload",
+            "reads",
+            "count",
+            10,
+            52,
+            42,
+            "comparable",
+        ]);
+        expect(result?.output?.scalars).to.deep.include({
+            comparableMetricCount: 1,
+            incompleteMetricCount: 0,
+            deltaSha256: "f".repeat(64),
+            verdict: "notEvaluated",
+        });
+        expect(result?.verdict).to.equal(undefined);
     });
 
     test("repository test discovery reports partial evidence honestly", async () => {
@@ -1614,6 +1686,7 @@ suite("Runbook Studio local activity delegate", () => {
             "xevent.xel.collect",
             "xevent.xel.analyze",
             "performance.dmv.snapshot",
+            "performance.dmv.delta",
             "workload.benchmark",
             "schema.compare",
             "schema.compare.export",

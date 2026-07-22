@@ -871,6 +871,65 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
             "metricCount",
             "totalMetricCount",
             "snapshotSha256",
+            "snapshotRef",
+            "truncated",
+        ],
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseData",
+            operation: "read",
+            targetEnvironment: "ephemeral",
+            reversibility: "noEffect",
+            breadth: "bounded",
+        },
+    },
+    {
+        kind: "performance.dmv.delta",
+        version: 1,
+        label: "Compare SQL Server performance snapshots",
+        description:
+            "Computes deterministic factual deltas and per-metric comparability reasons from two snapshots captured in the same run and owned SQL container; it never assigns a regression verdict.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to sql.container.provision connectionRef",
+            },
+            {
+                name: "before",
+                kind: "bind",
+                required: true,
+                description: "Bind to the before performance.dmv.snapshot snapshotRef",
+            },
+            {
+                name: "after",
+                kind: "bind",
+                required: true,
+                description: "Bind to the after performance.dmv.snapshot snapshotRef",
+            },
+        ],
+        outputContract: "performanceDelta/1",
+        outputSchema: {
+            fields: [
+                { name: "scope", valueType: "string", roles: ["category"] },
+                { name: "category", valueType: "string", roles: ["category"] },
+                { name: "item", valueType: "string", roles: ["label"] },
+                { name: "metric", valueType: "string", roles: ["category"] },
+                { name: "unit", valueType: "string" },
+                { name: "beforeValue", valueType: "number", roles: ["measure"] },
+                { name: "afterValue", valueType: "number", roles: ["measure"] },
+                { name: "deltaValue", valueType: "number", roles: ["measure"] },
+                { name: "comparability", valueType: "string", roles: ["category"] },
+            ],
+        },
+        producedValues: [
+            "deltaSha256",
+            "metricCount",
+            "comparableMetricCount",
+            "incompleteMetricCount",
+            "counterResetMetricCount",
+            "inputTruncated",
             "truncated",
         ],
         target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
@@ -1477,6 +1536,7 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                     descriptor.kind === "xevent.xel.analyze" ||
                     descriptor.kind === "xevent.xel.collect" ||
                     descriptor.kind === "performance.dmv.snapshot" ||
+                    descriptor.kind === "performance.dmv.delta" ||
                     descriptor.kind === "sql.container.dispose";
                 const producerKind = containerActivity
                     ? "sql.container.provision"
@@ -1540,6 +1600,28 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
             ) {
                 issues.push(
                     `node '${node.id}' must bind capture to an upstream xevent.session.stop captureRef`,
+                );
+            }
+            if (
+                descriptor.kind === "performance.dmv.delta" &&
+                (!isUpstreamActivityOutput(
+                    lock,
+                    node,
+                    "before",
+                    "snapshotRef",
+                    "performance.dmv.snapshot",
+                ) ||
+                    !isUpstreamActivityOutput(
+                        lock,
+                        node,
+                        "after",
+                        "snapshotRef",
+                        "performance.dmv.snapshot",
+                    ) ||
+                    node.inputs?.before === node.inputs?.after)
+            ) {
+                issues.push(
+                    `node '${node.id}' must bind distinct before/after refs from upstream performance.dmv.snapshot nodes`,
                 );
             }
         }

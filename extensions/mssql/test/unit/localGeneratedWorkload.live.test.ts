@@ -138,7 +138,7 @@ suite("Runbook Studio generated Cities workload live smoke (gated)", function ()
                 uri: document.uri.toString(),
                 intent: EXACT_INTENT,
             });
-            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 15 });
+            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 16 });
             expect(compile.parameterIds).to.include("sourceDatabaseName");
             expect(compile.activityKinds).to.include.members([
                 "sql.workload.generate",
@@ -149,6 +149,7 @@ suite("Runbook Studio generated Cities workload live smoke (gated)", function ()
                 "xevent.xel.analyze",
                 "xevent.xel.collect",
                 "performance.dmv.snapshot",
+                "performance.dmv.delta",
                 "workload.benchmark",
                 "sql.container.dispose",
             ]);
@@ -182,7 +183,7 @@ suite("Runbook Studio generated Cities workload live smoke (gated)", function ()
                 timeoutMs: 10 * 60_000,
             });
             expect(run, JSON.stringify(run)).to.include({ state: "succeeded", verdict: "pass" });
-            expect(run.nodeStates).to.have.length(15);
+            expect(run.nodeStates).to.have.length(16);
             expect(run.nodeStates?.every((node) => node.state === "succeeded")).to.equal(true);
             expect(
                 run.nodeStates?.find((node) => node.nodeId === "generate-workload")?.outputCount,
@@ -195,6 +196,9 @@ suite("Runbook Studio generated Cities workload live smoke (gated)", function ()
             ).to.be.greaterThan(0);
             expect(
                 run.nodeStates?.find((node) => node.nodeId === "snapshot-after")?.outputCount,
+            ).to.be.greaterThan(0);
+            expect(
+                run.nodeStates?.find((node) => node.nodeId === "compare-snapshots")?.outputCount,
             ).to.be.greaterThan(0);
             expect(
                 run.nodeStates?.find((node) => node.nodeId === "analyze-capture")?.message,
