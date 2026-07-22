@@ -12,6 +12,12 @@ import {
     validateHeadlessPreview,
 } from "./headlessRunner";
 import { parseHeadlessCliArguments } from "./headlessCliArguments";
+import { writeHeadlessRunOutputs } from "./headlessOutputStore";
+import {
+    EnvironmentHeadlessSecretProvider,
+    HeadlessApprovalManifest,
+    ManifestHeadlessApprovalProvider,
+} from "./headlessExecutionProviders";
 
 const MAX_PARAMETER_BYTES = 1024 * 1024;
 
@@ -24,7 +30,7 @@ async function main(): Promise<number> {
             usage: [
                 "runbookHeadless capabilities --json",
                 "runbookHeadless validate <artifact> [--params <json>]",
-                "runbookHeadless run <artifact> --deterministic-preview [--approve-preview] [--params <json>] [--output <dir>] [--run-id <id>]",
+                "runbookHeadless run <artifact> --deterministic-preview [--approve-preview | --approval-manifest <json>] [--secret-env-map <json>] [--params <json>] [--output <dir>] [--run-id <id>]",
             ],
         });
         return HEADLESS_EXIT_CODES.invalid;
@@ -49,7 +55,23 @@ async function main(): Promise<number> {
                     : HEADLESS_EXIT_CODES.blocked
                 : HEADLESS_EXIT_CODES.invalid;
         }
-        const result = await runWithInterruptCancellation(artifactText, parameters, args);
+        const secretProvider = args.secretEnvironmentMapPath
+            ? new EnvironmentHeadlessSecretProvider(readStringMap(args.secretEnvironmentMapPath))
+            : undefined;
+        const approvalProvider = args.approvalManifestPath
+            ? new ManifestHeadlessApprovalProvider(
+                  JSON.parse(
+                      readBoundedText(args.approvalManifestPath, MAX_PARAMETER_BYTES),
+                  ) as HeadlessApprovalManifest,
+              )
+            : undefined;
+        const result = await runWithInterruptCancellation(
+            artifactText,
+            parameters,
+            args,
+            secretProvider,
+            approvalProvider,
+        );
         const summary = {
             schemaVersion: result.schemaVersion,
             mode: result.mode,
@@ -62,13 +84,14 @@ async function main(): Promise<number> {
             terminalState: result.terminalState,
             verdict: result.verdict,
             blockedGateId: result.blockedGateId,
+            approvalPolicyDigest: result.approvalPolicyDigest,
             nodeCounts: result.nodeCounts,
             evidenceAvailable: result.evidenceAvailable,
             validation: result.validation,
         };
         if (args.outputDirectory) {
             try {
-                writeRunOutputs(args.outputDirectory, summary, result.exports);
+                writeHeadlessRunOutputs(args.outputDirectory, summary, result.exports);
             } catch {
                 writeJson({ schemaVersion: 1, error: "HeadlessPreview.OutputUnwritable" });
                 return HEADLESS_EXIT_CODES.internal;
@@ -86,6 +109,8 @@ async function runWithInterruptCancellation(
     artifactText: string,
     parameters: Record<string, string | number | boolean | null>,
     args: ReturnType<typeof parseHeadlessCliArguments>,
+    secretProvider: EnvironmentHeadlessSecretProvider | undefined,
+    approvalProvider: ManifestHeadlessApprovalProvider | undefined,
 ) {
     const cancellation = new AbortController();
     const onInterrupt = () => cancellation.abort();
@@ -97,11 +122,28 @@ async function runWithInterruptCancellation(
             ...(args.runId ? { runId: args.runId } : {}),
             deterministicPreviewAcknowledged: args.deterministicPreview,
             approvePreviewGates: args.approvePreview,
+            ...(secretProvider ? { secretProvider, allowInlineSecrets: false } : {}),
+            ...(approvalProvider ? { approvalProvider } : {}),
             cancellationSignal: cancellation.signal,
         });
     } finally {
         process.removeListener("SIGINT", onInterrupt);
     }
+}
+
+function readStringMap(filePath: string): Record<string, string> {
+    const parsed: unknown = JSON.parse(readBoundedText(filePath, MAX_PARAMETER_BYTES));
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+        throw new Error("mapping must be an object");
+    }
+    const result: Record<string, string> = {};
+    for (const [key, value] of Object.entries(parsed)) {
+        if (typeof value !== "string") {
+            throw new Error("mapping values must be strings");
+        }
+        result[key] = value;
+    }
+    return result;
 }
 
 function readBoundedText(filePath: string, maximumBytes: number): string {
@@ -131,40 +173,6 @@ function readParameters(filePath: string): Record<string, string | number | bool
         result[key] = value;
     }
     return result;
-}
-
-function writeRunOutputs(
-    outputDirectory: string,
-    summary: Record<string, unknown>,
-    exports: Awaited<ReturnType<typeof runHeadlessPreview>>["exports"] | undefined,
-): void {
-    const directory = path.resolve(outputDirectory);
-    fs.mkdirSync(directory, { recursive: true });
-    writeAtomic(
-        path.join(directory, "run-summary.json"),
-        JSON.stringify(summary, undefined, 2) + "\n",
-    );
-    if (!exports) {
-        return;
-    }
-    const names = {
-        json: "evidence.machine.json",
-        junit: "evidence.junit.xml",
-        sarif: "evidence.sarif",
-        markdown: "evidence.md",
-    } as const;
-    for (const [format, artifact] of Object.entries(exports)) {
-        if (artifact) {
-            writeAtomic(
-                path.join(directory, names[format as keyof typeof names]),
-                artifact.content,
-            );
-        }
-    }
-}
-
-function writeAtomic(target: string, content: string): void {
-    fs.writeFileSync(target, content, { encoding: "utf8", flag: "w" });
 }
 
 function writeJson(value: unknown): void {

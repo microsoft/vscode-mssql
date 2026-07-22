@@ -9,6 +9,8 @@ export interface HeadlessCliArguments {
     paramsPath?: string;
     outputDirectory?: string;
     runId?: string;
+    secretEnvironmentMapPath?: string;
+    approvalManifestPath?: string;
     deterministicPreview: boolean;
     approvePreview: boolean;
     error?:
@@ -16,11 +18,18 @@ export interface HeadlessCliArguments {
         | "HeadlessPreview.OptionUnknown"
         | "HeadlessPreview.OptionDuplicate"
         | "HeadlessPreview.OptionValueRequired"
+        | "HeadlessPreview.OptionConflict"
         | "HeadlessPreview.ArgumentUnexpected";
 }
 
 const COMMANDS = new Set(["capabilities", "validate", "run"]);
-const VALUE_OPTIONS = new Set(["--params", "--output", "--run-id"]);
+const VALUE_OPTIONS = new Set([
+    "--params",
+    "--output",
+    "--run-id",
+    "--secret-env-map",
+    "--approval-manifest",
+]);
 const BOOLEAN_OPTIONS = new Set(["--json", "--deterministic-preview", "--approve-preview"]);
 
 const ALLOWED_OPTIONS: Record<"capabilities" | "validate" | "run", ReadonlySet<string>> = {
@@ -30,6 +39,8 @@ const ALLOWED_OPTIONS: Record<"capabilities" | "validate" | "run", ReadonlySet<s
         "--params",
         "--output",
         "--run-id",
+        "--secret-env-map",
+        "--approval-manifest",
         "--deterministic-preview",
         "--approve-preview",
     ]),
@@ -83,8 +94,12 @@ export function parseHeadlessCliArguments(values: string[]): HeadlessCliArgument
                 result.paramsPath = optionValue;
             } else if (value === "--output") {
                 result.outputDirectory = optionValue;
-            } else {
+            } else if (value === "--run-id") {
                 result.runId = optionValue;
+            } else if (value === "--secret-env-map") {
+                result.secretEnvironmentMapPath = optionValue;
+            } else {
+                result.approvalManifestPath = optionValue;
             }
         } else if (value === "--deterministic-preview") {
             result.deterministicPreview = true;
@@ -100,6 +115,10 @@ export function parseHeadlessCliArguments(values: string[]): HeadlessCliArgument
     }
     if (positionals.length > 1) {
         result.error = "HeadlessPreview.ArgumentUnexpected";
+        return result;
+    }
+    if (result.approvalManifestPath && result.approvePreview) {
+        result.error = "HeadlessPreview.OptionConflict";
         return result;
     }
     result.artifactPath = positionals[0];

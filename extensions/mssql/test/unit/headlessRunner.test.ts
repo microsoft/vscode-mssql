@@ -42,6 +42,7 @@ suite("Runbook Studio headless deterministic preview", () => {
             effects: string;
             productionHeadlessActivityHostAvailable: boolean;
             evidenceFormats: string[];
+            executionProviderContracts: Record<string, string>;
         };
         expect(capabilities).to.include({
             runtimeKind: "fake",
@@ -51,6 +52,11 @@ suite("Runbook Studio headless deterministic preview", () => {
             productionHeadlessActivityHostAvailable: false,
         });
         expect(capabilities.evidenceFormats).to.deep.equal(["json", "junit", "sarif", "markdown"]);
+        expect(capabilities.executionProviderContracts).to.deep.equal({
+            secret: "environmentIndirection",
+            approval: "runPlanGateDigestBoundManifest",
+            machineOutput: "createNewAtomicSummaryLast",
+        });
     });
 
     test("fails closed on undocumented, duplicate, missing-value, and extra CLI arguments", () => {
@@ -92,23 +98,37 @@ suite("Runbook Studio headless deterministic preview", () => {
                 "run",
                 "book.json",
                 "--deterministic-preview",
-                "--approve-preview",
                 "--params",
                 "params.json",
                 "--output",
                 "out",
                 "--run-id",
                 "ci-run",
+                "--secret-env-map",
+                "secrets.json",
+                "--approval-manifest",
+                "approval.json",
             ]),
         ).to.include({
             command: "run",
             artifactPath: "book.json",
             deterministicPreview: true,
-            approvePreview: true,
+            approvePreview: false,
             paramsPath: "params.json",
             outputDirectory: "out",
             runId: "ci-run",
+            secretEnvironmentMapPath: "secrets.json",
+            approvalManifestPath: "approval.json",
         });
+        expect(
+            parseHeadlessCliArguments([
+                "run",
+                "book.json",
+                "--approve-preview",
+                "--approval-manifest",
+                "approval.json",
+            ]).error,
+        ).to.equal("HeadlessPreview.OptionConflict");
         expect(
             parseHeadlessCliArguments(["validate", "book.json", "--output", "out"]).error,
         ).to.equal("HeadlessPreview.OptionUnknown");

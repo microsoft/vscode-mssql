@@ -19,8 +19,12 @@ import type { RuntimeBoundaryEvent, RuntimeEventObserver } from "../runtime/runt
 import type {
     RbsEvidenceExportFormat,
     RunbookArtifactFile,
-    RunbookParameterDefinition,
 } from "../../sharedInterfaces/runbookStudio";
+import {
+    HeadlessApprovalProvider,
+    HeadlessSecretProvider,
+    resolveHeadlessParameters,
+} from "./headlessExecutionProviders";
 
 const RUN_TIMEOUT_MS = 30_000;
 const SAFE_RUN_ID = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/;
@@ -61,6 +65,9 @@ export interface HeadlessPreviewOptions {
     runId?: string;
     deterministicPreviewAcknowledged: boolean;
     approvePreviewGates?: boolean;
+    secretProvider?: HeadlessSecretProvider;
+    approvalProvider?: HeadlessApprovalProvider;
+    allowInlineSecrets?: boolean;
     cancellationSignal?: AbortSignal;
 }
 
@@ -76,6 +83,7 @@ export interface HeadlessPreviewResult {
     terminalState?: "succeeded" | "failed" | "cancelled";
     verdict?: "pass" | "fail" | "indeterminate";
     blockedGateId?: string;
+    approvalPolicyDigest?: string;
     internalStage?: "runtime" | "evidence" | "identity";
     nodeCounts?: { succeeded: number; failed: number; skipped: number; cancelled: number };
     evidenceAvailable: boolean;
@@ -91,6 +99,11 @@ export function headlessCapabilities(): Record<string, unknown> {
         modelRequired: false,
         effects: "none",
         approvalMode: "explicitPreviewAcknowledgement",
+        executionProviderContracts: {
+            secret: "environmentIndirection",
+            approval: "runPlanGateDigestBoundManifest",
+            machineOutput: "createNewAtomicSummaryLast",
+        },
         evidenceFormats: [...EXPORT_FORMATS],
         activities: ACTIVITY_CATALOG.map((activity) => ({
             kind: activity.kind,
@@ -105,6 +118,10 @@ export function headlessCapabilities(): Record<string, unknown> {
 export async function validateHeadlessPreview(
     artifactText: string,
     parameterValues: Record<string, string | number | boolean | null> = {},
+    providers: {
+        secretProvider?: HeadlessSecretProvider;
+        allowInlineSecrets?: boolean;
+    } = {},
 ): Promise<{
     artifact?: RunbookArtifactFile;
     values?: Record<string, string | number | boolean | null>;
@@ -150,7 +167,10 @@ export async function validateHeadlessPreview(
             ...(nodeIdFromDetail(detail) ? { nodeId: nodeIdFromDetail(detail) } : {}),
         });
     }
-    const bound = bindHeadlessParameters(artifact.source.parameters, parameterValues);
+    const bound = await resolveHeadlessParameters(artifact.source.parameters, parameterValues, {
+        allowInlineSecrets: providers.allowInlineSecrets ?? true,
+        ...(providers.secretProvider ? { secretProvider: providers.secretProvider } : {}),
+    });
     issues.push(...bound.issues);
     if (bound.issues.length === 0) {
         for (const issue of validateTargetBindings(artifact, bound.values)) {
@@ -197,6 +217,12 @@ export async function runHeadlessPreview(
     const checked = await validateHeadlessPreview(
         options.artifactText,
         options.parameterValues ?? {},
+        {
+            ...(options.secretProvider ? { secretProvider: options.secretProvider } : {}),
+            ...(options.allowInlineSecrets !== undefined
+                ? { allowInlineSecrets: options.allowInlineSecrets }
+                : {}),
+        },
     );
     const base = {
         schemaVersion: 1 as const,
@@ -275,6 +301,7 @@ export async function runHeadlessPreview(
     };
     options.cancellationSignal?.addEventListener("abort", onCancellation, { once: true });
     let blockedGateId: string | undefined;
+    let approvalPolicyDigest: string | undefined;
     let evidenceManifest: string | undefined;
     const events: RuntimeBoundaryEvent[] = [];
     const terminalPromise = new Promise<Extract<RuntimeBoundaryEvent, { kind: "terminal" }>>(
@@ -289,18 +316,39 @@ export async function runHeadlessPreview(
                         evidenceManifest = event.output.text;
                     }
                     if (event.kind === "gateRequested") {
-                        const approve = options.approvePreviewGates === true;
-                        if (!approve) {
-                            blockedGateId ??= event.nodeId;
-                        }
                         queueMicrotask(() => {
-                            void adapter
-                                .respondToGate(runId, event.nodeId, approve, context)
-                                .then((accepted) => {
-                                    if (!accepted) {
-                                        reject(new Error("preview gate was not pending"));
+                            void (async () => {
+                                let approve = options.approvePreviewGates === true;
+                                if (options.approvalProvider) {
+                                    try {
+                                        const decision = await options.approvalProvider.decide({
+                                            runId,
+                                            runbookId: checked.artifact!.id,
+                                            planRevision: checked.artifact!.lock!.planRevision,
+                                            planHash: checked.artifact!.lock!.planHash,
+                                            gateId: event.nodeId,
+                                        });
+                                        approve = decision.approved;
+                                        if (decision.approved && decision.policyDigest) {
+                                            approvalPolicyDigest ??= decision.policyDigest;
+                                        }
+                                    } catch {
+                                        approve = false;
                                     }
-                                }, reject);
+                                }
+                                if (!approve) {
+                                    blockedGateId ??= event.nodeId;
+                                }
+                                const accepted = await adapter.respondToGate(
+                                    runId,
+                                    event.nodeId,
+                                    approve,
+                                    context,
+                                );
+                                if (!accepted) {
+                                    reject(new Error("preview gate was not pending"));
+                                }
+                            })().catch(reject);
                         });
                     }
                     if (event.kind === "terminal") {
@@ -370,6 +418,7 @@ export async function runHeadlessPreview(
             terminalState: terminal.state,
             ...(terminal.verdict ? { verdict: terminal.verdict } : {}),
             ...(blockedGateId ? { blockedGateId } : {}),
+            ...(approvalPolicyDigest ? { approvalPolicyDigest } : {}),
             nodeCounts,
             evidenceAvailable: evidenceExports !== undefined,
             ...(evidenceExports ? { exports: evidenceExports } : {}),
@@ -390,91 +439,6 @@ export async function runHeadlessPreview(
         options.cancellationSignal?.removeEventListener("abort", onCancellation);
         await adapter.dispose();
     }
-}
-
-function bindHeadlessParameters(
-    definitions: RunbookParameterDefinition[],
-    provided: Record<string, string | number | boolean | null>,
-): {
-    values: Record<string, string | number | boolean | null>;
-    issues: HeadlessValidationResult["issues"];
-} {
-    const values: Record<string, string | number | boolean | null> = {};
-    const issues: HeadlessValidationResult["issues"] = [];
-    const definitionsById = new Map(definitions.map((definition) => [definition.id, definition]));
-    for (const parameterId of Object.keys(provided)) {
-        if (!definitionsById.has(parameterId)) {
-            issues.push({
-                kind: "parameter",
-                code: "HeadlessPreview.ParameterUnknown",
-                parameterId,
-            });
-        }
-    }
-    for (const definition of definitions) {
-        const raw = provided[definition.id];
-        if (raw === undefined || raw === null || raw === "") {
-            if (definition.default !== undefined) {
-                values[definition.id] = definition.default;
-            } else if (definition.required) {
-                issues.push({
-                    kind: "parameter",
-                    code: "HeadlessPreview.ParameterRequired",
-                    parameterId: definition.id,
-                });
-            }
-            continue;
-        }
-        switch (definition.type) {
-            case "int": {
-                const parsed = typeof raw === "number" ? raw : Number(raw);
-                if (!Number.isSafeInteger(parsed)) {
-                    issues.push({
-                        kind: "parameter",
-                        code: "HeadlessPreview.ParameterIntegerRequired",
-                        parameterId: definition.id,
-                    });
-                } else {
-                    values[definition.id] = parsed;
-                }
-                break;
-            }
-            case "boolean":
-                if (typeof raw !== "boolean" && raw !== "true" && raw !== "false") {
-                    issues.push({
-                        kind: "parameter",
-                        code: "HeadlessPreview.ParameterBooleanRequired",
-                        parameterId: definition.id,
-                    });
-                } else {
-                    values[definition.id] = raw === true || raw === "true";
-                }
-                break;
-            case "enum":
-                if (typeof raw !== "string" || !(definition.enumValues ?? []).includes(raw)) {
-                    issues.push({
-                        kind: "parameter",
-                        code: "HeadlessPreview.ParameterEnumRequired",
-                        parameterId: definition.id,
-                    });
-                } else {
-                    values[definition.id] = raw;
-                }
-                break;
-            default:
-                if (typeof raw !== "string") {
-                    issues.push({
-                        kind: "parameter",
-                        code: "HeadlessPreview.ParameterStringRequired",
-                        parameterId: definition.id,
-                    });
-                } else {
-                    values[definition.id] = raw;
-                }
-                break;
-        }
-    }
-    return { values, issues };
 }
 
 function countNodeStates(events: RuntimeBoundaryEvent[]): HeadlessPreviewResult["nodeCounts"] {
