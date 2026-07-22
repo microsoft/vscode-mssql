@@ -534,7 +534,10 @@ function registerRunbookStudioAutomationCommands(
                         errorCode: "RunbookStudio.AutomationInputInvalid",
                     };
                 }
-                const started = await coordinator.startRun(model, args?.parameterValues ?? {});
+                const approveGates = args?.approveGates === true;
+                const started = await coordinator.startRun(model, args?.parameterValues ?? {}, {
+                    autoApprove: approveGates,
+                });
                 if (!started.runId || started.error) {
                     return {
                         state: "refused",
@@ -545,7 +548,7 @@ function registerRunbookStudioAutomationCommands(
                     model,
                     coordinator,
                     started.runId,
-                    args?.approveGates === true,
+                    approveGates,
                     boundedAutomationTimeout(args?.timeoutMs),
                 );
             },
@@ -568,7 +571,6 @@ function waitForHeadlessRun(
 ): Promise<Record<string, unknown>> {
     return new Promise((resolve) => {
         let settled = false;
-        const approving = new Set<string>();
         let subscription: vscode.Disposable | undefined;
         const finish = (result: Record<string, unknown>) => {
             if (settled) {
@@ -606,22 +608,10 @@ function waitForHeadlessRun(
             }
             if (!approveGates) {
                 finish({ state: "waitingForApproval", runId, pendingGateNodeId: gate.nodeId });
-                return;
             }
-            if (approving.has(gate.nodeId)) {
-                return;
-            }
-            approving.add(gate.nodeId);
-            void coordinator.respondToGate(model, runId, gate.nodeId, true).then((response) => {
-                approving.delete(gate.nodeId);
-                if (!response.accepted) {
-                    finish({
-                        state: "refused",
-                        runId,
-                        errorCode: response.error?.code ?? "RunbookStudio.AutomationGateRefused",
-                    });
-                }
-            });
+            // Auto-approval is a run-scoped product mode set at startRun. The
+            // headless waiter deliberately does not approve gates itself so
+            // end-to-end tests exercise the same coordinator path as the UI.
         };
         const timer = setTimeout(() => {
             finish({

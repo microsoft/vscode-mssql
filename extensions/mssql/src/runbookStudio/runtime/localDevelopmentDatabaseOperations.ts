@@ -52,6 +52,11 @@ export function buildCreateLocalDevelopmentDatabaseSql(
     const property = quoteString(localDevelopmentDatabaseOwnershipPropertyName(databaseName));
     return [
         `CREATE DATABASE ${database};`,
+        "DECLARE @RunbookStudioDatabaseOwner sysname = SUSER_SNAME(0x01);",
+        "IF @RunbookStudioDatabaseOwner IS NULL",
+        "    THROW 51000, 'SQL Server system administrator principal is unavailable.', 1;",
+        `DECLARE @RunbookStudioAuthorizationSql nvarchar(max) = N'ALTER AUTHORIZATION ON DATABASE::${database} TO ' + QUOTENAME(@RunbookStudioDatabaseOwner) + N';';`,
+        "EXEC sys.sp_executesql @RunbookStudioAuthorizationSql;",
         `EXEC sys.sp_addextendedproperty @name = N${property}, @value = N${marker};`,
     ].join("\n");
 }

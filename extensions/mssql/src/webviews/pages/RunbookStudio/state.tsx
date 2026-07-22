@@ -34,6 +34,7 @@ import {
     RbsListConnectionsRequest,
     RbsNavigateNotification,
     RbsOpenDiagnosticsRequest,
+    RbsOpenRunDropRequest,
     RbsPreviewPresentationLayoutRequest,
     RbsPlannerProgressEvent,
     RbsRespondToGateRequest,
@@ -43,6 +44,7 @@ import {
     RbsSetOutputViewRequest,
     RbsSetOutputPresentationRequest,
     RbsStartRunRequest,
+    RbsDeleteRunRequest,
     RbsState,
     RbsUpdateIntentRequest,
     RunbookRunEvent,
@@ -270,9 +272,17 @@ interface RbsContextValue {
     exportEvidence: (runId: string, format: RbsEvidenceExportFormat) => Promise<boolean>;
     startRun: (
         parameterValues: Record<string, string | number | boolean | null>,
+        autoApprove?: boolean,
     ) => Promise<string | undefined>;
     cancelRun: (runId: string) => Promise<void>;
-    respondToGate: (runId: string, nodeId: string, approve: boolean) => Promise<void>;
+    respondToGate: (
+        runId: string,
+        nodeId: string,
+        approve: boolean,
+        approveAll?: boolean,
+    ) => Promise<void>;
+    openRunDrop: (runId: string) => Promise<boolean>;
+    deleteRun: (runId: string) => Promise<boolean>;
     openDiagnostics: (runId?: string, nodeId?: string) => void;
 }
 
@@ -521,6 +531,7 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
     const startRun = useCallback(
         async (
             parameterValues: Record<string, string | number | boolean | null>,
+            autoApprove = false,
         ): Promise<string | undefined> => {
             // A fresh run must never wear the previous attempt's error.
             setLastError(undefined);
@@ -530,7 +541,10 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             // on the Parameters page. Errors surface in the top bar either
             // way.
             navigate("run");
-            const result = await rpc.sendRequest(RbsStartRunRequest.type, { parameterValues });
+            const result = await rpc.sendRequest(RbsStartRunRequest.type, {
+                parameterValues,
+                autoApprove,
+            });
             if (result.error) {
                 setLastError(result.error);
                 return undefined;
@@ -562,15 +576,43 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
     );
 
     const respondToGate = useCallback(
-        async (runId: string, nodeId: string, approve: boolean): Promise<void> => {
+        async (
+            runId: string,
+            nodeId: string,
+            approve: boolean,
+            approveAll = false,
+        ): Promise<void> => {
             const result = await rpc.sendRequest(RbsRespondToGateRequest.type, {
                 runId,
                 nodeId,
                 approve,
+                approveAll,
             });
             if (result.error) {
                 setLastError(result.error);
             }
+        },
+        [rpc],
+    );
+
+    const openRunDrop = useCallback(
+        async (runId: string): Promise<boolean> => {
+            const result = await rpc.sendRequest(RbsOpenRunDropRequest.type, { runId });
+            if (result.error) {
+                setLastError(result.error);
+            }
+            return result.opened;
+        },
+        [rpc],
+    );
+
+    const deleteRun = useCallback(
+        async (runId: string): Promise<boolean> => {
+            const result = await rpc.sendRequest(RbsDeleteRunRequest.type, { runId });
+            if (result.error) {
+                setLastError(result.error);
+            }
+            return result.deleted;
         },
         [rpc],
     );
@@ -613,6 +655,8 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             startRun,
             cancelRun,
             respondToGate,
+            openRunDrop,
+            deleteRun,
             openDiagnostics,
         }),
         [
@@ -644,6 +688,8 @@ export function RbsProvider({ children }: { children: React.ReactNode }) {
             startRun,
             cancelRun,
             respondToGate,
+            openRunDrop,
+            deleteRun,
             openDiagnostics,
         ],
     );

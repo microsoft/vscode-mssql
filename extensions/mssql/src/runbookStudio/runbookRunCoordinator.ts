@@ -37,6 +37,7 @@ export interface RunbookRunCoordinator {
     startRun(
         model: RunbookStudioDocumentModel,
         parameterValues: Record<string, string | number | boolean | null>,
+        options?: { autoApprove?: boolean },
     ): Promise<{ runId?: string; error?: RbsError }>;
 
     cancelRun(
@@ -49,12 +50,23 @@ export interface RunbookRunCoordinator {
         runId: string,
         nodeId: string,
         approve: boolean,
+        options?: { approveAll?: boolean },
     ): Promise<{ accepted: boolean; error?: RbsError }>;
 
     getRun(
         model: RunbookStudioDocumentModel,
         runId: string,
     ): Promise<RunbookRunSnapshot | undefined>;
+
+    openRunDrop?(
+        model: RunbookStudioDocumentModel,
+        runId: string,
+    ): Promise<{ opened: boolean; error?: RbsError }>;
+
+    deleteRunHistory?(
+        model: RunbookStudioDocumentModel,
+        runId: string,
+    ): Promise<{ deleted: boolean; error?: RbsError }>;
 
     fetchOutputPage(
         model: RunbookStudioDocumentModel,

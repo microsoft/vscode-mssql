@@ -44,6 +44,11 @@ suite("localDevelopmentDatabaseOperations", () => {
         const probe = buildProbeLocalDevelopmentDatabaseSql("WWI_2");
 
         expect(create).to.include("CREATE DATABASE [WWI_2]");
+        expect(create).to.include("SUSER_SNAME(0x01)");
+        expect(create).to.include("ALTER AUTHORIZATION ON DATABASE::[WWI_2]");
+        expect(create.indexOf("ALTER AUTHORIZATION")).to.be.lessThan(
+            create.indexOf("sp_addextendedproperty"),
+        );
         expect(create).to.include(localDevelopmentDatabaseOwnershipPropertyName("WWI_2"));
         expect(create).not.to.include("[WWI_2].sys.sp_addextendedproperty");
         expect(create).to.include(effectId);

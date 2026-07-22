@@ -33,6 +33,7 @@ import {
     RbsModelConfiguration,
     RbsNavigateNotification,
     RbsOpenDiagnosticsRequest,
+    RbsOpenRunDropRequest,
     RbsOutputArtifactRequest,
     RbsPreviewPresentationLayoutRequest,
     RbsRespondToGateRequest,
@@ -46,6 +47,7 @@ import {
     RbsSetModelConfigurationRequest,
     RbsUpdateIntentRequest,
     RbsCancelRunRequest,
+    RbsDeleteRunRequest,
     RbsClearPresentationOverlayRequest,
     RbsGetRunRequest,
     RBS_STATE_SCHEMA_VERSION,
@@ -536,14 +538,14 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             };
         });
 
-        this.onRequest(RbsStartRunRequest.type, async ({ parameterValues }) => {
+        this.onRequest(RbsStartRunRequest.type, async ({ parameterValues, autoApprove }) => {
             if (!vscode.workspace.isTrusted) {
                 return { error: this.untrustedError() };
             }
             if (!this.coordinator) {
                 return { error: this.runtimeUnavailableError() };
             }
-            return this.coordinator.startRun(this.model, parameterValues);
+            return this.coordinator.startRun(this.model, parameterValues, { autoApprove });
         });
 
         this.onRequest(RbsCancelRunRequest.type, async ({ runId }) => {
@@ -553,15 +555,37 @@ export class RunbookStudioController extends WebviewBaseController<RbsState, voi
             return this.coordinator.cancelRun(this.model, runId);
         });
 
-        this.onRequest(RbsRespondToGateRequest.type, async ({ runId, nodeId, approve }) => {
-            if (!this.coordinator) {
-                return { accepted: false, error: this.runtimeUnavailableError() };
-            }
-            return this.coordinator.respondToGate(this.model, runId, nodeId, approve);
-        });
+        this.onRequest(
+            RbsRespondToGateRequest.type,
+            async ({ runId, nodeId, approve, approveAll }) => {
+                if (!this.coordinator) {
+                    return { accepted: false, error: this.runtimeUnavailableError() };
+                }
+                return this.coordinator.respondToGate(this.model, runId, nodeId, approve, {
+                    approveAll,
+                });
+            },
+        );
 
         this.onRequest(RbsGetRunRequest.type, async ({ runId }) => {
             return this.coordinator?.getRun(this.model, runId);
+        });
+
+        this.onRequest(RbsOpenRunDropRequest.type, async ({ runId }) => {
+            if (!this.coordinator?.openRunDrop) {
+                return { opened: false, error: this.runtimeUnavailableError() };
+            }
+            return this.coordinator.openRunDrop(this.model, runId);
+        });
+
+        this.onRequest(RbsDeleteRunRequest.type, async ({ runId }) => {
+            if (!vscode.workspace.isTrusted) {
+                return { deleted: false, error: this.untrustedError() };
+            }
+            if (!this.coordinator?.deleteRunHistory) {
+                return { deleted: false, error: this.runtimeUnavailableError() };
+            }
+            return this.coordinator.deleteRunHistory(this.model, runId);
         });
 
         this.onRequest(RbsSelectRunRequest.type, async ({ runId }) => {

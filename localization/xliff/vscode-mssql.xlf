@@ -550,6 +550,9 @@
     <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
       <source xml:lang="en">Approve</source>
     </trans-unit>
+    <trans-unit id="++CODE++ae067b6871072a45ac3cc00cc1f6280665a8d8784c34868528af5dd11967a062">
+      <source xml:lang="en">Approve all</source>
+    </trans-unit>
     <trans-unit id="++CODE++66f4804ee23ddc092d1bae43cb88186aa541187fff7c1cc8a4aa17e59a9f4123">
       <source xml:lang="en">Archive</source>
     </trans-unit>
@@ -1502,6 +1505,9 @@
     <trans-unit id="++CODE++f8eabdcfc1345cf137950e6b35f4723e75a5ef6bc52199d8d35a175236faed53">
       <source xml:lang="en">Collapse feature details</source>
     </trans-unit>
+    <trans-unit id="++CODE++1afa67a9d3e7598b79db5e4bca30bd543824242566d6bb9346a357a59a10e05f">
+      <source xml:lang="en">Collapse navigation</source>
+    </trans-unit>
     <trans-unit id="++CODE++37a3009e612d2ec139d2a34ef9d77f859aefb5d3eb3c585162bd1c8c2251bf9f">
       <source xml:lang="en">Collapse settings</source>
     </trans-unit>
@@ -1699,6 +1705,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8062e054268463a31bf1409a2928cb7e54cf8cdebadeef0e739dc55c473774c1">
       <source xml:lang="en">Confirm admin password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++da00fa968bd87b3d4050f126cf7e32435f86531842dc5606fdd52c97cbed81fe">
+      <source xml:lang="en">Confirm delete</source>
     </trans-unit>
     <trans-unit id="++CODE++bf000421aeb39493cf8044ec73846d7da8ca97b7166208c0d1172a17ba23a388">
       <source xml:lang="en">Confirm new password</source>
@@ -2595,8 +2604,14 @@
     <trans-unit id="++CODE++3e12474b79fc61d3695fc46a2588df801c380eccc6edc9cb20dd223f4e9ed76e">
       <source xml:lang="en">Delete backup and restore history</source>
     </trans-unit>
+    <trans-unit id="++CODE++70aeaeeb13befdc5a767bbba284d13b4b1867f245651ee7777f9d10737eead31">
+      <source xml:lang="en">Delete run</source>
+    </trans-unit>
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
+    </trans-unit>
+    <trans-unit id="++CODE++108ab3b70ef31f865602d77767c82d223fa796551a4bf4064575a55284f98f5e">
+      <source xml:lang="en">Delete this run&apos;s results, approvals, logs, and retained files?</source>
     </trans-unit>
     <trans-unit id="++CODE++bd14bb5ac76069fd6986a3c7ddfae7081104904eef01f76793939696ec76917e">
       <source xml:lang="en">Delete {0} rows</source>
@@ -2618,6 +2633,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a58008628a726d4f8798f9f92347d47f8f5c1c1aece67f8128600de9311a65e1">
       <source xml:lang="en">Deleting Container...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++446bccf8eacdfe7516a0b5907129af6ef94abbf91a1a10c891e6f7df62d94972">
+      <source xml:lang="en">Deleting…</source>
     </trans-unit>
     <trans-unit id="++CODE++d93ef52e234dcf9e52ec0ddf17426175aa385b451ae8571c71da3320a2a0930a">
       <source xml:lang="en">Deltas are observed facts only. No performance baseline or noise policy is applied.</source>
@@ -3504,6 +3522,9 @@
     </trans-unit>
     <trans-unit id="++CODE++7cf9e3bc58608088aade792969d329e8d48a32703e308ae5fc708037a99012ff">
       <source xml:lang="en">Expand feature details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4a984a4ea6d059456e6ef5196e665c76daa9f431f832fa15ced6dd88a8d8475f">
+      <source xml:lang="en">Expand navigation</source>
     </trans-unit>
     <trans-unit id="++CODE++d9c008a5e0915c79e82398085c2cd4b029fe53d96880ed8b874bf0bf0d52fb5b">
       <source xml:lang="en">Expand properties pane</source>
@@ -6395,6 +6416,9 @@
     <trans-unit id="++CODE++ea1d0f038bbdb9e9aa6649671dcbff49e1f63b700b27d60890da5c60fb4e89af">
       <source xml:lang="en">Open in editor</source>
     </trans-unit>
+    <trans-unit id="++CODE++35d9923a57a55be14d40dc989b7118556b5eb21cae497a481ae6fea07ebbeb04">
+      <source xml:lang="en">Open run drop</source>
+    </trans-unit>
     <trans-unit id="++CODE++d3976936e979be164499768f7baa4965692500bfc5f78042b4f73efd932028ef">
       <source xml:lang="en">Open sign-in page</source>
     </trans-unit>
@@ -7277,6 +7301,9 @@
     <trans-unit id="++CODE++4004a79eaf29661f3548d4131219d944e668bc53c073de136e71c39a60f031a9">
       <source xml:lang="en">Rerun</source>
     </trans-unit>
+    <trans-unit id="++CODE++836d46a502ce1e0c0f41ec62a127a32406bb0ec9e97af359b775fc9ee98d9273">
+      <source xml:lang="en">Rerun with Auto-Approve</source>
+    </trans-unit>
     <trans-unit id="++CODE++4a638f5913cfad83b63c2284a25ffd60a0fd5855361e251c2f32b065ddf4a75e">
       <source xml:lang="en">Reserved for matching results</source>
     </trans-unit>
@@ -7539,6 +7566,9 @@
     <trans-unit id="++CODE++98fc98c876f876665c38a429c4f73c45faaebca208b98dc881a2ce8d2c9eaf1d">
       <source xml:lang="en">Run in progress…</source>
     </trans-unit>
+    <trans-unit id="++CODE++5c08d64f39ccac29223ffd8fb8d2a4d8d3930bce9797666abb481f033079258b">
+      <source xml:lang="en">Run options</source>
+    </trans-unit>
     <trans-unit id="++CODE++7365d701af89b879cd88c1b62bce182f67f4cd9f9476b0782f1419953e491d47">
       <source xml:lang="en">Run outcome</source>
     </trans-unit>
@@ -7563,6 +7593,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b1a10762a54024e2bba9df6ab791262df68043f53a6d8ef45110c0d58493635f">
       <source xml:lang="en">Run verdict</source>
+    </trans-unit>
+    <trans-unit id="++CODE++18753ecb22220da8ea1a9d808920bce6e95d0a3dc46826dec94164f730404e5b">
+      <source xml:lang="en">Run with Auto-Approve</source>
     </trans-unit>
     <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
       <source xml:lang="en">Run, cancel, and create queries</source>
@@ -9361,6 +9394,9 @@
     <trans-unit id="++CODE++577d02ca582344ac419c856b7ba171d6a78519e7b202b0135676e0a5dbc1655e">
       <source xml:lang="en">The layout changed or this edit is no longer valid. Review the latest layout and try again.</source>
     </trans-unit>
+    <trans-unit id="++CODE++715df889a61a6c73fd8ed9475c572bcba357f86eed054eff4f5593d622413393">
+      <source xml:lang="en">The managed file drop for this run could not be created.</source>
+    </trans-unit>
     <trans-unit id="++CODE++9def3211a272528d53ebea00bababd4dcd9b3e3808c377e8e631e63718ecb7ec">
       <source xml:lang="en">The managed run artifact already exists at &apos;{0}&apos;. Start a new run before retrying.</source>
       <note>{0} is a managed run artifact path</note>
@@ -9502,6 +9538,12 @@
       <source xml:lang="en">The selected profile authenticates using Entra ID &apos;{0}&apos;, but that account is not available through VS Code sign-in. Edit the connection or sign into VS Code with that account to connect.</source>
       <note>{0} is the account ID or label</note>
     </trans-unit>
+    <trans-unit id="++CODE++d48c9b0c52b06d6b31b7d2b95c2e4a848b0b1c27510941a761f90ccef20cfe11">
+      <source xml:lang="en">The selected run and its retained files could not be deleted.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++823ea93b1fc215112ab3841ab1eaf29951e9e601461696f8e13dab1464cbd65f">
+      <source xml:lang="en">The selected run is no longer retained.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8cb922b5fdbb038315fdfe579920bb72d7b66358e2812160628de60b132c893c">
       <source xml:lang="en">The selected source connection must specify a database to extract.</source>
     </trans-unit>
@@ -9595,6 +9637,9 @@
     </trans-unit>
     <trans-unit id="++CODE++78b9bdb7d3c28c439bb9d8a815d5748af3f16efa4b874f18b2be3826caf8c8c2">
       <source xml:lang="en">This run does not have a complete evidence bundle to export.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cf50464404b6835365bd7a8282a36c5de90ac81c6bbd6bf840bbc0ce42e755ff">
+      <source xml:lang="en">This run does not have a retained file drop. Older runs may still have results without managed files.</source>
     </trans-unit>
     <trans-unit id="++CODE++d61a4b2a59e09dacacd07c8f32c2a1b3243269a241d27d5dac0f6b2ac82f41d9">
       <source xml:lang="en">This run has not produced any typed outputs.</source>

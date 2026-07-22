@@ -14,6 +14,14 @@
 
 import debounce from "lodash/debounce";
 import { CSSProperties, DragEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    Menu,
+    MenuItem,
+    MenuList,
+    MenuPopover,
+    MenuTrigger,
+    SplitButton,
+} from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 import { perfMarkAfterNextPaint } from "../../common/perfMarks";
 import {
@@ -225,26 +233,71 @@ function TopBar() {
     );
 }
 
-function NavRail() {
+function NavRail({ collapsed, onToggle }: { collapsed: boolean; onToggle: () => void }) {
     const { route, navigate } = useRbs();
+    const loc = locConstants.runbookStudio;
     // "parameters" and "debug" are aliases of the merged Run page (their
     // rail items are gone) — highlight Run for them.
     const effectiveRoute: RbsRoute = route === "parameters" || route === "debug" ? "run" : route;
     return (
         <nav className="rbs-rail" aria-label={locConstants.runbookStudio.sectionsAriaLabel}>
+            <button
+                type="button"
+                className="rbs-rail-toggle"
+                aria-label={collapsed ? loc.expandNavigation : loc.collapseNavigation}
+                title={collapsed ? loc.expandNavigation : loc.collapseNavigation}
+                aria-expanded={!collapsed}
+                onClick={onToggle}>
+                <span aria-hidden>{collapsed ? "»" : "«"}</span>
+            </button>
             {ROUTES.map((item) => (
                 <button
                     key={item.id}
                     className={`rbs-rail-item ${effectiveRoute === item.id ? "active" : ""}`}
                     aria-current={effectiveRoute === item.id ? "page" : undefined}
+                    title={collapsed ? item.label() : undefined}
                     onClick={() => navigate(item.id)}>
                     <span aria-hidden className="rbs-rail-icon">
                         {item.icon}
                     </span>
-                    {item.label()}
+                    <span className="rbs-rail-label">{item.label()}</span>
                 </button>
             ))}
         </nav>
+    );
+}
+
+function RunSplitButton({
+    label,
+    autoApproveLabel,
+    disabled,
+    onRun,
+}: {
+    label: string;
+    autoApproveLabel: string;
+    disabled: boolean;
+    onRun: (autoApprove: boolean) => void;
+}) {
+    const loc = locConstants.runbookStudio;
+    return (
+        <Menu>
+            <MenuTrigger disableButtonEnhancement>
+                <SplitButton
+                    appearance="primary"
+                    size="small"
+                    disabled={disabled}
+                    primaryActionButton={{ onClick: () => onRun(false) }}
+                    menuButton={{ "aria-label": loc.runOptions }}>
+                    {label}
+                </SplitButton>
+            </MenuTrigger>
+            <MenuPopover>
+                <MenuList>
+                    <MenuItem onClick={() => onRun(false)}>{label}</MenuItem>
+                    <MenuItem onClick={() => onRun(true)}>{autoApproveLabel}</MenuItem>
+                </MenuList>
+            </MenuPopover>
+        </Menu>
     );
 }
 
@@ -833,7 +886,13 @@ function ParameterValueEditor({
 /** Parameter bind form (connection dropdown + parameter inputs + Run
  *  button) — the body of the merged Run page's collapsible Parameters
  *  section. */
-function ParametersSection({ starting, onRun }: { starting: boolean; onRun: () => Promise<void> }) {
+function ParametersSection({
+    starting,
+    onRun,
+}: {
+    starting: boolean;
+    onRun: (autoApprove: boolean) => Promise<void>;
+}) {
     const { state, parameterDraft, setParameterDraft } = useRbs();
     const loc = locConstants.runbookStudio;
     // Draft lives in the provider so navigating away (or starting a run)
@@ -886,26 +945,26 @@ function ParametersSection({ starting, onRun }: { starting: boolean; onRun: () =
                     </tbody>
                 </table>
             )}
-            <div>
-                <button
-                    className="rbs-btn rbs-btn-primary"
+            <div
+                title={
+                    !state?.workspaceTrusted
+                        ? loc.untrustedDetail
+                        : state?.artifact?.readiness?.status === "designOnly"
+                          ? loc.designOnlyDetail
+                          : state?.artifact?.readiness?.status === "policyBlocked"
+                            ? loc.policyBlockedDetail
+                            : state?.artifact?.readiness?.status === "incompatible"
+                              ? loc.incompatibleDetail
+                              : !state?.artifact?.hasLock
+                                ? loc.notCompiledDetail
+                                : undefined
+                }>
+                <RunSplitButton
+                    label={runActive ? loc.runActiveLabel : loc.runButton}
+                    autoApproveLabel={loc.runWithAutoApprove}
                     disabled={!canRun || starting}
-                    title={
-                        !state?.workspaceTrusted
-                            ? loc.untrustedDetail
-                            : state?.artifact?.readiness?.status === "designOnly"
-                              ? loc.designOnlyDetail
-                              : state?.artifact?.readiness?.status === "policyBlocked"
-                                ? loc.policyBlockedDetail
-                                : state?.artifact?.readiness?.status === "incompatible"
-                                  ? loc.incompatibleDetail
-                                  : !state?.artifact?.hasLock
-                                    ? loc.notCompiledDetail
-                                    : undefined
-                    }
-                    onClick={() => void onRun()}>
-                    {runActive ? loc.runActiveLabel : loc.runButton}
-                </button>
+                    onRun={(autoApprove) => void onRun(autoApprove)}
+                />
             </div>
         </>
     );
@@ -994,7 +1053,7 @@ function RunPage() {
     const completed =
         run?.nodes.filter((n) => ["succeeded", "failed", "skipped", "cancelled"].includes(n.state))
             .length ?? 0;
-    const runWithCurrentParameters = async () => {
+    const runWithCurrentParameters = async (autoApprove = false) => {
         setStarting(true);
         try {
             const parameterValues: Record<string, string | number | boolean | null> = {};
@@ -1005,7 +1064,7 @@ function RunPage() {
                 }
                 parameterValues[parameter.id] = parameter.type === "boolean" ? raw === "true" : raw;
             }
-            await startRun(parameterValues);
+            await startRun(parameterValues, autoApprove);
         } finally {
             setStarting(false);
         }
@@ -1045,12 +1104,14 @@ function RunPage() {
                                 </button>
                             ) : (
                                 <>
-                                    <button
-                                        className="rbs-btn rbs-btn-primary"
+                                    <RunSplitButton
+                                        label={loc.rerun}
+                                        autoApproveLabel={loc.rerunWithAutoApprove}
                                         disabled={starting}
-                                        onClick={() => void runWithCurrentParameters()}>
-                                        {loc.rerun}
-                                    </button>
+                                        onRun={(autoApprove) =>
+                                            void runWithCurrentParameters(autoApprove)
+                                        }
+                                    />
                                     <button className="rbs-btn" onClick={() => navigate("results")}>
                                         {loc.viewResults}
                                     </button>
@@ -1075,6 +1136,18 @@ function RunPage() {
                                     void respondToGate(run.runId, run.pendingGate!.nodeId, false)
                                 }>
                                 {loc.reject}
+                            </button>
+                            <button
+                                className="rbs-btn"
+                                onClick={() =>
+                                    void respondToGate(
+                                        run.runId,
+                                        run.pendingGate!.nodeId,
+                                        true,
+                                        true,
+                                    )
+                                }>
+                                {loc.approveAll}
                             </button>
                         </div>
                     ) : null}
@@ -2648,6 +2721,19 @@ function LayoutStrategyControl({
     );
 }
 
+function OpenRunDropButton({ runId }: { runId: string }) {
+    const { openRunDrop } = useRbs();
+    const loc = locConstants.runbookStudio;
+    return (
+        <button
+            type="button"
+            className="rbs-btn rbs-btn-quiet"
+            onClick={() => void openRunDrop(runId)}>
+            {loc.openRunDrop}
+        </button>
+    );
+}
+
 function ResultsPage() {
     const { state } = useRbs();
     const loc = locConstants.runbookStudio;
@@ -2711,6 +2797,7 @@ function ResultsPage() {
                         onClick={() => setComparisonOpen((value) => !value)}>
                         {loc.compareRuns}
                     </button>
+                    <OpenRunDropButton runId={state.run.runId} />
                     <EvidenceExportControl />
                 </div>
                 <RunOutcomeSummaryPanel run={state.run} />
@@ -2747,6 +2834,7 @@ function ResultsPage() {
                     onClick={() => setOutputsOpen((value) => !value)}>
                     {loc.outputsDrawer}
                 </button>
+                <OpenRunDropButton runId={state.run.runId} />
                 {editingLayout ? (
                     <LayoutStrategyControl
                         presentation={presentation}
@@ -4825,9 +4913,11 @@ function PreviewPage() {
 }
 
 function HistoryPage() {
-    const { state, selectRun, navigate } = useRbs();
+    const { state, selectRun, navigate, openRunDrop, deleteRun } = useRbs();
     const loc = locConstants.runbookStudio;
     const history = state?.history ?? [];
+    const [confirmDeleteRunId, setConfirmDeleteRunId] = useState<string>();
+    const [deletingRunId, setDeletingRunId] = useState<string>();
     if (history.length === 0) {
         return <EmptyState title={loc.noHistoryTitle} detail={loc.noHistoryDetail} />;
     }
@@ -4915,6 +5005,64 @@ function HistoryPage() {
                                                 }}>
                                                 {loc.viewResults}
                                             </button>
+                                            <button
+                                                type="button"
+                                                className="rbs-link-button"
+                                                onClick={() => void openRunDrop(entry.runId)}>
+                                                {loc.openRunDrop}
+                                            </button>
+                                            {confirmDeleteRunId === entry.runId ? (
+                                                <span className="rbs-history-delete-confirm">
+                                                    <span>{loc.deleteRunConfirmation}</span>
+                                                    <button
+                                                        type="button"
+                                                        className="rbs-link-button rbs-link-danger"
+                                                        disabled={deletingRunId !== undefined}
+                                                        onClick={() => {
+                                                            setDeletingRunId(entry.runId);
+                                                            void deleteRun(entry.runId).then(
+                                                                (deleted) => {
+                                                                    setDeletingRunId(undefined);
+                                                                    if (deleted) {
+                                                                        setConfirmDeleteRunId(
+                                                                            undefined,
+                                                                        );
+                                                                    }
+                                                                },
+                                                            );
+                                                        }}>
+                                                        {deletingRunId === entry.runId
+                                                            ? loc.deletingRun
+                                                            : loc.confirmDeleteRun}
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        className="rbs-link-button"
+                                                        disabled={deletingRunId !== undefined}
+                                                        onClick={() =>
+                                                            setConfirmDeleteRunId(undefined)
+                                                        }>
+                                                        {loc.cancelDeleteRun}
+                                                    </button>
+                                                </span>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    className="rbs-link-button rbs-link-danger"
+                                                    disabled={
+                                                        deletingRunId !== undefined ||
+                                                        ![
+                                                            "succeeded",
+                                                            "failed",
+                                                            "cancelled",
+                                                        ].includes(entry.state)
+                                                    }
+                                                    onClick={() =>
+                                                        setConfirmDeleteRunId(entry.runId)
+                                                    }>
+                                                    {loc.deleteRun}
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>
@@ -4929,6 +5077,7 @@ function HistoryPage() {
 
 export function RunbookStudioApp() {
     const { route, state } = useRbs();
+    const [railCollapsed, setRailCollapsed] = useState(false);
 
     // Cross-process readiness endpoint (registered webviewMark): first paint
     // with a populated snapshot.
@@ -4967,9 +5116,12 @@ export function RunbookStudioApp() {
             page = <AuthorPage />;
     }
     return (
-        <div className="rbs-shell">
+        <div className={`rbs-shell ${railCollapsed ? "rbs-rail-collapsed" : ""}`}>
             <TopBar />
-            <NavRail />
+            <NavRail
+                collapsed={railCollapsed}
+                onToggle={() => setRailCollapsed((value) => !value)}
+            />
             <main className="rbs-page">{page}</main>
         </div>
     );

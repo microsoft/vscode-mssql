@@ -223,8 +223,16 @@ export default class SqlToolsServiceClient {
         const stsFolderOverride = process.env[STS_OVERRIDE_ENV_VAR];
         if (stsFolderOverride) {
             try {
-                await launchServer(stsFolderOverride, Runtime.Portable);
-                this.sendServiceLaunchTelemetry("override", Runtime.Portable, platformInfo);
+                const hasPlatformExecutable = await this._server.tryGetExecutablePathInFolder(
+                    stsFolderOverride,
+                    platformInfo.runtimeId,
+                    ServiceExecutable.MicrosoftSqlToolsServiceLayer,
+                );
+                const overrideRuntime = hasPlatformExecutable
+                    ? platformInfo.runtimeId
+                    : Runtime.Portable;
+                await launchServer(stsFolderOverride, overrideRuntime);
+                this.sendServiceLaunchTelemetry("override", overrideRuntime, platformInfo);
                 vscode.window.showInformationMessage(
                     `Launched SQL Tools Service from overridden path: ${stsFolderOverride}`,
                 );

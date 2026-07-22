@@ -31,7 +31,7 @@ import { RUNBOOK_STUDIO_VIEW_TYPE } from "../../src/runbookStudio/runbookStudioE
 
 const LIVE_ENABLED = process.env.RBS2_DACPAC_LIVE === "1";
 const CONNECTION_STRING =
-    process.env.STS2_SQLSERVER_SQLLOGIN_CONNSTRING ?? process.env.STS2_SQLSERVER_CONNSTRING;
+    process.env.STS2_SQLSERVER_CONNSTRING ?? process.env.STS2_SQLSERVER_SQLLOGIN_CONNSTRING;
 const TARGET_DATABASE = "WWI_2";
 const EXACT_INTENT =
     "Extract WideWorldImporters to a dacpac, import it back as WWI_2, " +
@@ -193,6 +193,11 @@ suite("Runbook Studio DACPAC round trip live smoke (gated)", function () {
             );
             ownedEffectId = ownership.rows?.[0]?.[1]?.displayValue;
             expect(ownedEffectId).to.match(/^effect-[a-f0-9]{64}$/);
+            const owner = await api.connectionSharing.executeSimpleQuery(
+                masterUri,
+                `SELECT CAST(CASE WHEN [owner_sid] = 0x01 THEN 1 ELSE 0 END AS int) AS has_stable_owner FROM sys.databases WHERE [name] = N'${TARGET_DATABASE}';`,
+            );
+            expect(owner.rows?.[0]?.[0]?.displayValue).to.equal("1");
 
             targetUri = await api.connect({ ...baseProfile, database: TARGET_DATABASE });
             const inventory = await api.connectionSharing.executeSimpleQuery(

@@ -180,6 +180,30 @@ suite("Service Client tests", () => {
             expect(testServiceProvider.downloadAndGetServerInstallFolder.notCalled).to.be.true;
         });
 
+        test("uses a self-contained platform executable from the STS override path", async () => {
+            const fixture: IFixture = {
+                platformInfo: new PlatformInformation("win32", "x86_64", undefined),
+            };
+            process.env.MSSQL_SQLTOOLSSERVICE = "/tmp/sqltools-override";
+
+            setupMocks(fixture);
+            testServiceProvider.tryGetExecutablePathInFolder
+                .withArgs("/tmp/sqltools-override", Runtime.Windows_64, sinon.match.any)
+                .resolves("/tmp/sqltools-override/MicrosoftSqlToolsServiceLayer.exe");
+            const serviceClient = createServiceClient();
+            const launchStub = stubLaunches(serviceClient);
+
+            await serviceClient.initializeForPlatform(fixture.platformInfo, undefined);
+
+            expect(launchStub).to.have.been.calledWithMatch(
+                "/tmp/sqltools-override",
+                Runtime.Windows_64,
+                undefined,
+            );
+            expect(testServiceProvider.tryGetServerInstallFolder.notCalled).to.be.true;
+            expect(testServiceProvider.downloadAndGetServerInstallFolder.notCalled).to.be.true;
+        });
+
         test("does not fall back when the STS override path fails", async () => {
             const fixture: IFixture = {
                 platformServerPath: "installed-platform-service",

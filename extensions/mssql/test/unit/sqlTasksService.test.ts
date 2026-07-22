@@ -100,6 +100,38 @@ suite("SqlTasksService Tests", () => {
             );
         });
 
+        test("does not show generic task UI for a Runbook Studio-owned task", async () => {
+            const taskInfo: TaskInfo = {
+                taskId: "runbook-task-1",
+                status: TaskStatus.InProgress,
+                taskExecutionMode: TaskExecutionMode.execute,
+                serverName: "test-server",
+                databaseName: "test-db",
+                ownerUri: "runbookstudio://dacfx-extract/1",
+                name: "Extract DACPAC",
+                description: "Extracting DACPAC",
+                providerName: "MSSQL",
+                isCancelable: true,
+                targetLocation: "/managed/run-drop/source.dacpac",
+                operationName: "ExtractDacpac",
+            };
+            const onNotificationStub = sqlToolsClientStub.onNotification as sinon.SinonStub;
+            const taskCreatedHandler = onNotificationStub.getCalls()[0].args[1];
+            const taskStatusChangedHandler = onNotificationStub.getCalls()[1].args[1];
+
+            taskCreatedHandler(taskInfo);
+            await taskStatusChangedHandler({
+                taskId: taskInfo.taskId,
+                status: TaskStatus.Succeeded,
+                message: "DACPAC extracted successfully",
+            } satisfies TaskProgressInfo);
+
+            expect(showInformationMessageStub).to.not.have.been.called;
+            expect(showWarningMessageStub).to.not.have.been.called;
+            expect(showErrorMessageStub).to.not.have.been.called;
+            expect(executeCommandStub).to.not.have.been.called;
+        });
+
         test("should emit telemetry event when handler is overwritten", () => {
             const handler1: TaskCompletionHandler = {
                 operationName: "TestOperation",

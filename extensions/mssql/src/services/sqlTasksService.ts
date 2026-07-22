@@ -51,6 +51,8 @@ export interface TaskInfo {
     taskExecutionMode: TaskExecutionMode;
     serverName: string;
     databaseName: string;
+    /** Opaque connection owner identity supplied by SQL Tools Service. */
+    ownerUri?: string;
     name: string;
     description: string;
     providerName: string;
@@ -223,28 +225,31 @@ export class SqlTasksService {
      * @param taskInfo The info for the new task that was created
      */
     private handleTaskCreatedNotification(taskInfo: TaskInfo): void {
+        const runbookOwned = isRunbookOwnedTask(taskInfo);
         const newTaskInfo: ActiveTaskInfo = {
             taskInfo,
-            backgroundTaskHandle: this._backgroundTasksService?.registerTask({
-                displayText: taskInfo.name,
-                description: taskInfo.description,
-                details: this.createBackgroundTaskDetails(taskInfo),
-                target: taskInfo.targetLocation,
-                tooltip: this.createBackgroundTaskTooltip(taskInfo),
-                canCancel: taskInfo.isCancelable,
-                cancel: taskInfo.isCancelable
-                    ? async () => {
-                          await this.cancelTask(taskInfo.taskId);
-                      }
-                    : undefined,
-                source: taskInfo.providerName,
-                message: taskInfo.progressMessage ?? taskInfo.description,
-                state: toBackgroundTaskState(taskInfo.status),
-                percent:
-                    taskInfo.percentComplete !== undefined && taskInfo.percentComplete >= 0
-                        ? taskInfo.percentComplete
-                        : undefined,
-            }),
+            backgroundTaskHandle: runbookOwned
+                ? undefined
+                : this._backgroundTasksService?.registerTask({
+                      displayText: taskInfo.name,
+                      description: taskInfo.description,
+                      details: this.createBackgroundTaskDetails(taskInfo),
+                      target: taskInfo.targetLocation,
+                      tooltip: this.createBackgroundTaskTooltip(taskInfo),
+                      canCancel: taskInfo.isCancelable,
+                      cancel: taskInfo.isCancelable
+                          ? async () => {
+                                await this.cancelTask(taskInfo.taskId);
+                            }
+                          : undefined,
+                      source: taskInfo.providerName,
+                      message: taskInfo.progressMessage ?? taskInfo.description,
+                      state: toBackgroundTaskState(taskInfo.status),
+                      percent:
+                          taskInfo.percentComplete !== undefined && taskInfo.percentComplete >= 0
+                              ? taskInfo.percentComplete
+                              : undefined,
+                  }),
         };
         this._activeTasks.set(taskInfo.taskId, newTaskInfo);
 
@@ -340,7 +345,16 @@ export class SqlTasksService {
                 },
             );
 
-            if (taskProgressInfo.status === TaskStatus.Succeeded && handler && targetLocation) {
+            if (isRunbookOwnedTask(taskInfo.taskInfo)) {
+                // Runbook Studio owns progress, logs, artifacts, and actions
+                // for these tasks. Keep the generic SQL task plumbing alive
+                // for completion/cancellation, but do not duplicate it as a
+                // background task, toast, or query editor.
+            } else if (
+                taskProgressInfo.status === TaskStatus.Succeeded &&
+                handler &&
+                targetLocation
+            ) {
                 // Show custom notification with optional action button
                 const successMessage = handler.getSuccessMessage(taskInfo.taskInfo, targetLocation);
                 const actionButtonText = handler.actionButtonText;
@@ -385,6 +399,7 @@ export class SqlTasksService {
             }
 
             if (
+                !isRunbookOwnedTask(taskInfo.taskInfo) &&
                 taskInfo.taskInfo.taskExecutionMode === TaskExecutionMode.script &&
                 scriptContent !== undefined
             ) {
@@ -497,6 +512,10 @@ export class SqlTasksService {
             void vscode.window.showInformationMessage(message);
         }
     }
+}
+
+function isRunbookOwnedTask(taskInfo: TaskInfo): boolean {
+    return taskInfo.ownerUri?.toLowerCase().startsWith("runbookstudio://") === true;
 }
 
 /**

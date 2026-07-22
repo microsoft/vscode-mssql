@@ -74,6 +74,7 @@ import {
 
 import { buildEvidenceExport, EvidenceExportError, evidenceExportFileName } from "./evidenceExport";
 import { RunbookResultStore } from "./runbookResultStore";
+import { RunbookRunDropStore } from "./runbookRunDropStore";
 import { outputArtifactEditorViewType, verifyRetainedOutputArtifact } from "./outputArtifact";
 import { RunbookStudioDocumentModel } from "./runbookStudioDocumentModel";
 import { compileIntentWithModel } from "./models/planCompiler";
@@ -156,7 +157,6 @@ import {
     isValidDacpacSourceDatabaseName,
     verifyLocalDacpacArtifact,
 } from "./runtime/localDeveloperOperations";
-import { localManagedArtifactFileName } from "./runtime/localManagedArtifacts";
 import {
     cleanupStaleLocalDacpacArtifacts,
     disposeStagedLocalDacpacArtifact,
@@ -256,6 +256,8 @@ interface ActiveRunBinding {
     runEnded: boolean;
     artifact: RunbookArtifactFile;
     parameterValues: Record<string, string | number | boolean | null>;
+    /** Explicit user choice for this run only; never copied to the artifact. */
+    autoApproveRemaining: boolean;
     pendingApprovals: Map<
         string,
         {
@@ -284,6 +286,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     private readonly effectLedger: RunbookEffectLedger;
     private readonly approvalLedger: RunbookApprovalLedger;
     private readonly resultStore: RunbookResultStore;
+    private readonly runDropStore: RunbookRunDropStore;
     private adapter: RunbookRuntimeAdapter | undefined;
     /** The configured kind this.adapter was built for (hot-swap detection). */
     private adapterKind: string | undefined;
@@ -380,6 +383,10 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     detailClass: metaField(detail.slice(0, 80)),
                 }),
         });
+        this.runDropStore = new RunbookRunDropStore(
+            path.join(this.persistRoot, "run-drops"),
+            path.join(this.persistRoot, "managed-artifacts"),
+        );
         if (migratedFiles > 0) {
             emitRunbookEvent(persistenceContext, "runbookStudio.persistence.migrated", "ok", {
                 movedFiles: metaField(migratedFiles),
@@ -436,6 +443,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
     public async startRun(
         model: RunbookStudioDocumentModel,
         parameterValues: Record<string, string | number | boolean | null>,
+        options?: { autoApprove?: boolean },
     ): Promise<{ runId?: string; error?: RbsError }> {
         this.seedHistory(model);
         const artifact = model.artifact;
@@ -594,6 +602,23 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         const adapter = adapterResult.adapter;
 
         const runId = nextRunId();
+        const startedEpochMs = Date.now();
+        try {
+            this.runDropStore.createRun({
+                runId,
+                runbookId: artifact.id,
+                planRevision: artifact.lock.planRevision,
+                planHash: artifact.lock.planHash,
+                startedEpochMs,
+            });
+        } catch {
+            return {
+                error: {
+                    code: "RunbookStudio.Internal",
+                    message: LocRunbookStudio.runDropCreateFailed,
+                },
+            };
+        }
         const runContext = childRunbookContext(context, { runId });
         const active: ActiveRunBinding = {
             runId,
@@ -602,6 +627,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             runEnded: false,
             artifact,
             parameterValues: binding.values,
+            autoApproveRemaining: options?.autoApprove === true,
             pendingApprovals: new Map(),
             approvedEffects: new Map(),
             outputValues: new Map(),
@@ -623,7 +649,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             planRevision: artifact.lock.planRevision,
             planHash: artifact.lock.planHash,
             nodeIds: artifact.lock.nodes.map((n) => n.id),
-            epochMs: Date.now(),
+            epochMs: startedEpochMs,
         });
         model.setActiveRun(accepted);
         this.activeRunsEmitter.fire();
@@ -705,6 +731,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         runId: string,
         nodeId: string,
         approve: boolean,
+        options?: { approveAll?: boolean },
     ): Promise<{ accepted: boolean; error?: RbsError }> {
         const active = this.activeByRunId.get(runId);
         if (!active || active.runEnded || active.model !== model || !this.adapter) {
@@ -715,6 +742,9 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     message: LocRunbookStudio.gateNotPending,
                 },
             };
+        }
+        if (approve && options?.approveAll) {
+            active.autoApproveRemaining = true;
         }
         const pendingApproval = active.pendingApprovals.get(nodeId);
         if (pendingApproval) {
@@ -767,6 +797,13 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             };
         }
         active.pendingApprovals.delete(nodeId);
+        if (active.autoApproveRemaining) {
+            for (const pendingNodeId of active.pendingApprovals.keys()) {
+                queueMicrotask(() => {
+                    void this.respondToGate(model, runId, pendingNodeId, true);
+                });
+            }
+        }
         return { accepted: true };
     }
 
@@ -775,6 +812,61 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         runId: string,
     ): Promise<RunbookRunSnapshot | undefined> {
         return this.ledger.snapshotOf(runId);
+    }
+
+    public async openRunDrop(
+        model: RunbookStudioDocumentModel,
+        runId: string,
+    ): Promise<{ opened: boolean; error?: RbsError }> {
+        const snapshot = this.ledger.snapshotOf(runId);
+        if (!snapshot || snapshot.runbookId !== model.artifact?.id) {
+            return { opened: false, error: runNotFoundError() };
+        }
+        const directory = this.runDropStore.pathForOpen(runId);
+        if (!directory) {
+            return { opened: false, error: runDropUnavailableError() };
+        }
+        await vscode.commands.executeCommand("revealFileInOS", vscode.Uri.file(directory));
+        return { opened: true };
+    }
+
+    public async deleteRunHistory(
+        model: RunbookStudioDocumentModel,
+        runId: string,
+    ): Promise<{ deleted: boolean; error?: RbsError }> {
+        const snapshot = this.ledger.snapshotOf(runId);
+        if (!snapshot || snapshot.runbookId !== model.artifact?.id) {
+            return { deleted: false, error: runNotFoundError() };
+        }
+        if (this.activeByRunId.has(runId) || this.ledger.isOpen(runId)) {
+            return {
+                deleted: false,
+                error: { code: "RunbookStudio.RunActive", message: LocRunbookStudio.runActive },
+            };
+        }
+        try {
+            this.deleteLocalRunData(runId);
+        } catch {
+            return {
+                deleted: false,
+                error: {
+                    code: "RunbookStudio.Internal",
+                    message: LocRunbookStudio.runHistoryDeleteFailed,
+                },
+            };
+        }
+        if (!this.ledger.deleteRun(runId)) {
+            return { deleted: false, error: runNotFoundError() };
+        }
+        const entries = this.ledger.listRuns(snapshot.runbookId);
+        model.selectRun(undefined);
+        model.setActiveRun(undefined);
+        model.seedHistory(entries);
+        const latest = entries[0] ? this.ledger.snapshotOf(entries[0].runId) : undefined;
+        if (latest) {
+            model.setActiveRun(latest);
+        }
+        return { deleted: true };
     }
 
     public async fetchOutputPage(
@@ -848,7 +940,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 ? { available: false, error: outputArtifactUnavailableError() }
                 : { available: false };
         }
-        const roots = [this.localManagedArtifactRoot()];
+        const roots = this.runDropStore.trustedArtifactRoots();
         if (artifact.contract === "dacpacArtifact/1") {
             roots.push(
                 ...(vscode.workspace.workspaceFolders ?? [])
@@ -1859,6 +1951,16 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             });
             return { ok: false, error: ensured.error };
         }
+        if (
+            [...this.activeByRunId.values()].some(
+                (binding) => !binding.runEnded && binding.artifact.id === id,
+            )
+        ) {
+            return {
+                ok: false,
+                error: { code: "RunbookStudio.RunActive", message: LocRunbookStudio.runActive },
+            };
+        }
         try {
             const deletedRuns = await ensured.adapter.deleteLibraryRunHistory(id, context);
             const asset = await ensured.adapter.getLibraryAsset(id, context);
@@ -1869,9 +1971,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 }
                 await ensured.adapter.purgeLibraryAsset(id, context);
             }
+            let deletedLocalRuns = 0;
+            for (const run of this.ledger.listRuns(id)) {
+                this.deleteLocalRunData(run.runId);
+                if (this.ledger.deleteRun(run.runId)) {
+                    deletedLocalRuns++;
+                }
+            }
             await removeStash(this.globalStorageUri, id);
             emitRunbookEvent(context, "runbookStudio.library.delete", "ok", {
                 deletedRuns: metaField(deletedRuns),
+                deletedLocalRuns: metaField(deletedLocalRuns),
                 assetFound: metaField(asset !== undefined),
             });
             return { ok: true };
@@ -2041,6 +2151,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 deletedRuns++;
             }
             this.resultStore.deleteRunResults(runId);
+            this.runDropStore.deleteRun(runId);
             deletedEffectJournals += this.effectLedger.deleteTerminalEffectsForRun(runId);
             deletedApprovalRecords += this.approvalLedger.deleteApprovalsForRun(runId);
         }
@@ -2056,6 +2167,12 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                 deletedResultDirs++;
             }
         }
+        let deletedRunDropDirs = 0;
+        for (const dirId of this.runDropStore.listPersistedRunIds()) {
+            if (!retained.has(dirId) && this.runDropStore.deleteRun(dirId)) {
+                deletedRunDropDirs++;
+            }
+        }
         const stagedDacpacCleanup = cleanupStaleLocalDacpacArtifacts(
             path.join(this.persistRoot, "artifact-staging"),
             Date.now() - STAGED_DACPAC_RETENTION_MS,
@@ -2066,6 +2183,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             sealedInterrupted: metaField(sealedInterrupted),
             expiredRuns: metaField(deletedRuns),
             deletedResultDirs: metaField(deletedResultDirs),
+            deletedRunDropDirs: metaField(deletedRunDropDirs),
             deletedEffectJournals: metaField(deletedEffectJournals),
             deletedApprovalRecords: metaField(deletedApprovalRecords),
             deletedStagedDacpacs: metaField(stagedDacpacCleanup.deletedFiles),
@@ -2074,6 +2192,14 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             unreadableEffectJournals: metaField(effectRecovery.unreadableFiles.length),
             pendingApprovals: metaField(this.approvalLedger.listPending().length),
         });
+    }
+
+    private deleteLocalRunData(runId: string): void {
+        this.runDropStore.deleteRun(runId);
+        this.resultStore.deleteRunResults(runId);
+        this.effectLedger.deleteTerminalEffectsForRun(runId);
+        this.approvalLedger.deleteApprovalsForRun(runId);
+        this.traceByRunId.delete(runId);
     }
 
     /** Recover disposable/named localhost databases and owned containers
@@ -4107,7 +4233,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             );
         }
         const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested, [
-            this.localManagedArtifactRoot(),
+            ...this.runDropStore.trustedArtifactRoots(),
         ]);
         if (artifact.artifactSha256 !== approvedArtifactDigest) {
             throw new LocalActivityError(
@@ -5532,21 +5658,12 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         };
     }
 
-    private localManagedArtifactRoot(): string {
-        return path.join(this.persistRoot, "managed-artifacts");
-    }
-
     private async localManagedArtifactPath(
         invocation: ActivityInvocationIdentity,
         nodeId: string,
         fileName: string,
     ): Promise<string> {
-        const runDirectory = path.join(
-            this.localManagedArtifactRoot(),
-            sanitizeRunFileId(invocation.runId).slice(0, 96),
-        );
-        await fs.promises.mkdir(runDirectory, { recursive: true });
-        return path.join(runDirectory, localManagedArtifactFileName(nodeId, fileName));
+        return this.runDropStore.artifactPath(invocation.runId, nodeId, fileName);
     }
 
     private async extractLocalDacpac(
@@ -5638,7 +5755,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             const artifact = await verifyLocalDacpacArtifact(
                 artifactPath,
                 isCancellationRequested,
-                [this.localManagedArtifactRoot()],
+                this.runDropStore.trustedArtifactRoots(),
             );
             complete = true;
             return {
@@ -5683,7 +5800,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         isCancellationRequested: () => boolean,
     ): Promise<LocalSchemaComparisonExportResult> {
         const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested, [
-            this.localManagedArtifactRoot(),
+            ...this.runDropStore.trustedArtifactRoots(),
         ]);
         const outputPath = await this.localManagedArtifactPath(
             invocation,
@@ -5738,7 +5855,7 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
         isCancellationRequested: () => boolean,
     ) {
         const artifact = await verifyLocalDacpacArtifact(dacpacPath, isCancellationRequested, [
-            this.localManagedArtifactRoot(),
+            ...this.runDropStore.trustedArtifactRoots(),
         ]);
         return this.generateLocalDacpacDeploymentPreview(
             artifact.artifactPath,
@@ -5942,6 +6059,11 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         },
                     });
                     active.model.setActiveRun(snapshot);
+                    if (active.autoApproveRemaining) {
+                        queueMicrotask(() => {
+                            void this.respondToGate(active.model, active.runId, event.nodeId, true);
+                        });
+                    }
                     return;
                 }
                 case "gateResponded": {
@@ -5990,11 +6112,17 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
             return;
         }
         active.runEnded = true;
+        const endedEpochMs = Date.now();
+        try {
+            this.runDropStore.markTerminal(active.runId, event.state, endedEpochMs);
+        } catch {
+            emitRunbookEvent(active.context, "runbookStudio.runDrop.finalize", "warning", {});
+        }
         let snapshot: RunbookRunSnapshot | undefined;
         try {
             snapshot = this.ledger.append(active.runId, {
                 type: "run.terminal",
-                epochMs: Date.now(),
+                epochMs: endedEpochMs,
                 runState: event.state,
                 ...(event.verdict ? { outcome: event.verdict } : {}),
                 ...(event.runMetrics ? { runMetrics: event.runMetrics } : {}),
@@ -6072,6 +6200,14 @@ function outputArtifactChangedError(): RbsError {
         code: "RunbookStudio.DataUnavailable",
         message: LocRunbookStudio.outputArtifactChanged,
     };
+}
+
+function runNotFoundError(): RbsError {
+    return { code: "RunbookStudio.DataUnavailable", message: LocRunbookStudio.runNotFound };
+}
+
+function runDropUnavailableError(): RbsError {
+    return { code: "RunbookStudio.DataUnavailable", message: LocRunbookStudio.runDropUnavailable };
 }
 
 // ---------------------------------------------------------------------------

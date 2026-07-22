@@ -814,7 +814,11 @@ export namespace RbsListConnectionsRequest {
 
 export namespace RbsStartRunRequest {
     export const type = new RequestType<
-        { parameterValues: Record<string, string | number | boolean | null> },
+        {
+            parameterValues: Record<string, string | number | boolean | null>;
+            /** Explicit, run-scoped approval mode; never persisted. */
+            autoApprove?: boolean;
+        },
         { runId?: string; error?: RbsError },
         void
     >("rbs/startRun");
@@ -830,10 +834,32 @@ export namespace RbsCancelRunRequest {
 
 export namespace RbsRespondToGateRequest {
     export const type = new RequestType<
-        { runId: string; nodeId: string; approve: boolean },
+        {
+            runId: string;
+            nodeId: string;
+            approve: boolean;
+            /** Approve this gate and every later gate in this run only. */
+            approveAll?: boolean;
+        },
         { accepted: boolean; error?: RbsError },
         void
     >("rbs/respondToGate");
+}
+
+export namespace RbsOpenRunDropRequest {
+    export const type = new RequestType<
+        { runId: string },
+        { opened: boolean; error?: RbsError },
+        void
+    >("rbs/openRunDrop");
+}
+
+export namespace RbsDeleteRunRequest {
+    export const type = new RequestType<
+        { runId: string },
+        { deleted: boolean; error?: RbsError },
+        void
+    >("rbs/deleteRun");
 }
 
 export namespace RbsGetRunRequest {

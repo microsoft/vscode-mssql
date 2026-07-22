@@ -21,6 +21,10 @@
     font-size: 12px;
 }
 
+.rbs-shell.rbs-rail-collapsed {
+    grid-template-columns: 44px 1fr;
+}
+
 .rbs-topbar {
     grid-area: topbar;
     display: flex;
@@ -96,6 +100,42 @@
     border-right: 1px solid var(--vscode-panel-border);
     background: var(--vscode-sideBar-background);
     overflow-y: auto;
+}
+
+.rbs-rail-toggle {
+    align-self: flex-end;
+    width: 28px;
+    height: 24px;
+    margin: 0 4px 5px;
+    border: none;
+    border-radius: 4px;
+    color: var(--vscode-sideBar-foreground, var(--vscode-foreground));
+    background: transparent;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.rbs-rail-toggle:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.rbs-rail-toggle:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: -1px;
+}
+
+.rbs-rail-collapsed .rbs-rail-toggle {
+    align-self: center;
+    margin-inline: 0;
+}
+
+.rbs-rail-collapsed .rbs-rail-item {
+    justify-content: center;
+    padding-inline: 4px;
+}
+
+.rbs-rail-collapsed .rbs-rail-label {
+    display: none;
 }
 
 .rbs-rail-item {
@@ -424,6 +464,17 @@
     flex-wrap: wrap;
     gap: 10px;
     white-space: nowrap;
+}
+
+.rbs-history-delete-confirm {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.rbs-link-danger {
+    color: var(--vscode-errorForeground);
 }
 
 .rbs-run-comparison h3 {

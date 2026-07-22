@@ -170,6 +170,16 @@ export class RunbookStudio {
         "The Hobbes runtime stopped responding and was restarted, but the run still could not start. Try running again.",
     );
     public static approvalRequired = l10n.t("Approval required to continue.");
+    public static runNotFound = l10n.t("The selected run is no longer retained.");
+    public static runDropUnavailable = l10n.t(
+        "This run does not have a retained file drop. Older runs may still have results without managed files.",
+    );
+    public static runDropCreateFailed = l10n.t(
+        "The managed file drop for this run could not be created.",
+    );
+    public static runHistoryDeleteFailed = l10n.t(
+        "The selected run and its retained files could not be deleted.",
+    );
     public static stepCancelled = l10n.t("Cancelled before the step completed.");
     public static plannerCancelled = l10n.t(
         "Plan generation was cancelled. Edit the prompt and generate again.",
