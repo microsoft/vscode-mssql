@@ -11,6 +11,7 @@ import { createMochaConfig, defaultCoverageConfig } from "../../scripts/vscode-t
 // Use a short temp user-data-dir to avoid macOS's 103-char Unix socket path limit.
 const tmpBaseDir = process.platform === "darwin" ? "/tmp" : os.tmpdir();
 const userDataDir = fs.mkdtempSync(path.join(tmpBaseDir, "vsc-mssql-"));
+const requestedGrep = process.env.MSSQL_TEST_GREP?.trim();
 process.on("exit", () => {
     fs.rmSync(userDataDir, { recursive: true, force: true });
 });
@@ -28,6 +29,7 @@ export default defineConfig({
             mocha: createMochaConfig({
                 ui: "tdd",
                 timeout: 30_000,
+                ...(requestedGrep ? { grep: requestedGrep } : {}),
             }),
         },
         // {
