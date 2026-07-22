@@ -109,6 +109,7 @@ import {
     LocalSqlContainerCleanupResult,
     LocalSqlContainerLeaseResult,
     LocalGeneratedWorkloadResult,
+    LocalPerformanceSnapshotResult,
     LocalXelArtifactResult,
     LocalXeventAnalysisResult,
     LocalXeventCaptureResult,
@@ -120,6 +121,12 @@ import {
     LocalSchemaComparisonExportResult,
     LocalSqlActivityDelegate,
 } from "./runtime/localSqlDelegate";
+import {
+    LOCAL_PERFORMANCE_SNAPSHOT_SQL,
+    LocalPerformanceSnapshotError,
+    MAX_LOCAL_PERFORMANCE_SNAPSHOT_ROWS,
+    projectLocalPerformanceSnapshot,
+} from "./runtime/localPerformanceSnapshot";
 import {
     buildLocalEvidenceBundle,
     type LocalEvidenceBundleResult,
@@ -2615,6 +2622,8 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                         ),
                     analyzeXel: (databaseRef, captureRef, invocation, cancelled) =>
                         this.analyzeLocalXel(databaseRef, captureRef, invocation, cancelled),
+                    capturePerformanceSnapshot: (databaseRef, invocation, cancelled) =>
+                        this.captureLocalPerformanceSnapshot(databaseRef, invocation, cancelled),
                     previewDacpacDeployment: (dacpacPath, databaseRef, cancelled) =>
                         this.previewLocalDacpacDeployment(dacpacPath, databaseRef, cancelled),
                     deployDacpac: (
@@ -4276,6 +4285,47 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     error.code === "cancelled"
                         ? "RunbookStudio.ActivityCancelled"
                         : "RunbookStudio.ActivityFailed",
+                );
+            }
+            throw error;
+        }
+    }
+
+    private async captureLocalPerformanceSnapshot(
+        databaseRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalPerformanceSnapshotResult> {
+        await this.requireOwnedContainerTarget(databaseRef, invocation.runId);
+        const resolved = await this.resolveRunbookConnection(databaseRef);
+        const prepared = this.prepareLocalDataPlaneConnection(
+            resolved.profile,
+            resolved.targetDatabase,
+        );
+        try {
+            const rawRows = await runRunbookDataPlaneQuery({
+                prepared,
+                database: resolved.targetDatabase,
+                applicationName: "vscode-mssql-runbook-performance-snapshot",
+                sql: LOCAL_PERFORMANCE_SNAPSHOT_SQL,
+                tag: "runbook.performance.snapshot",
+                isCancellationRequested,
+                maxRows: MAX_LOCAL_PERFORMANCE_SNAPSHOT_ROWS,
+            });
+            return projectLocalPerformanceSnapshot(rawRows);
+        } catch (error) {
+            if (error instanceof RunbookDataPlaneQueryError) {
+                throw new LocalActivityError(
+                    error.message,
+                    error.code === "cancelled"
+                        ? "RunbookStudio.ActivityCancelled"
+                        : "RunbookStudio.ActivityFailed",
+                );
+            }
+            if (error instanceof LocalPerformanceSnapshotError) {
+                throw new LocalActivityError(
+                    LocRunbookStudio.performanceSnapshotInvalid,
+                    "RunbookStudio.ActivityFailed",
                 );
             }
             throw error;

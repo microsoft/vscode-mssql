@@ -21,11 +21,7 @@ const scenarios = [
             "Compare development with main, analyze Entity Framework entity changes, generate migration DDL, " +
             "clone staging to a SQL Server 2025 Docker container, apply it, compare and visualize the schema, " +
             "run scripts/workload.sql with DMV and XEvent analysis, and produce a release candidate DACPAC.",
-        missing: [
-            "ef.relational-model.compare@1",
-            "migration.script.generate@1",
-            "performance.dmv.snapshot@1",
-        ],
+        missing: ["ef.relational-model.compare@1", "migration.script.generate@1"],
     },
     {
         id: "cities-generated-workload-with-dmv",
@@ -33,7 +29,7 @@ const scenarios = [
             "Sample 20 rows from WideWorldImporters Application.Cities, generate and run 1000 insert/delete " +
             "iterations in an owned SQL 2025 container, collect IO and blocking DMV and XEvent evidence, " +
             "and show performance metrics.",
-        missing: ["performance.dmv.snapshot@1"],
+        missing: [],
     },
     {
         id: "schema-evolution",
@@ -48,7 +44,7 @@ const scenarios = [
         prompt:
             "Run scripts/workload.sql five times against an owned SQL container clone, capture XEvents and DMV " +
             "snapshots, compare the measurements with an approved baseline, and fail on regression.",
-        missing: ["performance.dmv.snapshot@1", "baseline.compare@1"],
+        missing: ["baseline.compare@1"],
     },
     {
         id: "migration-data-loss",
@@ -108,7 +104,7 @@ suite("complex developer workflow capability matrix", () => {
         }
     });
 
-    test("keeps the exact non-DMV Cities workflow executable", () => {
+    test("keeps the exact Cities workflow executable with factual DMV evidence", () => {
         const classified = classifyRunbookIntent(
             "Sample 20 rows from WideWorldImporters Application.Cities, generate a workload with 1000 " +
                 "insert/delete iterations, collect server statistics around IO and blocking with XEvents, " +
@@ -117,5 +113,8 @@ suite("complex developer workflow capability matrix", () => {
         const readiness = preflightRunbookRequirements(classified.requirements);
         expect(readiness.status).to.equal("readyAfterBinding");
         expect(readiness.missingActivityKinds).to.deep.equal([]);
+        expect(classified.requirements.activities.map((activity) => activity.kind)).to.include(
+            "performance.dmv.snapshot",
+        );
     });
 });

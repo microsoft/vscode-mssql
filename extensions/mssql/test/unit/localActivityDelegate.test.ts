@@ -44,6 +44,24 @@ function operations(overrides: Partial<LocalSqlOperations> = {}): LocalSqlOperat
             scannedSourceFileCount: 3,
             truncated: false,
         }),
+        capturePerformanceSnapshot: async () => ({
+            capturedAtUtc: "2026-07-22T08:00:00.000Z",
+            rows: [
+                {
+                    capturedAtUtc: "2026-07-22T08:00:00.000Z",
+                    scope: "database",
+                    category: "database_io",
+                    item: "ROWS:CitiesWorkload",
+                    metric: "reads",
+                    value: 42,
+                    unit: "count",
+                },
+            ],
+            totalMetricCount: 1,
+            truncated: false,
+            snapshotSha256: "d".repeat(64),
+            categoryCounts: { database_io: 1 },
+        }),
         inspectGitChangeSet: async () => ({
             repositoryRoot: "C:\\repo",
             baseRef: "main",
@@ -569,6 +587,49 @@ suite("Runbook Studio local activity delegate", () => {
             tSqltClassCount: 1,
             tSqltTestCount: 1,
             complete: true,
+        });
+    });
+
+    test("performance snapshot emits factual typed metrics without a regression verdict", async () => {
+        const delegate = new LocalSqlActivityDelegate(operations());
+
+        const result = await delegate.executeActivity(
+            activity("performance.dmv.snapshot", {
+                database: "$nodes.provision.connectionRef",
+            }),
+            binding((input) =>
+                input === "$nodes.provision.connectionRef" ? "runbook-container:owned" : input,
+            ),
+        );
+
+        expect(result?.success).to.equal(true);
+        expect(result?.output?.contract).to.equal("performanceSnapshot/1");
+        expect(result?.output?.rows).to.deep.equal([
+            [
+                "2026-07-22T08:00:00.000Z",
+                "database",
+                "database_io",
+                "ROWS:CitiesWorkload",
+                "reads",
+                42,
+                "count",
+            ],
+        ]);
+        expect(result?.output?.scalars).to.deep.include({
+            metricCount: 1,
+            totalMetricCount: 1,
+            databaseIoMetricCount: 1,
+            snapshotSha256: "d".repeat(64),
+            truncated: false,
+            interpretation: "Point-in-time and cumulative counters; no regression verdict.",
+        });
+        expect(result?.output?.scalars).not.to.have.property("verdict");
+        expect(result?.values).to.deep.equal({
+            capturedAtUtc: "2026-07-22T08:00:00.000Z",
+            metricCount: 1,
+            totalMetricCount: 1,
+            snapshotSha256: "d".repeat(64),
+            truncated: false,
         });
     });
 
@@ -1552,6 +1613,7 @@ suite("Runbook Studio local activity delegate", () => {
             "xevent.session.stop",
             "xevent.xel.collect",
             "xevent.xel.analyze",
+            "performance.dmv.snapshot",
             "workload.benchmark",
             "schema.compare",
             "schema.compare.export",

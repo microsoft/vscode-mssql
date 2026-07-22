@@ -195,6 +195,7 @@ const DETERMINISTIC_CITIES_WORKLOAD_ACTIVITIES = new Set([
     "xevent.xel.analyze",
     "xevent.xel.collect",
     "workload.benchmark",
+    "performance.dmv.snapshot",
     "sql.container.dispose",
 ]);
 
@@ -294,7 +295,7 @@ export function compileDeterministicCitiesWorkload(
     const proposal: CompiledProposal = {
         name: "Application.Cities workload analysis",
         description:
-            "Samples Application.Cities without model exposure, generates a reviewable shadow-table workload, runs it in an owned SQL container, and presents correlated XEvent performance metrics.",
+            "Samples Application.Cities without model exposure, generates a reviewable shadow-table workload, runs it in an owned SQL container, and presents before/after DMV snapshots plus correlated XEvent performance metrics.",
         parameters: [
             {
                 id: "sourceConnection",
@@ -387,6 +388,13 @@ export function compileDeterministicCitiesWorkload(
                     password: "$params.saPassword",
                 },
             },
+            {
+                id: "snapshot-before",
+                label: "Capture performance snapshot before workload",
+                kind: "activity",
+                activityKind: "performance.dmv.snapshot",
+                inputs: { database: "$nodes.provision.connectionRef" },
+            },
             { id: "approve-capture", label: "Approve bounded XEvent capture", kind: "gate" },
             {
                 id: "start-capture",
@@ -422,6 +430,13 @@ export function compileDeterministicCitiesWorkload(
                     database: "$nodes.provision.connectionRef",
                     session: "$nodes.start-capture.sessionRef",
                 },
+            },
+            {
+                id: "snapshot-after",
+                label: "Capture performance snapshot after workload",
+                kind: "activity",
+                activityKind: "performance.dmv.snapshot",
+                inputs: { database: "$nodes.provision.connectionRef" },
             },
             {
                 id: "analyze-capture",
@@ -483,8 +498,10 @@ export function compileDeterministicCitiesWorkload(
             { from: "generate-workload", to: "report", when: "failure" },
             { from: "approve-provision", to: "provision", when: "approved" },
             { from: "approve-provision", to: "report", when: "rejected" },
-            { from: "provision", to: "approve-capture" },
+            { from: "provision", to: "snapshot-before" },
             { from: "provision", to: "report", when: "failure" },
+            { from: "snapshot-before", to: "approve-capture" },
+            { from: "snapshot-before", to: "dispose", when: "failure" },
             { from: "approve-capture", to: "start-capture", when: "approved" },
             { from: "approve-capture", to: "dispose", when: "rejected" },
             { from: "start-capture", to: "approve-workload" },
@@ -493,8 +510,10 @@ export function compileDeterministicCitiesWorkload(
             { from: "approve-workload", to: "stop-capture", when: "rejected" },
             { from: "run-workload", to: "stop-capture" },
             { from: "run-workload", to: "stop-capture", when: "failure" },
-            { from: "stop-capture", to: "analyze-capture" },
+            { from: "stop-capture", to: "snapshot-after" },
             { from: "stop-capture", to: "dispose", when: "failure" },
+            { from: "snapshot-after", to: "analyze-capture" },
+            { from: "snapshot-after", to: "analyze-capture", when: "failure" },
             { from: "analyze-capture", to: "collect-capture" },
             { from: "analyze-capture", to: "dispose", when: "failure" },
             { from: "collect-capture", to: "summarize-performance" },

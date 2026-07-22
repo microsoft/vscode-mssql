@@ -200,6 +200,11 @@
     "Entity Framework project": "Entity Framework project",
     "Entity Framework source file": "Entity Framework source file",
     "Entity Framework project discovery was cancelled.": "Entity Framework project discovery was cancelled.",
+    "Captured {0} bounded SQL Server performance metric(s)./{0} is a performance metric row count": {
+        "message": "Captured {0} bounded SQL Server performance metric(s).",
+        "comment": ["{0} is a performance metric row count"]
+    },
+    "SQL Server returned an invalid performance snapshot.": "SQL Server returned an invalid performance snapshot.",
     "Discovered {0} tSQLt test(s) in {1} test class(es)./{0} is a test count{1} is a tSQLt test class count": {
         "message": "Discovered {0} tSQLt test(s) in {1} test class(es).",
         "comment": ["{0} is a test count", "{1} is a tSQLt test class count"]

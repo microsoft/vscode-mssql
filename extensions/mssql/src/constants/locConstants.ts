@@ -351,6 +351,15 @@ export class RunbookStudio {
     public static efDiscoveryCancelled = l10n.t(
         "Entity Framework project discovery was cancelled.",
     );
+    public static performanceSnapshotCaptured = (metricCount: number) =>
+        l10n.t({
+            message: "Captured {0} bounded SQL Server performance metric(s).",
+            args: [metricCount],
+            comment: ["{0} is a performance metric row count"],
+        });
+    public static performanceSnapshotInvalid = l10n.t(
+        "SQL Server returned an invalid performance snapshot.",
+    );
     public static sqlTestsDiscovered = (testCount: number, classCount: number) =>
         l10n.t({
             message: "Discovered {0} tSQLt test(s) in {1} test class(es).",

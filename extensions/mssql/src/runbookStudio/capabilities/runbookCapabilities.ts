@@ -334,7 +334,7 @@ const REQUIREMENT_DEFAULTS: Readonly<Record<string, RequirementDefaults>> = {
         outputContract: "performanceMetrics/1",
     },
     "performance.dmv.snapshot": {
-        target: "sqlDatabase",
+        target: "ephemeralSqlDatabase",
         effect: "read",
         connectionRequirement: "provisioned",
         providerRequirement: "execution",
@@ -829,7 +829,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     );
     const requestsDmvSnapshot = has(
         text,
-        /\b(dmvs?|dynamic management views?|dm_os_|dm_exec_|dm_io_)\b/,
+        /\b(dmvs?|dynamic management views?|dm_os_|dm_exec_|dm_io_)\b|\bserver\s+(?:statistics|metrics|activity)\b.{0,60}\b(?:i\/?o|blocking|waits?)\b/,
     );
     const requestsIncompleteCaptureRecovery = has(
         text,

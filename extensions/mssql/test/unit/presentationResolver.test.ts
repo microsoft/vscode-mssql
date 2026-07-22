@@ -376,6 +376,10 @@ suite("presentationResolver", () => {
             "performanceMetrics/1",
         );
         expect(compatibleViews("performanceMetrics/1")).to.deep.equal(["grid", "bar", "json"]);
+        expect(expectedContractFor("activity", "performance.dmv.snapshot")).to.equal(
+            "performanceSnapshot/1",
+        );
+        expect(compatibleViews("performanceSnapshot/1")).to.deep.equal(["grid", "bar", "json"]);
         expect(expectedContractFor("activity", "sqltest.discover")).to.equal(
             "testSuiteDiscovery/1",
         );

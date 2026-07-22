@@ -841,6 +841,48 @@ export const ACTIVITY_CATALOG: ActivityDescriptor[] = [
         },
     },
     {
+        kind: "performance.dmv.snapshot",
+        version: 1,
+        label: "Capture SQL Server performance snapshot",
+        description:
+            "Runs a closed bounded SQL Data Plane collector on the same-run owned SQL container and emits database IO, space, cumulative wait/query counters, active blocking/request facts, and server uptime without SQL text or application data.",
+        inputs: [
+            {
+                name: "database",
+                kind: "bind",
+                required: true,
+                description: "Bind to sql.container.provision connectionRef",
+            },
+        ],
+        outputContract: "performanceSnapshot/1",
+        outputSchema: {
+            fields: [
+                { name: "capturedAtUtc", valueType: "dateTime", roles: ["time"] },
+                { name: "scope", valueType: "string", roles: ["category"] },
+                { name: "category", valueType: "string", roles: ["category"] },
+                { name: "item", valueType: "string", roles: ["label"] },
+                { name: "metric", valueType: "string", roles: ["category"] },
+                { name: "value", valueType: "number", roles: ["measure"] },
+                { name: "unit", valueType: "string" },
+            ],
+        },
+        producedValues: [
+            "capturedAtUtc",
+            "metricCount",
+            "totalMetricCount",
+            "snapshotSha256",
+            "truncated",
+        ],
+        target: { kind: "ephemeralSqlDatabase", bindingInput: "database" },
+        blastRadius: {
+            resource: "databaseData",
+            operation: "read",
+            targetEnvironment: "ephemeral",
+            reversibility: "noEffect",
+            breadth: "bounded",
+        },
+    },
+    {
         kind: "workload.benchmark",
         version: 1,
         label: "Summarize workload performance",
@@ -1434,6 +1476,7 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                     descriptor.kind === "xevent.session.stop" ||
                     descriptor.kind === "xevent.xel.analyze" ||
                     descriptor.kind === "xevent.xel.collect" ||
+                    descriptor.kind === "performance.dmv.snapshot" ||
                     descriptor.kind === "sql.container.dispose";
                 const producerKind = containerActivity
                     ? "sql.container.provision"

@@ -533,6 +533,7 @@ const PREVIEW_ACTIVITY_KINDS = new Set([
     "xevent.session.stop",
     "xevent.xel.collect",
     "xevent.xel.analyze",
+    "performance.dmv.snapshot",
     "workload.benchmark",
     "schema.compare",
     "schema.compare.export",
@@ -1372,6 +1373,94 @@ function executeNode(
                     logicalReads: 180,
                     physicalReads: 2,
                     writes: 24,
+                },
+            };
+        }
+        case "performance.dmv.snapshot": {
+            const database = resolveBind(node.inputs?.database, parameterValues, nodeValues);
+            if (typeof database !== "string") {
+                return invalidPreviewBinding("performance.dmv.snapshot", "database");
+            }
+            const capturedAtUtc = "2026-07-22T08:00:00.000Z";
+            const snapshotSha256 = "d".repeat(64);
+            return {
+                success: true,
+                runMetrics: {
+                    "performanceSnapshot.metricCount": 4,
+                    "performanceSnapshot.totalMetricCount": 4,
+                    "performanceSnapshot.databaseIoMetricCount": 2,
+                    "performanceSnapshot.waitMetricCount": 2,
+                    "performanceSnapshot.queryMetricCount": 0,
+                    "performanceSnapshot.activeRequestMetricCount": 0,
+                    "performanceSnapshot.truncated": false,
+                },
+                message: "4 SQL Server performance metrics (deterministic preview)",
+                output: {
+                    contract: "performanceSnapshot/1",
+                    columns: [
+                        "capturedAtUtc",
+                        "scope",
+                        "category",
+                        "item",
+                        "metric",
+                        "value",
+                        "unit",
+                    ],
+                    rows: [
+                        [
+                            capturedAtUtc,
+                            "database",
+                            "database_io",
+                            "ROWS:CitiesWorkload",
+                            "reads",
+                            42,
+                            "count",
+                        ],
+                        [
+                            capturedAtUtc,
+                            "database",
+                            "database_io",
+                            "ROWS:CitiesWorkload",
+                            "bytes_read",
+                            344064,
+                            "bytes",
+                        ],
+                        [
+                            capturedAtUtc,
+                            "server",
+                            "server_waits_cumulative",
+                            "WRITELOG",
+                            "wait_time",
+                            12,
+                            "ms",
+                        ],
+                        [
+                            capturedAtUtc,
+                            "server",
+                            "server_waits_cumulative",
+                            "WRITELOG",
+                            "waiting_tasks",
+                            4,
+                            "count",
+                        ],
+                    ],
+                    scalars: {
+                        capturedAtUtc,
+                        metricCount: 4,
+                        totalMetricCount: 4,
+                        snapshotSha256,
+                        truncated: false,
+                        interpretation:
+                            "Point-in-time and cumulative counters; no regression verdict.",
+                        preview: true,
+                    },
+                },
+                values: {
+                    capturedAtUtc,
+                    metricCount: 4,
+                    totalMetricCount: 4,
+                    snapshotSha256,
+                    truncated: false,
                 },
             };
         }

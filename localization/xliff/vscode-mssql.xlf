@@ -1129,6 +1129,10 @@
     <trans-unit id="++CODE++3824a9f4dafe92c6f1b80b40656a59784c03a824c27d58125d7d0ace753e2df2">
       <source xml:lang="en">Canvas</source>
     </trans-unit>
+    <trans-unit id="++CODE++cf63dc411bae256449dfa3ef7dad52001baca146bfb5fe8886c42b93c413b0f5">
+      <source xml:lang="en">Captured {0} bounded SQL Server performance metric(s).</source>
+      <note>{0} is a performance metric row count</note>
+    </trans-unit>
     <trans-unit id="++CODE++76aa3a2e7467fde8d080d706afab68c507942b126b79c7e3976eec7092dee04f">
       <source xml:lang="en">Captured {0} changed file(s), including {1} Entity Framework-related file(s).</source>
       <note>{0} is a changed file count
@@ -7860,6 +7864,9 @@
     </trans-unit>
     <trans-unit id="++CODE++035f6f2b97a039d49cb4ed684e5e8118c2acf2ff2fcc0e25fc94e2eacbc63b80">
       <source xml:lang="en">SQL Server port number</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d794fad731f4369bf420187925b93a4d968ab34c598ce8463db1fc58d9e32ea2">
+      <source xml:lang="en">SQL Server returned an invalid performance snapshot.</source>
     </trans-unit>
     <trans-unit id="++CODE++64aaab208c8e1d1152e423b463ee58006e8479fe03f9b92d91be13935401d6d8">
       <source xml:lang="en">SQL Server {0} - latest</source>

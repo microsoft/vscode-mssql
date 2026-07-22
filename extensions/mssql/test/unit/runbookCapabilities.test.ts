@@ -501,6 +501,7 @@ suite("runbook capability preflight", () => {
             "xevent.session.stop",
             "xevent.xel.analyze",
             "xevent.xel.collect",
+            "performance.dmv.snapshot",
             "workload.benchmark",
         ]);
         expect(kinds).not.to.include("baseline.compare");

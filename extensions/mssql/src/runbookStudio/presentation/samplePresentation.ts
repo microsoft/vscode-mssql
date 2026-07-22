@@ -227,6 +227,30 @@ function sampleRows(contract: string): {
                     ["Writes", 12, "writes"],
                 ],
             };
+        case "performanceSnapshot/1":
+            return {
+                columns: ["capturedAtUtc", "scope", "category", "item", "metric", "value", "unit"],
+                rows: [
+                    [
+                        "2026-07-22T08:00:00Z",
+                        "database",
+                        "database_io",
+                        "ROWS:CitiesWorkload",
+                        "reads",
+                        42,
+                        "count",
+                    ],
+                    [
+                        "2026-07-22T08:00:00Z",
+                        "server",
+                        "server_waits_cumulative",
+                        "WRITELOG",
+                        "wait_time",
+                        12,
+                        "ms",
+                    ],
+                ],
+            };
         default:
             return {
                 columns: ["Metric", "Value"],

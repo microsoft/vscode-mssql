@@ -51,6 +51,9 @@ import {
 } from "./localSchemaInventory";
 import type { RunbookSchemaCompareDocument } from "../../sharedInterfaces/runbookSchemaCompare";
 import type { RunbookSchemaGraphDocument } from "../../sharedInterfaces/runbookSchemaGraph";
+import type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot";
+
+export type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot";
 
 export { isReadOnlySql } from "../readOnlySql";
 
@@ -225,6 +228,11 @@ export interface LocalSqlOperations {
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
     ): Promise<LocalXeventAnalysisResult>;
+    capturePerformanceSnapshot(
+        databaseRef: string,
+        invocation: ActivityInvocationIdentity,
+        isCancellationRequested: () => boolean,
+    ): Promise<LocalPerformanceSnapshotResult>;
     disposeSandbox(
         nodeId: string,
         leaseRef: string,
@@ -567,6 +575,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
         "xevent.session.stop",
         "xevent.xel.collect",
         "xevent.xel.analyze",
+        "performance.dmv.snapshot",
         "workload.benchmark",
         "sql.schema.apply",
         "schema.compare",
@@ -634,6 +643,8 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 return this.collectXel(node, binding);
             case "xevent.xel.analyze":
                 return this.analyzeXel(node, binding);
+            case "performance.dmv.snapshot":
+                return this.capturePerformanceSnapshot(node, binding);
             case "workload.benchmark":
                 return this.summarizeBenchmark(node, binding);
             case "sql.schema.apply":
@@ -1914,6 +1925,88 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                     logicalReads: result.logicalReads,
                     physicalReads: result.physicalReads,
                     writes: result.writes,
+                },
+            };
+        } catch (error) {
+            return activityFailure(error);
+        }
+    }
+
+    private async capturePerformanceSnapshot(
+        node: RunbookPlanNode,
+        binding: {
+            resolveBind: (input: unknown) => unknown;
+            isCancellationRequested: () => boolean;
+            invocation: ActivityInvocationIdentity;
+        },
+    ): Promise<NodeExecution> {
+        const databaseRef = binding.resolveBind(node.inputs?.database);
+        if (typeof databaseRef !== "string" || databaseRef.trim().length === 0) {
+            return invalidBinding("database");
+        }
+        try {
+            const result = await this.operations.capturePerformanceSnapshot(
+                databaseRef.trim(),
+                binding.invocation,
+                binding.isCancellationRequested,
+            );
+            return {
+                success: true,
+                runMetrics: {
+                    "performanceSnapshot.metricCount": result.rows.length,
+                    "performanceSnapshot.totalMetricCount": result.totalMetricCount,
+                    "performanceSnapshot.databaseIoMetricCount":
+                        result.categoryCounts.database_io ?? 0,
+                    "performanceSnapshot.waitMetricCount":
+                        result.categoryCounts.server_waits_cumulative ?? 0,
+                    "performanceSnapshot.queryMetricCount":
+                        result.categoryCounts.query_counters_cumulative ?? 0,
+                    "performanceSnapshot.activeRequestMetricCount":
+                        result.categoryCounts.active_requests ?? 0,
+                    "performanceSnapshot.truncated": result.truncated,
+                },
+                message: LocRunbookStudio.performanceSnapshotCaptured(result.rows.length),
+                output: {
+                    contract: "performanceSnapshot/1",
+                    columns: [
+                        "capturedAtUtc",
+                        "scope",
+                        "category",
+                        "item",
+                        "metric",
+                        "value",
+                        "unit",
+                    ],
+                    rows: result.rows.map((row) => [
+                        row.capturedAtUtc,
+                        row.scope,
+                        row.category,
+                        row.item,
+                        row.metric,
+                        row.value,
+                        row.unit,
+                    ]),
+                    scalars: {
+                        capturedAtUtc: result.capturedAtUtc,
+                        metricCount: result.rows.length,
+                        totalMetricCount: result.totalMetricCount,
+                        databaseIoMetricCount: result.categoryCounts.database_io ?? 0,
+                        waitMetricCount: result.categoryCounts.server_waits_cumulative ?? 0,
+                        queryMetricCount: result.categoryCounts.query_counters_cumulative ?? 0,
+                        activeRequestMetricCount: result.categoryCounts.active_requests ?? 0,
+                        snapshotSha256: result.snapshotSha256,
+                        truncated: result.truncated,
+                        interpretation:
+                            "Point-in-time and cumulative counters; no regression verdict.",
+                        executionMode: "local",
+                    },
+                },
+                values: {
+                    capturedAtUtc: result.capturedAtUtc,
+                    metricCount: result.rows.length,
+                    totalMetricCount: result.totalMetricCount,
+                    snapshotSha256: result.snapshotSha256,
+                    truncated: result.truncated,
                 },
             };
         } catch (error) {

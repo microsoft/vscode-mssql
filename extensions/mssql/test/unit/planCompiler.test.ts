@@ -132,12 +132,13 @@ suite("planCompiler", () => {
         if (isProposalFailure(result)) {
             throw new Error(result.detail);
         }
-        expect(result.artifact.lock?.nodes).to.have.length(13);
+        expect(result.artifact.lock?.nodes).to.have.length(15);
         expect(result.artifact.lock?.entryNodeId).to.equal("generate-workload");
         expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
-        expect(
-            result.artifact.lock?.nodes.map((node) => node.activityKind).filter(Boolean),
-        ).to.have.members([
+        const activityKinds = result.artifact.lock?.nodes
+            .map((node) => node.activityKind)
+            .filter(Boolean);
+        expect(activityKinds).to.include.members([
             "sql.workload.generate",
             "sql.container.provision",
             "xevent.session.start",
@@ -145,9 +146,13 @@ suite("planCompiler", () => {
             "xevent.session.stop",
             "xevent.xel.analyze",
             "xevent.xel.collect",
+            "performance.dmv.snapshot",
             "workload.benchmark",
             "sql.container.dispose",
         ]);
+        expect(activityKinds?.filter((kind) => kind === "performance.dmv.snapshot")).to.have.length(
+            2,
+        );
         expect(
             result.artifact.source.parameters.find((parameter) => parameter.id === "iterations"),
         ).to.include({ type: "int", default: 1000 });
@@ -165,6 +170,12 @@ suite("planCompiler", () => {
         expect(
             result.artifact.lock?.nodes.find((node) => node.id === "run-workload")?.inputs,
         ).to.include({ repetitions: "$params.repetitions" });
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "snapshot-before")?.inputs,
+        ).to.deep.equal({ database: "$nodes.provision.connectionRef" });
+        expect(
+            result.artifact.lock?.nodes.find((node) => node.id === "snapshot-after")?.inputs,
+        ).to.deep.equal({ database: "$nodes.provision.connectionRef" });
         expect(
             result.artifact.lock?.nodes.find((node) => node.id === "summarize-performance")?.inputs,
         ).to.include({
