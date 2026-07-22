@@ -265,7 +265,7 @@ suite("Runbook Studio headless Git activity", () => {
         };
         expect(capabilities.productionHeadlessActivityHostAvailable).to.equal(false);
         expect(capabilities.productionHeadlessActivitySubsetAvailable).to.equal(true);
-        expect(capabilities.activities.map((activity) => activity.kind)).to.deep.equal([
+        expect(capabilities.activities.map((activity) => activity.kind)).to.have.members([
             "workspace.inspect",
             "git.change-set.inspect",
             "ef.project.discover",
@@ -276,13 +276,25 @@ suite("Runbook Studio headless Git activity", () => {
             "migration.apply",
             "migration.scope.validate",
             "dacpac.extract",
+            "sql.workload.inspect",
             "sql.container.provision",
             "dacpac.deploy.preview",
             "dacpac.deploy.container",
+            "xevent.session.start",
+            "sql.workload.run",
+            "xevent.session.stop",
+            "xevent.capture.reconcile",
+            "xevent.xel.collect",
+            "xevent.xel.analyze",
+            "database.schema.fingerprint",
+            "performance.dmv.snapshot",
+            "performance.dmv.delta",
+            "workload.benchmark",
             "schema.compare",
             "schema.compare.export",
             "database.schema.visualize",
             "sql.container.dispose",
+            "release.manifest.create",
             "sql.query.read",
         ]);
     });

@@ -13,6 +13,7 @@ const SAFE_VERSION_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$/;
 
 export type LocalToolchainComponentId =
     | "vscode"
+    | "headlessRunner"
     | "mssqlExtension"
     | "sqlDatabaseProjectsExtension"
     | "sqlToolsService"
@@ -41,6 +42,7 @@ export interface LocalToolchainProvenance {
 
 export interface LocalToolchainProvenanceInput {
     vscodeVersion: unknown;
+    headlessRunnerVersion?: unknown;
     mssqlExtensionVersion: unknown;
     sqlDatabaseProjectsExtensionVersion: unknown;
     sqlToolsServiceRuntimeVersion: unknown;
@@ -59,8 +61,12 @@ export function buildLocalToolchainProvenance(
     const stsConfiguredVersion = safeVersion(input.sqlToolsServiceConfiguredVersion);
     const dacFxVersion = readDacFxVersionFromServiceRoot(input.sqlToolsServiceRoot);
     const dockerEngineVersion = safeVersion(input.dockerEngineVersion);
+    const headlessRunnerVersion = safeVersion(input.headlessRunnerVersion);
     const components: LocalToolchainComponent[] = [
         component("vscode", vscodeVersion, "host"),
+        ...(headlessRunnerVersion
+            ? [component("headlessRunner", headlessRunnerVersion, "host")]
+            : []),
         component("mssqlExtension", mssqlExtensionVersion, "extensionManifest"),
         component("sqlDatabaseProjectsExtension", projectsVersion, "extensionManifest"),
         {

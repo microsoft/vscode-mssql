@@ -27,6 +27,7 @@ import {
     createNewRunbookArtifact,
 } from "../../src/runbookStudio/runbookArtifact";
 import type { ActivityInvocationIdentity } from "../../src/runbookStudio/runtime/fakeRuntimeAdapter";
+import { DEMO_RUNBOOK_INTENT } from "./demoRunbookPrompt";
 import {
     RUNBOOK_LOCK_SCHEMA_VERSION,
     type RunbookArtifactFile,
@@ -310,6 +311,98 @@ suite("Runbook Studio headless DACPAC live smoke (gated)", function () {
         }
     });
 
+    test("runs the complete release-candidate demo with workload, DMV, XEvent, and manifest", async () => {
+        const classified = classifyRunbookIntent(DEMO_RUNBOOK_INTENT);
+        const base = createNewRunbookArtifact("New runbook", "headless-complete-demo-book");
+        base.family = classified.family;
+        base.source.requirements = classified.requirements;
+        const compiled = compileDeterministicEfModelComparison(base, DEMO_RUNBOOK_INTENT);
+        if (!compiled || isProposalFailure(compiled) || !compiled.artifact.lock) {
+            throw new Error("The deterministic complete demo plan did not compile.");
+        }
+        expect(compiled.artifact.lock.nodes).to.have.length(45);
+        const runId = `headless-complete-demo-${Date.now().toString(36)}`;
+        const containerName = `rbs-headless-live-${crypto.randomBytes(4).toString("hex")}`;
+        const password = `Rbs!${crypto.randomBytes(12).toString("hex")}Aa1`;
+        const approvalProvider = new ManifestHeadlessApprovalProvider({
+            schemaVersion: 1,
+            runId,
+            runbookId: compiled.artifact.id,
+            planRevision: compiled.artifact.lock.planRevision,
+            planHash: compiled.artifact.lock.planHash,
+            approvedGateIds: compiled.artifact.lock.nodes
+                .filter((node) => node.kind === "gate")
+                .map((node) => node.id),
+            expiresEpochMs: Date.now() + 15 * 60_000,
+        });
+        try {
+            const result = await runHeadlessActivities({
+                artifactText: canonicalizeRunbookArtifact(compiled.artifact),
+                trustedWorkspaceRoot: EF_FIXTURE_ROOT,
+                activityArtifactRoot: artifactRoot,
+                extensionRoot: EXTENSION_ROOT,
+                parameterValues: {
+                    repository: EF_FIXTURE_ROOT,
+                    baseRef: "main",
+                    headRef: "demo",
+                    project: "src/MyApp.Data/MyApp.Data.csproj",
+                    dbContext: "AppDbContext",
+                    renameDecisions: "[]",
+                    sourceConnection: sourceConnection!,
+                    sourceDatabaseName: sourceDatabase,
+                    containerName,
+                    databaseName: "HeadlessCompleteDemoDb",
+                    sqlVersion: "2025",
+                    saPassword: password,
+                    migrationTimeoutSeconds: 300,
+                    workloadFile: "scripts/workload.sql",
+                    workloadRepetitions: 2,
+                    workloadTimeoutSeconds: 300,
+                    xeventMaxFileSizeMb: 16,
+                },
+                runId,
+                approvalProvider,
+            });
+            expect(result, JSON.stringify(result, undefined, 2)).to.include({
+                outcome: "pass",
+                terminalState: "succeeded",
+            });
+            expect(result.nodeCounts).to.deep.equal({
+                succeeded: 40,
+                failed: 0,
+                skipped: 5,
+                cancelled: 0,
+            });
+            expect(result.outputs?.["summarize-performance"]?.contract).to.equal(
+                "performanceMetrics/1",
+            );
+            expect(result.outputs?.["analyze-capture"]?.contract).to.equal("xeventAnalysis/1");
+            expect(result.outputs?.["collect-capture"]?.contract).to.equal("xelArtifact/1");
+            expect(result.outputs?.["create-release-manifest"]?.scalars).to.include({
+                evidenceComplete: true,
+                protectedDeploymentAuthorized: false,
+            });
+            expect(JSON.stringify(result)).not.to.contain(password);
+            expect(JSON.stringify(result)).not.to.contain(sourceConnection);
+            expect(await containerByName(docker, containerName)).to.equal(undefined);
+            expect(new RunbookEffectLedger(artifactRoot).scanRecovery().outstanding).to.deep.equal(
+                [],
+            );
+        } finally {
+            const leaked = await containerByName(docker, containerName);
+            if (leaked) {
+                const inspected = await leaked.inspect();
+                if (
+                    inspected.Config?.Labels?.["com.microsoft.mssql.runbook-studio.run-id"] !==
+                    runId
+                ) {
+                    throw new Error("Complete demo container ownership changed; refusing cleanup.");
+                }
+                await leaked.remove({ force: true });
+            }
+        }
+    });
+
     test("runs the 29-node EF/DACPAC rehearsal through the bundled CLI", async () => {
         const intent =
             "Compare Entity Framework changes between demo and main, generate migration DDL, " +
@@ -450,6 +543,154 @@ suite("Runbook Studio headless DACPAC live smoke (gated)", function () {
                     throw new Error(
                         "Live EF/DACPAC CLI container ownership changed; refusing cleanup.",
                     );
+                }
+                await leaked.remove({ force: true });
+            }
+        }
+    });
+
+    test("runs the complete release-candidate demo through the bundled CLI", async () => {
+        const classified = classifyRunbookIntent(DEMO_RUNBOOK_INTENT);
+        const base = createNewRunbookArtifact("New runbook", "headless-complete-demo-cli-book");
+        base.family = classified.family;
+        base.source.requirements = classified.requirements;
+        const compiled = compileDeterministicEfModelComparison(base, DEMO_RUNBOOK_INTENT);
+        if (!compiled || isProposalFailure(compiled) || !compiled.artifact.lock) {
+            throw new Error("The deterministic complete CLI demo plan did not compile.");
+        }
+        const runId = `headless-complete-cli-${Date.now().toString(36)}`;
+        const containerName = `rbs-headless-live-${crypto.randomBytes(4).toString("hex")}`;
+        const password = `Rbs!${crypto.randomBytes(12).toString("hex")}Aa1`;
+        const artifactPath = path.join(artifactRoot, "complete-demo.runbook.json");
+        const parametersPath = path.join(artifactRoot, "complete-demo.parameters.json");
+        const secretMapPath = path.join(artifactRoot, "complete-demo.secret-map.json");
+        const approvalPath = path.join(artifactRoot, "complete-demo.approval.json");
+        const activityArtifacts = path.join(artifactRoot, "complete-demo-artifacts");
+        const connectionEnvironmentName = `RBS2_SOURCE_${crypto
+            .randomBytes(4)
+            .toString("hex")
+            .toUpperCase()}`;
+        const passwordEnvironmentName = `RBS2_PASSWORD_${crypto
+            .randomBytes(4)
+            .toString("hex")
+            .toUpperCase()}`;
+        fs.writeFileSync(artifactPath, canonicalizeRunbookArtifact(compiled.artifact), "utf8");
+        fs.writeFileSync(
+            parametersPath,
+            JSON.stringify({
+                repository: EF_FIXTURE_ROOT,
+                baseRef: "main",
+                headRef: "demo",
+                project: "src/MyApp.Data/MyApp.Data.csproj",
+                dbContext: "AppDbContext",
+                renameDecisions: "[]",
+                sourceDatabaseName: sourceDatabase,
+                containerName,
+                databaseName: "HeadlessCompleteCliDb",
+                sqlVersion: "2025",
+                migrationTimeoutSeconds: 300,
+                workloadFile: "scripts/workload.sql",
+                workloadRepetitions: 2,
+                workloadTimeoutSeconds: 300,
+                xeventMaxFileSizeMb: 16,
+            }),
+            "utf8",
+        );
+        fs.writeFileSync(
+            secretMapPath,
+            JSON.stringify({
+                sourceConnection: connectionEnvironmentName,
+                saPassword: passwordEnvironmentName,
+            }),
+            "utf8",
+        );
+        fs.writeFileSync(
+            approvalPath,
+            JSON.stringify({
+                schemaVersion: 1,
+                runId,
+                runbookId: compiled.artifact.id,
+                planRevision: compiled.artifact.lock.planRevision,
+                planHash: compiled.artifact.lock.planHash,
+                approvedGateIds: compiled.artifact.lock.nodes
+                    .filter((node) => node.kind === "gate")
+                    .map((node) => node.id),
+                expiresEpochMs: Date.now() + 15 * 60_000,
+            }),
+            "utf8",
+        );
+        try {
+            const executed = spawnSync(
+                process.execPath,
+                [
+                    path.join(EXTENSION_ROOT, "dist", "runbookHeadless.js"),
+                    "run-activities",
+                    artifactPath,
+                    "--workspace",
+                    EF_FIXTURE_ROOT,
+                    "--activity-artifacts",
+                    activityArtifacts,
+                    "--params",
+                    parametersPath,
+                    "--secret-env-map",
+                    secretMapPath,
+                    "--approval-manifest",
+                    approvalPath,
+                    "--run-id",
+                    runId,
+                ],
+                {
+                    cwd: EXTENSION_ROOT,
+                    encoding: "utf8",
+                    env: {
+                        ...process.env,
+                        [connectionEnvironmentName]: sourceConnection!,
+                        [passwordEnvironmentName]: password,
+                    },
+                    maxBuffer: 16 * 1024 * 1024,
+                    timeout: 10 * 60_000,
+                    windowsHide: true,
+                },
+            );
+            expect(executed.status, executed.stderr || executed.stdout).to.equal(0);
+            const summary = JSON.parse(executed.stdout) as {
+                mode: string;
+                effects: string;
+                outcome: string;
+                nodeCounts: Record<string, number>;
+                outputs: Record<string, { contract: string; scalars?: Record<string, unknown> }>;
+            };
+            expect(summary).to.include({
+                mode: "productionActivityHost",
+                effects: "real",
+                outcome: "pass",
+            });
+            expect(summary.nodeCounts).to.deep.equal({
+                succeeded: 40,
+                failed: 0,
+                skipped: 5,
+                cancelled: 0,
+            });
+            expect(summary.outputs["collect-capture"].contract).to.equal("xelArtifact/1");
+            expect(summary.outputs["create-release-manifest"].scalars).to.include({
+                evidenceComplete: true,
+                protectedDeploymentAuthorized: false,
+            });
+            expect(`${executed.stdout}\n${executed.stderr}`).not.to.contain(password);
+            expect(`${executed.stdout}\n${executed.stderr}`).not.to.contain(sourceConnection);
+            expect(await containerByName(docker, containerName)).to.equal(undefined);
+            expect(
+                new RunbookEffectLedger(activityArtifacts).scanRecovery().outstanding,
+            ).to.deep.equal([]);
+        } finally {
+            const leaked = await containerByName(docker, containerName);
+            if (leaked) {
+                const inspected = await leaked.inspect();
+                if (
+                    inspected.Config?.Labels?.["com.microsoft.mssql.runbook-studio.run-id"] !==
+                    runId
+                ) {
+                    throw new Error("Complete CLI container ownership changed; refusing cleanup.");
                 }
                 await leaked.remove({ force: true });
             }

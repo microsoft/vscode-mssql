@@ -183,7 +183,12 @@ export class HeadlessSqlActivityDelegate implements ActivityExecutionDelegate {
         sql: string,
         invocation: ActivityInvocationIdentity,
         isCancellationRequested: () => boolean,
-        options: { tag: string; maxRows?: number; timeoutMs?: number },
+        options: {
+            tag: string;
+            maxRows?: number;
+            timeoutMs?: number;
+            applicationName?: string;
+        },
     ) {
         const lease = await this.requireLease(connectionRef, invocation);
         return this.executeLeaseQuery(
@@ -194,7 +199,39 @@ export class HeadlessSqlActivityDelegate implements ActivityExecutionDelegate {
             isCancellationRequested,
             options.maxRows ?? MAX_QUERY_ROWS,
             options.timeoutMs,
+            options.applicationName,
         );
+    }
+
+    /** Reads one bounded file archive from the exact same-run owned container.
+     * The returned bytes are still a Docker tar archive; callers must validate
+     * the single expected payload before retaining it. */
+    public async readOwnedContainerArchive(
+        connectionRef: string,
+        serverPath: string,
+        invocation: ActivityInvocationIdentity,
+        maximumBytes: number,
+        isCancellationRequested: () => boolean,
+    ): Promise<Buffer> {
+        const lease = await this.requireLease(connectionRef, invocation);
+        if (!path.posix.isAbsolute(serverPath) || maximumBytes < 1) {
+            throw codedError("HeadlessActivityHost.ContainerArchiveInvalid");
+        }
+        const container = await this.containerByName(lease.containerName);
+        const inspected = await container?.inspect();
+        if (
+            !container ||
+            !isOwnedLocalSqlContainer(inspected?.Config?.Labels, lease.effectId, invocation.runId)
+        ) {
+            throw codedError("HeadlessActivityHost.TargetChanged");
+        }
+        const stream = await container.getArchive({ path: serverPath });
+        return readBoundedStream(stream, maximumBytes, isCancellationRequested);
+    }
+
+    public async dockerEngineVersion(): Promise<string | undefined> {
+        const result = await this.docker.version().catch(() => undefined);
+        return typeof result?.Version === "string" ? result.Version : undefined;
     }
 
     public async ownedMetadataContext(
@@ -533,6 +570,7 @@ export class HeadlessSqlActivityDelegate implements ActivityExecutionDelegate {
         isCancellationRequested: () => boolean,
         maxRows: number,
         timeoutMs = 120_000,
+        applicationName = "mssql-runbook-headless",
     ) {
         const service = await this.service();
         const profile = this.profileForLease(lease, database);
@@ -541,7 +579,7 @@ export class HeadlessSqlActivityDelegate implements ActivityExecutionDelegate {
             profile,
             auth: { passwordProvider: () => Promise.resolve(lease.password) },
             database,
-            applicationName: "mssql-runbook-headless",
+            applicationName,
             sql,
             tag,
             isCancellationRequested,
@@ -849,6 +887,52 @@ async function loadSqlService(extensionRoot: string): Promise<ISqlConnectionServ
         throw codedError("HeadlessActivityHost.SqlProviderUnavailable");
     }
     return provider.createBackend();
+}
+
+function readBoundedStream(
+    stream: NodeJS.ReadableStream,
+    maximumBytes: number,
+    isCancellationRequested: () => boolean,
+): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+        const chunks: Buffer[] = [];
+        let byteCount = 0;
+        let settled = false;
+        const destroy = () =>
+            (stream as NodeJS.ReadableStream & { destroy?: () => void }).destroy?.();
+        const finish = (error?: Error) => {
+            if (settled) {
+                return;
+            }
+            settled = true;
+            clearInterval(cancellationPoll);
+            if (error) {
+                destroy();
+                reject(error);
+            } else {
+                resolve(Buffer.concat(chunks, byteCount));
+            }
+        };
+        const cancellationPoll = setInterval(() => {
+            if (isCancellationRequested()) {
+                finish(codedError("HeadlessActivityHost.ActivityCancelled"));
+            }
+        }, 50);
+        stream.on("data", (chunk: Buffer | string) => {
+            if (settled) {
+                return;
+            }
+            const bytes = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+            byteCount += bytes.length;
+            if (byteCount > maximumBytes) {
+                finish(codedError("HeadlessActivityHost.ContainerArchiveTooLarge"));
+                return;
+            }
+            chunks.push(bytes);
+        });
+        stream.once("error", (error) => finish(error as Error));
+        stream.once("end", () => finish());
+    });
 }
 
 function ensureStateRoot(stateRoot: string): string {

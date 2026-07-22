@@ -11,7 +11,10 @@
 
 import * as crypto from "crypto";
 import { canonicalRunbookJson } from "../runbookDigest";
-import type { LocalToolchainProvenance } from "./localToolchainProvenance";
+import type {
+    LocalToolchainComponentId,
+    LocalToolchainProvenance,
+} from "./localToolchainProvenance";
 
 export interface LocalReleaseManifestInput {
     runId: string;
@@ -53,8 +56,7 @@ export interface LocalReleaseManifestResult {
     generatedAtUtc: string;
 }
 
-const REQUIRED_TOOLCHAIN = [
-    "vscode",
+const REQUIRED_TOOLCHAIN_COMMON = [
     "mssqlExtension",
     "sqlToolsService",
     "dacFx",
@@ -115,7 +117,14 @@ export function buildLocalReleaseManifest(
             .filter((component) => component.status === "resolved")
             .map((component) => component.id),
     );
-    const evidenceComplete = REQUIRED_TOOLCHAIN.every((component) =>
+    const executionHost: LocalToolchainComponentId = resolvedToolchain.has("headlessRunner")
+        ? "headlessRunner"
+        : "vscode";
+    const requiredToolchain: LocalToolchainComponentId[] = [
+        executionHost,
+        ...REQUIRED_TOOLCHAIN_COMMON,
+    ];
+    const evidenceComplete = requiredToolchain.every((component) =>
         resolvedToolchain.has(component),
     );
     const evidence: Array<
@@ -162,7 +171,7 @@ export function buildLocalReleaseManifest(
             protectedDeploymentAuthorized: false,
         },
         toolchain: {
-            requiredComponents: [...REQUIRED_TOOLCHAIN],
+            requiredComponents: requiredToolchain,
             components: input.toolchain.components
                 .map((component) => ({ ...component }))
                 .sort((left, right) => left.id.localeCompare(right.id)),

@@ -53,6 +53,14 @@ export class HeadlessStsDacFxClient {
 
     constructor(private readonly extensionRoot: string) {}
 
+    public async serviceVersion(
+        isCancellationRequested: () => boolean,
+    ): Promise<string | undefined> {
+        await this.start();
+        const value = await this.request<string>("version", {}, isCancellationRequested, 10_000);
+        return /^[A-Za-z0-9][A-Za-z0-9._+-]{0,63}$/u.test(value) ? value : undefined;
+    }
+
     public async extract(
         connectionString: string,
         databaseName: string,

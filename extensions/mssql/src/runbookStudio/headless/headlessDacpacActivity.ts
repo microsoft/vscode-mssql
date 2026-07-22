@@ -43,6 +43,7 @@ const MAX_COMPARE_ITEMS = 500;
 const MAX_MIGRATION_BYTES = 8 * 1024 * 1024;
 
 interface DacFxClient {
+    serviceVersion?(isCancellationRequested: () => boolean): Promise<string | undefined>;
     extract(
         connectionString: string,
         databaseName: string,
@@ -152,6 +153,10 @@ export class HeadlessDacpacActivityDelegate implements ActivityExecutionDelegate
 
     public dispose(): Promise<void> {
         return this.dacFx.dispose();
+    }
+
+    public serviceVersion(isCancellationRequested: () => boolean): Promise<string | undefined> {
+        return this.dacFx.serviceVersion?.(isCancellationRequested) ?? Promise.resolve(undefined);
     }
 
     private async extract(

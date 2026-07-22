@@ -12,6 +12,8 @@ import { HeadlessEfActivityDelegate } from "./headlessEfActivity";
 import { HeadlessEffectAuthority } from "./headlessEffectAuthority";
 import { HeadlessSqlActivityDelegate } from "./headlessSqlActivity";
 import { HeadlessDacpacActivityDelegate } from "./headlessDacpacActivity";
+import { HeadlessPerformanceActivityDelegate } from "./headlessPerformanceActivity";
+import { HeadlessReleaseActivityDelegate } from "./headlessReleaseActivity";
 
 const MAX_PROJECTS = 100;
 const MAX_VISITED_ENTRIES = 20_000;
@@ -65,6 +67,18 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
         "schema.compare",
         "schema.compare.export",
         "database.schema.visualize",
+        "sql.workload.inspect",
+        "database.schema.fingerprint",
+        "performance.dmv.snapshot",
+        "performance.dmv.delta",
+        "xevent.session.start",
+        "sql.workload.run",
+        "xevent.session.stop",
+        "xevent.capture.reconcile",
+        "xevent.xel.analyze",
+        "xevent.xel.collect",
+        "workload.benchmark",
+        "release.manifest.create",
         "sql.query.read",
         "sql.container.dispose",
     ]);
@@ -72,11 +86,14 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
     private readonly efDelegate: HeadlessEfActivityDelegate;
     private readonly sqlDelegate: HeadlessSqlActivityDelegate | undefined;
     private readonly dacpacDelegate: HeadlessDacpacActivityDelegate | undefined;
+    private readonly performanceDelegate: HeadlessPerformanceActivityDelegate | undefined;
+    private readonly releaseDelegate: HeadlessReleaseActivityDelegate | undefined;
 
     constructor(
         private readonly trustedWorkspaceRoot: string,
         artifactRoot: string,
         extensionRoot: string,
+        runbookId: string,
         effectAuthority: HeadlessEffectAuthority,
         enableSqlActivities: boolean,
     ) {
@@ -98,6 +115,24 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
                   this.efDelegate,
               )
             : undefined;
+        this.performanceDelegate = this.sqlDelegate
+            ? new HeadlessPerformanceActivityDelegate(
+                  trustedWorkspaceRoot,
+                  artifactRoot,
+                  effectAuthority,
+                  this.sqlDelegate,
+              )
+            : undefined;
+        this.releaseDelegate =
+            this.sqlDelegate && this.dacpacDelegate
+                ? new HeadlessReleaseActivityDelegate(
+                      runbookId,
+                      artifactRoot,
+                      extensionRoot,
+                      this.sqlDelegate,
+                      this.dacpacDelegate,
+                  )
+                : undefined;
     }
 
     public async executeActivity(
@@ -115,6 +150,12 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
         }
         if (this.dacpacDelegate?.supportedActivityKinds.has(node.activityKind ?? "")) {
             return this.dacpacDelegate.executeActivity(node, binding);
+        }
+        if (this.performanceDelegate?.supportedActivityKinds.has(node.activityKind ?? "")) {
+            return this.performanceDelegate.executeActivity(node, binding);
+        }
+        if (this.releaseDelegate?.supportedActivityKinds.has(node.activityKind ?? "")) {
+            return this.releaseDelegate.executeActivity(node, binding);
         }
         if (
             node.activityKind !== "workspace.inspect" &&
@@ -143,6 +184,7 @@ export class HeadlessWorkspaceActivityDelegate implements ActivityExecutionDeleg
     }
 
     public async dispose(): Promise<void> {
+        await this.performanceDelegate?.dispose();
         await this.dacpacDelegate?.dispose();
         await this.sqlDelegate?.dispose();
     }

@@ -39,6 +39,12 @@ export class DataPlaneQueryCoreError extends Error {
     constructor(
         message: string,
         public readonly code: "cancelled" | "queryFailed" | "resultTooLarge",
+        public readonly diagnostic?: {
+            completionStatus?: QueryCompleteSummary["status"];
+            serverNumber?: number;
+            serverSeverity?: number;
+            providerCode?: string;
+        },
     ) {
         super(message);
         this.name = "DataPlaneQueryCoreError";
@@ -127,11 +133,22 @@ export async function runDataPlaneQueryCore(
             throw new DataPlaneQueryCoreError("The query was cancelled.", "cancelled");
         }
         if (completion.status !== "succeeded") {
+            const serverError = messages.find((message) => message.kind === "error");
             throw new DataPlaneQueryCoreError(
                 errorMessage ??
                     completion.error?.message ??
                     `The query completed with status '${completion.status}' without provider error details. Verify the bound server and database.`,
                 "queryFailed",
+                {
+                    completionStatus: completion.status,
+                    ...(serverError?.number !== undefined
+                        ? { serverNumber: serverError.number }
+                        : {}),
+                    ...(serverError?.severity !== undefined
+                        ? { serverSeverity: serverError.severity }
+                        : {}),
+                    ...(completion.error?.code ? { providerCode: completion.error.code } : {}),
+                },
             );
         }
         return { columns, rows, messages, completion };
