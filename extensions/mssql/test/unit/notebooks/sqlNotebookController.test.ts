@@ -121,6 +121,7 @@ suite("SqlNotebookController", () => {
     function makeNotebook(
         cells?: Array<{ text: string; languageId?: string; kind?: vscode.NotebookCellKind }>,
         metadata?: Record<string, unknown>,
+        uri: vscode.Uri = notebookUri,
     ): vscode.NotebookDocument {
         const cellObjs = (cells ?? []).map((c, i) => ({
             index: i,
@@ -128,11 +129,13 @@ suite("SqlNotebookController", () => {
             document: {
                 getText: () => c.text,
                 languageId: c.languageId ?? "sql",
-                uri: vscode.Uri.parse(`vscode-notebook-cell://test-notebook#cell${i}`),
+                // Mirror VS Code's cell URI shape: notebook URI with the
+                // vscode-notebook-cell scheme and a per-cell fragment.
+                uri: uri.with({ scheme: "vscode-notebook-cell", fragment: `cell${i}` }),
             },
         }));
         return {
-            uri: notebookUri,
+            uri,
             notebookType: "jupyter-notebook",
             metadata: metadata ?? {},
             getCells: () => cellObjs,
@@ -144,6 +147,15 @@ suite("SqlNotebookController", () => {
         update: sinon.SinonStub;
         keys: sinon.SinonStub;
     };
+
+    // Handlers captured from the controller's event subscriptions so tests can
+    // simulate workspace events, plus a mutable open-notebooks array.
+    // Note: onDidOpen/CloseNotebookDocument cannot be sinon-stubbed on
+    // vscode.workspace in the test host; tests invoke the controller's
+    // handleNotebookOpened/handleNotebookClosed methods directly instead.
+    let didSaveNotebookHandler: (notebook: vscode.NotebookDocument) => void;
+    let didOpenTextDocumentHandler: (doc: vscode.TextDocument) => void;
+    let openNotebookDocuments: vscode.NotebookDocument[];
 
     function setupVscodeMocks(sb: sinon.SinonSandbox): void {
         sb.stub(vscode.notebooks, "createNotebookController").returns(
@@ -175,8 +187,13 @@ suite("SqlNotebookController", () => {
         sb.stub(vscode.workspace, "onDidChangeNotebookDocument").returns({
             dispose: sb.stub(),
         });
-        sb.stub(vscode.workspace, "onDidSaveNotebookDocument").returns({
-            dispose: sb.stub(),
+        sb.stub(vscode.workspace, "onDidSaveNotebookDocument").callsFake((listener) => {
+            didSaveNotebookHandler = listener as (notebook: vscode.NotebookDocument) => void;
+            return { dispose: sb.stub() };
+        });
+        sb.stub(vscode.workspace, "onDidOpenTextDocument").callsFake((listener) => {
+            didOpenTextDocumentHandler = listener as (doc: vscode.TextDocument) => void;
+            return { dispose: sb.stub() };
         });
         sb.stub(vscode.workspace, "onDidCloseNotebookDocument").returns({
             dispose: sb.stub(),
@@ -184,7 +201,8 @@ suite("SqlNotebookController", () => {
         sb.stub(vscode.languages, "registerCodeLensProvider").returns({
             dispose: sb.stub(),
         });
-        sb.stub(vscode.workspace, "notebookDocuments").value([]);
+        openNotebookDocuments = [];
+        sb.stub(vscode.workspace, "notebookDocuments").value(openNotebookDocuments);
         sb.stub(vscode.workspace, "applyEdit").resolves(true);
     }
 
@@ -1017,6 +1035,309 @@ suite("SqlNotebookController", () => {
             await controller.changeConnectionInteractive();
 
             expect(warnStub).to.have.been.calledOnce;
+        });
+    });
+
+    suite("save URI transfer", () => {
+        test("re-keys manager and re-registers cells when notebook URI changes on save", async () => {
+            const untitledUri = vscode.Uri.parse("untitled:Untitled-1.ipynb");
+            const notebook = makeNotebook([{ text: "SELECT 1" }], undefined, untitledUri);
+
+            // Execute once so the manager is tracked under the untitled URI.
+            await mockController.executeHandler(notebook.getCells(), notebook, mockController);
+            expect(controller.connections.get(untitledUri.toString())).to.equal(
+                mockNotebookConnMgr,
+            );
+
+            // Simulate the save assigning the final file URI.
+            const fileUri = vscode.Uri.parse("file:///c:/temp/notebook1.ipynb");
+            (notebook as { uri: vscode.Uri }).uri = fileUri;
+            mockNotebookConnMgr.connectCellForIntellisense.resetHistory();
+
+            didSaveNotebookHandler(notebook);
+
+            // Manager re-keyed to the new URI.
+            expect(controller.connections.has(untitledUri.toString())).to.be.false;
+            expect(controller.connections.get(fileUri.toString())).to.equal(mockNotebookConnMgr);
+
+            // Stale cell registrations released and current cells re-registered
+            // so IntelliSense keeps working under the new cell URIs.
+            expect(mockNotebookConnMgr.releaseCellRegistrations).to.have.been.calledOnce;
+            expect(mockNotebookConnMgr.connectCellForIntellisense).to.have.been.calledWith(
+                notebook.getCells()[0].document.uri.toString(),
+            );
+        });
+
+        test("does not release registrations when URI is unchanged on save", async () => {
+            const notebook = makeNotebook([{ text: "SELECT 1" }]);
+            await mockController.executeHandler(notebook.getCells(), notebook, mockController);
+
+            didSaveNotebookHandler(notebook);
+
+            expect(mockNotebookConnMgr.releaseCellRegistrations).to.not.have.been.called;
+        });
+    });
+
+    suite("untitled save adoption (close + reopen transition)", () => {
+        const untitledUri = vscode.Uri.parse("untitled:Untitled-1.ipynb");
+        const savedUri = vscode.Uri.parse("file:///c:/src/note1.ipynb");
+
+        /** Connect an untitled notebook so its manager is tracked by the controller. */
+        async function connectUntitledNotebook(
+            text = "SELECT 1",
+        ): Promise<vscode.NotebookDocument> {
+            const notebook = makeNotebook([{ text }], undefined, untitledUri);
+            await mockController.executeHandler(notebook.getCells(), notebook, mockController);
+            expect(controller.connections.get(untitledUri.toString())).to.equal(
+                mockNotebookConnMgr,
+            );
+            return notebook;
+        }
+
+        test("close then open: parked manager is adopted by matching file notebook", async () => {
+            const untitled = await connectUntitledNotebook();
+
+            // Save replaces the document: the untitled notebook closes...
+            controller.handleNotebookClosed(untitled);
+            expect(controller.connections.has(untitledUri.toString())).to.be.false;
+            // ...but the connected manager must survive the transition.
+            expect(mockNotebookConnMgr.dispose).to.not.have.been.called;
+
+            // ...and the file-based notebook opens with the same content.
+            const saved = makeNotebook([{ text: "SELECT 1" }], undefined, savedUri);
+            mockNotebookConnMgr.connectCellForIntellisense.resetHistory();
+            controller.handleNotebookOpened(saved);
+
+            expect(controller.connections.get(savedUri.toString())).to.equal(mockNotebookConnMgr);
+            expect(mockNotebookConnMgr.dispose).to.not.have.been.called;
+            // Old cell registrations released, new cell URIs registered.
+            expect(mockNotebookConnMgr.releaseCellRegistrations).to.have.been.calledOnce;
+            expect(mockNotebookConnMgr.connectCellForIntellisense).to.have.been.calledWith(
+                saved.getCells()[0].document.uri.toString(),
+            );
+            // Connection metadata persisted under the new file URI.
+            expect(mockWorkspaceState.update).to.have.been.calledWith(
+                `notebook.connection.${savedUri.toString()}`,
+                sinon.match({ server: "test-server", database: "TestDB" }),
+            );
+        });
+
+        test("open then close: adoption still occurs when the file notebook opens first", async () => {
+            const untitled = await connectUntitledNotebook();
+
+            // The file-based notebook opens (and is seen opening) before the
+            // untitled one closes.
+            const saved = makeNotebook([{ text: "SELECT 1" }], undefined, savedUri);
+            openNotebookDocuments.push(saved);
+            controller.handleNotebookOpened(saved);
+
+            controller.handleNotebookClosed(untitled);
+
+            expect(controller.connections.get(savedUri.toString())).to.equal(mockNotebookConnMgr);
+            expect(mockNotebookConnMgr.dispose).to.not.have.been.called;
+            expect(mockNotebookConnMgr.releaseCellRegistrations).to.have.been.calledOnce;
+        });
+
+        test("park-time scan ignores notebooks that were not recently opened", async () => {
+            const untitled = await connectUntitledNotebook();
+
+            // A matching file notebook is open but was NEVER seen opening in
+            // the adoption window (e.g. a long-open unrelated notebook).
+            const oldNotebook = makeNotebook([{ text: "SELECT 1" }], undefined, savedUri);
+            openNotebookDocuments.push(oldNotebook);
+
+            controller.handleNotebookClosed(untitled);
+
+            // Parked, not adopted into the stale notebook.
+            expect(controller.connections.has(savedUri.toString())).to.be.false;
+            expect(mockNotebookConnMgr.dispose).to.not.have.been.called;
+        });
+
+        test("does not steal a connected untitled notebook that still has an open tab", async () => {
+            const untitled = await connectUntitledNotebook();
+            openNotebookDocuments.push(untitled);
+            // The untitled notebook still has an editor tab — the user is
+            // actively using it; it is not a save-replacement leftover.
+            sandbox.stub(controller, "isNotebookOpenInTab").returns(true);
+
+            const saved = makeNotebook([{ text: "SELECT 1" }], undefined, savedUri);
+            controller.handleNotebookOpened(saved);
+
+            expect(controller.connections.has(savedUri.toString())).to.be.false;
+            expect(controller.connections.get(untitledUri.toString())).to.equal(
+                mockNotebookConnMgr,
+            );
+        });
+
+        test("adopts a live manager when the untitled document lingers open (no close event)", async () => {
+            const untitled = await connectUntitledNotebook();
+            // The replaced untitled document stays open — no close event fires.
+            openNotebookDocuments.push(untitled);
+
+            const saved = makeNotebook([{ text: "SELECT 1" }], undefined, savedUri);
+            mockNotebookConnMgr.connectCellForIntellisense.resetHistory();
+            controller.handleNotebookOpened(saved);
+
+            expect(controller.connections.get(savedUri.toString())).to.equal(mockNotebookConnMgr);
+            expect(controller.connections.has(untitledUri.toString())).to.be.false;
+            expect(mockNotebookConnMgr.dispose).to.not.have.been.called;
+            expect(mockNotebookConnMgr.releaseCellRegistrations).to.have.been.calledOnce;
+            expect(mockNotebookConnMgr.connectCellForIntellisense).to.have.been.calledWith(
+                saved.getCells()[0].document.uri.toString(),
+            );
+        });
+
+        test("save event adopts a lingering manager when the open event found no match", async () => {
+            const untitled = await connectUntitledNotebook();
+            openNotebookDocuments.push(untitled);
+
+            const saved = makeNotebook([{ text: "SELECT 1" }], undefined, savedUri);
+            didSaveNotebookHandler(saved);
+
+            expect(controller.connections.get(savedUri.toString())).to.equal(mockNotebookConnMgr);
+            expect(mockNotebookConnMgr.releaseCellRegistrations).to.have.been.calledOnce;
+        });
+
+        test("does not steal a live manager whose untitled document content differs", async () => {
+            const untitled = await connectUntitledNotebook("SELECT 1");
+            openNotebookDocuments.push(untitled);
+
+            const saved = makeNotebook([{ text: "SELECT 999" }], undefined, savedUri);
+            controller.handleNotebookOpened(saved);
+
+            // No transfer — the untitled notebook keeps its manager.
+            expect(controller.connections.has(savedUri.toString())).to.be.false;
+            expect(controller.connections.get(untitledUri.toString())).to.equal(
+                mockNotebookConnMgr,
+            );
+        });
+
+        test("does not adopt into a notebook with different content; disposes after TTL", async () => {
+            const clock = sandbox.useFakeTimers();
+            const untitled = await connectUntitledNotebook("SELECT 1");
+
+            controller.handleNotebookClosed(untitled);
+
+            const unrelated = makeNotebook([{ text: "SELECT 999" }], undefined, savedUri);
+            controller.handleNotebookOpened(unrelated);
+            expect(controller.connections.has(savedUri.toString())).to.be.false;
+
+            // Nothing adopted the parked manager — it must be disposed after the TTL
+            // so the orphaned connection is cleaned up.
+            await clock.tickAsync(11000);
+            expect(mockNotebookConnMgr.dispose).to.have.been.called;
+
+            clock.restore();
+        });
+
+        test("disposes immediately when a file-based notebook closes", async () => {
+            const notebook = makeNotebook([{ text: "SELECT 1" }], undefined, savedUri);
+            await mockController.executeHandler(notebook.getCells(), notebook, mockController);
+
+            controller.handleNotebookClosed(notebook);
+
+            expect(mockNotebookConnMgr.dispose).to.have.been.called;
+            expect(controller.connections.has(savedUri.toString())).to.be.false;
+        });
+
+        test("disposes immediately when a disconnected untitled notebook closes", async () => {
+            const untitled = await connectUntitledNotebook();
+            mockNotebookConnMgr.isConnected.returns(false);
+
+            controller.handleNotebookClosed(untitled);
+
+            expect(mockNotebookConnMgr.dispose).to.have.been.called;
+        });
+
+        test("re-parking a reused untitled URI disposes the superseded manager and keeps the new one adoptable", async () => {
+            // VS Code recycles untitled names: two different notebooks can be
+            // parked under the same untitled URI within the TTL window.
+            const mgrA = sandbox.createStubInstance(NotebookConnectionManager);
+            mgrA.isConnected.returns(true);
+            const untitledA = makeNotebook([{ text: "SELECT 1" }], undefined, untitledUri);
+            controller.connections.set(untitledUri.toString(), mgrA);
+            controller.handleNotebookClosed(untitledA);
+
+            const mgrB = sandbox.createStubInstance(NotebookConnectionManager);
+            mgrB.isConnected.returns(true);
+            const untitledB = makeNotebook([{ text: "SELECT 2" }], undefined, untitledUri);
+            controller.connections.set(untitledUri.toString(), mgrB);
+            controller.handleNotebookClosed(untitledB);
+
+            // The superseded first manager is disposed; the second survives.
+            expect(mgrA.dispose).to.have.been.called;
+            expect(mgrB.dispose).to.not.have.been.called;
+
+            // The second manager is still adoptable by its saved notebook.
+            const saved = makeNotebook([{ text: "SELECT 2" }], undefined, savedUri);
+            controller.handleNotebookOpened(saved);
+            expect(controller.connections.get(savedUri.toString())).to.equal(mgrB);
+        });
+
+        test("controller dispose cleans up parked managers", async () => {
+            const untitled = await connectUntitledNotebook();
+            controller.handleNotebookClosed(untitled);
+            expect(mockNotebookConnMgr.dispose).to.not.have.been.called;
+
+            controller.dispose();
+
+            expect(mockNotebookConnMgr.dispose).to.have.been.called;
+        });
+    });
+
+    suite("late cell document registration", () => {
+        test("registers a cell document that opens while the notebook is connected", async () => {
+            const notebook = makeNotebook([{ text: "SELECT 1" }]);
+            openNotebookDocuments.push(notebook);
+
+            // Execute once so a connected manager exists for the notebook.
+            await mockController.executeHandler(notebook.getCells(), notebook, mockController);
+            mockNotebookConnMgr.connectCellForIntellisense.resetHistory();
+
+            const cellDoc = notebook.getCells()[0].document;
+            didOpenTextDocumentHandler(cellDoc);
+
+            expect(mockNotebookConnMgr.connectCellForIntellisense).to.have.been.calledWith(
+                cellDoc.uri.toString(),
+            );
+        });
+
+        test("ignores non-cell documents", async () => {
+            const notebook = makeNotebook([{ text: "SELECT 1" }]);
+            openNotebookDocuments.push(notebook);
+            await mockController.executeHandler(notebook.getCells(), notebook, mockController);
+            mockNotebookConnMgr.connectCellForIntellisense.resetHistory();
+
+            didOpenTextDocumentHandler({
+                uri: vscode.Uri.parse("file:///c:/temp/query.sql"),
+                languageId: "sql",
+            } as vscode.TextDocument);
+
+            expect(mockNotebookConnMgr.connectCellForIntellisense).to.not.have.been.called;
+        });
+
+        test("skips cell documents whose notebook has no manager", () => {
+            const notebook = makeNotebook([{ text: "SELECT 1" }]);
+            openNotebookDocuments.push(notebook);
+
+            const cellDoc = notebook.getCells()[0].document;
+            didOpenTextDocumentHandler(cellDoc);
+
+            expect(mockNotebookConnMgr.connectCellForIntellisense).to.not.have.been.called;
+        });
+
+        test("skips cell documents when the notebook is not connected", async () => {
+            const notebook = makeNotebook([{ text: "SELECT 1" }]);
+            openNotebookDocuments.push(notebook);
+            await mockController.executeHandler(notebook.getCells(), notebook, mockController);
+
+            mockNotebookConnMgr.isConnected.returns(false);
+            mockNotebookConnMgr.connectCellForIntellisense.resetHistory();
+
+            const cellDoc = notebook.getCells()[0].document;
+            didOpenTextDocumentHandler(cellDoc);
+
+            expect(mockNotebookConnMgr.connectCellForIntellisense).to.not.have.been.called;
         });
     });
 
