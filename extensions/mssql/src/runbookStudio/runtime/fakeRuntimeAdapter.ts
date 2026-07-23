@@ -19,6 +19,7 @@
  */
 
 import * as crypto from "crypto";
+import { normalizeLocalEfRenameDecisionsInput } from "./localEfMigrationGenerator";
 import type {
     RunbookArtifactFile,
     RunbookDiagnosticCounts,
@@ -877,10 +878,8 @@ function executeNode(
         case "migration.script.generate": {
             const diff = resolveBind(node.inputs?.diff, parameterValues, nodeValues);
             const risk = resolveBind(node.inputs?.risk, parameterValues, nodeValues);
-            const renameDecisions = resolveBind(
-                node.inputs?.renameDecisions,
-                parameterValues,
-                nodeValues,
+            const renameDecisions = normalizeLocalEfRenameDecisionsInput(
+                resolveBind(node.inputs?.renameDecisions, parameterValues, nodeValues),
             );
             if (
                 typeof diff !== "string" ||

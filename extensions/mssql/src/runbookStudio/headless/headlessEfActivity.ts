@@ -26,6 +26,7 @@ import {
 import {
     generateLocalEfMigrationProposal,
     LocalEfMigrationManifest,
+    normalizeLocalEfRenameDecisionsInput,
     parseLocalEfRenameDecisions,
 } from "../runtime/localEfMigrationGenerator";
 
@@ -445,7 +446,9 @@ export class HeadlessEfActivityDelegate implements ActivityExecutionDelegate {
     ): Promise<NodeExecution> {
         const diffRef = binding.resolveBind(node.inputs?.diff);
         const riskRef = binding.resolveBind(node.inputs?.risk);
-        const renameDecisions = binding.resolveBind(node.inputs?.renameDecisions);
+        const renameDecisions = normalizeLocalEfRenameDecisionsInput(
+            binding.resolveBind(node.inputs?.renameDecisions),
+        );
         if (
             !nonEmptyString(diffRef) ||
             !nonEmptyString(riskRef) ||

@@ -91,6 +91,30 @@ interface RenderedOperation {
     losesData: boolean;
 }
 
+/**
+ * Planner-authored locks can express rename decisions either as the
+ * canonical JSON string used by parameter bindings or as a literal JSON
+ * array. Normalize both representations at the activity-host boundary so an
+ * empty literal array does not become a misleading "parameter required"
+ * failure.
+ */
+export function normalizeLocalEfRenameDecisionsInput(value: unknown): string | undefined {
+    if (typeof value === "string") {
+        return value;
+    }
+    if (!Array.isArray(value)) {
+        return undefined;
+    }
+    try {
+        const serialized = JSON.stringify(value);
+        return Buffer.byteLength(serialized, "utf8") <= MAX_RENAME_DECISIONS_BYTES
+            ? serialized
+            : undefined;
+    } catch {
+        return undefined;
+    }
+}
+
 export function parseLocalEfRenameDecisions(value: string): LocalEfRenameDecision[] {
     if (Buffer.byteLength(value, "utf8") > MAX_RENAME_DECISIONS_BYTES) {
         invalid("Rename decisions exceed the bounded input limit.");

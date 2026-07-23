@@ -8,6 +8,7 @@ import { analyzeLocalEfMigrationRisk } from "../../src/runbookStudio/runtime/loc
 import {
     generateLocalEfMigrationProposal,
     LocalEfMigrationGenerationError,
+    normalizeLocalEfRenameDecisionsInput,
     parseLocalEfRenameDecisions,
 } from "../../src/runbookStudio/runtime/localEfMigrationGenerator";
 import {
@@ -323,6 +324,24 @@ suite("Runbook Studio EF migration risk", () => {
 });
 
 suite("Runbook Studio EF migration proposal", () => {
+    test("normalizes literal and parameter-bound rename decision inputs", () => {
+        expect(normalizeLocalEfRenameDecisionsInput([])).to.equal("[]");
+        expect(
+            normalizeLocalEfRenameDecisionsInput([
+                {
+                    objectType: "column",
+                    fromPath: "[dbo].[Orders].[Description]",
+                    toPath: "[dbo].[Orders].[Summary]",
+                    action: "rename",
+                },
+            ]),
+        ).to.equal(
+            '[{"objectType":"column","fromPath":"[dbo].[Orders].[Description]","toPath":"[dbo].[Orders].[Summary]","action":"rename"}]',
+        );
+        expect(normalizeLocalEfRenameDecisionsInput("[]")).to.equal("[]");
+        expect(normalizeLocalEfRenameDecisionsInput({})).to.equal(undefined);
+    });
+
     test("renders additive DDL and an explicitly accepted column rename with rollback", () => {
         const orders = table("Orders", [
             column("OrdersId", "int"),

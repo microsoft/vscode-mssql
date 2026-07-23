@@ -56,7 +56,10 @@ import type { LocalPerformanceSnapshotResult } from "./localPerformanceSnapshot"
 import type { LocalPerformanceDeltaResult } from "./localPerformanceDelta";
 import type { LocalEfRelationalDiff, LocalEfRelationalModel } from "./localEfRelationalModel";
 import type { LocalEfMigrationRiskDocument } from "./localEfMigrationRisk";
-import type { LocalEfMigrationManifest } from "./localEfMigrationGenerator";
+import {
+    LocalEfMigrationManifest,
+    normalizeLocalEfRenameDecisionsInput,
+} from "./localEfMigrationGenerator";
 import type { LocalEfMigrationConvergenceResult } from "./localEfMigrationConvergence";
 import type { LocalReleaseManifestInput, LocalReleaseManifestResult } from "./localReleaseManifest";
 
@@ -1239,7 +1242,9 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
     ): Promise<NodeExecution> {
         const diffRef = binding.resolveBind(node.inputs?.diff);
         const riskRef = binding.resolveBind(node.inputs?.risk);
-        const renameDecisions = binding.resolveBind(node.inputs?.renameDecisions);
+        const renameDecisions = normalizeLocalEfRenameDecisionsInput(
+            binding.resolveBind(node.inputs?.renameDecisions),
+        );
         for (const [name, value] of Object.entries({
             diff: diffRef,
             risk: riskRef,

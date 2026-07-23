@@ -857,7 +857,7 @@ suite("Runbook Studio local activity delegate", () => {
             activity("migration.script.generate", {
                 diff: "runbook-ef-diff:run-1",
                 risk: "runbook-ef-risk:run-1",
-                renameDecisions: "[]",
+                renameDecisions: [],
             }),
             binding(),
         );

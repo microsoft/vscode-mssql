@@ -28,12 +28,14 @@ import {
 import { RUNBOOK_STUDIO_VIEW_TYPE } from "../../src/runbookStudio/runbookStudioEditorProvider";
 import { DEMO_RUNBOOK_INTENT } from "./demoRunbookPrompt";
 import { DETAILED_EXECUTION_PLAN_INTENT } from "./detailedExecutionPlanPrompt";
+import { ERD_DEMO_INTENT } from "./erdDemoPrompt";
 
 const LIVE_ENABLED = process.env.RBS2_EF_LIVE === "1";
 const REHEARSAL_LIVE_ENABLED = process.env.RBS2_EF_REHEARSAL_LIVE === "1";
 const PERFORMANCE_LIVE_ENABLED = process.env.RBS2_EF_PERFORMANCE_LIVE === "1";
 const DEMO_PERFORMANCE_LIVE_ENABLED = process.env.RBS2_EF_DEMO_LIVE === "1";
 const DETAILED_PERFORMANCE_LIVE_ENABLED = process.env.RBS2_EF_DETAILED_LIVE === "1";
+const ERD_LIVE_ENABLED = process.env.RBS2_EF_ERD_LIVE === "1";
 const DACPAC_CONNECTION_STRING =
     process.env.STS2_SQLSERVER_CONNSTRING ?? process.env.STS2_SQLSERVER_SQLLOGIN_CONNSTRING;
 const FIXTURE_ROOT =
@@ -47,11 +49,16 @@ const REHEARSAL_INTENT =
     "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
     "provision a SQL Server 2025 container, apply the migration, visualize the schema, roll it back, " +
     "and visualize the rolled-back schema.";
-const DACPAC_REHEARSAL_INTENT =
-    "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
-    "extract a DACPAC from WideWorldImporters staging database, provision a SQL Server 2025 container, " +
-    "deploy the DACPAC, apply the migration, run a schema compare and save the diff output, visualize " +
-    "the schema, roll it back, and visualize the rolled-back schema.";
+const DACPAC_REHEARSAL_INTENT = ERD_LIVE_ENABLED
+    ? ERD_DEMO_INTENT
+    : "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
+      "extract a DACPAC from WideWorldImporters staging database, provision a SQL Server 2025 container, " +
+      "deploy the DACPAC, apply the migration, run a schema compare and save the diff output, visualize " +
+      "the schema, roll it back, and visualize the rolled-back schema.";
+const DACPAC_REHEARSAL_HEAD_REF = ERD_LIVE_ENABLED ? "HEAD" : "rehearsal-additive";
+const DACPAC_REHEARSAL_SOURCE_DATABASE = ERD_LIVE_ENABLED
+    ? "HobbesComplexDev_Staging"
+    : "WideWorldImporters";
 const PERFORMANCE_REHEARSAL_INTENT =
     process.env.RBS2_EF_PERFORMANCE_INTENT ??
     (DETAILED_PERFORMANCE_LIVE_ENABLED
@@ -295,7 +302,7 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
     });
 
     test("applies and rolls back the exact reviewed digest in an owned SQL container", async function () {
-        if (!REHEARSAL_LIVE_ENABLED) {
+        if (!REHEARSAL_LIVE_ENABLED || ERD_LIVE_ENABLED) {
             this.skip();
         }
         const beforeHead = git("rev-parse", "HEAD");
@@ -547,12 +554,12 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 parameterValues: {
                     repository: FIXTURE_ROOT,
                     baseRef: "main",
-                    headRef: "rehearsal-additive",
+                    headRef: DACPAC_REHEARSAL_HEAD_REF,
                     project: PROJECT_PATH,
                     dbContext: "AppDbContext",
                     renameDecisions: "[]",
                     sourceConnection: persistedProfile!.id,
-                    sourceDatabaseName: "WideWorldImporters",
+                    sourceDatabaseName: DACPAC_REHEARSAL_SOURCE_DATABASE,
                     containerName,
                     databaseName,
                     sqlVersion: "2025",

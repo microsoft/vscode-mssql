@@ -36,6 +36,7 @@ import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudi
 import { RunbookArtifactFile } from "../../src/sharedInterfaces/runbookStudio";
 import { classifyRunbookIntent } from "../../src/runbookStudio/capabilities/runbookCapabilities";
 import { DETAILED_EXECUTION_PLAN_INTENT } from "./detailedExecutionPlanPrompt";
+import { ERD_DEMO_INTENT } from "./erdDemoPrompt";
 
 function base(): RunbookArtifactFile {
     return createNewRunbookArtifact("New runbook", "rb-test");
@@ -539,6 +540,46 @@ suite("planCompiler", () => {
             },
             { from: "bundle-evidence", to: "report" },
         ]);
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+    });
+
+    test("the EF schema visualization demo compiles to migrated and restored ERD widgets", () => {
+        const classified = classifyRunbookIntent(ERD_DEMO_INTENT);
+        const erdBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicEfModelComparison(erdBase, ERD_DEMO_INTENT);
+        if (!result || isProposalFailure(result)) {
+            throw new Error(result && isProposalFailure(result) ? result.detail : "no plan");
+        }
+
+        const parameter = (id: string) =>
+            result.artifact.source.parameters.find((candidate) => candidate.id === id);
+        expect(parameter("repository")?.default).to.equal(
+            "C:\\repos\\work2\\test_assets\\hobbes-complex-dev\\myapp",
+        );
+        expect(parameter("headRef")?.default).to.equal("HEAD");
+        expect(parameter("sourceDatabaseName")?.default).to.equal("HobbesComplexDev_Staging");
+        expect(parameter("renameDecisions")?.default).to.equal("[]");
+        expect(result.artifact.lock!.nodes).to.have.length(29);
+        const visualizations = result.artifact.lock!.nodes.filter(
+            (node) => node.activityKind === "database.schema.visualize",
+        );
+        expect(visualizations.map((node) => node.id)).to.deep.equal([
+            "visualize-forward-schema",
+            "visualize-rollback-schema",
+        ]);
+        for (const visualization of visualizations) {
+            expect(visualization.inputs).to.deep.equal({
+                database: "$nodes.provision-rehearsal-container.connectionRef",
+            });
+            expect(visualization.target?.binding).to.deep.include({
+                nodeId: "provision-rehearsal-container",
+                output: "connectionRef",
+            });
+        }
         expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
     });
 
