@@ -24,7 +24,8 @@ export default defineConfig({
     tests: [
         {
             files: "out/test/**/*.test.js",
-            version: "insiders",
+            // TODO: Switch back to Insiders after https://github.com/microsoft/vscode-test/issues/349.
+            version: "stable",
             launchArgs: ["--disable-gpu", "--user-data-dir", userDataDir],
             env: {
                 SQLPROJ_TEST_MODE: "1",

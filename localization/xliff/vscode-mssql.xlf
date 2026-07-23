@@ -550,9 +550,6 @@
     <trans-unit id="++CODE++a27adfa57c8938761efd3fc482ea8e81fc898b286f29d04c783c9d3b60b22824">
       <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you&apos;ve created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
     </trans-unit>
-    <trans-unit id="++CODE++762d2d8d0f231dc362dd18f8ee3ef0adc4b55beff276a917db60b3432e2cf8ae">
-      <source xml:lang="en">Auto-execute</source>
-    </trans-unit>
     <trans-unit id="++CODE++4c5540399ea50cb52c6ca24ab5aebf272d0e39920af434bec1fa87fa821f1bbd">
       <source xml:lang="en">Auto-pause</source>
     </trans-unit>
@@ -4004,6 +4001,9 @@
     <trans-unit id="++CODE++8aa318eb7eaa233aada0d332bec14cb6a631c8fda25deb2c7d4f402888f1b1e2">
       <source xml:lang="en">Insert</source>
     </trans-unit>
+    <trans-unit id="++CODE++7231a7d45a700048f4057a8040de5fb2afc1ebd67638a7a2fa96da6b8f24e3ba">
+      <source xml:lang="en">Insert selected query-editor text using {arg}. If you don&apos;t use the placeholder, selected text is automatically appended to the end of the query.</source>
+    </trans-unit>
     <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
       <source xml:lang="en">Install Docker</source>
     </trans-unit>
@@ -6184,6 +6184,9 @@
 {1} is the connection ID
 {2} is the SQL query</note>
     </trans-unit>
+    <trans-unit id="++CODE++0bc00be2d21a631fedf64e0302de168c6a49105158a47fc837faf0df12f53fe4">
+      <source xml:lang="en">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</source>
+    </trans-unit>
     <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
       <source xml:lang="en">Run, cancel, and create queries</source>
     </trans-unit>
@@ -6338,9 +6341,6 @@
     </trans-unit>
     <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
       <source xml:lang="en">Save connection profile changes without establishing a connection</source>
-    </trans-unit>
-    <trans-unit id="++CODE++3ec8a4f0540db2ba6c43128944d19d2d6d10b0a65523ab185cf4e185e96f7dd6">
-      <source xml:lang="en">Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.</source>
     </trans-unit>
     <trans-unit id="++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506">
       <source xml:lang="en">Save password</source>
@@ -6757,6 +6757,9 @@
     </trans-unit>
     <trans-unit id="++CODE++05b335b429fbb422b7e22e8f8b77acd140d21b43c04f04476206cfaf85978d13">
       <source xml:lang="en">Selected backup file does not contain a valid database backup</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2cafc5757485d935e51fd715bb3ad14ec8c53f8875ed9e218b427244de032f15">
+      <source xml:lang="en">Selected query-editor text</source>
     </trans-unit>
     <trans-unit id="++CODE++ca4067071fcf618543805e3d94af63144b21f4fae9eade2408f1c24f7e5214e9">
       <source xml:lang="en">Selection</source>
@@ -7584,6 +7587,9 @@
     </trans-unit>
     <trans-unit id="++CODE++2058e7768297cdc1b7cbeb655cd4f06450ec8900fad7f2b06367934185d5967a">
       <source xml:lang="en">This server supports Microsoft Entra ID and SQL Authentication.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++30bc13b49dca001aeab4b8447c759c4f374ff741a22f914a7db838cf7aa507e8">
+      <source xml:lang="en">This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.</source>
     </trans-unit>
     <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
       <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
@@ -8737,7 +8743,7 @@
       <source xml:lang="en">Compare Schemas...</source>
     </trans-unit>
     <trans-unit id="mssql.quickQueries">
-      <source xml:lang="en">Configure up to 10 Quick Queries that can be opened or run from commands.</source>
+      <source xml:lang="en">Configure up to 10 Quick Queries that execute from commands.</source>
     </trans-unit>
     <trans-unit id="mssql.connect">
       <source xml:lang="en">Connect (MSSQL)</source>
@@ -8768,9 +8774,6 @@
     </trans-unit>
     <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
       <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
-    </trans-unit>
-    <trans-unit id="mssql.quickQueries.executionMode">
-      <source xml:lang="en">Controls whether this Quick Query opens in an editor or opens and runs immediately.</source>
     </trans-unit>
     <trans-unit id="mssql.copyAll">
       <source xml:lang="en">Copy All</source>
@@ -9147,12 +9150,6 @@
     <trans-unit id="mssql.openInMssqlExtensionFromAzureResources">
       <source xml:lang="en">Open in MSSQL extension</source>
     </trans-unit>
-    <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
-      <source xml:lang="en">Open the query in a SQL editor and run it immediately.</source>
-    </trans-unit>
-    <trans-unit id="mssql.quickQueries.executionMode.open">
-      <source xml:lang="en">Open the query in a SQL editor.</source>
-    </trans-unit>
     <trans-unit id="mssql.pauseQueryHistoryCapture">
       <source xml:lang="en">Pause Query History Capture</source>
     </trans-unit>
@@ -9298,7 +9295,7 @@
       <source xml:lang="en">SQL engine type used to parse and generate formatted scripts.</source>
     </trans-unit>
     <trans-unit id="mssql.quickQueries.query">
-      <source xml:lang="en">SQL text for this Quick Query.</source>
+      <source xml:lang="en">SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.</source>
     </trans-unit>
     <trans-unit id="mssql.scriptAlter">
       <source xml:lang="en">Script as Alter</source>

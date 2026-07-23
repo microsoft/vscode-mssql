@@ -8,7 +8,6 @@ import debounce from "lodash/debounce";
 import { getErrorMessage } from "../../common/utils";
 import {
     normalizeQuickQueries,
-    QuickQueryExecutionMode,
     QuickQuerySlot,
     SaveShortcutsConfigurationChangedSections,
     SaveShortcutsConfigurationPayload,
@@ -281,9 +280,7 @@ export function useShortcutsConfigurationSave({
     const clearQuickQueryValues = useCallback(
         (index: number, _commandId: string) => {
             const slot = quickQueries[index];
-            const hasValues =
-                slot.query.trim().length > 0 || slot.executionMode !== QuickQueryExecutionMode.Open;
-            if (!hasValues) {
+            if (slot.query.trim().length === 0) {
                 return;
             }
 
@@ -292,7 +289,6 @@ export function useShortcutsConfigurationSave({
                     ? {
                           ...current,
                           query: "",
-                          executionMode: QuickQueryExecutionMode.Open,
                       }
                     : current,
             );
