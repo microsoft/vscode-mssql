@@ -545,6 +545,9 @@ suite("planCompiler", () => {
 
     test("the EF schema visualization demo compiles to migrated and restored ERD widgets", () => {
         const classified = classifyRunbookIntent(ERD_DEMO_INTENT);
+        expect(
+            classified.requirements.activities.map((activity) => activity.kind),
+        ).to.include.members(["migration.apply", "migration.scope.validate"]);
         const erdBase: RunbookArtifactFile = {
             ...base(),
             family: classified.family,
@@ -581,6 +584,20 @@ suite("planCompiler", () => {
             });
         }
         expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+
+        const invalidLock = JSON.parse(
+            JSON.stringify(result.artifact.lock),
+        ) as RunbookArtifactFile["lock"];
+        const invalidPreview = invalidLock?.nodes.find(
+            (node) => node.id === "preview-base-deployment",
+        );
+        if (!invalidLock || !invalidPreview?.inputs) {
+            throw new Error("expected deterministic DACPAC preview node");
+        }
+        invalidPreview.inputs.dacpac = "$nodes.generate-migration.migrationRef";
+        expect(validateLockAgainstCatalog(invalidLock)).to.include(
+            "node 'preview-base-deployment' must bind its DACPAC input to an explicit parameter or an upstream dacpac.build/dacpac.extract artifactPath",
+        );
     });
 
     test("a migrated staging clone composes workload evidence and candidate extraction", () => {

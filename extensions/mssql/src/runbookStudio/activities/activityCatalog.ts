@@ -2134,6 +2134,21 @@ export function validateLockAgainstCatalog(lock: CompiledRunbookLock): string[] 
                 );
             }
             if (
+                [
+                    "dacpac.deploy.preview",
+                    "dacpac.deploy",
+                    "dacpac.deploy.dev",
+                    "dacpac.deploy.container",
+                    "schema.compare",
+                    "schema.compare.export",
+                ].includes(descriptor.kind) &&
+                !hasValidDacpacArtifactBinding(lock, node)
+            ) {
+                issues.push(
+                    `node '${node.id}' must bind its DACPAC input to an explicit parameter or an upstream dacpac.build/dacpac.extract artifactPath`,
+                );
+            }
+            if (
                 descriptor.kind === "dacpac.extract" &&
                 node.target?.binding.source === "nodeOutput" &&
                 (!isOwnedDatabaseOutput(lock, node, "sql.container.provision") ||
@@ -2494,6 +2509,39 @@ function isUpstreamActivityOutput(
     }
     const producer = lock.nodes.find((candidate) => candidate.id === output[1]);
     if (producer?.kind !== "activity" || producer.activityKind !== activityKind) {
+        return false;
+    }
+    const visited = new Set<string>([producer.id]);
+    const pending = [producer.id];
+    while (pending.length > 0) {
+        const current = pending.shift()!;
+        for (const edge of lock.edges.filter((candidate) => candidate.from === current)) {
+            if (edge.to === node.id) {
+                return true;
+            }
+            if (!visited.has(edge.to)) {
+                visited.add(edge.to);
+                pending.push(edge.to);
+            }
+        }
+    }
+    return false;
+}
+
+function hasValidDacpacArtifactBinding(lock: CompiledRunbookLock, node: RunbookPlanNode): boolean {
+    const dacpac = String(node.inputs?.dacpac ?? "");
+    if (PARAMETER_BIND.test(dacpac)) {
+        return true;
+    }
+    const output = NODE_BIND.exec(dacpac);
+    if (!output || output[2] !== "artifactPath") {
+        return false;
+    }
+    const producer = lock.nodes.find((candidate) => candidate.id === output[1]);
+    if (
+        producer?.kind !== "activity" ||
+        !["dacpac.build", "dacpac.extract"].includes(producer.activityKind ?? "")
+    ) {
         return false;
     }
     const visited = new Set<string>([producer.id]);

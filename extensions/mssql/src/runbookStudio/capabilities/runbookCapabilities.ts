@@ -974,7 +974,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
         requestsMigrationGeneration &&
         has(
             text,
-            /\b(apply|execute|run|rehears(?:e|al|ing|ed))\b.{0,60}\b(migration|ddl|schema script)\b|\b(migration|ddl|schema script)\b.{0,60}\b(apply|execute|run|rehears(?:e|al|ing|ed))\b|\bapply\s+(it|the\s+(generated\s+)?(script|changes?))\b|\brehears(?:e|al|ing|ed)\b/,
+            /\b(apply|execute|run|rehears(?:e|al|ing|ed))\b[\s\S]{0,60}\b(migration|ddl|schema script)\b|\b(migration|ddl|schema script)\b[\s\S]{0,60}\b(apply|execute|run|rehears(?:e|al|ing|ed))\b|\bapply\s+(it|the\s+(generated\s+)?(script|changes?))\b|\brehears(?:e|al|ing|ed)\b/,
         ) &&
         !has(
             text,
