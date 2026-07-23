@@ -27,11 +27,13 @@ import {
 } from "../../src/runbookStudio/runbookArtifact";
 import { RUNBOOK_STUDIO_VIEW_TYPE } from "../../src/runbookStudio/runbookStudioEditorProvider";
 import { DEMO_RUNBOOK_INTENT } from "./demoRunbookPrompt";
+import { DETAILED_EXECUTION_PLAN_INTENT } from "./detailedExecutionPlanPrompt";
 
 const LIVE_ENABLED = process.env.RBS2_EF_LIVE === "1";
 const REHEARSAL_LIVE_ENABLED = process.env.RBS2_EF_REHEARSAL_LIVE === "1";
 const PERFORMANCE_LIVE_ENABLED = process.env.RBS2_EF_PERFORMANCE_LIVE === "1";
 const DEMO_PERFORMANCE_LIVE_ENABLED = process.env.RBS2_EF_DEMO_LIVE === "1";
+const DETAILED_PERFORMANCE_LIVE_ENABLED = process.env.RBS2_EF_DETAILED_LIVE === "1";
 const DACPAC_CONNECTION_STRING =
     process.env.STS2_SQLSERVER_CONNSTRING ?? process.env.STS2_SQLSERVER_SQLLOGIN_CONNSTRING;
 const FIXTURE_ROOT =
@@ -52,22 +54,42 @@ const DACPAC_REHEARSAL_INTENT =
     "the schema, roll it back, and visualize the rolled-back schema.";
 const PERFORMANCE_REHEARSAL_INTENT =
     process.env.RBS2_EF_PERFORMANCE_INTENT ??
-    (DEMO_PERFORMANCE_LIVE_ENABLED
-        ? DEMO_RUNBOOK_INTENT
-        : "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
-          "clone the WideWorldImporters staging database through a DACPAC into a SQL Server 2025 container, " +
-          "apply it, compare and visualize the schema, run scripts/workload.sql with full DMV and XEvent " +
-          "performance analysis, and produce a release candidate DACPAC.");
+    (DETAILED_PERFORMANCE_LIVE_ENABLED
+        ? DETAILED_EXECUTION_PLAN_INTENT
+        : DEMO_PERFORMANCE_LIVE_ENABLED
+          ? DEMO_RUNBOOK_INTENT
+          : "Compare Entity Framework changes between rehearsal-additive and main, generate migration DDL, " +
+            "clone the WideWorldImporters staging database through a DACPAC into a SQL Server 2025 container, " +
+            "apply it, compare and visualize the schema, run scripts/workload.sql with full DMV and XEvent " +
+            "performance analysis, and produce a release candidate DACPAC.");
 const PERFORMANCE_HEAD_REF =
     process.env.RBS2_EF_PERFORMANCE_HEAD_REF ??
-    (DEMO_PERFORMANCE_LIVE_ENABLED ? "demo" : "rehearsal-additive");
+    (DETAILED_PERFORMANCE_LIVE_ENABLED
+        ? "development"
+        : DEMO_PERFORMANCE_LIVE_ENABLED
+          ? "demo"
+          : "rehearsal-additive");
 const PERFORMANCE_SOURCE_DATABASE =
     process.env.RBS2_EF_PERFORMANCE_SOURCE_DATABASE ??
-    (DEMO_PERFORMANCE_LIVE_ENABLED ? "HobbesDemo_MyApp_Staging" : "WideWorldImporters");
+    (DETAILED_PERFORMANCE_LIVE_ENABLED
+        ? "HobbesComplexDev_Staging"
+        : DEMO_PERFORMANCE_LIVE_ENABLED
+          ? "HobbesDemo_MyApp_Staging"
+          : "WideWorldImporters");
 const PERFORMANCE_EXPECTED_NODE_COUNT = Number(
     process.env.RBS2_EF_PERFORMANCE_EXPECTED_NODE_COUNT ??
-        (DEMO_PERFORMANCE_LIVE_ENABLED ? "45" : "44"),
+        (DETAILED_PERFORMANCE_LIVE_ENABLED ? "46" : DEMO_PERFORMANCE_LIVE_ENABLED ? "45" : "44"),
 );
+const MODEL_COMPARISON_RENAME_DECISIONS =
+    process.env.RBS2_EF_RENAME_DECISIONS ??
+    JSON.stringify([
+        {
+            objectType: "column",
+            fromPath: "[Sales].[Orders].[Description]",
+            toPath: "[Sales].[Orders].[Summary]",
+            action: "rename",
+        },
+    ]);
 
 suite("Runbook Studio EF model workflow live smoke (gated)", function () {
     this.timeout(12 * 60_000);
@@ -86,6 +108,77 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
         await vscode.workspace
             .getConfiguration()
             .update("mssql.sqlDataPlane.enabled", true, vscode.ConfigurationTarget.Global);
+    });
+
+    test("compiles the exact detailed execution-plan prompt through the product command", async () => {
+        const extension = vscode.extensions.getExtension<mssql.IExtension>("ms-mssql.mssql");
+        expect(extension).not.to.equal(undefined);
+        await extension!.activate();
+        await waitForCommand("mssql.runbookStudio.compileIntentHeadless");
+        const temporaryDirectory = await fs.promises.mkdtemp(
+            path.join(os.tmpdir(), "rbs-detailed-plan-compile-"),
+        );
+        const runbookPath = path.join(temporaryDirectory, "detailed-plan.runbook.json");
+        const artifact = createNewRunbookArtifact("New runbook", "rbs-detailed-plan-live");
+        await fs.promises.writeFile(runbookPath, canonicalizeRunbookArtifact(artifact), "utf8");
+
+        try {
+            const document = await vscode.workspace.openTextDocument(runbookPath);
+            await vscode.commands.executeCommand(
+                "vscode.openWith",
+                document.uri,
+                RUNBOOK_STUDIO_VIEW_TYPE,
+            );
+            const compile = await vscode.commands.executeCommand<{
+                ok: boolean;
+                errorCode?: string;
+                nodeCount?: number;
+                activityKinds?: string[];
+                parameterIds?: string[];
+            }>("mssql.runbookStudio.compileIntentHeadless", {
+                uri: document.uri.toString(),
+                intent: DETAILED_EXECUTION_PLAN_INTENT,
+            });
+
+            expect(compile, compile?.errorCode).to.include({ ok: true, nodeCount: 46 });
+            expect(compile.activityKinds).to.include.members([
+                "git.change-set.inspect",
+                "ef.relational-model.compare",
+                "migration.script.generate",
+                "dacpac.extract",
+                "dacpac.deploy.container",
+                "schema.compare",
+                "performance.dmv.delta",
+                "xevent.xel.analyze",
+                "workload.benchmark",
+                "evidence.bundle",
+                "sql.container.dispose",
+            ]);
+            expect(compile.activityKinds).not.to.include.members([
+                "schema.compare.export",
+                "xevent.capture.reconcile",
+            ]);
+            expect(compile.parameterIds).to.include.members([
+                "repository",
+                "baseRef",
+                "headRef",
+                "project",
+                "dbContext",
+                "sourceConnection",
+                "sourceDatabaseName",
+                "containerName",
+                "databaseName",
+                "saPassword",
+                "workloadFile",
+            ]);
+        } finally {
+            await Promise.resolve(
+                vscode.commands.executeCommand("workbench.action.closeActiveEditor"),
+            ).catch(() => undefined);
+            await fs.promises
+                .rm(temporaryDirectory, { recursive: true, force: true })
+                .catch(() => undefined);
+        }
     });
 
     test("compiles and executes approved exact-ref model comparison through the coordinator", async () => {
@@ -164,14 +257,7 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                     headRef: "development",
                     project: PROJECT_PATH,
                     dbContext: "AppDbContext",
-                    renameDecisions: JSON.stringify([
-                        {
-                            objectType: "column",
-                            fromPath: "[Sales].[Orders].[Description]",
-                            toPath: "[Sales].[Orders].[Summary]",
-                            action: "rename",
-                        },
-                    ]),
+                    renameDecisions: MODEL_COMPARISON_RENAME_DECISIONS,
                 },
                 approveGates: true,
                 timeoutMs: 10 * 60_000,
@@ -415,7 +501,6 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
             await controller!.connectionManager.connectionStore.readAllConnections(false)
         ).find((candidate) => candidate.profileName === profileName);
         expect(persistedProfile).not.to.equal(undefined);
-
         try {
             const document = await vscode.workspace.openTextDocument(runbookPath);
             await vscode.commands.executeCommand(
@@ -538,7 +623,7 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
         }
         const extension = vscode.extensions.getExtension<mssql.IExtension>("ms-mssql.mssql");
         expect(extension).not.to.equal(undefined);
-        await extension!.activate();
+        const api = await extension!.activate();
         await waitForCommand("mssql.runbookStudio.compileIntentHeadless");
         const beforeHead = git("rev-parse", "HEAD");
         const beforeStatus = git("status", "--porcelain");
@@ -589,8 +674,43 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
             await controller!.connectionManager.connectionStore.readAllConnections(false)
         ).find((candidate) => candidate.profileName === profileName);
         expect(persistedProfile).not.to.equal(undefined);
+        let stagingMasterUri: string | undefined;
+        let stagingDatabaseUri: string | undefined;
+        let seededStagingDatabase = false;
 
         try {
+            if (DETAILED_PERFORMANCE_LIVE_ENABLED) {
+                expect(PERFORMANCE_SOURCE_DATABASE).to.match(/^[A-Za-z_][A-Za-z0-9_$#@-]{0,127}$/);
+                stagingMasterUri = await api.connect(baseProfile);
+                const existing = await api.connectionSharing.executeSimpleQuery(
+                    stagingMasterUri,
+                    `SELECT CAST(CASE WHEN DB_ID(N'${PERFORMANCE_SOURCE_DATABASE}') IS NULL THEN 0 ELSE 1 END AS int) AS database_exists;`,
+                );
+                expect(
+                    existing.rows?.[0]?.[0]?.displayValue,
+                    `Refusing to replace existing test staging database ${PERFORMANCE_SOURCE_DATABASE}`,
+                ).to.equal("0");
+                await api.connectionSharing.executeSimpleQuery(
+                    stagingMasterUri,
+                    `CREATE DATABASE [${PERFORMANCE_SOURCE_DATABASE}];`,
+                );
+                seededStagingDatabase = true;
+                stagingDatabaseUri = await api.connect({
+                    ...baseProfile,
+                    database: PERFORMANCE_SOURCE_DATABASE,
+                });
+                const stagingSchema = await fs.promises.readFile(
+                    path.join(FIXTURE_ROOT, "database", "main.sql"),
+                    "utf8",
+                );
+                for (const batch of splitSqlBatches(stagingSchema)) {
+                    await api.connectionSharing.executeSimpleQuery(stagingDatabaseUri, batch);
+                }
+                await api.connectionSharing.executeSimpleQuery(
+                    stagingDatabaseUri,
+                    "INSERT INTO dbo.Customers(Name, Email) VALUES (N'Runbook fixture', N'fixture@example.test');",
+                );
+            }
             const document = await vscode.workspace.openTextDocument(runbookPath);
             await vscode.commands.executeCommand(
                 "vscode.openWith",
@@ -622,8 +742,10 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 "xevent.xel.analyze",
                 "xevent.xel.collect",
                 "workload.benchmark",
-                "release.manifest.create",
                 "dacpac.extract",
+                ...(DETAILED_PERFORMANCE_LIVE_ENABLED
+                    ? ["evidence.bundle"]
+                    : ["release.manifest.create"]),
             ]);
             await document.save();
 
@@ -669,7 +791,6 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
             for (const nodeId of [
                 "verify-base-deployment",
                 "validate-forward-migration",
-                "visualize-forward-schema",
                 "schema-fingerprint-before",
                 "snapshot-before",
                 "run-workload",
@@ -679,8 +800,13 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                 "analyze-capture",
                 "collect-capture",
                 "summarize-performance",
-                "extract-release-candidate",
-                "create-release-manifest",
+                ...(DETAILED_PERFORMANCE_LIVE_ENABLED
+                    ? ["validate-rollback-migration", "verify-rollback-base", "bundle-evidence"]
+                    : [
+                          "visualize-forward-schema",
+                          "extract-release-candidate",
+                          "create-release-manifest",
+                      ]),
             ]) {
                 expect(
                     run.nodeStates?.find((node) => node.nodeId === nodeId)?.outputCount,
@@ -701,6 +827,18 @@ suite("Runbook Studio EF model workflow live smoke (gated)", function () {
                     throw new Error("Live smoke container ownership changed; refusing cleanup.");
                 }
                 await leaked.remove({ force: true });
+            }
+            if (stagingDatabaseUri) {
+                api.connectionSharing.disconnect(stagingDatabaseUri);
+            }
+            if (seededStagingDatabase && stagingMasterUri) {
+                await api.connectionSharing.executeSimpleQuery(
+                    stagingMasterUri,
+                    `ALTER DATABASE [${PERFORMANCE_SOURCE_DATABASE}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [${PERFORMANCE_SOURCE_DATABASE}];`,
+                );
+            }
+            if (stagingMasterUri) {
+                api.connectionSharing.disconnect(stagingMasterUri);
             }
             await controller!.connectionManager.connectionStore
                 .removeProfile(persistedProfile ?? savedProfile)
@@ -725,6 +863,13 @@ function git(...args: string[]): string {
         throw new Error("The EF fixture Git operation failed.");
     }
     return result.stdout.trim();
+}
+
+function splitSqlBatches(script: string): string[] {
+    return script
+        .split(/^\s*GO\s*(?:--.*)?$/gim)
+        .map((batch) => batch.trim())
+        .filter((batch) => batch.length > 0);
 }
 
 async function waitForCommand(command: string): Promise<void> {

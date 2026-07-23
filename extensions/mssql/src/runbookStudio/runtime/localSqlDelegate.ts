@@ -1439,6 +1439,14 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                 binding.isCancellationRequested,
             );
             const { differences, ...summary } = result;
+            const driftDetail = differences
+                .slice(0, 2)
+                .map(
+                    (difference) =>
+                        `${difference.objectType} ${difference.path} ${difference.property}: expected ${difference.expected}, actual ${difference.actual}`,
+                )
+                .join("; ")
+                .slice(0, 640);
             return {
                 success: result.converged,
                 verdict: result.converged ? "pass" : "fail",
@@ -1453,7 +1461,7 @@ export class LocalSqlActivityDelegate implements ActivityExecutionDelegate {
                           result.expectedState,
                           result.scopeTableCount,
                       )
-                    : LocRunbookStudio.efMigrationScopeDriftDetected(result.differenceCount),
+                    : `${LocRunbookStudio.efMigrationScopeDriftDetected(result.differenceCount)}${driftDetail ? ` ${driftDetail}` : ""}`,
                 ...(!result.converged ? { errorCode: "RunbookStudio.SchemaDriftDetected" } : {}),
                 output: {
                     contract: "migrationConvergence/1",

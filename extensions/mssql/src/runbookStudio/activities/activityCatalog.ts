@@ -2686,18 +2686,21 @@ export function stampCatalogMetadata(nodes: RunbookPlanNode[]): RunbookPlanNode[
 }
 
 /** Prompt-facing catalog rendering for the plan compiler. */
-export function describeCatalogForPrompt(): string {
-    return ACTIVITY_CATALOG.map((a) => {
-        const inputs = a.inputs
-            .map((i) => `${i.name}${i.required ? "" : "?"} (${i.kind}): ${i.description}`)
-            .join("; ");
-        const values =
-            a.producedValues.length > 0
-                ? ` Produces bindable values: ${a.producedValues.map((v) => `$nodes.<id>.${v}`).join(", ")}.`
+export function describeCatalogForPrompt(activityKinds?: readonly string[]): string {
+    const allowedKinds = activityKinds ? new Set(activityKinds) : undefined;
+    return ACTIVITY_CATALOG.filter((activity) => allowedKinds?.has(activity.kind) ?? true)
+        .map((a) => {
+            const inputs = a.inputs
+                .map((i) => `${i.name}${i.required ? "" : "?"} (${i.kind}): ${i.description}`)
+                .join("; ");
+            const values =
+                a.producedValues.length > 0
+                    ? ` Produces bindable values: ${a.producedValues.map((v) => `$nodes.<id>.${v}`).join(", ")}.`
+                    : "";
+            const approval = a.approvalRequired
+                ? " Requires a dedicated gate with one approved edge directly to this activity."
                 : "";
-        const approval = a.approvalRequired
-            ? " Requires a dedicated gate with one approved edge directly to this activity."
-            : "";
-        return `- "${a.kind}" (${a.label}): ${a.description} Inputs: ${inputs}.${values}${approval}`;
-    }).join("\n");
+            return `- "${a.kind}" (${a.label}): ${a.description} Inputs: ${inputs}.${values}${approval}`;
+        })
+        .join("\n");
 }

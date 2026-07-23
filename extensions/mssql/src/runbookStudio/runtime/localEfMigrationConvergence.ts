@@ -806,7 +806,8 @@ function normalizeStoreType(value: string): string {
     return value
         .toLowerCase()
         .replace(/\s+/gu, "")
-        .replace(/^(numeric)\(/u, "decimal(");
+        .replace(/^(numeric)\(/u, "decimal(")
+        .replace(/^(datetime2|datetimeoffset|time)\(7\)$/u, "$1");
 }
 
 function projectNotNullFilter(value: string | undefined): {

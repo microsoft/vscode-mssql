@@ -214,11 +214,18 @@ export function plannerContractFor(family: RunbookFamily): FamilyPlannerContract
     return FAMILY_PLANNER_CONTRACTS[family];
 }
 
-export function describePlannerContract(family: RunbookFamily): string {
+export function describePlannerContract(
+    family: RunbookFamily,
+    activityKinds?: readonly string[],
+): string {
     const contract = plannerContractFor(family);
+    const allowedKinds = activityKinds ? new Set(activityKinds) : undefined;
+    const vocabulary = contract.operationalActivityKinds.filter(
+        (kind) => allowedKinds?.has(kind) ?? true,
+    );
     return [
         `Planner family: ${contract.family}. ${contract.purpose}`,
-        `Family activity vocabulary: ${contract.operationalActivityKinds.map((kind) => `"${kind}"`).join(", ")}.`,
+        `Family activity vocabulary: ${vocabulary.map((kind) => `"${kind}"`).join(", ")}.`,
         ...contract.rules.map((rule) => `- ${rule}`),
     ].join("\n");
 }

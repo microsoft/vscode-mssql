@@ -35,6 +35,7 @@ import { createNewRunbookArtifact } from "../../src/runbookStudio/runbookArtifac
 import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudio/developerValidationPreview";
 import { RunbookArtifactFile } from "../../src/sharedInterfaces/runbookStudio";
 import { classifyRunbookIntent } from "../../src/runbookStudio/capabilities/runbookCapabilities";
+import { DETAILED_EXECUTION_PLAN_INTENT } from "./detailedExecutionPlanPrompt";
 
 function base(): RunbookArtifactFile {
     return createNewRunbookArtifact("New runbook", "rb-test");
@@ -112,6 +113,15 @@ suite("planCompiler", () => {
         expect(buildCompilePrompt("create it", undefined, "build")).to.contain(
             "Inputs marked ddl must be exactly one complete CREATE TABLE statement",
         );
+        const manifestPrompt = buildCompilePrompt("deploy it", undefined, "build", [
+            "dacpac.deploy.preview",
+            "schema.compare",
+        ]);
+        expect(manifestPrompt).to.contain(
+            'Required source-manifest activities: "dacpac.deploy.preview", "schema.compare".',
+        );
+        expect(manifestPrompt).not.to.contain('"schema.compare.export"');
+        expect(manifestPrompt).not.to.contain('"xevent.capture.reconcile"');
     });
 
     test("the sampled Cities workload and XEvent analysis compile deterministically", () => {
@@ -470,6 +480,65 @@ suite("planCompiler", () => {
                     edge.to === "verify-rollback-base",
             ),
         ).to.not.equal(undefined);
+        expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
+    });
+
+    test("the detailed EF staging-clone prompt compiles without model-invented activities", () => {
+        const classified = classifyRunbookIntent(DETAILED_EXECUTION_PLAN_INTENT);
+        const detailedBase: RunbookArtifactFile = {
+            ...base(),
+            family: classified.family,
+            source: { ...base().source, requirements: classified.requirements },
+        };
+        const result = compileDeterministicEfModelComparison(
+            detailedBase,
+            DETAILED_EXECUTION_PLAN_INTENT,
+        );
+        if (!result || isProposalFailure(result)) {
+            throw new Error(result && isProposalFailure(result) ? result.detail : "no plan");
+        }
+
+        const parameter = (id: string) =>
+            result.artifact.source.parameters.find((candidate) => candidate.id === id);
+        expect(parameter("repository")?.default).to.equal(
+            "C:\\repos\\work2\\test_assets\\hobbes-complex-dev\\myapp",
+        );
+        expect(parameter("baseRef")?.default).to.equal("main");
+        expect(parameter("headRef")?.default).to.equal("HEAD");
+        expect(parameter("workloadFile")?.default).to.equal("scripts/workload.sql");
+        expect(parameter("sourceConnection")).to.include({ type: "connection", required: true });
+        expect(parameter("sourceDatabaseName")).to.include({ type: "string", required: true });
+        expect(parameter("sourceDatabaseName")).not.to.have.property("default");
+
+        const activityKinds = result.artifact
+            .lock!.nodes.filter((node) => node.kind === "activity")
+            .map((node) => node.activityKind);
+        expect(result.artifact.lock!.nodes).to.have.length(46);
+        expect(activityKinds).to.include.members([
+            "schema.compare",
+            "database.schema.fingerprint",
+            "performance.dmv.snapshot",
+            "performance.dmv.delta",
+            "xevent.session.start",
+            "xevent.session.stop",
+            "xevent.xel.analyze",
+            "xevent.xel.collect",
+            "workload.benchmark",
+            "evidence.bundle",
+        ]);
+        expect(activityKinds).not.to.include.members([
+            "schema.compare.export",
+            "xevent.capture.reconcile",
+        ]);
+        expect(result.artifact.lock!.edges).to.deep.include.members([
+            { from: "dispose-rehearsal-container", to: "bundle-evidence" },
+            {
+                from: "dispose-rehearsal-container",
+                to: "bundle-evidence",
+                when: "failure",
+            },
+            { from: "bundle-evidence", to: "report" },
+        ]);
         expect(validateLockAgainstCatalog(result.artifact.lock!)).to.deep.equal([]);
     });
 

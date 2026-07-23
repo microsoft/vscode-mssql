@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import { DEMO_RUNBOOK_INTENT } from "./demoRunbookPrompt";
+import { DETAILED_EXECUTION_PLAN_INTENT } from "./detailedExecutionPlanPrompt";
 import { createDeveloperValidationPreviewArtifact } from "../../src/runbookStudio/developerValidationPreview";
 import { parseHeadlessCliArguments } from "../../src/runbookStudio/headless/headlessCliArguments";
 import {
@@ -541,6 +542,57 @@ suite("Runbook Studio headless deterministic preview", () => {
             skipped: 5,
             cancelled: 0,
         });
+        expect(result.validation).to.include({ valid: true, executable: true });
+        expect(result.validation.simulatedMutationCount).to.be.greaterThan(10);
+        expect(JSON.stringify(result)).not.to.contain("preview-secret-canary");
+        expect(JSON.stringify(result)).not.to.contain("preview-staging-profile");
+    });
+
+    test("previews the exact detailed EF execution-plan prompt without a model", async () => {
+        const classified = classifyRunbookIntent(DETAILED_EXECUTION_PLAN_INTENT);
+        const base = createNewRunbookArtifact("New runbook", "headless-detailed-ef-plan");
+        base.family = classified.family;
+        base.source.requirements = classified.requirements;
+        const compiled = compileDeterministicEfModelComparison(
+            base,
+            DETAILED_EXECUTION_PLAN_INTENT,
+        );
+        if (!compiled) {
+            throw new Error("deterministic detailed EF workflow was not selected");
+        }
+        if (isProposalFailure(compiled)) {
+            throw new Error(compiled.detail);
+        }
+
+        const result = await runHeadlessPreview({
+            artifactText: canonicalizeRunbookArtifact(compiled.artifact),
+            parameterValues: {
+                project: "src/MyApp.Data/MyApp.Data.csproj",
+                dbContext: "AppDbContext",
+                renameDecisions: "[]",
+                sourceConnection: "preview-staging-profile",
+                sourceDatabaseName: "MyApp_Staging",
+                containerName: "rbs-preview-myapp-sql2025",
+                databaseName: "MyAppCandidate",
+                saPassword: "preview-secret-canary",
+            },
+            runId: "detailed-ef-plan-preview",
+            deterministicPreviewAcknowledged: true,
+            approvePreviewGates: true,
+        });
+
+        expect(result, JSON.stringify(result, undefined, 2)).to.include({
+            outcome: "pass",
+            exitCode: HEADLESS_EXIT_CODES.pass,
+            terminalState: "succeeded",
+            verdict: "pass",
+        });
+        expect(
+            result.nodeCounts.succeeded +
+                result.nodeCounts.failed +
+                result.nodeCounts.skipped +
+                result.nodeCounts.cancelled,
+        ).to.equal(compiled.artifact.lock!.nodes.length);
         expect(result.validation).to.include({ valid: true, executable: true });
         expect(result.validation.simulatedMutationCount).to.be.greaterThan(10);
         expect(JSON.stringify(result)).not.to.contain("preview-secret-canary");

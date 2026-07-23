@@ -2143,6 +2143,7 @@ suite("Runbook Studio local activity delegate", () => {
             "sql.schema.apply",
             "sql.workload.run",
             "xevent.session.stop",
+            "xevent.capture.reconcile",
             "xevent.xel.collect",
             "xevent.xel.analyze",
             "database.schema.fingerprint",

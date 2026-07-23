@@ -33,7 +33,11 @@ import {
     stampCatalogMetadata,
     validateLockAgainstCatalog,
 } from "../activities/activityCatalog";
-import { describePlannerContract, validateCompiledFamilyContract } from "./plannerContracts";
+import {
+    describePlannerContract,
+    plannerContractFor,
+    validateCompiledFamilyContract,
+} from "./plannerContracts";
 import {
     canonicalizeRunbookArtifact,
     computePlanHash,
@@ -319,6 +323,7 @@ export function compileDeterministicEfModelComparison(
     const comparePerformance = required.includes("performance.dmv.delta");
     const summarizePerformance = required.includes("workload.benchmark");
     const createReleaseManifest = required.includes("release.manifest.create");
+    const bundleEvidence = required.includes("evidence.bundle");
     const baseCloneParts = [extractBaseDacpac, previewBaseDacpac, deployBaseDacpac];
     const hasBaseClone = baseCloneParts.every(Boolean);
     const performanceParts = [
@@ -365,6 +370,7 @@ export function compileDeterministicEfModelComparison(
         "performance.dmv.delta",
         "workload.benchmark",
         "release.manifest.create",
+        "evidence.bundle",
     ]);
     if (
         required.length !==
@@ -392,7 +398,8 @@ export function compileDeterministicEfModelComparison(
                 (snapshotPerformance ? 1 : 0) +
                 (comparePerformance ? 1 : 0) +
                 (summarizePerformance ? 1 : 0) +
-                (createReleaseManifest ? 1 : 0) ||
+                (createReleaseManifest ? 1 : 0) +
+                (bundleEvidence ? 1 : 0) ||
         !required.every(
             (kind) =>
                 DETERMINISTIC_EF_COMPARISON_ACTIVITIES.has(kind) ||
@@ -421,6 +428,11 @@ export function compileDeterministicEfModelComparison(
     }
     const sourceDatabaseName = hasBaseClone ? extractDacpacSourceDatabaseName(intent) : undefined;
     const workloadFile = hasPerformanceValidation ? extractWorkspaceSqlFile(intent) : undefined;
+    const repositoryPath = extractRepositoryPath(intent);
+    const headRef = /\b(?:active|current|checked[- ]out)\s+branch\b/i.test(intent)
+        ? "HEAD"
+        : "development";
+    const reportTarget = bundleEvidence ? "bundle-evidence" : "report";
     const postForwardSuccess = hasPerformanceValidation
         ? "schema-fingerprint-before"
         : extractReleaseCandidate
@@ -454,6 +466,7 @@ export function compileDeterministicEfModelComparison(
                 label: "Repository root",
                 type: "string",
                 required: true,
+                ...(repositoryPath ? { default: repositoryPath } : {}),
             },
             {
                 id: "baseRef",
@@ -467,7 +480,7 @@ export function compileDeterministicEfModelComparison(
                 label: "Head ref",
                 type: "string",
                 required: true,
-                default: "development",
+                default: headRef,
             },
             {
                 id: "project",
@@ -1235,33 +1248,48 @@ export function compileDeterministicEfModelComparison(
                       },
                   ] as CompiledProposal["nodes"])
                 : []),
+            ...(bundleEvidence
+                ? [
+                      {
+                          id: "bundle-evidence",
+                          label: "Assemble execution evidence",
+                          kind: "activity" as const,
+                          activityKind: "evidence.bundle",
+                          inputs: {},
+                      },
+                  ]
+                : []),
             { id: "report", label: "Summarize Entity Framework changes", kind: "report" },
         ],
         edges: [
             { from: "capture-change-set", to: "discover-ef-projects" },
-            { from: "capture-change-set", to: "report", when: "failure" },
+            { from: "capture-change-set", to: reportTarget, when: "failure" },
             { from: "discover-ef-projects", to: "approve-base-model" },
-            { from: "discover-ef-projects", to: "report", when: "failure" },
+            { from: "discover-ef-projects", to: reportTarget, when: "failure" },
             { from: "approve-base-model", to: "extract-base-model", when: "approved" },
-            { from: "approve-base-model", to: "report", when: "rejected" },
+            { from: "approve-base-model", to: reportTarget, when: "rejected" },
             { from: "extract-base-model", to: "approve-head-model" },
-            { from: "extract-base-model", to: "report", when: "failure" },
+            { from: "extract-base-model", to: reportTarget, when: "failure" },
             { from: "approve-head-model", to: "extract-head-model", when: "approved" },
-            { from: "approve-head-model", to: "report", when: "rejected" },
+            { from: "approve-head-model", to: reportTarget, when: "rejected" },
             { from: "extract-head-model", to: "compare-models" },
-            { from: "extract-head-model", to: "report", when: "failure" },
+            { from: "extract-head-model", to: reportTarget, when: "failure" },
             {
                 from: "compare-models",
-                to: analyzeMigrationRisk ? "analyze-migration-risk" : "report",
+                to: analyzeMigrationRisk ? "analyze-migration-risk" : reportTarget,
             },
-            { from: "compare-models", to: "report", when: "failure" },
+            { from: "compare-models", to: reportTarget, when: "failure" },
             ...(analyzeMigrationRisk
                 ? [
                       {
                           from: "analyze-migration-risk",
-                          to: generateMigration ? "approve-migration-generation" : "report",
+                          to: generateMigration ? "approve-migration-generation" : reportTarget,
                       },
-                      { from: "analyze-migration-risk", to: "report", when: "failure" as const },
+                      {
+                          from: "analyze-migration-risk",
+                          to: reportTarget,
+                          when: "failure" as const,
+                      },
                   ]
                 : []),
             ...(generateMigration
@@ -1273,7 +1301,7 @@ export function compileDeterministicEfModelComparison(
                       },
                       {
                           from: "approve-migration-generation",
-                          to: "report",
+                          to: reportTarget,
                           when: "rejected" as const,
                       },
                       {
@@ -1282,9 +1310,13 @@ export function compileDeterministicEfModelComparison(
                               ? "extract-base-dacpac"
                               : applyMigration
                                 ? "approve-rehearsal-container"
-                                : "report",
+                                : reportTarget,
                       },
-                      { from: "generate-migration", to: "report", when: "failure" as const },
+                      {
+                          from: "generate-migration",
+                          to: reportTarget,
+                          when: "failure" as const,
+                      },
                   ]
                 : []),
             ...(hasBaseClone
@@ -1297,7 +1329,7 @@ export function compileDeterministicEfModelComparison(
                       },
                       {
                           from: "extract-base-dacpac",
-                          to: "report",
+                          to: reportTarget,
                           when: "failure" as const,
                       },
                   ]
@@ -1310,7 +1342,7 @@ export function compileDeterministicEfModelComparison(
                       },
                       {
                           from: "inspect-workload",
-                          to: "report",
+                          to: reportTarget,
                           when: "failure" as const,
                       },
                   ]
@@ -1324,7 +1356,7 @@ export function compileDeterministicEfModelComparison(
                       },
                       {
                           from: "approve-rehearsal-container",
-                          to: "report",
+                          to: reportTarget,
                           when: "rejected" as const,
                       },
                       {
@@ -1335,7 +1367,7 @@ export function compileDeterministicEfModelComparison(
                       },
                       {
                           from: "provision-rehearsal-container",
-                          to: "report",
+                          to: reportTarget,
                           when: "failure" as const,
                       },
                       ...(hasBaseClone
@@ -1741,14 +1773,15 @@ export function compileDeterministicEfModelComparison(
                                     : []),
                             ]
                           : []),
-                      { from: "dispose-rehearsal-container", to: "report" },
+                      { from: "dispose-rehearsal-container", to: reportTarget },
                       {
                           from: "dispose-rehearsal-container",
-                          to: "report",
+                          to: reportTarget,
                           when: "failure" as const,
                       },
                   ]
                 : []),
+            ...(bundleEvidence ? [{ from: "bundle-evidence", to: "report" }] : []),
         ],
     };
     return parseCompiledProposal(JSON.stringify(proposal), base, intent);
@@ -2600,11 +2633,17 @@ function extractDacpacSourceDatabaseName(intent: string): string | undefined {
 
 function extractWorkspaceSqlFile(intent: string): string | undefined {
     const quoted = /["'`]([^"'`\r\n]{1,260}\.sql)["'`]/i.exec(intent)?.[1];
+    const quotedDirectory =
+        /\b(?:under|in)\s+["'`]([^"'`\r\n]{1,240}[\\/][^"'`\r\n]{1,240})["'`]/i.exec(intent)?.[1];
     const unquoted =
         /(?:^|[\s(])((?:[A-Za-z]:)?(?:[A-Za-z0-9_.@#$ -]+[\\/])+[A-Za-z0-9_.@#$ -]+\.sql)\b/i.exec(
             intent,
         )?.[1];
-    const candidate = (quoted ?? unquoted)?.trim();
+    const candidate = (
+        quoted && quotedDirectory && !/[\\/]/.test(quoted)
+            ? `${quotedDirectory.replace(/[\\/]$/, "")}\\${quoted}`
+            : (quoted ?? unquoted)
+    )?.trim();
     if (!candidate || candidate.includes("..")) {
         return undefined;
     }
@@ -2614,6 +2653,18 @@ function extractWorkspaceSqlFile(intent: string): string | undefined {
     const normalized = candidate.replace(/\\/g, "/");
     const scriptsIndex = normalized.toLowerCase().lastIndexOf("scripts/");
     return scriptsIndex >= 0 ? normalized.slice(scriptsIndex) : normalized;
+}
+
+function extractRepositoryPath(intent: string): string | undefined {
+    const parenthesized =
+        /\brepositor(?:y|ies)(?:['’]s)?\s*\(\s*([A-Za-z]:[\\/][^)\r\n]{1,500})\s*\)/i.exec(
+            intent,
+        )?.[1];
+    const candidate = parenthesized?.trim().replace(/[\\/]$/, "");
+    if (!candidate || /(?:^|[\\/])\.\.(?:[\\/]|$)/.test(candidate)) {
+        return undefined;
+    }
+    return candidate;
 }
 
 function extractRepresentativeLoggingTable(
@@ -2673,15 +2724,28 @@ export function buildCompilePrompt(
     intent: string,
     previousError?: string,
     family: NonNullable<RunbookArtifactFile["family"]> = "investigate",
+    requiredActivityKinds?: readonly string[],
 ): string {
+    const helperActivityKinds = plannerContractFor(family).helperActivityKinds;
+    const availableActivityKinds = requiredActivityKinds
+        ? [...new Set([...requiredActivityKinds, ...helperActivityKinds])]
+        : undefined;
     return [
         "You compile a database developer's intent into a runbook execution plan.",
         "Respond with ONE JSON object only — no prose, no markdown fences.",
         "",
+        ...(requiredActivityKinds
+            ? [
+                  `Required source-manifest activities: ${requiredActivityKinds.map((kind) => `"${kind}"`).join(", ") || "(none)"}.`,
+                  "Include at least one executable plan node for every required source-manifest activity.",
+                  `Do not use activities absent from that manifest${helperActivityKinds.length > 0 ? `, except these optional helpers: ${helperActivityKinds.map((kind) => `"${kind}"`).join(", ")}` : ""}.`,
+                  "",
+              ]
+            : []),
         "Available activities (you may ONLY use these — nothing else):",
-        describeCatalogForPrompt(),
+        describeCatalogForPrompt(availableActivityKinds),
         "",
-        describePlannerContract(family),
+        describePlannerContract(family, availableActivityKinds),
         "",
         'Node kinds: "activity" (uses an activity above), "gate" (pauses for human approval — include one only when the intent implies a consequential/approval step), "report" (final summary; every plan ends with exactly one report node, no inputs).',
         "Bind syntax: $params.<parameterId> references a parameter; $nodes.<nodeId>.<value> references a produced value.",
@@ -2874,7 +2938,12 @@ export async function compileIntentWithModel(
             const response = await model.sendRequest(
                 [
                     vscode.LanguageModelChatMessage.User(
-                        buildCompilePrompt(intent, previousError, base.family ?? "investigate"),
+                        buildCompilePrompt(
+                            intent,
+                            previousError,
+                            base.family ?? "investigate",
+                            base.source.requirements?.activities.map((activity) => activity.kind),
+                        ),
                     ),
                 ],
                 {},

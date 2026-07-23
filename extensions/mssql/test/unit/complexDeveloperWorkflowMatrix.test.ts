@@ -14,6 +14,7 @@ import {
     classifyRunbookIntent,
     preflightRunbookRequirements,
 } from "../../src/runbookStudio/capabilities/runbookCapabilities";
+import { DETAILED_EXECUTION_PLAN_INTENT } from "./detailedExecutionPlanPrompt";
 
 const scenarios = [
     {
@@ -121,5 +122,42 @@ suite("complex developer workflow capability matrix", () => {
         expect(classified.requirements.activities.map((activity) => activity.kind)).to.include(
             "database.schema.fingerprint",
         );
+    });
+
+    test("classifies the detailed EF staging-clone prompt as a complete executable workflow", () => {
+        const classified = classifyRunbookIntent(DETAILED_EXECUTION_PLAN_INTENT);
+        const kinds = classified.requirements.activities.map((activity) => activity.kind);
+        const readiness = preflightRunbookRequirements(classified.requirements);
+
+        expect(classified.family).to.equal("composed");
+        expect(readiness.status).to.equal("readyAfterBinding");
+        expect(readiness.missingActivityKinds).to.deep.equal([]);
+        expect(kinds).to.include.members([
+            "git.change-set.inspect",
+            "ef.project.discover",
+            "ef.relational-model.extract",
+            "ef.relational-model.compare",
+            "migration.script.generate",
+            "migration.apply",
+            "migration.scope.validate",
+            "dacpac.extract",
+            "sql.container.provision",
+            "dacpac.deploy.preview",
+            "dacpac.deploy.container",
+            "schema.compare",
+            "sql.workload.inspect",
+            "database.schema.fingerprint",
+            "performance.dmv.snapshot",
+            "performance.dmv.delta",
+            "xevent.session.start",
+            "sql.workload.run",
+            "xevent.session.stop",
+            "xevent.xel.analyze",
+            "xevent.xel.collect",
+            "workload.benchmark",
+            "evidence.bundle",
+            "sql.container.dispose",
+        ]);
+        expect(kinds).not.to.include.members(["schema.compare.export", "xevent.capture.reconcile"]);
     });
 });

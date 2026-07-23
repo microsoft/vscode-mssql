@@ -986,7 +986,7 @@ export function classifyRunbookIntent(intent: string): ClassifiedRunbookIntent {
     );
     const requestsDmvSnapshot = has(
         text,
-        /\b(dmvs?|dynamic management views?|dm_os_|dm_exec_|dm_io_)\b|\bserver\s+(?:statistics|metrics|activity)\b.{0,60}\b(?:i\/?o|blocking|waits?)\b/,
+        /\b(dmvs?|dynamic management views?|dm_os_|dm_exec_|dm_io_)\b|\bserver\s+(?:statistics|metrics|activity)\b.{0,60}\b(?:i\/?o|blocking|waits?)\b|\bperformance\s+(?:metrics|analysis|findings)\b.{0,180}\b(?:cpu|logical\s+reads?|physical\s+reads?|waits?|resource\s+utili[sz]ation|execution\s+plans?)\b/,
     );
     const requestsIncompleteCaptureRecovery = has(
         text,

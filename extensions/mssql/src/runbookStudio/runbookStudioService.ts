@@ -7304,17 +7304,21 @@ export class RunbookStudioService implements RunbookRunCoordinator, vscode.Dispo
                     { ownerUri, queryString: script.toString("utf8") },
                     cancellation.token,
                 );
-            } catch {
+            } catch (error) {
                 if (isCancellationRequested() && !timedOut) {
                     throw new LocalActivityError(
                         LocRunbookStudio.efMigrationApplyCancelled,
                         "RunbookStudio.ActivityCancelled",
                     );
                 }
+                const providerDetail =
+                    error instanceof Error
+                        ? summarizeLocalSqlConnectionFailure(error.message, undefined)
+                        : undefined;
                 throw new LocalActivityError(
                     timedOut
                         ? `${LocRunbookStudio.efMigrationApplyFailed} (${timeoutSeconds}s timeout)`
-                        : LocRunbookStudio.efMigrationApplyFailed,
+                        : `${LocRunbookStudio.efMigrationApplyFailed}${providerDetail ? ` ${providerDetail}` : ""}`,
                     timedOut ? "RunbookStudio.ActivityTimeout" : "RunbookStudio.ActivityFailed",
                 );
             } finally {

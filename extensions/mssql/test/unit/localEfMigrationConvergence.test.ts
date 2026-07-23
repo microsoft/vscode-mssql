@@ -185,6 +185,50 @@ suite("Runbook Studio EF migration convergence", () => {
         expect(result.comparisonSha256).to.match(/^[a-f0-9]{64}$/);
     });
 
+    test("treats explicit scale 7 temporal types as SQL Server defaults", () => {
+        const table = rehearsalTable();
+        table.columns.push({
+            name: "RecordedAt",
+            storeType: "datetime2(7)",
+            nullable: false,
+            identity: false,
+            computed: false,
+            defaultKind: "none",
+        });
+        const rows = matchingRows();
+        rows.splice(3, 0, [
+            "column",
+            "dbo",
+            "RehearsalEvents",
+            "RecordedAt",
+            3,
+            "datetime2",
+            "8",
+            "27",
+            "7",
+            "0",
+            "0",
+            null,
+            null,
+            "0",
+            "0",
+            null,
+        ]);
+        const base = model([]);
+        const head = model([table]);
+
+        const result = verifyLocalEfMigrationScope({
+            expectedState: "head",
+            expected: head,
+            manifest: manifest(base, head),
+            live: projectLocalEfLiveSchema(rows),
+            now: () => new Date("2026-07-21T00:00:00.000Z"),
+        });
+
+        expect(result.differences).to.deep.equal([]);
+        expect(result.converged).to.equal(true);
+    });
+
     test("returns typed facts for changed and unexpected schema objects", () => {
         const base = model([]);
         const head = model([rehearsalTable()]);
