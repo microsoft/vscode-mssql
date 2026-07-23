@@ -9750,6 +9750,9 @@
       <source xml:lang="en">The saved &apos;{0}&apos; view no longer matches this output. Showing &apos;{1}&apos; instead. Review this widget&apos;s presentation before saving the runbook.</source>
       <note>{0} and {1} are renderer kind ids</note>
     </trans-unit>
+    <trans-unit id="++CODE++a76dc6f2d295c2e6590028a8294c5bf742241a2851bcde3aa2b09af8ce7bd284">
+      <source xml:lang="en">The schema comparison editor could not be loaded.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2c82104ca8243c70fe881f40f7a24a1796202ccdade962a6bdf2a474c2dbd694">
       <source xml:lang="en">The schema comparison report could not be retained as a managed artifact.</source>
     </trans-unit>

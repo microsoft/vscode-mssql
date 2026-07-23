@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 // MUST be first: binds the bundled Monaco before any editor mounts.
-import "./monacoSetup";
+import "../../common/monacoSetup";
 import * as React from "react";
 import ReactDOM from "react-dom/client";
 import "../../index.css";

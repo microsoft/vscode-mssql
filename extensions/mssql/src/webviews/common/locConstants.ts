@@ -4184,6 +4184,9 @@ export class LocConstants {
             schemaCompareDocumentInvalid: l10n.t(
                 "The retained schema comparison document is invalid or no longer supported.",
             ),
+            schemaCompareEditorLoadFailed: l10n.t(
+                "The schema comparison editor could not be loaded.",
+            ),
             schemaCompareEndpoints: (source: string, target: string) =>
                 l10n.t({
                     message: "{0} → {1}",

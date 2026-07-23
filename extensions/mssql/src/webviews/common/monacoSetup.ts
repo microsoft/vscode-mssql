@@ -4,16 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Local ESM Monaco (doc 04 §6.3): Query Studio must never load editor code
- * from a CDN — the webview may be offline and the harness environment has no
- * network. Monaco is bundled INTO this webview bundle; the editor worker is
- * its own bundle entry (dist/views/editorWorker.js) instantiated relative to
- * the document base (<base href> points at dist/views/).
+ * Local ESM Monaco setup shared by webviews that host an editor.
  *
- * Import this module FIRST in index.tsx so `loader.config({ monaco })` wins
- * before any @monaco-editor/react Editor mounts (otherwise the loader falls
- * back to its jsdelivr AMD default — exactly the failure the
- * querystudio-open harness scenario caught).
+ * The editor must never fall back to @monaco-editor/react's CDN loader: VS Code
+ * webviews may be offline and their content-security policy intentionally blocks
+ * that network dependency. Consumers must load this module before mounting an
+ * Editor or DiffEditor. The editor worker is emitted as dist/views/editorWorker.js
+ * and resolved relative to the webview document base.
  */
 
 import * as monaco from "monaco-editor";

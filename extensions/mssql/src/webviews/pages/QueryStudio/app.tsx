@@ -131,7 +131,7 @@ import {
 } from "./lazyResults";
 import { qsGridRowHeight } from "./resultsGridShared";
 import { QueryStudioResultsTextView } from "./resultsTextView";
-import { monacoApi } from "./monacoSetup";
+import { monacoApi } from "../../common/monacoSetup";
 import {
     QS_ACCEPT_INLINE_SUGGESTION_ACTION,
     QS_ACCEPT_SELECTED_SUGGESTION_ACTION,

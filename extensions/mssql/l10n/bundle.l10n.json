@@ -5374,6 +5374,7 @@
     "This deployment report could not be interpreted as a schema diff. Showing the retained report instead.": "This deployment report could not be interpreted as a schema diff. Showing the retained report instead.",
     "Schema comparison result": "Schema comparison result",
     "The retained schema comparison document is invalid or no longer supported.": "The retained schema comparison document is invalid or no longer supported.",
+    "The schema comparison editor could not be loaded.": "The schema comparison editor could not be loaded.",
     "{0} → {1}/{0} is the source schema label{1} is the target schema label": {
         "message": "{0} → {1}",
         "comment": ["{0} is the source schema label", "{1} is the target schema label"]

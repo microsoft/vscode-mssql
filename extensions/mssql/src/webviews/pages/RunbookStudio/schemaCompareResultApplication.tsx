@@ -70,6 +70,7 @@ export function SchemaCompareResultApplication({
     const schemaLoc = locConstants.schemaCompare;
     const { themeKind } = useVscodeWebview<unknown, unknown>();
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const [editorState, setEditorState] = useState<"loading" | "ready" | "failed">("loading");
     const listRef = useRef<HTMLDivElement>(null);
     const virtualizer = useVirtualizer({
         count: document.items.length,
@@ -82,6 +83,24 @@ export function SchemaCompareResultApplication({
             setSelectedIndex(Math.max(0, document.items.length - 1));
         }
     }, [document.items.length, selectedIndex]);
+    useEffect(() => {
+        let disposed = false;
+        void import("../../common/monacoSetup").then(
+            () => {
+                if (!disposed) {
+                    setEditorState("ready");
+                }
+            },
+            () => {
+                if (!disposed) {
+                    setEditorState("failed");
+                }
+            },
+        );
+        return () => {
+            disposed = true;
+        };
+    }, []);
     const selected = document.items[selectedIndex];
 
     const select = (index: number) => {
@@ -177,7 +196,7 @@ export function SchemaCompareResultApplication({
                             <span>{loc.schemaCompareSource(document.source.label)}</span>
                             <span>{loc.schemaCompareTarget(document.target.label)}</span>
                         </div>
-                        {selected ? (
+                        {selected && editorState === "ready" ? (
                             <VscodeDiffEditor
                                 height="100%"
                                 language="sql"
@@ -193,6 +212,12 @@ export function SchemaCompareResultApplication({
                                     automaticLayout: true,
                                 }}
                             />
+                        ) : editorState === "failed" ? (
+                            <div className="rbs-hosted-empty" role="alert">
+                                {loc.schemaCompareEditorLoadFailed}
+                            </div>
+                        ) : selected ? (
+                            <div className="rbs-hosted-empty">{loc.loading}</div>
                         ) : (
                             <div className="rbs-hosted-empty">
                                 {loc.schemaCompareSelectDifference}
