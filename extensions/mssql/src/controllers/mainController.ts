@@ -118,7 +118,7 @@ import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabas
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
-import { HttpClient } from "../http/httpClient";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
@@ -202,7 +202,10 @@ export default class MainController implements vscode.Disposable {
         this.configuration = vscode.workspace.getConfiguration();
 
         UserSurvey.createInstance(this._context);
-        new HttpClient(this._logger).warnOnInvalidProxySettings();
+        new VscodeHttpClient({
+            logger: this._logger,
+            messages: LocalizedConstants.Proxy,
+        }).warnOnInvalidProxySettings();
     }
 
     /**

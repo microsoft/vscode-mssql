@@ -28,7 +28,7 @@ import { ILogger } from "../../sharedInterfaces/logger";
 import { AzureAuthError } from "../azureAuthError";
 import * as Constants from "../constants";
 import { ErrorResponseBody } from "@azure/arm-subscriptions";
-import { HttpClient } from "../../http/httpClient";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../../utils/utils";
 
 export type GetTenantsResponseData = {
@@ -43,7 +43,7 @@ export abstract class MsalAzureAuth {
     protected readonly scopesString: string;
     protected readonly clientId: string;
     protected readonly resources: Resource[];
-    private readonly _httpHelper: HttpClient;
+    private readonly _httpHelper: VscodeHttpClient;
 
     constructor(
         protected readonly providerSettings: IProviderSettings,
@@ -59,7 +59,10 @@ export abstract class MsalAzureAuth {
         this.scopes = [...this.providerSettings.scopes];
         this.scopesString = this.scopes.join(" ");
 
-        this._httpHelper = new HttpClient(logger);
+        this._httpHelper = new VscodeHttpClient({
+            logger,
+            messages: LocalizedConstants.Proxy,
+        });
     }
 
     public async startLogin(): Promise<LoginResult> {

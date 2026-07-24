@@ -5,9 +5,10 @@
 
 import * as sinon from "sinon";
 import { expect } from "chai";
+import { IDownloadProgress } from "extension-toolkit/base";
 import DecompressProvider from "../../src/languageservice/decompressProvider";
 import { IPackage, IStatusView } from "../../src/languageservice/interfaces";
-import DownloadHelper, { IDownloadProgress } from "../../src/languageservice/downloadHelper";
+import DownloadHelper, { IDownloadProgressState } from "../../src/languageservice/downloadHelper";
 import { stubILogger } from "./utils";
 
 suite("Language Service Tests", () => {
@@ -42,10 +43,13 @@ suite("Language Service Tests", () => {
     suite("DownloadHelper Tests", () => {
         let downloadHelper = new DownloadHelper();
 
-        test("handleDataReceivedEvent test", () => {
-            let mockProgress: IDownloadProgress = {
-                packageSize: 10,
-                downloadedBytes: 0,
+        test("handleDownloadProgress test", () => {
+            const mockProgress: IDownloadProgress = {
+                totalBytes: 10,
+                downloadedBytes: 5,
+                percentage: 50,
+            };
+            const progressState: IDownloadProgressState = {
                 downloadPercentage: 0,
                 dots: 0,
             };
@@ -56,15 +60,14 @@ suite("Language Service Tests", () => {
                 serviceInstallationFailed: () => undefined,
                 updateServiceDownloadingProgress: (_downloadPercentage: number) => undefined,
             };
-            downloadHelper.handleDataReceivedEvent(
+            downloadHelper.handleDownloadProgress(
                 mockProgress,
-                Buffer.from([1, 2, 3, 4, 5]),
+                progressState,
                 testLogger,
                 mockStatusView,
             );
-            expect(mockProgress.downloadPercentage).to.equal(50);
-            expect(mockProgress.downloadedBytes).to.equal(5);
-            expect(mockProgress.dots).to.equal(10);
+            expect(progressState.downloadPercentage).to.equal(50);
+            expect(progressState.dots).to.equal(10);
         });
     });
 });

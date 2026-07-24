@@ -16,10 +16,9 @@ import {
     IWarehouseArtifact,
     IWorkspaceRoleAssignment,
 } from "../sharedInterfaces/fabric";
-import { HttpClient } from "../http/httpClient";
-import { AxiosResponse } from "axios";
+import { IHttpResponse, VscodeHttpClient } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../utils/utils";
-import { Fabric as Loc } from "../constants/locConstants";
+import { Fabric as Loc, Proxy } from "../constants/locConstants";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
@@ -372,7 +371,10 @@ export class FabricHelper {
     ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.getFabricApiUriBase(), api);
         const fabricLogger = FabricHelper.getFabricLogger();
-        const httpHelper = new HttpClient(fabricLogger);
+        const httpHelper = new VscodeHttpClient({
+            logger: fabricLogger,
+            messages: Proxy,
+        });
 
         const session = await this.createScopedFabricSession(tenantId, reason);
         let token = session?.accessToken;
@@ -398,7 +400,10 @@ export class FabricHelper {
     ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.getFabricApiUriBase(), api);
         const fabricLogger = FabricHelper.getFabricLogger();
-        const httpHelper = new HttpClient(fabricLogger);
+        const httpHelper = new VscodeHttpClient({
+            logger: fabricLogger,
+            messages: Proxy,
+        });
 
         const session = await this.createScopedFabricSession(tenantId, reason, scopes);
         const token = session?.accessToken;
@@ -436,14 +441,13 @@ export class FabricHelper {
     private static async handleLongRunningOperation<TResponse>(
         retryAfter: string,
         location: string,
-        httpHelper: HttpClient,
+        httpHelper: VscodeHttpClient,
         fabricLogger: ILogger,
         token?: string,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ): Promise<AxiosResponse<TResponse, any>> {
+    ): Promise<IHttpResponse<TResponse>> {
         const retryAfterInMs = parseInt(retryAfter, 10) || this.defaultRetryInMs;
 
-        let longRunningResponse: AxiosResponse<IOperationState> | undefined;
+        let longRunningResponse: IHttpResponse<IOperationState> | undefined;
         while (
             !longRunningResponse ||
             longRunningResponse.data.status === IOperationStatus.Running ||
