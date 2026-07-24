@@ -10,6 +10,7 @@ import * as path from "path";
 interface ConfigurationProperty {
     type: string;
     default: boolean | number | string;
+    markdownDescription?: string;
     enum?: string[];
     minimum?: number;
     maximum?: number;
@@ -67,12 +68,24 @@ function getConfigurationProperties(): Record<string, ConfigurationProperty> {
     return packageManifest.contributes.configuration.properties;
 }
 
+function getPackageNls(): Record<string, string> {
+    const packageNlsPath = path.join(__dirname, "..", "..", "..", "package.nls.json");
+    return JSON.parse(fs.readFileSync(packageNlsPath, "utf8")) as Record<string, string>;
+}
+
 suite("SQL formatter configuration", () => {
     test("enables the new formatter by default", () => {
         const previewSetting = getConfigurationProperties()["mssql.format.enablePreviewFormatter"];
 
         expect(previewSetting.default).to.equal(true);
         expect(previewSetting.scope).to.equal("window");
+    });
+
+    test("enables parse-error notifications by default", () => {
+        const setting = getConfigurationProperties()["mssql.format.showParseErrorNotification"];
+
+        expect(setting.default).to.equal(true);
+        expect(setting.scope).to.equal("window");
     });
 
     test("contributes the currently supported ScriptDom settings", () => {
@@ -118,5 +131,32 @@ suite("SQL formatter configuration", () => {
         ]);
         expect(properties[prefix + "numNewlinesAfterStatement"].minimum).to.equal(0);
         expect(properties[prefix + "numNewlinesAfterStatement"].maximum).to.equal(5);
+    });
+
+    test("identifies which formatter uses each option", () => {
+        const descriptions = getPackageNls();
+        const properties = getConfigurationProperties();
+        const previewPrefix = "**Used when Preview Formatter is enabled.**";
+        const existingPrefix = "**Used when Preview Formatter is disabled.**";
+        const previewSettings = Object.keys(expectedFormatterDefaults).map(
+            (key) => `mssql.format.options.${key}`,
+        );
+        const existingSettings = [
+            "mssql.format.alignColumnDefinitionsInColumns",
+            "mssql.format.datatypeCasing",
+            "mssql.format.keywordCasing",
+            "mssql.format.placeCommasBeforeNextStatement",
+            "mssql.format.placeSelectStatementReferencesOnNewLine",
+        ];
+
+        for (const setting of previewSettings) {
+            expect(descriptions[setting].startsWith(previewPrefix), setting).to.be.true;
+            expect(properties[setting].markdownDescription, setting).to.equal(`%${setting}%`);
+        }
+        for (const setting of existingSettings) {
+            expect(descriptions[setting].startsWith(existingPrefix), setting).to.be.true;
+            expect(properties[setting].markdownDescription, setting).to.equal(`%${setting}%`);
+        }
+        expect(descriptions["mssql.format.enablePreviewFormatter"]).not.to.include("legacy");
     });
 });

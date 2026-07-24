@@ -9,7 +9,10 @@ import * as chai from "chai";
 import { expect } from "chai";
 import * as vscode from "vscode";
 import * as Constants from "../../src/constants/constants";
-import { ServiceClient as ServiceClientLoc } from "../../src/constants/locConstants";
+import {
+    Formatter as FormatterLoc,
+    ServiceClient as ServiceClientLoc,
+} from "../../src/constants/locConstants";
 import ServerProvider from "../../src/languageservice/server";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvider";
@@ -18,7 +21,7 @@ import StatusView from "../../src/views/statusView";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import { Logger } from "../../src/models/logger";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
-import { stubTelemetry, stubVscodeEnv } from "./utils";
+import { stubMessageBoxes, stubTelemetry, stubVscodeEnv } from "./utils";
 
 chai.use(sinonChai);
 
@@ -146,6 +149,93 @@ suite("Service Client tests", () => {
             {},
             {},
         );
+    });
+
+    function formattingFailedEvent(): LanguageServiceContracts.FormattingFailedParams {
+        return {
+            ownerUri: "file:///query.sql",
+            formatType: "Document",
+            reason: "ParseError",
+            parseErrorCount: 1,
+        };
+    }
+
+    function stubFormatterNotificationConfiguration(enabled = true): sinon.SinonStub {
+        const update = sandbox.stub().resolves();
+        sandbox.stub(vscode.workspace, "getConfiguration").returns({
+            get: sandbox.stub().returns(enabled),
+            update,
+        } as unknown as vscode.WorkspaceConfiguration);
+        return update;
+    }
+
+    test("opens formatter feedback from a parse-error notification", async () => {
+        const serviceClient = createServiceClient();
+        stubFormatterNotificationConfiguration();
+        const showWarningMessage = stubMessageBoxes(sandbox).showWarningMessage.resolves(
+            FormatterLoc.sendFeedback,
+        );
+        const openExternal = stubVscodeEnv(sandbox).openExternal.resolves(true);
+
+        await serviceClient.showFormattingFailedNotification(formattingFailedEvent());
+
+        expect(showWarningMessage).to.have.been.calledWith(
+            FormatterLoc.parseError,
+            FormatterLoc.sendFeedback,
+            FormatterLoc.dontShowAgain,
+        );
+        expect(openExternal).to.have.been.calledWith(vscode.Uri.parse(Constants.feedbackUrl));
+        expect(sendActionEvent).to.have.been.calledWith(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.FormatterParseErrorSendFeedback,
+        );
+    });
+
+    test("persists formatter parse-error notification suppression", async () => {
+        const serviceClient = createServiceClient();
+        const update = stubFormatterNotificationConfiguration();
+        stubMessageBoxes(sandbox).showWarningMessage.resolves(FormatterLoc.dontShowAgain);
+
+        await serviceClient.showFormattingFailedNotification(formattingFailedEvent());
+
+        expect(update).to.have.been.calledWith(
+            "format.showParseErrorNotification",
+            false,
+            vscode.ConfigurationTarget.Global,
+        );
+        expect(sendActionEvent).to.have.been.calledWith(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.FormatterParseErrorDontShowAgain,
+        );
+    });
+
+    test("does not show a suppressed formatter parse-error notification", async () => {
+        const serviceClient = createServiceClient();
+        stubFormatterNotificationConfiguration(false);
+        const showWarningMessage = stubMessageBoxes(sandbox).showWarningMessage;
+
+        await serviceClient.showFormattingFailedNotification(formattingFailedEvent());
+
+        expect(showWarningMessage).not.to.have.been.called;
+    });
+
+    test("allows only one formatter parse-error prompt at a time", async () => {
+        const serviceClient = createServiceClient();
+        stubFormatterNotificationConfiguration();
+        let resolvePrompt: (action: string | undefined) => void;
+        const promptResult = new Promise<string | undefined>((resolve) => {
+            resolvePrompt = resolve;
+        });
+        const showWarningMessage =
+            stubMessageBoxes(sandbox).showWarningMessage.returns(promptResult);
+
+        const firstPrompt = serviceClient.showFormattingFailedNotification(formattingFailedEvent());
+        const secondPrompt =
+            serviceClient.showFormattingFailedNotification(formattingFailedEvent());
+
+        expect(showWarningMessage).to.have.been.calledOnce;
+        resolvePrompt(undefined);
+        await Promise.all([firstPrompt, secondPrompt]);
     });
 
     function stubLaunches(
