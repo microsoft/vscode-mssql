@@ -4,19 +4,33 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as LocalizedConstants from "../constants/locConstants";
-import { ILogger } from "../sharedInterfaces/logger";
-import { getErrorMessage } from "../utils/utils";
 import {
-    HttpClientCore,
+    HttpClient,
     IHttpClientDependencies,
-    HttpDownloadError,
-    IDownloadFileOptions,
-    IDownloadFileResult,
-} from "./httpClientCore";
+    IHttpClientLogger,
+    IHttpClientMessages,
+} from "../../base";
 
-export class HttpClient extends HttpClientCore {
-    constructor(logger?: ILogger) {
+/** Options for creating a VS Code-aware HTTP client. */
+export interface IVscodeHttpClientOptions {
+    /** Localized messages used when reporting invalid VS Code proxy settings. */
+    messages: IHttpClientMessages;
+
+    /** Optional logger for HTTP diagnostics and proxy configuration warnings. */
+    logger?: IHttpClientLogger;
+}
+
+/**
+ * An HTTP client configured from VS Code's `http.proxy` and `http.proxyStrictSSL` settings.
+ * Invalid proxy settings are reported through VS Code notifications and the optional logger.
+ */
+export class VscodeHttpClient extends HttpClient {
+    /**
+     * Creates a VS Code-aware HTTP client.
+     *
+     * @param options Localized proxy messages and optional diagnostic logger.
+     */
+    constructor(options: IVscodeHttpClientOptions) {
         const dependencies: IHttpClientDependencies = {
             getProxyConfig: () =>
                 vscode.workspace.getConfiguration("http")["proxy"] as string | undefined,
@@ -26,15 +40,8 @@ export class HttpClient extends HttpClientCore {
             showWarningMessage: (message: string) => {
                 void vscode.window.showWarningMessage(message);
             },
-            getErrorMessage,
-            messages: {
-                missingProtocolWarning: LocalizedConstants.Proxy.missingProtocolWarning,
-                unparseableWarning: LocalizedConstants.Proxy.unparseableWarning,
-                unableToGetProxyAgentOptions: LocalizedConstants.Proxy.unableToGetProxyAgentOptions,
-            },
+            messages: options.messages,
         };
-        super(logger, dependencies);
+        super(options.logger, dependencies);
     }
 }
-
-export { HttpDownloadError, IDownloadFileOptions, IDownloadFileResult };

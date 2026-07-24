@@ -22,7 +22,7 @@ import * as constants from "../common/constants";
 import { SqlDatabaseProjectProvider } from "../projectProvider/projectProvider";
 import { ItemType } from "../sqldbproj";
 import { FileNode } from "../models/tree/fileFolderTreeItem";
-import { HttpClient } from "../http/httpClient";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
 
 /**
  * The main controller class that initializes the extension
@@ -64,7 +64,9 @@ export default class MainController implements vscode.Disposable {
         }
 
         // Warn about invalid proxy settings early during activation
-        new HttpClient().warnOnInvalidProxySettings();
+        new VscodeHttpClient({
+            messages: constants.Proxy,
+        }).warnOnInvalidProxySettings();
 
         await this.initializeDatabaseProjects();
         return new SqlDatabaseProjectProvider(this.projectsController);
