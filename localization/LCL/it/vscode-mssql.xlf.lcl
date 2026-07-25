@@ -1207,6 +1207,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0bc00be2d21a631fedf64e0302de168c6a49105158a47fc837faf0df12f53fe4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Eseguire immediatamente il codice SQL salvato tramite i tasti di scelta rapida. Usare {arg} per inserire il testo selezionato nell'editor di query; in caso contrario, viene aggiunto alla query.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0befa698942df488c015215f49381ba31373030e9e52ad90767a250d397acc92" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Session name cannot be empty]]></Val>
@@ -4357,6 +4366,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2cafc5757485d935e51fd715bb3ad14ec8c53f8875ed9e218b427244de032f15" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Selected query-editor text]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Testo selezionato nell'editor di query]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2cd189703476b72bd7cc6cd98d4bf8b31d5195cd52cfc039745f164e6691c5d2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error fetching schemas for the selected database.]]></Val>
@@ -4785,6 +4803,15 @@
           <Val><![CDATA[New Index]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nuovo indice]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++30bc13b49dca001aeab4b8447c759c4f374ff741a22f914a7db838cf7aa507e8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Questo collegamento richiede che il testo selezionato venga passato come parametro. Selezionare il testo nell'editor SQL, quindi eseguire di nuovo il collegamento.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5964,15 +5991,6 @@
           <Val><![CDATA[The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Comportamento applicato quando un utente tenta di eliminare una riga contenente dati coinvolti in una relazione di chiave esterna.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++3ec8a4f0540db2ba6c43128944d19d2d6d10b0a65523ab185cf4e185e96f7dd6" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Salvare i frammenti di codice SQL usati di frequente ed eseguirli o aprirli immediatamente con scelte rapide da tastiera personalizzate.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10891,6 +10909,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7231a7d45a700048f4057a8040de5fb2afc1ebd67638a7a2fa96da6b8f24e3ba" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Inserire il testo selezionato nell'editor di query usando {arg}. Se non si usa il segnaposto, il testo selezionato viene aggiunto automaticamente alla fine della query.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7243088a776ee64422264949fcd3e6bff4cab595d0f7fb6bf45d5765a2c2ef66" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Foreign Key {0}]]></Val>
@@ -11364,15 +11391,6 @@
           <Val><![CDATA[Focus the Messages tab]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Sposta lo stato attivo sulla scheda Messaggi]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++762d2d8d0f231dc362dd18f8ee3ef0adc4b55beff276a917db60b3432e2cf8ae" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Auto-execute]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Esecuzione automatica]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -26154,37 +26172,13 @@
       </Item>
       <Item ItemId=";package.mssql.quickQueries" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Configure up to 10 Quick Queries that can be opened or run from commands.]]></Val>
+          <Val><![CDATA[Configure up to 10 Quick Queries that execute from commands.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Configurare fino a 10 query rapide che possono essere aperte o eseguite con i comandi.]]></Val>
+            <Val><![CDATA[Configurare fino a 10 query rapide che possono essere eseguite con i comandi.]]></Val>
           </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.quickQueries.executionMode" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Controls whether this Quick Query opens in an editor or opens and runs immediately.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Controlla se la query rapida viene aperta in un editor oppure viene aperta ed eseguita immediatamente.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.quickQueries.executionMode.open" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Open the query in a SQL editor.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Aprire la query in un editor SQL.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.quickQueries.executionMode.openAndRun" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Open the query in a SQL editor and run it immediately.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Aprire la query in un editor SQL ed eseguirla immediatamente.]]></Val>
-          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Configure up to 10 Quick Queries that can be opened or run from commands.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -26199,10 +26193,13 @@
       </Item>
       <Item ItemId=";package.mssql.quickQueries.query" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[SQL text for this Quick Query.]]></Val>
+          <Val><![CDATA[SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Testo SQL per la query rapida.]]></Val>
+            <Val><![CDATA[Testo SQL per la query rapida. Usare {arg} per inserire il testo selezionato nell'editor di query; in caso contrario, viene aggiunto.]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[SQL text for this Quick Query.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
