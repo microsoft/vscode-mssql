@@ -1207,6 +1207,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0bc00be2d21a631fedf64e0302de168c6a49105158a47fc837faf0df12f53fe4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用自訂鍵盤快速鍵立即執行已儲存的 SQL。使用 {arg} 插入選取的查詢編輯器文字；否則會將其附加至查詢。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0befa698942df488c015215f49381ba31373030e9e52ad90767a250d397acc92" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Session name cannot be empty]]></Val>
@@ -4357,6 +4366,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2cafc5757485d935e51fd715bb3ad14ec8c53f8875ed9e218b427244de032f15" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Selected query-editor text]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[選取的查詢編輯器文字]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2cd189703476b72bd7cc6cd98d4bf8b31d5195cd52cfc039745f164e6691c5d2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error fetching schemas for the selected database.]]></Val>
@@ -4785,6 +4803,15 @@
           <Val><![CDATA[New Index]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[新增索引]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++30bc13b49dca001aeab4b8447c759c4f374ff741a22f914a7db838cf7aa507e8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[此快速鍵需要將選取的文字作為參數傳遞。請先在 SQL 編輯器中選取文字，然後再次執行此快速鍵。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5964,15 +5991,6 @@
           <Val><![CDATA[The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[使用者嘗試刪除資料列時的行為，此資料列內含外部索引鍵關聯性中涉及的資料。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++3ec8a4f0540db2ba6c43128944d19d2d6d10b0a65523ab185cf4e185e96f7dd6" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[儲存常用的 SQL 程式碼片段，並使用自訂鍵盤快速鍵立即執行或開啟。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10891,6 +10909,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7231a7d45a700048f4057a8040de5fb2afc1ebd67638a7a2fa96da6b8f24e3ba" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用 {arg} 插入選取的查詢編輯器文字。如果您不使用預留位置，系統會自動將選取的文字附加到查詢結尾。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7243088a776ee64422264949fcd3e6bff4cab595d0f7fb6bf45d5765a2c2ef66" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Foreign Key {0}]]></Val>
@@ -11364,15 +11391,6 @@
           <Val><![CDATA[Focus the Messages tab]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[將焦點放在訊息索引標籤]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++762d2d8d0f231dc362dd18f8ee3ef0adc4b55beff276a917db60b3432e2cf8ae" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Auto-execute]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[自動執行]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -26154,37 +26172,13 @@
       </Item>
       <Item ItemId=";package.mssql.quickQueries" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Configure up to 10 Quick Queries that can be opened or run from commands.]]></Val>
+          <Val><![CDATA[Configure up to 10 Quick Queries that execute from commands.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[設定最多 10 個可從命令開啟或執行的快速查詢。]]></Val>
+            <Val><![CDATA[設定最多 10 個可從命令執行的快速查詢。]]></Val>
           </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.quickQueries.executionMode" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Controls whether this Quick Query opens in an editor or opens and runs immediately.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[控制此快速查詢是否在編輯器中開啟或立即開啟並執行。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.quickQueries.executionMode.open" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Open the query in a SQL editor.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[在 SQL 編輯器中開啟查詢。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.quickQueries.executionMode.openAndRun" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Open the query in a SQL editor and run it immediately.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[在 SQL 編輯器中開啟查詢，然後立即執行。]]></Val>
-          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Configure up to 10 Quick Queries that can be opened or run from commands.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -26199,10 +26193,13 @@
       </Item>
       <Item ItemId=";package.mssql.quickQueries.query" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[SQL text for this Quick Query.]]></Val>
+          <Val><![CDATA[SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[此快速查詢的 SQL 文字。]]></Val>
+            <Val><![CDATA[此快速查詢的 SQL 文字。使用 {arg} 插入選取的查詢編輯器文字；否則會將其附加。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[SQL text for this Quick Query.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
