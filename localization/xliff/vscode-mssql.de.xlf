@@ -728,10 +728,6 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Auto Arrange will automatically reposition all diagram elements based on optimal layout algorithms. Any custom positioning you've created will be lost. Do you want to proceed with auto-arranging your schema diagram?</source>
         <target state="translated">Die automatische Anordnung wird alle Diagrammelemente basierend auf optimalen Layoutalgorithmen neu positionieren. Alle benutzerdefinierten Positionierungen, die Sie erstellt haben, gehen verloren. Möchten Sie mit der automatischen Anordnung Ihres Schemadiagramms fortfahren?</target>
       </trans-unit>
-      <trans-unit id="++CODE++762d2d8d0f231dc362dd18f8ee3ef0adc4b55beff276a917db60b3432e2cf8ae">
-        <source xml:lang="en">Auto-execute</source>
-        <target state="translated">Automatisch ausführen</target>
-      </trans-unit>
       <trans-unit id="++CODE++4c5540399ea50cb52c6ca24ab5aebf272d0e39920af434bec1fa87fa821f1bbd">
         <source xml:lang="en">Auto-pause</source>
         <target state="translated">Automatisch anhalten</target>
@@ -5253,6 +5249,10 @@ Fehler:
         <source xml:lang="en">Insert</source>
         <target state="translated">Einfügen</target>
       </trans-unit>
+      <trans-unit id="++CODE++7231a7d45a700048f4057a8040de5fb2afc1ebd67638a7a2fa96da6b8f24e3ba">
+        <source xml:lang="en">Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.</source>
+        <target state="new">Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.</target>
+      </trans-unit>
       <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
         <source xml:lang="en">Install Docker</source>
         <target state="translated">Docker installieren</target>
@@ -8124,6 +8124,10 @@ Query: {2}</source>
 
 Abfrage: {2}</target>
       </trans-unit>
+      <trans-unit id="++CODE++0bc00be2d21a631fedf64e0302de168c6a49105158a47fc837faf0df12f53fe4">
+        <source xml:lang="en">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</source>
+        <target state="new">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</target>
+      </trans-unit>
       <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
         <source xml:lang="en">Run, cancel, and create queries</source>
         <target state="translated">Abfragen ausführen, abbrechen und erstellen</target>
@@ -8327,10 +8331,6 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++e7e6421e77a208718956538ea14f589ab43207800d985563be7e407d0a369c96">
         <source xml:lang="en">Save connection profile changes without establishing a connection</source>
         <target state="translated">Verbindungsprofiländerungen speichern, ohne eine Verbindung herzustellen.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++3ec8a4f0540db2ba6c43128944d19d2d6d10b0a65523ab185cf4e185e96f7dd6">
-        <source xml:lang="en">Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.</source>
-        <target state="translated">Häufig verwendete SQL-Codeausschnitte speichern und mit benutzerdefinierten Tastenkombinationen sofort ausführen oder öffnen.</target>
       </trans-unit>
       <trans-unit id="++CODE++e86cf7b88cde4602bf09208d61b915b3990896c08dfc027f85aaf61296311506">
         <source xml:lang="en">Save password</source>
@@ -8881,6 +8881,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++05b335b429fbb422b7e22e8f8b77acd140d21b43c04f04476206cfaf85978d13">
         <source xml:lang="en">Selected backup file does not contain a valid database backup</source>
         <target state="translated">Die ausgewählte Sicherungsdatei enthält keine gültige Datenbanksicherung.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2cafc5757485d935e51fd715bb3ad14ec8c53f8875ed9e218b427244de032f15">
+        <source xml:lang="en">Selected query-editor text</source>
+        <target state="new">Selected query-editor text</target>
       </trans-unit>
       <trans-unit id="++CODE++ca4067071fcf618543805e3d94af63144b21f4fae9eade2408f1c24f7e5214e9">
         <source xml:lang="en">Selection</source>
@@ -9969,6 +9973,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++2058e7768297cdc1b7cbeb655cd4f06450ec8900fad7f2b06367934185d5967a">
         <source xml:lang="en">This server supports Microsoft Entra ID and SQL Authentication.</source>
         <target state="translated">Dieser Server unterstützt nur die Microsoft Entra ID- und SQL-Authentifizierung.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++30bc13b49dca001aeab4b8447c759c4f374ff741a22f914a7db838cf7aa507e8">
+        <source xml:lang="en">This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.</source>
+        <target state="new">This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.</target>
       </trans-unit>
       <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
         <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
@@ -11317,6 +11325,26 @@ Abfrage: {2}</target>
         <source xml:lang="en">Add Microsoft Entra Account</source>
         <target state="translated">Microsoft Entra-Konto hinzufügen</target>
       </trans-unit>
+      <trans-unit id="mssql.format.options.alignSetClauseItem">
+        <source xml:lang="en">Align SET clause items in UPDATE statements.</source>
+        <target state="new">Align SET clause items in UPDATE statements.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.alignColumnDefinitionFields">
+        <source xml:lang="en">Align column-definition fields, such as names, data types, and constraints.</source>
+        <target state="new">Align column-definition fields, such as names, data types, and constraints.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.alignClauseBodies">
+        <source xml:lang="en">Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.</source>
+        <target state="new">Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.allowExternalLanguagePaths">
+        <source xml:lang="en">Allow external language content to use file paths.</source>
+        <target state="new">Allow external language content to use file paths.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.allowExternalLibraryPaths">
+        <source xml:lang="en">Allow external library content to use file paths.</source>
+        <target state="new">Allow external library content to use file paths.</target>
+      </trans-unit>
       <trans-unit id="mssql.deviceCode.description">
         <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
         <target state="translated">Ermöglicht Benutzern die Anmeldung bei Geräten mit Eingabeeinschränkung.</target>
@@ -11442,8 +11470,8 @@ Abfrage: {2}</target>
         <target state="translated">Schemas vergleichen ...</target>
       </trans-unit>
       <trans-unit id="mssql.quickQueries">
-        <source xml:lang="en">Configure up to 10 Quick Queries that can be opened or run from commands.</source>
-        <target state="translated">Konfigurieren Sie bis zu 10 Schnellabfragen, die sich über Befehle öffnen oder ausführen lassen.</target>
+        <source xml:lang="en">Configure up to 10 Quick Queries that execute from commands.</source>
+        <target state="new">Configure up to 10 Quick Queries that execute from commands.</target>
       </trans-unit>
       <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect (MSSQL)</source>
@@ -11484,10 +11512,6 @@ Abfrage: {2}</target>
       <trans-unit id="mssql.resultsGrid.inMemoryDataProcessingThreshold">
         <source xml:lang="en">Controls the max number of rows allowed to do filtering and sorting in memory. If the number is exceeded, sorting and filtering will be disabled. Warning: Increasing this may impact performance.</source>
         <target state="translated">Steuert die maximale Anzahl von Zeilen, die im Arbeitsspeicher gefiltert und sortiert werden dürfen. Wenn die Zahl überschritten wird, werden die Sortier- und Filterfunktionen deaktiviert. Warnung: die Erhöhung dieser Anzahl kann sich auf die Leistung auswirken.</target>
-      </trans-unit>
-      <trans-unit id="mssql.quickQueries.executionMode">
-        <source xml:lang="en">Controls whether this Quick Query opens in an editor or opens and runs immediately.</source>
-        <target state="translated">Steuert, ob diese Schnellabfrage in einem Editor geöffnet oder sofort geöffnet und ausgeführt wird.</target>
       </trans-unit>
       <trans-unit id="mssql.copyAll">
         <source xml:lang="en">Copy All</source>
@@ -11759,6 +11783,30 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
         <source xml:lang="en">Filter your Object Explorer Tree</source>
         <target state="translated">Filtern der Objekt-Explorer-Struktur</target>
       </trans-unit>
+      <trans-unit id="mssql.format.options.multilineInsertTargetsList">
+        <source xml:lang="en">Format INSERT columns as multiline lists.</source>
+        <target state="new">Format INSERT columns as multiline lists.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.multilineInsertSourcesList">
+        <source xml:lang="en">Format INSERT sources as multiline lists.</source>
+        <target state="new">Format INSERT sources as multiline lists.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.multilineSelectElementsList">
+        <source xml:lang="en">Format SELECT columns as multiline lists.</source>
+        <target state="new">Format SELECT columns as multiline lists.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.multilineSetClauseItems">
+        <source xml:lang="en">Format SET clause items as multiline lists.</source>
+        <target state="new">Format SET clause items as multiline lists.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.multilineViewColumnsList">
+        <source xml:lang="en">Format VIEW columns as multiline lists.</source>
+        <target state="new">Format VIEW columns as multiline lists.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.multilineWherePredicatesList">
+        <source xml:lang="en">Format WHERE predicates as multiline lists.</source>
+        <target state="new">Format WHERE predicates as multiline lists.</target>
+      </trans-unit>
       <trans-unit id="mssql.sqlScriptsSubmenu">
         <source xml:lang="en">Generate Script</source>
         <target state="translated">Skript generieren</target>
@@ -11783,9 +11831,49 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
         <source xml:lang="en">Import Data...</source>
         <target state="translated">Daten importieren …</target>
       </trans-unit>
+      <trans-unit id="mssql.format.options.indentSetClause">
+        <source xml:lang="en">Indent SET clauses in UPDATE statements.</source>
+        <target state="new">Indent SET clauses in UPDATE statements.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.indentViewBody">
+        <source xml:lang="en">Indent VIEW bodies.</source>
+        <target state="new">Indent VIEW bodies.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.spaceBetweenDataTypeAndParameters">
+        <source xml:lang="en">Insert a space between a data type and its parentheses, for example VARCHAR (255).</source>
+        <target state="new">Insert a space between a data type and its parentheses, for example VARCHAR (255).</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.spaceBetweenParametersInDataType">
+        <source xml:lang="en">Insert spaces between parameters in a data type, for example DECIMAL (10, 2).</source>
+        <target state="new">Insert spaces between parameters in a data type, for example DECIMAL (10, 2).</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.keywordCasing">
+        <source xml:lang="en">Keyword casing style.</source>
+        <target state="new">Keyword casing style.</target>
+      </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler...</source>
         <target state="translated">Abfrageprofiler starten...</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.alignColumnDefinitionsInColumns">
+        <source xml:lang="en">Legacy formatter only: Align column definitions. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</source>
+        <target state="new">Legacy formatter only: Align column definitions. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.datatypeCasing">
+        <source xml:lang="en">Legacy formatter only: Control data type casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</source>
+        <target state="new">Legacy formatter only: Control data type casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.keywordCasing">
+        <source xml:lang="en">Legacy formatter only: Control keyword and IntelliSense casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</source>
+        <target state="new">Legacy formatter only: Control keyword and IntelliSense casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
+        <source xml:lang="en">Legacy formatter only: Place SELECT statement object references on separate lines. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</source>
+        <target state="new">Legacy formatter only: Place SELECT statement object references on separate lines. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
+        <source xml:lang="en">Legacy formatter only: Place commas at the beginning instead of the end of list items. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</source>
+        <target state="new">Legacy formatter only: Place commas at the beginning instead of the end of list items. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</target>
       </trans-unit>
       <trans-unit id="mssql.Configuration">
         <source xml:lang="en">MSSQL</source>
@@ -11867,6 +11955,10 @@ Sie können eine Verbindung mit einer Datenbank herstellen, indem Sie Ihre Verbi
         <source xml:lang="en">Next Steps with MSSQL for Visual Studio Code</source>
         <target state="translated">Nächste Schritte mit MSSQL für Visual Studio Code</target>
       </trans-unit>
+      <trans-unit id="mssql.format.options.numNewlinesAfterStatement">
+        <source xml:lang="en">Number of line breaks after each statement, from 0 through 5.</source>
+        <target state="new">Number of line breaks after each statement, from 0 through 5.</target>
+      </trans-unit>
       <trans-unit id="mssql.logRetentionMinutes">
         <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
         <target state="translated">Anzahl von Minuten, für die Protokolldateien für Back-End-Dienste aufbewahrt werden sollen. Der Standardwert ist 1 Woche.</target>
@@ -11929,17 +12021,69 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
         <source xml:lang="en">Open in MSSQL extension</source>
         <target state="translated">In der MSSQL-Erweiterung öffnen</target>
       </trans-unit>
-      <trans-unit id="mssql.quickQueries.executionMode.openAndRun">
-        <source xml:lang="en">Open the query in a SQL editor and run it immediately.</source>
-        <target state="translated">Öffnen Sie die Abfrage in einem SQL-Editor, und führen Sie sie sofort aus.</target>
-      </trans-unit>
-      <trans-unit id="mssql.quickQueries.executionMode.open">
-        <source xml:lang="en">Open the query in a SQL editor.</source>
-        <target state="translated">Öffnen Sie die Abfrage in einem SQL-Editor.</target>
-      </trans-unit>
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
         <target state="translated">Abfrageverlauf-Capture anhalten</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.asKeywordOnOwnLine">
+        <source xml:lang="en">Place AS on its own line.</source>
+        <target state="new">Place AS on its own line.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineFormattedIndexDefinition">
+        <source xml:lang="en">Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.</source>
+        <target state="new">Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeJoinClause">
+        <source xml:lang="en">Place a newline before JOIN clauses.</source>
+        <target state="new">Place a newline before JOIN clauses.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeFromClause">
+        <source xml:lang="en">Place a newline before the FROM clause.</source>
+        <target state="new">Place a newline before the FROM clause.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeGroupByClause">
+        <source xml:lang="en">Place a newline before the GROUP BY clause.</source>
+        <target state="new">Place a newline before the GROUP BY clause.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeHavingClause">
+        <source xml:lang="en">Place a newline before the HAVING clause.</source>
+        <target state="new">Place a newline before the HAVING clause.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeOffsetClause">
+        <source xml:lang="en">Place a newline before the OFFSET clause.</source>
+        <target state="new">Place a newline before the OFFSET clause.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeOrderByClause">
+        <source xml:lang="en">Place a newline before the ORDER BY clause.</source>
+        <target state="new">Place a newline before the ORDER BY clause.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeOutputClause">
+        <source xml:lang="en">Place a newline before the OUTPUT clause.</source>
+        <target state="new">Place a newline before the OUTPUT clause.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeWhereClause">
+        <source xml:lang="en">Place a newline before the WHERE clause.</source>
+        <target state="new">Place a newline before the WHERE clause.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeWindowClause">
+        <source xml:lang="en">Place a newline before the WINDOW clause.</source>
+        <target state="new">Place a newline before the WINDOW clause.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeCloseParenthesisInMultilineList">
+        <source xml:lang="en">Place a newline before the closing parenthesis of a multiline list.</source>
+        <target state="new">Place a newline before the closing parenthesis of a multiline list.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeOpenParenthesisInMultilineList">
+        <source xml:lang="en">Place a newline before the opening parenthesis of a multiline list.</source>
+        <target state="new">Place a newline before the opening parenthesis of a multiline list.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newlineFormattedCheckConstraint">
+        <source xml:lang="en">Place the CHECK clause of a constraint on its own line.</source>
+        <target state="new">Place the CHECK clause of a constraint on its own line.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.preserveComments">
+        <source xml:lang="en">Preserve comments during formatting.</source>
+        <target state="new">Preserve comments during formatting.</target>
       </trans-unit>
       <trans-unit id="mssql.preventAutoExecuteScript">
         <source xml:lang="en">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</source>
@@ -12065,9 +12209,13 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
         <source xml:lang="en">SQL Tools (MSSQL)</source>
         <target state="translated">SQL Tools (MSSQL)</target>
       </trans-unit>
+      <trans-unit id="mssql.format.options.sqlEngineType">
+        <source xml:lang="en">SQL engine type used to parse and generate formatted scripts.</source>
+        <target state="new">SQL engine type used to parse and generate formatted scripts.</target>
+      </trans-unit>
       <trans-unit id="mssql.quickQueries.query">
-        <source xml:lang="en">SQL text for this Quick Query.</source>
-        <target state="translated">SQL-Text für diese Schnellabfrage.</target>
+        <source xml:lang="en">SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.</source>
+        <target state="new">SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
@@ -12145,18 +12293,6 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
         <source xml:lang="en">Should Query History feature be enabled</source>
         <target state="translated">Soll das Feature „Abfrageverlauf“ aktiviert werden</target>
       </trans-unit>
-      <trans-unit id="mssql.format.alignColumnDefinitionsInColumns">
-        <source xml:lang="en">Should column definitions be aligned?</source>
-        <target state="translated">Sollen Spaltendefinitionen ausgerichtet werden?</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.datatypeCasing">
-        <source xml:lang="en">Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
-        <target state="translated">Gibt an, ob Datentypen in Großbuchstaben, Kleinbuchstaben oder gar nicht formatiert werden sollen.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.keywordCasing">
-        <source xml:lang="en">Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
-        <target state="translated">Gibt an, ob Schlüsselwörter in Großbuchstaben, Kleinbuchstaben oder gar nicht formatiert werden sollen.</target>
-      </trans-unit>
       <trans-unit id="mssql.autoDisableNonTSqlLanguageService">
         <source xml:lang="en">Should language service be auto-disabled when extension detects Non-MSSQL files</source>
         <target state="translated">Gibt an, ob der Sprachdienst automatisch deaktiviert werden soll, wenn die Erweiterung Nicht-MSSQL-Dateien erkennt.</target>
@@ -12164,10 +12300,6 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       <trans-unit id="mssql.persistQueryResultTabs">
         <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
         <target state="translated">Gibt an, ob beim Wechsel zwischen Registerkarten Ergebnisauswahlen und Scrollpositionen gespeichert werden sollen (kann die Leistung beeinträchtigen).</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
-        <source xml:lang="en">Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines</source>
-        <target state="translated">Sollen Verweise auf Objekte in einer SELECT-Anweisung in separaten Zeilen angezeigt werden? Beispielsweise werden bei "SELECT C1, C2 FROM T1" C1 und C2 jeweils in separaten Zeilen angezeigt.</target>
       </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.both">
         <source xml:lang="en">Show both horizontal and vertical grid lines</source>
@@ -12248,6 +12380,10 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop SQL Container</source>
         <target state="translated">SQL-Container beenden</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.sqlVersion">
+        <source xml:lang="en">T-SQL version used to parse and generate formatted scripts.</source>
+        <target state="new">T-SQL version used to parse and generate formatted scripts.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
         <source xml:lang="en">Table Designer</source>
@@ -12352,8 +12488,8 @@ Zeigen Sie den geschätzten Plan an, ohne die Abfrage auszuführen, oder zeigen 
         <target state="translated">Nur Zeilendaten für die automatische Anpassung der Spaltengröße verwenden</target>
       </trans-unit>
       <trans-unit id="mssql.format.enablePreviewFormatter">
-        <source xml:lang="en">Use the preview SQL formatter.</source>
-        <target state="translated">Verwenden Sie den SQL-Formatierer in der Vorschau.</target>
+        <source xml:lang="en">Use the new SQL formatter. Disable this setting to temporarily use the legacy formatter.</source>
+        <target state="new">Use the new SQL formatter. Disable this setting to temporarily use the legacy formatter.</target>
       </trans-unit>
       <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
         <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>
@@ -12616,10 +12752,6 @@ Sie können auch auf die Schaltfläche „In neuer Registerkarte öffnen“ klic
       <trans-unit id="mssql.objectExplorer.Tooltip.serverLabel">
         <source xml:lang="en">server</source>
         <target state="translated">Server</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
-        <source xml:lang="en">should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,'</source>
-        <target state="translated">Gibt an, dass Kommas in einer Liste am Anfang der einzelnen Anweisungen (z. B. ", mycolumn2") und nicht am Ende platziert werden sollen: "mycolumn1,"</target>
       </trans-unit>
       <trans-unit id="mssql.objectExplorer.Tooltip.userLabel">
         <source xml:lang="en">user</source>
