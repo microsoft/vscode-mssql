@@ -5251,7 +5251,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++7231a7d45a700048f4057a8040de5fb2afc1ebd67638a7a2fa96da6b8f24e3ba">
         <source xml:lang="en">Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.</source>
-        <target state="new">Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.</target>
+        <target state="translated">使用 {arg} 插入選取的查詢編輯器文字。如果您不使用預留位置，系統會自動將選取的文字附加到查詢結尾。</target>
       </trans-unit>
       <trans-unit id="++CODE++336a8af254446c5c9006e090f430a9f283960aeefdd0dc52cf0401fa2c19ac03">
         <source xml:lang="en">Install Docker</source>
@@ -8126,7 +8126,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++0bc00be2d21a631fedf64e0302de168c6a49105158a47fc837faf0df12f53fe4">
         <source xml:lang="en">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</source>
-        <target state="new">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</target>
+        <target state="translated">使用自訂鍵盤快速鍵立即執行已儲存的 SQL。使用 {arg} 插入選取的查詢編輯器文字；否則會將其附加至查詢。</target>
       </trans-unit>
       <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
         <source xml:lang="en">Run, cancel, and create queries</source>
@@ -8884,7 +8884,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++2cafc5757485d935e51fd715bb3ad14ec8c53f8875ed9e218b427244de032f15">
         <source xml:lang="en">Selected query-editor text</source>
-        <target state="new">Selected query-editor text</target>
+        <target state="translated">選取的查詢編輯器文字</target>
       </trans-unit>
       <trans-unit id="++CODE++ca4067071fcf618543805e3d94af63144b21f4fae9eade2408f1c24f7e5214e9">
         <source xml:lang="en">Selection</source>
@@ -9976,7 +9976,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++30bc13b49dca001aeab4b8447c759c4f374ff741a22f914a7db838cf7aa507e8">
         <source xml:lang="en">This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.</source>
-        <target state="new">This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.</target>
+        <target state="translated">此快速鍵需要將選取的文字作為參數傳遞。請先在 SQL 編輯器中選取文字，然後再次執行此快速鍵。</target>
       </trans-unit>
       <trans-unit id="++CODE++680b3510100d0d19288133607ee876d6e1928b0e0f6e0de1afd08a9aa88f55f2">
         <source xml:lang="en">This value was not provided in the Azure Data Studio settings file.</source>
@@ -11471,7 +11471,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="mssql.quickQueries">
         <source xml:lang="en">Configure up to 10 Quick Queries that execute from commands.</source>
-        <target state="new">Configure up to 10 Quick Queries that execute from commands.</target>
+        <target state="translated">設定最多 10 個可從命令執行的快速查詢。</target>
       </trans-unit>
       <trans-unit id="mssql.connect">
         <source xml:lang="en">Connect (MSSQL)</source>
@@ -12215,7 +12215,7 @@ Start by clicking the filter button next to most folders in the Connections view
       </trans-unit>
       <trans-unit id="mssql.quickQueries.query">
         <source xml:lang="en">SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.</source>
-        <target state="new">SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.</target>
+        <target state="translated">此快速查詢的 SQL 文字。使用 {arg} 插入選取的查詢編輯器文字；否則會將其附加。</target>
       </trans-unit>
       <trans-unit id="mssql.scriptAlter">
         <source xml:lang="en">Script as Alter</source>
