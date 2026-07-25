@@ -3,578 +3,828 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as crypto from "crypto";
 import * as fs from "fs";
-import * as http from "http";
-import * as https from "https";
-import { Readable } from "stream";
+import * as fsPromises from "fs/promises";
+import * as path from "path";
+import { Readable, Transform, Writable } from "stream";
+import { pipeline } from "stream/promises";
 import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import * as tunnel from "tunnel";
 import { getErrorMessage } from "../common";
+import { getErrorCode, HttpClientError } from "./httpErrors";
+import { createHttpHeaders, IHttpHeaders } from "./httpHeaders";
+import {
+    HttpRequestHeaders,
+    IDownloadOptions,
+    IDownloadResult,
+    IHttpClientLogger,
+    IHttpRequest,
+    IHttpRequestOptions,
+    IHttpResponse,
+} from "./httpTypes";
+import {
+    createEnvironmentProxyResolver,
+    getProxyPort,
+    getRedactedProxyDescription,
+    IProxyAgentFactory,
+    IProxyAgentOptions,
+    IProxyConfiguration,
+    IProxyResolver,
+} from "./proxy";
 
-const UnableToGetProxyAgentOptionsMessage = "Unable to read proxy agent options.";
-const HTTPS_PORT = 443;
-const HTTP_PORT = 80;
+/** Construction options for {@link HttpClient}. */
+export interface IHttpClientOptions {
+    /** Optional logger for credential-free HTTP diagnostics. */
+    readonly logger?: IHttpClientLogger;
 
-/** Optional logger contract used by the HTTP client for diagnostics and errors. */
-export interface IHttpClientLogger {
-    /** Writes a diagnostic message. */
-    debug(message: string, ...args: unknown[]): void;
+    /** Resolves the proxy for each request. Defaults to the environment variable resolver. */
+    readonly proxyResolver?: IProxyResolver;
 
-    /** Writes a warning message. */
-    warn(message: string, ...args: unknown[]): void;
-
-    /** Writes an error message. */
-    error(message: string, ...args: unknown[]): void;
-
-    /**
-     * Writes a message with explicit PII sanitization metadata.
-     */
-    piiSanitized(
-        message: unknown,
-        objectsToSanitize: { name: string; objOrArray: unknown | unknown[] }[],
-        stringsToShorten: { name: string; value: string }[],
-        ...values: unknown[]
-    ): void;
-}
-
-/** Localized proxy warning messages used by the HTTP client. */
-export interface IHttpClientMessages {
-    /** Builds a warning when a proxy is configured without a protocol. */
-    missingProtocolWarning(proxy: string): string;
-
-    /** Builds a warning when a proxy URL cannot be parsed. */
-    unparseableWarning(proxy: string, errorMessage: string): string;
-
-    /** Message used when a proxy agent cannot be constructed. */
-    unableToGetProxyAgentOptions: string;
-}
-
-/** Runtime integration points for proxy settings and warning presentation. */
-export interface IHttpClientDependencies {
-    /** Returns the configured proxy endpoint, if available. */
-    getProxyConfig?: () => string | undefined;
-
-    /** Returns whether proxy certificates should be validated. */
-    getProxyStrictSSL?: () => boolean | undefined;
-
-    /** Parses a URI and returns its scheme. */
-    parseUriScheme?: (value: string) => string | undefined;
-
-    /** Displays a warning message to the user. */
-    showWarningMessage?: (message: string) => void;
-
-    /** Localized proxy warning messages. */
-    messages?: IHttpClientMessages;
-}
-
-/** Progress payload for download callbacks. */
-export interface IDownloadProgress {
-    /** Number of bytes downloaded so far. */
-    downloadedBytes: number;
-
-    /** Total bytes, when known from response headers. */
-    totalBytes?: number;
-
-    /** Percentage in the range `[0, 100]`, when total bytes are known. */
-    percentage?: number;
-}
-
-/** Optional settings for file download operations. */
-export interface IDownloadFileOptions {
-    /** Receives progress updates while the response stream is being written. */
-    onProgress?: (progress: IDownloadProgress) => void;
-}
-
-/** Result returned by a completed download operation. */
-export interface IDownloadFileResult {
-    /** HTTP response status code. */
-    status: number;
-
-    /** Response headers from the download request. */
-    headers: IHttpHeaders;
-}
-
-/** HTTP header map with normalized string values. */
-export type IHttpHeaders = Record<string, string>;
-
-/** Standardized HTTP response shape used by this toolkit. */
-export interface IHttpResponse<TResponse> {
-    /** Response payload. */
-    data: TResponse;
-
-    /** HTTP response status code. */
-    status: number;
-
-    /** HTTP status text, if provided by the transport layer. */
-    statusText: string;
-
-    /** Response headers. */
-    headers: IHttpHeaders;
+    /** Creates proxy agents. Primarily an injection point for tests. */
+    readonly proxyAgentFactory?: IProxyAgentFactory;
 }
 
 /**
- * Shared HTTP client with proxy support, optional diagnostics, and stream downloads.
+ * Transport-neutral HTTP client with proxy support and staged file downloads.
+ *
+ * Behavior that callers can rely on:
+ * - Every HTTP status resolves, including 4xx and 5xx. Only transport, timeout, cancellation,
+ *   destination, and stream failures reject, always with an {@link HttpClientError}.
+ * - Response generics are compile-time assertions only; no runtime schema validation is done.
+ * - Response header names are case-insensitive.
+ * - Proxy precedence is the host-provided proxy setting, then the environment, then direct.
+ * - Only `http:` and `https:` proxies are supported.
+ * - Requests are never retried automatically.
  */
 export class HttpClient {
+    protected readonly logger?: IHttpClientLogger;
+
+    private readonly _proxyResolver: IProxyResolver;
+    private readonly _proxyAgentFactory: IProxyAgentFactory;
+
     /**
      * Creates an HTTP client.
      *
-     * @param logger Optional logger for diagnostics and warnings.
-     * @param dependencies Optional host-specific proxy and UI integrations.
+     * @param options Optional logger, proxy resolver, and proxy agent factory.
      */
-    constructor(
-        protected readonly logger?: IHttpClientLogger,
-        private readonly dependencies: IHttpClientDependencies = {},
-    ) {}
-
-    /**
-     * Sends an HTTP GET request.
-     *
-     * @param requestUrl Target URL.
-     * @param token Bearer token sent in the `Authorization` header.
-     */
-    public async makeGetRequest<TResponse>(
-        requestUrl: string,
-        token: string,
-    ): Promise<IHttpResponse<TResponse>> {
-        const request = this.setupRequest(requestUrl, token);
-
-        const response: AxiosResponse = await this.get<TResponse>(
-            request.requestUrl,
-            request.config,
-        );
-        this.logger?.piiSanitized(
-            "GET request ",
-            [
-                {
-                    name: "response",
-                    objOrArray:
-                        (response.data?.value as TResponse) ??
-                        (response.data as { value: TResponse }),
-                },
-            ],
-            [],
-            request.requestUrl,
-        );
-        return response as unknown as IHttpResponse<TResponse>;
+    constructor(options: IHttpClientOptions = {}) {
+        this.logger = options.logger;
+        this._proxyResolver = options.proxyResolver ?? createEnvironmentProxyResolver();
+        this._proxyAgentFactory = options.proxyAgentFactory ?? defaultProxyAgentFactory;
     }
 
     /**
-     * Sends an HTTP POST request.
+     * Sends an HTTP request. This is the canonical request path; every other request helper
+     * delegates to it.
      *
-     * @param requestUrl Target URL.
-     * @param token Bearer token sent in the `Authorization` header.
-     * @param payload JSON payload to post.
+     * @param request Method, URL, headers, and optional body.
+     * @returns The response, including non-success statuses.
+     * @throws {HttpClientError} When the request fails, times out, or is cancelled.
      */
-    public async makePostRequest<TResponse, TPayload>(
-        requestUrl: string,
-        token: string,
-        payload: TPayload,
+    public async request<TResponse = unknown, TBody = undefined>(
+        request: IHttpRequest<TBody>,
     ): Promise<IHttpResponse<TResponse>> {
-        const request = this.setupRequest(requestUrl, token);
-
-        const response: AxiosResponse = await this.post<TResponse, TPayload>(
-            request.requestUrl,
-            payload,
-            request.config,
-        );
-        this.logger?.piiSanitized(
-            "POST request ",
-            [{ name: "response", objOrArray: response.data }],
-            [],
-            request.requestUrl,
-        );
-        return response as unknown as IHttpResponse<TResponse>;
-    }
-
-    /**
-     * Downloads a URL to a path or an open file descriptor.
-     * The caller retains ownership of a supplied file descriptor.
-     *
-     * @param requestUrl Target URL.
-     * @param destination Output path or open file descriptor.
-     * @param options Optional download settings including progress callback.
-     */
-    public async downloadFile(
-        requestUrl: string,
-        destination: string | number,
-        options?: IDownloadFileOptions,
-    ): Promise<IDownloadFileResult> {
-        const destinationFd =
-            typeof destination === "string" ? fs.openSync(destination, "w") : destination;
-
+        const cancellation = createRequestCancellation(request.signal, request.timeoutMs);
+        let requestConfig: { config: AxiosRequestConfig; target: URL };
         try {
-            return await this.downloadToFileDescriptor(requestUrl, destinationFd, options);
+            requestConfig = this.createRequestConfig(request, undefined, cancellation.signal);
+        } catch (error) {
+            cancellation.dispose();
+            throw error;
+        }
+
+        const { config, target } = requestConfig;
+        const startedAt = Date.now();
+
+        let response: AxiosResponse<TResponse>;
+        try {
+            response = await axios.request<TResponse>(config);
+        } catch (error) {
+            const failure = toRequestError(error, cancellation);
+            this.logger?.error(
+                `HTTP ${request.method} ${describeTarget(target)} failed after ${Date.now() - startedAt}ms: ${failure.kind}${failure.code ? ` (${failure.code})` : ""}.`,
+            );
+            throw failure;
         } finally {
-            if (typeof destination === "string") {
-                fs.closeSync(destinationFd);
+            cancellation.dispose();
+        }
+
+        this.logger?.debug(
+            `HTTP ${request.method} ${describeTarget(target)} responded ${response.status} in ${Date.now() - startedAt}ms.`,
+        );
+
+        return toHttpResponse<TResponse>(response);
+    }
+
+    /**
+     * Sends an HTTP GET request. No content type is added automatically.
+     *
+     * @param url Target URL.
+     * @param options Headers, cancellation signal, and timeout.
+     */
+    public get<TResponse = unknown>(
+        url: string | URL,
+        options?: IHttpRequestOptions,
+    ): Promise<IHttpResponse<TResponse>> {
+        return this.request<TResponse, undefined>({ ...options, method: "GET", url });
+    }
+
+    /**
+     * Sends an HTTP POST request with a JSON body.
+     *
+     * `Content-Type: application/json` and `Accept: application/json` are added only when the
+     * caller has not already supplied them.
+     *
+     * @param url Target URL.
+     * @param body Payload to serialize as JSON.
+     * @param options Headers, cancellation signal, and timeout.
+     */
+    public postJson<TResponse = unknown, TBody = unknown>(
+        url: string | URL,
+        body: TBody,
+        options?: IHttpRequestOptions,
+    ): Promise<IHttpResponse<TResponse>> {
+        return this.request<TResponse, TBody>({
+            ...options,
+            method: "POST",
+            url,
+            body,
+            headers: withDefaultHeaders(options?.headers, {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+            }),
+        });
+    }
+
+    /**
+     * Downloads a URL into a file path.
+     *
+     * The response is staged in a temporary sibling file and moved over the destination only
+     * after the download completes successfully, so an existing file is never truncated by a
+     * non-success response, a stream failure, or a cancellation. Every descriptor and stream
+     * created here is owned and closed by this method.
+     *
+     * @param url Target URL.
+     * @param destinationPath Final path to write.
+     * @param options Headers, cancellation signal, timeout, and progress callback.
+     * @returns The response status and headers. Non-success responses leave the destination alone.
+     * @throws {HttpClientError} When the request, response stream, progress callback, or
+     * destination replacement fails.
+     */
+    public async downloadToPath(
+        url: string | URL,
+        destinationPath: string,
+        options?: IDownloadOptions,
+    ): Promise<IDownloadResult> {
+        const cancellation = createRequestCancellation(options?.signal, options?.timeoutMs);
+        try {
+            const download = await this.requestDownload(url, options, cancellation);
+            if (!download.result.ok) {
+                download.response.data.destroy();
+                return download.result;
             }
+
+            try {
+                emitInitialProgress(download.totalBytes, options);
+            } catch (error) {
+                download.response.data.destroy();
+                throw error;
+            }
+
+            const temporaryPath = createTemporarySiblingPath(destinationPath);
+            try {
+                const destinationStream = fs.createWriteStream(temporaryPath);
+                await this.pipeResponse(
+                    download.response.data,
+                    destinationStream,
+                    download.totalBytes,
+                    options,
+                    cancellation,
+                );
+                await waitForClose(destinationStream);
+                await replaceFile(temporaryPath, destinationPath, this.logger);
+            } catch (error) {
+                await removeQuietly(temporaryPath, this.logger);
+                throw error instanceof HttpClientError
+                    ? error
+                    : new HttpClientError(
+                          "destination",
+                          "Unable to replace the download destination.",
+                          getErrorCode(error),
+                          { cause: error },
+                      );
+            }
+
+            return download.result;
+        } finally {
+            cancellation.dispose();
         }
     }
 
     /**
-     * Validates proxy settings and emits warnings for invalid values.
+     * Downloads a URL into an already-open file descriptor.
+     *
+     * The descriptor remains owned by the caller: it is never closed by this method, on success
+     * or on failure. Non-success responses are returned without writing anything.
+     *
+     * @param url Target URL.
+     * @param destinationFd Open file descriptor to write into.
+     * @param options Headers, cancellation signal, timeout, and progress callback.
+     * @throws {HttpClientError} When the request, response stream, progress callback, or write
+     * fails.
      */
-    public warnOnInvalidProxySettings(): void {
-        const proxy = this.loadProxyConfig();
+    public async downloadToFileDescriptor(
+        url: string | URL,
+        destinationFd: number,
+        options?: IDownloadOptions,
+    ): Promise<IDownloadResult> {
+        const cancellation = createRequestCancellation(options?.signal, options?.timeoutMs);
+        try {
+            const download = await this.requestDownload(url, options, cancellation);
+            if (!download.result.ok) {
+                download.response.data.destroy();
+                return download.result;
+            }
+
+            try {
+                emitInitialProgress(download.totalBytes, options);
+            } catch (error) {
+                download.response.data.destroy();
+                throw error;
+            }
+
+            await this.pipeResponse(
+                download.response.data,
+                createFileDescriptorWritable(destinationFd),
+                download.totalBytes,
+                options,
+                cancellation,
+            );
+
+            return download.result;
+        } finally {
+            cancellation.dispose();
+        }
+    }
+
+    private async requestDownload(
+        url: string | URL,
+        options?: IDownloadOptions,
+        cancellation?: IRequestCancellation,
+    ): Promise<{
+        response: AxiosResponse<Readable>;
+        result: IDownloadResult;
+        totalBytes: number | undefined;
+    }> {
+        const { config, target } = this.createRequestConfig(
+            {
+                method: "GET",
+                url,
+                headers: options?.headers,
+            },
+            "stream",
+            cancellation?.signal,
+        );
+
+        let response: AxiosResponse<Readable>;
+        try {
+            response = await axios.request<Readable>(config);
+        } catch (error) {
+            const failure = toRequestError(error, cancellation);
+            this.logger?.error(
+                `Download of ${describeTarget(target)} failed: ${failure.kind}${failure.code ? ` (${failure.code})` : ""}.`,
+            );
+            throw failure;
+        }
+
+        const headers = createHttpHeaders(toHeaderRecord(response.headers));
+        const result: IDownloadResult = {
+            status: response.status,
+            statusText: response.statusText ?? "",
+            ok: isSuccessStatus(response.status),
+            headers,
+        };
+
+        this.logger?.debug(`Download of ${describeTarget(target)} responded ${response.status}.`);
+
+        return { response, result, totalBytes: parseContentLength(headers) };
+    }
+
+    private async pipeResponse(
+        source: Readable,
+        destination: Writable,
+        totalBytes: number | undefined,
+        options?: IDownloadOptions,
+        cancellation?: IRequestCancellation,
+    ): Promise<void> {
+        const onProgress = options?.onProgress;
+        let downloadedBytes = 0;
+
+        const progress = new Transform({
+            transform(chunk: Buffer, _encoding, callback) {
+                downloadedBytes += chunk.length;
+
+                if (onProgress) {
+                    try {
+                        onProgress({ downloadedBytes, totalBytes });
+                    } catch (error) {
+                        callback(
+                            new HttpClientError(
+                                "progress-callback",
+                                "The download progress callback threw an error.",
+                                getErrorCode(error),
+                                { cause: error },
+                            ),
+                        );
+                        return;
+                    }
+                }
+
+                callback(null, chunk);
+            },
+        });
+
+        let sourceError: unknown;
+        source.on("error", (error) => {
+            sourceError = error;
+        });
+
+        let destinationError: unknown;
+        destination.on("error", (error) => {
+            destinationError = error;
+        });
+
+        try {
+            await pipeline(source, progress, destination, { signal: cancellation?.signal });
+        } catch (error) {
+            throw toStreamError(error, destinationError, sourceError, cancellation);
+        }
+
+        if (totalBytes !== undefined && totalBytes > 0 && downloadedBytes !== totalBytes) {
+            throw new HttpClientError(
+                "response-stream",
+                `The download ended after ${downloadedBytes} bytes but ${totalBytes} bytes were expected.`,
+                "ERR_CONTENT_LENGTH_MISMATCH",
+                { cause: undefined },
+            );
+        }
+    }
+
+    private createRequestConfig<TBody>(
+        request: IHttpRequest<TBody>,
+        responseType?: "stream",
+        signal?: AbortSignal,
+    ): { config: AxiosRequestConfig; target: URL } {
+        const target = parseTargetUrl(request.url);
+
+        const config: AxiosRequestConfig = {
+            method: request.method,
+            url: typeof request.url === "string" ? request.url : request.url.toString(),
+            headers: { ...request.headers },
+            validateStatus: () => true,
+        };
+
+        if (request.body !== undefined) {
+            config.data = request.body;
+        }
+
+        if (signal) {
+            config.signal = signal;
+        }
+
+        if (responseType) {
+            config.responseType = responseType;
+        }
+
+        this.applyProxy(config, target);
+
+        return { config, target };
+    }
+
+    private applyProxy(config: AxiosRequestConfig, target: URL): void {
+        // Proxy selection is owned entirely by the resolver, so the transport's own environment
+        // handling is always disabled.
+        config.proxy = false;
+
+        let proxy: IProxyConfiguration | undefined;
+        try {
+            proxy = this._proxyResolver.resolve(target);
+        } catch (error) {
+            const code = getErrorCode(error);
+            this.logger?.error(
+                `Unable to resolve the configured proxy${code ? ` (${code})` : ""}.`,
+            );
+            throw new HttpClientError(
+                "proxy-configuration",
+                "Unable to resolve the configured proxy.",
+                getErrorCode(error),
+                { cause: error },
+            );
+        }
+
         if (!proxy) {
             return;
         }
 
-        let message = undefined;
-        let localizedMessage = undefined;
-
-        try {
-            const scheme = this.dependencies.parseUriScheme
-                ? this.dependencies.parseUriScheme(proxy)
-                : new URL(proxy).protocol;
-
-            if (!scheme) {
-                message = `Proxy settings found, but without a protocol (e.g. http://): '${proxy}'.  You may encounter connection issues while using this extension.`;
-                localizedMessage = this.dependencies.messages?.missingProtocolWarning(proxy);
-            }
-        } catch (error) {
-            const errorMessage = getErrorMessage(error);
-            message = `Proxy settings found, but encountered an error while parsing the URL: '${proxy}'.  You may encounter connection issues while using this extension.  Error: ${errorMessage}`;
-            localizedMessage = this.dependencies.messages?.unparseableWarning(proxy, errorMessage);
-        }
-
-        if (message) {
-            if (localizedMessage) {
-                this.dependencies.showWarningMessage?.(localizedMessage);
-            }
-            this.logger?.warn(message);
-        }
-    }
-
-    private setupRequest(
-        requestUrl: string,
-        token?: string,
-    ): { requestUrl: string; config: AxiosRequestConfig } {
-        const config = this.setupConfigAndProxyForRequest(requestUrl, token);
-        return {
-            requestUrl: this.constructRequestUrl(requestUrl, config),
-            config,
-        };
-    }
-
-    private async downloadToFileDescriptor(
-        requestUrl: string,
-        destinationFd: number,
-        options?: IDownloadFileOptions,
-    ): Promise<IDownloadFileResult> {
-        const request = this.setupRequest(requestUrl);
-        const requestConfig: AxiosRequestConfig = {
-            ...request.config,
-            responseType: "stream",
-        };
-
-        let response: AxiosResponse<Readable>;
-        try {
-            response = await this.get<Readable>(request.requestUrl, requestConfig);
-        } catch (error) {
-            throw new HttpDownloadError("request", error as NodeJS.ErrnoException);
-        }
-
-        const totalBytes = this.getContentLength(response.headers["content-length"]);
-        let downloadedBytes = 0;
-        options?.onProgress?.({
-            downloadedBytes,
-            totalBytes,
-            percentage: totalBytes === undefined ? undefined : 0,
-        });
-
-        if (response.status !== 200) {
-            response.data.destroy();
-            return {
-                status: response.status,
-                headers: response.headers as unknown as IHttpHeaders,
-            };
-        }
-
-        await new Promise<void>((resolve, reject) => {
-            const destinationStream = fs.createWriteStream("", {
-                fd: destinationFd,
-                autoClose: false,
-            });
-            let isSettled = false;
-
-            const rejectDownload = (error: NodeJS.ErrnoException) => {
-                if (isSettled) {
-                    return;
-                }
-
-                isSettled = true;
-                response.data.destroy();
-                destinationStream.destroy();
-                reject(new HttpDownloadError("response", error));
-            };
-
-            response.data.on("data", (data: Buffer) => {
-                downloadedBytes += data.length;
-                options?.onProgress?.({
-                    downloadedBytes,
-                    totalBytes,
-                    percentage:
-                        totalBytes === undefined
-                            ? undefined
-                            : Math.min(100, (downloadedBytes / totalBytes) * 100),
-                });
-            });
-
-            response.data.on("error", rejectDownload);
-            destinationStream.on("error", rejectDownload);
-
-            destinationStream.on("finish", () => {
-                if (isSettled) {
-                    return;
-                }
-
-                isSettled = true;
-                resolve();
-            });
-
-            response.data.pipe(destinationStream);
-        });
-
-        return {
-            status: response.status,
-            headers: response.headers as unknown as IHttpHeaders,
-        };
-    }
-
-    private setupConfigAndProxyForRequest(requestUrl: string, token?: string): AxiosRequestConfig {
-        const headers: { "Content-Type": string; Authorization?: string } = {
-            "Content-Type": "application/json",
-        };
-
-        if (token) {
-            headers.Authorization = `Bearer ${token}`;
-        }
-
-        const config: AxiosRequestConfig = {
-            headers,
-            validateStatus: () => true,
-        };
-
-        const proxy = this.loadProxyConfig();
-
-        if (proxy) {
-            this.logger?.debug(
-                "Proxy endpoint found in environment variables or workspace configuration.",
-            );
-            config.proxy = false;
-
-            const agent = this.createProxyAgent(
-                requestUrl,
-                proxy,
-                this.dependencies.getProxyStrictSSL?.(),
-            );
-            if (requestUrl.startsWith("https")) {
-                config.httpsAgent = agent.agent;
-            } else {
-                config.httpAgent = agent.agent;
-            }
-        }
-        return config;
-    }
-
-    private get<TResponse>(
-        requestUrl: string,
-        config: AxiosRequestConfig,
-    ): Promise<AxiosResponse<TResponse>> {
-        return axios.get<TResponse>(requestUrl, config);
-    }
-
-    private post<TResponse, TPayload>(
-        requestUrl: string,
-        payload: TPayload,
-        config: AxiosRequestConfig,
-    ): Promise<AxiosResponse<TResponse>> {
-        return axios.post<TResponse>(requestUrl, payload, config);
-    }
-
-    private loadProxyConfig(): string | undefined {
-        let proxy = this.dependencies.getProxyConfig?.();
-
-        if (!proxy) {
-            this.logger?.debug(
-                "Workspace HTTP config didn't contain a proxy endpoint. Checking environment variables.",
-            );
-            proxy = this.loadEnvironmentProxyValue();
-        }
-
-        return proxy;
-    }
-
-    private constructRequestUrl(requestUrl: string, config: AxiosRequestConfig): string {
-        if (!config.proxy) {
-            const parsedRequestUrl = new URL(requestUrl);
-            const port =
-                parsedRequestUrl.port ||
-                (parsedRequestUrl.protocol?.startsWith("https") ? HTTPS_PORT : HTTP_PORT);
-
-            return `${parsedRequestUrl.protocol}//${parsedRequestUrl.hostname}:${port}${parsedRequestUrl.pathname}${parsedRequestUrl.search}`;
-        }
-        return requestUrl;
-    }
-
-    private loadEnvironmentProxyValue(): string | undefined {
-        const HTTP_PROXY = "HTTP_PROXY";
-        const HTTPS_PROXY = "HTTPS_PROXY";
-
-        if (!process) {
-            this.logger?.debug(
-                "No process object found, unable to read environment variables for proxy.",
-            );
-            return undefined;
-        }
-
-        if (process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()]) {
-            this.logger?.debug("Loading proxy value from HTTP_PROXY environment variable.");
-            return process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()];
-        } else if (process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()]) {
-            this.logger?.debug("Loading proxy value from HTTPS_PROXY environment variable.");
-            return process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()];
-        }
-
         this.logger?.debug(
-            "No proxy value found in either HTTPS_PROXY or HTTP_PROXY environment variables.",
+            `Routing request through ${proxy.source} proxy ${getRedactedProxyDescription(proxy.url)}.`,
         );
-        return undefined;
-    }
 
-    private createProxyAgent(
-        requestUrl: string,
-        proxy: string,
-        proxyStrictSSL?: boolean,
-    ): ProxyAgent {
-        const agentOptions = this.getProxyAgentOptions(new URL(requestUrl), proxy, proxyStrictSSL);
-        if (!agentOptions || !agentOptions.host || !agentOptions.port) {
-            this.logger?.error("Unable to read proxy agent options to create proxy agent.");
-            throw new Error(
-                this.dependencies.messages?.unableToGetProxyAgentOptions ??
-                    UnableToGetProxyAgentOptionsMessage,
+        let agent: unknown;
+        try {
+            agent = this.createProxyAgent(target, proxy);
+        } catch (error) {
+            if (error instanceof HttpClientError) {
+                throw error;
+            }
+
+            const code = getErrorCode(error);
+            this.logger?.error(
+                `Unable to construct the configured proxy agent${code ? ` (${code})` : ""}.`,
+            );
+            throw new HttpClientError(
+                "proxy-configuration",
+                "Unable to construct the configured proxy agent.",
+                code,
+                { cause: error },
             );
         }
 
-        const tunnelOptions: tunnel.HttpsOverHttpsOptions = {
+        if (target.protocol === "https:") {
+            config.httpsAgent = agent;
+        } else {
+            config.httpAgent = agent;
+        }
+    }
+
+    private createProxyAgent(target: URL, proxy: IProxyConfiguration): unknown {
+        const isHttpsProxy = proxy.url.protocol === "https:";
+        const credentials =
+            proxy.url.username || proxy.url.password
+                ? `${decodeProxyCredential(proxy.url.username)}:${decodeProxyCredential(proxy.url.password)}`
+                : undefined;
+
+        const options: IProxyAgentOptions = {
             proxy: {
-                host: agentOptions.host,
-                port: Number(agentOptions.port),
-                ...(agentOptions.auth ? { proxyAuth: agentOptions.auth } : {}),
+                host: proxy.url.hostname,
+                port: getProxyPort(proxy.url),
+                ...(credentials ? { proxyAuth: credentials } : {}),
+                // Applies to the proxy connection only; the destination certificate is always validated.
+                ...(isHttpsProxy ? { rejectUnauthorized: proxy.rejectUnauthorized } : {}),
             },
         };
 
-        const isHttpsRequest = requestUrl.startsWith("https");
-        const isHttpsProxy = proxy.startsWith("https");
+        if (target.protocol === "https:") {
+            return isHttpsProxy
+                ? this._proxyAgentFactory.httpsOverHttps(options)
+                : this._proxyAgentFactory.httpsOverHttp(options);
+        }
+
+        return isHttpsProxy
+            ? this._proxyAgentFactory.httpOverHttps(options)
+            : this._proxyAgentFactory.httpOverHttp(options);
+    }
+}
+
+const defaultProxyAgentFactory: IProxyAgentFactory = {
+    httpOverHttp: (options) => tunnel.httpOverHttp(toAgentOptions(options)),
+    httpOverHttps: (options) => tunnel.httpOverHttps(toAgentOptions(options)),
+    httpsOverHttp: (options) => tunnel.httpsOverHttp(toAgentOptions(options)),
+    httpsOverHttps: (options) => tunnel.httpsOverHttps(toAgentOptions(options)),
+};
+
+function toAgentOptions(options: IProxyAgentOptions): tunnel.HttpsOverHttpsOptions {
+    const proxy: tunnel.HttpsProxyOptions & { rejectUnauthorized?: boolean } = {
+        host: options.proxy.host,
+        port: options.proxy.port,
+    };
+
+    if (options.proxy.proxyAuth) {
+        proxy.proxyAuth = options.proxy.proxyAuth;
+    }
+
+    if (options.proxy.rejectUnauthorized !== undefined) {
+        proxy.rejectUnauthorized = options.proxy.rejectUnauthorized;
+    }
+
+    return { proxy };
+}
+
+function toHttpResponse<TResponse>(response: AxiosResponse<TResponse>): IHttpResponse<TResponse> {
+    return {
+        data: response.data,
+        status: response.status,
+        statusText: response.statusText ?? "",
+        ok: isSuccessStatus(response.status),
+        headers: createHttpHeaders(toHeaderRecord(response.headers)),
+    };
+}
+
+function toHeaderRecord(headers: unknown): Record<string, unknown> {
+    if (typeof headers !== "object" || headers === null) {
+        return {};
+    }
+
+    const record: Record<string, unknown> = {};
+    for (const [name, value] of Object.entries(headers as Record<string, unknown>)) {
+        record[name] = value;
+    }
+
+    return record;
+}
+
+function isSuccessStatus(status: number): boolean {
+    return status >= 200 && status < 300;
+}
+
+function parseTargetUrl(url: string | URL): URL {
+    if (url instanceof URL) {
+        return url;
+    }
+
+    try {
+        return new URL(url);
+    } catch (error) {
+        throw new HttpClientError(
+            "network",
+            "The request URL is not a valid absolute URL.",
+            "ERR_INVALID_URL",
+            { cause: error },
+        );
+    }
+}
+
+function describeTarget(target: URL): string {
+    return `${target.protocol}//${target.host}${target.pathname}`;
+}
+
+function withDefaultHeaders(
+    headers: HttpRequestHeaders | undefined,
+    defaults: Record<string, string>,
+): HttpRequestHeaders {
+    const merged: Record<string, string> = { ...headers };
+    const supplied = new Set(Object.keys(merged).map((name) => name.toLowerCase()));
+
+    for (const [name, value] of Object.entries(defaults)) {
+        if (!supplied.has(name.toLowerCase())) {
+            merged[name] = value;
+        }
+    }
+
+    return merged;
+}
+
+function isAbortError(error: unknown): boolean {
+    if (axios.isCancel(error)) {
+        return true;
+    }
+
+    const code = getErrorCode(error);
+    if (code === "ERR_CANCELED" || code === "ABORT_ERR") {
+        return true;
+    }
+
+    return (error as { name?: unknown } | undefined)?.name === "AbortError";
+}
+
+interface IRequestCancellation {
+    readonly signal: AbortSignal | undefined;
+    readonly timedOut: boolean;
+    dispose(): void;
+}
+
+function createRequestCancellation(
+    callerSignal: AbortSignal | undefined,
+    timeoutMs: number | undefined,
+): IRequestCancellation {
+    if (timeoutMs === undefined || timeoutMs === 0) {
         return {
-            agent: this.createTunnelingAgent(isHttpsRequest, isHttpsProxy, tunnelOptions),
+            signal: callerSignal,
+            timedOut: false,
+            dispose: () => undefined,
         };
     }
 
-    private createTunnelingAgent(
-        isHttpsRequest: boolean,
-        isHttpsProxy: boolean,
-        tunnelOptions: tunnel.HttpsOverHttpsOptions,
-    ): http.Agent | https.Agent {
-        if (isHttpsRequest && isHttpsProxy) {
-            this.logger?.debug("Creating https request over https proxy tunneling agent");
-            return tunnel.httpsOverHttps(tunnelOptions);
-        } else if (isHttpsRequest && !isHttpsProxy) {
-            this.logger?.debug("Creating https request over http proxy tunneling agent");
-            return tunnel.httpsOverHttp(tunnelOptions);
-        } else if (!isHttpsRequest && isHttpsProxy) {
-            this.logger?.debug("Creating http request over https proxy tunneling agent");
-            return tunnel.httpOverHttps(tunnelOptions);
-        }
+    const controller = new AbortController();
+    let timedOut = false;
+    const abortFromCaller = () => controller.abort(callerSignal?.reason);
 
-        this.logger?.debug("Creating http request over http proxy tunneling agent");
-        return tunnel.httpOverHttp(tunnelOptions);
+    if (callerSignal?.aborted) {
+        abortFromCaller();
+    } else {
+        callerSignal?.addEventListener("abort", abortFromCaller, { once: true });
     }
 
-    private getProxyAgentOptions(
-        requestUrl: URL,
-        proxy?: string,
-        strictSSL?: boolean,
-    ): ProxyAgentOptions | undefined {
-        const proxyUrl = proxy || this.getSystemProxyUrl(requestUrl);
+    const timeout = setTimeout(
+        () => {
+            if (!controller.signal.aborted) {
+                timedOut = true;
+                controller.abort(new Error("The HTTP operation timed out."));
+            }
+        },
+        Math.max(0, timeoutMs),
+    );
 
-        if (!proxyUrl) {
-            return undefined;
-        }
+    return {
+        signal: controller.signal,
+        get timedOut(): boolean {
+            return timedOut;
+        },
+        dispose(): void {
+            clearTimeout(timeout);
+            callerSignal?.removeEventListener("abort", abortFromCaller);
+        },
+    };
+}
 
-        const proxyEndpoint = new URL(proxyUrl);
-        if (!/^https?:$/.test(proxyEndpoint.protocol)) {
-            return undefined;
-        }
-
-        const auth =
-            proxyEndpoint.username || proxyEndpoint.password
-                ? `${proxyEndpoint.username}:${proxyEndpoint.password}`
-                : undefined;
-
-        return {
-            host: proxyEndpoint.hostname,
-            port: proxyEndpoint.port
-                ? Number(proxyEndpoint.port)
-                : proxyEndpoint.protocol === "https:"
-                  ? HTTPS_PORT
-                  : HTTP_PORT,
-            auth,
-            rejectUnauthorized: strictSSL !== false,
-        };
+function toRequestError(error: unknown, cancellation?: IRequestCancellation): HttpClientError {
+    if (error instanceof HttpClientError) {
+        return error;
     }
 
-    private getSystemProxyUrl(requestUrl: URL): string | undefined {
-        if (requestUrl.protocol === "http:") {
-            return process.env.HTTP_PROXY || process.env.http_proxy || undefined;
-        } else if (requestUrl.protocol === "https:") {
-            return (
-                process.env.HTTPS_PROXY ||
-                process.env.https_proxy ||
-                process.env.HTTP_PROXY ||
-                process.env.http_proxy ||
-                undefined
-            );
-        }
+    const code = getErrorCode(error);
 
+    if (cancellation?.timedOut) {
+        return new HttpClientError("timeout", "The HTTP request timed out.", code, {
+            cause: error,
+        });
+    }
+
+    if (isAbortError(error) || cancellation?.signal?.aborted) {
+        return new HttpClientError("cancelled", "The HTTP request was cancelled.", code, {
+            cause: error,
+        });
+    }
+
+    if (code === "ECONNABORTED" || code === "ETIMEDOUT" || code === "ERR_TIMEOUT") {
+        return new HttpClientError("timeout", "The HTTP request timed out.", code, {
+            cause: error,
+        });
+    }
+
+    return new HttpClientError("network", "The HTTP request failed.", code, { cause: error });
+}
+
+function toStreamError(
+    error: unknown,
+    destinationError: unknown,
+    sourceError: unknown,
+    cancellation?: IRequestCancellation,
+): HttpClientError {
+    if (error instanceof HttpClientError) {
+        return error;
+    }
+
+    const code = getErrorCode(error);
+
+    if (cancellation?.timedOut) {
+        return new HttpClientError("timeout", "The download timed out.", code, { cause: error });
+    }
+
+    if (isAbortError(error) || cancellation?.signal?.aborted) {
+        return new HttpClientError("cancelled", "The download was cancelled.", code, {
+            cause: error,
+        });
+    }
+
+    if (code === "ECONNABORTED" || code === "ETIMEDOUT") {
+        return new HttpClientError("timeout", "The download timed out.", code, { cause: error });
+    }
+
+    // `pipeline` destroys the destination with the source's error, so a destination failure is
+    // only genuine when the source did not fail with the same error first.
+    if (destinationError !== undefined && error === destinationError && error !== sourceError) {
+        return new HttpClientError(
+            "destination",
+            "Unable to write to the download destination.",
+            code,
+            { cause: error },
+        );
+    }
+
+    return new HttpClientError("response-stream", "The download response stream failed.", code, {
+        cause: error,
+    });
+}
+
+function emitInitialProgress(totalBytes: number | undefined, options?: IDownloadOptions): void {
+    if (!options?.onProgress) {
+        return;
+    }
+
+    try {
+        options.onProgress({ downloadedBytes: 0, totalBytes });
+    } catch (error) {
+        throw new HttpClientError(
+            "progress-callback",
+            "The download progress callback threw an error.",
+            getErrorCode(error),
+            { cause: error },
+        );
+    }
+}
+
+function parseContentLength(headers: IHttpHeaders): number | undefined {
+    const raw = headers.get("content-length");
+    if (raw === undefined || !/^\d+$/.test(raw.trim())) {
         return undefined;
     }
 
-    private getContentLength(header: unknown): number | undefined {
-        if (Array.isArray(header)) {
-            return this.getContentLength(header[0]);
-        }
+    const value = Number(raw.trim());
+    if (!Number.isSafeInteger(value)) {
+        return undefined;
+    }
 
-        const value = typeof header === "number" ? header : Number.parseInt(`${header}`, 10);
-        return Number.isFinite(value) && value > 0 ? value : undefined;
+    return value;
+}
+
+function decodeProxyCredential(value: string): string {
+    try {
+        return decodeURIComponent(value);
+    } catch (error) {
+        throw new HttpClientError(
+            "proxy-configuration",
+            "Unable to decode the configured proxy credentials.",
+            getErrorCode(error),
+            { cause: error },
+        );
     }
 }
 
-interface ProxyAgent {
-    agent: http.Agent | https.Agent;
+function createFileDescriptorWritable(destinationFd: number): Writable {
+    return new Writable({
+        write(chunk: Buffer, _encoding, callback) {
+            fs.write(destinationFd, chunk, 0, chunk.length, null, (error) => {
+                callback(error ?? null);
+            });
+        },
+    });
 }
 
-interface ProxyAgentOptions {
-    auth: string | undefined;
-    host?: string | null;
-    port?: string | number | null;
-    rejectUnauthorized: boolean;
+function createTemporarySiblingPath(destinationPath: string): string {
+    const directory = path.dirname(destinationPath);
+    const fileName = path.basename(destinationPath);
+    return path.join(directory, `.${fileName}.${crypto.randomBytes(6).toString("hex")}.download`);
 }
 
-/** Error raised by `downloadFile` when request or response streaming fails. */
-export class HttpDownloadError extends Error {
-    /**
-     * Creates a download error with phase metadata.
-     *
-     * @param phase Whether the failure happened while requesting or streaming.
-     * @param innerError The underlying Node.js error.
-     */
-    constructor(
-        public phase: "request" | "response",
-        public innerError: NodeJS.ErrnoException,
-    ) {
-        super(innerError.message);
+async function waitForClose(stream: fs.WriteStream): Promise<void> {
+    if (stream.closed) {
+        return;
+    }
+
+    await new Promise<void>((resolve) => {
+        stream.once("close", resolve);
+    });
+}
+
+async function replaceFile(
+    temporaryPath: string,
+    destinationPath: string,
+    logger?: IHttpClientLogger,
+): Promise<void> {
+    const backupPath = `${destinationPath}.${crypto.randomBytes(6).toString("hex")}.bak`;
+    let hasBackup = false;
+
+    try {
+        await fsPromises.rename(destinationPath, backupPath);
+        hasBackup = true;
+    } catch (error) {
+        if (getErrorCode(error) !== "ENOENT") {
+            throw error;
+        }
+    }
+
+    try {
+        await fsPromises.rename(temporaryPath, destinationPath);
+    } catch (error) {
+        if (hasBackup) {
+            try {
+                await fsPromises.rename(backupPath, destinationPath);
+            } catch (restoreError) {
+                logger?.error(
+                    `Unable to restore the previous download destination: ${getErrorMessage(restoreError)}`,
+                );
+            }
+        }
+        throw error;
+    }
+
+    if (hasBackup) {
+        try {
+            await fsPromises.rm(backupPath, { force: true });
+        } catch (cleanupError) {
+            logger?.warn(
+                `Unable to remove the replaced download backup file: ${getErrorMessage(cleanupError)}`,
+            );
+        }
+    }
+}
+
+async function removeQuietly(filePath: string, logger?: IHttpClientLogger): Promise<void> {
+    try {
+        await fsPromises.rm(filePath, { force: true });
+    } catch (error) {
+        logger?.warn(`Unable to remove the partial download file: ${getErrorMessage(error)}`);
     }
 }

@@ -4,3 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 export * from "./httpClient";
+export * from "./httpErrors";
+export * from "./httpHeaders";
+export * from "./httpTypes";
+export * from "./proxy";

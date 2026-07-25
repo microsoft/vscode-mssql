@@ -59,10 +59,7 @@ export abstract class MsalAzureAuth {
         this.scopes = [...this.providerSettings.scopes];
         this.scopesString = this.scopes.join(" ");
 
-        this._httpHelper = new VscodeHttpClient({
-            logger,
-            messages: LocalizedConstants.Proxy,
-        });
+        this._httpHelper = new VscodeHttpClient({ logger });
     }
 
     public async startLogin(): Promise<LoginResult> {
@@ -310,10 +307,9 @@ export abstract class MsalAzureAuth {
         try {
             this.logger.debug("Fetching tenants with uri {0}", tenantUri);
             let tenantList: string[] = [];
-            const tenantResponse = await this._httpHelper.makeGetRequest<GetTenantsResponseData>(
-                tenantUri,
-                token,
-            );
+            const tenantResponse = await this._httpHelper.get<GetTenantsResponseData>(tenantUri, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
             const data = tenantResponse.data;
             if (this.isErrorResponseBodyWithError(data)) {
                 this.logger.error(

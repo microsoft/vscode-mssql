@@ -5,9 +5,10 @@
 
 import {
     HttpClient,
-    HttpDownloadError,
-    IDownloadFileResult,
+    HttpClientError,
+    HttpClientErrorKind,
     IDownloadProgress,
+    IDownloadResult,
 } from "extension-toolkit/base";
 import { ILogger } from "../sharedInterfaces/logger";
 import { IPackage, IStatusView, PackageError } from "./interfaces";
@@ -34,7 +35,7 @@ export default class DownloadHelper {
         logger: ILogger,
         statusView: IStatusView,
     ): Promise<void> {
-        if (!pkg.tmpFile || pkg.tmpFile.fd === 0) {
+        if (!pkg.tmpFile || pkg.tmpFile.fd === undefined || pkg.tmpFile.fd === null) {
             throw new PackageError("Temporary package file unavailable", pkg);
         }
 
@@ -43,10 +44,10 @@ export default class DownloadHelper {
             downloadPercentage: 0,
         };
 
-        const httpHelper = new HttpClient(logger);
+        const httpHelper = new HttpClient({ logger });
 
         try {
-            const result: IDownloadFileResult = await httpHelper.downloadFile(
+            const result: IDownloadResult = await httpHelper.downloadToFileDescriptor(
                 urlString,
                 pkg.tmpFile.fd,
                 {
@@ -65,13 +66,11 @@ export default class DownloadHelper {
                 throw error;
             }
 
-            if (error instanceof HttpDownloadError) {
-                const messagePrefix =
-                    error.phase === "response" ? "Response error" : "Request error";
+            if (error instanceof HttpClientError) {
                 throw new PackageError(
-                    `${messagePrefix}: ${error.innerError.code || "NONE"}`,
+                    `${describeErrorKind(error.kind)}: ${error.code || "NONE"}`,
                     pkg,
-                    error.innerError,
+                    error.cause,
                 );
             }
 
@@ -94,8 +93,10 @@ export default class DownloadHelper {
             );
         }
 
-        if (progress.percentage !== undefined && progress.totalBytes !== undefined) {
-            const newPercentage = Math.min(100, Math.ceil(progress.percentage));
+        const percentage = calculatePercentage(progress.downloadedBytes, progress.totalBytes);
+
+        if (percentage !== undefined && progress.totalBytes !== undefined) {
+            const newPercentage = Math.min(100, Math.ceil(percentage));
             if (newPercentage !== progressState.downloadPercentage) {
                 statusView.updateServiceDownloadingProgress(newPercentage);
                 progressState.downloadPercentage = newPercentage;
@@ -142,4 +143,37 @@ export default class DownloadHelper {
 export interface IDownloadProgressState {
     downloadPercentage: number;
     dots: number;
+}
+
+/*
+ * Calculates the completed percentage of a download, or undefined when the total size is unknown
+ */
+function calculatePercentage(
+    downloadedBytes: number,
+    totalBytes: number | undefined,
+): number | undefined {
+    if (totalBytes === undefined) {
+        return undefined;
+    }
+
+    if (totalBytes === 0) {
+        return 100;
+    }
+
+    return Math.min(100, (downloadedBytes / totalBytes) * 100);
+}
+
+/*
+ * Maps a toolkit HTTP failure category onto the legacy package error message prefixes
+ */
+function describeErrorKind(kind: HttpClientErrorKind): string {
+    switch (kind) {
+        case "network":
+        case "timeout":
+        case "cancelled":
+        case "proxy-configuration":
+            return "Request error";
+        default:
+            return "Response error";
+    }
 }

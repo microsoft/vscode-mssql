@@ -8,7 +8,7 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import sinonChai from "sinon-chai";
-import { IHttpResponse, VscodeHttpClient } from "extension-toolkit/vscode";
+import { createHttpHeaders, IHttpResponse, VscodeHttpClient } from "extension-toolkit/vscode";
 import { FabricHelper } from "../../src/fabric/fabricHelper";
 import {
     ICapacity,
@@ -35,8 +35,11 @@ suite("FabricHelper", () => {
         data,
         status,
         statusText,
-        headers: {},
+        ok: status >= 200 && status < 300,
+        headers: createHttpHeaders(),
     });
+
+    const expectedGetOptions = { headers: { Authorization: "Bearer test-access-token" } };
 
     const mockTenantId = "test-tenant-id";
 
@@ -71,9 +74,7 @@ suite("FabricHelper", () => {
         sandbox = sinon.createSandbox();
         mockHttpHelper = sandbox.createStubInstance(VscodeHttpClient);
 
-        sandbox
-            .stub(VscodeHttpClient.prototype, "makeGetRequest")
-            .callsFake(mockHttpHelper.makeGetRequest);
+        sandbox.stub(VscodeHttpClient.prototype, "get").callsFake(mockHttpHelper.get);
 
         sandbox.stub(vscode.authentication, "getSession").resolves(mockAuthSession);
     });
@@ -85,14 +86,14 @@ suite("FabricHelper", () => {
     suite("getFabricCapacities", () => {
         test("should return list of capacities", async () => {
             const mockResponse = { value: mockCapacities };
-            mockHttpHelper.makeGetRequest.resolves(createHttpResponse(mockResponse));
+            mockHttpHelper.get.resolves(createHttpResponse(mockResponse));
 
             const result = await FabricHelper.getFabricCapacities(mockTenantId);
 
             expect(result).to.deep.equal(mockCapacities);
-            expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
+            expect(mockHttpHelper.get).to.have.been.calledOnceWith(
                 "https://api.fabric.microsoft.com/v1/capacities",
-                "test-access-token",
+                expectedGetOptions,
             );
         });
 
@@ -101,9 +102,7 @@ suite("FabricHelper", () => {
                 errorCode: "CapacityNotFound",
                 message: "Capacity not found",
             };
-            mockHttpHelper.makeGetRequest.resolves(
-                createHttpResponse(fabricError, 404, "Not Found"),
-            );
+            mockHttpHelper.get.resolves(createHttpResponse(fabricError, 404, "Not Found"));
 
             try {
                 await FabricHelper.getFabricCapacities(mockTenantId);
@@ -149,14 +148,14 @@ suite("FabricHelper", () => {
             ];
 
             const mockResponse = { value: mockWorkspaces };
-            mockHttpHelper.makeGetRequest.resolves(createHttpResponse(mockResponse));
+            mockHttpHelper.get.resolves(createHttpResponse(mockResponse));
 
             const result = await FabricHelper.getFabricWorkspaces(capacityId);
 
             expect(result).to.deep.equal(mockWorkspaces);
-            expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
+            expect(mockHttpHelper.get).to.have.been.calledOnceWith(
                 "https://api.fabric.microsoft.com/v1/workspaces",
-                "test-access-token",
+                expectedGetOptions,
             );
         });
 
@@ -177,14 +176,14 @@ suite("FabricHelper", () => {
             };
 
             const mockResponse = { value: mockWorkspace };
-            mockHttpHelper.makeGetRequest.resolves(createHttpResponse(mockResponse));
+            mockHttpHelper.get.resolves(createHttpResponse(mockResponse));
 
             const result = await FabricHelper.getFabricWorkspace("workspace-1", "mock-tenant-id");
 
             expect(result).to.deep.equal({ value: mockWorkspace });
-            expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
+            expect(mockHttpHelper.get).to.have.been.calledOnceWith(
                 "https://api.fabric.microsoft.com/v1/workspaces/workspace-1",
-                "test-access-token",
+                expectedGetOptions,
             );
         });
 
@@ -206,7 +205,7 @@ suite("FabricHelper", () => {
             ];
 
             const mockResponse = { value: mockDatabases };
-            mockHttpHelper.makeGetRequest.resolves(createHttpResponse(mockResponse));
+            mockHttpHelper.get.resolves(createHttpResponse(mockResponse));
 
             const result = await FabricHelper.getFabricDatabases(
                 { displayName: "Test Workspace", id: "test-workspace-id" } as IWorkspace,
@@ -225,9 +224,9 @@ suite("FabricHelper", () => {
                     type: "SQLDatabase",
                 },
             ]);
-            expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
+            expect(mockHttpHelper.get).to.have.been.calledOnceWith(
                 "https://api.fabric.microsoft.com/v1/workspaces/test-workspace-id/sqlDatabases",
-                "test-access-token",
+                expectedGetOptions,
             );
         });
 
@@ -244,7 +243,7 @@ suite("FabricHelper", () => {
             ];
 
             const mockResponse = { value: mockDatabases };
-            mockHttpHelper.makeGetRequest.resolves(createHttpResponse(mockResponse));
+            mockHttpHelper.get.resolves(createHttpResponse(mockResponse));
 
             const result = await FabricHelper.getFabricSqlEndpoints(
                 { displayName: "Test Workspace", id: "test-workspace-id" } as IWorkspace,
@@ -263,9 +262,9 @@ suite("FabricHelper", () => {
                     type: "SQLEndpoint",
                 },
             ]);
-            expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
+            expect(mockHttpHelper.get).to.have.been.calledOnceWith(
                 "https://api.fabric.microsoft.com/v1/workspaces/test-workspace-id/sqlEndpoints",
-                "test-access-token",
+                expectedGetOptions,
             );
         });
 
@@ -287,7 +286,7 @@ suite("FabricHelper", () => {
             ];
 
             const mockResponse = { value: mockWarehouses };
-            mockHttpHelper.makeGetRequest.resolves(createHttpResponse(mockResponse));
+            mockHttpHelper.get.resolves(createHttpResponse(mockResponse));
 
             const result = await FabricHelper.getFabricWarehouses(
                 { displayName: "Test Workspace", id: "test-workspace-id" } as IWorkspace,
@@ -306,9 +305,9 @@ suite("FabricHelper", () => {
                     type: "Warehouse",
                 },
             ]);
-            expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
+            expect(mockHttpHelper.get).to.have.been.calledOnceWith(
                 "https://api.fabric.microsoft.com/v1/workspaces/test-workspace-id/warehouses",
-                "test-access-token",
+                expectedGetOptions,
             );
         });
 
@@ -319,12 +318,7 @@ suite("FabricHelper", () => {
                 message: "Capacity not found",
             };
 
-            mockHttpHelper.makeGetRequest.resolves({
-                data: fabricError,
-                status: 404,
-                statusText: "Not Found",
-                headers: {},
-            });
+            mockHttpHelper.get.resolves(createHttpResponse(fabricError, 404, "Not Found"));
 
             try {
                 await FabricHelper.getFabricWorkspaces(capacityId);

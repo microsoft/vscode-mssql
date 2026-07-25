@@ -18,7 +18,7 @@ import {
 } from "../sharedInterfaces/fabric";
 import { IHttpResponse, VscodeHttpClient } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../utils/utils";
-import { Fabric as Loc, Proxy } from "../constants/locConstants";
+import { Fabric as Loc } from "../constants/locConstants";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
@@ -371,15 +371,14 @@ export class FabricHelper {
     ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.getFabricApiUriBase(), api);
         const fabricLogger = FabricHelper.getFabricLogger();
-        const httpHelper = new VscodeHttpClient({
-            logger: fabricLogger,
-            messages: Proxy,
-        });
+        const httpHelper = new VscodeHttpClient({ logger: fabricLogger });
 
         const session = await this.createScopedFabricSession(tenantId, reason);
-        let token = session?.accessToken;
+        const token = session?.accessToken;
 
-        const response = await httpHelper.makeGetRequest<TResponse>(uri.toString(), token);
+        const response = await httpHelper.get<TResponse>(uri.toString(), {
+            headers: this.createAuthorizationHeaders(token),
+        });
         const result = response.data;
 
         if (isFabricError(result)) {
@@ -400,28 +399,30 @@ export class FabricHelper {
     ): Promise<TResponse> {
         const uri = vscode.Uri.joinPath(this.getFabricApiUriBase(), api);
         const fabricLogger = FabricHelper.getFabricLogger();
-        const httpHelper = new VscodeHttpClient({
-            logger: fabricLogger,
-            messages: Proxy,
-        });
+        const httpHelper = new VscodeHttpClient({ logger: fabricLogger });
 
         const session = await this.createScopedFabricSession(tenantId, reason, scopes);
         const token = session?.accessToken;
+        const headers = this.createAuthorizationHeaders(token);
 
-        let response = await httpHelper.makePostRequest<TResponse, TPayload>(
-            uri.toString(),
-            token,
-            payload,
-        );
+        let response = await httpHelper.postJson<TResponse, TPayload>(uri.toString(), payload, {
+            headers,
+        });
 
         if (response.status === this.longRunningOperationCode) {
             fabricLogger.debug(`Handling long-running Fabric operation for API: ${api}`);
+
+            const location = response.headers.get("location");
+            if (!location) {
+                throw new Error(Loc.fabricLongRunningApiMissingLocation);
+            }
+
             response = await this.handleLongRunningOperation(
-                response.headers["retry-after"] as string,
-                response.headers["location"],
+                response.headers.get("retry-after"),
+                location,
                 httpHelper,
                 fabricLogger,
-                token,
+                headers,
             );
         }
 
@@ -436,16 +437,29 @@ export class FabricHelper {
     }
 
     /**
+     * Builds the bearer authorization header for a Fabric request, if a token is available.
+     */
+    private static createAuthorizationHeaders(
+        token: string | undefined,
+    ): Record<string, string> | undefined {
+        return token ? { Authorization: `Bearer ${token}` } : undefined;
+    }
+
+    /**
      * Polls a long-running Fabric API operation until it completes, then fetches the final result.
      */
     private static async handleLongRunningOperation<TResponse>(
-        retryAfter: string,
+        retryAfter: string | undefined,
         location: string,
         httpHelper: VscodeHttpClient,
         fabricLogger: ILogger,
-        token?: string,
+        headers: Record<string, string> | undefined,
     ): Promise<IHttpResponse<TResponse>> {
-        const retryAfterInMs = parseInt(retryAfter, 10) || this.defaultRetryInMs;
+        const parsedRetryAfter = retryAfter === undefined ? Number.NaN : parseInt(retryAfter, 10);
+        const retryAfterInMs =
+            Number.isFinite(parsedRetryAfter) && parsedRetryAfter > 0
+                ? parsedRetryAfter
+                : this.defaultRetryInMs;
 
         let longRunningResponse: IHttpResponse<IOperationState> | undefined;
         while (
@@ -457,7 +471,7 @@ export class FabricHelper {
                 `Long-running operation in progress. Waiting ${retryAfterInMs} seconds before next poll...`,
             );
             await new Promise((resolve) => setTimeout(resolve, retryAfterInMs * 1000));
-            longRunningResponse = await httpHelper.makeGetRequest<IOperationState>(location, token);
+            longRunningResponse = await httpHelper.get<IOperationState>(location, { headers });
         }
 
         if (longRunningResponse.data.status === IOperationStatus.Failed) {
@@ -474,10 +488,12 @@ export class FabricHelper {
             `Long-running operation completed successfully. Fetching final result...`,
         );
 
-        return await httpHelper.makeGetRequest<TResponse>(
-            longRunningResponse.headers["location"],
-            token,
-        );
+        const resultLocation = longRunningResponse.headers.get("location");
+        if (!resultLocation) {
+            throw new Error(Loc.fabricLongRunningApiMissingLocation);
+        }
+
+        return await httpHelper.get<TResponse>(resultLocation, { headers });
     }
 
     /**

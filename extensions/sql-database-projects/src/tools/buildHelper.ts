@@ -195,13 +195,11 @@ export class BuildHelper {
         outputChannel: vscode.OutputChannel,
     ): Promise<void> {
         try {
-            const httpClient = new VscodeHttpClient({
-                messages: constants.Proxy,
-            });
+            const httpClient = new VscodeHttpClient();
             outputChannel.appendLine(constants.downloadingFromTo(downloadUrl, nugetPath));
             let totalBytes: number | undefined;
             let printThreshold = 0.1;
-            const result = await httpClient.downloadFile(downloadUrl, nugetPath, {
+            const result = await httpClient.downloadToPath(downloadUrl, nugetPath, {
                 onProgress: (progress) => {
                     if (progress.downloadedBytes === 0) {
                         totalBytes = progress.totalBytes;
@@ -215,6 +213,7 @@ export class BuildHelper {
 
                     if (
                         totalBytes !== undefined &&
+                        totalBytes > 0 &&
                         progress.downloadedBytes / totalBytes >= printThreshold
                     ) {
                         outputChannel.appendLine(

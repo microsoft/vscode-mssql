@@ -23,7 +23,6 @@ import { RequestType } from "vscode-languageclient";
 import { stubExtensionContext } from "./utils";
 import { ChangelogWebviewController } from "../../src/controllers/changelogWebviewController";
 import * as LocalizationCache from "../../src/controllers/localizationCache";
-import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { UserSurvey } from "../../src/nps/userSurvey";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as UriOwnershipInitialization from "../../src/uriOwnership/uriOwnershipInitialization";
@@ -87,7 +86,6 @@ suite("Extension API Tests", () => {
         sandbox.stub(LocalizationCache, "initializeWebviewLocalizationCache").returns();
         sandbox.stub(IconUtils, "initialize").returns();
         sandbox.stub(UserSurvey, "createInstance").returns();
-        sandbox.stub(VscodeHttpClient.prototype, "warnOnInvalidProxySettings").returns();
         sandbox.stub(MainController.prototype, "activate").resolves(true);
 
         const sqlToolsClient: sinon.SinonStubbedInstance<SqlToolsServerClient> =
@@ -95,10 +93,17 @@ suite("Extension API Tests", () => {
         sandbox.stub(sqlToolsClient, "sqlToolsServicePath").get(() => "test/sqltoolsservice");
         sqlToolsClient.onNotification.returns(disposable); // handler stub necessary depending on test execution order
 
-        sandbox.stub(UriOwnershipInitialization, "createUriOwnershipCoordinator").returns({
-            uriOwnershipApi: {},
-            isActiveEditorOwnedByOtherExtensionWithWarning: () => false,
-        } as UriOwnershipCoordinator);
+        const uriOwnershipCoordinatorStub = Object.assign(
+            sandbox.createStubInstance(UriOwnershipCoordinator),
+            {
+                uriOwnershipApi: {},
+                onCoordinatingOwnershipChanged: sandbox.stub(),
+            },
+        );
+        uriOwnershipCoordinatorStub.isActiveEditorOwnedByOtherExtensionWithWarning.returns(false);
+        sandbox
+            .stub(UriOwnershipInitialization, "createUriOwnershipCoordinator")
+            .returns(uriOwnershipCoordinatorStub);
         sandbox.stub(UriOwnershipInitialization, "initializeUriOwnershipCoordinator").returns();
 
         vscodeMssql = await Extension.activate(context);

@@ -41,17 +41,27 @@
     ],
     "scripts": {
         "build": "tsc -p tsconfig.json",
+        "build:test": "tsc -p tsconfig.test.json",
         "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
-        "lint": "eslint --quiet --cache ./src"
+        "lint": "eslint --quiet --cache ./src",
+        "test": "npm run build:test && mocha \"out/test/**/*.test.js\" --timeout 10000"
     },
     "dependencies": {
         "axios": "^1.18.0",
         "tunnel": "0.0.6"
     },
     "devDependencies": {
+        "@types/chai": "^5.2.2",
+        "@types/mocha": "^10.0.10",
         "@types/node": "^22.13.14",
+        "@types/sinon": "^10.0.12",
+        "@types/sinon-chai": "^4.0.0",
         "@types/tunnel": "0.0.1",
         "@types/vscode": "1.101.0",
+        "chai": "^5.3.3",
+        "mocha": "^11.7.5",
+        "sinon": "^21.0.3",
+        "sinon-chai": "^4.0.1",
         "typescript": "^5.8.3"
     }
 }

@@ -6,7 +6,8 @@
 import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as chai from "chai";
-import { IStatusView } from "../../src/languageservice/interfaces";
+import * as tmp from "tmp";
+import { IPackage, IStatusView, PackageError } from "../../src/languageservice/interfaces";
 import ServiceDownloadProvider from "../../src/languageservice/serviceDownloadProvider";
 import DownloadHelper from "../../src/languageservice/downloadHelper";
 import DecompressProvider from "../../src/languageservice/decompressProvider";
@@ -297,5 +298,158 @@ suite("ServiceDownloadProvider Tests", () => {
                 );
                 expect(testDecompressProvider.decompress).to.have.been.called;
             });
+    });
+});
+
+suite("ServiceDownloadProvider temporary file lifecycle", () => {
+    const installFolder = path.join(__dirname, "testServiceTempLifecycle");
+
+    async function captureError(action: () => Promise<unknown>): Promise<Error | undefined> {
+        try {
+            await action();
+            return undefined;
+        } catch (error) {
+            return error as Error;
+        }
+    }
+
+    let sandbox: sinon.SinonSandbox;
+    let config: sinon.SinonStubbedInstance<ConfigUtils>;
+    let statusView: sinon.SinonStubbedInstance<IStatusView>;
+    let testDownloadHelper: sinon.SinonStubbedInstance<DownloadHelper>;
+    let testDecompressProvider: sinon.SinonStubbedInstance<DecompressProvider>;
+    let testLogger: sinon.SinonStubbedInstance<ILogger>;
+    let removeCallback: sinon.SinonStub;
+    let downloadProvider: ServiceDownloadProvider;
+
+    setup(async () => {
+        sandbox = sinon.createSandbox();
+        config = sandbox.createStubInstance(ConfigUtils);
+        statusView = sandbox.createStubInstance(ServerStatusView);
+        testDownloadHelper = sandbox.createStubInstance(DownloadHelper);
+        testDecompressProvider = sandbox.createStubInstance(DecompressProvider);
+        testLogger = createStubLogger(sandbox);
+        removeCallback = sandbox.stub();
+
+        await fs.rm(installFolder, { recursive: true, force: true });
+
+        config.getSqlToolsInstallDirectory.returns(installFolder);
+        config.getSqlToolsConfigValue
+            .withArgs("downloadFileNames")
+            .returns({ Windows_64: "fileName.zip" });
+        config.getSqlToolsServiceDownloadUrl.returns("baseDownloadUrl/{#version#}/{#fileName#}");
+        config.getSqlToolsPackageVersion.returns("1.0.0");
+
+        // Descriptor 0 is a valid descriptor, so it is used here to guard against falsy checks.
+        sandbox.stub(tmp, "file").callsFake(((
+            _options: tmp.Options,
+            callback: (err: unknown, path: string, fd: number, cleanupCallback: () => void) => void,
+        ) => {
+            callback(undefined, path.join(installFolder, "package-temp"), 0, removeCallback);
+        }) as typeof tmp.file);
+
+        downloadProvider = new ServiceDownloadProvider(
+            config,
+            testLogger,
+            statusView,
+            testDownloadHelper,
+            testDecompressProvider,
+        );
+    });
+
+    teardown(async () => {
+        sandbox.restore();
+        await fs.rm(installFolder, { recursive: true, force: true });
+    });
+
+    test("passes the temporary descriptor to the download helper even when it is zero", async () => {
+        testDownloadHelper.downloadFile.resolves();
+        testDecompressProvider.decompress.resolves();
+
+        await downloadProvider.downloadAndInstallService(Runtime.Windows_64);
+
+        const downloadedPackage = testDownloadHelper.downloadFile.firstCall.args[1] as IPackage;
+        expect(testDownloadHelper.downloadFile.firstCall.args[0]).to.equal(
+            "baseDownloadUrl/1.0.0/fileName.zip",
+        );
+        expect(downloadedPackage.installPath).to.equal(installFolder);
+    });
+
+    test("removes the temporary package file exactly once after a successful install", async () => {
+        testDownloadHelper.downloadFile.resolves();
+        testDecompressProvider.decompress.resolves();
+
+        await downloadProvider.downloadAndInstallService(Runtime.Windows_64);
+
+        expect(removeCallback).to.have.been.calledOnce;
+    });
+
+    test("clears the package temporary file reference after a successful install", async () => {
+        testDownloadHelper.downloadFile.resolves();
+        testDecompressProvider.decompress.resolves();
+
+        await downloadProvider.downloadAndInstallService(Runtime.Windows_64);
+
+        const downloadedPackage = testDownloadHelper.downloadFile.firstCall.args[1] as IPackage;
+        expect(downloadedPackage.tmpFile).to.be.undefined;
+    });
+
+    test("removes the temporary package file when the download fails", async () => {
+        testDownloadHelper.downloadFile.rejects(new Error("download failed"));
+
+        const thrownError = await captureError(() =>
+            downloadProvider.downloadAndInstallService(Runtime.Windows_64),
+        );
+
+        expect(thrownError?.message).to.equal("download failed");
+        expect(removeCallback).to.have.been.calledOnce;
+        expect(testDecompressProvider.decompress).to.not.have.been.called;
+    });
+
+    test("removes the temporary package file after an HTTP non-success response", async () => {
+        testDownloadHelper.downloadFile.rejects(new PackageError("404"));
+
+        const thrownError = await captureError(() =>
+            downloadProvider.downloadAndInstallService(Runtime.Windows_64),
+        );
+
+        expect(thrownError?.message).to.equal("404");
+        expect(removeCallback).to.have.been.calledOnce;
+        expect(testDecompressProvider.decompress).to.not.have.been.called;
+    });
+
+    test("removes the temporary package file after a response-stream failure", async () => {
+        testDownloadHelper.downloadFile.rejects(new PackageError("Response error: ECONNRESET"));
+
+        const thrownError = await captureError(() =>
+            downloadProvider.downloadAndInstallService(Runtime.Windows_64),
+        );
+
+        expect(thrownError?.message).to.equal("Response error: ECONNRESET");
+        expect(removeCallback).to.have.been.calledOnce;
+        expect(testDecompressProvider.decompress).to.not.have.been.called;
+    });
+
+    test("removes the temporary package file when decompression fails", async () => {
+        testDownloadHelper.downloadFile.resolves();
+        testDecompressProvider.decompress.rejects(new Error("decompress failed"));
+
+        const thrownError = await captureError(() =>
+            downloadProvider.downloadAndInstallService(Runtime.Windows_64),
+        );
+
+        expect(thrownError?.message).to.equal("decompress failed");
+        expect(removeCallback).to.have.been.calledOnce;
+    });
+
+    test("logs a warning and still succeeds when temporary file cleanup throws", async () => {
+        testDownloadHelper.downloadFile.resolves();
+        testDecompressProvider.decompress.resolves();
+        removeCallback.throws(new Error("cleanup failed"));
+
+        const actual = await downloadProvider.downloadAndInstallService(Runtime.Windows_64);
+
+        expect(actual).to.be.true;
+        expect(testLogger.warn).to.have.been.calledWithMatch("cleanup failed");
     });
 });

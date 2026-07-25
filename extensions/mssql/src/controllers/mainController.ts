@@ -118,7 +118,11 @@ import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabas
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
-import { VscodeHttpClient } from "extension-toolkit/vscode";
+import {
+    describeProxyConfigurationIssue,
+    getVscodeProxyConfigurationIssue,
+    ProxyConfigurationIssue,
+} from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
@@ -202,10 +206,20 @@ export default class MainController implements vscode.Disposable {
         this.configuration = vscode.workspace.getConfiguration();
 
         UserSurvey.createInstance(this._context);
-        new VscodeHttpClient({
-            logger: this._logger,
-            messages: LocalizedConstants.Proxy,
-        }).warnOnInvalidProxySettings();
+        this.warnOnInvalidProxySettings();
+    }
+
+    /**
+     * Surfaces a localized warning when the `http.proxy` setting cannot be used.
+     */
+    private warnOnInvalidProxySettings(): void {
+        const issue = getVscodeProxyConfigurationIssue();
+        if (!issue) {
+            return;
+        }
+
+        void vscode.window.showWarningMessage(getProxyIssueMessage(issue));
+        this._logger.warn(describeProxyConfigurationIssue(issue));
     }
 
     /**
@@ -3644,4 +3658,18 @@ export default class MainController implements vscode.Disposable {
             await this.profilerController.openXelFile(filePath);
         }
     };
+}
+
+/**
+ * Maps a proxy configuration issue onto the extension's localized warning text.
+ */
+function getProxyIssueMessage(issue: ProxyConfigurationIssue): string {
+    switch (issue.kind) {
+        case "missing-protocol":
+            return LocalizedConstants.Proxy.missingProtocolWarning;
+        case "unsupported-protocol":
+            return LocalizedConstants.Proxy.unsupportedProtocolWarning(issue.protocol);
+        default:
+            return LocalizedConstants.Proxy.unparseableWarning;
+    }
 }

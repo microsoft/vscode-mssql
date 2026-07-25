@@ -18,6 +18,7 @@ import * as fs from "fs/promises";
 import { ILogger } from "../sharedInterfaces/logger";
 import DownloadHelper from "./downloadHelper";
 import { getServiceExecutablePath, ServiceExecutable } from "./serviceExecutablePaths";
+import { getErrorMessage } from "../utils/utils";
 
 /*
  * Service Download Provider class which handles downloading the SQL tools service.
@@ -156,12 +157,22 @@ export default class ServiceDownloadProvider {
 
         try {
             await this._downloadHelper.downloadFile(pkg.url, pkg, this._logger, this._statusView);
-            this._logger.debug(`Downloaded to ${pkg.tmpFile.name}...`);
+            this._logger.debug(`Downloaded to ${tmpResult.name}...`);
             this._logger.info(" Done!");
             await this.decompressAndInstallPackage(pkg);
         } catch (err) {
             this._logger.info(`[ERROR] ${err}`);
             throw err;
+        } finally {
+            try {
+                tmpResult.removeCallback();
+            } catch (cleanupError) {
+                this._logger.warn(
+                    `Failed to clean up temporary package file: ${getErrorMessage(cleanupError)}`,
+                );
+            } finally {
+                pkg.tmpFile = undefined;
+            }
         }
         return true;
     }
