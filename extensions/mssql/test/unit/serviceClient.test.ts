@@ -10,6 +10,7 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 import * as Constants from "../../src/constants/constants";
 import {
+    Common as CommonLoc,
     Formatter as FormatterLoc,
     ServiceClient as ServiceClientLoc,
 } from "../../src/constants/locConstants";
@@ -44,6 +45,7 @@ suite("Service Client tests", () => {
     let testServiceProvider: sinon.SinonStubbedInstance<ServerProvider>;
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
     let loggerShowStub: sinon.SinonStub;
+    let loggerErrorStub: sinon.SinonStub;
     let dotnetRuntimeProvider: sinon.SinonStubbedInstance<DotnetRuntimeProvider>;
     let sendActionEvent: sinon.SinonStub;
     let originalStsOverride: string | undefined;
@@ -53,6 +55,7 @@ suite("Service Client tests", () => {
         testServiceProvider = sandbox.createStubInstance(ServerProvider);
         testStatusView = sandbox.createStubInstance(StatusView);
         loggerShowStub = sandbox.stub(Logger.prototype, "show");
+        loggerErrorStub = sandbox.stub(Logger.prototype, "error");
         dotnetRuntimeProvider = sandbox.createStubInstance(DotnetRuntimeProvider);
         ({ sendActionEvent } = stubTelemetry(sandbox));
         originalStsOverride = process.env.MSSQL_SQLTOOLSSERVICE;
@@ -182,7 +185,7 @@ suite("Service Client tests", () => {
         expect(showWarningMessage).to.have.been.calledWith(
             FormatterLoc.parseError,
             FormatterLoc.sendFeedback,
-            FormatterLoc.dontShowAgain,
+            CommonLoc.dontShowAgain,
         );
         expect(openExternal).to.have.been.calledWith(vscode.Uri.parse(Constants.feedbackUrl));
         expect(sendActionEvent).to.have.been.calledWith(
@@ -194,7 +197,7 @@ suite("Service Client tests", () => {
     test("persists formatter parse-error notification suppression", async () => {
         const serviceClient = createServiceClient();
         const update = stubFormatterNotificationConfiguration();
-        stubMessageBoxes(sandbox).showWarningMessage.resolves(FormatterLoc.dontShowAgain);
+        stubMessageBoxes(sandbox).showWarningMessage.resolves(CommonLoc.dontShowAgain);
 
         await serviceClient.showFormattingFailedNotification(formattingFailedEvent());
 
@@ -206,6 +209,20 @@ suite("Service Client tests", () => {
         expect(sendActionEvent).to.have.been.calledWith(
             TelemetryViews.QueryEditor,
             TelemetryActions.FormatterParseErrorDontShowAgain,
+        );
+    });
+
+    test("logs formatter notification handling failures", async () => {
+        const serviceClient = createServiceClient();
+        const error = new Error("notification failed");
+        sandbox.stub(serviceClient, "showFormattingFailedNotification").rejects(error);
+
+        serviceClient.handleFormattingFailedNotification()(formattingFailedEvent());
+        await new Promise((resolve) => setImmediate(resolve));
+
+        expect(loggerErrorStub).to.have.been.calledWith(
+            "Failed to handle formatting failure notification.",
+            error.message,
         );
     });
 

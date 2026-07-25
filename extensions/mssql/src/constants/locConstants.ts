@@ -3928,7 +3928,6 @@ export class Formatter {
         "SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.",
     );
     public static sendFeedback = l10n.t("Send Feedback");
-    public static dontShowAgain = l10n.t("Don't Show Again");
 }
 
 export const azureSignInFailed = l10n.t("Azure sign in failed.");

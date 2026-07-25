@@ -28,7 +28,7 @@ import DownloadHelper from "./downloadHelper";
 import ExtConfig from "../configurations/extConfig";
 import DotnetRuntimeProvider from "./dotnetRuntimeProvider";
 import { PlatformInformation, Runtime } from "../models/platform";
-import { Formatter, ServiceClient } from "../constants/locConstants";
+import { Common, Formatter, ServiceClient } from "../constants/locConstants";
 import { ServerStatusView } from "./serverStatus";
 import StatusView from "../views/statusView";
 import * as LanguageServiceContracts from "../models/contracts/languageService";
@@ -518,7 +518,12 @@ export default class SqlToolsServiceClient {
      */
     public handleFormattingFailedNotification(): NotificationHandler<LanguageServiceContracts.FormattingFailedParams> {
         return (event: LanguageServiceContracts.FormattingFailedParams): void => {
-            void this.showFormattingFailedNotification(event);
+            void this.showFormattingFailedNotification(event).catch((error) => {
+                logger.error(
+                    "Failed to handle formatting failure notification.",
+                    getErrorMessage(error),
+                );
+            });
         };
     }
 
@@ -544,7 +549,7 @@ export default class SqlToolsServiceClient {
             const action = await vscode.window.showWarningMessage(
                 Formatter.parseError,
                 Formatter.sendFeedback,
-                Formatter.dontShowAgain,
+                Common.dontShowAgain,
             );
 
             if (action === Formatter.sendFeedback) {
@@ -553,7 +558,7 @@ export default class SqlToolsServiceClient {
                     TelemetryActions.FormatterParseErrorSendFeedback,
                 );
                 await vscode.env.openExternal(vscode.Uri.parse(Constants.feedbackUrl));
-            } else if (action === Formatter.dontShowAgain) {
+            } else if (action === Common.dontShowAgain) {
                 sendActionEvent(
                     TelemetryViews.QueryEditor,
                     TelemetryActions.FormatterParseErrorDontShowAgain,
