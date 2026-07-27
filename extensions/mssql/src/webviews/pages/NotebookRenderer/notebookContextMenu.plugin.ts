@@ -20,7 +20,7 @@
 import { locConstants } from "../../common/locConstants";
 import { IDisposableDataProvider } from "../QueryResult/table/dataProvider";
 import type { IDbColumn } from "../../../sharedInterfaces/queryResult";
-import { isMac } from "../../common/utils";
+import { getEOL, isMac } from "../../common/utils";
 
 /** Get the modifier key label for keyboard shortcuts (lazy evaluation to support testing) */
 const getModKeyLabel = () => (isMac() ? "⌘" : "Ctrl+");
@@ -596,7 +596,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                 lines.push(values.join("\t"));
             }
         }
-        return lines.join("\n");
+        return lines.join(getEOL());
     }
 
     private formatHeaders(ranges: Slick.Range[], columns: Slick.Column<T>[]): string {
@@ -605,7 +605,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             const dataCols = this.getDataColumnsInRange(columns, range.fromCell, range.toCell);
             headers.push(dataCols.map((c) => c.name ?? "").join("\t"));
         }
-        return headers.join("\n");
+        return headers.join(getEOL());
     }
 
     private formatAsCsv(
@@ -638,7 +638,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                 );
             }
         }
-        return lines.join("\r\n");
+        return lines.join(getEOL());
     }
 
     private formatAsJson(
@@ -659,6 +659,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             };
         });
 
+        const eol = getEOL();
         const rows: string[] = [];
         for (const range of ranges) {
             for (let r = range.fromRow; r <= range.toRow; r++) {
@@ -675,10 +676,10 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                     }
                     pairs.push(`    ${key}: ${val}`);
                 }
-                rows.push(`  {\n${pairs.join(",\n")}\n  }`);
+                rows.push(`  {${eol}${pairs.join(`,${eol}`)}${eol}  }`);
             }
         }
-        return `[\n${rows.join(",\n")}\n]`;
+        return `[${eol}${rows.join(`,${eol}`)}${eol}]`;
     }
 
     /** Returns null unless every range covers the same single data column (caller shows error). */
@@ -717,7 +718,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         }
 
         const indented = valueLines.map((v, i, a) => `    ${v}${i < a.length - 1 ? "," : ""}`);
-        return ["IN", "(", ...indented, ")"].join("\n");
+        return ["IN", "(", ...indented, ")"].join(getEOL());
     }
 
     private showError(message: string): void {
@@ -768,7 +769,7 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             .join(", ");
         const rowLines = valueRows.map((row, i, a) => row + (i < a.length - 1 ? "," : ";"));
 
-        return [`INSERT INTO TableName (${colNames})`, "VALUES", ...rowLines].join("\n");
+        return [`INSERT INTO TableName (${colNames})`, "VALUES", ...rowLines].join(getEOL());
     }
 
     private isNumericSqlType(dataTypeName: string | undefined): boolean {

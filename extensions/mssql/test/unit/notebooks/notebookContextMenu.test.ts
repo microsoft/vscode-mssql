@@ -8,11 +8,14 @@ import { NotebookContextMenu } from "../../../src/webviews/pages/NotebookRendere
 import type { IDbColumn } from "vscode-mssql";
 import type { IDisposableDataProvider } from "../../../src/webviews/pages/QueryResult/table/dataProvider";
 
-// Mock navigator.platform for isMac() in notebookContextMenu.plugin
+// Mock navigator for isMac() and getEOL() in notebookContextMenu.plugin.
+// getEOL() derives the line separator from userAgent, so it is pinned to Windows
+// here (matching platform above) and the expected output below uses CRLF.
 // Use Object.defineProperty because navigator is read-only in Electron
 Object.defineProperty(global, "navigator", {
     value: {
         platform: "Win32",
+        userAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
         clipboard: {
             writeText: async () => {},
         },
@@ -263,7 +266,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("Alice") }];
             const result = fmt.inClause(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("IN\n(\n    'Alice'\n)");
+            expect(result).to.equal("IN\r\n(\r\n    'Alice'\r\n)");
         });
 
         test("leaves numeric values unquoted", () => {
@@ -271,7 +274,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Id")];
             const rows: CellRow[] = [{ "0": makeCell("42") }];
             const result = fmt.inClause(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("IN\n(\n    42\n)");
+            expect(result).to.equal("IN\r\n(\r\n    42\r\n)");
         });
 
         test("emits NULL keyword for null cells", () => {
@@ -279,7 +282,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Id")];
             const rows: CellRow[] = [{ "0": makeCell("", true) }];
             const result = fmt.inClause(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("IN\n(\n    NULL\n)");
+            expect(result).to.equal("IN\r\n(\r\n    NULL\r\n)");
         });
 
         test("single-quotes numeric values in E-notation", () => {
@@ -287,7 +290,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Val")];
             const rows: CellRow[] = [{ "0": makeCell("1.5E+10") }];
             const result = fmt.inClause(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("IN\n(\n    '1.5E+10'\n)");
+            expect(result).to.equal("IN\r\n(\r\n    '1.5E+10'\r\n)");
         });
 
         test("comma-separates multiple values with no trailing comma on the last", () => {
@@ -299,7 +302,7 @@ suite("NotebookContextMenu formatters", () => {
                 { "0": makeCell("3") },
             ];
             const result = fmt.inClause(menu, [makeRange(0, 2, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("IN\n(\n    1,\n    2,\n    3\n)");
+            expect(result).to.equal("IN\r\n(\r\n    1,\r\n    2,\r\n    3\r\n)");
         });
 
         test("escapes single quotes inside string values", () => {
@@ -307,7 +310,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("O'Brien") }];
             const result = fmt.inClause(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("IN\n(\n    'O''Brien'\n)");
+            expect(result).to.equal("IN\r\n(\r\n    'O''Brien'\r\n)");
         });
     });
 
@@ -317,7 +320,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("Alice") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName (Name)\nVALUES\n    ('Alice');");
+            expect(result).to.equal("INSERT INTO TableName (Name)\r\nVALUES\r\n    ('Alice');");
         });
 
         test("leaves numeric column values unquoted", () => {
@@ -325,7 +328,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Id")];
             const rows: CellRow[] = [{ "0": makeCell("42") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName (Id)\nVALUES\n    (42);");
+            expect(result).to.equal("INSERT INTO TableName (Id)\r\nVALUES\r\n    (42);");
         });
 
         test("emits NULL for null cells", () => {
@@ -333,7 +336,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("", true) }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName (Name)\nVALUES\n    (NULL);");
+            expect(result).to.equal("INSERT INTO TableName (Name)\r\nVALUES\r\n    (NULL);");
         });
 
         test("single-quotes numeric values in E-notation", () => {
@@ -341,7 +344,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Val")];
             const rows: CellRow[] = [{ "0": makeCell("1.5E+10") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName (Val)\nVALUES\n    ('1.5E+10');");
+            expect(result).to.equal("INSERT INTO TableName (Val)\r\nVALUES\r\n    ('1.5E+10');");
         });
 
         test("escapes single quotes inside string values", () => {
@@ -349,7 +352,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("O'Brien") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName (Name)\nVALUES\n    ('O''Brien');");
+            expect(result).to.equal("INSERT INTO TableName (Name)\r\nVALUES\r\n    ('O''Brien');");
         });
 
         test("comma after each row except the last which gets a semicolon", () => {
@@ -362,7 +365,7 @@ suite("NotebookContextMenu formatters", () => {
             ];
             const result = fmt.insertInto(menu, [makeRange(0, 2, 0, 0)], cols, makeProvider(rows));
             expect(result).to.equal(
-                "INSERT INTO TableName (Id)\nVALUES\n    (1),\n    (2),\n    (3);",
+                "INSERT INTO TableName (Id)\r\nVALUES\r\n    (1),\r\n    (2),\r\n    (3);",
             );
         });
 
@@ -371,7 +374,9 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Id"), makeCol(1, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("1"), "1": makeCell("Alice") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 1)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO TableName (Id, Name)\nVALUES\n    (1, 'Alice');");
+            expect(result).to.equal(
+                "INSERT INTO TableName (Id, Name)\r\nVALUES\r\n    (1, 'Alice');",
+            );
         });
 
         test("uses toolTip as column name when present", () => {
@@ -486,7 +491,7 @@ suite("NotebookContextMenu formatters", () => {
             const ranges = [makeRange(0, 0, 0, 0), makeRange(1, 1, 1, 1)];
             const result = fmt.insertInto(menu, ranges, cols, makeProvider(rows));
             expect(result).to.equal(
-                "INSERT INTO TableName (A, B)\nVALUES\n    ('a0', NULL),\n    (NULL, 'b1');",
+                "INSERT INTO TableName (A, B)\r\nVALUES\r\n    ('a0', NULL),\r\n    (NULL, 'b1');",
             );
         });
 
@@ -530,7 +535,7 @@ suite("NotebookContextMenu formatters", () => {
             ];
             const ranges = [makeRange(0, 0, 0, 0), makeRange(2, 2, 0, 0)];
             const result = fmt.inClause(menu, ranges, cols, makeProvider(rows));
-            expect(result).to.equal("IN\n(\n    'a0',\n    'a2'\n)");
+            expect(result).to.equal("IN\r\n(\r\n    'a0',\r\n    'a2'\r\n)");
         });
     });
 });
