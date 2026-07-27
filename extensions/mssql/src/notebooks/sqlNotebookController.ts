@@ -30,6 +30,13 @@ import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInter
 
 const NOTEBOOK_RESULT_RENDERER_ID = "ms-mssql.sql-result-renderer";
 
+/**
+ * How long a connection manager parked by the close of an untitled notebook
+ * waits to be adopted by the file-based notebook that replaces it on save,
+ * before being disposed (which closes its connection).
+ */
+const SAVE_ADOPTION_TTL_MS = 10000;
+
 const MIME_TEXT_PLAIN = "text/plain";
 const MIME_NOTEBOOK_QUERY_RESULT = "application/vnd.mssql.query-result";
 type NotebookTextualResultBlock = Exclude<NotebookQueryResultBlock, NotebookQueryResultGridBlock>;
@@ -78,6 +85,30 @@ export class SqlNotebookController implements vscode.Disposable {
     // SQL kernelspec/language_info metadata so the .ipynb file identifies as SQL
     // (not Python) when reopened.
     private readonly selectedNotebooks = new WeakSet<vscode.NotebookDocument>();
+    /**
+     * Connection managers parked when a connected untitled notebook closes.
+     * Saving an untitled notebook REPLACES its NotebookDocument with a new
+     * file-based document (close + open) rather than updating the URI in
+     * place, so disposing on close would drop the connection mid-save. The
+     * file-based notebook that opens with matching cell content adopts the
+     * parked manager; unclaimed managers are disposed after a short TTL.
+     * Keyed by the closed notebook's URI string.
+     */
+    private readonly pendingSaveAdoptions = new Map<
+        string,
+        {
+            mgr: NotebookConnectionManager;
+            signature: string;
+            timer: ReturnType<typeof setTimeout>;
+        }
+    >();
+    /**
+     * Notebook URIs recently seen opening, with their open timestamps.
+     * Used by the park-time adoption scan so a parked connection is only
+     * offered to notebooks that appeared around the save transition — not to
+     * long-open unrelated notebooks that happen to have matching content.
+     */
+    private readonly recentNotebookOpens = new Map<string, number>();
 
     constructor(
         private connectionMgr: ConnectionManager,
@@ -128,12 +159,12 @@ export class SqlNotebookController implements vscode.Disposable {
 
         // Auto-detect SQL notebooks and set affinity so VS Code
         // auto-selects our kernel instead of showing "Detecting Kernels".
+        // Also adopt any connection manager parked by the close of the
+        // untitled notebook this document replaced on save.
         this.disposables.push(
-            vscode.workspace.onDidOpenNotebookDocument((notebook) => {
-                if (notebook.notebookType === "jupyter-notebook") {
-                    this.setAffinityIfSql(notebook);
-                }
-            }),
+            vscode.workspace.onDidOpenNotebookDocument((notebook) =>
+                this.handleNotebookOpened(notebook),
+            ),
         );
 
         // Set affinity for notebooks already open when the extension activates
@@ -174,23 +205,33 @@ export class SqlNotebookController implements vscode.Disposable {
         this.disposables.push(
             vscode.workspace.onDidSaveNotebookDocument((notebook) => {
                 // Persist connection metadata under the final file URI (handles untitled → saved file URI change)
-                this.rekeyConnectionOnSave(notebook);
+                const uriChanged = this.rekeyConnectionOnSave(notebook);
+                if (uriChanged) {
+                    // The notebook URI changed (untitled → file), which re-created every
+                    // cell document under a new URI. Transfer the IntelliSense
+                    // registrations: disconnect the stale cell URIs from STS and
+                    // register the new ones — the notebook equivalent of the query
+                    // editor's connection transfer on save.
+                    const mgr = this.connections.get(notebook.uri.toString());
+                    mgr?.releaseCellRegistrations();
+                    this.connectCellsForIntellisense(notebook, "didSaveNotebook");
+                    this.updateStatusBar(notebook);
+                    this.codeLensProvider.refresh();
+                } else if (!this.connections.has(notebook.uri.toString())) {
+                    // The save produced a NEW document (untitled → file replacement)
+                    // that this controller has no manager for — claim the connection
+                    // from the untitled notebook it replaced.
+                    this.tryAdoptConnection(notebook);
+                }
                 this.saveConnectionMetadataIfConnected(notebook);
             }),
         );
 
-        // Clean up connection managers when notebooks are closed
+        // Clean up connection managers when notebooks are closed.
         this.disposables.push(
-            vscode.workspace.onDidCloseNotebookDocument((notebook) => {
-                const key = notebook.uri.toString();
-                const mgr = this.connections.get(key);
-                if (mgr) {
-                    this.log.info(`[onDidCloseNotebookDocument] Disposing manager for ${key}`);
-                    mgr.dispose();
-                    this.connections.delete(key);
-                }
-                // Note: WeakMap entry will be garbage collected automatically
-            }),
+            vscode.workspace.onDidCloseNotebookDocument((notebook) =>
+                this.handleNotebookClosed(notebook),
+            ),
         );
 
         const messaging = vscode.notebooks.createRendererMessaging(NOTEBOOK_RESULT_RENDERER_ID);
@@ -201,6 +242,30 @@ export class SqlNotebookController implements vscode.Disposable {
                     return;
                 }
                 void this.handleSaveAs(e.editor.notebook, message);
+            }),
+        );
+
+        // When a cell document opens after the notebook is already connected —
+        // e.g. cells re-created on save, or re-opened when their language flips
+        // to SQL after kernel selection — register it with STS for IntelliSense.
+        // Connect-time registration (connectCellsForIntellisense) can't cover
+        // these because the cell document didn't exist under that URI yet.
+        this.disposables.push(
+            vscode.workspace.onDidOpenTextDocument((doc) => {
+                if (doc.uri.scheme !== "vscode-notebook-cell" || doc.languageId !== "sql") {
+                    return;
+                }
+                const notebook = this.findNotebookForCellDocument(doc);
+                if (!notebook) {
+                    return;
+                }
+                const mgr = this.connections.get(notebook.uri.toString());
+                if (!mgr?.isConnected()) {
+                    return;
+                }
+                const cellUri = doc.uri.toString();
+                this.log.debug(`[onDidOpenTextDocument] Registering opened cell ${cellUri}`);
+                void mgr.connectCellForIntellisense(cellUri);
             }),
         );
 
@@ -469,8 +534,10 @@ export class SqlNotebookController implements vscode.Disposable {
      * When a notebook is saved (untitled → file), its URI changes but the
      * connections map still has the entry under the old key. Re-key it to
      * the new URI by tracking the notebook document object.
+     * @returns true when the notebook URI changed and a tracked connection
+     * manager was re-keyed to it.
      */
-    private rekeyConnectionOnSave(notebook: vscode.NotebookDocument): void {
+    private rekeyConnectionOnSave(notebook: vscode.NotebookDocument): boolean {
         const newKey = notebook.uri.toString();
         const oldKey = this.notebookToUri.get(notebook);
 
@@ -483,7 +550,288 @@ export class SqlNotebookController implements vscode.Disposable {
             this.log.info(`[rekeyConnectionOnSave] Re-keying connection: ${oldKey} → ${newKey}`);
             this.connections.delete(oldKey);
             this.connections.set(newKey, mgr);
+            return true;
         }
+        return false;
+    }
+
+    /**
+     * Handles a notebook document opening: sets kernel affinity for SQL
+     * notebooks and adopts any connection manager parked by the close of the
+     * untitled notebook this document replaced on save.
+     * Public for testing purposes.
+     */
+    public handleNotebookOpened(notebook: vscode.NotebookDocument): void {
+        if (notebook.notebookType !== "jupyter-notebook") {
+            return;
+        }
+        this.recordNotebookOpen(notebook);
+        this.setAffinityIfSql(notebook);
+        this.tryAdoptConnection(notebook);
+    }
+
+    /**
+     * Finds the open notebook that owns a cell text document. VS Code derives
+     * cell URIs from the notebook URI (scheme swapped, fragment added), so
+     * path-matching notebooks are checked first and membership is always
+     * verified against the notebook's actual cells; a full scan remains as
+     * fallback in case the derivation ever changes.
+     */
+    private findNotebookForCellDocument(
+        doc: vscode.TextDocument,
+    ): vscode.NotebookDocument | undefined {
+        const cellUri = doc.uri.toString();
+        const ownsCell = (nb: vscode.NotebookDocument) =>
+            nb.getCells().some((cell) => cell.document.uri.toString() === cellUri);
+
+        for (const nb of vscode.workspace.notebookDocuments) {
+            if (nb.uri.path === doc.uri.path && ownsCell(nb)) {
+                return nb;
+            }
+        }
+        return vscode.workspace.notebookDocuments.find(
+            (nb) => nb.uri.path !== doc.uri.path && ownsCell(nb),
+        );
+    }
+
+    /**
+     * Record when a notebook opened (pruning stale entries) so the park-time
+     * adoption scan can restrict itself to notebooks opened around the save
+     * transition.
+     */
+    private recordNotebookOpen(notebook: vscode.NotebookDocument): void {
+        const now = Date.now();
+        for (const [key, openedAt] of this.recentNotebookOpens) {
+            if (now - openedAt > SAVE_ADOPTION_TTL_MS) {
+                this.recentNotebookOpens.delete(key);
+            }
+        }
+        this.recentNotebookOpens.set(notebook.uri.toString(), now);
+    }
+
+    /**
+     * Whether the notebook opened recently enough to plausibly be the
+     * file-based replacement created by an untitled notebook's save.
+     */
+    private wasRecentlyOpened(uriString: string): boolean {
+        const openedAt = this.recentNotebookOpens.get(uriString);
+        return openedAt !== undefined && Date.now() - openedAt <= SAVE_ADOPTION_TTL_MS;
+    }
+
+    /**
+     * Whether any editor tab currently shows the given notebook URI. A
+     * notebook document replaced by a save keeps no tab, while a notebook the
+     * user still has open (even as a background tab) does.
+     * Public for testing purposes.
+     */
+    public isNotebookOpenInTab(uriString: string): boolean {
+        for (const group of vscode.window.tabGroups.all) {
+            for (const tab of group.tabs) {
+                if (
+                    tab.input instanceof vscode.TabInputNotebook &&
+                    tab.input.uri.toString() === uriString
+                ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Handles a notebook document closing. A connected UNTITLED notebook
+     * closing is usually the save-to-disk transition (VS Code replaces the
+     * document rather than renaming it), so its manager is parked for
+     * adoption instead of disposed.
+     * Public for testing purposes.
+     */
+    public handleNotebookClosed(notebook: vscode.NotebookDocument): void {
+        const key = notebook.uri.toString();
+        const mgr = this.connections.get(key);
+        if (!mgr) {
+            return;
+        }
+        this.connections.delete(key);
+        // Note: WeakMap entry will be garbage collected automatically
+
+        if (notebook.uri.scheme === "untitled" && mgr.isConnected()) {
+            this.parkManagerForAdoption(key, notebook, mgr);
+            return;
+        }
+
+        this.log.info(`[handleNotebookClosed] Disposing manager for ${key}`);
+        mgr.dispose();
+    }
+
+    /**
+     * Content signature used to match a closing untitled notebook with the
+     * file-based notebook that replaces it on save. Cell content is identical
+     * across the transition; cap the length to bound comparison cost.
+     */
+    private notebookContentSignature(notebook: vscode.NotebookDocument): string {
+        // Accumulate the capped prefix and total length incrementally so a
+        // large notebook never materializes its full concatenated content
+        // just to produce a 10k-char signature.
+        const maxChars = 10000;
+        const cells = notebook.getCells();
+        const separator = "\u0000";
+        let totalLength = 0;
+        let prefix = "";
+        for (let i = 0; i < cells.length; i++) {
+            const text =
+                i === 0 ? cells[i].document.getText() : separator + cells[i].document.getText();
+            totalLength += text.length;
+            if (prefix.length < maxChars) {
+                prefix += text.slice(0, maxChars - prefix.length);
+            }
+        }
+        // Include the full content length so notebooks that differ only past
+        // the comparison cap still get distinct signatures.
+        return `${cells.length}:${totalLength}:${prefix}`;
+    }
+
+    /**
+     * Park the connection manager of a closing untitled notebook so the
+     * file-based notebook created by the save can adopt it. If no notebook
+     * adopts it within the TTL (e.g. the untitled notebook was genuinely
+     * discarded), the manager is disposed, closing its connection.
+     */
+    private parkManagerForAdoption(
+        oldKey: string,
+        notebook: vscode.NotebookDocument,
+        mgr: NotebookConnectionManager,
+    ): void {
+        // VS Code reuses untitled names, so a second park can arrive under the
+        // same key while the first is still pending. The superseded manager
+        // can never be adopted once replaced — dispose it and cancel its
+        // timer so it cannot fire against the new entry.
+        const superseded = this.pendingSaveAdoptions.get(oldKey);
+        if (superseded) {
+            clearTimeout(superseded.timer);
+            this.pendingSaveAdoptions.delete(oldKey);
+            this.log.info(
+                `[parkManagerForAdoption] Superseding parked manager for reused key ${oldKey}`,
+            );
+            superseded.mgr.dispose();
+        }
+
+        const signature = this.notebookContentSignature(notebook);
+        const timer = setTimeout(() => {
+            // Only dispose the entry this timer was created for — a newer park
+            // under the same (reused) untitled URI must not be torn down by a
+            // stale timer.
+            const parked = this.pendingSaveAdoptions.get(oldKey);
+            if (parked?.mgr === mgr) {
+                this.pendingSaveAdoptions.delete(oldKey);
+                this.log.info(
+                    `[parkManagerForAdoption] No adoption within ${SAVE_ADOPTION_TTL_MS}ms for ${oldKey}; disposing manager`,
+                );
+                mgr.dispose();
+            }
+        }, SAVE_ADOPTION_TTL_MS);
+        this.pendingSaveAdoptions.set(oldKey, { mgr, signature, timer });
+        this.log.info(`[parkManagerForAdoption] Parked connected manager for ${oldKey}`);
+
+        // If the file-based notebook opened BEFORE the untitled one closed,
+        // it is already in the workspace — adopt immediately. Only notebooks
+        // that opened around the save transition are considered, so a
+        // long-open unrelated notebook with matching content is never picked.
+        for (const candidate of vscode.workspace.notebookDocuments) {
+            if (
+                candidate.notebookType === "jupyter-notebook" &&
+                this.wasRecentlyOpened(candidate.uri.toString()) &&
+                this.tryAdoptConnection(candidate)
+            ) {
+                break;
+            }
+        }
+    }
+
+    /**
+     * Transfer a connection stranded on the untitled notebook this file-based
+     * notebook replaced on save. Two sources, matched by content signature:
+     * 1. Managers parked by the untitled notebook's close event.
+     * 2. Live managers still keyed by an untitled URI whose document lingers
+     *    open — VS Code may keep the replaced untitled NotebookDocument open
+     *    (or close it late), in which case no close event has fired yet.
+     * @returns true when an adoption occurred.
+     */
+    private tryAdoptConnection(notebook: vscode.NotebookDocument): boolean {
+        if (notebook.uri.scheme === "untitled") {
+            return false;
+        }
+        const newKey = notebook.uri.toString();
+        if (this.connections.has(newKey)) {
+            return false;
+        }
+        // Skip the (cell-content) signature computation when there is nothing
+        // that could possibly be adopted.
+        const hasLiveUntitledCandidate = [...this.connections.keys()].some((key) =>
+            key.startsWith("untitled:"),
+        );
+        if (this.pendingSaveAdoptions.size === 0 && !hasLiveUntitledCandidate) {
+            return false;
+        }
+        const signature = this.notebookContentSignature(notebook);
+
+        // Source 1: manager parked by the untitled notebook's close event.
+        for (const [oldKey, parked] of this.pendingSaveAdoptions) {
+            if (parked.signature !== signature) {
+                continue;
+            }
+            clearTimeout(parked.timer);
+            this.pendingSaveAdoptions.delete(oldKey);
+            this.adoptManager(notebook, newKey, oldKey, parked.mgr);
+            return true;
+        }
+
+        // Source 2: live manager whose untitled notebook document lingers open.
+        for (const [oldKey, mgr] of this.connections) {
+            if (!oldKey.startsWith("untitled:") || !mgr.isConnected()) {
+                continue;
+            }
+            // An untitled notebook that still has an editor tab is one the
+            // user is actively using — NOT a document orphaned by a save
+            // replacement. Never steal its connection just because content
+            // matches.
+            if (this.isNotebookOpenInTab(oldKey)) {
+                continue;
+            }
+            const oldNotebook = vscode.workspace.notebookDocuments.find(
+                (nb) => nb.uri.toString() === oldKey,
+            );
+            if (!oldNotebook || this.notebookContentSignature(oldNotebook) !== signature) {
+                continue;
+            }
+            this.connections.delete(oldKey);
+            this.adoptManager(notebook, newKey, oldKey, mgr);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Complete an adoption: re-key the manager to the new notebook, re-register
+     * the (new) cell document URIs with STS for IntelliSense, persist metadata,
+     * and refresh UI state.
+     */
+    private adoptManager(
+        notebook: vscode.NotebookDocument,
+        newKey: string,
+        oldKey: string,
+        mgr: NotebookConnectionManager,
+    ): void {
+        this.connections.set(newKey, mgr);
+        this.notebookToUri.set(notebook, newKey);
+        this.log.info(`[adoptManager] Transferred connection ${oldKey} → ${newKey}`);
+
+        // The old cell URIs belong to the replaced untitled notebook; release
+        // their STS registrations and register the new cell URIs.
+        mgr.releaseCellRegistrations();
+        this.connectCellsForIntellisense(notebook, "adoptAfterSave");
+        this.saveConnectionMetadataIfConnected(notebook);
+        this.updateStatusBar(notebook);
+        this.codeLensProvider.refresh();
     }
 
     /**
@@ -1195,6 +1543,11 @@ export class SqlNotebookController implements vscode.Disposable {
             mgr.dispose();
         }
         this.connections.clear();
+        for (const parked of this.pendingSaveAdoptions.values()) {
+            clearTimeout(parked.timer);
+            parked.mgr.dispose();
+        }
+        this.pendingSaveAdoptions.clear();
         this.disposables.forEach((d) => d.dispose());
         this.statusBarItem.dispose();
         this.controller.dispose();
