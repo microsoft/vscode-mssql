@@ -169,11 +169,11 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
                 this.dismiss();
             }
         };
-        // Use setTimeout so the current right-click event doesn't immediately dismiss the menu
-        setTimeout(() => {
+        // Use queueMicrotask so the current right-click event doesn't immediately dismiss the menu
+        queueMicrotask(() => {
             menu.focus();
             document.addEventListener("mousedown", this.dismissHandler!);
-        }, 0);
+        });
 
         this.escapeHandler = (evt: KeyboardEvent) => {
             if (evt.key === "Escape") this.dismiss();
@@ -502,6 +502,39 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         return result;
     }
 
+    /**
+     * Indices of every data column touched by any range, in grid column order.
+     * A multi-range selection is flattened into one column set so the output has a
+     * single consistent shape, matching the standard query result grid.
+     */
+    private getSelectedColumnIndices(ranges: Slick.Range[], columns: Slick.Column<T>[]): number[] {
+        const selected = new Set<number>();
+        for (const range of ranges) {
+            for (let c = range.fromCell; c <= range.toCell; c++) {
+                const col = columns[c];
+                if (col?.id !== "rowNumber" && col?.field) {
+                    selected.add(c);
+                }
+            }
+        }
+        return [...selected].sort((a, b) => a - b);
+    }
+
+    /**
+     * True when the cell lies inside any selected range. Ranges sharing rows merge
+     * into fully populated rows, while ranges on different rows stay isolated so
+     * their unselected columns are emitted as blanks.
+     */
+    private isCellSelected(ranges: Slick.Range[], row: number, colIndex: number): boolean {
+        return ranges.some(
+            (rng) =>
+                row >= rng.fromRow &&
+                row <= rng.toRow &&
+                colIndex >= rng.fromCell &&
+                colIndex <= rng.toCell,
+        );
+    }
+
     private getCellDisplayValue(
         dataProvider: IDisposableDataProvider<T>,
         row: number,
@@ -586,17 +619,21 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             }
             return v;
         };
+        // No header row: the standard query result grid emits values only, and headers
+        // are available through the separate "Copy with Headers"/"Copy Headers" actions.
+        const colIndices = this.getSelectedColumnIndices(ranges, columns);
         const lines: string[] = [];
         for (const range of ranges) {
-            const dataCols = this.getDataColumnsInRange(columns, range.fromCell, range.toCell);
-            if (dataCols.length === 0) {
-                continue;
-            }
-            lines.push(dataCols.map((c) => quote(c.toolTip ?? c.name ?? "")).join(","));
             for (let r = range.fromRow; r <= range.toRow; r++) {
                 lines.push(
-                    dataCols
-                        .map((col) => quote(this.getCellDisplayValue(dataProvider, r, col.field!)))
+                    colIndices
+                        .map((c) =>
+                            this.isCellSelected(ranges, r, c)
+                                ? quote(
+                                      this.getCellDisplayValue(dataProvider, r, columns[c].field!),
+                                  )
+                                : "",
+                        )
                         .join(","),
                 );
             }
@@ -693,50 +730,23 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         columns: Slick.Column<T>[],
         dataProvider: IDisposableDataProvider<T>,
     ): string {
-        // Build the union of selected data columns across all ranges, kept in grid
-        // column order. This mirrors the standard query result grid: a multi-range
-        // selection produces a single INSERT covering every selected column, rather
-        // than silently reusing the first range's columns for every other range.
-        const selectedCols = new Set<number>();
-        for (const range of ranges) {
-            for (let c = range.fromCell; c <= range.toCell; c++) {
-                const col = columns[c];
-                if (col?.id !== "rowNumber" && col?.field) {
-                    selectedCols.add(c);
-                }
-            }
-        }
-
-        const colMeta = [...selectedCols]
-            .sort((a, b) => a - b)
-            .map((c) => {
-                const col = columns[c];
-                return {
-                    col,
-                    index: c,
-                    isNumeric: this.isNumericSqlType(this.getColumnInfo(col)?.dataTypeName),
-                };
-            });
-
-        // A cell contributes its value only if it lies inside one of the selected
-        // ranges; every other column in the row is NULL. This matches the standard
-        // query result grid: ranges sharing the same rows merge into fully populated
-        // rows, while ranges on different rows keep their columns isolated with NULLs.
-        const isCellSelected = (row: number, colIndex: number): boolean =>
-            ranges.some(
-                (rng) =>
-                    row >= rng.fromRow &&
-                    row <= rng.toRow &&
-                    colIndex >= rng.fromCell &&
-                    colIndex <= rng.toCell,
-            );
+        // Cells outside the selection are emitted as NULL so the INSERT keeps one
+        // consistent column list across every range.
+        const colMeta = this.getSelectedColumnIndices(ranges, columns).map((c) => {
+            const col = columns[c];
+            return {
+                col,
+                index: c,
+                isNumeric: this.isNumericSqlType(this.getColumnInfo(col)?.dataTypeName),
+            };
+        });
 
         const valueRows: string[] = [];
         for (const range of ranges) {
             for (let r = range.fromRow; r <= range.toRow; r++) {
                 const item = dataProvider.getItem(r) as Slick.SlickData;
                 const values = colMeta.map(({ col, index, isNumeric }) => {
-                    if (!isCellSelected(r, index)) {
+                    if (!this.isCellSelected(ranges, r, index)) {
                         return "NULL";
                     }
                     const cellVal = item?.[col.field!];
