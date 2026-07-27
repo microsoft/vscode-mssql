@@ -643,19 +643,27 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         return `[\n${rows.join(",\n")}\n]`;
     }
 
-    /** Returns null when more than one data column is selected (caller shows error). */
+    /** Returns null unless every range covers the same single data column (caller shows error). */
     private formatAsInClause(
         ranges: Slick.Range[],
         columns: Slick.Column<T>[],
         dataProvider: IDisposableDataProvider<T>,
     ): string | null {
         const valueLines: string[] = [];
+        let col: Slick.Column<T> | undefined;
+        let isNumeric = false;
 
         for (const range of ranges) {
             const rangeCols = this.getDataColumnsInRange(columns, range.fromCell, range.toCell);
             if (rangeCols.length !== 1) return null;
-            const col = rangeCols[0];
-            const isNumeric = this.isNumericSqlType(this.getColumnInfo(col)?.dataTypeName);
+            // Every range must reference the same column; ranges on different columns
+            // would produce an IN clause mixing unrelated values.
+            if (col === undefined) {
+                col = rangeCols[0];
+                isNumeric = this.isNumericSqlType(this.getColumnInfo(col)?.dataTypeName);
+            } else if (rangeCols[0].field !== col.field) {
+                return null;
+            }
 
             for (let r = range.fromRow; r <= range.toRow; r++) {
                 const item = dataProvider.getItem(r) as Slick.SlickData;
