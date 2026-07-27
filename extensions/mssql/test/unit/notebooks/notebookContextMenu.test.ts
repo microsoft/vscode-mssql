@@ -107,12 +107,12 @@ const fmt = {
 
 suite("NotebookContextMenu formatters", () => {
     suite("formatAsCsv", () => {
-        test("emits header row followed by data row", () => {
+        test("emits data rows only, without a header row", () => {
             const menu = makeMenu();
             const cols = [makeCol(0, "Name"), makeCol(1, "Age")];
             const rows: CellRow[] = [{ "0": makeCell("Alice"), "1": makeCell("30") }];
             const result = fmt.csv(menu, [makeRange(0, 0, 0, 1)], cols, makeProvider(rows));
-            expect(result).to.equal("Name,Age\r\nAlice,30");
+            expect(result).to.equal("Alice,30");
         });
 
         test("quotes values that contain a comma", () => {
@@ -120,7 +120,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "City")];
             const rows: CellRow[] = [{ "0": makeCell("Portland, OR") }];
             const result = fmt.csv(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal('City\r\n"Portland, OR"');
+            expect(result).to.equal('"Portland, OR"');
         });
 
         test("escapes double-quotes inside quoted values", () => {
@@ -128,7 +128,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Quote")];
             const rows: CellRow[] = [{ "0": makeCell('say "hello"') }];
             const result = fmt.csv(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal('Quote\r\n"say ""hello"""');
+            expect(result).to.equal('"say ""hello"""');
         });
 
         test("quotes values that contain a newline", () => {
@@ -136,7 +136,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Notes")];
             const rows: CellRow[] = [{ "0": makeCell("line1\nline2") }];
             const result = fmt.csv(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal('Notes\r\n"line1\nline2"');
+            expect(result).to.equal('"line1\nline2"');
         });
 
         test("emits NULL for null cells", () => {
@@ -144,7 +144,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Val")];
             const rows: CellRow[] = [{ "0": makeCell("", true) }];
             const result = fmt.csv(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("Val\r\nNULL");
+            expect(result).to.equal("NULL");
         });
 
         test("excludes the rowNumber column", () => {
@@ -158,15 +158,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [rowNumCol, dataCol];
             const rows: CellRow[] = [{ "0": makeCell("1") }];
             const result = fmt.csv(menu, [makeRange(0, 0, 0, 1)], cols, makeProvider(rows));
-            expect(result).to.equal("ID\r\n1");
-        });
-
-        test("uses toolTip as column header when present", () => {
-            const menu = makeMenu();
-            const cols = [makeCol(0, "n", "Full Name")];
-            const rows: CellRow[] = [{ "0": makeCell("Bob") }];
-            const result = fmt.csv(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("Full Name\r\nBob");
+            expect(result).to.equal("1");
         });
 
         test("emits one data row per range row", () => {
@@ -178,7 +170,7 @@ suite("NotebookContextMenu formatters", () => {
                 { "0": makeCell("c") },
             ];
             const result = fmt.csv(menu, [makeRange(0, 2, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("X\r\na\r\nb\r\nc");
+            expect(result).to.equal("a\r\nb\r\nc");
         });
     });
 
@@ -325,7 +317,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("Alice") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO table_name (Name)\nVALUES\n    ('Alice');");
+            expect(result).to.equal("INSERT INTO TableName (Name)\nVALUES\n    ('Alice');");
         });
 
         test("leaves numeric column values unquoted", () => {
@@ -333,7 +325,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Id")];
             const rows: CellRow[] = [{ "0": makeCell("42") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO table_name (Id)\nVALUES\n    (42);");
+            expect(result).to.equal("INSERT INTO TableName (Id)\nVALUES\n    (42);");
         });
 
         test("emits NULL for null cells", () => {
@@ -341,7 +333,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("", true) }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO table_name (Name)\nVALUES\n    (NULL);");
+            expect(result).to.equal("INSERT INTO TableName (Name)\nVALUES\n    (NULL);");
         });
 
         test("single-quotes numeric values in E-notation", () => {
@@ -349,7 +341,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Val")];
             const rows: CellRow[] = [{ "0": makeCell("1.5E+10") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO table_name (Val)\nVALUES\n    ('1.5E+10');");
+            expect(result).to.equal("INSERT INTO TableName (Val)\nVALUES\n    ('1.5E+10');");
         });
 
         test("escapes single quotes inside string values", () => {
@@ -357,7 +349,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("O'Brien") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 0)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO table_name (Name)\nVALUES\n    ('O''Brien');");
+            expect(result).to.equal("INSERT INTO TableName (Name)\nVALUES\n    ('O''Brien');");
         });
 
         test("comma after each row except the last which gets a semicolon", () => {
@@ -370,7 +362,7 @@ suite("NotebookContextMenu formatters", () => {
             ];
             const result = fmt.insertInto(menu, [makeRange(0, 2, 0, 0)], cols, makeProvider(rows));
             expect(result).to.equal(
-                "INSERT INTO table_name (Id)\nVALUES\n    (1),\n    (2),\n    (3);",
+                "INSERT INTO TableName (Id)\nVALUES\n    (1),\n    (2),\n    (3);",
             );
         });
 
@@ -379,7 +371,7 @@ suite("NotebookContextMenu formatters", () => {
             const cols = [makeCol(0, "Id"), makeCol(1, "Name")];
             const rows: CellRow[] = [{ "0": makeCell("1"), "1": makeCell("Alice") }];
             const result = fmt.insertInto(menu, [makeRange(0, 0, 0, 1)], cols, makeProvider(rows));
-            expect(result).to.equal("INSERT INTO table_name (Id, Name)\nVALUES\n    (1, 'Alice');");
+            expect(result).to.equal("INSERT INTO TableName (Id, Name)\nVALUES\n    (1, 'Alice');");
         });
 
         test("uses toolTip as column name when present", () => {
@@ -405,6 +397,140 @@ suite("NotebookContextMenu formatters", () => {
                 makeProvider(rows),
             );
             expect(result).to.equal("");
+        });
+    });
+
+    // Multi-range selections must match the standard query result grid: every
+    // formatter emits one consistent column set built from the union of all
+    // ranges. Ranges sharing rows merge into fully populated rows; ranges on
+    // different rows keep their columns isolated.
+    suite("multi-range selections", () => {
+        // Columns 0/2/4 selected on the same rows, skipping columns 1 and 3.
+        const sameRowRanges = () => [
+            makeRange(0, 1, 0, 0),
+            makeRange(0, 1, 2, 2),
+            makeRange(0, 1, 4, 4),
+        ];
+        const wideCols = () => [
+            makeCol(0, "FirstName"),
+            makeCol(1, "LastName"),
+            makeCol(2, "DateOfBirth"),
+            makeCol(3, "Gender"),
+            makeCol(4, "Email"),
+        ];
+        const wideRows = (): CellRow[] => [
+            {
+                "0": makeCell("John"),
+                "1": makeCell("Smith"),
+                "2": makeCell("2003-11-09"),
+                "3": makeCell("M"),
+                "4": makeCell("john.smith@example.com"),
+            },
+            {
+                "0": makeCell("Mariah"),
+                "1": makeCell("Jones"),
+                "2": makeCell("2004-01-30"),
+                "3": makeCell("F"),
+                "4": makeCell("mariah.jones@example.com"),
+            },
+        ];
+
+        test("csv merges ranges that share rows into fully populated rows", () => {
+            const menu = makeMenu();
+            const result = fmt.csv(menu, sameRowRanges(), wideCols(), makeProvider(wideRows()));
+            const row1 = "John,2003-11-09,john.smith@example.com";
+            const row2 = "Mariah,2004-01-30,mariah.jones@example.com";
+            // Two rows per range, three ranges, and no header row.
+            expect(result).to.equal([row1, row2, row1, row2, row1, row2].join("\r\n"));
+        });
+
+        test("csv blanks out columns outside a range when ranges span different rows", () => {
+            const menu = makeMenu();
+            const cols = [makeCol(0, "A"), makeCol(1, "B")];
+            const rows: CellRow[] = [
+                { "0": makeCell("a0"), "1": makeCell("b0") },
+                { "0": makeCell("a1"), "1": makeCell("b1") },
+            ];
+            // Column 0 on row 0, column 1 on row 1.
+            const ranges = [makeRange(0, 0, 0, 0), makeRange(1, 1, 1, 1)];
+            const result = fmt.csv(menu, ranges, cols, makeProvider(rows));
+            expect(result).to.equal("a0,\r\n,b1");
+        });
+
+        test("insertInto uses the union of columns across all ranges", () => {
+            const menu = makeMenu([
+                makeDbCol("nvarchar"),
+                makeDbCol("nvarchar"),
+                makeDbCol("date"),
+                makeDbCol("nvarchar"),
+                makeDbCol("nvarchar"),
+            ]);
+            const result = fmt.insertInto(
+                menu,
+                sameRowRanges(),
+                wideCols(),
+                makeProvider(wideRows()),
+            );
+            expect(result).to.contain("INSERT INTO TableName (FirstName, DateOfBirth, Email)");
+            expect(result).to.contain("('John', '2003-11-09', 'john.smith@example.com')");
+            expect(result).to.contain("('Mariah', '2004-01-30', 'mariah.jones@example.com')");
+        });
+
+        test("insertInto emits NULL for columns outside a range spanning other rows", () => {
+            const menu = makeMenu([makeDbCol("nvarchar"), makeDbCol("nvarchar")]);
+            const cols = [makeCol(0, "A"), makeCol(1, "B")];
+            const rows: CellRow[] = [
+                { "0": makeCell("a0"), "1": makeCell("b0") },
+                { "0": makeCell("a1"), "1": makeCell("b1") },
+            ];
+            const ranges = [makeRange(0, 0, 0, 0), makeRange(1, 1, 1, 1)];
+            const result = fmt.insertInto(menu, ranges, cols, makeProvider(rows));
+            expect(result).to.equal(
+                "INSERT INTO TableName (A, B)\nVALUES\n    ('a0', NULL),\n    (NULL, 'b1');",
+            );
+        });
+
+        test("json gives every object the same key set", () => {
+            const menu = makeMenu([
+                makeDbCol("nvarchar"),
+                makeDbCol("nvarchar"),
+                makeDbCol("date"),
+                makeDbCol("nvarchar"),
+                makeDbCol("nvarchar"),
+            ]);
+            const result = fmt.json(menu, sameRowRanges(), wideCols(), makeProvider(wideRows()));
+            const parsed = JSON.parse(result);
+            expect(parsed).to.have.lengthOf(6);
+            for (const obj of parsed) {
+                expect(Object.keys(obj)).to.deep.equal(["FirstName", "DateOfBirth", "Email"]);
+            }
+            expect(parsed[0]).to.deep.equal({
+                FirstName: "John",
+                DateOfBirth: "2003-11-09",
+                Email: "john.smith@example.com",
+            });
+        });
+
+        test("inClause returns null when ranges cover different columns", () => {
+            const menu = makeMenu([makeDbCol("nvarchar"), makeDbCol("nvarchar")]);
+            const cols = [makeCol(0, "A"), makeCol(1, "B")];
+            const rows: CellRow[] = [{ "0": makeCell("a0"), "1": makeCell("b0") }];
+            // Each range is a single column, but they are not the same column.
+            const ranges = [makeRange(0, 0, 0, 0), makeRange(0, 0, 1, 1)];
+            expect(fmt.inClause(menu, ranges, cols, makeProvider(rows))).to.equal(null);
+        });
+
+        test("inClause accepts multiple ranges on the same column", () => {
+            const menu = makeMenu([makeDbCol("nvarchar")]);
+            const cols = [makeCol(0, "A")];
+            const rows: CellRow[] = [
+                { "0": makeCell("a0") },
+                { "0": makeCell("a1") },
+                { "0": makeCell("a2") },
+            ];
+            const ranges = [makeRange(0, 0, 0, 0), makeRange(2, 2, 0, 0)];
+            const result = fmt.inClause(menu, ranges, cols, makeProvider(rows));
+            expect(result).to.equal("IN\n(\n    'a0',\n    'a2'\n)");
         });
     });
 });
