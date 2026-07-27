@@ -3923,6 +3923,13 @@ export class ServiceClient {
     public static installFailedStatusText = l10n.t("Service installation failed.");
 }
 
+export class Formatter {
+    public static parseError = l10n.t(
+        "SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.",
+    );
+    public static sendFeedback = l10n.t("Send Feedback");
+}
+
 export const azureSignInFailed = l10n.t("Azure sign in failed.");
 
 export const selectSubscriptions = l10n.t("Select subscriptions");
