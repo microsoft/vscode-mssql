@@ -685,25 +685,52 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         columns: Slick.Column<T>[],
         dataProvider: IDisposableDataProvider<T>,
     ): string {
-        let dataCols: Slick.Column<T>[] = [];
-        let colMeta: Array<{ col: Slick.Column<T>; isNumeric: boolean }> = [];
-        const valueRows: string[] = [];
-
+        // Build the union of selected data columns across all ranges, kept in grid
+        // column order. This mirrors the standard query result grid: a multi-range
+        // selection produces a single INSERT covering every selected column, rather
+        // than silently reusing the first range's columns for every other range.
+        const selectedCols = new Set<number>();
         for (const range of ranges) {
-            const rangeCols = this.getDataColumnsInRange(columns, range.fromCell, range.toCell);
-            if (rangeCols.length === 0) {
-                continue;
+            for (let c = range.fromCell; c <= range.toCell; c++) {
+                const col = columns[c];
+                if (col?.id !== "rowNumber" && col?.field) {
+                    selectedCols.add(c);
+                }
             }
-            if (dataCols.length === 0) {
-                dataCols = rangeCols;
-                colMeta = dataCols.map((col) => ({
+        }
+
+        const colMeta = [...selectedCols]
+            .sort((a, b) => a - b)
+            .map((c) => {
+                const col = columns[c];
+                return {
                     col,
+                    index: c,
                     isNumeric: this.isNumericSqlType(this.getColumnInfo(col)?.dataTypeName),
-                }));
-            }
+                };
+            });
+
+        // A cell contributes its value only if it lies inside one of the selected
+        // ranges; every other column in the row is NULL. This matches the standard
+        // query result grid: ranges sharing the same rows merge into fully populated
+        // rows, while ranges on different rows keep their columns isolated with NULLs.
+        const isCellSelected = (row: number, colIndex: number): boolean =>
+            ranges.some(
+                (rng) =>
+                    row >= rng.fromRow &&
+                    row <= rng.toRow &&
+                    colIndex >= rng.fromCell &&
+                    colIndex <= rng.toCell,
+            );
+
+        const valueRows: string[] = [];
+        for (const range of ranges) {
             for (let r = range.fromRow; r <= range.toRow; r++) {
                 const item = dataProvider.getItem(r) as Slick.SlickData;
-                const values = colMeta.map(({ col, isNumeric }) => {
+                const values = colMeta.map(({ col, index, isNumeric }) => {
+                    if (!isCellSelected(r, index)) {
+                        return "NULL";
+                    }
                     const cellVal = item?.[col.field!];
                     if (cellVal?.isNull) return "NULL";
                     const val = cellVal?.displayValue ?? "";
@@ -713,14 +740,16 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
             }
         }
 
-        if (dataCols.length === 0 || valueRows.length === 0) {
+        if (colMeta.length === 0 || valueRows.length === 0) {
             return "";
         }
 
-        const colNames = dataCols.map((c) => c.toolTip ?? c.name ?? c.field ?? "").join(", ");
+        const colNames = colMeta
+            .map(({ col }) => col.toolTip ?? col.name ?? col.field ?? "")
+            .join(", ");
         const rowLines = valueRows.map((row, i, a) => row + (i < a.length - 1 ? "," : ";"));
 
-        return [`INSERT INTO table_name (${colNames})`, "VALUES", ...rowLines].join("\n");
+        return [`INSERT INTO TableName (${colNames})`, "VALUES", ...rowLines].join("\n");
     }
 
     private isNumericSqlType(dataTypeName: string | undefined): boolean {
