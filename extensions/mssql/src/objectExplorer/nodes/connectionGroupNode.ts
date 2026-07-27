@@ -81,20 +81,25 @@ export class ConnectionGroupNode extends TreeNodeInfo {
 
     /**
      * Adds a child node to the server group.
-     * @param child The child node to add.
+     *
+     * Ordering precedence:
+     *   1. Groups always come before connections
+     *   2. Items with `order` set always come before items with it unset
+     *   3. Items with order set are sorted from lowest to highest
+     *   4. Items without `order` set or with equal `order` values are sorted alphabetically (case-insensitive)
      */
     public addChild(child: TreeNodeInfo): void {
-        // Insert connection groups first, then other nodes, both alphabetically
         const isChildConnectionGroup = child instanceof ConnectionGroupNode;
 
         const index = this.children.findIndex((c) => {
             const isCurrentConnectionGroup = c instanceof ConnectionGroupNode;
 
-            if (isChildConnectionGroup === isCurrentConnectionGroup) {
-                return c.label.toString().localeCompare(child.label.toString()) > 0;
+            if (isChildConnectionGroup !== isCurrentConnectionGroup) {
+                // Connection groups always come before non-group children.
+                return isChildConnectionGroup && !isCurrentConnectionGroup;
             }
 
-            return isChildConnectionGroup && !isCurrentConnectionGroup;
+            return compareOrderedNodes(c, child) > 0;
         });
 
         if (index === -1) {
@@ -123,4 +128,46 @@ export function createConnectionGroupContextValue(): vscodeMssql.TreeNodeContext
         hasFilters: false,
         subType: "",
     };
+}
+
+/**
+ * Returns the effective sort `order` value for a tree node, or `undefined` if the node has no valid order.
+ */
+function getNodeOrder(node: TreeNodeInfo): number | undefined {
+    let candidate: unknown;
+    if (node instanceof ConnectionGroupNode) {
+        candidate = node.connectionGroup?.order;
+    } else {
+        const profile = node.connectionProfile;
+        candidate = profile?.order;
+    }
+
+    if (typeof candidate === "number" && Number.isFinite(candidate) && candidate >= 0) {
+        return candidate;
+    }
+
+    // invalid values (negative, NaN, non-numeric) are treated as unordered
+    return undefined;
+}
+
+/**
+ * Compares two tree nodes of the same kind (both groups or both non-groups):
+ *   1. The `order` property (ordered nodes first, ascending), then
+ *   2. alphabetically (case-insensitive) by label.
+ */
+export function compareOrderedNodes(a: TreeNodeInfo, b: TreeNodeInfo): number {
+    const orderA = getNodeOrder(a);
+    const orderB = getNodeOrder(b);
+
+    if (orderA !== undefined && orderB !== undefined) {
+        if (orderA !== orderB) {
+            return orderA - orderB;
+        }
+    } else if (orderA !== undefined) {
+        return -1;
+    } else if (orderB !== undefined) {
+        return 1;
+    }
+
+    return a.label.toString().toLowerCase().localeCompare(b.label.toString().toLowerCase());
 }

@@ -10,7 +10,6 @@ import * as chai from "chai";
 import * as vscode from "vscode";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { ICredentialStore } from "../../src/credentialstore/icredentialstore";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 chai.use(sinonChai);
 
@@ -23,7 +22,6 @@ suite("Credential Store Tests", () => {
         delete: sinon.SinonStub<[string], Promise<void>>;
     };
     let context: vscode.ExtensionContext;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     const credentialId = "test_credential";
 
@@ -44,9 +42,7 @@ suite("Credential Store Tests", () => {
             secrets: secretStorage as unknown as vscode.SecretStorage,
         } as vscode.ExtensionContext;
 
-        vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-
-        credentialStore = new CredentialStore(context, vscodeWrapper);
+        credentialStore = new CredentialStore(context);
     });
 
     teardown(() => {

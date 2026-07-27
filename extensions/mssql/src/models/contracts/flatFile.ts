@@ -78,6 +78,7 @@ export interface InsertDataParams {
     ownerUri: string;
     databaseName?: string;
     batchSize: number;
+    azureAccessToken?: string;
 }
 
 export namespace InsertDataRequest {

@@ -7,10 +7,10 @@ import {
     QueryRunnerState,
     SqlOutputContentProvider,
 } from "../../src/models/sqlOutputContentProvider";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import StatusView from "../../src/views/statusView";
 import * as stubs from "./stubs";
 import * as Constants from "../../src/constants/constants";
+import * as LocConstants from "../../src/constants/locConstants";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import * as chai from "chai";
@@ -19,6 +19,7 @@ import { ISelectionData } from "../../src/models/interfaces";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import QueryRunner from "../../src/controllers/queryRunner";
 import store from "../../src/queryResult/singletonStore";
+import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
 
 const { expect } = chai;
 
@@ -33,7 +34,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
     };
 
     let sandbox: sinon.SinonSandbox;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let contentProvider: SqlOutputContentProvider;
     let mockContentProvider: sinon.SinonStubbedInstance<SqlOutputContentProvider>;
     let context: vscode.ExtensionContext;
@@ -43,10 +44,11 @@ suite("SqlOutputProvider Tests using mocks", () => {
     let mockMap: Map<string, MockRunnerEntry>;
     let setSplitPaneSelectionConfig: (value: string) => void;
     let setCurrentEditorColumn: (column: number) => void;
+    let getConfigurationStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
+        messageBoxes = stubMessageBoxes(sandbox);
         statusView = sandbox.createStubInstance(StatusView);
         statusViewInstance = statusView as unknown as StatusView;
         executionPlanService = sandbox.createStubInstance(ExecutionPlanService);
@@ -57,30 +59,27 @@ suite("SqlOutputProvider Tests using mocks", () => {
         mockMap = new Map();
 
         const disposable = { dispose: () => {} } as vscode.Disposable;
+        stubVscodeWorkspace(sandbox);
+        getConfigurationStub = sandbox
+            .stub(vscode.workspace, "getConfiguration")
+            .returns(stubs.createWorkspaceConfiguration({}));
         sandbox.stub(vscode.window, "registerWebviewViewProvider").returns(disposable);
         sandbox.stub(vscode.commands, "registerCommand").returns(disposable);
-
-        sandbox.stub(vscodeWrapper, "onDidOpenTextDocument").get(() => () => disposable);
-        sandbox.stub(vscodeWrapper, "onDidChangeConfiguration").get(() => () => disposable);
 
         contentProvider = new SqlOutputContentProvider(
             context,
             statusViewInstance,
-            vscodeWrapper as unknown as VscodeWrapper,
             executionPlanService as unknown as ExecutionPlanService,
         );
-        contentProvider.setVscodeWrapper = vscodeWrapper as unknown as VscodeWrapper;
-        vscodeWrapper.getConfiguration.callsFake(() => stubs.createWorkspaceConfiguration({}));
-
         setSplitPaneSelectionConfig = (value: string): void => {
             const configResult: { [key: string]: unknown } = {};
             configResult[Constants.configSplitPaneSelection] = value;
             const config = stubs.createWorkspaceConfiguration(configResult);
-            vscodeWrapper.getConfiguration.callsFake(() => config);
+            getConfigurationStub.returns(config);
         };
 
         let currentEditor: vscode.TextEditor | undefined;
-        sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => currentEditor);
+        sandbox.stub(vscode.window, "activeTextEditor").get(() => currentEditor);
 
         setCurrentEditorColumn = (column: number): void => {
             currentEditor = { viewColumn: column } as vscode.TextEditor;
@@ -410,9 +409,9 @@ suite("SqlOutputProvider Tests using mocks", () => {
     });
 
     test("cancelQuery with no query running should show information message about it", async () => {
-        vscodeWrapper.showInformationMessage.resolves("error");
+        messageBoxes.showInformationMessage.resolves("error");
         await contentProvider.cancelQuery("test_input");
-        expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
+        expect(messageBoxes.showInformationMessage).to.have.been.calledOnce;
     });
 
     test("getQueryRunner should return undefined for new URI", () => {
@@ -435,22 +434,20 @@ suite("SqlOutputProvider Tests using mocks", () => {
         expect(contentProvider.getQueryRunner("test_uri")).to.not.be.undefined;
     });
 
-    test("showErrorRequestHandler should call vscodeWrapper to show error message", () => {
+    test("showErrorRequestHandler should show error message", () => {
         contentProvider.showErrorRequestHandler("test_error");
-        expect(vscodeWrapper.showErrorMessage).to.have.been.calledOnceWithExactly("test_error");
+        expect(messageBoxes.showErrorMessage).to.have.been.calledOnceWithExactly("test_error");
     });
 
-    test("showWarningRequestHandler should call vscodeWrapper to show warning message", () => {
+    test("showWarningRequestHandler should show warning message", () => {
         contentProvider.showWarningRequestHandler("test_warning");
-        expect(vscodeWrapper.showWarningMessage).to.have.been.calledOnceWithExactly("test_warning");
+        expect(messageBoxes.showWarningMessage).to.have.been.calledOnceWithExactly("test_warning");
     });
 
     test("A query runner should only exist if a query is run", async () => {
-        vscodeWrapper.getConfiguration.callsFake(() => {
-            const configResult: { [key: string]: unknown } = {};
-            configResult[Constants.configPersistQueryResultTabs] = false;
-            return stubs.createWorkspaceConfiguration(configResult);
-        });
+        const configResult: { [key: string]: unknown } = {};
+        configResult[Constants.configPersistQueryResultTabs] = false;
+        getConfigurationStub.returns(stubs.createWorkspaceConfiguration(configResult));
 
         contentProvider.queryResultWebviewController.createPanelController = sandbox
             .stub()
@@ -463,6 +460,62 @@ suite("SqlOutputProvider Tests using mocks", () => {
         await contentProvider.runQuery(statusViewInstance, "test_uri", undefined, "test_title");
         testQueryRunner = contentProvider.getQueryRunner("test_uri");
         expect(testQueryRunner).to.not.be.undefined;
+    });
+
+    test("runQueryString dispatches SQL through the editor's result pipeline", async () => {
+        const uri = "test_uri";
+        const query = "select * from [dbo].[Orders]";
+        const runQueryString = sandbox.stub().resolves();
+        const mockQueryRunner = {
+            uri,
+            runQueryString,
+            onComplete: new vscode.EventEmitter<void>().event,
+        } as unknown as QueryRunner;
+        sandbox
+            .stub(contentProvider as any, "initializeRunnerAndWebviewState")
+            .resolves(mockQueryRunner);
+
+        await contentProvider.runQueryString(statusViewInstance, uri, query, "Quick Query");
+
+        expect(runQueryString).to.have.been.calledWith(query, undefined);
+    });
+
+    test("Quick Query batch messages do not link to unrelated editor text", async () => {
+        const uri = "test_uri";
+        sandbox.stub(QueryRunner.prototype, "runQueryString").callsFake(async function () {
+            this.setupQueryExecution(undefined);
+            (this as unknown as { _executionSource: string })._executionSource = "quickQuery";
+            (this as unknown as { _startEmitter: vscode.EventEmitter<string> })._startEmitter.fire(
+                this.uri,
+            );
+        });
+
+        await contentProvider.runQueryString(statusViewInstance, uri, "select 1", "Quick Query");
+        const runner = contentProvider.getQueryRunner(uri);
+        runner.handleBatchStart({
+            ownerUri: uri,
+            batchSummary: {
+                hasError: false,
+                id: 0,
+                selection: {
+                    startLine: 0,
+                    startColumn: 0,
+                    endLine: 0,
+                    endColumn: 8,
+                },
+                resultSetSummaries: [],
+                executionElapsed: undefined,
+                executionEnd: undefined,
+                executionStart: new Date().toISOString(),
+            },
+        });
+
+        const state = contentProvider.queryResultWebviewController.getQueryResultState(uri);
+        const batchMessage = state.messages.find(
+            (message) => message.message === LocConstants.runQueryBatchStartMessage,
+        );
+        expect(batchMessage).not.to.be.undefined;
+        expect(batchMessage.link).to.be.undefined;
     });
 
     test("runCurrentStatement calls runStatement with correct options when actual plan is enabled", async () => {
@@ -647,7 +700,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         );
 
         expect(initializeStub).to.have.been.calledOnce;
-        expect(vscodeWrapper.showInformationMessage).to.have.been.calledOnce;
+        expect(messageBoxes.showInformationMessage).to.have.been.calledOnce;
 
         resolveRunner!(mockRunner);
 
@@ -659,7 +712,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         const thirdRunPromise = contentProvider.runQuery(statusViewInstance, uri, undefined, title);
         await thirdRunPromise;
         expect(initializeStub).to.have.been.calledOnce; // Still only once
-        expect(vscodeWrapper.showInformationMessage).to.have.been.calledTwice;
+        expect(messageBoxes.showInformationMessage).to.have.been.calledTwice;
 
         // Simulate query completion - should release the slot
         onCompleteEmitter.fire(undefined as any);
@@ -699,7 +752,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
         await contentProvider.runQuery(statusViewInstance, uri, undefined, title);
 
         expect(initializeStub).to.have.been.calledTwice;
-        expect(vscodeWrapper.showInformationMessage).to.not.have.been.called;
+        expect(messageBoxes.showInformationMessage).to.not.have.been.called;
         expect((mockRunner.runQuery as sinon.SinonStub).calledOnce).to.be.true;
 
         onCompleteEmitter.dispose();
@@ -738,7 +791,7 @@ suite("SqlOutputProvider Tests using mocks", () => {
 
         expect(thrown).to.be.true;
         expect(initializeStub).to.have.been.calledTwice;
-        expect(vscodeWrapper.showInformationMessage).to.not.have.been.called;
+        expect(messageBoxes.showInformationMessage).to.not.have.been.called;
         expect((mockRunner.runStatement as sinon.SinonStub).calledOnce).to.be.true;
     });
 });

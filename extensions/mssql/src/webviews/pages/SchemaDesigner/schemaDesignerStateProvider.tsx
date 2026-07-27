@@ -52,6 +52,7 @@ export interface SchemaDesignerContextProps extends CoreRPCs {
     addTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     updateTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteTable: (table: SchemaDesigner.Table, skipConfirmation?: boolean) => Promise<boolean>;
+    applySchema: (schema: SchemaDesigner.Schema) => Promise<boolean>;
     deleteSelectedNodes: () => void;
     getTableWithForeignKeys: (tableId: string) => SchemaDesigner.Table | undefined;
     updateSelectedNodes: (nodesIds: string[]) => void;
@@ -515,6 +516,49 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
         return true;
     };
 
+    const applySchema = useCallback(
+        async (schema: SchemaDesigner.Schema) => {
+            const existingNodes = reactFlow.getNodes() as Node<SchemaDesigner.Table>[];
+            const existingEdges = reactFlow.getEdges() as Edge<SchemaDesigner.ForeignKey>[];
+            const existingNodeById = new Map(existingNodes.map((node) => [node.id, node]));
+            const existingEdgeById = new Map(existingEdges.map((edge) => [edge.id, edge]));
+
+            const generated = buildFlowComponentsFromSchema(schema);
+            const positioned = layoutFlowComponents(generated.nodes, generated.edges);
+            const positionedNodeById = new Map(positioned.nodes.map((node) => [node.id, node]));
+
+            const nodes = generated.nodes.map((node) => {
+                const existingNode = existingNodeById.get(node.id);
+                const positionedNode = positionedNodeById.get(node.id);
+                return {
+                    ...(existingNode ?? node),
+                    ...node,
+                    data: node.data,
+                    position: existingNode?.position ??
+                        positionedNode?.position ??
+                        node.position ?? { x: 100, y: 100 },
+                };
+            });
+
+            const edges = generated.edges.map((edge) => {
+                const existingEdge = existingEdgeById.get(edge.id);
+                return {
+                    ...(existingEdge ?? edge),
+                    ...edge,
+                    selected: existingEdge?.selected ?? edge.selected,
+                    hidden: existingEdge?.hidden ?? edge.hidden,
+                };
+            });
+
+            reactFlow.setNodes(nodes);
+            reactFlow.setEdges(edges);
+            eventBus.emit("refreshFlowState");
+            notifySchemaChanged();
+            return true;
+        },
+        [reactFlow, notifySchemaChanged],
+    );
+
     const deleteTable = async (table: SchemaDesigner.Table, skipConfirmation = false) => {
         const deleteTableResult = applyDeleteTableMutation({
             tableId: table.id,
@@ -700,6 +744,7 @@ const SchemaDesignerStateProvider: React.FC<SchemaDesignerProviderProps> = ({ ch
                 updateTable,
                 addTable,
                 deleteTable,
+                applySchema,
                 deleteSelectedNodes,
                 updateSelectedNodes,
                 setCenter,

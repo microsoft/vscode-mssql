@@ -6,6 +6,8 @@
 import { createContext, ReactNode, useMemo } from "react";
 import {
     CloseShortcutsConfigurationRequest,
+    OpenKeymapCommandKeybindingRequest,
+    OpenKeymapCommandKeybindingsRequest,
     OpenQuickQueryKeybindingRequest,
     OpenQuickQueryKeybindingsRequest,
     ReadClipboardTextRequest,
@@ -63,6 +65,12 @@ const ShortcutsConfigurationStateProvider = ({ children }: { children: ReactNode
             },
             openQuickQueryKeybindings: async () => {
                 await extensionRpc.sendRequest(OpenQuickQueryKeybindingsRequest.type);
+            },
+            openKeymapCommandKeybinding: async (commandId: string) => {
+                await extensionRpc.sendRequest(OpenKeymapCommandKeybindingRequest.type, commandId);
+            },
+            openKeymapCommandKeybindings: async () => {
+                await extensionRpc.sendRequest(OpenKeymapCommandKeybindingsRequest.type);
             },
         }),
         [extensionRpc],

@@ -13,7 +13,6 @@ import { ProfilerSessionManager } from "./profilerSessionManager";
 import { SessionType, SessionState, EngineType, XelFileInfo } from "./profilerTypes";
 import { ProfilerWebviewController } from "./profilerWebviewController";
 import { SESSION_NAME_MAX_LENGTH } from "../sharedInterfaces/profiler";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService } from "./profilerConfigService";
 import { ProfilerSessionTemplate } from "../models/contracts/profiler";
 import { ILogger } from "../sharedInterfaces/logger";
@@ -44,7 +43,6 @@ export class ProfilerController {
     constructor(
         private _context: vscode.ExtensionContext,
         private _connectionManager: ConnectionManager,
-        private _vscodeWrapper: VscodeWrapper,
         private _sessionManager: ProfilerSessionManager,
     ) {
         this._logger = logger.withPrefix("Profiler");
@@ -652,7 +650,6 @@ export class ProfilerController {
         // Create the webview to display events with the selected template
         const webviewController = new ProfilerWebviewController(
             this._context,
-            this._vscodeWrapper,
             this._sessionManager,
             availableSessions,
             sessionName, // Set the initial session name
@@ -911,7 +908,6 @@ export class ProfilerController {
             // Create the webview controller in read-only disconnected mode
             const webviewController = new ProfilerWebviewController(
                 this._context,
-                this._vscodeWrapper,
                 this._sessionManager,
                 [], // No available sessions for file mode (disconnected)
                 undefined, // No session name initially

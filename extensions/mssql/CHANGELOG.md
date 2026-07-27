@@ -7,7 +7,15 @@
 
 ### What's new in 1.44.0
 
-- Fixed an issue in Schema Compare where controls remained enabled and stale diff results stayed visible after apply, which could cause subsequent apply attempts to fail, and added a loading indicator during the apply operation
+- Introduced Shortcuts Configuration (Preview), allowing you to create and manage keyboard shortcuts for Quick Queries, the Query Editor, and the Results Grid.
+- Added a new Query Results Grid experience (Preview) with improved state management and the ability to show, hide, and freeze columns. Enable with `mssql.preview.betaResultsGrid` in settings.
+- Added an option to include timestamps when using Copy All in the Messages panel. Enable with `mssql.messages.copyIncludeTimestamps` in settings.
+- Fixed an issue where some users were unable to connect to Dataverse/Dynamics environments
+- Improved connection stability when connecting to paused serverless Azure SQL databases
+- Fixed DACPAC deployment failures on Linux/WSL2 caused by invalid path separators
+- Added a warning when a rename or refactor in SQL Database Projects would create a duplicate object name
+- Fixed SQL Database Projects Go-to-Definition on macOS and Linux
+- Fixed the Object Explorer stored procedure filter dialog not loading
 
 ## Version 1.43.0
 

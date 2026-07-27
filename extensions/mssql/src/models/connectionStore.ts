@@ -20,7 +20,6 @@ import {
 } from "./interfaces";
 import { ICredentialStore, Credential } from "../credentialstore/icredentialstore";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionInfo } from "vscode-mssql";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "./logger";
@@ -47,18 +46,13 @@ export class ConnectionStore {
         private _credentialStore: ICredentialStore,
         private _logger?: ILogger,
         private _connectionConfig?: ConnectionConfig,
-        private _vscodeWrapper?: VscodeWrapper,
     ) {
-        if (!this.vscodeWrapper) {
-            this.vscodeWrapper = new VscodeWrapper();
-        }
-
         if (!this._logger) {
             this._logger = logger.withPrefix("ConnectionStore");
         }
 
         if (!this._connectionConfig) {
-            this._connectionConfig = new ConnectionConfig(this.vscodeWrapper);
+            this._connectionConfig = new ConnectionConfig();
         }
     }
 
@@ -192,14 +186,6 @@ export class ConnectionStore {
         if (Utils.isNotEmpty(value)) {
             arr.push(prefix.concat(value));
         }
-    }
-
-    private get vscodeWrapper(): VscodeWrapper {
-        return this._vscodeWrapper;
-    }
-
-    private set vscodeWrapper(value: VscodeWrapper) {
-        this._vscodeWrapper = value;
     }
 
     /**
@@ -789,9 +775,9 @@ export class ConnectionStore {
     }
 
     public getMaxRecentConnectionsCount(): number {
-        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 
-        let maxConnections: number = config[Constants.configMaxRecentConnections];
+        let maxConnections = config.get<number>(Constants.configMaxRecentConnections);
         if (typeof maxConnections !== "number" || maxConnections <= 0) {
             maxConnections = 5;
         }

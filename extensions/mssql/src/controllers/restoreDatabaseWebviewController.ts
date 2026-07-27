@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import VscodeWrapper from "./vscodeWrapper";
 import {
     allFileTypes,
     defaultBackupFileTypes,
@@ -67,7 +66,6 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
     public readonly RESTORE_DATABASE_TASK_NAME = "Restore Database";
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         objectManagementService: ObjectManagementService,
         private connectionManager: ConnectionManager,
         private fileBrowserService: FileBrowserService,
@@ -78,7 +76,6 @@ export class RestoreDatabaseWebviewController extends ObjectManagementWebviewCon
     ) {
         super(
             context,
-            vscodeWrapper,
             objectManagementService,
             ObjectManagementDialogType.RestoreDatabase,
             LocConstants.RestoreDatabase.restoreDatabaseTitle,

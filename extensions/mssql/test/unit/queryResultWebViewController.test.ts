@@ -9,38 +9,47 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
 import * as Constants from "../../src/constants/constants";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
 import { QueryResultWebviewController } from "../../src/queryResult/queryResultWebViewController";
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
-import { stubExtensionContext, stubVscodeWrapper } from "./utils";
+import { stubExtensionContext, stubVscodeWorkspace } from "./utils";
 
 chai.use(sinonChai);
 
 suite("QueryResultWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let executionPlanService: sinon.SinonStubbedInstance<ExecutionPlanService>;
     let sqlOutputContentProvider: sinon.SinonStubbedInstance<SqlOutputContentProvider>;
     let controller: QueryResultWebviewController;
+    let clipboardWriteTextStub: sinon.SinonStub;
     let configuration: {
         get: sinon.SinonStub;
         update: sinon.SinonStub;
     };
     let onDidChangeConfigurationHandler: ((e: vscode.ConfigurationChangeEvent) => void) | undefined;
     let openResultsInTabByDefault = false;
+    let vscodeWorkspace: ReturnType<typeof stubVscodeWorkspace>;
 
     const testUri = "file:///test.sql";
 
     setup(() => {
         sandbox = sinon.createSandbox();
 
-        vscodeWrapper = stubVscodeWrapper(sandbox);
         executionPlanService = sandbox.createStubInstance(ExecutionPlanService);
         sqlOutputContentProvider = sandbox.createStubInstance(SqlOutputContentProvider);
 
+        clipboardWriteTextStub = sandbox.stub().resolves();
+        sandbox.stub(vscode.env, "clipboard").value({ writeText: clipboardWriteTextStub });
+
         const context = stubExtensionContext(sandbox);
         const disposable = new vscode.Disposable(() => undefined);
+        vscodeWorkspace = stubVscodeWorkspace(sandbox);
+        vscodeWorkspace.onDidChangeConfiguration.callsFake(
+            (handler: (e: vscode.ConfigurationChangeEvent) => void) => {
+                onDidChangeConfigurationHandler = handler;
+                return disposable;
+            },
+        );
 
         sandbox.stub(vscode.commands, "registerCommand").returns(disposable);
         sandbox.stub(vscode.window, "createStatusBarItem").returns({
@@ -52,24 +61,13 @@ suite("QueryResultWebviewController", () => {
             dispose: sandbox.stub(),
         } as unknown as vscode.StatusBarItem);
 
-        sandbox.stub(vscodeWrapper, "onDidCloseTextDocument").get(() => {
-            return () => disposable;
-        });
-
-        sandbox.stub(vscodeWrapper, "onDidChangeConfiguration").get(() => {
-            return (handler: (e: vscode.ConfigurationChangeEvent) => void) => {
-                onDidChangeConfigurationHandler = handler;
-                return disposable;
-            };
-        });
-
         const activeEditor = {
             document: {
                 uri: vscode.Uri.parse(testUri),
             },
             viewColumn: vscode.ViewColumn.One,
         } as unknown as vscode.TextEditor;
-        sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+        sandbox.stub(vscode.window, "activeTextEditor").get(() => activeEditor);
 
         configuration = {
             get: sandbox.stub().callsFake((key: string, defaultValue?: unknown) => {
@@ -81,13 +79,12 @@ suite("QueryResultWebviewController", () => {
             update: sandbox.stub().resolves(),
         };
 
-        vscodeWrapper.getConfiguration.callsFake(() => {
-            return configuration as unknown as vscode.WorkspaceConfiguration;
-        });
+        sandbox
+            .stub(vscode.workspace, "getConfiguration")
+            .returns(configuration as unknown as vscode.WorkspaceConfiguration);
 
         controller = new QueryResultWebviewController(
             context,
-            vscodeWrapper,
             executionPlanService as unknown as ExecutionPlanService,
             sqlOutputContentProvider as unknown as SqlOutputContentProvider,
         );
@@ -129,7 +126,7 @@ suite("QueryResultWebviewController", () => {
 
         await controller.copyAllMessagesToClipboard(testUri);
 
-        expect(vscodeWrapper.clipboardWriteText).to.have.been.calledWithExactly(
+        expect(clipboardWriteTextStub).to.have.been.calledWithExactly(
             "first message\nsecond message",
         );
     });

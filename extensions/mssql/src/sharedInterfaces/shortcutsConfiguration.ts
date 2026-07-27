@@ -9,20 +9,36 @@ import { CoreRPCs } from "./webview";
 export const quickQueryCount = 10;
 export const quickQueryCommandPrefix = "mssql.quickQueries.run";
 
-export enum QuickQueryExecutionMode {
-    Open = "open",
-    OpenAndRun = "openAndRun",
-}
-
 export interface QuickQuerySlot {
     name: string;
     query: string;
-    executionMode: QuickQueryExecutionMode;
 }
 
 export interface ShortcutsConfigurationData {
     quickQueries: QuickQuerySlot[];
     webviewShortcuts: Record<string, string>;
+}
+
+export type ConfigurableKeyCommandCategory = "queryExecution" | "connection" | "others";
+
+export type ConfigurableKeyCommandId =
+    | "mssql.runQuery"
+    | "mssql.runCurrentStatement"
+    | "mssql.cancelQuery"
+    | "mssql.newQuery"
+    | "mssql.toggleSqlCmd"
+    | "mssql.connect"
+    | "mssql.disconnect"
+    | "mssql.changeConnection"
+    | "mssql.changeDatabase"
+    | "mssql.showEstimatedPlan"
+    | "mssql.toggleActualPlan"
+    | "mssql.copyAll"
+    | "mssql.toggleQueryResultPanel";
+
+export interface ConfigurableKeyCommand {
+    command: ConfigurableKeyCommandId;
+    category: ConfigurableKeyCommandCategory;
 }
 
 export interface ShortcutsConfigurationWebviewState {
@@ -99,6 +115,18 @@ export namespace OpenQuickQueryKeybindingsRequest {
     );
 }
 
+export namespace OpenKeymapCommandKeybindingRequest {
+    export const type = new RequestType<string, void, void>(
+        "shortcutsConfiguration/openKeymapCommandKeybinding",
+    );
+}
+
+export namespace OpenKeymapCommandKeybindingsRequest {
+    export const type = new RequestType<void, void, void>(
+        "shortcutsConfiguration/openKeymapCommandKeybindings",
+    );
+}
+
 export interface ShortcutsConfigurationContextProps extends CoreRPCs {
     readConfiguration: () => Promise<ShortcutsConfigurationData>;
     saveConfiguration: (
@@ -112,7 +140,64 @@ export interface ShortcutsConfigurationContextProps extends CoreRPCs {
     writeClipboardText: (text: string) => Promise<void>;
     openQuickQueryKeybinding: (commandId: string) => Promise<void>;
     openQuickQueryKeybindings: () => Promise<void>;
+    openKeymapCommandKeybinding: (commandId: string) => Promise<void>;
+    openKeymapCommandKeybindings: () => Promise<void>;
 }
+
+export const configurableKeyCommands: ConfigurableKeyCommand[] = [
+    {
+        command: "mssql.runQuery",
+        category: "queryExecution",
+    },
+    {
+        command: "mssql.runCurrentStatement",
+        category: "queryExecution",
+    },
+    {
+        command: "mssql.cancelQuery",
+        category: "queryExecution",
+    },
+    {
+        command: "mssql.newQuery",
+        category: "queryExecution",
+    },
+    {
+        command: "mssql.toggleSqlCmd",
+        category: "queryExecution",
+    },
+    {
+        command: "mssql.connect",
+        category: "connection",
+    },
+    {
+        command: "mssql.disconnect",
+        category: "connection",
+    },
+    {
+        command: "mssql.changeConnection",
+        category: "connection",
+    },
+    {
+        command: "mssql.changeDatabase",
+        category: "connection",
+    },
+    {
+        command: "mssql.showEstimatedPlan",
+        category: "others",
+    },
+    {
+        command: "mssql.toggleActualPlan",
+        category: "others",
+    },
+    {
+        command: "mssql.copyAll",
+        category: "others",
+    },
+    {
+        command: "mssql.toggleQueryResultPanel",
+        category: "others",
+    },
+];
 
 export function getQuickQueryCommandId(slotNumber: number): string {
     return `${quickQueryCommandPrefix}${slotNumber}`;
@@ -122,15 +207,10 @@ export function getQuickQuerySlotName(slotNumber: number): string {
     return `Query ${slotNumber}`;
 }
 
-function isQuickQueryExecutionMode(value: unknown): value is QuickQueryExecutionMode {
-    return value === QuickQueryExecutionMode.Open || value === QuickQueryExecutionMode.OpenAndRun;
-}
-
 export function createDefaultQuickQuerySlot(slotNumber: number): QuickQuerySlot {
     return {
         name: getQuickQuerySlotName(slotNumber),
         query: "",
-        executionMode: QuickQueryExecutionMode.Open,
     };
 }
 
@@ -149,9 +229,6 @@ export function normalizeQuickQuerySlot(value: unknown, slotNumber: number): Qui
     return {
         name,
         query: typeof candidate.query === "string" ? candidate.query : defaults.query,
-        executionMode: isQuickQueryExecutionMode(candidate.executionMode)
-            ? candidate.executionMode
-            : defaults.executionMode,
     };
 }
 

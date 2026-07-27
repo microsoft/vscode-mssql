@@ -17,14 +17,12 @@ import { MetadataType, ObjectMetadata } from "../../src/sharedInterfaces/metadat
 import { SearchResultItem } from "../../src/sharedInterfaces/searchDatabase";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { stubTelemetry } from "./utils";
 import { ScriptingService } from "../../src/scripting/scriptingService";
 
 suite("SearchDatabaseWebViewController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let mockVscodeWrapper: VscodeWrapper;
     let mockMetadataService: sinon.SinonStubbedInstance<IMetadataService>;
     let mockConnectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let mockTargetNode: TreeNodeInfo;
@@ -120,7 +118,6 @@ suite("SearchDatabaseWebViewController", () => {
         } as unknown as vscode.ExtensionContext;
 
         // Setup mock services
-        mockVscodeWrapper = stubVscodeWrapper(sandbox);
 
         mockMetadataService = {
             getDatabases: sandbox.stub().resolves(["master", "TestDB", "AdventureWorks"]),
@@ -159,7 +156,6 @@ suite("SearchDatabaseWebViewController", () => {
     function createController(): SearchDatabaseWebViewController {
         controller = new SearchDatabaseWebViewController(
             mockContext,
-            mockVscodeWrapper,
             mockMetadataService,
             mockConnectionManager,
             mockTargetNode,

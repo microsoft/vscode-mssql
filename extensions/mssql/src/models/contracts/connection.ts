@@ -240,11 +240,15 @@ export class GetConnectionStringParams {
 // ------------------------------- </ Get Connection String Request > --------------------------------------
 
 // ------------------------------- < Parse Connection String Request > ---------------------------------------
+export interface ParseConnectionStringParams {
+    connectionString: string;
+}
+
 /**
  * Parse Connection String request callback declaration
  */
 export namespace ParseConnectionStringRequest {
-    export const type = new RequestType<string, ConnectionDetails, void>(
+    export const type = new RequestType<ParseConnectionStringParams, ConnectionDetails, void>(
         "connection/parseConnectionString",
     );
 }

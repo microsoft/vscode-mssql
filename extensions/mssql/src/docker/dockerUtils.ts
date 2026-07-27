@@ -14,6 +14,7 @@ import {
     defaultSqlServerContainerName,
     docker,
     dockerDeploymentLoggerChannelName,
+    dockerPermissionErrorPatterns,
     MAX_PORT_NUMBER,
     Platform,
     windowsDockerDesktopExecutable,
@@ -321,6 +322,15 @@ function getContainerHostPorts(containerInspectInfo: Dockerode.ContainerInspectI
 }
 
 /**
+ * Checks whether an error from `docker info` (or similar) indicates a socket
+ * permission problem rather than the daemon being stopped.
+ */
+function isDockerPermissionError(error: unknown): boolean {
+    const message = getErrorMessage(error).toLowerCase();
+    return dockerPermissionErrorPatterns.some((pattern) => message.includes(pattern));
+}
+
+/**
  * Safe command execution helper that uses spawn
  */
 export async function execDockerCommand(cmd: DockerCommand): Promise<string> {
@@ -612,7 +622,19 @@ export async function startDocker(
             dockerStartedThroughExtension: "false",
         });
         return { success: true };
-    } catch {} // If this command fails, docker is not running, so we proceed to start it.
+    } catch (e) {
+        // On Linux, distinguish between "daemon not running" and "permission denied on socket".
+        // If it's a permission error, attempting systemctl start docker won't help and
+        // triggers an unnecessary polkit prompt.
+        if (platform() === Platform.Linux && isDockerPermissionError(e)) {
+            return {
+                success: false,
+                error: LocalContainers.dockerSocketPermissionError,
+                fullErrorText: getErrorMessage(e),
+            };
+        }
+        // Otherwise docker is likely not running, so we proceed to start it.
+    }
     if (node && objectExplorerService) {
         node.loadingLabel = LocalContainers.startingDockerLoadingLabel;
         await objectExplorerService.setLoadingUiForNode(node);

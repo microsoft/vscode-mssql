@@ -17,13 +17,7 @@
 
 const fs = require("fs");
 const path = require("path");
-const logger = require("../../../scripts/terminal-logger");
-const { esbuildProblemMatcherPlugin, build, watch } = require("./esbuild-utils");
-
-// Parse arguments
-const args = process.argv.slice(2);
-const isProd = args.includes("--prod") || args.includes("-p");
-const isWatch = args.includes("--watch") || args.includes("-w");
+const { createBrowserConfig, run } = require("../../../scripts/esbuild-utils");
 
 // Plugin to inline CSS into the JS bundle as <style> elements.
 // Notebook renderers run in an isolated iframe that only loads the JS entrypoint,
@@ -71,42 +65,26 @@ const inlineCssPlugin = {
 };
 
 // Build configuration
-const config = {
-    entryPoints: ["src/webviews/pages/NotebookRenderer/notebookRendererEntry.tsx"],
-    bundle: true,
-    outfile: "dist/notebookRenderer.js",
-    platform: "browser",
-    loader: {
-        ".tsx": "tsx",
-        ".ts": "ts",
-        // Inline assets — renderer iframe can't resolve separate files.
-        ".svg": "dataurl",
-        ".js": "js",
-        ".png": "dataurl",
-        ".gif": "dataurl",
-    },
-    tsconfig: "./tsconfig.webviews.json",
-    plugins: [inlineCssPlugin, esbuildProblemMatcherPlugin("notebook-renderer")],
-    sourcemap: isProd ? false : "inline",
-    metafile: !isProd,
-    minify: isProd,
-    format: "esm",
-    splitting: false,
-};
-
-// Main execution
-async function main() {
-    if (isWatch) {
-        logger.header("Building notebook renderer (watch mode)");
-        await watch(config);
-    } else {
-        logger.header("Building notebook renderer");
-        const success = await build(config, isProd);
-        process.exit(success ? 0 : 1);
-    }
-}
-
-// Run if called directly
-if (require.main === module) {
-    main();
-}
+void run(
+    ({ isProd }) =>
+        createBrowserConfig({
+            entryPoints: ["src/webviews/pages/NotebookRenderer/notebookRendererEntry.tsx"],
+            loader: {
+                ".tsx": "tsx",
+                ".ts": "ts",
+                // Inline assets — renderer iframe can't resolve separate files.
+                ".svg": "dataurl",
+                ".js": "js",
+                ".png": "dataurl",
+                ".gif": "dataurl",
+            },
+            metafile: !isProd,
+            minify: isProd,
+            outfile: "dist/notebookRenderer.js",
+            plugins: [inlineCssPlugin],
+            sourcemap: isProd ? false : "inline",
+            splitting: false,
+            tsconfig: "./tsconfig.webviews.json",
+        }),
+    "notebook renderer",
+);

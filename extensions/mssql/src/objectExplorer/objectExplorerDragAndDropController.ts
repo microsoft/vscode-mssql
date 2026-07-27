@@ -11,7 +11,6 @@ import { ConnectionNode } from "./nodes/connectionNode";
 import { ConnectionGroupNode } from "./nodes/connectionGroupNode";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionStore } from "../models/connectionStore";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
@@ -36,10 +35,7 @@ export class ObjectExplorerDragAndDropController
 
     private readonly _logger: ILogger;
 
-    constructor(
-        vscodeWrapper: VscodeWrapper,
-        private connectionStore: ConnectionStore,
-    ) {
+    constructor(private connectionStore: ConnectionStore) {
         this._logger = logger.withPrefix("DragAndDrop");
     }
 

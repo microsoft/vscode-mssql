@@ -20,6 +20,7 @@ import {
     Editors,
     ContextMenu,
     CurrentSorter,
+    SortComparers,
 } from "slickgrid-react";
 import { FluentCompoundFilter } from "./fluentCompoundFilter";
 import {
@@ -38,6 +39,26 @@ import {
 } from "../../common/FluentSlickGrid/FluentSlickGrid";
 
 export type { AppliedSortColumn };
+
+// SQL types whose values must sort numerically. Grid values are strings, so
+// without a numeric comparer 10 would sort before 2.
+const NUMERIC_SQL_TYPES = new Set([
+    "bigint",
+    "int",
+    "smallint",
+    "tinyint",
+    "decimal",
+    "numeric",
+    "float",
+    "real",
+    "money",
+    "smallmoney",
+]);
+
+const isNumericSqlType = (dataTypeName?: string): boolean => {
+    const base = dataTypeName?.trim().toLowerCase().split("(")[0].trim();
+    return base ? NUMERIC_SQL_TYPES.has(base) : false;
+};
 
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
@@ -383,6 +404,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         : colInfo.name,
                     field: `col${index}`,
                     sortable: true,
+                    sortComparer: isNumericSqlType(colInfo.dataTypeName)
+                        ? SortComparers.numeric
+                        : undefined,
                     filterable: true,
                     resizable: true,
                     minWidth: 180,
@@ -595,8 +619,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 previousResultSet?.columnInfo?.length !== resultSet.columnInfo.length;
             const rowCountChanged = previousResultSet?.subset?.length !== resultSet.subset.length;
 
+            const insertedFirstRow =
+                (previousResultSet?.subset?.length ?? 0) === 0 && resultSet.subset.length > 0;
+
             // Scenario 1: Initial load or structural changes - full recreation
-            if (isInitialLoad || columnCountChanged) {
+            if (isInitialLoad || columnCountChanged || insertedFirstRow) {
                 const dataColumns = createColumns(resultSet.columnInfo, currentTheme);
                 const newColumns = [createUndoColumn(), ...dataColumns];
                 setColumns(newColumns);

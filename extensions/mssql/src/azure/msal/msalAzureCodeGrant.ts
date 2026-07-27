@@ -21,9 +21,7 @@ import * as Constants from "../constants";
 import * as LocalizedConstants from "../../constants/locConstants";
 import * as path from "path";
 import * as http from "http";
-import { UrlWithParsedQuery } from "url";
 import { promises as fs } from "fs";
-import VscodeWrapper from "../../controllers/vscodeWrapper";
 
 export const formPostResponseMode = "form_post";
 
@@ -42,17 +40,9 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         protected readonly providerSettings: IProviderSettings,
         protected readonly context: vscode.ExtensionContext,
         protected clientApplication: PublicClientApplication,
-        protected readonly vscodeWrapper: VscodeWrapper,
         protected readonly logger: ILogger,
     ) {
-        super(
-            providerSettings,
-            context,
-            clientApplication,
-            AzureAuthType.AuthCodeGrant,
-            vscodeWrapper,
-            logger,
-        );
+        super(providerSettings, context, clientApplication, AzureAuthType.AuthCodeGrant, logger);
         this.cryptoProvider = new CryptoProvider();
         this.pkceCodes = {
             nonce: "",
@@ -184,22 +174,13 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
 
         const getAuthResponseParams = async (
             req: http.IncomingMessage,
-            reqUrl: UrlWithParsedQuery,
+            reqUrl: URL,
         ): Promise<URLSearchParams> => {
             if (req.method?.toUpperCase() === "POST") {
                 return new URLSearchParams(await readRequestBody(req));
             }
 
-            const params = new URLSearchParams();
-            for (const [key, value] of Object.entries(reqUrl.query)) {
-                if (Array.isArray(value)) {
-                    value.forEach((v) => params.append(key, v));
-                } else if (value !== undefined) {
-                    params.append(key, value);
-                }
-            }
-
-            return params;
+            return reqUrl.searchParams;
         };
 
         const authResponses = new Map<string, URLSearchParams>();
@@ -217,7 +198,7 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
         });
 
         server.on("/signin", (req, reqUrl, res) => {
-            let receivedNonce: string = reqUrl.query.nonce as string;
+            let receivedNonce: string = reqUrl.searchParams.get("nonce") ?? "";
             receivedNonce = receivedNonce.replace(/ /g, "+");
 
             if (receivedNonce !== nonce) {
@@ -264,7 +245,7 @@ export class MsalAzureCodeGrant extends MsalAzureAuth {
             });
 
             server.on("/callback", (req, reqUrl, res) => {
-                const callbackId = (reqUrl.query.callbackId as string) ?? "";
+                const callbackId = reqUrl.searchParams.get("callbackId") ?? "";
                 const authResponseParams = authResponses.get(callbackId);
                 authResponses.delete(callbackId);
 

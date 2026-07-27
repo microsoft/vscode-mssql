@@ -10,7 +10,6 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import MainController from "../../src/controllers/mainController";
 import { ConnectionStore } from "../../src/models/connectionStore";
@@ -18,7 +17,6 @@ import { IConnectionProfileWithSource } from "../../src/models/interfaces";
 import { PublishProjectWebViewController } from "../../src/publishProject/publishProjectWebViewController";
 import { validateSqlServerPortNumber } from "../../src/publishProject/projectUtils";
 import { validateSqlServerPassword } from "../../src/deployment/sqlServerContainer";
-import { stubVscodeWrapper } from "./utils";
 import {
     PublishTarget,
     PublishDialogState,
@@ -43,7 +41,6 @@ chai.use(sinonChai);
 suite("PublishProjectWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let contextStub: vscode.ExtensionContext;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockSqlProjectsService: sinon.SinonStubbedInstance<SqlProjectsService>;
     let mockDacFxService: sinon.SinonStubbedInstance<mssql.IDacFxService>;
     let mockSqlPackageService: sinon.SinonStubbedInstance<SqlPackageService>;
@@ -60,8 +57,6 @@ suite("PublishProjectWebViewController Tests", () => {
             subscriptions: [],
         };
         contextStub = rawContext as vscode.ExtensionContext;
-
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
 
         // Create properly typed stubbed instances
         mockSqlProjectsService = sandbox.createStubInstance(SqlProjectsService);
@@ -123,7 +118,6 @@ suite("PublishProjectWebViewController Tests", () => {
     ): PublishProjectWebViewController {
         return new PublishProjectWebViewController(
             contextStub,
-            vscodeWrapperStub,
             mockConnectionManager,
             projectPath,
             mockMainController,
@@ -283,7 +277,6 @@ suite("PublishProjectWebViewController Tests", () => {
 
         const controller = new PublishProjectWebViewController(
             contextStub,
-            vscodeWrapperStub,
             mockConnectionManager,
             "test.sqlproj",
             mockMainController,

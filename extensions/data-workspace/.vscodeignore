@@ -1,5 +1,12 @@
 src
-#out
+out
+node_modules/**
+**/*.map
+.vscode
+.vscode-test.mjs
+esbuild.mjs
+test
+test-reports
 tsconfig.json
 .gitignore
 coverage

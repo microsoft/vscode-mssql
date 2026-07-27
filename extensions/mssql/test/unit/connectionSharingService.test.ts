@@ -17,8 +17,6 @@ import {
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { ScriptingService } from "../../src/scripting/scriptingService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { stubVscodeWrapper } from "./utils";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { ScriptOperation } from "../../src/models/contracts/scripting/scriptingRequest";
 import { ConnectionStore } from "../../src/models/connectionStore";
@@ -32,7 +30,6 @@ suite("ConnectionSharingService Tests", () => {
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
     let scriptingService: sinon.SinonStubbedInstance<ScriptingService>;
     let secretStorage: sinon.SinonStubbedInstance<vscode.SecretStorage>;
-    let vscodeWrapper: VscodeWrapper;
     let showInformationMessageStub: sinon.SinonStub;
     let showQuickPickStub: sinon.SinonStub;
     let registerCommandStub: sinon.SinonStub;
@@ -76,7 +73,6 @@ suite("ConnectionSharingService Tests", () => {
         // Create stub instances
         client = sandbox.createStubInstance(SqlToolsServiceClient);
         connectionManager = sandbox.createStubInstance(ConnectionManager);
-        vscodeWrapper = stubVscodeWrapper(sandbox);
         scriptingService = sandbox.createStubInstance(ScriptingService);
         secretStorage = {
             get: sandbox.stub(),
@@ -136,13 +132,7 @@ suite("ConnectionSharingService Tests", () => {
         });
 
         // Initialize service (this registers the commands)
-        new ConnectionSharingService(
-            context,
-            client,
-            connectionManager,
-            vscodeWrapper,
-            scriptingService,
-        );
+        new ConnectionSharingService(context, client, connectionManager, scriptingService);
     });
 
     teardown(() => {

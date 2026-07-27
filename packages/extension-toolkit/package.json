@@ -1,0 +1,52 @@
+{
+    "name": "extension-toolkit",
+    "version": "0.0.1",
+    "private": true,
+    "description": "Reusable building blocks for VS Code extensions",
+    "license": "SEE LICENSE IN ../../LICENSE.txt",
+    "main": "./dist/vscode/index.js",
+    "types": "./dist/vscode/index.d.ts",
+    "typesVersions": {
+        "*": {
+            "base": [
+                "dist/base/index.d.ts"
+            ],
+            "vscode": [
+                "dist/vscode/index.d.ts"
+            ],
+            "vscode/testing": [
+                "dist/vscode/testing/index.d.ts"
+            ]
+        }
+    },
+    "exports": {
+        "./base": {
+            "types": "./dist/base/index.d.ts",
+            "require": "./dist/base/index.js",
+            "default": "./dist/base/index.js"
+        },
+        "./vscode": {
+            "types": "./dist/vscode/index.d.ts",
+            "require": "./dist/vscode/index.js",
+            "default": "./dist/vscode/index.js"
+        },
+        "./vscode/testing": {
+            "types": "./dist/vscode/testing/index.d.ts",
+            "require": "./dist/vscode/testing/index.js",
+            "default": "./dist/vscode/testing/index.js"
+        }
+    },
+    "files": [
+        "dist"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
+        "lint": "eslint --quiet --cache ./src"
+    },
+    "devDependencies": {
+        "@types/node": "^22.13.14",
+        "@types/vscode": "1.101.0",
+        "typescript": "^5.8.3"
+    }
+}

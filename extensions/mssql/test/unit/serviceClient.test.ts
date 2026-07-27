@@ -16,8 +16,9 @@ import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvid
 import { PlatformInformation, Runtime } from "../../src/models/platform";
 import StatusView from "../../src/views/statusView";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
+import { Logger } from "../../src/models/logger";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import { stubTelemetry, stubVscodeEnv } from "./utils";
 
 chai.use(sinonChai);
 
@@ -39,17 +40,18 @@ suite("Service Client tests", () => {
     let sandbox: sinon.SinonSandbox;
     let testServiceProvider: sinon.SinonStubbedInstance<ServerProvider>;
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let loggerShowStub: sinon.SinonStub;
     let dotnetRuntimeProvider: sinon.SinonStubbedInstance<DotnetRuntimeProvider>;
+    let sendActionEvent: sinon.SinonStub;
     let originalStsOverride: string | undefined;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         testServiceProvider = sandbox.createStubInstance(ServerProvider);
         testStatusView = sandbox.createStubInstance(StatusView);
-        vscodeWrapper = stubVscodeWrapper(sandbox);
+        loggerShowStub = sandbox.stub(Logger.prototype, "show");
         dotnetRuntimeProvider = sandbox.createStubInstance(DotnetRuntimeProvider);
-        stubTelemetry(sandbox);
+        ({ sendActionEvent } = stubTelemetry(sandbox));
         originalStsOverride = process.env.MSSQL_SQLTOOLSSERVICE;
         delete process.env.MSSQL_SQLTOOLSSERVICE;
     });
@@ -67,13 +69,12 @@ suite("Service Client tests", () => {
         return new SqlToolsServiceClient(
             testServiceProvider,
             testStatusView,
-            vscodeWrapper,
             dotnetRuntimeProvider,
         );
     }
 
     function outputChannelShowStub(): sinon.SinonStub {
-        return vscodeWrapper.outputChannel.show as sinon.SinonStub;
+        return loggerShowStub;
     }
 
     function setupMocks(fixture: IFixture): void {
@@ -111,6 +112,41 @@ suite("Service Client tests", () => {
             },
         );
     }
+
+    test("forwards SQL Tools Service telemetry", () => {
+        const serviceClient = createServiceClient();
+        const event: LanguageServiceContracts.SqlToolsServiceTelemetryParams = {
+            params: {
+                eventName: TelemetryActions.FormatCode,
+                properties: { FormatterImplementation: "ScriptDom" },
+                measures: { FormatterDurationMs: 12.5 },
+            },
+        };
+
+        serviceClient.handleSqlToolsServiceTelemetryNotification()(event);
+
+        expect(sendActionEvent).to.have.been.calledWithExactly(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.FormatCode,
+            event.params.properties,
+            event.params.measures,
+        );
+    });
+
+    test("forwards SQL Tools Service telemetry without optional data", () => {
+        const serviceClient = createServiceClient();
+
+        serviceClient.handleSqlToolsServiceTelemetryNotification()({
+            params: { eventName: TelemetryActions.PeekDefinitionRequested },
+        });
+
+        expect(sendActionEvent).to.have.been.calledWithExactly(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.PeekDefinitionRequested,
+            {},
+            {},
+        );
+    });
 
     function stubLaunches(
         serviceClient: SqlToolsServiceClient,
@@ -322,7 +358,7 @@ suite("Service Client tests", () => {
                 "showErrorMessage",
             ) as sinon.SinonStub;
             showErrorMessageStub.resolves(ServiceClientLoc.downloadOfflineVsix);
-            const openExternalStub = sandbox.stub(vscode.env, "openExternal").resolves(true);
+            const openExternalStub = stubVscodeEnv(sandbox).openExternal.resolves(true);
 
             setupMocks(fixture);
             const serviceClient = createServiceClient();

@@ -28,6 +28,7 @@ import { UserSurvey } from "../../src/nps/userSurvey";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as UriOwnershipInitialization from "../../src/uriOwnership/uriOwnershipInitialization";
 import { IconUtils } from "../../src/utils/iconUtils";
+import { UriOwnershipCoordinator } from "../../src/uriOwnership/uriOwnershipCore";
 
 const { expect } = chai;
 
@@ -88,13 +89,16 @@ suite("Extension API Tests", () => {
         sandbox.stub(UserSurvey, "createInstance").returns();
         sandbox.stub(HttpClient.prototype, "warnOnInvalidProxySettings").returns();
         sandbox.stub(MainController.prototype, "activate").resolves(true);
-        sandbox
-            .stub(SqlToolsServerClient, "instance")
-            .get(() => ({ sqlToolsServicePath: "test/sqltoolsservice" }) as SqlToolsServerClient);
+
+        const sqlToolsClient: sinon.SinonStubbedInstance<SqlToolsServerClient> =
+            sandbox.createStubInstance(SqlToolsServerClient);
+        sandbox.stub(sqlToolsClient, "sqlToolsServicePath").get(() => "test/sqltoolsservice");
+        sqlToolsClient.onNotification.returns(disposable); // handler stub necessary depending on test execution order
+
         sandbox.stub(UriOwnershipInitialization, "createUriOwnershipCoordinator").returns({
             uriOwnershipApi: {},
             isActiveEditorOwnedByOtherExtensionWithWarning: () => false,
-        } as any);
+        } as UriOwnershipCoordinator);
         sandbox.stub(UriOwnershipInitialization, "initializeUriOwnershipCoordinator").returns();
 
         vscodeMssql = await Extension.activate(context);
@@ -114,11 +118,18 @@ suite("Extension API Tests", () => {
     });
 
     teardown(() => {
-        // restore mocked properties
-        mainController.connectionManager = originalConnectionManager;
-        (Extension as any).controller = undefined;
-        (Extension as any).uriOwnershipCoordinator = undefined;
-        sandbox.restore();
+        try {
+            /* eslint-disable @typescript-eslint/no-explicit-any */
+            (Extension as any).controller = undefined;
+            (Extension as any).uriOwnershipCoordinator = undefined;
+            /* eslint-enable @typescript-eslint/no-explicit-any */
+
+            if (mainController && originalConnectionManager) {
+                mainController.connectionManager = originalConnectionManager;
+            }
+        } finally {
+            sandbox.restore();
+        }
     });
 
     test("Gets sqlToolsServicePath", async () => {

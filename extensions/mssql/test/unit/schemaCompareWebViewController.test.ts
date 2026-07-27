@@ -24,7 +24,6 @@ import {
 import { SchemaCompareWebViewState } from "../../src/sharedInterfaces/schemaCompare";
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
 import { UserSurvey } from "../../src/nps/userSurvey";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IconUtils } from "../../src/utils/iconUtils";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { AzureAuthType } from "../../src/models/contracts/azure";
@@ -40,7 +39,6 @@ suite("SchemaCompareWebViewController Tests", () => {
     let mockInitialState: SchemaCompareWebViewState;
     let schemaCompareService: mssql.ISchemaCompareService;
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let connectionChangedEmitter: vscode.EventEmitter<void>;
     const schemaCompareWebViewTitle = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
@@ -330,13 +328,10 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         connectionManagerStub.listDatabases.resolves(["db1", "db2"]);
 
-        vscodeWrapperStub = sandbox.createStubInstance(VscodeWrapper);
-
         generateOperationIdStub = sandbox.stub(scUtils, "generateOperationId").returns(operationId);
 
         controller = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapperStub,
             treeNode,
             undefined,
             false,
@@ -377,7 +372,6 @@ suite("SchemaCompareWebViewController Tests", () => {
         };
         controller = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapperStub,
             undefined,
             mockTarget,
             false,
@@ -435,7 +429,6 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         controller = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapperStub,
             mockSource,
             mockTarget,
             true,
@@ -503,7 +496,6 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         controller = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapperStub,
             mockSource,
             mockTarget,
             false, // Don't auto-run on construction
@@ -547,7 +539,6 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const scController = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapperStub,
             mockSqlProjectNode,
             undefined,
             false,

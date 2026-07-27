@@ -21,7 +21,6 @@ import { CloudId } from "../../src/azure/providerSettings";
 import { MsalCachePluginProvider } from "../../src/azure/msal/msalCachePlugin";
 import { MsalAzureCodeGrant } from "../../src/azure/msal/msalAzureCodeGrant";
 import { MsalAzureDeviceCode } from "../../src/azure/msal/msalAzureDeviceCode";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import {
     CloudAuthApplication,
@@ -39,7 +38,6 @@ chai.use(sinonChai);
 suite("CloudAuthApplication Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let mockCachePluginProvider: sinon.SinonStubbedInstance<MsalCachePluginProvider>;
     let loggerCallback: ILoggerCallback;
@@ -50,7 +48,6 @@ suite("CloudAuthApplication Tests", () => {
         mockContext = {} as vscode.ExtensionContext;
 
         // Create stubs for dependencies
-        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
         mockLogger = createStubLogger(sandbox);
         mockCachePluginProvider = sandbox.createStubInstance(MsalCachePluginProvider);
 
@@ -78,7 +75,6 @@ suite("CloudAuthApplication Tests", () => {
             mockCachePluginProvider,
             loggerCallback,
             mockContext,
-            mockVscodeWrapper,
             mockLogger,
         );
 
@@ -116,7 +112,6 @@ suite("CloudAuthApplication Tests", () => {
             mockCachePluginProvider,
             loggerCallback,
             mockContext,
-            mockVscodeWrapper,
             mockLogger,
         );
 
@@ -138,7 +133,6 @@ suite("CloudAuthApplication Tests", () => {
             mockCachePluginProvider,
             loggerCallback,
             mockContext,
-            mockVscodeWrapper,
             mockLogger,
         );
 

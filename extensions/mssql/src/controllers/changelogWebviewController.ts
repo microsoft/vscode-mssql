@@ -15,7 +15,6 @@ import {
 } from "../sharedInterfaces/changelog";
 import { WebviewPanelController } from "./webviewPanelController";
 import * as vscode from "vscode";
-import VscodeWrapper from "./vscodeWrapper";
 import { changelogConfig } from "../configurations/changelog";
 import * as constants from "../constants/constants";
 import { sendActionEvent } from "../telemetry/telemetry";
@@ -30,10 +29,9 @@ export class ChangelogWebviewController extends WebviewPanelController<
 > {
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         initialState: ChangelogWebviewState = changelogConfig,
     ) {
-        super(context, vscodeWrapper, "changelog", "changelog", initialState, {
+        super(context, "changelog", "changelog", initialState, {
             title: Changelog.ChangelogDocumentTitle,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {

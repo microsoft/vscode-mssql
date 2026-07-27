@@ -14,21 +14,17 @@ import {
     ObjectExplorerFilterWebviewController,
 } from "../../src/objectExplorer/objectExplorerFilter";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
+import { stubTelemetry } from "./utils";
 
 chai.use(sinonChai);
 
 suite("ObjectExplorerFilter tests", () => {
     let sandbox: sinon.SinonSandbox;
     let extensionContext: vscode.ExtensionContext;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<
-        import("../../src/controllers/vscodeWrapper").default
-    >;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
         extensionContext = {
             extensionUri: vscode.Uri.file("/tmp/test"),
             extensionPath: "/tmp/test",
@@ -94,11 +90,7 @@ suite("ObjectExplorerFilter tests", () => {
         injectController(stub);
 
         const treeNode = createTreeNode();
-        const filtersPromise = ObjectExplorerFilter.getFilters(
-            extensionContext,
-            vscodeWrapperStub,
-            treeNode,
-        );
+        const filtersPromise = ObjectExplorerFilter.getFilters(extensionContext, treeNode);
 
         await new Promise((r) => setTimeout(r, 0));
 
@@ -121,11 +113,7 @@ suite("ObjectExplorerFilter tests", () => {
         const treeNode = createTreeNode({
             nodePath: "server/db/Views",
         });
-        const filtersPromise = ObjectExplorerFilter.getFilters(
-            extensionContext,
-            vscodeWrapperStub,
-            treeNode,
-        );
+        const filtersPromise = ObjectExplorerFilter.getFilters(extensionContext, treeNode);
 
         await new Promise((r) => setTimeout(r, 0));
 
@@ -142,11 +130,7 @@ suite("ObjectExplorerFilter tests", () => {
         injectController(stub);
 
         const treeNode = createTreeNode();
-        const filtersPromise = ObjectExplorerFilter.getFilters(
-            extensionContext,
-            vscodeWrapperStub,
-            treeNode,
-        );
+        const filtersPromise = ObjectExplorerFilter.getFilters(extensionContext, treeNode);
 
         await new Promise((r) => setTimeout(r, 0));
 
@@ -164,11 +148,7 @@ suite("ObjectExplorerFilter tests", () => {
         injectController(stub);
 
         const treeNode = createTreeNode();
-        const filtersPromise = ObjectExplorerFilter.getFilters(
-            extensionContext,
-            vscodeWrapperStub,
-            treeNode,
-        );
+        const filtersPromise = ObjectExplorerFilter.getFilters(extensionContext, treeNode);
 
         await new Promise((r) => setTimeout(r, 0));
         cancelEmitter.fire();
@@ -182,11 +162,7 @@ suite("ObjectExplorerFilter tests", () => {
         injectController(stub);
 
         const treeNode = createTreeNode();
-        const filtersPromise = ObjectExplorerFilter.getFilters(
-            extensionContext,
-            vscodeWrapperStub,
-            treeNode,
-        );
+        const filtersPromise = ObjectExplorerFilter.getFilters(extensionContext, treeNode);
 
         await new Promise((r) => setTimeout(r, 0));
         disposeEmitter.fire();

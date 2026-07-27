@@ -56,9 +56,11 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 
 ### Public Preview
 
-| Capability                                                                                                                              | Description                                        |
-| --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------- |
-| [Azure SQL database provisioning](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-azure-integration.md) | Create and connect to free tier Azure SQL database |
+| Capability                                                                                                                                                                            | Description                                                                            |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| [Azure SQL database provisioning](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-azure-integration.md)                                               | Create and connect to free tier Azure SQL database                                     |
+| [Shortcuts Configuration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code?view=sql-server-ver17#shortcuts-configuration) | Create and manage keyboard shortcuts for Quick Queries, Query Editor, and Results Grid |
+| [New Query Results Grid](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code?view=sql-server-ver17#query-results-pane)       | New results grid experience with more column customizations (freeze, show, hide)       |
 
 ## Using the MSSQL Extension
 
@@ -144,7 +146,7 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.statusBar.connectionInfoMaxLength": -1,            // Max characters to display in status bar (-1 = unlimited)
   "mssql.statusBar.enableConnectionColor": true,            // Color-code status bar by connection group
   "mssql.schemaDesigner.enableExpandCollapseButtons": true, // Show expand/collapse buttons in Schema Designer UI for entity relationships
-  "mssql.showChangelogOnUpdate": true                       // Show changelog when extension updates
+  "mssql.showChangelogOnUpdate": true,                      // Show changelog when extension updates
 }
 
 // Connectivity
@@ -214,6 +216,7 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
 // Query Results & Grid
 {
   "mssql.openQueryResultsInTabByDefault": false,           // Open query results in a tab instead of side panel
+  "mssql.preview.betaResultsGrid": false,                  // (Preview) Enable the new query results grid with improved state management and column show/hide/freeze options
   "mssql.resultsFontFamily": null,                         // Font family for results grid (null = VS Code default)
   "mssql.resultsFontSize": null,                           // Font size for results grid in pixels (null = VS Code default)
   "mssql.defaultQueryResultsViewMode": "Grid",             // Default results view: "Grid" or "Text"
@@ -224,6 +227,7 @@ Configure the MSSQL extension in user preferences (`Cmd+,`) or workspace setting
   "mssql.persistQueryResultTabs": false,                   // Keep result tabs open after closing query file
   "mssql.copyIncludeHeaders": false,                       // Include column headers when copying results
   "mssql.copyRemoveNewLine": true,                         // Remove newline characters when copying
+  "mssql.messages.copyIncludeTimestamps": false,           // Include message timestamps when using Copy All in the Messages pane
   "mssql.saveAsCsv.includeHeaders": true,                  // Include column headers when saving as CSV
   "mssql.saveAsCsv.delimiter": ",",                        // CSV delimiter: "," | "\\t" | ";" | "|"
   "mssql.saveAsCsv.lineSeparator": null,                   // CSV line separator (null = OS default)

@@ -20,7 +20,6 @@ import {
     CancelCopy2Notification,
     CopyType,
 } from "../../src/models/contracts/queryExecute";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import StatusView from "../../src/views/statusView";
 import * as Constants from "../../src/constants/constants";
 import * as QueryExecuteContracts from "../../src/models/contracts/queryExecute";
@@ -28,7 +27,7 @@ import * as QueryDisposeContracts from "../../src/models/contracts/queryDispose"
 import { ISelectionData } from "../../src/models/interfaces";
 import * as stubs from "./stubs";
 import * as vscode from "vscode";
-import { stubVscodeWrapper } from "./utils";
+import { stubMessageBoxes, stubVscodeWorkspace } from "./utils";
 
 chai.use(sinonChai);
 const { expect } = chai;
@@ -48,8 +47,12 @@ suite("Query Runner tests", () => {
     let sandbox: sinon.SinonSandbox;
     let testSqlToolsServerClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let testQueryNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
-    let testVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let testStatusView: sinon.SinonStubbedInstance<StatusView>;
+    let clipboardWriteTextStub: sinon.SinonStub;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
+    let vscodeWorkspace: ReturnType<typeof stubVscodeWorkspace>;
+    let showTextDocumentStub: sinon.SinonStub;
+    let getConfigurationStub: sinon.SinonStub;
 
     function createQueryRunner(
         uri: string = standardUri,
@@ -61,7 +64,6 @@ suite("Query Runner tests", () => {
             testStatusView,
             testSqlToolsServerClient,
             testQueryNotificationHandler,
-            testVscodeWrapper,
         );
     }
 
@@ -69,20 +71,22 @@ suite("Query Runner tests", () => {
         sandbox = sinon.createSandbox();
         testSqlToolsServerClient = sandbox.createStubInstance(SqlToolsServerClient);
         testQueryNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
-        testVscodeWrapper = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
+        vscodeWorkspace = stubVscodeWorkspace(sandbox);
+        showTextDocumentStub = sandbox.stub(vscode.window, "showTextDocument");
         testStatusView = sandbox.createStubInstance(StatusView);
         QueryRunner["_runningQueries"] = [];
 
-        (testVscodeWrapper.parseUri as sinon.SinonStub).callsFake((value: string) =>
-            vscode.Uri.parse(value),
-        );
-        (testVscodeWrapper.showErrorMessage as sinon.SinonStub).returns(undefined);
-        (testVscodeWrapper.showInformationMessage as sinon.SinonStub).returns(undefined);
-        (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves({} as vscode.TextDocument);
-        (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
-        (testVscodeWrapper.getConfiguration as sinon.SinonStub).returns(
-            stubs.createWorkspaceConfiguration({}),
-        );
+        messageBoxes.showErrorMessage.returns(undefined);
+        messageBoxes.showInformationMessage.returns(undefined);
+        vscodeWorkspace.openTextDocument.resolves({} as vscode.TextDocument);
+        showTextDocumentStub.resolves({} as vscode.TextEditor);
+        getConfigurationStub = sandbox
+            .stub(vscode.workspace, "getConfiguration")
+            .returns(stubs.createWorkspaceConfiguration({}));
+
+        clipboardWriteTextStub = sandbox.stub().resolves();
+        sandbox.stub(vscode.env, "clipboard").value({ writeText: clipboardWriteTextStub });
     });
 
     teardown(() => {
@@ -108,8 +112,8 @@ suite("Query Runner tests", () => {
                 return undefined;
             },
         } as any;
-        (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves(testDoc);
-        (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
+        vscodeWorkspace.openTextDocument.resolves(testDoc);
+        showTextDocumentStub.resolves({} as vscode.TextEditor);
 
         // If:
         // ... I create a query runner
@@ -145,8 +149,8 @@ suite("Query Runner tests", () => {
                 return undefined;
             },
         } as any;
-        (testVscodeWrapper.openTextDocument as sinon.SinonStub).resolves(testDoc);
-        (testVscodeWrapper.showTextDocument as sinon.SinonStub).resolves({} as vscode.TextEditor);
+        vscodeWorkspace.openTextDocument.resolves(testDoc);
+        showTextDocumentStub.resolves({} as vscode.TextEditor);
 
         // If:
         // ... I create a query runner
@@ -165,6 +169,32 @@ suite("Query Runner tests", () => {
             // ... The query runner should not be running a query
             expect(queryRunner.isExecutingQuery).to.equal(false);
         }
+    });
+
+    test("executes a Quick Query string without reading the editor document", async () => {
+        const query = "select * from [dbo].[Orders]";
+        testSqlToolsServerClient.sendRequest
+            .withArgs(QueryExecuteContracts.QueryExecuteStringRequest.type, sinon.match.object)
+            .resolves(new QueryExecuteContracts.QueryExecuteResult());
+        setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
+        const queryRunner = createQueryRunner();
+
+        await queryRunner.runQueryString(query);
+
+        expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+            QueryExecuteContracts.QueryExecuteStringRequest.type,
+            {
+                ownerUri: standardUri,
+                query,
+            },
+        );
+        expect(vscodeWorkspace.openTextDocument).to.not.have.been.called;
+        expect(queryRunner.getQueryString(standardUri)).to.equal(query);
+        expect(queryRunner.executionSource).to.equal("quickQuery");
+        expect(testQueryNotificationHandler.registerRunner).to.have.been.calledWith(
+            queryRunner,
+            standardUri,
+        );
     });
 
     test("Notification - Batch Start", () => {
@@ -538,12 +568,12 @@ suite("Query Runner tests", () => {
             .withArgs(QueryExecuteContracts.QueryExecuteSubsetRequest.type, sinon.match.object)
             .rejects(new Error("failed"));
 
-        (testVscodeWrapper.showErrorMessage as sinon.SinonStub).resetHistory();
+        messageBoxes.showErrorMessage.resetHistory();
 
         let queryRunner = createQueryRunner(testuri, testuri);
         queryRunner.uri = testuri;
         const result = await queryRunner.getRows(0, 5, 0, 0);
-        expect(testVscodeWrapper.showErrorMessage as sinon.SinonStub).to.have.been.calledOnce;
+        expect(messageBoxes.showErrorMessage).to.have.been.calledOnce;
         expect(result).to.deep.equal({
             resultSubset: {
                 rows: [],
@@ -743,7 +773,7 @@ suite("Query Runner tests", () => {
                 const tokenSource = new vscode.CancellationTokenSource();
                 await task(progress, tokenSource.token);
             });
-            sandbox.stub(vscode.window, "showInformationMessage").resolves(undefined);
+            messageBoxes.showInformationMessage.resolves(undefined);
         });
 
         test("copyResults calls copyResults2 with correct CopyType", async () => {
@@ -779,7 +809,7 @@ suite("Query Runner tests", () => {
 
             await queryRunner.copyResults(selection, 0, 0, false);
 
-            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(expectedContent);
+            expect(clipboardWriteTextStub).to.have.been.calledWith(expectedContent);
         });
 
         test("copyResults does not call clipboard fallback when content is not returned", async () => {
@@ -792,7 +822,7 @@ suite("Query Runner tests", () => {
 
             await queryRunner.copyResults(selection, 0, 0, false);
 
-            expect(testVscodeWrapper.clipboardWriteText).to.not.have.been.called;
+            expect(clipboardWriteTextStub).to.not.have.been.called;
         });
 
         test("copyResults preserves non-monotonic selection order in the backend request", async () => {
@@ -855,7 +885,7 @@ suite("Query Runner tests", () => {
             const configResult: { [key: string]: any } = {};
             configResult[Constants.configSaveAsCsv] = csvConfig;
             const config = stubs.createWorkspaceConfiguration(configResult);
-            (testVscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(() => config);
+            getConfigurationStub.returns(config);
 
             testSqlToolsServerClient.sendRequest
                 .withArgs(CopyResults2Request.type, sinon.match.object)
@@ -964,13 +994,13 @@ suite("Query Runner tests", () => {
             await Promise.all([firstCopyPromise, secondCopyPromise]);
 
             // The second copy should have written to clipboard
-            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith("second content");
+            expect(clipboardWriteTextStub).to.have.been.calledWith("second content");
         });
 
         test("copy operation handles errors gracefully", async () => {
             const queryRunner = createQueryRunner();
             const selection = [{ fromRow: 0, toRow: 1, fromCell: 0, toCell: 1 }];
-            const showErrorMessageStub = sandbox.stub(vscode.window, "showErrorMessage");
+            const showErrorMessageStub = messageBoxes.showErrorMessage;
 
             testSqlToolsServerClient.sendRequest
                 .withArgs(CopyResults2Request.type, sinon.match.object)
@@ -993,7 +1023,7 @@ suite("Query Runner tests", () => {
 
             await queryRunner.writeStringToClipboard(testString);
 
-            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(testString);
+            expect(clipboardWriteTextStub).to.have.been.calledWith(testString);
         });
 
         test("sets LANG environment variable on macOS", async () => {
@@ -1014,7 +1044,7 @@ suite("Query Runner tests", () => {
             await queryRunner.writeStringToClipboard(testString);
 
             // Verify the clipboard was called
-            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(testString);
+            expect(clipboardWriteTextStub).to.have.been.calledWith(testString);
 
             // Restore original platform
             Object.defineProperty(process, "platform", {
@@ -1031,7 +1061,7 @@ suite("Query Runner tests", () => {
 
             await queryRunner.writeStringToClipboard("");
 
-            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith("");
+            expect(clipboardWriteTextStub).to.have.been.calledWith("");
         });
 
         test("handles special characters", async () => {
@@ -1040,13 +1070,13 @@ suite("Query Runner tests", () => {
 
             await queryRunner.writeStringToClipboard(specialContent);
 
-            expect(testVscodeWrapper.clipboardWriteText).to.have.been.calledWith(specialContent);
+            expect(clipboardWriteTextStub).to.have.been.calledWith(specialContent);
         });
     });
 
     function setupWorkspaceConfig(configResult: { [key: string]: any }): void {
         let config = stubs.createWorkspaceConfiguration(configResult);
-        (testVscodeWrapper.getConfiguration as sinon.SinonStub).callsFake(() => config);
+        getConfigurationStub.returns(config);
     }
 });
 

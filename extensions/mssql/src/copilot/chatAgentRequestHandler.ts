@@ -5,7 +5,6 @@
 
 import * as vscode from "vscode";
 import { CopilotService } from "../services/copilotService";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import * as Constants from "../constants/constants";
 import {
@@ -26,6 +25,7 @@ import { MssqlChatAgent as loc } from "../constants/locConstants";
 import MainController from "../controllers/mainController";
 import { ILogger } from "../sharedInterfaces/logger";
 import { getLogger } from "../models/logger";
+import * as Utils from "../models/utils";
 import {
     handleChatCommand,
     commandSkipsConnectionLabels,
@@ -49,7 +49,6 @@ export interface ISqlChatResult extends vscode.ChatResult {
 
 export const createSqlAgentRequestHandler = (
     copilotService: CopilotService,
-    vscodeWrapper: VscodeWrapper,
     context: vscode.ExtensionContext,
     controller: MainController,
 ): vscode.ChatRequestHandler => {
@@ -73,7 +72,7 @@ export const createSqlAgentRequestHandler = (
         const correlationId = uuid();
         const logger = getRequestLogger();
         let conversationUri = getNextConversationUri();
-        let connectionUri = vscodeWrapper.activeTextEditorUri;
+        let connectionUri = Utils.getActiveTextEditorUri() ?? "";
         logger.debug("In handler");
         logger.debug(
             `Starting new chat conversation: conversion '${conversationUri}' with connection '${connectionUri}'`,
@@ -277,7 +276,7 @@ export const createSqlAgentRequestHandler = (
             }
 
             // Tool lookup
-            const copilotDebugLogging = vscodeWrapper
+            const copilotDebugLogging = vscode.workspace
                 .getConfiguration()
                 .get(Constants.copilotDebugLogging, false);
             logger.debug(
@@ -888,7 +887,7 @@ export const createSqlAgentRequestHandler = (
         let sqlToolParameters: string | undefined;
 
         // Tool lookup
-        const copilotDebugLogging = vscodeWrapper
+        const copilotDebugLogging = vscode.workspace
             .getConfiguration()
             .get(Constants.copilotDebugLogging, false);
 
@@ -1096,7 +1095,6 @@ export function provideFollowups(
     _context: vscode.ChatContext,
     _token: vscode.CancellationToken,
     controller: MainController,
-    vscodeWrapper: VscodeWrapper,
 ): vscode.ProviderResult<vscode.ChatFollowup[]> {
     // Only show follow-ups for help command
     if ((result as ISqlChatResult).metadata?.command !== CHAT_COMMAND_NAMES.help) {
@@ -1104,8 +1102,10 @@ export function provideFollowups(
     }
 
     // Check current active editor connection directly
-    const connectionUri = vscodeWrapper.activeTextEditorUri;
-    const connection = controller.connectionManager.getConnectionInfo(connectionUri);
+    const connectionUri = Utils.getActiveTextEditorUri();
+    const connection = connectionUri
+        ? controller.connectionManager.getConnectionInfo(connectionUri)
+        : undefined;
     const hasConnection = !!(connectionUri && connection);
 
     // If no active connection, suggest connecting

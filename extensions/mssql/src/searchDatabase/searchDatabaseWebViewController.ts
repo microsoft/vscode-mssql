@@ -15,7 +15,6 @@ import {
 } from "../sharedInterfaces/searchDatabase";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { IMetadataService } from "../services/metadataService";
 import { ApiStatus } from "../sharedInterfaces/webview";
@@ -47,7 +46,6 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private _metadataService: IMetadataService,
         private _connectionManager: ConnectionManager,
         private _targetNode: TreeNodeInfo,
@@ -62,7 +60,6 @@ export class SearchDatabaseWebViewController extends WebviewPanelController<
 
         super(
             context,
-            vscodeWrapper,
             "searchDatabase",
             "searchDatabase",
             {

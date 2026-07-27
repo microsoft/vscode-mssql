@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import { SchemaDesignerWebviewController } from "./schemaDesignerWebviewController";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
@@ -71,7 +70,6 @@ export class SchemaDesignerWebviewManager {
      * This method manages the lifecycle of schema designer instances, reusing existing ones when possible.
      *
      * @param context - The VS Code extension context
-     * @param vscodeWrapper - Wrapper for VS Code APIs
      * @param mainController - The main controller instance
      * @param schemaDesignerService - Service for schema designer operations
      * @param databaseName - Name of the database to open in the schema designer
@@ -84,7 +82,6 @@ export class SchemaDesignerWebviewManager {
      */
     public async getSchemaDesigner(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         mainController: MainController,
         schemaDesignerService: SchemaDesigner.ISchemaDesignerService,
         databaseName: string,
@@ -145,7 +142,6 @@ export class SchemaDesignerWebviewManager {
         if (!this.schemaDesigners.has(key) || this.schemaDesigners.get(key)?.isDisposed) {
             const schemaDesigner = new SchemaDesignerWebviewController(
                 context,
-                vscodeWrapper,
                 mainController,
                 schemaDesignerService,
                 connectionString,
@@ -192,7 +188,6 @@ export class SchemaDesignerWebviewManager {
                         // Show the webview again
                         return await this.getSchemaDesigner(
                             context,
-                            vscodeWrapper,
                             mainController,
                             schemaDesignerService,
                             databaseName,
