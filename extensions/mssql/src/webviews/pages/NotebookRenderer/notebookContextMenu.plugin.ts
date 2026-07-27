@@ -646,27 +646,28 @@ export class NotebookContextMenu<T extends Slick.SlickData> {
         columns: Slick.Column<T>[],
         dataProvider: IDisposableDataProvider<T>,
     ): string {
+        // Every object shares the same key set, built from the union of selected
+        // columns; cells outside the selection are emitted as null.
+        const colMeta = this.getSelectedColumnIndices(ranges, columns).map((c) => {
+            const col = columns[c];
+            const typeName = this.getColumnInfo(col)?.dataTypeName?.toLowerCase();
+            return {
+                field: col.field!,
+                index: c,
+                key: JSON.stringify(col.toolTip ?? col.name ?? col.field!),
+                isJsonNumber: !!typeName && NotebookContextMenu.JSON_NUMBER_TYPES.has(typeName),
+            };
+        });
+
         const rows: string[] = [];
         for (const range of ranges) {
-            const dataCols = this.getDataColumnsInRange(columns, range.fromCell, range.toCell);
-            if (dataCols.length === 0) {
-                continue;
-            }
-            const colMeta = dataCols.map((col) => {
-                const typeName = this.getColumnInfo(col)?.dataTypeName?.toLowerCase();
-                return {
-                    field: col.field!,
-                    key: JSON.stringify(col.toolTip ?? col.name ?? col.field!),
-                    isJsonNumber: !!typeName && NotebookContextMenu.JSON_NUMBER_TYPES.has(typeName),
-                };
-            });
             for (let r = range.fromRow; r <= range.toRow; r++) {
                 const item = dataProvider.getItem(r) as Slick.SlickData;
                 const pairs: string[] = [];
-                for (const { field, key, isJsonNumber } of colMeta) {
+                for (const { field, index, key, isJsonNumber } of colMeta) {
                     const cellVal = item?.[field];
                     let val: string;
-                    if (cellVal?.isNull) {
+                    if (!this.isCellSelected(ranges, r, index) || cellVal?.isNull) {
                         val = "null";
                     } else {
                         const displayVal = cellVal?.displayValue ?? "";
