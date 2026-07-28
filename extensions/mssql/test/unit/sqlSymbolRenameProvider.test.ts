@@ -1078,6 +1078,111 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     expect(fsStubs.rename).to.not.have.been.called;
                     expect(sqlProjectsServiceStub.moveSqlObjectScript).to.not.have.been.called;
                 });
+
+                test("moves the definition file, not the open document, when STS returns definitionFileUri", async () => {
+                    // Scenario: cursor is in a trigger file on a table reference.
+                    // STS returns definitionFileUri pointing to the table's definition file so
+                    // we don't have to guess from filenames — the trigger file is never moved.
+                    const triggerFile = path.join(projectDir, "dbo", "Triggers", "Trigger12.sql");
+                    const tableFile = path.join(projectDir, "dbo", "Tables", "FileTable123.sql");
+                    const tableFileUri = vscode.Uri.file(tableFile).toString();
+                    const triggerFileUri = vscode.Uri.file(triggerFile).toString();
+
+                    sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({
+                        changes: {
+                            [tableFileUri]: [
+                                {
+                                    range: {
+                                        start: { line: 0, character: 0 },
+                                        end: { line: 0, character: 3 },
+                                    },
+                                    newText: "sss",
+                                },
+                            ],
+                            [triggerFileUri]: [
+                                {
+                                    range: {
+                                        start: { line: 2, character: 5 },
+                                        end: { line: 2, character: 8 },
+                                    },
+                                    newText: "sss",
+                                },
+                            ],
+                        },
+                        refactorLogContent: null,
+                        definitionFileUri: tableFileUri,
+                        elementType: "SqlTable",
+                    });
+
+                    const doc = makeMoveDocument(sandbox, {
+                        fsPath: triggerFile,
+                        lineText: "ON [dbo].[FileTable123]",
+                    });
+                    await provider.runMoveToSchema(doc, new vscode.Position(0, 10));
+
+                    // Table file must be renamed to sss/Tables/FileTable123.sql.
+                    const expectedNewUri = vscode.Uri.joinPath(
+                        vscode.Uri.file(projectDir),
+                        "sss",
+                        "Tables",
+                        "FileTable123.sql",
+                    );
+                    expect(fsStubs.rename).to.have.been.calledWith(
+                        sinon.match(
+                            (u: vscode.Uri) => u.fsPath === vscode.Uri.file(tableFile).fsPath,
+                        ),
+                        sinon.match((u: vscode.Uri) => u.fsPath === expectedNewUri.fsPath),
+                        sinon.match({ overwrite: false }),
+                    );
+                    // Trigger file must never be touched by the rename.
+                    expect(fsStubs.rename).to.not.have.been.calledWith(
+                        sinon.match(
+                            (u: vscode.Uri) => u.fsPath === vscode.Uri.file(triggerFile).fsPath,
+                        ),
+                        sinon.match.any,
+                        sinon.match.any,
+                    );
+                });
+
+                test("uses elementType from STS response to determine the correct target subfolder", async () => {
+                    // elementType="SqlTable" → folder "Tables" regardless of the source path convention.
+                    sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({
+                        changes: {
+                            [schemaFileUri]: [
+                                {
+                                    range: {
+                                        start: { line: 0, character: 0 },
+                                        end: { line: 0, character: 3 },
+                                    },
+                                    newText: "sss",
+                                },
+                            ],
+                        },
+                        refactorLogContent: null,
+                        definitionFileUri: schemaFileUri,
+                        elementType: "SqlTable",
+                    });
+
+                    const doc = makeMoveDocument(sandbox, {
+                        fsPath: schemaFile,
+                        lineText: "CREATE TABLE [dbo].[table1]",
+                    });
+                    await provider.runMoveToSchema(doc, new vscode.Position(0, 14));
+
+                    const expectedNewUri = vscode.Uri.joinPath(
+                        vscode.Uri.file(projectDir),
+                        "sss",
+                        "Tables",
+                        "table1.sql",
+                    );
+                    expect(fsStubs.rename).to.have.been.calledWith(
+                        sinon.match(
+                            (u: vscode.Uri) => u.fsPath === vscode.Uri.file(schemaFile).fsPath,
+                        ),
+                        sinon.match((u: vscode.Uri) => u.fsPath === expectedNewUri.fsPath),
+                        sinon.match({ overwrite: false }),
+                    );
+                });
             });
         });
     });

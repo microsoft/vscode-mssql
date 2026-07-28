@@ -252,6 +252,16 @@ export interface SqlMoveToSchemaResponse {
     refactorLogContent: string | null;
     targetSchema: string;
     /**
+     * URI of the file that declares the moved object. The client uses this to physically relocate
+     * the definition file to the new schema folder. Null when the file could not be resolved.
+     */
+    definitionFileUri?: string | null;
+    /**
+     * STS element-type string for the moved object (e.g. "SqlTable", "SqlView"). The client maps
+     * this to a conventional SSDT folder name using its own lookup table.
+     */
+    elementType?: string | null;
+    /**
      * When non-null, a message to surface to the user.
      * If isWarning is true, show a confirmation dialog; otherwise show a blocking error.
      */
