@@ -21,8 +21,10 @@ import {
     extractSchemaFromLinePrefix,
     getSqlIdentifierRange,
     isInSqlProject,
+    RefactorLogTarget,
     resolveRefactorLogTarget,
 } from "./refactorLog";
+import { SqlProjectsService } from "../services/sqlProjectsService";
 
 /**
  * Surfaces a "Move to Schema..." action under the editor's **Refactor...** menu for SQL files in a
@@ -34,6 +36,13 @@ import {
  */
 export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
     public static readonly providedCodeActionKinds = [vscode.CodeActionKind.Refactor];
+
+    private readonly _sqlProjectsService: SqlProjectsService;
+
+    constructor(sqlProjectsService?: SqlProjectsService) {
+        this._sqlProjectsService =
+            sqlProjectsService ?? new SqlProjectsService(SqlToolsServerClient.instance);
+    }
 
     /**
      * Registers the provider and its backing command. Returns disposables for the caller to track.
@@ -223,6 +232,11 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             });
             if (!applied) {
                 void vscode.window.showErrorMessage(loc.applyEditFailed);
+            } else {
+                await this.moveFileToNewSchemaFolder(document, refactorTarget, targetSchema);
+                // Refresh the project tree so the moved file appears under its new schema folder
+                // without requiring the user to manually reload the project.
+                await vscode.commands.executeCommand("dataworkspace.refresh");
             }
         } finally {
             if (tempUri) {
@@ -233,5 +247,95 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                 );
             }
         }
+    }
+
+    /**
+     * After the SQL text edits are confirmed, moves the physical `.sql` file to the folder that
+     * matches the new schema. For example:
+     *   `dbo/tables/table1.sql`  →  `sss/tables/table1.sql`
+     *
+     * Only acts when the file lives directly under a schema-named top-level folder (i.e. the first
+     * path segment matches the old schema name). Files outside this convention are skipped silently
+     * so the SQL text edits are still preserved.
+     *
+     * Uses `vscode.Uri.joinPath` for all URI construction and forward-slash paths for `.sqlproj`
+     * entries to ensure cross-platform compatibility.
+     */
+    private async moveFileToNewSchemaFolder(
+        document: vscode.TextDocument,
+        refactorTarget: RefactorLogTarget,
+        targetSchema: string,
+    ): Promise<void> {
+        // Use vscode.Uri.path (always forward-slash on every platform) to derive the
+        // project-relative path. This avoids any OS path-separator handling — no need for
+        // path.relative, path.sep, or manual slash normalization.
+        const projDirUriPath = refactorTarget.sqlprojUri.path.substring(
+            0,
+            refactorTarget.sqlprojUri.path.lastIndexOf("/"),
+        );
+        if (!document.uri.path.startsWith(projDirUriPath + "/")) {
+            // File is not inside the project directory — skip.
+            return;
+        }
+        const relPath = document.uri.path.substring(projDirUriPath.length + 1);
+
+        const segments = relPath.split("/").filter(Boolean);
+        if (segments.length < 2) {
+            // File is at the project root (no schema folder prefix) — skip file move.
+            return;
+        }
+
+        const currentSchema = segments[0];
+        if (currentSchema.toLowerCase() === targetSchema.toLowerCase()) {
+            // File is already under the target schema folder — nothing to move.
+            return;
+        }
+
+        // Retain any intermediate object-type folder (e.g. "tables") and the file name unchanged.
+        const innerSegments = segments.slice(1, -1); // e.g. ["tables"]
+        const fileName = segments[segments.length - 1]; // e.g. "table1.sql"
+
+        // Build the new relative path using forward slashes (cross-platform safe for .sqlproj).
+        const newRelPath = [targetSchema, ...innerSegments, fileName].join("/");
+
+        // Derive the project root URI from the sqlproj URI so all file operations stay URI-based.
+        const projectRootUri = vscode.Uri.joinPath(refactorTarget.sqlprojUri, "..");
+        const newAbsUri = vscode.Uri.joinPath(
+            projectRootUri,
+            targetSchema,
+            ...innerSegments,
+            fileName,
+        );
+        const targetDirUri = vscode.Uri.joinPath(projectRootUri, targetSchema, ...innerSegments);
+
+        // Ensure the target directory exists on disk. createDirectory is idempotent.
+        try {
+            await vscode.workspace.fs.createDirectory(targetDirUri);
+        } catch {
+            // Ignore "already exists" — the directory may have been created already.
+        }
+
+        // Move the physical file.
+        try {
+            await vscode.workspace.fs.rename(document.uri, newAbsUri, { overwrite: false });
+        } catch (err) {
+            void vscode.window.showErrorMessage(
+                loc.moveFileFailed(err instanceof Error ? err.message : String(err)),
+            );
+            return;
+        }
+
+        // Register the new schema folder hierarchy in the .sqlproj (no-op if already present).
+        const projPath = refactorTarget.sqlprojUri.fsPath;
+        await this._sqlProjectsService.addFolder(projPath, targetSchema);
+        if (innerSegments.length > 0) {
+            await this._sqlProjectsService.addFolder(
+                projPath,
+                [targetSchema, ...innerSegments].join("/"),
+            );
+        }
+
+        // Update the <Build Include> path in the .sqlproj to reflect the new file location.
+        await this._sqlProjectsService.moveSqlObjectScript(projPath, relPath, newRelPath);
     }
 }

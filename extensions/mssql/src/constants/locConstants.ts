@@ -4206,4 +4206,6 @@ export class SqlMoveToSchema {
     public static applyEditFailed = l10n.t(
         "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
     );
+    public static moveFileFailed = (message: string): string =>
+        l10n.t("Failed to move file to the new schema folder: {0}", message);
 }
