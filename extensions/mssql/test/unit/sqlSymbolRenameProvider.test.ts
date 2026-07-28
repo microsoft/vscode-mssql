@@ -726,6 +726,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
             setup(() => {
                 findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
                 showQuickPickStub.resolves({ label: "hr" });
+                sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
                 openTextDocumentStub = sandbox.stub(vscode.workspace, "openTextDocument");
                 openTextDocumentStub.callsFake((_uri: vscode.Uri) => {
                     const content = "<Project>\n</Project>";
@@ -885,15 +886,15 @@ suite("SqlMoveToSchemaProvider Tests", () => {
             // ---------------------------------------------------------------
             suite("file relocation after Apply", () => {
                 let sqlProjectsServiceStub: sinon.SinonStubbedInstance<SqlProjectsService>;
+                // executeCommand is already stubbed by the outer applyMove suite setup.
                 let executeCommandStub: sinon.SinonStub;
                 // File that follows the schema/objectType/file.sql convention
                 const schemaFile = path.join(projectDir, "dbo", "tables", "table1.sql");
                 const schemaFileUri = vscode.Uri.file(schemaFile).toString();
 
                 setup(() => {
-                    executeCommandStub = sandbox
-                        .stub(vscode.commands, "executeCommand")
-                        .resolves(undefined);
+                    // Reuse the stub created in the outer suite's setup.
+                    executeCommandStub = vscode.commands.executeCommand as sinon.SinonStub;
                     sqlProjectsServiceStub = sandbox.createStubInstance(SqlProjectsService);
                     sqlProjectsServiceStub.addFolder.resolves({
                         success: true,
@@ -1046,6 +1047,36 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     await provider.runMoveToSchema(doc, new vscode.Position(0, 14));
 
                     expect(executeCommandStub).to.have.been.calledWith("dataworkspace.refresh");
+                });
+
+                test("skips file move when the top-level folder is not a known project schema", async () => {
+                    // "misc" is not in the project schemas ["dbo", "sss"], so the file should
+                    // not be relocated even though it has a two-segment project-relative path.
+                    const miscFile = path.join(projectDir, "misc", "tables", "table1.sql");
+                    const miscFileUri = vscode.Uri.file(miscFile).toString();
+                    sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({
+                        changes: {
+                            [miscFileUri]: [
+                                {
+                                    range: {
+                                        start: { line: 0, character: 0 },
+                                        end: { line: 0, character: 4 },
+                                    },
+                                    newText: "sss",
+                                },
+                            ],
+                        },
+                        refactorLogContent: null,
+                    });
+
+                    const doc = makeMoveDocument(sandbox, {
+                        fsPath: miscFile,
+                        lineText: "CREATE TABLE [misc].[table1]",
+                    });
+                    await provider.runMoveToSchema(doc, new vscode.Position(0, 14));
+
+                    expect(fsStubs.rename).to.not.have.been.called;
+                    expect(sqlProjectsServiceStub.moveSqlObjectScript).to.not.have.been.called;
                 });
             });
         });

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { DOMParser } from "@xmldom/xmldom";
 import { SqlMoveToSchema as loc, msgYes } from "../constants/locConstants";
 import { cmdMoveToSchema } from "../constants/constants";
 import SqlToolsServerClient from "./serviceclient";
@@ -25,6 +26,48 @@ import {
     resolveRefactorLogTarget,
 } from "./refactorLog";
 import { SqlProjectsService } from "../services/sqlProjectsService";
+
+/**
+ * Maps STS `ElementType` values (from the `.refactorlog` XML) to their conventional
+ * SQL project folder names, following SSDT folder structure conventions.
+ */
+const stsElementTypeToFolderMap: Readonly<Record<string, string>> = {
+    sqltable: "Tables",
+    sqlview: "Views",
+    sqlinlinefunction: "Functions",
+    sqlscalarfunction: "Functions",
+    sqltablevaluefunction: "Functions",
+    sqldmltrigger: "Triggers",
+    sqltrigger: "Triggers",
+    sqlsequence: "Sequences",
+};
+
+/**
+ * Extracts the object-type folder name from the last `<Operation>` entry in the
+ * STS-generated refactorlog XML. Returns undefined when the log is absent or the
+ * element type is not in the known map.
+ */
+function getFolderFromRefactorLog(
+    refactorLogContent: string | null | undefined,
+): string | undefined {
+    if (!refactorLogContent) {
+        return undefined;
+    }
+    const doc = new DOMParser().parseFromString(refactorLogContent, "text/xml");
+    const operations = doc.getElementsByTagName("Operation");
+    const lastOp = operations[operations.length - 1];
+    if (!lastOp) {
+        return undefined;
+    }
+    const properties = lastOp.getElementsByTagName("Property");
+    for (let i = 0; i < properties.length; i++) {
+        if (properties[i].getAttribute("Name") === "ElementType") {
+            const value = properties[i].getAttribute("Value");
+            return value ? stsElementTypeToFolderMap[value.toLowerCase()] : undefined;
+        }
+    }
+    return undefined;
+}
 
 /**
  * Surfaces a "Move to Schema..." action under the editor's **Refactor...** menu for SQL files in a
@@ -145,7 +188,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             return; // user cancelled
         }
 
-        await this.applyMove(document, position, selected.label);
+        await this.applyMove(document, position, selected.label, schemas);
     }
 
     /**
@@ -156,6 +199,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         document: vscode.TextDocument,
         position: vscode.Position,
         targetSchema: string,
+        schemas: string[],
     ): Promise<void> {
         let refactorTarget;
         try {
@@ -233,10 +277,19 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             if (!applied) {
                 void vscode.window.showErrorMessage(loc.applyEditFailed);
             } else {
-                await this.moveFileToNewSchemaFolder(document, refactorTarget, targetSchema);
-                // Refresh the project tree so the moved file appears under its new schema folder
-                // without requiring the user to manually reload the project.
-                await vscode.commands.executeCommand("dataworkspace.refresh");
+                const moved = await this.moveFileToNewSchemaFolder(
+                    document,
+                    refactorTarget,
+                    targetSchema,
+                    schemas,
+                    response.refactorLogContent,
+                );
+                // Refresh the project tree to reflect the SQL text edits, .sqlproj changes,
+                // and (when the file moved) the new file location. Skip only when the physical
+                // rename itself failed — the user already saw the error message in that case.
+                if (moved !== false) {
+                    await vscode.commands.executeCommand("dataworkspace.refresh");
+                }
             }
         } finally {
             if (tempUri) {
@@ -265,7 +318,9 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         document: vscode.TextDocument,
         refactorTarget: RefactorLogTarget,
         targetSchema: string,
-    ): Promise<void> {
+        schemas: string[],
+        refactorLogContent: string | null | undefined,
+    ): Promise<boolean | void> {
         // Use vscode.Uri.path (always forward-slash on every platform) to derive the
         // project-relative path. This avoids any OS path-separator handling — no need for
         // path.relative, path.sep, or manual slash normalization.
@@ -280,23 +335,39 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         const relPath = document.uri.path.substring(projDirUriPath.length + 1);
 
         const segments = relPath.split("/").filter(Boolean);
-        if (segments.length < 2) {
-            // File is at the project root (no schema folder prefix) — skip file move.
+        const fileName = segments[segments.length - 1];
+        const hasSchemaPrefix = segments.length >= 2;
+        const currentSchema = hasSchemaPrefix ? segments[0] : undefined;
+
+        // Determine the correct object-type subfolder from the refactorlog's ElementType.
+        // Falls back to the existing path segments when the type cannot be determined
+        // (e.g. stored procedures which produce no refactorlog entry).
+        const detectedFolder = getFolderFromRefactorLog(refactorLogContent);
+        const innerSegments = detectedFolder
+            ? [detectedFolder]
+            : hasSchemaPrefix
+              ? segments.slice(1, -1)
+              : [];
+
+        if (!hasSchemaPrefix && !detectedFolder) {
+            // File is at the project root and object type is unknown — skip file move.
             return;
         }
 
-        const currentSchema = segments[0];
-        if (currentSchema.toLowerCase() === targetSchema.toLowerCase()) {
-            // File is already under the target schema folder — nothing to move.
+        if (
+            hasSchemaPrefix &&
+            !schemas.some((s) => s.toLowerCase() === currentSchema!.toLowerCase())
+        ) {
+            // Top-level folder is not a known project schema — skip to avoid moving
+            // non-schema-organised files (e.g. misc/tables/x.sql) unexpectedly.
             return;
         }
 
-        // Retain any intermediate object-type folder (e.g. "tables") and the file name unchanged.
-        const innerSegments = segments.slice(1, -1); // e.g. ["tables"]
-        const fileName = segments[segments.length - 1]; // e.g. "table1.sql"
-
-        // Build the new relative path using forward slashes (cross-platform safe for .sqlproj).
+        // Build the new relative path and skip if file is already at the destination.
         const newRelPath = [targetSchema, ...innerSegments, fileName].join("/");
+        if (relPath === newRelPath) {
+            return;
+        }
 
         // Derive the project root URI from the sqlproj URI so all file operations stay URI-based.
         const projectRootUri = vscode.Uri.joinPath(refactorTarget.sqlprojUri, "..");
@@ -322,7 +393,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             void vscode.window.showErrorMessage(
                 loc.moveFileFailed(err instanceof Error ? err.message : String(err)),
             );
-            return;
+            return false; // signal that the rename failed so the caller skips the tree refresh
         }
 
         // Register the new schema folder hierarchy in the .sqlproj (no-op if already present).
