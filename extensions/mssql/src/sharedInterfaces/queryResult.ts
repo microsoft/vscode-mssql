@@ -398,6 +398,14 @@ export namespace SetSelectionSummaryRequest {
     export const type = new NotificationType<SetSelectionSummary>("setSelectionSummary");
 }
 
+export namespace HandleSelectionSummaryRequest {
+    export const type = new RequestType<string, void, void>("queryResult/handleSelectionSummary");
+}
+
+export namespace CloseResultsPanelRequest {
+    export const type = new RequestType<void, void, void>("queryResult/closePanel");
+}
+
 export interface OpenInNewTabParams {
     uri: string;
 }

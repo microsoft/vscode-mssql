@@ -14,7 +14,6 @@ import { WebviewBaseController } from "../../src/controllers/webviewBaseControll
 import { stubTelemetry } from "./utils";
 import {
     ColorThemeChangeNotification,
-    ExecuteCommandRequest,
     GetKeyBindingsConfigRequest,
     GetLocalizationRequest,
     GetStateRequest,
@@ -117,10 +116,6 @@ suite("WebviewController Tests", () => {
             onRequestStub,
             "GetLocalizationRequest handler is not registered",
         ).to.have.been.calledWith(GetLocalizationRequest.type, sinon.match.any);
-        expect(
-            onRequestStub,
-            "ExecuteCommandRequest handler is not registered",
-        ).to.have.been.calledWith(ExecuteCommandRequest.type, sinon.match.any);
         expect(
             onNotificationStub,
             "LoadStatsNotification handler is not registered",
