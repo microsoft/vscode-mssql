@@ -8,8 +8,6 @@ import * as vscode from "vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import {
     ColorThemeChangeNotification,
-    ExecuteCommandParams,
-    ExecuteCommandRequest,
     GetEOLRequest,
     GetKeyBindingsConfigRequest,
     GetLocalizationRequest,
@@ -362,15 +360,6 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
                 );
                 return undefined;
             }
-        });
-
-        this.onRequest(ExecuteCommandRequest.type, async (params: ExecuteCommandParams) => {
-            if (!params?.command) {
-                this.logger.trace("No command provided to execute");
-                return;
-            }
-            const args = params?.args ?? [];
-            return await vscode.commands.executeCommand(params.command, ...args);
         });
 
         this.onRequest(GetPlatformRequest.type, async () => {
