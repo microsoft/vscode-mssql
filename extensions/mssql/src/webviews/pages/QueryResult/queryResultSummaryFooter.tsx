@@ -5,7 +5,6 @@
 
 import { Tooltip, makeStyles } from "@fluentui/react-components";
 import { Fragment, useContext, useEffect, useMemo, useState } from "react";
-import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
 import { getDisplayedRowsCount } from "./queryResultUtils";
@@ -404,6 +403,7 @@ export const QueryResultSummaryFooter = ({
             : compactExecutionText;
     const selectionStats = selectionSummary?.stats;
     const selectionCommand = selectionSummary?.command;
+    const selectionActionUri = selectionCommand?.arguments[0];
     const selectionStatusText = selectionSummary?.displayText ?? selectionSummary?.text ?? "";
     const selectionDisplayContent = selectionStats
         ? renderSelectionMetricsInline(selectionStats, classes)
@@ -466,17 +466,14 @@ export const QueryResultSummaryFooter = ({
                     relationship="description"
                     positioning={SELECTION_TOOLTIP_POSITIONING}
                     content={selectionTooltipContent}>
-                    {selectionCommand?.command ? (
+                    {typeof selectionActionUri === "string" ? (
                         <button
                             type="button"
                             className={classes.selectionValueButton}
                             onClick={async () => {
                                 await context?.extensionRpc.sendRequest(
-                                    ExecuteCommandRequest.type,
-                                    {
-                                        command: selectionCommand.command,
-                                        args: selectionCommand.arguments,
-                                    },
+                                    qr.HandleSelectionSummaryRequest.type,
+                                    selectionActionUri,
                                 );
                             }}>
                             {selectionDisplayContent}

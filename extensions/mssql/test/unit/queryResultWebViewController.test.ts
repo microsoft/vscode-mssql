@@ -97,6 +97,28 @@ suite("QueryResultWebviewController", () => {
         sandbox.restore();
     });
 
+    test("resolves the selection summary continuation for a known result", () => {
+        const resolve = sandbox.stub();
+        controller["_selectionSummaryContinuations"].set(testUri, {
+            resolve,
+        } as any);
+
+        controller.handleSelectionSummary(testUri);
+
+        expect(resolve).to.have.been.calledOnce;
+    });
+
+    test("ignores a selection summary request for an unknown result", () => {
+        const resolve = sandbox.stub();
+        controller["_selectionSummaryContinuations"].set("file:///unknown.sql", {
+            resolve,
+        } as any);
+
+        controller.handleSelectionSummary("file:///unknown.sql");
+
+        expect(resolve).to.not.have.been.called;
+    });
+
     test("moves current result to a tab when the setting is enabled through configuration change", async () => {
         openResultsInTabByDefault = true;
         const createPanelControllerStub = sandbox
