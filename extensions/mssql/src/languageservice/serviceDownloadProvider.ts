@@ -18,7 +18,7 @@ import * as fs from "fs/promises";
 import { ILogger } from "../sharedInterfaces/logger";
 import DownloadHelper from "./downloadHelper";
 import { getServiceExecutablePath, ServiceExecutable } from "./serviceExecutablePaths";
-import { getErrorMessage } from "../utils/utils";
+import { getErrorMessage } from "extension-toolkit/base";
 
 /*
  * Service Download Provider class which handles downloading the SQL tools service.
