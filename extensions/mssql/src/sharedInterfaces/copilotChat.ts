@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { RequestType } from "vscode-jsonrpc";
+
 export namespace CopilotChat {
     export const openFromUiCommand = "mssql.openCopilotChatFromUi";
     const discoveryDismissedStateKeyPrefix = "mssql.copilotChatDiscoveryDismissed";
@@ -17,6 +19,10 @@ export namespace CopilotChat {
         scenario: Scenario;
         entryPoint: EntryPoint;
         prompt?: string;
+    }
+
+    export namespace OpenFromUiRequest {
+        export const type = new RequestType<OpenFromUiArgs, void, void>("copilotChat/openFromUi");
     }
 
     export type DiscoveryDismissedState = Partial<Record<Scenario, boolean>>;

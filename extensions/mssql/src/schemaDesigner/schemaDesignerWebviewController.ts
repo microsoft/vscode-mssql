@@ -173,6 +173,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     }
 
     private setupRequestHandlers() {
+        this.onRequest(CopilotChat.OpenFromUiRequest.type, async (payload) => {
+            await vscode.commands.executeCommand(CopilotChat.openFromUiCommand, payload);
+        });
+
         this.onRequest(SchemaDesigner.InitializeSchemaDesignerRequest.type, async () => {
             if (!this._initializeSchemaDesignerPromise) {
                 this._initializeSchemaDesignerPromise = this.initializeSchemaDesignerSession();
