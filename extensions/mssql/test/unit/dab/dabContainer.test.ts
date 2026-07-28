@@ -139,6 +139,9 @@ suite("DAB Container", () => {
             const createOptions = createContainerStub.firstCall.args[0];
             expect(createOptions.name).to.equal("test-dab-container");
             expect(createOptions.Cmd).to.deep.equal(["--ConfigFileName", "/App/dab-config.json"]);
+            expect(createOptions.HostConfig.PortBindings).to.deep.equal({
+                "5000/tcp": [{ HostIp: "127.0.0.1", HostPort: "5000" }],
+            });
         } finally {
             // Cleanup temp files
             fs.unlinkSync(configFilePath);

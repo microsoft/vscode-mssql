@@ -163,7 +163,7 @@ export async function startDabDockerContainer(
             },
             HostConfig: {
                 PortBindings: {
-                    [dabContainerPort]: [{ HostPort: hostPort }],
+                    [dabContainerPort]: [{ HostIp: "127.0.0.1", HostPort: hostPort }],
                 },
                 ExtraHosts: ["host.docker.internal:host-gateway"],
             },
