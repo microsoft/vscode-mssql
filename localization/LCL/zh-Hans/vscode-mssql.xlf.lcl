@@ -1207,6 +1207,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++0bc00be2d21a631fedf64e0302de168c6a49105158a47fc837faf0df12f53fe4" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用自定义键盘快捷方式立即运行已保存的 SQL。使用 {arg} 插入所选查询编辑器文本；否则会将其追加它。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++0befa698942df488c015215f49381ba31373030e9e52ad90767a250d397acc92" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Session name cannot be empty]]></Val>
@@ -4357,6 +4366,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++2cafc5757485d935e51fd715bb3ad14ec8c53f8875ed9e218b427244de032f15" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Selected query-editor text]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[所选查询编辑器文本]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++2cd189703476b72bd7cc6cd98d4bf8b31d5195cd52cfc039745f164e6691c5d2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Error fetching schemas for the selected database.]]></Val>
@@ -4785,6 +4803,15 @@
           <Val><![CDATA[New Index]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[新建索引]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++30bc13b49dca001aeab4b8447c759c4f374ff741a22f914a7db838cf7aa507e8" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[此快捷方式要求将所选文本作为参数传递。在 SQL 编辑器中选择文本，然后再次运行快捷方式。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -5964,15 +5991,6 @@
           <Val><![CDATA[The behavior when a user tries to delete a row with data that is involved in a foreign key relationship.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[当用户尝试删除包含外键关系中所涉及数据的行时的行为。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++3ec8a4f0540db2ba6c43128944d19d2d6d10b0a65523ab185cf4e185e96f7dd6" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[保存常用的 SQL 代码段，然后立即使用自定义键盘快捷方式运行或打开它们。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -10891,6 +10909,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";bundle.++CODE++7231a7d45a700048f4057a8040de5fb2afc1ebd67638a7a2fa96da6b8f24e3ba" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用 {arg} 插入所选查询编辑器文本。如果不使用占位符，则所选文本将自动追加到查询末尾。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";bundle.++CODE++7243088a776ee64422264949fcd3e6bff4cab595d0f7fb6bf45d5765a2c2ef66" ItemType="0" PsrId="308" InstFlg="true" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Foreign Key {0}]]></Val>
@@ -11364,15 +11391,6 @@
           <Val><![CDATA[Focus the Messages tab]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[聚焦“消息”选项卡]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";bundle.++CODE++762d2d8d0f231dc362dd18f8ee3ef0adc4b55beff276a917db60b3432e2cf8ae" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Auto-execute]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[自动执行]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -25236,55 +25254,379 @@
       </Item>
       <Item ItemId=";package.mssql.format.alignColumnDefinitionsInColumns" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Should column definitions be aligned?]]></Val>
+          <Val><![CDATA[Legacy formatter only: Align column definitions. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[列定义是否应对齐?]]></Val>
+            <Val><![CDATA[仅限旧版格式化程序: 对齐列定义。将 `mssql.format.enablePreviewFormatter` 设置为 `false` 以使用此设置。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Should column definitions be aligned?]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.datatypeCasing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
+          <Val><![CDATA[Legacy formatter only: Control data type casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[数据类型格式是否应统一为“大写”(UPPERCASE)、“小写”(lowercase)或不进行统一(none)]]></Val>
+            <Val><![CDATA[仅限旧版格式化程序: 控制数据类型大小写格式。将 `mssql.format.enablePreviewFormatter` 设置为 `false` 以使用此设置。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.enablePreviewFormatter" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Use the preview SQL formatter.]]></Val>
+          <Val><![CDATA[Use the new SQL formatter. Disable this setting to temporarily use the legacy formatter.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[使用预览版 SQL 格式化程序。]]></Val>
+            <Val><![CDATA[使用新的 SQL 格式化程序。禁用此设置以暂时使用旧版格式化程序。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Use the preview SQL formatter.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.keywordCasing" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
+          <Val><![CDATA[Legacy formatter only: Control keyword and IntelliSense casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[关键字格式是否应统一为“大写”(UPPERCASE)、“小写”(lowercase)或不进行统一(none)]]></Val>
+            <Val><![CDATA[仅限旧版格式化程序: 控制关键字和 IntelliSense 大小写格式。将 `mssql.format.enablePreviewFormatter` 设置为 `false` 以使用此设置。]]></Val>
+          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)]]></Val>
+          </Prev>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.alignClauseBodies" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[对齐 FROM、WHERE、GROUP BY 和类似子句的正文。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.alignColumnDefinitionFields" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Align column-definition fields, such as names, data types, and constraints.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[对齐列定义字段，例如名称、数据类型和约束。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.alignSetClauseItem" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Align SET clause items in UPDATE statements.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[对齐 UPDATE 语句中的 SET 子句项。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.allowExternalLanguagePaths" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Allow external language content to use file paths.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[允许外部语言内容使用文件路径。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.allowExternalLibraryPaths" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Allow external library content to use file paths.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[允许外部库内容使用文件路径。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.asKeywordOnOwnLine" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place AS on its own line.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将 AS 放置在其自己的行上。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.indentSetClause" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Indent SET clauses in UPDATE statements.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[锁紧 UPDATE 语句中的 SET 子句。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.indentViewBody" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Indent VIEW bodies.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[缩进 VIEW 正文。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.keywordCasing" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Keyword casing style.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[关键字大小写样式。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilineInsertSourcesList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Format INSERT sources as multiline lists.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将 INSERT 源的格式设置为多行列表。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilineInsertTargetsList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Format INSERT columns as multiline lists.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将 INSERT 列的格式设置为多行列表。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilineSelectElementsList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Format SELECT columns as multiline lists.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将 SELECT 列的格式设置为多行列表。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilineSetClauseItems" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Format SET clause items as multiline lists.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将 SET 子句项格式化为多行列表。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilineViewColumnsList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Format VIEW columns as multiline lists.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将 VIEW 列的格式设置为多行列表。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.multilineWherePredicatesList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Format WHERE predicates as multiline lists.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将 WHERE 谓词的格式设置为多行列表。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineBeforeCloseParenthesisInMultilineList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place a newline before the closing parenthesis of a multiline list.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将换行符放置在多行列表的右括号之前。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineBeforeFromClause" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place a newline before the FROM clause.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将换行符置于 FROM 子句之前。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineBeforeGroupByClause" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place a newline before the GROUP BY clause.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将换行符放置在 GROUP BY 子句之前。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineBeforeHavingClause" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place a newline before the HAVING clause.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将换行符放置在 HAVING 子句之前。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineBeforeJoinClause" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place a newline before JOIN clauses.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在 JOIN 子句之前放置换行符。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineBeforeOffsetClause" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place a newline before the OFFSET clause.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将换行符放置在 OFFSET 子句之前。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineBeforeOpenParenthesisInMultilineList" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place a newline before the opening parenthesis of a multiline list.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将换行符放置在多行列表的左括号之前。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineBeforeOrderByClause" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place a newline before the ORDER BY clause.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将换行符放置在 ORDER BY 子句之前。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineBeforeOutputClause" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place a newline before the OUTPUT clause.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将换行符放置在 OUTPUT 子句之前。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineBeforeWhereClause" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place a newline before the WHERE clause.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将换行符放置在 WHERE 子句之前。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineBeforeWindowClause" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place a newline before the WINDOW clause.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将换行符放置在 WINDOW 子句之前。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newLineFormattedIndexDefinition" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将内联索引定义的 UNIQUE、INCLUDE 和 WHERE 部分放置在单独的行上。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.newlineFormattedCheckConstraint" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Place the CHECK clause of a constraint on its own line.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[将约束的 CHECK 子句放置在它自己的行上。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.numNewlinesAfterStatement" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Number of line breaks after each statement, from 0 through 5.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[每个语句后的换行符数(从 0 到 5)。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.preserveComments" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Preserve comments during formatting.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在格式设置期间保留注释。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.spaceBetweenDataTypeAndParameters" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Insert a space between a data type and its parentheses, for example VARCHAR (255).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在数据类型与其括号之间插入空格，例如 VARCHAR (255)。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.spaceBetweenParametersInDataType" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Insert spaces between parameters in a data type, for example DECIMAL (10, 2).]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[在数据类型中的参数之间插入空格，例如 DECIMAL (10, 2)。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.sqlEngineType" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL engine type used to parse and generate formatted scripts.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[用于分析和生成已设置格式的脚本的 SQL 引擎类型。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";package.mssql.format.options.sqlVersion" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[T-SQL version used to parse and generate formatted scripts.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[用于分析和生成已设置格式的脚本的 T-SQL 版本。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.placeCommasBeforeNextStatement" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,']]></Val>
+          <Val><![CDATA[Legacy formatter only: Place commas at the beginning instead of the end of list items. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[逗号是否应位于一串语句中每一条的开头(例如“, mycolumn2”)而不是结尾(例如“mycolumn1,”)]]></Val>
+            <Val><![CDATA[仅限旧版格式化程序: 将逗号放在列表项的开头而不是末尾。将 `mssql.format.enablePreviewFormatter` 设置为 `false` 以使用此设置。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[should commas be placed at the beginning of each statement in a list e.g. ', mycolumn2' instead of at the end e.g. 'mycolumn1,']]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";package.mssql.format.placeSelectStatementReferencesOnNewLine" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines]]></Val>
+          <Val><![CDATA[Legacy formatter only: Place SELECT statement object references on separate lines. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[select 语句中的对象引用是否应分为不同行?例如，在“SELECT C1, C2 FROM T1”中，C1 和 C2 将位于不同行]]></Val>
+            <Val><![CDATA[仅限旧版格式化程序: 将 SELECT 语句对象引用放置在单独的行上。将 `mssql.format.enablePreviewFormatter` 设置为 `false` 以使用此设置。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Should references to objects in a select statements be split into separate lines? E.g. for 'SELECT C1, C2 FROM T1' both C1 and C2 will be on separate lines]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -26154,37 +26496,13 @@
       </Item>
       <Item ItemId=";package.mssql.quickQueries" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Configure up to 10 Quick Queries that can be opened or run from commands.]]></Val>
+          <Val><![CDATA[Configure up to 10 Quick Queries that execute from commands.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[配置最多 10 个可通过命令打开或运行的快速查询。]]></Val>
+            <Val><![CDATA[最多配置 10 个通过命令执行的快速查询。]]></Val>
           </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.quickQueries.executionMode" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Controls whether this Quick Query opens in an editor or opens and runs immediately.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[控制此快速查询是在编辑器中打开还是立即打开并运行。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.quickQueries.executionMode.open" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Open the query in a SQL editor.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[在 SQL 编辑器中打开查询。]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";package.mssql.quickQueries.executionMode.openAndRun" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Open the query in a SQL editor and run it immediately.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[在 SQL 编辑器中打开查询并立即运行它。]]></Val>
-          </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[Configure up to 10 Quick Queries that can be opened or run from commands.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -26199,10 +26517,13 @@
       </Item>
       <Item ItemId=";package.mssql.quickQueries.query" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[SQL text for this Quick Query.]]></Val>
+          <Val><![CDATA[SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[此快速查询的 SQL 文本。]]></Val>
+            <Val><![CDATA[此快速查询的 SQL 文本。使用 {arg} 插入所选查询编辑器文本；否则将追加它。]]></Val>
           </Tgt>
+          <Prev Cat="Text">
+            <Val><![CDATA[SQL text for this Quick Query.]]></Val>
+          </Prev>
         </Str>
         <Disp Icon="Str" />
       </Item>

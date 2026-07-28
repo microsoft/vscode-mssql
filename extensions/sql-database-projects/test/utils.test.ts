@@ -203,4 +203,26 @@ suite("Tests to verify utils functions", function (): void {
             await fs.rm(root, { recursive: true, force: true });
         }
     });
+
+    test("Should read package info from the bundled extension layout", async () => {
+        const extensionRoot = await fs.mkdtemp(path.join(os.tmpdir(), "sqlproj-bundle-"));
+        const bundleDirectory = path.join(extensionRoot, "dist");
+        const packageInfo = {
+            name: "sql-database-projects-vscode",
+            version: "1.2.3",
+            aiKey: "test-key",
+        };
+
+        try {
+            await fs.mkdir(bundleDirectory);
+            await fs.writeFile(
+                path.join(extensionRoot, "package.json"),
+                JSON.stringify(packageInfo),
+            );
+
+            expect(utils.getPackageInfo(undefined, bundleDirectory)).to.deep.equal(packageInfo);
+        } finally {
+            await fs.rm(extensionRoot, { recursive: true, force: true });
+        }
+    });
 });

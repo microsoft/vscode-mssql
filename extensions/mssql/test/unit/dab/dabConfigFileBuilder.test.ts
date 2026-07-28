@@ -200,10 +200,10 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(parsed.runtime.host.mode).to.equal("development");
             });
 
-            test("should set CORS origins to wildcard", () => {
+            test("should not allow cross-origin browser access by default", () => {
                 const result = builder.build(createTestConfig(), defaultConnectionInfo);
                 const parsed = JSON.parse(result);
-                expect(parsed.runtime.host.cors.origins).to.deep.equal(["*"]);
+                expect(parsed.runtime.host).not.to.have.property("cors");
             });
         });
 
@@ -392,6 +392,68 @@ suite("DabConfigFileBuilder Tests", () => {
                     { name: "Id", "primary-key": true },
                     { name: "Name" },
                 ]);
+            });
+
+            test("should alias GraphQL-invalid column names without colliding", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.GraphQL],
+                    entities: [
+                        createTestEntity({
+                            columns: [
+                                {
+                                    id: "database-version",
+                                    name: "Database Version",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: false,
+                                },
+                                {
+                                    id: "database-version-alias",
+                                    name: "Database_Version",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: false,
+                                },
+                            ],
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].fields).to.deep.equal([
+                    {
+                        name: "Database Version",
+                        alias: "Database_Version_2",
+                    },
+                ]);
+            });
+
+            test("should not alias GraphQL-invalid column names when GraphQL is disabled", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            columns: [
+                                {
+                                    id: "database-version",
+                                    name: "Database Version",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: false,
+                                },
+                            ],
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"]).not.to.have.property("fields");
             });
 
             test("should emit stored procedure execute permissions and MCP custom tool", () => {

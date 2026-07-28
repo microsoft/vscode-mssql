@@ -356,7 +356,7 @@ export class LocConstants {
             subtitle: l10n.t("Configure Quick Query and Extension shortcuts."),
             quickQueries: l10n.t("Quick Queries"),
             quickQueriesDescription: l10n.t(
-                "Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.",
+                "Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.",
             ),
             quickQueriesKeyboardShortcutsBanner: l10n.t(
                 "Quick Queries keyboard shortcuts are managed by Visual Studio Code.",
@@ -437,7 +437,6 @@ export class LocConstants {
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),
             keybinding: l10n.t("Keybinding"),
-            autoExecute: l10n.t("Auto-execute"),
             clearQuickQuery: l10n.t("Clear Quick Query"),
             clearQuickQueryTooltip: l10n.t("Clear this Quick Query"),
             showAllShortcuts: l10n.t("Show All"),
@@ -462,6 +461,10 @@ export class LocConstants {
                     args: [name],
                     comment: ["{0} is the Quick Query shortcut name"],
                 }),
+            selectedTextArgumentHint: l10n.t(
+                "Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.",
+            ),
+            selectedTextCompletionDetail: l10n.t("Selected query-editor text"),
             noShortcut: l10n.t("No shortcut"),
             noQuerySet: l10n.t("No query set"),
             searchWebviewShortcuts: l10n.t("Search extension shortcut"),

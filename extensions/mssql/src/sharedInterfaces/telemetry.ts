@@ -296,6 +296,13 @@ export enum TelemetryActions {
     CancelCellExecution = "CancelCellExecution",
     KernelSelected = "KernelSelected",
     Stats = "Stats",
+    // ------------------------------- < SQL Tools Service > ------------------------------------
+    FormatCode = "FormatCode",
+    FormatterParseErrorSendFeedback = "FormatterParseErrorSendFeedback",
+    FormatterParseErrorDontShowAgain = "FormatterParseErrorDontShowAgain",
+    PeekDefinitionRequested = "PeekDefinitionRequested",
+    IntellisenseQuantile = "IntellisenseQuantile",
+    // ------------------------------- </ SQL Tools Service > -----------------------------------
 }
 
 /**

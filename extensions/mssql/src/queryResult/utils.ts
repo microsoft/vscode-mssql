@@ -71,6 +71,14 @@ export function registerCommonRequestHandlers(
             ? webviewController
             : webviewController.getQueryResultWebviewViewController();
 
+    webviewController.onRequest(qr.CloseResultsPanelRequest.type, async () => {
+        await vscode.commands.executeCommand("workbench.action.closePanel");
+    });
+
+    webviewController.onRequest(qr.HandleSelectionSummaryRequest.type, async (uri) => {
+        webviewViewController.handleSelectionSummary(uri);
+    });
+
     webviewController.onRequest(qr.GetRowsRequest.type, async (message) => {
         // Windowed-fetch proof markers live in rowRequestHandler itself (they
         // fire for webview scroll fetches AND perf-probe fetches).
