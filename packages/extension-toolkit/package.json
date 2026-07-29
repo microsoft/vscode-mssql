@@ -14,6 +14,9 @@
             "vscode": [
                 "dist/vscode/index.d.ts"
             ],
+            "vscode/telemetry": [
+                "dist/vscode/telemetry/telemetry.d.ts"
+            ],
             "vscode/testing": [
                 "dist/vscode/testing/index.d.ts"
             ]
@@ -29,6 +32,11 @@
             "types": "./dist/vscode/index.d.ts",
             "require": "./dist/vscode/index.js",
             "default": "./dist/vscode/index.js"
+        },
+        "./vscode/telemetry": {
+            "types": "./dist/vscode/telemetry/telemetry.d.ts",
+            "require": "./dist/vscode/telemetry/telemetry.js",
+            "default": "./dist/vscode/telemetry/telemetry.js"
         },
         "./vscode/testing": {
             "types": "./dist/vscode/testing/index.d.ts",

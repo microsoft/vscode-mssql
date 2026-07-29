@@ -13,7 +13,7 @@ import {
     ISqlChatResult,
 } from "../../src/copilot/chatAgentRequestHandler";
 import { CopilotService } from "../../src/services/copilotService";
-import * as telemetry from "extension-toolkit/vscode";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 import {
     GetNextMessageResponse,
     MessageType,

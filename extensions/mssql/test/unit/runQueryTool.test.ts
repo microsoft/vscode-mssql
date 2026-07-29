@@ -13,7 +13,7 @@ import sinonChai from "sinon-chai";
 import { RunQueryTool, RunQueryToolParams } from "../../src/copilot/tools/runQueryTool";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import * as telemetry from "extension-toolkit/vscode";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 import { SimpleExecuteResult } from "vscode-mssql";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { UserSurvey } from "../../src/nps/userSurvey";

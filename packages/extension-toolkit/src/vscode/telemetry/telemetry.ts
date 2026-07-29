@@ -39,19 +39,12 @@ export interface ActivityObject {
     ): void;
 }
 
-export let telemetryReporter: TelemetryReporter;
+export let telemetryReporter = new TelemetryReporter(undefined);
 
 export function initializeTelemetryReporter(
     connectionString: string | undefined,
 ): TelemetryReporter {
     telemetryReporter = new TelemetryReporter(connectionString);
-    return telemetryReporter;
-}
-
-function getTelemetryReporter(): TelemetryReporter {
-    if (!telemetryReporter) {
-        throw new Error("TelemetryReporter has not been initialized.");
-    }
     return telemetryReporter;
 }
 
@@ -127,7 +120,7 @@ export function sendActionEvent(
     includeCallStack: boolean = false,
 ): void {
     const callStack = includeCallStack ? captureCallStack() : undefined;
-    let actionEvent = getTelemetryReporter()
+    let actionEvent = telemetryReporter
         .createActionEvent(telemetryView, telemetryAction)
         .withAdditionalProperties({
             ...additionalProps,
@@ -172,7 +165,7 @@ export function sendErrorEvent(
     includeCallStack: boolean = true,
 ): void {
     const callStack = includeCallStack ? captureCallStack() : undefined;
-    let errorEvent = getTelemetryReporter()
+    let errorEvent = telemetryReporter
         .createErrorEvent2(
             telemetryView,
             telemetryAction,

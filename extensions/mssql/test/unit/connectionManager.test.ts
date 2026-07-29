@@ -41,7 +41,7 @@ import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import { PreviewFeature } from "../../src/previews/previewService";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
-import * as telemetry from "extension-toolkit/vscode";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 chai.use(sinonChai);

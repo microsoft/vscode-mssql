@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
-import * as telemetry from "extension-toolkit/vscode";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 import * as vscode from "vscode";
 import * as path from "path";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import * as Telemetry from "extension-toolkit/vscode";
+import * as Telemetry from "extension-toolkit/vscode/telemetry";
 
 suite("Telemetry Tests", () => {
     test("captureCallStack should return a string", () => {
