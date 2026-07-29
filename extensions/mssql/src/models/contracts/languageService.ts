@@ -25,6 +25,26 @@ export namespace SqlToolsServiceTelemetryNotification {
 
 // ------------------------------- </ SQL Tools Service Telemetry Event > -------------------------
 
+// ------------------------------- < Formatting Failed Event > ------------------------------------
+
+export type FormattingFailureReason = "ParseError";
+export type FormattingRequestType = "Document" | "Range";
+
+export interface FormattingFailedParams {
+    ownerUri: string;
+    formatType: FormattingRequestType;
+    reason: FormattingFailureReason;
+    parseErrorCount: number;
+}
+
+export namespace FormattingFailedNotification {
+    export const type = new NotificationType<FormattingFailedParams>(
+        "textDocument/formattingFailed",
+    );
+}
+
+// ------------------------------- </ Formatting Failed Event > -----------------------------------
+
 // ------------------------------- < IntelliSense Ready Event > ------------------------------------
 
 /**

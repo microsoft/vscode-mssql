@@ -2148,6 +2148,8 @@
     },
     "View known issues": "View known issues",
     "Service installation failed.": "Service installation failed.",
+    "SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.": "SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.",
+    "Send Feedback": "Send Feedback",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",

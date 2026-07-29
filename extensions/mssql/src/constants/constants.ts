@@ -226,6 +226,7 @@ export const contentProviderMinFile = "dist/js/app.min.js";
 export const timeToWaitForLanguageModeChange = 10000.0;
 export const gettingStartedGuideLink = "https://aka.ms/mssql-getting-started";
 export const changelogLink = "https://aka.ms/vscode-mssql-changes";
+export const feedbackUrl = "https://aka.ms/vscode-mssql-bug";
 export const encryptionBlogLink = "https://aka.ms/vscodemssql-connection";
 export const integratedAuthHelpLink = "https://aka.ms/vscode-mssql-integratedauth";
 export const createDatabaseHelpLink =

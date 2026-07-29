@@ -5,7 +5,6 @@
 
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { CopilotChat } from "../../../../sharedInterfaces/copilotChat";
-import { ExecuteCommandRequest } from "../../../../sharedInterfaces/webview";
 import { CopilotChatEntry } from "../../../common/copilot/copilotChatEntry";
 import { locConstants } from "../../../common/locConstants";
 import { SchemaDesignerContext } from "../schemaDesignerStateProvider";
@@ -58,9 +57,9 @@ export function SchemaDesignerWebviewCopilotChatEntry({
     }, [context.extensionRpc, scenario]);
 
     const openChat = useCallback(async () => {
-        await context.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
-            command: CopilotChat.openFromUiCommand,
-            args: [{ scenario, entryPoint }],
+        await context.extensionRpc.sendRequest(CopilotChat.OpenFromUiRequest.type, {
+            scenario,
+            entryPoint,
         });
     }, [context.extensionRpc, entryPoint, scenario]);
 
