@@ -2956,6 +2956,40 @@ export default class MainController implements vscode.Disposable {
                 ),
             openConfiguration: (focusedQuickQuerySlot) =>
                 this.openShortcutsConfiguration(focusedQuickQuerySlot),
+            getActiveSqlEditor: () => {
+                const editor = vscode.window.activeTextEditor;
+                return editor?.document.languageId === Constants.languageId ? editor : undefined;
+            },
+            ensureSqlEditorConnected: async (editor) => {
+                const uri = getUriKey(editor.document.uri);
+                return (
+                    (await this.ensureReadyToExecuteQuery()) && this._connectionMgr.isConnected(uri)
+                );
+            },
+            runSqlEditorQueryString: async (editor, query) => {
+                const uri = getUriKey(editor.document.uri);
+                if (!this._connectionMgr.isConnected(uri)) {
+                    return;
+                }
+
+                await this._connectionMgr.refreshAzureAccountToken(uri);
+                store.deleteUriState(uri);
+                await this._outputContentProvider.runQueryString(
+                    this._statusview,
+                    uri,
+                    query,
+                    path.basename(editor.document.fileName),
+                );
+            },
+            showMultipleSelectionsError: () =>
+                vscode.window.showErrorMessage(
+                    LocalizedConstants.msgMultipleSelectionModeNotSupported,
+                ),
+            showSelectedTextRequiredError: () => {
+                void vscode.window.showErrorMessage(
+                    LocalizedConstants.quickQuerySelectedTextRequired,
+                );
+            },
             createSqlEditor: async (options) => await this.sqlDocumentService.newQuery(options),
             isSqlEditorConnected: (editor) =>
                 this._connectionMgr.isConnected(getUriKey(editor.document.uri)),

@@ -9,8 +9,8 @@ import * as utils from "../common/utils";
 import * as UUID from "vscode-languageclient/lib/utils/uuid";
 import * as templates from "../templates/templates";
 import * as vscode from "vscode";
-import * as dataworkspace from "dataworkspace";
-import * as mssqlVscode from "vscode-mssql";
+import type * as dataworkspace from "dataworkspace";
+import type * as mssqlVscode from "vscode-mssql";
 
 import { promises as fs } from "fs";
 import { Project } from "../models/project";
@@ -38,14 +38,14 @@ import {
     ISqlProject,
     ItemType,
     SqlTargetPlatform,
-} from "sqldbproj";
+} from "../sqldbproj";
 import { createNewProjectFromDatabaseWithQuickpick } from "../dialogs/createProjectFromDatabaseQuickpick";
 import { UpdateProjectFromDatabaseWithQuickpick } from "../dialogs/updateProjectFromDatabaseQuickpick";
 import { addDatabaseReferenceQuickpick } from "../dialogs/addDatabaseReferenceQuickpick";
 import { FileProjectEntry, SqlProjectReferenceProjectEntry } from "../models/projectEntry";
 import { UpdateProjectAction, UpdateProjectDataModel } from "../models/api/updateProject";
 import { SqlCmdVariableTreeItem } from "../models/tree/sqlcmdVariableTreeItem";
-import { DeploymentScenario, ExtractTarget, TaskExecutionMode } from "../common/enums";
+import { DeploymentScenario, ExtractTarget, ProjectType, TaskExecutionMode } from "../common/enums";
 
 export type AddDatabaseReferenceSettings =
     | ISystemDatabaseReferenceSettings
@@ -136,8 +136,8 @@ export class ProjectsController {
         const sqlProjectsService = await utils.getSqlProjectsService();
         const microsoftBuildSqlSDKStyleDefaultVersion = getMicrosoftBuildSqlVersion();
         const projectStyle = creationParams.sdkStyle
-            ? mssqlVscode.ProjectType.SdkStyle
-            : mssqlVscode.ProjectType.LegacyStyle;
+            ? ProjectType.SdkStyle
+            : ProjectType.LegacyStyle;
         const result = await (sqlProjectsService as mssqlVscode.ISqlProjectsService).createProject(
             newProjFilePath,
             projectStyle,
@@ -445,7 +445,7 @@ export class ProjectsController {
         const startTime = new Date();
 
         // get dlls and targets file needed for building for legacy style projects
-        if (project.sqlProjStyle === mssqlVscode.ProjectType.LegacyStyle) {
+        if (project.sqlProjStyle === ProjectType.LegacyStyle) {
             const result = await this.buildHelper.createBuildDirFolder(this._outputChannel);
 
             if (!result) {
@@ -1728,9 +1728,9 @@ export class ProjectsController {
     ): Promise<void> {
         const profile = this.getConnectionProfileFromContext(context);
         if (context) {
-            // The profile we get from VS Code is for the overall server connection and isn't updated based on the database node
-            // the command was launched from like it is in ADS. So get the actual database name from the MSSQL extension and
-            // update the connection info here.
+            // The profile we get from VS Code is for the overall server connection and isn't updated based
+            // on the database node the command was launched from. Get the actual database name from the
+            // MSSQL extension and update the connection info here.
             const treeNodeContext = context as mssqlVscode.ITreeNodeInfo;
             const databaseName = (await utils.getVscodeMssqlApi()).getDatabaseNameFromTreeNode(
                 treeNodeContext,
@@ -1907,9 +1907,8 @@ export class ProjectsController {
         let projectFilePath: string | undefined;
         if (context) {
             // VS Code's connection/profile may only represent the server-level connection and won't reflect
-            // the database selected in the MSSQL tree node that the user invoked the command from.
-            // In ADS the context can include the database info, but in VS Code we need to ask the MSSQL
-            // extension for the actual database name for this tree node and then update the connection object.
+            // the database selected in the MSSQL tree node that the user invoked the command from. Ask the
+            // MSSQL extension for the actual database name and then update the connection object.
             if (connection !== undefined) {
                 const treeNodeContext = context as mssqlVscode.ITreeNodeInfo;
                 const databaseName = (await utils.getVscodeMssqlApi()).getDatabaseNameFromTreeNode(

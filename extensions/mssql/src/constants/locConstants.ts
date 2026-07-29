@@ -49,6 +49,9 @@ export let quickQuerySlotOutOfRange = (maxSlot: number) =>
         args: [maxSlot],
         comment: ["{0} is the maximum Quick Query slot number"],
     });
+export let quickQuerySelectedTextRequired = l10n.t(
+    "This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.",
+);
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
     "Please select a server node in Object Explorer to create a database.",
 );
@@ -3918,6 +3921,13 @@ export class ServiceClient {
     public static viewKnownIssues = l10n.t("View known issues");
 
     public static installFailedStatusText = l10n.t("Service installation failed.");
+}
+
+export class Formatter {
+    public static parseError = l10n.t(
+        "SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.",
+    );
+    public static sendFeedback = l10n.t("Send Feedback");
 }
 
 export const azureSignInFailed = l10n.t("Azure sign in failed.");

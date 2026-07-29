@@ -14,7 +14,9 @@ import path from "node:path";
 import process from "node:process";
 import { workspaceTargets } from "./workspace-targets.mjs";
 
-const EXTENSIONS = workspaceTargets.map((t) => path.basename(t.directory));
+const EXTENSION_DIRECTORIES = workspaceTargets
+    .filter((target) => target.kind === "extension")
+    .map((target) => target.directory);
 
 const USAGE = "Usage: node scripts/stamp-prerelease-version.mjs <buildId> --label <label>";
 
@@ -60,8 +62,8 @@ function main() {
     const commitHash = execSync("git rev-parse HEAD", { encoding: "utf8" }).trim();
     const shortHash = commitHash.slice(0, 7);
 
-    for (const ext of EXTENSIONS) {
-        const packagePath = path.join("extensions", ext, "package.json");
+    for (const extensionDirectory of EXTENSION_DIRECTORIES) {
+        const packagePath = path.join(extensionDirectory, "package.json");
         const original = readFileSync(packagePath, "utf8");
 
         const json = JSON.parse(original);

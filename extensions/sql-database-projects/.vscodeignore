@@ -1,6 +1,14 @@
 src
-#out
-tsconfig.json
+out
+node_modules/**
+**/*.map
+.vscode
+.vscode-test.mjs
+esbuild.mjs
+scripts
+test
+test-reports
+tsconfig*.json
 .gitignore
 coverage
 coverConfig.json

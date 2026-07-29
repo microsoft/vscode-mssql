@@ -24,7 +24,7 @@ import { ProjectRootTreeItem } from "../src/models/tree/projectTreeItem";
 import { FolderNode, FileNode } from "../src/models/tree/fileFolderTreeItem";
 import { BaseProjectTreeItem } from "../src/models/tree/baseTreeItem";
 import { ImportDataModel } from "../src/models/api/import";
-import { ItemType, SqlTargetPlatform } from "sqldbproj";
+import { ItemType, SqlTargetPlatform } from "../src/sqldbproj";
 import { FileProjectEntry } from "../src/models/projectEntry";
 
 let testContext: TestContext;

@@ -340,17 +340,19 @@ export class DabService implements Dab.IDabService {
 
         const serverPropertyPrefix = serverMatch[1];
         const serverValue = this.stripConnectionStringValueQuotes(serverMatch[2].trim());
+        const protocolPrefix = serverValue.match(/^tcp:\s*/i)?.[0] ?? "";
+        const serverAddress = serverValue.substring(protocolPrefix.length);
 
         // Parse the server address to check if it's localhost
-        const host = this.parseHostFromServerValue(serverValue);
+        const host = this.parseHostFromServerValue(serverAddress);
 
         // Check if this is a localhost address
         if (!this.isLocalhostAddress(host)) {
             return connectionInfo;
         }
 
-        const hasPort = serverValue.includes(",");
-        let newServerValue = serverValue.replace(
+        const hasPort = serverAddress.includes(",");
+        let newServerValue = serverAddress.replace(
             new RegExp(`^${this.escapeRegex(host)}`, "i"),
             "host.docker.internal",
         );
@@ -361,8 +363,8 @@ export class DabService implements Dab.IDabService {
             // a host port. DAB runs in a separate container, so it must connect to that
             // published port through host.docker.internal instead of treating the
             // container name as a SQL Server named instance.
-            const commaIndex = serverValue.indexOf(",");
-            const port = commaIndex !== -1 ? this.normalizeSqlServerPort(serverValue) : "";
+            const commaIndex = serverAddress.indexOf(",");
+            const port = commaIndex !== -1 ? this.normalizeSqlServerPort(serverAddress) : "";
             newServerValue = `host.docker.internal${port}`;
         }
 
@@ -371,6 +373,7 @@ export class DabService implements Dab.IDabService {
         if (!hasPort) {
             newServerValue += `,${DefaultSqlPortNumber}`;
         }
+        newServerValue = `${protocolPrefix}${newServerValue}`;
 
         // Replace in connection string
         const transformedConnectionString = connectionString.replace(

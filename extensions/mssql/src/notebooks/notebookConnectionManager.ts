@@ -9,7 +9,13 @@ import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionSharingService } from "../connectionSharing/connectionSharingService";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "../controllers/queryNotificationHandler";
-import { ConnectionRequest, ConnectParams } from "../models/contracts/connection";
+import {
+    ConnectionRequest,
+    ConnectParams,
+    ConnectionCompleteParams,
+    DisconnectRequest,
+    DisconnectParams,
+} from "../models/contracts/connection";
 import { generateQueryUri } from "../models/utils";
 import * as LocalizedConstants from "../constants/locConstants";
 import { sendActionEvent, startActivity } from "../telemetry/telemetry";
@@ -37,6 +43,13 @@ import {
  * actually uses for query execution. Our connection (under an adhoc URI) is the
  * authoritative one for SQL execution.
  */
+/**
+ * How long to wait for STS to report `connection/complete` for a cell's
+ * IntelliSense registration before treating the attempt as failed so a
+ * later trigger can retry it.
+ */
+const CELL_CONNECT_COMPLETE_TIMEOUT_MS = 30000;
+
 export class NotebookConnectionManager implements vscode.Disposable {
     private connectionUri: string | undefined;
     private connectionInfo: IConnectionInfo | undefined;
@@ -343,7 +356,9 @@ export class NotebookConnectionManager implements vscode.Disposable {
         this.connectionUri = undefined;
         this.connectionInfo = undefined;
         this.connectionLabel = "";
-        this.invalidateCellRegistrations();
+        // Release (not just forget) cell registrations: each registered cell
+        // holds its own STS-side connection that nothing else ever closes.
+        this.releaseCellRegistrations();
     }
 
     /**
@@ -407,9 +422,18 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
         const generation = this.connectionGeneration;
 
+        // Prefer the live credentials that STS validated for the notebook's execution
+        // connection — they carry any refreshed auth token and the actual database —
+        // over the stored profile, so the cell binds to the same database the
+        // notebook executes against.
+        const sourceInfo =
+            (this.connectionUri
+                ? this.connectionMgr.getConnectionInfoFromUri(this.connectionUri)
+                : undefined) ?? this.connectionInfo;
+
         let connectionDetails: ConnectionDetails;
         try {
-            connectionDetails = this.connectionMgr.createConnectionDetails(this.connectionInfo);
+            connectionDetails = this.connectionMgr.createConnectionDetails(sourceInfo);
         } catch (err: any) {
             this.log.warn(
                 `[connectCellForIntellisense] createConnectionDetails failed: ${err.message} cell=${cellDocumentUri}`,
@@ -425,10 +449,15 @@ export class NotebookConnectionManager implements vscode.Disposable {
         }
         const authType = connectionDetails.options?.authenticationType ?? "unknown";
         this.log.debug(
-            `[connectCellForIntellisense] Sending connect request scheme=${cellUriScheme} server=${this.connectionInfo.server} database=${this.connectionInfo.database || "(default)"} auth=${authType} cell=${cellDocumentUri}`,
+            `[connectCellForIntellisense] Sending connect request scheme=${cellUriScheme} server=${sourceInfo.server} database=${sourceInfo.database || "(default)"} auth=${authType} cell=${cellDocumentUri}`,
         );
 
         this.registeredCellUris.add(cellDocumentUri);
+
+        // The connect request only acknowledges that a connection attempt STARTED;
+        // the actual outcome arrives via the connection/complete notification.
+        // Register for it before sending the request so the result isn't missed.
+        const completePromise = this.connectionMgr.expectConnectionComplete(cellDocumentUri);
 
         try {
             const params: ConnectParams = {
@@ -438,25 +467,67 @@ export class NotebookConnectionManager implements vscode.Disposable {
 
             const result = await this.connectionMgr.sendRequest(ConnectionRequest.type, params);
 
-            if (generation !== this.connectionGeneration) {
-                this.log.debug(
-                    `[connectCellForIntellisense] connection changed mid-request (gen ${generation} → ${this.connectionGeneration}); dropping stale registration cell=${cellDocumentUri}`,
+            if (result !== true) {
+                this.connectionMgr.cancelConnectionCompleteExpectation(
+                    cellDocumentUri,
+                    completePromise,
+                );
+                if (generation === this.connectionGeneration) {
+                    this.registeredCellUris.delete(cellDocumentUri);
+                }
+                this.log.warn(
+                    `[connectCellForIntellisense] STS did not accept connect request (result=${String(result)}) cell=${cellDocumentUri}`,
                 );
                 return;
             }
 
-            if (result !== true) {
+            const completeParams = await this.waitForCellConnectionComplete(
+                cellDocumentUri,
+                completePromise,
+            );
+
+            if (generation !== this.connectionGeneration) {
+                this.log.debug(
+                    `[connectCellForIntellisense] connection changed mid-request (gen ${generation} → ${this.connectionGeneration}); dropping stale registration cell=${cellDocumentUri}`,
+                );
+                if (completeParams?.connectionId) {
+                    // The stale connect actually landed in STS after this cell's
+                    // registration was released — disconnect it so it doesn't
+                    // linger untracked (a released cell URI is never retried
+                    // under this generation's bookkeeping).
+                    this.disconnectCellUri(cellDocumentUri);
+                }
+                return;
+            }
+
+            if (!completeParams?.connectionId) {
+                // Connection failed or timed out — deregister so the next
+                // IntelliSense trigger (cell execution, connection change,
+                // cell document open) retries instead of silently leaving the
+                // cell with keyword-only completions.
                 this.registeredCellUris.delete(cellDocumentUri);
+                if (!completeParams) {
+                    // Timed out: the STS-side connect may still land later,
+                    // and this URI is no longer tracked for release on
+                    // disconnect — best-effort disconnect so a late-completing
+                    // connection doesn't linger untracked.
+                    this.disconnectCellUri(cellDocumentUri);
+                }
                 this.log.warn(
-                    `[connectCellForIntellisense] STS connect did not succeed (result=${String(result)}) cell=${cellDocumentUri}`,
+                    `[connectCellForIntellisense] STS connection did not complete ` +
+                        `(${completeParams ? `error=${completeParams.errorMessage ?? completeParams.messages ?? "unknown"}` : "timed out"}) cell=${cellDocumentUri}`,
                 );
                 return;
             }
 
             this.log.debug(
-                `[connectCellForIntellisense] STS connect returned true cell=${cellDocumentUri}`,
+                `[connectCellForIntellisense] STS connection complete connectionId=${completeParams.connectionId} cell=${cellDocumentUri}`,
             );
         } catch (err: any) {
+            this.connectionMgr.cancelConnectionCompleteExpectation(
+                cellDocumentUri,
+                completePromise,
+            );
             if (generation === this.connectionGeneration) {
                 this.registeredCellUris.delete(cellDocumentUri);
             }
@@ -464,6 +535,71 @@ export class NotebookConnectionManager implements vscode.Disposable {
                 `[connectCellForIntellisense] sendRequest failed: ${err.message} cell=${cellDocumentUri}`,
             );
         }
+    }
+
+    /**
+     * Awaits the connection/complete notification for a cell registration,
+     * resolving undefined if it doesn't arrive within the timeout.
+     */
+    private async waitForCellConnectionComplete(
+        cellDocumentUri: string,
+        completePromise: Promise<ConnectionCompleteParams>,
+    ): Promise<ConnectionCompleteParams | undefined> {
+        let timer: ReturnType<typeof setTimeout> | undefined;
+        const timeoutPromise = new Promise<undefined>((resolve) => {
+            timer = setTimeout(() => {
+                this.connectionMgr.cancelConnectionCompleteExpectation(
+                    cellDocumentUri,
+                    completePromise,
+                );
+                resolve(undefined);
+            }, CELL_CONNECT_COMPLETE_TIMEOUT_MS);
+        });
+        try {
+            return await Promise.race([completePromise, timeoutPromise]);
+        } finally {
+            if (timer !== undefined) {
+                clearTimeout(timer);
+            }
+        }
+    }
+
+    /**
+     * Releases all current cell IntelliSense registrations: clears the
+     * memoization (so future registrations re-connect) and best-effort
+     * disconnects the previously registered cell URIs from STS.
+     *
+     * Called when the notebook's cell URIs change wholesale — i.e. when an
+     * untitled notebook is saved to disk and every cell document is re-created
+     * under a file-based URI. This mirrors the query editor's save flow
+     * (ConnectionManager.transferConnectionToFile), which connects the new URI
+     * and disconnects the old one.
+     */
+    releaseCellRegistrations(): void {
+        const staleUris = [...this.registeredCellUris];
+        this.invalidateCellRegistrations();
+
+        for (const uri of staleUris) {
+            this.disconnectCellUri(uri);
+        }
+    }
+
+    /**
+     * Best-effort disconnect of a single cell's STS-side IntelliSense
+     * connection (fire-and-forget with logging).
+     */
+    private disconnectCellUri(uri: string): void {
+        const params: DisconnectParams = { ownerUri: uri };
+        void this.connectionMgr.sendRequest(DisconnectRequest.type, params).then(
+            (disconnected) =>
+                this.log.debug(
+                    `[disconnectCellUri] disconnect result=${String(disconnected)} cell=${uri}`,
+                ),
+            (err: any) =>
+                this.log.warn(
+                    `[disconnectCellUri] disconnect failed: ${err?.message ?? err} cell=${uri}`,
+                ),
+        );
     }
 
     dispose(): void {

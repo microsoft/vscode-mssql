@@ -9,15 +9,9 @@ import { CoreRPCs } from "./webview";
 export const quickQueryCount = 10;
 export const quickQueryCommandPrefix = "mssql.quickQueries.run";
 
-export enum QuickQueryExecutionMode {
-    Open = "open",
-    OpenAndRun = "openAndRun",
-}
-
 export interface QuickQuerySlot {
     name: string;
     query: string;
-    executionMode: QuickQueryExecutionMode;
 }
 
 export interface ShortcutsConfigurationData {
@@ -213,15 +207,10 @@ export function getQuickQuerySlotName(slotNumber: number): string {
     return `Query ${slotNumber}`;
 }
 
-function isQuickQueryExecutionMode(value: unknown): value is QuickQueryExecutionMode {
-    return value === QuickQueryExecutionMode.Open || value === QuickQueryExecutionMode.OpenAndRun;
-}
-
 export function createDefaultQuickQuerySlot(slotNumber: number): QuickQuerySlot {
     return {
         name: getQuickQuerySlotName(slotNumber),
         query: "",
-        executionMode: QuickQueryExecutionMode.Open,
     };
 }
 
@@ -240,9 +229,6 @@ export function normalizeQuickQuerySlot(value: unknown, slotNumber: number): Qui
     return {
         name,
         query: typeof candidate.query === "string" ? candidate.query : defaults.query,
-        executionMode: isQuickQueryExecutionMode(candidate.executionMode)
-            ? candidate.executionMode
-            : defaults.executionMode,
     };
 }
 
