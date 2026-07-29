@@ -32,7 +32,7 @@ import * as projectUtils from "../../src/publishProject/projectUtils";
 import { uuid } from "../e2e/baseFixtures";
 import { ConnectionDetails } from "vscode-mssql";
 import * as constants from "../../src/constants/constants";
-import * as telemetry from "../../src/telemetry/telemetry";
+import * as telemetry from "extension-toolkit/vscode";
 import { TelemetryActions } from "../../src/sharedInterfaces/telemetry";
 import { ServerType } from "../../src/models/connectionInfo";
 

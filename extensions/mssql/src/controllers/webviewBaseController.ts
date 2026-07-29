@@ -25,7 +25,7 @@ import {
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../sharedInterfaces/webview";
-import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 
 import { getEditorEOL, getErrorMessage, getNonce } from "../utils/utils";
 import { LoggerMethod, ILogger, LogEvent } from "../sharedInterfaces/logger";

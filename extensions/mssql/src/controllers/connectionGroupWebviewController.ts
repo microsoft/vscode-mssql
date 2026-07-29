@@ -11,7 +11,7 @@ import {
     ConnectionGroupSpec,
     CreateConnectionGroupDialogProps,
 } from "../sharedInterfaces/connectionGroup";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { Deferred } from "../protocol";

@@ -20,7 +20,7 @@ import { locConstants } from "../../src/webviews/common/locConstants";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { MssqlChatAgent as loc } from "../../src/constants/locConstants";
 import { IConnectionProfile } from "../../src/models/interfaces";
-import * as telemetry from "../../src/telemetry/telemetry";
+import * as telemetry from "extension-toolkit/vscode";
 import { sqlToolsMcpConnectionRegistry } from "../../src/sqlToolsMcp/sqlToolsMcpConnectionRegistry";
 
 chai.use(sinonChai);

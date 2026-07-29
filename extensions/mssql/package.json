@@ -155,7 +155,6 @@
         "@azure/storage-blob": "^12.31.0",
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
         "@microsoft/vscode-azureresources-api": "^3.1.1",
-        "@vscode/extension-telemetry": "1.5.2",
         "@xmldom/xmldom": "^0.9.10",
         "axios": "^1.18.0",
         "dockerode": "^4.0.9",

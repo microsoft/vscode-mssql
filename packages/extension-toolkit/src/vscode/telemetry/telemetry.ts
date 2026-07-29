@@ -3,30 +3,57 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from "vscode";
-import * as vscodeMssql from "vscode-mssql";
-
-import {
-    ActivityStatus,
-    ActivityObject,
-    TelemetryActions,
-    TelemetryViews,
-} from "../sharedInterfaces/telemetry";
+import { randomUUID } from "node:crypto";
 import TelemetryReporter, {
+    ConnectionInfo,
+    ServerInfo,
     TelemetryEventMeasures,
     TelemetryEventProperties,
 } from "./telemetryReporter";
 
-import { IConnectionProfile } from "../models/interfaces";
-import { extensionId } from "../constants/constants";
-import { uuid } from "../utils/utils";
+export interface ActivityObject {
+    startTime: number;
+    correlationId: string;
+    update(
+        additionalProperties?: TelemetryEventProperties,
+        additionalMeasurements?: TelemetryEventMeasures,
+        connectionInfo?: ConnectionInfo,
+        serverInfo?: ServerInfo,
+    ): void;
+    end(
+        activityStatus: string,
+        additionalProperties?: TelemetryEventProperties,
+        additionalMeasurements?: TelemetryEventMeasures,
+        connectionInfo?: ConnectionInfo,
+        serverInfo?: ServerInfo,
+    ): void;
+    endFailed(
+        error?: Error,
+        includeErrorMessage?: boolean,
+        errorCode?: string,
+        errorType?: string,
+        additionalProperties?: TelemetryEventProperties,
+        additionalMeasurements?: TelemetryEventMeasures,
+        connectionInfo?: ConnectionInfo,
+        serverInfo?: ServerInfo,
+    ): void;
+}
 
-const packageJson = vscode.extensions.getExtension(extensionId).packageJSON;
+export let telemetryReporter: TelemetryReporter;
 
-export const telemetryReporter = new TelemetryReporter<
-    TelemetryViews | string,
-    TelemetryActions | string
->(packageJson.aiKey);
+export function initializeTelemetryReporter(
+    connectionString: string | undefined,
+): TelemetryReporter {
+    telemetryReporter = new TelemetryReporter(connectionString);
+    return telemetryReporter;
+}
+
+function getTelemetryReporter(): TelemetryReporter {
+    if (!telemetryReporter) {
+        throw new Error("TelemetryReporter has not been initialized.");
+    }
+    return telemetryReporter;
+}
 
 // Function names to skip in call stack (telemetry internals)
 const SKIP_FUNCTIONS = new Set([
@@ -91,16 +118,16 @@ export function captureCallStack(): string {
  * @param includeCallStack Whether to capture and include the call stack. Defaults to false
  */
 export function sendActionEvent(
-    telemetryView: TelemetryViews,
-    telemetryAction: TelemetryActions,
+    telemetryView: string,
+    telemetryAction: string,
     additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
     additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
-    connectionInfo?: vscodeMssql.IConnectionInfo,
-    serverInfo?: vscodeMssql.IServerInfo,
+    connectionInfo?: ConnectionInfo,
+    serverInfo?: ServerInfo,
     includeCallStack: boolean = false,
 ): void {
     const callStack = includeCallStack ? captureCallStack() : undefined;
-    let actionEvent = telemetryReporter
+    let actionEvent = getTelemetryReporter()
         .createActionEvent(telemetryView, telemetryAction)
         .withAdditionalProperties({
             ...additionalProps,
@@ -132,20 +159,20 @@ export function sendActionEvent(
  * @param includeCallStack Whether to capture and include the call stack. Defaults to true
  */
 export function sendErrorEvent(
-    telemetryView: TelemetryViews,
-    telemetryAction: TelemetryActions,
-    error: Error,
+    telemetryView: string,
+    telemetryAction: string,
+    error: Error | undefined,
     includeErrorMessage: boolean = false,
     errorCode?: string,
     errorType?: string,
     additionalProps: TelemetryEventProperties | { [key: string]: string } = {},
     additionalMeasurements: TelemetryEventMeasures | { [key: string]: number } = {},
-    connectionInfo?: IConnectionProfile,
-    serverInfo?: vscodeMssql.IServerInfo,
+    connectionInfo?: ConnectionInfo,
+    serverInfo?: ServerInfo,
     includeCallStack: boolean = true,
 ): void {
     const callStack = includeCallStack ? captureCallStack() : undefined;
-    let errorEvent = telemetryReporter
+    let errorEvent = getTelemetryReporter()
         .createErrorEvent2(
             telemetryView,
             telemetryAction,
@@ -170,18 +197,18 @@ export function sendErrorEvent(
 }
 
 export function startActivity(
-    telemetryView: TelemetryViews,
-    telemetryAction: TelemetryActions,
+    telemetryView: string,
+    telemetryAction: string,
     correlationId?: string,
     startActivityAdditionalProps: TelemetryEventProperties = {},
     startActivityAdditionalMeasurements: TelemetryEventMeasures = {},
-    connectionInfo?: vscodeMssql.IConnectionInfo,
-    serverInfo?: vscodeMssql.IServerInfo,
+    connectionInfo?: ConnectionInfo,
+    serverInfo?: ServerInfo,
     includeCallStack: boolean = false,
 ): ActivityObject {
     const startTime = performance.now();
     if (!correlationId) {
-        correlationId = uuid();
+        correlationId = randomUUID();
     }
 
     // Capture call stack if requested
@@ -212,10 +239,10 @@ export function startActivity(
     };
 
     function update(
-        additionalProps: TelemetryEventProperties,
-        additionalMeasurements: TelemetryEventMeasures,
-        connectionInfo?: vscodeMssql.IConnectionInfo,
-        serverInfo?: vscodeMssql.IServerInfo,
+        additionalProps: TelemetryEventProperties = {},
+        additionalMeasurements: TelemetryEventMeasures = {},
+        connectionInfo?: ConnectionInfo,
+        serverInfo?: ServerInfo,
     ): void {
         const updateCallStack = includeCallStack ? captureCallStack() : undefined;
         sendActionEvent(
@@ -224,7 +251,7 @@ export function startActivity(
             {
                 ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
-                activityStatus: ActivityStatus.Pending,
+                activityStatus: "Pending",
                 ...(updateCallStack && { callStack: updateCallStack }),
             },
             {
@@ -232,17 +259,17 @@ export function startActivity(
                 ...additionalMeasurements,
                 timeElapsedMs: Math.round(performance.now() - startTime),
             },
-            connectionInfo as IConnectionProfile,
+            connectionInfo,
             serverInfo,
         );
     }
 
     function end(
-        activityStatus: ActivityStatus,
-        additionalProps: TelemetryEventProperties,
-        additionalMeasurements: TelemetryEventMeasures,
-        connectionInfo?: vscodeMssql.IConnectionInfo,
-        serverInfo?: vscodeMssql.IServerInfo,
+        activityStatus: string,
+        additionalProps: TelemetryEventProperties = {},
+        additionalMeasurements: TelemetryEventMeasures = {},
+        connectionInfo?: ConnectionInfo,
+        serverInfo?: ServerInfo,
     ) {
         const endCallStack = includeCallStack ? captureCallStack() : undefined;
         sendActionEvent(
@@ -259,7 +286,7 @@ export function startActivity(
                 ...additionalMeasurements,
                 durationMs: Math.round(performance.now() - startTime),
             },
-            connectionInfo as IConnectionProfile,
+            connectionInfo,
             serverInfo,
         );
     }
@@ -271,8 +298,8 @@ export function startActivity(
         errorType?: string,
         additionalProps?: TelemetryEventProperties,
         additionalMeasurements?: TelemetryEventMeasures,
-        connectionInfo?: vscodeMssql.IConnectionInfo,
-        serverInfo?: vscodeMssql.IServerInfo,
+        connectionInfo?: ConnectionInfo,
+        serverInfo?: ServerInfo,
     ) {
         includeErrorMessage = includeErrorMessage ?? false; // Default to false if undefined
         const endFailedCallStack = includeCallStack ? captureCallStack() : undefined;
@@ -286,7 +313,7 @@ export function startActivity(
             {
                 ...activityUpdateAdditionalPropsBase,
                 ...additionalProps,
-                activityStatus: ActivityStatus.Failed,
+                activityStatus: "Failed",
                 ...(endFailedCallStack && { callStack: endFailedCallStack }),
             },
             {
@@ -294,7 +321,7 @@ export function startActivity(
                 ...additionalMeasurements,
                 durationMs: Math.round(performance.now() - startTime),
             },
-            connectionInfo as IConnectionProfile,
+            connectionInfo,
             serverInfo,
         );
     }
