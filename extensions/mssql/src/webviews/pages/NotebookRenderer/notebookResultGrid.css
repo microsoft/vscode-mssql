@@ -297,11 +297,11 @@
     display: flex;
     flex-direction: column;
     padding: 4px 0;
-    background-color: var(--vscode-menu-background, var(--vscode-editorWidget-background, #252526));
-    border: 1px solid var(--vscode-menu-border, var(--vscode-editorWidget-border, #454545));
+    background-color: var(--vscode-menu-background);
+    border: 1px solid var(--vscode-menu-border);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.36);
-    color: var(--vscode-menu-foreground, var(--vscode-foreground, #ccc));
-    font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, sans-serif);
+    color: var(--vscode-menu-foreground);
+    font-family: var(--vscode-font-family);
     font-size: 13px;
 }
 
@@ -314,19 +314,24 @@
     gap: 16px;
 }
 
-.nb-context-menu-item:hover {
-    background-color: var(
-        --vscode-menu-selectionBackground,
-        var(--vscode-list-hoverBackground, #094771)
-    );
-    color: var(
-        --vscode-menu-selectionForeground,
-        var(--vscode-list-activeSelectionForeground, #fff)
-    );
+.nb-context-menu:focus {
+    outline: none;
+}
+
+.nb-context-menu-item:hover,
+.nb-context-menu-item--focused {
+    background-color: var(--vscode-menu-selectionBackground);
+    color: var(--vscode-menu-selectionForeground);
 }
 
 .nb-context-menu-label {
     flex: 1;
+}
+
+.nb-context-menu-item[data-has-submenu]::after {
+    content: "❯";
+    font-size: 14px;
+    flex-shrink: 0;
 }
 
 .nb-context-menu-shortcut {
@@ -339,10 +344,7 @@
 .nb-context-menu-separator {
     height: 1px;
     margin: 4px 0;
-    background-color: var(
-        --vscode-menu-separatorBackground,
-        var(--vscode-editorWidget-border, #454545)
-    );
+    background-color: var(--vscode-menu-separatorBackground);
 }
 
 /* ── Notebook results toolbar ──────────────────────────────────────────── */

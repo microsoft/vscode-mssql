@@ -1815,6 +1815,9 @@
     <trans-unit id="++CODE++d43b358b5e9ef2a45f199ba7a0da47d1fb8386373fa697097e8fe2be290c0e87">
       <source xml:lang="en">Copy-only Backup</source>
     </trans-unit>
+    <trans-unit id="++CODE++2f8ae7d0e784eed8f3eddb9e69ab86082813b39e7e7d7200de5e66cd261dee36">
+      <source xml:lang="en">Copying as an IN clause requires selecting exactly one column.</source>
+    </trans-unit>
     <trans-unit id="++CODE++35c380196401c05c48fe5f5fffd349ba06d9988118b87a1c12e1164a28175997">
       <source xml:lang="en">Copying results...</source>
     </trans-unit>
