@@ -19,12 +19,15 @@ import {
     ReactFlowInstance,
     getSmoothStepPath,
 } from "@xyflow/react";
+import { Button } from "@fluentui/react-components";
+import { Dismiss16Regular } from "@fluentui/react-icons";
 import {
     CSSProperties,
     KeyboardEvent as ReactKeyboardEvent,
     MouseEvent,
     useCallback,
     useEffect,
+    useId,
     useMemo,
     useRef,
     useState,
@@ -65,6 +68,7 @@ const EXECUTION_PLAN_REVEAL_PADDING = 0;
 const EXECUTION_PLAN_FOCUS_RETRY_FRAMES = 20;
 
 interface TooltipState {
+    targetId: string;
     content: ExecutionPlanTooltipContent;
     x: number;
     y: number;
@@ -153,7 +157,11 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
             tabIndex={selected ? 0 : -1}
             onFocus={() => focusSelection(planNode.id)}
             onBlur={(event) => {
-                if (!event.currentTarget.contains(event.relatedTarget)) {
+                const nextElement = event.relatedTarget;
+                const movingToTooltip =
+                    nextElement instanceof HTMLElement &&
+                    nextElement.closest(".execution-plan-flow-tooltip") !== null;
+                if (!event.currentTarget.contains(nextElement) && !movingToTooltip) {
                     data.closeTooltip();
                 }
             }}
@@ -469,7 +477,6 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     useEffect(() => {
         tooltipsEnabledRef.current = tooltipsEnabled;
     }, [tooltipsEnabled]);
-
     const expandAncestors = useCallback(
         (id: string) => {
             const ancestorIds = model.getAncestorIds(id);
@@ -531,10 +538,17 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
             }
             const node = model.getNode(id);
             if (node) {
-                setTooltip({
-                    content: formatExecutionPlanNodeTooltip(node),
-                    x: bounds.right + 8,
-                    y: bounds.top,
+                const targetId = `node:${id}`;
+                setTooltip((current) => {
+                    if (current?.targetId === targetId) {
+                        return undefined;
+                    }
+                    return {
+                        targetId,
+                        content: formatExecutionPlanNodeTooltip(node),
+                        x: bounds.right + 8,
+                        y: bounds.top,
+                    };
                 });
             }
         },
@@ -582,11 +596,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                 case "Enter":
                     event.preventDefault();
                     event.stopPropagation();
-                    if (tooltip) {
-                        setTooltip(undefined);
-                    } else {
-                        showNodeTooltip(id, bounds);
-                    }
+                    showNodeTooltip(id, bounds);
                     return;
                 case "Escape":
                     event.preventDefault();
@@ -604,7 +614,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                 selectNode(targetId, true);
             }
         },
-        [collapsedNodeIds, model, selectNode, showNodeTooltip, tooltip],
+        [collapsedNodeIds, model, selectNode, showNodeTooltip],
     );
 
     const hiddenNodeIds = useMemo(
@@ -757,11 +767,19 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                 proOptions={{ hideAttribution: true }}
                 onPaneClick={() => setTooltip(undefined)}
                 onEdgeClick={(event: MouseEvent, edge: ExecutionPlanFlowEdge) => {
-                    if (tooltipsEnabledRef.current && edge.data) {
-                        setTooltip({
-                            content: formatExecutionPlanEdgeTooltip(edge.data),
-                            x: event.clientX + 8,
-                            y: event.clientY + 8,
+                    const edgeData = edge.data;
+                    if (tooltipsEnabledRef.current && edgeData) {
+                        const targetId = `edge:${edge.id}`;
+                        setTooltip((current) => {
+                            if (current?.targetId === targetId) {
+                                return undefined;
+                            }
+                            return {
+                                targetId,
+                                content: formatExecutionPlanEdgeTooltip(edgeData),
+                                x: event.clientX + 8,
+                                y: event.clientY + 8,
+                            };
                         });
                         focusNode(selectedIdRef.current);
                     }
@@ -769,11 +787,9 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
             {tooltip && (
                 <ExecutionPlanTooltip
                     tooltip={tooltip}
-                    onKeyDown={(event) => {
-                        if (event.key === "Escape") {
-                            setTooltip(undefined);
-                            focusNode(selectedIdRef.current);
-                        }
+                    onClose={() => {
+                        setTooltip(undefined);
+                        focusNode(selectedIdRef.current);
                     }}
                 />
             )}
@@ -783,56 +799,97 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
 
 function ExecutionPlanTooltip({
     tooltip,
-    onKeyDown,
+    onClose,
 }: {
     tooltip: TooltipState;
-    onKeyDown: (event: ReactKeyboardEvent<HTMLDivElement>) => void;
+    onClose: () => void;
 }) {
+    const titleId = useId();
+    const left = Math.max(8, Math.min(tooltip.x, window.innerWidth - 568));
+    const top = Math.max(8, Math.min(tooltip.y, window.innerHeight - 200));
+    const maxHeight = Math.min(420, Math.max(80, window.innerHeight - top - 8));
+
     return (
         <div
             className="execution-plan-flow-tooltip"
             style={{
-                left: `${Math.max(8, Math.min(tooltip.x, window.innerWidth - 560))}px`,
-                top: `${Math.max(8, Math.min(tooltip.y, window.innerHeight - 180))}px`,
+                left: `${left}px`,
+                top: `${top}px`,
+                maxHeight: `${maxHeight}px`,
             }}
-            role="tooltip"
+            role="dialog"
+            aria-labelledby={titleId}
             tabIndex={-1}
-            onKeyDown={onKeyDown}>
-            {tooltip.content.titleLines.length > 0 && (
-                <div className="execution-plan-flow-tooltip-title">
+            onKeyDown={(event) => {
+                if (event.key === "Escape") {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    onClose();
+                }
+            }}>
+            <div className="execution-plan-flow-tooltip-header">
+                <div id={titleId} className="execution-plan-flow-tooltip-title">
+                    {tooltip.content.titleLines.length === 0 && (
+                        <div>{locConstants.executionPlan.executionPlanDetails}</div>
+                    )}
                     {tooltip.content.titleLines.map((line, index) => (
                         <div key={index}>{line}</div>
                     ))}
                 </div>
-            )}
-            {tooltip.content.description && (
-                <div className="execution-plan-flow-tooltip-description">
-                    {tooltip.content.description}
-                </div>
-            )}
-            {tooltip.content.metrics.map((metric, index) => (
-                <div
-                    className={[
-                        "execution-plan-flow-tooltip-metric",
-                        metric.isSql ? "execution-plan-flow-tooltip-sql-metric" : "",
-                    ]
-                        .filter(Boolean)
-                        .join(" ")}
-                    key={`${metric.name}-${index}`}>
-                    <span>{metric.name}</span>
-                    <span>{metric.isSql ? <SqlText text={metric.value} /> : metric.value}</span>
-                </div>
-            ))}
-            {tooltip.content.footer.map((metric, index) => (
-                <div className="execution-plan-flow-tooltip-footer" key={`${metric.name}-${index}`}>
-                    <strong>{metric.name}</strong>
-                    {metric.isSql ? (
-                        <SqlText className="execution-plan-flow-tooltip-sql" text={metric.value} />
-                    ) : (
-                        <div>{metric.value}</div>
-                    )}
-                </div>
-            ))}
+                <Button
+                    className="execution-plan-flow-tooltip-close"
+                    appearance="subtle"
+                    size="small"
+                    icon={<Dismiss16Regular />}
+                    title={locConstants.common.close}
+                    aria-label={locConstants.common.close}
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        onClose();
+                    }}
+                />
+            </div>
+            <div className="execution-plan-flow-tooltip-body">
+                {tooltip.content.description && (
+                    <div className="execution-plan-flow-tooltip-description">
+                        {tooltip.content.description}
+                    </div>
+                )}
+                {tooltip.content.metrics.length > 0 && (
+                    <dl className="execution-plan-flow-tooltip-metrics">
+                        {tooltip.content.metrics.map((metric, index) => (
+                            <div
+                                className={[
+                                    "execution-plan-flow-tooltip-metric",
+                                    metric.isSql ? "execution-plan-flow-tooltip-sql-metric" : "",
+                                ]
+                                    .filter(Boolean)
+                                    .join(" ")}
+                                key={`${metric.name}-${index}`}>
+                                <dt>{metric.name}</dt>
+                                <dd>
+                                    {metric.isSql ? <SqlText text={metric.value} /> : metric.value}
+                                </dd>
+                            </div>
+                        ))}
+                    </dl>
+                )}
+                {tooltip.content.footer.map((metric, index) => (
+                    <div
+                        className="execution-plan-flow-tooltip-footer"
+                        key={`${metric.name}-${index}`}>
+                        <strong>{metric.name}</strong>
+                        {metric.isSql ? (
+                            <SqlText
+                                className="execution-plan-flow-tooltip-sql"
+                                text={metric.value}
+                            />
+                        ) : (
+                            <div>{metric.value}</div>
+                        )}
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }

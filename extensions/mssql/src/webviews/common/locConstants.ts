@@ -875,6 +875,7 @@ export class LocConstants {
             highlightExpensiveOperation: l10n.t("Highlight Expensive Operation"),
             toggleTooltips: l10n.t("Toggle Tooltips"),
             properties: l10n.t("Properties"),
+            executionPlanToolbar: l10n.t("Execution plan toolbar"),
             name: l10n.t("Name"),
             value: l10n.t("Value"),
             importance: l10n.t("Importance"),
@@ -893,6 +894,7 @@ export class LocConstants {
                 "The React Flow execution plan preview could not render this plan.",
             ),
             executionPlanGraph: l10n.t("Execution plan"),
+            executionPlanDetails: l10n.t("Execution plan details"),
             expandNode: (name: string) =>
                 l10n.t({
                     message: "Expand {0}",

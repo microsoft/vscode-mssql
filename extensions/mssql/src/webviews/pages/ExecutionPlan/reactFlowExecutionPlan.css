@@ -140,54 +140,96 @@
     position: fixed;
     z-index: 10;
     box-sizing: border-box;
-    width: 45em;
+    width: 560px;
     max-width: calc(100vw - 16px);
-    max-height: 360px;
-    padding: 8px;
+    padding: 0;
     overflow: auto;
     border: 1px solid var(--vscode-editorWidget-border);
-    border-radius: 2px;
+    border-radius: 4px;
     background: var(--vscode-editorHoverWidget-background);
     color: var(--vscode-editorHoverWidget-foreground);
     box-shadow: 0 2px 8px var(--vscode-widget-shadow);
     font-size: 12px;
+    line-height: 1.4;
+}
+
+.execution-plan-flow-tooltip-header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    display: flex;
+    min-height: 32px;
+    padding: 6px 6px 6px 10px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    background: var(--vscode-editorHoverWidget-background);
 }
 
 .execution-plan-flow-tooltip-title {
-    margin-bottom: 6px;
+    min-width: 0;
+    padding-top: 3px;
+    overflow-wrap: anywhere;
     font-family: var(--vscode-editor-font-family, Monaco, Menlo, Consolas, monospace);
     font-weight: 600;
 }
 
+.execution-plan-flow-tooltip-close {
+    flex: 0 0 auto;
+}
+
+.execution-plan-flow-tooltip-body {
+    padding: 8px 10px 10px;
+}
+
 .execution-plan-flow-tooltip-description {
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--vscode-editorWidget-border);
     color: var(--vscode-descriptionForeground);
+}
+
+.execution-plan-flow-tooltip-metrics {
+    margin: 0;
 }
 
 .execution-plan-flow-tooltip-metric {
     display: grid;
-    grid-template-columns: minmax(120px, 1fr) minmax(80px, 1fr);
-    gap: 8px;
-    padding: 2px 0;
+    padding: 5px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--vscode-editorWidget-border) 65%, transparent);
+    grid-template-columns: minmax(150px, 42%) minmax(0, 58%);
+    gap: 12px;
 }
 
-.execution-plan-flow-tooltip-metric > span:last-child {
+.execution-plan-flow-tooltip-metric:last-child {
+    border-bottom: 0;
+}
+
+.execution-plan-flow-tooltip-metric > dd {
+    min-width: 0;
+    margin: 0;
     overflow-wrap: anywhere;
     text-align: right;
 }
 
-.execution-plan-flow-tooltip-metric > span:first-child,
+.execution-plan-flow-tooltip-metric > dt,
 .execution-plan-flow-tooltip-footer > strong {
     color: var(--vscode-descriptionForeground);
+    font-weight: 600;
 }
 
-.execution-plan-flow-tooltip-sql-metric > span:last-child {
+.execution-plan-flow-tooltip-sql-metric > dd {
+    padding: 5px 7px;
+    border: 1px solid var(--vscode-editorWidget-border);
+    border-radius: 3px;
+    background: var(--vscode-textCodeBlock-background);
     text-align: left;
 }
 
 .execution-plan-flow-tooltip-footer {
-    margin-top: 6px;
-    padding-top: 6px;
+    margin-top: 8px;
+    padding-top: 8px;
     border-top: 1px solid var(--vscode-editorWidget-border);
     overflow-wrap: anywhere;
 }
@@ -195,9 +237,10 @@
 .execution-plan-flow-tooltip-sql {
     display: block;
     margin-top: 4px;
-    padding: 4px 6px;
+    padding: 7px 8px;
     border: 1px solid var(--vscode-editorWidget-border);
-    border-radius: 2px;
+    border-radius: 3px;
     background: var(--vscode-textCodeBlock-background);
     overflow-wrap: anywhere;
+    line-height: 1.45;
 }
