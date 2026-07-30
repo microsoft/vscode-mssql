@@ -136,6 +136,32 @@
     pointer-events: none;
 }
 
+.execution-plan-comparison-group {
+    position: absolute;
+    z-index: 1;
+    box-sizing: border-box;
+    border: 2px solid var(--execution-plan-comparison-color);
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--execution-plan-comparison-color) 8%, transparent);
+    pointer-events: none;
+}
+
+.execution-plan-comparison-group-0 {
+    --execution-plan-comparison-color: var(--vscode-charts-blue);
+}
+
+.execution-plan-comparison-group-1 {
+    --execution-plan-comparison-color: var(--vscode-charts-green);
+}
+
+.execution-plan-comparison-group-2 {
+    --execution-plan-comparison-color: var(--vscode-charts-purple);
+}
+
+.execution-plan-comparison-group-3 {
+    --execution-plan-comparison-color: var(--vscode-charts-orange);
+}
+
 .execution-plan-flow-tooltip {
     position: fixed;
     z-index: 10;

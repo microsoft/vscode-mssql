@@ -813,6 +813,24 @@ export let parameters = l10n.t("Parameters");
 export let loading = l10n.t("Loading");
 export let executionPlan = l10n.t("Execution Plan");
 export let executionPlanFileFilter = l10n.t("SQL Plan Files");
+export let compareExecutionPlans = l10n.t("Compare Execution Plans");
+export let compareExecutionPlansEditor = (index: number) =>
+    l10n.t({
+        message: "Compare Execution Plans {0}",
+        args: [index],
+        comment: ["{0} is the unique comparison editor number"],
+    });
+export let browseForExecutionPlan = l10n.t("Browse for an execution plan...");
+export let selectExecutionPlanToCompare = l10n.t("Select an execution plan to compare");
+export let noExecutionPlanSelected = l10n.t("No execution plan was selected.");
+export let executionPlanComparisonFailed = l10n.t("Failed to compare execution plans.");
+export let executionPlanComparisonLoadFailed = l10n.t(
+    "Failed to load the selected execution plan.",
+);
+export let executionPlanComparisonFileContainsNoPlans = l10n.t(
+    "The selected file does not contain an execution plan.",
+);
+export let openExecutionPlan = l10n.t("Open execution plan");
 export let scriptCopiedToClipboard = l10n.t("Script copied to clipboard");
 export let copied = l10n.t("Copied");
 export let failedToOpenTextInEditor = (errorMessage: string) =>

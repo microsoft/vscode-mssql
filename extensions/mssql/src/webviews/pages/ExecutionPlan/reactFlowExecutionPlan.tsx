@@ -17,6 +17,8 @@ import {
     Position,
     ReactFlow,
     ReactFlowInstance,
+    Viewport,
+    ViewportPortal,
     getSmoothStepPath,
 } from "@xyflow/react";
 import { Button } from "@fluentui/react-components";
@@ -420,12 +422,20 @@ interface ReactFlowExecutionPlanProps {
     root: ExecutionPlanNode;
     themeKind: ColorThemeKind;
     onReady: (controller: ExecutionPlanGraphController | null) => void;
+    comparisonGroupRoots?: ReadonlyMap<string, number>;
+    onSelectionChange?: (node: ExecutionPlanNode) => void;
+    viewport?: Viewport;
+    onViewportChange?: (viewport: Viewport) => void;
 }
 
 export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     root,
     themeKind,
     onReady,
+    comparisonGroupRoots,
+    onSelectionChange,
+    viewport,
+    onViewportChange,
 }) => {
     const model = useMemo(() => new ExecutionPlanModel(root), [root]);
     const positions = useMemo(() => layoutExecutionPlan(model), [model]);
@@ -438,6 +448,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     const [tooltip, setTooltip] = useState<TooltipState>();
     const selectedIdRef = useRef(selectedId);
     const tooltipsEnabledRef = useRef(tooltipsEnabled);
+    const onSelectionChangeRef = useRef(onSelectionChange);
     const nodeElementsRef = useRef(new Map<string, HTMLDivElement>());
     const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -477,6 +488,10 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     useEffect(() => {
         tooltipsEnabledRef.current = tooltipsEnabled;
     }, [tooltipsEnabled]);
+    useEffect(() => {
+        onSelectionChangeRef.current = onSelectionChange;
+    }, [onSelectionChange]);
+
     const expandAncestors = useCallback(
         (id: string) => {
             const ancestorIds = model.getAncestorIds(id);
@@ -522,6 +537,10 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
             expandAncestors(id);
             selectedIdRef.current = id;
             setSelectedId(id);
+            const node = model.getNode(id);
+            if (node) {
+                onSelectionChangeRef.current?.(node);
+            }
             if (reveal) {
                 revealNode(id);
             }
@@ -707,6 +726,56 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
         [hiddenNodeIds, model],
     );
 
+    const comparisonGroups = useMemo(() => {
+        const groups: {
+            id: string;
+            groupIndex: number;
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+        }[] = [];
+        for (const [rootId, groupIndex] of comparisonGroupRoots ?? []) {
+            if (!positions.has(rootId) || hiddenNodeIds.has(rootId)) {
+                continue;
+            }
+            const memberIds: string[] = [];
+            const visit = (id: string) => {
+                if (hiddenNodeIds.has(id)) {
+                    return;
+                }
+                memberIds.push(id);
+                model.getChildIds(id).forEach(visit);
+            };
+            visit(rootId);
+            const memberPositions = memberIds
+                .map((id) => positions.get(id))
+                .filter((position) => position !== undefined);
+            if (memberPositions.length === 0) {
+                continue;
+            }
+            const left = Math.min(...memberPositions.map((position) => position.x)) - 10;
+            const top = Math.min(...memberPositions.map((position) => position.y)) - 10;
+            const right =
+                Math.max(...memberPositions.map((position) => position.x)) +
+                EXECUTION_PLAN_NODE_WIDTH +
+                10;
+            const bottom =
+                Math.max(...memberPositions.map((position) => position.y)) +
+                EXECUTION_PLAN_NODE_HEIGHT +
+                10;
+            groups.push({
+                id: `${groupIndex}-${rootId}`,
+                groupIndex,
+                x: left,
+                y: top,
+                width: right - left,
+                height: bottom - top,
+            });
+        }
+        return groups;
+    }, [comparisonGroupRoots, hiddenNodeIds, model, positions]);
+
     useEffect(() => {
         if (!instance) {
             return;
@@ -747,6 +816,8 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                 edgeTypes={EDGE_TYPES}
                 onInit={setInstance}
                 defaultViewport={{ x: 0, y: 0, zoom: 1 }}
+                viewport={viewport}
+                onViewportChange={onViewportChange}
                 minZoom={0.01}
                 maxZoom={2}
                 panOnDrag
@@ -783,7 +854,24 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                         });
                         focusNode(selectedIdRef.current);
                     }
-                }}></ReactFlow>
+                }}>
+                {comparisonGroups.length > 0 && (
+                    <ViewportPortal>
+                        {comparisonGroups.map((group) => (
+                            <div
+                                key={group.id}
+                                className={`execution-plan-comparison-group execution-plan-comparison-group-${Math.abs(group.groupIndex) % 4}`}
+                                style={{
+                                    transform: `translate(${group.x}px, ${group.y}px)`,
+                                    width: group.width,
+                                    height: group.height,
+                                }}
+                                aria-hidden
+                            />
+                        ))}
+                    </ViewportPortal>
+                )}
+            </ReactFlow>
             {tooltip && (
                 <ExecutionPlanTooltip
                     tooltip={tooltip}

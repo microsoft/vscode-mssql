@@ -8,6 +8,7 @@ import * as vscode from "vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import {
     openExecutionPlanWebview,
+    openExecutionPlanComparisonWebview,
     saveExecutionPlan,
     showPlanXml,
     showQuery,
@@ -404,6 +405,23 @@ export function registerCommonRequestHandlers(
     webviewController.registerReducer("updateTotalCost", async (state, payload) => {
         return (await updateTotalCost(state, payload)) as qr.QueryResultWebviewState;
     });
+    webviewController.registerReducer("compareExecutionPlan", async (state, payload) => {
+        if (
+            state.executionPlanState.isReactFlowExecutionPlanEnabled &&
+            state.executionPlanState.executionPlanGraphs?.length
+        ) {
+            openExecutionPlanComparisonWebview(
+                webviewViewController.getContext(),
+                webviewViewController.executionPlanService,
+                state.executionPlanState.executionPlanGraphs,
+                payload.graphIndex,
+                state.title ?? LocalizedConstants.executionPlan,
+            );
+        }
+        return state;
+    });
+    webviewController.registerReducer("selectComparisonPlan", async (state) => state);
+    webviewController.registerReducer("setComparisonGraphIndexes", async (state) => state);
     webviewController.onRequest(qr.ShowFilterDisabledMessageRequest.type, async () => {
         vscode.window.showInformationMessage(
             LocalizedConstants.inMemoryDataProcessingThresholdExceeded,

@@ -34,6 +34,7 @@ import {
     TooltipOffIcon16Regular,
     ZoomControlIcon16Regular,
 } from "../../common/icons/executionPlanIcons";
+import { BranchCompareIcon16Regular } from "../../common/icons/fluentIcons";
 import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
@@ -100,6 +101,8 @@ interface IconStackProps {
     setPropertiesClicked: Dispatch<SetStateAction<boolean>>;
     query: string;
     xml: string;
+    graphIndex: number;
+    canCompare: boolean;
 }
 
 enum InputEnum {
@@ -123,6 +126,8 @@ export const IconStack: React.FC<IconStackProps> = ({
     setPropertiesClicked,
     query,
     xml,
+    graphIndex,
+    canCompare,
 }) => {
     const classes = useStyles();
     const context = useContext(ExecutionPlanContext);
@@ -144,6 +149,7 @@ export const IconStack: React.FC<IconStackProps> = ({
     const PROPERTIES = locConstants.executionPlan.properties;
     const HIGHLIGHT_OPS = locConstants.executionPlan.highlightExpensiveOperation;
     const TOGGLE_TOOLTIPS = locConstants.executionPlan.toggleTooltips;
+    const COMPARE_PLAN = locConstants.executionPlan.comparePlan;
 
     const handleSavePlan = async () => {
         await context.saveExecutionPlan(xml);
@@ -225,6 +231,15 @@ export const IconStack: React.FC<IconStackProps> = ({
                 title={OPEN_QUERY}
                 aria-label={OPEN_QUERY}
             />
+            {canCompare && (
+                <ToolbarButton
+                    className={classes.button}
+                    icon={<BranchCompareIcon16Regular className={classes.icon} />}
+                    onClick={() => context.compareExecutionPlan(graphIndex)}
+                    title={COMPARE_PLAN}
+                    aria-label={COMPARE_PLAN}
+                />
+            )}
             <ToolbarDivider className={classes.divider} />
             <ToolbarButton
                 className={classes.button}

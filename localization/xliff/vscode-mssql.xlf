@@ -228,6 +228,9 @@
     <trans-unit id="++CODE++ee7ee5830f091690030fed013c05a7073f6cb971891c3fc6f16e928bd6d69e61">
       <source xml:lang="en">Add account</source>
     </trans-unit>
+    <trans-unit id="++CODE++0c02a7d1f1f267168d68e04073cb3bb0c9dc97c900ec6bb7b536cc50a1d5e28a">
+      <source xml:lang="en">Add execution plan</source>
+    </trans-unit>
     <trans-unit id="++CODE++e520df698000f85f2862a9e7403a405b562c793f67bebe0ad0235ef93a55a84e">
       <source xml:lang="en">Add filter</source>
     </trans-unit>
@@ -269,6 +272,9 @@
     <trans-unit id="++CODE++f1488f38e72433af73c22c2016b43e97e5d652e4cdd8ee0baa86d2ddd19e4447">
       <source xml:lang="en">Added foreign key &apos;{0}&apos;</source>
       <note>{0} is the foreign key name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++5d8cde3035bbe2c8bbbf5881dfc0a0a2c6439a21267726716a7d61663511e18b">
+      <source xml:lang="en">Added plan</source>
     </trans-unit>
     <trans-unit id="++CODE++69bcade64ab9094e6b5fd3b235f0dcc9e723977c25283af0fa746bd154fc386e">
       <source xml:lang="en">Additional parameters</source>
@@ -758,6 +764,10 @@
     <trans-unit id="++CODE++b6c1d862f9f75ec31eb9829b6a5968eb291dc8785e7fb59d4bc6ef00f292d3f7">
       <source xml:lang="en">Both</source>
     </trans-unit>
+    <trans-unit id="++CODE++ccf0f7d8ca72435242c2a0bb7d339db3e48a986cde65596b19d6b05e616b69e1">
+      <source xml:lang="en">Bottom operation: {0}</source>
+      <note>{0} is an execution plan operation name</note>
+    </trans-unit>
     <trans-unit id="++CODE++ec811d30a89ce96d1c7555ffaede78b188fedb1d283adf7cdf55a4edae6697a7">
       <source xml:lang="en">Brightness</source>
     </trans-unit>
@@ -781,6 +791,9 @@
     </trans-unit>
     <trans-unit id="++CODE++c8bb105f01017ced7bd39ba3dd2e7a2d276f16f202f5c29a2c2e51ff0eb31fc3">
       <source xml:lang="en">Browse files</source>
+    </trans-unit>
+    <trans-unit id="++CODE++879c21b0945cca2c0ee41f421f5a066be758d466518552f403c029d7b6c66a77">
+      <source xml:lang="en">Browse for an execution plan...</source>
     </trans-unit>
     <trans-unit id="++CODE++2f95c7d9dd257b91376a5bd75a57121de6f9b0cabcb2dbc09591aed6c206ee43">
       <source xml:lang="en">Browse forvpath</source>
@@ -1077,6 +1090,9 @@
     <trans-unit id="++CODE++2191d6b3f382356ffd46db277fcd0896e4b5f73a62989e0af8754832ed84c319">
       <source xml:lang="en">Choose a port to host the SQL Server Docker Container</source>
     </trans-unit>
+    <trans-unit id="++CODE++0e5a270df8b544ad79ba4ec8c1900744376eccf4ac1a2d19a091dab2a4e09782">
+      <source xml:lang="en">Choose an execution plan to compare.</source>
+    </trans-unit>
     <trans-unit id="++CODE++8dc22bcccf1fa2165bc27bcd3af9d5979985733f54896c185307a1ccd0e0d134">
       <source xml:lang="en">Choose an option to provision a database</source>
     </trans-unit>
@@ -1337,11 +1353,27 @@
     <trans-unit id="++CODE++ac33cc2b7f21b9e3f168a36d2c3c32a35216ffc2faf0630c9ae6aabc347c1b79">
       <source xml:lang="en">Compare Azure SQL Database service tiers</source>
     </trans-unit>
+    <trans-unit id="++CODE++6de0c1a695d5eaf2fde14cd153d73c0f5b57fffb1b1d35291cb072e1b39dc133">
+      <source xml:lang="en">Compare Execution Plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eef34753dd652fe43c5c63215be0854b62f8c7171be4b5dfef1717344d8c513b">
+      <source xml:lang="en">Compare Execution Plans</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ba92fe993f5bf07fa2c61862670bee28f24e56ec8eb9c4592da49c2b295dcd59">
+      <source xml:lang="en">Compare Execution Plans {0}</source>
+      <note>{0} is the unique comparison editor number</note>
+    </trans-unit>
     <trans-unit id="++CODE++c76e4efa9bdedc294be4e0c0a7e42040e5c921d0b30a36e1c6249893b941b662">
       <source xml:lang="en">Compare SQL Server editions</source>
     </trans-unit>
+    <trans-unit id="++CODE++571527339d0e3e34a6fd5b9c1d776218573a85cc984efb94d0631d47b8aa1d76">
+      <source xml:lang="en">Comparison</source>
+    </trans-unit>
     <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
       <source xml:lang="en">Comparison Details</source>
+    </trans-unit>
+    <trans-unit id="++CODE++96b3aa1b3fd46b65c75f611c6f1c3a2e4f1d6c1eb2f9359e7f6ed054623ae098">
+      <source xml:lang="en">Comparison properties</source>
     </trans-unit>
     <trans-unit id="++CODE++0891b63d1c799ce3a1d712cee42286cac8db64e6a57701839b06d7937855b14e">
       <source xml:lang="en">Compatibility Level</source>
@@ -2280,6 +2312,9 @@
     <trans-unit id="++CODE++4140839b57403cf1b132332262ad00592590d6f7970b0f83fc60fb9b8c53d707">
       <source xml:lang="en">Developer-friendly transactional database using the Azure SQL Database Engine.</source>
     </trans-unit>
+    <trans-unit id="++CODE++4b0045c9fc54a1a76963412690f422d9df678d52c5c73cdb8a08be6d64a3ef10">
+      <source xml:lang="en">Different Properties</source>
+    </trans-unit>
     <trans-unit id="++CODE++ba142112330ecabeb92c1588f850c838091bcfd621fa97b344e2d9e73a3b7314">
       <source xml:lang="en">Differential</source>
     </trans-unit>
@@ -2676,6 +2711,9 @@
     <trans-unit id="++CODE++f939ae3d30c69e332a36892f70d401d457e6993f056b8d0af3fe3d736821f5a1">
       <source xml:lang="en">Equals</source>
     </trans-unit>
+    <trans-unit id="++CODE++adacba2e8823c97bb66748a885cc9f61760fe7736e17b1953c0d95957f6ff1b7">
+      <source xml:lang="en">Equivalent Properties</source>
+    </trans-unit>
     <trans-unit id="++CODE++54a0e8c17ebb21a11f8a25b8042786ef7efe52441e6cc87e92c67e0c4c0c6e78">
       <source xml:lang="en">Error</source>
     </trans-unit>
@@ -2880,6 +2918,9 @@
     </trans-unit>
     <trans-unit id="++CODE++5b273fdcb747a01d31053e82b95e940110b6fe3d05d9bffc057856d6f21d127b">
       <source xml:lang="en">Execution plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5b3306cf751c3fa72336349ac481f1ab13a0913427ba1ed503cd81eb66af47e6">
+      <source xml:lang="en">Execution plan comparison is available when the React Flow execution plan preview is enabled.</source>
     </trans-unit>
     <trans-unit id="++CODE++a49223aa30fb671e98c03012a63a1c68e98b7cf3c612f59d98ba0057c54da0c9">
       <source xml:lang="en">Execution plan details</source>
@@ -3130,6 +3171,9 @@
     <trans-unit id="++CODE++0f20f13b4e0c02dbfd1419272fdc0223aea4745a0704daf5f91876a21476bda2">
       <source xml:lang="en">Failed to change database</source>
     </trans-unit>
+    <trans-unit id="++CODE++b23b62680a071ae02eaf379d6b6556e438a5c8be78a1ad4ed1b463c1d9050b01">
+      <source xml:lang="en">Failed to compare execution plans.</source>
+    </trans-unit>
     <trans-unit id="++CODE++46c9f3b7520fde539ec4452ba821c1b8ad43f18971284f033ab93d32f04c65df">
       <source xml:lang="en">Failed to connect</source>
     </trans-unit>
@@ -3278,6 +3322,9 @@
     </trans-unit>
     <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
       <source xml:lang="en">Failed to load publish profile</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6153ee7e1ab4434dce62a0c9ab59c998a9448749d3f7f385a158c30be0e17c7b">
+      <source xml:lang="en">Failed to load the selected execution plan.</source>
     </trans-unit>
     <trans-unit id="++CODE++14efaa6a7c132b195742fbff720af5eae802f47b83f7e56896d431c86cb0a172">
       <source xml:lang="en">Failed to obtain token for resource &apos;{1}&apos;.  Error: {0}</source>
@@ -3528,6 +3575,9 @@
     <trans-unit id="++CODE++b69848561e02841b68dcbfadcbba33ea9008d49fb44c61fd4e670bc3fa3b9968">
       <source xml:lang="en">Filter changes</source>
     </trans-unit>
+    <trans-unit id="++CODE++661462df1e90d01fd9e6f93c956f2b371aca8a59145257c92f69de3d93a72541">
+      <source xml:lang="en">Filter comparison properties...</source>
+    </trans-unit>
     <trans-unit id="++CODE++25f7c9810f4a804cfb8dd52d53afff3e995a0e03165362b827f6eb301d685327">
       <source xml:lang="en">Filter entities</source>
     </trans-unit>
@@ -3576,6 +3626,12 @@
     </trans-unit>
     <trans-unit id="++CODE++bf0e5179cb962af6329b97f24951139ae47f60ff00cdcd1ccbacd816608b6866">
       <source xml:lang="en">Find Previous</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a00b2005a44d374de03b980a6eb3fb26c7c8dc3de1b0bb76f5a6d430c7ba42dd">
+      <source xml:lang="en">Find in added plan</source>
+    </trans-unit>
+    <trans-unit id="++CODE++848b9a6cfe9db6c8bbda02730a9818a8713a88c8259c94dfefce31815c0af978">
+      <source xml:lang="en">Find in primary plan</source>
     </trans-unit>
     <trans-unit id="++CODE++a6c7a84baa6750fce33f7512acd6793e53def1d228b5f2efb8074b42648424fc">
       <source xml:lang="en">Finish</source>
@@ -4155,6 +4211,10 @@
     <trans-unit id="++CODE++998276d04826bfa9ef42b723a5004ca0d28262fbf2b15899520378a43d93ecc9">
       <source xml:lang="en">Leave the source database in the restoring state</source>
     </trans-unit>
+    <trans-unit id="++CODE++f3b5cf9e02cf1e6e44e0859a4ff19d14baf58dd58bae7a4557f6744ed4c99309">
+      <source xml:lang="en">Left operation: {0}</source>
+      <note>{0} is an execution plan operation name</note>
+    </trans-unit>
     <trans-unit id="++CODE++adc95605a1b30c73959fbaf21e60f9723efe855c482fa336a957924d4ea0a08b">
       <source xml:lang="en">Length</source>
     </trans-unit>
@@ -4389,6 +4449,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d6fd520e2618b0231a03b251ea5831f125d0087382f96b0a6b8c57f1fa97a69c">
       <source xml:lang="en">Loading servers in selected subscription...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4b9d0e4e076fceb7b58720a85aaa7c797fb7df57c917a0ff1b49bf32f6f16934">
+      <source xml:lang="en">Loading similar areas in compared plans...</source>
     </trans-unit>
     <trans-unit id="++CODE++44a08fe61f9d3024b58081bde56db3941ca139f52396dce09e0fbfc2c9a67897">
       <source xml:lang="en">Loading subscriptions</source>
@@ -5018,6 +5081,9 @@
     <trans-unit id="++CODE++0ca074b55c38a61a072092289a02d99d016075ccc3ba4519df5bcb3a8777d561">
       <source xml:lang="en">No events to export</source>
     </trans-unit>
+    <trans-unit id="++CODE++9238763eb28c554c36194de6e3ca3dfcf960208d8c41561c154ffed739e9f2af">
+      <source xml:lang="en">No execution plan was selected.</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b6ccfdcffbebddf187dbda4178da2bd0a4889bdb715df0d62ea75774aebfad4">
       <source xml:lang="en">No filter is currently active</source>
     </trans-unit>
@@ -5327,6 +5393,9 @@
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
     </trans-unit>
+    <trans-unit id="++CODE++03e86679339b745a9fb8ae3362715ded2a87ccc7dc78158b4f5cd4dea3cdbf3b">
+      <source xml:lang="en">Open execution plan</source>
+    </trans-unit>
     <trans-unit id="++CODE++cef89448c86ea390bfb9f0953513fd8871c5595cd7e65fc9ef5fc306fe7bfd11">
       <source xml:lang="en">Open filter menu</source>
     </trans-unit>
@@ -5623,6 +5692,9 @@
     </trans-unit>
     <trans-unit id="++CODE++033fc28f70ea19380dbfa828984ba8b4a1e101c63a81ac785fc9b9fdfd908f3a">
       <source xml:lang="en">Primary key</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7c037e427ea90ebb3839e6931da6298342dc1b71a1ad9fa62d233b8535cdeb22">
+      <source xml:lang="en">Primary plan</source>
     </trans-unit>
     <trans-unit id="++CODE++e4b88de23274e99ca98b822e9f304564c85d96333a5d35bb218b95654a03c7ab">
       <source xml:lang="en">Prisma</source>
@@ -5997,6 +6069,9 @@
       <note>{0} is the current database name
 {1} is the new database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++1d47dd969ccae17db9089a867a2faa5967875338321066d9ab8baaa121c21f35">
+      <source xml:lang="en">Replace execution plan</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
     </trans-unit>
@@ -6017,6 +6092,9 @@
     </trans-unit>
     <trans-unit id="++CODE++37ba78770ece89995a12bcd4cc2a30a8fe4e5338f09c5a6534ccbc4f272825de">
       <source xml:lang="en">Reset to Defaults?</source>
+    </trans-unit>
+    <trans-unit id="++CODE++91a661b24f1bc2bf723557e11c049600681ce2c73fd5a1962281ba44e293a5fe">
+      <source xml:lang="en">Reset zoom</source>
     </trans-unit>
     <trans-unit id="++CODE++2956e06ac0651084bbd5558dfe469615e9a5fc3072f60a09a9cb3c597a19324c">
       <source xml:lang="en">Resize</source>
@@ -6152,6 +6230,10 @@
     </trans-unit>
     <trans-unit id="++CODE++6787c1583c12d96416e9c293250562f4dcb4c7159b13ce67f7c7a73eddebd5ca">
       <source xml:lang="en">Reviewing Copilot Change</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a6c1bdc89b00a0cb7647e7a9bec75ef2d64ff6c15590b5de937d2f4ecf1091d9">
+      <source xml:lang="en">Right operation: {0}</source>
+      <note>{0} is an execution plan operation name</note>
     </trans-unit>
     <trans-unit id="++CODE++02db2f499ba6ed0895fdb86e879b5758e87aacd4251189046218aec2617a0ba5">
       <source xml:lang="en">Rosetta is required to run SQL Server container images on Apple Silicon. Enable &quot;Use Rosetta for x86_64/amd64 emulation on Apple Silicon&quot; in Docker Desktop &gt; Settings &gt; General.</source>
@@ -6702,6 +6784,9 @@
     <trans-unit id="++CODE++3e75bab98257a9ea127e284caff7f62dff2d154f115bb79a6a087b51fd54936d">
       <source xml:lang="en">Select an account for authentication</source>
     </trans-unit>
+    <trans-unit id="++CODE++1640d78bbb35be6002586df3036191c5bb7455eb5cd6613f8455bd3e2cf0d2bc">
+      <source xml:lang="en">Select an execution plan to compare</source>
+    </trans-unit>
     <trans-unit id="++CODE++1032e1d25c0d5131be3195e1e53197385eb21d860f4f14f7bbc4cfcce4bfd109">
       <source xml:lang="en">Select an extension to manage connection sharing permissions</source>
     </trans-unit>
@@ -6744,6 +6829,9 @@
     </trans-unit>
     <trans-unit id="++CODE++803814693885dfb92ec8373f4c02f31015541e0e97e437287cdd0db681e0dae6">
       <source xml:lang="en">Select session</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3e8c76561b9543b1c4aaf8d832a0f79226e4bfe50590af788928ad281039cbbb">
+      <source xml:lang="en">Select statement</source>
     </trans-unit>
     <trans-unit id="++CODE++31c1868de5b07d10224f472d3f5957b4502175ab68a89839134a1f1dd747ab3b">
       <source xml:lang="en">Select subscriptions</source>
@@ -7163,6 +7251,10 @@
     <trans-unit id="++CODE++03277ef8ef2700bf566e0e716f248ba484a8f29a4294785424aceef734714ac0">
       <source xml:lang="en">Starts with</source>
     </trans-unit>
+    <trans-unit id="++CODE++1c093622ce1ad65cfd60feaaeb595c0c2dd8241d68ef7dcf5c915c6569ad99fa">
+      <source xml:lang="en">Statement {0}</source>
+      <note>{0} is an execution plan statement number</note>
+    </trans-unit>
     <trans-unit id="++CODE++920e413c7d411b61ef3e8c63b1cb6ad058d5f95f8b481dbafe60248387d8c355">
       <source xml:lang="en">Status</source>
     </trans-unit>
@@ -7303,6 +7395,12 @@
     <trans-unit id="++CODE++1cd65c404018fe0b10838ebb1d185bc820d942c2bab789cf9e0ed90db9bb6451">
       <source xml:lang="en">Switch to Text View ({0})</source>
       <note>{0} is the keyboard shortcut for switching to text view</note>
+    </trans-unit>
+    <trans-unit id="++CODE++21c4e0a0d9360e58a0da63a3b5787df48cacfe0ff5287d7df8fb6a83ff561d87">
+      <source xml:lang="en">Switch to side-by-side comparison</source>
+    </trans-unit>
+    <trans-unit id="++CODE++77f7339d54315fa9a7e05370739a74614f7690c55baeef6a7a285d00df983f53">
+      <source xml:lang="en">Switch to top-and-bottom comparison</source>
     </trans-unit>
     <trans-unit id="++CODE++ed15b242aa1a7a4a806b10b44d2a0010fdcd7582ee1d23ff253e9d376230e87b">
       <source xml:lang="en">Switched to {0}</source>
@@ -7558,6 +7656,9 @@
       <note>{0} is the operator for the filter
 {1} is the name of the filter</note>
     </trans-unit>
+    <trans-unit id="++CODE++20739c0f9c9b2162681835aa37d40b6d1723c5e9ae3f2d36c29326fcf87036c9">
+      <source xml:lang="en">The selected file does not contain an execution plan.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e0e95ce8d59c3985439194900fd3997b4d86e45ed92f82a44ac0c897018d7fb1">
       <source xml:lang="en">The selected file is not a valid XEL file.</source>
     </trans-unit>
@@ -7675,6 +7776,9 @@
       <source xml:lang="en">Toggle columns for {0}</source>
       <note>{0} is the entity name</note>
     </trans-unit>
+    <trans-unit id="++CODE++28f866c43aa6ee57d772de6ebb259b538807c69fe055d1518fcf80df0d3f1ee4">
+      <source xml:lang="en">Toggle comparison orientation</source>
+    </trans-unit>
     <trans-unit id="++CODE++ffe32a004b062d5e8252cac4729963ba6ff129023ea0b33c6aa3f0a9e725f157">
       <source xml:lang="en">Toggle dark mode</source>
     </trans-unit>
@@ -7705,6 +7809,10 @@
       <source xml:lang="en">Tool lookup for: {0} - {1}.</source>
       <note>{0} is the part name
 {1} is the part input</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f156671af4d9c073eaa66da7139da31bdfc389ee653841d5d83ab9a66715784e">
+      <source xml:lang="en">Top operation: {0}</source>
+      <note>{0} is an execution plan operation name</note>
     </trans-unit>
     <trans-unit id="++CODE++048652e110f74b298095b5a7123e8878dfbd665a9fa34991b269dd31ab9442d0">
       <source xml:lang="en">Total execution time: {0}</source>
@@ -7963,6 +8071,18 @@
     </trans-unit>
     <trans-unit id="++CODE++8e37953d23daca5ff01b8282c33f4e0a2152f1d1885f94c06418617e3ee1d24e">
       <source xml:lang="en">Value</source>
+    </trans-unit>
+    <trans-unit id="++CODE++67d49fe5b91c214a54416730e7e84e821460c642ccd77b92096107df5a6c72db">
+      <source xml:lang="en">Value (Bottom Plan)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++aacf0e5938a5c3cece554bcd37d68c40a94084a1a8e7d02bcbb821a3aebd2cbf">
+      <source xml:lang="en">Value (Left Plan)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++495dd05fd1a8db4893ca96fbb67ddf2dd43761d56f1a705981d197279d74c795">
+      <source xml:lang="en">Value (Right Plan)</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b792d1e3d3c8c6b56fdbc691ca19c4eff2d34d444f8c0902d37a7915e3e7339a">
+      <source xml:lang="en">Value (Top Plan)</source>
     </trans-unit>
     <trans-unit id="++CODE++1fbf278b53995ff39f69ce0e2aef7d56406fb890b82cd87febce6995e98776cd">
       <source xml:lang="en">Value is required</source>
