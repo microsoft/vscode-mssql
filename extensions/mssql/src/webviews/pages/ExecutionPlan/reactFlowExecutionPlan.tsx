@@ -28,6 +28,7 @@ import {
     useCallback,
     useEffect,
     useId,
+    useLayoutEffect,
     useMemo,
     useRef,
     useState,
@@ -73,7 +74,8 @@ const EXECUTION_PLAN_REVEAL_PADDING = 0;
 const EXECUTION_PLAN_FOCUS_RETRY_FRAMES = 20;
 const EXECUTION_PLAN_LABEL_TOP = 49;
 const EXECUTION_PLAN_LABEL_LINE_HEIGHT = 14;
-const EXECUTION_PLAN_SELECTION_VERTICAL_PADDING = 6;
+const EXECUTION_PLAN_SELECTION_VERTICAL_PADDING = 10;
+const EXECUTION_PLAN_SELECTION_TOP_OFFSET = -1;
 
 interface TooltipState {
     targetId: string;
@@ -134,6 +136,37 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
     const badgePaths = getBadgePaths();
     const collapseExpandPaths = getCollapseExpandPaths(themeKind);
     const iconPath = iconPaths[planNode.type] ?? iconPaths.iteratorCatchAll;
+    const labelRef = useRef<HTMLDivElement>(null);
+    const [renderedSelectionSize, setRenderedSelectionSize] = useState({
+        width: selectionWidth,
+        height: selectionHeight,
+    });
+
+    useLayoutEffect(() => {
+        const label = labelRef.current;
+        if (!label) {
+            return;
+        }
+
+        const nextSize = {
+            width: Math.min(
+                EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
+                Math.max(EXECUTION_PLAN_NODE_WIDTH, Math.ceil(label.scrollWidth) + 8),
+            ),
+            height: Math.max(
+                EXECUTION_PLAN_NODE_HEIGHT + 8,
+                label.offsetTop +
+                    Math.ceil(label.scrollHeight) +
+                    EXECUTION_PLAN_SELECTION_VERTICAL_PADDING,
+            ),
+        };
+        setRenderedSelectionSize((currentSize) =>
+            currentSize.width === nextSize.width && currentSize.height === nextSize.height
+                ? currentSize
+                : nextSize,
+        );
+    }, [planNode, selectionHeight, selectionWidth]);
+
     const badgePath = (type: BadgeType): string => {
         switch (type) {
             case BadgeType.CriticalWarning:
@@ -148,13 +181,16 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
         currentTarget: EventTarget & HTMLElement;
     }): ExecutionPlanTooltipSourceBounds => {
         const cellBounds = event.currentTarget.getBoundingClientRect();
-        const horizontalOverflow = Math.max(0, (selectionWidth - cellBounds.width) / 2);
-        const selectionTop = cellBounds.top - 1;
+        const horizontalOverflow = Math.max(
+            0,
+            (renderedSelectionSize.width - cellBounds.width) / 2,
+        );
+        const selectionTop = cellBounds.top + EXECUTION_PLAN_SELECTION_TOP_OFFSET;
         return {
             left: cellBounds.left - horizontalOverflow,
             right: cellBounds.right + horizontalOverflow,
             top: selectionTop,
-            bottom: selectionTop + selectionHeight,
+            bottom: selectionTop + renderedSelectionSize.height,
         };
     };
 
@@ -197,7 +233,10 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
             onKeyDown={(event) => navigate(planNode.id, event, bounds(event))}>
             <div
                 className="execution-plan-flow-selection-outline"
-                style={{ width: selectionWidth, height: selectionHeight }}
+                style={{
+                    width: renderedSelectionSize.width,
+                    height: renderedSelectionSize.height,
+                }}
                 aria-hidden="true"
             />
             <Handle type="target" position={Position.Left} className="execution-plan-flow-handle" />
@@ -216,7 +255,7 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
                 ))}
             </div>
             <div className="execution-plan-flow-cost">{planNode.costDisplayString}</div>
-            <div className="execution-plan-flow-label">
+            <div ref={labelRef} className="execution-plan-flow-label">
                 {planNode.subtext.map((line, index) => (
                     <div key={index}>{line}</div>
                 ))}

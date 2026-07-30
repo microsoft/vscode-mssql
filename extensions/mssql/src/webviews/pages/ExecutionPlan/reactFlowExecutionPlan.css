@@ -51,12 +51,8 @@
 }
 
 .execution-plan-flow-node.selected:focus > .execution-plan-flow-selection-outline {
-    border-color: var(
-        --vscode-contrastActiveBorder,
-        var(--vscode-charts-green, var(--vscode-focusBorder))
-    );
-    box-shadow: 0 0 0 1px
-        var(--vscode-contrastActiveBorder, var(--vscode-charts-green, var(--vscode-focusBorder)));
+    border-color: var(--vscode-focusBorder, #007fd4);
+    box-shadow: 0 0 0 1px var(--vscode-focusBorder, #007fd4);
 }
 
 .execution-plan-flow-node.highlighted > .execution-plan-flow-selection-outline {

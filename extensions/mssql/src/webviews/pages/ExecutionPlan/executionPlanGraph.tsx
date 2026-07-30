@@ -455,6 +455,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                 executionPlanView={executionPlanView!}
                                 setPropertiesClicked={setPropertiesClicked}
                                 inputRef={inputRef}
+                                useReactFlow={useReactFlow}
                             />
                         </div>
                     </div>

@@ -72,6 +72,42 @@ export const OpenQueryIcon16Regular = forwardRef<SVGSVGElement, IconProps>((prop
 ));
 OpenQueryIcon16Regular.displayName = "OpenQueryIcon16Regular";
 
+export const ExpandAllIcon16Regular = forwardRef<SVGSVGElement, IconProps>((props, ref) => (
+    <svg ref={ref} {...commonIconProps(props)}>
+        <path d="M9 9H4v1h5V9z" />
+        <path d="M7 12V7H6v5h1z" />
+        <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M5 3l1-1h7l1 1v7l-1 1h-2v2l-1 1H3l-1-1V6l1-1h2V3zm1 2h4l1 1v4h2V3H6v2zm4 1H3v7h7V6z"
+        />
+    </svg>
+));
+ExpandAllIcon16Regular.displayName = "ExpandAllIcon16Regular";
+
+export const CollapseAllIcon16Regular = forwardRef<SVGSVGElement, IconProps>((props, ref) => (
+    <svg ref={ref} {...commonIconProps(props)}>
+        <path d="M9 9H4v1h5V9z" />
+        <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M5 3l1-1h7l1 1v7l-1 1h-2v2l-1 1H3l-1-1V6l1-1h2V3zm1 2h4l1 1v4h2V3H6v2zm4 1H3v7h7V6z"
+        />
+    </svg>
+));
+CollapseAllIcon16Regular.displayName = "CollapseAllIcon16Regular";
+
+export const FilterIcon16Regular = forwardRef<SVGSVGElement, IconProps>((props, ref) => (
+    <svg ref={ref} {...commonIconProps(props)}>
+        <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M15 2v1.67l-5 4.759V14H6V8.429l-5-4.76V2h14zM7 8v5h2V8l5-4.76V3H2v.24L7 8z"
+        />
+    </svg>
+));
+FilterIcon16Regular.displayName = "FilterIcon16Regular";
+
 export const ZoomControlIcon16Regular = forwardRef<SVGSVGElement, IconProps>((props, ref) => (
     <svg ref={ref} {...commonIconProps(props)}>
         <path d="M2 4.5C2 3.119 3.119 2 4.5 2H11.5C12.881 2 14 3.119 14 4.5V11.5C14 12.881 12.881 14 11.5 14H4.5C3.119 14 2 12.881 2 11.5V4.5ZM4.5 3C3.672 3 3 3.672 3 4.5V11.5C3 12.328 3.672 13 4.5 13H11.5C12.328 13 13 12.328 13 11.5V4.5C13 3.672 12.328 3 11.5 3H4.5Z" />

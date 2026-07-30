@@ -26,14 +26,23 @@ import {
     tokens,
 } from "@fluentui/react-components";
 import {
+    ArrowSortDownLines16Regular,
     ChevronDown20Regular,
     ChevronRight20Regular,
     Dismiss12Regular,
+    Dismiss16Regular,
+    TextSortAscending16Regular,
+    TextSortDescending16Regular,
 } from "@fluentui/react-icons";
 import { useEffect, useState } from "react";
 
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
 import { locConstants } from "../../common/locConstants";
+import {
+    CollapseAllIcon16Regular,
+    ExpandAllIcon16Regular,
+    FilterIcon16Regular,
+} from "../../common/icons/executionPlanIcons";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
 const useStyles = makeStyles({
@@ -59,6 +68,12 @@ const useStyles = makeStyles({
         height: "16px",
         width: "16px",
     },
+    previewToolbarIcon: {
+        display: "block",
+        width: "16px",
+        height: "16px",
+        flexShrink: 0,
+    },
     propertiesHeader: {
         fontWeight: "bold",
         fontSize: "12px",
@@ -69,12 +84,52 @@ const useStyles = makeStyles({
         justifyContent: "space-between",
         alignItems: "center",
     },
+    previewStickyHeader: {
+        position: "sticky",
+        top: 0,
+        zIndex: 1,
+        backgroundColor: "var(--vscode-editor-background)",
+    },
+    previewPropertiesHeader: {
+        boxSizing: "border-box",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        width: "100%",
+        height: "32px",
+        padding: "0 6px 0 10px",
+        borderBottom:
+            "1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent))",
+    },
+    previewHeaderTitle: {
+        minWidth: 0,
+        overflow: "hidden",
+        fontSize: "13px",
+        fontWeight: 600,
+        lineHeight: "20px",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
     nameContainer: {
         fontWeight: "bold",
         fontSize: "14px",
         width: "100%",
         padding: "4px",
         opacity: 1,
+    },
+    previewNameContainer: {
+        boxSizing: "border-box",
+        width: "100%",
+        height: "28px",
+        padding: "0 10px",
+        overflow: "hidden",
+        color: "var(--vscode-descriptionForeground)",
+        fontFamily: "var(--vscode-editor-font-family, Monaco, Menlo, Consolas, monospace)",
+        fontSize: "12px",
+        fontWeight: 600,
+        lineHeight: "28px",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
     },
     tableHeader: {
         fontWeight: "bold",
@@ -106,6 +161,12 @@ const useStyles = makeStyles({
         outline: "none",
         marginRight: "4px",
     },
+    previewDismissButton: {
+        width: "24px",
+        minWidth: "24px",
+        height: "24px",
+        padding: 0,
+    },
     textContainer: {
         whiteSpace: "nowrap",
     },
@@ -115,12 +176,14 @@ interface PropertiesPaneProps {
     executionPlanView: ExecutionPlanGraphController;
     setPropertiesClicked: any;
     inputRef: any;
+    useReactFlow: boolean;
 }
 
 export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     executionPlanView,
     setPropertiesClicked,
     inputRef,
+    useReactFlow,
 }) => {
     const { themeKind } = useVscodeWebview();
     const classes = useStyles();
@@ -321,35 +384,61 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                 borderLeft: `0.5px solid ${tokens.colorNeutralStroke1}`,
             }}>
             <div
-                style={{
-                    position: "sticky",
-                    top: 0,
-                    zIndex: 1,
-                    background: tokens.colorNeutralBackground1,
-                }}>
+                className={useReactFlow ? classes.previewStickyHeader : undefined}
+                style={
+                    useReactFlow
+                        ? undefined
+                        : {
+                              position: "sticky",
+                              top: 0,
+                              zIndex: 1,
+                              background: tokens.colorNeutralBackground1,
+                          }
+                }>
                 <div
-                    className={classes.propertiesHeader}
-                    style={{
-                        background: tokens.colorNeutralBackground2,
-                    }}>
-                    <div aria-label={PROPERTIES} tabIndex={0}>
+                    className={
+                        useReactFlow ? classes.previewPropertiesHeader : classes.propertiesHeader
+                    }
+                    style={
+                        useReactFlow
+                            ? undefined
+                            : {
+                                  background: tokens.colorNeutralBackground2,
+                              }
+                    }>
+                    <div
+                        className={useReactFlow ? classes.previewHeaderTitle : undefined}
+                        aria-label={PROPERTIES}
+                        tabIndex={useReactFlow ? undefined : 0}>
                         {PROPERTIES}
                     </div>
-                    <div tabIndex={0}>
+                    <div tabIndex={useReactFlow ? undefined : 0}>
                         <Button
-                            className={classes.dismissButton}
-                            style={{
-                                background: tokens.colorNeutralBackground2,
-                            }}
+                            className={
+                                useReactFlow ? classes.previewDismissButton : classes.dismissButton
+                            }
+                            appearance={useReactFlow ? "subtle" : undefined}
+                            size={useReactFlow ? "small" : undefined}
+                            style={
+                                useReactFlow
+                                    ? undefined
+                                    : {
+                                          background: tokens.colorNeutralBackground2,
+                                      }
+                            }
                             onClick={() => setPropertiesClicked(false)}
                             title={locConstants.common.close}
                             aria-label={locConstants.common.close}
-                            icon={<Dismiss12Regular />}
+                            icon={useReactFlow ? <Dismiss16Regular /> : <Dismiss12Regular />}
                             ref={inputRef}
                         />
                     </div>
                 </div>
-                <div className={classes.nameContainer} aria-label={name} tabIndex={0}>
+                <div
+                    className={useReactFlow ? classes.previewNameContainer : classes.nameContainer}
+                    aria-label={name}
+                    title={useReactFlow ? name : undefined}
+                    tabIndex={useReactFlow ? undefined : 0}>
                     {name}
                 </div>
                 <Toolbar className={classes.toolbar} size="small">
@@ -357,11 +446,17 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         className={classes.button}
                         tabIndex={0}
                         icon={
-                            <img
-                                className={classes.buttonImg}
-                                src={utils.sortByImportance(theme)}
-                                alt={IMPORTANCE}
-                            />
+                            useReactFlow ? (
+                                <ArrowSortDownLines16Regular
+                                    className={classes.previewToolbarIcon}
+                                />
+                            ) : (
+                                <img
+                                    className={classes.buttonImg}
+                                    src={utils.sortByImportance(theme)}
+                                    alt={IMPORTANCE}
+                                />
+                            )
                         }
                         onClick={() => handleSort(ep.SortOption.Importance)}
                         title={IMPORTANCE}
@@ -371,11 +466,17 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         className={classes.button}
                         tabIndex={0}
                         icon={
-                            <img
-                                className={classes.buttonImg}
-                                src={utils.sortAlphabetically(theme)}
-                                alt={ALPHABETICAL}
-                            />
+                            useReactFlow ? (
+                                <TextSortAscending16Regular
+                                    className={classes.previewToolbarIcon}
+                                />
+                            ) : (
+                                <img
+                                    className={classes.buttonImg}
+                                    src={utils.sortAlphabetically(theme)}
+                                    alt={ALPHABETICAL}
+                                />
+                            )
                         }
                         onClick={() => handleSort(ep.SortOption.Alphabetical)}
                         title={ALPHABETICAL}
@@ -385,11 +486,17 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         className={classes.button}
                         tabIndex={0}
                         icon={
-                            <img
-                                className={classes.buttonImg}
-                                src={utils.sortReverseAlphabetically(theme)}
-                                alt={REVERSE_ALPHABETICAL}
-                            />
+                            useReactFlow ? (
+                                <TextSortDescending16Regular
+                                    className={classes.previewToolbarIcon}
+                                />
+                            ) : (
+                                <img
+                                    className={classes.buttonImg}
+                                    src={utils.sortReverseAlphabetically(theme)}
+                                    alt={REVERSE_ALPHABETICAL}
+                                />
+                            )
                         }
                         onClick={() => handleSort(ep.SortOption.ReverseAlphabetical)}
                         title={REVERSE_ALPHABETICAL}
@@ -399,11 +506,15 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         className={classes.button}
                         tabIndex={0}
                         icon={
-                            <img
-                                className={classes.buttonImg}
-                                src={utils.expandAll(theme)}
-                                alt={EXPAND_ALL}
-                            />
+                            useReactFlow ? (
+                                <ExpandAllIcon16Regular className={classes.previewToolbarIcon} />
+                            ) : (
+                                <img
+                                    className={classes.buttonImg}
+                                    src={utils.expandAll(theme)}
+                                    alt={EXPAND_ALL}
+                                />
+                            )
                         }
                         onClick={handleExpandAll}
                         title={EXPAND_ALL}
@@ -413,11 +524,15 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         className={classes.button}
                         tabIndex={0}
                         icon={
-                            <img
-                                className={classes.buttonImg}
-                                src={utils.collapseAll(theme)}
-                                alt={COLLAPSE_ALL}
-                            />
+                            useReactFlow ? (
+                                <CollapseAllIcon16Regular className={classes.previewToolbarIcon} />
+                            ) : (
+                                <img
+                                    className={classes.buttonImg}
+                                    src={utils.collapseAll(theme)}
+                                    alt={COLLAPSE_ALL}
+                                />
+                            )
                         }
                         onClick={handleCollapseAll}
                         title={COLLAPSE_ALL}
@@ -430,11 +545,15 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                         value={inputValue}
                         placeholder={FILTER_ANY_FIELD}
                         contentBefore={
-                            <img
-                                src={utils.filterIcon(theme)}
-                                alt={FILTER_ANY_FIELD}
-                                style={{ width: "20px", height: "20px" }}
-                            />
+                            useReactFlow ? (
+                                <FilterIcon16Regular className={classes.previewToolbarIcon} />
+                            ) : (
+                                <img
+                                    src={utils.filterIcon(theme)}
+                                    alt={FILTER_ANY_FIELD}
+                                    style={{ width: "20px", height: "20px" }}
+                                />
+                            )
                         }
                         onChange={(e) => {
                             setInputValue(e.target.value);
