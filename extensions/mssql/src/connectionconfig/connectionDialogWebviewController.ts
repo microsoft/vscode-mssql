@@ -26,6 +26,7 @@ import {
     GetSqlAnalyticsEndpointUriFromFabricRequest,
     ChangePasswordDialogProps,
     ConnectionSubmitAction,
+    OpenAzureDataStudioMigrationRequest,
 } from "../sharedInterfaces/connectionDialog";
 import { FormItemActionButton, FormItemOptions } from "../sharedInterfaces/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
@@ -50,7 +51,11 @@ import { generateConnectionComponents, groupAdvancedOptions } from "./formCompon
 import { FormWebviewController } from "../forms/formWebviewController";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
-import { defaultDatabase, systemDatabases } from "../constants/constants";
+import {
+    cmdOpenAzureDataStudioMigration,
+    defaultDatabase,
+    systemDatabases,
+} from "../constants/constants";
 import * as AzureConstants from "../azure/constants";
 import { AddFirewallRuleState } from "../sharedInterfaces/addFirewallRule";
 import * as Utils from "../models/utils";
@@ -321,6 +326,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private registerRpcHandlers() {
+        this.onRequest(OpenAzureDataStudioMigrationRequest.type, async () => {
+            await vscode.commands.executeCommand(cmdOpenAzureDataStudioMigration);
+        });
+
         this.registerReducer("setConnectionInputType", async (state, payload) => {
             this.state.selectedInputMode = payload.inputMode;
             await this.updateItemVisibility();

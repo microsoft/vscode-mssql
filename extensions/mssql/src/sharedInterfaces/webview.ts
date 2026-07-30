@@ -260,21 +260,6 @@ export namespace GetLocalizationRequest {
 }
 
 /**
- * Parameters for executing a command in the extension host from the webview.
- */
-export interface ExecuteCommandParams {
-    command: string;
-    args?: any[];
-}
-
-/**
- * Request to execute a command in the extension host from the webview.
- */
-export namespace ExecuteCommandRequest {
-    export const type = new RequestType<ExecuteCommandParams, void, void>("executeCommand");
-}
-
-/**
  * Request from the webview to get the platform information.
  */
 export namespace GetPlatformRequest {

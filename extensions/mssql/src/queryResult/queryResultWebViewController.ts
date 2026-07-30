@@ -171,13 +171,16 @@ export class QueryResultWebviewController extends WebviewViewController<
 
         context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdHandleSummaryOperation, async (uri) => {
-                const state = this._queryResultStateMap.get(uri);
-                if (!state) {
-                    return;
-                }
-                this._selectionSummaryContinuations.get(uri)?.resolve();
+                this.handleSelectionSummary(uri);
             }),
         );
+    }
+
+    public handleSelectionSummary(uri: string): void {
+        if (!this._queryResultStateMap.has(uri)) {
+            return;
+        }
+        this._selectionSummaryContinuations.get(uri)?.resolve();
     }
 
     private get shouldAutoRevealResultsPanel(): boolean {
