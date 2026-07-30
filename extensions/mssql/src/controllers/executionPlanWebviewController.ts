@@ -10,6 +10,7 @@ import { WebviewPanelController } from "./webviewPanelController";
 import SqlDocumentService from "./sqlDocumentService";
 import {
     createExecutionPlanGraphs,
+    openExecutionPlanComparisonWebview,
     saveExecutionPlan,
     showPlanXml,
     showQuery,
@@ -21,6 +22,7 @@ import {
     isBetaExecutionPlanEnabled,
     PreviewFeature,
 } from "../previews/previewService";
+import { executionPlanSourceRegistry } from "./executionPlanSourceRegistry";
 
 export class ExecutionPlanWebviewController extends WebviewPanelController<
     ep.ExecutionPlanWebviewState,
@@ -63,6 +65,9 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                     ),
                 },
             },
+        );
+        this.registerDisposable(
+            executionPlanSourceRegistry.register(xmlPlanFileName, executionPlanContents),
         );
         void this.initialize();
     }
@@ -119,5 +124,22 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
         this.registerReducer("updateTotalCost", async (state, payload) => {
             return updateTotalCost(state, payload);
         });
+        this.registerReducer("compareExecutionPlan", async (state, payload) => {
+            if (
+                state.executionPlanState.isReactFlowExecutionPlanEnabled &&
+                state.executionPlanState.executionPlanGraphs?.length
+            ) {
+                openExecutionPlanComparisonWebview(
+                    this._context,
+                    this.executionPlanService,
+                    state.executionPlanState.executionPlanGraphs,
+                    payload.graphIndex,
+                    this.panel.title,
+                );
+            }
+            return state;
+        });
+        this.registerReducer("selectComparisonPlan", async (state) => state);
+        this.registerReducer("setComparisonGraphIndexes", async (state) => state);
     }
 }

@@ -12,6 +12,7 @@ import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
 import { useExecutionPlanSelector } from "./executionPlanSelector";
 import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
+import { ExecutionPlanComparison } from "./executionPlanComparison";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -47,9 +48,13 @@ export const ExecutionPlanPage = ({ autoLoad = true }: ExecutionPlanPageProps) =
         (s) => s.executionPlanState,
     );
     const loadState = executionPlanState?.loadState ?? ApiStatus.Loading;
+    const isComparison = useExecutionPlanSelector(
+        (s) => s.executionPlanComparisonState !== undefined,
+    );
     useEffect(() => {
         if (
             autoLoad &&
+            !isComparison &&
             context &&
             executionPlanState &&
             // checks if execution plans have already been gotten
@@ -58,7 +63,11 @@ export const ExecutionPlanPage = ({ autoLoad = true }: ExecutionPlanPageProps) =
         ) {
             context.getExecutionPlan();
         }
-    }, [autoLoad, executionPlanState]);
+    }, [autoLoad, executionPlanState, isComparison]);
+
+    if (isComparison) {
+        return <ExecutionPlanComparison />;
+    }
 
     const renderMainContent = () => {
         switch (loadState) {

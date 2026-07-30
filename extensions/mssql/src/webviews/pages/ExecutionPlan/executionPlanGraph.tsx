@@ -619,6 +619,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             setPropertiesClicked={setPropertiesClicked}
                             query={query}
                             xml={xml}
+                            graphIndex={graphIndex}
+                            canCompare={useReactFlow}
                         />
                     ) : (
                         <LegacyIconStack

@@ -242,6 +242,21 @@ const QueryResultStateProvider: React.FC<QueryResultProviderProps> = ({ children
             updateTotalCost: (addedCost: number) => {
                 extensionRpc.action("updateTotalCost", { addedCost });
             },
+            compareExecutionPlan: (graphIndex: number) => {
+                extensionRpc.action("compareExecutionPlan", { graphIndex });
+            },
+            selectComparisonPlan: () => {
+                extensionRpc.action("selectComparisonPlan", {});
+            },
+            setComparisonGraphIndexes: (
+                primaryGraphIndex: number | undefined,
+                secondaryGraphIndex: number | undefined,
+            ) => {
+                extensionRpc.action("setComparisonGraphIndexes", {
+                    primaryGraphIndex,
+                    secondaryGraphIndex,
+                });
+            },
             openResizeDialog: (options: Partial<ResizeColumnDialogState>) => {
                 setResizeDialogState((state) => ({
                     ...state,
