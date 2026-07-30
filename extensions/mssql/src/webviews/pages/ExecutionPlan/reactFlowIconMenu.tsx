@@ -86,7 +86,7 @@ const useStyles = makeStyles({
     },
 });
 
-interface IconStackProps {
+interface ReactFlowIconStackProps {
     executionPlanView: ExecutionPlanGraphController;
     setExecutionPlanView: Dispatch<SetStateAction<ExecutionPlanGraphController | null>>;
     setZoomNumber: Dispatch<SetStateAction<number>>;
@@ -109,7 +109,7 @@ enum InputEnum {
     Properties,
 }
 
-export const IconStack: React.FC<IconStackProps> = ({
+export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
     executionPlanView,
     setExecutionPlanView,
     setZoomNumber,

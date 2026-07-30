@@ -49,6 +49,7 @@ import {
 import {
     EXECUTION_PLAN_NODE_HEIGHT,
     EXECUTION_PLAN_NODE_WIDTH,
+    EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
     ExecutionPlanEdgeModel,
     ExecutionPlanModel,
     ExecutionPlanNodePositions,
@@ -61,17 +62,25 @@ import {
     formatExecutionPlanEdgeTooltip,
     formatExecutionPlanNodeTooltip,
 } from "./executionPlanTooltip";
+import {
+    ExecutionPlanTooltipSourceBounds,
+    getExecutionPlanTooltipPlacement,
+} from "./executionPlanTooltipPosition";
 import { getViewportToRevealExecutionPlanNode } from "./executionPlanViewport";
 import { getBadgePaths, getCollapseExpandPaths, getIconPaths } from "./queryPlanSetup";
 
 const EXECUTION_PLAN_REVEAL_PADDING = 0;
 const EXECUTION_PLAN_FOCUS_RETRY_FRAMES = 20;
+const EXECUTION_PLAN_LABEL_TOP = 49;
+const EXECUTION_PLAN_LABEL_LINE_HEIGHT = 14;
+const EXECUTION_PLAN_SELECTION_VERTICAL_PADDING = 6;
 
 interface TooltipState {
     targetId: string;
     content: ExecutionPlanTooltipContent;
     x: number;
     y: number;
+    sourceBounds?: ExecutionPlanTooltipSourceBounds;
 }
 
 interface ExecutionPlanFlowNodeData extends Record<string, unknown> {
@@ -82,12 +91,18 @@ interface ExecutionPlanFlowNodeData extends Record<string, unknown> {
     collapsed: boolean;
     highlighted: boolean;
     selected: boolean;
+    selectionWidth: number;
+    selectionHeight: number;
     themeKind: ColorThemeKind;
     registerElement: (id: string, element: HTMLDivElement | null) => void;
     focusSelection: (id: string) => void;
     closeTooltip: () => void;
-    activate: (id: string, bounds: DOMRect) => void;
-    navigate: (id: string, event: ReactKeyboardEvent<HTMLDivElement>, bounds: DOMRect) => void;
+    activate: (id: string, bounds: ExecutionPlanTooltipSourceBounds) => void;
+    navigate: (
+        id: string,
+        event: ReactKeyboardEvent<HTMLDivElement>,
+        bounds: ExecutionPlanTooltipSourceBounds,
+    ) => void;
     toggleCollapse: (id: string) => void;
 }
 
@@ -106,6 +121,8 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
         collapsed,
         highlighted,
         selected,
+        selectionWidth,
+        selectionHeight,
         themeKind,
         registerElement,
         focusSelection,
@@ -127,8 +144,19 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
                 return badgePaths.warning;
         }
     };
-    const bounds = (event: { currentTarget: EventTarget & HTMLElement }) =>
-        event.currentTarget.getBoundingClientRect();
+    const bounds = (event: {
+        currentTarget: EventTarget & HTMLElement;
+    }): ExecutionPlanTooltipSourceBounds => {
+        const cellBounds = event.currentTarget.getBoundingClientRect();
+        const horizontalOverflow = Math.max(0, (selectionWidth - cellBounds.width) / 2);
+        const selectionTop = cellBounds.top - 1;
+        return {
+            left: cellBounds.left - horizontalOverflow,
+            right: cellBounds.right + horizontalOverflow,
+            top: selectionTop,
+            bottom: selectionTop + selectionHeight,
+        };
+    };
 
     return (
         <div
@@ -167,6 +195,11 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
             }}
             onClick={(event) => activate(planNode.id, bounds(event))}
             onKeyDown={(event) => navigate(planNode.id, event, bounds(event))}>
+            <div
+                className="execution-plan-flow-selection-outline"
+                style={{ width: selectionWidth, height: selectionHeight }}
+                aria-hidden="true"
+            />
             <Handle type="target" position={Position.Left} className="execution-plan-flow-handle" />
             <div className="execution-plan-flow-row-count">{planNode.rowCountDisplayString}</div>
             <div className="execution-plan-flow-icon-container">
@@ -228,6 +261,42 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
 const NODE_TYPES: NodeTypes = {
     executionPlan: ExecutionPlanReactFlowNode,
 };
+
+let nodeLabelMeasurementCanvas: HTMLCanvasElement | undefined;
+
+function getNodeSelectionWidth(node: ExecutionPlanNode): number {
+    const fallbackWidth = Math.max(0, ...node.subtext.map((line) => line.length * 6));
+    if (typeof document === "undefined") {
+        return Math.min(
+            EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
+            Math.max(EXECUTION_PLAN_NODE_WIDTH, fallbackWidth + 8),
+        );
+    }
+
+    nodeLabelMeasurementCanvas ??= document.createElement("canvas");
+    const context = nodeLabelMeasurementCanvas.getContext("2d");
+    if (!context) {
+        return Math.min(
+            EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
+            Math.max(EXECUTION_PLAN_NODE_WIDTH, fallbackWidth + 8),
+        );
+    }
+
+    context.font = "10px Monaco, Menlo, Consolas, monospace";
+    const labelWidth = Math.max(0, ...node.subtext.map((line) => context.measureText(line).width));
+    return Math.min(
+        EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
+        Math.max(EXECUTION_PLAN_NODE_WIDTH, Math.ceil(labelWidth) + 8),
+    );
+}
+
+function getNodeSelectionHeight(node: ExecutionPlanNode): number {
+    const labelHeight =
+        EXECUTION_PLAN_LABEL_TOP +
+        Math.max(1, node.subtext.length) * EXECUTION_PLAN_LABEL_LINE_HEIGHT +
+        EXECUTION_PLAN_SELECTION_VERTICAL_PADDING;
+    return Math.max(EXECUTION_PLAN_NODE_HEIGHT + 6, labelHeight);
+}
 
 function ExecutionPlanReactFlowEdge({
     sourceX,
@@ -531,7 +600,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     );
 
     const showNodeTooltip = useCallback(
-        (id: string, bounds: DOMRect) => {
+        (id: string, bounds: ExecutionPlanTooltipSourceBounds) => {
             if (!tooltipsEnabledRef.current) {
                 setTooltip(undefined);
                 return;
@@ -548,6 +617,12 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                         content: formatExecutionPlanNodeTooltip(node),
                         x: bounds.right + 8,
                         y: bounds.top,
+                        sourceBounds: {
+                            left: bounds.left,
+                            right: bounds.right,
+                            top: bounds.top,
+                            bottom: bounds.bottom,
+                        },
                     };
                 });
             }
@@ -556,7 +631,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     );
 
     const activateNode = useCallback(
-        (id: string, bounds: DOMRect) => {
+        (id: string, bounds: ExecutionPlanTooltipSourceBounds) => {
             selectNode(id);
             showNodeTooltip(id, bounds);
         },
@@ -564,7 +639,11 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     );
 
     const navigateNode = useCallback(
-        (id: string, event: ReactKeyboardEvent<HTMLDivElement>, bounds: DOMRect) => {
+        (
+            id: string,
+            event: ReactKeyboardEvent<HTMLDivElement>,
+            bounds: ExecutionPlanTooltipSourceBounds,
+        ) => {
             const node = model.getNode(id);
             if (!node) {
                 return;
@@ -650,6 +729,8 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                         collapsed: collapsedNodeIds.has(planNode.id),
                         highlighted: highlightedId === planNode.id,
                         selected: selectedId === planNode.id,
+                        selectionWidth: getNodeSelectionWidth(planNode),
+                        selectionHeight: getNodeSelectionHeight(planNode),
                         themeKind,
                         registerElement: registerNodeElement,
                         closeTooltip: () => setTooltip(undefined),
@@ -805,17 +886,18 @@ function ExecutionPlanTooltip({
     onClose: () => void;
 }) {
     const titleId = useId();
-    const left = Math.max(8, Math.min(tooltip.x, window.innerWidth - 568));
-    const top = Math.max(8, Math.min(tooltip.y, window.innerHeight - 200));
-    const maxHeight = Math.min(420, Math.max(80, window.innerHeight - top - 8));
+    const placement = getExecutionPlanTooltipPlacement(tooltip, {
+        width: window.innerWidth,
+        height: window.innerHeight,
+    });
 
     return (
         <div
             className="execution-plan-flow-tooltip"
             style={{
-                left: `${left}px`,
-                top: `${top}px`,
-                maxHeight: `${maxHeight}px`,
+                left: `${placement.left}px`,
+                top: `${placement.top}px`,
+                maxHeight: `${placement.maxHeight}px`,
             }}
             role="dialog"
             aria-labelledby={titleId}

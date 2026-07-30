@@ -394,7 +394,9 @@ function defaultMeasureText(text: string): number {
     if (!context) {
         return text.length * 6;
     }
-    context.font = "10px Monaco, Menlo, Consolas, monospace";
+    // azdataGraph does not set a font on its measurement canvas, whose default
+    // is 10px sans-serif. Keep that behavior so horizontal spacing remains equal.
+    context.font = "10px sans-serif";
     return context.measureText(text).width;
 }
 

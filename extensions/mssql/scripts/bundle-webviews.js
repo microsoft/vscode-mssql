@@ -4,6 +4,27 @@
  *--------------------------------------------------------------------------------------------*/
 
 const { createBrowserConfig, run } = require("../../../scripts/esbuild-utils");
+const fs = require("fs").promises;
+
+/**
+ * Execution-plan nodes use many small images. Loading them as separate webview
+ * resources causes the graph to paint before its operators and badges appear.
+ * Inline only this asset folder so the images arrive with the webview bundle.
+ */
+const inlineExecutionPlanAssetsPlugin = {
+    name: "inline-execution-plan-assets",
+    setup(build) {
+        build.onLoad(
+            {
+                filter: /[\\/]ExecutionPlan[\\/]icons[\\/].*\.(?:png|svg)$/,
+            },
+            async (args) => ({
+                contents: await fs.readFile(args.path),
+                loader: "dataurl",
+            }),
+        );
+    },
+};
 
 // Build configuration
 void run(
@@ -49,6 +70,7 @@ void run(
                 ".png": "file",
                 ".gif": "file",
             },
+            plugins: [inlineExecutionPlanAssetsPlugin],
             metafile: !isProd,
             minify: isProd,
             outdir: "dist/views",

@@ -19,9 +19,10 @@ import { ExecutionPlanGraphController } from "./executionPlanGraphController";
 import { normalizeExecutionPlanQuery } from "./executionPlanQuery";
 import { FindNode } from "./findNodes";
 import { HighlightExpensiveOperations } from "./highlightExpensiveOperations";
-import { IconStack } from "./iconMenu";
+import { LegacyIconStack } from "./legacyIconMenu";
 import { PropertiesPane } from "./properties";
 import { ReactFlowExecutionPlan } from "./reactFlowExecutionPlan";
+import { ReactFlowIconStack } from "./reactFlowIconMenu";
 import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useExecutionPlanSelector } from "./executionPlanSelector";
@@ -64,6 +65,10 @@ const useStyles = makeStyles({
         flexShrink: 0,
         padding: "6px 8px 7px",
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    legacyQueryCostContainer: {
+        opacity: 1,
+        padding: "5px",
     },
     queryCostSummary: {
         color: tokens.colorNeutralForeground1,
@@ -192,6 +197,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
             iconPaths: utils.getIconPaths(),
             badgeIconPaths: utils.getBadgePaths(),
             expandCollapsePaths: utils.getCollapseExpandPaths(themeKind),
+            // Keep the fallback's original azdataGraph tooltip implementation.
             showTooltipOnClick: true,
         };
         const pen = new mxClient.azdataQueryPlan(queryPlanConfiguration);
@@ -286,7 +292,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                 }}>
                 <div
                     id="queryCostContainer"
-                    className={classes.queryCostContainer}
+                    className={
+                        useReactFlow ? classes.queryCostContainer : classes.legacyQueryCostContainer
+                    }
                     style={{
                         background: tokens.colorNeutralBackground2,
                         // 35px is the width of the side toolbar with some extra room for padding
@@ -299,14 +307,24 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                     }}
                     aria-live="polite"
                     aria-label={`${getQueryCostString()}, ${query}`}>
-                    <div className={classes.queryCostSummary}>{getQueryCostString()}</div>
-                    <SqlText
-                        className={classes.queryText}
-                        text={query}
-                        singleLine
-                        showLineBreaks
-                        title={query}
-                    />
+                    {useReactFlow ? (
+                        <>
+                            <div className={classes.queryCostSummary}>{getQueryCostString()}</div>
+                            <SqlText
+                                className={classes.queryText}
+                                text={query}
+                                singleLine
+                                showLineBreaks
+                                title={query}
+                            />
+                        </>
+                    ) : (
+                        <>
+                            {getQueryCostString()}
+                            <br />
+                            {query}
+                        </>
+                    )}
                 </div>
                 <div
                     id={`queryPlanParent${graphIndex + 1}`}
@@ -443,21 +461,37 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                 )}
             </div>
             {executionPlanView && (
-                <IconStack
-                    executionPlanView={executionPlanView}
-                    setExecutionPlanView={setExecutionPlanView}
-                    setZoomNumber={setZoomNumber}
-                    customZoomClicked={customZoomClicked}
-                    setCustomZoomClicked={setCustomZoomClicked}
-                    findNodeClicked={findNodeClicked}
-                    setFindNodeClicked={setFindNodeClicked}
-                    highlightOpsClicked={highlightOpsClicked}
-                    setHighlightOpsClicked={setHighlightOpsClicked}
-                    propertiesClicked={propertiesClicked}
-                    setPropertiesClicked={setPropertiesClicked}
-                    query={query}
-                    xml={xml}
-                />
+                <>
+                    {useReactFlow ? (
+                        <ReactFlowIconStack
+                            executionPlanView={executionPlanView}
+                            setExecutionPlanView={setExecutionPlanView}
+                            setZoomNumber={setZoomNumber}
+                            customZoomClicked={customZoomClicked}
+                            setCustomZoomClicked={setCustomZoomClicked}
+                            findNodeClicked={findNodeClicked}
+                            setFindNodeClicked={setFindNodeClicked}
+                            highlightOpsClicked={highlightOpsClicked}
+                            setHighlightOpsClicked={setHighlightOpsClicked}
+                            propertiesClicked={propertiesClicked}
+                            setPropertiesClicked={setPropertiesClicked}
+                            query={query}
+                            xml={xml}
+                        />
+                    ) : (
+                        <LegacyIconStack
+                            executionPlanView={executionPlanView}
+                            setExecutionPlanView={setExecutionPlanView}
+                            setZoomNumber={setZoomNumber}
+                            setCustomZoomClicked={setCustomZoomClicked}
+                            setFindNodeClicked={setFindNodeClicked}
+                            setHighlightOpsClicked={setHighlightOpsClicked}
+                            setPropertiesClicked={setPropertiesClicked}
+                            query={query}
+                            xml={xml}
+                        />
+                    )}
+                </>
             )}
         </div>
     );

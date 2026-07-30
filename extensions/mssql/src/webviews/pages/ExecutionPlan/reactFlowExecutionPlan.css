@@ -30,11 +30,36 @@
 }
 
 .execution-plan-flow-node.selected:focus {
-    border-color: var(--vscode-focusBorder);
-    box-shadow: 0 0 0 1px var(--vscode-focusBorder);
+    border-color: transparent;
+    box-shadow: none;
 }
 
 .execution-plan-flow-node.highlighted {
+    border-color: transparent;
+    box-shadow: none;
+}
+
+.execution-plan-flow-selection-outline {
+    position: absolute;
+    top: -1px;
+    left: 50%;
+    z-index: 3;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    pointer-events: none;
+    transform: translateX(-50%);
+}
+
+.execution-plan-flow-node.selected:focus > .execution-plan-flow-selection-outline {
+    border-color: var(
+        --vscode-contrastActiveBorder,
+        var(--vscode-charts-green, var(--vscode-focusBorder))
+    );
+    box-shadow: 0 0 0 1px
+        var(--vscode-contrastActiveBorder, var(--vscode-charts-green, var(--vscode-focusBorder)));
+}
+
+.execution-plan-flow-node.highlighted > .execution-plan-flow-selection-outline {
     border-color: var(--vscode-inputValidation-errorBorder);
     box-shadow: 0 0 0 2px var(--vscode-inputValidation-errorBorder);
 }
@@ -95,6 +120,7 @@
     overflow: hidden;
     text-align: center;
     text-overflow: ellipsis;
+    line-height: 14px;
     white-space: nowrap;
     transform: translateX(-50%);
 }
@@ -150,7 +176,7 @@
     color: var(--vscode-editorHoverWidget-foreground);
     box-shadow: 0 2px 8px var(--vscode-widget-shadow);
     font-size: 12px;
-    line-height: 1.4;
+    line-height: 16px;
 }
 
 .execution-plan-flow-tooltip-header {
@@ -158,36 +184,41 @@
     top: 0;
     z-index: 1;
     display: flex;
-    min-height: 32px;
-    padding: 6px 6px 6px 10px;
+    min-height: 28px;
+    padding: 2px 4px 2px 8px;
     border-bottom: 1px solid var(--vscode-editorWidget-border);
     align-items: flex-start;
     justify-content: space-between;
-    gap: 8px;
+    gap: 6px;
     background: var(--vscode-editorHoverWidget-background);
 }
 
 .execution-plan-flow-tooltip-title {
     min-width: 0;
-    padding-top: 3px;
+    padding-top: 4px;
     overflow-wrap: anywhere;
     font-family: var(--vscode-editor-font-family, Monaco, Menlo, Consolas, monospace);
     font-weight: 600;
+    line-height: 16px;
 }
 
 .execution-plan-flow-tooltip-close {
     flex: 0 0 auto;
+    width: 24px;
+    min-width: 24px;
+    height: 24px;
 }
 
 .execution-plan-flow-tooltip-body {
-    padding: 8px 10px 10px;
+    padding: 4px 8px 6px;
 }
 
 .execution-plan-flow-tooltip-description {
-    margin-bottom: 8px;
-    padding-bottom: 8px;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
     border-bottom: 1px solid var(--vscode-editorWidget-border);
     color: var(--vscode-descriptionForeground);
+    line-height: 16px;
 }
 
 .execution-plan-flow-tooltip-metrics {
@@ -196,10 +227,11 @@
 
 .execution-plan-flow-tooltip-metric {
     display: grid;
-    padding: 5px 0;
+    padding: 2px 0;
     border-bottom: 1px solid color-mix(in srgb, var(--vscode-editorWidget-border) 65%, transparent);
     grid-template-columns: minmax(150px, 42%) minmax(0, 58%);
-    gap: 12px;
+    gap: 8px;
+    line-height: 16px;
 }
 
 .execution-plan-flow-tooltip-metric:last-child {
@@ -220,27 +252,29 @@
 }
 
 .execution-plan-flow-tooltip-sql-metric > dd {
-    padding: 5px 7px;
+    padding: 2px 5px;
     border: 1px solid var(--vscode-editorWidget-border);
     border-radius: 3px;
     background: var(--vscode-textCodeBlock-background);
     text-align: left;
+    line-height: 16px;
 }
 
 .execution-plan-flow-tooltip-footer {
-    margin-top: 8px;
-    padding-top: 8px;
+    margin-top: 4px;
+    padding-top: 4px;
     border-top: 1px solid var(--vscode-editorWidget-border);
     overflow-wrap: anywhere;
+    line-height: 16px;
 }
 
 .execution-plan-flow-tooltip-sql {
     display: block;
-    margin-top: 4px;
-    padding: 7px 8px;
+    margin-top: 2px;
+    padding: 3px 6px;
     border: 1px solid var(--vscode-editorWidget-border);
     border-radius: 3px;
     background: var(--vscode-textCodeBlock-background);
     overflow-wrap: anywhere;
-    line-height: 1.45;
+    line-height: 16px;
 }
