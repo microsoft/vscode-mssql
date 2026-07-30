@@ -47,6 +47,7 @@ suite("ExecutionPlanWebviewController", () => {
                 loadState: ApiStatus.Loading,
                 executionPlanGraphs: [],
                 totalCost: 0,
+                isReactFlowExecutionPlanEnabled: false,
             },
         };
 
@@ -55,6 +56,7 @@ suite("ExecutionPlanWebviewController", () => {
                 executionPlanGraphs: [],
                 loadState: ApiStatus.Loaded,
                 totalCost: 100,
+                isReactFlowExecutionPlanEnabled: false,
             },
         };
 
@@ -179,6 +181,7 @@ suite("ExecutionPlanWebviewController", () => {
                 executionPlanGraphs: [],
                 loadState: ApiStatus.Loaded,
                 totalCost: 100,
+                isReactFlowExecutionPlanEnabled: false,
             },
         });
 

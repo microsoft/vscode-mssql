@@ -16,6 +16,11 @@ import {
     updateTotalCost,
 } from "./sharedExecutionPlanUtils";
 import { ExecutionPlanService } from "../services/executionPlanService";
+import {
+    getPreviewConfigKey,
+    isReactFlowExecutionPlanPreviewEnabled,
+    PreviewFeature,
+} from "../previews/previewService";
 
 export class ExecutionPlanWebviewController extends WebviewPanelController<
     ep.ExecutionPlanWebviewState,
@@ -39,6 +44,7 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                     loadState: ApiStatus.Loading,
                     executionPlanGraphs: [],
                     totalCost: 0,
+                    isReactFlowExecutionPlanEnabled: isReactFlowExecutionPlanPreviewEnabled(),
                 },
             },
             {
@@ -65,6 +71,24 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
         this.state.executionPlanState.loadState = ApiStatus.Loading;
         this.updateState();
         this.registerRpcHandlers();
+        this.registerDisposable(
+            vscode.workspace.onDidChangeConfiguration((event) => {
+                if (
+                    event.affectsConfiguration(
+                        getPreviewConfigKey(PreviewFeature.ReactFlowExecutionPlan),
+                    )
+                ) {
+                    this.updateState({
+                        ...this.state,
+                        executionPlanState: {
+                            ...this.state.executionPlanState,
+                            isReactFlowExecutionPlanEnabled:
+                                isReactFlowExecutionPlanPreviewEnabled(),
+                        },
+                    });
+                }
+            }),
+        );
     }
 
     private registerRpcHandlers() {
@@ -79,7 +103,8 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                 ...state,
                 executionPlanState: {
                     ...state.executionPlanState,
-                    executionPlanGraphs: this.state.executionPlanState.executionPlanGraphs,
+                    isReactFlowExecutionPlanEnabled:
+                        this.state.executionPlanState.isReactFlowExecutionPlanEnabled,
                 },
             };
         });

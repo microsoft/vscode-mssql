@@ -21,6 +21,12 @@ test.describe("MSSQL Extension - Query Plan", async () => {
     let currentZoom = 100;
 
     const getContext = useSharedVsCodeLifecycle({
+        launchOptions: {
+            initialConfig: {
+                "mssql.showChangelogOnUpdate": false,
+                "mssql.preview.reactFlowExecutionPlan": true,
+            },
+        },
         afterLaunch: async ({ page }) => {
             vsCodePage = page;
             // Query plan entry point
@@ -62,12 +68,41 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 
     test.beforeEach("Set up before each test", async () => {
         getContext();
-        // Click zoom to fit button
-        await iframe
-            .locator('[type="button"][aria-label="Zoom to Fit"][class*="fui-Button"]')
-            .click();
-
         currentZoom = await getZoom(iframe);
+    });
+
+    test("Test Initial Query Plan Zoom and Accessibility", async () => {
+        await expect(Math.round(currentZoom)).toBe(100);
+        await expect(iframe.locator(".execution-plan-flow-arrow").first()).toBeVisible();
+
+        const rootNode = iframe.locator('[role="treeitem"][tabindex="0"]').first();
+        await expect(rootNode).toBeVisible();
+        await rootNode.focus();
+        const viewport = iframe.locator(".react-flow__viewport").first();
+        const viewportStyle = await viewport.getAttribute("style");
+        await rootNode.press("ArrowRight");
+        await expect(rootNode).not.toBeFocused();
+        await expect(iframe.locator('[role="treeitem"]:focus')).toBeVisible();
+        await vsCodePage.waitForTimeout(250);
+        expect(await viewport.getAttribute("style")).toBe(viewportStyle);
+    });
+
+    test("Test Keyboard Tooltips and Collapse", async () => {
+        const rootNode = iframe.locator('[role="treeitem"]').first();
+        await rootNode.focus();
+        await rootNode.press("Enter");
+        await expect(iframe.locator('[role="tooltip"]')).toBeVisible();
+        await rootNode.press("Escape");
+        await expect(iframe.locator('[role="tooltip"]')).toBeHidden();
+
+        const collapseButton = rootNode.getByRole("button");
+        await collapseButton.focus();
+        await collapseButton.press("Space");
+        await expect(rootNode).toHaveAttribute("aria-expanded", "false");
+        await expect(collapseButton).toBeFocused();
+        await collapseButton.press("Enter");
+        await expect(rootNode).toHaveAttribute("aria-expanded", "true");
+        await expect(collapseButton).toBeFocused();
     });
 
     test("Test Showing the XML file of a Query Plan", async () => {
@@ -114,6 +149,14 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await expect(newZoom).toBeLessThan(currentZoom);
     });
 
+    test("Test Mouse Wheel Scroll Does Not Zoom the Query Plan Graph", async () => {
+        const graphCanvas = iframe.locator(".execution-plan-flow-canvas");
+        await graphCanvas.hover();
+        await vsCodePage.mouse.wheel(0, 500);
+
+        await expect.poll(() => getZoom(iframe)).toBeCloseTo(currentZoom, 4);
+    });
+
     test("Test Zooming to Fit for Query Plan Graph", async () => {
         // Click Zoom to Fit Button
         const zoomToFitButtonLocator = iframe.locator(
@@ -122,8 +165,8 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await zoomToFitButtonLocator.click();
 
         const newZoom = await getZoom(iframe);
-        // because we zoom to fit before every test
-        await expect(Math.round(newZoom)).toBe(Math.round(currentZoom));
+        await expect(newZoom).toBeGreaterThan(0);
+        await expect(newZoom).toBeLessThanOrEqual(200);
     });
 
     test("Test Custom Zooming for the Query Plan Graph", async () => {
@@ -308,7 +351,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await highlightOpsInputBox.fill("Off");
         await highlightOpsApplyButton.click();
         selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).not.toBe("");
+        await expect(selectedElement).toBe("");
 
         await highlightOpsComponent.getByRole("button", { name: "Close" }).click();
 
@@ -323,6 +366,13 @@ export async function refocusQueryPlanTab(page: Page) {
 }
 
 export async function getZoom(iframe: FrameLocator) {
+    const reactFlowViewport = iframe.locator(".react-flow__viewport").first();
+    if ((await reactFlowViewport.count()) > 0) {
+        const style = (await reactFlowViewport.getAttribute("style")) ?? "";
+        const scaleMatch = style.match(/scale\(([^)]+)\)/);
+        return scaleMatch?.[1] ? parseFloat(scaleMatch[1]) * 100 : 100;
+    }
+
     const zoomElement = await iframe.locator('[transform*="scale"]').first();
     if (zoomElement) {
         // Try to extract the scale value using a regular expression

@@ -32,7 +32,7 @@ import {
 } from "@fluentui/react-icons";
 import { useEffect, useState } from "react";
 
-import { ExecutionPlanView } from "./executionPlanView";
+import { ExecutionPlanGraphController } from "./executionPlanGraphController";
 import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
@@ -112,7 +112,7 @@ const useStyles = makeStyles({
 });
 
 interface PropertiesPaneProps {
-    executionPlanView: ExecutionPlanView;
+    executionPlanView: ExecutionPlanGraphController;
     setPropertiesClicked: any;
     inputRef: any;
 }

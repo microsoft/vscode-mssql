@@ -12,17 +12,22 @@ import * as utils from "./queryPlanSetup";
 
 import { Button, Input, makeStyles, tokens } from "@fluentui/react-components";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ExecutionPlanView } from "./executionPlanView";
+import { ExecutionPlanGraphController } from "./executionPlanGraphController";
+import { normalizeExecutionPlanQuery } from "./executionPlanQuery";
 import { FindNode } from "./findNodes";
 import { HighlightExpensiveOperations } from "./highlightExpensiveOperations";
 import { IconStack } from "./iconMenu";
 import { PropertiesPane } from "./properties";
+import { ReactFlowExecutionPlan } from "./reactFlowExecutionPlan";
 import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { useExecutionPlanSelector } from "./executionPlanSelector";
 import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
+import { WebviewErrorBoundary } from "../../common/webviewErrorBoundary";
+import { SqlText } from "../../common/sqlText";
 
 const useStyles = makeStyles({
     panelContainer: {
@@ -55,13 +60,34 @@ const useStyles = makeStyles({
     },
     queryCostContainer: {
         opacity: 1,
-        padding: "5px",
+        boxSizing: "border-box",
+        flexShrink: 0,
+        padding: "6px 8px 7px",
+        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+    },
+    queryCostSummary: {
+        color: tokens.colorNeutralForeground1,
+        fontSize: tokens.fontSizeBase200,
+        fontWeight: tokens.fontWeightSemibold,
+        lineHeight: tokens.lineHeightBase200,
+        paddingBottom: "4px",
+    },
+    queryText: {
+        fontSize: "12px",
+        lineHeight: "17px",
+        maxHeight: "17px",
+        paddingTop: "4px",
+        borderTop: `1px solid ${tokens.colorNeutralStroke2}`,
     },
     queryPlanParent: {
         opacity: 1,
         height: "100%",
         width: "100%",
         overflowX: "auto",
+    },
+    legacyGraphContainer: {
+        height: "100%",
+        width: "100%",
     },
     resizable: {
         position: "absolute",
@@ -93,15 +119,16 @@ interface ExecutionPlanGraphProps {
 
 export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphIndex }) => {
     const classes = useStyles();
-    const { themeKind } = useVscodeWebview();
+    const { themeKind, extensionRpc } = useVscodeWebview();
     const executionPlanState = useExecutionPlanSelector<ExecutionPlanState>(
         (s) => s.executionPlanState,
     );
-    const [isExecutionPlanLoaded, setIsExecutionPlanLoaded] = useState(false);
     const [query, setQuery] = useState("");
     const [xml, setXml] = useState("");
     const [cost, setCost] = useState(0);
-    const [executionPlanView, setExecutionPlanView] = useState<ExecutionPlanView | null>(null);
+    const [executionPlanView, setExecutionPlanView] = useState<ExecutionPlanGraphController | null>(
+        null,
+    );
     const [zoomNumber, setZoomNumber] = useState(100);
     const [customZoomClicked, setCustomZoomClicked] = useState(false);
     const [findNodeClicked, setFindNodeClicked] = useState(false);
@@ -111,17 +138,38 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     const [propertiesWidth, setPropertiesWidth] = useState(400);
     const [containerHeight, setContainerHeight] = useState("100%");
     const resizableRef = useRef<HTMLDivElement>(null);
+    const legacyGraphContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<any | null>(null);
+    const useReactFlow = executionPlanState?.isReactFlowExecutionPlanEnabled === true;
+    const graph = executionPlanState?.executionPlanGraphs?.[graphIndex];
 
     useEffect(() => {
-        if (!executionPlanState || isExecutionPlanLoaded) return;
-
+        if (!executionPlanState || !graph) {
+            return;
+        }
         setContainerHeight(
-            executionPlanState!.executionPlanGraphs!.length > 1 &&
-                graphIndex !== executionPlanState!.executionPlanGraphs!.length - 1
+            executionPlanState.executionPlanGraphs!.length > 1 &&
+                graphIndex !== executionPlanState.executionPlanGraphs!.length - 1
                 ? "500px"
                 : "100%",
         );
+
+        setQuery(normalizeExecutionPlanQuery(graph.query));
+        setXml(graph.graphFile.graphFileContent);
+    }, [executionPlanState, graph, graphIndex]);
+
+    useEffect(() => {
+        setZoomNumber(100);
+        setCustomZoomClicked(false);
+        setFindNodeClicked(false);
+        setHighlightOpsClicked(false);
+        setPropertiesClicked(false);
+    }, [useReactFlow]);
+
+    useEffect(() => {
+        if (useReactFlow || !graph || !legacyGraphContainerRef.current) {
+            return;
+        }
 
         // @ts-ignore
         window["mxLoadResources"] = false;
@@ -136,52 +184,39 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
 
         const mxClient = azdataGraph.mx();
 
-        function loadExecutionPlan() {
-            if (executionPlanState && executionPlanState.executionPlanGraphs) {
-                const executionPlanRootNode =
-                    executionPlanState.executionPlanGraphs[graphIndex].root;
-                const executionPlanView = new ExecutionPlanView(executionPlanRootNode);
-                const executionPlanGraph = executionPlanView.populate(executionPlanRootNode);
+        const executionPlanView = new ExecutionPlanView(graph.root);
+        const executionPlanGraph = executionPlanView.populate(graph.root);
+        const queryPlanConfiguration = {
+            container: legacyGraphContainerRef.current,
+            queryPlanGraph: executionPlanGraph,
+            iconPaths: utils.getIconPaths(),
+            badgeIconPaths: utils.getBadgePaths(),
+            expandCollapsePaths: utils.getCollapseExpandPaths(themeKind),
+            showTooltipOnClick: true,
+        };
+        const pen = new mxClient.azdataQueryPlan(queryPlanConfiguration);
+        pen.setTextFontColor("var(--vscode-editor-foreground)");
+        pen.setEdgeColor("var(--vscode-editor-foreground)");
+        executionPlanView.setDiagram(pen);
 
-                const div = document.getElementById(`queryPlanParent${graphIndex + 1}`);
-                // create a div to hold the graph
-                const queryPlanConfiguration = {
-                    container: div,
-                    queryPlanGraph: executionPlanGraph,
-                    iconPaths: utils.getIconPaths(),
-                    badgeIconPaths: utils.getBadgePaths(),
-                    expandCollapsePaths: utils.getCollapseExpandPaths(themeKind),
-                    showTooltipOnClick: true,
-                };
-                const pen = new mxClient.azdataQueryPlan(queryPlanConfiguration);
-                pen.setTextFontColor("var(--vscode-editor-foreground)"); // set text color
-                pen.setEdgeColor("var(--vscode-editor-foreground)"); // set edge color
+        setExecutionPlanView(executionPlanView);
+        setFindNodeOptions(executionPlanView.getUniqueElementProperties());
+        setCost(executionPlanView.getTotalRelativeCost());
 
-                executionPlanView.setDiagram(pen);
+        return () => {
+            const disposablePen = pen as unknown as { destroy?: () => void };
+            disposablePen.destroy?.();
+        };
+    }, [graph, themeKind, useReactFlow]);
 
-                setExecutionPlanView(executionPlanView);
-                setIsExecutionPlanLoaded(true);
-                setFindNodeOptions(executionPlanView.getUniqueElementProperties());
-
-                let tempQuery = executionPlanState.executionPlanGraphs[graphIndex].query;
-                if (graphIndex != 0) {
-                    const firstAlphaIndex = tempQuery.search(/[a-zA-Z]/);
-
-                    if (firstAlphaIndex !== -1) {
-                        tempQuery = tempQuery.slice(firstAlphaIndex);
-                    }
-                }
-                setQuery(tempQuery);
-                setXml(
-                    executionPlanState.executionPlanGraphs[graphIndex].graphFile.graphFileContent,
-                );
-                setCost(executionPlanView.getTotalRelativeCost());
-            } else {
-                return;
-            }
+    const handleReactFlowReady = useCallback((controller: ExecutionPlanGraphController | null) => {
+        setExecutionPlanView(controller);
+        if (controller) {
+            setFindNodeOptions(controller.getUniqueElementProperties());
+            setCost(controller.getTotalRelativeCost());
+            setZoomNumber(controller.getZoomLevel());
         }
-        loadExecutionPlan();
-    }, [executionPlanState]);
+    }, []);
 
     useEffect(() => {
         if (inputRef && inputRef.current) {
@@ -199,7 +234,10 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     };
 
     const getQueryCostPercentage = () => {
-        const percentage = (cost / executionPlanState!.totalCost!) * 100;
+        const percentage =
+            executionPlanState?.totalCost && executionPlanState.totalCost > 0
+                ? (cost / executionPlanState.totalCost) * 100
+                : 0;
         return percentage.toFixed(2);
     };
 
@@ -261,9 +299,14 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                     }}
                     aria-live="polite"
                     aria-label={`${getQueryCostString()}, ${query}`}>
-                    {getQueryCostString()}
-                    <br />
-                    {query}
+                    <div className={classes.queryCostSummary}>{getQueryCostString()}</div>
+                    <SqlText
+                        className={classes.queryText}
+                        text={query}
+                        singleLine
+                        showLineBreaks
+                        title={query}
+                    />
                 </div>
                 <div
                     id={`queryPlanParent${graphIndex + 1}`}
@@ -273,7 +316,41 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         width: propertiesClicked
                             ? `calc(100% - ${propertiesWidth}px - 35px)`
                             : "calc(100% - 35px)",
-                    }}></div>
+                    }}>
+                    {!useReactFlow && (
+                        <div
+                            ref={legacyGraphContainerRef}
+                            className={classes.legacyGraphContainer}
+                        />
+                    )}
+                    {useReactFlow && graph && (
+                        <WebviewErrorBoundary
+                            fallback={
+                                <div
+                                    role="alert"
+                                    style={{
+                                        padding: "16px",
+                                        color: tokens.colorPaletteRedForeground1,
+                                    }}>
+                                    {locConstants.executionPlan.reactFlowRendererError}
+                                </div>
+                            }
+                            onError={(error, errorInfo) => {
+                                setExecutionPlanView(null);
+                                extensionRpc.log.error(
+                                    "React Flow execution plan renderer failed",
+                                    error,
+                                    errorInfo.componentStack,
+                                );
+                            }}>
+                            <ReactFlowExecutionPlan
+                                root={graph.root}
+                                themeKind={themeKind}
+                                onReady={handleReactFlowReady}
+                            />
+                        </WebviewErrorBoundary>
+                    )}
+                </div>
                 {customZoomClicked && (
                     <div
                         id="customZoomInputContainer"
@@ -324,7 +401,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         />
                     </div>
                 )}
-                {findNodeClicked && (
+                {findNodeClicked && executionPlanView && (
                     <div tabIndex={0}>
                         <FindNode
                             // guaranteed to be non-null, because the plan will only
@@ -337,7 +414,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         />
                     </div>
                 )}
-                {highlightOpsClicked && (
+                {highlightOpsClicked && executionPlanView && (
                     <div tabIndex={0}>
                         <HighlightExpensiveOperations
                             // guaranteed to be non-null
@@ -348,7 +425,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         />
                     </div>
                 )}
-                {propertiesClicked && (
+                {propertiesClicked && executionPlanView && (
                     <div
                         className={classes.resizable}
                         style={{ width: `${propertiesWidth}px` }}
@@ -365,17 +442,19 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                     </div>
                 )}
             </div>
-            <IconStack
-                executionPlanView={executionPlanView!}
-                setExecutionPlanView={setExecutionPlanView}
-                setZoomNumber={setZoomNumber}
-                setCustomZoomClicked={setCustomZoomClicked}
-                setFindNodeClicked={setFindNodeClicked}
-                setHighlightOpsClicked={setHighlightOpsClicked}
-                setPropertiesClicked={setPropertiesClicked}
-                query={query}
-                xml={xml}
-            />
+            {executionPlanView && (
+                <IconStack
+                    executionPlanView={executionPlanView}
+                    setExecutionPlanView={setExecutionPlanView}
+                    setZoomNumber={setZoomNumber}
+                    setCustomZoomClicked={setCustomZoomClicked}
+                    setFindNodeClicked={setFindNodeClicked}
+                    setHighlightOpsClicked={setHighlightOpsClicked}
+                    setPropertiesClicked={setPropertiesClicked}
+                    query={query}
+                    xml={xml}
+                />
+            )}
         </div>
     );
 };

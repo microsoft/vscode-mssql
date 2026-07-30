@@ -18,7 +18,7 @@ import {
     tokens,
 } from "@fluentui/react-components";
 
-import { ExecutionPlanView } from "./executionPlanView";
+import { ExecutionPlanGraphController } from "./executionPlanGraphController";
 import { locConstants } from "../../common/locConstants";
 import { useState } from "react";
 
@@ -53,7 +53,7 @@ const useStyles = makeStyles({
 });
 
 interface FindNodeProps {
-    executionPlanView: ExecutionPlanView;
+    executionPlanView: ExecutionPlanGraphController;
     setExecutionPlanView: any;
     findNodeOptions: string[];
     setFindNodeClicked: any;

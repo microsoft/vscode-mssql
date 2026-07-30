@@ -9,7 +9,10 @@ import * as ep from "../../../sharedInterfaces/executionPlan";
 
 import { Button, Combobox, Option, makeStyles, tokens } from "@fluentui/react-components";
 import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
-import { ExecutionPlanView } from "./executionPlanView";
+import {
+    ExecutionPlanGraphController,
+    ExecutionPlanMetricSource,
+} from "./executionPlanGraphController";
 import { locConstants } from "../../common/locConstants";
 import { useState } from "react";
 
@@ -36,7 +39,7 @@ const useStyles = makeStyles({
 });
 
 interface HighlightExpensiveOperationsProps {
-    executionPlanView: ExecutionPlanView;
+    executionPlanView: ExecutionPlanGraphController;
     setExecutionPlanView: any;
     setHighlightOpsClicked: any;
     inputRef: any;
@@ -75,9 +78,15 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
         if (executionPlanView) {
             const enumSelected =
                 highlightMetricOptionsEnum[highlightMetricOptions.indexOf(highlightMetricSelected)];
-            const expensiveOperationDelegate: (cell: ep.AzDataGraphCell) => number | undefined =
-                getExpensiveOperationDelegate(enumSelected)!;
             executionPlanView.clearExpensiveOperatorHighlighting();
+            if (enumSelected === ep.ExpensiveMetricType.Off) {
+                setHighlightedElement("");
+                setExecutionPlanView(executionPlanView);
+                return;
+            }
+            const expensiveOperationDelegate: (
+                cell: ExecutionPlanMetricSource,
+            ) => number | undefined = getExpensiveOperationDelegate(enumSelected);
             const elementId = executionPlanView.highlightExpensiveOperator(
                 expensiveOperationDelegate,
             );
@@ -152,11 +161,11 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
 
 function getExpensiveOperationDelegate(
     selectedExpensiveOperationType: ep.ExpensiveMetricType,
-): (cell: ep.AzDataGraphCell) => number | undefined {
-    const getElapsedTimeInMs = (cell: ep.AzDataGraphCell): number | undefined =>
+): (cell: ExecutionPlanMetricSource) => number | undefined {
+    const getElapsedTimeInMs = (cell: ExecutionPlanMetricSource): number | undefined =>
         cell.elapsedTimeInMs;
 
-    const getElapsedCpuTimeInMs = (cell: ep.AzDataGraphCell): number | undefined => {
+    const getElapsedCpuTimeInMs = (cell: ExecutionPlanMetricSource): number | undefined => {
         const elapsedCpuMetric = cell.costMetrics.find((m) => m.name === "ElapsedCpuTime");
 
         if (elapsedCpuMetric === undefined) {
@@ -166,10 +175,11 @@ function getExpensiveOperationDelegate(
         }
     };
 
-    const getCost = (cell: ep.AzDataGraphCell): number | undefined => cell.cost;
-    const getSubtreeCost = (cell: ep.AzDataGraphCell): number | undefined => cell.subTreeCost;
+    const getCost = (cell: ExecutionPlanMetricSource): number | undefined => cell.cost;
+    const getSubtreeCost = (cell: ExecutionPlanMetricSource): number | undefined =>
+        cell.subTreeCost;
 
-    const getRowsForAllExecutions = (cell: ep.AzDataGraphCell): number | undefined => {
+    const getRowsForAllExecutions = (cell: ExecutionPlanMetricSource): number | undefined => {
         const actualRowsMetric = cell.costMetrics.find((m) => m.name === "ActualRows");
         const estimateRowsForAllExecutionsMetric = cell.costMetrics.find(
             (m) => m.name === "EstimateRowsAllExecs",
@@ -191,7 +201,7 @@ function getExpensiveOperationDelegate(
         return result;
     };
 
-    const getNumberOfRowsRead = (cell: ep.AzDataGraphCell): number | undefined => {
+    const getNumberOfRowsRead = (cell: ExecutionPlanMetricSource): number | undefined => {
         const actualRowsReadMetric = cell.costMetrics.find((m) => m.name === "ActualRowsRead");
         const estimatedRowsReadMetric = cell.costMetrics.find(
             (m) => m.name === "EstimatedRowsRead",
@@ -229,6 +239,9 @@ function getExpensiveOperationDelegate(
             break;
         case ep.ExpensiveMetricType.NumberOfRowsRead:
             expensiveOperationDelegate = getNumberOfRowsRead;
+            break;
+        case ep.ExpensiveMetricType.Off:
+            expensiveOperationDelegate = () => undefined;
             break;
     }
 

@@ -11,7 +11,7 @@ import { Toolbar, ToolbarButton, makeStyles, tokens } from "@fluentui/react-comp
 import { useContext, useState } from "react";
 
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
-import { ExecutionPlanView } from "./executionPlanView";
+import { ExecutionPlanGraphController } from "./executionPlanGraphController";
 import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
@@ -43,7 +43,7 @@ const useStyles = makeStyles({
 });
 
 interface IconStackProps {
-    executionPlanView: ExecutionPlanView;
+    executionPlanView: ExecutionPlanGraphController;
     setExecutionPlanView: any;
     setZoomNumber: any;
     setCustomZoomClicked: any;

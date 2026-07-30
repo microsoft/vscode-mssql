@@ -2760,6 +2760,16 @@
     "Filter for any field...": "Filter for any field...",
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
+    "The React Flow execution plan preview could not render this plan.": "The React Flow execution plan preview could not render this plan.",
+    "Execution plan": "Execution plan",
+    "Expand {0}/{0} is the name of an execution plan operation": {
+        "message": "Expand {0}",
+        "comment": ["{0} is the name of an execution plan operation"]
+    },
+    "Collapse {0}/{0} is the name of an execution plan operation": {
+        "message": "Collapse {0}",
+        "comment": ["{0} is the name of an execution plan operation"]
+    },
     "Microsoft would like your feedback": "Microsoft would like your feedback",
     "Very Satisfied": "Very Satisfied",
     "Satisfied": "Satisfied",
