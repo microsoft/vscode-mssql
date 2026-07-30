@@ -8230,7 +8230,7 @@ Consulta: {2}</target>
       </trans-unit>
       <trans-unit id="++CODE++1842ccd9de8c79445dc6d876bd055389b2be654ad840093e57a5c24bc924cfb2">
         <source xml:lang="en">SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.</source>
-        <target state="new">SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.</target>
+        <target state="translated">Não foi possível concluir a formatação SQL porque o T-SQL não pôde ser totalmente analisado. Se você acredita que a sintaxe é válida, envie comentários.</target>
       </trans-unit>
       <trans-unit id="++CODE++dd0804b065a533eb0198e076460421ada3d861683b408ef39daea67e9aad46a6">
         <source xml:lang="en">SQLAlchemy</source>
