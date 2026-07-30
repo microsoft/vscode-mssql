@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as LocalizedConstants from "../constants/locConstants";
-import { SelectionSummaryMetrics } from "../sharedInterfaces/queryResult";
+import type { SelectionSummaryMetrics } from "../sharedInterfaces/queryResult";
 
 /**
  * The localized status bar strings for a selection summary.

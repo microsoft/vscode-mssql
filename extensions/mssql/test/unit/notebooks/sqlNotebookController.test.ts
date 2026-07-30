@@ -181,13 +181,14 @@ suite("SqlNotebookController", () => {
             }),
             postMessage: sb.stub().resolves(true),
         } as unknown as vscode.NotebookRendererMessaging);
-        const createStatusBarItemStub = sb.stub(vscode.window, "createStatusBarItem");
-        createStatusBarItemStub
-            .onFirstCall()
-            .returns(mockStatusBarItem as unknown as vscode.StatusBarItem);
-        createStatusBarItemStub
-            .onSecondCall()
-            .returns(mockSelectionSummaryStatusBarItem as unknown as vscode.StatusBarItem);
+        // Return the matching mock by status bar priority (connection = 99,
+        // selection summary = 98) so the test does not depend on creation order.
+        sb.stub(vscode.window, "createStatusBarItem").callsFake((...args: unknown[]) => {
+            const priority = args[1] as number | undefined;
+            return (priority === 99
+                ? mockStatusBarItem
+                : mockSelectionSummaryStatusBarItem) as unknown as vscode.StatusBarItem;
+        });
         sb.stub(vscode.window, "createOutputChannel").returns({
             info: sb.stub(),
             warn: sb.stub(),
@@ -1448,6 +1449,20 @@ suite("SqlNotebookController", () => {
             });
             expect(mockSelectionSummaryStatusBarItem.show).to.have.been.called;
             expect(mockSelectionSummaryStatusBarItem.text).to.contain("Average");
+        });
+
+        test("shows non-numeric metrics without an average", () => {
+            notebookMessage({
+                type: "selectionSummary",
+                metrics: {
+                    count: 4,
+                    distinctCount: 3,
+                    nullCount: 1,
+                },
+            });
+            expect(mockSelectionSummaryStatusBarItem.show).to.have.been.called;
+            expect(mockSelectionSummaryStatusBarItem.text).to.not.contain("Average");
+            expect(mockSelectionSummaryStatusBarItem.text).to.contain("Distinct");
         });
 
         test("hides the summary status bar item when there is no selection", () => {

@@ -59,7 +59,7 @@ export interface NotebookSaveAsMessage {
 /**
  * Sent by the notebook result renderer when the cell selection in a result grid
  * changes. Carries the metrics computed from the current selection, or undefined
- * when the selection is cleared or too small to summarize.
+ * when the selection is empty.
  */
 export interface NotebookSelectionSummaryMessage {
     type: "selectionSummary";
