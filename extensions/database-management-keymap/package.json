@@ -13,6 +13,7 @@
         "package.json"
     ],
     "icon": "images/extensionIcon.png",
+    "aiKey": "29a207bb14f84905966a8f22524cb730-25407f35-11b6-4d4e-8114-ab9e843cb52f-7380",
     "homepage": "https://github.com/Microsoft/vscode-mssql/blob/main/extensions/database-management-keymap/README.md",
     "categories": [
         "Keymaps"
@@ -97,6 +98,6 @@
         ]
     },
     "devDependencies": {
-        "@vscode/vsce": "^3.9.1"
+        "@vscode/vsce": "^3.9.2"
     }
 }
