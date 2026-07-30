@@ -15,12 +15,13 @@
  * its only injection point), so the runtime validators (connectivity, unit
  * tests, workload) run outside VS Code.
  *
- * The driver is isolated behind a tiny `SqlSession` seam: `makeMssqlSession` is
- * the ONLY function that imports `mssql`, and `NodeMssqlConnectionHandle`'s
- * logic (row normalization, cancellation, error translation) is exercised in
- * unit tests against a fake `SqlSession` with no real SQL Server. Rows come
- * back positionally via the driver's `arrayRowMode`, matching the
- * `ConnectionHandle` contract (`unknown[][]`) directly.
+ * The driver is isolated behind a tiny `SqlSession` seam: the
+ * `makeMssqlSession*` factories and `adaptPoolToSession` are the only code that
+ * touches `mssql`, and `NodeMssqlConnectionHandle`'s logic (row normalization,
+ * cancellation, error translation) is exercised in unit tests against a fake
+ * `SqlSession` with no real SQL Server. Rows come back positionally via the
+ * driver's `arrayRowMode`, matching the `ConnectionHandle` contract
+ * (`unknown[][]`) directly.
  */
 
 import * as sql from "mssql";
@@ -160,10 +161,8 @@ export class NodeMssqlEphemeralConnector implements EphemeralConnector {
 
 /**
  * Opens an `mssql` connection pool from the ephemeral connection params and
- * adapts it to the `SqlSession` seam. `arrayRowMode` makes the driver return
- * rows as positional arrays, which the handle forwards as `unknown[][]`. The
- * pool is sized to one connection (a per-run ephemeral database has a single
- * consumer). The current request is tracked so `cancel()` can abort it.
+ * adapts it to the `SqlSession` seam (see `adaptPoolToSession`). The pool is
+ * sized to one connection — a per-run ephemeral database has a single consumer.
  */
 async function makeMssqlSession(params: EphemeralConnectionParams): Promise<SqlSession> {
     const pool = new sql.ConnectionPool({
@@ -181,7 +180,35 @@ async function makeMssqlSession(params: EphemeralConnectionParams): Promise<SqlS
         requestTimeout: REQUEST_TIMEOUT_MS,
     });
     await pool.connect();
+    return adaptPoolToSession(pool);
+}
 
+/**
+ * Opens an `mssql` pool from a full ADO.NET connection string (the headless
+ * `connection` runtime host path: the connection string comes from the injected
+ * connections file, already re-targeted at the throwaway / `master` catalog).
+ * The string is parsed to a config object so the pool can be pinned to a single
+ * physical session — a script run over one handle then keeps its session-scoped
+ * temp objects across `GO` batches (required by installers like tSQLt), the
+ * headless equivalent of `sqlcmd -i`.
+ */
+export async function makeMssqlSessionFromConnectionString(
+    connectionString: string,
+): Promise<SqlSession> {
+    const config = sql.ConnectionPool.parseConnectionString(connectionString);
+    config.pool = { ...config.pool, max: 1, min: 0 };
+    const pool = new sql.ConnectionPool(config);
+    await pool.connect();
+    return adaptPoolToSession(pool);
+}
+
+/**
+ * Adapts an open `mssql` pool to the `SqlSession` seam. `arrayRowMode` makes the
+ * driver return rows as positional arrays, which the handle forwards as
+ * `unknown[][]`. The current request is tracked so `cancel()` can abort it.
+ * Shared by both the params-based and connection-string-based factories.
+ */
+function adaptPoolToSession(pool: sql.ConnectionPool): SqlSession {
     let current: sql.Request | undefined;
     return {
         async query(command: string): Promise<unknown[][]> {

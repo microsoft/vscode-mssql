@@ -32,3 +32,22 @@ export function ensureDatabaseInConnectionString(
     const separator = connectionString.trim().endsWith(";") ? "" : ";";
     return `${connectionString}${separator}Database=${database}`;
 }
+
+/**
+ * Returns `connectionString` with its target database set to `database`,
+ * replacing any existing `Database` / `Initial Catalog` value (boundary-anchored
+ * so a value that merely contains the word is not mistaken for the keyword), or
+ * appending `Database=...` when none is present. Unlike
+ * `ensureDatabaseInConnectionString` (append-only), this OVERRIDES an existing
+ * catalog — required by the connection runtime host, whose saved connection
+ * string points at the developer's own database but must be re-targeted at the
+ * throwaway `CloudDeployValidation_<uuid>` (and at `master` for CREATE / DROP).
+ */
+export function withDatabaseInConnectionString(connectionString: string, database: string): string {
+    const existing = /(^|;)(\s*)(database|initial catalog)(\s*)=([^;]*)/i;
+    if (existing.test(connectionString)) {
+        return connectionString.replace(existing, `$1$2$3$4=${database}`);
+    }
+    const separator = connectionString.trim().endsWith(";") ? "" : ";";
+    return `${connectionString}${separator}Database=${database}`;
+}

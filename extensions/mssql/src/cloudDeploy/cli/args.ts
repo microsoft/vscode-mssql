@@ -33,6 +33,13 @@ export interface CliArgs {
     readonly baselinePath?: string;
     /** Destination path for a Markdown validation report (the PR comment body). */
     readonly reportOut?: string;
+    /**
+     * Path to a connections file — a JSON map of connectionProfileId -> ADO.NET
+     * SQL-auth connection string — that enables the headless `connection`
+     * runtime host and a live-database source of truth. A convenience alias for
+     * the `MSSQL_CD_CONNECTIONS` env var.
+     */
+    readonly connectionsPath?: string;
 }
 
 /**
@@ -69,6 +76,9 @@ Options:
   --source-ref <ref>    PR number / ref the run validated (stamped on the artifact)
   --baseline <path>     Baseline .cdrun.zip to diff the produced run against
   --report-out <path>   Write a Markdown validation report (PR comment body) here
+  --connections <path>  JSON map of connectionProfileId -> connection string,
+                          enabling the connection runtime host (alias of the
+                          MSSQL_CD_CONNECTIONS env var)
   -h, --help            Print this help and exit
 
 Exit codes:
@@ -97,6 +107,7 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
                 "source-ref": { type: "string" },
                 baseline: { type: "string" },
                 "report-out": { type: "string" },
+                connections: { type: "string" },
                 help: { type: "boolean", short: "h" },
             },
             allowPositionals: true,
@@ -131,6 +142,7 @@ export function parseCliArgs(argv: readonly string[]): CliArgs {
         sourceRef: values["source-ref"],
         baselinePath: values.baseline,
         reportOut: values["report-out"],
+        connectionsPath: values.connections,
     };
 }
 
@@ -144,6 +156,7 @@ type ParseConfig = {
         readonly "source-ref": { readonly type: "string" };
         readonly baseline: { readonly type: "string" };
         readonly "report-out": { readonly type: "string" };
+        readonly connections: { readonly type: "string" };
         readonly help: { readonly type: "boolean"; readonly short: "h" };
     };
     readonly allowPositionals: true;

@@ -4,14 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * Tests for `ensureDatabaseInConnectionString` (Scope 2): sqlpackage requires
- * the target database inside the connection string, so the helper appends it
- * when absent and leaves an existing catalog untouched.
+ * Tests for the connection-string helpers (Scope 2). sqlpackage requires the
+ * target database inside the connection string, so `ensureDatabaseInConnectionString`
+ * appends it when absent and leaves an existing catalog untouched, while
+ * `withDatabaseInConnectionString` OVERRIDES an existing catalog (the connection
+ * runtime host re-targets a saved string at the throwaway database / `master`).
  */
 
 import { expect } from "chai";
 
-import { ensureDatabaseInConnectionString } from "../../src/cloudDeploy/host/connectionStringUtils";
+import {
+    ensureDatabaseInConnectionString,
+    withDatabaseInConnectionString,
+} from "../../src/cloudDeploy/host/connectionStringUtils";
 
 suite("CloudDeploy ensureDatabaseInConnectionString", () => {
     test("appends Database when no catalog keyword is present", () => {
@@ -60,5 +65,59 @@ suite("CloudDeploy ensureDatabaseInConnectionString", () => {
             "MyDb",
         );
         expect(result).to.equal("Server=localhost;User ID=sa;Password=mydatabasepw;Database=MyDb");
+    });
+});
+
+suite("CloudDeploy withDatabaseInConnectionString", () => {
+    test("replaces an existing Database= value in place", () => {
+        const result = withDatabaseInConnectionString(
+            "Server=localhost;Database=Existing;User ID=sa",
+            "MyDb",
+        );
+        expect(result).to.equal("Server=localhost;Database=MyDb;User ID=sa");
+    });
+
+    test("replaces an existing Initial Catalog= value in place", () => {
+        const result = withDatabaseInConnectionString(
+            "Data Source=localhost;Initial Catalog=Existing;User ID=sa",
+            "MyDb",
+        );
+        expect(result).to.equal("Data Source=localhost;Initial Catalog=MyDb;User ID=sa");
+    });
+
+    test("preserves the original keyword casing when replacing", () => {
+        const result = withDatabaseInConnectionString("Server=localhost;DATABASE=Existing", "MyDb");
+        expect(result).to.equal("Server=localhost;DATABASE=MyDb");
+    });
+
+    test("preserves whitespace around the keyword when replacing", () => {
+        const result = withDatabaseInConnectionString(
+            "Server=localhost; Database =Existing",
+            "MyDb",
+        );
+        expect(result).to.equal("Server=localhost; Database =MyDb");
+    });
+
+    test("appends Database when no catalog keyword is present", () => {
+        const result = withDatabaseInConnectionString(
+            "Server=localhost,14333;User ID=sa;Password=pw",
+            "MyDb",
+        );
+        expect(result).to.equal("Server=localhost,14333;User ID=sa;Password=pw;Database=MyDb");
+    });
+
+    test("does not add a second separator when the string ends with one", () => {
+        const result = withDatabaseInConnectionString("Server=localhost;", "MyDb");
+        expect(result).to.equal("Server=localhost;Database=MyDb");
+    });
+
+    test("does not treat the word 'database' inside another value as the keyword", () => {
+        // The boundary-anchored check must not clobber a password that merely
+        // contains the substring 'database'; the catalog is appended instead.
+        const result = withDatabaseInConnectionString(
+            "Server=localhost;Password=mydatabasepw;User ID=sa",
+            "MyDb",
+        );
+        expect(result).to.equal("Server=localhost;Password=mydatabasepw;User ID=sa;Database=MyDb");
     });
 });

@@ -18,7 +18,10 @@
  * the headless `NodeMssqlEphemeralConnector`), the data generator, and the
  * schema hasher — so it provisions a throwaway SQL container, runs connectivity
  * / unit-tests / workload against it, and tears it down, all outside VS Code.
- * Static-analysis-only envs still work (no container is stood up when no
+ * A `connection` runtime host is wired too when a connections file is injected
+ * (`MSSQL_CD_CONNECTIONS`): the run then borrows an existing SQL Server (via a
+ * `FileConnectionHostGateway`) instead of standing up a container.
+ * Static-analysis-only envs still work (no runtime host is stood up when no
  * runtime validator is enabled).
  *
  * When `--baseline` is given, the produced run is diffed against a prior
@@ -62,9 +65,11 @@ import { Runner } from "../validation/runner";
 import { LiveArtifactProvider } from "../validation/providers/artifactProvider";
 import { DockerEphemeralDatabaseProvider } from "../validation/providers/ephemeralDatabaseProvider";
 import { DispatchingEphemeralDatabaseProvider } from "../validation/providers/dispatchingEphemeralDatabaseProvider";
+import { ConnectionEphemeralDatabaseProvider } from "../validation/providers/connectionEphemeralDatabaseProvider";
 import { LiveProcessProvider } from "../validation/providers/processProvider";
 import { LiveDataGenerator } from "../validation/dataGenerator";
 import { NodeMssqlEphemeralConnector } from "../host/nodeMssqlConnection";
+import { FileConnectionHostGateway, loadConnectionsFile } from "../host/fileConnectionHostGateway";
 import { CliUsageError, parseCliArgs, USAGE } from "./args";
 
 /** Runner identity stamped on a CLI-produced run record. */
@@ -134,6 +139,13 @@ export async function runGates(
             return 2;
         }
         throw err;
+    }
+
+    // The --connections flag is a convenience alias for MSSQL_CD_CONNECTIONS;
+    // liveDeps() (a default-arg composition root) reads the env var, so surface
+    // the flag through it. An explicit flag overrides an inherited env var.
+    if (args.connectionsPath !== undefined) {
+        process.env.MSSQL_CD_CONNECTIONS = args.connectionsPath;
     }
 
     try {
@@ -322,8 +334,13 @@ async function maybeWriteReport(
  * `RunnerRuntimeDeps` — the reused `DockerEphemeralDatabaseProvider` driven by
  * the headless `NodeMssqlEphemeralConnector`, plus the data generator and
  * schema hasher — so runtime validators run against a throwaway SQL container.
- * The runner stands a container up only when a runtime validator is enabled, so
- * static-analysis-only envs incur no Docker dependency.
+ * When a connections file is injected (`MSSQL_CD_CONNECTIONS`), the `connection`
+ * runtime host is also wired (a `FileConnectionHostGateway` over the same live
+ * `ConnectionEphemeralDatabaseProvider` the extension uses), so a run can borrow
+ * an existing SQL Server instead of Docker and a live-database source of truth
+ * resolves. The runner stands a runtime host up only when a runtime validator is
+ * enabled, so static-analysis-only envs incur no Docker (or connection)
+ * dependency.
  */
 function liveDeps(): RunGatesDeps {
     const fileProvider = new LocalFileProvider();
@@ -331,7 +348,7 @@ function liveDeps(): RunGatesDeps {
         fileProvider,
         loadEnvironments: loadEnvironmentsFromPath,
         loadRunArtifact: (absPath) => new RunArtifactReader(fileProvider).read(absPath),
-        runValidation: (env, bus, workspaceRoot, workloadBaselineLookup) => {
+        runValidation: async (env, bus, workspaceRoot, workloadBaselineLookup) => {
             const processes = new LiveProcessProvider(workspaceRoot);
             const artifact = new LiveArtifactProvider(fileProvider, workspaceRoot);
             const engineFromEnv = (():
@@ -349,12 +366,37 @@ function liveDeps(): RunGatesDeps {
                 ...(engineFromEnv !== undefined ? { workloadSimulation: engineFromEnv } : {}),
                 workspaceRoot,
             });
+
+            // Mirror the extension's `buildEphemeralProvider`: `docker` is always
+            // available; the `connection` host is wired only when a connections
+            // file was injected (MSSQL_CD_CONNECTIONS). The live-database source
+            // resolver is derived from the same gateway and shared by both hosts.
+            const gateway = await loadConnectionHostGateway();
+            const sourceConnectionStringResolver =
+                gateway !== undefined
+                    ? (id: string, signal: AbortSignal) =>
+                          gateway.buildConnectionString(id, undefined, signal)
+                    : undefined;
             const ephemeralProvider = new DispatchingEphemeralDatabaseProvider({
                 docker: new DockerEphemeralDatabaseProvider(
                     processes,
                     new NodeMssqlEphemeralConnector(),
-                    { workspaceRoot },
+                    {
+                        workspaceRoot,
+                        ...(sourceConnectionStringResolver !== undefined
+                            ? { sourceConnectionStringResolver }
+                            : {}),
+                    },
                 ),
+                connection:
+                    gateway !== undefined
+                        ? new ConnectionEphemeralDatabaseProvider(processes, gateway, {
+                              workspaceRoot,
+                              ...(sourceConnectionStringResolver !== undefined
+                                  ? { sourceConnectionStringResolver }
+                                  : {}),
+                          })
+                        : undefined,
             });
             const runner = new Runner(registry, bus, {
                 ephemeralProvider,
@@ -365,6 +407,22 @@ function liveDeps(): RunGatesDeps {
             return runner.run(env, { runner: CLI_RUNNER_IDENTITY });
         },
     };
+}
+
+/**
+ * Builds the headless connection host gateway from the connections file the CLI
+ * was pointed at via `MSSQL_CD_CONNECTIONS` (a JSON map of connectionProfileId
+ * -> ADO.NET SQL-auth connection string). Returns `undefined` when the env var
+ * is unset, so the `connection` runtime host and a live-database source of truth
+ * are simply unavailable and Docker-only runs are unaffected.
+ */
+async function loadConnectionHostGateway(): Promise<FileConnectionHostGateway | undefined> {
+    const connectionsPath = process.env.MSSQL_CD_CONNECTIONS;
+    if (connectionsPath === undefined || connectionsPath.length === 0) {
+        return undefined;
+    }
+    const connections = await loadConnectionsFile(path.resolve(connectionsPath));
+    return new FileConnectionHostGateway(connections);
 }
 
 /** `<root>/.mssql/environments.json` → `<root>`. */
