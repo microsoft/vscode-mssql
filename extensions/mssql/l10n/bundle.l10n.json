@@ -2243,6 +2243,7 @@
     "Move to schema '{0}'": "Move to schema '{0}'",
     "Failed to apply the Move to Schema changes. Check that the files are writable and try again.": "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
     "Failed to move file to the new schema folder: {0}": "Failed to move file to the new schema folder: {0}",
+    "The file was moved on disk, but updating the .sqlproj failed: {0}. The project may be out of sync — please verify the file's entry in the project file.": "The file was moved on disk, but updating the .sqlproj failed: {0}. The project may be out of sync — please verify the file's entry in the project file.",
     "Close": "Close",
     "Apply": "Apply",
     "Next": "Next",

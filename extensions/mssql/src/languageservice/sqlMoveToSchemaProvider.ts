@@ -384,17 +384,35 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             return false; // signal that the rename failed so the caller skips the tree refresh
         }
 
-        // Register the new schema folder hierarchy in the .sqlproj (no-op if already present).
+        // Register the new schema folder hierarchy in the .sqlproj (no-op if already present) and
+        // update the <Build Include> path to reflect the new file location. The file has already
+        // been moved on disk at this point, so a failure here leaves the project out of sync —
+        // surface it to the user rather than failing silently.
         const projPath = refactorTarget.sqlprojUri.fsPath;
-        await this._sqlProjectsService.addFolder(projPath, targetSchema);
-        if (innerSegments.length > 0) {
-            await this._sqlProjectsService.addFolder(
-                projPath,
-                [targetSchema, ...innerSegments].join("/"),
+        try {
+            const results = [await this._sqlProjectsService.addFolder(projPath, targetSchema)];
+            if (innerSegments.length > 0) {
+                results.push(
+                    await this._sqlProjectsService.addFolder(
+                        projPath,
+                        [targetSchema, ...innerSegments].join("/"),
+                    ),
+                );
+            }
+            results.push(
+                await this._sqlProjectsService.moveSqlObjectScript(projPath, relPath, newRelPath),
+            );
+
+            const failure = results.find((r) => !r?.success);
+            if (failure) {
+                void vscode.window.showErrorMessage(
+                    loc.sqlprojUpdateFailed(failure.errorMessage || ""),
+                );
+            }
+        } catch (err) {
+            void vscode.window.showErrorMessage(
+                loc.sqlprojUpdateFailed(err instanceof Error ? err.message : String(err)),
             );
         }
-
-        // Update the <Build Include> path in the .sqlproj to reflect the new file location.
-        await this._sqlProjectsService.moveSqlObjectScript(projPath, relPath, newRelPath);
     }
 }

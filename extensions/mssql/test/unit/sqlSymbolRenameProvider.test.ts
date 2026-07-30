@@ -1144,6 +1144,25 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     );
                 });
 
+                test("shows error when the .sqlproj update fails after the file has been moved", async () => {
+                    // The physical rename succeeds but STS rejects the .sqlproj update — the
+                    // project is now out of sync, so the failure must be surfaced to the user.
+                    sqlProjectsServiceStub.moveSqlObjectScript.resolves({
+                        success: false,
+                        errorMessage: "project file is read-only",
+                    });
+
+                    const doc = makeMoveDocument(sandbox, {
+                        fsPath: schemaFile,
+                        lineText: "CREATE TABLE [dbo].[table1]",
+                    });
+                    await provider.runMoveToSchema(doc, new vscode.Position(0, 14));
+
+                    expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
+                        moveLoc.sqlprojUpdateFailed("project file is read-only"),
+                    );
+                });
+
                 test("uses elementType from STS response to determine the correct target subfolder", async () => {
                     // elementType="SqlTable" → folder "Tables" regardless of the source path convention.
                     sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({
