@@ -5,9 +5,32 @@
 
 import { expect } from "chai";
 
-import { getViewportToRevealExecutionPlanNode } from "../../src/webviews/pages/ExecutionPlan/executionPlanViewport";
+import {
+    getViewportForExecutionPlanZoom,
+    getViewportToRevealExecutionPlanNode,
+} from "../../src/webviews/pages/ExecutionPlan/executionPlanViewport";
 
 suite("ExecutionPlanViewport", () => {
+    test("zooms around the canvas origin", () => {
+        const viewport = getViewportForExecutionPlanZoom({ x: -120, y: -60, zoom: 1 }, 1.5);
+
+        expect(viewport).to.deep.equal({ x: -180, y: -90, zoom: 1.5 });
+    });
+
+    test("keeps the flow coordinate below a custom anchor fixed", () => {
+        const viewport = getViewportForExecutionPlanZoom({ x: -40, y: -20, zoom: 1 }, 2, {
+            x: 10,
+            y: 10,
+        });
+
+        expect(viewport).to.deep.equal({ x: -90, y: -50, zoom: 2 });
+    });
+
+    test("does not calculate an invalid zoom viewport", () => {
+        expect(getViewportForExecutionPlanZoom({ x: 0, y: 0, zoom: 0 }, 1)).to.be.undefined;
+        expect(getViewportForExecutionPlanZoom({ x: 0, y: 0, zoom: 1 }, 0)).to.be.undefined;
+    });
+
     test("leaves the viewport unchanged when the node is visible", () => {
         const viewport = getViewportToRevealExecutionPlanNode(
             { x: -20, y: -10, zoom: 1 },

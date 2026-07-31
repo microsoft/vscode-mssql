@@ -84,6 +84,8 @@ const useStyles = makeStyles({
     previewZoomInput: {
         width: "72px",
         minWidth: "72px",
+        height: "26px",
+        boxSizing: "border-box",
         fontSize: "12px",
     },
     previewInputSuffix: {
@@ -437,58 +439,113 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         </WebviewErrorBoundary>
                     )}
                 </div>
-                {customZoomClicked && (
-                    <div
-                        id="customZoomInputContainer"
-                        className={classes.inputContainer}
-                        style={{
-                            background: tokens.colorNeutralBackground1,
-                        }}
-                        tabIndex={0}>
-                        <Input
-                            ref={inputRef}
-                            id="customZoomInputBox"
-                            type="number"
-                            size="small"
-                            min={1}
-                            tabIndex={0}
-                            title={locConstants.executionPlan.customZoom}
+                {customZoomClicked &&
+                    (useReactFlow ? (
+                        <VscodeFloatingWidget
+                            id="customZoomInputContainer"
+                            className={classes.previewInputContainer}
+                            role="group"
                             aria-label={locConstants.executionPlan.customZoom}
-                            defaultValue={Math.floor(zoomNumber).toString()}
-                            input={{
-                                style: {
-                                    width: "85px",
-                                    textOverflow: "ellipsis",
-                                },
-                            }}
-                            onChange={(e) => setZoomNumber(Number(e.target.value))}
+                            onKeyDown={(event) => {
+                                if (event.key === "Escape") {
+                                    event.preventDefault();
+                                    setCustomZoomClicked(false);
+                                }
+                            }}>
+                            <Input
+                                ref={inputRef}
+                                id="customZoomInputBox"
+                                type="text"
+                                size="small"
+                                className={classes.previewZoomInput}
+                                defaultValue={Math.floor(zoomNumber).toString()}
+                                contentAfter={<span className={classes.previewInputSuffix}>%</span>}
+                                input={{
+                                    inputMode: "decimal",
+                                    style: {
+                                        textOverflow: "ellipsis",
+                                    },
+                                }}
+                                title={locConstants.executionPlan.customZoom}
+                                aria-label={locConstants.executionPlan.customZoom}
+                                onChange={(event) => {
+                                    const value = Number(event.target.value);
+                                    if (Number.isFinite(value)) {
+                                        setZoomNumber(Math.min(200, Math.max(1, value)));
+                                    }
+                                }}
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter") {
+                                        event.preventDefault();
+                                        void handleCustomZoomInput();
+                                    }
+                                }}
+                            />
+                            <VscodeFloatingWidgetAction
+                                onClick={handleCustomZoomInput}
+                                title={locConstants.common.apply}
+                                aria-label={locConstants.common.apply}
+                                icon={<Checkmark16Regular />}
+                            />
+                            <VscodeFloatingWidgetAction
+                                icon={<Dismiss16Regular />}
+                                title={locConstants.common.close}
+                                aria-label={locConstants.common.close}
+                                onClick={() => setCustomZoomClicked(false)}
+                            />
+                        </VscodeFloatingWidget>
+                    ) : (
+                        <div
+                            id="customZoomInputContainer"
+                            className={classes.inputContainer}
                             style={{
-                                width: "100px",
-                                height: "25px",
-                                fontSize: "12px",
+                                background: tokens.colorNeutralBackground1,
                             }}
-                        />
-                        <div className={classes.spacer}></div>
-                        <Button
-                            onClick={handleCustomZoomInput}
-                            size="small"
-                            appearance="subtle"
-                            title={locConstants.common.apply}
-                            aria-label={locConstants.common.apply}
-                            icon={<Checkmark20Regular />}
-                        />
-                        <Button
-                            icon={<Dismiss20Regular />}
-                            size="small"
-                            appearance="subtle"
-                            title={locConstants.common.close}
-                            aria-label={locConstants.common.close}
-                            onClick={() => setCustomZoomClicked(false)}
-                        />
-                    </div>
-                )}
+                            tabIndex={0}>
+                            <Input
+                                ref={inputRef}
+                                id="customZoomInputBox"
+                                type="number"
+                                size="small"
+                                min={1}
+                                tabIndex={0}
+                                title={locConstants.executionPlan.customZoom}
+                                aria-label={locConstants.executionPlan.customZoom}
+                                defaultValue={Math.floor(zoomNumber).toString()}
+                                input={{
+                                    style: {
+                                        width: "85px",
+                                        textOverflow: "ellipsis",
+                                    },
+                                }}
+                                onChange={(e) => setZoomNumber(Number(e.target.value))}
+                                style={{
+                                    width: "100px",
+                                    height: "25px",
+                                    fontSize: "12px",
+                                }}
+                            />
+                            <div className={classes.spacer}></div>
+                            <Button
+                                onClick={handleCustomZoomInput}
+                                size="small"
+                                appearance="subtle"
+                                title={locConstants.common.apply}
+                                aria-label={locConstants.common.apply}
+                                icon={<Checkmark20Regular />}
+                            />
+                            <Button
+                                icon={<Dismiss20Regular />}
+                                size="small"
+                                appearance="subtle"
+                                title={locConstants.common.close}
+                                aria-label={locConstants.common.close}
+                                onClick={() => setCustomZoomClicked(false)}
+                            />
+                        </div>
+                    ))}
                 {findNodeClicked && executionPlanView && (
-                    <div tabIndex={0}>
+                    <div tabIndex={useReactFlow ? undefined : 0}>
                         <FindNode
                             // guaranteed to be non-null, because the plan will only
                             // show if it's non-null
@@ -497,17 +554,19 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             findNodeOptions={findNodeOptions}
                             setFindNodeClicked={setFindNodeClicked}
                             inputRef={inputRef}
+                            useReactFlow={useReactFlow}
                         />
                     </div>
                 )}
                 {highlightOpsClicked && executionPlanView && (
-                    <div tabIndex={0}>
+                    <div tabIndex={useReactFlow ? undefined : 0}>
                         <HighlightExpensiveOperations
                             // guaranteed to be non-null
                             executionPlanView={executionPlanView!}
                             setExecutionPlanView={setExecutionPlanView}
                             setHighlightOpsClicked={setHighlightOpsClicked}
                             inputRef={inputRef}
+                            useReactFlow={useReactFlow}
                         />
                     </div>
                 )}
