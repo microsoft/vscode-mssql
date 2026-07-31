@@ -851,6 +851,7 @@ export class Notebooks {
     // Status bar
     public static statusBarClickToChangeConnection = l10n.t("MSSQL: Click to change connection");
     public static statusBarClickToChangeDatabase = l10n.t("MSSQL: Click to change database");
+    public static selectionSummaryStatusBarName = l10n.t("MSSQL Notebook Selection Summary");
 
     // Errors
     public static connectionFailed = l10n.t("Connection failed");
