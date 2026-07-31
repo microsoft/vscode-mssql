@@ -20,6 +20,28 @@ export interface ExecutionPlanViewportSize {
 }
 
 /**
+ * Returns a viewport with a new zoom while keeping the flow coordinate beneath the supplied
+ * screen-space anchor fixed. Execution plans use the canvas origin so top-aligned nodes remain
+ * visible as the scale changes.
+ */
+export function getViewportForExecutionPlanZoom(
+    viewport: ExecutionPlanViewport,
+    zoom: number,
+    anchor: ExecutionPlanViewportPoint = { x: 0, y: 0 },
+): ExecutionPlanViewport | undefined {
+    if (viewport.zoom <= 0 || zoom <= 0) {
+        return undefined;
+    }
+
+    const scale = zoom / viewport.zoom;
+    return {
+        x: anchor.x - (anchor.x - viewport.x) * scale,
+        y: anchor.y - (anchor.y - viewport.y) * scale,
+        zoom,
+    };
+}
+
+/**
  * Returns the smallest viewport translation that fully reveals a node. The zoom level is
  * preserved, and no viewport is returned when the node is already visible.
  */

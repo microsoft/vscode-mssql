@@ -8,13 +8,23 @@ import "./executionPlan.css";
 import * as ep from "../../../sharedInterfaces/executionPlan";
 
 import { Button, Combobox, Option, makeStyles, tokens } from "@fluentui/react-components";
-import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
+import {
+    Checkmark16Regular,
+    Checkmark20Regular,
+    Dismiss16Regular,
+    Dismiss20Regular,
+} from "@fluentui/react-icons";
 import {
     ExecutionPlanGraphController,
     ExecutionPlanMetricSource,
 } from "./executionPlanGraphController";
 import { locConstants } from "../../common/locConstants";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import {
+    VscodeFloatingWidget,
+    VscodeFloatingWidgetAction,
+} from "../../common/vscodeFloatingWidget";
+import { SearchableDropdown } from "../../common/searchableDropdown.component";
 
 const useStyles = makeStyles({
     inputContainer: {
@@ -30,6 +40,18 @@ const useStyles = makeStyles({
         gap: "2px",
         opacity: 1,
     },
+    previewInputContainer: {
+        position: "absolute",
+        top: "4px",
+        right: "39px",
+        zIndex: 5,
+        maxWidth: "calc(100% - 51px)",
+    },
+    previewLabel: {
+        padding: "0 4px",
+        color: "var(--vscode-editorWidget-foreground)",
+        whiteSpace: "nowrap",
+    },
     dropdown: {
         maxHeight: "200px",
     },
@@ -43,6 +65,7 @@ interface HighlightExpensiveOperationsProps {
     setExecutionPlanView: any;
     setHighlightOpsClicked: any;
     inputRef: any;
+    useReactFlow: boolean;
 }
 
 export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperationsProps> = ({
@@ -50,29 +73,44 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
     setExecutionPlanView,
     setHighlightOpsClicked,
     inputRef,
+    useReactFlow,
 }) => {
     const classes = useStyles();
     const [highlightMetricSelected, setHighlightMetricSelected] = useState("");
     const [highlightedElement, setHighlightedElement] = useState("");
 
-    const highlightMetricOptions: string[] = [
-        locConstants.executionPlan.actualElapsedTime,
-        locConstants.executionPlan.actualElapsedCpuTime,
-        locConstants.executionPlan.cost,
-        locConstants.executionPlan.subtreeCost,
-        locConstants.executionPlan.actualNumberOfRowsForAllExecutions,
-        locConstants.executionPlan.numberOfRowsRead,
-        locConstants.executionPlan.off,
-    ];
-    const highlightMetricOptionsEnum: ep.ExpensiveMetricType[] = [
-        ep.ExpensiveMetricType.ActualElapsedTime,
-        ep.ExpensiveMetricType.ActualElapsedCpuTime,
-        ep.ExpensiveMetricType.Cost,
-        ep.ExpensiveMetricType.SubtreeCost,
-        ep.ExpensiveMetricType.ActualNumberOfRowsForAllExecutions,
-        ep.ExpensiveMetricType.NumberOfRowsRead,
-        ep.ExpensiveMetricType.Off,
-    ];
+    const highlightMetricOptions: string[] = useMemo(
+        () => [
+            locConstants.executionPlan.actualElapsedTime,
+            locConstants.executionPlan.actualElapsedCpuTime,
+            locConstants.executionPlan.cost,
+            locConstants.executionPlan.subtreeCost,
+            locConstants.executionPlan.actualNumberOfRowsForAllExecutions,
+            locConstants.executionPlan.numberOfRowsRead,
+            locConstants.executionPlan.off,
+        ],
+        [],
+    );
+    const highlightMetricOptionsEnum: ep.ExpensiveMetricType[] = useMemo(
+        () => [
+            ep.ExpensiveMetricType.ActualElapsedTime,
+            ep.ExpensiveMetricType.ActualElapsedCpuTime,
+            ep.ExpensiveMetricType.Cost,
+            ep.ExpensiveMetricType.SubtreeCost,
+            ep.ExpensiveMetricType.ActualNumberOfRowsForAllExecutions,
+            ep.ExpensiveMetricType.NumberOfRowsRead,
+            ep.ExpensiveMetricType.Off,
+        ],
+        [],
+    );
+    const searchableMetricOptions = useMemo(
+        () => highlightMetricOptions.map((option) => ({ value: option, text: option })),
+        [highlightMetricOptions],
+    );
+    const selectedMetricOption = useMemo(
+        () => searchableMetricOptions.find((option) => option.value === highlightMetricSelected),
+        [highlightMetricSelected, searchableMetricOptions],
+    );
 
     const handleHighlightExpensiveOperation = async () => {
         if (executionPlanView) {
@@ -114,6 +152,56 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
             inputRef.current?.focus(); // Move focus to the combobox
         }
     };
+
+    if (useReactFlow) {
+        return (
+            <VscodeFloatingWidget
+                id="highlightExpensiveOpsContainer"
+                className={classes.previewInputContainer}
+                role="group"
+                aria-label={locConstants.executionPlan.metric}
+                onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                        event.preventDefault();
+                        void handleHighlightClose();
+                    }
+                }}>
+                <span className={classes.previewLabel}>{locConstants.executionPlan.metric}</span>
+                <SearchableDropdown
+                    id="highlightExpensiveOpsDropdown"
+                    size="small"
+                    options={searchableMetricOptions}
+                    selectedOption={selectedMetricOption}
+                    showPlaceholder
+                    placeholder={locConstants.executionPlan.metric}
+                    searchBoxPlaceholder={locConstants.common.find}
+                    style={{
+                        width: "260px",
+                        minWidth: "180px",
+                        height: "26px",
+                        boxSizing: "border-box",
+                    }}
+                    minPopupWidth={260}
+                    onSelect={(option) => setHighlightMetricSelected(option.value)}
+                    triggerRef={inputRef}
+                    ariaLabel={locConstants.executionPlan.metric}
+                />
+                <VscodeFloatingWidgetAction
+                    onClick={handleHighlightExpensiveOperation}
+                    disabled={!highlightMetricSelected}
+                    title={locConstants.common.apply}
+                    aria-label={locConstants.common.apply}
+                    icon={<Checkmark16Regular />}
+                />
+                <VscodeFloatingWidgetAction
+                    icon={<Dismiss16Regular />}
+                    title={locConstants.common.close}
+                    aria-label={locConstants.common.close}
+                    onClick={handleHighlightClose}
+                />
+            </VscodeFloatingWidget>
+        );
+    }
 
     return (
         <div

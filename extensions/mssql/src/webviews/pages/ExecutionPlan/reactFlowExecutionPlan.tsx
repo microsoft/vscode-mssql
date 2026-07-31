@@ -67,7 +67,10 @@ import {
     ExecutionPlanTooltipSourceBounds,
     getExecutionPlanTooltipPlacement,
 } from "./executionPlanTooltipPosition";
-import { getViewportToRevealExecutionPlanNode } from "./executionPlanViewport";
+import {
+    getViewportForExecutionPlanZoom,
+    getViewportToRevealExecutionPlanNode,
+} from "./executionPlanViewport";
 import { getBadgePaths, getCollapseExpandPaths, getIconPaths } from "./queryPlanSetup";
 
 const EXECUTION_PLAN_REVEAL_PADDING = 0;
@@ -450,12 +453,22 @@ export class ReactFlowExecutionPlanController implements ExecutionPlanGraphContr
         return enabled;
     }
 
+    private setAnchoredZoom(zoom: number): void {
+        const viewport = getViewportForExecutionPlanZoom(
+            this._options.instance.getViewport(),
+            Math.min(2, Math.max(0.01, zoom)),
+        );
+        if (viewport) {
+            void this._options.instance.setViewport(viewport, { duration: 150 });
+        }
+    }
+
     public zoomIn(): void {
-        void this._options.instance.zoomIn({ duration: 150 });
+        this.setAnchoredZoom(this._options.instance.getZoom() * 1.2);
     }
 
     public zoomOut(): void {
-        void this._options.instance.zoomOut({ duration: 150 });
+        this.setAnchoredZoom(this._options.instance.getZoom() / 1.2);
     }
 
     public zoomToFit(): void {
@@ -467,9 +480,7 @@ export class ReactFlowExecutionPlanController implements ExecutionPlanGraphContr
     }
 
     public setZoomLevel(level: number): void {
-        void this._options.instance.zoomTo(Math.min(200, Math.max(1, level)) / 100, {
-            duration: 150,
-        });
+        this.setAnchoredZoom(Math.min(200, Math.max(1, level)) / 100);
     }
 
     public searchNodes(searchQuery: SearchQuery): ExecutionPlanNode[] {
