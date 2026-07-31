@@ -22,8 +22,11 @@ import type {
     NotebookQueryResultBlock,
     NotebookQueryResultGridBlock,
     NotebookQueryResultOutputData,
+    NotebookRendererMessage,
     NotebookSaveAsMessage,
 } from "../sharedInterfaces/notebookQueryResult";
+import type { SelectionSummaryMetrics } from "../sharedInterfaces/queryResult";
+import { buildSelectionSummaryStatusBarStrings } from "../queryResult/selectionSummaryFormatter";
 import { saveNotebookResults } from "./notebookResultsSerializer";
 import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
@@ -76,6 +79,7 @@ export class SqlNotebookController implements vscode.Disposable {
     readonly connections = new Map<string, NotebookConnectionManager>();
     private readonly codeLensProvider: NotebookCodeLensProvider;
     private readonly statusBarItem: vscode.StatusBarItem;
+    private readonly selectionSummaryStatusBarItem: vscode.StatusBarItem;
     private readonly log: ILogger;
     private readonly disposables: vscode.Disposable[] = [];
     private executionOrder = 0;
@@ -141,6 +145,17 @@ export class SqlNotebookController implements vscode.Disposable {
         this.statusBarItem.name = "MSSQL Notebook Connection";
         this.updateStatusBar(undefined);
 
+        // Dedicated status bar item for the result grid selection summary
+        // (Average/Count/Sum, etc.), mirroring the `.sql` results grid. Kept
+        // separate from the connection item above so the two never overwrite each
+        // other; hidden until the notebook renderer reports a selection.
+        this.selectionSummaryStatusBarItem = vscode.window.createStatusBarItem(
+            vscode.StatusBarAlignment.Right,
+            98,
+        );
+        this.selectionSummaryStatusBarItem.name =
+            LocalizedConstants.Notebooks.selectionSummaryStatusBarName;
+
         // Code lens provider for notebook cells — shows correct connection
         this.codeLensProvider = new NotebookCodeLensProvider(this.connections);
         this.disposables.push(
@@ -154,6 +169,9 @@ export class SqlNotebookController implements vscode.Disposable {
         this.disposables.push(
             vscode.window.onDidChangeActiveNotebookEditor((editor) => {
                 this.updateStatusBar(editor?.notebook);
+                // The selection summary belongs to a specific result grid; clear it
+                // when the active notebook changes so it never shows stale metrics.
+                this.updateSelectionSummary(undefined);
             }),
         );
 
@@ -237,11 +255,18 @@ export class SqlNotebookController implements vscode.Disposable {
         const messaging = vscode.notebooks.createRendererMessaging(NOTEBOOK_RESULT_RENDERER_ID);
         this.disposables.push(
             messaging.onDidReceiveMessage((e) => {
-                const message = e.message as NotebookSaveAsMessage | undefined;
-                if (message?.type !== "saveAs") {
+                const message = e.message as NotebookRendererMessage | undefined;
+                if (!message) {
                     return;
                 }
-                void this.handleSaveAs(e.editor.notebook, message);
+                switch (message.type) {
+                    case "saveAs":
+                        void this.handleSaveAs(e.editor.notebook, message);
+                        break;
+                    case "selectionSummary":
+                        this.updateSelectionSummary(message.metrics);
+                        break;
+                }
             }),
         );
 
@@ -899,6 +924,23 @@ export class SqlNotebookController implements vscode.Disposable {
         }
     }
 
+    /**
+     * Update the selection summary status bar item from the metrics reported by
+     * the notebook result renderer. Hides the item when there is no selection to
+     * summarize.
+     * @param metrics The metrics for the current selection, or undefined to clear.
+     */
+    private updateSelectionSummary(metrics: SelectionSummaryMetrics | undefined): void {
+        if (!metrics) {
+            this.selectionSummaryStatusBarItem.hide();
+            return;
+        }
+        const { text, tooltip } = buildSelectionSummaryStatusBarStrings(metrics);
+        this.selectionSummaryStatusBarItem.text = text;
+        this.selectionSummaryStatusBarItem.tooltip = tooltip;
+        this.selectionSummaryStatusBarItem.show();
+    }
+
     private async handleSaveAs(
         notebook: vscode.NotebookDocument,
         message: NotebookSaveAsMessage,
@@ -1550,6 +1592,7 @@ export class SqlNotebookController implements vscode.Disposable {
         this.pendingSaveAdoptions.clear();
         this.disposables.forEach((d) => d.dispose());
         this.statusBarItem.dispose();
+        this.selectionSummaryStatusBarItem.dispose();
         this.controller.dispose();
         this.log.dispose();
     }

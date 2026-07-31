@@ -812,7 +812,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++ef29c3acfb3de5b5cb395ebd30039cc6d6120e9d1f9581301573425449e535c5">
         <source xml:lang="en">Azure Databases</source>
-        <target state="translated">Azure 데이터베이스</target>
+        <target state="translated">Azure Databases</target>
       </trans-unit>
       <trans-unit id="++CODE++c5023bdd36d362e05c245ab15ab6839ad7562bcd42f1e1b0c759dca9d5fec4f7">
         <source xml:lang="en">Azure Device Code</source>
@@ -840,7 +840,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a">
         <source xml:lang="en">Azure SQL databases provisioning</source>
-        <target state="translated">Azure SQL 데이터베이스 프로비전</target>
+        <target state="translated">Azure SQL Database 프로비전</target>
       </trans-unit>
       <trans-unit id="++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d">
         <source xml:lang="en">Azure Subscriptions</source>
@@ -4026,7 +4026,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++7a77e8a8f80ab358ff1261e8047b81ffa298288509fc45ae56d2760997839dda">
         <source xml:lang="en">Fabric Databases</source>
-        <target state="translated">패브릭 데이터베이스</target>
+        <target state="translated">Fabric Databases</target>
       </trans-unit>
       <trans-unit id="++CODE++3070527056fcbd2ba823f6ed6ec72a556b5d82695b4490bc28c86d210c696bad">
         <source xml:lang="en">Fabric Workspaces</source>
@@ -5474,7 +5474,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++b993796f53424becc0d08d41a72c0c3381ee7691cc518bc8bdccc8d4013ad4ef">
         <source xml:lang="en">List Databases</source>
-        <target state="translated">데이터베이스 목록</target>
+        <target state="translated">데이터베이스 나열</target>
       </trans-unit>
       <trans-unit id="++CODE++e5c4507bf20d72d00bff4c289eb11be5c9a297933beec5db5969eb33b7bc5690">
         <source xml:lang="en">List Functions</source>
@@ -5867,6 +5867,10 @@ Error:
       <trans-unit id="++CODE++9f67971ab8a605f2aedf0b33a5fce37d2b135aef48f886231da5d8163aa488a6">
         <source xml:lang="en">MSSQL Feedback</source>
         <target state="translated">MSSQL 피드백</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a5427462c277225a1de708f2b2b949ae62f5ef9a5248d7d4c11d6ed297afc756">
+        <source xml:lang="en">MSSQL Notebook Selection Summary</source>
+        <target state="new">MSSQL Notebook Selection Summary</target>
       </trans-unit>
       <trans-unit id="++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4">
         <source xml:lang="en">MSSQL Notebook connected to {0}</source>
