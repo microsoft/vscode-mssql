@@ -38,7 +38,7 @@ async function main() {
         const invalidEnding = validateCrLf(await readFile(filePath));
         if (invalidEnding) {
             failures.push(
-                `${path.relative(repositoryRoot, filePath)}:${invalidEnding.index + 1}: ${
+                `${path.relative(repositoryRoot, filePath)}: byte ${invalidEnding.index + 1}: ${
                     invalidEnding.reason
                 }`,
             );

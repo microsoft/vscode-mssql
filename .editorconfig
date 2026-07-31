@@ -8,3 +8,9 @@ trim_trailing_whitespace = false
 
 [localization/xliff/*.xlf]
 end_of_line = crlf
+
+[*.bat]
+end_of_line = crlf
+
+[*.cmd]
+end_of_line = crlf
