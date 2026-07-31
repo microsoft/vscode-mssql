@@ -548,21 +548,11 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         if (!this.connection) {
             return;
         }
+
         if (this._isDisposed) {
             throw new Error("Cannot register notification handler on disposed controller");
         }
-        sendActionEvent(
-            TelemetryViews.WebviewController,
-            TelemetryActions.onNotification,
-            {
-                type: type.method,
-                webviewId: this._sourceFile,
-            },
-            undefined,
-            undefined,
-            undefined,
-            true, // include call stack
-        );
+
         this.connection.onNotification(type, handler);
     }
 

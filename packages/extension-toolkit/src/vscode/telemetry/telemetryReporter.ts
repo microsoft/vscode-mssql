@@ -61,8 +61,8 @@ const commonMeasurements: TelemetryEventMeasures = {
 };
 
 class TelemetryEventImpl implements TelemetryEvent {
-    private readonly properties: TelemetryEventProperties;
-    private readonly measurements: TelemetryEventMeasures;
+    private readonly _properties: TelemetryEventProperties;
+    private readonly _measurements: TelemetryEventMeasures;
 
     constructor(
         private readonly reporter: VsCodeTelemetryReporter | undefined,
@@ -70,13 +70,13 @@ class TelemetryEventImpl implements TelemetryEvent {
         properties: TelemetryEventProperties = {},
         measurements: TelemetryEventMeasures = {},
     ) {
-        this.properties = properties;
-        this.measurements = { ...measurements, ...commonMeasurements };
+        this._properties = properties;
+        this._measurements = { ...measurements, ...commonMeasurements };
     }
 
     public send(): void {
         try {
-            this.reporter?.sendTelemetryEvent(this.eventName, this.properties, this.measurements);
+            this.reporter?.sendTelemetryEvent(this.eventName, this._properties, this._measurements);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             console.error(`Error sending ${this.eventName} event: ${message}`);
@@ -86,20 +86,20 @@ class TelemetryEventImpl implements TelemetryEvent {
     public withAdditionalProperties(
         additionalProperties: TelemetryEventProperties,
     ): TelemetryEvent {
-        Object.assign(this.properties, additionalProperties);
+        Object.assign(this._properties, additionalProperties);
         return this;
     }
 
     public withAdditionalMeasurements(
         additionalMeasurements: TelemetryEventMeasures,
     ): TelemetryEvent {
-        Object.assign(this.measurements, additionalMeasurements);
+        Object.assign(this._measurements, additionalMeasurements);
         return this;
     }
 
     public withConnectionInfo(connectionInfo: ConnectionInfo): TelemetryEvent {
         if (connectionInfo && typeof connectionInfo === "object") {
-            Object.assign(this.properties, {
+            Object.assign(this._properties, {
                 authenticationType: connectionInfo.authenticationType ?? "",
                 providerName: connectionInfo.providerName ?? "",
             });
@@ -113,7 +113,7 @@ class TelemetryEventImpl implements TelemetryEvent {
 
     public withServerInfo(serverInfo: ServerInfo): TelemetryEvent {
         if (serverInfo && typeof serverInfo === "object") {
-            Object.assign(this.properties, {
+            Object.assign(this._properties, {
                 connectionType:
                     serverInfo.isCloud === undefined
                         ? ""
@@ -137,18 +137,16 @@ class TelemetryEventImpl implements TelemetryEvent {
 }
 
 export default class TelemetryReporter<V extends string = string, A extends string = string> {
-    private readonly telemetryReporter: VsCodeTelemetryReporter | undefined = undefined;
+    private readonly _telemetryReporter: VsCodeTelemetryReporter | undefined = undefined;
 
-    constructor(connectionString: string | undefined) {
+    constructor(connectionString?: string) {
         if (!connectionString) {
-            console.warn(
-                "MSSQL telemetry was not initialized because no telemetry connection string was provided.",
-            );
-            return;
+            // if running a dev build, look for the aiKey as an environment variable
+            connectionString = process.env["APP_INSIGHTS_KEY"];
         }
 
         try {
-            this.telemetryReporter = new VsCodeTelemetryReporter(connectionString);
+            this._telemetryReporter = new VsCodeTelemetryReporter(connectionString);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             console.error(`Error initializing TelemetryReporter: ${message}`);
@@ -156,7 +154,7 @@ export default class TelemetryReporter<V extends string = string, A extends stri
     }
 
     public createViewEvent(view: V): TelemetryEvent {
-        return new TelemetryEventImpl(this.telemetryReporter, "view", { view });
+        return new TelemetryEventImpl(this._telemetryReporter, "view", { view });
     }
 
     public sendViewEvent(view: V): void {
@@ -172,7 +170,7 @@ export default class TelemetryReporter<V extends string = string, A extends stri
     ): TelemetryEvent {
         const measures: TelemetryEventMeasures = durationInMs === undefined ? {} : { durationInMs };
         return new TelemetryEventImpl(
-            this.telemetryReporter,
+            this._telemetryReporter,
             "action",
             { view, action, target, source },
             measures,
@@ -203,7 +201,7 @@ export default class TelemetryReporter<V extends string = string, A extends stri
         groupName: string = "",
     ): TelemetryEvent {
         return new TelemetryEventImpl(
-            this.telemetryReporter,
+            this._telemetryReporter,
             "metrics",
             { groupName },
             measurements,
@@ -223,7 +221,7 @@ export default class TelemetryReporter<V extends string = string, A extends stri
         errorCode: string = "",
         errorType: string = "",
     ): TelemetryEvent {
-        return new TelemetryEventImpl(this.telemetryReporter, "error", {
+        return new TelemetryEventImpl(this._telemetryReporter, "error", {
             view,
             name,
             errorCode,
@@ -272,7 +270,7 @@ export default class TelemetryReporter<V extends string = string, A extends stri
             properties.stack = "";
         }
 
-        return new TelemetryEventImpl(this.telemetryReporter, "error", properties);
+        return new TelemetryEventImpl(this._telemetryReporter, "error", properties);
     }
 
     public sendErrorEvent2(
@@ -291,7 +289,7 @@ export default class TelemetryReporter<V extends string = string, A extends stri
         properties?: TelemetryEventProperties,
         measurements?: TelemetryEventMeasures,
     ): TelemetryEvent {
-        return new TelemetryEventImpl(this.telemetryReporter, eventName, properties, measurements);
+        return new TelemetryEventImpl(this._telemetryReporter, eventName, properties, measurements);
     }
 
     public sendTelemetryEvent(
@@ -303,6 +301,6 @@ export default class TelemetryReporter<V extends string = string, A extends stri
     }
 
     public async dispose(): Promise<void> {
-        await this.telemetryReporter?.dispose();
+        await this._telemetryReporter?.dispose();
     }
 }

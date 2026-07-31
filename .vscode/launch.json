@@ -27,6 +27,13 @@
                 "webRoot": "${workspaceFolder}/extensions/mssql"
             },
             "env": {
+                // The App Insights key is added during official builds.
+                // If you want to examine MSSQL telemetry being emitted during development:
+                //  1. Uncomment the following line and set it to the value found in the internal docs.
+                //  2. Run the "Developer: Show Telemetry" command in VS Code
+                //  3. Check the "Telemetry" output pane.
+                // If not set, no telemetry will be emitted or printed to the output pane.
+                //"APP_INSIGHTS_KEY": "<App Insights Key>",
                 // Uncomment this to use a specified version of STS, see
                 // https://github.com/microsoft/vscode-mssql/blob/main/DEVELOPMENT.md#using-mssql_sqltoolsservice-environment-variable
                 // for more details
