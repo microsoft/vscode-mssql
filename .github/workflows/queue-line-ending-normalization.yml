@@ -1,0 +1,23 @@
+name: Queue PR Line-Ending Normalization
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches:
+      - main
+      - "release/**"
+    paths:
+      - "**/*.json"
+      - "**/*.xml"
+      - "**/*.xlf"
+
+permissions:
+  contents: read
+
+jobs:
+  queue:
+    name: Queue normalization
+    runs-on: ubuntu-latest
+    steps:
+      - name: Queue trusted normalization workflow
+        run: echo "Line-ending normalization has been queued."
