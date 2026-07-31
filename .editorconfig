@@ -1,13 +1,10 @@
 root = true
 
 [*]
-end_of_line = crlf
 charset = utf-8
+end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = false
 
-[*.sh]
-end_of_line = lf
-
-[.husky/**]
-end_of_line = lf
+[localization/xliff/*.xlf]
+end_of_line = crlf
