@@ -11777,7 +11777,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Fabric Databases]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[패브릭 데이터베이스]]></Val>
+            <Val><![CDATA[Fabric Databases]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -17429,7 +17429,7 @@
         <Str Cat="Text">
           <Val><![CDATA[List Databases]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[데이터베이스 목록]]></Val>
+            <Val><![CDATA[데이터베이스 나열]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20012,7 +20012,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Azure SQL databases provisioning]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure SQL 데이터베이스 프로비전]]></Val>
+            <Val><![CDATA[Azure SQL Database 프로비전]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22613,7 +22613,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Azure Databases]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure 데이터베이스]]></Val>
+            <Val><![CDATA[Azure Databases]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

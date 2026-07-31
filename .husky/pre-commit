@@ -1,6 +1,12 @@
 #!/usr/bin/env sh
 
-node scripts/ensure-crlf.js || exit 1
 node scripts/localization-extract.js --staged || exit 1
-git add extensions/*/l10n/bundle.l10n.json localization/xliff/*.xlf || exit 1
+if ! git diff --quiet -- \
+    extensions/*/l10n/bundle.l10n.json \
+    localization/xliff/data-workspace.xlf \
+    localization/xliff/sql-database-projects.xlf \
+    localization/xliff/vscode-mssql.xlf; then
+    echo "Localization outputs changed. Review and stage them before committing."
+    exit 1
+fi
 npm run precommit
