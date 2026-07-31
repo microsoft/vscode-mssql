@@ -15,8 +15,8 @@ import {
 } from "../../src/webviews/pages/SchemaCompare/components/compareDiffEditorUtils";
 import { SchemaDifferenceType, SchemaUpdateAction } from "../../src/sharedInterfaces/schemaCompare";
 
-// Test scenarios in this suite mirror the test design in the Schema Compare for Fabric
-// Warehouse spec (Feature 1847587) — specifically the three webview-level cases:
+// Test scenarios in this suite cover the three webview-level cases for Schema Compare on
+// Fabric Warehouse (SqlDwUnified):
 //  - compare diff editor filters DiffEntry.Children by constraint object-type suffix
 //  - compare diff editor renders the matched children as the "Constraints added / changed /
 //    dropped" banner
