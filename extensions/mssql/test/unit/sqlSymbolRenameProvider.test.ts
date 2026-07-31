@@ -22,7 +22,7 @@ import {
     SqlMoveToSchema as moveLoc,
 } from "../../src/constants/locConstants";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
-import { stubMessageBoxes } from "./utils";
+import { stubMessageBoxes, stubWorkspaceFs } from "./utils";
 
 chai.use(sinonChai);
 
@@ -705,17 +705,10 @@ suite("SqlMoveToSchemaProvider Tests", () => {
             );
         });
 
-        // -------------------------------------------------------------------
         suite("applyMove", () => {
             let openTextDocumentStub: sinon.SinonStub;
             let applyEditStub: sinon.SinonStub;
-            let fsStubs: {
-                stat: sinon.SinonStub;
-                writeFile: sinon.SinonStub;
-                delete: sinon.SinonStub;
-                createDirectory: sinon.SinonStub;
-                rename: sinon.SinonStub;
-            };
+            let fsStubs: ReturnType<typeof stubWorkspaceFs>;
 
             const sampleRefactorLog = [
                 '<?xml version="1.0" encoding="utf-8"?>',
@@ -743,14 +736,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                         }),
                     } as unknown as vscode.TextDocument);
                 });
-                fsStubs = {
-                    stat: sandbox.stub().rejects(vscode.FileSystemError.FileNotFound()),
-                    writeFile: sandbox.stub().resolves(),
-                    delete: sandbox.stub().resolves(),
-                    createDirectory: sandbox.stub().resolves(),
-                    rename: sandbox.stub().resolves(),
-                };
-                sandbox.stub(vscode.workspace, "fs").value(fsStubs);
+                fsStubs = stubWorkspaceFs(sandbox);
                 applyEditStub = sandbox.stub(vscode.workspace, "applyEdit").resolves(true);
             });
 
@@ -883,7 +869,6 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                 );
             });
 
-            // ---------------------------------------------------------------
             suite("file relocation after Apply", () => {
                 let sqlProjectsServiceStub: sinon.SinonStubbedInstance<SqlProjectsService>;
                 // executeCommand is already stubbed by the outer applyMove suite setup.
