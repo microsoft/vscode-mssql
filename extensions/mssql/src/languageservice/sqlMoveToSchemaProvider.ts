@@ -27,13 +27,9 @@ import {
 import { SqlProjectsService } from "../services/sqlProjectsService";
 
 /**
- * Maps STS `ElementType` values to their conventional SQL project folder names, following SSDT
- * folder structure conventions.
- *
- * The keys mirror the strings produced by `SchemaLevelRefactorType()` in the SQL Tools Service
- * (lowercased here so lookups are case-insensitive). They arrive on the `elementType` field of
- * the `SqlMoveToSchemaResponse`. If STS adds or renames an element type, update this map to match:
- * https://github.com/microsoft/sqltoolsservice/blob/main/src/Microsoft.SqlTools.SqlCore/IntelliSense/TSqlModelMetadataProvider.cs
+ * Maps DacFx element type names (`<Type Name="SqlTable" .../>` in DacFx's SchemaModel/SqlModel.xml,
+ * lowercased) to their conventional SSDT folder names.
+ * Surfaced by STS via `SchemaLevelRefactorType()` in TSqlModelMetadataProvider.cs.
  */
 const stsElementTypeToFolderMap: Readonly<Record<string, string>> = {
     sqltable: "Tables",
