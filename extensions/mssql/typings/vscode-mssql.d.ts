@@ -1603,11 +1603,15 @@ declare module "vscode-mssql" {
          * The DacFx `SqlServerVersion` short-name detected for the source endpoint after the
          * comparison runs (e.g. "Sql160", "SqlAzure", "SqlDwUnified" for Fabric Warehouse).
          * Undefined if the comparison did not produce a source model.
+         * Valid values are the names of DacFx's `Microsoft.SqlServer.Dac.Model.SqlServerVersion`
+         * enum (DacFx source: Source/SchemaApi/Model/SqlServerVersion.cs).
          */
         sourcePlatform?: string;
         /**
          * The DacFx `SqlServerVersion` short-name detected for the target endpoint.
          * Undefined if the comparison did not produce a target model.
+         * Valid values are the names of DacFx's `Microsoft.SqlServer.Dac.Model.SqlServerVersion`
+         * enum (DacFx source: Source/SchemaApi/Model/SqlServerVersion.cs).
          */
         targetPlatform?: string;
     }
