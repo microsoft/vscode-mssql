@@ -3421,6 +3421,9 @@
     <trans-unit id="++CODE++b68093b3b98a837c8ebe082fc05f901c3e6aa924fecbb9ddb686339d7b40ffb9">
       <source xml:lang="en">Failed to update table.</source>
     </trans-unit>
+    <trans-unit id="++CODE++f1b9a1054c1b8d303c21a78abec22481d5d6c9e56dc0d06d19ff3f2a70815de4">
+      <source xml:lang="en">Failed to update the .sqlproj after moving the file: {0}</source>
+    </trans-unit>
     <trans-unit id="++CODE++aac77df347205252b074d45aff7891debdba0ff1466cc0c351416d1662bb71ab">
       <source xml:lang="en">Feedback</source>
     </trans-unit>
@@ -4477,6 +4480,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9f67971ab8a605f2aedf0b33a5fce37d2b135aef48f886231da5d8163aa488a6">
       <source xml:lang="en">MSSQL Feedback</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a5427462c277225a1de708f2b2b949ae62f5ef9a5248d7d4c11d6ed297afc756">
+      <source xml:lang="en">MSSQL Notebook Selection Summary</source>
     </trans-unit>
     <trans-unit id="++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4">
       <source xml:lang="en">MSSQL Notebook connected to {0}</source>
@@ -7488,9 +7494,6 @@
     <trans-unit id="++CODE++dcf10fd537a0660c98f1a3890997024dfebb2ac795ee02dcbc7581ec4a0fe141">
       <source xml:lang="en">The extension &apos;{0}&apos; is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.</source>
       <note>{0} is the extension name</note>
-    </trans-unit>
-    <trans-unit id="++CODE++f68f33fb93151a82eec256c3d1c206240adf84b77dabcbbc5ed97a496700b4ac">
-      <source xml:lang="en">The file was moved on disk, but updating the .sqlproj failed: {0}. The project may be out of sync — please verify the file&apos;s entry in the project file.</source>
     </trans-unit>
     <trans-unit id="++CODE++d160b49baa7c6e4e8b95a21a984b19fda338b9d47a01d61c2d7445ed29cf174e">
       <source xml:lang="en">The first value must be less than the second value for the {0} operator in the {1} filter</source>

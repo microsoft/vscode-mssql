@@ -4209,8 +4209,5 @@ export class SqlMoveToSchema {
     public static moveFileFailed = (message: string): string =>
         l10n.t("Failed to move file to the new schema folder: {0}", message);
     public static sqlprojUpdateFailed = (message: string): string =>
-        l10n.t(
-            "The file was moved on disk, but updating the .sqlproj failed: {0}. The project may be out of sync — please verify the file's entry in the project file.",
-            message,
-        );
+        l10n.t("Failed to update the .sqlproj after moving the file: {0}", message);
 }

@@ -243,6 +243,35 @@ export interface SqlMoveToSchemaParams {
     existingRefactorLogContent: string | null;
 }
 
+/**
+ * Result of a `sql/moveToSchema` request. Example — moving `[dbo].[Orders]` to the `sales` schema,
+ * where the table is defined in `Orders.sql` and also referenced by a trigger:
+ *
+ * ```json
+ * {
+ *   "changes": {
+ *     "file:///c%3A/proj/dbo/Tables/Orders.sql": [
+ *       { "range": { "start": { "line": 0, "character": 13 },
+ *                    "end":   { "line": 0, "character": 18 } },
+ *         "newText": "sales" }
+ *     ],
+ *     "file:///c%3A/proj/dbo/Triggers/OrdersAudit.sql": [
+ *       { "range": { "start": { "line": 2, "character": 3 },
+ *                    "end":   { "line": 2, "character": 8 } },
+ *         "newText": "sales" }
+ *     ]
+ *   },
+ *   "refactorLogContent": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<Operations ...>...</Operations>",
+ *   "targetSchema": "sales",
+ *   "definitionFileUri": "file:///c%3A/proj/dbo/Tables/Orders.sql",
+ *   "elementType": "SqlTable"
+ * }
+ * ```
+ *
+ * When the target schema already contains an object with the same name, STS instead returns a
+ * confirmation prompt: `{ "message": "A schema object with the name [sales].[Orders] already
+ * exists. Would you like to continue?", "isWarning": true, ... }`.
+ */
 export interface SqlMoveToSchemaResponse {
     changes: { [uri: string]: SqlSymbolRenameTextEdit[] } | null;
     /**

@@ -27,8 +27,13 @@ import {
 import { SqlProjectsService } from "../services/sqlProjectsService";
 
 /**
- * Maps STS `ElementType` values (from the `.refactorlog` XML) to their conventional
- * SQL project folder names, following SSDT folder structure conventions.
+ * Maps STS `ElementType` values to their conventional SQL project folder names, following SSDT
+ * folder structure conventions.
+ *
+ * The keys mirror the strings produced by `SchemaLevelRefactorType()` in the SQL Tools Service
+ * (lowercased here so lookups are case-insensitive). They arrive on the `elementType` field of
+ * the `SqlMoveToSchemaResponse`. If STS adds or renames an element type, update this map to match:
+ * https://github.com/microsoft/sqltoolsservice/blob/main/src/Microsoft.SqlTools.SqlCore/IntelliSense/TSqlModelMetadataProvider.cs
  */
 const stsElementTypeToFolderMap: Readonly<Record<string, string>> = {
     sqltable: "Tables",
@@ -40,6 +45,16 @@ const stsElementTypeToFolderMap: Readonly<Record<string, string>> = {
     sqltrigger: "Triggers",
     sqlsequence: "Sequences",
 };
+
+/** Outcome of attempting to relocate the definition file to its new schema folder. */
+const enum FileMoveResult {
+    /** The file was renamed to the new schema folder. */
+    Moved = "moved",
+    /** No move was attempted; the file stays where it is (not an error). */
+    Skipped = "skipped",
+    /** The rename was attempted but failed; an error has already been shown to the user. */
+    Failed = "failed",
+}
 
 /**
  * Surfaces a "Move to Schema..." action under the editor's **Refactor...** menu for SQL files in a
@@ -249,7 +264,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             if (!applied) {
                 void vscode.window.showErrorMessage(loc.applyEditFailed);
             } else {
-                const moved = await this.moveFileToNewSchemaFolder(
+                const moveResult = await this.moveFileToNewSchemaFolder(
                     document,
                     refactorTarget,
                     targetSchema,
@@ -258,9 +273,9 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                     response.elementType,
                 );
                 // Refresh the project tree to reflect the SQL text edits, .sqlproj changes,
-                // and (when the file moved) the new file location. Skip only when the physical
-                // rename itself failed — the user already saw the error message in that case.
-                if (moved !== false) {
+                // and (when the file moved) the new file location. Skip only when the rename
+                // failed — the user already saw the error message in that case.
+                if (moveResult !== FileMoveResult.Failed) {
                     await vscode.commands.executeCommand("dataworkspace.refresh");
                 }
             }
@@ -276,23 +291,19 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
     }
 
     /**
-     * After the SQL text edits are confirmed, relocates the physical `.sql` file that defines
-     * the moved object to the folder matching the new schema. For example:
-     *   `dbo/Tables/table1.sql`  →  `sss/Tables/table1.sql`
+     * Moves the `.sql` file that defines the object into the folder for its new schema, and
+     * updates the `.sqlproj` to match. For example: `dbo/Tables/table1.sql` → `sss/Tables/table1.sql`.
      *
-     * Uses `definitionFileUri` from the STS response to locate the correct source file — this
-     * handles the case where the cursor was on a reference in another file (e.g. a table name
-     * inside a trigger body). Falls back to the open document when the URI is absent.
+     * The source file comes from `definitionFileUri` (so the correct file is moved even when the
+     * cursor was on a reference inside another file, such as a table name in a trigger body),
+     * falling back to `triggerDocument` when STS does not supply it. The destination subfolder
+     * comes from `elementType` via {@link stsElementTypeToFolderMap}, falling back to the source
+     * file's existing subfolders when the type is unrecognised.
      *
-     * The target subfolder is derived from `elementType` (e.g. `SqlTable` → `Tables`) using
-     * `stsElementTypeToFolderMap`. When the type is unknown the existing path segments are
-     * preserved as a fallback.
-     *
-     * Skips silently (preserving SQL text edits) when:
-     *  - the source file is not under a known project schema folder
-     *  - the file is already at the destination
-     *
-     * Returns `false` only when the physical rename fails (caller skips tree refresh).
+     * @returns
+     * - {@link FileMoveResult.Moved} — the file was renamed.
+     * - {@link FileMoveResult.Skipped} — no move was needed or the file is not laid out by schema; the SQL text edits still stand.
+     * - {@link FileMoveResult.Failed} — the rename failed and an error was shown to the user.
      */
     private async moveFileToNewSchemaFolder(
         triggerDocument: vscode.TextDocument,
@@ -301,7 +312,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         schemas: string[],
         definitionFileUri: string | null | undefined,
         elementType: string | null | undefined,
-    ): Promise<boolean | void> {
+    ): Promise<FileMoveResult> {
         // Use vscode.Uri.path (always forward-slash on every platform) to derive the
         // project-relative path. This avoids any OS path-separator handling — no need for
         // path.relative, path.sep, or manual slash normalization.
@@ -310,9 +321,8 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             refactorTarget.sqlprojUri.path.lastIndexOf("/"),
         );
 
-        // Resolve the source file and target subfolder directly from the STS response fields.
-        // definitionFileUri is the file that declares the moved object; elementType maps to the
-        // SSDT-conventional folder name. Both fall back gracefully when absent.
+        // Source file and target folder come from the STS response; both fall back when absent.
+        // See SqlMoveToSchemaResponse in models/contracts/languageService.ts for a payload example.
         const sourceUri = definitionFileUri
             ? vscode.Uri.parse(definitionFileUri)
             : triggerDocument.uri;
@@ -322,15 +332,18 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
 
         if (!sourceUri.path.startsWith(projDirUriPath + "/")) {
             // Source file is not inside the project directory — skip.
-            return;
+            return FileMoveResult.Skipped;
         }
         const relPath = sourceUri.path.substring(projDirUriPath.length + 1);
 
+        // "dbo/Tables/table1.sql" -> ["dbo", "Tables", "table1.sql"]
         const segments = relPath.split("/").filter(Boolean);
         const fileName = segments[segments.length - 1];
         const hasSchemaPrefix = segments.length >= 2;
-        const currentSchema = hasSchemaPrefix ? segments[0] : undefined;
+        const currentSchemaLower = hasSchemaPrefix ? segments[0].toLowerCase() : undefined;
 
+        // Prefer the folder implied by the object's type (SqlTable -> "Tables"); otherwise keep
+        // the file's existing intermediate folders.
         const innerSegments = detectedFolder
             ? [detectedFolder]
             : hasSchemaPrefix
@@ -339,22 +352,19 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
 
         if (!hasSchemaPrefix && !detectedFolder) {
             // File is at the project root and object type is unknown — skip file move.
-            return;
+            return FileMoveResult.Skipped;
         }
 
-        if (
-            hasSchemaPrefix &&
-            !schemas.some((s) => s.toLowerCase() === currentSchema!.toLowerCase())
-        ) {
+        if (hasSchemaPrefix && !schemas.some((s) => s.toLowerCase() === currentSchemaLower)) {
             // Top-level folder is not a known project schema — skip to avoid moving
             // non-schema-organised files (e.g. misc/tables/x.sql) unexpectedly.
-            return;
+            return FileMoveResult.Skipped;
         }
 
         // Build the new relative path and skip if file is already at the destination.
         const newRelPath = [targetSchema, ...innerSegments, fileName].join("/");
         if (relPath === newRelPath) {
-            return;
+            return FileMoveResult.Skipped;
         }
 
         // Derive the project root URI from the sqlproj URI so all file operations stay URI-based.
@@ -365,29 +375,33 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             ...innerSegments,
             fileName,
         );
-        const targetDirUri = vscode.Uri.joinPath(projectRootUri, targetSchema, ...innerSegments);
 
-        // Ensure the target directory exists on disk. createDirectory is idempotent.
+        // Move the file via WorkspaceEdit.renameFile so VS Code updates any open editors and
+        // transfers dirty-buffer state to the new URI. Using vscode.workspace.fs.rename directly
+        // (filesystem-level) would desync open TextDocument URIs — the dirty buffer at the old
+        // URI could be saved back, recreating the old-path file. WorkspaceEdit.renameFile also
+        // creates the target directory automatically, so no separate createDirectory is needed.
+        const renameEdit = new vscode.WorkspaceEdit();
+        renameEdit.renameFile(sourceUri, newAbsUri, { overwrite: false });
+        let renameApplied: boolean;
         try {
-            await vscode.workspace.fs.createDirectory(targetDirUri);
-        } catch {
-            // Ignore "already exists" — the directory may have been created already.
-        }
-
-        // Move the physical file.
-        try {
-            await vscode.workspace.fs.rename(sourceUri, newAbsUri, { overwrite: false });
+            renameApplied = await vscode.workspace.applyEdit(renameEdit);
         } catch (err) {
             void vscode.window.showErrorMessage(
                 loc.moveFileFailed(err instanceof Error ? err.message : String(err)),
             );
-            return false; // signal that the rename failed so the caller skips the tree refresh
+            return FileMoveResult.Failed;
+        }
+        if (!renameApplied) {
+            void vscode.window.showErrorMessage(loc.moveFileFailed(""));
+            return FileMoveResult.Failed;
         }
 
-        // Register the new schema folder hierarchy in the .sqlproj (no-op if already present) and
-        // update the <Build Include> path to reflect the new file location. The file has already
-        // been moved on disk at this point, so a failure here leaves the project out of sync —
-        // surface it to the user rather than failing silently.
+        // Register the new schema folder hierarchy in the .sqlproj. SDK-style projects glob their
+        // scripts from disk (`**/*.sql`), so the file move alone is enough for them and only the
+        // folder entries need adding. Legacy projects with explicit <Build Include> entries also
+        // need the script path rewritten, which is what moveSqlObjectScript does; it reports
+        // "script entry does not exist" for glob-based projects, which is expected and harmless.
         const projPath = refactorTarget.sqlprojUri.fsPath;
         try {
             const results = [await this._sqlProjectsService.addFolder(projPath, targetSchema)];
@@ -399,9 +413,6 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                     ),
                 );
             }
-            results.push(
-                await this._sqlProjectsService.moveSqlObjectScript(projPath, relPath, newRelPath),
-            );
 
             const failure = results.find((r) => !r?.success);
             if (failure) {
@@ -409,10 +420,17 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                     loc.sqlprojUpdateFailed(failure.errorMessage || ""),
                 );
             }
+
+            // Best-effort: only applies to projects that list scripts explicitly.
+            await this._sqlProjectsService
+                .moveSqlObjectScript(projPath, relPath, newRelPath)
+                .then(undefined, () => undefined);
         } catch (err) {
             void vscode.window.showErrorMessage(
                 loc.sqlprojUpdateFailed(err instanceof Error ? err.message : String(err)),
             );
         }
+
+        return FileMoveResult.Moved;
     }
 }
