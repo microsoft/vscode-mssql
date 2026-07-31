@@ -5868,6 +5868,10 @@ Erreur :
         <source xml:lang="en">MSSQL Feedback</source>
         <target state="translated">Commentaires sur MSSQL</target>
       </trans-unit>
+      <trans-unit id="++CODE++a5427462c277225a1de708f2b2b949ae62f5ef9a5248d7d4c11d6ed297afc756">
+        <source xml:lang="en">MSSQL Notebook Selection Summary</source>
+        <target state="new">MSSQL Notebook Selection Summary</target>
+      </trans-unit>
       <trans-unit id="++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4">
         <source xml:lang="en">MSSQL Notebook connected to {0}</source>
         <note>{0} is the connection label</note>
