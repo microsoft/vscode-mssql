@@ -14,8 +14,8 @@
             " *  Licensed under the MIT License. See License.txt in the project root for license information.",
             " *--------------------------------------------------------------------------------------------*/",
             "",
-            "$0"
+            "$0",
         ],
-        "description": "Insert Copyright Statement"
-    }
+        "description": "Insert Copyright Statement",
+    },
 }
