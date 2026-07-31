@@ -54,7 +54,10 @@ jobs:
         id: normalize
         shell: bash
         run: |
-          git add --renormalize -- '*.json' '*.xml' '*.xlf'
+          git add --renormalize -- '*.json' '*.xml'
+          git ls-files -z -- '*.xlf' |
+            xargs -0 -r perl -pi -e 's/\r?\n/\r\n/g' --
+          git add --renormalize -- '*.xlf'
 
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
