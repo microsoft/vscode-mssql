@@ -19,15 +19,19 @@ import {
     Input,
     TableCellLayout,
     TableColumnDefinition,
+    TableColumnSizingOptions,
     Toolbar,
     ToolbarButton,
     createTableColumn,
     makeStyles,
+    mergeClasses,
     tokens,
 } from "@fluentui/react-components";
 import {
     ArrowSortDownLines16Regular,
+    ChevronDown16Regular,
     ChevronDown20Regular,
+    ChevronRight16Regular,
     ChevronRight20Regular,
     Dismiss12Regular,
     Dismiss16Regular,
@@ -87,7 +91,7 @@ const useStyles = makeStyles({
     previewStickyHeader: {
         position: "sticky",
         top: 0,
-        zIndex: 1,
+        zIndex: 3,
         backgroundColor: "var(--vscode-editor-background)",
     },
     previewPropertiesHeader: {
@@ -145,6 +149,115 @@ const useStyles = makeStyles({
         border: "1px solid var(--vscode-foreground)",
         fontSize: "12px",
     },
+    previewGridContainer: {
+        width: "100%",
+        backgroundColor: "var(--vscode-editor-background)",
+    },
+    previewGrid: {
+        width: "100%",
+        color: "var(--vscode-editor-foreground)",
+        fontFamily: "var(--vscode-font-family)",
+        fontSize: "12px",
+    },
+    previewTableHeader: {
+        position: "sticky",
+        top: "92px",
+        zIndex: 2,
+        height: "28px",
+        borderBottom:
+            "1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent))",
+        backgroundColor:
+            "var(--vscode-sideBarSectionHeader-background, var(--vscode-editor-background))",
+        color: "var(--vscode-sideBarSectionHeader-foreground, var(--vscode-foreground))",
+        fontSize: "12px",
+        fontWeight: 600,
+    },
+    previewHeaderRow: {
+        minHeight: "28px",
+        height: "28px",
+    },
+    previewHeaderCell: {
+        boxSizing: "border-box",
+        height: "28px",
+        minHeight: "28px",
+        padding: "0 8px",
+        border: "none",
+        "&:first-child": {
+            borderRight:
+                "1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent))",
+        },
+    },
+    previewTableRow: {
+        minHeight: "26px",
+        height: "26px",
+        overflow: "hidden",
+        borderBottom:
+            "1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent))",
+        backgroundColor: "transparent",
+        "&:hover": {
+            backgroundColor: "var(--vscode-list-hoverBackground)",
+        },
+        "&:focus-within": {
+            boxShadow: "inset 0 0 0 1px var(--vscode-focusBorder)",
+        },
+    },
+    previewGroupRow: {
+        backgroundColor:
+            "var(--vscode-sideBarSectionHeader-background, var(--vscode-list-inactiveSelectionBackground))",
+        fontWeight: 600,
+    },
+    previewTableCell: {
+        boxSizing: "border-box",
+        height: "26px",
+        minHeight: "26px",
+        padding: "0 8px",
+        overflow: "hidden",
+        border: "none",
+        fontSize: "12px",
+        "&:first-child": {
+            borderRight:
+                "1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent))",
+        },
+        "&:nth-child(2)": {
+            fontFamily: "var(--vscode-editor-font-family, Monaco, Menlo, Consolas, monospace)",
+        },
+    },
+    previewCellLayout: {
+        width: "100%",
+        minWidth: 0,
+        padding: 0,
+    },
+    previewNameContent: {
+        boxSizing: "border-box",
+        display: "flex",
+        alignItems: "center",
+        width: "100%",
+        minWidth: 0,
+    },
+    previewCellText: {
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+    },
+    previewDisclosureButton: {
+        width: "16px",
+        minWidth: "16px",
+        height: "16px",
+        minHeight: "16px",
+        marginRight: "4px",
+        padding: 0,
+        border: "none",
+        backgroundColor: "transparent",
+        color: "inherit",
+        boxShadow: "none",
+    },
+    previewDisclosureSpacer: {
+        display: "block",
+        width: "20px",
+        minWidth: "20px",
+        height: "16px",
+    },
     inputbox: {
         width: "100%",
         minWidth: "50px",
@@ -153,6 +266,14 @@ const useStyles = makeStyles({
     toolbar: {
         display: "flex",
         alignItems: "center",
+    },
+    previewToolbar: {
+        boxSizing: "border-box",
+        height: "32px",
+        minHeight: "32px",
+        padding: "0 4px",
+        borderBottom:
+            "1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent))",
     },
     dismissButton: {
         width: "12px",
@@ -171,6 +292,19 @@ const useStyles = makeStyles({
         whiteSpace: "nowrap",
     },
 });
+
+const previewColumnSizingOptions: TableColumnSizingOptions = {
+    name: {
+        minWidth: 140,
+        defaultWidth: 170,
+        idealWidth: 180,
+    },
+    value: {
+        minWidth: 140,
+        defaultWidth: 220,
+        idealWidth: 240,
+    },
+};
 
 interface PropertiesPaneProps {
     executionPlanView: ExecutionPlanGraphController;
@@ -335,43 +469,99 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     const columns: TableColumnDefinition<ep.ExecutionPlanPropertyTableItem>[] = [
         createTableColumn<ep.ExecutionPlanPropertyTableItem>({
             columnId: "name",
-            renderHeaderCell: () => NAME,
-            renderCell: (item) => (
-                // Add tabbing based on the "level" of the item in the table,
-                // and add expand button based on whether the item has children
-                <TableCellLayout truncate className={classes.textContainer}>
-                    {`\u200b\t`.repeat(item.level * 6)}
-                    {item.children.length > 0 && (
-                        <Button
-                            size="small"
-                            className={classes.chevronButton}
-                            aria-label={
-                                openedButtons.includes(item.name)
-                                    ? locConstants.executionPlan.collapse
-                                    : locConstants.executionPlan.expand
-                            }
-                            icon={
-                                openedButtons.includes(item.name) ? (
-                                    <ChevronDown20Regular />
+            renderHeaderCell: () => (useReactFlow ? <span title={NAME}>{NAME}</span> : NAME),
+            renderCell: (item) => {
+                const isExpanded = openedButtons.includes(item.name);
+                if (useReactFlow) {
+                    return (
+                        <TableCellLayout
+                            className={classes.previewCellLayout}
+                            title={item.name || undefined}>
+                            <div
+                                className={classes.previewNameContent}
+                                style={{ paddingLeft: `${item.level * 16}px` }}>
+                                {item.children.length > 0 ? (
+                                    <Button
+                                        appearance="subtle"
+                                        size="small"
+                                        className={classes.previewDisclosureButton}
+                                        aria-label={
+                                            isExpanded
+                                                ? locConstants.executionPlan.collapse
+                                                : locConstants.executionPlan.expand
+                                        }
+                                        aria-expanded={isExpanded}
+                                        icon={
+                                            isExpanded ? (
+                                                <ChevronDown16Regular />
+                                            ) : (
+                                                <ChevronRight16Regular />
+                                            )
+                                        }
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            void handleShowChildrenClick(item.name, item.children);
+                                        }}
+                                    />
                                 ) : (
-                                    <ChevronRight20Regular />
-                                )
-                            }
-                            onClick={() => handleShowChildrenClick(item.name, item.children)}
-                        />
-                    )}
-                    {item.name}
-                </TableCellLayout>
-            ),
+                                    item.level > 0 && (
+                                        <span
+                                            className={classes.previewDisclosureSpacer}
+                                            aria-hidden="true"
+                                        />
+                                    )
+                                )}
+                                <span className={classes.previewCellText}>{item.name}</span>
+                            </div>
+                        </TableCellLayout>
+                    );
+                }
+
+                return (
+                    // Add tabbing based on the "level" of the item in the table,
+                    // and add expand button based on whether the item has children
+                    <TableCellLayout truncate className={classes.textContainer}>
+                        {`\u200b\t`.repeat(item.level * 6)}
+                        {item.children.length > 0 && (
+                            <Button
+                                size="small"
+                                className={classes.chevronButton}
+                                aria-label={
+                                    isExpanded
+                                        ? locConstants.executionPlan.collapse
+                                        : locConstants.executionPlan.expand
+                                }
+                                icon={
+                                    isExpanded ? (
+                                        <ChevronDown20Regular />
+                                    ) : (
+                                        <ChevronRight20Regular />
+                                    )
+                                }
+                                onClick={() => handleShowChildrenClick(item.name, item.children)}
+                            />
+                        )}
+                        {item.name}
+                    </TableCellLayout>
+                );
+            },
         }),
         createTableColumn<ep.ExecutionPlanPropertyTableItem>({
             columnId: "value",
-            renderHeaderCell: () => VALUE,
-            renderCell: (item) => (
-                <TableCellLayout truncate className={classes.textContainer}>
-                    {item.value}
-                </TableCellLayout>
-            ),
+            renderHeaderCell: () => (useReactFlow ? <span title={VALUE}>{VALUE}</span> : VALUE),
+            renderCell: (item) =>
+                useReactFlow ? (
+                    <TableCellLayout
+                        truncate
+                        className={classes.previewCellLayout}
+                        title={item.value || undefined}>
+                        <span className={classes.previewCellText}>{item.value}</span>
+                    </TableCellLayout>
+                ) : (
+                    <TableCellLayout truncate className={classes.textContainer}>
+                        {item.value}
+                    </TableCellLayout>
+                ),
         }),
     ];
 
@@ -380,8 +570,12 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             id="propertiesPanelContainer"
             className={classes.paneContainer}
             style={{
-                background: tokens.colorNeutralBackground2,
-                borderLeft: `0.5px solid ${tokens.colorNeutralStroke1}`,
+                background: useReactFlow
+                    ? "var(--vscode-editor-background)"
+                    : tokens.colorNeutralBackground2,
+                borderLeft: useReactFlow
+                    ? "1px solid var(--vscode-sideBar-border, var(--vscode-editorGroup-border, transparent))"
+                    : `0.5px solid ${tokens.colorNeutralStroke1}`,
             }}>
             <div
                 className={useReactFlow ? classes.previewStickyHeader : undefined}
@@ -441,7 +635,13 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     tabIndex={useReactFlow ? undefined : 0}>
                     {name}
                 </div>
-                <Toolbar className={classes.toolbar} size="small">
+                <Toolbar
+                    className={
+                        useReactFlow
+                            ? mergeClasses(classes.toolbar, classes.previewToolbar)
+                            : classes.toolbar
+                    }
+                    size="small">
                     <ToolbarButton
                         className={classes.button}
                         tabIndex={0}
@@ -562,35 +762,64 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     />
                 </Toolbar>
             </div>
-            <div style={{ width: "100%" }}>
+            <div
+                className={useReactFlow ? classes.previewGridContainer : undefined}
+                style={useReactFlow ? undefined : { width: "100%" }}>
                 <DataGrid
+                    className={useReactFlow ? classes.previewGrid : undefined}
                     items={items}
                     columns={columns}
                     focusMode="composite"
                     resizableColumns={true}
-                    size="small">
+                    columnSizingOptions={useReactFlow ? previewColumnSizingOptions : undefined}
+                    size="small"
+                    aria-label={useReactFlow ? `${PROPERTIES}: ${name}` : undefined}>
                     <DataGridHeader
-                        className={classes.tableHeader}
-                        style={{
-                            background: tokens.colorNeutralBackground2,
-                        }}>
-                        <DataGridRow className={classes.tableRow}>
+                        className={useReactFlow ? classes.previewTableHeader : classes.tableHeader}
+                        style={
+                            useReactFlow
+                                ? undefined
+                                : {
+                                      background: tokens.colorNeutralBackground2,
+                                  }
+                        }>
+                        <DataGridRow
+                            className={useReactFlow ? classes.previewHeaderRow : classes.tableRow}>
                             {({ renderHeaderCell }) => (
-                                <DataGridHeaderCell className={classes.tableHeader}>
+                                <DataGridHeaderCell
+                                    className={
+                                        useReactFlow
+                                            ? classes.previewHeaderCell
+                                            : classes.tableHeader
+                                    }>
                                     {renderHeaderCell()}
                                 </DataGridHeaderCell>
                             )}
                         </DataGridRow>
                     </DataGridHeader>
-                    <DataGridBody<ep.ExecutionPlanPropertyTableItem> tabIndex={0}>
+                    <DataGridBody<ep.ExecutionPlanPropertyTableItem>
+                        tabIndex={useReactFlow ? undefined : 0}>
                         {({ item, rowId }) => (
                             <>
                                 {(!item.isChild || shownChildren.includes(item.id)) && (
                                     <DataGridRow<ep.ExecutionPlanPropertyTableItem>
                                         key={rowId}
-                                        className={classes.tableRow}>
+                                        className={
+                                            useReactFlow
+                                                ? mergeClasses(
+                                                      classes.previewTableRow,
+                                                      item.children.length > 0 &&
+                                                          classes.previewGroupRow,
+                                                  )
+                                                : classes.tableRow
+                                        }>
                                         {({ renderCell }) => (
-                                            <DataGridCell className={classes.tableCell}>
+                                            <DataGridCell
+                                                className={
+                                                    useReactFlow
+                                                        ? classes.previewTableCell
+                                                        : classes.tableCell
+                                                }>
                                                 {renderCell(item)}
                                             </DataGridCell>
                                         )}

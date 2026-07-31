@@ -10,9 +10,20 @@ import "./executionPlan.css";
 import * as azdataGraph from "azdataGraph";
 import * as utils from "./queryPlanSetup";
 
-import { Button, Input, makeStyles, tokens } from "@fluentui/react-components";
-import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Button, Input, makeStyles, mergeClasses, tokens } from "@fluentui/react-components";
+import {
+    Checkmark16Regular,
+    Checkmark20Regular,
+    Dismiss16Regular,
+    Dismiss20Regular,
+} from "@fluentui/react-icons";
+import {
+    KeyboardEvent as ReactKeyboardEvent,
+    useCallback,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 
 import { ExecutionPlanView } from "./executionPlanView";
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
@@ -29,6 +40,10 @@ import { useExecutionPlanSelector } from "./executionPlanSelector";
 import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 import { WebviewErrorBoundary } from "../../common/webviewErrorBoundary";
 import { SqlText } from "../../common/sqlText";
+import {
+    VscodeFloatingWidget,
+    VscodeFloatingWidgetAction,
+} from "../../common/vscodeFloatingWidget";
 
 const useStyles = makeStyles({
     panelContainer: {
@@ -58,6 +73,22 @@ const useStyles = makeStyles({
         alignItems: "center",
         gap: "2px",
         opacity: 1,
+    },
+    previewInputContainer: {
+        position: "absolute",
+        top: "4px",
+        right: "39px",
+        zIndex: 5,
+        maxWidth: "calc(100% - 51px)",
+    },
+    previewZoomInput: {
+        width: "72px",
+        minWidth: "72px",
+        fontSize: "12px",
+    },
+    previewInputSuffix: {
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: "12px",
     },
     queryCostContainer: {
         opacity: 1,
@@ -112,6 +143,32 @@ const useStyles = makeStyles({
         width: "15px",
         cursor: "ew-resize",
         backgroundColor: "transparent",
+    },
+    previewResizer: {
+        left: "-5px",
+        zIndex: 4,
+        width: "11px",
+        outline: "none",
+        touchAction: "none",
+        "&::after": {
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            left: "5px",
+            width: "1px",
+            backgroundColor: "transparent",
+            content: '""',
+        },
+        "&:hover::after": {
+            left: "4px",
+            width: "2px",
+            backgroundColor: "var(--vscode-sash-hoverBorder, var(--vscode-focusBorder))",
+        },
+        "&:focus-visible::after": {
+            left: "4px",
+            width: "2px",
+            backgroundColor: "var(--vscode-focusBorder)",
+        },
     },
     spacer: {
         padding: "1px",
@@ -274,6 +331,17 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
 
         document.addEventListener("mousemove", onMouseMove);
         document.addEventListener("mouseup", onMouseUp);
+    };
+
+    const onResizerKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+        const resizeStep = event.shiftKey ? 50 : 10;
+        if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            setPropertiesWidth((currentWidth) => currentWidth + resizeStep);
+        } else if (event.key === "ArrowRight") {
+            event.preventDefault();
+            setPropertiesWidth((currentWidth) => Math.max(295, currentWidth - resizeStep));
+        }
     };
 
     return (
@@ -448,7 +516,25 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         className={classes.resizable}
                         style={{ width: `${propertiesWidth}px` }}
                         ref={resizableRef}>
-                        <div className={classes.resizer} onMouseDown={onMouseDown}></div>
+                        <div
+                            className={
+                                useReactFlow
+                                    ? mergeClasses(classes.resizer, classes.previewResizer)
+                                    : classes.resizer
+                            }
+                            role={useReactFlow ? "separator" : undefined}
+                            aria-orientation={useReactFlow ? "vertical" : undefined}
+                            aria-label={
+                                useReactFlow
+                                    ? `${locConstants.queryResult.resize} ${locConstants.executionPlan.properties}`
+                                    : undefined
+                            }
+                            aria-valuemin={useReactFlow ? 295 : undefined}
+                            aria-valuenow={useReactFlow ? Math.round(propertiesWidth) : undefined}
+                            tabIndex={useReactFlow ? 0 : undefined}
+                            onMouseDown={onMouseDown}
+                            onKeyDown={useReactFlow ? onResizerKeyDown : undefined}
+                        />
                         <div style={{ height: "100%" }} tabIndex={0}>
                             <PropertiesPane
                                 // guaranteed to be non-null
