@@ -212,36 +212,7 @@ export default class TelemetryReporter<V extends string = string, A extends stri
         this.createMetricsEvent(measurements, groupName).send();
     }
 
-    /**
-     * @deprecated Use createErrorEvent2.
-     */
     public createErrorEvent(
-        view: V,
-        name: string,
-        errorCode: string = "",
-        errorType: string = "",
-    ): TelemetryEvent {
-        return new TelemetryEventImpl(this._telemetryReporter, "error", {
-            view,
-            name,
-            errorCode,
-            errorType,
-        });
-    }
-
-    /**
-     * @deprecated Use sendErrorEvent2.
-     */
-    public sendErrorEvent(
-        view: V,
-        name: string,
-        errorCode: string = "",
-        errorType: string = "",
-    ): void {
-        this.createErrorEvent(view, name, errorCode, errorType).send();
-    }
-
-    public createErrorEvent2(
         view: V,
         name: string,
         error: unknown = undefined,
@@ -273,7 +244,7 @@ export default class TelemetryReporter<V extends string = string, A extends stri
         return new TelemetryEventImpl(this._telemetryReporter, "error", properties);
     }
 
-    public sendErrorEvent2(
+    public sendErrorEvent(
         view: V,
         name: string,
         error: unknown = undefined,
@@ -281,7 +252,7 @@ export default class TelemetryReporter<V extends string = string, A extends stri
         errorCode: string = "",
         errorType: string = "",
     ): void {
-        this.createErrorEvent2(view, name, error, includeMessage, errorCode, errorType).send();
+        this.createErrorEvent(view, name, error, includeMessage, errorCode, errorType).send();
     }
 
     public createTelemetryEvent(

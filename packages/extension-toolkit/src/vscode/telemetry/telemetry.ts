@@ -166,7 +166,7 @@ export function sendErrorEvent(
 ): void {
     const callStack = includeCallStack ? captureCallStack() : undefined;
     let errorEvent = telemetryReporter
-        .createErrorEvent2(
+        .createErrorEvent(
             telemetryView,
             telemetryAction,
             includeErrorMessage ? error : new Error("Event generated error"),
