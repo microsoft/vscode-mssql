@@ -11,12 +11,7 @@ import * as azdataGraph from "azdataGraph";
 import * as utils from "./queryPlanSetup";
 
 import { Button, Input, makeStyles, mergeClasses, tokens } from "@fluentui/react-components";
-import {
-    Checkmark16Regular,
-    Checkmark20Regular,
-    Dismiss16Regular,
-    Dismiss20Regular,
-} from "@fluentui/react-icons";
+import { Checkmark20Regular, Dismiss20Regular } from "@fluentui/react-icons";
 import {
     KeyboardEvent as ReactKeyboardEvent,
     useCallback,
@@ -40,10 +35,6 @@ import { useExecutionPlanSelector } from "./executionPlanSelector";
 import { ExecutionPlanState } from "../../../sharedInterfaces/executionPlan";
 import { WebviewErrorBoundary } from "../../common/webviewErrorBoundary";
 import { SqlText } from "../../common/sqlText";
-import {
-    VscodeFloatingWidget,
-    VscodeFloatingWidgetAction,
-} from "../../common/vscodeFloatingWidget";
 
 const useStyles = makeStyles({
     panelContainer: {
