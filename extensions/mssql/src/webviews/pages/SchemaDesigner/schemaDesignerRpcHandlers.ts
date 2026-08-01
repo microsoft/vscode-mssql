@@ -2042,18 +2042,32 @@ function applyDabToolChange(
                 selectedEntityIds.add(resolvedEntity.entity.id);
             }
 
-            config.entities = config.entities.map((entity) => ({
-                ...entity,
-                isEnabled: selectedEntityIds.has(entity.id),
-            }));
+            config.entities = config.entities.map((entity) => {
+                const isEnabled = selectedEntityIds.has(entity.id);
+                return {
+                    ...entity,
+                    isEnabled,
+                    columns: entity.columns.map((column) => ({
+                        ...column,
+                        isExposed: isEnabled,
+                    })),
+                };
+            });
             return { success: true };
         }
 
         case "set_all_entities_enabled": {
-            config.entities = config.entities.map((entity) => ({
-                ...entity,
-                isEnabled: change.isEnabled ? entity.isSupported : false,
-            }));
+            config.entities = config.entities.map((entity) => {
+                const isEnabled = change.isEnabled ? entity.isSupported : false;
+                return {
+                    ...entity,
+                    isEnabled,
+                    columns: entity.columns.map((column) => ({
+                        ...column,
+                        isExposed: isEnabled,
+                    })),
+                };
+            });
             return { success: true };
         }
 
