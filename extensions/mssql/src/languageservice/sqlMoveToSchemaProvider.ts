@@ -396,8 +396,9 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         // Register the new schema folder hierarchy in the .sqlproj. SDK-style projects glob their
         // scripts from disk (`**/*.sql`), so the file move alone is enough for them and only the
         // folder entries need adding. Legacy projects with explicit <Build Include> entries also
-        // need the script path rewritten, which is what moveSqlObjectScript does; it reports
-        // "script entry does not exist" for glob-based projects, which is expected and harmless.
+        // need the script path rewritten — done by excluding the old path and adding the new one
+        // (avoids the disk-move side-effect of moveSqlObjectScript, which would conflict with the
+        // renameFile already performed above).
         const projPath = refactorTarget.sqlprojUri.fsPath;
         try {
             const results = [await this._sqlProjectsService.addFolder(projPath, targetSchema)];
@@ -417,9 +418,15 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                 );
             }
 
-            // Best-effort: only applies to projects that list scripts explicitly.
+            // Best-effort: re-register the script path for legacy projects that use explicit
+            // <Build Include> entries. SDK-style (glob-based) projects have no entry to update,
+            // so this is a no-op for them — any failure is silently ignored.
             await this._sqlProjectsService
-                .moveSqlObjectScript(projPath, relPath, newRelPath)
+                .excludeSqlObjectScript(projPath, relPath)
+                .then(
+                    () => this._sqlProjectsService.addSqlObjectScript(projPath, newRelPath),
+                    () => undefined,
+                )
                 .then(undefined, () => undefined);
         } catch (err) {
             void vscode.window.showErrorMessage(
