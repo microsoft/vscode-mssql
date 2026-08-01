@@ -2203,6 +2203,53 @@ suite("DabTool Tests", () => {
             expect(summaryResult).to.not.have.property("config");
         });
 
+        test("apply_changes set_all_entities_enabled and set_only_enabled_entities synchronizes column isExposed", async () => {
+            const table = {
+                ...createTable("t1", "dbo", "Users"),
+                columns: [
+                    {
+                        id: "t1-id",
+                        name: "Id",
+                        dataType: "int",
+                        isPrimaryKey: true,
+                    } as SchemaDesigner.Column,
+                    {
+                        id: "t1-name",
+                        name: "Name",
+                        dataType: "nvarchar",
+                        isPrimaryKey: false,
+                    } as SchemaDesigner.Column,
+                ],
+            };
+            const harness = createDabHandlerHarness({
+                tables: [table],
+                dabConfig: null,
+            });
+
+            const state1 = await harness.getState();
+            const enableResult = await harness.applyChanges({
+                expectedVersion: state1.version,
+                changes: [{ type: "set_all_entities_enabled", isEnabled: true }],
+            });
+            expect(enableResult.success).to.equal(true);
+            expect(enableResult.config?.entities[0].isEnabled).to.equal(true);
+            expect(
+                enableResult.config?.entities[0].columns.find((c: any) => c.name === "Name")
+                    ?.isExposed,
+            ).to.equal(true);
+
+            const disableResult = await harness.applyChanges({
+                expectedVersion: enableResult.version,
+                changes: [{ type: "set_only_enabled_entities", entities: [] }],
+            });
+            expect(disableResult.success).to.equal(true);
+            expect(disableResult.config?.entities[0].isEnabled).to.equal(false);
+            expect(
+                disableResult.config?.entities[0].columns.find((c: any) => c.name === "Name")
+                    ?.isExposed,
+            ).to.equal(false);
+        });
+
         test("apply_changes set_only_enabled_entities updates enabled flags by selected ids", async () => {
             const harness = createDabHandlerHarness({
                 tables: [
