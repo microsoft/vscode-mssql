@@ -83,6 +83,31 @@ jobs:
         run: |
           npm run lint
 
+      - name: Inject extension telemetry key
+        env:
+          APP_INSIGHTS_KEY: ${{ vars.APP_INSIGHTS_KEY }}
+        run: |
+          node --input-type=module <<'EOF'
+          import { readFile, writeFile } from "node:fs/promises";
+
+          const telemetryKey = process.env.APP_INSIGHTS_KEY;
+          if (!telemetryKey) {
+            throw new Error("APP_INSIGHTS_KEY repository variable is not set");
+          }
+
+          const packagePaths = [
+            "extensions/mssql/package.json",
+            "extensions/sql-database-projects/package.json",
+            "extensions/data-workspace/package.json",
+          ];
+
+          for (const packagePath of packagePaths) {
+            const packageJson = JSON.parse(await readFile(packagePath, "utf8"));
+            packageJson.aiKey = telemetryKey;
+            await writeFile(packagePath, `${JSON.stringify(packageJson, undefined, 4)}\n`);
+          }
+          EOF
+
       # Calculate sizes and package before testing;
       # Testing generates sourcemaps and instrumented code
       # that increase size
