@@ -2222,7 +2222,7 @@ suite("DabTool Tests", () => {
                 ],
             };
             const harness = createDabHandlerHarness({
-                tables: [table],
+                tables: [table, createTable("t2", "dbo", "Accounts")],
                 dabConfig: null,
             });
 
@@ -2240,7 +2240,7 @@ suite("DabTool Tests", () => {
 
             const disableResult = await harness.applyChanges({
                 expectedVersion: enableResult.version,
-                changes: [{ type: "set_only_enabled_entities", entities: [] }],
+                changes: [{ type: "set_only_enabled_entities", entities: [{ id: "t2" }] }],
             });
             expect(disableResult.success).to.equal(true);
             expect(disableResult.config?.entities[0].isEnabled).to.equal(false);
