@@ -14,7 +14,7 @@ import { IConnectionProfile } from "../models/interfaces";
 import * as vscodeMssql from "vscode-mssql";
 import { WebviewPanelController } from "./webviewPanelController";
 import * as LocConstants from "../constants/locConstants";
-import { startActivity } from "../telemetry/telemetry";
+import { startActivity } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
 import * as dacpacDialog from "../sharedInterfaces/dacpacDialog";
 import { TaskExecutionMode } from "../enums";

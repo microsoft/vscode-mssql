@@ -17,7 +17,7 @@ import { WebviewPanelController } from "./webviewPanelController";
 import * as vscode from "vscode";
 import { changelogConfig } from "../configurations/changelog";
 import * as constants from "../constants/constants";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 const GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY = "changelog/lastChangeLogVersion";

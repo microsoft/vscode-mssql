@@ -23,7 +23,7 @@ import {
     ConnectionDialogWebviewState,
 } from "../sharedInterfaces/connectionDialog";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendErrorEvent } from "../telemetry/telemetry";
+import { sendErrorEvent } from "extension-toolkit/vscode";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 import {
     activeDirectory,

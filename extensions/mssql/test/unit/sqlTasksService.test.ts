@@ -19,7 +19,7 @@ import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
 import { stubMessageBoxes } from "./utils";
 import { TaskExecutionMode } from "../../src/enums";
-import * as telemetry from "../../src/telemetry/telemetry";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 
 chai.use(sinonChai);
 
