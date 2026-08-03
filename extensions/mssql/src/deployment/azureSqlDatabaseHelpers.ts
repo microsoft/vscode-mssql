@@ -19,7 +19,7 @@ import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterface
 import { FormItemActionButton, FormItemOptions, FormItemType } from "../sharedInterfaces/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";

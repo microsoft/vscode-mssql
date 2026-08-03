@@ -26,7 +26,7 @@ import { IScriptingObject } from "vscode-mssql";
 import * as Constants from "../constants/constants";
 import * as LocConstants from "../constants/locConstants";
 import { Deferred } from "../protocol";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 export class SearchDatabaseWebViewController extends WebviewPanelController<

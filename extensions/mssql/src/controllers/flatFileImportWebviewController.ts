@@ -29,7 +29,7 @@ import { SimpleExecuteResult } from "vscode-mssql";
 import { getSchemaNamesFromResult } from "../copilot/tools/listSchemasTool";
 import * as path from "path";
 import ConnectionManager from "./connectionManager";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { Deferred } from "../protocol";
 import { getErrorMessage, uuid } from "../utils/utils";

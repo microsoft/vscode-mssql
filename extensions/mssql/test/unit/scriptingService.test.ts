@@ -24,7 +24,7 @@ import {
     ScriptingCompleteNotification,
     ScriptingCancelRequest,
 } from "../../src/models/contracts/scripting/scriptingRequest";
-import * as telemetry from "../../src/telemetry/telemetry";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { ActivityObject, ActivityStatus } from "../../src/sharedInterfaces/telemetry";
