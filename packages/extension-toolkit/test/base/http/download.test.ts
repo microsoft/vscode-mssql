@@ -7,6 +7,9 @@ import * as fs from "fs";
 import * as fsPromises from "fs/promises";
 import * as os from "os";
 import * as path from "path";
+import { Readable } from "stream";
+import * as zlib from "zlib";
+import axios, { AxiosHeaders } from "axios";
 import * as chai from "chai";
 import { expect } from "chai";
 import * as sinon from "sinon";
@@ -232,6 +235,63 @@ describe("HttpClient downloads", () => {
             );
 
             expect(receivedHeader).to.equal("abc123");
+        });
+
+        it("requests an unencoded response by default", async () => {
+            let acceptEncoding: string | undefined;
+            server = await startTestServer((request, response) => {
+                acceptEncoding = request.headers["accept-encoding"];
+                response.end(payload);
+            });
+
+            await createClient().downloadToPath(
+                server.origin,
+                path.join(workingDirectory, "package.zip"),
+            );
+
+            expect(acceptEncoding).to.equal("identity");
+        });
+
+        it("rejects an encoded success response before modifying the destination", async () => {
+            const compressedPayload = zlib.gzipSync(payload);
+            server = await startTestServer((_request, response) => {
+                response.writeHead(200, {
+                    "content-encoding": "gzip",
+                    "content-length": String(compressedPayload.length),
+                });
+                response.end(compressedPayload);
+            });
+            const destination = path.join(workingDirectory, "package.zip");
+            await fsPromises.writeFile(destination, "previous", "utf8");
+
+            const error = await captureHttpClientError(() =>
+                createClient().downloadToPath(server!.origin, destination),
+            );
+
+            expect(error.kind).to.equal("response-stream");
+            expect(error.code).to.equal("ERR_UNSUPPORTED_CONTENT_ENCODING");
+            expect(await fsPromises.readFile(destination, "utf8")).to.equal("previous");
+            expect(await fsPromises.readdir(workingDirectory)).to.deep.equal(["package.zip"]);
+        });
+
+        it("rejects bytes received for a declared zero-length response", async () => {
+            sandbox.stub(axios, "request").resolves({
+                data: Readable.from(payload),
+                status: 200,
+                statusText: "OK",
+                headers: { "content-length": "0" },
+                config: { headers: new AxiosHeaders() },
+            });
+            const destination = path.join(workingDirectory, "package.zip");
+            await fsPromises.writeFile(destination, "previous", "utf8");
+
+            const error = await captureHttpClientError(() =>
+                createClient().downloadToPath("http://example.test/package.zip", destination),
+            );
+
+            expect(error.kind).to.equal("response-stream");
+            expect(error.code).to.equal("ERR_CONTENT_LENGTH_MISMATCH");
+            expect(await fsPromises.readFile(destination, "utf8")).to.equal("previous");
         });
     });
 
