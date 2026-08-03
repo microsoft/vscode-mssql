@@ -14,7 +14,7 @@ import {
 } from "../sharedInterfaces/codeAnalysis";
 import * as constants from "../constants/constants";
 import { CodeAnalysis as Loc } from "../constants/locConstants";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { DacFxService } from "../services/dacFxService";

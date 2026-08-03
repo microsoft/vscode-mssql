@@ -83,6 +83,12 @@ jobs:
         run: |
           npm run lint
 
+      - name: Inject extension telemetry key
+        env:
+          MSSQL_APP_INSIGHTS_KEY: ${{ vars.MSSQL_APP_INSIGHTS_KEY }}
+        run: |
+          node scripts/inject-telemetry-key.mjs
+
       # Calculate sizes and package before testing;
       # Testing generates sourcemaps and instrumented code
       # that increase size

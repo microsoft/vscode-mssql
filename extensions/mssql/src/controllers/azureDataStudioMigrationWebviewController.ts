@@ -27,7 +27,7 @@ import {
 } from "../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { WebviewPanelController } from "./webviewPanelController";
-import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { getErrorMessage } from "../utils/utils";

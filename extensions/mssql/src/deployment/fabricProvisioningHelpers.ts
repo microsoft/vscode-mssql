@@ -29,7 +29,7 @@ import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterface
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { UserSurvey } from "../nps/userSurvey";
 
 export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;

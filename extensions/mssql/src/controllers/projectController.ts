@@ -8,7 +8,7 @@ import * as path from "path";
 import * as constants from "../constants/constants";
 import * as Loc from "../constants/locConstants";
 import type * as mssql from "vscode-mssql";
-import { sendErrorEvent } from "../telemetry/telemetry";
+import { sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
 import { ProjectPropertiesResult } from "../sharedInterfaces/publishDialog";
