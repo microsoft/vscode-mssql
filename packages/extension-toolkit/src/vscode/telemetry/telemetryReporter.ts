@@ -141,8 +141,12 @@ export default class TelemetryReporter<V extends string = string, A extends stri
 
     constructor(connectionString?: string) {
         if (!connectionString) {
-            // if running a dev build, look for the aiKey as an environment variable
-            connectionString = process.env["APP_INSIGHTS_KEY"];
+            if (process.env["MSSQL_APP_INSIGHTS_KEY"]) {
+                // if running a dev build, look for the aiKey as an environment variable
+                connectionString = process.env["MSSQL_APP_INSIGHTS_KEY"];
+            } else {
+                console.log(`No telemetry connection string found; telemetry will not be sent.`);
+            }
         }
 
         try {

@@ -85,14 +85,14 @@ jobs:
 
       - name: Inject extension telemetry key
         env:
-          APP_INSIGHTS_KEY: ${{ vars.APP_INSIGHTS_KEY }}
+          MSSQL_APP_INSIGHTS_KEY: ${{ vars.MSSQL_APP_INSIGHTS_KEY }}
         run: |
           node --input-type=module <<'EOF'
           import { readFile, writeFile } from "node:fs/promises";
 
-          const telemetryKey = process.env.APP_INSIGHTS_KEY;
+          const telemetryKey = process.env.MSSQL_APP_INSIGHTS_KEY;
           if (!telemetryKey) {
-            throw new Error("APP_INSIGHTS_KEY repository variable is not set");
+            throw new Error("MSSQL_APP_INSIGHTS_KEY repository variable is not set");
           }
 
           const packagePaths = [
