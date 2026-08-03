@@ -375,8 +375,9 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         // Move the file via WorkspaceEdit.renameFile so VS Code updates any open editors and
         // transfers dirty-buffer state to the new URI. Using vscode.workspace.fs.rename directly
         // (filesystem-level) would desync open TextDocument URIs — the dirty buffer at the old
-        // URI could be saved back, recreating the old-path file. WorkspaceEdit.renameFile also
-        // creates the target directory automatically, so no separate createDirectory is needed.
+        // URI could be saved back, recreating the old-path file. Missing destination folders are
+        // created by VS Code (FileService.doMoveCopy mkdirp's the target's parent directory), so
+        // no separate createDirectory call is needed.
         const renameEdit = new vscode.WorkspaceEdit();
         renameEdit.renameFile(sourceUri, newAbsUri, { overwrite: false });
         let renameApplied: boolean;

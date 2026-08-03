@@ -887,7 +887,11 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                         success: true,
                         errorMessage: "",
                     });
-                    sqlProjectsServiceStub.moveSqlObjectScript.resolves({
+                    sqlProjectsServiceStub.excludeSqlObjectScript.resolves({
+                        success: true,
+                        errorMessage: "",
+                    });
+                    sqlProjectsServiceStub.addSqlObjectScript.resolves({
                         success: true,
                         errorMessage: "",
                     });
@@ -962,16 +966,19 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     );
                 });
 
-                test("updates Build Include path in .sqlproj via moveSqlObjectScript", async () => {
+                test("re-registers the Build Include path in .sqlproj via exclude + add", async () => {
                     const doc = makeMoveDocument(sandbox, {
                         fsPath: schemaFile,
                         lineText: "CREATE TABLE [dbo].[table1]",
                     });
                     await provider.runMoveToSchema(doc, new vscode.Position(0, 14));
 
-                    expect(sqlProjectsServiceStub.moveSqlObjectScript).to.have.been.calledWith(
+                    expect(sqlProjectsServiceStub.excludeSqlObjectScript).to.have.been.calledWith(
                         defaultProjFile,
                         "dbo/tables/table1.sql",
+                    );
+                    expect(sqlProjectsServiceStub.addSqlObjectScript).to.have.been.calledWith(
+                        defaultProjFile,
                         "sss/tables/table1.sql",
                     );
                 });
@@ -1001,7 +1008,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     await provider.runMoveToSchema(doc, new vscode.Position(0, 13));
 
                     expect(renameFileStub).to.not.have.been.called;
-                    expect(sqlProjectsServiceStub.moveSqlObjectScript).to.not.have.been.called;
+                    expect(sqlProjectsServiceStub.excludeSqlObjectScript).to.not.have.been.called;
                 });
 
                 test("shows error and skips sqlproj update when rename fails", async () => {
@@ -1017,7 +1024,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
                         moveLoc.moveFileFailed(""),
                     );
-                    expect(sqlProjectsServiceStub.moveSqlObjectScript).to.not.have.been.called;
+                    expect(sqlProjectsServiceStub.excludeSqlObjectScript).to.not.have.been.called;
                 });
 
                 test("triggers dataworkspace.refresh after the file has been successfully moved", async () => {
@@ -1057,7 +1064,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     await provider.runMoveToSchema(doc, new vscode.Position(0, 14));
 
                     expect(renameFileStub).to.not.have.been.called;
-                    expect(sqlProjectsServiceStub.moveSqlObjectScript).to.not.have.been.called;
+                    expect(sqlProjectsServiceStub.excludeSqlObjectScript).to.not.have.been.called;
                 });
 
                 test("moves the definition file, not the open document, when STS returns definitionFileUri", async () => {
@@ -1142,11 +1149,11 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     );
                 });
 
-                test("does not report an error when moveSqlObjectScript rejects for a glob-based project", async () => {
+                test("does not report an error when excludeSqlObjectScript rejects for a glob-based project", async () => {
                     // SDK-style projects resolve scripts from a `**/*.sql` glob, so there is no
                     // explicit entry to move and STS reports "script entry does not exist". The
                     // file move alone already updated the project, so this must stay silent.
-                    sqlProjectsServiceStub.moveSqlObjectScript.rejects(
+                    sqlProjectsServiceStub.excludeSqlObjectScript.rejects(
                         new Error("Script entry 'dbo/tables/table1.sql' does not exist"),
                     );
 
