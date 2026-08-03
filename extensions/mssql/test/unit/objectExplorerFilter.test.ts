@@ -15,6 +15,7 @@ import {
 } from "../../src/objectExplorer/objectExplorerFilter";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { stubTelemetry } from "./utils";
+import { previewService } from "../../src/previews/previewService";
 
 chai.use(sinonChai);
 
@@ -25,9 +26,14 @@ suite("ObjectExplorerFilter tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
+        sandbox.stub(previewService, "isFeatureEnabled").returns(false);
         extensionContext = {
             extensionUri: vscode.Uri.file("/tmp/test"),
             extensionPath: "/tmp/test",
+            globalState: {
+                get: sandbox.stub().returns([]),
+                update: sandbox.stub().resolves(),
+            },
         } as unknown as vscode.ExtensionContext;
 
         // Reset the static controller between tests
@@ -119,7 +125,24 @@ suite("ObjectExplorerFilter tests", () => {
 
         expect(stub.loadData).to.have.been.calledWithMatch({
             nodePath: "server/db/Views",
+            isPreviewEnabled: false,
+            filterPresets: [],
         });
+
+        submitEmitter.fire([]);
+        await filtersPromise;
+    });
+
+    test("loads reusable filters only when the preview is enabled", async () => {
+        (previewService.isFeatureEnabled as sinon.SinonStub).returns(true);
+        const { stub, submitEmitter } = createControllerStub();
+        injectController(stub);
+
+        const filtersPromise = ObjectExplorerFilter.getFilters(extensionContext, createTreeNode());
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(stub.loadData).to.have.been.calledWithMatch({ isPreviewEnabled: true });
+        expect(extensionContext.globalState.get).to.have.been.called;
 
         submitEmitter.fire([]);
         await filtersPromise;

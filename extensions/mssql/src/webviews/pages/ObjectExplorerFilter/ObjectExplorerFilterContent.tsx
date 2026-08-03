@@ -5,26 +5,16 @@
 
 import {
     Button,
-    createTableColumn,
     Dropdown,
     InfoLabel,
     Input,
     makeStyles,
+    mergeClasses,
     Option,
-    Table,
-    TableBody,
-    TableCell,
-    TableColumnDefinition,
-    TableColumnId,
-    TableColumnSizingOptions,
-    TableHeader,
-    TableHeaderCell,
-    TableRow,
     Text,
+    tokens,
     Tooltip,
     useArrowNavigationGroup,
-    useTableColumnSizing_unstable,
-    useTableFeatures,
 } from "@fluentui/react-components";
 import { EraserRegular } from "@fluentui/react-icons";
 import {
@@ -34,322 +24,344 @@ import {
 } from "../../../sharedInterfaces/objectExplorerFilter";
 import { locConstants } from "../../common/locConstants";
 
+const filterGridColumns = "minmax(130px, 0.75fr) minmax(150px, 0.85fr) minmax(260px, 1.8fr) 32px";
+
 const useStyles = makeStyles({
     root: {
-        display: "flex",
-        flexDirection: "column",
-        gap: "16px",
         width: "100%",
-        maxWidth: "760px",
+        minWidth: 0,
+        overflowX: "auto",
     },
-    inputs: {
-        maxWidth: "150px",
-        minWidth: "150px",
-        width: "150px",
+    grid: {
+        minWidth: "620px",
     },
-    tableCell: {
+    headerRow: {
+        display: "grid",
+        gridTemplateColumns: filterGridColumns,
+        columnGap: tokens.spacingHorizontalM,
+        alignItems: "end",
+        marginBottom: tokens.spacingVerticalXS,
+    },
+    headerCell: {
+        minWidth: 0,
+        paddingBottom: tokens.spacingVerticalS,
+        borderBottom: "1px solid var(--vscode-editorGroup-border)",
+        color: "var(--vscode-descriptionForeground)",
+        fontSize: tokens.fontSizeBase200,
+        fontWeight: tokens.fontWeightSemibold,
+    },
+    row: {
+        display: "grid",
+        gridTemplateColumns: filterGridColumns,
+        columnGap: tokens.spacingHorizontalM,
+        alignItems: "center",
+        minHeight: "44px",
+    },
+    cell: {
         display: "flex",
-        flexDirection: "column",
-        "> *": {
-            marginTop: "5px",
-            marginBottom: "5px",
-        },
+        alignItems: "center",
+        minWidth: 0,
     },
-    operatorOptions: {
-        maxWidth: "150px",
-        minWidth: "150px",
-        width: "150px",
+    control: {
+        width: "100%",
+        minWidth: 0,
+        height: "32px",
+        minHeight: "32px",
+        maxHeight: "32px",
+        boxSizing: "border-box",
     },
-    andOrText: {
-        marginLeft: "10px",
+    activeControl: {
+        boxShadow: "inset 0 0 0 1px var(--vscode-focusBorder)",
+    },
+    rangeControls: {
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
+        alignItems: "center",
+        gap: tokens.spacingHorizontalS,
+        width: "100%",
+        minWidth: 0,
+    },
+    rangeSeparator: {
+        color: "var(--vscode-descriptionForeground)",
+    },
+    clearCell: {
+        justifyContent: "center",
+    },
+    clearButton: {
+        width: "32px",
+        minWidth: "32px",
+        height: "32px",
+        minHeight: "32px",
     },
 });
-
-const columnsDef: TableColumnDefinition<ObjectExplorerPageFilter>[] = [
-    createTableColumn({
-        columnId: "property",
-        renderHeaderCell: () => <>{locConstants.objectExplorerFiltering.property}</>,
-    }),
-    createTableColumn({
-        columnId: "operator",
-        renderHeaderCell: () => <>{locConstants.objectExplorerFiltering.operator}</>,
-    }),
-    createTableColumn({
-        columnId: "value",
-        renderHeaderCell: () => <>{locConstants.objectExplorerFiltering.value}</>,
-    }),
-    createTableColumn({
-        columnId: "clear",
-        renderHeaderCell: () => <>{locConstants.objectExplorerFiltering.clear}</>,
-    }),
-];
-
-const sizingOptions: TableColumnSizingOptions = {
-    property: {
-        minWidth: 150,
-        idealWidth: 180,
-        defaultWidth: 220,
-    },
-    operator: {
-        minWidth: 140,
-        idealWidth: 140,
-        defaultWidth: 140,
-    },
-    value: {
-        minWidth: 150,
-        idealWidth: 150,
-        defaultWidth: 150,
-    },
-    clear: {
-        minWidth: 56,
-        idealWidth: 56,
-        defaultWidth: 56,
-    },
-};
 
 export interface ObjectExplorerFilterContentProps {
     uiFilters: ObjectExplorerPageFilter[];
     setUiFilters: (filters: ObjectExplorerPageFilter[]) => void;
     getFilterOperatorString: (operator: NodeFilterOperator | undefined) => string;
+    primaryFilterIndex: number;
+    setPrimaryFilterElement: (element: HTMLElement | null) => void;
 }
 
 export const ObjectExplorerFilterContent = ({
     uiFilters,
     setUiFilters,
     getFilterOperatorString,
+    primaryFilterIndex,
+    setPrimaryFilterElement,
 }: ObjectExplorerFilterContentProps) => {
     const classes = useStyles();
     const keyboardNavAttr = useArrowNavigationGroup({ axis: "grid" });
     const andText = locConstants.objectExplorerFiltering.and;
 
-    const renderCell = (columnId: TableColumnId, item: ObjectExplorerPageFilter) => {
-        switch (columnId) {
-            case "property":
-                return (
-                    <InfoLabel size="small" info={<>{item.description}</>}>
-                        {item.displayName}
-                    </InfoLabel>
-                );
-            case "operator":
-                return (
-                    <div className={classes.tableCell}>
-                        <Dropdown
-                            id={`operator-${item.index}`}
-                            className={classes.operatorOptions}
-                            size="small"
-                            value={getFilterOperatorString(item.selectedOperator)}
-                            selectedOptions={[item.selectedOperator.toString()]}
-                            onOptionSelect={(_e, d) => {
-                                if (d.optionValue === undefined) {
-                                    return;
-                                }
-                                const selectedValue = Number(d.optionValue);
-                                if (Number.isNaN(selectedValue)) {
-                                    return;
-                                }
-                                uiFilters[item.index].selectedOperator =
-                                    selectedValue as NodeFilterOperator;
-                                if (
-                                    uiFilters[item.index].selectedOperator ===
-                                        NodeFilterOperator.Between ||
-                                    uiFilters[item.index].selectedOperator ===
-                                        NodeFilterOperator.NotBetween
-                                ) {
-                                    if (!Array.isArray(uiFilters[item.index].value)) {
-                                        uiFilters[item.index].value = [
-                                            uiFilters[item.index].value as string,
-                                            "",
-                                        ];
-                                    }
-                                } else if (Array.isArray(uiFilters[item.index].value)) {
-                                    uiFilters[item.index].value = (
-                                        uiFilters[item.index].value as string[]
-                                    )[0];
-                                }
-                                setUiFilters([...uiFilters]);
-                            }}>
-                            {item.operatorOptions.map((option) => {
-                                return (
-                                    <Option key={option} value={option.toString()}>
-                                        {getFilterOperatorString(option)}
-                                    </Option>
-                                );
-                            })}
-                        </Dropdown>
-                        {(item.selectedOperator === NodeFilterOperator.Between ||
-                            item.selectedOperator === NodeFilterOperator.NotBetween) && (
-                            <Text className={classes.andOrText} size={200}>
-                                {andText}
-                            </Text>
-                        )}
-                    </div>
-                );
-            case "value":
-                switch (item.type) {
-                    case NodeFilterPropertyDataType.Date:
-                    case NodeFilterPropertyDataType.Number:
-                    case NodeFilterPropertyDataType.String: {
-                        let inputType: "text" | "number" | "date" = "text";
-                        switch (item.type) {
-                            case NodeFilterPropertyDataType.Date:
-                                inputType = "date";
-                                break;
-                            case NodeFilterPropertyDataType.Number:
-                                inputType = "number";
-                                break;
-                            case NodeFilterPropertyDataType.String:
-                                inputType = "text";
-                                break;
-                        }
-                        if (
-                            item.selectedOperator === NodeFilterOperator.Between ||
-                            item.selectedOperator === NodeFilterOperator.NotBetween
-                        ) {
-                            return (
-                                <div className={classes.tableCell}>
-                                    <Input
-                                        id={`input-${item.index}`}
-                                        size="small"
-                                        type={inputType}
-                                        className={classes.inputs}
-                                        value={(item.value as string[])[0]}
-                                        onChange={(_e, d) => {
-                                            (uiFilters[item.index].value as string[])[0] = d.value;
-                                            setUiFilters([...uiFilters]);
-                                        }}
-                                    />
-                                    <Input
-                                        size="small"
-                                        type={inputType}
-                                        className={classes.inputs}
-                                        value={(item.value as string[])[1]}
-                                        onChange={(_e, d) => {
-                                            (uiFilters[item.index].value as string[])[1] = d.value;
-                                            setUiFilters([...uiFilters]);
-                                        }}
-                                    />
-                                </div>
-                            );
-                        }
+    const hasFilterValue = (item: ObjectExplorerPageFilter): boolean => {
+        const values = Array.isArray(item.value) ? item.value : [item.value];
+        return values.some((value) => value !== undefined && String(value).trim().length > 0);
+    };
 
-                        return (
+    const updateOperator = (item: ObjectExplorerPageFilter, optionValue?: string) => {
+        if (optionValue === undefined) {
+            return;
+        }
+
+        const selectedValue = Number(optionValue);
+        if (Number.isNaN(selectedValue)) {
+            return;
+        }
+
+        uiFilters[item.index].selectedOperator = selectedValue as NodeFilterOperator;
+        if (
+            uiFilters[item.index].selectedOperator === NodeFilterOperator.Between ||
+            uiFilters[item.index].selectedOperator === NodeFilterOperator.NotBetween
+        ) {
+            if (!Array.isArray(uiFilters[item.index].value)) {
+                uiFilters[item.index].value = [uiFilters[item.index].value as string, ""];
+            }
+        } else if (Array.isArray(uiFilters[item.index].value)) {
+            uiFilters[item.index].value = (uiFilters[item.index].value as string[])[0];
+        }
+        setUiFilters([...uiFilters]);
+    };
+
+    const renderValueControl = (item: ObjectExplorerPageFilter) => {
+        switch (item.type) {
+            case NodeFilterPropertyDataType.Date:
+            case NodeFilterPropertyDataType.Number:
+            case NodeFilterPropertyDataType.String: {
+                let inputType: "text" | "number" | "date" = "text";
+                if (item.type === NodeFilterPropertyDataType.Date) {
+                    inputType = "date";
+                } else if (item.type === NodeFilterPropertyDataType.Number) {
+                    inputType = "number";
+                }
+
+                if (
+                    item.selectedOperator === NodeFilterOperator.Between ||
+                    item.selectedOperator === NodeFilterOperator.NotBetween
+                ) {
+                    return (
+                        <div className={classes.rangeControls}>
                             <Input
                                 id={`input-${item.index}`}
-                                size="small"
+                                ref={
+                                    item.index === primaryFilterIndex
+                                        ? setPrimaryFilterElement
+                                        : undefined
+                                }
                                 type={inputType}
-                                className={classes.inputs}
-                                value={item.value as string}
-                                onChange={(_e, d) => {
-                                    uiFilters[item.index].value = d.value;
+                                className={mergeClasses(
+                                    classes.control,
+                                    hasFilterValue(item) && classes.activeControl,
+                                )}
+                                aria-label={locConstants.objectExplorerFiltering.filterValueLabel(
+                                    item.displayName,
+                                )}
+                                value={(item.value as string[])[0]}
+                                onChange={(_event, data) => {
+                                    (uiFilters[item.index].value as string[])[0] = data.value;
                                     setUiFilters([...uiFilters]);
                                 }}
                             />
-                        );
-                    }
-                    case NodeFilterPropertyDataType.Choice:
-                    case NodeFilterPropertyDataType.Boolean:
-                        return (
-                            <Dropdown
-                                size="small"
-                                id={`input-${item.index}`}
-                                className={classes.inputs}
-                                value={item.value as string}
-                                onOptionSelect={(_e, d) => {
-                                    uiFilters[item.index].value = d.optionText ?? "";
+                            <Text className={classes.rangeSeparator} size={200}>
+                                {andText}
+                            </Text>
+                            <Input
+                                type={inputType}
+                                className={mergeClasses(
+                                    classes.control,
+                                    hasFilterValue(item) && classes.activeControl,
+                                )}
+                                aria-label={locConstants.objectExplorerFiltering.secondFilterValueLabel(
+                                    item.displayName,
+                                )}
+                                value={(item.value as string[])[1]}
+                                onChange={(_event, data) => {
+                                    (uiFilters[item.index].value as string[])[1] = data.value;
                                     setUiFilters([...uiFilters]);
-                                }}>
-                                {item.choices!.map((choice) => {
-                                    return (
-                                        <Option key={choice.name} value={choice.name}>
-                                            {choice.displayName}
-                                        </Option>
-                                    );
-                                })}
-                            </Dropdown>
-                        );
-                    default:
-                        return undefined;
+                                }}
+                            />
+                        </div>
+                    );
                 }
-            case "clear":
+
                 return (
-                    <Tooltip
-                        content={locConstants.objectExplorerFiltering.clear}
-                        relationship="label">
-                        <Button
-                            size="small"
-                            appearance="subtle"
-                            icon={<EraserRegular />}
-                            onClick={() => {
-                                if (
-                                    uiFilters[item.index].selectedOperator ===
-                                        NodeFilterOperator.Between ||
-                                    uiFilters[item.index].selectedOperator ===
-                                        NodeFilterOperator.NotBetween
-                                ) {
-                                    uiFilters[item.index].value = ["", ""];
-                                } else {
-                                    uiFilters[item.index].value = "";
-                                }
-                                setUiFilters([...uiFilters]);
-                            }}
-                        />
-                    </Tooltip>
+                    <Input
+                        id={`input-${item.index}`}
+                        ref={
+                            item.index === primaryFilterIndex ? setPrimaryFilterElement : undefined
+                        }
+                        type={inputType}
+                        className={mergeClasses(
+                            classes.control,
+                            hasFilterValue(item) && classes.activeControl,
+                        )}
+                        placeholder={
+                            item.type === NodeFilterPropertyDataType.String
+                                ? locConstants.objectExplorerFiltering.filterByProperty(
+                                      item.displayName.toLocaleLowerCase(),
+                                  )
+                                : undefined
+                        }
+                        aria-label={locConstants.objectExplorerFiltering.filterValueLabel(
+                            item.displayName,
+                        )}
+                        value={item.value as string}
+                        onChange={(_event, data) => {
+                            uiFilters[item.index].value = data.value;
+                            setUiFilters([...uiFilters]);
+                        }}
+                    />
                 );
+            }
+            case NodeFilterPropertyDataType.Choice:
+            case NodeFilterPropertyDataType.Boolean:
+                return (
+                    <Dropdown
+                        id={`input-${item.index}`}
+                        ref={
+                            item.index === primaryFilterIndex ? setPrimaryFilterElement : undefined
+                        }
+                        className={mergeClasses(
+                            classes.control,
+                            hasFilterValue(item) && classes.activeControl,
+                        )}
+                        aria-label={locConstants.objectExplorerFiltering.filterValueLabel(
+                            item.displayName,
+                        )}
+                        value={
+                            item.choices?.find((choice) => choice.name === item.value)
+                                ?.displayName ?? ""
+                        }
+                        selectedOptions={item.value ? [item.value as string] : []}
+                        onOptionSelect={(_event, data) => {
+                            uiFilters[item.index].value = data.optionValue ?? "";
+                            setUiFilters([...uiFilters]);
+                        }}>
+                        {item.choices!.map((choice) => (
+                            <Option key={choice.name} value={choice.name}>
+                                {choice.displayName}
+                            </Option>
+                        ))}
+                    </Dropdown>
+                );
+            default:
+                return undefined;
         }
     };
 
-    const { getRows, columnSizing_unstable, tableRef } = useTableFeatures<ObjectExplorerPageFilter>(
-        {
-            columns: columnsDef,
-            items: uiFilters,
-        },
-        [useTableColumnSizing_unstable({ columnSizingOptions: sizingOptions })],
-    );
-    const rows = getRows();
+    const clearFilter = (item: ObjectExplorerPageFilter) => {
+        if (
+            item.selectedOperator === NodeFilterOperator.Between ||
+            item.selectedOperator === NodeFilterOperator.NotBetween
+        ) {
+            uiFilters[item.index].value = ["", ""];
+        } else {
+            uiFilters[item.index].value = "";
+        }
+        setUiFilters([...uiFilters]);
+    };
 
     return (
         <div className={classes.root}>
-            <Table
+            <div
                 {...keyboardNavAttr}
-                as="table"
-                size="small"
-                {...columnSizing_unstable.getTableProps()}
-                ref={tableRef}>
-                <TableHeader>
-                    <TableRow>
-                        {columnsDef.map((column) => {
-                            return (
-                                <TableHeaderCell
-                                    key={column.columnId}
-                                    {...columnSizing_unstable.getTableHeaderCellProps(
-                                        column.columnId,
-                                    )}>
-                                    {column.renderHeaderCell()}
-                                </TableHeaderCell>
-                            );
-                        })}
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {rows.map((_row, index) => {
-                        return (
-                            <TableRow key={`row${index}`}>
-                                {columnsDef.map((column) => {
-                                    return (
-                                        <TableCell
-                                            key={column.columnId}
-                                            {...columnSizing_unstable.getTableHeaderCellProps(
-                                                column.columnId,
-                                            )}>
-                                            {renderCell(column.columnId, uiFilters[index])}
-                                        </TableCell>
-                                    );
-                                })}
-                            </TableRow>
-                        );
-                    })}
-                </TableBody>
-            </Table>
+                className={classes.grid}
+                role="table"
+                aria-rowcount={uiFilters.length + 1}
+                aria-colcount={4}>
+                <div role="rowgroup">
+                    <div className={classes.headerRow} role="row">
+                        <div className={classes.headerCell} role="columnheader">
+                            {locConstants.objectExplorerFiltering.property}
+                        </div>
+                        <div className={classes.headerCell} role="columnheader">
+                            {locConstants.objectExplorerFiltering.operator}
+                        </div>
+                        <div className={classes.headerCell} role="columnheader">
+                            {locConstants.objectExplorerFiltering.value}
+                        </div>
+                        <div
+                            className={classes.headerCell}
+                            role="columnheader"
+                            aria-label={locConstants.objectExplorerFiltering.clear}
+                        />
+                    </div>
+                </div>
+                <div role="rowgroup">
+                    {uiFilters.map((item) => (
+                        <div className={classes.row} role="row" key={item.name}>
+                            <div className={classes.cell} role="cell">
+                                <InfoLabel info={<>{item.description}</>}>
+                                    {item.displayName}
+                                </InfoLabel>
+                            </div>
+                            <div className={classes.cell} role="cell">
+                                <Dropdown
+                                    id={`operator-${item.index}`}
+                                    className={classes.control}
+                                    aria-label={locConstants.objectExplorerFiltering.filterOperatorLabel(
+                                        item.displayName,
+                                    )}
+                                    value={getFilterOperatorString(item.selectedOperator)}
+                                    selectedOptions={[item.selectedOperator.toString()]}
+                                    onOptionSelect={(_event, data) =>
+                                        updateOperator(item, data.optionValue)
+                                    }>
+                                    {item.operatorOptions.map((option) => (
+                                        <Option key={option} value={option.toString()}>
+                                            {getFilterOperatorString(option)}
+                                        </Option>
+                                    ))}
+                                </Dropdown>
+                            </div>
+                            <div className={classes.cell} role="cell">
+                                {renderValueControl(item)}
+                            </div>
+                            <div
+                                className={mergeClasses(classes.cell, classes.clearCell)}
+                                role="cell">
+                                <Tooltip
+                                    content={locConstants.objectExplorerFiltering.clearPropertyFilter(
+                                        item.displayName,
+                                    )}
+                                    relationship="label">
+                                    <Button
+                                        type="button"
+                                        appearance="subtle"
+                                        className={classes.clearButton}
+                                        icon={<EraserRegular />}
+                                        disabled={!hasFilterValue(item)}
+                                        aria-label={locConstants.objectExplorerFiltering.clearPropertyFilter(
+                                            item.displayName,
+                                        )}
+                                        onClick={() => clearFilter(item)}
+                                    />
+                                </Tooltip>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
         </div>
     );
 };
