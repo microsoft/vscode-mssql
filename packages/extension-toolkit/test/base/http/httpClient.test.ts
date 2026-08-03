@@ -220,6 +220,28 @@ describe("HttpClient", () => {
         });
     });
 
+    describe("diagnostics", () => {
+        it("logs only the target origin, excluding the path and query", async () => {
+            server = await startTestServer((_request, response) => response.end());
+            const logger = {
+                debug: sandbox.stub(),
+                warn: sandbox.stub(),
+                error: sandbox.stub(),
+            };
+
+            await createClient({ logger }).get(
+                `${server.origin}/opaque/customer-123?access_token=secret`,
+            );
+
+            const diagnostics = logger.debug.args.flat().join(" ");
+            expect(diagnostics).to.contain(server.origin);
+            expect(diagnostics).not.to.contain("opaque");
+            expect(diagnostics).not.to.contain("customer-123");
+            expect(diagnostics).not.to.contain("access_token");
+            expect(diagnostics).not.to.contain("secret");
+        });
+    });
+
     describe("error handling", () => {
         it("reports an invalid URL as a network failure", async () => {
             const error = await captureHttpClientError(() => createClient({}).get("not-a-url"));
@@ -306,6 +328,34 @@ describe("HttpClient", () => {
             expect(logger.error.firstCall.args.join(" ")).not.to.contain("user");
             expect(logger.error.firstCall.args.join(" ")).not.to.contain("secret");
         });
+
+        it("preserves proxy configuration failures raised while redirecting", async () => {
+            server = await startTestServer((request, response) => {
+                if (request.url === "/start") {
+                    response.writeHead(302, { Location: "/final" });
+                    response.end();
+                    return;
+                }
+
+                response.end();
+            });
+            const proxyResolver: IProxyResolver = {
+                resolve: (target) => {
+                    if (target.pathname === "/final") {
+                        throw new Error("bad redirected proxy");
+                    }
+
+                    return undefined;
+                },
+            };
+
+            const error = await captureHttpClientError(() =>
+                createClient({ proxyResolver }).get(`${server!.origin}/start`),
+            );
+
+            expect(error.kind).to.equal("proxy-configuration");
+            expect(error.cause).to.be.instanceOf(Error);
+        });
     });
 
     describe("proxy agents", () => {
@@ -337,6 +387,116 @@ describe("HttpClient", () => {
             await createClient({ proxyAgentFactory: factory }).get(server.origin);
 
             expect(calls).to.be.empty;
+        });
+
+        it("resolves the proxy again for each redirected target", async () => {
+            const resolvedTargets: string[] = [];
+            server = await startTestServer((request, response) => {
+                if (request.url === "/start") {
+                    response.writeHead(302, { Location: "/final?version=2" });
+                    response.end();
+                    return;
+                }
+
+                response.end("redirected");
+            });
+            const proxyResolver: IProxyResolver = {
+                resolve: (target) => {
+                    resolvedTargets.push(target.toString());
+                    return undefined;
+                },
+            };
+
+            const result = await createClient({ proxyResolver }).get(`${server.origin}/start`);
+
+            expect(result.data).to.equal("redirected");
+            expect(resolvedTargets).to.deep.equal([
+                `${server.origin}/start`,
+                `${server.origin}/final?version=2`,
+            ]);
+        });
+
+        it("replaces the per-protocol proxy agent when a redirect changes protocol", async () => {
+            const { factory, calls } = createRecordingFactory();
+            const resolvedTargets: string[] = [];
+            const proxyResolver: IProxyResolver = {
+                resolve: (target) => {
+                    resolvedTargets.push(target.toString());
+                    return {
+                        url: new URL("http://proxy.example.com:3128"),
+                        rejectUnauthorized: true,
+                        source: "environment",
+                    };
+                },
+            };
+            sandbox.stub(axios, "request").callsFake(async (config) => {
+                const redirectOptions: {
+                    href: string;
+                    agents: Record<string, unknown>;
+                    agent?: unknown;
+                } = {
+                    href: "https://redirected.example.test/final",
+                    agents: { http: config.httpAgent, https: config.httpsAgent },
+                };
+                config.beforeRedirect!(
+                    redirectOptions,
+                    { headers: {}, statusCode: 302 },
+                    { headers: {}, url: config.url!, method: "GET" },
+                );
+
+                expect(redirectOptions.agents.https).to.equal(redirectOptions.agent);
+                return createAxiosResponse({});
+            });
+
+            await createClient({ proxyResolver, proxyAgentFactory: factory }).get(
+                "http://example.test/start",
+            );
+
+            expect(resolvedTargets).to.deep.equal([
+                "http://example.test/start",
+                "https://redirected.example.test/final",
+            ]);
+            expect(calls.map((call) => call.method)).to.deep.equal([
+                "httpOverHttp",
+                "httpsOverHttp",
+            ]);
+        });
+
+        it("clears the old proxy agent when a redirected target resolves direct", async () => {
+            const { factory } = createRecordingFactory();
+            const proxyResolver: IProxyResolver = {
+                resolve: (target) =>
+                    target.pathname === "/start"
+                        ? {
+                              url: new URL("http://proxy.example.com:3128"),
+                              rejectUnauthorized: true,
+                              source: "environment",
+                          }
+                        : undefined,
+            };
+            sandbox.stub(axios, "request").callsFake(async (config) => {
+                const redirectOptions: {
+                    href: string;
+                    agents: Record<string, unknown>;
+                    agent?: unknown;
+                } = {
+                    href: "http://direct.example.test/final",
+                    agents: { http: config.httpAgent, https: config.httpsAgent },
+                };
+                config.beforeRedirect!(
+                    redirectOptions,
+                    { headers: {}, statusCode: 302 },
+                    { headers: {}, url: config.url!, method: "GET" },
+                );
+
+                expect(redirectOptions.agents.http).to.be.undefined;
+                expect(redirectOptions.agent).to.be.undefined;
+                return createAxiosResponse({});
+            });
+
+            await createClient({ proxyResolver, proxyAgentFactory: factory }).get(
+                "http://example.test/start",
+            );
         });
 
         it("uses an http-over-http agent for an http target behind an http proxy", async () => {

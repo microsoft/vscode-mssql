@@ -281,11 +281,14 @@ export class HttpClient {
             {
                 method: "GET",
                 url,
-                headers: options?.headers,
+                headers: withDefaultHeaders(options?.headers, {
+                    "Accept-Encoding": "identity",
+                }),
             },
             "stream",
             cancellation?.signal,
         );
+        config.decompress = false;
 
         let response: AxiosResponse<Readable>;
         try {
@@ -305,6 +308,20 @@ export class HttpClient {
             ok: isSuccessStatus(response.status),
             headers,
         };
+
+        const contentEncodings = headers.getAll("content-encoding");
+        if (
+            result.ok &&
+            contentEncodings.some((encoding) => encoding.trim().toLowerCase() !== "identity")
+        ) {
+            response.data.destroy();
+            throw new HttpClientError(
+                "response-stream",
+                "The download response used an unsupported content encoding.",
+                "ERR_UNSUPPORTED_CONTENT_ENCODING",
+                { cause: undefined },
+            );
+        }
 
         this.logger?.debug(`Download of ${describeTarget(target)} responded ${response.status}.`);
 
@@ -361,7 +378,7 @@ export class HttpClient {
             throw toStreamError(error, destinationError, sourceError, cancellation);
         }
 
-        if (totalBytes !== undefined && totalBytes > 0 && downloadedBytes !== totalBytes) {
+        if (totalBytes !== undefined && downloadedBytes !== totalBytes) {
             throw new HttpClientError(
                 "response-stream",
                 `The download ended after ${downloadedBytes} bytes but ${totalBytes} bytes were expected.`,
@@ -407,6 +424,32 @@ export class HttpClient {
         // handling is always disabled.
         config.proxy = false;
 
+        const agent = this.resolveProxyAgent(target);
+        if (target.protocol === "https:") {
+            config.httpsAgent = agent;
+        } else {
+            config.httpAgent = agent;
+        }
+
+        config.beforeRedirect = (options) => {
+            const redirectTarget = new URL(options.href);
+            const redirectAgent = this.resolveProxyAgent(redirectTarget);
+            const scheme = redirectTarget.protocol.slice(0, -1);
+            const agents = options.agents as Record<string, unknown> | undefined;
+
+            if (agents) {
+                agents[scheme] = redirectAgent;
+            } else {
+                options.agents = { [scheme]: redirectAgent };
+            }
+
+            // `follow-redirects` normally selects this value from `agents`, but setting it here
+            // also keeps the redirect options correct for transports with equivalent hooks.
+            options.agent = redirectAgent;
+        };
+    }
+
+    private resolveProxyAgent(target: URL): unknown | undefined {
         let proxy: IProxyConfiguration | undefined;
         try {
             proxy = this._proxyResolver.resolve(target);
@@ -424,7 +467,7 @@ export class HttpClient {
         }
 
         if (!proxy) {
-            return;
+            return undefined;
         }
 
         this.logger?.debug(
@@ -451,11 +494,7 @@ export class HttpClient {
             );
         }
 
-        if (target.protocol === "https:") {
-            config.httpsAgent = agent;
-        } else {
-            config.httpAgent = agent;
-        }
+        return agent;
     }
 
     private createProxyAgent(target: URL, proxy: IProxyConfiguration): unknown {
@@ -556,7 +595,7 @@ function parseTargetUrl(url: string | URL): URL {
 }
 
 function describeTarget(target: URL): string {
-    return `${target.protocol}//${target.host}${target.pathname}`;
+    return target.origin;
 }
 
 function withDefaultHeaders(
@@ -639,8 +678,9 @@ function createRequestCancellation(
 }
 
 function toRequestError(error: unknown, cancellation?: IRequestCancellation): HttpClientError {
-    if (error instanceof HttpClientError) {
-        return error;
+    const httpClientError = findHttpClientError(error);
+    if (httpClientError) {
+        return httpClientError;
     }
 
     const code = getErrorCode(error);
@@ -664,6 +704,22 @@ function toRequestError(error: unknown, cancellation?: IRequestCancellation): Ht
     }
 
     return new HttpClientError("network", "The HTTP request failed.", code, { cause: error });
+}
+
+function findHttpClientError(error: unknown): HttpClientError | undefined {
+    const visited = new Set<unknown>();
+    let current = error;
+
+    while (typeof current === "object" && current !== null && !visited.has(current)) {
+        if (current instanceof HttpClientError) {
+            return current;
+        }
+
+        visited.add(current);
+        current = (current as { cause?: unknown }).cause;
+    }
+
+    return undefined;
 }
 
 function toStreamError(
@@ -752,13 +808,10 @@ function decodeProxyCredential(value: string): string {
     }
 }
 
-function createFileDescriptorWritable(destinationFd: number): Writable {
-    return new Writable({
-        write(chunk: Buffer, _encoding, callback) {
-            fs.write(destinationFd, chunk, 0, chunk.length, null, (error) => {
-                callback(error ?? null);
-            });
-        },
+function createFileDescriptorWritable(destinationFd: number): fs.WriteStream {
+    return fs.createWriteStream("", {
+        fd: destinationFd,
+        autoClose: false,
     });
 }
 
