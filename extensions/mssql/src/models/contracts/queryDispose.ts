@@ -6,7 +6,7 @@
 import { RequestType } from "vscode-languageclient";
 
 export namespace QueryDisposeRequest {
-    export const type = new RequestType<QueryDisposeParams, QueryDisposeResult, void, void>(
+    export const type = new RequestType<QueryDisposeParams, QueryDisposeResult, void>(
         "query/dispose",
     );
 }

@@ -13,7 +13,6 @@ import * as fs from "fs/promises";
 import * as os from "os";
 import * as path from "path";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { Dab } from "../../src/sharedInterfaces/dab";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
@@ -25,7 +24,6 @@ import { DefaultSqlPortNumber } from "../../src/constants/constants";
 import {
     stubExtensionContext,
     stubUserSurvey,
-    stubVscodeWrapper,
     stubWebviewPanel,
     stubWebviewConnectionRpc,
 } from "./utils";
@@ -35,7 +33,6 @@ chai.use(sinonChai);
 suite("SchemaDesignerWebviewController tests", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockMainController: sinon.SinonStubbedInstance<MainController>;
     let mockSchemaDesignerService: sinon.SinonStubbedInstance<SchemaDesigner.ISchemaDesignerService>;
     let treeNode: sinon.SinonStubbedInstance<TreeNodeInfo>;
@@ -90,8 +87,6 @@ suite("SchemaDesignerWebviewController tests", () => {
         sandbox = sinon.createSandbox();
         mockContext = stubExtensionContext(sandbox);
         stubUserSurvey(sandbox);
-
-        mockVscodeWrapper = stubVscodeWrapper(sandbox);
         mockMainController = sandbox.createStubInstance(MainController);
         mockSchemaDesignerService = {
             createSession: sandbox.stub(),
@@ -155,7 +150,6 @@ suite("SchemaDesignerWebviewController tests", () => {
     function createController(): SchemaDesignerWebviewController {
         const ctrl = new SchemaDesignerWebviewController(
             mockContext,
-            mockVscodeWrapper,
             mockMainController,
             mockSchemaDesignerService,
             connectionString,
@@ -214,6 +208,7 @@ suite("SchemaDesignerWebviewController tests", () => {
         test("should register all request handlers", () => {
             createController();
 
+            expect(requestHandlers.has(CopilotChat.OpenFromUiRequest.type.method)).to.be.true;
             expect(requestHandlers.has(SchemaDesigner.InitializeSchemaDesignerRequest.type.method))
                 .to.be.true;
             expect(requestHandlers.has(SchemaDesigner.GetDefinitionRequest.type.method)).to.be.true;
@@ -221,6 +216,22 @@ suite("SchemaDesignerWebviewController tests", () => {
                 .true;
             expect(requestHandlers.has(SchemaDesigner.PublishSessionRequest.type.method)).to.be
                 .true;
+        });
+
+        test("should map the Copilot entry request to the fixed extension command", async () => {
+            const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
+            createController();
+            const payload: CopilotChat.OpenFromUiArgs = {
+                scenario: "schemaDesigner",
+                entryPoint: "schemaDesignerToolbar",
+            };
+
+            await requestHandlers.get(CopilotChat.OpenFromUiRequest.type.method)!(payload);
+
+            expect(executeCommandStub).to.have.been.calledOnceWithExactly(
+                CopilotChat.openFromUiCommand,
+                payload,
+            );
         });
 
         test("should register all notification handlers", () => {
@@ -310,6 +321,37 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(schemaDesignerCache.size).to.equal(1);
         });
 
+        test("should coalesce concurrent initialization requests", async () => {
+            let resolveCreateSession!: (value: SchemaDesigner.CreateSessionResponse) => void;
+            const createSessionPromise = new Promise<SchemaDesigner.CreateSessionResponse>(
+                (resolve) => {
+                    resolveCreateSession = resolve;
+                },
+            );
+            mockSchemaDesignerService.createSession.returns(createSessionPromise as any);
+
+            createController();
+
+            const handler = requestHandlers.get(
+                SchemaDesigner.InitializeSchemaDesignerRequest.type.method,
+            );
+
+            const firstResultPromise = handler!({});
+            const secondResultPromise = handler!({});
+
+            expect(mockSchemaDesignerService.createSession).to.have.been.calledOnce;
+
+            resolveCreateSession(mockCreateSessionResponse);
+            const [firstResult, secondResult] = await Promise.all([
+                firstResultPromise,
+                secondResultPromise,
+            ]);
+
+            expect(firstResult).to.deep.equal(mockCreateSessionResponse);
+            expect(secondResult).to.deep.equal(mockCreateSessionResponse);
+            expect(schemaDesignerCache.size).to.equal(1);
+        });
+
         test("should reuse cached session when available", async () => {
             const cacheKey = `${connectionString}-${databaseName}`;
             schemaDesignerCache.set(cacheKey, {
@@ -329,6 +371,32 @@ suite("SchemaDesignerWebviewController tests", () => {
             expect(mockSchemaDesignerService.createSession).to.not.have.been.called;
             expect(result).to.deep.equal(mockCreateSessionResponse);
             expect(schemaDesignerCache.get(cacheKey)?.isDirty).to.be.true;
+        });
+
+        test("should allow retry after initialization error", async () => {
+            const error = new Error("Initialization failed");
+            mockSchemaDesignerService.createSession.onFirstCall().rejects(error);
+            mockSchemaDesignerService.createSession
+                .onSecondCall()
+                .resolves(mockCreateSessionResponse);
+
+            createController();
+
+            const handler = requestHandlers.get(
+                SchemaDesigner.InitializeSchemaDesignerRequest.type.method,
+            );
+
+            try {
+                await handler!({});
+                expect.fail("Should have thrown");
+            } catch (err) {
+                expect(err).to.equal(error);
+            }
+
+            const result = await handler!({});
+
+            expect(mockSchemaDesignerService.createSession).to.have.been.calledTwice;
+            expect(result).to.deep.equal(mockCreateSessionResponse);
         });
 
         test("should handle initialization error", async () => {
@@ -744,7 +812,6 @@ suite("SchemaDesignerWebviewController tests", () => {
             // Create controller without TreeNode to use connectionUri path
             new SchemaDesignerWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 connectionString,
@@ -1006,7 +1073,6 @@ suite("SchemaDesignerWebviewController tests", () => {
 
                 new SchemaDesignerWebviewController(
                     mockContext,
-                    mockVscodeWrapper,
                     mockMainController,
                     mockSchemaDesignerService,
                     remoteConnectionString,
@@ -1467,7 +1533,6 @@ suite("SchemaDesignerWebviewController tests", () => {
 
             const ctrl = new SchemaDesignerWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 connectionString,
@@ -1494,7 +1559,6 @@ suite("SchemaDesignerWebviewController tests", () => {
 
             const ctrl = new SchemaDesignerWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 connectionString,
@@ -1511,7 +1575,6 @@ suite("SchemaDesignerWebviewController tests", () => {
         test("should set isDabDeploymentSupported to false when no treeNode and no connectionUri", () => {
             const ctrl = new SchemaDesignerWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 connectionString,
@@ -1632,7 +1695,6 @@ suite("SchemaDesignerWebviewController tests", () => {
 
             const ctrl = new SchemaDesignerWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 connectionString,
@@ -1649,7 +1711,6 @@ suite("SchemaDesignerWebviewController tests", () => {
         test("should return undefined when no treeNode and no connectionUri", () => {
             const ctrl = new SchemaDesignerWebviewController(
                 mockContext,
-                mockVscodeWrapper,
                 mockMainController,
                 mockSchemaDesignerService,
                 connectionString,

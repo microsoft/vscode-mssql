@@ -12,7 +12,6 @@ export namespace MetadataListRequest {
     export const type = new RequestType<
         metadata.MetadataListParams,
         metadata.MetadataListResult,
-        void,
         void
     >("metadata/list");
 }
@@ -25,7 +24,6 @@ export namespace TableMetadataRequest {
     export const type = new RequestType<
         metadata.TableMetadataParams,
         metadata.TableMetadataResult,
-        void,
         void
     >("metadata/table");
 }
@@ -38,7 +36,6 @@ export namespace ViewMetadataRequest {
     export const type = new RequestType<
         metadata.ViewMetadataParams,
         metadata.ViewMetadataResult,
-        void,
         void
     >("metadata/view");
 }
@@ -51,7 +48,6 @@ export namespace ListDatabasesRequest {
     export const type = new RequestType<
         metadata.ListDatabasesParams,
         metadata.ListDatabasesResult,
-        void,
         void
     >("connection/listdatabases");
 }
@@ -64,7 +60,6 @@ export namespace GetServerContextualizationRequest {
     export const type = new RequestType<
         metadata.GetServerContextualizationParams,
         metadata.GetServerContextualizationResult,
-        void,
         void
     >("metadata/getServerContext");
 }

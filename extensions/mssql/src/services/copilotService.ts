@@ -13,6 +13,9 @@ import {
     StartConversationParams,
     LanguageModelChatTool,
 } from "../models/contracts/copilot"; // SQL Copilot
+import { getLogger } from "../models/logger";
+
+const logger = getLogger("CopilotService");
 
 export class CopilotService {
     constructor(private sqlToolsClient: SqlToolsServiceClient) {}
@@ -33,7 +36,7 @@ export class CopilotService {
             );
             return response.success;
         } catch (e) {
-            this.sqlToolsClient.logger.error(e);
+            logger.error("Failed to start copilot conversation", e);
             throw e;
         }
     }
@@ -56,7 +59,7 @@ export class CopilotService {
             );
             return response;
         } catch (e) {
-            this.sqlToolsClient.logger.error(e);
+            logger.error("Failed to get next copilot message", e);
             throw e;
         }
     }

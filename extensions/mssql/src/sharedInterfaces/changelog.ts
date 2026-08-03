@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestType } from "vscode-jsonrpc/browser";
+import { RequestType } from "vscode-jsonrpc";
 import { Icons } from "./icons";
 
 export interface ChangelogWebviewState {
@@ -53,13 +53,32 @@ export interface ContentEntry {
     actions?: ChangelogAction[];
 }
 
-export interface ChangelogAction {
+interface ChangelogActionBase {
     label: string;
-    type: "command" | "link" | "walkthrough";
-    value: string;
-    args?: unknown[];
     icon?: keyof Icons;
 }
+
+export enum ChangelogActionId {
+    OpenShortcutsConfiguration = "openShortcutsConfiguration",
+    DeployNewDatabase = "deployNewDatabase",
+    CreateNotebook = "createNotebook",
+    OpenAzureDataStudioMigration = "openAzureDataStudioMigration",
+    OpenDacpacDialog = "openDacpacDialog",
+    OpenMssqlWalkthrough = "openMssqlWalkthrough",
+    OpenCopilotWalkthrough = "openCopilotWalkthrough",
+}
+
+export type ChangelogAction = ChangelogActionBase &
+    (
+        | {
+              type: "link";
+              value: string;
+          }
+        | {
+              type: "command" | "walkthrough";
+              value: ChangelogActionId;
+          }
+    );
 
 export interface ChangelogLinkRequestParams {
     url: string;
@@ -71,15 +90,8 @@ export namespace ChangelogLinkRequest {
     );
 }
 
-export interface ChangelogCommandRequestParams {
-    commandId: string;
-    args?: unknown[];
-}
-
-export namespace ChangelogCommandRequest {
-    export const type = new RequestType<ChangelogCommandRequestParams, void, void>(
-        "executeChangelogCommand",
-    );
+export namespace RunChangelogActionRequest {
+    export const type = new RequestType<ChangelogActionId, void, void>("runChangelogAction");
 }
 
 export namespace CloseChangelogRequest {

@@ -26,6 +26,7 @@ export interface SchemaDesignerApplyEditsHandlerParams {
     addTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     updateTable: (table: SchemaDesigner.Table) => Promise<boolean>;
     deleteTable: (table: SchemaDesigner.Table, skipConfirmation?: boolean) => Promise<boolean>;
+    applySchema?: (schema: SchemaDesigner.Schema) => Promise<boolean>;
     normalizeColumn: (column: SchemaDesigner.Column) => SchemaDesigner.Column;
     normalizeTable: (table: SchemaDesigner.Table) => SchemaDesigner.Table | undefined;
     validateTable: (
@@ -42,6 +43,7 @@ export function createSchemaDesignerApplyEditsHandler(
 ) {
     const {
         isInitialized,
+        extensionRpc,
         schemaNames,
         datatypes,
         waitForNextFrame,
@@ -50,11 +52,13 @@ export function createSchemaDesignerApplyEditsHandler(
         addTable,
         updateTable,
         deleteTable,
+        applySchema,
         normalizeColumn,
         validateTable,
         onPushUndoState,
         onRequestScriptRefresh,
     } = params;
+    const shouldCommitSchema = typeof applySchema === "function";
 
     const normalizeIdentifier = (value: string | undefined): string => (value ?? "").toLowerCase();
 
@@ -426,12 +430,14 @@ export function createSchemaDesignerApplyEditsHandler(
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await addTable(newTable);
-                        if (!success) {
-                            return fail(
-                                "internal_error",
-                                locConstants.schemaDesigner.failedToAddTable,
-                            );
+                        if (!shouldCommitSchema) {
+                            const success = await addTable(newTable);
+                            if (!success) {
+                                return fail(
+                                    "internal_error",
+                                    locConstants.schemaDesigner.failedToAddTable,
+                                );
+                            }
                         }
 
                         needsScriptRefresh = true;
@@ -447,12 +453,14 @@ export function createSchemaDesignerApplyEditsHandler(
                             return fail(resolved.reason, resolved.message);
                         }
 
-                        const success = await deleteTable(resolved.table, true);
-                        if (!success) {
-                            return fail(
-                                "internal_error",
-                                locConstants.schemaDesigner.failedToDeleteTable,
-                            );
+                        if (!shouldCommitSchema) {
+                            const success = await deleteTable(resolved.table, true);
+                            if (!success) {
+                                return fail(
+                                    "internal_error",
+                                    locConstants.schemaDesigner.failedToDeleteTable,
+                                );
+                            }
                         }
 
                         workingSchema = {
@@ -488,12 +496,14 @@ export function createSchemaDesignerApplyEditsHandler(
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(updated);
-                        if (!success) {
-                            return fail(
-                                "internal_error",
-                                locConstants.schemaDesigner.failedToUpdateTable,
-                            );
+                        if (!shouldCommitSchema) {
+                            const success = await updateTable(updated);
+                            if (!success) {
+                                return fail(
+                                    "internal_error",
+                                    locConstants.schemaDesigner.failedToUpdateTable,
+                                );
+                            }
                         }
 
                         needsScriptRefresh = true;
@@ -538,12 +548,14 @@ export function createSchemaDesignerApplyEditsHandler(
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(updated);
-                        if (!success) {
-                            return fail(
-                                "internal_error",
-                                locConstants.schemaDesigner.failedToUpdateTable,
-                            );
+                        if (!shouldCommitSchema) {
+                            const success = await updateTable(updated);
+                            if (!success) {
+                                return fail(
+                                    "internal_error",
+                                    locConstants.schemaDesigner.failedToUpdateTable,
+                                );
+                            }
                         }
 
                         needsScriptRefresh = true;
@@ -584,12 +596,14 @@ export function createSchemaDesignerApplyEditsHandler(
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(updated);
-                        if (!success) {
-                            return fail(
-                                "internal_error",
-                                locConstants.schemaDesigner.failedToUpdateTable,
-                            );
+                        if (!shouldCommitSchema) {
+                            const success = await updateTable(updated);
+                            if (!success) {
+                                return fail(
+                                    "internal_error",
+                                    locConstants.schemaDesigner.failedToUpdateTable,
+                                );
+                            }
                         }
 
                         needsScriptRefresh = true;
@@ -652,12 +666,14 @@ export function createSchemaDesignerApplyEditsHandler(
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(updated);
-                        if (!success) {
-                            return fail(
-                                "internal_error",
-                                locConstants.schemaDesigner.failedToUpdateTable,
-                            );
+                        if (!shouldCommitSchema) {
+                            const success = await updateTable(updated);
+                            if (!success) {
+                                return fail(
+                                    "internal_error",
+                                    locConstants.schemaDesigner.failedToUpdateTable,
+                                );
+                            }
                         }
 
                         needsScriptRefresh = true;
@@ -729,12 +745,14 @@ export function createSchemaDesignerApplyEditsHandler(
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(updated);
-                        if (!success) {
-                            return fail(
-                                "internal_error",
-                                locConstants.schemaDesigner.failedToUpdateTable,
-                            );
+                        if (!shouldCommitSchema) {
+                            const success = await updateTable(updated);
+                            if (!success) {
+                                return fail(
+                                    "internal_error",
+                                    locConstants.schemaDesigner.failedToUpdateTable,
+                                );
+                            }
                         }
 
                         needsScriptRefresh = true;
@@ -778,12 +796,14 @@ export function createSchemaDesignerApplyEditsHandler(
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(updated);
-                        if (!success) {
-                            return fail(
-                                "internal_error",
-                                locConstants.schemaDesigner.failedToUpdateTable,
-                            );
+                        if (!shouldCommitSchema) {
+                            const success = await updateTable(updated);
+                            if (!success) {
+                                return fail(
+                                    "internal_error",
+                                    locConstants.schemaDesigner.failedToUpdateTable,
+                                );
+                            }
                         }
 
                         needsScriptRefresh = true;
@@ -909,12 +929,14 @@ export function createSchemaDesignerApplyEditsHandler(
                             return fail("validation_error", validationError);
                         }
 
-                        const success = await updateTable(updated);
-                        if (!success) {
-                            return fail(
-                                "internal_error",
-                                locConstants.schemaDesigner.failedToUpdateTable,
-                            );
+                        if (!shouldCommitSchema) {
+                            const success = await updateTable(updated);
+                            if (!success) {
+                                return fail(
+                                    "internal_error",
+                                    locConstants.schemaDesigner.failedToUpdateTable,
+                                );
+                            }
                         }
 
                         needsScriptRefresh = true;
@@ -936,8 +958,19 @@ export function createSchemaDesignerApplyEditsHandler(
                 }
 
                 if (didMutateThisEdit) {
+                    if (applySchema) {
+                        const success = await applySchema(workingSchema);
+                        if (!success) {
+                            return fail(
+                                "internal_error",
+                                locConstants.schemaDesigner.failedToApplySchema,
+                            );
+                        }
+                    }
                     await waitForNextFrame();
-                    workingSchema = extractSchema();
+                    if (!shouldCommitSchema) {
+                        workingSchema = extractSchema();
+                    }
                     onPushUndoState();
                 }
             }
@@ -955,7 +988,7 @@ export function createSchemaDesignerApplyEditsHandler(
                     postForeignKeyCount,
                 );
             } catch (error) {
-                console.warn("Schema Designer tool auto-arrange failed", error);
+                extensionRpc.log.warn("Schema Designer tool auto-arrange failed", error);
             }
 
             return {

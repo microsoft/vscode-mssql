@@ -20,7 +20,7 @@ import { sendActionEvent } from "../telemetry/telemetry";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionProfile } from "../models/interfaces";
-import { logger2 } from "../models/logger2";
+import { logger } from "../models/logger";
 
 /**
  * Time to wait after opening a document to check if it's the
@@ -44,7 +44,7 @@ function getDocumentSignature(document: vscode.TextDocument): string {
  * Service for creating untitled documents for SQL query
  */
 export default class SqlDocumentService implements vscode.Disposable {
-    private readonly _logger = logger2.withPrefix("SqlDocumentService");
+    private readonly _logger = logger.withPrefix("SqlDocumentService");
     private _disposables: vscode.Disposable[] = [];
     // Track documents created by this service to avoid auto-connecting them on open.
     // WeakSet ensures entries are garbage collected with the documents.
@@ -741,6 +741,10 @@ export default class SqlDocumentService implements vscode.Disposable {
      */
     private async updateUri(oldUri: string, newUri: string) {
         this._logger.debug("Updating tracked URI", { oldUri, newUri });
+        // Transfer the status bar items to the new URI so they survive the rename/save. This is done
+        // before the connection transfer so that connect() updates the same status bar in place.
+        this._statusview?.associateWithExisting(oldUri, newUri);
+
         // Transfer the connection to the new URI
         await this._connectionMgr?.transferConnectionToFile(oldUri, newUri);
 

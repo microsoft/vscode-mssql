@@ -65,12 +65,9 @@ export interface CreateXEventSessionParams {
 export interface CreateXEventSessionResult {}
 
 export namespace CreateXEventSessionRequest {
-    export const type = new RequestType<
-        CreateXEventSessionParams,
-        CreateXEventSessionResult,
-        void,
-        void
-    >("profiler/createsession");
+    export const type = new RequestType<CreateXEventSessionParams, CreateXEventSessionResult, void>(
+        "profiler/createsession",
+    );
 }
 
 // Start Profiling Request
@@ -98,7 +95,7 @@ export interface StartProfilingResult {
 }
 
 export namespace StartProfilingRequest {
-    export const type = new RequestType<StartProfilingParams, StartProfilingResult, void, void>(
+    export const type = new RequestType<StartProfilingParams, StartProfilingResult, void>(
         "profiler/start",
     );
 }
@@ -119,7 +116,7 @@ export interface StopProfilingParams {
 export interface StopProfilingResult {}
 
 export namespace StopProfilingRequest {
-    export const type = new RequestType<StopProfilingParams, StopProfilingResult, void, void>(
+    export const type = new RequestType<StopProfilingParams, StopProfilingResult, void>(
         "profiler/stop",
     );
 }
@@ -143,7 +140,7 @@ export interface PauseProfilingResult {
 }
 
 export namespace PauseProfilingRequest {
-    export const type = new RequestType<PauseProfilingParams, PauseProfilingResult, void, void>(
+    export const type = new RequestType<PauseProfilingParams, PauseProfilingResult, void>(
         "profiler/pause",
     );
 }
@@ -167,12 +164,9 @@ export interface GetXEventSessionsResult {
 }
 
 export namespace GetXEventSessionsRequest {
-    export const type = new RequestType<
-        GetXEventSessionsParams,
-        GetXEventSessionsResult,
-        void,
-        void
-    >("profiler/getsessions");
+    export const type = new RequestType<GetXEventSessionsParams, GetXEventSessionsResult, void>(
+        "profiler/getsessions",
+    );
 }
 
 // Disconnect Session Request
@@ -191,12 +185,9 @@ export interface DisconnectSessionParams {
 export interface DisconnectSessionResult {}
 
 export namespace DisconnectSessionRequest {
-    export const type = new RequestType<
-        DisconnectSessionParams,
-        DisconnectSessionResult,
-        void,
-        void
-    >("profiler/disconnect");
+    export const type = new RequestType<DisconnectSessionParams, DisconnectSessionResult, void>(
+        "profiler/disconnect",
+    );
 }
 
 // Profiler Events Available Notification
@@ -212,7 +203,7 @@ export interface ProfilerEventsAvailableParams {
 }
 
 export namespace ProfilerEventsAvailableNotification {
-    export const type = new NotificationType<ProfilerEventsAvailableParams, void>(
+    export const type = new NotificationType<ProfilerEventsAvailableParams>(
         "profiler/eventsavailable",
     );
 }
@@ -234,7 +225,7 @@ export interface ProfilerSessionStoppedParams {
 }
 
 export namespace ProfilerSessionStoppedNotification {
-    export const type = new NotificationType<ProfilerSessionStoppedParams, void>(
+    export const type = new NotificationType<ProfilerSessionStoppedParams>(
         "profiler/sessionstopped",
     );
 }
@@ -254,7 +245,7 @@ export interface ProfilerSessionCreatedParams {
 }
 
 export namespace ProfilerSessionCreatedNotification {
-    export const type = new NotificationType<ProfilerSessionCreatedParams, void>(
+    export const type = new NotificationType<ProfilerSessionCreatedParams>(
         "profiler/sessioncreated",
     );
 }

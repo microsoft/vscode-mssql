@@ -42,6 +42,10 @@ export interface ResultGridProps {
     gridParentRef: React.RefObject<HTMLDivElement | null>;
     resultId: number;
     batchId: number;
+    viewMode?: qr.QueryResultViewMode;
+    canToggleMaximize?: boolean;
+    isMaximized?: boolean;
+    onToggleMaximize?: () => void;
 }
 
 export interface ResultGridHandle {
@@ -79,6 +83,7 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
             return a?.rowCount === b?.rowCount;
         },
     );
+    const savedSelection = useQueryResultSelector((state) => state.gridSelections?.[props.gridId]);
 
     const gridContainerRef = useRef<HTMLDivElement>(null);
     const isTableCreated = useRef<boolean>(false);
@@ -294,6 +299,20 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
                 await tableRef.current.restoreColumnWidths();
                 // Restore scroll position
                 await tableRef.current.setupScrollPosition();
+                if (savedSelection?.length) {
+                    tableRef.current.setSelectedRanges(
+                        savedSelection.map(
+                            (range) =>
+                                new Slick.Range(
+                                    range.fromRow,
+                                    range.fromCell,
+                                    range.toRow,
+                                    range.toCell,
+                                ),
+                        ),
+                        false,
+                    );
+                }
             }
             void restoreGridState();
         };
@@ -320,7 +339,21 @@ const ResultGrid = forwardRef<ResultGridHandle, ResultGridProps>((props: ResultG
         } else {
             void createTable();
         }
-    }, [resultSetSummary, gridSettings?.rowPadding, fontSettings?.fontSize]);
+    }, [uri, resultSetSummary, gridSettings?.rowPadding, fontSettings?.fontSize]);
+
+    useEffect(() => {
+        if (!tableRef.current) {
+            return;
+        }
+
+        tableRef.current.setSelectedRanges(
+            (savedSelection ?? []).map(
+                (range) =>
+                    new Slick.Range(range.fromRow, range.fromCell, range.toRow, range.toCell),
+            ),
+            false,
+        );
+    }, [savedSelection]);
 
     // Update key bindings on slickgrid when key bindings change
     useEffect(() => {

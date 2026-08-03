@@ -28,7 +28,6 @@ interface DabRuntimeConfig {
     mcp: { enabled: boolean };
     host: {
         mode: string;
-        cors: { origins: string[] };
     };
 }
 
@@ -44,12 +43,7 @@ interface DabEntityOutput {
         description?: string;
         parameters?: DabParameterOutput[];
     };
-    fields?: Array<{
-        name: string;
-        alias?: string;
-        description?: string;
-        "primary-key"?: boolean;
-    }>;
+    fields?: DabFieldOutput[];
     rest: boolean | { path?: string; methods?: string[] } | undefined;
     graphql: boolean | { type?: DabGraphQLTypeOutput; operation?: string } | undefined;
     permissions: DabPermissionEntry[];
@@ -57,6 +51,13 @@ interface DabEntityOutput {
 }
 
 type DabGraphQLTypeOutput = string | { singular: string; plural?: string };
+
+interface DabFieldOutput {
+    name: string;
+    alias?: string;
+    description?: string;
+    "primary-key"?: boolean;
+}
 
 interface DabPermissionEntry {
     role: string;
@@ -123,7 +124,7 @@ export class DabConfigFileBuilder {
      *
      * The paths for REST and GraphQL APIs are set to default values.
      * Mode is set to 'development'.
-     * CORS is configured to allow all origins.
+     * CORS is not configured so cross-origin browser access is denied by default.
      *
      * @param apiTypes The API types to enable in the runtime section.
      * @returns The runtime configuration object.
@@ -143,9 +144,6 @@ export class DabConfigFileBuilder {
             },
             host: {
                 mode: "development",
-                cors: {
-                    origins: ["*"],
-                },
             },
         };
     }
@@ -201,6 +199,7 @@ export class DabConfigFileBuilder {
             isGraphQLEnabled && Dab.isEntityGraphQLEnabled(entity)
                 ? this.buildGraphQLProperty(entity)
                 : false;
+        const isEntityGraphQLEnabled = isGraphQLEnabled && Dab.isEntityGraphQLEnabled(entity);
         const description = entity.advancedSettings.description?.trim();
         const output: DabEntityOutput = {
             ...(description ? { description } : {}),
@@ -222,14 +221,9 @@ export class DabConfigFileBuilder {
             permissions: this.buildPermissions(entity),
         };
 
-        const fields = this.buildFieldsProperty(entity);
+        const fields = this.buildFieldsProperty(entity, isEntityGraphQLEnabled);
         if (fields.length) {
-            output.fields = fields.map((field) => ({
-                name: field.name,
-                ...(field.alias ? { alias: field.alias } : {}),
-                ...(field.description ? { description: field.description } : {}),
-                ...(field.isPrimaryKey ? { "primary-key": true } : {}),
-            }));
+            output.fields = fields;
         }
 
         if (isMcpEnabled) {
@@ -239,30 +233,81 @@ export class DabConfigFileBuilder {
         return output;
     }
 
-    private buildFieldsProperty(entity: Dab.DabEntityConfig): Dab.DabFieldConfig[] {
+    /**
+     * Builds field mappings and assigns collision-free aliases to SQL column names
+     * that cannot be represented as GraphQL names.
+     */
+    private buildFieldsProperty(
+        entity: Dab.DabEntityConfig,
+        isGraphQLEnabled: boolean,
+    ): DabFieldOutput[] {
         if (entity.sourceType === Dab.EntitySourceType.StoredProcedure) {
             return [];
         }
 
+        let fields: DabFieldOutput[];
         if (entity.fields?.length) {
             const fieldsByName = new Map(
                 entity.fields.map((field) => [Dab.normalizeDabIdentifier(field.name), field]),
             );
-            return entity.columns.map((column) => {
+            fields = entity.columns.map((column) => {
                 const field = fieldsByName.get(Dab.normalizeDabIdentifier(column.name));
                 return {
                     name: column.name,
                     ...(field?.alias ? { alias: field.alias } : {}),
                     ...(field?.description ? { description: field.description } : {}),
-                    ...((field?.isPrimaryKey ?? column.isPrimaryKey) ? { isPrimaryKey: true } : {}),
+                    ...((field?.isPrimaryKey ?? column.isPrimaryKey)
+                        ? { "primary-key": true }
+                        : {}),
                 };
             });
+        } else {
+            fields = entity.columns.map((column) => ({
+                name: column.name,
+                ...(column.isPrimaryKey ? { "primary-key": true } : {}),
+            }));
         }
 
-        return entity.columns.map((column) => ({
-            name: column.name,
-            ...(column.isPrimaryKey ? { isPrimaryKey: true } : {}),
-        }));
+        if (!isGraphQLEnabled) {
+            return fields;
+        }
+
+        const usedGraphQLNames = new Set<string>();
+        for (const field of fields) {
+            const exposedName = field.alias ?? field.name;
+            if (this.isValidGraphQLName(exposedName)) {
+                usedGraphQLNames.add(exposedName);
+            }
+        }
+
+        for (const field of fields) {
+            const exposedName = field.alias ?? field.name;
+            if (!this.isValidGraphQLName(exposedName)) {
+                field.alias = this.createUniqueGraphQLName(exposedName, usedGraphQLNames);
+                usedGraphQLNames.add(field.alias);
+            }
+        }
+
+        return fields;
+    }
+
+    private isValidGraphQLName(value: string): boolean {
+        return /^[_A-Za-z][_0-9A-Za-z]*$/.test(value);
+    }
+
+    private createUniqueGraphQLName(value: string, usedNames: Set<string>): string {
+        let baseName = value.replace(/[^_0-9A-Za-z]/g, "_");
+        if (!/^[_A-Za-z]/.test(baseName)) {
+            baseName = `_${baseName}`;
+        }
+
+        let candidate = baseName;
+        let suffix = 2;
+        while (usedNames.has(candidate)) {
+            candidate = `${baseName}_${suffix}`;
+            suffix++;
+        }
+        return candidate;
     }
 
     /**

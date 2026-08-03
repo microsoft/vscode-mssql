@@ -5,7 +5,6 @@
 
 import * as vscode from "vscode";
 import { WebviewPanelController } from "./webviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
 import { AddFirewallRuleState, AddFirewallRuleReducers } from "../sharedInterfaces/addFirewallRule";
 import { FirewallService } from "../firewall/firewallService";
 import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
@@ -17,6 +16,9 @@ import { ApiStatus } from "../sharedInterfaces/webview";
 import * as Loc from "../constants/locConstants";
 import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
+import { getLogger } from "../models/logger";
+
+const logger = getLogger("AddFirewallRule");
 
 /**
  * Controller for the Add Firewall Rule dialog
@@ -30,7 +32,6 @@ export class AddFirewallRuleWebviewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         initializationProps: {
             serverName: string;
             errorMessage: string;
@@ -39,8 +40,7 @@ export class AddFirewallRuleWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            vscodeWrapper,
-            "AddFirewallRule",
+            "addFirewallRule",
             "addFirewallRule",
             {
                 serverName: initializationProps.serverName,
@@ -198,7 +198,7 @@ export async function populateAzureAccountInfo(
     try {
         auth = (await VsCodeAzureHelper.signIn(forceSignInPrompt)).auth;
     } catch (error) {
-        console.error(`Error signing into Azure: ${getErrorMessage(error)}`);
+        logger.error(`Error signing into Azure: ${getErrorMessage(error)}`);
         return;
     }
 

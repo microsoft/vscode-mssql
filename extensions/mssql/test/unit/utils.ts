@@ -6,7 +6,6 @@
 import * as sinon from "sinon";
 import * as telemetry from "../../src/telemetry/telemetry";
 import * as vscode from "vscode";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as jsonRpc from "vscode-jsonrpc/node";
@@ -16,8 +15,8 @@ import { IPrompter } from "../../src/prompts/question";
 import CodeAdapter from "../../src/prompts/adapter";
 import { buildCapabilitiesResult } from "./mocks";
 import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
-import { ILogger } from "../../src/models/interfaces";
-import { Logger } from "../../src/models/logger";
+import { ILogger } from "../../src/sharedInterfaces/logger";
+import { logger as baseLogger } from "../../src/models/logger";
 import { PreviewFeature, previewService } from "../../src/previews/previewService";
 
 // Stubs the telemetry code
@@ -32,28 +31,91 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
     };
 }
 
-export function stubVscodeWrapper(
-    sandbox?: sinon.SinonSandbox,
-): sinon.SinonStubbedInstance<VscodeWrapper> {
-    const stubber = sandbox || sinon;
-
-    const vscodeWrapper = stubber.createStubInstance(VscodeWrapper);
-
-    const outputChannel: vscode.OutputChannel = {
-        name: "MSSQL",
-        append: stubber.stub(),
-        appendLine: stubber.stub(),
-        clear: stubber.stub(),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        show: stubber.stub() as any,
-        replace: stubber.stub(),
-        hide: stubber.stub(),
-        dispose: stubber.stub(),
+/**
+ * Stubs the `vscode.window` message-box functions (`showErrorMessage`,
+ * `showInformationMessage`, `showWarningMessage`) and returns the created stubs
+ * so tests can configure return values and assert on calls.
+ */
+export function stubMessageBoxes(sandbox: sinon.SinonSandbox): {
+    showErrorMessage: sinon.SinonStub;
+    showInformationMessage: sinon.SinonStub;
+    showWarningMessage: sinon.SinonStub;
+} {
+    return {
+        showErrorMessage: sandbox.stub(vscode.window, "showErrorMessage"),
+        showInformationMessage: sandbox.stub(vscode.window, "showInformationMessage"),
+        showWarningMessage: sandbox.stub(vscode.window, "showWarningMessage"),
     };
+}
 
-    stubber.stub(vscodeWrapper, "outputChannel").get(() => outputChannel);
+/**
+ * Stubs common `vscode.window` functions and returns the created stubs so tests
+ * can configure return values and assert on calls.
+ */
+export function stubVscodeWindow(sandbox: sinon.SinonSandbox): {
+    showErrorMessage: sinon.SinonStub;
+    showInformationMessage: sinon.SinonStub;
+    showWarningMessage: sinon.SinonStub;
+    showSaveDialog: sinon.SinonStub;
+    showInputBox: sinon.SinonStub;
+    showQuickPick: sinon.SinonStub;
+    showTextDocument: sinon.SinonStub;
+    createQuickPick: sinon.SinonStub;
+} {
+    return {
+        ...stubMessageBoxes(sandbox),
+        showSaveDialog: sandbox.stub(vscode.window, "showSaveDialog"),
+        showInputBox: sandbox.stub(vscode.window, "showInputBox"),
+        showQuickPick: sandbox.stub(vscode.window, "showQuickPick"),
+        showTextDocument: sandbox.stub(vscode.window, "showTextDocument"),
+        createQuickPick: sandbox.stub(vscode.window, "createQuickPick"),
+    };
+}
 
-    return vscodeWrapper;
+/**
+ * Stubs common `vscode.env` functions and returns the created stubs so tests
+ * can configure return values and assert on calls.
+ */
+export function stubVscodeEnv(sandbox: sinon.SinonSandbox): {
+    openExternal: sinon.SinonStub;
+} {
+    return {
+        openExternal: sandbox.stub(vscode.env, "openExternal"),
+    };
+}
+
+/**
+ * Stubs common `vscode.workspace` event functions and returns the created stubs
+ * so tests can configure handlers and assert on subscriptions.
+ */
+export function stubVscodeWorkspace(sandbox: sinon.SinonSandbox): {
+    onDidCloseTextDocument: sinon.SinonStub;
+    onDidOpenTextDocument: sinon.SinonStub;
+    onDidSaveTextDocument: sinon.SinonStub;
+    onDidChangeTextDocument: sinon.SinonStub;
+    onDidChangeConfiguration: sinon.SinonStub;
+    openTextDocument: sinon.SinonStub;
+} {
+    const disposable = new vscode.Disposable(() => undefined);
+
+    return {
+        openTextDocument: sandbox.stub(vscode.workspace, "openTextDocument"),
+        onDidCloseTextDocument: sandbox
+            .stub(vscode.workspace, "onDidCloseTextDocument")
+            .returns(disposable),
+        onDidOpenTextDocument: sandbox
+            .stub(vscode.workspace, "onDidOpenTextDocument")
+            .returns(disposable),
+        onDidSaveTextDocument: sandbox
+            .stub(vscode.workspace, "onDidSaveTextDocument")
+            .returns(disposable),
+        onDidChangeTextDocument: sandbox
+            .stub(vscode.workspace, "onDidChangeTextDocument")
+            .returns(disposable),
+        onDidChangeConfiguration: sandbox
+            .stub(vscode.workspace, "onDidChangeConfiguration")
+            .returns(disposable),
+    };
 }
 
 export function stubGetCapabilitiesRequest(
@@ -161,40 +223,46 @@ export function stubExtensionContext(
     return context;
 }
 
-export function createStubLogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<Logger> {
+export function createStubLogger(
+    sandbox?: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<ILogger> {
     const stubber = sandbox || sinon;
-    return stubber.createStubInstance(Logger);
+    const logger = {
+        trace: stubber.stub(),
+        debug: stubber.stub(),
+        info: stubber.stub(),
+        warn: stubber.stub(),
+        error: stubber.stub(),
+        piiSanitized: stubber.stub(),
+        show: stubber.stub(),
+        withPrefix: stubber.stub(),
+        dispose: stubber.stub(),
+    } as sinon.SinonStubbedInstance<ILogger>;
+    logger.withPrefix.returns(logger);
+    return logger;
 }
 
-export function stubLogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<Logger> {
+export function stubLogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<ILogger> {
     const stubber = sandbox || sinon;
     const logger = createStubLogger(sandbox);
-    stubber.stub(Logger, "create").returns(logger);
+    const withPrefix = baseLogger.withPrefix as unknown as sinon.SinonStub;
+    if (typeof withPrefix.restore === "function") {
+        withPrefix.returns(logger);
+    } else {
+        stubber.stub(baseLogger, "withPrefix").returns(logger);
+    }
     return logger;
 }
 
 export function stubILogger(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedInstance<ILogger> {
-    const stubber = sandbox || sinon;
-
-    return {
-        logDebug: stubber.stub(),
-        verbose: stubber.stub(),
-        warn: stubber.stub(),
-        error: stubber.stub(),
-        piiSanitized: stubber.stub(),
-        increaseIndent: stubber.stub(),
-        decreaseIndent: stubber.stub(),
-        append: stubber.stub(),
-        appendLine: stubber.stub(),
-        info: stubber.stub(),
-    } as sinon.SinonStubbedInstance<ILogger>;
+    return createStubLogger(sandbox);
 }
 
-export function stubLoggerGetter<T extends { logger: Logger }>(
+export function stubLoggerGetter<T extends { logger: ILogger }>(
     sandbox: sinon.SinonSandbox,
     target: T,
-    logger: sinon.SinonStubbedInstance<Logger> = createStubLogger(sandbox),
-): sinon.SinonStubbedInstance<Logger> {
+    logger: sinon.SinonStubbedInstance<ILogger> = createStubLogger(sandbox),
+): sinon.SinonStubbedInstance<ILogger> {
     sandbox.stub(target, "logger").get(() => logger);
     return logger;
 }

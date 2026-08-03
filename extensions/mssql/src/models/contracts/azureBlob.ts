@@ -6,9 +6,7 @@
 import { RequestType } from "vscode-languageclient";
 
 export namespace CreateSasRequest {
-    export const type = new RequestType<CreateSasParams, CreateSasResponse, void, void>(
-        "blob/createSas",
-    );
+    export const type = new RequestType<CreateSasParams, CreateSasResponse, void>("blob/createSas");
 }
 
 export interface CreateSasParams {

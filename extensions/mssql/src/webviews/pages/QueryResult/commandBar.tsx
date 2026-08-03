@@ -75,6 +75,7 @@ export interface CommandBarProps {
     resultSetSummary?: qr.ResultSetSummary;
     viewMode?: qr.QueryResultViewMode;
     onToggleMaximize?: () => void;
+    onKeyDownCapture?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
     isMaximized?: boolean;
 }
 
@@ -296,7 +297,10 @@ const CommandBar = (props: CommandBarProps) => {
     }
 
     return (
-        <div className={classes.commandBarContainer}>
+        <div
+            className={classes.commandBarContainer}
+            data-query-result-command-bar="true"
+            onKeyDownCapture={props.onKeyDownCapture}>
             <Overflow overflowAxis="vertical" overflowDirection="end">
                 <Toolbar vertical className={classes.commandBar} aria-label="Query result commands">
                     {actions.map((action) => (

@@ -11,6 +11,10 @@ export class Common {
     public static remindMeLater = l10n.t("Remind Me Later");
     public static dontShowAgain = l10n.t("Don't Show Again");
     public static learnMore = l10n.t("Learn More");
+    public static openFile = l10n.t("Open File");
+    public static revealInExplorer = l10n.t("Reveal in Explorer");
+    public static revealInFinder = l10n.t("Reveal in Finder");
+    public static openContainingFolder = l10n.t("Open Containing Folder");
     public static delete = l10n.t("Delete");
     public static cancel = l10n.t("Cancel");
     public static areYouSure = l10n.t("Are you sure?");
@@ -27,12 +31,27 @@ export class Common {
     public static remove = l10n.t("Remove");
 }
 
+export class SqlToolsMcp {
+    public static serverLabel = l10n.t("SQL Tools (MSSQL)");
+}
+
 export let createDatabaseDialogTitle = l10n.t("Create Database");
 export let dropDatabaseDialogTitle = l10n.t("Drop Database");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
+export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration (Preview)");
+export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
+export let quickQuerySlotOutOfRange = (maxSlot: number) =>
+    l10n.t({
+        message: "Quick Query slot must be between 1 and {0}.",
+        args: [maxSlot],
+        comment: ["{0} is the maximum Quick Query slot number"],
+    });
+export let quickQuerySelectedTextRequired = l10n.t(
+    "This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.",
+);
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
     "Please select a server node in Object Explorer to create a database.",
 );
@@ -262,9 +281,27 @@ export let msgSavePassword = l10n.t(
 );
 export let profileNamePrompt = l10n.t("Profile Name");
 export let msgCannotOpenContent = l10n.t("Error occurred opening content in editor.");
-export let msgSaveStarted = l10n.t("Started saving results to ");
-export let msgSaveFailed = l10n.t("Failed to save results. ");
-export let msgSaveSucceeded = l10n.t("Successfully saved results to ");
+export function msgSaveStarted(filePath: string) {
+    return l10n.t({
+        message: "Started saving results to {0}",
+        args: [filePath],
+        comment: ["{0} is the file path"],
+    });
+}
+export function msgSaveFailed(error: string) {
+    return l10n.t({
+        message: "Failed to save results. {0}",
+        args: [error],
+        comment: ["{0} is the error message"],
+    });
+}
+export function msgSaveSucceeded(filePath: string) {
+    return l10n.t({
+        message: "Successfully saved results to {0}",
+        args: [filePath],
+        comment: ["{0} is the file path"],
+    });
+}
 export let msgSelectProfileToRemove = l10n.t("Select profile to remove");
 export let msgSelectProfileToEdit = l10n.t("Select profile to edit");
 export let confirmRemoveProfilePrompt = l10n.t("Confirm to remove this profile.");
@@ -798,7 +835,6 @@ export let failedToAddTextToWorkspace = (errorMessage: string) =>
     });
 export let schemaDesignerDetailsUnavailable = l10n.t("Schema designer details are not available.");
 export let copyingResults = l10n.t("Copying results...");
-export let resultsCopiedToClipboard = l10n.t("Results copied to clipboard");
 
 export let openQueryResultsInTabByDefaultPrompt = l10n.t(
     "Do you want to always display query results in a new tab instead of the query pane?",
@@ -815,6 +851,7 @@ export class Notebooks {
     // Status bar
     public static statusBarClickToChangeConnection = l10n.t("MSSQL: Click to change connection");
     public static statusBarClickToChangeDatabase = l10n.t("MSSQL: Click to change database");
+    public static selectionSummaryStatusBarName = l10n.t("MSSQL Notebook Selection Summary");
 
     // Errors
     public static connectionFailed = l10n.t("Connection failed");
@@ -959,6 +996,7 @@ export class ObjectExplorer {
     public static FailedOEConnectionErrorUpdate = l10n.t("Edit connection profile");
     public static FailedOEConnectionErrorSignIn = l10n.t("Sign in and retry");
     public static Connecting = l10n.t("Connecting...");
+    public static ResumingDatabase = l10n.t("Resuming database");
     public static NodeDeletionConfirmation(nodeLabel: string) {
         return l10n.t({
             message: "Are you sure you want to remove {0}?",
@@ -1792,6 +1830,9 @@ export class LocalContainers {
     public static linuxDockerPermissionsError = l10n.t(
         "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
     );
+    public static dockerSocketPermissionError = l10n.t(
+        "Cannot access the Docker socket. Your user may not be in the 'docker' group, or VS Code was started before group membership took effect. Run 'sudo usermod -aG docker $USER' and then log out and back in (or reboot) before relaunching VS Code.",
+    );
     public static dockerFailedToStartWithinTimeout = l10n.t(
         "Docker failed to start within the timeout period. Please manually start Docker and try again.",
     );
@@ -2593,17 +2634,24 @@ export class MssqlChatAgent {
     public static dabToolNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open Data API builder first using mssql_dab with operation 'show' or from the UI.",
     );
-    public static dabToolMissingConnectionId = l10n.t(
-        "Missing connectionId. Please provide a connectionId to open Data API builder.",
+    public static toolMissingConnectionReference = l10n.t(
+        "Missing connection reference. Please provide exactly one of connectionId or connectionName.",
     );
+    public static toolAmbiguousConnectionReference = l10n.t(
+        "Ambiguous connection reference. Please provide only one of connectionId or connectionName.",
+    );
+    public static noSqlToolsMcpConnectionName = (connectionName: string) => {
+        return l10n.t({
+            message: "No SQL Tools MCP connection found for connectionName: {0}",
+            args: [connectionName],
+            comment: ["{0} is the SQL Tools MCP registered connection name"],
+        });
+    };
     public static schemaDesignerNoActiveDesigner = l10n.t(
         "No active schema designer found. Please open one first using mssql_schema_designer with operation 'show' or from the UI.",
     );
     public static schemaDesignerStaleState = l10n.t(
         "Schema designer state changed. Fetch the latest schema and retry the operation.",
-    );
-    public static schemaDesignerMissingConnectionId = l10n.t(
-        "Missing connectionId. Please provide a connectionId to open the schema designer.",
     );
     public static schemaDesignerAddTableSuccess = l10n.t(
         "Table added to schema designer successfully.",
@@ -3069,9 +3117,9 @@ export class DacpacDialog {
     public static InvalidApplicationVersion = l10n.t(
         "Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)",
     );
-    public static RevealInExplorer = l10n.t("Reveal in Explorer");
-    public static RevealInFinder = l10n.t("Reveal in Finder");
-    public static OpenContainingFolder = l10n.t("Open Containing Folder");
+    public static RevealInExplorer = Common.revealInExplorer;
+    public static RevealInFinder = Common.revealInFinder;
+    public static OpenContainingFolder = Common.openContainingFolder;
     public static FailedToListDatabases = l10n.t(
         "Unable to retrieve the list of databases. You may not have permission to list databases on this server.",
     );
@@ -3366,6 +3414,10 @@ export class Changelog {
     public static schemaDesignerCopilotDescription = l10n.t(
         "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
     );
+    public static shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
+    public static shortcutsConfigurationDescription = l10n.t(
+        "Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.",
+    );
     public static azureSqlProvisioningTitle = l10n.t("Azure SQL databases provisioning");
     public static azureSqlProvisioningDescription = l10n.t(
         "Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.",
@@ -3612,7 +3664,7 @@ export class Profiler {
             args: [filePath],
             comment: ["{0} is the file path"],
         });
-    public static openFile = l10n.t("Open File");
+    public static openFile = Common.openFile;
     public static exportFailed = (error: string) =>
         l10n.t({
             message: "Failed to export profiler events: {0}",
@@ -3872,6 +3924,13 @@ export class ServiceClient {
     public static installFailedStatusText = l10n.t("Service installation failed.");
 }
 
+export class Formatter {
+    public static parseError = l10n.t(
+        "SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.",
+    );
+    public static sendFeedback = l10n.t("Send Feedback");
+}
+
 export const azureSignInFailed = l10n.t("Azure sign in failed.");
 
 export const selectSubscriptions = l10n.t("Select subscriptions");
@@ -4111,3 +4170,40 @@ export const foreignKeys2 = l10n.t("Foreign Keys");
 export const checkConstraints2 = l10n.t("Check Constraints");
 
 export const advancedOptions = l10n.t("Advanced Options");
+
+export class SqlSymbolRename {
+    public static renameNotSupportedAtPosition = l10n.t(
+        "Rename is not supported at this position.",
+    );
+    public static renameOnlyInProjectFiles = l10n.t(
+        "Rename is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.",
+    );
+    public static renameNotSupportedForSymbol = l10n.t("Please select a valid symbol.");
+    public static renameRequestFailed = (message: string): string =>
+        l10n.t("Rename request failed: {0}", message);
+    public static noRenameableSymbolAtCursor = l10n.t("No renameable symbol found at cursor.");
+}
+
+export class SqlMoveToSchema {
+    public static moveToSchemaTitle = l10n.t("Move to Schema...");
+    public static moveToSchemaOnlyInProjectFiles = l10n.t(
+        "Move to Schema is only supported for SQL files that are part of an open SQL project. Open the project in the Database Projects panel first.",
+    );
+    public static selectTargetSchemaPlaceholder = (currentSchema?: string): string =>
+        currentSchema
+            ? l10n.t("Current Schema: {0}, Select the new schema:", currentSchema)
+            : l10n.t("Select the target schema");
+    public static noSchemasFound = l10n.t("No schemas were found in the project.");
+    public static noMovableSymbolAtCursor = l10n.t(
+        "No object that can be moved to another schema was found at the cursor.",
+    );
+    public static moveToSchemaRequestFailed = (message: string): string =>
+        l10n.t("Move to Schema request failed: {0}", message);
+    public static resolveRefactorLogFailed = (message: string): string =>
+        l10n.t("Failed to resolve the refactor log for this file: {0}", message);
+    public static previewLabel = (targetSchema: string): string =>
+        l10n.t("Move to schema '{0}'", targetSchema);
+    public static applyEditFailed = l10n.t(
+        "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
+    );
+}

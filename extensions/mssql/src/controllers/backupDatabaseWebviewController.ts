@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import VscodeWrapper from "./vscodeWrapper";
 import {
     BackupComponent,
     BackupCompression,
@@ -75,7 +74,6 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
     public readonly BACKUP_DATABASE_TASK_NAME = "Backup Database";
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         objectManagementService: ObjectManagementService,
         private connectionManager: ConnectionManager,
         private fileBrowserService: FileBrowserService,
@@ -86,7 +84,6 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
     ) {
         super(
             context,
-            vscodeWrapper,
             objectManagementService,
             ObjectManagementDialogType.BackupDatabase,
             LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),

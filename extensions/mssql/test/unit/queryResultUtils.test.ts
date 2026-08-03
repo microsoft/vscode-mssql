@@ -8,6 +8,7 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as queryResultUtils from "../../src/queryResult/utils";
 import * as Constants from "../../src/constants/constants";
+import * as qr from "../../src/sharedInterfaces/queryResult";
 
 suite("QueryResult Utils Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -84,6 +85,12 @@ suite("QueryResult Utils Tests", () => {
             expect(Constants.configResultsGridRowPadding).to.equal("resultsGrid.rowPadding");
         });
 
+        test("messages copy timestamp config key has correct path", () => {
+            expect(Constants.configMessagesCopyIncludeTimestamps).to.equal(
+                "messages.copyIncludeTimestamps",
+            );
+        });
+
         test("default gridSettings returns rowPadding=undefined when config is undefined", () => {
             const mockConfig = {
                 get: sandbox.stub().returns(undefined),
@@ -117,5 +124,46 @@ suite("QueryResult Utils Tests", () => {
                 expect(queryResultUtils.bucketizeRowCount(value)).to.equal(expected);
             });
         }
+    });
+
+    suite("messageToString", () => {
+        test("returns message text without timestamp by default", () => {
+            const message: qr.IMessage = {
+                message: "Started executing query at ",
+                isError: false,
+                time: "12:34:56 PM",
+                link: {
+                    text: "Line 1",
+                },
+            };
+
+            expect(queryResultUtils.messageToString(message)).to.equal(
+                "Started executing query at Line 1",
+            );
+        });
+
+        test("prefixes timestamp when requested", () => {
+            const message: qr.IMessage = {
+                message: "Rows affected",
+                isError: false,
+                time: "12:34:56 PM",
+            };
+
+            expect(queryResultUtils.messageToString(message, true)).to.equal(
+                "12:34:56 PM\tRows affected",
+            );
+        });
+
+        test("prefixes each message line with timestamp when requested", () => {
+            const message: qr.IMessage = {
+                message: "First line\nSecond line",
+                isError: false,
+                time: "12:34:56 PM",
+            };
+
+            expect(queryResultUtils.messageToString(message, true)).to.equal(
+                "12:34:56 PM\tFirst line\n12:34:56 PM\tSecond line",
+            );
+        });
     });
 });

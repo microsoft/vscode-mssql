@@ -20,7 +20,6 @@ import { IConnectionProfile } from "../../src/models/interfaces";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { Deferred } from "../../src/protocol";
 import { createStubLogger, stubExtensionContext, stubTelemetry } from "./utils";
 
@@ -1066,7 +1065,6 @@ suite("SqlDocumentService Tests", () => {
                 sandbox.createStubInstance(CredentialStore),
                 createStubLogger(sandbox),
                 mockConnectionConfig,
-                sandbox.createStubInstance(VscodeWrapper),
             );
         }
 

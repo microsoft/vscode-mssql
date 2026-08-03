@@ -27,7 +27,6 @@ import {
 } from "../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { WebviewPanelController } from "./webviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
 import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
@@ -93,7 +92,6 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private connectionStore: ConnectionStore,
         private connectionConfig: ConnectionConfig,
         private azureAccountService: AzureAccountService,
@@ -101,7 +99,6 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
     ) {
         super(
             context,
-            vscodeWrapper,
             AZURE_DATA_STUDIO_MIGRATION_VIEW_ID,
             AZURE_DATA_STUDIO_MIGRATION_VIEW_ID,
             initialState,
@@ -170,13 +167,13 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
             );
 
             if (!connection) {
-                console.error("Cannot open Entra sign-in dialog for undefined connection");
+                this.logger.error("Cannot open Entra sign-in dialog for undefined connection");
                 state.dialog = undefined;
                 return state;
             }
 
             if (connection.profile.authenticationType !== AuthenticationType.AzureMFA) {
-                console.error(
+                this.logger.error(
                     `Cannot open Entra sign-in dialog for connection with authentication type: ${connection?.profile.authenticationType}`,
                 );
                 state.dialog = undefined;

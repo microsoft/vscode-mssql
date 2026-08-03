@@ -26,7 +26,13 @@ suite("schemaDesignerRpcHandlers", () => {
         sandbox.restore();
     });
 
-    const createApplyEditsHarness = (initialSchema: SchemaDesigner.Schema) => {
+    const createApplyEditsHarness = (
+        initialSchema: SchemaDesigner.Schema,
+        options?: {
+            useApplySchema?: boolean;
+            keepExtractSchemaStale?: boolean;
+        },
+    ) => {
         let currentSchema: SchemaDesigner.Schema = initialSchema;
 
         const applyHandlerStub = sandbox.stub();
@@ -38,6 +44,7 @@ suite("schemaDesignerRpcHandlers", () => {
 
         const onMaybeAutoArrange = sandbox.stub();
         const onRequestScriptRefresh = sandbox.stub();
+        const committedSchemas: SchemaDesigner.Schema[] = [];
 
         const addTable = sandbox.stub().callsFake(async (table: SchemaDesigner.Table) => {
             currentSchema = { tables: [...currentSchema.tables, { ...table, foreignKeys: [] }] };
@@ -55,6 +62,13 @@ suite("schemaDesignerRpcHandlers", () => {
             currentSchema = { tables: currentSchema.tables.filter((t) => t.id !== table.id) };
             return true;
         });
+        const applySchema = options?.useApplySchema
+            ? sandbox.stub().callsFake(async (schema: SchemaDesigner.Schema) => {
+                  currentSchema = schema;
+                  committedSchemas.push(schema);
+                  return true;
+              })
+            : undefined;
 
         registerSchemaDesignerApplyEditsHandler({
             isInitialized: true,
@@ -62,11 +76,12 @@ suite("schemaDesignerRpcHandlers", () => {
             schemaNames: ["dbo"],
             datatypes: [],
             waitForNextFrame: async () => {},
-            extractSchema: () => currentSchema,
+            extractSchema: () => (options?.keepExtractSchemaStale ? initialSchema : currentSchema),
             onMaybeAutoArrange,
             addTable,
             updateTable,
             deleteTable,
+            applySchema,
             normalizeColumn: (c) => normalizeColumn(c),
             normalizeTable: (t) => t,
             validateTable: () => undefined,
@@ -79,6 +94,8 @@ suite("schemaDesignerRpcHandlers", () => {
             onMaybeAutoArrange,
             onRequestScriptRefresh,
             getSchema: () => currentSchema,
+            applySchema,
+            committedSchemas,
         };
     };
 
@@ -269,6 +286,116 @@ suite("schemaDesignerRpcHandlers", () => {
 
         expect(onMaybeAutoArrange.calledOnce).to.equal(true);
         expect(onMaybeAutoArrange.getCall(0).args).to.deep.equal([2, 2, 1, 2]);
+    });
+
+    test("apply_edits commits multiple foreign keys from accumulated schema when flow reads are stale", async () => {
+        const usersId = normalizeColumn({ id: "users-id", name: "Id", dataType: "int" } as any);
+        const projectsId = normalizeColumn({
+            id: "projects-id",
+            name: "Id",
+            dataType: "int",
+        } as any);
+        const projectsOwnerId = normalizeColumn({
+            id: "projects-owner-id",
+            name: "OwnerId",
+            dataType: "int",
+        } as any);
+        const tasksId = normalizeColumn({ id: "tasks-id", name: "Id", dataType: "int" } as any);
+        const tasksProjectId = normalizeColumn({
+            id: "tasks-project-id",
+            name: "ProjectId",
+            dataType: "int",
+        } as any);
+        const commentsTaskId = normalizeColumn({
+            id: "comments-task-id",
+            name: "TaskId",
+            dataType: "int",
+        } as any);
+
+        const { applyEdits, committedSchemas, onMaybeAutoArrange } = createApplyEditsHarness(
+            {
+                tables: [
+                    {
+                        id: "users",
+                        schema: "dbo",
+                        name: "Users",
+                        columns: [usersId],
+                        foreignKeys: [],
+                    },
+                    {
+                        id: "projects",
+                        schema: "dbo",
+                        name: "Projects",
+                        columns: [projectsId, projectsOwnerId],
+                        foreignKeys: [],
+                    },
+                    {
+                        id: "tasks",
+                        schema: "dbo",
+                        name: "Tasks",
+                        columns: [tasksId, tasksProjectId],
+                        foreignKeys: [],
+                    },
+                    {
+                        id: "comments",
+                        schema: "dbo",
+                        name: "Comments",
+                        columns: [commentsTaskId],
+                        foreignKeys: [],
+                    },
+                ],
+            },
+            { useApplySchema: true, keepExtractSchemaStale: true },
+        );
+
+        const result = await applyEdits([
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "Projects" },
+                foreignKey: {
+                    name: "FK_Projects_Users",
+                    referencedTable: { schema: "dbo", name: "Users" },
+                    mappings: [{ column: "OwnerId", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "Tasks" },
+                foreignKey: {
+                    name: "FK_Tasks_Projects",
+                    referencedTable: { schema: "dbo", name: "Projects" },
+                    mappings: [{ column: "ProjectId", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+            {
+                op: "add_foreign_key",
+                table: { schema: "dbo", name: "Comments" },
+                foreignKey: {
+                    name: "FK_Comments_Tasks",
+                    referencedTable: { schema: "dbo", name: "Tasks" },
+                    mappings: [{ column: "TaskId", referencedColumn: "Id" }],
+                    onDeleteAction: SchemaDesigner.OnAction.NO_ACTION,
+                    onUpdateAction: SchemaDesigner.OnAction.NO_ACTION,
+                },
+            } as any,
+        ]);
+
+        expect(result.success).to.equal(true);
+        expect(committedSchemas).to.have.length(3);
+
+        const committedForeignKeys = committedSchemas[committedSchemas.length - 1].tables.flatMap(
+            (table) => table.foreignKeys.map((foreignKey) => foreignKey.name),
+        );
+        expect(committedForeignKeys).to.have.members([
+            "FK_Projects_Users",
+            "FK_Tasks_Projects",
+            "FK_Comments_Tasks",
+        ]);
+        expect(onMaybeAutoArrange.getCall(0).args).to.deep.equal([4, 4, 0, 3]);
     });
 
     test("add_column fails when table ref is not found (covers resolved.success===false)", async () => {

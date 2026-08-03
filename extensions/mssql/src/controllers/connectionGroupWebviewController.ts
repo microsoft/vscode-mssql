@@ -5,7 +5,6 @@
 
 import * as vscode from "vscode";
 import { WebviewPanelController } from "./webviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
 import {
     ConnectionGroupState,
     ConnectionGroupReducers,
@@ -33,14 +32,12 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private connectionConfig: ConnectionConfig,
         private connectionGroupToEdit?: IConnectionGroup,
     ) {
         super(
             context,
-            vscodeWrapper,
-            "ConnectionGroup",
+            "connectionGroup",
             "ConnectionGroup",
             {
                 existingGroupName: connectionGroupToEdit?.name,
@@ -87,7 +84,7 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
         this.registerReducer("saveConnectionGroup", async (state, payload) => {
             try {
                 if (this.connectionGroupToEdit) {
-                    this.logger.verbose("Updating existing connection group", payload);
+                    this.logger.debug("Updating existing connection group", payload);
                     await this.connectionConfig.updateGroup({
                         ...this.connectionGroupToEdit,
                         name: payload.name,
@@ -95,7 +92,7 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
                         color: payload.color,
                     });
                 } else {
-                    this.logger.verbose("Creating new connection group", payload);
+                    this.logger.debug("Creating new connection group", payload);
                     await this.connectionConfig.addGroup(createConnectionGroupFromSpec(payload));
                 }
 

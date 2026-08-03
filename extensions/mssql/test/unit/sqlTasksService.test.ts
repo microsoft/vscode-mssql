@@ -17,10 +17,9 @@ import {
 } from "../../src/services/sqlTasksService";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import SqlDocumentService from "../../src/controllers/sqlDocumentService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { stubMessageBoxes } from "./utils";
 import { TaskExecutionMode } from "../../src/enums";
 import * as telemetry from "../../src/telemetry/telemetry";
-import { stubLoggerGetter } from "./utils";
 
 chai.use(sinonChai);
 
@@ -29,35 +28,27 @@ suite("SqlTasksService Tests", () => {
     let sqlTasksService: SqlTasksService;
     let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let sqlDocumentServiceStub: sinon.SinonStubbedInstance<SqlDocumentService>;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let showInformationMessageStub: sinon.SinonStub;
     let showErrorMessageStub: sinon.SinonStub;
     let showWarningMessageStub: sinon.SinonStub;
     let executeCommandStub: sinon.SinonStub;
     let sendActionEventStub: sinon.SinonStub;
-    let loggerErrorStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         sqlToolsClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         sqlDocumentServiceStub = sandbox.createStubInstance(SqlDocumentService);
-        vscodeWrapperStub = sandbox.createStubInstance(VscodeWrapper);
 
-        showInformationMessageStub = vscodeWrapperStub.showInformationMessage;
-        showErrorMessageStub = vscodeWrapperStub.showErrorMessage;
-        showWarningMessageStub = vscodeWrapperStub.showWarningMessage;
-        executeCommandStub = vscodeWrapperStub.executeCommand;
+        const messageBoxes = stubMessageBoxes(sandbox);
+        showInformationMessageStub = messageBoxes.showInformationMessage;
+        showErrorMessageStub = messageBoxes.showErrorMessage;
+        showWarningMessageStub = messageBoxes.showWarningMessage;
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand");
 
         // Stub telemetry
         sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
 
-        loggerErrorStub = stubLoggerGetter(sandbox, sqlToolsClientStub).error;
-
-        sqlTasksService = new SqlTasksService(
-            sqlToolsClientStub,
-            sqlDocumentServiceStub,
-            vscodeWrapperStub,
-        );
+        sqlTasksService = new SqlTasksService(sqlToolsClientStub, sqlDocumentServiceStub);
     });
 
     teardown(() => {
@@ -126,7 +117,6 @@ suite("SqlTasksService Tests", () => {
 
             // Reset to ensure we're only checking the second registration
             sendActionEventStub.resetHistory();
-            loggerErrorStub.resetHistory();
 
             sqlTasksService.registerCompletionSuccessHandler(handler2);
 
@@ -138,16 +128,6 @@ suite("SqlTasksService Tests", () => {
                     operationName: "TestOperation",
                 }),
             );
-
-            // Verify error was logged
-            expect(
-                loggerErrorStub.calledWithMatch(
-                    sinon.match(
-                        (value: unknown) =>
-                            typeof value === "string" && value.includes("TestOperation"),
-                    ),
-                ),
-            ).to.be.true;
         });
 
         test("should support multiple handlers for different operation IDs", async () => {

@@ -9,7 +9,6 @@ import { NotificationType, RequestType } from "vscode-languageclient";
 import * as localizedConstants from "../constants/locConstants";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { TaskExecutionMode } from "../enums";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import {
@@ -17,6 +16,8 @@ import {
     BackgroundTasksService,
     BackgroundTaskState,
 } from "../backgroundTasks/backgroundTasksService";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "../models/logger";
 
 export enum TaskStatus {
     NotStarted = 0,
@@ -63,11 +64,11 @@ export interface TaskInfo {
 }
 
 namespace TaskStatusChangedNotification {
-    export const type = new NotificationType<TaskProgressInfo, void>("tasks/statuschanged");
+    export const type = new NotificationType<TaskProgressInfo>("tasks/statuschanged");
 }
 
 namespace TaskCreatedNotification {
-    export const type = new NotificationType<TaskInfo, void>("tasks/newtaskcreated");
+    export const type = new NotificationType<TaskInfo>("tasks/newtaskcreated");
 }
 
 interface CancelTaskParams {
@@ -75,7 +76,7 @@ interface CancelTaskParams {
 }
 
 namespace CancelTaskRequest {
-    export const type = new RequestType<CancelTaskParams, boolean, void, void>("tasks/canceltask");
+    export const type = new RequestType<CancelTaskParams, boolean, void>("tasks/canceltask");
 }
 
 type ActiveTaskInfo = {
@@ -144,7 +145,7 @@ export interface TaskCompletionHandler {
      */
     getActionCommandArgs?: (taskInfo: TaskInfo, targetLocation: string) => ActionCommandArgs;
 
-    sendNotification?(NotificationType: NotificationType<any, void>, params: any): void;
+    sendNotification?(NotificationType: NotificationType<any>, params: any): void;
 }
 
 /**
@@ -172,13 +173,14 @@ export const onTaskCompleted = taskCompletedEmitter.event;
 export class SqlTasksService {
     private _activeTasks = new Map<string, ActiveTaskInfo>();
     private _completionHandlers = new Map<string, TaskCompletionHandler>();
+    private _logger: ILogger;
 
     constructor(
         private _client: SqlToolsServiceClient,
         private _sqlDocumentService: SqlDocumentService,
-        private _vscodeWrapper: VscodeWrapper,
         private _backgroundTasksService?: BackgroundTasksService,
     ) {
+        this._logger = logger.withPrefix("SqlTasksService");
         this._client.onNotification(TaskCreatedNotification.type, (taskInfo) =>
             this.handleTaskCreatedNotification(taskInfo),
         );
@@ -200,7 +202,7 @@ export class SqlTasksService {
                 event: "CompletionHandlerOverwritten",
                 operationName: handler.operationName,
             });
-            this._client.logger.error(
+            this._logger.error(
                 `There is an existing completion handler for operation ${handler.operationName} cannot be overwritten.`,
             );
         } else {
@@ -259,10 +261,10 @@ export class SqlTasksService {
     private async handleTaskChangedNotification(taskProgressInfo: TaskProgressInfo): Promise<void> {
         const taskInfo = this._activeTasks.get(taskProgressInfo.taskId);
         if (!taskInfo) {
-            console.warn(`Status update for unknown task ${taskProgressInfo.taskId}`!);
+            this._logger.warn(`Status update for unknown task ${taskProgressInfo.taskId}`);
             return;
         }
-        const taskStatusString = toTaskStatusDisplayString(taskProgressInfo.status);
+        const taskStatusString = toTaskStatusDisplayString(taskProgressInfo.status, this._logger);
         if (
             taskProgressInfo.message &&
             taskProgressInfo.message.toLowerCase() !== taskStatusString.toLowerCase()
@@ -346,10 +348,7 @@ export class SqlTasksService {
                 if (actionButtonText && handler.actionCommand && handler.getActionCommandArgs) {
                     // Show notification with action button
                     void Promise.resolve(
-                        this._vscodeWrapper.showInformationMessage(
-                            successMessage,
-                            actionButtonText,
-                        ),
+                        vscode.window.showInformationMessage(successMessage, actionButtonText),
                     ).then((selection) => {
                         if (selection === actionButtonText) {
                             const command = handler.actionCommand!;
@@ -357,12 +356,12 @@ export class SqlTasksService {
                                 taskInfo.taskInfo,
                                 targetLocation,
                             );
-                            void this._vscodeWrapper.executeCommand(command, ...args);
+                            void vscode.commands.executeCommand(command, ...args);
                         }
                     });
                 } else {
                     // Show notification without action button
-                    void this._vscodeWrapper.showInformationMessage(successMessage);
+                    void vscode.window.showInformationMessage(successMessage);
                 }
             } else {
                 // Show generic completion message for tasks without custom handlers
@@ -470,7 +469,7 @@ export class SqlTasksService {
 
         return () =>
             Promise.resolve(
-                this._vscodeWrapper.executeCommand(
+                vscode.commands.executeCommand(
                     handler.actionCommand!,
                     ...handler.getActionCommandArgs!(taskInfo, targetLocation),
                 ),
@@ -488,14 +487,14 @@ export class SqlTasksService {
      */
     private showCompletionMessage(taskStatus: TaskStatus, message: string): void {
         if (taskStatus === TaskStatus.Failed) {
-            void this._vscodeWrapper.showErrorMessage(message);
+            void vscode.window.showErrorMessage(message);
         } else if (
             taskStatus === TaskStatus.Canceled ||
             taskStatus === TaskStatus.SucceededWithWarning
         ) {
-            void this._vscodeWrapper.showWarningMessage(message);
+            void vscode.window.showWarningMessage(message);
         } else {
-            void this._vscodeWrapper.showInformationMessage(message);
+            void vscode.window.showInformationMessage(message);
         }
     }
 }
@@ -519,7 +518,7 @@ function isTaskCompleted(taskStatus: TaskStatus): boolean {
  * @param taskStatus The task status to get the display string for
  * @returns The display string for the task status, or the task status directly as a string if we don't have a mapping
  */
-function toTaskStatusDisplayString(taskStatus: TaskStatus): string {
+function toTaskStatusDisplayString(taskStatus: TaskStatus, logger?: ILogger): string {
     switch (taskStatus) {
         case TaskStatus.Canceled:
             return localizedConstants.canceled;
@@ -536,7 +535,7 @@ function toTaskStatusDisplayString(taskStatus: TaskStatus): string {
         case TaskStatus.NotStarted:
             return localizedConstants.notStarted;
         default:
-            console.warn(`Don't have display string for task status ${taskStatus}`);
+            logger?.warn(`Don't have display string for task status ${taskStatus}`);
             return (<any>taskStatus).toString(); // Typescript warns that we can never get here because we've used all the enum values so cast to any
     }
 }

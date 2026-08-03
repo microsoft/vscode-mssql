@@ -25,7 +25,7 @@ export class BatchSummary {
 
 // ------------------------------- < Query Execution Complete Notification > ------------------------------------
 export namespace QueryExecuteCompleteNotification {
-    export const type = new NotificationType<QueryExecuteCompleteNotificationResult, void>(
+    export const type = new NotificationType<QueryExecuteCompleteNotificationResult>(
         "query/complete",
     );
 }
@@ -43,24 +43,23 @@ export class QueryExecuteBatchNotificationParams {
 
 // ------------------------------- < Query Batch Start  Notification > ------------------------------------
 export namespace QueryExecuteBatchStartNotification {
-    export const type = new NotificationType<QueryExecuteBatchNotificationParams, void>(
+    export const type = new NotificationType<QueryExecuteBatchNotificationParams>(
         "query/batchStart",
     );
 }
 
 // ------------------------------- < Query Batch Complete Notification > ------------------------------------
 export namespace QueryExecuteBatchCompleteNotification {
-    export const type = new NotificationType<QueryExecuteBatchNotificationParams, void>(
+    export const type = new NotificationType<QueryExecuteBatchNotificationParams>(
         "query/batchComplete",
     );
 }
 
 // ------------------------------- < Query ResultSet Available Notification > ------------------------------------
 export namespace QueryExecuteResultSetAvailableNotification {
-    export const type = new NotificationType<
-        QueryExecuteResultSetAvailableNotificationParams,
-        void
-    >("query/resultSetAvailable");
+    export const type = new NotificationType<QueryExecuteResultSetAvailableNotificationParams>(
+        "query/resultSetAvailable",
+    );
 }
 
 export class QueryExecuteResultSetAvailableNotificationParams {
@@ -70,7 +69,7 @@ export class QueryExecuteResultSetAvailableNotificationParams {
 
 // ------------------------------- < Query ResultSet Updated Notification > ------------------------------------
 export namespace QueryExecuteResultSetUpdatedNotification {
-    export const type = new NotificationType<QueryExecuteResultSetUpdatedNotificationParams, void>(
+    export const type = new NotificationType<QueryExecuteResultSetUpdatedNotificationParams>(
         "query/resultSetUpdated",
     );
 }
@@ -82,7 +81,7 @@ export class QueryExecuteResultSetUpdatedNotificationParams {
 
 // ------------------------------- < Query ResultSet Complete Notification > ------------------------------------
 export namespace QueryExecuteResultSetCompleteNotification {
-    export const type = new NotificationType<QueryExecuteResultSetCompleteNotificationParams, void>(
+    export const type = new NotificationType<QueryExecuteResultSetCompleteNotificationParams>(
         "query/resultSetComplete",
     );
 }
@@ -94,7 +93,7 @@ export class QueryExecuteResultSetCompleteNotificationParams {
 
 // ------------------------------- < Query Message Notification > ------------------------------------
 export namespace QueryExecuteMessageNotification {
-    export const type = new NotificationType<QueryExecuteMessageParams, void>("query/message");
+    export const type = new NotificationType<QueryExecuteMessageParams>("query/message");
 }
 
 export class QueryExecuteMessageParams {
@@ -104,18 +103,15 @@ export class QueryExecuteMessageParams {
 
 // ------------------------------- < Query Execution Request > ------------------------------------
 export namespace QueryExecuteRequest {
-    export const type = new RequestType<QueryExecuteParams, QueryExecuteResult, void, void>(
+    export const type = new RequestType<QueryExecuteParams, QueryExecuteResult, void>(
         "query/executeDocumentSelection",
     );
 }
 
 export namespace QueryExecuteStatementRequest {
-    export const type = new RequestType<
-        QueryExecuteStatementParams,
-        QueryExecuteResult,
-        void,
-        void
-    >("query/executedocumentstatement");
+    export const type = new RequestType<QueryExecuteStatementParams, QueryExecuteResult, void>(
+        "query/executedocumentstatement",
+    );
 }
 
 export class QueryExecuteParams {
@@ -138,7 +134,7 @@ export class QueryExecuteStatementParams {
  * all result sets need to be retrieved.
  */
 export namespace QueryExecuteStringRequest {
-    export const type = new RequestType<QueryExecuteStringParams, QueryExecuteResult, void, void>(
+    export const type = new RequestType<QueryExecuteStringParams, QueryExecuteResult, void>(
         "query/executeString",
     );
 }
@@ -157,12 +153,9 @@ export class ExecutionPlanOptions {
 
 // ------------------------------- < Query Results Request > ------------------------------------
 export namespace QueryExecuteSubsetRequest {
-    export const type = new RequestType<
-        QueryExecuteSubsetParams,
-        QueryExecuteSubsetResult,
-        void,
-        void
-    >("query/subset");
+    export const type = new RequestType<QueryExecuteSubsetParams, QueryExecuteSubsetResult, void>(
+        "query/subset",
+    );
 }
 
 export class QueryExecuteSubsetParams {
@@ -190,7 +183,7 @@ export class QueryExecuteSubsetResult {
 
 // ------------------------------- < Query Execution Options Request > ------------------------------------
 export namespace QueryExecuteOptionsRequest {
-    export const type = new RequestType<QueryExecutionOptionsParams, boolean, void, void>(
+    export const type = new RequestType<QueryExecutionOptionsParams, boolean, void>(
         "query/setexecutionoptions",
     );
 }
@@ -208,7 +201,7 @@ export interface QueryExecutionOptions {
 // ------------------------------- < Query Connection URI Change Request > ------------------------------------
 
 export namespace QueryConnectionUriChangeRequest {
-    export const type = new NotificationType<QueryConnectionUriChangeParams, boolean>(
+    export const type = new NotificationType<QueryConnectionUriChangeParams>(
         "query/connectionUriChanged",
     );
 }
@@ -231,18 +224,14 @@ export namespace GridSelectionSummaryRequest {
     export const type = new RequestType<
         GridSelectionSummaryRequestParams,
         GridSelectionSummaryResponse,
-        void,
         void
     >("query/selectionsummary");
 }
 
 export namespace CancelGridSelectionSummaryNotification {
-    export const type = new NotificationType<
-        {
-            ownerUri: string;
-        },
-        void
-    >("query/cancelSelectionSummary");
+    export const type = new NotificationType<{
+        ownerUri: string;
+    }>("query/cancelSelectionSummary");
 }
 
 export class GridSelectionSummaryRequestParams {
@@ -274,12 +263,9 @@ export enum CopyType {
 }
 
 export namespace CopyResults2Request {
-    export const type = new RequestType<
-        CopyResults2RequestParams,
-        CopyResults2RequestResult,
-        void,
-        void
-    >("query/copy2");
+    export const type = new RequestType<CopyResults2RequestParams, CopyResults2RequestResult, void>(
+        "query/copy2",
+    );
 }
 
 export class CopyResults2RequestParams {
@@ -300,5 +286,5 @@ export class CopyResults2RequestResult {
 }
 
 export namespace CancelCopy2Notification {
-    export const type = new NotificationType<void, void>("query/cancelCopy2");
+    export const type = new NotificationType<void>("query/cancelCopy2");
 }

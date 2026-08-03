@@ -33,6 +33,13 @@ export class ExpandResponse {
      * Error message returned from the engine for a object explorer expand failure reason, if any.
      */
     public errorMessage: string;
+
+    /**
+     * Stable, non-localized error code identifying the expand failure reason (e.g.
+     * "EXPAND_TIMEOUT"), if a known one applies. Lets the client detect specific failures
+     * without matching on the localized error message.
+     */
+    public errorCode?: string;
 }
 
 /**
@@ -65,14 +72,12 @@ export namespace ExpandRequest {
     /**
      * Returns children of a given node as a NodeInfo array
      */
-    export const type = new RequestType<ExpandParams, boolean, void, void>("objectexplorer/expand");
+    export const type = new RequestType<ExpandParams, boolean, void>("objectexplorer/expand");
 }
 
 /**
  * Expand notification mapping entry
  */
 export namespace ExpandCompleteNotification {
-    export const type = new NotificationType<ExpandResponse, void>(
-        "objectexplorer/expandCompleted",
-    );
+    export const type = new NotificationType<ExpandResponse>("objectexplorer/expandCompleted");
 }

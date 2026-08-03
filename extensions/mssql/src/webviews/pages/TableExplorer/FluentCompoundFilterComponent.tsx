@@ -177,7 +177,8 @@ export const FluentCompoundFilterComponent = React.forwardRef<
                     selectedOptions={[selectedOperator]}
                     onOptionSelect={handleOperatorChange}
                     aria-label={`Filter operator for ${columnId}`}
-                    listbox={{ className: styles.listbox }}>
+                    listbox={{ className: styles.listbox }}
+                    button={{ tabIndex: 0 }}>
                     {operators.map((op) => (
                         <Option key={op.operator} value={op.operator} className={styles.option}>
                             {op.desc}
@@ -192,6 +193,7 @@ export const FluentCompoundFilterComponent = React.forwardRef<
                     onKeyDown={handleKeyDown}
                     placeholder={placeholder}
                     aria-label={`Filter value for ${columnId}`}
+                    input={{ tabIndex: 0 }}
                 />
             </div>
         );

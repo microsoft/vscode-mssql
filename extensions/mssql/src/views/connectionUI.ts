@@ -9,8 +9,8 @@ import { AccountStore } from "../azure/accountStore";
 import * as constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionStore } from "../models/connectionStore";
+import * as Utils from "../models/utils";
 import {
     CredentialsQuickPickItemType,
     IConnectionCredentialsQuickPickItem,
@@ -41,12 +41,7 @@ export class ConnectionUI {
         private _connectionManager: ConnectionManager,
         private _accountStore: AccountStore,
         private _prompter: IPrompter,
-        private _vscodeWrapper?: VscodeWrapper,
-    ) {
-        if (!this._vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
-    }
+    ) {}
 
     private get connectionManager(): ConnectionManager {
         return this._connectionManager;
@@ -54,20 +49,6 @@ export class ConnectionUI {
 
     private get _connectionStore(): ConnectionStore {
         return this._connectionManager.connectionStore;
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public get vscodeWrapper(): VscodeWrapper {
-        return this._vscodeWrapper;
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public set vscodeWrapper(wrapper: VscodeWrapper) {
-        this._vscodeWrapper = wrapper;
     }
 
     /**
@@ -84,7 +65,7 @@ export class ConnectionUI {
         return await new Promise<IConnectionInfo | undefined>((resolve, _) => {
             // We have recent connections - show them in a prompt for connection profiles
             const connectionProfileQuickPick =
-                this.vscodeWrapper.createQuickPick<IConnectionCredentialsQuickPickItem>();
+                vscode.window.createQuickPick<IConnectionCredentialsQuickPickItem>();
             connectionProfileQuickPick.items = connectionProfileList;
             connectionProfileQuickPick.placeholder =
                 LocalizedConstants.recentConnectionsPlaceholder;
@@ -162,7 +143,7 @@ export class ConnectionUI {
     private waitForLanguageModeToBeSqlHelper(resolve: any, timer: Timer): void {
         if (timer.getDuration() > constants.timeToWaitForLanguageModeChange) {
             resolve(false);
-        } else if (this.vscodeWrapper.isEditingSqlFile) {
+        } else if (Utils.isEditingSqlFile()) {
             resolve(true);
         } else {
             setTimeout(this.waitForLanguageModeToBeSqlHelper.bind(this, resolve, timer), 50);
@@ -236,7 +217,7 @@ export class ConnectionUI {
         const value = await this._prompter.promptSingle(question);
 
         if (value) {
-            await this._vscodeWrapper.executeCommand("workbench.action.editor.changeLanguageMode");
+            await vscode.commands.executeCommand("workbench.action.editor.changeLanguageMode");
             const result = await this.waitForLanguageModeToBeSql();
             return result;
         } else {
@@ -280,7 +261,7 @@ export class ConnectionUI {
             };
 
             // show database picklist, and modify the current connection to switch the active database
-            self.vscodeWrapper
+            vscode.window
                 .showQuickPick<vscode.QuickPickItem>(pickListItems, pickListOptions)
                 .then((selection) => {
                     if (selection === disconnectItem) {
@@ -400,11 +381,11 @@ export class ConnectionUI {
                         const credentialsDeleted =
                             await self.connectionManager.clearRecentConnectionsList();
                         if (credentialsDeleted) {
-                            self.vscodeWrapper.showInformationMessage(
+                            vscode.window.showInformationMessage(
                                 LocalizedConstants.msgClearedRecentConnections,
                             );
                         } else {
-                            self.vscodeWrapper.showWarningMessage(
+                            vscode.window.showWarningMessage(
                                 LocalizedConstants.msgClearedRecentConnectionsWithErrors,
                             );
                         }
@@ -517,7 +498,7 @@ export class ConnectionUI {
 
         if (profileRemoved) {
             // TODO again consider moving information prompts to the prompt package
-            this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgProfileRemoved);
+            vscode.window.showInformationMessage(LocalizedConstants.msgProfileRemoved);
         }
         return profileRemoved;
     }
@@ -537,7 +518,7 @@ export class ConnectionUI {
             return false;
         }
 
-        await this._vscodeWrapper.executeCommand(constants.cmdEditConnection, profile);
+        await vscode.commands.executeCommand(constants.cmdEditConnection, profile);
         return true;
     }
 
@@ -550,7 +531,7 @@ export class ConnectionUI {
         const profileItems = profiles ?? (await this._connectionStore.getProfilePickListItems());
 
         if (!profileItems || profileItems.length === 0) {
-            this._vscodeWrapper.showErrorMessage(noProfilesMessage);
+            vscode.window.showErrorMessage(noProfilesMessage);
             return undefined;
         }
 

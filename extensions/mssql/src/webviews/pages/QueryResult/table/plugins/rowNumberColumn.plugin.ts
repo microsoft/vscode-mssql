@@ -91,6 +91,6 @@ export class RowNumberColumn<T extends Slick.SlickData> implements Slick.Plugin<
 
     private formatter(row: number): string {
         // row is zero-based, we need make it 1 based for display in the result grid
-        return `<span>${row + 1}</span>`;
+        return `<span class="row-number">${row + 1}</span>`;
     }
 }

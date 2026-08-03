@@ -83,7 +83,7 @@ jobs:
           cat baseline-sizes.json
 
       - name: Upload baseline sizes
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: baseline-sizes
           path: baseline-sizes.json

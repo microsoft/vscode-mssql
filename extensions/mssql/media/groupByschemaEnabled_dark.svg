@@ -4,7 +4,7 @@
     </g>
     <g id="level-1">
         <g opacity="0.75">
-            <path d="M13,8.5V11H12V9H5v2H4V8.5L4.5,8H8V6H9V8h3.5Z" fill="#fff" />
+            <path d="M13,8.5V11H12V9H5v2H4V8.5L4.5,8H8V6H9V8h3.5Z" fill="#8A8A8A" />
         </g>
         <path
             d="
@@ -14,13 +14,13 @@
 	  M14,14 H11 V12 h3 Z
 	  M10.5,2 h-4 l-.5.5 v3 l.5.5 h4 l.5-.5 v-3 Z
 	  M10,5 H7 V3 h3 Z"
-            fill="#fff" />
+            fill="#8A8A8A" />
         <path
             d="
 		M2.5,11.5 h4 v3 h-4 Z
 		m8,0 v3 h4 v-3 Z
 		m0-6 v-3 h-4 V5.5 Z"
-            fill="#fff"
+            fill="#8A8A8A"
             opacity="0.1" />
     </g>
 </svg>

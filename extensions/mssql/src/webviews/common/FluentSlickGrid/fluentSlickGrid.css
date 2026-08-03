@@ -133,6 +133,7 @@ body {
     --slick-icon-sort-position-top: 5px;
     --slick-icon-sort-color: var(--vscode-editor-foreground);
     --slick-header-column-background-active: var(--vscode-editor-background);
+    --slick-focus-outline-color: var(--vscode-focusBorder);
 }
 
 .slick-context-menu,

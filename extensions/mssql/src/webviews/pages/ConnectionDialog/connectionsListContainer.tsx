@@ -31,11 +31,11 @@ import {
     ConnectionDialogReducers,
     ConnectionDialogWebviewState,
     IConnectionDialogProfile,
+    OpenAzureDataStudioMigrationRequest,
 } from "../../../sharedInterfaces/connectionDialog";
 import { locConstants } from "../../common/locConstants";
 import { KeyCode } from "../../common/keys";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { ExecuteCommandRequest } from "../../../sharedInterfaces/webview";
 
 const buttonContainer = "buttonContainer";
 
@@ -143,9 +143,7 @@ export const ConnectionsListContainer = () => {
                         />
                     }
                     onClick={async () => {
-                        await extensionRpc.sendRequest(ExecuteCommandRequest.type, {
-                            command: "mssql.openAzureDataStudioMigration",
-                        });
+                        await extensionRpc.sendRequest(OpenAzureDataStudioMigrationRequest.type);
                     }}>
                     {locConstants.connectionDialog.importFromAzureDataStudio}
                 </Button>

@@ -15,7 +15,7 @@ import {
     TaskExecutionMode,
 } from "../sharedInterfaces/schemaCompare";
 import * as locConstants from "../constants/locConstants";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 /**
  * A constant string representing the command to publish schema compare changes
  * for SQL database projects.
@@ -174,7 +174,7 @@ export async function compare(
  * @param operationId - The ID of the schema comparison operation.
  * @param payload - The payload containing parameters for generating the script.
  * @param schemaCompareService - The service used to perform schema comparison operations.
- * @param logger - Logger instance for diagnostic logging.
+ * @param logger - ILogger instance for diagnostic logging.
  * @returns A promise that resolves to the result status of the script generation operation.
  */
 export async function generateScript(
@@ -182,7 +182,7 @@ export async function generateScript(
     taskExecutionMode: TaskExecutionMode,
     payload: SchemaCompareReducers["generateScript"],
     schemaCompareService: mssql.ISchemaCompareService,
-    logger?: Logger,
+    logger?: ILogger,
 ): Promise<mssql.ResultStatus> {
     logger?.info(
         `[schemaCompareUtils] generateScript called - operationId: ${operationId}, taskExecutionMode: ${taskExecutionMode} - OperationId: ${operationId}`,
@@ -190,7 +190,7 @@ export async function generateScript(
     logger?.info(
         `[schemaCompareUtils] Payload - hasTargetServerName: ${!!payload?.targetServerName}, hasTargetDatabaseName: ${!!payload?.targetDatabaseName} - OperationId: ${operationId}`,
     );
-    logger?.verbose(
+    logger?.debug(
         `[schemaCompareUtils] Calling schemaCompareService.generateScript - OperationId: ${operationId}`,
     );
 
@@ -209,7 +209,7 @@ export async function generateScript(
         logger?.info(
             `[schemaCompareUtils] Result object type: ${typeof result}, keys: ${Object.keys(result).join(", ")} - OperationId: ${operationId}`,
         );
-        logger?.verbose(
+        logger?.debug(
             `[schemaCompareUtils] Full result JSON: ${JSON.stringify(result)} - OperationId: ${operationId}`,
         );
     } else {
@@ -293,12 +293,12 @@ export async function includeExcludeNode(
     taskExecutionMode: TaskExecutionMode,
     payload: SchemaCompareReducers["includeExcludeNode"],
     schemaCompareService: mssql.ISchemaCompareService,
-    logger?: Logger,
+    logger?: ILogger,
 ): Promise<mssql.SchemaCompareIncludeExcludeResult> {
     logger?.info(
         `[schemaCompareUtils] includeExcludeNode called - operationId: ${operationId}, includeRequest: ${payload.includeRequest}, diffEntry type: ${payload.diffEntry?.name}`,
     );
-    logger?.verbose(
+    logger?.debug(
         `[schemaCompareUtils] Diff entry ID: ${payload.id}, taskExecutionMode: ${taskExecutionMode}`,
     );
 
@@ -344,12 +344,12 @@ export async function includeExcludeAllNodes(
     taskExecutionMode: TaskExecutionMode,
     payload: SchemaCompareReducers["includeExcludeAllNodes"],
     schemaCompareService: mssql.ISchemaCompareService,
-    logger?: Logger,
+    logger?: ILogger,
 ): Promise<mssql.SchemaCompareIncludeExcludeAllResult> {
     logger?.info(
         `[schemaCompareUtils] includeExcludeAllNodes called - operationId: ${operationId}, includeRequest: ${payload.includeRequest}`,
     );
-    logger?.verbose(`[schemaCompareUtils] taskExecutionMode: ${taskExecutionMode}`);
+    logger?.debug(`[schemaCompareUtils] taskExecutionMode: ${taskExecutionMode}`);
 
     const startTime = Date.now();
     logger?.info(`[schemaCompareUtils] Calling schemaCompareService.includeExcludeAllNodes`);
@@ -398,12 +398,12 @@ export async function includeExcludeAllNodes(
 export async function openScmp(
     filePath: string,
     schemaCompareService: mssql.ISchemaCompareService,
-    logger?: Logger,
+    logger?: ILogger,
 ): Promise<mssql.SchemaCompareOpenScmpResult> {
     logger?.info(
         `[schemaCompareUtils] openScmp called with file path length: ${filePath?.length || 0}`,
     );
-    logger?.verbose(`[schemaCompareUtils] Calling schemaCompareService.openScmp`);
+    logger?.debug(`[schemaCompareUtils] Calling schemaCompareService.openScmp`);
 
     const result = await schemaCompareService.openScmp(filePath);
 

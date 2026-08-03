@@ -29,14 +29,16 @@ import {
     TableMetadataParams,
     TableMetadataResult,
 } from "../sharedInterfaces/metadata";
+import { getLogger } from "../models/logger";
 import { bracketEscapeSqlIdentifier } from "../models/utils";
 import { escapeStringLiteral } from "../utils/sqlStringUtils";
 import { getErrorMessage } from "../utils/utils";
 
+const logger = getLogger("MetadataService");
+
 const simpleExecuteRequest = new RequestType<
     { ownerUri: string; queryString: string },
     SimpleExecuteResult,
-    void,
     void
 >("query/simpleexecute");
 
@@ -301,7 +303,7 @@ export class MetadataService implements IMetadataService {
 
             return result?.metadata ?? [];
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to get metadata: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -348,7 +350,7 @@ export class MetadataService implements IMetadataService {
             const result = await this.executeSimpleQuery(ownerUri, listDabViewsQuery, databaseName);
             return this.parseDabDatabaseObjects(result);
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to list DAB views: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -365,7 +367,7 @@ export class MetadataService implements IMetadataService {
             );
             return this.parseDabDatabaseObjects(result);
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to list DAB stored procedures: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -384,7 +386,7 @@ export class MetadataService implements IMetadataService {
             );
             return this.parseDabViewColumns(result);
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to get DAB view columns: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -401,7 +403,7 @@ export class MetadataService implements IMetadataService {
             );
             return this.parseDabViewColumnsByObject(result);
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to get DAB view columns by view: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -420,7 +422,9 @@ export class MetadataService implements IMetadataService {
             );
             return this.parseDabStoredProcedureParameters(result);
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(
+                `Failed to get DAB stored procedure parameters: ${getErrorMessage(error)}`,
+            );
             throw error;
         }
     }
@@ -437,7 +441,9 @@ export class MetadataService implements IMetadataService {
             );
             return this.parseDabStoredProcedureParametersByObject(result);
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(
+                `Failed to get DAB stored procedure parameters by procedure: ${getErrorMessage(error)}`,
+            );
             throw error;
         }
     }
@@ -472,7 +478,7 @@ export class MetadataService implements IMetadataService {
 
             return result?.columns ?? [];
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to get ${objectType} column metadata: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -658,7 +664,7 @@ ${queryString}`;
 
             return result.databaseNames || [];
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to list databases: ${getErrorMessage(error)}`);
             throw error;
         }
     }
@@ -685,7 +691,7 @@ ${queryString}`;
 
             return result.context;
         } catch (error) {
-            this._client.logger.error(getErrorMessage(error));
+            logger.error(`Failed to get server context: ${getErrorMessage(error)}`);
             throw error;
         }
     }

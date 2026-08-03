@@ -11,12 +11,9 @@ export interface GetExecutionPlanParams {
 }
 
 export namespace GetExecutionPlanRequest {
-    export const type = new RequestType<
-        GetExecutionPlanParams,
-        ep.GetExecutionPlanResult,
-        void,
-        void
-    >("queryExecutionPlan/getExecutionPlan");
+    export const type = new RequestType<GetExecutionPlanParams, ep.GetExecutionPlanResult, void>(
+        "queryExecutionPlan/getExecutionPlan",
+    );
 }
 
 export interface ExecutionPlanComparisonParams {
@@ -28,7 +25,6 @@ export namespace ExecutionPlanComparisonRequest {
     export const type = new RequestType<
         ExecutionPlanComparisonParams,
         ep.ExecutionPlanComparisonResult,
-        void,
         void
     >("queryExecutionPlan/compareExecutionPlanGraph");
 }

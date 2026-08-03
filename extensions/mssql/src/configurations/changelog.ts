@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ChangelogWebviewState } from "../sharedInterfaces/changelog";
+import { ChangelogActionId, ChangelogWebviewState } from "../sharedInterfaces/changelog";
 import * as vscode from "vscode";
 import * as constants from "../constants/constants";
 import * as locConstants from "../constants/locConstants";
@@ -13,6 +13,23 @@ export const changelogConfig: ChangelogWebviewState = {
         title: locConstants.Changelog.mainContentTitle,
         entries: [
             {
+                title: locConstants.Changelog.shortcutsConfigurationTitle,
+                description: locConstants.Changelog.shortcutsConfigurationDescription,
+                isPreview: true,
+                actions: [
+                    {
+                        label: locConstants.Changelog.tryIt,
+                        type: "command",
+                        value: ChangelogActionId.OpenShortcutsConfiguration,
+                    },
+                    {
+                        label: locConstants.Changelog.learnMore,
+                        type: "link",
+                        value: "https://aka.ms/vscode-mssql-shortcuts-configuration",
+                    },
+                ],
+            },
+            {
                 title: locConstants.Changelog.azureSqlProvisioningTitle,
                 description: locConstants.Changelog.azureSqlProvisioningDescription,
                 isPreview: true,
@@ -20,7 +37,7 @@ export const changelogConfig: ChangelogWebviewState = {
                     {
                         label: locConstants.Changelog.tryIt,
                         type: "command",
-                        value: constants.cmdDeployNewDatabase,
+                        value: ChangelogActionId.DeployNewDatabase,
                     },
                     {
                         label: locConstants.Changelog.learnMore,
@@ -58,7 +75,7 @@ export const changelogConfig: ChangelogWebviewState = {
                     {
                         label: locConstants.Changelog.tryIt,
                         type: "command",
-                        value: constants.cmdNotebooksCreate,
+                        value: ChangelogActionId.CreateNotebook,
                     },
                     {
                         label: locConstants.Changelog.learnMore,
@@ -75,7 +92,7 @@ export const changelogConfig: ChangelogWebviewState = {
                     {
                         label: locConstants.Changelog.tryIt,
                         type: "command",
-                        value: constants.cmdOpenAzureDataStudioMigration,
+                        value: ChangelogActionId.OpenAzureDataStudioMigration,
                     },
                     {
                         label: locConstants.Changelog.watchDemo,
@@ -130,7 +147,7 @@ export const changelogConfig: ChangelogWebviewState = {
                     {
                         label: locConstants.Changelog.tryIt,
                         type: "command",
-                        value: constants.cmdDacpacDialog,
+                        value: ChangelogActionId.OpenDacpacDialog,
                     },
                     {
                         label: locConstants.Changelog.watchDemo,
@@ -234,12 +251,12 @@ export const changelogConfig: ChangelogWebviewState = {
                 {
                     type: "walkthrough",
                     label: locConstants.Changelog.mssqlWalkthrough,
-                    value: `${constants.extensionId}#mssql.getStarted`,
+                    value: ChangelogActionId.OpenMssqlWalkthrough,
                 },
                 {
                     type: "walkthrough",
                     label: locConstants.Changelog.copilotWalkthrough,
-                    value: `GitHub.copilot-chat#copilotWelcome`,
+                    value: ChangelogActionId.OpenCopilotWalkthrough,
                 },
                 {
                     type: "link",

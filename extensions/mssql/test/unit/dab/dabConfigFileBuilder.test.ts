@@ -211,10 +211,10 @@ suite("DabConfigFileBuilder Tests", () => {
                 expect(parsed.runtime.host.mode).to.equal("development");
             });
 
-            test("should set CORS origins to wildcard", () => {
+            test("should not allow cross-origin browser access by default", () => {
                 const result = builder.build(createTestConfig(), defaultConnectionInfo);
                 const parsed = JSON.parse(result);
-                expect(parsed.runtime.host.cors.origins).to.deep.equal(["*"]);
+                expect(parsed.runtime.host).not.to.have.property("cors");
             });
         });
 
@@ -385,6 +385,68 @@ suite("DabConfigFileBuilder Tests", () => {
                 ]);
             });
 
+            test("should alias GraphQL-invalid column names without colliding", () => {
+                const config = createTestConfig({
+                    apiTypes: [Dab.ApiType.GraphQL],
+                    entities: [
+                        createTestEntity({
+                            columns: [
+                                {
+                                    id: "database-version",
+                                    name: "Database Version",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: false,
+                                },
+                                {
+                                    id: "database-version-alias",
+                                    name: "Database_Version",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: false,
+                                },
+                            ],
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].fields).to.deep.equal([
+                    { name: "Database Version", alias: "Database_Version_2" },
+                    { name: "Database_Version" },
+                ]);
+            });
+
+            test("should not alias GraphQL-invalid column names when GraphQL is disabled", () => {
+                const config = createTestConfig({
+                    entities: [
+                        createTestEntity({
+                            columns: [
+                                {
+                                    id: "database-version",
+                                    name: "Database Version",
+                                    dataType: "nvarchar",
+                                    isSupported: true,
+                                    isExposed: true,
+                                    isPrimaryKey: false,
+                                },
+                            ],
+                        }),
+                    ],
+                });
+
+                const result = builder.build(config, defaultConnectionInfo);
+                const parsed = JSON.parse(result);
+
+                expect(parsed.entities["Users"].fields).to.deep.equal([
+                    { name: "Database Version" },
+                ]);
+            });
+
             test("should use advancedSettings.entityName as the entity key", () => {
                 const config = createTestConfig({
                     entities: [
@@ -552,7 +614,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 });
             });
 
-            test("should emit table MCP DML tools setting when disabled explicitly", () => {
+            test("should disable table MCP when DML tools are disabled explicitly", () => {
                 const config = createTestConfig({
                     apiTypes: [Dab.ApiType.Rest, Dab.ApiType.Mcp],
                     entities: [
@@ -569,9 +631,7 @@ suite("DabConfigFileBuilder Tests", () => {
                 const result = builder.build(config, defaultConnectionInfo);
                 const parsed = JSON.parse(result);
 
-                expect(parsed.entities["Users"].mcp).to.deep.equal({
-                    "dml-tools": false,
-                });
+                expect(parsed.entities["Users"].mcp).to.equal(false);
             });
 
             test("should not emit table MCP DML tools setting when MCP is disabled", () => {

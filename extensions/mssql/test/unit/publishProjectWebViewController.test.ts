@@ -10,7 +10,6 @@ import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import MainController from "../../src/controllers/mainController";
 import { ConnectionStore } from "../../src/models/connectionStore";
@@ -18,7 +17,6 @@ import { IConnectionProfileWithSource } from "../../src/models/interfaces";
 import { PublishProjectWebViewController } from "../../src/publishProject/publishProjectWebViewController";
 import { validateSqlServerPortNumber } from "../../src/publishProject/projectUtils";
 import { validateSqlServerPassword } from "../../src/deployment/sqlServerContainer";
-import { stubVscodeWrapper } from "./utils";
 import {
     PublishTarget,
     PublishDialogState,
@@ -43,7 +41,6 @@ chai.use(sinonChai);
 suite("PublishProjectWebViewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let contextStub: vscode.ExtensionContext;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockSqlProjectsService: sinon.SinonStubbedInstance<SqlProjectsService>;
     let mockDacFxService: sinon.SinonStubbedInstance<mssql.IDacFxService>;
     let mockSqlPackageService: sinon.SinonStubbedInstance<SqlPackageService>;
@@ -60,8 +57,6 @@ suite("PublishProjectWebViewController Tests", () => {
             subscriptions: [],
         };
         contextStub = rawContext as vscode.ExtensionContext;
-
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
 
         // Create properly typed stubbed instances
         mockSqlProjectsService = sandbox.createStubInstance(SqlProjectsService);
@@ -123,7 +118,6 @@ suite("PublishProjectWebViewController Tests", () => {
     ): PublishProjectWebViewController {
         return new PublishProjectWebViewController(
             contextStub,
-            vscodeWrapperStub,
             mockConnectionManager,
             projectPath,
             mockMainController,
@@ -283,7 +277,6 @@ suite("PublishProjectWebViewController Tests", () => {
 
         const controller = new PublishProjectWebViewController(
             contextStub,
-            vscodeWrapperStub,
             mockConnectionManager,
             "test.sqlproj",
             mockMainController,
@@ -1255,7 +1248,6 @@ suite("PublishProjectWebViewController Tests", () => {
         state: PublishDialogState,
         updateStateSpy: sinon.SinonStub,
         expectedError?: string,
-        loggerErrorSpy?: sinon.SinonStub,
     ) {
         expect(state.inProgress, "inProgress should be false after error").to.be.false;
         expect(updateStateSpy, "updateState should be called").to.have.been.called;
@@ -1265,13 +1257,6 @@ suite("PublishProjectWebViewController Tests", () => {
                 message: expectedError,
                 intent: "error",
             });
-        }
-
-        if (loggerErrorSpy) {
-            expect(loggerErrorSpy, "logger.error should be called").to.have.been.calledWith(
-                "Failed during container publish:",
-                sinon.match.instanceOf(Error),
-            );
         }
     }
 
@@ -1390,9 +1375,6 @@ suite("PublishProjectWebViewController Tests", () => {
             .stub(controller, "runDockerPrerequisiteChecks" as keyof typeof controller)
             .rejects(new Error("Unexpected network failure"));
 
-        // Mock logger to capture error
-        const loggerErrorSpy = sandbox.stub(controller["logger"], "error");
-
         // Mock updateState to capture state changes
         const updateStateSpy = sandbox.stub(controller, "updateState");
 
@@ -1403,12 +1385,7 @@ suite("PublishProjectWebViewController Tests", () => {
         const newState = await publishNow(controller.state, {});
 
         // Validate error state
-        validateContainerPublishError(
-            newState,
-            updateStateSpy,
-            "Unexpected network failure",
-            loggerErrorSpy,
-        );
+        validateContainerPublishError(newState, updateStateSpy, "Unexpected network failure");
     });
 
     test("createDockerContainer succeeds on second attempt after transient auth failure", async () => {

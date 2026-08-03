@@ -128,7 +128,7 @@ async function writeLocalizationOutputs(extensionDir, xliffName, packageJSON, bu
         xliffPath,
         stringXLIFF,
         false, // We don't want to run prettier on XLIFF files
-        true, // Use CRLF line endings to match .gitattributes
+        true, // OneLoc XLIFF files are stored with literal CRLF line endings
     );
     if (formatted2) {
         logger.success(`Created ${xliffPath}`);

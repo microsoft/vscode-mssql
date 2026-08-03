@@ -17,7 +17,5 @@ export namespace RefreshRequest {
     /**
      * Returns children of a given node as a NodeInfo array.
      */
-    export const type = new RequestType<RefreshParams, boolean, void, void>(
-        "objectexplorer/refresh",
-    );
+    export const type = new RequestType<RefreshParams, boolean, void>("objectexplorer/refresh");
 }

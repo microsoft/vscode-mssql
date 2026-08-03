@@ -3,7 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ColumnFilterMap, GetGridScrollPositionResponse } from "../sharedInterfaces/queryResult";
+import {
+    ColumnFilterMap,
+    GetGridScrollPositionResponse,
+    GridViewState,
+} from "../sharedInterfaces/queryResult";
 
 export class QueryResultSingletonStore {
     private static _instance: QueryResultSingletonStore;
@@ -19,6 +23,7 @@ export class QueryResultSingletonStore {
         gridColumnFilters: new Map<string, ColumnFilterMap>(),
         gridColumnWidths: new Map<string, number[]>(),
         gridScrollPositions: new Map<string, GetGridScrollPositionResponse>(),
+        gridViewStates: new Map<string, GridViewState>(),
     };
 
     /**

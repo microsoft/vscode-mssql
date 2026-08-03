@@ -10,8 +10,7 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import { BackupDatabaseWebviewController } from "../../src/controllers/backupDatabaseWebviewController";
 import { ObjectManagementService } from "../../src/services/objectManagementService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
+import { stubTelemetry } from "./utils";
 import {
     BackupCompression,
     BackupDatabaseFormState,
@@ -51,7 +50,6 @@ suite("BackupDatabaseWebviewController", () => {
     let mockAzureBlobService: AzureBlobService;
     let controller: BackupDatabaseWebviewController;
     let mockInitialState: ObjectManagementWebviewState<BackupDatabaseFormState>;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let sendActionEvent: sinon.SinonStub;
     let getBackupConfigInfoStub: sinon.SinonStub;
     const defaultBackupName = "testDatabase_YYYYMMDD_HHMMSS.bak";
@@ -62,8 +60,6 @@ suite("BackupDatabaseWebviewController", () => {
             extensionUri: vscode.Uri.parse("https://localhost"),
             extensionPath: "path",
         } as unknown as vscode.ExtensionContext;
-
-        vscodeWrapper = stubVscodeWrapper(sandbox);
         ({ sendActionEvent } = stubTelemetry(sandbox));
 
         mockObjectManagementService = sandbox.createStubInstance(ObjectManagementService);
@@ -92,7 +88,6 @@ suite("BackupDatabaseWebviewController", () => {
 
         controller = new BackupDatabaseWebviewController(
             mockContext,
-            vscodeWrapper,
             mockObjectManagementService,
             mockConnectionManager,
             mockFileBrowserService,

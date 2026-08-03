@@ -54,7 +54,6 @@ export class ListSchemasTool extends ToolBase<ListSchemasToolParams> {
                 new RequestType<
                     { ownerUri: string; queryString: string },
                     SimpleExecuteResult,
-                    void,
                     void
                 >("query/simpleexecute"),
                 {

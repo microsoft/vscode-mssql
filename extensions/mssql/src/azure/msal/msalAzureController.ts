@@ -31,8 +31,7 @@ import { Deferred } from "../../protocol";
 import { IPrompter } from "../../prompts/question";
 import { ICredentialStore } from "../../credentialstore/icredentialstore";
 import * as azureUtils from "../utils";
-import VscodeWrapper from "../../controllers/vscodeWrapper";
-import { Logger } from "../../models/logger";
+import { ILogger } from "../../sharedInterfaces/logger";
 import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 
@@ -53,11 +52,11 @@ export class MsalAzureController extends AzureController {
                         break;
                     case MsalLogLevel.Verbose:
                     default:
-                        this.logger.verbose(message);
+                        this.logger.debug(message);
                         break;
                 }
             } else {
-                this.logger.pii(message);
+                this.logger.piiSanitized(message, [], []);
             }
         };
     }
@@ -83,7 +82,6 @@ export class MsalAzureController extends AzureController {
         this._cachePluginProvider = new MsalCachePluginProvider(
             Constants.msalCacheFileName,
             this._storagePath,
-            this._vscodeWrapper,
             this.logger,
             this._credentialStore,
         );
@@ -105,7 +103,6 @@ export class MsalAzureController extends AzureController {
                 this._cachePluginProvider,
                 this.getLoggerCallback(),
                 this.context,
-                this._vscodeWrapper,
                 this.logger,
             );
 
@@ -142,10 +139,10 @@ export class MsalAzureController extends AzureController {
         try {
             await fsPromises.access(filePath);
             await fsPromises.rm(filePath);
-            this.logger.verbose(`Old cache file removed successfully.`);
+            this.logger.debug(`Old cache file removed successfully.`);
         } catch (e) {
             if (e.code !== "ENOENT") {
-                this.logger.verbose(`Error occurred while removing old cache file: ${e}`);
+                this.logger.debug(`Error occurred while removing old cache file: ${e}`);
             } // else file doesn't exist.
         }
     }
@@ -294,11 +291,11 @@ export class MsalAzureController extends AzureController {
                         settings,
                     );
                 } catch (ex) {
-                    this._vscodeWrapper.showErrorMessage(ex);
+                    vscode.window.showErrorMessage(getErrorMessage(ex));
                 }
             }
             if (getErrorMessage(ex).includes(AzureConstants.multiple_matching_tokens_error)) {
-                const response = await this._vscodeWrapper.showErrorMessage(
+                const response = await vscode.window.showErrorMessage(
                     LocalizedConstants.ConnectionDialog.multipleMatchingTokensError(
                         account?.displayInfo?.displayName,
                         tenantId,
@@ -311,7 +308,7 @@ export class MsalAzureController extends AzureController {
                     return await this.refreshAccessToken(account, accountStore, tenantId, settings);
                 }
             } else {
-                this._vscodeWrapper.showErrorMessage(ex);
+                vscode.window.showErrorMessage(getErrorMessage(ex));
             }
         }
     }
@@ -328,7 +325,7 @@ export class MsalAzureController extends AzureController {
         profile.user = account!.displayInfo.displayName;
         profile.email = account!.displayInfo.email;
         profile.accountId = account!.key.id;
-        this.logger.verbose(
+        this.logger.debug(
             "SQL Authentication Provider is enabled, access token will not be acquired by extension.",
         );
         return profile;
@@ -377,7 +374,6 @@ export class CloudAuthApplication {
                         getCloudProviderSettings(this.cloudId),
                         this.context,
                         this.clientApplication,
-                        this.vscodeWrapper,
                         this.logger,
                     ),
                 );
@@ -388,7 +384,6 @@ export class CloudAuthApplication {
                         getCloudProviderSettings(this.cloudId),
                         this.context,
                         this.clientApplication,
-                        this.vscodeWrapper,
                         this.logger,
                     ),
                 );
@@ -403,8 +398,7 @@ export class CloudAuthApplication {
         private _cachePluginProvider: MsalCachePluginProvider,
         private loggerCallback: ILoggerCallback,
         private readonly context: vscode.ExtensionContext,
-        private readonly vscodeWrapper: VscodeWrapper,
-        private readonly logger: Logger,
+        private readonly logger: ILogger,
     ) {
         this._authMappings = new Map<AzureAuthType, MsalAzureAuth>();
         this.createClientApplication();

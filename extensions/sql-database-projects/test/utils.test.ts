@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import * as path from "path";
 import * as os from "os";
+import { promises as fs } from "fs";
 import * as constants from "../src/common/constants";
 import * as utils from "../src/common/utils";
 
@@ -161,5 +162,67 @@ suite("Tests to verify utils functions", function (): void {
             await utils.resolveCommandPath("bogusFakeCommand"),
             '"bogusFakeCommand" should not have been detected.',
         ).to.equal(undefined);
+    });
+
+    test("Should preserve file and directory glob behavior", async () => {
+        const root = await fs.mkdtemp(path.join(os.tmpdir(), "sqlproj-[glob]-"));
+        const relativePaths = (results: string[]): string[] =>
+            results.map((result) => path.relative(root, result).split(path.sep).join("/")).sort();
+
+        try {
+            await Promise.all([
+                fs.mkdir(path.join(root, "folder1", "nested"), { recursive: true }),
+                fs.mkdir(path.join(root, "bin", "nested"), { recursive: true }),
+                fs.mkdir(path.join(root, "obj"), { recursive: true }),
+            ]);
+            await Promise.all([
+                fs.writeFile(path.join(root, "root.sql"), ""),
+                fs.writeFile(path.join(root, "folder1", "one.sql"), ""),
+                fs.writeFile(path.join(root, "folder1", "nested", "two.sql"), ""),
+                fs.writeFile(path.join(root, "bin", "ignored.sql"), ""),
+                fs.writeFile(path.join(root, "obj", "ignored.sql"), ""),
+            ]);
+
+            expect(relativePaths(await utils.getSqlFilesInFolder(root, true))).to.deep.equal([
+                "folder1/nested/two.sql",
+                "folder1/one.sql",
+                "root.sql",
+            ]);
+            expect(relativePaths(await utils.getFoldersInFolder(root))).to.deep.equal([
+                "bin",
+                "bin/nested",
+                "folder1",
+                "folder1/nested",
+                "obj",
+            ]);
+            expect(relativePaths(await utils.getFoldersInFolder(root, true))).to.deep.equal([
+                "folder1",
+                "folder1/nested",
+            ]);
+        } finally {
+            await fs.rm(root, { recursive: true, force: true });
+        }
+    });
+
+    test("Should read package info from the bundled extension layout", async () => {
+        const extensionRoot = await fs.mkdtemp(path.join(os.tmpdir(), "sqlproj-bundle-"));
+        const bundleDirectory = path.join(extensionRoot, "dist");
+        const packageInfo = {
+            name: "sql-database-projects-vscode",
+            version: "1.2.3",
+            aiKey: "test-key",
+        };
+
+        try {
+            await fs.mkdir(bundleDirectory);
+            await fs.writeFile(
+                path.join(extensionRoot, "package.json"),
+                JSON.stringify(packageInfo),
+            );
+
+            expect(utils.getPackageInfo(undefined, bundleDirectory)).to.deep.equal(packageInfo);
+        } finally {
+            await fs.rm(extensionRoot, { recursive: true, force: true });
+        }
     });
 });

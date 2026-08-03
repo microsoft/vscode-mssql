@@ -13,7 +13,6 @@ import { DacFxService } from "../services/dacFxService";
 import { IConnectionProfile } from "../models/interfaces";
 import * as vscodeMssql from "vscode-mssql";
 import { WebviewPanelController } from "./webviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { startActivity } from "../telemetry/telemetry";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
@@ -51,13 +50,12 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private connectionManager: ConnectionManager,
         private dacFxService: DacFxService,
         initialState: dacpacDialog.DacpacDialogWebviewState,
         ownerUri: string,
     ) {
-        super(context, vscodeWrapper, DACPAC_DIALOG_VIEW_ID, DACPAC_DIALOG_VIEW_ID, initialState, {
+        super(context, DACPAC_DIALOG_VIEW_ID, DACPAC_DIALOG_VIEW_ID, initialState, {
             title: LocConstants.DacpacDialog.Title,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {
@@ -279,10 +277,10 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
         // Confirm deploy to existing database request handler
         this.onRequest(dacpacDialog.ConfirmDeployToExistingWebviewRequest.type, async () => {
-            const result = await this.vscodeWrapper.showWarningMessageAdvanced(
+            const result = await vscode.window.showWarningMessage(
                 LocConstants.DacpacDialog.DeployToExistingMessage,
                 { modal: true },
-                [LocConstants.DacpacDialog.DeployToExistingConfirm],
+                LocConstants.DacpacDialog.DeployToExistingConfirm,
             );
 
             return {
@@ -303,7 +301,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     private async handleDeployDacpac(
         params: dacpacDialog.DeployDacpacParams,
     ): Promise<dacpacDialog.DacpacDialogResult> {
-        this.logger.verbose("Starting Deploy DACPAC operation");
+        this.logger.debug("Starting Deploy DACPAC operation");
 
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
@@ -330,7 +328,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             };
 
             if (result.success) {
-                this.logger.verbose("Deploy DACPAC operation completed successfully");
+                this.logger.debug("Deploy DACPAC operation completed successfully");
                 activity.end(ActivityStatus.Succeeded);
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
@@ -367,7 +365,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     private async handleExtractDacpac(
         params: dacpacDialog.ExtractDacpacParams,
     ): Promise<dacpacDialog.DacpacDialogResult> {
-        this.logger.verbose("Starting Extract DACPAC operation");
+        this.logger.debug("Starting Extract DACPAC operation");
 
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
@@ -391,7 +389,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             };
 
             if (result.success) {
-                this.logger.verbose("Extract DACPAC operation completed successfully");
+                this.logger.debug("Extract DACPAC operation completed successfully");
                 activity.end(ActivityStatus.Succeeded);
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
@@ -428,7 +426,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     private async handleImportBacpac(
         params: dacpacDialog.ImportBacpacParams,
     ): Promise<dacpacDialog.DacpacDialogResult> {
-        this.logger.verbose("Starting Import BACPAC operation");
+        this.logger.debug("Starting Import BACPAC operation");
 
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
@@ -450,7 +448,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             };
 
             if (result.success) {
-                this.logger.verbose("Import BACPAC operation completed successfully");
+                this.logger.debug("Import BACPAC operation completed successfully");
                 activity.end(ActivityStatus.Succeeded);
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
@@ -487,7 +485,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
     private async handleExportBacpac(
         params: dacpacDialog.ExportBacpacParams,
     ): Promise<dacpacDialog.DacpacDialogResult> {
-        this.logger.verbose("Starting Export BACPAC operation");
+        this.logger.debug("Starting Export BACPAC operation");
 
         const activity = startActivity(
             TelemetryViews.DacpacDialog,
@@ -509,7 +507,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
             };
 
             if (result.success) {
-                this.logger.verbose("Export BACPAC operation completed successfully");
+                this.logger.debug("Export BACPAC operation completed successfully");
                 activity.end(ActivityStatus.Succeeded);
                 // Prompt user for NPS survey feedback
                 UserSurvey.getInstance().promptUserForNPSFeedback(
@@ -728,7 +726,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
 
             if (!matchingConnection.profile) {
                 // No match found - return all connections, let user choose
-                this.logger.verbose("No matching connection found in initial state");
+                this.logger.debug("No matching connection found in initial state");
                 return {
                     connections,
                     autoConnected: false,
@@ -772,7 +770,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         ownerUri: string;
         autoConnected: boolean;
     } {
-        this.logger.verbose(`Using existing connection from Object Explorer: ${ownerUri}`);
+        this.logger.debug(`Using existing connection from Object Explorer: ${ownerUri}`);
         return {
             selectedConnection: matchingConnection,
             ownerUri,
@@ -789,7 +787,7 @@ export class DacpacDialogWebviewController extends WebviewPanelController<
         autoConnected: boolean;
         errorMessage?: string;
     }> {
-        this.logger.verbose(`Connecting to profile: ${matchingConnection.id}`);
+        this.logger.debug(`Connecting to profile: ${matchingConnection.id}`);
         try {
             const connectResult = await this.connectToServer(matchingConnection.id!);
 

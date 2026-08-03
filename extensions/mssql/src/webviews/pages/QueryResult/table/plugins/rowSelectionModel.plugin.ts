@@ -39,7 +39,6 @@ export class RowSelectionModel<T extends Slick.SlickData>
                 (e: Event, data: Slick.OnActiveCellChangedEventArgs<T>) =>
                     this.handleActiveCellChange(e, data),
             )
-            .subscribe(this._grid.onKeyDown, (e) => console.log("keydown event", e)) //this.handleKeyDown(console.log('keydown event', e)))
             .subscribe(this._grid.onClick, (e) => this.handleClick(e as MouseEvent));
     }
 

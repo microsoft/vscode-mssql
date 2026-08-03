@@ -399,9 +399,9 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             requestAnimationFrame(() => {
                 this.focus();
                 const recentlyScrolled = Date.now() - this._lastScrollAt < 250;
-                // Restore selection always – this does not force scroll
+                // Restore selection visuals without recomputing footer summary metrics.
                 if (selectedRanges?.length) {
-                    this.selectionModel.setSelectedRanges(selectedRanges);
+                    this.selectionModel.setSelectedRanges(selectedRanges, false);
                 }
                 // Only restore active cell if it would not force-scroll the viewport
                 if (activeCell && !recentlyScrolled) {
@@ -547,6 +547,10 @@ export class Table<T extends Slick.SlickData> implements IThemable {
             return selectionModel.getSelectedRanges();
         }
         return <Slick.Range[]>(<unknown>undefined);
+    }
+
+    setSelectedRanges(ranges: Slick.Range[], updateSummary: boolean = true): void {
+        this.selectionModel.setSelectedRanges(ranges, updateSummary);
     }
 
     focus(): void {

@@ -14,6 +14,7 @@ import {
     defaultSqlServerContainerName,
     docker,
     dockerDeploymentLoggerChannelName,
+    dockerPermissionErrorPatterns,
     MAX_PORT_NUMBER,
     Platform,
     windowsDockerDesktopExecutable,
@@ -39,9 +40,7 @@ export const invalidPortNumberValidationResult: FormItemValidationState = {
     validationMessage: LocalContainers.pleaseChooseUnusedPort,
 };
 
-export const dockerLogger = Logger.create(
-    vscode.window.createOutputChannel(dockerDeploymentLoggerChannelName),
-);
+export const dockerLogger = Logger.forChannelName(dockerDeploymentLoggerChannelName, "Docker");
 
 export const dockerInstallErrorLink = "https://www.docker.com/products/docker-desktop/";
 // Exported for testing purposes
@@ -323,6 +322,15 @@ function getContainerHostPorts(containerInspectInfo: Dockerode.ContainerInspectI
 }
 
 /**
+ * Checks whether an error from `docker info` (or similar) indicates a socket
+ * permission problem rather than the daemon being stopped.
+ */
+function isDockerPermissionError(error: unknown): boolean {
+    const message = getErrorMessage(error).toLowerCase();
+    return dockerPermissionErrorPatterns.some((pattern) => message.includes(pattern));
+}
+
+/**
  * Safe command execution helper that uses spawn
  */
 export async function execDockerCommand(cmd: DockerCommand): Promise<string> {
@@ -561,7 +569,7 @@ export async function pullContainerImage(
     platform?: string,
 ): Promise<DockerCommandParams> {
     try {
-        dockerLogger.appendLine(`Pulling container image: ${imageName}`);
+        dockerLogger.info(`Pulling container image: ${imageName}`);
         const dockerClient = getDockerodeClient();
         const pullStream = platform
             ? await dockerClient.pull(imageName, { platform })
@@ -571,12 +579,10 @@ export async function pullContainerImage(
                 error ? reject(error) : resolve(),
             );
         });
-        dockerLogger.appendLine(`Container image ${imageName} pulled successfully.`);
+        dockerLogger.info(`Container image ${imageName} pulled successfully.`);
         return { success: true };
     } catch (e) {
-        dockerLogger.appendLine(
-            `Failed to pull container image ${imageName}: ${getErrorMessage(e)}`,
-        );
+        dockerLogger.error(`Failed to pull container image ${imageName}: ${getErrorMessage(e)}`);
         return {
             success: false,
             error: errorMessage,
@@ -616,7 +622,19 @@ export async function startDocker(
             dockerStartedThroughExtension: "false",
         });
         return { success: true };
-    } catch {} // If this command fails, docker is not running, so we proceed to start it.
+    } catch (e) {
+        // On Linux, distinguish between "daemon not running" and "permission denied on socket".
+        // If it's a permission error, attempting systemctl start docker won't help and
+        // triggers an unnecessary polkit prompt.
+        if (platform() === Platform.Linux && isDockerPermissionError(e)) {
+            return {
+                success: false,
+                error: LocalContainers.dockerSocketPermissionError,
+                fullErrorText: getErrorMessage(e),
+            };
+        }
+        // Otherwise docker is likely not running, so we proceed to start it.
+    }
     if (node && objectExplorerService) {
         node.loadingLabel = LocalContainers.startingDockerLoadingLabel;
         await objectExplorerService.setLoadingUiForNode(node);
@@ -642,7 +660,7 @@ export async function startDocker(
     }
 
     try {
-        dockerLogger.appendLine("Waiting for Docker to start...");
+        dockerLogger.info("Waiting for Docker to start...");
         await execDockerCommand(startCommand);
 
         let attempts = 0;
@@ -654,7 +672,7 @@ export async function startDocker(
                 try {
                     await execDockerCommand(COMMANDS.CHECK_DOCKER_RUNNING());
                     clearInterval(checkDocker);
-                    dockerLogger.appendLine("Docker started successfully.");
+                    dockerLogger.info("Docker started successfully.");
                     sendActionEvent(TelemetryViews.LocalContainers, TelemetryActions.StartDocker, {
                         dockerStartedThroughExtension: "true",
                     });
@@ -851,7 +869,7 @@ export async function checkContainerExists(name: string): Promise<boolean> {
         const container = await getContainerByName(name);
         return container !== undefined;
     } catch (e) {
-        dockerLogger.appendLine(`Error checking if container exists: ${getErrorMessage(e)}`);
+        dockerLogger.error(`Error checking if container exists: ${getErrorMessage(e)}`);
         return false;
     }
 }

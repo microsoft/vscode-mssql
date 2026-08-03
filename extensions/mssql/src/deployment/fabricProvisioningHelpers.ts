@@ -7,7 +7,7 @@ import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azure
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
 import { ConnectionDialog, Fabric, FabricProvisioning } from "../constants/locConstants";
 import { FabricHelper } from "../fabric/fabricHelper";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 import {
     hasWorkspacePermission,
     IWorkspace,
@@ -37,7 +37,7 @@ export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;
 export async function initializeFabricProvisioningState(
     deploymentController: DeploymentWebviewController,
     groupOptions: FormItemOptions[],
-    logger: Logger,
+    logger: ILogger,
     selectedGroupId: string | undefined,
 ): Promise<fp.FabricProvisioningState> {
     const startTime = Date.now();
@@ -294,7 +294,7 @@ export function setFabricProvisioningFormComponents(
 
 export async function getAzureActionButton(
     deploymentController: DeploymentWebviewController,
-    logger: Logger,
+    logger: ILogger,
 ): Promise<FormItemActionButton[]> {
     const accountFormComponentId = "accountId";
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
@@ -322,14 +322,14 @@ export async function getAzureActionButton(
                 value: account.id,
             }));
 
-            logger.verbose(
+            logger.debug(
                 `Read ${accountsComponent.options.length} Azure accounts: ${accountsComponent.options.map((a) => a.value).join(", ")}`,
             );
 
             // There should always be at least one account, because the user just went through the sign in workflow
             if (azureAccounts.length > 0) {
                 state.formState.accountId = azureAccounts[0].id;
-                logger.verbose(`Selecting '${azureAccounts[0].id}'`);
+                logger.debug(`Selecting '${azureAccounts[0].id}'`);
             }
 
             updateFabricProvisioningState(deploymentController, state);
@@ -341,7 +341,7 @@ export async function getAzureActionButton(
 
 export async function loadComponentsAfterSignIn(
     deploymentController: DeploymentWebviewController,
-    logger: Logger,
+    logger: ILogger,
 ) {
     const state = deploymentController.state.deploymentTypeState as fp.FabricProvisioningState;
 

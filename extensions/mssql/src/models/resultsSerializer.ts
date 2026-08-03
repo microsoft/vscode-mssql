@@ -9,11 +9,13 @@ import * as LocalizedConstants from "../constants/locConstants";
 import * as Interfaces from "./interfaces";
 import * as path from "path";
 import { RequestType } from "vscode-languageclient";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import * as Contracts from "./contracts";
 import * as Utils from "./utils";
 import opener from "opener";
+import { ILogger } from "../sharedInterfaces/logger";
+import { logger } from "./logger";
+import { getErrorMessage } from "../utils/utils";
 
 export type SaveAsRequestParams =
     | Contracts.SaveResultsAsCsvRequestParams
@@ -26,20 +28,15 @@ export type SaveAsRequestParams =
  */
 export default class ResultsSerializer {
     private _client: SqlToolsServerClient;
-    private _vscodeWrapper: VscodeWrapper;
     private _uri: string;
     private _filePath: string;
+    private _logger: ILogger = logger.withPrefix("ResultsSerializer");
 
-    constructor(client?: SqlToolsServerClient, vscodeWrapper?: VscodeWrapper) {
+    constructor(client?: SqlToolsServerClient) {
         if (client) {
             this._client = client;
         } else {
             this._client = SqlToolsServerClient.instance;
-        }
-        if (vscodeWrapper) {
-            this._vscodeWrapper = vscodeWrapper;
-        } else {
-            this._vscodeWrapper = new VscodeWrapper();
         }
     }
 
@@ -64,7 +61,7 @@ export default class ResultsSerializer {
             defaultUri: defaultUri,
             filters: fileTypeFilter,
         };
-        return this._vscodeWrapper.showSaveDialog(options).then((uri) => {
+        return vscode.window.showSaveDialog(options).then((uri) => {
             if (!uri) {
                 return undefined;
             }
@@ -74,11 +71,17 @@ export default class ResultsSerializer {
 
     private getConfigForCsv(): Contracts.SaveResultsAsCsvRequestParams {
         // get save results config from vscode config
-        const config = this._vscodeWrapper.getConfiguration(
+        const config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this._uri,
+            vscode.Uri.parse(this._uri),
         );
-        let saveConfig = config[Constants.configSaveAsCsv];
+        let saveConfig = config.get<{
+            includeHeaders?: boolean;
+            delimiter?: string;
+            lineSeparator?: string;
+            textIdentifier?: string;
+            encoding?: string;
+        }>(Constants.configSaveAsCsv);
         let saveResultsParams = new Contracts.SaveResultsAsCsvRequestParams();
 
         // if user entered config, set options
@@ -104,11 +107,11 @@ export default class ResultsSerializer {
 
     private getConfigForJson(): Contracts.SaveResultsAsJsonRequestParams {
         // get save results config from vscode config
-        let config = this._vscodeWrapper.getConfiguration(
+        let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this._uri,
+            vscode.Uri.parse(this._uri),
         );
-        let saveConfig = config[Constants.configSaveAsJson];
+        let saveConfig = config.get<Record<string, unknown>>(Constants.configSaveAsJson);
         let saveResultsParams = new Contracts.SaveResultsAsJsonRequestParams();
 
         if (saveConfig) {
@@ -121,11 +124,11 @@ export default class ResultsSerializer {
         // get save results config from vscode config
         // Note: we are currently using the configSaveAsCsv setting since it has the option mssql.saveAsCsv.includeHeaders
         // and we want to have just 1 setting that lists this.
-        let config = this._vscodeWrapper.getConfiguration(
+        let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this._uri,
+            vscode.Uri.parse(this._uri),
         );
-        let saveConfig = config[Constants.configSaveAsCsv];
+        let saveConfig = config.get<{ includeHeaders?: boolean }>(Constants.configSaveAsCsv);
         let saveResultsParams = new Contracts.SaveResultsAsExcelRequestParams();
 
         // if user entered config, set options
@@ -141,11 +144,11 @@ export default class ResultsSerializer {
         // get save results config from vscode config
         // Note: we are currently using the configSaveAsCsv setting since it has the option mssql.saveAsCsv.includeHeaders
         // and we want to have just 1 setting that lists this.
-        let config = this._vscodeWrapper.getConfiguration(
+        let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this._uri,
+            vscode.Uri.parse(this._uri),
         );
-        let saveConfig = config[Constants.configSaveAsCsv];
+        let saveConfig = config.get<{ includeHeaders?: boolean }>(Constants.configSaveAsCsv);
         let saveResultsParams = new Contracts.SaveResultsAsInsertRequestParams();
 
         // if user entered config, set options
@@ -202,11 +205,42 @@ export default class ResultsSerializer {
     }
 
     private shouldOpenSavedFile(): boolean {
-        const config = this._vscodeWrapper.getConfiguration(
+        const config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this._uri,
+            vscode.Uri.parse(this._uri),
         );
         return config.get<boolean>(Constants.configResultsOpenAfterSave, true);
+    }
+
+    private getRevealFileActionLabel(): string {
+        if (process.platform === "darwin") {
+            return LocalizedConstants.Common.revealInFinder;
+        }
+        if (process.platform === "win32") {
+            return LocalizedConstants.Common.revealInExplorer;
+        }
+        return LocalizedConstants.Common.openContainingFolder;
+    }
+
+    private showSaveSucceededNotification(filePath: string, format: string): void {
+        const openFileAction = LocalizedConstants.Common.openFile;
+        const revealFileAction = this.getRevealFileActionLabel();
+        void vscode.window
+            .showInformationMessage(
+                LocalizedConstants.msgSaveSucceeded(filePath),
+                openFileAction,
+                revealFileAction,
+            )
+            .then((action) => {
+                if (action === openFileAction) {
+                    this.openSavedFile(filePath, format);
+                } else if (action === revealFileAction) {
+                    void vscode.commands.executeCommand(
+                        "revealFileInOS",
+                        vscode.Uri.file(filePath),
+                    );
+                }
+            });
     }
 
     /**
@@ -230,7 +264,6 @@ export default class ResultsSerializer {
         let type: RequestType<
             Contracts.SaveResultsRequestParams,
             Contracts.SaveResultRequestResult,
-            void,
             void
         >;
         if (format === "csv") {
@@ -243,37 +276,27 @@ export default class ResultsSerializer {
             type = Contracts.SaveResultsAsInsertRequest.type;
         }
 
-        self._vscodeWrapper.logToOutputChannel(LocalizedConstants.msgSaveStarted + this._filePath);
+        self._logger.info(LocalizedConstants.msgSaveStarted(this._filePath));
 
         // send message to the sqlserverclient for converting results to the requested format and saving to filepath
         return self._client.sendRequest(type, saveResultsParams).then(
             (result) => {
                 if (result.messages) {
-                    self._vscodeWrapper.showErrorMessage(
-                        LocalizedConstants.msgSaveFailed + result.messages,
+                    vscode.window.showErrorMessage(
+                        LocalizedConstants.msgSaveFailed(result.messages),
                     );
-                    self._vscodeWrapper.logToOutputChannel(
-                        LocalizedConstants.msgSaveFailed + result.messages,
-                    );
+                    self._logger.error(LocalizedConstants.msgSaveFailed(result.messages));
                 } else {
-                    self._vscodeWrapper.showInformationMessage(
-                        LocalizedConstants.msgSaveSucceeded + this._filePath,
-                    );
-                    self._vscodeWrapper.logToOutputChannel(
-                        LocalizedConstants.msgSaveSucceeded + filePath,
-                    );
+                    self.showSaveSucceededNotification(this._filePath, format);
+                    self._logger.info(LocalizedConstants.msgSaveSucceeded(filePath));
                     if (self.shouldOpenSavedFile()) {
                         self.openSavedFile(self._filePath, format);
                     }
                 }
             },
             (error) => {
-                self._vscodeWrapper.showErrorMessage(
-                    LocalizedConstants.msgSaveFailed + error.message,
-                );
-                self._vscodeWrapper.logToOutputChannel(
-                    LocalizedConstants.msgSaveFailed + error.message,
-                );
+                vscode.window.showErrorMessage(LocalizedConstants.msgSaveFailed(error.message));
+                self._logger.error(LocalizedConstants.msgSaveFailed(error.message));
             },
         );
     }
@@ -305,8 +328,8 @@ export default class ResultsSerializer {
                 }
             },
             (error) => {
-                self._vscodeWrapper.showErrorMessage(error.message);
-                self._vscodeWrapper.logToOutputChannel(error.message);
+                vscode.window.showErrorMessage(error.message);
+                self._logger.error(error.message);
             },
         );
     }
@@ -315,32 +338,31 @@ export default class ResultsSerializer {
      * Open the saved file in a new vscode editor pane
      */
     public openSavedFile(filePath: string, format: string): void {
-        const self = this;
         if (format === "excel") {
             // This will not open in VSCode as it's treated as binary. Use the native file opener instead
             // Note: must use filePath here, URI does not open correctly
             opener(filePath, undefined, (error) => {
                 if (error) {
-                    self._vscodeWrapper.showErrorMessage(error);
+                    vscode.window.showErrorMessage(getErrorMessage(error));
                 }
             });
         } else {
             let uri = vscode.Uri.file(filePath);
-            self._vscodeWrapper.openTextDocument(uri).then(
+            vscode.workspace.openTextDocument(uri).then(
                 (doc: vscode.TextDocument) => {
                     // Show open document and set focus
-                    self._vscodeWrapper
+                    vscode.window
                         .showTextDocument(doc, {
                             viewColumn: vscode.ViewColumn.One,
                             preserveFocus: false,
                             preview: false,
                         })
                         .then(undefined, (error) => {
-                            self._vscodeWrapper.showErrorMessage(error);
+                            vscode.window.showErrorMessage(getErrorMessage(error));
                         });
                 },
                 (error) => {
-                    self._vscodeWrapper.showErrorMessage(error);
+                    vscode.window.showErrorMessage(getErrorMessage(error));
                 },
             );
         }

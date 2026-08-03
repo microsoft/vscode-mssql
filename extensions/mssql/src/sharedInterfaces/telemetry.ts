@@ -49,6 +49,8 @@ export enum TelemetryViews {
     Restore = "Restore",
     SqlNotebooks = "SqlNotebooks",
     ServiceClient = "ServiceClient",
+    SqlToolsMcp = "SqlToolsMcp",
+    ProtocolHandler = "ProtocolHandler",
 }
 
 export enum TelemetryActions {
@@ -191,6 +193,7 @@ export enum TelemetryActions {
     ChatCommand = "ChatCommand",
     ReadCredential = "ReadCredential",
     Connect = "Connect",
+    Invoke = "Invoke",
     LoadFabricWorkspaces = "LoadFabricWorkspaces",
     LoadFabricDatabases = "LoadFabricDatabases",
     LoadAzureSubscriptions = "LoadAzureSubscriptions",
@@ -247,6 +250,14 @@ export enum TelemetryActions {
     ServiceStarted = "ServiceStarted",
     ServiceStartFailed = "ServiceStartFailed",
     AcquireDotnetRuntimeFailed = "AcquireDotnetRuntimeFailed",
+    SqlToolsMcpProviderRegistration = "SqlToolsMcpProviderRegistration",
+    SqlToolsMcpDefinitionResolution = "SqlToolsMcpDefinitionResolution",
+    SqlToolsMcpBridgeLifecycle = "SqlToolsMcpBridgeLifecycle",
+    SqlToolsMcpListConnections = "SqlToolsMcpListConnections",
+    SqlToolsMcpConnect = "SqlToolsMcpConnect",
+    SqlToolsMcpRegisterConnection = "SqlToolsMcpRegisterConnection",
+    SqlToolsMcpExecuteQuery = "SqlToolsMcpExecuteQuery",
+    SqlToolsMcpRemoveConnection = "SqlToolsMcpRemoveConnection",
     TablePreview = "TablePreview",
     ImportFile = "ImportFile",
     ResetState = "ResetState",
@@ -278,6 +289,14 @@ export enum TelemetryActions {
     NotebookChangeDatabase = "NotebookChangeDatabase",
     CancelCellExecution = "CancelCellExecution",
     KernelSelected = "KernelSelected",
+    Stats = "Stats",
+    // ------------------------------- < SQL Tools Service > ------------------------------------
+    FormatCode = "FormatCode",
+    FormatterParseErrorSendFeedback = "FormatterParseErrorSendFeedback",
+    FormatterParseErrorDontShowAgain = "FormatterParseErrorDontShowAgain",
+    PeekDefinitionRequested = "PeekDefinitionRequested",
+    IntellisenseQuantile = "IntellisenseQuantile",
+    // ------------------------------- </ SQL Tools Service > -----------------------------------
 }
 
 /**

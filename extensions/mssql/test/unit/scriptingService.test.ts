@@ -11,7 +11,6 @@ import * as vscode from "vscode";
 import { IServerInfo, MetadataType, ObjectMetadata, IScriptingObject } from "vscode-mssql";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import SqlDocumentService, { ConnectionStrategy } from "../../src/controllers/sqlDocumentService";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { SqlOutputContentProvider } from "../../src/models/sqlOutputContentProvider";
 import StatusView from "../../src/views/statusView";
@@ -29,13 +28,10 @@ import * as telemetry from "../../src/telemetry/telemetry";
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { ActivityObject, ActivityStatus } from "../../src/sharedInterfaces/telemetry";
-import { Logger } from "../../src/models/logger";
 import {
-    stubLogger,
     stubExtensionContext,
     initializeIconUtils,
     stubUserSurvey,
-    stubVscodeWrapper,
     stubWithProgress,
 } from "./utils";
 
@@ -57,7 +53,6 @@ suite("Scripting Service", () => {
     let client: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let sqlDocumentService: sinon.SinonStubbedInstance<SqlDocumentService>;
     let sqlOutputContentProvider: sinon.SinonStubbedInstance<SqlOutputContentProvider>;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let statusView: StatusView;
     let scriptingService: ScriptingService;
     let withProgressStub: sinon.SinonStub;
@@ -66,7 +61,6 @@ suite("Scripting Service", () => {
     let configurationGetStub: sinon.SinonStub;
     let registerCommandStub: sinon.SinonStub;
     let sendRequestStub: sinon.SinonStub;
-    let loggerStub: sinon.SinonStubbedInstance<Logger>;
     let objectExplorerTree: { selection: TreeNodeInfo[] };
     let scriptingProgressHandler: ProgressHandler | undefined;
     let scriptingCompleteHandler: ProgressHandler | undefined;
@@ -216,9 +210,6 @@ suite("Scripting Service", () => {
             telemetryActivities.push(activity);
             return activity;
         });
-
-        loggerStub = stubLogger(sandbox);
-
         connectionManager = sandbox.createStubInstance(ConnectionManager);
         client = sandbox.createStubInstance(SqlToolsServiceClient);
         connectionManager.client = client;
@@ -231,7 +222,6 @@ suite("Scripting Service", () => {
         configureRunQueryStub();
 
         statusView = {} as StatusView;
-        vscodeWrapper = stubVscodeWrapper(sandbox);
         objectExplorerTree = { selection: [] };
 
         sendRequestStub = client.sendRequest;
@@ -258,7 +248,6 @@ suite("Scripting Service", () => {
 
         scriptingService = new ScriptingService(
             stubExtensionContext(sandbox),
-            vscodeWrapper,
             connectionManager,
             sqlDocumentService as unknown as SqlDocumentService,
             sqlOutputContentProvider as unknown as SqlOutputContentProvider,
@@ -329,7 +318,6 @@ suite("Scripting Service", () => {
             expect(sqlOutputContentProvider.runQuery).to.have.been.calledOnce;
             expect(removeRecentlyUsedStub).to.have.been.calledOnce;
             expect(updateTokenStub).to.have.been.called;
-            expect(loggerStub.error).to.not.have.been.called;
             expect(telemetryActivities[0].end).to.have.been.calledWithExactly(
                 ActivityStatus.Succeeded,
             );
@@ -380,14 +368,13 @@ suite("Scripting Service", () => {
             expect(connectionManager.connect).to.have.been.calledOnce;
             expect(sqlDocumentService.newQuery).to.not.have.been.called;
             expect(sqlOutputContentProvider.runQuery).to.not.have.been.called;
-            expect(loggerStub.error).to.have.been.called;
             expect(telemetryActivities[0].endFailed).to.have.been.called;
         } finally {
             scriptTreeStub.restore();
         }
     });
 
-    test("scriptNode logs error when scripting object is missing", async () => {
+    test("scriptNode fails when scripting object is missing", async () => {
         const node = new TreeNodeInfo(
             "invalid",
             undefined,
@@ -408,11 +395,10 @@ suite("Scripting Service", () => {
         await scriptingService.scriptNode(node, ScriptOperation.Select);
 
         expect(sqlDocumentService.newQuery).to.not.have.been.called;
-        expect(loggerStub.error).to.have.been.called;
         expect(telemetryActivities[0].endFailed).to.have.been.called;
     });
 
-    test("scriptNode logs error when no script is returned", async () => {
+    test("scriptNode fails when no script is returned", async () => {
         const node = createTableNode();
         applyConnectionProfile(node);
         sandbox.stub(node, "updateEntraTokenInfo");
@@ -425,7 +411,6 @@ suite("Scripting Service", () => {
 
         expect(sqlDocumentService.newQuery).to.not.have.been.called;
         expect(sqlOutputContentProvider.runQuery).to.not.have.been.called;
-        expect(loggerStub.error).to.have.been.called;
         expect(telemetryActivities[0].endFailed).to.have.been.called;
         scriptTreeStub.restore();
     });
@@ -605,7 +590,6 @@ suite("Scripting Service", () => {
         expect(showErrorMessageStub).to.have.been.calledWithExactly(
             LocalizedConstants.msgScriptingOperationFailed("script failed"),
         );
-        expect(loggerStub.error).to.have.been.calledWithMatch("Scripting error details:");
         expect(telemetryActivities[0].endFailed).to.have.been.called;
     });
 

@@ -14,7 +14,10 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { previewService } from "../previews/previewService";
-import VscodeWrapper from "../controllers/vscodeWrapper";
+import { getLogger } from "../models/logger";
+import { getErrorMessage } from "../utils/utils";
+
+const logger = getLogger("UserSurvey");
 
 /** Likelihood that a user is prompted to take the survey, after they've already passed all other checks */
 export const SELECTION_PROBABILITY = 0.15;
@@ -35,16 +38,10 @@ export enum FunnelSteps {
 export class UserSurvey {
     private static _instance: UserSurvey;
     private _webviewController: UserSurveyWebviewController;
-    private constructor(
-        private _context: vscode.ExtensionContext,
-        private vscodeWrapper: VscodeWrapper,
-    ) {}
+    private constructor(private _context: vscode.ExtensionContext) {}
 
-    public static createInstance(
-        _context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
-    ): void {
-        UserSurvey._instance = new UserSurvey(_context, vscodeWrapper);
+    public static createInstance(_context: vscode.ExtensionContext): void {
+        UserSurvey._instance = new UserSurvey(_context);
     }
 
     public static getInstance(): UserSurvey {
@@ -58,7 +55,7 @@ export class UserSurvey {
     public promptUserForNPSFeedback(surveySource: string): void {
         void this.promptUserForNPSFeedbackAsync(surveySource).catch((err) => {
             // Handle any errors that occur during the prompt and not throwing them in order to not break the calling function
-            console.error("Error prompting for NPS feedback:", err);
+            logger.error(`Error prompting for NPS feedback: ${getErrorMessage(err)}`);
         });
     }
 
@@ -67,7 +64,7 @@ export class UserSurvey {
      */
     public launchSurvey(surveyId: string, survey: UserSurveyState, surveySource?: string): void {
         void this.launchSurveyAsync(surveyId, survey, surveySource).catch((err) => {
-            console.error("Error launching survey:", err);
+            logger.error(`Error launching survey: ${getErrorMessage(err)}`);
         });
     }
 
@@ -140,11 +137,7 @@ export class UserSurvey {
     ): Promise<Answers> {
         const state: UserSurveyState = survey;
         if (!this._webviewController || this._webviewController.isDisposed) {
-            this._webviewController = new UserSurveyWebviewController(
-                this._context,
-                this.vscodeWrapper,
-                state,
-            );
+            this._webviewController = new UserSurveyWebviewController(this._context, state);
         } else {
             this._webviewController.updateState(state);
         }
@@ -298,12 +291,8 @@ export class UserSurveyWebviewController extends WebviewPanelController<
     private _onCancel: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
     public readonly onCancel: vscode.Event<void> = this._onCancel.event;
 
-    constructor(
-        context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
-        state?: UserSurveyState,
-    ) {
-        super(context, vscodeWrapper, "userSurvey", "userSurvey", state, {
+    constructor(context: vscode.ExtensionContext, state?: UserSurveyState) {
+        super(context, "userSurvey", "userSurvey", state, {
             title: Loc.UserSurvey.mssqlFeedback,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {

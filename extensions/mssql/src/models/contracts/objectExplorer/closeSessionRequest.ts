@@ -65,7 +65,7 @@ export class SessionDisconnectedParameters {
  * This will close a connection to a specific server or database
  */
 export namespace CloseSessionRequest {
-    export const type = new RequestType<CloseSessionParams, CloseSessionResponse, void, void>(
+    export const type = new RequestType<CloseSessionParams, CloseSessionResponse, void>(
         "objectexplorer/closesession",
     );
 }
@@ -74,7 +74,7 @@ export namespace CloseSessionRequest {
  * Session disconnected notification
  */
 export namespace SessionDisconnectedNotification {
-    export const type = new NotificationType<SessionDisconnectedParameters, void>(
+    export const type = new NotificationType<SessionDisconnectedParameters>(
         "objectexplorer/sessiondisconnected",
     );
 }

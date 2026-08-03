@@ -35,10 +35,14 @@ export const FabricBrowsePage = () => {
     const formState = useConnectionDialogSelector((s) => s.formState);
     const mainOptions = useConnectionDialogSelector((s) => s.connectionComponents.mainOptions);
     const formComponents = useConnectionDialogSelector((s) => s.formComponents);
+    const selectedAccountId = useConnectionDialogSelector((s) => s.selectedAccountId);
+    const selectedTenantId = useConnectionDialogSelector((s) => s.selectedTenantId);
+
     if (context === undefined) {
         return undefined;
     }
 
+    const log = context.log;
     const styles = useStyles();
 
     function setConnectionProperty(propertyName: keyof IConnectionDialogProfile, value: string) {
@@ -61,32 +65,36 @@ export const FabricBrowsePage = () => {
         context!.selectSqlCollection(collection.id);
     }
 
+    function setCommonConnectionProperties(database: SqlDbInfo) {
+        setConnectionProperty("profileName", generateProfileName(database));
+        setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
+        setConnectionProperty("accountId", selectedAccountId ?? "");
+        setConnectionProperty("tenantId", selectedTenantId ?? "");
+    }
+
     async function handleDatabaseSelected(database: SqlDbInfo) {
         switch (database.type) {
             case SqlArtifactTypes.SqlAnalyticsEndpoint: {
                 const serverUrl = await context!.getSqlAnalyticsEndpointUriFromFabric(database);
                 setConnectionProperty("server", serverUrl);
-                setConnectionProperty("profileName", generateProfileName(database));
-                setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
+                setCommonConnectionProperties(database);
 
                 return;
             }
             case SqlArtifactTypes.SqlDatabase:
                 setConnectionProperty("server", database.server);
                 setConnectionProperty("database", database.databases[0]);
-                setConnectionProperty("profileName", generateProfileName(database));
-                setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
+                setCommonConnectionProperties(database);
 
                 return;
             case SqlArtifactTypes.Warehouse:
                 setConnectionProperty("server", database.server);
                 setConnectionProperty("database", database.displayName);
-                setConnectionProperty("profileName", generateProfileName(database));
-                setConnectionProperty("authenticationType", AuthenticationType.AzureMFA);
+                setCommonConnectionProperties(database);
 
                 return;
             default:
-                context!.log("Unknown server type selected.", "error");
+                log.error("Unknown server type selected.");
         }
     }
 

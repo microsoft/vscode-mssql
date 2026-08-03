@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
 import { SchemaDesignerWebviewController } from "./schemaDesignerWebviewController";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
@@ -13,6 +12,10 @@ import * as LocConstants from "../constants/locConstants";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { sendActionEvent } from "../telemetry/telemetry";
 import { IConnectionProfile } from "../models/interfaces";
+import { getLogger } from "../models/logger";
+import { getErrorMessage } from "../utils/utils";
+
+const logger = getLogger("SchemaDesigner");
 
 export class SchemaDesignerWebviewManager {
     private static instance: SchemaDesignerWebviewManager;
@@ -67,7 +70,6 @@ export class SchemaDesignerWebviewManager {
      * This method manages the lifecycle of schema designer instances, reusing existing ones when possible.
      *
      * @param context - The VS Code extension context
-     * @param vscodeWrapper - Wrapper for VS Code APIs
      * @param mainController - The main controller instance
      * @param schemaDesignerService - Service for schema designer operations
      * @param databaseName - Name of the database to open in the schema designer
@@ -80,7 +82,6 @@ export class SchemaDesignerWebviewManager {
      */
     public async getSchemaDesigner(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         mainController: MainController,
         schemaDesignerService: SchemaDesigner.ISchemaDesignerService,
         databaseName: string,
@@ -141,7 +142,6 @@ export class SchemaDesignerWebviewManager {
         if (!this.schemaDesigners.has(key) || this.schemaDesigners.get(key)?.isDisposed) {
             const schemaDesigner = new SchemaDesignerWebviewController(
                 context,
-                vscodeWrapper,
                 mainController,
                 schemaDesignerService,
                 connectionString,
@@ -188,7 +188,6 @@ export class SchemaDesignerWebviewManager {
                         // Show the webview again
                         return await this.getSchemaDesigner(
                             context,
-                            vscodeWrapper,
                             mainController,
                             schemaDesignerService,
                             databaseName,
@@ -201,12 +200,14 @@ export class SchemaDesignerWebviewManager {
                 // Ignoring errors here as we don't want to block the disposal process
                 try {
                     if (cacheItem?.schemaDesignerDetails?.sessionId) {
-                        schemaDesignerService.disposeSession({
+                        await schemaDesignerService.disposeSession({
                             sessionId: cacheItem.schemaDesignerDetails.sessionId,
                         });
                     }
                 } catch (error) {
-                    console.error(`Error disposing schema designer session: ${error}`);
+                    logger.error(
+                        `Error disposing schema designer session: ${getErrorMessage(error)}`,
+                    );
                 }
                 this.schemaDesignerCache.delete(key);
             });

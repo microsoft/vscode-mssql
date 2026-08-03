@@ -36,6 +36,7 @@ const DEFAULT_APPLICATION_VERSION = "1.0.0";
 export const DacpacDialogForm = () => {
     const classes = useStyles();
     const context = useContext(DacpacDialogContext);
+    const log = context?.extensionRpc.log;
 
     // State from the controller
     const initialOperationType = useDacpacDialogSelector((state) => state.operationType);
@@ -560,11 +561,11 @@ export const DacpacDialogForm = () => {
                 setIsOperationInProgress(false);
                 clearForm();
             } else {
-                console.error(result?.errorMessage || locConstants.dacpacDialog.operationFailed);
+                log?.error(result?.errorMessage || locConstants.dacpacDialog.operationFailed);
                 setIsOperationInProgress(false);
             }
         } catch (error) {
-            console.error(
+            log?.error(
                 error instanceof Error ? error.message : locConstants.dacpacDialog.unexpectedError,
             );
             setIsOperationInProgress(false);
@@ -655,7 +656,7 @@ export const DacpacDialogForm = () => {
         // Only check for errors, not warnings
         const hasErrors = Object.values(validationMessages).some((msg) => msg.severity === "error");
         Object.values(validationMessages).forEach((msg) => {
-            console.log(msg.message);
+            log?.debug(msg.message);
         });
         return !hasErrors;
     };

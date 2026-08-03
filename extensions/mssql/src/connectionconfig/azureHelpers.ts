@@ -31,7 +31,8 @@ import {
     https,
     user,
 } from "../constants/constants";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
+import logger from "../models/logger";
 import { groupQuickPickItems, MssqlQuickPickItem } from "../utils/quickpickHelpers";
 import {
     AlwaysEncryptedEnclaveType,
@@ -66,15 +67,44 @@ import {
     getCloudResourceEndpoint,
     VscodeEntraSqlTokenInfo,
 } from "../azure/vscodeEntraMfaUtils";
+import { IConnectionInfo } from "vscode-mssql";
 
 export const azureSubscriptionFilterConfigKey = "mssql.selectedAzureSubscriptions";
 export const MANAGED_INSTANCE_PUBLIC_PORT = 3342;
+const azureHelperLogger = logger.withPrefix("Azure Helpers");
+const azureSqlServerSuffix = ".database.";
 
 //#region VS Code integration
 
 let _azureProvider: VSCodeAzureSubscriptionProvider | undefined;
 
+/** Key statuses for Azure SQL databases.  Any status not included here is considered non-retryable. */
+export type AzureSqlDatabaseStatus = "Paused" | "Pausing" | "Resuming" | "Online" | "UnableToCheck";
+
+export const azureStatusesToRetry: AzureSqlDatabaseStatus[] = ["Paused", "Pausing", "Resuming"];
+
+/**
+ * Location of an Azure SQL logical server resource, resolved from an account + server name. This
+ * is the expensive-to-compute, stable part of a pause-status check (finding which subscription and
+ * resource group a server lives in), so it is cached and reused across status checks.
+ */
+export interface SqlServerResourceInfo {
+    accountId: string;
+    subscriptionId: string;
+    resourceGroup: string;
+}
+
 export class VsCodeAzureHelper {
+    /**
+     * Cache of Azure SQL server resource lookups, keyed by `${accountId}|${serverName}`. Stores the
+     * in-flight/resolved promise so concurrent callers share one lookup and resolved results
+     * (including "UnableToCheck") are reused instead of re-scanning every subscription each time.
+     */
+    private static readonly _sqlResourceCache = new Map<
+        string,
+        Promise<SqlServerResourceInfo | "UnableToCheck">
+    >();
+
     /**
      * Returns the singleton `VSCodeAzureSubscriptionProvider` instance used for all Azure auth operations.
      */
@@ -96,7 +126,7 @@ export class VsCodeAzureHelper {
                 await vscode.authentication.getAccounts(getConfiguredAuthProviderId()),
             ).sort((a, b) => a.label.localeCompare(b.label));
         } catch (error) {
-            console.error(`Error fetching VS Code accounts: ${getErrorMessage(error)}`);
+            azureHelperLogger.error(`Error fetching VS Code accounts: ${getErrorMessage(error)}`);
         }
 
         if (onlyAllowedForExtension) {
@@ -108,14 +138,14 @@ export class VsCodeAzureHelper {
                     if (tenants.length > 0) {
                         filteredAccounts.push(account);
                     } else {
-                        console.warn(
+                        azureHelperLogger.warn(
                             `No tenants found for account ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.`,
                         );
                     }
                 } catch (error) {
                     // no-op; failure to get tenants means that the account is not accessible by this extension
-                    console.warn(
-                        `Error fetching tenants for ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account.  Error: ${getErrorMessage(error)}`,
+                    azureHelperLogger.warn(
+                        `Error fetching tenants for ${account.label}; this may indicate that the MSSQL extension does not have permission to use this account. Error: ${getErrorMessage(error)}`,
                     );
                 }
             }
@@ -238,7 +268,7 @@ export class VsCodeAzureHelper {
 
             return tenants.sort((a, b) => a.displayName.localeCompare(b.displayName));
         } catch (error) {
-            console.error("Error fetching tenants for account:", error);
+            azureHelperLogger.error("Error fetching tenants for account", getErrorMessage(error));
             return [];
         }
     }
@@ -265,6 +295,17 @@ export class VsCodeAzureHelper {
         return subs;
     }
 
+    public static async getSubscriptionsForAccount(
+        account: vscode.AuthenticationSessionAccountInformation | string,
+    ): Promise<AzureSubscription[]> {
+        const accountInfo =
+            typeof account === "string" ? await this.getAccountById(account) : account;
+        const tenants = await this.getTenantsForAccount(accountInfo);
+        const tenantIds = new Set(tenants.map((t) => t.tenantId));
+        const allSubs = await VsCodeAzureHelper.getProvider().getSubscriptions(false);
+        return allSubs.filter((sub) => tenantIds.has(sub.tenantId));
+    }
+
     /**
      * Gets the resource groups available for a specific Azure subscription
      * @param subscription The subscription to get resource groups for
@@ -287,7 +328,10 @@ export class VsCodeAzureHelper {
                 .filter((name) => name !== "")
                 .sort((a, b) => a.localeCompare(b));
         } catch (error) {
-            console.error("Error fetching resource groups for subscription:", error);
+            azureHelperLogger.error(
+                "Error fetching resource groups for subscription",
+                getErrorMessage(error),
+            );
             return [];
         }
     }
@@ -307,7 +351,10 @@ export class VsCodeAzureHelper {
             const rg = await client.resourceGroups.get(resourceGroupName);
             return rg.location;
         } catch (error) {
-            console.error("Error fetching default location for resource group:", error);
+            azureHelperLogger.error(
+                "Error fetching default location for resource group",
+                getErrorMessage(error),
+            );
             return "";
         }
     }
@@ -333,7 +380,10 @@ export class VsCodeAzureHelper {
                 .filter((loc) => loc.name !== "")
                 .sort((a, b) => a.displayName.localeCompare(b.displayName));
         } catch (error) {
-            console.error("Error fetching locations for subscription:", error);
+            azureHelperLogger.error(
+                "Error fetching locations for subscription",
+                getErrorMessage(error),
+            );
             return [];
         }
     }
@@ -381,9 +431,220 @@ export class VsCodeAzureHelper {
 
             return servers.sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
         } catch (error) {
-            console.error("Error fetching logical servers for resource group:", error);
+            azureHelperLogger.error(
+                "Error fetching logical servers for resource group",
+                getErrorMessage(error),
+            );
             return [];
         }
+    }
+
+    /**
+     * Uses the Azure ARM API to check the wake status of a database. All failures are logged and
+     * swallowed, returning "UnableToCheck".
+     *
+     * The (expensive) server-to-subscription/resource-group lookup is delegated to
+     * {@link findSqlResource}, which is cached, so repeated status checks for the same server only
+     * pay for the live `databases.get` status call.
+     *
+     * @param connection the connection being attempted.
+     * @param database optional database name override, used when the database being accessed differs
+     *   from the connection's database (e.g. expanding a  database node on a server connection).
+     * @param source short label identifying the caller who initiated the check
+     */
+    public static async getAzureSqlDatabaseStatus(
+        connection: IConnectionInfo,
+        database?: string,
+        source?: string,
+    ): Promise<AzureSqlDatabaseStatus> {
+        const databaseName = database ?? connection.database;
+        const serverName = this.getAzureSqlServerName(connection.server);
+        const accountId = connection.accountId;
+
+        const target = `"${databaseName ?? connection.database}" on "${connection.server}"`;
+        const sourceSuffix = source ? ` [${source}]` : "";
+
+        if (!accountId || !serverName || !databaseName) {
+            azureHelperLogger.trace(
+                `Pause status check ${sourceSuffix}: could not determine status for ${target}`,
+            );
+            return "UnableToCheck";
+        }
+
+        // Resolve (from cache when possible) which subscription/resource group the server lives in.
+        const resource = await this.findSqlResource(accountId, serverName);
+        if (resource === "UnableToCheck") {
+            azureHelperLogger.trace(
+                `Pause status check ${sourceSuffix}: server for ${target} could not be located for user ${accountId}`,
+            );
+            return "UnableToCheck";
+        }
+
+        try {
+            const subscriptions = await this.getSubscriptionsForAccount(accountId);
+            const subscription = subscriptions.find(
+                (sub) => sub.subscriptionId === resource.subscriptionId,
+            );
+
+            if (!subscription) {
+                azureHelperLogger.trace(
+                    `Pause status check ${sourceSuffix}: subscription ${resource.subscriptionId} for ${target} is no longer available to user ${accountId}`,
+                );
+                return "UnableToCheck";
+            }
+
+            const sql = new SqlManagementClient(
+                subscription.credential,
+                subscription.subscriptionId,
+                {
+                    endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                },
+            );
+
+            const dbResource = await sql.databases.get(
+                resource.resourceGroup,
+                serverName,
+                databaseName,
+            );
+
+            azureHelperLogger.trace(
+                `Pause check ${sourceSuffix}: database ${target} is ${dbResource.status}`,
+            );
+
+            return (dbResource?.status as AzureSqlDatabaseStatus) ?? "UnableToCheck";
+        } catch (err) {
+            azureHelperLogger.trace(
+                `Pause check ${sourceSuffix}: error occurred while checking database ${target}; exiting. ${getErrorMessage(err)}`,
+            );
+
+            return "UnableToCheck";
+        }
+    }
+
+    /**
+     * Finds which subscription and resource group an Azure SQL logical server belongs to for the
+     * given account, by scanning the account's subscriptions. The result (including "UnableToCheck"
+     * when the server can't be located) is cached by `${accountId}|${serverName}`, and concurrent
+     * lookups share a single in-flight promise, so the expensive per-subscription server scan runs
+     * at most once per server per session.
+     *
+     * @param accountId the Azure account to search within.
+     * @param serverName the Azure SQL logical server name (without the `.database.*` suffix).
+     */
+    public static findSqlResource(
+        accountId: string,
+        serverName: string,
+    ): Promise<SqlServerResourceInfo | "UnableToCheck"> {
+        const cacheKey = `${accountId}|${serverName.toLowerCase()}`;
+
+        const cached = this._sqlResourceCache.get(cacheKey);
+        if (cached) {
+            azureHelperLogger.trace(
+                `SQL resource lookup: cache hit for server "${serverName}" (user ${accountId})`,
+            );
+            return cached;
+        }
+
+        azureHelperLogger.trace(
+            `SQL resource lookup: cache miss for server "${serverName}" (user ${accountId}); searching subscriptions`,
+        );
+
+        // The worker never rejects (all failures resolve to "UnableToCheck"), so the cached promise
+        // is always safe to reuse.
+        const lookup = this.searchForSqlResource(accountId, serverName);
+        this._sqlResourceCache.set(cacheKey, lookup);
+        return lookup;
+    }
+
+    /**
+     * Clears the cached {@link findSqlResource} lookups. Useful when account/subscription
+     * membership may have changed, and for keeping unit tests isolated from one another.
+     */
+    public static clearSqlResourceCache(): void {
+        azureHelperLogger.trace("SQL resource lookup: clearing cache");
+        this._sqlResourceCache.clear();
+    }
+
+    private static async searchForSqlResource(
+        accountId: string,
+        serverName: string,
+    ): Promise<SqlServerResourceInfo | "UnableToCheck"> {
+        try {
+            azureHelperLogger.trace(
+                `SQL resource lookup: searching for '${serverName}' in account '${accountId}'`,
+            );
+
+            const subscriptions = await this.getSubscriptionsForAccount(accountId);
+
+            for (const subscription of subscriptions) {
+                try {
+                    const sql = new SqlManagementClient(
+                        subscription.credential,
+                        subscription.subscriptionId,
+                        {
+                            endpoint: getCloudProviderSettings().settings.armResource.endpoint,
+                        },
+                    );
+
+                    const servers = await listAllIterator(sql.servers.list());
+                    const matchingServer = servers.find(
+                        (server) => server.name?.toLowerCase() === serverName.toLowerCase(),
+                    );
+
+                    if (!matchingServer?.id) {
+                        continue;
+                    }
+
+                    const resourceGroup = extractFromResourceId(
+                        matchingServer.id,
+                        "resourceGroups",
+                    );
+                    if (!resourceGroup) {
+                        continue;
+                    }
+
+                    azureHelperLogger.trace(
+                        `SQL resource lookup: found server "${serverName}" in subscription ${subscription.subscriptionId}, resource group ${resourceGroup} (user ${accountId})`,
+                    );
+
+                    return {
+                        accountId,
+                        subscriptionId: subscription.subscriptionId,
+                        resourceGroup,
+                    };
+                } catch (err) {
+                    azureHelperLogger.trace(
+                        `SQL resource lookup: error searching subscription ${subscription.subscriptionId} for server "${serverName}"; continuing... ${getErrorMessage(err)}`,
+                    );
+
+                    continue;
+                }
+            }
+        } catch (err) {
+            azureHelperLogger.trace(
+                `SQL resource lookup: error searching for server "${serverName}"; exiting. ${getErrorMessage(err)}`,
+            );
+
+            return "UnableToCheck";
+        }
+
+        azureHelperLogger.trace(
+            `SQL resource lookup: server "${serverName}" could not be found for user ${accountId}`,
+        );
+
+        return "UnableToCheck";
+    }
+
+    private static getAzureSqlServerName(server: string | undefined): string | undefined {
+        if (!server) {
+            return undefined;
+        }
+
+        const serverWithoutPort = server.split(",")[0].trim().toLowerCase();
+        const azureSqlSuffixIndex = serverWithoutPort.indexOf(azureSqlServerSuffix);
+        return azureSqlSuffixIndex > 0
+            ? serverWithoutPort.substring(0, azureSqlSuffixIndex)
+            : undefined;
     }
 
     /**
@@ -611,8 +872,11 @@ export class VsCodeAzureHelper {
 
             return listAllIterator(storage.storageAccounts.list());
         } catch (error) {
-            console.error("Error fetching storage accounts for subscription:", error);
-            throw new Error(error.message);
+            azureHelperLogger.error(
+                "Error fetching storage accounts for subscription",
+                getErrorMessage(error),
+            );
+            throw new Error(getErrorMessage(error));
         }
     }
 
@@ -645,7 +909,10 @@ export class VsCodeAzureHelper {
                 storage.blobContainers.list(storageAccountResourceGroup, storageAccount.name),
             );
         } catch (error) {
-            console.error("Error fetching blob containers for storage account:", error);
+            azureHelperLogger.error(
+                "Error fetching blob containers for storage account",
+                getErrorMessage(error),
+            );
             throw error;
         }
     }
@@ -699,7 +966,7 @@ export class VsCodeAzureHelper {
 
             return blobs;
         } catch (error) {
-            console.error("Error fetching blobs for container:", error);
+            azureHelperLogger.error("Error fetching blobs for container", getErrorMessage(error));
             throw error;
         }
     }
@@ -746,7 +1013,7 @@ export class VsCodeAzureHelper {
                 storageAccount.name,
             );
         } catch (error) {
-            console.error("Error fetching storage account keys:", error);
+            azureHelperLogger.error("Error fetching storage account keys", getErrorMessage(error));
             throw error;
         }
     }
@@ -865,7 +1132,7 @@ export const VsCodeAzureAuth = {
  */
 export async function promptForAzureSubscriptionFilter(
     state: ConnectionDialogWebviewState,
-    logger: Logger,
+    logger: ILogger,
 ): Promise<boolean> {
     try {
         const result = await VsCodeAzureHelper.signIn();
@@ -948,7 +1215,7 @@ export enum MaintenanceSchedule {
 
 export async function getAccounts(
     azureAccountService: AzureAccountService,
-    logger: Logger,
+    logger: ILogger,
 ): Promise<FormItemOptions[]> {
     let accounts: IAccount[] = [];
     try {
@@ -990,7 +1257,7 @@ export async function getAccounts(
 export async function getTenants(
     azureAccountService: AzureAccountService,
     accountId: string,
-    logger: Logger,
+    logger: ILogger,
 ): Promise<FormItemOptions[]> {
     let tenants: ITenant[] = [];
 

@@ -25,6 +25,9 @@ import { CapabilitiesResult, GetCapabilitiesRequest } from "../models/contracts/
 import { getErrorMessage } from "../utils/utils";
 import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionDialogWebviewController } from "./connectionDialogWebviewController";
+import { getLogger } from "../models/logger";
+
+const logger = getLogger("ConnectionComponents");
 
 export async function generateConnectionComponents(
     connectionManager: ConnectionManager,
@@ -63,7 +66,7 @@ export async function generateConnectionComponents(
                 optionCategoryLabel: groupNames[option.groupName] ?? option.groupName,
             };
         } catch (err) {
-            console.error(
+            logger.error(
                 `Error loading connection option '${option.name}': ${getErrorMessage(err)}`,
             );
             sendErrorEvent(

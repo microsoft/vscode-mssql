@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ApiStatus } from "./webview";
+import { ApiStatus, CoreRPCs } from "./webview";
 
 export enum SqlPaneMode {
     ScriptChanges = "scriptChanges",
@@ -203,7 +203,7 @@ export interface TableExplorerWebViewState {
     originalCellValues?: Map<string, DbCellValue>; // Cache original cell values for reliable revert (key: "rowId-columnId")
 }
 
-export interface TableExplorerContextProps {
+export interface TableExplorerContextProps extends CoreRPCs {
     commitChanges: () => void;
     loadSubset: (rowCount: number) => void;
     createRow: () => void;

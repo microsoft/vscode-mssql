@@ -11,7 +11,7 @@ import { NodeInfo } from "./nodeInfo";
 
 // Create session request message callback declaration
 export namespace CreateSessionRequest {
-    export const type = new RequestType<ConnectionDetails, CreateSessionResponse, void, void>(
+    export const type = new RequestType<ConnectionDetails, CreateSessionResponse, void>(
         "objectexplorer/createsession",
     );
 }
@@ -63,13 +63,20 @@ export class SessionCreatedParameters {
      * failure reason, if any
      */
     public errorMessage: string;
+
+    /**
+     * Stable, non-localized error code identifying the session failure reason (e.g.
+     * "CREATE_SESSION_TIMEOUT"), if a known one applies. Lets the client detect specific
+     * failures without matching on the localized error message.
+     */
+    public errorCode?: string;
 }
 
 /**
  * Connection complete event callback declaration.
  */
 export namespace CreateSessionCompleteNotification {
-    export const type = new NotificationType<SessionCreatedParameters, void>(
+    export const type = new NotificationType<SessionCreatedParameters>(
         "objectexplorer/sessioncreated",
     );
 }

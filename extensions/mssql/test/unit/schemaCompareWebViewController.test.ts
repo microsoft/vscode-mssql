@@ -23,7 +23,7 @@ import {
 } from "../../src/enums";
 import { SchemaCompareWebViewState } from "../../src/sharedInterfaces/schemaCompare";
 import * as scUtils from "../../src/schemaCompare/schemaCompareUtils";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { UserSurvey } from "../../src/nps/userSurvey";
 import { IconUtils } from "../../src/utils/iconUtils";
 import { IConnectionProfile } from "../../src/models/interfaces";
 import { AzureAuthType } from "../../src/models/contracts/azure";
@@ -39,7 +39,6 @@ suite("SchemaCompareWebViewController Tests", () => {
     let mockInitialState: SchemaCompareWebViewState;
     let schemaCompareService: mssql.ISchemaCompareService;
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let connectionChangedEmitter: vscode.EventEmitter<void>;
     const schemaCompareWebViewTitle = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
@@ -184,8 +183,11 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         mockInitialState = {
             isSqlProjectExtensionInstalled: false,
-            isIncludeExcludeAllOperationInProgress: false,
             isComparisonInProgress: false,
+            isApplyInProgress: false,
+            applySucceeded: false,
+            applyFailed: false,
+            isIncludeExcludeAllOperationInProgress: false,
             activeServers: {},
             databases: [],
             defaultDeploymentOptionsResult: deploymentOptionsResultMock,
@@ -326,13 +328,10 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         connectionManagerStub.listDatabases.resolves(["db1", "db2"]);
 
-        vscodeWrapperStub = sandbox.createStubInstance(VscodeWrapper);
-
         generateOperationIdStub = sandbox.stub(scUtils, "generateOperationId").returns(operationId);
 
         controller = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapperStub,
             treeNode,
             undefined,
             false,
@@ -373,7 +372,6 @@ suite("SchemaCompareWebViewController Tests", () => {
         };
         controller = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapperStub,
             undefined,
             mockTarget,
             false,
@@ -431,7 +429,6 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         controller = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapperStub,
             mockSource,
             mockTarget,
             true,
@@ -499,7 +496,6 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         controller = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapperStub,
             mockSource,
             mockTarget,
             false, // Don't auto-run on construction
@@ -543,7 +539,6 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         const scController = new SchemaCompareWebViewController(
             mockContext,
-            vscodeWrapperStub,
             mockSqlProjectNode,
             undefined,
             false,
@@ -1846,5 +1841,88 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(option.displayName, "Display name should remain unchanged").to.equal(
             originalDisplayName,
         );
+    });
+
+    test("publishChanges reducer - database target - success clears diff result and sets applySucceeded", async () => {
+        const publishDatabaseChangesStub = sandbox
+            .stub(scUtils, "publishDatabaseChanges")
+            .resolves({ success: true, errorMessage: "" });
+
+        sandbox
+            .stub(vscode.window, "showWarningMessage")
+            .resolves("Yes" as unknown as vscode.MessageItem);
+
+        sandbox.stub(UserSurvey, "getInstance").returns({
+            promptUserForNPSFeedback: sandbox.stub().resolves(),
+        } as unknown as UserSurvey);
+
+        const state = { ...mockInitialState, targetEndpointInfo };
+        const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
+
+        const result = await controller["_reducerHandlers"].get("publishChanges")(state, payload);
+
+        expect(
+            publishDatabaseChangesStub,
+            "publishDatabaseChanges should be called with correct operationId and execution mode",
+        ).to.have.been.calledWithMatch(operationId, TaskExecutionMode.execute);
+        expect(result.isApplyInProgress, "isApplyInProgress should be false after completion").to.be
+            .false;
+        expect(result.applySucceeded, "applySucceeded should be true on success").to.be.true;
+        expect(result.applyFailed, "applyFailed should be false on success").to.be.false;
+        expect(result.schemaCompareResult, "schemaCompareResult should be cleared on success").to.be
+            .undefined;
+    });
+
+    test("publishChanges reducer - database target - STS failure clears diff result and sets applyFailed", async () => {
+        const publishDatabaseChangesStub = sandbox
+            .stub(scUtils, "publishDatabaseChanges")
+            .resolves({ success: false, errorMessage: "Apply failed" });
+
+        sandbox
+            .stub(vscode.window, "showWarningMessage")
+            .resolves("Yes" as unknown as vscode.MessageItem);
+
+        const state = { ...mockInitialState, targetEndpointInfo };
+        const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
+
+        const result = await controller["_reducerHandlers"].get("publishChanges")(state, payload);
+
+        expect(
+            publishDatabaseChangesStub,
+            "publishDatabaseChanges should be called with correct operationId and execution mode",
+        ).to.have.been.calledWithMatch(operationId, TaskExecutionMode.execute);
+        expect(result.isApplyInProgress, "isApplyInProgress should be false after failure").to.be
+            .false;
+        expect(result.applySucceeded, "applySucceeded should remain false on failure").to.be.false;
+        expect(result.applyFailed, "applyFailed should be true on failure").to.be.true;
+        expect(
+            result.schemaCompareResult,
+            "schemaCompareResult should be cleared on failure to force re-compare and prevent stale script generation",
+        ).to.be.undefined;
+    });
+
+    test("publishChanges reducer - user cancels confirmation - STS not called and state unchanged", async () => {
+        const publishDatabaseChangesStub = sandbox.stub(scUtils, "publishDatabaseChanges");
+
+        sandbox.stub(vscode.window, "showWarningMessage").resolves(undefined);
+
+        const state = { ...mockInitialState, targetEndpointInfo };
+        const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
+
+        const result = await controller["_reducerHandlers"].get("publishChanges")(state, payload);
+
+        expect(
+            publishDatabaseChangesStub,
+            "publishDatabaseChanges should NOT be called when user cancels",
+        ).to.not.have.been.called;
+        expect(result.isApplyInProgress, "isApplyInProgress should remain false when cancelled").to
+            .be.false;
+        expect(result.applySucceeded, "applySucceeded should remain false when cancelled").to.be
+            .false;
+        expect(result.applyFailed, "applyFailed should remain false when cancelled").to.be.false;
+        expect(
+            result.schemaCompareResult,
+            "schemaCompareResult should be unchanged when cancelled",
+        ).to.deep.equal(mockInitialState.schemaCompareResult);
     });
 });

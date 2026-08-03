@@ -106,6 +106,14 @@
     color: var(--vscode-editorGhostText-foreground, #888);
 }
 
+.table-cell-vector {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: block;
+    width: 100%;
+}
+
 /* Row number column */
 .table-row-number {
     color: var(--vscode-foreground);
@@ -431,4 +439,33 @@
 #tableExplorerGrid .slick-cell.copied {
     background-color: var(--vscode-editor-selectionBackground, rgba(0, 0, 255, 0.2)) !important;
     transition: 0.5s background;
+}
+
+/* Visually hidden but always present in the accessibility tree */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Vector column readonly tooltip */
+.vector-readonly-tooltip {
+    position: fixed;
+    z-index: 9999;
+    max-width: 300px;
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--vscode-editorHoverWidget-foreground);
+    background-color: var(--vscode-editorHoverWidget-background);
+    border: 1px solid var(--vscode-editorHoverWidget-border);
+    border-radius: 3px;
+    box-shadow: 0 2px 8px var(--vscode-widget-shadow);
+    pointer-events: none;
 }

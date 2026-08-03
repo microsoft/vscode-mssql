@@ -12,8 +12,13 @@ import type { IConnectionInfo, ConnectionDetails } from "vscode-mssql";
 chai.use(sinonChai);
 
 import { NotebookConnectionManager } from "../../../src/notebooks/notebookConnectionManager";
-import { ILogger2 } from "../../../src/models/logger2";
+import { ILogger } from "../../../src/sharedInterfaces/logger";
 import ConnectionManager from "../../../src/controllers/connectionManager";
+import {
+    ConnectionCompleteParams,
+    ConnectionRequest,
+    DisconnectRequest,
+} from "../../../src/models/contracts/connection";
 import { ConnectionSharingService } from "../../../src/connectionSharing/connectionSharingService";
 import { ConnectionStore } from "../../../src/models/connectionStore";
 import { ConnectionUI } from "../../../src/views/connectionUI";
@@ -71,10 +76,10 @@ function makeConnectionInfo(overrides?: Partial<IConnectionInfo>): IConnectionIn
 }
 
 /**
- * Build a stub ILogger2 with all required interface
+ * Build a stub ILogger with all required interface
  * members so the type checker is satisfied without `as any`.
  */
-function makeLogStub(sandbox: sinon.SinonSandbox): sinon.SinonStubbedInstance<ILogger2> {
+function makeLogStub(sandbox: sinon.SinonSandbox): sinon.SinonStubbedInstance<ILogger> {
     return {
         trace: sandbox.stub(),
         debug: sandbox.stub(),
@@ -85,7 +90,7 @@ function makeLogStub(sandbox: sinon.SinonSandbox): sinon.SinonStubbedInstance<IL
         show: sandbox.stub(),
         withPrefix: sandbox.stub(),
         dispose: sandbox.stub(),
-    } as sinon.SinonStubbedInstance<ILogger2>;
+    } as sinon.SinonStubbedInstance<ILogger>;
 }
 
 suite("NotebookConnectionManager", () => {
@@ -94,7 +99,7 @@ suite("NotebookConnectionManager", () => {
     let sharingService: sinon.SinonStubbedInstance<ConnectionSharingService>;
     let mockClient: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
     let mockNotificationHandler: sinon.SinonStubbedInstance<QueryNotificationHandler>;
-    let log: sinon.SinonStubbedInstance<ILogger2>;
+    let log: sinon.SinonStubbedInstance<ILogger>;
     let stubStore: sinon.SinonStubbedInstance<ConnectionStore>;
     let stubUI: sinon.SinonStubbedInstance<ConnectionUI>;
     let mgr: NotebookConnectionManager;
@@ -111,6 +116,11 @@ suite("NotebookConnectionManager", () => {
         connectionMgr.createConnectionDetails.returns(stubDetails);
         connectionMgr.sendRequest.resolves(true);
         connectionMgr.getConnectionInfoFromUri.returns(makeConnectionInfo({ database: "TestDB" }));
+        // Cell registration awaits the async connection/complete notification;
+        // default to a successful completion so registrations succeed.
+        connectionMgr.expectConnectionComplete.resolves({
+            connectionId: "test-connection-id",
+        } as ConnectionCompleteParams);
 
         // --- ConnectionStore (getter stub) ---
         stubStore = sandbox.createStubInstance(ConnectionStore);
@@ -126,7 +136,7 @@ suite("NotebookConnectionManager", () => {
         sharingService = sandbox.createStubInstance(ConnectionSharingService);
         sharingService.isConnected.returns(false);
 
-        // --- STS client & notification handler (for NotebookQueryExecutor) ---
+        // --- STS client & notification handler (for HeadlessQueryExecutor) ---
         mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
         mockClient.sendRequest.resolves({});
         mockNotificationHandler = sandbox.createStubInstance(QueryNotificationHandler);
@@ -497,7 +507,7 @@ suite("NotebookConnectionManager", () => {
         test("delegates to query executor when connected", async () => {
             await mgr.connectWith(makeConnectionInfo());
 
-            // The NotebookQueryExecutor registers a handler via notificationHandler,
+            // The HeadlessQueryExecutor registers a handler via notificationHandler,
             // sends an executeString request via the STS client, and waits for completion.
             // Simulate the full batch lifecycle so the promise resolves.
             mockClient.sendRequest.callsFake(() => {
@@ -795,6 +805,183 @@ suite("NotebookConnectionManager", () => {
             connectionMgr.sendRequest.resetHistory();
             await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
             expect(connectionMgr.sendRequest).to.not.have.been.called;
+        });
+
+        test("builds cell connection details from live adhoc connection credentials", async () => {
+            // The adhoc (execution) connection's credentials are the ones STS
+            // validated — including refreshed tokens and the actual database —
+            // so cell registration must prefer them over the stored profile.
+            await mgr.connectWith(makeConnectionInfo({ database: "RequestedDB" }));
+            connectionMgr.getConnectionInfoFromUri.returns(
+                makeConnectionInfo({ database: "LiveDB" }),
+            );
+            connectionMgr.createConnectionDetails.resetHistory();
+
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+
+            expect(connectionMgr.createConnectionDetails).to.have.been.calledWithMatch(
+                sinon.match({ database: "LiveDB" }),
+            );
+        });
+
+        test("re-sends after connection/complete reports failure (no false memoization)", async () => {
+            // The connect REQUEST resolving true only means the attempt started.
+            // A failed completion (no connectionId) must deregister the cell so
+            // the next IntelliSense trigger retries instead of leaving the cell
+            // with keyword-only completions.
+            await mgr.connectWith(makeConnectionInfo());
+            connectionMgr.expectConnectionComplete.resolves({
+                errorMessage: "Login failed",
+            } as ConnectionCompleteParams);
+
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(log.warn).to.have.been.called;
+
+            // Recover and retry — must fire a new connect request.
+            connectionMgr.sendRequest.resetHistory();
+            connectionMgr.expectConnectionComplete.resolves({
+                connectionId: "recovered-connection-id",
+            } as ConnectionCompleteParams);
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                ConnectionRequest.type,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+        });
+
+        test("re-sends after connection/complete times out (no false memoization)", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+
+            const clock = sandbox.useFakeTimers();
+            // Completion never arrives.
+            connectionMgr.expectConnectionComplete.returns(
+                new Promise<ConnectionCompleteParams>(() => {}),
+            );
+
+            const pendingRegistration = mgr.connectCellForIntellisense(
+                "vscode-notebook-cell://cell1",
+            );
+            await clock.tickAsync(31000);
+            await pendingRegistration;
+
+            // The pending expectation must be cleaned up on timeout.
+            expect(connectionMgr.cancelConnectionCompleteExpectation).to.have.been.calledWith(
+                "vscode-notebook-cell://cell1",
+            );
+
+            // A best-effort disconnect must be sent — the connect may still
+            // land in STS later and this URI is no longer tracked for release.
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                DisconnectRequest.type,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+
+            clock.restore();
+
+            // Retry — must fire a new connect request.
+            connectionMgr.sendRequest.resetHistory();
+            connectionMgr.expectConnectionComplete.resolves({
+                connectionId: "recovered-connection-id",
+            } as ConnectionCompleteParams);
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                ConnectionRequest.type,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+        });
+    });
+
+    // ----------------------------------------------------------------
+    // releaseCellRegistrations
+    // ----------------------------------------------------------------
+    suite("releaseCellRegistrations", () => {
+        test("disconnects registered cell URIs and clears memoization", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell2");
+            connectionMgr.sendRequest.resetHistory();
+
+            mgr.releaseCellRegistrations();
+
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                DisconnectRequest.type,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                DisconnectRequest.type,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell2" }),
+            );
+
+            // Memoization cleared — cells can be re-registered under new URIs
+            // (or the same URI) with a fresh connect request.
+            connectionMgr.sendRequest.resetHistory();
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                ConnectionRequest.type,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+        });
+
+        test("is a no-op when no cells are registered", () => {
+            mgr.releaseCellRegistrations();
+            expect(connectionMgr.sendRequest).to.not.have.been.called;
+        });
+
+        test("survives disconnect request failures", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            connectionMgr.sendRequest.rejects(new Error("STS unavailable"));
+
+            expect(() => mgr.releaseCellRegistrations()).to.not.throw();
+
+            // Let the rejected fire-and-forget promise settle so the warn logs.
+            await new Promise((resolve) => setImmediate(resolve));
+            expect(log.warn).to.have.been.called;
+        });
+
+        test("disconnect releases registered cell connections from STS", async () => {
+            // Each registered cell holds its own STS-side connection; notebook
+            // disconnect (including notebook close → dispose) must close them,
+            // not just forget them.
+            await mgr.connectWith(makeConnectionInfo());
+            await mgr.connectCellForIntellisense("vscode-notebook-cell://cell1");
+            connectionMgr.sendRequest.resetHistory();
+
+            mgr.disconnect();
+
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                DisconnectRequest.type,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
+        });
+
+        test("stale registration whose connect completed after a connection change is disconnected", async () => {
+            await mgr.connectWith(makeConnectionInfo());
+
+            // The cell's connect request is accepted, but before the
+            // connection/complete arrives the notebook connection changes.
+            let resolveComplete: (params: ConnectionCompleteParams) => void = () => {};
+            connectionMgr.expectConnectionComplete.returns(
+                new Promise<ConnectionCompleteParams>((resolve) => {
+                    resolveComplete = resolve;
+                }),
+            );
+            const staleRegistration = mgr.connectCellForIntellisense(
+                "vscode-notebook-cell://cell1",
+            );
+
+            await mgr.changeDatabase("OtherDB");
+            connectionMgr.sendRequest.resetHistory();
+
+            // The stale connect then completes successfully — its now-unwanted
+            // STS connection must be explicitly disconnected.
+            resolveComplete({ connectionId: "stale-conn-id" } as ConnectionCompleteParams);
+            await staleRegistration;
+
+            expect(connectionMgr.sendRequest).to.have.been.calledWith(
+                DisconnectRequest.type,
+                sinon.match({ ownerUri: "vscode-notebook-cell://cell1" }),
+            );
         });
     });
 

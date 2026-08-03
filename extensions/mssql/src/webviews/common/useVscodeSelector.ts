@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { useCallback, useContext, useRef, useSyncExternalStore } from "react";
+import { useCallback, useContext, useEffect, useReducer, useRef } from "react";
 import { VscodeWebviewContext, VscodeWebviewContextProps } from "./vscodeWebviewProvider";
 
 /**
@@ -27,16 +27,34 @@ export function useVscodeSelector<State, Reducers, T>(
         return snapshot || ({} as State);
     }, [ctx]);
 
-    const snap = useSyncExternalStore(ctx.subscribe, ctx.getSnapshot, getServerSnapshot);
+    const selectorRef = useRef(selector);
+    const equalsRef = useRef(equals);
+    selectorRef.current = selector;
+    equalsRef.current = equals;
 
-    // Safely handle selection when state might be uninitialized
-    const selected = snap ? selector(snap) : (undefined as T);
-    const ref = useRef(selected);
+    const [, forceRender] = useReducer((value: number) => value + 1, 0);
+    const selectedRef = useRef<T>(selector((ctx.getSnapshot() || ({} as State)) as State));
 
-    // Update whenever the selected slice changes
-    if (!equals(ref.current as T, selected as T)) {
-        ref.current = selected;
+    const selected = selector((ctx.getSnapshot() || ({} as State)) as State);
+    if (!equals(selectedRef.current, selected)) {
+        selectedRef.current = selected;
     }
 
-    return ref.current;
+    useEffect(() => {
+        const checkForUpdates = () => {
+            const snapshot = getServerSnapshot();
+            const nextSelected = selectorRef.current(snapshot);
+            if (equalsRef.current(selectedRef.current, nextSelected)) {
+                return;
+            }
+
+            selectedRef.current = nextSelected;
+            forceRender();
+        };
+
+        checkForUpdates();
+        return ctx.subscribe(checkForUpdates);
+    }, [ctx, getServerSnapshot]);
+
+    return selectedRef.current;
 }

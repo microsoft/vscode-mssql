@@ -5,8 +5,8 @@
 
 import * as vscode from "vscode";
 import * as localizedConstants from "../constants/locConstants";
+import logger from "../models/logger";
 import { uuid } from "../utils/utils";
-import logger2 from "../models/logger2";
 
 export enum BackgroundTaskState {
     NotStarted = "NotStarted",
@@ -104,12 +104,11 @@ export interface BackgroundTaskLog {
 
 export const DEFAULT_MAX_FINISHED_BACKGROUND_TASKS = 25;
 
-const logger = logger2.withPrefix("BackgroundTasksService");
-
 export class BackgroundTasksService {
     private _tasks = new Map<string, BackgroundTaskEntry>();
     private _taskLogs = new Map<string, BackgroundTaskLog>();
     private readonly _onDidChangeTaskLog = new vscode.EventEmitter<string>();
+    private readonly _logger = logger.withPrefix("BackgroundTasksService");
     private _nextSequence = 0;
 
     constructor(
@@ -154,6 +153,7 @@ export class BackgroundTasksService {
         this.trimFinishedTasks();
         this._refreshCallback();
         this._revealCallback?.();
+        this._logger.debug("Registered background task", getTaskLogContext(entry));
 
         return {
             id,
@@ -173,15 +173,18 @@ export class BackgroundTasksService {
 
     public clearFinished(): void {
         let changed = false;
+        let clearedCount = 0;
         for (const [id, task] of this._tasks.entries()) {
             if (isBackgroundTaskCompleted(task.state)) {
                 this.deleteTaskLog(id);
                 this._tasks.delete(id);
                 changed = true;
+                clearedCount++;
             }
         }
 
         if (changed) {
+            this._logger.debug("Cleared finished background tasks", { clearedCount });
             this._refreshCallback();
         }
     }
@@ -189,15 +192,21 @@ export class BackgroundTasksService {
     public async openTask(taskId: string): Promise<void> {
         const task = this._tasks.get(taskId);
         if (!task?.open) {
+            this._logger.trace("Ignoring open request for background task", { taskId });
             return;
         }
 
+        this._logger.debug("Opening background task", getTaskLogContext(task));
         await Promise.resolve(task.open());
     }
 
     public async cancelTask(taskId: string): Promise<void> {
         const task = this._tasks.get(taskId);
         if (!task || !task.cancel || !task.canCancel || isBackgroundTaskCompleted(task.state)) {
+            this._logger.trace("Ignoring cancel request for background task", {
+                taskId,
+                reason: getCancelIgnoredReason(task),
+            });
             return;
         }
 
@@ -210,9 +219,14 @@ export class BackgroundTasksService {
             canCancel: false,
             cancel: undefined,
         });
+        this._logger.debug("Canceling background task", getTaskLogContext(task));
 
         try {
             await Promise.resolve(cancelCallback());
+            this._logger.debug(
+                "Background task cancel callback completed",
+                getTaskLogContext(task),
+            );
         } catch (error) {
             const currentTask = this._tasks.get(taskId);
             if (currentTask) {
@@ -232,6 +246,10 @@ export class BackgroundTasksService {
                 this._refreshCallback();
             }
 
+            this._logger.error("Background task cancel callback failed", {
+                taskId,
+                error: String(error),
+            });
             throw error;
         }
     }
@@ -239,6 +257,7 @@ export class BackgroundTasksService {
     private updateTask(taskId: string, update: BackgroundTaskUpdate): void {
         const task = this._tasks.get(taskId);
         if (!task) {
+            this._logger.trace("Ignoring update for missing background task", { taskId });
             return;
         }
 
@@ -259,6 +278,11 @@ export class BackgroundTasksService {
 
         this.trimFinishedTasks();
         this._refreshCallback();
+        this._logger.trace("Updated background task", {
+            ...getTaskLogContext(task),
+            previousState: previousTask.state,
+            previousPercent: previousTask.percent,
+        });
     }
 
     private completeTask(
@@ -268,6 +292,10 @@ export class BackgroundTasksService {
     ): void {
         const task = this._tasks.get(taskId);
         if (!task) {
+            this._logger.trace("Ignoring completion for missing background task", {
+                taskId,
+                finalState,
+            });
             return;
         }
 
@@ -294,12 +322,23 @@ export class BackgroundTasksService {
 
         this.trimFinishedTasks();
         this._refreshCallback();
+        this._logger.info("Completed background task", {
+            ...getTaskLogContext(task),
+            finalState,
+        });
     }
 
     private removeTask(taskId: string): void {
+        const task = this._tasks.get(taskId);
         if (this._tasks.delete(taskId)) {
             this.deleteTaskLog(taskId);
             this._refreshCallback();
+            this._logger.debug(
+                "Removed background task",
+                task ? getTaskLogContext(task) : { taskId },
+            );
+        } else {
+            this._logger.trace("Ignoring remove for missing background task", { taskId });
         }
     }
 
@@ -355,6 +394,12 @@ export class BackgroundTasksService {
             this.deleteTaskLog(task.id);
             this._tasks.delete(task.id);
         }
+        if (tasksToRemove.length > 0) {
+            this._logger.trace("Trimmed finished background tasks", {
+                removedCount: tasksToRemove.length,
+                maxFinishedTasks: this._maxFinishedTasks,
+            });
+        }
     }
 
     private deleteTaskLog(taskId: string): void {
@@ -397,7 +442,6 @@ export function toBackgroundTaskStateDisplayString(state: BackgroundTaskState): 
         case BackgroundTaskState.NotStarted:
             return localizedConstants.notStarted;
         default:
-            logger.warn(`Unexpected background task state: ${state}`);
             return state;
     }
 }
@@ -447,6 +491,37 @@ function snapshotTask(task: BackgroundTaskEntry): BackgroundTaskProgressSnapshot
         percent: task.percent,
         message: task.message,
     };
+}
+
+function getTaskLogContext(task: BackgroundTaskEntry): object {
+    return {
+        taskId: task.id,
+        displayText: task.displayText,
+        state: task.state,
+        percent: task.percent,
+        source: task.source,
+        target: task.target,
+    };
+}
+
+function getCancelIgnoredReason(task?: BackgroundTaskEntry): string {
+    if (!task) {
+        return "missingTask";
+    }
+
+    if (isBackgroundTaskCompleted(task.state)) {
+        return "alreadyCompleted";
+    }
+
+    if (!task.canCancel) {
+        return "cannotCancel";
+    }
+
+    if (!task.cancel) {
+        return "missingCancelCallback";
+    }
+
+    return "unknown";
 }
 
 function createTaskLog(task: BackgroundTaskEntry): BackgroundTaskLog {

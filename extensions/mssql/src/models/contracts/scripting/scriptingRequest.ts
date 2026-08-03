@@ -287,7 +287,7 @@ export namespace ScriptingRequest {
     /**
      * Returns children of a given node as a NodeInfo array.
      */
-    export const type = new RequestType<IScriptingParams, IScriptingResult, void, void>(
+    export const type = new RequestType<IScriptingParams, IScriptingResult, void>(
         "scripting/script",
     );
 }
@@ -334,7 +334,7 @@ export namespace ScriptingProgressNotification {
     /**
      * Notification sent to indicate progress of a scripting operation
      */
-    export const type = new NotificationType<ScriptingProgressNotificationParams, void>(
+    export const type = new NotificationType<ScriptingProgressNotificationParams>(
         "scripting/scriptProgressNotification",
     );
 }
@@ -373,16 +373,14 @@ export namespace ScriptingCompleteNotification {
     /**
      * Notification sent to indicate completion of a scripting operation
      */
-    export const type = new NotificationType<ScriptingCompleteParams, void>(
-        "scripting/scriptComplete",
-    );
+    export const type = new NotificationType<ScriptingCompleteParams>("scripting/scriptComplete");
 }
 
 export namespace ScriptingCancelRequest {
     /**
      * Request to cancel an ongoing scripting operation
      */
-    export const type = new RequestType<{ operationId: string }, void, void, void>(
+    export const type = new RequestType<{ operationId: string }, void, void>(
         "scripting/scriptCancel",
     );
 }

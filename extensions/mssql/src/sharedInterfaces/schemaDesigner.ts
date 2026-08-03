@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NotificationType, RequestType } from "vscode-jsonrpc/browser";
+import { NotificationType, RequestType } from "vscode-jsonrpc";
 import { CopilotChat } from "./copilotChat";
 import { Dab } from "./dab";
 
@@ -506,7 +506,7 @@ export namespace SchemaDesigner {
         updatedSchema: Schema;
     }
     export interface GetReportWebviewResponse {
-        report: GetReportResponse;
+        report?: GetReportResponse;
         error?: string;
     }
     export namespace GetReportWebviewRequest {

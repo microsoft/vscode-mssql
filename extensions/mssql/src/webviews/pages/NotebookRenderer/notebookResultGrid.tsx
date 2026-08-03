@@ -14,6 +14,11 @@ import { NotebookContextMenu } from "./notebookContextMenu.plugin";
 import { textFormatter, DBCellValue, escape } from "../QueryResult/table/formatters";
 import { defaultTableStyles, FilterableColumn } from "../QueryResult/table/interfaces";
 import type { IDbColumn, DbCellValue } from "../../../sharedInterfaces/queryResult";
+import {
+    summarizeSelectionCells,
+    type SelectionCell,
+} from "../../../sharedInterfaces/selectionSummary";
+import type { NotebookSelectionSummaryMessage } from "../../../sharedInterfaces/notebookQueryResult";
 import "./notebookResultGrid.css";
 import "../../media/slickgrid.css";
 import "../../media/table.css";
@@ -23,6 +28,7 @@ export interface NotebookResultGridProps {
     rows: DbCellValue[][];
     rowCount: number;
     addBottomSpacing?: boolean;
+    postMessage?: (message: unknown) => void;
 }
 
 const ROW_HEIGHT = 24;
@@ -32,6 +38,7 @@ const MAX_GRID_HEIGHT = 500;
 const HEADER_HEIGHT = 30;
 const HORIZONTAL_SCROLLBAR_HEIGHT = 20;
 const MAX_SAMPLE_ROWS = 50;
+const SELECTION_SUMMARY_DEBOUNCE_MS = 100;
 
 /**
  * Measure the pixel width of a string using a canvas context.
@@ -102,10 +109,49 @@ function getColumnFormatter(
     };
 }
 
+/**
+ * Yield the selected data cells for a set of ranges, skipping the row-number
+ * column. Values are read from the data view rather than the DOM so the summary
+ * is correct even for rows scrolled out of view and reflects the current sort and
+ * filter order. Cells are yielded lazily so a large selection is not materialized
+ * into an intermediate array.
+ * @param grid The SlickGrid instance.
+ * @param dataView The data view backing the grid.
+ * @param ranges The currently selected ranges.
+ * @returns A generator over the selected cells, ready to be summarized.
+ */
+function* gatherSelectedCells(
+    grid: Slick.Grid<Slick.SlickData>,
+    dataView: TableDataView<Slick.SlickData>,
+    ranges: readonly Slick.Range[],
+): Generator<SelectionCell> {
+    const columns = grid.getColumns();
+    for (const range of ranges) {
+        for (let row = range.fromRow; row <= range.toRow; row++) {
+            const item = dataView.getItem(row);
+            for (let cell = range.fromCell; cell <= range.toCell; cell++) {
+                const column = columns[cell];
+                if (!column?.field || column.id === "rowNumber") {
+                    continue;
+                }
+                const value = item?.[column.field];
+                if (!value) {
+                    continue;
+                }
+                yield {
+                    isNull: Boolean(value.isNull),
+                    text: value.isNull ? "" : (value.displayValue ?? ""),
+                };
+            }
+        }
+    }
+}
+
 export function NotebookResultGrid({
     columnInfo,
     rows,
     addBottomSpacing,
+    postMessage,
 }: NotebookResultGridProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const gridRef = useRef<Slick.Grid<Slick.SlickData> | null>(null);
@@ -229,6 +275,30 @@ export function NotebookResultGrid({
         });
         grid.setSelectionModel(selectionModel);
 
+        // Report a status bar summary (Average/Count/Sum, etc.) for the current
+        // cell selection. The renderer computes the metrics from the in-memory rows
+        // and forwards them to the extension host, which owns the window status bar
+        // because the notebook output iframe cannot update it directly.
+        let selectionSummaryTimer: ReturnType<typeof setTimeout> | undefined;
+        const handleSelectedRangesChanged = (_e: Slick.EventData, ranges: Slick.Range[]) => {
+            if (!postMessage) {
+                return;
+            }
+            if (selectionSummaryTimer) {
+                clearTimeout(selectionSummaryTimer);
+            }
+            selectionSummaryTimer = setTimeout(() => {
+                const message: NotebookSelectionSummaryMessage = {
+                    type: "selectionSummary",
+                    metrics: summarizeSelectionCells(
+                        gatherSelectedCells(grid, tableDataView, ranges),
+                    ),
+                };
+                postMessage(message);
+            }, SELECTION_SUMMARY_DEBOUNCE_MS);
+        };
+        selectionModel.onSelectedRangesChanged.subscribe(handleSelectedRangesChanged);
+
         // Register context menu (right-click) with copy operations
         const contextMenu = new NotebookContextMenu<Slick.SlickData>();
         grid.registerPlugin(contextMenu);
@@ -301,11 +371,15 @@ export function NotebookResultGrid({
 
         // Cleanup
         return () => {
+            if (selectionSummaryTimer) {
+                clearTimeout(selectionSummaryTimer);
+            }
+            selectionModel.onSelectedRangesChanged.unsubscribe(handleSelectedRangesChanged);
             resizeObserver.disconnect();
             grid.destroy();
             tableDataView.dispose();
         };
-    }, [columnInfo, rows]);
+    }, [columnInfo, rows, postMessage]);
 
     const className = addBottomSpacing
         ? "notebook-result-grid-container notebook-result-grid-container-spaced"

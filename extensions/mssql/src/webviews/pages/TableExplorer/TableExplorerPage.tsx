@@ -465,8 +465,8 @@ export const TableExplorerPage: React.FC = () => {
                                                                 displayedSql,
                                                             );
                                                         } catch (error) {
-                                                            console.error(
-                                                                "Failed to copy to clipboard:",
+                                                            context.log.error(
+                                                                "Failed to copy to clipboard",
                                                                 error,
                                                             );
                                                         }

@@ -5,7 +5,10 @@
 
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { GetExecutionPlanRequest, GetExecutionPlanParams } from "../models/contracts/executionPlan";
+import { getLogger } from "../models/logger";
 import * as ep from "../sharedInterfaces/executionPlan";
+
+const logger = getLogger("ExecutionPlanService");
 
 export class ExecutionPlanService implements ep.ExecutionPlanService {
     constructor(private _sqlToolsClient: SqlToolsServiceClient) {}
@@ -18,7 +21,7 @@ export class ExecutionPlanService implements ep.ExecutionPlanService {
             };
             return await this._sqlToolsClient.sendRequest(GetExecutionPlanRequest.type, params);
         } catch (e) {
-            this._sqlToolsClient.logger.error(e);
+            logger.error("Failed to get execution plan", e);
             throw e;
         }
     }

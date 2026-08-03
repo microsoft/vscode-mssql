@@ -12,7 +12,7 @@ import {
 } from "@fluentui/react-components";
 import { cloneElement, isValidElement, ReactElement, ReactNode } from "react";
 
-const headerIconSizePx = 32;
+const defaultHeaderIconSizePx = 32;
 
 const contentWidthPresets = {
     medium: "720px",
@@ -143,6 +143,7 @@ export interface DialogPageShellProps {
     errorMessage?: string;
     loadingMessage?: string;
     maxContentWidth?: DialogPageShellContentWidth;
+    iconSize?: number;
     footerStart?: ReactNode;
     footerEnd?: ReactNode;
     children?: ReactNode;
@@ -158,6 +159,7 @@ export const DialogPageShell = ({
     errorMessage,
     loadingMessage,
     maxContentWidth,
+    iconSize = defaultHeaderIconSizePx,
     footerStart,
     footerEnd,
     children,
@@ -182,8 +184,8 @@ export const DialogPageShell = ({
     const headerIcon =
         icon && isValidElement(icon)
             ? cloneElement(icon as ReactElement<{ width?: number; height?: number }>, {
-                  width: headerIconSizePx,
-                  height: headerIconSizePx,
+                  width: iconSize,
+                  height: iconSize,
               })
             : icon;
     const hasHeaderIcon = headerIcon !== undefined && headerIcon !== null && headerIcon !== false;
@@ -221,8 +223,8 @@ export const DialogPageShell = ({
                                     <div
                                         className={styles.iconContainer}
                                         style={{
-                                            width: `${headerIconSizePx}px`,
-                                            height: `${headerIconSizePx}px`,
+                                            width: `${iconSize}px`,
+                                            height: `${iconSize}px`,
                                         }}>
                                         {headerIcon}
                                     </div>

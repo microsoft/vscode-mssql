@@ -12,7 +12,7 @@ import { SchemaDesigner } from "../../../../sharedInterfaces/schemaDesigner";
 import { useSchemaDesignerChangeContext } from "../definition/changes/schemaDesignerChangeContext";
 import { useSchemaDesignerSelector } from "../schemaDesignerSelector";
 import { CopilotChat } from "../../../../sharedInterfaces/copilotChat";
-import { ExecuteCommandRequest, LoadingLogEntry } from "../../../../sharedInterfaces/webview";
+import { LoadingLogEntry } from "../../../../sharedInterfaces/webview";
 import { GithubCopilot16Regular } from "../../../common/icons/fluentIcons";
 import {
     schemaDesignerPublishErrorDetailsLabel,
@@ -128,26 +128,29 @@ export function PublishChangesDialogButton() {
                         });
                         setPublishButtonDisabled(true);
                         const getReportResponse = await context.getReport();
-                        if (getReportResponse?.error) {
+                        const report = getReportResponse?.report;
+                        if (getReportResponse?.error || !report) {
                             setState({
                                 ...state,
                                 currentStage: PublishDialogStages.ReportError,
-                                reportError: getReportResponse.error,
+                                reportError:
+                                    getReportResponse?.error ??
+                                    schemaDesignerPublishErrorFallbackDetails,
                             });
                         } else {
-                            if (!getReportResponse?.report.hasSchemaChanged) {
+                            if (!report.hasSchemaChanged) {
                                 setState({
                                     ...state,
                                     currentStage: PublishDialogStages.ReportSuccessNoChanges,
                                     reportError: undefined,
-                                    report: getReportResponse?.report,
+                                    report,
                                 });
                             } else {
                                 setState({
                                     ...state,
                                     currentStage: PublishDialogStages.ReportSuccessWithChanges,
                                     reportError: undefined,
-                                    report: getReportResponse.report,
+                                    report,
                                     isConfirmationChecked: false,
                                 });
                             }
@@ -291,15 +294,10 @@ export function PublishChangesDialogButton() {
             isConfirmationChecked: false,
         });
 
-        await context.extensionRpc.sendRequest(ExecuteCommandRequest.type, {
-            command: CopilotChat.openFromUiCommand,
-            args: [
-                {
-                    scenario: "schemaDesigner",
-                    entryPoint: "schemaDesignerPublishDialogError",
-                    prompt,
-                },
-            ],
+        await context.extensionRpc.sendRequest(CopilotChat.OpenFromUiRequest.type, {
+            scenario: "schemaDesigner",
+            entryPoint: "schemaDesignerPublishDialogError",
+            prompt,
         });
     };
 

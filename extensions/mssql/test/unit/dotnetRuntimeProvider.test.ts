@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 import * as fs from "fs/promises";
 import DotnetRuntimeProvider from "../../src/languageservice/dotnetRuntimeProvider";
 import * as Constants from "../../src/constants/constants";
-import { ILogger } from "../../src/models/interfaces";
+import { ILogger } from "../../src/sharedInterfaces/logger";
 import { ServiceClient } from "../../src/constants/locConstants";
 import { stubILogger } from "./utils";
 
@@ -86,7 +86,6 @@ suite("DotnetRuntimeProvider tests", () => {
             expect(fsAccessStub).to.have.been.calledWith("/extension/dotnet");
             expect(getExtensionStub).to.have.been.calledWith(Constants.dotnetRuntimeExtensionId);
             expect(activateExtensionStub).to.have.been.called;
-            expect(logger.verbose).to.have.been.calledWithMatch("Acquired .NET runtime via");
         });
 
         test("should request the runtime version from the provided runtimeconfig", async () => {
@@ -123,6 +122,102 @@ suite("DotnetRuntimeProvider tests", () => {
             );
         });
 
+        test("should request aspnetcore mode when runtimeconfig uses ASP.NET Core framework", async () => {
+            executeCommandStub.resolves({ dotnetPath: "/extension/dotnet" });
+            fsReadFileStub.resolves(
+                JSON.stringify({
+                    runtimeOptions: {
+                        frameworks: [
+                            {
+                                name: "Microsoft.NETCore.App",
+                                version: "10.0.7",
+                            },
+                            {
+                                name: "Microsoft.AspNetCore.App",
+                                version: "10.0.8",
+                            },
+                        ],
+                    },
+                }),
+            );
+
+            const provider = createProvider();
+            const result = await provider.acquireDotnetRuntime(
+                "/extension/sqltools-mcp/SQLtoolsMCPserver.runtimeconfig.json",
+            );
+
+            expect(result).to.equal("/extension/dotnet");
+            expect(executeCommandStub).to.have.been.calledWithExactly(
+                Constants.dotnetAcquireCommand,
+                {
+                    version: "10.0.8",
+                    requestingExtensionId: Constants.extensionId,
+                    mode: "aspnetcore",
+                    forceUpdate: true,
+                },
+            );
+        });
+
+        test("should request runtime mode when runtimeconfig uses plural .NET Core frameworks", async () => {
+            executeCommandStub.resolves({ dotnetPath: "/extension/dotnet" });
+            fsReadFileStub.resolves(
+                JSON.stringify({
+                    runtimeOptions: {
+                        frameworks: [
+                            {
+                                name: "Microsoft.NETCore.App",
+                                version: "10.0.9",
+                            },
+                        ],
+                    },
+                }),
+            );
+
+            const provider = createProvider();
+            const result = await provider.acquireDotnetRuntime(
+                "/extension/sqltools-mcp/SQLtoolsMCPserver.runtimeconfig.json",
+            );
+
+            expect(result).to.equal("/extension/dotnet");
+            expect(executeCommandStub).to.have.been.calledWithExactly(
+                Constants.dotnetAcquireCommand,
+                {
+                    version: "10.0.9",
+                    requestingExtensionId: Constants.extensionId,
+                    mode: "runtime",
+                    forceUpdate: true,
+                },
+            );
+        });
+
+        test("should fall through when runtimeconfig does not contain a supported framework", async () => {
+            fsReadFileStub.resolves(
+                JSON.stringify({
+                    runtimeOptions: {
+                        frameworks: [
+                            {
+                                name: "Unsupported.Framework",
+                                version: "1.0.0",
+                            },
+                        ],
+                    },
+                }),
+            );
+            showErrorMessageStub.resolves(undefined);
+
+            const provider = createProvider();
+
+            try {
+                await provider.acquireDotnetRuntime(
+                    "/extension/sqltools-mcp/SQLtoolsMCPserver.runtimeconfig.json",
+                );
+                expect.fail("Expected acquireDotnetRuntime to throw");
+            } catch (err) {
+                expect(executeCommandStub).not.to.have.been.called;
+                expect((err as Error).message).to.equal(ServiceClient.runtimeNotFoundError);
+            }
+        });
+
         test("should fall through when runtimeconfig cannot be read", async () => {
             fsReadFileStub.rejects(new Error("ENOENT"));
             showErrorMessageStub.resolves(undefined);
@@ -134,9 +229,6 @@ suite("DotnetRuntimeProvider tests", () => {
                 );
                 expect.fail("Expected acquireDotnetRuntime to throw");
             } catch (err) {
-                expect(logger.error).to.have.been.calledWithMatch(
-                    "Unable to read .NET runtime version",
-                );
                 expect(executeCommandStub).not.to.have.been.called;
                 expect((err as Error).message).to.equal(ServiceClient.runtimeNotFoundError);
             }
@@ -167,7 +259,6 @@ suite("DotnetRuntimeProvider tests", () => {
                 await provider.acquireDotnetRuntime("/extension/service.runtimeconfig.json");
                 expect.fail("Expected acquireDotnetRuntime to throw");
             } catch (err) {
-                expect(logger.error).to.have.been.calledWithMatch("Error acquiring .NET runtime");
                 expect((err as Error).message).to.equal(ServiceClient.runtimeNotFoundError);
             }
         });
@@ -182,7 +273,6 @@ suite("DotnetRuntimeProvider tests", () => {
                 await provider.acquireDotnetRuntime("/extension/service.runtimeconfig.json");
                 expect.fail("Expected acquireDotnetRuntime to throw");
             } catch (err) {
-                expect(logger.error).to.have.been.calledWithMatch("Error acquiring .NET runtime");
                 expect((err as Error).message).to.equal(ServiceClient.runtimeNotFoundError);
             }
         });

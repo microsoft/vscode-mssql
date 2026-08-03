@@ -52,7 +52,10 @@ export interface CollapsibleSectionProps {
     title: ReactNode;
     children: ReactNode;
     defaultOpen?: boolean;
+    open?: boolean;
+    onOpenChange?: (open: boolean) => void;
     className?: string;
+    buttonClassName?: string;
     panelClassName?: string;
 }
 
@@ -60,25 +63,36 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
     title,
     children,
     defaultOpen = false,
+    open,
+    onOpenChange,
     className,
+    buttonClassName,
     panelClassName,
 }) => {
     const classes = useStyles();
-    const [open, setOpen] = useState(defaultOpen);
+    const [internalOpen, setInternalOpen] = useState(defaultOpen);
+    const isOpen = open ?? internalOpen;
+
+    const setOpen = (nextOpen: boolean) => {
+        if (open === undefined) {
+            setInternalOpen(nextOpen);
+        }
+        onOpenChange?.(nextOpen);
+    };
 
     return (
         <div className={mergeClasses(classes.root, className)}>
             <button
                 type="button"
-                className={classes.toggleButton}
-                onClick={() => setOpen((value) => !value)}
-                aria-expanded={open}>
+                className={mergeClasses(classes.toggleButton, buttonClassName)}
+                onClick={() => setOpen(!isOpen)}
+                aria-expanded={isOpen}>
                 <span className={classes.chevron}>
-                    {open ? <ChevronDown16Regular /> : <ChevronRight16Regular />}
+                    {isOpen ? <ChevronDown16Regular /> : <ChevronRight16Regular />}
                 </span>
                 <span className={classes.title}>{title}</span>
             </button>
-            {open && <div className={mergeClasses(classes.body, panelClassName)}>{children}</div>}
+            {isOpen && <div className={mergeClasses(classes.body, panelClassName)}>{children}</div>}
         </div>
     );
 };

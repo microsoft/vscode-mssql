@@ -6,7 +6,6 @@
 import * as sinon from "sinon";
 import { expect } from "chai";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { FileBrowserService } from "../../src/services/fileBrowserService";
 import {
     FileBrowserExpandResponse,
@@ -20,19 +19,16 @@ import {
 } from "../../src/models/contracts/fileBrowser";
 import { Deferred } from "../../src/protocol";
 import { FileBrowserCloseResponse } from "azdata";
-import { stubLoggerGetter } from "./utils";
 
 suite("FileBrowserService Tests", () => {
     let sandbox: sinon.SinonSandbox;
     let fileBrowserService: FileBrowserService;
     let sqlToolsClientStub: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let mockFileTree: FileTree;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         sqlToolsClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
-        vscodeWrapperStub = sandbox.createStubInstance(VscodeWrapper);
 
         mockFileTree = {
             rootNode: {
@@ -53,9 +49,7 @@ suite("FileBrowserService Tests", () => {
             selectedNode: undefined,
         };
 
-        stubLoggerGetter(sandbox, sqlToolsClientStub);
-
-        fileBrowserService = new FileBrowserService(vscodeWrapperStub, sqlToolsClientStub);
+        fileBrowserService = new FileBrowserService(sqlToolsClientStub);
     });
 
     teardown(() => {
@@ -84,23 +78,11 @@ suite("FileBrowserService Tests", () => {
             ownerUri /* plus other required props */,
         } as any;
 
-        // Stub the logger
-        const loggerStub = sandbox.stub(fileBrowserService["_logger"], "error");
-
         // Ensure no promise is set for this ownerUri
         fileBrowserService["_pendingFileBrowserOpens"].delete(ownerUri);
 
         // Call the method
         fileBrowserService.handleFileBrowserOpenNotification(errorResponse);
-
-        // Verify that logger.error was called
-        expect(
-            loggerStub.calledWithMatch(
-                sinon.match(
-                    (value: unknown) => typeof value === "string" && value.includes(ownerUri),
-                ),
-            ),
-        ).to.be.true;
     });
 
     test("handleFileBrowserExpandNotification", async () => {
@@ -134,23 +116,11 @@ suite("FileBrowserService Tests", () => {
             ownerUri /* plus other required props */,
         } as any;
 
-        // Stub the logger
-        const loggerStub = sandbox.stub(fileBrowserService["_logger"], "error");
-
         // Ensure no promise is set for this ownerUri
         fileBrowserService["_pendingFileBrowserExpands"].delete(ownerUri);
 
         // Call the method
         fileBrowserService.handleFileBrowserExpandNotification(errorResponse);
-
-        // Verify that logger.error was called
-        expect(
-            loggerStub.calledWithMatch(
-                sinon.match(
-                    (value: unknown) => typeof value === "string" && value.includes(ownerUri),
-                ),
-            ),
-        ).to.be.true;
     });
 
     test("openFileBrowser should handle successful open", async () => {

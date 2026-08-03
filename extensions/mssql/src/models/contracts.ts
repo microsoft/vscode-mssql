@@ -46,7 +46,6 @@ export namespace SaveResultsAsCsvRequest {
     export const type = new RequestType<
         SaveResultsAsCsvRequestParams,
         SaveResultRequestResult,
-        void,
         void
     >("query/saveCsv");
 }
@@ -58,7 +57,6 @@ export namespace SaveResultsAsJsonRequest {
     export const type = new RequestType<
         SaveResultsAsJsonRequestParams,
         SaveResultRequestResult,
-        void,
         void
     >("query/saveJson");
 }
@@ -70,7 +68,6 @@ export namespace SaveResultsAsExcelRequest {
     export const type = new RequestType<
         SaveResultsAsExcelRequestParams,
         SaveResultRequestResult,
-        void,
         void
     >("query/saveExcel");
 }
@@ -82,7 +79,6 @@ export namespace SaveResultsAsInsertRequest {
     export const type = new RequestType<
         SaveResultsAsInsertRequestParams,
         SaveResultRequestResult,
-        void,
         void
     >("query/saveInsert");
 }
@@ -186,11 +182,8 @@ export class SerializeDataResult {
 
 // Serialize data request to backend service
 export namespace SerializeStartRequest {
-    export const type = new RequestType<
-        SerializeDataStartRequestParams,
-        SerializeDataResult,
-        void,
-        void
-    >("serialize/start");
+    export const type = new RequestType<SerializeDataStartRequestParams, SerializeDataResult, void>(
+        "serialize/start",
+    );
 }
 // --------------------------------- </ Serialize Data Request > ------------------------------------------

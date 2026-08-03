@@ -7,21 +7,19 @@ import * as os from "os";
 import * as crypto from "crypto";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
 import {
     DidChangeEncryptionIVKeyParams,
     EncryptionKeysChangedNotification,
 } from "../models/contracts/connection";
-import { Logger } from "../models/logger";
+import { ILogger } from "../sharedInterfaces/logger";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { azureAccountProviderCredentials } from "./constants";
 
 export class FileEncryptionHelper {
     constructor(
         private readonly _credentialStore: ICredentialStore,
-        private readonly _vscodeWrapper: VscodeWrapper,
-        protected readonly _logger: Logger,
+        protected readonly _logger: ILogger,
         protected readonly _fileName: string,
     ) {
         this._algorithm = "aes-256-cbc";
@@ -173,11 +171,11 @@ export class FileEncryptionHelper {
 
     private async showCredSaveErrorOnWindows(): Promise<void> {
         if (os.platform() === "win32") {
-            await this._vscodeWrapper
-                .showWarningMessageAdvanced(
+            await vscode.window
+                .showWarningMessage(
                     LocalizedConstants.msgAzureCredStoreSaveFailedError,
-                    undefined,
-                    [LocalizedConstants.reloadChoice, LocalizedConstants.Common.cancel],
+                    LocalizedConstants.reloadChoice,
+                    LocalizedConstants.Common.cancel,
                 )
                 .then(
                     async (selection) => {

@@ -15,12 +15,13 @@ import { SchemaDesignerWebviewController } from "../../schemaDesigner/schemaDesi
 import { sendActionEvent } from "../../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 import { matchesStrictTargetHint, ToolTargetContext, ToolTargetHint } from "./toolsUtils";
+import { resolveToolConnectionReference } from "./toolConnectionResolver";
 
 type IncludeOverviewColumns = "none" | "names" | "namesAndTypes";
 type IncludeTableColumns = IncludeOverviewColumns | "full";
 
 export type SchemaDesignerToolParams =
-    | { operation: "show"; connectionId: string }
+    | { operation: "show"; connectionId?: string; connectionName?: string }
     | { operation: "get_overview"; options?: { includeColumns?: IncludeOverviewColumns } }
     | {
           operation: "get_table";
@@ -264,30 +265,25 @@ export class SchemaDesignerTool extends ToolBase<SchemaDesignerToolParams> {
 
         try {
             if (operation === "show") {
-                const { connectionId } = options.input;
-                if (!connectionId) {
+                const resolvedConnection = resolveToolConnectionReference(
+                    options.input,
+                    this._connectionManager,
+                );
+                if ("reason" in resolvedConnection) {
                     const err: SchemaDesignerToolError = {
                         success: false,
-                        reason: "invalid_request",
-                        message: loc.schemaDesignerMissingConnectionId,
+                        reason: resolvedConnection.reason,
+                        message: resolvedConnection.message,
                     };
                     sendToolTelemetry({ operation, success: false, reason: err.reason });
                     return json(err);
                 }
 
-                const connInfo = this._connectionManager.getConnectionInfo(connectionId);
-                const connCreds = connInfo?.credentials;
-                if (!connCreds) {
-                    const err: SchemaDesignerToolError = {
-                        success: false,
-                        reason: "invalid_request",
-                        message: loc.noConnectionError(connectionId),
-                    };
-                    sendToolTelemetry({ operation, success: false, reason: err.reason });
-                    return json(err);
-                }
-
-                const designer = await this._showSchema(connectionId, connCreds.database);
+                const connCreds = resolvedConnection.connectionInfo.credentials;
+                const designer = await this._showSchema(
+                    resolvedConnection.ownerUri,
+                    connCreds.database,
+                );
                 const schema = await designer.getSchemaState();
                 const version = this.computeSchemaVersion(schema);
                 sendToolTelemetry({ operation, success: true });
