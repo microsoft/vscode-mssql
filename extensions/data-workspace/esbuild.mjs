@@ -15,9 +15,7 @@ const outputFile = path.join(extensionDirectory, "dist/main.js");
  * Bundle the TypeScript entry point and its runtime dependencies into dist/main.js so VSCE can
  * package the extension with --no-dependencies. Imports of package.json and package.vscode.json
  * are written relative to their source files, so the resolver below redirects them to this
- * extension's manifests after esbuild changes the module layout. azdata remains external because
- * @microsoft/ads-extension-telemetry probes for it optionally at runtime. The unresolved-module
- * guard prevents declaration-only extension APIs from leaking into the runtime bundle.
+ * extension's manifests after esbuild changes the module layout.
  */
 const extensionManifestPlugin = {
     name: "extension-manifest",
@@ -34,7 +32,6 @@ await run(
             entryPoints: {
                 main: path.join(extensionDirectory, "src/main.ts"),
             },
-            external: ["azdata"],
             outdir: path.join(extensionDirectory, "dist"),
             minify: isProd,
             plugins: [

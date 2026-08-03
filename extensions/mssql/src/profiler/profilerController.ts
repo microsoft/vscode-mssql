@@ -25,7 +25,7 @@ import { IConnectionProfile } from "../models/interfaces";
 import { getServerTypes, isAzureSqlDbCompatible } from "../models/connectionInfo";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { isSystemDatabase } from "../utils/databaseUtils";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 /**

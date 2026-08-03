@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { WebviewPanelController } from "./webviewPanelController";
 import { AddFirewallRuleState, AddFirewallRuleReducers } from "../sharedInterfaces/addFirewallRule";
 import { FirewallService } from "../firewall/firewallService";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
 import { errorFirewallRule } from "../constants/constants";

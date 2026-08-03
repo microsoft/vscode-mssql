@@ -5868,6 +5868,10 @@ Fehler:
         <source xml:lang="en">MSSQL Feedback</source>
         <target state="translated">MSSQL-Feedback</target>
       </trans-unit>
+      <trans-unit id="++CODE++a5427462c277225a1de708f2b2b949ae62f5ef9a5248d7d4c11d6ed297afc756">
+        <source xml:lang="en">MSSQL Notebook Selection Summary</source>
+        <target state="new">MSSQL Notebook Selection Summary</target>
+      </trans-unit>
       <trans-unit id="++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4">
         <source xml:lang="en">MSSQL Notebook connected to {0}</source>
         <note>{0} is the connection label</note>
@@ -8228,6 +8232,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">SQL database in Fabric</source>
         <target state="translated">SQL-Datenbank in Fabric</target>
       </trans-unit>
+      <trans-unit id="++CODE++1842ccd9de8c79445dc6d876bd055389b2be654ad840093e57a5c24bc924cfb2">
+        <source xml:lang="en">SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.</source>
+        <target state="translated">Die SQL-Formatierung konnte nicht abgeschlossen werden, da T-SQL nicht vollständig analysiert werden konnte. Wenn Sie die Syntax für gültig halten, senden Sie uns Feedback.</target>
+      </trans-unit>
       <trans-unit id="++CODE++dd0804b065a533eb0198e076460421ada3d861683b408ef39daea67e9aad46a6">
         <source xml:lang="en">SQLAlchemy</source>
         <target state="translated">SQLAlchemy</target>
@@ -8889,6 +8897,10 @@ Abfrage: {2}</target>
       <trans-unit id="++CODE++ca4067071fcf618543805e3d94af63144b21f4fae9eade2408f1c24f7e5214e9">
         <source xml:lang="en">Selection</source>
         <target state="translated">Auswahl</target>
+      </trans-unit>
+      <trans-unit id="++CODE++84195de9375af87cb637fbb3eb7587d1dcdce5d9ea648de8dfc28b7ea4134509">
+        <source xml:lang="en">Send Feedback</source>
+        <target state="translated">Feedback senden</target>
       </trans-unit>
       <trans-unit id="++CODE++79dc22c7292b82bb5b10f7fe3e4196400d86127a91507e8487c7d2da0f6a8283">
         <source xml:lang="en">Sequelize</source>
@@ -11313,6 +11325,162 @@ Abfrage: {2}</target>
   </file>
   <file original="package" source-language="en" datatype="plaintext" target-language="de">
     <body>
+      <trans-unit id="mssql.format.alignColumnDefinitionsInColumns">
+        <source xml:lang="en">**Used when Preview Formatter is disabled.** Should column definitions be aligned?</source>
+        <target state="translated">**Wird verwendet, wenn die Vorschauformatierung deaktiviert ist.** Sollen Spaltendefinitionen ausgerichtet werden?</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
+        <source xml:lang="en">**Used when Preview Formatter is disabled.** Should commas be placed at the beginning of each statement in a list, for example `, mycolumn2`, instead of at the end, for example `mycolumn1,`?</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer deaktiviert ist.** Sollen Kommata am Anfang jeder Anweisung in einer Liste platziert werden, z. B. `, mycolumn2` anstelle am Ende, z. B. `mycolumn1,`?</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.datatypeCasing">
+        <source xml:lang="en">**Used when Preview Formatter is disabled.** Should data types be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer deaktiviert ist.** Sollen Datentypen als GROSSBUCHSTABEN, kleinbuchstaben oder keine (nicht formatiert) formatiert werden</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.keywordCasing">
+        <source xml:lang="en">**Used when Preview Formatter is disabled.** Should keywords be formatted as UPPERCASE, lowercase, or none (not formatted)</source>
+        <target state="translated">**Wird verwendet, wenn die Vorschauformatierung deaktiviert ist.** Sollen Schlüsselwörter als GROSSBUCHSTABEN, kleinbuchstaben oder keine (nicht formatiert) formatiert werden</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
+        <source xml:lang="en">**Used when Preview Formatter is disabled.** Should references in a SELECT statement be split into separate lines? For `SELECT C1, C2 FROM T1`, both C1 and C2 will be on separate lines.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer deaktiviert ist.** Sollen Verweise in einer SELECT-Anweisung in separate Zeilen aufgeteilt werden? Bei `SELECT C1, C2 FROM T1` werden C1 und C2 jeweils in separaten Zeilen angezeigt.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.alignSetClauseItem">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Align SET clause items in UPDATE statements.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Richten Sie SET-Klauselelemente in UPDATE-Anweisungen aus.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.alignColumnDefinitionFields">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Align column-definition fields, such as names, data types, and constraints.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Richten Sie Spaltendefinitionsfelder aus, z. B. Namen, Datentypen und Einschränkungen.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.alignClauseBodies">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Richten Sie die Textkörper von FROM-, WHERE-, GROUP BY- und ähnlichen Klauseln aus.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.allowExternalLanguagePaths">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Allow external language content to use file paths.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Lassen Sie externen Sprachinhalt die Verwendung von Dateipfaden zu.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.allowExternalLibraryPaths">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Allow external library content to use file paths.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Erlauben Sie externen Bibliotheksinhalten die Verwendung von Dateipfaden.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.multilineInsertTargetsList">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Format INSERT columns as multiline lists.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Formatieren Sie INSERT-Spalten als mehrzeilige Listen.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.multilineInsertSourcesList">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Format INSERT sources as multiline lists.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Formatieren Sie INSERT-Quellen als mehrzeilige Listen.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.multilineSelectElementsList">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Format SELECT columns as multiline lists.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Formatieren Sie SELECT-Spalten als mehrzeilige Listen.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.multilineSetClauseItems">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Format SET clause items as multiline lists.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Formatieren Sie SET-Klauselelemente als mehrzeilige Listen.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.multilineViewColumnsList">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Format VIEW columns as multiline lists.</source>
+        <target state="translated">**Wird verwendet, wenn die Vorschauformatierung aktiviert ist.** Formatieren Sie VIEW-Spalten als mehrzeilige Listen.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.multilineWherePredicatesList">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Format WHERE predicates as multiline lists.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Formatieren Sie WHERE-Prädikate als mehrzeilige Listen.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.indentSetClause">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Indent SET clauses in UPDATE statements.</source>
+        <target state="translated">**Wird verwendet, wenn die Vorschauformatierung aktiviert ist.** Setzen Sie SET-Klauseln in UPDATE-Anweisungen ein.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.indentViewBody">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Indent VIEW bodies.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Einzug von VIEW-Texten.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.spaceBetweenDataTypeAndParameters">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Insert a space between a data type and its parentheses, for example `VARCHAR (255)`.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Fügen Sie ein Leerzeichen zwischen einem Datentyp und seinen Klammern ein, z. B. `VARCHAR (255)`.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.spaceBetweenParametersInDataType">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Insert spaces between parameters in a data type, for example `DECIMAL (10, 2)`.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Fügen Sie Leerzeichen zwischen Parametern in einem Datentyp ein, z. B. `DECIMAL (10, 2)`.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.keywordCasing">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Keyword casing style.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Groß-/Kleinschreibungsformatvorlage für Schlüsselwörter.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.numNewlinesAfterStatement">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Number of line breaks after each statement, from 0 through 5.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Anzahl der Zeilenumbrüche nach jeder Anweisung von 0 bis 5.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.asKeywordOnOwnLine">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place AS on its own line.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie AS in einer eigenen Zeile.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineFormattedIndexDefinition">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.</source>
+        <target state="translated">**Wird verwendet, wenn die Vorschauformatierung aktiviert ist.** Platzieren Sie UNIQUE-, INCLUDE- und WHERE-Teile von Inlineindexdefinitionen in separaten Zeilen.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeJoinClause">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before JOIN clauses.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie einen Zeilenumbruch vor JOIN-Klauseln.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeFromClause">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the FROM clause.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie einen Zeilenumbruch vor der FROM-Klausel.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeGroupByClause">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the GROUP BY clause.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie einen Zeilenumbruch vor der GROUP BY-Klausel.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeHavingClause">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the HAVING clause.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie einen Zeilenumbruch vor der HAVING-Klausel.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeOffsetClause">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the OFFSET clause.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie einen Zeilenumbruch vor der OFFSET-Klausel.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeOrderByClause">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the ORDER BY clause.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie einen Zeilenumbruch vor der ORDER BY-Klausel.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeOutputClause">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the OUTPUT clause.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie einen Zeilenumbruch vor der OUTPUT-Klausel.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeWhereClause">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the WHERE clause.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie einen Zeilenumbruch vor der WHERE-Klausel.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeWindowClause">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the WINDOW clause.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie einen Zeilenumbruch vor der WINDOW-Klausel.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeCloseParenthesisInMultilineList">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the closing parenthesis of a multiline list.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie einen Zeilenumbruch vor der schließenden Klammer einer mehrzeiligen Liste.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newLineBeforeOpenParenthesisInMultilineList">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place a newline before the opening parenthesis of a multiline list.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie einen Zeilenumbruch vor der öffnenden Klammer einer mehrzeiligen Liste.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.newlineFormattedCheckConstraint">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Place the CHECK clause of a constraint on its own line.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Platzieren Sie die CHECK-Klausel einer Einschränkung in einer eigenen Zeile.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.preserveComments">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** Preserve comments during formatting.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** Kommentare während der Formatierung beibehalten.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.sqlEngineType">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** SQL engine type used to parse and generate formatted scripts.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** SQL-Engine-Typ, der zum Analysieren und Generieren formatierter Skripts verwendet wird.</target>
+      </trans-unit>
+      <trans-unit id="mssql.format.options.sqlVersion">
+        <source xml:lang="en">**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.</source>
+        <target state="translated">**Wird verwendet, wenn der Vorschauformatierer aktiviert ist.** T-SQL-Version, die zum Analysieren und Generieren formatierter Skripts verwendet wird.</target>
+      </trans-unit>
       <trans-unit id="mssql.addObjectExplorer">
         <source xml:lang="en">Add Connection</source>
         <target state="translated">Verbindung hinzufügen</target>
@@ -11324,26 +11492,6 @@ Abfrage: {2}</target>
       <trans-unit id="mssql.addAadAccount">
         <source xml:lang="en">Add Microsoft Entra Account</source>
         <target state="translated">Microsoft Entra-Konto hinzufügen</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.alignSetClauseItem">
-        <source xml:lang="en">Align SET clause items in UPDATE statements.</source>
-        <target state="new">Align SET clause items in UPDATE statements.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.alignColumnDefinitionFields">
-        <source xml:lang="en">Align column-definition fields, such as names, data types, and constraints.</source>
-        <target state="new">Align column-definition fields, such as names, data types, and constraints.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.alignClauseBodies">
-        <source xml:lang="en">Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.</source>
-        <target state="new">Align the bodies of FROM, WHERE, GROUP BY, and similar clauses.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.allowExternalLanguagePaths">
-        <source xml:lang="en">Allow external language content to use file paths.</source>
-        <target state="new">Allow external language content to use file paths.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.allowExternalLibraryPaths">
-        <source xml:lang="en">Allow external library content to use file paths.</source>
-        <target state="new">Allow external library content to use file paths.</target>
       </trans-unit>
       <trans-unit id="mssql.deviceCode.description">
         <source xml:lang="en">Allows users to sign in to input-constrained devices.</source>
@@ -11783,30 +11931,6 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
         <source xml:lang="en">Filter your Object Explorer Tree</source>
         <target state="translated">Filtern der Objekt-Explorer-Struktur</target>
       </trans-unit>
-      <trans-unit id="mssql.format.options.multilineInsertTargetsList">
-        <source xml:lang="en">Format INSERT columns as multiline lists.</source>
-        <target state="new">Format INSERT columns as multiline lists.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.multilineInsertSourcesList">
-        <source xml:lang="en">Format INSERT sources as multiline lists.</source>
-        <target state="new">Format INSERT sources as multiline lists.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.multilineSelectElementsList">
-        <source xml:lang="en">Format SELECT columns as multiline lists.</source>
-        <target state="new">Format SELECT columns as multiline lists.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.multilineSetClauseItems">
-        <source xml:lang="en">Format SET clause items as multiline lists.</source>
-        <target state="new">Format SET clause items as multiline lists.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.multilineViewColumnsList">
-        <source xml:lang="en">Format VIEW columns as multiline lists.</source>
-        <target state="new">Format VIEW columns as multiline lists.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.multilineWherePredicatesList">
-        <source xml:lang="en">Format WHERE predicates as multiline lists.</source>
-        <target state="new">Format WHERE predicates as multiline lists.</target>
-      </trans-unit>
       <trans-unit id="mssql.sqlScriptsSubmenu">
         <source xml:lang="en">Generate Script</source>
         <target state="translated">Skript generieren</target>
@@ -11831,49 +11955,9 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
         <source xml:lang="en">Import Data...</source>
         <target state="translated">Daten importieren …</target>
       </trans-unit>
-      <trans-unit id="mssql.format.options.indentSetClause">
-        <source xml:lang="en">Indent SET clauses in UPDATE statements.</source>
-        <target state="new">Indent SET clauses in UPDATE statements.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.indentViewBody">
-        <source xml:lang="en">Indent VIEW bodies.</source>
-        <target state="new">Indent VIEW bodies.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.spaceBetweenDataTypeAndParameters">
-        <source xml:lang="en">Insert a space between a data type and its parentheses, for example VARCHAR (255).</source>
-        <target state="new">Insert a space between a data type and its parentheses, for example VARCHAR (255).</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.spaceBetweenParametersInDataType">
-        <source xml:lang="en">Insert spaces between parameters in a data type, for example DECIMAL (10, 2).</source>
-        <target state="new">Insert spaces between parameters in a data type, for example DECIMAL (10, 2).</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.keywordCasing">
-        <source xml:lang="en">Keyword casing style.</source>
-        <target state="new">Keyword casing style.</target>
-      </trans-unit>
       <trans-unit id="mssql.profiler.launchFromObjectExplorer">
         <source xml:lang="en">Launch Query Profiler...</source>
         <target state="translated">Abfrageprofiler starten...</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.alignColumnDefinitionsInColumns">
-        <source xml:lang="en">Legacy formatter only: Align column definitions. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</source>
-        <target state="new">Legacy formatter only: Align column definitions. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.datatypeCasing">
-        <source xml:lang="en">Legacy formatter only: Control data type casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</source>
-        <target state="new">Legacy formatter only: Control data type casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.keywordCasing">
-        <source xml:lang="en">Legacy formatter only: Control keyword and IntelliSense casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</source>
-        <target state="new">Legacy formatter only: Control keyword and IntelliSense casing. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.placeSelectStatementReferencesOnNewLine">
-        <source xml:lang="en">Legacy formatter only: Place SELECT statement object references on separate lines. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</source>
-        <target state="new">Legacy formatter only: Place SELECT statement object references on separate lines. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.placeCommasBeforeNextStatement">
-        <source xml:lang="en">Legacy formatter only: Place commas at the beginning instead of the end of list items. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</source>
-        <target state="new">Legacy formatter only: Place commas at the beginning instead of the end of list items. Set `mssql.format.enablePreviewFormatter` to `false` to use this setting.</target>
       </trans-unit>
       <trans-unit id="mssql.Configuration">
         <source xml:lang="en">MSSQL</source>
@@ -11955,10 +12039,6 @@ Sie können eine Verbindung mit einer Datenbank herstellen, indem Sie Ihre Verbi
         <source xml:lang="en">Next Steps with MSSQL for Visual Studio Code</source>
         <target state="translated">Nächste Schritte mit MSSQL für Visual Studio Code</target>
       </trans-unit>
-      <trans-unit id="mssql.format.options.numNewlinesAfterStatement">
-        <source xml:lang="en">Number of line breaks after each statement, from 0 through 5.</source>
-        <target state="new">Number of line breaks after each statement, from 0 through 5.</target>
-      </trans-unit>
       <trans-unit id="mssql.logRetentionMinutes">
         <source xml:lang="en">Number of minutes to retain log files for backend services. Default is 1 week.</source>
         <target state="translated">Anzahl von Minuten, für die Protokolldateien für Back-End-Dienste aufbewahrt werden sollen. Der Standardwert ist 1 Woche.</target>
@@ -12024,66 +12104,6 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       <trans-unit id="mssql.pauseQueryHistoryCapture">
         <source xml:lang="en">Pause Query History Capture</source>
         <target state="translated">Abfrageverlauf-Capture anhalten</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.asKeywordOnOwnLine">
-        <source xml:lang="en">Place AS on its own line.</source>
-        <target state="new">Place AS on its own line.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.newLineFormattedIndexDefinition">
-        <source xml:lang="en">Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.</source>
-        <target state="new">Place UNIQUE, INCLUDE, and WHERE portions of inline index definitions on separate lines.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.newLineBeforeJoinClause">
-        <source xml:lang="en">Place a newline before JOIN clauses.</source>
-        <target state="new">Place a newline before JOIN clauses.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.newLineBeforeFromClause">
-        <source xml:lang="en">Place a newline before the FROM clause.</source>
-        <target state="new">Place a newline before the FROM clause.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.newLineBeforeGroupByClause">
-        <source xml:lang="en">Place a newline before the GROUP BY clause.</source>
-        <target state="new">Place a newline before the GROUP BY clause.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.newLineBeforeHavingClause">
-        <source xml:lang="en">Place a newline before the HAVING clause.</source>
-        <target state="new">Place a newline before the HAVING clause.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.newLineBeforeOffsetClause">
-        <source xml:lang="en">Place a newline before the OFFSET clause.</source>
-        <target state="new">Place a newline before the OFFSET clause.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.newLineBeforeOrderByClause">
-        <source xml:lang="en">Place a newline before the ORDER BY clause.</source>
-        <target state="new">Place a newline before the ORDER BY clause.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.newLineBeforeOutputClause">
-        <source xml:lang="en">Place a newline before the OUTPUT clause.</source>
-        <target state="new">Place a newline before the OUTPUT clause.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.newLineBeforeWhereClause">
-        <source xml:lang="en">Place a newline before the WHERE clause.</source>
-        <target state="new">Place a newline before the WHERE clause.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.newLineBeforeWindowClause">
-        <source xml:lang="en">Place a newline before the WINDOW clause.</source>
-        <target state="new">Place a newline before the WINDOW clause.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.newLineBeforeCloseParenthesisInMultilineList">
-        <source xml:lang="en">Place a newline before the closing parenthesis of a multiline list.</source>
-        <target state="new">Place a newline before the closing parenthesis of a multiline list.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.newLineBeforeOpenParenthesisInMultilineList">
-        <source xml:lang="en">Place a newline before the opening parenthesis of a multiline list.</source>
-        <target state="new">Place a newline before the opening parenthesis of a multiline list.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.newlineFormattedCheckConstraint">
-        <source xml:lang="en">Place the CHECK clause of a constraint on its own line.</source>
-        <target state="new">Place the CHECK clause of a constraint on its own line.</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.preserveComments">
-        <source xml:lang="en">Preserve comments during formatting.</source>
-        <target state="new">Preserve comments during formatting.</target>
       </trans-unit>
       <trans-unit id="mssql.preventAutoExecuteScript">
         <source xml:lang="en">Prevent automatic execution of scripts (e.g., 'Select Top 1000'). When enabled, scripts will not be automatically executed upon generation.</source>
@@ -12209,10 +12229,6 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
         <source xml:lang="en">SQL Tools (MSSQL)</source>
         <target state="translated">SQL Tools (MSSQL)</target>
       </trans-unit>
-      <trans-unit id="mssql.format.options.sqlEngineType">
-        <source xml:lang="en">SQL engine type used to parse and generate formatted scripts.</source>
-        <target state="new">SQL engine type used to parse and generate formatted scripts.</target>
-      </trans-unit>
       <trans-unit id="mssql.quickQueries.query">
         <source xml:lang="en">SQL text for this Quick Query. Use {arg} to insert selected query-editor text; otherwise, it is appended.</source>
         <target state="translated">SQL-Text für diese Schnellabfrage. Verwenden Sie {arg}, um den ausgewählten Text im Abfrage-Editor einzufügen; andernfalls wird er angehängt.</target>
@@ -12301,6 +12317,10 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
         <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
         <target state="translated">Gibt an, ob beim Wechsel zwischen Registerkarten Ergebnisauswahlen und Scrollpositionen gespeichert werden sollen (kann die Leistung beeinträchtigen).</target>
       </trans-unit>
+      <trans-unit id="mssql.format.showParseErrorNotification">
+        <source xml:lang="en">Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.</source>
+        <target state="translated">Zeigt eine Benachrichtigung an, wenn der Vorschauformatierer die T-SQL-Formatierung nicht vollständig analysieren kann.</target>
+      </trans-unit>
       <trans-unit id="mssql.resultsGrid.showGridLines.both">
         <source xml:lang="en">Show both horizontal and vertical grid lines</source>
         <target state="translated">Horizontale und vertikale Gitternetzlinien anzeigen</target>
@@ -12380,10 +12400,6 @@ Klicken Sie zunächst auf die Filterschaltfläche neben den meisten Ordnern in d
       <trans-unit id="mssql.stopContainer">
         <source xml:lang="en">Stop SQL Container</source>
         <target state="translated">SQL-Container beenden</target>
-      </trans-unit>
-      <trans-unit id="mssql.format.options.sqlVersion">
-        <source xml:lang="en">T-SQL version used to parse and generate formatted scripts.</source>
-        <target state="new">T-SQL version used to parse and generate formatted scripts.</target>
       </trans-unit>
       <trans-unit id="mssql.walkthroughs.getStarted.createNewTable.altText">
         <source xml:lang="en">Table Designer</source>
@@ -12488,8 +12504,8 @@ Zeigen Sie den geschätzten Plan an, ohne die Abfrage auszuführen, oder zeigen 
         <target state="translated">Nur Zeilendaten für die automatische Anpassung der Spaltengröße verwenden</target>
       </trans-unit>
       <trans-unit id="mssql.format.enablePreviewFormatter">
-        <source xml:lang="en">Use the new SQL formatter. Disable this setting to temporarily use the legacy formatter.</source>
-        <target state="new">Use the new SQL formatter. Disable this setting to temporarily use the legacy formatter.</target>
+        <source xml:lang="en">Use the preview SQL formatter. Disable this setting to temporarily use the existing formatter.</source>
+        <target state="translated">Verwenden Sie den SQL-Formatierer in der Vorschau. Deaktivieren Sie diese Einstellung, um vorübergehend den vorhandenen Formatierer zu verwenden.</target>
       </trans-unit>
       <trans-unit id="mssql.preview.useVscodeAccountsForEntraMFA.description">
         <source xml:lang="en">Uses VS Code signed-in accounts for Microsoft Entra ID MFA authentication to SQL. Restart Visual Studio Code after changing this setting.</source>

@@ -6,7 +6,13 @@
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
 import { InstantiationServiceBuilder } from "extension-toolkit/base";
-import { ExtensionContextService, IExtensionContextService } from "extension-toolkit/vscode";
+import {
+    ExtensionContextService,
+    IExtensionContextService,
+    initializeTelemetryReporter,
+    sendActionEvent,
+    telemetryReporter,
+} from "extension-toolkit/vscode";
 import MainController from "./controllers/mainController";
 import { ConnectionDetails, IConnectionInfo, IExtension } from "vscode-mssql";
 import * as utils from "./models/utils";
@@ -18,7 +24,6 @@ import {
     ISqlChatResult,
     provideFollowups,
 } from "./copilot/chatAgentRequestHandler";
-import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
@@ -74,12 +79,15 @@ class MssqlActivation {
 
     async activate(): Promise<IExtension> {
         const context = this._contextService.context;
+        initializeTelemetryReporter(context.extension.packageJSON.aiKey);
 
         // Create coordinator early so uriOwnershipApi is available for export
         uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
 
         controller = new MainController(context);
         context.subscriptions.push(controller);
+        context.subscriptions.push(telemetryReporter);
+
         // Initialize loc cache for webviews early so that it's ready by the time any webview requests it.
         initializeWebviewLocalizationCache();
 

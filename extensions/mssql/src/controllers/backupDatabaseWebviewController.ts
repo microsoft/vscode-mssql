@@ -42,7 +42,7 @@ import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterface
 import { AzureBlobService } from "../models/contracts/azureBlob";
 import { getErrorMessage } from "../utils/utils";
 import { TaskExecutionMode } from "../enums";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { onTaskCompleted, TaskCompletedEvent } from "../services/sqlTasksService";
 import { ObjectManagementWebviewController } from "./objectManagementWebviewController";

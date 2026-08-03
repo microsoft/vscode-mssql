@@ -44,7 +44,13 @@ import StatusView from "../views/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "../models/interfaces";
 import ConnectionManager from "./connectionManager";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import {
+    describeProxyConfigurationIssue,
+    getVscodeProxyConfigurationIssue,
+    ProxyConfigurationIssue,
+    sendActionEvent,
+    sendErrorEvent,
+} from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
@@ -118,11 +124,6 @@ import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabas
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
-import {
-    describeProxyConfigurationIssue,
-    getVscodeProxyConfigurationIssue,
-    ProxyConfigurationIssue,
-} from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";

@@ -73,7 +73,7 @@ export const ExecutionPlanPage = ({ autoLoad = true }: ExecutionPlanPageProps) =
                 );
             case ApiStatus.Loaded:
                 const executionPlanGraphs = executionPlanState?.executionPlanGraphs ?? [];
-                return executionPlanGraphs?.map((_: any, index: number) => (
+                return executionPlanGraphs.map((_, index) => (
                     <ExecutionPlanGraph key={index} graphIndex={index} />
                 ));
             case ApiStatus.Error:

@@ -15,7 +15,7 @@ import { logger } from "./models/logger";
 import MainController from "./controllers/mainController";
 import { getConnectionDisplayName } from "./models/connectionInfo";
 import { MatchScore } from "./models/utils";
-import { sendActionEvent, sendErrorEvent } from "./telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { getErrorMessage } from "./utils/utils";
 

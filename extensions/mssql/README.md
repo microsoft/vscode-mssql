@@ -58,7 +58,7 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 
 | Capability                                                                                                                                                                            | Description                                                                            |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
-| [Azure SQL database provisioning](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-azure-integration.md)                                               | Create and connect to free tier Azure SQL database                                     |
+| [Azure SQL database provisioning](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-azure-integration)                                                  | Create and connect to free tier Azure SQL database                                     |
 | [Shortcuts Configuration](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code?view=sql-server-ver17#shortcuts-configuration) | Create and manage keyboard shortcuts for Quick Queries, Query Editor, and Results Grid |
 | [New Query Results Grid](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code?view=sql-server-ver17#query-results-pane)       | New results grid experience with more column customizations (freeze, show, hide)       |
 
@@ -446,6 +446,8 @@ This project has adopted the [Microsoft Open Source Code of Conduct](https://ope
 ## Telemetry
 
 This extension collects telemetry data, which is used to help understand how to improve the product. For example, this usage data helps to debug issues, such as slow start-up times, and to prioritize new features. While we appreciate the insights this data provides, we also know that not everyone wants to send usage data and you can disable telemetry as described in the VS Code [disable telemetry reporting](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting) documentation.
+
+To inspect the telemetry emitted by the extension, run **Developer: Show Telemetry** from the Command Palette, then review the **Telemetry** channel in the Output pane.
 
 Administrators can set or disable feedback and telemetry collection across their entire organization/tenant with the same mechanism. Learn more about [setting feedback and telemetry collection policy](https://code.visualstudio.com/docs/getstarted/telemetry#_disable-telemetry-reporting) and [centrally managing VS Code settings with policies](https://code.visualstudio.com/docs/enterprise/policies).
 
