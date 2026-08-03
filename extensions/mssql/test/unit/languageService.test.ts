@@ -108,6 +108,7 @@ suite("Language Service Tests", () => {
             const mockProgress: IDownloadProgress = {
                 totalBytes: 10,
                 downloadedBytes: 5,
+                percentage: 50,
             };
             const progressState: IDownloadProgressState = {
                 downloadPercentage: 0,

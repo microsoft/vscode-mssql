@@ -79,6 +79,13 @@ export interface IDownloadProgress {
      * `undefined` means the length is unknown; `0` means the response is known to be empty.
      */
     readonly totalBytes: number | undefined;
+
+    /**
+     * Download completion percentage, clamped to 0-100.
+     *
+     * `undefined` means the total size is unknown.
+     */
+    readonly percentage: number | undefined;
 }
 
 /** Options accepted by the download helpers. */

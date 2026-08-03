@@ -17,6 +17,7 @@ import { createHttpHeaders, IHttpHeaders } from "./httpHeaders";
 import {
     HttpRequestHeaders,
     IDownloadOptions,
+    IDownloadProgress,
     IDownloadResult,
     IHttpClientLogger,
     IHttpRequest,
@@ -344,7 +345,7 @@ export class HttpClient {
 
                 if (onProgress) {
                     try {
-                        onProgress({ downloadedBytes, totalBytes });
+                        onProgress(createDownloadProgress(downloadedBytes, totalBytes));
                     } catch (error) {
                         callback(
                             new HttpClientError(
@@ -770,7 +771,7 @@ function emitInitialProgress(totalBytes: number | undefined, options?: IDownload
     }
 
     try {
-        options.onProgress({ downloadedBytes: 0, totalBytes });
+        options.onProgress(createDownloadProgress(0, totalBytes));
     } catch (error) {
         throw new HttpClientError(
             "progress-callback",
@@ -779,6 +780,20 @@ function emitInitialProgress(totalBytes: number | undefined, options?: IDownload
             { cause: error },
         );
     }
+}
+
+function createDownloadProgress(
+    downloadedBytes: number,
+    totalBytes: number | undefined,
+): IDownloadProgress {
+    const percentage =
+        totalBytes === undefined
+            ? undefined
+            : totalBytes === 0
+              ? 100
+              : Math.min(100, Math.max(0, (downloadedBytes / totalBytes) * 100));
+
+    return { downloadedBytes, totalBytes, percentage };
 }
 
 function parseContentLength(headers: IHttpHeaders): number | undefined {

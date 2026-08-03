@@ -197,29 +197,27 @@ export class BuildHelper {
         try {
             const httpClient = new VscodeHttpClient();
             outputChannel.appendLine(constants.downloadingFromTo(downloadUrl, nugetPath));
-            let totalBytes: number | undefined;
-            let printThreshold = 0.1;
+            let printThreshold = 10;
             const result = await httpClient.downloadToPath(downloadUrl, nugetPath, {
                 onProgress: (progress) => {
                     if (progress.downloadedBytes === 0) {
-                        totalBytes = progress.totalBytes;
-                        if (totalBytes !== undefined) {
+                        if (progress.totalBytes !== undefined) {
                             outputChannel.appendLine(
-                                `${constants.downloading} ${downloadUrl} (0 / ${(totalBytes / (1024 * 1024)).toFixed(2)} MB)`,
+                                `${constants.downloading} ${downloadUrl} (0 / ${(progress.totalBytes / (1024 * 1024)).toFixed(2)} MB)`,
                             );
                         }
                         return;
                     }
 
                     if (
-                        totalBytes !== undefined &&
-                        totalBytes > 0 &&
-                        progress.downloadedBytes / totalBytes >= printThreshold
+                        progress.percentage !== undefined &&
+                        progress.totalBytes !== undefined &&
+                        progress.percentage >= printThreshold
                     ) {
                         outputChannel.appendLine(
-                            `${constants.downloadProgress} (${(progress.downloadedBytes / (1024 * 1024)).toFixed(2)} / ${(totalBytes / (1024 * 1024)).toFixed(2)} MB)`,
+                            `${constants.downloadProgress} (${(progress.downloadedBytes / (1024 * 1024)).toFixed(2)} / ${(progress.totalBytes / (1024 * 1024)).toFixed(2)} MB)`,
                         );
-                        printThreshold += 0.1;
+                        printThreshold += 10;
                     }
                 },
             });

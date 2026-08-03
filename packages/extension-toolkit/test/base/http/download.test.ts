@@ -312,6 +312,7 @@ describe("HttpClient downloads", () => {
             expect(events[0]).to.deep.equal({
                 downloadedBytes: 0,
                 totalBytes: payload.length,
+                percentage: 0,
             });
         });
 
@@ -328,7 +329,11 @@ describe("HttpClient downloads", () => {
                 { onProgress: (progress) => events.push(progress) },
             );
 
-            expect(events[events.length - 1].downloadedBytes).to.equal(payload.length);
+            expect(events[events.length - 1]).to.deep.equal({
+                downloadedBytes: payload.length,
+                totalBytes: payload.length,
+                percentage: 100,
+            });
         });
 
         it("reports an unknown total when no content length is sent", async () => {
@@ -346,6 +351,7 @@ describe("HttpClient downloads", () => {
             );
 
             expect(events[0].totalBytes).to.be.undefined;
+            expect(events[0].percentage).to.be.undefined;
         });
 
         it("reports a known empty response as zero total bytes", async () => {
@@ -364,6 +370,7 @@ describe("HttpClient downloads", () => {
             expect(onProgress).to.have.been.calledWith({
                 downloadedBytes: 0,
                 totalBytes: 0,
+                percentage: 100,
             });
         });
 

@@ -93,10 +93,8 @@ export default class DownloadHelper {
             );
         }
 
-        const percentage = calculatePercentage(progress.downloadedBytes, progress.totalBytes);
-
-        if (percentage !== undefined && progress.totalBytes !== undefined) {
-            const newPercentage = Math.min(100, Math.ceil(percentage));
+        if (progress.percentage !== undefined) {
+            const newPercentage = Math.ceil(progress.percentage);
             if (newPercentage !== progressState.downloadPercentage) {
                 statusView.updateServiceDownloadingProgress(newPercentage);
                 progressState.downloadPercentage = newPercentage;
@@ -143,24 +141,6 @@ export default class DownloadHelper {
 export interface IDownloadProgressState {
     downloadPercentage: number;
     dots: number;
-}
-
-/*
- * Calculates the completed percentage of a download, or undefined when the total size is unknown
- */
-function calculatePercentage(
-    downloadedBytes: number,
-    totalBytes: number | undefined,
-): number | undefined {
-    if (totalBytes === undefined) {
-        return undefined;
-    }
-
-    if (totalBytes === 0) {
-        return 100;
-    }
-
-    return Math.min(100, (downloadedBytes / totalBytes) * 100);
 }
 
 /*
