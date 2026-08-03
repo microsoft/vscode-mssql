@@ -16,7 +16,7 @@ import {
     IWarehouseArtifact,
     IWorkspaceRoleAssignment,
 } from "../sharedInterfaces/fabric";
-import { IHttpResponse, VscodeHttpClient } from "extension-toolkit/vscode";
+import { IHttpResponse, VscodeHttpClient, withBearerToken } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../utils/utils";
 import { Fabric as Loc } from "../constants/locConstants";
 import { getCloudProviderSettings } from "../azure/providerSettings";
@@ -376,9 +376,10 @@ export class FabricHelper {
         const session = await this.createScopedFabricSession(tenantId, reason);
         const token = session?.accessToken;
 
-        const response = await httpHelper.get<TResponse>(uri.toString(), {
-            headers: this.createAuthorizationHeaders(token),
-        });
+        const response = await httpHelper.get<TResponse>(
+            uri.toString(),
+            token ? withBearerToken(token) : undefined,
+        );
         const result = response.data;
 
         if (isFabricError(result)) {
@@ -403,11 +404,13 @@ export class FabricHelper {
 
         const session = await this.createScopedFabricSession(tenantId, reason, scopes);
         const token = session?.accessToken;
-        const headers = this.createAuthorizationHeaders(token);
+        const options = token ? withBearerToken(token) : undefined;
 
-        let response = await httpHelper.postJson<TResponse, TPayload>(uri.toString(), payload, {
-            headers,
-        });
+        let response = await httpHelper.postJson<TResponse, TPayload>(
+            uri.toString(),
+            payload,
+            options,
+        );
 
         if (response.status === this.longRunningOperationCode) {
             fabricLogger.debug(`Handling long-running Fabric operation for API: ${api}`);
@@ -422,7 +425,7 @@ export class FabricHelper {
                 location,
                 httpHelper,
                 fabricLogger,
-                headers,
+                options?.headers,
             );
         }
 
@@ -434,15 +437,6 @@ export class FabricHelper {
 
         fabricLogger.debug(`Fabric post API call successful: ${api}`);
         return result;
-    }
-
-    /**
-     * Builds the bearer authorization header for a Fabric request, if a token is available.
-     */
-    private static createAuthorizationHeaders(
-        token: string | undefined,
-    ): Record<string, string> | undefined {
-        return token ? { Authorization: `Bearer ${token}` } : undefined;
     }
 
     /**

@@ -28,7 +28,7 @@ import { ILogger } from "../../sharedInterfaces/logger";
 import { AzureAuthError } from "../azureAuthError";
 import * as Constants from "../constants";
 import { ErrorResponseBody } from "@azure/arm-subscriptions";
-import { VscodeHttpClient } from "extension-toolkit/vscode";
+import { VscodeHttpClient, withBearerToken } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../../utils/utils";
 
 export type GetTenantsResponseData = {
@@ -307,9 +307,10 @@ export abstract class MsalAzureAuth {
         try {
             this.logger.debug("Fetching tenants with uri {0}", tenantUri);
             let tenantList: string[] = [];
-            const tenantResponse = await this._httpHelper.get<GetTenantsResponseData>(tenantUri, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
+            const tenantResponse = await this._httpHelper.get<GetTenantsResponseData>(
+                tenantUri,
+                withBearerToken(token),
+            );
             const data = tenantResponse.data;
             if (this.isErrorResponseBodyWithError(data)) {
                 this.logger.error(
