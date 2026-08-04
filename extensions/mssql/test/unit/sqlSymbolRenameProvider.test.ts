@@ -22,7 +22,7 @@ import {
     SqlMoveToSchema as moveLoc,
 } from "../../src/constants/locConstants";
 import { SqlProjectsService } from "../../src/services/sqlProjectsService";
-import { stubMessageBoxes, stubWorkspaceFs } from "./utils";
+import { stubMessageBoxes, stubWorkspaceFileSystem } from "./utils";
 
 chai.use(sinonChai);
 
@@ -708,7 +708,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
         suite("applyMove", () => {
             let openTextDocumentStub: sinon.SinonStub;
             let applyEditStub: sinon.SinonStub;
-            let fsStubs: ReturnType<typeof stubWorkspaceFs>;
+            let fsStubs: ReturnType<typeof stubWorkspaceFileSystem>;
 
             const sampleRefactorLog = [
                 '<?xml version="1.0" encoding="utf-8"?>',
@@ -736,7 +736,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                         }),
                     } as unknown as vscode.TextDocument);
                 });
-                fsStubs = stubWorkspaceFs(sandbox);
+                fsStubs = stubWorkspaceFileSystem(sandbox);
                 applyEditStub = sandbox.stub(vscode.workspace, "applyEdit").resolves(true);
             });
 
@@ -883,15 +883,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     // Reuse the stub created in the outer suite's setup.
                     executeCommandStub = vscode.commands.executeCommand as sinon.SinonStub;
                     sqlProjectsServiceStub = sandbox.createStubInstance(SqlProjectsService);
-                    sqlProjectsServiceStub.addFolder.resolves({
-                        success: true,
-                        errorMessage: "",
-                    });
-                    sqlProjectsServiceStub.excludeSqlObjectScript.resolves({
-                        success: true,
-                        errorMessage: "",
-                    });
-                    sqlProjectsServiceStub.addSqlObjectScript.resolves({
+                    sqlProjectsServiceStub.moveSqlObjectScript.resolves({
                         success: true,
                         errorMessage: "",
                     });
@@ -949,37 +941,32 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     expect(fsStubs.createDirectory).to.not.have.been.called;
                 });
 
-                test("registers new schema folder and object-type subfolder in the .sqlproj", async () => {
+                test("updates the .sqlproj with the old and new project-relative paths", async () => {
                     const doc = makeMoveDocument(sandbox, {
                         fsPath: schemaFile,
                         lineText: "CREATE TABLE [dbo].[table1]",
                     });
                     await provider.runMoveToSchema(doc, new vscode.Position(0, 14));
 
-                    expect(sqlProjectsServiceStub.addFolder).to.have.been.calledWith(
+                    expect(sqlProjectsServiceStub.moveSqlObjectScript).to.have.been.calledWith(
                         defaultProjFile,
-                        "sss",
-                    );
-                    expect(sqlProjectsServiceStub.addFolder).to.have.been.calledWith(
-                        defaultProjFile,
-                        "sss/tables",
+                        "dbo/tables/table1.sql",
+                        "sss/tables/table1.sql",
                     );
                 });
 
-                test("re-registers the Build Include path in .sqlproj via exclude + add", async () => {
+                test("requests a metadata-only move because the file is already moved on disk", async () => {
                     const doc = makeMoveDocument(sandbox, {
                         fsPath: schemaFile,
                         lineText: "CREATE TABLE [dbo].[table1]",
                     });
                     await provider.runMoveToSchema(doc, new vscode.Position(0, 14));
 
-                    expect(sqlProjectsServiceStub.excludeSqlObjectScript).to.have.been.calledWith(
-                        defaultProjFile,
-                        "dbo/tables/table1.sql",
-                    );
-                    expect(sqlProjectsServiceStub.addSqlObjectScript).to.have.been.calledWith(
-                        defaultProjFile,
-                        "sss/tables/table1.sql",
+                    expect(sqlProjectsServiceStub.moveSqlObjectScript).to.have.been.calledWith(
+                        sinon.match.string,
+                        sinon.match.string,
+                        sinon.match.string,
+                        true,
                     );
                 });
 
@@ -1008,11 +995,11 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     await provider.runMoveToSchema(doc, new vscode.Position(0, 13));
 
                     expect(renameFileStub).to.not.have.been.called;
-                    expect(sqlProjectsServiceStub.excludeSqlObjectScript).to.not.have.been.called;
+                    expect(sqlProjectsServiceStub.moveSqlObjectScript).to.not.have.been.called;
                 });
 
-                test("shows error and skips sqlproj update when rename fails", async () => {
-                    // Simulate WorkspaceEdit.renameFile failing (applyEdit returns false on second call).
+                test("shows error and skips sqlproj update when the file move fails", async () => {
+                    // Simulate the move edit failing (applyEdit returns false on second call).
                     applyEditStub.onCall(1).resolves(false);
 
                     const doc = makeMoveDocument(sandbox, {
@@ -1024,7 +1011,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
                         moveLoc.moveFileFailed(""),
                     );
-                    expect(sqlProjectsServiceStub.excludeSqlObjectScript).to.not.have.been.called;
+                    expect(sqlProjectsServiceStub.moveSqlObjectScript).to.not.have.been.called;
                 });
 
                 test("triggers dataworkspace.refresh after the file has been successfully moved", async () => {
@@ -1064,7 +1051,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     await provider.runMoveToSchema(doc, new vscode.Position(0, 14));
 
                     expect(renameFileStub).to.not.have.been.called;
-                    expect(sqlProjectsServiceStub.excludeSqlObjectScript).to.not.have.been.called;
+                    expect(sqlProjectsServiceStub.moveSqlObjectScript).to.not.have.been.called;
                 });
 
                 test("moves the definition file, not the open document, when STS returns definitionFileUri", async () => {
@@ -1132,8 +1119,8 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     );
                 });
 
-                test("shows error when registering the new schema folder in the .sqlproj fails", async () => {
-                    sqlProjectsServiceStub.addFolder.resolves({
+                test("shows error when the .sqlproj update reports failure", async () => {
+                    sqlProjectsServiceStub.moveSqlObjectScript.resolves({
                         success: false,
                         errorMessage: "project file is read-only",
                     });
@@ -1149,11 +1136,8 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     );
                 });
 
-                test("does not report an error when excludeSqlObjectScript rejects for a glob-based project", async () => {
-                    // SDK-style projects resolve scripts from a `**/*.sql` glob, so there is no
-                    // explicit entry to move and STS reports "script entry does not exist". The
-                    // file move alone already updated the project, so this must stay silent.
-                    sqlProjectsServiceStub.excludeSqlObjectScript.rejects(
+                test("shows error and still refreshes when the .sqlproj update throws", async () => {
+                    sqlProjectsServiceStub.moveSqlObjectScript.rejects(
                         new Error("Script entry 'dbo/tables/table1.sql' does not exist"),
                     );
 
@@ -1163,7 +1147,11 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     });
                     await provider.runMoveToSchema(doc, new vscode.Position(0, 14));
 
-                    expect(messageBoxes.showErrorMessage).to.not.have.been.called;
+                    expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
+                        moveLoc.sqlprojUpdateFailed(
+                            "Script entry 'dbo/tables/table1.sql' does not exist",
+                        ),
+                    );
                     expect(executeCommandStub).to.have.been.calledWith("dataworkspace.refresh");
                 });
 

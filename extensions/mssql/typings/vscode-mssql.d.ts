@@ -1841,6 +1841,11 @@ declare module "vscode-mssql" {
          * Destination path of the file or folder, relative to the .sqlproj
          */
         destinationPath: string;
+        /**
+         * When true, only updates the .sqlproj metadata without moving the physical file on disk.
+         * Use this when the caller has already moved the file (e.g. via VS Code's WorkspaceEdit API).
+         */
+        metadataOnly?: boolean;
     }
 
     export interface SetDatabaseSourceParams extends SqlProjectParams {

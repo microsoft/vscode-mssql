@@ -35,7 +35,7 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
  * Stubs the `vscode.workspace.fs` methods used by file-relocation tests and
  * installs them via `sandbox.stub(vscode.workspace, "fs").value(...)`.
  */
-export function stubWorkspaceFs(sandbox: sinon.SinonSandbox): {
+export function stubWorkspaceFileSystem(sandbox: sinon.SinonSandbox): {
     stat: sinon.SinonStub;
     writeFile: sinon.SinonStub;
     delete: sinon.SinonStub;
