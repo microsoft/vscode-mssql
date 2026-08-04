@@ -7,8 +7,29 @@ import { expect } from "chai";
 import * as l10n from "@vscode/l10n";
 import * as path from "path";
 import * as fs from "fs/promises";
+import * as sinon from "sinon";
+import * as vscode from "vscode";
+import { resetLoggerDefaultChannelForTest } from "../../src/models/logger";
+import { createLogOutputChannelStub } from "./stubs";
 
 suite("Localization Tests", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+        resetLoggerDefaultChannelForTest();
+
+        sandbox
+            .stub(vscode.window, "createOutputChannel")
+            .returns(createLogOutputChannelStub(sandbox));
+    });
+
+    teardown(async () => {
+        await setLocLang("en");
+        sandbox.restore();
+        resetLoggerDefaultChannelForTest();
+    });
+
     let setLocLang = async (lang: string) => {
         let filePath = path.resolve(
             __dirname,
@@ -42,9 +63,5 @@ suite("Localization Tests", () => {
         await setLocLang("es");
         const testLocalizationConstant = l10n.t("test");
         expect(testLocalizationConstant).to.equal("prueba");
-    });
-
-    teardown(async () => {
-        await setLocLang("en");
     });
 });

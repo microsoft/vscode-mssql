@@ -66,6 +66,10 @@ jobs:
         run: |
           npm ci
 
+      - name: Stamp build as pull request version
+        run: |
+          node scripts/stamp-prerelease-version.mjs "${{ github.run_id }}" --label pr
+
       - name: MSSQL - Install dependencies and build
         uses: ./.github/actions/build-mssql
 
@@ -79,12 +83,18 @@ jobs:
         run: |
           npm run lint
 
+      - name: Inject extension telemetry key
+        env:
+          MSSQL_APP_INSIGHTS_KEY: ${{ vars.MSSQL_APP_INSIGHTS_KEY }}
+        run: |
+          node scripts/inject-telemetry-key.mjs
+
       # Calculate sizes and package before testing;
       # Testing generates sourcemaps and instrumented code
       # that increase size
       - name: Package extensions
         run: |
-          npm run package
+          npm run package -- --preview
 
       - name: MSSQL - Upload VSIX files
         uses: actions/upload-artifact@v7

@@ -19,14 +19,7 @@ import {
     CancelChangePasswordWebviewNotification,
 } from "../../src/sharedInterfaces/changePassword";
 import * as LocConstants from "../../src/constants/locConstants";
-import {
-    stubTelemetry,
-    stubLogger,
-    stubVscodeWrapper,
-    stubWebviewConnectionRpc,
-    stubWebviewPanel,
-} from "./utils";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { stubTelemetry, stubLogger, stubWebviewConnectionRpc, stubWebviewPanel } from "./utils";
 import { IConnectionInfo } from "vscode-mssql";
 import * as utils from "../../src/utils/utils";
 
@@ -35,7 +28,6 @@ chai.use(sinonChai);
 suite("ChangePasswordWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let changePasswordServiceStub: sinon.SinonStubbedInstance<ChangePasswordService>;
     let requestHandlers: Map<string, (password: string) => Promise<unknown>>;
     let notificationHandlers: Map<string, () => void>;
@@ -75,7 +67,6 @@ suite("ChangePasswordWebviewController", () => {
             extensionPath: "/tmp/ext",
             subscriptions: [],
         } as unknown as vscode.ExtensionContext;
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
         changePasswordServiceStub = sandbox.createStubInstance(ChangePasswordService);
 
         credentials = {
@@ -91,7 +82,6 @@ suite("ChangePasswordWebviewController", () => {
     function createController(): ChangePasswordWebviewController {
         controller = new ChangePasswordWebviewController(
             mockContext,
-            vscodeWrapperStub,
             credentials,
             changePasswordServiceStub,
         );

@@ -16,7 +16,7 @@ import {
     IDatabaseReferenceProjectEntry,
     IFileProjectEntry,
     IProjectEntry,
-} from "sqldbproj";
+} from "../sqldbproj";
 import { Uri } from "vscode";
 
 /**

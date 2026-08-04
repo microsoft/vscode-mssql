@@ -17,7 +17,7 @@ import {
 } from "../src/models/tree/fileFolderTreeItem";
 import { ProjectRootTreeItem } from "../src/models/tree/projectTreeItem";
 import { DatabaseProjectItemType } from "../src/common/constants";
-import { EntryType } from "sqldbproj";
+import { EntryType } from "../src/sqldbproj";
 
 suite("Project Tree tests", function (): void {
     test("Should correctly order tree nodes by type, then by name", function (): void {

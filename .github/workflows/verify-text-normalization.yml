@@ -1,0 +1,37 @@
+name: Verify text normalization
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify-normalization:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Verify Git normalization
+        shell: bash
+        run: |
+          git add --renormalize .
+
+          if ! git diff --cached --quiet; then
+            echo "::error::Tracked files are not normalized according to .gitattributes"
+            echo
+            echo "Affected files:"
+            git diff --cached --name-only
+            echo
+            echo "Run locally:"
+            echo "  git add --renormalize ."
+            exit 1
+          fi
+
+      - name: Verify XLF uses CRLF
+        run: node scripts/check-xlf-line-endings.mjs

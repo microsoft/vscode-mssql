@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import VscodeWrapper from "./vscodeWrapper";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import * as Loc from "../constants/locConstants";
 import { FormWebviewController } from "../forms/formWebviewController";
@@ -30,11 +29,13 @@ import { SimpleExecuteResult } from "vscode-mssql";
 import { getSchemaNamesFromResult } from "../copilot/tools/listSchemasTool";
 import * as path from "path";
 import ConnectionManager from "./connectionManager";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { Deferred } from "../protocol";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionProfile } from "../models/connectionProfile";
+
+const FLAT_FILE_IMPORT_VIEW_ID = "flatFileImport";
 
 /**
  * Controller for the Flat File Import dialog
@@ -50,7 +51,6 @@ export class FlatFileImportWebviewController extends FormWebviewController<
     private databases: string[] = [];
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private client: SqlToolsServiceClient,
         private connectionManager: ConnectionManager,
         private profile: ConnectionProfile,
@@ -59,9 +59,8 @@ export class FlatFileImportWebviewController extends FormWebviewController<
     ) {
         super(
             context,
-            vscodeWrapper,
-            "flatFileImport",
-            "flatFileImport",
+            FLAT_FILE_IMPORT_VIEW_ID,
+            FLAT_FILE_IMPORT_VIEW_ID,
             new FlatFileImportState(),
             {
                 title: Loc.FlatFileImport.flatFileImportTitle,
@@ -202,6 +201,7 @@ export class FlatFileImportWebviewController extends FormWebviewController<
                     ownerUri: this.ownerUri,
                     databaseName: state.formState.databaseName,
                     batchSize: batchSize,
+                    azureAccessToken: this.profile.azureAccountToken,
                 });
 
                 // Check result for errors

@@ -95,6 +95,7 @@ export function useFluentResultGridController({
         useFluentResultGridProvider();
     const reactGridRef = useRef<ReactGridInstanceWithSharedService | undefined>(undefined);
     const restoredStateRef = useRef(false);
+    const isRestoringInitialStateRef = useRef(false);
     const [frozenColumnIndex, setFrozenColumnIndex] = useState(
         () => initialState?.frozenColumnIndex ?? FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
     );
@@ -385,7 +386,10 @@ export function useFluentResultGridController({
             }
 
             restoredInitialStateSignatureRef.current = initialStateRestoreSignature;
-            void restoreInitialState(grid);
+            isRestoringInitialStateRef.current = true;
+            void restoreInitialState(grid).finally(() => {
+                isRestoringInitialStateRef.current = false;
+            });
         },
         [initialStateReady, initialStateRestoreSignature, restoreInitialState],
     );
@@ -529,6 +533,7 @@ export function useFluentResultGridController({
         persistScrollPosition,
         reactGridRef,
         restoreCurrentInitialState,
+        shouldSuppressSelectionSummaryChange: () => isRestoringInitialStateRef.current,
     });
 
     return {

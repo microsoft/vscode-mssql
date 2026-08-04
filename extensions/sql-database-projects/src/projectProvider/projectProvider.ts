@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as dataworkspace from "dataworkspace";
-import * as sqldbproj from "sqldbproj";
+import type * as dataworkspace from "dataworkspace";
+import * as sqldbproj from "../sqldbproj";
 import * as vscode from "vscode";
 import * as constants from "../common/constants";
 import { IconPathHelper } from "../common/iconHelper";
@@ -204,11 +204,5 @@ export class SqlDatabaseProjectProvider
      */
     public getProjectDatabaseSchemaProvider(projectFilePath: string): Promise<string> {
         return this.projectController.getProjectDatabaseSchemaProvider(projectFilePath);
-    }
-
-    public generateProjectFromOpenApiSpec(
-        options?: sqldbproj.GenerateProjectFromOpenApiSpecOptions,
-    ): Promise<sqldbproj.ISqlProject | undefined> {
-        return this.projectController.generateProjectFromOpenApiSpec(options);
     }
 }

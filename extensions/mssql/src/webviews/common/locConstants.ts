@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from "@vscode/l10n";
+import type { ConfigurableKeyCommandId } from "../../sharedInterfaces/shortcutsConfiguration";
 import { WebviewAction } from "../../sharedInterfaces/webview";
 
 export class LocConstants {
@@ -349,25 +350,95 @@ export class LocConstants {
 
     public get shortcutsConfiguration() {
         return {
-            title: l10n.t("Shortcuts Configuration"),
+            title: l10n.t("Shortcuts Configuration (Preview)"),
             pageAriaLabel: l10n.t("Shortcuts configuration page"),
             configurationSections: l10n.t("Configuration sections"),
-            subtitle: l10n.t("Configure Quick Query and in-app shortcuts."),
+            subtitle: l10n.t("Configure Quick Query and Extension shortcuts."),
             quickQueries: l10n.t("Quick Queries"),
             quickQueriesDescription: l10n.t(
-                "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.",
+                "Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.",
             ),
-            webviewShortcuts: l10n.t("In-App Shortcuts"),
+            quickQueriesKeyboardShortcutsBanner: l10n.t(
+                "Quick Queries keyboard shortcuts are managed by Visual Studio Code.",
+            ),
+            openKeyboardShortcutsEditor: l10n.t("Open Keyboard Shortcuts editor."),
+            webviewShortcuts: l10n.t("Extension Shortcuts"),
             webviewShortcutsDescription: l10n.t(
-                "Configure shortcuts that are handled inside MSSQL views.",
+                "Configure keyboard shortcuts used by the MSSQL extension.",
             ),
+            queryEditorShortcuts: l10n.t("Query Editor"),
+            queryEditorKeyboardShortcutsBanner: l10n.t(
+                "Query Editor shortcuts are managed by Visual Studio Code.",
+            ),
+            queryEditorKeyboardShortcutsFooter: l10n.t(
+                "Configure the full list of Query Editor shortcuts.",
+            ),
+            resultViewShortcuts: l10n.t("Result View"),
+            resultViewShortcutsBanner: l10n.t(
+                "Result View shortcuts are managed by the MSSQL extension. You can configure their keybindings directly here.",
+            ),
+            keyboardShortcutsEditor: l10n.t("Keyboard Shortcuts editor"),
+            viewConfigureKeybinding: l10n.t("View/configure keybinding"),
+            viewConfigureKeybindingTooltip: (name: string) =>
+                l10n.t({
+                    message: "View/configure keybinding for {0}",
+                    args: [name],
+                    comment: ["{0} is the command or shortcut display name"],
+                }),
+            configurableKeyCommandCategoryLabels: {
+                queryExecution: l10n.t("Query Execution"),
+                connection: l10n.t("Connection"),
+                others: l10n.t("Others"),
+            },
+            configurableKeyCommandCategoryDescriptions: {
+                queryExecution: l10n.t("Run, cancel, and create queries"),
+                connection: l10n.t("Connect and manage database connections"),
+                others: l10n.t("Extension and deployment actions"),
+            },
+            configurableKeyCommandLabels: {
+                "mssql.runQuery": l10n.t("Execute Query"),
+                "mssql.runCurrentStatement": l10n.t("Execute Selection or Current Statement"),
+                "mssql.cancelQuery": l10n.t("Cancel Query"),
+                "mssql.newQuery": l10n.t("New Query"),
+                "mssql.toggleSqlCmd": l10n.t("Toggle SQLCMD Mode"),
+                "mssql.connect": l10n.t("Connect"),
+                "mssql.disconnect": l10n.t("Disconnect"),
+                "mssql.changeConnection": l10n.t("Change Connection"),
+                "mssql.changeDatabase": l10n.t("Change Database"),
+                "mssql.showEstimatedPlan": l10n.t("Show Estimated Plan"),
+                "mssql.toggleActualPlan": l10n.t("Toggle Actual Plan"),
+                "mssql.copyAll": l10n.t("Copy All"),
+                "mssql.toggleQueryResultPanel": l10n.t("Toggle Query Result Panel"),
+            } satisfies Record<ConfigurableKeyCommandId, string>,
+            configurableKeyCommandDescriptions: {
+                "mssql.runQuery": l10n.t("Run a query for the current active SQL document"),
+                "mssql.runCurrentStatement": l10n.t(
+                    "Execute only the T-SQL statement under the cursor",
+                ),
+                "mssql.cancelQuery": l10n.t("Cancel the query execution in progress"),
+                "mssql.newQuery": l10n.t("Open a new SQL query file"),
+                "mssql.toggleSqlCmd": l10n.t(
+                    "Enable or disable SQLCMD mode for the active SQL document",
+                ),
+                "mssql.connect": l10n.t("Connect the active SQL document to a database"),
+                "mssql.disconnect": l10n.t("Disconnect the active SQL document from the database"),
+                "mssql.changeConnection": l10n.t(
+                    "Change the connection for the active SQL document",
+                ),
+                "mssql.changeDatabase": l10n.t("Change the database for the active SQL document"),
+                "mssql.showEstimatedPlan": l10n.t("View the estimated query execution plan"),
+                "mssql.toggleActualPlan": l10n.t(
+                    "Toggle actual execution plan collection for SQL queries",
+                ),
+                "mssql.copyAll": l10n.t("Copy all query result content"),
+                "mssql.toggleQueryResultPanel": l10n.t("Show or hide the query result panel"),
+            } satisfies Record<ConfigurableKeyCommandId, string>,
             name: l10n.t("Name"),
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),
-            autoExecute: l10n.t("Auto-execute"),
+            keybinding: l10n.t("Keybinding"),
             clearQuickQuery: l10n.t("Clear Quick Query"),
             clearQuickQueryTooltip: l10n.t("Clear this Quick Query"),
-            managedInVsCode: l10n.t("Managed in VS Code"),
             showAllShortcuts: l10n.t("Show All"),
             showAllQuickQueryShortcutsTooltip: l10n.t(
                 "Show all Quick Query shortcuts in VS Code Keyboard Shortcuts",
@@ -390,9 +461,17 @@ export class LocConstants {
                     args: [name],
                     comment: ["{0} is the Quick Query shortcut name"],
                 }),
+            selectedTextArgumentHint: l10n.t(
+                "Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.",
+            ),
+            selectedTextCompletionDetail: l10n.t("Selected query-editor text"),
             noShortcut: l10n.t("No shortcut"),
             noQuerySet: l10n.t("No query set"),
-            searchWebviewShortcuts: l10n.t("Search in-app shortcuts"),
+            searchWebviewShortcuts: l10n.t("Search extension shortcut"),
+            noShortcutResultsTitle: l10n.t("No matching shortcuts"),
+            noShortcutResultsDescription: l10n.t(
+                "Try searching by command name, description, or keybinding.",
+            ),
             recordShortcut: l10n.t("Record shortcut"),
             recordShortcutDescription: l10n.t(
                 "Press desired key combination and then press ENTER.",
@@ -1043,6 +1122,91 @@ export class LocConstants {
                         });
                 }
             },
+            rowsReturned: (rowCount: number) => {
+                switch (rowCount) {
+                    case 0:
+                        return l10n.t("0 rows returned");
+                    case 1:
+                        return l10n.t("1 row returned");
+                    default:
+                        return l10n.t({
+                            message: "{0} rows returned",
+                            args: [rowCount],
+                            comment: ["{0} is the number of rows returned"],
+                        });
+                }
+            },
+            rowsCount: (rowCount: number) => {
+                switch (rowCount) {
+                    case 0:
+                        return l10n.t("0 rows");
+                    case 1:
+                        return l10n.t("1 row");
+                    default:
+                        return l10n.t({
+                            message: "{0} rows",
+                            args: [rowCount],
+                            comment: ["{0} is the number of rows"],
+                        });
+                }
+            },
+            noRowsAffected: l10n.t("No rows affected"),
+            selectedItemLabel: l10n.t("Selected"),
+            rowsAffectedLabel: l10n.t("Rows"),
+            timeLabel: l10n.t("Time"),
+            runningLabel: l10n.t("Running"),
+            noSelectionSummary: l10n.t("No selection"),
+            selectionSummaryCountLabel: l10n.t("Count"),
+            selectionSummaryAverageLabel: l10n.t("Avg"),
+            selectionSummarySumLabel: l10n.t("Sum"),
+            selectionSummaryMinLabel: l10n.t("Min"),
+            selectionSummaryMaxLabel: l10n.t("Max"),
+            selectionSummaryDistinctLabel: l10n.t("Distinct"),
+            selectionSummaryNullLabel: l10n.t("Null"),
+            executionCancelled: l10n.t("Execution cancelled"),
+            executionTimeUnavailable: l10n.t("Execution time unavailable"),
+            runningWithDuration: (duration: string) =>
+                l10n.t({
+                    message: "Running: {0}",
+                    args: [duration],
+                    comment: ["{0} is how long the query has been running"],
+                }),
+            compactMilliseconds: (milliseconds: number) =>
+                l10n.t({
+                    message: "{0}ms",
+                    args: [milliseconds],
+                    comment: ["{0} is the number of milliseconds"],
+                }),
+            compactSeconds: (seconds: number | string) =>
+                l10n.t({
+                    message: "{0}s",
+                    args: [seconds],
+                    comment: ["{0} is the number of seconds"],
+                }),
+            compactMinutes: (minutes: number) =>
+                l10n.t({
+                    message: "{0}m",
+                    args: [minutes],
+                    comment: ["{0} is the number of minutes"],
+                }),
+            compactMinutesSeconds: (minutes: number, seconds: number) =>
+                l10n.t({
+                    message: "{0}m {1}s",
+                    args: [minutes, seconds],
+                    comment: ["{0} is the number of minutes", "{1} is the number of seconds"],
+                }),
+            compactHours: (hours: number) =>
+                l10n.t({
+                    message: "{0}h",
+                    args: [hours],
+                    comment: ["{0} is the number of hours"],
+                }),
+            compactHoursMinutes: (hours: number, minutes: number) =>
+                l10n.t({
+                    message: "{0}h {1}m",
+                    args: [hours, minutes],
+                    comment: ["{0} is the number of hours", "{1} is the number of minutes"],
+                }),
             resultSet: (batchNumber: number, queryNumber: number) =>
                 l10n.t({
                     message: "Result Set Batch {0} - Query {1}",
@@ -1185,6 +1349,7 @@ export class LocConstants {
             ),
             failedToAddTable: l10n.t("Failed to add table."),
             failedToUpdateTable: l10n.t("Failed to update table."),
+            failedToApplySchema: l10n.t("Failed to apply schema."),
             failedToDeleteTable: l10n.t("Failed to delete table."),
             tableIdAlreadyExists: l10n.t("Table id already exists."),
             foreignKeyMappingRequired: l10n.t("Foreign key column mappings are required."),
@@ -2647,6 +2812,9 @@ export class LocConstants {
             filterOpLessThan: l10n.t("less than"),
             filterOpIsNull: l10n.t("is null"),
             filterOpIsNotNull: l10n.t("is not null"),
+            vectorReadonlyTooltip: l10n.t(
+                "Vector values are read-only in this editor. Use T-SQL to modify the value or regenerate the embedding.",
+            ),
         };
     }
 

@@ -4,6 +4,46 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-languageclient";
+import { TelemetryActions } from "../../sharedInterfaces/telemetry";
+
+// ------------------------------- < SQL Tools Service Telemetry Event > --------------------------
+
+export interface SqlToolsServiceTelemetryParams {
+    params: {
+        eventName: TelemetryActions;
+        properties?: Record<string, string>;
+        measures?: Record<string, number>;
+    };
+}
+
+/**
+ * Event sent when SQL Tools Service emits a telemetry event.
+ */
+export namespace SqlToolsServiceTelemetryNotification {
+    export const type = new NotificationType<SqlToolsServiceTelemetryParams>("telemetry/sqlevent");
+}
+
+// ------------------------------- </ SQL Tools Service Telemetry Event > -------------------------
+
+// ------------------------------- < Formatting Failed Event > ------------------------------------
+
+export type FormattingFailureReason = "ParseError";
+export type FormattingRequestType = "Document" | "Range";
+
+export interface FormattingFailedParams {
+    ownerUri: string;
+    formatType: FormattingRequestType;
+    reason: FormattingFailureReason;
+    parseErrorCount: number;
+}
+
+export namespace FormattingFailedNotification {
+    export const type = new NotificationType<FormattingFailedParams>(
+        "textDocument/formattingFailed",
+    );
+}
+
+// ------------------------------- </ Formatting Failed Event > -----------------------------------
 
 // ------------------------------- < IntelliSense Ready Event > ------------------------------------
 
@@ -175,6 +215,13 @@ export interface SqlSymbolRenameResponse {
      */
     refactorLogContent: string | null;
     newName: string;
+    /**
+     * When non-null, a message to surface to the user.
+     * If isWarning is true, show a confirmation dialog; otherwise show a blocking error.
+     */
+    message?: string | null;
+    /** True when message is a confirmation warning; false (default) when it is a hard rejection. */
+    isWarning?: boolean;
 }
 
 export namespace SqlSymbolRenameRequest {
@@ -184,3 +231,58 @@ export namespace SqlSymbolRenameRequest {
 }
 
 // ------------------------------- </ SQL Symbol Rename > ----------------------------------
+
+// ------------------------------- < SQL Move To Schema > ------------------------------------
+
+export interface SqlMoveToSchemaParams {
+    textDocument: { uri: string };
+    position: { line: number; character: number };
+    /** The target schema the object is moved to, as picked by the user. */
+    targetSchema: string;
+    /** Current content of the project's .refactorlog file, or null/empty if none exists yet. */
+    existingRefactorLogContent: string | null;
+}
+
+export interface SqlMoveToSchemaResponse {
+    changes: { [uri: string]: SqlSymbolRenameTextEdit[] } | null;
+    /**
+     * Full content of the .refactorlog file with the new move-schema operation appended, ready to
+     * write. Null when the moved object does not require a refactorlog entry.
+     */
+    refactorLogContent: string | null;
+    targetSchema: string;
+    /**
+     * When non-null, a message to surface to the user.
+     * If isWarning is true, show a confirmation dialog; otherwise show a blocking error.
+     */
+    message?: string | null;
+    /** True when message is a confirmation warning; false (default) when it is a hard rejection. */
+    isWarning?: boolean;
+}
+
+export namespace SqlMoveToSchemaRequest {
+    export const type = new RequestType<SqlMoveToSchemaParams, SqlMoveToSchemaResponse, void>(
+        "sql/moveToSchema",
+    );
+}
+
+// ------------------------------- </ SQL Move To Schema > ----------------------------------
+
+// ------------------------------- < List Project Schemas > ------------------------------------
+
+export interface ListProjectSchemasParams {
+    textDocument: { uri: string };
+}
+
+export interface ListProjectSchemasResponse {
+    /** The distinct schema names defined in the project, sorted case-insensitively. */
+    schemas: string[];
+}
+
+export namespace ListProjectSchemasRequest {
+    export const type = new RequestType<ListProjectSchemasParams, ListProjectSchemasResponse, void>(
+        "sql/listSchemas",
+    );
+}
+
+// ------------------------------- </ List Project Schemas > ----------------------------------

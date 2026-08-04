@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import VscodeWrapper from "./vscodeWrapper";
 import {
     BackupComponent,
     BackupCompression,
@@ -43,7 +42,7 @@ import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterface
 import { AzureBlobService } from "../models/contracts/azureBlob";
 import { getErrorMessage } from "../utils/utils";
 import { TaskExecutionMode } from "../enums";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { onTaskCompleted, TaskCompletedEvent } from "../services/sqlTasksService";
 import { ObjectManagementWebviewController } from "./objectManagementWebviewController";
@@ -75,7 +74,6 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
     public readonly BACKUP_DATABASE_TASK_NAME = "Backup Database";
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         objectManagementService: ObjectManagementService,
         private connectionManager: ConnectionManager,
         private fileBrowserService: FileBrowserService,
@@ -86,7 +84,6 @@ export class BackupDatabaseWebviewController extends ObjectManagementWebviewCont
     ) {
         super(
             context,
-            vscodeWrapper,
             objectManagementService,
             ObjectManagementDialogType.BackupDatabase,
             LocConstants.BackupDatabase.backupDatabaseTitle(databaseName),

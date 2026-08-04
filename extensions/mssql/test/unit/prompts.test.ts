@@ -14,17 +14,14 @@ import ListPrompt from "../../src/prompts/list";
 import ConfirmPrompt from "../../src/prompts/confirm";
 import CheckboxPrompt from "../../src/prompts/checkbox";
 import ExpandPrompt from "../../src/prompts/expand";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 
 chai.use(sinonChai);
 
 suite("Prompts test", () => {
     let sandbox: sinon.SinonSandbox;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
     });
 
     teardown(() => {
@@ -35,7 +32,7 @@ suite("Prompts test", () => {
         const question: any = {
             type: "string",
         };
-        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        const prompt = PromptFactory.createPrompt(question);
         expect(prompt).to.be.instanceOf(InputPrompt);
     });
 
@@ -45,7 +42,7 @@ suite("Prompts test", () => {
             default: Error("test"),
             placeHolder: "test_placeHolder",
         };
-        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        const prompt = PromptFactory.createPrompt(question);
         expect(prompt).to.be.instanceOf(InputPrompt);
         expect(question.type).to.equal(InputPrompt.promptType);
     });
@@ -54,7 +51,7 @@ suite("Prompts test", () => {
         const question: any = {
             type: "password",
         };
-        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        const prompt = PromptFactory.createPrompt(question);
         expect(prompt).to.be.instanceOf(PasswordPrompt);
     });
 
@@ -62,7 +59,7 @@ suite("Prompts test", () => {
         const question: any = {
             type: "list",
         };
-        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        const prompt = PromptFactory.createPrompt(question);
         expect(prompt).to.be.instanceOf(ListPrompt);
     });
 
@@ -70,7 +67,7 @@ suite("Prompts test", () => {
         const question: any = {
             type: "confirm",
         };
-        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        const prompt = PromptFactory.createPrompt(question);
         expect(prompt).to.be.instanceOf(ConfirmPrompt);
     });
 
@@ -78,7 +75,7 @@ suite("Prompts test", () => {
         const question: any = {
             type: "checkbox",
         };
-        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        const prompt = PromptFactory.createPrompt(question);
         expect(prompt).to.be.instanceOf(CheckboxPrompt);
     });
 
@@ -86,7 +83,7 @@ suite("Prompts test", () => {
         const question: any = {
             type: "expand",
         };
-        const prompt = PromptFactory.createPrompt(question, vscodeWrapper);
+        const prompt = PromptFactory.createPrompt(question);
         expect(prompt).to.be.instanceOf(ExpandPrompt);
     });
 
@@ -94,6 +91,6 @@ suite("Prompts test", () => {
         const question: any = {
             type: "fail",
         };
-        expect(() => PromptFactory.createPrompt(question, vscodeWrapper)).to.throw();
+        expect(() => PromptFactory.createPrompt(question)).to.throw();
     });
 });

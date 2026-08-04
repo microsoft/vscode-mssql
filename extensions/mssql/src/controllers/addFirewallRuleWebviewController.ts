@@ -5,10 +5,9 @@
 
 import * as vscode from "vscode";
 import { WebviewPanelController } from "./webviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
 import { AddFirewallRuleState, AddFirewallRuleReducers } from "../sharedInterfaces/addFirewallRule";
 import { FirewallService } from "../firewall/firewallService";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { getErrorMessage } from "../utils/utils";
 import { errorFirewallRule } from "../constants/constants";
@@ -33,7 +32,6 @@ export class AddFirewallRuleWebviewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         initializationProps: {
             serverName: string;
             errorMessage: string;
@@ -42,8 +40,7 @@ export class AddFirewallRuleWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            vscodeWrapper,
-            "AddFirewallRule",
+            "addFirewallRule",
             "addFirewallRule",
             {
                 serverName: initializationProps.serverName,

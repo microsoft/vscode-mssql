@@ -15,7 +15,6 @@ import {
     ObjectManagementSubmitRequest,
     ObjectManagementWebviewState,
 } from "../sharedInterfaces/objectManagement";
-import VscodeWrapper from "./vscodeWrapper";
 import { ObjectManagementService } from "../services/objectManagementService";
 import { getErrorMessage, uuid } from "../utils/utils";
 import * as LocConstants from "../constants/locConstants";
@@ -49,7 +48,6 @@ export abstract class ObjectManagementWebviewController<
     /**
      * Constructor for ObjectManagementWebviewController
      * @param context extension context
-     * @param vscodeWrapper vscode wrapper instance
      * @param objectManagementService object management service instance
      * @param dialogType type of the dialog
      * @param dialogTitle title of the dialog
@@ -64,7 +62,6 @@ export abstract class ObjectManagementWebviewController<
      */
     protected constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         objectManagementService: ObjectManagementService,
         dialogType: ObjectManagementDialogType,
         dialogTitle: string,
@@ -79,7 +76,6 @@ export abstract class ObjectManagementWebviewController<
     ) {
         super(
             context,
-            vscodeWrapper,
             sourceFile,
             sourceFile,
             {
@@ -161,7 +157,7 @@ export abstract class ObjectManagementWebviewController<
             await vscode.window.showTextDocument(document, { preview: false });
         } catch (error) {
             this.logger.error(`Failed to open script: ${getErrorMessage(error)}`);
-            void this.vscodeWrapper.showErrorMessage(LocConstants.msgScriptingEditorFailed);
+            void vscode.window.showErrorMessage(LocConstants.msgScriptingEditorFailed);
         }
     }
 
@@ -206,7 +202,7 @@ export abstract class ObjectManagementWebviewController<
         });
 
         this.onNotification(ObjectManagementHelpNotification.type, () => {
-            void this.vscodeWrapper.openExternal(this.helpLink);
+            void vscode.env.openExternal(vscode.Uri.parse(this.helpLink));
         });
     }
 

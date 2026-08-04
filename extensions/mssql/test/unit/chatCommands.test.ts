@@ -19,7 +19,7 @@ import {
 } from "../../src/copilot/chatCommands";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
-import * as telemetry from "../../src/telemetry/telemetry";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 import { IServerInfo } from "vscode-mssql";
 
 const { expect } = chai;

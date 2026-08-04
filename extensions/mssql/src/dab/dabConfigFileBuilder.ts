@@ -28,7 +28,6 @@ interface DabRuntimeConfig {
     mcp: { enabled: boolean };
     host: {
         mode: string;
-        cors: { origins: string[] };
     };
 }
 
@@ -43,12 +42,7 @@ interface DabEntityOutput {
         "key-fields"?: string[];
         parameters?: DabParameterOutput[];
     };
-    fields?: Array<{
-        name: string;
-        alias?: string;
-        description?: string;
-        "primary-key"?: boolean;
-    }>;
+    fields?: DabFieldOutput[];
     rest: boolean | { path?: string; methods?: string[] } | undefined;
     graphql: boolean | { type?: DabGraphQLTypeOutput; operation?: string } | undefined;
     permissions: DabPermissionEntry[];
@@ -56,6 +50,13 @@ interface DabEntityOutput {
 }
 
 type DabGraphQLTypeOutput = string | { singular: string; plural?: string };
+
+interface DabFieldOutput {
+    name: string;
+    alias?: string;
+    description?: string;
+    "primary-key"?: boolean;
+}
 
 interface DabPermissionEntry {
     role: string;
@@ -121,7 +122,7 @@ export class DabConfigFileBuilder {
      *
      * The paths for REST and GraphQL APIs are set to default values.
      * Mode is set to 'development'.
-     * CORS is configured to allow all origins.
+     * CORS is not configured so cross-origin browser access is denied by default.
      *
      * @param apiTypes The API types to enable in the runtime section.
      * @returns The runtime configuration object.
@@ -141,9 +142,6 @@ export class DabConfigFileBuilder {
             },
             host: {
                 mode: "development",
-                cors: {
-                    origins: ["*"],
-                },
             },
         };
     }
@@ -199,6 +197,8 @@ export class DabConfigFileBuilder {
             isGraphQLEnabled && entity.advancedSettings.graphQLEnabled !== false
                 ? this.buildGraphQLProperty(entity)
                 : false;
+        const isEntityGraphQLEnabled =
+            isGraphQLEnabled && entity.advancedSettings.graphQLEnabled !== false;
         const output: DabEntityOutput = {
             source: {
                 type: entity.sourceType ?? Dab.EntitySourceType.Table,
@@ -218,13 +218,9 @@ export class DabConfigFileBuilder {
             permissions: this.buildPermissions(entity),
         };
 
-        if (entity.fields?.length) {
-            output.fields = entity.fields.map((field) => ({
-                name: field.name,
-                ...(field.alias ? { alias: field.alias } : {}),
-                ...(field.description ? { description: field.description } : {}),
-                ...(field.isPrimaryKey ? { "primary-key": true } : {}),
-            }));
+        const fields = this.buildFieldsProperty(entity, isEntityGraphQLEnabled);
+        if (fields.length > 0) {
+            output.fields = fields;
         }
 
         const mcpConfig = this.buildMcpProperty(entity, isMcpEnabled);
@@ -233,6 +229,91 @@ export class DabConfigFileBuilder {
         }
 
         return output;
+    }
+
+    /**
+     * Builds field mappings and assigns collision-free aliases to SQL column names
+     * that cannot be represented as GraphQL names.
+     */
+    private buildFieldsProperty(
+        entity: Dab.DabEntityConfig,
+        isGraphQLEnabled: boolean,
+    ): DabFieldOutput[] {
+        const fields: DabFieldOutput[] = (entity.fields ?? []).map((field) => ({
+            name: field.name,
+            ...(field.alias ? { alias: field.alias } : {}),
+            ...(field.description ? { description: field.description } : {}),
+            ...(field.isPrimaryKey ? { "primary-key": true } : {}),
+        }));
+
+        if (!isGraphQLEnabled) {
+            return fields;
+        }
+
+        const fieldIndexesByName = new Map(fields.map((field, index) => [field.name, index]));
+        const usedGraphQLNames = new Set<string>();
+
+        for (const column of entity.columns) {
+            const configuredField = fields[fieldIndexesByName.get(column.name) ?? -1];
+            const exposedName = configuredField?.alias ?? column.name;
+            if (this.isValidGraphQLName(exposedName)) {
+                usedGraphQLNames.add(exposedName);
+            }
+        }
+
+        for (const field of fields) {
+            const exposedName = field.alias ?? field.name;
+            if (this.isValidGraphQLName(exposedName)) {
+                usedGraphQLNames.add(exposedName);
+            }
+        }
+
+        for (const field of fields) {
+            const exposedName = field.alias ?? field.name;
+            if (!this.isValidGraphQLName(exposedName)) {
+                field.alias = this.createUniqueGraphQLName(exposedName, usedGraphQLNames);
+                usedGraphQLNames.add(field.alias);
+            }
+        }
+
+        for (const column of entity.columns) {
+            const existingIndex = fieldIndexesByName.get(column.name);
+            const existingField = existingIndex !== undefined ? fields[existingIndex] : undefined;
+            const exposedName = existingField?.alias ?? column.name;
+            if (this.isValidGraphQLName(exposedName)) {
+                continue;
+            }
+
+            const alias = this.createUniqueGraphQLName(exposedName, usedGraphQLNames);
+            if (existingField) {
+                existingField.alias = alias;
+            } else {
+                fieldIndexesByName.set(column.name, fields.length);
+                fields.push({ name: column.name, alias });
+            }
+            usedGraphQLNames.add(alias);
+        }
+
+        return fields;
+    }
+
+    private isValidGraphQLName(value: string): boolean {
+        return /^[_A-Za-z][_0-9A-Za-z]*$/.test(value);
+    }
+
+    private createUniqueGraphQLName(value: string, usedNames: Set<string>): string {
+        let baseName = value.replace(/[^_0-9A-Za-z]/g, "_");
+        if (!/^[_A-Za-z]/.test(baseName)) {
+            baseName = `_${baseName}`;
+        }
+
+        let candidate = baseName;
+        let suffix = 2;
+        while (usedNames.has(candidate)) {
+            candidate = `${baseName}_${suffix}`;
+            suffix++;
+        }
+        return candidate;
     }
 
     private buildMcpProperty(

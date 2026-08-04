@@ -7,13 +7,15 @@ import * as vscode from "vscode";
 import StatusView from "../views/statusView";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { QueryNotificationHandler } from "./queryNotificationHandler";
-import VscodeWrapper from "./vscodeWrapper";
+import * as Utils from "../models/utils";
 import {
     BatchSummary,
     QueryExecuteParams,
     QueryExecuteRequest,
     QueryExecuteStatementParams,
     QueryExecuteStatementRequest,
+    QueryExecuteStringParams,
+    QueryExecuteStringRequest,
     QueryExecuteCompleteNotificationResult,
     QueryExecuteSubsetResult,
     QueryExecuteResultSetAvailableNotificationParams,
@@ -51,14 +53,14 @@ import {
 } from "../models/interfaces";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
-import * as Utils from "../models/utils";
 import { getErrorMessage, uuid } from "../utils/utils";
 import * as os from "os";
 import { Deferred } from "../protocol";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { SelectionSummary } from "../sharedInterfaces/queryResult";
 import { bucketizeRowCount, getInMemoryGridDataProcessingThreshold } from "../queryResult/utils";
+import { buildSelectionSummaryStatusBarStrings } from "../queryResult/selectionSummaryFormatter";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 
@@ -69,9 +71,12 @@ export interface IResultSet {
 
 export interface QueryExecutionCompleteEvent {
     totalMilliseconds: string;
+    totalElapsedMilliseconds: number;
     hasError: boolean;
     isRefresh?: boolean;
 }
+
+export type QueryExecutionSource = "document" | "quickQuery";
 
 export interface ExecutionPlanEvent {
     uri: string;
@@ -82,6 +87,17 @@ export interface ExecutionPlanEvent {
 
 export interface SummaryChanged extends SelectionSummary {
     uri: string;
+    continue?: Deferred<void>;
+}
+
+function getRowsAffectedFromMessage(message: string): number | undefined {
+    const rowsAffectedMatch = message.match(/\(?\s*(\d+)\s+rows?\s+affected\s*\)?/i);
+    if (!rowsAffectedMatch?.[1]) {
+        return undefined;
+    }
+
+    const rowsAffected = Number(rowsAffectedMatch[1]);
+    return Number.isNaN(rowsAffected) ? undefined : rowsAffected;
 }
 
 export const editorEol =
@@ -104,6 +120,7 @@ export default class QueryRunner {
     private _uriToQueryPromiseMap = new Map<string, Deferred<boolean>>();
     private _uriToQueryStringMap = new Map<string, string>();
     private _registeredNotificationUris = new Set<string>();
+    private _executionSource: QueryExecutionSource = "document";
     private static _runningQueries = [];
 
     private _startFailedEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>();
@@ -159,7 +176,6 @@ export default class QueryRunner {
         private _statusView: StatusView,
         private _client?: SqlToolsServerClient,
         private _notificationHandler?: QueryNotificationHandler,
-        private _vscodeWrapper?: VscodeWrapper,
     ) {
         if (!_client) {
             this._client = SqlToolsServerClient.instance;
@@ -167,10 +183,6 @@ export default class QueryRunner {
 
         if (!_notificationHandler) {
             this._notificationHandler = QueryNotificationHandler.instance;
-        }
-
-        if (!_vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
         }
 
         // Store the state
@@ -211,6 +223,13 @@ export default class QueryRunner {
 
     get isExecutingQuery(): boolean {
         return this._isExecuting;
+    }
+
+    /**
+     * Gets the source that initiated the current query execution.
+     */
+    get executionSource(): QueryExecutionSource {
+        return this._executionSource;
     }
 
     get isSqlCmd(): boolean {
@@ -303,6 +322,7 @@ export default class QueryRunner {
         column: number,
         executionPlanOptions?: ExecutionPlanOptions,
     ): Promise<void> {
+        this._executionSource = "document";
         await this.setupQueryExecution({
             startLine: line,
             startColumn: column,
@@ -359,6 +379,7 @@ export default class QueryRunner {
         executionPlanOptions?: ExecutionPlanOptions,
         promise?: Deferred<boolean>,
     ): Promise<void> {
+        this._executionSource = "document";
         await this.setupQueryExecution(selection);
 
         // Setting up options
@@ -369,14 +390,12 @@ export default class QueryRunner {
         };
 
         // Getting query text
-        const doc = await this._vscodeWrapper.openTextDocument(
-            this._vscodeWrapper.parseUri(this._ownerUri),
-        );
+        const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this._ownerUri));
         let queryString: string;
         if (selection) {
-            let range = this._vscodeWrapper.range(
-                this._vscodeWrapper.position(selection.startLine, selection.startColumn),
-                this._vscodeWrapper.position(selection.endLine, selection.endColumn),
+            let range = new vscode.Range(
+                new vscode.Position(selection.startLine, selection.startColumn),
+                new vscode.Position(selection.endLine, selection.endColumn),
             );
             queryString = doc.getText(range);
         } else {
@@ -427,7 +446,68 @@ export default class QueryRunner {
         }
     }
 
-    public setupQueryExecution(_selection: ISelectionData): void {
+    /**
+     * Executes SQL text through the full query results pipeline without reading or changing the
+     * editor document associated with the connection URI.
+     * @param query SQL text to execute.
+     * @param promise Optional deferred operation completed with the query result.
+     * @returns A promise that resolves after the execution request is submitted.
+     */
+    public async runQueryString(query: string, promise?: Deferred<boolean>): Promise<void> {
+        this._executionSource = "quickQuery";
+        await this.setupQueryExecution(undefined);
+
+        this._uriToQueryStringMap.set(this._ownerUri, query);
+        if (promise) {
+            this._uriToQueryPromiseMap.set(this._ownerUri, promise);
+        }
+
+        const executeParams: QueryExecuteStringParams = {
+            ownerUri: this._ownerUri,
+            query,
+        };
+        const runQueryActivity = startActivity(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.RunQuery,
+            undefined,
+            {
+                executionType: "quickQuery",
+                hasExecutionPlan: "false",
+            },
+            undefined,
+            undefined,
+            undefined,
+            true,
+        );
+
+        let runQueryRequestCompleted = false;
+        try {
+            setTimeout(() => {
+                if (!runQueryRequestCompleted) {
+                    runQueryActivity?.endFailed(
+                        new Error("Run Quick Query initialization timed out"),
+                        true,
+                    );
+                }
+            }, Constants.stsImmediateActivityTimeout);
+            await this._client.sendRequest(QueryExecuteStringRequest.type, executeParams);
+            this._startEmitter.fire(this.uri);
+            runQueryRequestCompleted = true;
+            runQueryActivity?.end(ActivityStatus.Succeeded);
+        } catch (error) {
+            runQueryRequestCompleted = true;
+            this._handleQueryCleanup(undefined, error);
+            this._startFailedEmitter.fire(getErrorMessage(error));
+            runQueryActivity?.endFailed(error, false);
+            throw error;
+        }
+    }
+
+    /**
+     * Initializes query execution state and registers the query notification handlers.
+     * @param _selection Optional selection metadata associated with a document-based execution.
+     */
+    public setupQueryExecution(_selection?: ISelectionData): void {
         this._logger.info(LocalizedConstants.msgStartedExecute(this._ownerUri));
         this._isExecuting = true;
         this._totalElapsedMilliseconds = 0;
@@ -466,6 +546,7 @@ export default class QueryRunner {
             totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
                 format: "clock",
             }),
+            totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError,
         });
         sendActionEvent(
@@ -555,6 +636,7 @@ export default class QueryRunner {
     public handleMessage(obj: QueryExecuteMessageParams): void {
         let message = obj.message;
         message.time = new Date(message.time).toLocaleTimeString();
+        message.rowsAffected = getRowsAffectedFromMessage(message.message);
 
         // save the message into the batch summary so it can be restored on view refresh
         if (message.batchId >= 0 && this._batchSetMessages[message.batchId] !== undefined) {
@@ -613,14 +695,14 @@ export default class QueryRunner {
             totalMilliseconds: Utils.durationToDisplay(this._totalElapsedMilliseconds, {
                 format: "clock",
             }),
+            totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError: !!error,
         });
         this._statusView.executedQuery(this._ownerUri);
-
         this.unregisterAllNotificationUris();
 
         if (errorMsg) {
-            this._vscodeWrapper.showErrorMessage(getErrorMessage(errorMsg));
+            vscode.window.showErrorMessage(getErrorMessage(errorMsg));
         }
     }
 
@@ -683,7 +765,7 @@ export default class QueryRunner {
             };
         } catch (error) {
             // TODO: Localize
-            this._vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.QueryResult.getRowsError(getErrorMessage(error)),
             );
             rowsFetchActivity?.endFailed(error, false);
@@ -740,7 +822,7 @@ export default class QueryRunner {
             oldLang = process.env["LANG"];
             process.env["LANG"] = "en_US.UTF-8";
         }
-        await this._vscodeWrapper.clipboardWriteText(copyString);
+        await vscode.env.clipboard.writeText(copyString);
         if (process.platform === "darwin") {
             process.env["LANG"] = oldLang;
         }
@@ -922,7 +1004,7 @@ export default class QueryRunner {
             oldLang = process.env["LANG"];
             process.env["LANG"] = "en_US.UTF-8";
         }
-        await this._vscodeWrapper.clipboardWriteText(copyString);
+        await vscode.env.clipboard.writeText(copyString);
         if (process.platform === "darwin") {
             process.env["LANG"] = oldLang;
         }
@@ -940,8 +1022,15 @@ export default class QueryRunner {
         batchId: number,
         resultId: number,
     ): Promise<void> {
-        const config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
-        const csvConfig = config[Constants.configSaveAsCsv] || {};
+        const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
+        const csvConfig =
+            config.get<{
+                delimiter?: string;
+                textIdentifier?: string;
+                lineSeperator?: string;
+                encoding?: string;
+                includeHeaders?: boolean;
+            }>(Constants.configSaveAsCsv) ?? {};
 
         const delimiter = csvConfig.delimiter || ",";
         const textIdentifier = csvConfig.textIdentifier || '"';
@@ -1018,6 +1107,8 @@ export default class QueryRunner {
                 text: `$(play-circle) ${LocalizedConstants.QueryResult.summaryFetchConfirmation(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToFetchSummary,
                 uri: this.uri,
+                batchId,
+                resultId,
             });
             await proceed.promise;
         };
@@ -1033,6 +1124,8 @@ export default class QueryRunner {
                 text: `$(loading~spin) ${LocalizedConstants.QueryResult.summaryLoadingProgress(totalRows)}`,
                 tooltip: LocalizedConstants.QueryResult.clickToCancelLoadingSummary,
                 uri: this.uri,
+                batchId,
+                resultId,
             });
         };
 
@@ -1099,39 +1192,22 @@ export default class QueryRunner {
                 return;
             }
 
-            let text = "";
-            let tooltip = "";
+            const stats: NonNullable<SelectionSummary["stats"]> = {
+                count: result.count,
+                distinctCount: result.distinctCount,
+                nullCount: result.nullCount,
+            };
 
-            // the selection is numeric
             if (result.average !== undefined && result.average !== null) {
-                const average = result.average.toFixed(2);
-                text = LocalizedConstants.QueryResult.numericSelectionSummary(
-                    average,
-                    result.count,
-                    result.sum,
-                );
-                tooltip = LocalizedConstants.QueryResult.numericSelectionSummaryTooltip(
-                    average,
-                    result.count,
-                    result.distinctCount,
-                    result.max ?? 0,
-                    result.min ?? 0,
-                    result.nullCount,
-                    result.sum,
-                );
-            } else {
-                text = LocalizedConstants.QueryResult.nonNumericSelectionSummary(
-                    result.count,
-                    result.distinctCount,
-                    result.nullCount,
-                );
-                tooltip = LocalizedConstants.QueryResult.nonNumericSelectionSummaryTooltip(
-                    result.count,
-                    result.distinctCount,
-                    result.nullCount,
-                );
-                tooltip = text;
+                stats.average = result.average;
+                stats.sum = result.sum;
+                stats.max = result.max;
+                stats.min = result.min;
             }
+
+            // Build a textual summary used by the editor status bar when the query results footer
+            // preview is disabled. The footer ignores these fields and renders from `stats`.
+            const { text, tooltip } = buildSelectionSummaryStatusBarStrings(stats);
 
             // Resolve the cancel confirmation to clean up
             if (!isCanceled) {
@@ -1139,11 +1215,14 @@ export default class QueryRunner {
             }
 
             this.fireSummaryChangedEvent(requestId, {
+                stats,
                 text,
                 tooltip,
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,
+                batchId,
+                resultId,
             });
         } catch (error) {
             // Clean up on error
@@ -1159,6 +1238,8 @@ export default class QueryRunner {
                 uri: this.uri,
                 command: undefined,
                 continue: undefined,
+                batchId,
+                resultId,
             });
             throw error;
         }
@@ -1184,9 +1265,9 @@ export default class QueryRunner {
 
     private sendBatchTimeMessage(batchId: number, executionTime: string): void {
         // get config copyRemoveNewLine option from vscode config
-        let config = this._vscodeWrapper.getConfiguration(
+        let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            this.uri,
+            vscode.Uri.parse(this.uri),
         );
         let showBatchTime: boolean = config.get(Constants.configShowBatchTime);
         if (showBatchTime) {
@@ -1205,19 +1286,17 @@ export default class QueryRunner {
      * @param selection The selection range to select
      */
     public async setEditorSelection(selection: ISelectionData): Promise<void> {
-        const docExists = this._vscodeWrapper.textDocuments.find(
+        const docExists = vscode.workspace.textDocuments.find(
             (textDoc) => textDoc.uri.toString() === this.uri,
         );
         if (docExists) {
             let column = vscode.ViewColumn.One;
-            const doc = await this._vscodeWrapper.openTextDocument(
-                this._vscodeWrapper.parseUri(this.uri),
-            );
-            const activeTextEditor = this._vscodeWrapper.activeTextEditor;
+            const doc = await vscode.workspace.openTextDocument(vscode.Uri.parse(this.uri));
+            const activeTextEditor = vscode.window.activeTextEditor;
             if (activeTextEditor) {
                 column = activeTextEditor.viewColumn;
             }
-            let editor = await this._vscodeWrapper.showTextDocument(doc, {
+            let editor = await vscode.window.showTextDocument(doc, {
                 viewColumn: column,
                 preserveFocus: false,
                 preview: false,

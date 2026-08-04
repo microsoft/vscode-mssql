@@ -63,6 +63,13 @@ export class SessionCreatedParameters {
      * failure reason, if any
      */
     public errorMessage: string;
+
+    /**
+     * Stable, non-localized error code identifying the session failure reason (e.g.
+     * "CREATE_SESSION_TIMEOUT"), if a known one applies. Lets the client detect specific
+     * failures without matching on the localized error message.
+     */
+    public errorCode?: string;
 }
 
 /**

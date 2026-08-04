@@ -7,6 +7,7 @@ import {
     type ClipboardEvent as ReactClipboardEvent,
     type KeyboardEvent as ReactKeyboardEvent,
     type MouseEvent as ReactMouseEvent,
+    type RefObject,
     useCallback,
     useEffect,
     useRef,
@@ -31,11 +32,14 @@ import {
     Tooltip,
     tokens,
 } from "@fluentui/react-components";
-import { Checkmark12Regular, Keyboard16Regular } from "@fluentui/react-icons";
+import { Checkmark12Regular, Keyboard16Regular, Open16Regular } from "@fluentui/react-icons";
 import { locConstants } from "../../common/locConstants";
 import { VscodeEditor } from "../../common/vscodeMonaco";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
-import { QuickQuerySlot } from "../../../sharedInterfaces/shortcutsConfiguration";
+import {
+    ConfigurableKeyCommand,
+    QuickQuerySlot,
+} from "../../../sharedInterfaces/shortcutsConfiguration";
 import { ShortcutItem } from "./shortcutDefinitions";
 import {
     formatShortcut,
@@ -50,6 +54,7 @@ const controlHeight = "30px";
 const monoFont = "var(--vscode-editor-font-family, 'Cascadia Code', 'Fira Code', monospace)";
 type MonacoEditor = import("monaco-editor").editor.IStandaloneCodeEditor;
 type MonacoRange = import("monaco-editor").IRange;
+type Monaco = typeof import("monaco-editor");
 
 interface CutEdit {
     range: MonacoRange;
@@ -84,6 +89,58 @@ function insertTextIntoEditor(editor: MonacoEditor, text: string): void {
         })),
     );
     editor.pushUndoStop();
+}
+
+function registerSelectedTextCompletionProvider(
+    editor: MonacoEditor,
+    monaco: Monaco,
+    loc: typeof locConstants.shortcutsConfiguration,
+): import("monaco-editor").IDisposable | undefined {
+    const targetModel = editor.getModel();
+    if (!targetModel) {
+        return undefined;
+    }
+
+    return monaco.languages.registerCompletionItemProvider("sql", {
+        triggerCharacters: ["{"],
+        provideCompletionItems: (model, position) => {
+            if (model !== targetModel) {
+                return { suggestions: [] };
+            }
+
+            const lineContent = model.getLineContent(position.lineNumber);
+            const linePrefix = lineContent.slice(0, position.column - 1);
+            const partialArgument = /\{[A-Za-z_]*$/.exec(linePrefix);
+            const hasAutoClosingBrace = partialArgument && lineContent[position.column - 1] === "}";
+            const wordUntilPosition = model.getWordUntilPosition(position);
+            const currentWord =
+                model.getWordAtPosition(position) ||
+                (wordUntilPosition.word ? wordUntilPosition : undefined);
+            const range = new monaco.Range(
+                position.lineNumber,
+                partialArgument
+                    ? partialArgument.index + 1
+                    : (currentWord?.startColumn ?? position.column),
+                position.lineNumber,
+                hasAutoClosingBrace
+                    ? position.column + 1
+                    : (currentWord?.endColumn ?? position.column),
+            );
+
+            return {
+                suggestions: [
+                    {
+                        label: "{arg}",
+                        kind: monaco.languages.CompletionItemKind.Variable,
+                        insertText: "{arg}",
+                        detail: loc.selectedTextCompletionDetail,
+                        documentation: loc.selectedTextArgumentHint,
+                        range,
+                    },
+                ],
+            };
+        },
+    });
 }
 
 function getCutEdits(editor: MonacoEditor): CutEdit[] {
@@ -166,6 +223,33 @@ function deleteCutEdits(editor: MonacoEditor, edits: CutEdit[]): void {
     editor.pushUndoStop();
 }
 
+function useOutsidePointerClose(
+    surfaceRef: RefObject<HTMLElement | null>,
+    open: boolean,
+    onClose: () => void,
+): void {
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        const onPointerDown = (event: PointerEvent) => {
+            const surface = surfaceRef.current;
+            const target = event.target;
+            if (!surface || !(target instanceof Node) || surface.contains(target)) {
+                return;
+            }
+
+            event.preventDefault();
+            event.stopPropagation();
+            onClose();
+        };
+
+        document.addEventListener("pointerdown", onPointerDown, true);
+        return () => document.removeEventListener("pointerdown", onPointerDown, true);
+    }, [onClose, open, surfaceRef]);
+}
+
 const useStyles = makeStyles({
     saveIndicator: {
         alignItems: "center",
@@ -243,6 +327,72 @@ const useStyles = makeStyles({
         ":hover": {
             color: "var(--vscode-foreground)",
         },
+    },
+    vscodeManagedShortcutAction: {
+        alignItems: "center",
+        backgroundColor: "var(--vscode-input-background)",
+        border: "1px solid var(--vscode-input-border, var(--vscode-editorWidget-border))",
+        borderRadius: "4px",
+        color: "var(--vscode-descriptionForeground)",
+        cursor: "pointer",
+        display: "inline-flex",
+        flex: "0 0 auto",
+        font: "inherit",
+        fontSize: tokens.fontSizeBase200,
+        gap: "6px",
+        justifyContent: "flex-end",
+        minHeight: controlHeight,
+        overflow: "hidden",
+        padding: "5px 10px",
+        width: "220px",
+        whiteSpace: "nowrap",
+        ":hover": {
+            backgroundColor: "var(--vscode-toolbar-hoverBackground)",
+            borderBottomColor: "var(--vscode-focusBorder)",
+            borderLeftColor: "var(--vscode-focusBorder)",
+            borderRightColor: "var(--vscode-focusBorder)",
+            borderTopColor: "var(--vscode-focusBorder)",
+            color: "var(--vscode-foreground)",
+        },
+        ":focus-visible": {
+            outlineColor: "var(--vscode-focusBorder)",
+            outlineOffset: "2px",
+            outlineStyle: "solid",
+            outlineWidth: "1px",
+        },
+        ":hover .vscodeManagedShortcutActionText": {
+            opacity: 1,
+        },
+        ":hover .vscodeManagedShortcutActionOpenIcon": {
+            opacity: 1,
+        },
+        ":focus-visible .vscodeManagedShortcutActionText": {
+            opacity: 1,
+        },
+        ":focus-visible .vscodeManagedShortcutActionOpenIcon": {
+            opacity: 1,
+        },
+    },
+    vscodeManagedShortcutActionText: {
+        display: "inline-flex",
+        flex: "1 1 auto",
+        minWidth: 0,
+        opacity: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+    },
+    vscodeManagedShortcutActionIcon: {
+        display: "inline-flex",
+        flex: "0 0 auto",
+        height: "16px",
+        width: "16px",
+    },
+    vscodeManagedShortcutActionOpenIcon: {
+        display: "inline-flex",
+        flex: "0 0 auto",
+        height: "14px",
+        opacity: 0,
+        width: "14px",
     },
     webviewShortcutRow: {
         alignItems: "center",
@@ -396,6 +546,8 @@ export const ShortcutRecorder = ({
     const [liveModifiers, setLiveModifiers] = useState<string[]>([]);
     const surfaceRef = useRef<HTMLDivElement | null>(null);
 
+    useOutsidePointerClose(surfaceRef, true, onClose);
+
     useEffect(() => {
         surfaceRef.current?.focus();
     }, []);
@@ -448,7 +600,14 @@ export const ShortcutRecorder = ({
     const conflictTarget = hasPreview ? findConflict?.(preview) : undefined;
 
     return (
-        <Dialog open modalType="modal">
+        <Dialog
+            open
+            modalType="non-modal"
+            onOpenChange={(_event, data) => {
+                if (!data.open) {
+                    onClose();
+                }
+            }}>
             <DialogSurface
                 ref={surfaceRef}
                 className={classes.recorder}
@@ -569,6 +728,40 @@ export const ShortcutChip = ({
     );
 };
 
+export const VscodeManagedShortcutAction = ({
+    onOpen,
+    label,
+}: {
+    onOpen: () => void;
+    label: string;
+}) => {
+    const classes = useStyles();
+
+    return (
+        <button
+            type="button"
+            aria-label={label}
+            className={classes.vscodeManagedShortcutAction}
+            onClick={onOpen}>
+            <span
+                className={mergeClasses(
+                    classes.vscodeManagedShortcutActionText,
+                    "vscodeManagedShortcutActionText",
+                )}>
+                {locConstants.shortcutsConfiguration.viewConfigureKeybinding}
+            </span>
+            <Open16Regular
+                aria-hidden
+                className={mergeClasses(
+                    classes.vscodeManagedShortcutActionOpenIcon,
+                    "vscodeManagedShortcutActionOpenIcon",
+                )}
+            />
+            <Keyboard16Regular aria-hidden className={classes.vscodeManagedShortcutActionIcon} />
+        </button>
+    );
+};
+
 export const QuickQueryEditorDialog = ({
     slot,
     slotName,
@@ -593,6 +786,9 @@ export const QuickQueryEditorDialog = ({
     const classes = useStyles();
     const draftRef = useRef(slot.query);
     const editorRef = useRef<MonacoEditor | null>(null);
+    const surfaceRef = useRef<HTMLDivElement | null>(null);
+
+    useOutsidePointerClose(surfaceRef, open, onClose);
 
     useEffect(() => {
         if (open) {
@@ -708,17 +904,20 @@ export const QuickQueryEditorDialog = ({
     return (
         <Dialog
             open={open}
-            modalType="modal"
+            modalType="non-modal"
             onOpenChange={(_event, data) => {
                 if (!data.open) {
                     onClose();
                 }
             }}>
-            <DialogSurface className={classes.queryDialog}>
+            <DialogSurface ref={surfaceRef} className={classes.queryDialog}>
                 <DialogBody>
                     <DialogTitle>{loc.queryDialogTitle(slotName)}</DialogTitle>
                     <DialogContent className={classes.queryDialogContent}>
                         <Field className={classes.field} label={loc.query}>
+                            <MessageBar intent="info">
+                                <MessageBarBody>{loc.selectedTextArgumentHint}</MessageBarBody>
+                            </MessageBar>
                             <div
                                 className={classes.monacoShell}
                                 onKeyDownCapture={onEditorKeyDownCapture}
@@ -751,6 +950,12 @@ export const QuickQueryEditorDialog = ({
                                         draftRef.current = value ?? "";
                                     }}
                                     onMount={(editor, monaco) => {
+                                        const completionProvider =
+                                            registerSelectedTextCompletionProvider(
+                                                editor,
+                                                monaco,
+                                                loc,
+                                            );
                                         editor.addCommand(
                                             monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyV,
                                             () => {
@@ -767,6 +972,7 @@ export const QuickQueryEditorDialog = ({
                                         draftRef.current = editor.getValue();
                                         editor.focus();
                                         editor.onDidDispose(() => {
+                                            completionProvider?.dispose();
                                             if (editorRef.current === editor) {
                                                 editorRef.current = null;
                                             }
@@ -829,6 +1035,39 @@ export const WebviewShortcutRow = ({
                 value={value}
                 onRecord={onRecord}
                 recordLabel={`${loc.recordShortcut}: ${loc.webviewShortcutLabels[item.action]}`}
+            />
+        </div>
+    );
+};
+
+export const ConfigurableKeyCommandRow = ({
+    item,
+    onOpen,
+    loc,
+    searchTerm,
+}: {
+    item: ConfigurableKeyCommand;
+    onOpen: () => void;
+    loc: typeof locConstants.shortcutsConfiguration;
+    searchTerm: string;
+}) => {
+    const classes = useStyles();
+    const label = loc.configurableKeyCommandLabels[item.command];
+    const description = loc.configurableKeyCommandDescriptions[item.command];
+
+    return (
+        <div className={classes.webviewShortcutRow}>
+            <div>
+                <Text className={classes.rowLabel}>
+                    <HighlightedText text={label} searchTerm={searchTerm} />
+                </Text>
+                <Text className={classes.rowDescription}>
+                    <HighlightedText text={description} searchTerm={searchTerm} />
+                </Text>
+            </div>
+            <VscodeManagedShortcutAction
+                onOpen={onOpen}
+                label={loc.viewConfigureKeybindingTooltip(label)}
             />
         </div>
     );

@@ -5,7 +5,6 @@
 
 import * as vscode from "vscode";
 import { ConnectionUI } from "../../src/views/connectionUI";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IPrompter } from "../../src/prompts/question";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import ConnectionManager from "../../src/controllers/connectionManager";
@@ -19,7 +18,7 @@ import { AccountStore } from "../../src/azure/accountStore";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
-import { stubVscodeWrapper } from "./utils";
+import { stubVscodeWindow } from "./utils";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import * as LocConstants from "../../src/constants/locConstants";
 import { CREATE_NEW_GROUP_ID } from "../../src/sharedInterfaces/connectionGroup";
@@ -31,8 +30,7 @@ chai.use(sinonChai);
 suite("Connection UI tests", () => {
     let sandbox: sinon.SinonSandbox;
     let connectionUI: ConnectionUI;
-
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let vscodeWindowStubs: ReturnType<typeof stubVscodeWindow>;
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
     let accountStoreStub: sinon.SinonStubbedInstance<AccountStore>;
@@ -45,14 +43,13 @@ suite("Connection UI tests", () => {
     let quickPickShowStub: sinon.SinonStub;
     let quickPickHideStub: sinon.SinonStub;
     let quickPickDisposeStub: sinon.SinonStub;
+    let executeCommandStub: sinon.SinonStub;
     let onDidChangeSelectionEmitter: vscode.EventEmitter<IConnectionCredentialsQuickPickItem[]>;
     let onDidHideEmitter: vscode.EventEmitter<void>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
-        const outputChannel = vscodeWrapperStub.outputChannel;
+        vscodeWindowStubs = stubVscodeWindow(sandbox);
 
         quickPickShowStub = sandbox.stub();
         quickPickHideStub = sandbox.stub();
@@ -76,10 +73,9 @@ suite("Connection UI tests", () => {
             onDidHide: onDidHideEmitter.event,
         } as unknown as vscode.QuickPick<IConnectionCredentialsQuickPickItem>;
 
-        vscodeWrapperStub.createOutputChannel.returns(outputChannel);
-        vscodeWrapperStub.createQuickPick.returns(quickPick);
-        vscodeWrapperStub.showErrorMessage.resolves(undefined);
-        vscodeWrapperStub.executeCommand.resolves(undefined);
+        vscodeWindowStubs.createQuickPick.returns(quickPick);
+        vscodeWindowStubs.showErrorMessage.resolves(undefined);
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
 
         connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
         accountStoreStub = sandbox.createStubInstance(AccountStore);
@@ -95,12 +91,7 @@ suite("Connection UI tests", () => {
             promptCallback: sandbox.stub(),
         } as unknown as IPrompter;
 
-        connectionUI = new ConnectionUI(
-            connectionManagerStub,
-            accountStoreStub,
-            prompter,
-            vscodeWrapperStub,
-        );
+        connectionUI = new ConnectionUI(connectionManagerStub, accountStoreStub, prompter);
     });
 
     teardown(() => {
@@ -186,7 +177,7 @@ suite("Connection UI tests", () => {
         await connectionUI.promptToChangeLanguageMode();
 
         expect(promptSingleStub).to.have.been.calledOnce;
-        expect(vscodeWrapperStub.executeCommand).to.have.been.calledOnceWithExactly(
+        expect(executeCommandStub).to.have.been.calledOnceWithExactly(
             "workbench.action.editor.changeLanguageMode",
         );
     });
@@ -197,7 +188,7 @@ suite("Connection UI tests", () => {
         await connectionUI.promptToChangeLanguageMode();
 
         expect(promptSingleStub).to.have.been.calledOnce;
-        expect(vscodeWrapperStub.executeCommand).to.not.have.been.called;
+        expect(executeCommandStub).to.not.have.been.called;
     });
 
     test("removeProfile should prompt for a profile and remove it", async () => {
@@ -231,7 +222,7 @@ suite("Connection UI tests", () => {
 
         expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnce;
         expect(promptStub).to.not.have.been.called;
-        expect(vscodeWrapperStub.showErrorMessage).to.have.been.calledOnce;
+        expect(vscodeWindowStubs.showErrorMessage).to.have.been.calledOnce;
     });
 
     test("promptToManageProfiles should prompt to manage profile", async () => {
@@ -265,7 +256,7 @@ suite("Connection UI tests", () => {
         await connectionUI.promptToManageProfiles();
 
         expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnce;
-        expect(vscodeWrapperStub.executeCommand).to.have.been.calledWithExactly(
+        expect(executeCommandStub).to.have.been.calledWithExactly(
             "mssql.editConnection",
             selectedProfileItem.connectionCreds,
         );
@@ -277,12 +268,10 @@ suite("Connection UI tests", () => {
         const result = await connectionUI.editProfile();
 
         expect(result).to.be.false;
-        expect(vscodeWrapperStub.showErrorMessage).to.have.been.calledOnceWithExactly(
+        expect(vscodeWindowStubs.showErrorMessage).to.have.been.calledOnceWithExactly(
             LocConstants.msgNoProfilesToEdit,
         );
-        expect(vscodeWrapperStub.executeCommand).to.not.have.been.calledWith(
-            "mssql.editConnection",
-        );
+        expect(executeCommandStub).to.not.have.been.calledWith("mssql.editConnection");
     });
 
     test("getConnectionGroupOptions", async () => {

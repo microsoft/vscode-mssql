@@ -23,6 +23,12 @@ export function buildCapabilitiesResult(): CapabilitiesResult {
                         valueType: "string",
                     },
                     {
+                        name: "port",
+                        displayName: "Port",
+                        isRequired: false,
+                        valueType: "number",
+                    },
+                    {
                         name: "user",
                         displayName: "User",
                         isRequired: false,

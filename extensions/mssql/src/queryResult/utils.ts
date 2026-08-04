@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as Constants from "../constants/constants";
 import * as vscode from "vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
@@ -14,7 +13,7 @@ import {
     showQuery,
     updateTotalCost,
 } from "../controllers/sharedExecutionPlanUtils";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import * as qr from "../sharedInterfaces/queryResult";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
@@ -26,17 +25,17 @@ import { getLogger } from "../models/logger";
 export const MAX_VIEW_COLUMN = 9;
 const logger = getLogger("QueryResult");
 
-export function getNewResultPaneViewColumn(
-    uri: string,
-    vscodeWrapper: VscodeWrapper,
-): vscode.ViewColumn {
+export function getNewResultPaneViewColumn(uri: string): vscode.ViewColumn {
     // // Find configuration options
-    let config = vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName, uri);
-    let splitPaneSelection = config[Constants.configSplitPaneSelection];
+    let config = vscode.workspace.getConfiguration(
+        Constants.extensionConfigSectionName,
+        vscode.Uri.parse(uri),
+    );
+    let splitPaneSelection = config.get<string>(Constants.configSplitPaneSelection);
 
     switch (splitPaneSelection) {
         case "current":
-            return vscodeWrapper.activeTextEditor.viewColumn;
+            return vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One;
         case "end":
             const visibleEditors = vscode.window.visibleTextEditors;
             const maxViewColumn = visibleEditors.reduce((max, editor) => {
@@ -71,6 +70,14 @@ export function registerCommonRequestHandlers(
         webviewController instanceof QueryResultWebviewController
             ? webviewController
             : webviewController.getQueryResultWebviewViewController();
+
+    webviewController.onRequest(qr.CloseResultsPanelRequest.type, async () => {
+        await vscode.commands.executeCommand("workbench.action.closePanel");
+    });
+
+    webviewController.onRequest(qr.HandleSelectionSummaryRequest.type, async (uri) => {
+        webviewViewController.handleSelectionSummary(uri);
+    });
 
     webviewController.onRequest(qr.GetRowsRequest.type, async (message) => {
         const result = await webviewViewController
@@ -206,7 +213,7 @@ export function registerCommonRequestHandlers(
     });
 
     webviewController.onRequest(qr.CopyColumnNameRequest.type, async (message) => {
-        await webviewViewController.getVsCodeWrapper().clipboardWriteText(message.columnName);
+        await vscode.env.clipboard.writeText(message.columnName);
     });
 
     // Register request handlers for query result filters
@@ -306,6 +313,12 @@ export function registerCommonRequestHandlers(
     });
 
     webviewController.onNotification(qr.SetSelectionSummaryRequest.type, async (message) => {
+        webviewViewController.updateSelectionState(
+            message.uri,
+            message.gridId,
+            message.selection,
+            message.displaySelection,
+        );
         // Fetch all the data needed for the summary
         await webviewViewController
             .getSqlOutputContentProvider()
@@ -345,7 +358,6 @@ export function registerCommonRequestHandlers(
             }
             openExecutionPlanWebview(
                 webviewViewController.getContext(),
-                webviewViewController.getVsCodeWrapper(),
                 webviewViewController.executionPlanService,
                 webviewViewController.sqlDocumentService,
                 payload.content,

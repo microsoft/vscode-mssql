@@ -21,19 +21,14 @@ interface LoggerChannelState {
 
 let defaultChannel: vscode.LogOutputChannel | undefined;
 const defaultChannelState: LoggerChannelState = {
-    createChannel: getDefaultChannel,
+    createChannel: () => {
+        defaultChannel ??= vscode.window.createOutputChannel(loggerOutputChannelName, {
+            log: true,
+        });
+        return defaultChannel;
+    },
     ownsChannel: false,
 };
-
-/**
- * Returns the shared MSSQL log channel, creating it on first use.
- */
-function getDefaultChannel(): vscode.LogOutputChannel {
-    defaultChannel ??= vscode.window.createOutputChannel(loggerOutputChannelName, {
-        log: true,
-    });
-    return defaultChannel;
-}
 
 /**
  * Ensures a string is normalized to a single line by replacing newlines with spaces.
@@ -234,7 +229,8 @@ export default logger;
  * Exported for unit tests to isolate the cached default channel.
  */
 export function resetLoggerDefaultChannelForTest(): void {
-    defaultChannel?.dispose();
+    // Keep the channel alive to avoid race conditions with late async log callbacks
+    // that can run after test teardown and throw "Channel has been closed".
     defaultChannel = undefined;
     defaultChannelState.cachedChannel = undefined;
 }

@@ -11,11 +11,9 @@ import * as vscode from "vscode";
 import Sinon, * as sinon from "sinon";
 
 import { WebviewBaseController } from "../../src/controllers/webviewBaseController";
-import { stubTelemetry, stubVscodeWrapper } from "./utils";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { stubTelemetry } from "./utils";
 import {
     ColorThemeChangeNotification,
-    ExecuteCommandRequest,
     GetKeyBindingsConfigRequest,
     GetLocalizationRequest,
     GetStateRequest,
@@ -52,7 +50,6 @@ suite("WebviewController Tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
-        vscodeWrapper = stubVscodeWrapper(sandbox);
 
         configChangeHandlers = [];
         getConfigurationStub = sandbox.stub(vscode.workspace, "getConfiguration").callsFake(() => {
@@ -119,10 +116,6 @@ suite("WebviewController Tests", () => {
             onRequestStub,
             "GetLocalizationRequest handler is not registered",
         ).to.have.been.calledWith(GetLocalizationRequest.type, sinon.match.any);
-        expect(
-            onRequestStub,
-            "ExecuteCommandRequest handler is not registered",
-        ).to.have.been.calledWith(ExecuteCommandRequest.type, sinon.match.any);
         expect(
             onNotificationStub,
             "LoadStatsNotification handler is not registered",
@@ -281,13 +274,11 @@ interface TestReducers {
     decrement: { amount: number };
 }
 
-let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
-
 class TestWebviewController extends WebviewBaseController<TestState, TestReducers> {
     public _webview: TestWebView;
 
     constructor(context: vscode.ExtensionContext, sourceFile: string, initialData: TestState) {
-        super(context, vscodeWrapper, sourceFile, initialData);
+        super(context, sourceFile, initialData);
         this._webview = {
             postMessage: sinon.stub(),
             options: {},

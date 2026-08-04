@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import * as path from "path";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import {
     CodeAnalysisState,
     CodeAnalysisReducers,
@@ -15,7 +14,7 @@ import {
 } from "../sharedInterfaces/codeAnalysis";
 import * as constants from "../constants/constants";
 import { CodeAnalysis as Loc } from "../constants/locConstants";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { DacFxService } from "../services/dacFxService";
@@ -34,7 +33,6 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         projectFilePath: string,
         private dacFxService: DacFxService,
         private sqlProjectsService: SqlProjectsService,
@@ -43,7 +41,6 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
 
         super(
             context,
-            vscodeWrapper,
             constants.codeAnalysisViewId,
             constants.codeAnalysisViewId,
             {

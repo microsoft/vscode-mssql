@@ -20,7 +20,7 @@ import { IScriptingObject, IServerInfo } from "vscode-mssql";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { startActivity } from "../telemetry/telemetry";
+import { startActivity } from "extension-toolkit/vscode";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Constants from "../constants/constants";
 import { getErrorMessage, getUriKey } from "../utils/utils";
@@ -30,7 +30,6 @@ import { IConnectionProfile } from "../models/interfaces";
 import StatusView from "../views/statusView";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { UserSurvey } from "../nps/userSurvey";
 
 export const SCRIPT_OPERATION_CANCELED_ERROR = "Scripting operation cancelled by user.";
@@ -49,7 +48,6 @@ export class ScriptingService {
 
     constructor(
         private _context: vscode.ExtensionContext,
-        _vscodeWrapper: VscodeWrapper,
         private _connectionManager: ConnectionManager,
         private _sqlDocumentService: SqlDocumentService,
         private _sqlOutputContentProvider: SqlOutputContentProvider,

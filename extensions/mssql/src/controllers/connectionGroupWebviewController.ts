@@ -5,14 +5,13 @@
 
 import * as vscode from "vscode";
 import { WebviewPanelController } from "./webviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
 import {
     ConnectionGroupState,
     ConnectionGroupReducers,
     ConnectionGroupSpec,
     CreateConnectionGroupDialogProps,
 } from "../sharedInterfaces/connectionGroup";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { Deferred } from "../protocol";
@@ -33,14 +32,12 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private connectionConfig: ConnectionConfig,
         private connectionGroupToEdit?: IConnectionGroup,
     ) {
         super(
             context,
-            vscodeWrapper,
-            "ConnectionGroup",
+            "connectionGroup",
             "ConnectionGroup",
             {
                 existingGroupName: connectionGroupToEdit?.name,

@@ -12,10 +12,8 @@ import {
     PublicClientApplication,
     SilentFlowRequest,
 } from "@azure/msal-node";
-import * as url from "url";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../../constants/locConstants";
-import VscodeWrapper from "../../controllers/vscodeWrapper";
 import {
     AccountType,
     AzureAuthType,
@@ -52,7 +50,6 @@ export abstract class MsalAzureAuth {
         protected readonly context: vscode.ExtensionContext,
         protected clientApplication: PublicClientApplication,
         protected readonly authType: AzureAuthType,
-        protected readonly vscodeWrapper: VscodeWrapper,
         protected readonly logger: ILogger,
     ) {
         this.loginEndpointUrl =
@@ -303,10 +300,10 @@ export abstract class MsalAzureAuth {
     }
 
     public async getTenants(token: string): Promise<ITenant[]> {
-        const tenantUri = url.resolve(
-            this.providerSettings.settings.armResource.endpoint,
+        const tenantUri = new URL(
             "tenants?api-version=2019-11-01",
-        );
+            this.providerSettings.settings.armResource.endpoint,
+        ).toString();
         try {
             this.logger.debug("Fetching tenants with uri {0}", tenantUri);
             let tenantList: string[] = [];

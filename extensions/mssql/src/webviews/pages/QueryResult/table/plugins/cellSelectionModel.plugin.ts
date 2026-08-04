@@ -8,6 +8,7 @@
 
 import { CellRangeSelector, ICellRangeSelector } from "./cellRangeSelector";
 import {
+    ISlickRange,
     ResultSetSummary,
     SetSelectionSummaryRequest,
 } from "../../../../../sharedInterfaces/queryResult";
@@ -149,10 +150,10 @@ export class CellSelectionModel<T extends Slick.SlickData>
         return result;
     }
 
-    public setSelectedRanges(ranges: Array<Slick.Range>): void {
+    public setSelectedRanges(ranges: Array<Slick.Range>, updateSummary: boolean = true): void {
         this.ranges = this.removeInvalidRanges(ranges);
         this.onSelectedRangesChanged.notify(this.ranges);
-        if (this.context) {
+        if (updateSummary && this.context) {
             void this.updateSummaryText(this.ranges);
         }
     }
@@ -926,12 +927,18 @@ export class CellSelectionModel<T extends Slick.SlickData>
     }
 
     public async updateSummaryText(ranges?: Slick.Range[]): Promise<void> {
-        if (!this.context || !this.uri || !this.resultSetSummary) {
+        if (!this.context || !this.uri || !this.resultSetSummary || !this.gridId) {
             return;
         }
         if (!ranges) {
             ranges = this.getSelectedRanges();
         }
+        const displaySelection: ISlickRange[] = ranges.map((range) => ({
+            fromRow: range.fromRow,
+            fromCell: range.fromCell,
+            toRow: range.toRow,
+            toCell: range.toCell,
+        }));
         const simplifiedRanges = ranges.map((range) => ({
             fromRow: range.fromRow,
             fromCell: range.fromCell - 1, // adjust for number column
@@ -941,7 +948,9 @@ export class CellSelectionModel<T extends Slick.SlickData>
         const actualRanges = convertDisplayedSelectionToActual(this.grid, simplifiedRanges);
         await this.context.extensionRpc.sendNotification(SetSelectionSummaryRequest.type, {
             selection: actualRanges,
+            displaySelection,
             uri: this.uri,
+            gridId: this.gridId,
             batchId: this.resultSetSummary.batchId,
             resultId: this.resultSetSummary.id,
         });

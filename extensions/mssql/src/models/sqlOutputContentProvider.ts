@@ -10,11 +10,10 @@ import * as Interfaces from "./interfaces";
 import QueryRunner from "../controllers/queryRunner";
 import ResultsSerializer from "./resultsSerializer";
 import StatusView from "../views/statusView";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ISelectionData } from "./interfaces";
 import { Deferred } from "../protocol";
 import { ExecutionPlanOptions, ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { IMessage, QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -24,6 +23,7 @@ import { countResultSets, isOpenQueryResultsInTabByDefaultEnabled } from "../que
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { getErrorMessage } from "../utils/utils";
 import { getLogger } from "./logger";
+import * as Utils from "./utils";
 // Use CommonJS import here because lodash/throttle is CJS; default ESM-style import
 // can transpile to throttle_1.default and fail at runtime in unit tests.
 import throttle = require("lodash/throttle");
@@ -47,6 +47,10 @@ class ResultsConfig implements Interfaces.IResultsConfig {
     resultsFontFamily: string;
 }
 
+function getSelectionSummaryDisplayText(text?: string): string | undefined {
+    return text?.replace(/\$\([^)]+\)\s*/g, "").trim();
+}
+
 export class SqlOutputContentProvider {
     private _queryResultsMap: Map<string, QueryRunnerState> = new Map<string, QueryRunnerState>();
     private _queryResultWebviewController: QueryResultWebviewController;
@@ -58,13 +62,8 @@ export class SqlOutputContentProvider {
     constructor(
         private _context: vscode.ExtensionContext,
         private _statusView: StatusView,
-        private _vscodeWrapper: VscodeWrapper,
         private _executionPlanService: ExecutionPlanService,
     ) {
-        if (!_vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
-
         /**
          * TODO: aaskhan
          * Remove query results management code from queryResultwebviewController so
@@ -72,7 +71,6 @@ export class SqlOutputContentProvider {
          */
         this._queryResultWebviewController = new QueryResultWebviewController(
             this._context,
-            this._vscodeWrapper,
             this._executionPlanService,
             this,
         );
@@ -117,7 +115,7 @@ export class SqlOutputContentProvider {
          */
         this._context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdToggleActualPlan, async () => {
-                const uri = this._vscodeWrapper.activeTextEditorUri;
+                const uri = Utils.getActiveTextEditorUri();
 
                 if (!uri) {
                     return;
@@ -140,7 +138,7 @@ export class SqlOutputContentProvider {
                     return;
                 }
 
-                const uri = this._vscodeWrapper.activeTextEditorUri;
+                const uri = Utils.getActiveTextEditorUri();
                 if (!uri) {
                     return;
                 }
@@ -185,13 +183,13 @@ export class SqlOutputContentProvider {
 
     public configRequestHandler(uri: string): Promise<Interfaces.IResultsConfig> {
         let queryUri = this._queryResultsMap.get(uri).queryRunner.uri;
-        let extConfig = this._vscodeWrapper.getConfiguration(
+        let extConfig = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            queryUri,
+            vscode.Uri.parse(queryUri),
         );
         let config = new ResultsConfig();
-        for (let key in Constants.extConfigResultKeys) {
-            config[key] = extConfig[key];
+        for (let key of Object.values(Constants.extConfigResultKeys)) {
+            (config as unknown as Record<string, unknown>)[key] = extConfig.get(key);
         }
         return Promise.resolve(config);
     }
@@ -215,7 +213,7 @@ export class SqlOutputContentProvider {
         uri: string,
         batchId: number,
         resultId: number,
-        selection,
+        selection: Interfaces.ISlickRange[],
     ): void {
         void this._queryResultsMap.get(uri).queryRunner.copyHeaders(batchId, resultId, selection);
     }
@@ -292,11 +290,11 @@ export class SqlOutputContentProvider {
     }
 
     public showErrorRequestHandler(message: string): void {
-        this._vscodeWrapper.showErrorMessage(message);
+        vscode.window.showErrorMessage(message);
     }
 
     public showWarningRequestHandler(message: string): void {
-        this._vscodeWrapper.showWarningMessage(message);
+        vscode.window.showWarningMessage(message);
     }
 
     //#endregion
@@ -374,6 +372,49 @@ export class SqlOutputContentProvider {
     }
 
     /**
+     * Runs SQL text against the connection owned by an editor URI without reading or changing the
+     * editor document. Results remain associated with that editor's normal results view.
+     * @param statusView Status view updated while the query executes.
+     * @param uri URI identifying the editor connection and results view.
+     * @param query SQL text to execute.
+     * @param title Title used when initializing the query results view.
+     * @param promise Optional deferred operation completed with the query result.
+     * @returns A promise that resolves after the execution request is submitted.
+     */
+    public async runQueryString(
+        statusView: StatusView,
+        uri: string,
+        query: string,
+        title: string,
+        promise?: Deferred<boolean>,
+    ): Promise<void> {
+        if (!this.tryAcquireExecutionSlot(uri)) {
+            promise?.reject(false);
+            return;
+        }
+
+        try {
+            const runner = await this.initializeRunnerAndWebviewState(
+                statusView ? statusView : this._statusView,
+                uri,
+                title,
+            );
+            if (!runner) {
+                this.releaseExecutionSlot(uri);
+                promise?.reject(false);
+                return;
+            }
+
+            this.releaseExecutionSlotOnComplete(runner);
+            await runner.runQueryString(query, promise);
+        } catch (error) {
+            this.releaseExecutionSlot(uri);
+            promise?.reject(false);
+            logger.error(`Error running query string for ${uri}: ${getErrorMessage(error)}`);
+        }
+    }
+
+    /**
      * Runs a query against the database for the current statement based on the cursor position.
      * If there is a selection, it will run the selection else it will run the current statement.
      * @param statusView The status view to use for showing query progress
@@ -418,7 +459,7 @@ export class SqlOutputContentProvider {
 
     private tryAcquireExecutionSlot(uri: string): boolean {
         if (this._queryExecutionInFlightUris.has(uri)) {
-            this._vscodeWrapper.showInformationMessage(LocalizedConstants.msgRunQueryInProgress);
+            vscode.window.showInformationMessage(LocalizedConstants.msgRunQueryInProgress);
             return false;
         }
 
@@ -494,9 +535,7 @@ export class SqlOutputContentProvider {
 
             // If the query is already in progress, don't attempt to send it
             if (existingRunner.isExecutingQuery) {
-                this._vscodeWrapper.showInformationMessage(
-                    LocalizedConstants.msgRunQueryInProgress,
-                );
+                vscode.window.showInformationMessage(LocalizedConstants.msgRunQueryInProgress);
                 return;
             } else {
                 // Cancel any lingering queries that haven't been disposed yet
@@ -509,7 +548,7 @@ export class SqlOutputContentProvider {
         } else {
             // We do not have a query runner for this editor, so create a new one
             // and map it to the results uri
-            queryRunner = new QueryRunner(uri, title, statusView ? statusView : this._statusView);
+            queryRunner = new QueryRunner(uri, title, statusView);
 
             const startFailedListener = queryRunner.onStartFailed(async (error) => {
                 this.updateWebviewState(queryRunner.uri, {
@@ -518,6 +557,10 @@ export class SqlOutputContentProvider {
                     executionPlanState: {},
                     messages: [],
                     fontSettings: { fontSize: 0, fontFamily: "" },
+                    isExecuting: false,
+                    executionStartTime: undefined,
+                    executionElapsedMilliseconds: undefined,
+                    rowsAffected: undefined,
                 });
             });
 
@@ -528,6 +571,10 @@ export class SqlOutputContentProvider {
                 resultWebviewState.tabStates.resultPaneTab = QueryResultPaneTabs.Messages;
                 resultWebviewState.isExecutionPlan = false;
                 resultWebviewState.initializationError = undefined;
+                resultWebviewState.isExecuting = true;
+                resultWebviewState.executionStartTime = Date.now();
+                resultWebviewState.executionElapsedMilliseconds = undefined;
+                resultWebviewState.rowsAffected = undefined;
                 this.updateWebviewState(queryRunner.uri, resultWebviewState);
                 this.revealQueryResult(queryRunner.uri, "throw");
                 sendActionEvent(TelemetryViews.QueryResult, TelemetryActions.OpenQueryResult, {
@@ -595,12 +642,15 @@ export class SqlOutputContentProvider {
                     selection: batch.selection,
                     isError: false,
                     time: time,
-                    link: {
-                        text: LocalizedConstants.runQueryBatchStartLine(
-                            batch.selection.startLine + 1,
-                        ),
-                        uri: queryRunner.uri,
-                    },
+                    link:
+                        queryRunner.executionSource === "quickQuery"
+                            ? undefined
+                            : {
+                                  text: LocalizedConstants.runQueryBatchStartLine(
+                                      batch.selection.startLine + 1,
+                                  ),
+                                  uri: queryRunner.uri,
+                              },
                 };
 
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
@@ -616,15 +666,18 @@ export class SqlOutputContentProvider {
                 );
 
                 resultWebviewState.messages.push(message);
+                if (typeof message.rowsAffected === "number") {
+                    resultWebviewState.rowsAffected = message.rowsAffected;
+                }
 
                 this.scheduleThrottledUpdate(queryRunner.uri);
             });
 
             const onCompleteListener = queryRunner.onComplete(async (e) => {
-                const { totalMilliseconds, hasError, isRefresh } = e;
+                const { totalMilliseconds, totalElapsedMilliseconds, hasError, isRefresh } = e;
                 if (!isRefresh) {
                     // only update query history with new queries
-                    this._vscodeWrapper.executeCommand(
+                    vscode.commands.executeCommand(
                         Constants.cmdRefreshQueryHistory,
                         queryRunner.uri,
                         hasError,
@@ -634,6 +687,9 @@ export class SqlOutputContentProvider {
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
                     queryRunner.uri,
                 );
+                resultWebviewState.isExecuting = false;
+                resultWebviewState.executionStartTime = undefined;
+                resultWebviewState.executionElapsedMilliseconds = totalElapsedMilliseconds;
                 resultWebviewState.messages.push({
                     message: LocalizedConstants.elapsedTimeLabel(totalMilliseconds),
                     isError: false, // Elapsed time messages are never displayed as errors
@@ -695,11 +751,21 @@ export class SqlOutputContentProvider {
                     return;
                 }
                 state.selectionSummary = {
+                    stats: e.stats,
                     text: e.text,
+                    displayText: getSelectionSummaryDisplayText(e.text),
                     command: e.command,
                     tooltip: e.tooltip,
-                    continue: e.continue,
+                    batchId: e.batchId,
+                    resultId: e.resultId,
                 };
+                this._queryResultWebviewController.setSelectionSummaryContinuation(
+                    e.uri,
+                    e.continue as Deferred<void> | undefined,
+                );
+                this.updateWebviewState(e.uri, state);
+                // Refresh the editor status bar summary, which is shown when the results footer
+                // preview is disabled.
                 this._queryResultWebviewController.updateSelectionSummary();
             });
 
@@ -724,7 +790,6 @@ export class SqlOutputContentProvider {
     }
 
     public async cancelQuery(input: QueryRunner | string): Promise<void> {
-        let self = this;
         let queryRunner: QueryRunner;
 
         if (typeof input === "string") {
@@ -737,7 +802,7 @@ export class SqlOutputContentProvider {
         }
 
         if (queryRunner === undefined || !queryRunner.isExecutingQuery) {
-            self._vscodeWrapper.showInformationMessage(LocalizedConstants.msgCancelQueryNotRunning);
+            vscode.window.showInformationMessage(LocalizedConstants.msgCancelQueryNotRunning);
             return;
         }
 
@@ -749,7 +814,7 @@ export class SqlOutputContentProvider {
             await queryRunner.cancel();
         } catch (error) {
             // On error, show error message
-            self._vscodeWrapper.showErrorMessage(
+            vscode.window.showErrorMessage(
                 LocalizedConstants.msgCancelQueryFailed(getErrorMessage(error)),
             );
         }
@@ -875,7 +940,7 @@ export class SqlOutputContentProvider {
     }
 
     public onToggleActualPlan(isEnable: boolean): void {
-        const uri = this._vscodeWrapper.activeTextEditorUri;
+        const uri = Utils.getActiveTextEditorUri();
         let actualPlanStatuses = this._actualPlanStatuses;
 
         // adds the current uri to the list of uris with actual plan enabled
@@ -893,7 +958,6 @@ export class SqlOutputContentProvider {
      * Open a xml/json link - Opens the content in a new editor pane
      */
     public openLink(content: string, columnName: string, linkType: string): void {
-        const self = this;
         if (linkType === "xml") {
             try {
                 content = pd.xml(content);
@@ -923,19 +987,19 @@ export class SqlOutputContentProvider {
                             })
                             .then((result) => {
                                 if (!result) {
-                                    self._vscodeWrapper.showErrorMessage(
+                                    vscode.window.showErrorMessage(
                                         LocalizedConstants.msgCannotOpenContent,
                                     );
                                 }
                             });
                     },
                     (error) => {
-                        self._vscodeWrapper.showErrorMessage(error);
+                        vscode.window.showErrorMessage(getErrorMessage(error));
                     },
                 );
             },
             (error) => {
-                self._vscodeWrapper.showErrorMessage(error);
+                vscode.window.showErrorMessage(getErrorMessage(error));
             },
         );
     }
@@ -1005,23 +1069,23 @@ export class SqlOutputContentProvider {
      */
     public newResultPaneViewColumn(queryUri: string): vscode.ViewColumn {
         // Find configuration options
-        let config = this._vscodeWrapper.getConfiguration(
+        let config = vscode.workspace.getConfiguration(
             Constants.extensionConfigSectionName,
-            queryUri,
+            vscode.Uri.parse(queryUri),
         );
-        let splitPaneSelection = config[Constants.configSplitPaneSelection];
+        let splitPaneSelection = config.get<string>(Constants.configSplitPaneSelection);
         let viewColumn: vscode.ViewColumn;
 
         switch (splitPaneSelection) {
             case "current":
-                viewColumn = this._vscodeWrapper.activeTextEditor.viewColumn;
+                viewColumn = vscode.window.activeTextEditor?.viewColumn ?? vscode.ViewColumn.One;
                 break;
             case "end":
                 viewColumn = vscode.ViewColumn.Three;
                 break;
             // default case where splitPaneSelection is next or anything else
             default:
-                if (this._vscodeWrapper.activeTextEditor.viewColumn === vscode.ViewColumn.One) {
+                if (vscode.window.activeTextEditor.viewColumn === vscode.ViewColumn.One) {
                     viewColumn = vscode.ViewColumn.Two;
                 } else {
                     viewColumn = vscode.ViewColumn.Three;
@@ -1029,10 +1093,6 @@ export class SqlOutputContentProvider {
         }
 
         return viewColumn;
-    }
-
-    set setVscodeWrapper(wrapper: VscodeWrapper) {
-        this._vscodeWrapper = wrapper;
     }
 
     get getResultsMap(): Map<string, QueryRunnerState> {

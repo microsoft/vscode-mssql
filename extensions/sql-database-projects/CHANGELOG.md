@@ -6,6 +6,18 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
+## [1.6.3] - 2026-08-19
+
+- Fixed an issue where the **Rename Symbol** feature was incorrectly enabled on SQL alias identifiers (column aliases, table aliases, subquery aliases, and CTE names), which could generate an invalid `.refactorlog` entry.
+
+## [1.6.2] - 2026-07-15
+
+- Added **Rename Symbol** refactoring support for SQL project files.
+- Added **Move to Schema** refactoring support for SQL project files.
+- Adds support for Microsoft.Build.Sql version to 2.2.0.
+- Removed the preview feature **"Generate SQL Projects from OpenAPI/Swagger spec"**.
+- Fixed an issue where database projects created objects with wrong path delimiter on Linux/macOS.
+
 ## [1.6.1] - 2026-06-03
 
 - Fixed an issue where SQL Database projects would fail when being built into a dacpac

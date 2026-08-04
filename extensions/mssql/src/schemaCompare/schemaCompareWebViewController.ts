@@ -38,9 +38,8 @@ import {
     showOpenDialogForDacpacOrSqlProj,
     includeExcludeAllNodes,
 } from "./schemaCompareUtils";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { DiffEntry } from "vscode-mssql";
-import { sendActionEvent, startActivity, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity, sendErrorEvent } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
@@ -66,7 +65,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         sourceNode:
             | ConnectionNode
             | TreeNodeInfo
@@ -87,7 +85,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     ) {
         super(
             context,
-            vscodeWrapper,
             SCHEMA_COMPARE_VIEW_ID,
             SCHEMA_COMPARE_VIEW_ID,
             {

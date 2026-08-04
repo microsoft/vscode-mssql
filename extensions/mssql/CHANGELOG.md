@@ -1,5 +1,16 @@
 # Change Log
 
+## Version 1.44.1
+
+- Release date: July 29, 2026
+- Release status: GA
+
+### What's new in 1.44.1
+
+- Fixed an issue where some connection-related dialogs would be blank when opened on systems with case-sensitive file-systems
+- Added support for selected text in Quick Query shortcuts
+- Fixed an issue where Intellisense would stop working in SQL Notebooks when the notebook was saved and/or reconnected.
+
 ## Version 1.44.0
 
 - Release date: July 15, 2026
@@ -7,7 +18,15 @@
 
 ### What's new in 1.44.0
 
-- Fixed an issue in Schema Compare where controls remained enabled and stale diff results stayed visible after apply, which could cause subsequent apply attempts to fail, and added a loading indicator during the apply operation
+- Introduced Shortcuts Configuration (Preview), allowing you to create and manage keyboard shortcuts for Quick Queries, the Query Editor, and the Results Grid.
+- Added a new Query Results Grid experience (Preview) with improved state management and the ability to show, hide, and freeze columns. Enable with `mssql.preview.betaResultsGrid` in settings.
+- Added an option to include timestamps when using Copy All in the Messages panel. Enable with `mssql.messages.copyIncludeTimestamps` in settings.
+- Fixed an issue where some users were unable to connect to Dataverse/Dynamics environments
+- Improved connection stability when connecting to paused serverless Azure SQL databases
+- Fixed DACPAC deployment failures on Linux/WSL2 caused by invalid path separators
+- Added a warning when a rename or refactor in SQL Database Projects would create a duplicate object name
+- Fixed SQL Database Projects Go-to-Definition on macOS and Linux
+- Fixed the Object Explorer stored procedure filter dialog not loading
 
 ## Version 1.43.0
 
@@ -93,13 +112,14 @@
 ### What's new in 1.40.0
 
 - Added the Global Object Search dialog, enabling users to easily search for objects across their entire database
-- Added Backup Database and Restore Database dialogs (both Preview) allowing users to back up locally or to URL, and to restore from database, .BAK file, or URL.
+- Added Backup Database and Restore Database dialogs (both Preview) allowing users to back up locally or to URL, and to restore from database, .BAK file, or URL
 - Added Flat File Import dialog (Preview) allowing users to import data from CSV and TXT files
 - Added Create, Rename, and Drop Database dialogs (Preview) enabling users to easily manage their databases
 - Added Query Profiler (Preview) to support users in monitoring and analyzing their database performance
 - Added support for SQL Server 2025 containers on ARM-based macOS devices
 - Added the ability to import connection configuration settings from Azure Data Studio to the Migration Toolkit Dialog, and a MSSQL Data Management Keymap to add familiar shortcuts from Azure Data Studio
-- Fixed several SQL Database Projects issues including Fabric SQL project database reference deletion, unresolved system database references, and `tasks.json` placement when creating a project in an existing workspace
+- Released general availability of the Publish Project dialog for SQL Database Projects
+- Fixed several SQL Database Projects bugs related to database references and building in VS Code
 
 ## Version 1.39.0
 

@@ -652,12 +652,14 @@ const QueryResultFluentResultGrid = forwardRef<ResultGridHandle, ResultGridProps
 
             void context.extensionRpc.sendNotification(qr.SetSelectionSummaryRequest.type, {
                 selection: [...selection],
+                displaySelection: [...selection],
                 uri,
+                gridId: props.gridId,
                 batchId: resultSetSummary.batchId,
                 resultId: resultSetSummary.id,
             });
         },
-        [context, resultSetSummary, uri],
+        [context, props.gridId, resultSetSummary, uri],
     );
 
     const handleCommand = useCallback(

@@ -16,15 +16,13 @@ import * as vscode from "vscode";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { sqlPlanLanguageId } from "../constants/constants";
 import { executionPlanFileFilter } from "../constants/locConstants";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
-import VscodeWrapper from "./vscodeWrapper";
 
 export function openExecutionPlanWebview(
     context: vscode.ExtensionContext,
-    vscodeWrapper: VscodeWrapper,
     executionPlanService: ExecutionPlanService,
     sqlDocumentService: SqlDocumentService,
     planContents: string,
@@ -32,7 +30,6 @@ export function openExecutionPlanWebview(
 ) {
     const executionPlanController = new ExecutionPlanWebviewController(
         context,
-        vscodeWrapper,
         executionPlanService,
         sqlDocumentService,
         planContents,

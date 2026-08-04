@@ -189,6 +189,14 @@ suite("DabService Tests", () => {
                 expect(result.connectionString).to.include("Data Source=host.docker.internal,1433");
             });
 
+            test("Data Source=tcp:localhost with port", () => {
+                const result = transform("Data Source=tcp:localhost,1433;Database=TestDb;");
+                expect(result.connectionString).to.include(
+                    "Data Source=tcp:host.docker.internal,1433",
+                );
+                expect(result.connectionString).to.not.include("tcp:localhost");
+            });
+
             test("case-insensitive data source", () => {
                 const result = transform("data source=127.0.0.1;Database=TestDb;");
                 expect(result.connectionString).to.include("host.docker.internal");

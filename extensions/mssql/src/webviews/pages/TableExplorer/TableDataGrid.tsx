@@ -20,6 +20,7 @@ import {
     Editors,
     ContextMenu,
     CurrentSorter,
+    SortComparers,
 } from "slickgrid-react";
 import { FluentCompoundFilter } from "./fluentCompoundFilter";
 import {
@@ -38,6 +39,26 @@ import {
 } from "../../common/FluentSlickGrid/FluentSlickGrid";
 
 export type { AppliedSortColumn };
+
+// SQL types whose values must sort numerically. Grid values are strings, so
+// without a numeric comparer 10 would sort before 2.
+const NUMERIC_SQL_TYPES = new Set([
+    "bigint",
+    "int",
+    "smallint",
+    "tinyint",
+    "decimal",
+    "numeric",
+    "float",
+    "real",
+    "money",
+    "smallmoney",
+]);
+
+const isNumericSqlType = (dataTypeName?: string): boolean => {
+    const base = dataTypeName?.trim().toLowerCase().split("(")[0].trim();
+    return base ? NUMERIC_SQL_TYPES.has(base) : false;
+};
 
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
@@ -122,6 +143,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const firstCellSelectedRef = useRef<boolean>(false);
         // Plain-text column names for callers that need a label without HTML.
         const columnDisplayNamesRef = useRef<Map<string | number, string>>(new Map());
+        const [vectorTooltip, setVectorTooltip] = useState<{ x: number; y: number } | null>(null);
+        const tooltipOpenCountRef = useRef(0);
 
         // Create a custom pager component
         const BoundCustomPager = useMemo(
@@ -381,6 +404,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         : colInfo.name,
                     field: `col${index}`,
                     sortable: true,
+                    sortComparer: isNumericSqlType(colInfo.dataTypeName)
+                        ? SortComparers.numeric
+                        : undefined,
                     filterable: true,
                     resizable: true,
                     minWidth: 180,
@@ -424,6 +450,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                             cellClasses.push("table-cell-null");
                         }
 
+                        if (isVector) {
+                            cellClasses.push("table-cell-vector");
+                        }
+
                         const elmType = hasFailed || isModified ? "div" : "span";
                         return createDomElement(elmType, {
                             className: cellClasses.join(" "),
@@ -433,14 +463,17 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     },
                 };
 
-                if (colInfo.isEditable) {
+                const isVector =
+                    colInfo.dataTypeName?.trim().toLowerCase().startsWith("vector") ?? false;
+                if (colInfo.isEditable && !isVector) {
                     column.editor = {
                         model: Editors.text,
                     };
                 }
 
-                // Add originalIndex as a custom property for tracking edits with hidden columns
+                // Add originalIndex and isVector as custom properties for use at interaction time
                 (column as any).originalIndex = index;
+                (column as any).isVector = isVector;
 
                 return column;
             });
@@ -586,8 +619,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 previousResultSet?.columnInfo?.length !== resultSet.columnInfo.length;
             const rowCountChanged = previousResultSet?.subset?.length !== resultSet.subset.length;
 
+            const insertedFirstRow =
+                (previousResultSet?.subset?.length ?? 0) === 0 && resultSet.subset.length > 0;
+
             // Scenario 1: Initial load or structural changes - full recreation
-            if (isInitialLoad || columnCountChanged) {
+            if (isInitialLoad || columnCountChanged || insertedFirstRow) {
                 const dataColumns = createColumns(resultSet.columnInfo, currentTheme);
                 const newColumns = [createUndoColumn(), ...dataColumns];
                 setColumns(newColumns);
@@ -828,6 +864,42 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }, [dataset]);
 
+        const tooltipOpen = vectorTooltip !== null;
+        useEffect(() => {
+            if (!tooltipOpen) {
+                return;
+            }
+            const dismiss = () => setVectorTooltip(null);
+            const onKeyDown = (e: KeyboardEvent) => {
+                if (e.key === "Escape") {
+                    dismiss();
+                }
+            };
+            document.addEventListener("click", dismiss, { once: true });
+            document.addEventListener("keydown", onKeyDown);
+            return () => {
+                document.removeEventListener("click", dismiss);
+                document.removeEventListener("keydown", onKeyDown);
+            };
+        }, [tooltipOpen]);
+
+        function isVectorCol(col: Column | undefined): boolean {
+            return !!(col as any)?.isVector;
+        }
+
+        function handleDblClick(e: MouseEvent, args: any) {
+            const grid = reactGridRef.current?.slickGrid;
+            if (!grid) {
+                return;
+            }
+            const column = grid.getVisibleColumns()[args.cell];
+            if (!isVectorCol(column)) {
+                return;
+            }
+            tooltipOpenCountRef.current += 1;
+            setVectorTooltip({ x: e.clientX, y: e.clientY });
+        }
+
         function handleCellChange(_e: CustomEvent, args: any) {
             // Capture pagination state
             if (reactGridRef.current?.paginationService) {
@@ -934,6 +1006,17 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
             const column = grid.getVisibleColumns()[activeCell.cell];
+            if (isVectorCol(column)) {
+                const cellNode = grid.getCellNode(activeCell.row, activeCell.cell);
+                const rect = cellNode?.getBoundingClientRect();
+                if (rect) {
+                    tooltipOpenCountRef.current += 1;
+                    setVectorTooltip({ x: rect.left, y: rect.bottom });
+                }
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
             if (column?.id !== "undo") {
                 return;
             }
@@ -1472,7 +1555,25 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     onSort={($event) => handleSort($event, $event.detail.args)}
                     onSortChanged={($event) => handleSlickSortChanged($event.detail)}
                     onSortCleared={() => handleSlickSortCleared()}
+                    onDblClick={($event) =>
+                        handleDblClick($event.detail.eventData, $event.detail.args)
+                    }
                 />
+                <div aria-live="polite" aria-atomic="true" className="sr-only">
+                    {vectorTooltip && (
+                        <span key={tooltipOpenCountRef.current}>
+                            {loc.tableExplorer.vectorReadonlyTooltip}
+                        </span>
+                    )}
+                </div>
+                {vectorTooltip && (
+                    <div
+                        role="tooltip"
+                        className="vector-readonly-tooltip"
+                        style={{ left: vectorTooltip.x + 12, top: vectorTooltip.y + 12 }}>
+                        {loc.tableExplorer.vectorReadonlyTooltip}
+                    </div>
+                )}
             </div>
         );
     },
