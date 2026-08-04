@@ -10,10 +10,11 @@ import { PagedAsyncIterableIterator } from "@azure/core-paging";
 import * as path from "path";
 import * as os from "os";
 import * as vscode from "vscode";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { AzureAuthType, IToken, UserGroup } from "../models/contracts/azure";
+import * as LocalizedConstants from "../constants/locConstants";
 import * as Constants from "./constants";
 import { TokenCredentialWrapper } from "./credentialWrapper";
-import { HttpClient } from "../http/httpClient";
 import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
@@ -121,7 +122,9 @@ export function getAppDataPath(): string {
 export async function fetchUserGroups(userId: string): Promise<UserGroup[]> {
     const graphBaseUri = vscode.Uri.parse("https://graph.microsoft.com/v1.0/");
     const uri = vscode.Uri.joinPath(graphBaseUri, `users/${userId}/memberOf`);
-    const httpHelper = new HttpClient();
+    const httpHelper = new VscodeHttpClient({
+        messages: LocalizedConstants.Proxy,
+    });
 
     const session = await vscode.authentication.getSession("microsoft", [], {
         createIfNone: true,

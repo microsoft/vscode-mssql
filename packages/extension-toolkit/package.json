@@ -53,10 +53,13 @@
         "lint": "eslint --quiet --cache ./src"
     },
     "dependencies": {
-        "@vscode/extension-telemetry": "1.5.2"
+        "@vscode/extension-telemetry": "1.5.2",
+        "axios": "^1.18.0",
+        "tunnel": "0.0.6"
     },
     "devDependencies": {
         "@types/node": "^22.13.14",
+        "@types/tunnel": "0.0.1",
         "@types/vscode": "1.101.0",
         "typescript": "^5.8.3"
     }

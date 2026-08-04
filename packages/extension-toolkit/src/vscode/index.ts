@@ -5,4 +5,5 @@
 
 export * from "../base";
 export * from "./context/extensionContextService";
+export * from "./http";
 export * from "./telemetry";
