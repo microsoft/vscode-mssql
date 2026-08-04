@@ -16,6 +16,7 @@ import { AzureDataStudioMigrationWebviewController } from "../../src/controllers
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { AzureAccountService } from "../../src/services/azureAccountService";
+import { ExtensionContextService } from "extension-toolkit/vscode";
 import { stubTelemetry, stubLogger, stubWebviewConnectionRpc, stubExtensionContext } from "./utils";
 import * as utils from "../../src/utils/utils";
 import { AzureDataStudioMigration } from "../../src/constants/locConstants";
@@ -91,12 +92,22 @@ suite("AzureDataStudioMigrationWebviewController", () => {
 
     function createController(): AzureDataStudioMigrationWebviewController {
         return new AzureDataStudioMigrationWebviewController(
-            mockContext,
+            azureAccountServiceStub,
+            new ExtensionContextService(mockContext),
             connectionStoreStub,
             connectionConfigStub,
-            azureAccountServiceStub,
         );
     }
+
+    test("distinct instances share the same injected connection store and configuration", () => {
+        const secondController = createController();
+
+        expect(secondController).to.not.equal(controller);
+        expect(secondController["connectionStore"]).to.equal(controller["connectionStore"]);
+        expect(secondController["connectionStore"]).to.equal(connectionStoreStub);
+        expect(secondController["connectionConfig"]).to.equal(controller["connectionConfig"]);
+        expect(secondController["connectionConfig"]).to.equal(connectionConfigStub);
+    });
 
     test("loadSettingsFromFile reads ADS config and updates state with parsed objects", async () => {
         const settingsPath = "C:\\temp\\settings.json";

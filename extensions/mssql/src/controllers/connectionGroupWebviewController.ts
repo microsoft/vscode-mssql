@@ -11,13 +11,18 @@ import {
     ConnectionGroupSpec,
     CreateConnectionGroupDialogProps,
 } from "../sharedInterfaces/connectionGroup";
-import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
+import {
+    sendActionEvent,
+    sendErrorEvent,
+    IExtensionContextService,
+} from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { Deferred } from "../protocol";
 import * as Loc from "../constants/locConstants";
 import { IConnectionGroup } from "../models/interfaces";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
+import { IConnectionConfig } from "../connectionconfig/iconnectionconfig";
 import ConnectionManager from "./connectionManager";
 
 /**
@@ -31,12 +36,12 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
     public readonly initialized: Deferred<void> = new Deferred<void>();
 
     constructor(
-        context: vscode.ExtensionContext,
-        private connectionConfig: ConnectionConfig,
-        private connectionGroupToEdit?: IConnectionGroup,
+        private connectionGroupToEdit: IConnectionGroup | undefined,
+        @IExtensionContextService contextService: IExtensionContextService,
+        @IConnectionConfig private connectionConfig: ConnectionConfig,
     ) {
         super(
-            context,
+            contextService.context,
             "connectionGroup",
             "ConnectionGroup",
             {
@@ -53,12 +58,12 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(
-                        context.extensionUri,
+                        contextService.context.extensionUri,
                         "media",
                         "connectionGroup_light.svg",
                     ),
                     dark: vscode.Uri.joinPath(
-                        context.extensionUri,
+                        contextService.context.extensionUri,
                         "media",
                         "connectionGroup_dark.svg",
                     ),

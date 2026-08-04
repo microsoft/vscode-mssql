@@ -46,6 +46,7 @@ import ConnectionManager from "./connectionManager";
 import { ICredentialStore } from "../credentialstore/icredentialstore";
 import { CredentialStore } from "../credentialstore/credentialstore";
 import { IConnectionStore, ConnectionStore } from "../models/connectionStore";
+import { IInstantiationService } from "extension-toolkit/base";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -201,6 +202,7 @@ export default class MainController implements vscode.Disposable {
         connectionManager?: ConnectionManager,
         @ICredentialStore private _credentialStore?: CredentialStore,
         @IConnectionStore private _connectionStore?: ConnectionStore,
+        @IInstantiationService private _instantiationService?: IInstantiationService,
     ) {
         this._context = context;
         if (connectionManager) {
@@ -409,10 +411,8 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdOpenAzureDataStudioMigration);
             this._event.on(Constants.cmdOpenAzureDataStudioMigration, async () => {
-                const migrationController = new AzureDataStudioMigrationWebviewController(
-                    this._context,
-                    this.connectionManager.connectionStore,
-                    this.connectionManager.connectionStore.connectionConfig,
+                const migrationController = this._instantiationService.createInstance(
+                    AzureDataStudioMigrationWebviewController,
                     this.azureAccountService,
                 );
 
@@ -1706,18 +1706,17 @@ export default class MainController implements vscode.Disposable {
 
         this.registerCommand(Constants.cmdConnectionGroupCreate);
         this._event.on(Constants.cmdConnectionGroupCreate, () => {
-            const connGroupDialog = new ConnectionGroupWebviewController(
-                this._context,
-                this.connectionManager.connectionStore.connectionConfig,
+            const connGroupDialog = this._instantiationService.createInstance(
+                ConnectionGroupWebviewController,
+                undefined,
             );
             connGroupDialog.revealToForeground();
         });
 
         this.registerCommandWithArgs(Constants.cmdConnectionGroupEdit);
         this._event.on(Constants.cmdConnectionGroupEdit, (node: ConnectionGroupNode) => {
-            const connGroupDialog = new ConnectionGroupWebviewController(
-                this._context,
-                this.connectionManager.connectionStore.connectionConfig,
+            const connGroupDialog = this._instantiationService.createInstance(
+                ConnectionGroupWebviewController,
                 node.connectionGroup,
             );
             connGroupDialog.revealToForeground();
