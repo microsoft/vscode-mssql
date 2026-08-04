@@ -8,6 +8,7 @@ import * as sinon from "sinon";
 import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
+import { ExtensionContextService } from "extension-toolkit/vscode";
 import * as Constants from "../../src/constants/constants";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import MainController from "../../src/controllers/mainController";
@@ -1061,10 +1062,10 @@ suite("SqlDocumentService Tests", () => {
             mockConnectionConfig.initialized = initializedDeferred;
 
             return new ConnectionStore(
-                stubExtensionContext(sandbox),
+                new ExtensionContextService(stubExtensionContext(sandbox)),
                 sandbox.createStubInstance(CredentialStore),
-                createStubLogger(sandbox),
                 mockConnectionConfig,
+                createStubLogger(sandbox),
             );
         }
 

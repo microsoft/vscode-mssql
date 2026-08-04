@@ -199,7 +199,10 @@ export default class ConnectionManager {
         }
 
         if (!this._connectionStore) {
-            this._connectionStore = new ConnectionStore(context, this._credentialStore);
+            this._connectionStore = new ConnectionStore(
+                new ExtensionContextService(context),
+                this._credentialStore,
+            );
         }
 
         if (!this._accountStore) {
