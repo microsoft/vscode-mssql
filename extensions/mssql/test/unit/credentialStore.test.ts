@@ -8,6 +8,8 @@ import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
+import { InstantiationServiceBuilder, ServiceDescriptor } from "extension-toolkit/base";
+import { ExtensionContextService, IExtensionContextService } from "extension-toolkit/vscode";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { ICredentialStore } from "../../src/credentialstore/icredentialstore";
 
@@ -42,7 +44,7 @@ suite("Credential Store Tests", () => {
             secrets: secretStorage as unknown as vscode.SecretStorage,
         } as vscode.ExtensionContext;
 
-        credentialStore = new CredentialStore(context);
+        credentialStore = new CredentialStore(new ExtensionContextService(context));
     });
 
     teardown(() => {
@@ -80,5 +82,30 @@ suite("Credential Store Tests", () => {
         await credentialStore.deleteCredential(credentialId);
 
         expect(secretStorage.delete).to.have.been.calledOnceWithExactly(credentialId);
+    });
+
+    suite("Dependency injection", () => {
+        test("Resolves a cached CredentialStore instance backed by the registered context's secret storage", async () => {
+            const builder = new InstantiationServiceBuilder();
+            builder.define(IExtensionContextService, new ExtensionContextService(context));
+            builder.define(ICredentialStore, new ServiceDescriptor(CredentialStore));
+            const instantiationService = builder.seal();
+
+            const first = instantiationService.invokeFunction((accessor) =>
+                accessor.get(ICredentialStore),
+            );
+            const second = instantiationService.invokeFunction((accessor) =>
+                accessor.get(ICredentialStore),
+            );
+
+            expect(first).to.equal(second);
+
+            await first.saveCredential(credentialId, "test_password");
+
+            expect(secretStorage.store).to.have.been.calledOnceWithExactly(
+                credentialId,
+                "test_password",
+            );
+        });
     });
 });

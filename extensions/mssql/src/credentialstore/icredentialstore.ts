@@ -6,10 +6,14 @@
 // This code is originally from https://github.com/microsoft/vsts-vscode
 // License: https://github.com/Microsoft/vsts-vscode/blob/master/LICENSE.txt
 
+import { createServiceIdentifier } from "extension-toolkit/base";
+
 export interface Credential {
     credentialId: string;
     password: string;
 }
+
+export const ICredentialStore = createServiceIdentifier<ICredentialStore>("credentialStore");
 
 /**
  * A credential store that securely stores sensitive information in a platform-specific manner
@@ -17,6 +21,7 @@ export interface Credential {
  * @exports
  */
 export interface ICredentialStore {
+    readonly _serviceBrand: undefined;
     readCredential(credentialId: string): Promise<Credential>;
     saveCredential(credentialId: string, password: string): Promise<boolean>;
     deleteCredential(credentialId: string): Promise<void>;

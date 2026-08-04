@@ -50,7 +50,12 @@ import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { Deferred } from "../protocol";
 import { ConnectionUI } from "../views/connectionUI";
 import StatusView from "../views/statusView";
-import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
+import {
+    sendActionEvent,
+    sendErrorEvent,
+    startActivity,
+    ExtensionContextService,
+} from "extension-toolkit/vscode";
 import {
     ActivityObject,
     ActivityStatus,
@@ -190,7 +195,7 @@ export default class ConnectionManager {
         this._entraLogger = logger.withPrefix("Entra Auth");
 
         if (!this._credentialStore) {
-            this._credentialStore = new CredentialStore(context);
+            this._credentialStore = new CredentialStore(new ExtensionContextService(context));
         }
 
         if (!this._connectionStore) {

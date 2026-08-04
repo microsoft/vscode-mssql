@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
-import { InstantiationServiceBuilder } from "extension-toolkit/base";
+import { InstantiationServiceBuilder, ServiceDescriptor } from "extension-toolkit/base";
 import {
     ExtensionContextService,
     IExtensionContextService,
@@ -35,6 +35,8 @@ import {
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
+import { ICredentialStore } from "./credentialstore/icredentialstore";
+import { CredentialStore } from "./credentialstore/credentialstore";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -46,6 +48,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     const builder = new InstantiationServiceBuilder();
 
     builder.define(IExtensionContextService, new ExtensionContextService(context));
+    builder.define(ICredentialStore, new ServiceDescriptor(CredentialStore));
 
     const instantiationService = builder.seal();
     context.subscriptions.push(instantiationService);

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import { IExtensionContextService } from "extension-toolkit/vscode";
 import { ICredentialStore, Credential } from "./icredentialstore";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
@@ -13,11 +14,13 @@ import { logger } from "../models/logger";
  * Allows a single credential to be stored per service (that is, one username per service);
  */
 export class CredentialStore implements ICredentialStore {
+    declare readonly _serviceBrand: undefined;
+
     private _secretStorage: vscode.SecretStorage;
     private _logger: ILogger;
 
-    constructor(private _context: vscode.ExtensionContext) {
-        this._secretStorage = this._context.secrets;
+    constructor(@IExtensionContextService contextService: IExtensionContextService) {
+        this._secretStorage = contextService.context.secrets;
         this._logger = logger.withPrefix("CredentialStore");
     }
 
