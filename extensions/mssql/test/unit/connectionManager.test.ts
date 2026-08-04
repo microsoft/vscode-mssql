@@ -902,9 +902,10 @@ suite("ConnectionManager Tests", () => {
                 mockStatusView,
                 mockPrompter,
                 mockLogger,
+                undefined, // client
+                mockConnectionStore,
             );
 
-            testConnectionManager.connectionStore = mockConnectionStore;
             testConnectionManager["_connectionUI"] = mockConnectionUI;
             testConnectionManager["_accountStore"] = mockAccountStore;
             testConnectionManager.azureController = mockAzureController;
@@ -1105,9 +1106,10 @@ suite("ConnectionManager Tests", () => {
                 mockStatusView,
                 mockPrompter,
                 mockLogger,
+                undefined, // client
+                mockConnectionStore,
             );
 
-            testConnectionManager.connectionStore = mockConnectionStore;
             (testConnectionManager as any)._connectionUI = mockConnectionUI;
         });
 
@@ -1162,11 +1164,14 @@ suite("ConnectionManager Tests", () => {
 
         setup(() => {
             const mockPrompter = sandbox.createStubInstance(TestPrompter);
+            const mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             testConnectionManager = new ConnectionManager(
                 mockContext,
                 mockStatusView,
                 mockPrompter,
                 mockLogger,
+                undefined, // client
+                mockConnectionStore,
             );
         });
 

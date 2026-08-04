@@ -199,9 +199,8 @@ export default class ConnectionManager {
         }
 
         if (!this._connectionStore) {
-            this._connectionStore = new ConnectionStore(
-                new ExtensionContextService(context),
-                this._credentialStore,
+            throw new Error(
+                "ConnectionManager requires a ConnectionStore to be supplied by the caller.",
             );
         }
 

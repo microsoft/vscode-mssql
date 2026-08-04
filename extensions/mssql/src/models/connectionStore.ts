@@ -102,17 +102,13 @@ export class ConnectionStore implements IConnectionStore {
     constructor(
         @IExtensionContextService contextService: IExtensionContextService,
         @ICredentialStore private _credentialStore: ICredentialStore,
-        @IConnectionConfig private _connectionConfig?: ConnectionConfig,
+        @IConnectionConfig private _connectionConfig: ConnectionConfig,
         private _logger?: ILogger,
     ) {
         this._context = contextService.context;
 
         if (!this._logger) {
             this._logger = logger.withPrefix("ConnectionStore");
-        }
-
-        if (!this._connectionConfig) {
-            this._connectionConfig = new ConnectionConfig();
         }
     }
 
