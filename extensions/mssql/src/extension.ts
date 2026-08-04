@@ -5,7 +5,11 @@
 
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
-import { InstantiationServiceBuilder, ServiceDescriptor } from "extension-toolkit/base";
+import {
+    IInstantiationService,
+    InstantiationServiceBuilder,
+    ServiceDescriptor,
+} from "extension-toolkit/base";
 import {
     ExtensionContextService,
     IExtensionContextService,
@@ -83,6 +87,7 @@ export async function getController(): Promise<MainController> {
 class MssqlActivation {
     constructor(
         @IExtensionContextService private readonly _contextService: IExtensionContextService,
+        @IInstantiationService private readonly _instantiationService: IInstantiationService,
     ) {}
 
     async activate(): Promise<IExtension> {
@@ -92,7 +97,7 @@ class MssqlActivation {
         // Create coordinator early so uriOwnershipApi is available for export
         uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
 
-        controller = new MainController(context);
+        controller = this._instantiationService.createInstance(MainController, context);
         context.subscriptions.push(controller);
         context.subscriptions.push(telemetryReporter);
 

@@ -8,8 +8,15 @@ import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
+import { InstantiationServiceBuilder, ServiceDescriptor } from "extension-toolkit/base";
+import { ExtensionContextService, IExtensionContextService } from "extension-toolkit/vscode";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
+import { CredentialStore } from "../../src/credentialstore/credentialstore";
+import { ICredentialStore } from "../../src/credentialstore/icredentialstore";
+import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { IConnectionConfig } from "../../src/connectionconfig/iconnectionconfig";
+import { ConnectionStore, IConnectionStore } from "../../src/models/connectionStore";
 import { stubTelemetry, stubExtensionContext, stubMessageBoxes } from "./utils";
 import * as Constants from "../../src/constants/constants";
 import { HttpClient } from "../../src/http/httpClient";
@@ -991,5 +998,30 @@ suite("MainController Tests", function () {
             expect(configStub).to.have.been.calledWithExactly();
         });
         /* eslint-enable @typescript-eslint/no-deprecated */
+    });
+
+    suite("Dependency injection", () => {
+        test("createInstance resolves container-owned CredentialStore and ConnectionStore", () => {
+            const builder = new InstantiationServiceBuilder();
+            builder.define(IExtensionContextService, new ExtensionContextService(context));
+            builder.define(ICredentialStore, new ServiceDescriptor(CredentialStore));
+            builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
+            builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
+            const instantiationService = builder.seal();
+
+            const createdController = instantiationService.createInstance(MainController, context);
+
+            const resolvedCredentialStore = instantiationService.invokeFunction((accessor) =>
+                accessor.get(ICredentialStore),
+            );
+            const resolvedConnectionStore = instantiationService.invokeFunction((accessor) =>
+                accessor.get(IConnectionStore),
+            );
+
+            expect(createdController["_credentialStore"]).to.equal(resolvedCredentialStore);
+            expect(createdController["_connectionStore"]).to.equal(resolvedConnectionStore);
+
+            instantiationService.dispose();
+        });
     });
 });

@@ -43,6 +43,9 @@ import { ObjectManagementService } from "../services/objectManagementService";
 import StatusView from "../views/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "../models/interfaces";
 import ConnectionManager from "./connectionManager";
+import { ICredentialStore } from "../credentialstore/icredentialstore";
+import { CredentialStore } from "../credentialstore/credentialstore";
+import { IConnectionStore, ConnectionStore } from "../models/connectionStore";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -193,7 +196,12 @@ export default class MainController implements vscode.Disposable {
      * The main controller constructor
      * @constructor
      */
-    constructor(context: vscode.ExtensionContext, connectionManager?: ConnectionManager) {
+    constructor(
+        context: vscode.ExtensionContext,
+        connectionManager?: ConnectionManager,
+        @ICredentialStore private _credentialStore?: CredentialStore,
+        @IConnectionStore private _connectionStore?: ConnectionStore,
+    ) {
         this._context = context;
         if (connectionManager) {
             this._connectionMgr = connectionManager;
@@ -1071,6 +1079,10 @@ export default class MainController implements vscode.Disposable {
             this._context,
             this._statusview,
             this._prompter,
+            undefined,
+            undefined,
+            this._connectionStore,
+            this._credentialStore,
         );
 
         this._sqlDocumentService = new SqlDocumentService(this);

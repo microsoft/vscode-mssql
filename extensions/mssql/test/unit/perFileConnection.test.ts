@@ -18,6 +18,7 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import MainController from "../../src/controllers/mainController";
 import { languageId } from "../../src/constants/constants";
 import { ConnectionStore } from "../../src/models/connectionStore";
+import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import * as ConnectionContracts from "../../src/models/contracts/connection";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import * as Interfaces from "../../src/models/interfaces";
@@ -538,7 +539,7 @@ suite("Per File Connection Tests", () => {
             undefined, // logger
             serviceClient,
             connectionStoreInstance,
-            undefined, // credentialStore
+            sandbox.createStubInstance(CredentialStore),
             connectionUI,
         );
     }

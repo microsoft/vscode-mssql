@@ -904,6 +904,7 @@ suite("ConnectionManager Tests", () => {
                 mockLogger,
                 undefined, // client
                 mockConnectionStore,
+                mockCredentialStore,
             );
 
             testConnectionManager["_connectionUI"] = mockConnectionUI;
@@ -1108,6 +1109,7 @@ suite("ConnectionManager Tests", () => {
                 mockLogger,
                 undefined, // client
                 mockConnectionStore,
+                mockCredentialStore,
             );
 
             (testConnectionManager as any)._connectionUI = mockConnectionUI;
@@ -1172,6 +1174,7 @@ suite("ConnectionManager Tests", () => {
                 mockLogger,
                 undefined, // client
                 mockConnectionStore,
+                mockCredentialStore,
             );
         });
 
