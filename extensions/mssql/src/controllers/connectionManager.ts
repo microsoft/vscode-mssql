@@ -205,15 +205,21 @@ export default class ConnectionManager {
             this._accountStore = new AccountStore(context);
         }
 
-        if (!this._connectionUI) {
-            this._connectionUI = new ConnectionUI(this, this._accountStore, prompter);
-        }
-
         if (!this.azureController) {
             this.azureController = new MsalAzureController(
                 context,
                 prompter,
                 this._credentialStore,
+            );
+        }
+
+        if (!this._connectionUI) {
+            this._connectionUI = new ConnectionUI(
+                this._connectionStore,
+                this.azureController,
+                this._accountStore,
+                prompter,
+                () => this.onDisconnect(),
             );
         }
 

@@ -7,7 +7,8 @@ import * as vscode from "vscode";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { IPrompter } from "../../src/prompts/question";
 import { ConnectionStore } from "../../src/models/connectionStore";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
+import * as constants from "../../src/constants/constants";
 import {
     IConnectionCredentialsQuickPickItem,
     CredentialsQuickPickItemType,
@@ -32,8 +33,9 @@ suite("Connection UI tests", () => {
     let connectionUI: ConnectionUI;
     let vscodeWindowStubs: ReturnType<typeof stubVscodeWindow>;
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
-    let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
+    let azureControllerStub: sinon.SinonStubbedInstance<MsalAzureController>;
     let accountStoreStub: sinon.SinonStubbedInstance<AccountStore>;
+    let onDisconnectStub: sinon.SinonStub;
 
     let promptStub: sinon.SinonStub;
     let promptSingleStub: sinon.SinonStub;
@@ -79,9 +81,8 @@ suite("Connection UI tests", () => {
 
         connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
         accountStoreStub = sandbox.createStubInstance(AccountStore);
-
-        connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
-        connectionManagerStub.connectionStore = connectionStoreStub;
+        azureControllerStub = sandbox.createStubInstance(MsalAzureController);
+        onDisconnectStub = sandbox.stub().resolves(true);
 
         promptStub = sandbox.stub();
         promptSingleStub = sandbox.stub();
@@ -91,7 +92,13 @@ suite("Connection UI tests", () => {
             promptCallback: sandbox.stub(),
         } as unknown as IPrompter;
 
-        connectionUI = new ConnectionUI(connectionManagerStub, accountStoreStub, prompter);
+        connectionUI = new ConnectionUI(
+            connectionStoreStub,
+            azureControllerStub,
+            accountStoreStub,
+            prompter,
+            onDisconnectStub,
+        );
     });
 
     teardown(() => {
@@ -139,6 +146,31 @@ suite("Connection UI tests", () => {
         await promptForConnectionPromise;
 
         expect(quickPickShowStub).to.have.been.calledOnce;
+    });
+
+    test("showDatabasesOnCurrentServer should disconnect using the injected disconnect callback", async () => {
+        vscodeWindowStubs.showQuickPick.callsFake(async (items: vscode.QuickPickItem[]) => {
+            return items[items.length - 1]; // the "disconnect" option is appended last
+        });
+        promptSingleStub.resolves(true);
+
+        const result = await connectionUI.showDatabasesOnCurrentServer({ server: "test" } as any, [
+            "db1",
+            "db2",
+        ]);
+
+        expect(result).to.be.undefined;
+        expect(onDisconnectStub).to.have.been.calledOnce;
+    });
+
+    test("addNewAccount should add an account using the injected azure controller", async () => {
+        const mockAccount = { displayInfo: { displayName: "test" } };
+        azureControllerStub.addAccount.resolves(mockAccount as any);
+
+        const result = await connectionUI.addNewAccount();
+
+        expect(result).to.equal(mockAccount);
+        expect(azureControllerStub.addAccount).to.have.been.calledOnceWithExactly(accountStoreStub);
     });
 
     test("promptLanguageFlavor should prompt for a language flavor", async () => {
@@ -260,6 +292,66 @@ suite("Connection UI tests", () => {
             "mssql.editConnection",
             selectedProfileItem.connectionCreds,
         );
+    });
+
+    test("promptToManageProfiles Create task should open the connection dialog directly", async () => {
+        promptSingleStub.onFirstCall().callsFake(async (question: any) => {
+            const createChoice = question.choices.find(
+                (choice: { name: string; value: number }) =>
+                    choice.name === LocConstants.CreateProfileLabel,
+            );
+            await question.onAnswered(createChoice.value);
+            return undefined;
+        });
+
+        await connectionUI.promptToManageProfiles();
+
+        expect(executeCommandStub).to.have.been.calledWithExactly(constants.cmdAddObjectExplorer);
+    });
+
+    test("promptToManageProfiles Remove task should remove a profile using the injected connection store", async () => {
+        connectionStoreStub.getProfilePickListItems.resolves([
+            {
+                connectionCreds: {} as any,
+                quickPickItemType: undefined,
+                label: "test",
+            },
+        ]);
+        connectionStoreStub.removeProfile.resolves(true);
+        promptStub.resolves({
+            ConfirmRemoval: true,
+            ChooseProfile: { connectionCreds: {} },
+        });
+
+        promptSingleStub.onFirstCall().callsFake(async (question: any) => {
+            const removeChoice = question.choices.find(
+                (choice: { name: string; value: number }) =>
+                    choice.name === LocConstants.RemoveProfileLabel,
+            );
+            await question.onAnswered(removeChoice.value);
+            return undefined;
+        });
+
+        await connectionUI.promptToManageProfiles();
+
+        expect(connectionStoreStub.removeProfile).to.have.been.calledOnce;
+    });
+
+    test("promptToManageProfiles ClearRecentlyUsed task should clear recently used connections using the injected connection store", async () => {
+        connectionStoreStub.clearRecentlyUsed.resolves(true);
+        promptSingleStub.onFirstCall().callsFake(async (question: any) => {
+            const clearChoice = question.choices.find(
+                (choice: { name: string; value: number }) =>
+                    choice.name === LocConstants.ClearRecentlyUsedLabel,
+            );
+            await question.onAnswered(clearChoice.value);
+            return undefined;
+        });
+        promptSingleStub.onSecondCall().resolves(true);
+
+        await connectionUI.promptToManageProfiles();
+
+        expect(connectionStoreStub.clearRecentlyUsed).to.have.been.calledOnce;
     });
 
     test("editProfile should show an error if there are no saved profiles", async () => {

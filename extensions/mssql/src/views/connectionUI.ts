@@ -6,9 +6,9 @@
 import * as vscode from "vscode";
 import { IAccount, IConnectionInfo } from "vscode-mssql";
 import { AccountStore } from "../azure/accountStore";
+import { AzureController } from "../azure/azureController";
 import * as constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
-import ConnectionManager from "../controllers/connectionManager";
 import { ConnectionStore } from "../models/connectionStore";
 import * as Utils from "../models/utils";
 import {
@@ -38,18 +38,16 @@ export interface ISqlProviderItem extends vscode.QuickPickItem {
 
 export class ConnectionUI {
     constructor(
-        private _connectionManager: ConnectionManager,
+        private _connectionStore: ConnectionStore,
+        private _azureController: AzureController,
         private _accountStore: AccountStore,
         private _prompter: IPrompter,
+        /**
+         * Disconnects the active connection. Kept as a narrow callback (rather than a
+         * reference to the manager owning this UI) to avoid reintroducing a construction cycle.
+         */
+        private _onDisconnect: () => Promise<boolean>,
     ) {}
-
-    private get connectionManager(): ConnectionManager {
-        return this._connectionManager;
-    }
-
-    private get _connectionStore(): ConnectionStore {
-        return this._connectionManager.connectionStore;
-    }
 
     /**
      * Prompt user to choose a connection profile from stored connections , or to create a new connection.
@@ -289,7 +287,7 @@ export class ConnectionUI {
             self._prompter.promptSingle<boolean>(question).then(
                 (result) => {
                     if (result === true) {
-                        self.connectionManager.onDisconnect().then(
+                        self._onDisconnect().then(
                             () => resolve(),
                             (err) => reject(err),
                         );
@@ -370,7 +368,7 @@ export class ConnectionUI {
             onAnswered: async (value) => {
                 switch (value) {
                     case ManageProfileTask.Create:
-                        await self.connectionManager.onCreateProfile();
+                        self.openConnectionDialog();
                         return;
                     case ManageProfileTask.ClearRecentlyUsed:
                         const result = await self.promptToClearRecentConnectionsList();
@@ -378,8 +376,7 @@ export class ConnectionUI {
                             return;
                         }
 
-                        const credentialsDeleted =
-                            await self.connectionManager.clearRecentConnectionsList();
+                        const credentialsDeleted = await self._connectionStore.clearRecentlyUsed();
                         if (credentialsDeleted) {
                             vscode.window.showInformationMessage(
                                 LocalizedConstants.msgClearedRecentConnections,
@@ -395,7 +392,7 @@ export class ConnectionUI {
                         await self.editProfile();
                         return;
                     case ManageProfileTask.Remove:
-                        await self.connectionManager.onRemoveProfile();
+                        await self.removeProfile();
                         return;
                     default:
                         return;
@@ -420,8 +417,7 @@ export class ConnectionUI {
      * @returns A promise that resolves to an array of FormItemOptions for connection groups.
      */
     public async getConnectionGroupOptions(): Promise<FormItemOptions[]> {
-        let connectionGroups =
-            await this._connectionManager.connectionStore.readAllConnectionGroups();
+        let connectionGroups = await this._connectionStore.readAllConnectionGroups();
         connectionGroups = connectionGroups.filter((g) => g.id !== ConnectionConfig.ROOT_GROUP_ID);
 
         // Count occurrences of group names to handle naming conflicts
@@ -480,7 +476,7 @@ export class ConnectionUI {
     }
 
     public async addNewAccount(): Promise<IAccount> {
-        return await this.connectionManager.azureController.addAccount(this._accountStore);
+        return await this._azureController.addAccount(this._accountStore);
     }
 
     /**
