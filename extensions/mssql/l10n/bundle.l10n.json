@@ -520,6 +520,7 @@
     "New Deployment": "New Deployment",
     "MSSQL: Click to change connection": "MSSQL: Click to change connection",
     "MSSQL: Click to change database": "MSSQL: Click to change database",
+    "MSSQL Notebook Selection Summary": "MSSQL Notebook Selection Summary",
     "Connection failed": "Connection failed",
     "Query execution failed": "Query execution failed",
     "No active notebook.": "No active notebook.",

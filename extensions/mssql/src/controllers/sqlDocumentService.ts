@@ -16,7 +16,7 @@ import * as Constants from "../constants/constants";
 import MainController from "./mainController";
 import * as vscodeMssql from "vscode-mssql";
 import { ObjectExplorerService } from "../objectExplorer/objectExplorerService";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionProfile } from "../models/interfaces";

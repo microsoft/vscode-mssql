@@ -18,7 +18,7 @@ import {
     FormItemSpec,
     FormItemType,
 } from "../sharedInterfaces/form";
-import { sendErrorEvent } from "../telemetry/telemetry";
+import { sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ConnectionDialog as Loc } from "../constants/locConstants";
 import { CapabilitiesResult, GetCapabilitiesRequest } from "../models/contracts/connection";
