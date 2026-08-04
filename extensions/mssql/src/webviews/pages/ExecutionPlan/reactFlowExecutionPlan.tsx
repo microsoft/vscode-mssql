@@ -47,6 +47,7 @@ import {
     ExecutionPlanGraphController,
     ExecutionPlanMetricSource,
 } from "./executionPlanGraphController";
+import { getExecutionPlanOperatorIcon } from "./executionPlanOperatorIcons";
 import {
     EXECUTION_PLAN_NODE_HEIGHT,
     EXECUTION_PLAN_NODE_WIDTH,
@@ -71,7 +72,7 @@ import {
     getViewportForExecutionPlanZoom,
     getViewportToRevealExecutionPlanNode,
 } from "./executionPlanViewport";
-import { getBadgePaths, getCollapseExpandPaths, getIconPaths } from "./queryPlanSetup";
+import { getBadgePaths, getCollapseExpandPaths } from "./queryPlanSetup";
 
 const EXECUTION_PLAN_REVEAL_PADDING = 0;
 const EXECUTION_PLAN_FOCUS_RETRY_FRAMES = 20;
@@ -135,10 +136,9 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
         navigate,
         toggleCollapse,
     } = data;
-    const iconPaths = getIconPaths() as Record<string, string>;
     const badgePaths = getBadgePaths();
     const collapseExpandPaths = getCollapseExpandPaths(themeKind);
-    const iconPath = iconPaths[planNode.type] ?? iconPaths.iteratorCatchAll;
+    const OperatorIcon = getExecutionPlanOperatorIcon(planNode.type);
     const labelRef = useRef<HTMLDivElement>(null);
     const [renderedSelectionSize, setRenderedSelectionSize] = useState({
         width: selectionWidth,
@@ -245,7 +245,7 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
             <Handle type="target" position={Position.Left} className="execution-plan-flow-handle" />
             <div className="execution-plan-flow-row-count">{planNode.rowCountDisplayString}</div>
             <div className="execution-plan-flow-icon-container">
-                <img className="execution-plan-flow-icon" src={iconPath} alt="" draggable={false} />
+                <OperatorIcon className="execution-plan-flow-icon" />
                 {planNode.badges.map((badge, index) => (
                     <img
                         key={`${badge.type}-${index}`}
