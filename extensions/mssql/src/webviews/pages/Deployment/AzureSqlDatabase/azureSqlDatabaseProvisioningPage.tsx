@@ -3,11 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { useContext, useMemo } from "react";
 import { makeStyles, tokens } from "@fluentui/react-components";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 import { DeploymentStepCard } from "../deploymentStepCard";
+import { DeploymentContext } from "../deploymentStateProvider";
+import { PostDeploymentScript } from "../../../common/postDeploymentScriptsDrawer";
+import { DeploymentScriptsCard } from "../../../common/deploymentScriptsCard";
+import {
+    generateAzureSqlDatabaseArm,
+    generateAzureSqlDatabaseBicep,
+    generateAzureSqlDatabaseTerraform,
+} from "../deploymentScripts";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -76,6 +85,7 @@ const useStyles = makeStyles({
 
 export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
     const classes = useStyles();
+    const context = useContext(DeploymentContext);
     const provisionLoadState = useAzureSqlDatabaseDeploymentSelector((s) => s.provisionLoadState);
     const connectionLoadState = useAzureSqlDatabaseDeploymentSelector((s) => s.connectionLoadState);
     const errorMessage = useAzureSqlDatabaseDeploymentSelector((s) => s.errorMessage);
@@ -84,9 +94,58 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
     const subscriptionName = useAzureSqlDatabaseDeploymentSelector((s) => s.subscriptionName);
     const resourceGroup = useAzureSqlDatabaseDeploymentSelector((s) => s.formState?.resourceGroup);
     const serverName = useAzureSqlDatabaseDeploymentSelector((s) => s.formState?.serverName);
+    const collation = useAzureSqlDatabaseDeploymentSelector((s) => s.formState?.collation);
+    const freeLimitBehavior = useAzureSqlDatabaseDeploymentSelector(
+        (s) => s.formState?.freeLimitBehavior,
+    );
+    const maxVcores = useAzureSqlDatabaseDeploymentSelector((s) => s.formState?.maxVcores);
     const serverRegion = useAzureSqlDatabaseDeploymentSelector((s) => s.serverRegion);
 
+    const scriptBaseName = (databaseName || "database").replace(/[^a-zA-Z0-9-_]/g, "_");
+    const scripts = useMemo<PostDeploymentScript[]>(() => {
+        const params = {
+            databaseName,
+            serverName,
+            collation,
+            freeLimitBehavior,
+            maxVcores,
+            subscriptionName,
+            resourceGroup,
+        };
+        return [
+            {
+                id: "arm",
+                label: locConstants.deploymentScripts.armTemplate,
+                content: generateAzureSqlDatabaseArm(params),
+                fileName: `${scriptBaseName}.json`,
+            },
+            {
+                id: "bicep",
+                label: locConstants.deploymentScripts.bicep,
+                content: generateAzureSqlDatabaseBicep(params),
+                fileName: `${scriptBaseName}.bicep`,
+            },
+            {
+                id: "terraform",
+                label: locConstants.deploymentScripts.terraform,
+                content: generateAzureSqlDatabaseTerraform(params),
+                fileName: `${scriptBaseName}.tf`,
+            },
+        ];
+    }, [
+        databaseName,
+        serverName,
+        collation,
+        freeLimitBehavior,
+        maxVcores,
+        subscriptionName,
+        resourceGroup,
+        scriptBaseName,
+    ]);
+
     if (!provisionLoadState) return undefined;
+
+    const deploymentSucceeded = provisionLoadState === ApiStatus.Loaded;
 
     const stepStatus =
         provisionLoadState !== ApiStatus.Loaded ? provisionLoadState : connectionLoadState;
@@ -174,6 +233,14 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                         )}
                     </div>
                 </DeploymentStepCard>
+                {deploymentSucceeded && (
+                    <DeploymentScriptsCard
+                        scripts={scripts}
+                        onDownload={(content, fileName) =>
+                            context?.downloadDeploymentScript(content, fileName)
+                        }
+                    />
+                )}
             </div>
         </div>
     );

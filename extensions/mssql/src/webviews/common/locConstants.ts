@@ -2357,6 +2357,23 @@ export class LocConstants {
         };
     }
 
+    public get deploymentScripts() {
+        return {
+            exportInfrastructureAsCode: l10n.t("Export Infrastructure as Code"),
+            downloadDeploymentScriptsTitle: l10n.t("Download deployment scripts"),
+            downloadDeploymentScriptsDescription: l10n.t(
+                "Save Infrastructure-as-Code templates to your workspace to recreate this database later.",
+            ),
+            copy: l10n.t("Copy"),
+            copied: l10n.t("Copied"),
+            download: l10n.t("Download"),
+            addToWorkspace: l10n.t("Add to workspace"),
+            bicep: l10n.t("Bicep"),
+            armTemplate: l10n.t("ARM template"),
+            terraform: l10n.t("Terraform"),
+        };
+    }
+
     public get fabricProvisioning() {
         return {
             loadingFabricProvisioning: l10n.t("Loading Fabric provisioning..."),

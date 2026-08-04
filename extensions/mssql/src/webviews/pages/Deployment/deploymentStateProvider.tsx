@@ -55,6 +55,12 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
             dispose: function (): void {
                 extensionRpc.action("dispose", {});
             },
+            downloadDeploymentScript: function (content: string, fileName: string): void {
+                extensionRpc.action("downloadDeploymentScript", {
+                    content: content,
+                    fileName: fileName,
+                });
+            },
             //#endregion
             //#region Local Containers Reducers
             completeDockerStep: function (dockerStep: number): void {

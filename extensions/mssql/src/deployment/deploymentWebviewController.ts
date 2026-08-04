@@ -187,6 +187,24 @@ export class DeploymentWebviewController extends FormWebviewController<
             return state;
         });
 
+        this.registerReducer("downloadDeploymentScript", async (state, payload) => {
+            const extension = payload.fileName.includes(".")
+                ? payload.fileName.slice(payload.fileName.lastIndexOf(".") + 1)
+                : undefined;
+            const targetUri = await vscode.window.showSaveDialog({
+                defaultUri: vscode.Uri.file(payload.fileName),
+                filters: extension ? { [extension.toUpperCase()]: [extension] } : undefined,
+            });
+            if (targetUri) {
+                await vscode.workspace.fs.writeFile(
+                    targetUri,
+                    Buffer.from(payload.content, "utf8"),
+                );
+                await vscode.window.showTextDocument(targetUri, { preview: false });
+            }
+            return state;
+        });
+
         localContainers.registerLocalContainersReducers(this);
         fabricProvisioning.registerFabricProvisioningReducers(this);
         azureSqlDatabase.registerAzureSqlDatabaseReducers(this);

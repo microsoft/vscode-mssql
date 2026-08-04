@@ -3,11 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { useContext, useMemo } from "react";
 import { makeStyles, tokens } from "@fluentui/react-components";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { useFabricDeploymentSelector } from "../deploymentSelector";
 import { DeploymentStepCard } from "../deploymentStepCard";
+import { DeploymentContext } from "../deploymentStateProvider";
+import { PostDeploymentScript } from "../../../common/postDeploymentScriptsDrawer";
+import { DeploymentScriptsCard } from "../../../common/deploymentScriptsCard";
+import {
+    generateFabricSqlDatabaseArm,
+    generateFabricSqlDatabaseBicep,
+    generateFabricSqlDatabaseTerraform,
+} from "../deploymentScripts";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -66,15 +75,44 @@ const useStyles = makeStyles({
 
 export const FabricDeploymentProvisioningPage: React.FC = () => {
     const classes = useStyles();
+    const context = useContext(DeploymentContext);
     const provisionLoadState = useFabricDeploymentSelector((s) => s.provisionLoadState);
     const connectionLoadState = useFabricDeploymentSelector((s) => s.connectionLoadState);
     const errorMessage = useFabricDeploymentSelector((s) => s.errorMessage);
     const databaseName = useFabricDeploymentSelector((s) => s.formState?.databaseName);
+    const workspaceId = useFabricDeploymentSelector((s) => s.formState?.workspace);
     const deploymentStartTime = useFabricDeploymentSelector((s) => s.deploymentStartTime);
     const tenantName = useFabricDeploymentSelector((s) => s.tenantName);
     const workspaceName = useFabricDeploymentSelector((s) => s.workspaceName);
 
+    const scriptBaseName = (databaseName || "database").replace(/[^a-zA-Z0-9-_]/g, "_");
+    const scripts = useMemo<PostDeploymentScript[]>(() => {
+        const params = { databaseName, workspaceId, workspaceName, tenantName };
+        return [
+            {
+                id: "arm",
+                label: locConstants.deploymentScripts.armTemplate,
+                content: generateFabricSqlDatabaseArm(params),
+                fileName: `${scriptBaseName}.json`,
+            },
+            {
+                id: "bicep",
+                label: locConstants.deploymentScripts.bicep,
+                content: generateFabricSqlDatabaseBicep(params),
+                fileName: `${scriptBaseName}.bicep`,
+            },
+            {
+                id: "terraform",
+                label: locConstants.deploymentScripts.terraform,
+                content: generateFabricSqlDatabaseTerraform(params),
+                fileName: `${scriptBaseName}.tf`,
+            },
+        ];
+    }, [databaseName, workspaceId, workspaceName, tenantName, scriptBaseName]);
+
     if (!provisionLoadState) return undefined;
+
+    const deploymentSucceeded = provisionLoadState === ApiStatus.Loaded;
 
     const stepStatus =
         provisionLoadState !== ApiStatus.Loaded ? provisionLoadState : connectionLoadState;
@@ -150,6 +188,14 @@ export const FabricDeploymentProvisioningPage: React.FC = () => {
                         )}
                     </div>
                 </DeploymentStepCard>
+                {deploymentSucceeded && (
+                    <DeploymentScriptsCard
+                        scripts={scripts}
+                        onDownload={(content, fileName) =>
+                            context?.downloadDeploymentScript(content, fileName)
+                        }
+                    />
+                )}
             </div>
         </div>
     );
