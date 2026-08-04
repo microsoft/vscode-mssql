@@ -20,7 +20,7 @@ import { IScriptingObject, IServerInfo } from "vscode-mssql";
 import SqlDocumentService, { ConnectionStrategy } from "../controllers/sqlDocumentService";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { startActivity } from "../telemetry/telemetry";
+import { startActivity } from "extension-toolkit/vscode";
 import * as LocalizedConstants from "../constants/locConstants";
 import * as Constants from "../constants/constants";
 import { getErrorMessage, getUriKey } from "../utils/utils";

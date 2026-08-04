@@ -25,7 +25,7 @@ import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "./logger";
 import { Deferred } from "../protocol";
 import { ConnectionMatcher, MatchScore } from "./utils";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 /**

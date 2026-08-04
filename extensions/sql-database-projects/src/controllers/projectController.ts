@@ -314,7 +314,7 @@ export class ProjectsController {
                 const errorMessage = utils.getErrorMessage(error);
                 this._outputChannel.appendLine(constants.tasksJsonUpdateError(errorMessage));
 
-                TelemetryReporter.createErrorEvent2(
+                TelemetryReporter.createErrorEvent(
                     TelemetryViews.ProjectController,
                     TelemetryActions.tasksJsonError,
                     error,
@@ -521,7 +521,7 @@ export class ProjectsController {
         } catch (err) {
             const timeToFailureBuild = new Date().getTime() - startTime.getTime();
 
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.build,
                 err,
@@ -659,7 +659,7 @@ export class ProjectsController {
                 props.errorMessage = message;
             }
 
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.projectSchemaCompareCommandInvoked,
                 err,
@@ -1060,7 +1060,7 @@ export class ProjectsController {
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
 
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectTree,
                 TelemetryActions.addItemFromTree,
                 err,
@@ -1095,7 +1095,7 @@ export class ProjectsController {
             this.refreshProjectsTree(treeNode);
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectTree,
                 TelemetryActions.addExistingItem,
                 err,
@@ -1135,7 +1135,7 @@ export class ProjectsController {
                     throw new Error(constants.unhandledExcludeType(node.type));
             }
         } else {
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectTree,
                 TelemetryActions.excludeFromProject,
             );
@@ -1215,7 +1215,7 @@ export class ProjectsController {
 
             this.refreshProjectsTree(context);
         } catch (err) {
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectTree,
                 TelemetryActions.deleteObjectFromProject,
             )
@@ -1267,7 +1267,7 @@ export class ProjectsController {
         if (result?.success) {
             TelemetryReporter.sendActionEvent(TelemetryViews.ProjectTree, TelemetryActions.rename);
         } else {
-            TelemetryReporter.sendErrorEvent2(TelemetryViews.ProjectTree, TelemetryActions.rename);
+            TelemetryReporter.sendErrorEvent(TelemetryViews.ProjectTree, TelemetryActions.rename);
             void vscode.window.showErrorMessage(
                 constants.errorRenamingFile(node.entryKey!, newFilePath, result?.errorMessage),
             );
@@ -1818,7 +1818,7 @@ export class ProjectsController {
             await workspaceApi.addProjectsToWorkspace([vscode.Uri.file(newProjFilePath)]);
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.createProjectFromDatabase,
                 err,
@@ -1946,7 +1946,7 @@ export class ProjectsController {
                 .send();
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.updateProjectFromDatabase,
                 err,
@@ -2043,7 +2043,7 @@ export class ProjectsController {
         );
 
         if (!comparisonResult || !comparisonResult.success) {
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectController,
                 "SchemaComparisonFailed",
             )
@@ -2187,7 +2187,7 @@ export class ProjectsController {
             );
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.configureCodeAnalysisSettings,
                 err,
@@ -2274,7 +2274,7 @@ export class ProjectsController {
         if (moveResult?.success) {
             TelemetryReporter.sendActionEvent(TelemetryViews.ProjectTree, TelemetryActions.move);
         } else {
-            TelemetryReporter.sendErrorEvent2(TelemetryViews.ProjectTree, TelemetryActions.move);
+            TelemetryReporter.sendErrorEvent(TelemetryViews.ProjectTree, TelemetryActions.move);
             void vscode.window.showErrorMessage(
                 constants.errorMovingFile(
                     sourceFileNode.fileSystemUri.fsPath,

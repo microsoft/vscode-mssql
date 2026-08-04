@@ -50,7 +50,7 @@ import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { Deferred } from "../protocol";
 import { ConnectionUI } from "../views/connectionUI";
 import StatusView from "../views/statusView";
-import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 import {
     ActivityObject,
     ActivityStatus,

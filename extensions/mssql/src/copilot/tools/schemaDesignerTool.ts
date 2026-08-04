@@ -12,7 +12,7 @@ import { SchemaDesignerWebviewManager } from "../../schemaDesigner/schemaDesigne
 import ConnectionManager from "../../controllers/connectionManager";
 import { SchemaDesigner } from "../../sharedInterfaces/schemaDesigner";
 import { SchemaDesignerWebviewController } from "../../schemaDesigner/schemaDesignerWebviewController";
-import { sendActionEvent } from "../../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
 import { matchesStrictTargetHint, ToolTargetContext, ToolTargetHint } from "./toolsUtils";
 import { resolveToolConnectionReference } from "./toolConnectionResolver";
