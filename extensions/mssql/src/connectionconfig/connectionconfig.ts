@@ -23,6 +23,8 @@ export type ConfigTarget = ConfigurationTarget.Global | ConfigurationTarget.Work
  * Implements connection profile file storage.
  */
 export class ConnectionConfig implements IConnectionConfig {
+    declare readonly _serviceBrand: undefined;
+
     protected _logger: ILogger;
     public initialized: Deferred<void> = new Deferred<void>();
 
