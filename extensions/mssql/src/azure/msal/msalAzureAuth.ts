@@ -61,7 +61,6 @@ export abstract class MsalAzureAuth {
 
         this._httpHelper = new VscodeHttpClient({
             logger,
-            messages: LocalizedConstants.Proxy,
         });
     }
 

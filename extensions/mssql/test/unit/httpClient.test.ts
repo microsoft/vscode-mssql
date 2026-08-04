@@ -8,9 +8,16 @@ import { expect } from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as fs from "fs";
+import * as http from "http";
 import { PassThrough, Writable } from "stream";
-import { HttpClient, HttpDownloadError } from "extension-toolkit/base";
-import * as LocalizedConstants from "../../src/constants/locConstants";
+import {
+    HttpClient,
+    HttpDownloadError,
+    IProxyAgentFactory,
+    IProxyAgentOptions,
+    IProxyResolver,
+    ProxyConfigurationError,
+} from "extension-toolkit/base";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import { createStubLogger } from "./utils";
 
@@ -20,22 +27,14 @@ suite("HttpClient tests", () => {
     let sandbox: sinon.SinonSandbox;
     let httpClient: HttpClient;
     let logger: sinon.SinonStubbedInstance<ILogger>;
-    let getProxyConfig: sinon.SinonStub;
-    let parseUriScheme: sinon.SinonStub;
-    let showWarningMessage: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
 
         logger = createStubLogger(sandbox);
-        getProxyConfig = sandbox.stub().returns(undefined);
-        parseUriScheme = sandbox.stub().callsFake((value: string) => new URL(value).protocol);
-        showWarningMessage = sandbox.stub();
-        httpClient = new HttpClient(logger, {
-            getProxyConfig,
-            parseUriScheme,
-            showWarningMessage,
-            messages: LocalizedConstants.Proxy,
+        httpClient = new HttpClient({
+            logger,
+            proxyResolver: { resolve: () => undefined },
         });
     });
 
@@ -65,9 +64,6 @@ suite("HttpClient tests", () => {
                 headers: { Authorization: `Bearer ${token}` },
                 validateStatus: () => true,
             });
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            sandbox.stub(httpClient as any, "constructRequestUrl").returns(requestUrl);
-
             const result = await httpClient.makeGetRequest(requestUrl, token);
 
             expect(result).to.deep.equal(mockResponse);
@@ -98,9 +94,6 @@ suite("HttpClient tests", () => {
                 headers: { Authorization: `Bearer ${token}` },
                 validateStatus: () => true,
             });
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            sandbox.stub(httpClient as any, "constructRequestUrl").returns(requestUrl);
-
             const result = await httpClient.makePostRequest(requestUrl, token, payload);
 
             expect(result).to.deep.equal(mockResponse);
@@ -311,189 +304,166 @@ suite("HttpClient tests", () => {
         });
     });
 
-    suite("Proxy validation tests", () => {
-        const envProxy = "env-proxy";
-        const configProxy = "config-proxy";
+    suite("Proxy request configuration tests", () => {
+        function createRecordingFactory(): {
+            factory: IProxyAgentFactory;
+            calls: { method: string; options: IProxyAgentOptions }[];
+        } {
+            const calls: { method: string; options: IProxyAgentOptions }[] = [];
+            const record = (method: string) => (options: IProxyAgentOptions) => {
+                calls.push({ method, options });
+                return new http.Agent();
+            };
 
-        test("warns when proxy lacks protocol", () => {
-            const invalidProxyValue = "localhost:1234";
+            return {
+                calls,
+                factory: {
+                    httpOverHttp: sandbox.stub().callsFake(record("httpOverHttp")),
+                    httpOverHttps: sandbox.stub().callsFake(record("httpOverHttps")),
+                    httpsOverHttp: sandbox.stub().callsFake(record("httpsOverHttp")),
+                    httpsOverHttps: sandbox.stub().callsFake(record("httpsOverHttps")),
+                },
+            };
+        }
 
-            httpClient["loadProxyConfig"] = sandbox.stub().returns(invalidProxyValue);
+        test("disables Axios proxy detection and leaves direct URLs unchanged", () => {
+            const requestUrl = "https://api.example.com/path?version=2";
+            const request = httpClient["setupRequest"](requestUrl, "test-token");
 
-            parseUriScheme.withArgs(invalidProxyValue).returns(undefined);
-
-            httpClient.warnOnInvalidProxySettings();
-
-            expect(showWarningMessage).to.have.been.calledWithExactly(
-                LocalizedConstants.Proxy.missingProtocolWarning(invalidProxyValue),
-            );
-        });
-
-        test("warns when proxy parsing throws", () => {
-            const invalidProxyValue = "env-proxy.example";
-
-            httpClient["loadProxyConfig"] = sandbox.stub().returns(invalidProxyValue);
-
-            const uriError = new Error("invalid uri format");
-            parseUriScheme.withArgs(invalidProxyValue).throws(uriError);
-
-            httpClient.warnOnInvalidProxySettings();
-
-            expect(showWarningMessage).to.have.been.calledWithExactly(
-                LocalizedConstants.Proxy.unparseableWarning(invalidProxyValue, uriError.message),
-            );
-        });
-
-        test("Does not warn when proxy is valid", () => {
-            const validProxyValues = [
-                "http://valid-proxy.test:8080",
-                "https://valid-proxy.example",
-                "socks5://valid-proxy.subdomain.domain.com:1080",
-            ];
-
-            const proxyConfigStub = sandbox.stub();
-            for (const validProxyValue of validProxyValues) {
-                proxyConfigStub.reset();
-                httpClient["loadProxyConfig"] = proxyConfigStub.returns(validProxyValue);
-
-                httpClient.warnOnInvalidProxySettings();
-
-                expect(showWarningMessage, `Should not warn for valid proxy: ${validProxyValue}`).to
-                    .not.have.been.called;
-            }
-        });
-
-        test("Does not warn when proxy is undefined", () => {
-            httpClient["loadProxyConfig"] = sandbox.stub().returns(undefined);
-
-            httpClient.warnOnInvalidProxySettings();
-
-            expect(showWarningMessage).to.not.have.been.called;
-        });
-
-        test("loadProxyConfig prefers VS Code configuration over environment variables", () => {
-            getProxyConfig.returns(configProxy);
-
-            sandbox.stub(process, "env").value({
-                HTTP_PROXY: envProxy,
-                https_proxy: envProxy,
+            expect(request.requestUrl).to.equal(requestUrl);
+            expect(request.config.proxy).to.be.false;
+            expect(request.config.httpsAgent).to.be.undefined;
+            expect(request.config.headers).to.deep.include({
+                Authorization: "Bearer test-token",
             });
-
-            const proxy = httpClient["loadProxyConfig"]();
-
-            expect(proxy).to.equal(configProxy);
         });
 
-        test("loadProxyConfig falls back to environment variables when config missing", () => {
-            sandbox.stub(process, "env").value({
-                HTTP_PROXY: envProxy,
-            });
+        test("wraps proxy resolver failures without exposing the configured value", () => {
+            const secretProxy = "http://user:secret@proxy.example.com:3128";
+            const proxyResolver: IProxyResolver = {
+                resolve: () => {
+                    throw new Error(secretProxy);
+                },
+            };
+            const client = new HttpClient({ logger, proxyResolver });
 
-            const proxy = httpClient["loadProxyConfig"]();
-
-            expect(proxy).to.equal(envProxy);
+            expect(() => client["setupConfigAndProxyForRequest"]("https://example.test")).to.throw(
+                ProxyConfigurationError,
+                "Unable to resolve the configured proxy.",
+            );
+            expect(logger.error).to.have.been.calledWith("Unable to resolve the configured proxy.");
+            expect(
+                logger.error.args.flat().join(" "),
+                "Proxy credentials must not be logged",
+            ).not.to.contain("secret");
         });
 
-        test("setupConfigAndProxyForRequest", () => {
-            const fakeToken = "fake-token";
-            const fakeProxyUrl = new URL("http://fake-proxy.test:8080");
+        test("resolves the proxy again when a request redirects", () => {
+            const resolvedTargets: string[] = [];
+            const { factory } = createRecordingFactory();
+            const proxyResolver: IProxyResolver = {
+                resolve: (target) => {
+                    resolvedTargets.push(target.toString());
+                    return target.pathname === "/start"
+                        ? {
+                              url: new URL("http://proxy.example.com:3128"),
+                              rejectUnauthorized: true,
+                              source: "environment",
+                          }
+                        : undefined;
+                },
+            };
+            const client = new HttpClient({ logger, proxyResolver, proxyAgentFactory: factory });
+            const config = client["setupConfigAndProxyForRequest"]("http://example.test/start");
+            const redirectOptions: {
+                href: string;
+                agents: Record<string, unknown>;
+                agent?: unknown;
+            } = {
+                href: "https://redirected.example.test/final",
+                agents: { http: config.httpAgent, https: config.httpsAgent },
+            };
 
-            const loadProxyConfigStub = sandbox.stub();
-            httpClient["loadProxyConfig"] = loadProxyConfigStub.returns(fakeProxyUrl.toString());
-
-            const result = httpClient["setupConfigAndProxyForRequest"](
-                "http://fakeUrl.ms/",
-                fakeToken,
+            config.beforeRedirect!(
+                redirectOptions as never,
+                { headers: {}, statusCode: 302 },
+                { headers: {}, url: "http://example.test/start", method: "GET" },
             );
 
-            expect(result.headers.Authorization).to.contain(fakeToken);
-            expect(result.proxy, "Automatic proxy detection should be disabled").to.be.false;
-            expect(result.httpAgent.proxyOptions).to.deep.equal({
-                host: fakeProxyUrl.hostname,
-                port: parseInt(fakeProxyUrl.port),
-            });
-            expect(result.httpsAgent).to.be.undefined;
-        });
-    });
-
-    suite("setupConfigAndProxyForRequest tests", () => {
-        test("should setup config without proxy", () => {
-            const requestUrl = "https://api.example.com";
-            const token = "test-token";
-
-            httpClient["loadProxyConfig"] = sandbox.stub().returns(undefined);
-
-            const result = httpClient["setupConfigAndProxyForRequest"](requestUrl, token);
-
-            expect(result.headers).to.deep.equal({
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            });
-            expect(result.validateStatus!(200)).to.be.true;
-            expect(result.proxy).to.be.undefined;
-            expect(result.httpAgent).to.be.undefined;
-            expect(result.httpsAgent).to.be.undefined;
+            expect(resolvedTargets).to.deep.equal([
+                "http://example.test/start",
+                "https://redirected.example.test/final",
+            ]);
+            expect(redirectOptions.agents.https).to.be.undefined;
+            expect(redirectOptions.agent).to.be.undefined;
         });
 
-        test("should setup config with HTTPS proxy for HTTPS request", () => {
-            const requestUrl = "https://api.example.com";
-            const token = "test-token";
-            const proxy = "https://proxy.example.com:8080";
+        for (const testCase of [
+            {
+                target: "http://example.test",
+                proxy: "http://proxy.example.com:3128",
+                expectedFactory: "httpOverHttp",
+            },
+            {
+                target: "http://example.test",
+                proxy: "https://proxy.example.com:3128",
+                expectedFactory: "httpOverHttps",
+            },
+            {
+                target: "https://example.test",
+                proxy: "http://proxy.example.com:3128",
+                expectedFactory: "httpsOverHttp",
+            },
+            {
+                target: "https://example.test",
+                proxy: "https://proxy.example.com:3128",
+                expectedFactory: "httpsOverHttps",
+            },
+        ]) {
+            test(`uses ${testCase.expectedFactory} for ${new URL(testCase.target).protocol} over ${new URL(testCase.proxy).protocol}`, () => {
+                const { factory, calls } = createRecordingFactory();
+                const proxyResolver: IProxyResolver = {
+                    resolve: () => ({
+                        url: new URL(testCase.proxy),
+                        rejectUnauthorized: true,
+                        source: "environment",
+                    }),
+                };
+                const client = new HttpClient({
+                    logger,
+                    proxyResolver,
+                    proxyAgentFactory: factory,
+                });
 
-            httpClient["loadProxyConfig"] = sandbox.stub().returns(proxy);
+                client["setupConfigAndProxyForRequest"](testCase.target);
 
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            sandbox.stub(httpClient as any, "createProxyAgent").returns({
-                isHttps: true,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                agent: {} as any,
+                expect(calls.map((call) => call.method)).to.deep.equal([testCase.expectedFactory]);
             });
+        }
 
-            const result = httpClient["setupConfigAndProxyForRequest"](requestUrl, token);
+        test("decodes credentials and applies certificate settings only to HTTPS proxies", () => {
+            const { factory, calls } = createRecordingFactory();
+            const proxyResolver: IProxyResolver = {
+                resolve: (target) => ({
+                    url: new URL(
+                        target.pathname === "/secure"
+                            ? "https://us%40er:p%3Ass@proxy.example.com"
+                            : "http://us%40er:p%3Ass@proxy.example.com",
+                    ),
+                    rejectUnauthorized: false,
+                    source: "vscode",
+                }),
+            };
+            const client = new HttpClient({ logger, proxyResolver, proxyAgentFactory: factory });
 
-            expect(result.proxy).to.be.false;
-            expect(result.httpsAgent).to.exist;
-            expect(result.httpAgent).to.be.undefined;
-        });
+            client["setupConfigAndProxyForRequest"]("https://example.test/direct");
+            client["setupConfigAndProxyForRequest"]("https://example.test/secure");
 
-        test("should setup config with HTTP proxy for HTTPS request", () => {
-            const requestUrl = "https://api.example.com";
-            const token = "test-token";
-            const proxy = "http://proxy.example.com:8080";
-
-            httpClient["loadProxyConfig"] = sandbox.stub().returns(proxy);
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            sandbox.stub(httpClient as any, "createProxyAgent").returns({
-                isHttps: false,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                agent: {} as any,
-            });
-
-            const result = httpClient["setupConfigAndProxyForRequest"](requestUrl, token);
-
-            expect(result.proxy).to.be.false;
-            expect(result.httpsAgent).to.exist;
-            expect(result.httpAgent).to.be.undefined;
-        });
-
-        test("should create proxy agent when proxy is found", () => {
-            const requestUrl = "https://api.example.com";
-            const token = "test-token";
-            const proxy = "http://proxy.example.com:8080";
-
-            httpClient["loadProxyConfig"] = sandbox.stub().returns(proxy);
-
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            sandbox.stub(httpClient as any, "createProxyAgent").returns({
-                isHttps: false,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                agent: {} as any,
-            });
-
-            httpClient["setupConfigAndProxyForRequest"](requestUrl, token);
-
-            expect((httpClient as any).createProxyAgent).to.have.been.called;
+            expect(calls[0].options.proxy.proxyAuth).to.equal("us@er:p:ss");
+            expect(calls[0].options.proxy.rejectUnauthorized).to.be.undefined;
+            expect(calls[1].options.proxy.proxyAuth).to.equal("us@er:p:ss");
+            expect(calls[1].options.proxy.rejectUnauthorized).to.be.false;
+            expect(calls[1].options.proxy.port).to.equal(443);
         });
     });
 });

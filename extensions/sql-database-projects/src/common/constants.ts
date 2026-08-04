@@ -863,18 +863,17 @@ export const downloading = l10n.t("Downloading");
 
 //#region proxy
 export const Proxy = {
-    missingProtocolWarning: (proxy: string) =>
+    missingProtocolWarning: l10n.t(
+        "Proxy settings found, but without a protocol (e.g. http://). You may encounter connection issues while using the SQL Database Projects extension.",
+    ),
+    unsupportedProtocolWarning: (protocol: string) =>
         l10n.t(
-            "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the SQL Database Projects extension.",
-            proxy,
+            "Proxy settings found, but the protocol '{0}' is not supported; only http and https proxies can be used. You may encounter connection issues while using the SQL Database Projects extension.",
+            protocol,
         ),
-    unparseableWarning: (proxy: string, errorMessage: string) =>
-        l10n.t(
-            "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}",
-            proxy,
-            errorMessage,
-        ),
-    unableToGetProxyAgentOptions: l10n.t("Unable to read proxy agent options."),
+    unparseableWarning: l10n.t(
+        "Proxy settings found, but the URL could not be parsed. You may encounter connection issues while using the SQL Database Projects extension.",
+    ),
 };
 //#endregion
 

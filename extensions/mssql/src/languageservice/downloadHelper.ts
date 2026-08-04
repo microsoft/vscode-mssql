@@ -43,7 +43,7 @@ export default class DownloadHelper {
             downloadPercentage: 0,
         };
 
-        const httpHelper = new HttpClient(logger);
+        const httpHelper = new HttpClient({ logger });
 
         try {
             const result: IDownloadFileResult = await httpHelper.downloadFile(

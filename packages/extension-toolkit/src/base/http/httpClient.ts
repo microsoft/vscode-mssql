@@ -4,16 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as fs from "fs";
-import * as http from "http";
-import * as https from "https";
 import { Readable } from "stream";
 import axios, { AxiosRequestConfig, AxiosResponse, RawAxiosResponseHeaders } from "axios";
 import * as tunnel from "tunnel";
-import { getErrorMessage } from "../common";
-
-const UnableToGetProxyAgentOptionsMessage = "Unable to read proxy agent options.";
-const HTTPS_PORT = 443;
-const HTTP_PORT = 80;
+import {
+    createEnvironmentProxyResolver,
+    getProxyPort,
+    getRedactedProxyDescription,
+    IProxyAgentFactory,
+    IProxyAgentOptions,
+    IProxyConfiguration,
+    IProxyResolver,
+} from "./proxy";
 
 /** Optional logger contract used by the HTTP client for diagnostics and errors. */
 export interface IHttpClientLogger {
@@ -37,34 +39,16 @@ export interface IHttpClientLogger {
     ): void;
 }
 
-/** Localized proxy warning messages used by the HTTP client. */
-export interface IHttpClientMessages {
-    /** Builds a warning when a proxy is configured without a protocol. */
-    missingProtocolWarning(proxy: string): string;
+/** Construction options for {@link HttpClient}. */
+export interface IHttpClientOptions {
+    /** Optional logger for credential-free HTTP diagnostics. */
+    readonly logger?: IHttpClientLogger;
 
-    /** Builds a warning when a proxy URL cannot be parsed. */
-    unparseableWarning(proxy: string, errorMessage: string): string;
+    /** Resolves the proxy for each request. Defaults to the environment variable resolver. */
+    readonly proxyResolver?: IProxyResolver;
 
-    /** Message used when a proxy agent cannot be constructed. */
-    unableToGetProxyAgentOptions: string;
-}
-
-/** Runtime integration points for proxy settings and warning presentation. */
-export interface IHttpClientDependencies {
-    /** Returns the configured proxy endpoint, if available. */
-    getProxyConfig?: () => string | undefined;
-
-    /** Returns whether proxy certificates should be validated. */
-    getProxyStrictSSL?: () => boolean | undefined;
-
-    /** Parses a URI and returns its scheme. */
-    parseUriScheme?: (value: string) => string | undefined;
-
-    /** Displays a warning message to the user. */
-    showWarningMessage?: (message: string) => void;
-
-    /** Localized proxy warning messages. */
-    messages?: IHttpClientMessages;
+    /** Creates proxy agents. Primarily an injection point for tests. */
+    readonly proxyAgentFactory?: IProxyAgentFactory;
 }
 
 /** Progress payload for download callbacks. */
@@ -98,16 +82,21 @@ export interface IDownloadFileResult {
  * Shared HTTP client with proxy support, optional diagnostics, and stream downloads.
  */
 export class HttpClient {
+    protected readonly logger?: IHttpClientLogger;
+
+    private readonly _proxyResolver: IProxyResolver;
+    private readonly _proxyAgentFactory: IProxyAgentFactory;
+
     /**
      * Creates an HTTP client.
      *
-     * @param logger Optional logger for diagnostics and warnings.
-     * @param dependencies Optional host-specific proxy and UI integrations.
+     * @param options Optional logger, proxy resolver, and proxy agent factory.
      */
-    constructor(
-        protected readonly logger?: IHttpClientLogger,
-        private readonly dependencies: IHttpClientDependencies = {},
-    ) {}
+    constructor(options: IHttpClientOptions = {}) {
+        this.logger = options.logger;
+        this._proxyResolver = options.proxyResolver ?? createEnvironmentProxyResolver();
+        this._proxyAgentFactory = options.proxyAgentFactory ?? defaultProxyAgentFactory;
+    }
 
     /**
      * Sends an HTTP GET request.
@@ -194,48 +183,13 @@ export class HttpClient {
         }
     }
 
-    /**
-     * Validates proxy settings and emits warnings for invalid values.
-     */
-    public warnOnInvalidProxySettings(): void {
-        const proxy = this.loadProxyConfig();
-        if (!proxy) {
-            return;
-        }
-
-        let message = undefined;
-        let localizedMessage = undefined;
-
-        try {
-            const scheme = this.dependencies.parseUriScheme
-                ? this.dependencies.parseUriScheme(proxy)
-                : new URL(proxy).protocol;
-
-            if (!scheme) {
-                message = `Proxy settings found, but without a protocol (e.g. http://): '${proxy}'.  You may encounter connection issues while using this extension.`;
-                localizedMessage = this.dependencies.messages?.missingProtocolWarning(proxy);
-            }
-        } catch (error) {
-            const errorMessage = getErrorMessage(error);
-            message = `Proxy settings found, but encountered an error while parsing the URL: '${proxy}'.  You may encounter connection issues while using this extension.  Error: ${errorMessage}`;
-            localizedMessage = this.dependencies.messages?.unparseableWarning(proxy, errorMessage);
-        }
-
-        if (message) {
-            if (localizedMessage) {
-                this.dependencies.showWarningMessage?.(localizedMessage);
-            }
-            this.logger?.warn(message);
-        }
-    }
-
     private setupRequest(
         requestUrl: string,
         token?: string,
     ): { requestUrl: string; config: AxiosRequestConfig } {
         const config = this.setupConfigAndProxyForRequest(requestUrl, token);
         return {
-            requestUrl: this.constructRequestUrl(requestUrl, config),
+            requestUrl,
             config,
         };
     }
@@ -326,6 +280,7 @@ export class HttpClient {
     }
 
     private setupConfigAndProxyForRequest(requestUrl: string, token?: string): AxiosRequestConfig {
+        const target = new URL(requestUrl);
         const headers: { "Content-Type": string; Authorization?: string } = {
             "Content-Type": "application/json",
         };
@@ -339,25 +294,7 @@ export class HttpClient {
             validateStatus: () => true,
         };
 
-        const proxy = this.loadProxyConfig();
-
-        if (proxy) {
-            this.logger?.debug(
-                "Proxy endpoint found in environment variables or workspace configuration.",
-            );
-            config.proxy = false;
-
-            const agent = this.createProxyAgent(
-                requestUrl,
-                proxy,
-                this.dependencies.getProxyStrictSSL?.(),
-            );
-            if (requestUrl.startsWith("https")) {
-                config.httpsAgent = agent.agent;
-            } else {
-                config.httpAgent = agent.agent;
-            }
-        }
+        this.applyProxy(config, target);
         return config;
     }
 
@@ -376,152 +313,93 @@ export class HttpClient {
         return axios.post<TResponse>(requestUrl, payload, config);
     }
 
-    private loadProxyConfig(): string | undefined {
-        let proxy = this.dependencies.getProxyConfig?.();
+    private applyProxy(config: AxiosRequestConfig, target: URL): void {
+        // Proxy selection is owned entirely by the resolver, so Axios's environment handling is
+        // always disabled. This is also what allows NO_PROXY to switch a request back to direct.
+        config.proxy = false;
+
+        const agent = this.resolveProxyAgent(target);
+        if (target.protocol === "https:") {
+            config.httpsAgent = agent;
+        } else {
+            config.httpAgent = agent;
+        }
+
+        config.beforeRedirect = (options) => {
+            const redirectTarget = new URL(options.href);
+            const redirectAgent = this.resolveProxyAgent(redirectTarget);
+            const scheme = redirectTarget.protocol.slice(0, -1);
+            const agents = options.agents as Record<string, unknown> | undefined;
+
+            if (agents) {
+                agents[scheme] = redirectAgent;
+            } else {
+                options.agents = { [scheme]: redirectAgent };
+            }
+
+            options.agent = redirectAgent;
+        };
+    }
+
+    private resolveProxyAgent(target: URL): unknown | undefined {
+        let proxy: IProxyConfiguration | undefined;
+        try {
+            proxy = this._proxyResolver.resolve(target);
+        } catch (error) {
+            this.logger?.error("Unable to resolve the configured proxy.");
+            throw new ProxyConfigurationError("Unable to resolve the configured proxy.", error);
+        }
 
         if (!proxy) {
-            this.logger?.debug(
-                "Workspace HTTP config didn't contain a proxy endpoint. Checking environment variables.",
-            );
-            proxy = this.loadEnvironmentProxyValue();
-        }
-
-        return proxy;
-    }
-
-    private constructRequestUrl(requestUrl: string, config: AxiosRequestConfig): string {
-        if (!config.proxy) {
-            const parsedRequestUrl = new URL(requestUrl);
-            const port =
-                parsedRequestUrl.port ||
-                (parsedRequestUrl.protocol?.startsWith("https") ? HTTPS_PORT : HTTP_PORT);
-
-            return `${parsedRequestUrl.protocol}//${parsedRequestUrl.hostname}:${port}${parsedRequestUrl.pathname}${parsedRequestUrl.search}`;
-        }
-        return requestUrl;
-    }
-
-    private loadEnvironmentProxyValue(): string | undefined {
-        const HTTP_PROXY = "HTTP_PROXY";
-        const HTTPS_PROXY = "HTTPS_PROXY";
-
-        if (!process) {
-            this.logger?.debug(
-                "No process object found, unable to read environment variables for proxy.",
-            );
             return undefined;
-        }
-
-        if (process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()]) {
-            this.logger?.debug("Loading proxy value from HTTP_PROXY environment variable.");
-            return process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()];
-        } else if (process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()]) {
-            this.logger?.debug("Loading proxy value from HTTPS_PROXY environment variable.");
-            return process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()];
         }
 
         this.logger?.debug(
-            "No proxy value found in either HTTPS_PROXY or HTTP_PROXY environment variables.",
+            `Routing request through ${proxy.source} proxy ${getRedactedProxyDescription(proxy.url)}.`,
         );
-        return undefined;
-    }
 
-    private createProxyAgent(
-        requestUrl: string,
-        proxy: string,
-        proxyStrictSSL?: boolean,
-    ): ProxyAgent {
-        const agentOptions = this.getProxyAgentOptions(new URL(requestUrl), proxy, proxyStrictSSL);
-        if (!agentOptions || !agentOptions.host || !agentOptions.port) {
-            this.logger?.error("Unable to read proxy agent options to create proxy agent.");
-            throw new Error(
-                this.dependencies.messages?.unableToGetProxyAgentOptions ??
-                    UnableToGetProxyAgentOptionsMessage,
+        try {
+            return this.createProxyAgent(target, proxy);
+        } catch (error) {
+            if (error instanceof ProxyConfigurationError) {
+                throw error;
+            }
+
+            this.logger?.error("Unable to construct the configured proxy agent.");
+            throw new ProxyConfigurationError(
+                "Unable to construct the configured proxy agent.",
+                error,
             );
         }
+    }
 
-        const tunnelOptions: tunnel.HttpsOverHttpsOptions = {
+    private createProxyAgent(target: URL, proxy: IProxyConfiguration): unknown {
+        const isHttpsProxy = proxy.url.protocol === "https:";
+        const credentials =
+            proxy.url.username || proxy.url.password
+                ? `${decodeProxyCredential(proxy.url.username)}:${decodeProxyCredential(proxy.url.password)}`
+                : undefined;
+
+        const options: IProxyAgentOptions = {
             proxy: {
-                host: agentOptions.host,
-                port: Number(agentOptions.port),
-                ...(agentOptions.auth ? { proxyAuth: agentOptions.auth } : {}),
+                host: proxy.url.hostname,
+                port: getProxyPort(proxy.url),
+                ...(credentials ? { proxyAuth: credentials } : {}),
+                // This applies to the proxy connection only. Destination certificates remain
+                // validated by the tunnel agent.
+                ...(isHttpsProxy ? { rejectUnauthorized: proxy.rejectUnauthorized } : {}),
             },
         };
 
-        const isHttpsRequest = requestUrl.startsWith("https");
-        const isHttpsProxy = proxy.startsWith("https");
-        return {
-            agent: this.createTunnelingAgent(isHttpsRequest, isHttpsProxy, tunnelOptions),
-        };
-    }
-
-    private createTunnelingAgent(
-        isHttpsRequest: boolean,
-        isHttpsProxy: boolean,
-        tunnelOptions: tunnel.HttpsOverHttpsOptions,
-    ): http.Agent | https.Agent {
-        if (isHttpsRequest && isHttpsProxy) {
-            this.logger?.debug("Creating https request over https proxy tunneling agent");
-            return tunnel.httpsOverHttps(tunnelOptions);
-        } else if (isHttpsRequest && !isHttpsProxy) {
-            this.logger?.debug("Creating https request over http proxy tunneling agent");
-            return tunnel.httpsOverHttp(tunnelOptions);
-        } else if (!isHttpsRequest && isHttpsProxy) {
-            this.logger?.debug("Creating http request over https proxy tunneling agent");
-            return tunnel.httpOverHttps(tunnelOptions);
+        if (target.protocol === "https:") {
+            return isHttpsProxy
+                ? this._proxyAgentFactory.httpsOverHttps(options)
+                : this._proxyAgentFactory.httpsOverHttp(options);
         }
 
-        this.logger?.debug("Creating http request over http proxy tunneling agent");
-        return tunnel.httpOverHttp(tunnelOptions);
-    }
-
-    private getProxyAgentOptions(
-        requestUrl: URL,
-        proxy?: string,
-        strictSSL?: boolean,
-    ): ProxyAgentOptions | undefined {
-        const proxyUrl = proxy || this.getSystemProxyUrl(requestUrl);
-
-        if (!proxyUrl) {
-            return undefined;
-        }
-
-        const proxyEndpoint = new URL(proxyUrl);
-        if (!/^https?:$/.test(proxyEndpoint.protocol)) {
-            return undefined;
-        }
-
-        const auth =
-            proxyEndpoint.username || proxyEndpoint.password
-                ? `${proxyEndpoint.username}:${proxyEndpoint.password}`
-                : undefined;
-
-        return {
-            host: proxyEndpoint.hostname,
-            port: proxyEndpoint.port
-                ? Number(proxyEndpoint.port)
-                : proxyEndpoint.protocol === "https:"
-                  ? HTTPS_PORT
-                  : HTTP_PORT,
-            auth,
-            rejectUnauthorized: strictSSL !== false,
-        };
-    }
-
-    private getSystemProxyUrl(requestUrl: URL): string | undefined {
-        if (requestUrl.protocol === "http:") {
-            return process.env.HTTP_PROXY || process.env.http_proxy || undefined;
-        } else if (requestUrl.protocol === "https:") {
-            return (
-                process.env.HTTPS_PROXY ||
-                process.env.https_proxy ||
-                process.env.HTTP_PROXY ||
-                process.env.http_proxy ||
-                undefined
-            );
-        }
-
-        return undefined;
+        return isHttpsProxy
+            ? this._proxyAgentFactory.httpOverHttps(options)
+            : this._proxyAgentFactory.httpOverHttp(options);
     }
 
     private getContentLength(header: unknown): number | undefined {
@@ -534,15 +412,44 @@ export class HttpClient {
     }
 }
 
-interface ProxyAgent {
-    agent: http.Agent | https.Agent;
+const defaultProxyAgentFactory: IProxyAgentFactory = {
+    httpOverHttp: (options) => tunnel.httpOverHttp(toAgentOptions(options)),
+    httpOverHttps: (options) => tunnel.httpOverHttps(toAgentOptions(options)),
+    httpsOverHttp: (options) => tunnel.httpsOverHttp(toAgentOptions(options)),
+    httpsOverHttps: (options) => tunnel.httpsOverHttps(toAgentOptions(options)),
+};
+
+function toAgentOptions(options: IProxyAgentOptions): tunnel.HttpsOverHttpsOptions {
+    const proxy: tunnel.HttpsProxyOptions & { rejectUnauthorized?: boolean } = {
+        host: options.proxy.host,
+        port: options.proxy.port,
+    };
+
+    if (options.proxy.proxyAuth) {
+        proxy.proxyAuth = options.proxy.proxyAuth;
+    }
+
+    if (options.proxy.rejectUnauthorized !== undefined) {
+        proxy.rejectUnauthorized = options.proxy.rejectUnauthorized;
+    }
+
+    return { proxy };
 }
 
-interface ProxyAgentOptions {
-    auth: string | undefined;
-    host?: string | null;
-    port?: string | number | null;
-    rejectUnauthorized: boolean;
+function decodeProxyCredential(value: string): string {
+    return decodeURIComponent(value);
+}
+
+/** Error raised when a configured proxy cannot be resolved or its agent cannot be constructed. */
+export class ProxyConfigurationError extends Error {
+    public override readonly name = "ProxyConfigurationError";
+
+    constructor(
+        message: string,
+        public readonly cause: unknown,
+    ) {
+        super(message);
+    }
 }
 
 /** Error raised by `downloadFile` when request or response streaming fails. */

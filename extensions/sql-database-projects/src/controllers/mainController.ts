@@ -22,7 +22,11 @@ import * as constants from "../common/constants";
 import { SqlDatabaseProjectProvider } from "../projectProvider/projectProvider";
 import { ItemType } from "../sqldbproj";
 import { FileNode } from "../models/tree/fileFolderTreeItem";
-import { VscodeHttpClient } from "extension-toolkit/vscode";
+import {
+    describeProxyConfigurationIssue,
+    getVscodeProxyConfigurationIssue,
+    ProxyConfigurationIssue,
+} from "extension-toolkit/vscode";
 
 /**
  * The main controller class that initializes the extension
@@ -64,12 +68,23 @@ export default class MainController implements vscode.Disposable {
         }
 
         // Warn about invalid proxy settings early during activation
-        new VscodeHttpClient({
-            messages: constants.Proxy,
-        }).warnOnInvalidProxySettings();
+        this.warnOnInvalidProxySettings();
 
         await this.initializeDatabaseProjects();
         return new SqlDatabaseProjectProvider(this.projectsController);
+    }
+
+    /**
+     * Surfaces a localized warning when the `http.proxy` setting cannot be used.
+     */
+    private warnOnInvalidProxySettings(): void {
+        const issue = getVscodeProxyConfigurationIssue();
+        if (!issue) {
+            return;
+        }
+
+        void vscode.window.showWarningMessage(getProxyIssueMessage(issue));
+        this._outputChannel.appendLine(describeProxyConfigurationIssue(issue));
     }
 
     private async initializeDatabaseProjects(): Promise<void> {
@@ -362,5 +377,17 @@ export default class MainController implements vscode.Disposable {
 
     public dispose(): void {
         this.deactivate();
+    }
+}
+
+/** Maps a proxy configuration issue onto the extension's localized warning text. */
+function getProxyIssueMessage(issue: ProxyConfigurationIssue): string {
+    switch (issue.kind) {
+        case "missing-protocol":
+            return constants.Proxy.missingProtocolWarning;
+        case "unsupported-protocol":
+            return constants.Proxy.unsupportedProtocolWarning(issue.protocol);
+        default:
+            return constants.Proxy.unparseableWarning;
     }
 }
