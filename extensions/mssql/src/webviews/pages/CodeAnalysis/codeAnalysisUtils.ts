@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { customRulesCategory, SqlCodeAnalysisRule } from "../../../sharedInterfaces/codeAnalysis";
+import { CodeAnalysisCategoryOrder } from "../../../enums";
 import { allSeverities } from "../../common/constants";
 
 /**
@@ -41,23 +42,18 @@ export function filterRules(
     });
 }
 
-/** Display order of a category relative to other categories. */
-const enum CategoryOrder {
-    BuiltIn = 0,
-    Custom = 1,
-    UncategorizedCustom = 2,
-}
-
 /**
  * A category holding any built-in rule is ordered with the built-in categories. A custom rule that
  * declares an existing built-in category therefore joins that group rather than starting a
  * duplicate one further down the list.
  */
-function categoryOrder(category: string, rules: SqlCodeAnalysisRule[]): CategoryOrder {
+function categoryOrder(category: string, rules: SqlCodeAnalysisRule[]): CodeAnalysisCategoryOrder {
     if (category === customRulesCategory) {
-        return CategoryOrder.UncategorizedCustom;
+        return CodeAnalysisCategoryOrder.UncategorizedCustom;
     }
-    return rules.some((rule) => rule.isBuiltIn) ? CategoryOrder.BuiltIn : CategoryOrder.Custom;
+    return rules.some((rule) => rule.isBuiltIn)
+        ? CodeAnalysisCategoryOrder.BuiltIn
+        : CodeAnalysisCategoryOrder.Custom;
 }
 
 /**
