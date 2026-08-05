@@ -25,11 +25,6 @@ const useStyles = makeStyles({
         flexDirection: "row",
     },
 
-    layoutVertically: {
-        display: "flex",
-        flexDirection: "column",
-    },
-
     center: {
         justifyContent: "center",
     },
@@ -98,27 +93,24 @@ const SelectSchemasPanel = ({ onSelectSchemaClicked }: Props) => {
     return (
         <div
             className={mergeClasses(classes.layoutHorizontally, classes.center, classes.topMargin)}>
-            <div className={mergeClasses(classes.layoutVertically, classes.marginRight)}>
-                <SelectSchemaInput
-                    id={sourceId}
-                    label={loc.schemaCompare.source}
-                    buttonAriaLabel={loc.schemaCompare.selectSourceSchema}
-                    value={sourceEndpointDisplay}
-                    disableBrowseButton={isComparisonInProgress || isApplyInProgress}
-                    selectFile={() => onSelectSchemaClicked("source")}
-                />
-            </div>
+            <SelectSchemaInput
+                id={sourceId}
+                label={loc.schemaCompare.source}
+                buttonAriaLabel={loc.schemaCompare.selectSourceSchema}
+                value={sourceEndpointDisplay}
+                disableBrowseButton={isComparisonInProgress || isApplyInProgress}
+                selectFile={() => onSelectSchemaClicked("source")}
+                className={classes.marginRight}
+            />
 
-            <div className={classes.layoutVertically}>
-                <SelectSchemaInput
-                    id={targetId}
-                    label={loc.schemaCompare.target}
-                    buttonAriaLabel={loc.schemaCompare.selectTargetSchema}
-                    value={targetEndpointDisplay}
-                    disableBrowseButton={isComparisonInProgress || isApplyInProgress}
-                    selectFile={() => onSelectSchemaClicked("target")}
-                />
-            </div>
+            <SelectSchemaInput
+                id={targetId}
+                label={loc.schemaCompare.target}
+                buttonAriaLabel={loc.schemaCompare.selectTargetSchema}
+                value={targetEndpointDisplay}
+                disableBrowseButton={isComparisonInProgress || isApplyInProgress}
+                selectFile={() => onSelectSchemaClicked("target")}
+            />
 
             <Button
                 className={mergeClasses(classes.button, classes.buttonLeftMargin)}
