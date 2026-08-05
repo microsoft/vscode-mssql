@@ -70,6 +70,11 @@ export interface CreateSessionResult {
     shouldRetryOnFailure?: boolean;
 }
 
+interface ConnectionClickTrace {
+    correlationId: string;
+    startedAt: number;
+}
+
 export class ObjectExplorerService {
     private _client: SqlToolsServiceClient;
     private _logger: ILogger;
@@ -126,6 +131,8 @@ export class ObjectExplorerService {
      * Nodes that need another refresh as soon as their current load finishes.
      */
     private _refreshQueuedAfterInFlight: Set<TreeNodeInfo> = new Set();
+
+    private _connectionClickTraces = new WeakMap<TreeNodeInfo, ConnectionClickTrace>();
 
     constructor(
         private _connectionManager: ConnectionManager,
@@ -436,8 +443,24 @@ export class ObjectExplorerService {
 
     // Main method that routes to the appropriate handler
     public async getChildren(element?: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+        const clickTrace = element ? this._connectionClickTraces.get(element) : undefined;
+        const correlationId = clickTrace?.correlationId;
+        const startedAt = clickTrace?.startedAt ?? Date.now();
+        if (element) {
+            this._connectionClickTraces.delete(element);
+        }
+        const logConnectionPhase = (phase: string) => {
+            if (correlationId) {
+                this._logger.debug(
+                    `[ConnectionTrace] Object Explorer ${phase} correlationId=${correlationId} durationMs=${Date.now() - startedAt}`,
+                );
+            }
+        };
+
         this._logger.trace(`getChildren called for ${getNodeDescriptor(element)}`);
+        logConnectionPhase("getChildren entered");
         await this.initialized;
+        logConnectionPhase("initialization completed");
         if (!element) {
             return this.getRootNodes();
         }
@@ -452,7 +475,14 @@ export class ObjectExplorerService {
             return element.children;
         }
 
-        return this.getNodeChildren(element);
+        return this.getNodeChildren(element, correlationId, startedAt);
+    }
+
+    public recordConnectionClick(node: TreeNodeInfo, correlationId: string): void {
+        this._connectionClickTraces.set(node, {
+            correlationId,
+            startedAt: Date.now(),
+        });
     }
 
     /**
@@ -590,7 +620,11 @@ export class ObjectExplorerService {
      * @param element The node to get children for
      * @returns The children of the node
      */
-    private async getNodeChildren(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
+    private async getNodeChildren(
+        element: TreeNodeInfo,
+        correlationId?: string,
+        startedAt = Date.now(),
+    ): Promise<vscode.TreeItem[]> {
         const wasRefresh = element.shouldRefresh;
         const hadCache = this._treeNodeToChildrenMap.has(element);
         const hasInFlight = this._inFlightChildrenFetches.has(element);
@@ -621,7 +655,7 @@ export class ObjectExplorerService {
          * Tree expansion is queued, so without this if multiple connections are expanding,
          * one blocked operation can delay the other.
          */
-        void this.getOrCreateNodeChildrenWithSession(element);
+        void this.getOrCreateNodeChildrenWithSession(element, correlationId, startedAt);
         return this.setLoadingUiForNode(element);
     }
 
@@ -689,7 +723,11 @@ export class ObjectExplorerService {
      * If it doesn't, create a new session and expand it.
      * @param element The node to get or create children for
      */
-    private async getOrCreateNodeChildrenWithSession(element: TreeNodeInfo): Promise<void> {
+    private async getOrCreateNodeChildrenWithSession(
+        element: TreeNodeInfo,
+        correlationId?: string,
+        startedAt = Date.now(),
+    ): Promise<void> {
         const existing = this._inFlightChildrenFetches.get(element);
 
         this._logger.trace(
@@ -705,7 +743,7 @@ export class ObjectExplorerService {
                 if (element.sessionId) {
                     await this.expandExistingNode(element);
                 } else {
-                    await this.createSessionAndExpandNode(element);
+                    await this.createSessionAndExpandNode(element, correlationId, startedAt);
                 }
             } finally {
                 this._inFlightChildrenFetches.delete(element);
@@ -756,8 +794,21 @@ export class ObjectExplorerService {
      * @param element The node to create a session for and expand
      * @returns The children of the node
      */
-    private async createSessionAndExpandNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        const sessionResult = await this.createSession(element.connectionProfile);
+    private async createSessionAndExpandNode(
+        element: TreeNodeInfo,
+        correlationId?: string,
+        startedAt = Date.now(),
+    ): Promise<vscode.TreeItem[]> {
+        if (correlationId) {
+            this._logger.debug(
+                `[ConnectionTrace] Object Explorer session creation started correlationId=${correlationId} durationMs=${Date.now() - startedAt}`,
+            );
+        }
+        const sessionResult = await this.createSession(
+            element.connectionProfile,
+            correlationId,
+            startedAt,
+        );
 
         if (sessionResult?.shouldRetryOnFailure) {
             setTimeout(() => void this.reconnectProfile(element.connectionProfile), 0);
@@ -794,6 +845,8 @@ export class ObjectExplorerService {
      */
     public async createSession(
         connectionInfo?: IConnectionInfo,
+        correlationId?: string,
+        startedAt = Date.now(),
     ): Promise<CreateSessionResult | undefined> {
         await this.initialized;
         if (!this._rootTreeNodeArray) {
@@ -813,6 +866,11 @@ export class ObjectExplorerService {
             undefined,
         );
 
+        if (correlationId) {
+            this._logger.debug(
+                `[ConnectionTrace] Object Explorer preparing connection profile correlationId=${correlationId} durationMs=${Date.now() - startedAt}`,
+            );
+        }
         const connectionProfile = await this.prepareConnectionProfile(connectionInfo);
 
         if (!connectionProfile) {
@@ -821,6 +879,12 @@ export class ObjectExplorerService {
         }
 
         const connectionDetails = ConnectionCredentials.createConnectionDetails(connectionProfile);
+
+        if (correlationId) {
+            this._logger.debug(
+                `[ConnectionTrace] Object Explorer connection profile prepared correlationId=${correlationId} durationMs=${Date.now() - startedAt}`,
+            );
+        }
 
         let sessionCompleted = false;
 
@@ -851,22 +915,44 @@ export class ObjectExplorerService {
                 () => !sessionCompleted,
             );
 
+            if (correlationId) {
+                this._logger.debug(
+                    `[ConnectionTrace] Object Explorer GetSessionId request started correlationId=${correlationId} durationMs=${Date.now() - startedAt} attempt=${attempt + 1}`,
+                );
+            }
             const sessionIdResponse: GetSessionIdResponse =
                 await this._connectionManager.client.sendRequest(
                     GetSessionIdRequest.type,
                     connectionDetails,
                 );
 
+            if (correlationId) {
+                this._logger.debug(
+                    `[ConnectionTrace] Object Explorer GetSessionId request completed correlationId=${correlationId} durationMs=${Date.now() - startedAt} attempt=${attempt + 1}`,
+                );
+            }
+
             const sessionCreatedResponse: Deferred<SessionCreatedParameters> =
                 new Deferred<SessionCreatedParameters>();
 
             this._pendingSessionCreations.set(sessionIdResponse.sessionId, sessionCreatedResponse);
 
+            if (correlationId) {
+                this._logger.debug(
+                    `[ConnectionTrace] Object Explorer CreateSession request started correlationId=${correlationId} durationMs=${Date.now() - startedAt} attempt=${attempt + 1}`,
+                );
+            }
             const createSessionResponse: CreateSessionResponse =
                 await this._connectionManager.client.sendRequest(
                     CreateSessionRequest.type,
                     connectionDetails,
                 );
+
+            if (correlationId) {
+                this._logger.debug(
+                    `[ConnectionTrace] Object Explorer CreateSession request completed correlationId=${correlationId} durationMs=${Date.now() - startedAt} attempt=${attempt + 1}`,
+                );
+            }
 
             if (!createSessionResponse) {
                 this._pendingSessionCreations.delete(sessionIdResponse.sessionId);
@@ -877,6 +963,12 @@ export class ObjectExplorerService {
             const sessionCreationResult = await sessionCreatedResponse;
             this._pendingSessionCreations.delete(sessionIdResponse.sessionId);
 
+            if (correlationId) {
+                this._logger.debug(
+                    `[ConnectionTrace] Object Explorer session creation notification received correlationId=${correlationId} durationMs=${Date.now() - startedAt} attempt=${attempt + 1}`,
+                );
+            }
+
             if (sessionCreationResult.success) {
                 this._logger.debug(
                     `Session created successfully with session ID ${sessionCreationResult.sessionId}`,
@@ -885,6 +977,11 @@ export class ObjectExplorerService {
                     sessionCreationResult,
                     connectionProfile,
                 );
+                if (correlationId) {
+                    this._logger.debug(
+                        `[ConnectionTrace] Object Explorer session creation completed correlationId=${correlationId} durationMs=${Date.now() - startedAt} attempt=${attempt + 1}`,
+                    );
+                }
                 createSessionActivity.end(ActivityStatus.Succeeded, {
                     connectionType: connectionProfile.authenticationType,
                 });

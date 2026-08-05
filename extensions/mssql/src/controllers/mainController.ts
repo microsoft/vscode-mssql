@@ -62,7 +62,7 @@ import {
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
-import { getErrorMessage, getUriKey, isIConnectionInfo } from "../utils/utils";
+import { getErrorMessage, getUriKey, isIConnectionInfo, uuid } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
@@ -1250,6 +1250,20 @@ export default class MainController implements vscode.Disposable {
             ),
         });
         this._context.subscriptions.push(this.objectExplorerTree);
+        this._context.subscriptions.push(
+            this.objectExplorerTree.onDidChangeSelection((event) => {
+                const node = event.selection[0];
+                if (!(node instanceof ConnectionNode)) {
+                    return;
+                }
+
+                const correlationId = uuid();
+                this._logger.debug(
+                    `[ConnectionTrace] Object Explorer connection clicked correlationId=${correlationId} durationMs=0`,
+                );
+                this._objectExplorerProvider.recordConnectionClick(node, correlationId);
+            }),
+        );
 
         // Register command for table node double-click action
         let lastTableClickTime = 0;
