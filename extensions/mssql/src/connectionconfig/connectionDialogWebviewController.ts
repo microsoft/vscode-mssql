@@ -387,7 +387,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         });
 
-        this.registerReducer("connect", async (state, payload) => {
+        this.registerReducer("connect", async (state, payload = {}) => {
             const now = Date.now();
             const correlationId =
                 typeof payload.clickId === "string" &&
@@ -1793,7 +1793,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         this.logger.debug(
             `[ConnectionTrace] Object Explorer session creation started correlationId=${correlationId}`,
         );
-        let node = await this._mainController.createObjectExplorerSession(connection);
+        let node = await this._mainController.createObjectExplorerSession(
+            connection,
+            correlationId,
+            startedAt,
+        );
         this.logger.debug(
             `[ConnectionTrace] Object Explorer session created correlationId=${correlationId} durationMs=${Date.now() - startedAt}`,
         );
@@ -1810,7 +1814,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         } catch {
             // If revealing the node fails, we've hit an event-based race condition; re-saving and creating the profile should fix it.
             await this.saveProfileStep(connection, state);
-            node = await this._mainController.createObjectExplorerSession(connection);
+            node = await this._mainController.createObjectExplorerSession(
+                connection,
+                correlationId,
+                startedAt,
+            );
             await this._mainController.objectExplorerTree.reveal(node, {
                 focus: true,
                 select: true,

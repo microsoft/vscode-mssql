@@ -72,8 +72,14 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
 
     public async createSession(
         connectionCredentials?: IConnectionInfo,
+        correlationId?: string,
+        startedAt = Date.now(),
     ): Promise<CreateSessionResult> {
-        return this._objectExplorerService.createSession(connectionCredentials);
+        return this._objectExplorerService.createSession(
+            connectionCredentials,
+            correlationId,
+            startedAt,
+        );
     }
 
     public recordConnectionClick(node: TreeNodeInfo, correlationId: string): void {

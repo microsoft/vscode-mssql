@@ -278,7 +278,14 @@ suite("ConnectionSharingService Tests", () => {
             const promptResult = new Promise<string>((resolve) => {
                 resolvePrompt = resolve;
             });
-            showInformationMessageStub.returns(promptResult);
+            let promptInvocationCount = 0;
+            showInformationMessageStub.callsFake(() => {
+                promptInvocationCount++;
+                if (promptInvocationCount > 1) {
+                    throw new Error("Connection sharing permission prompt was shown twice");
+                }
+                return promptResult;
+            });
 
             sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
                 document: { uri: vscode.Uri.parse("file:///test.sql") },
@@ -291,7 +298,6 @@ suite("ConnectionSharingService Tests", () => {
             const secondRequest = command!(testExtensionId);
 
             await new Promise<void>((resolve) => setImmediate(resolve));
-            expect(showInformationMessageStub).to.have.been.calledOnce;
 
             resolvePrompt!(LocalizedConstants.ConnectionSharing.Approve);
             await Promise.all([firstRequest, secondRequest]);

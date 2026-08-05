@@ -1052,6 +1052,16 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 );
             });
 
+            test("handles a connect action without a payload", async () => {
+                connectionManager.connect.resolves(true);
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("connect")(
+                    controller.state,
+                    undefined,
+                );
+            });
+
             test("does not log an invalid webview correlation payload", async () => {
                 const loggerDebug = sandbox.stub(controller["logger"], "debug");
                 connectionManager.connect.resolves(true);
@@ -1092,6 +1102,33 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(connectionManager.connect.calledOnce).to.be.true;
                 expect(connectionStore.saveProfile.calledOnce).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.calledOnce).to.be.true;
+            });
+
+            test("passes the connection correlation ID to Object Explorer session creation", async () => {
+                const clickId = "1234567890123-test";
+                mockObjectExplorerProvider.createSession.resolves({
+                    sessionId: "testSessionId",
+                    rootNode: mockConnectionNode,
+                    success: true,
+                } as CreateSessionResponse);
+                connectionManager.connect.resolves(true);
+
+                const mockObjectExplorerTree = {
+                    reveal: sandbox.stub().resolves(),
+                } as unknown as vscode.TreeView<TreeNodeInfo>;
+
+                mainController.objectExplorerTree = mockObjectExplorerTree;
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("connect")(controller.state, {
+                    clickId,
+                    clickTimestamp: Date.now(),
+                });
+
+                expect(mockObjectExplorerProvider.createSession).to.have.been.calledWith(
+                    sinon.match.any,
+                    clickId,
+                );
             });
 
             test("testConnection only validates connectivity without saving or creating session", async () => {

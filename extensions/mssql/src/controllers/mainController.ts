@@ -1208,6 +1208,8 @@ export default class MainController implements vscode.Disposable {
      */
     public async createObjectExplorerSession(
         connectionCredentials?: IConnectionInfo,
+        correlationId?: string,
+        startedAt = Date.now(),
     ): Promise<TreeNodeInfo> {
         let retry = true;
         // There can be many reasons for the session creation to fail, so we will retry until we get a successful result or the user cancels the operation.
@@ -1215,7 +1217,11 @@ export default class MainController implements vscode.Disposable {
         while (retry) {
             retry = false;
             sessionCreationResult =
-                await this._objectExplorerProvider.createSession(connectionCredentials);
+                await this._objectExplorerProvider.createSession(
+                    connectionCredentials,
+                    correlationId,
+                    startedAt,
+                );
             if (sessionCreationResult?.shouldRetryOnFailure) {
                 retry = true;
             }
