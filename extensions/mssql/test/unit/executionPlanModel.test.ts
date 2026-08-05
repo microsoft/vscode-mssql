@@ -198,6 +198,7 @@ suite("ExecutionPlanModel", () => {
                 property("Statement", "-- comment\r\nSELECT 1", {
                     positionAtBottom: true,
                 }),
+                property("Predicate", longValue),
             ],
         });
 
@@ -213,5 +214,7 @@ suite("ExecutionPlanModel", () => {
             value: "-- comment\r\nSELECT 1",
             isSql: true,
         });
+        expect(tooltip.metrics[0].value).to.have.length(103);
+        expect(tooltip.metrics[0].value.endsWith("...")).to.be.true;
     });
 });

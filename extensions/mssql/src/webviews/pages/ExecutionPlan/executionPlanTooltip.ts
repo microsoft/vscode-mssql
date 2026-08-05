@@ -63,7 +63,9 @@ function formatProperties(
             name: property.name,
             value: truncate(
                 isSql ? propertyValue.trim() : propertyValue.replace(/\s+/g, " ").trim(),
-                property.positionAtBottom ? MAXIMUM_FOOTER_LENGTH : Number.MAX_SAFE_INTEGER,
+                property.positionAtBottom || isSql
+                    ? MAXIMUM_FOOTER_LENGTH
+                    : Number.MAX_SAFE_INTEGER,
             ),
             isSql,
         };

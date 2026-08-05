@@ -163,59 +163,58 @@
     position: fixed;
     z-index: 10;
     box-sizing: border-box;
-    width: 560px;
+    width: 520px;
     max-width: calc(100vw - 16px);
     padding: 0;
-    overflow: auto;
+    overflow: hidden;
     border: 1px solid var(--vscode-editorWidget-border);
     border-radius: 4px;
     background: var(--vscode-editorHoverWidget-background);
     color: var(--vscode-editorHoverWidget-foreground);
     box-shadow: 0 2px 8px var(--vscode-widget-shadow);
     font-size: 12px;
-    line-height: 16px;
+    line-height: 15px;
 }
 
 .execution-plan-flow-tooltip-header {
-    position: sticky;
-    top: 0;
-    z-index: 1;
+    position: relative;
     display: flex;
-    min-height: 28px;
-    padding: 2px 4px 2px 8px;
+    min-height: 22px;
+    padding: 3px 24px 3px 6px;
     border-bottom: 1px solid var(--vscode-editorWidget-border);
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 6px;
+    align-items: center;
+    justify-content: center;
     background: var(--vscode-editorHoverWidget-background);
 }
 
 .execution-plan-flow-tooltip-title {
     min-width: 0;
-    padding-top: 4px;
     overflow-wrap: anywhere;
     font-family: var(--vscode-editor-font-family, Monaco, Menlo, Consolas, monospace);
     font-weight: 600;
-    line-height: 16px;
+    line-height: 15px;
+    text-align: center;
 }
 
 .execution-plan-flow-tooltip-close {
-    flex: 0 0 auto;
-    width: 24px;
-    min-width: 24px;
-    height: 24px;
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    width: 22px;
+    min-width: 22px;
+    height: 22px;
 }
 
 .execution-plan-flow-tooltip-body {
-    padding: 4px 8px 6px;
+    padding: 3px 6px 4px;
 }
 
 .execution-plan-flow-tooltip-description {
-    margin-bottom: 4px;
-    padding-bottom: 4px;
+    margin-bottom: 3px;
+    padding: 2px 0 4px;
     border-bottom: 1px solid var(--vscode-editorWidget-border);
     color: var(--vscode-descriptionForeground);
-    line-height: 16px;
+    line-height: 15px;
 }
 
 .execution-plan-flow-tooltip-metrics {
@@ -224,11 +223,12 @@
 
 .execution-plan-flow-tooltip-metric {
     display: grid;
-    padding: 2px 0;
+    min-height: 15px;
+    padding: 1px 0;
     border-bottom: 1px solid color-mix(in srgb, var(--vscode-editorWidget-border) 65%, transparent);
-    grid-template-columns: minmax(150px, 42%) minmax(0, 58%);
+    grid-template-columns: minmax(225px, 52%) minmax(0, 48%);
     gap: 8px;
-    line-height: 16px;
+    line-height: 15px;
 }
 
 .execution-plan-flow-tooltip-metric:last-child {
@@ -238,40 +238,35 @@
 .execution-plan-flow-tooltip-metric > dd {
     min-width: 0;
     margin: 0;
-    overflow-wrap: anywhere;
+    overflow: hidden;
     text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .execution-plan-flow-tooltip-metric > dt,
 .execution-plan-flow-tooltip-footer > strong {
-    color: var(--vscode-descriptionForeground);
+    color: var(--vscode-editorHoverWidget-foreground);
     font-weight: 600;
 }
 
 .execution-plan-flow-tooltip-sql-metric > dd {
-    padding: 2px 5px;
-    border: 1px solid var(--vscode-editorWidget-border);
-    border-radius: 3px;
-    background: var(--vscode-textCodeBlock-background);
     text-align: left;
-    line-height: 16px;
+    line-height: 15px;
+    white-space: normal;
 }
 
 .execution-plan-flow-tooltip-footer {
-    margin-top: 4px;
-    padding-top: 4px;
+    margin-top: 2px;
+    padding-top: 2px;
     border-top: 1px solid var(--vscode-editorWidget-border);
     overflow-wrap: anywhere;
-    line-height: 16px;
+    line-height: 15px;
 }
 
 .execution-plan-flow-tooltip-sql {
     display: block;
-    margin-top: 2px;
-    padding: 3px 6px;
-    border: 1px solid var(--vscode-editorWidget-border);
-    border-radius: 3px;
-    background: var(--vscode-textCodeBlock-background);
+    margin-top: 1px;
     overflow-wrap: anywhere;
-    line-height: 16px;
+    line-height: 15px;
 }

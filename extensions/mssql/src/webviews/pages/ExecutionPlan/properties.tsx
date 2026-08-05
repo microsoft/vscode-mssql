@@ -163,29 +163,43 @@ const useStyles = makeStyles({
         position: "sticky",
         top: "92px",
         zIndex: 2,
+        width: "100%",
         height: "28px",
+        overflow: "hidden",
         borderBottom:
             "1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent))",
-        backgroundColor:
-            "var(--vscode-sideBarSectionHeader-background, var(--vscode-editor-background))",
+        backgroundColor: "var(--vscode-editor-background)",
         color: "var(--vscode-sideBarSectionHeader-foreground, var(--vscode-foreground))",
         fontSize: "12px",
         fontWeight: 600,
     },
     previewHeaderRow: {
+        width: "100%",
         minHeight: "28px",
         height: "28px",
+        overflow: "hidden",
     },
     previewHeaderCell: {
         boxSizing: "border-box",
+        minWidth: 0,
         height: "28px",
         minHeight: "28px",
         padding: "0 8px",
+        overflow: "hidden",
         border: "none",
+        backgroundColor: "var(--vscode-editor-background)",
         "&:first-child": {
             borderRight:
                 "1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent))",
         },
+    },
+    previewHeaderText: {
+        display: "block",
+        width: "100%",
+        minWidth: 0,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
     },
     previewTableRow: {
         minHeight: "26px",
@@ -226,6 +240,7 @@ const useStyles = makeStyles({
         width: "100%",
         minWidth: 0,
         padding: 0,
+        overflow: "hidden",
     },
     previewNameContent: {
         boxSizing: "border-box",
@@ -233,12 +248,19 @@ const useStyles = makeStyles({
         alignItems: "center",
         width: "100%",
         minWidth: 0,
+        overflow: "hidden",
     },
     previewCellText: {
+        display: "block",
+        width: "100%",
         minWidth: 0,
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
+    },
+    previewNameText: {
+        flex: "1 1 0%",
+        width: "auto",
     },
     previewDisclosureButton: {
         width: "16px",
@@ -469,12 +491,20 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     const columns: TableColumnDefinition<ep.ExecutionPlanPropertyTableItem>[] = [
         createTableColumn<ep.ExecutionPlanPropertyTableItem>({
             columnId: "name",
-            renderHeaderCell: () => (useReactFlow ? <span title={NAME}>{NAME}</span> : NAME),
+            renderHeaderCell: () =>
+                useReactFlow ? (
+                    <span className={classes.previewHeaderText} title={NAME}>
+                        {NAME}
+                    </span>
+                ) : (
+                    NAME
+                ),
             renderCell: (item) => {
                 const isExpanded = openedButtons.includes(item.name);
                 if (useReactFlow) {
                     return (
                         <TableCellLayout
+                            truncate
                             className={classes.previewCellLayout}
                             title={item.name || undefined}>
                             <div
@@ -511,7 +541,13 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                                         />
                                     )
                                 )}
-                                <span className={classes.previewCellText}>{item.name}</span>
+                                <span
+                                    className={mergeClasses(
+                                        classes.previewCellText,
+                                        classes.previewNameText,
+                                    )}>
+                                    {item.name}
+                                </span>
                             </div>
                         </TableCellLayout>
                     );
@@ -548,7 +584,14 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
         }),
         createTableColumn<ep.ExecutionPlanPropertyTableItem>({
             columnId: "value",
-            renderHeaderCell: () => (useReactFlow ? <span title={VALUE}>{VALUE}</span> : VALUE),
+            renderHeaderCell: () =>
+                useReactFlow ? (
+                    <span className={classes.previewHeaderText} title={VALUE}>
+                        {VALUE}
+                    </span>
+                ) : (
+                    VALUE
+                ),
             renderCell: (item) =>
                 useReactFlow ? (
                     <TableCellLayout

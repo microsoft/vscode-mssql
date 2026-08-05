@@ -66,6 +66,7 @@ import {
 } from "./executionPlanTooltip";
 import {
     ExecutionPlanTooltipSourceBounds,
+    fitExecutionPlanTooltipPlacement,
     getExecutionPlanTooltipPlacement,
 } from "./executionPlanTooltipPosition";
 import {
@@ -936,18 +937,44 @@ function ExecutionPlanTooltip({
     onClose: () => void;
 }) {
     const titleId = useId();
-    const placement = getExecutionPlanTooltipPlacement(tooltip, {
+    const tooltipRef = useRef<HTMLDivElement>(null);
+    const viewport = {
         width: window.innerWidth,
         height: window.innerHeight,
-    });
+    };
+    const placement = getExecutionPlanTooltipPlacement(tooltip, viewport);
+
+    useLayoutEffect(() => {
+        const element = tooltipRef.current;
+        if (!element) {
+            return;
+        }
+
+        // Measure without a constraint first so scrolling is enabled only when
+        // the tooltip's natural height cannot fit inside the viewport.
+        element.style.maxHeight = "";
+        element.style.overflowY = "hidden";
+        const naturalHeight = element.scrollHeight;
+        const fittedPlacement = fitExecutionPlanTooltipPlacement(
+            placement,
+            { width: element.offsetWidth, height: naturalHeight },
+            viewport,
+        );
+        element.style.left = `${fittedPlacement.left}px`;
+        element.style.top = `${fittedPlacement.top}px`;
+        if (naturalHeight > fittedPlacement.maxHeight) {
+            element.style.maxHeight = `${fittedPlacement.maxHeight}px`;
+            element.style.overflowY = "auto";
+        }
+    }, [placement.left, placement.top, tooltip.targetId, viewport.height, viewport.width]);
 
     return (
         <div
+            ref={tooltipRef}
             className="execution-plan-flow-tooltip"
             style={{
                 left: `${placement.left}px`,
                 top: `${placement.top}px`,
-                maxHeight: `${placement.maxHeight}px`,
             }}
             role="dialog"
             aria-labelledby={titleId}

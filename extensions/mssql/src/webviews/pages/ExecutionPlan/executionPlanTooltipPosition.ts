@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-const TOOLTIP_WIDTH = 560;
+const TOOLTIP_WIDTH = 520;
 const TOOLTIP_MAXIMUM_HEIGHT = 420;
 const TOOLTIP_MINIMUM_HEIGHT = 80;
 const TOOLTIP_VIEWPORT_MARGIN = 8;
@@ -34,6 +34,11 @@ export interface ExecutionPlanTooltipPlacement {
     maxHeight: number;
 }
 
+export interface ExecutionPlanTooltipSize {
+    width: number;
+    height: number;
+}
+
 function clamp(value: number, minimum: number, maximum: number): number {
     return Math.max(minimum, Math.min(value, maximum));
 }
@@ -43,6 +48,37 @@ function getMaximumHeight(top: number, viewportHeight: number): number {
         TOOLTIP_MAXIMUM_HEIGHT,
         Math.max(TOOLTIP_MINIMUM_HEIGHT, viewportHeight - top - TOOLTIP_VIEWPORT_MARGIN),
     );
+}
+
+/**
+ * Adjusts the initial anchor-based placement after the tooltip has rendered at
+ * its natural size. This keeps compact tooltips inside the viewport without a
+ * fixed height or an internal scrollbar.
+ */
+export function fitExecutionPlanTooltipPlacement(
+    placement: ExecutionPlanTooltipPlacement,
+    tooltipSize: ExecutionPlanTooltipSize,
+    viewport: ExecutionPlanTooltipViewport,
+): ExecutionPlanTooltipPlacement {
+    const fittedHeight = Math.min(
+        tooltipSize.height,
+        Math.max(0, viewport.height - TOOLTIP_VIEWPORT_MARGIN * 2),
+    );
+    const maximumLeft = Math.max(
+        TOOLTIP_VIEWPORT_MARGIN,
+        viewport.width - tooltipSize.width - TOOLTIP_VIEWPORT_MARGIN,
+    );
+    const maximumTop = Math.max(
+        TOOLTIP_VIEWPORT_MARGIN,
+        viewport.height - fittedHeight - TOOLTIP_VIEWPORT_MARGIN,
+    );
+
+    return {
+        ...placement,
+        left: clamp(placement.left, TOOLTIP_VIEWPORT_MARGIN, maximumLeft),
+        top: clamp(placement.top, TOOLTIP_VIEWPORT_MARGIN, maximumTop),
+        maxHeight: fittedHeight,
+    };
 }
 
 /**
