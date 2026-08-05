@@ -12,6 +12,7 @@ import {
     ListProjectSchemasRequest,
     SqlMoveToSchemaParams,
     SqlMoveToSchemaRequest,
+    SqlMoveToSchemaResponse,
     SqlSymbolRenameTextEdit,
 } from "../models/contracts/languageService";
 import {
@@ -189,8 +190,8 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
     }
 
     /**
-     * Sends the move request to STS, builds the WorkspaceEdit (code edits + refactorlog),
-     * and shows VS Code's refactor preview (Apply / Discard).
+     * Runs the move end to end: asks STS for the script edits, applies them through VS Code's
+     * refactor preview, then relocates the definition file and updates the `.sqlproj`.
      */
     private async applyMove(
         document: vscode.TextDocument,
@@ -198,20 +199,113 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
         targetSchema: string,
         schemas: string[],
     ): Promise<void> {
-        let refactorTarget;
+        // 1. Resolve the .refactorlog target for the project that owns this document.
+        const refactorTarget = await this.resolveTarget(document);
+        if (!refactorTarget) {
+            return;
+        }
+
+        // 2. Ask the language service for the script edits, confirming with the user first if
+        //    the target schema already contains an object with this name.
+        const response = await this.requestSchemaMove(
+            document,
+            position,
+            targetSchema,
+            refactorTarget,
+        );
+        if (!response) {
+            return;
+        }
+
+        // 3. Apply the script edits (and the .refactorlog write) via the refactor preview.
+        const { workspaceEdit, tempUri } = await this.buildPreviewEdit(
+            response,
+            refactorTarget,
+            targetSchema,
+        );
         try {
-            refactorTarget = await resolveRefactorLogTarget(document);
+            const applied = await vscode.workspace.applyEdit(workspaceEdit, {
+                isRefactoring: true,
+            });
+            if (!applied) {
+                // `applyEdit` returns false when the user clicks Discard in the refactor preview,
+                // which is a deliberate action — not an error worth surfacing to the user.
+                logger.debug("Move to Schema edits were not applied (discarded or rejected).");
+                return;
+            }
+
+            // 4. Relocate the definition file into its new schema folder and update the .sqlproj.
+            //    Skipped when the file doesn't need moving (see planSchemaFolderMove).
+            const moveResult = await this.moveFileToNewSchemaFolder(
+                document,
+                refactorTarget,
+                targetSchema,
+                schemas,
+                response.definitionFileUri,
+                response.elementType,
+            );
+
+            // 5. Refresh the project tree to reflect the SQL text edits, .sqlproj changes, and
+            //    (when the file moved) the new file location. Skip only when the move failed —
+            //    the user already saw the error message in that case.
+            if (moveResult !== FileMoveResult.Failed) {
+                // Best-effort: the data-workspace extension activates on its own view and
+                // commands, so `dataworkspace.refresh` may not be registered yet. A failed
+                // refresh must not surface as a command error after a successful refactor.
+                try {
+                    await vscode.commands.executeCommand("dataworkspace.refresh");
+                } catch (err) {
+                    logger.debug(`Could not refresh the project tree: ${err}`);
+                }
+            }
+        } finally {
+            if (tempUri) {
+                // Always clean up the temp file after the preview closes (Apply or Discard).
+                await vscode.workspace.fs.delete(tempUri, { useTrash: false }).then(
+                    () => undefined,
+                    () => undefined,
+                );
+            }
+        }
+    }
+
+    /**
+     * Resolves the `.refactorlog` target for the document's project, surfacing any failure.
+     *
+     * @returns the target, or `undefined` when it could not be resolved.
+     */
+    private async resolveTarget(
+        document: vscode.TextDocument,
+    ): Promise<RefactorLogTarget | undefined> {
+        try {
+            const refactorTarget = await resolveRefactorLogTarget(document);
+            if (!refactorTarget) {
+                void vscode.window.showErrorMessage(loc.moveToSchemaOnlyInProjectFiles);
+                return undefined;
+            }
+            return refactorTarget;
         } catch (err) {
             void vscode.window.showErrorMessage(
                 loc.resolveRefactorLogFailed(err instanceof Error ? err.message : String(err)),
             );
-            return;
+            return undefined;
         }
-        if (!refactorTarget) {
-            void vscode.window.showErrorMessage(loc.moveToSchemaOnlyInProjectFiles);
-            return;
-        }
+    }
 
+    /**
+     * Asks STS for the edits that move the symbol at `position` into `targetSchema`. When the
+     * target schema already contains an object with the same name, STS flags a warning and the
+     * user is asked to confirm before continuing.
+     *
+     * @returns the response, or `undefined` when there is nothing to move, the request failed,
+     * or the user declined the warning.
+     */
+    private async requestSchemaMove(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        targetSchema: string,
+        refactorTarget: RefactorLogTarget,
+    ): Promise<SqlMoveToSchemaResponse | undefined> {
         const params: SqlMoveToSchemaParams = {
             textDocument: { uri: document.uri.toString() },
             position: { line: position.line, character: position.character },
@@ -219,7 +313,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             existingRefactorLogContent: refactorTarget.existingContent,
         };
 
-        let response;
+        let response: SqlMoveToSchemaResponse;
         try {
             response = await SqlToolsServerClient.instance.sendRequest(
                 SqlMoveToSchemaRequest.type,
@@ -229,15 +323,14 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             void vscode.window.showErrorMessage(
                 loc.moveToSchemaRequestFailed(err instanceof Error ? err.message : String(err)),
             );
-            return;
+            return undefined;
         }
 
         if (!response || !response.changes || Object.keys(response.changes).length === 0) {
             void vscode.window.showInformationMessage(loc.noMovableSymbolAtCursor);
-            return;
+            return undefined;
         }
 
-        // Warn if an object with the same name already exists in the target schema.
         if (response.message && response.isWarning) {
             const choice = await vscode.window.showWarningMessage(
                 response.message,
@@ -245,10 +338,25 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                 msgYes,
             );
             if (choice !== msgYes) {
-                return; // user declined — do nothing silently
+                return undefined; // user declined — do nothing silently
             }
         }
 
+        return response;
+    }
+
+    /**
+     * Builds the `WorkspaceEdit` holding the script edits and the `.refactorlog` write, along
+     * with the edit that forces VS Code to open the refactor preview.
+     *
+     * @returns the edit, and the temp file URI to clean up once the preview closes (if one was
+     * created).
+     */
+    private async buildPreviewEdit(
+        response: SqlMoveToSchemaResponse,
+        refactorTarget: RefactorLogTarget,
+        targetSchema: string,
+    ): Promise<{ workspaceEdit: vscode.WorkspaceEdit; tempUri: vscode.Uri | undefined }> {
         const changes = response.changes as Record<string, SqlSymbolRenameTextEdit[]>;
         const label = loc.previewLabel(targetSchema);
 
@@ -267,39 +375,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             tempUri = await addTempFileAsPreviewTrigger(workspaceEdit, refactorTarget, label);
         }
 
-        try {
-            const applied = await vscode.workspace.applyEdit(workspaceEdit, {
-                isRefactoring: true,
-            });
-            if (!applied) {
-                // `applyEdit` returns false when the user clicks Discard in the refactor preview,
-                // which is a deliberate action — not an error worth surfacing to the user.
-                logger.debug("Move to Schema edits were not applied (discarded or rejected).");
-            } else {
-                const moveResult = await this.moveFileToNewSchemaFolder(
-                    document,
-                    refactorTarget,
-                    targetSchema,
-                    schemas,
-                    response.definitionFileUri,
-                    response.elementType,
-                );
-                // Refresh the project tree to reflect the SQL text edits, .sqlproj changes,
-                // and (when the file moved) the new file location. Skip only when the move
-                // failed — the user already saw the error message in that case.
-                if (moveResult !== FileMoveResult.Failed) {
-                    await vscode.commands.executeCommand("dataworkspace.refresh");
-                }
-            }
-        } finally {
-            if (tempUri) {
-                // Always clean up the temp file after the preview closes (Apply or Discard).
-                await vscode.workspace.fs.delete(tempUri, { useTrash: false }).then(
-                    () => undefined,
-                    () => undefined,
-                );
-            }
-        }
+        return { workspaceEdit, tempUri };
     }
 
     /**
