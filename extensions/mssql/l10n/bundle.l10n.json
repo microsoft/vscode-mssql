@@ -3663,10 +3663,15 @@
         "comment": ["{0} is the current IP address"]
     },
     "What's next?": "What's next?",
-    "Connect with SQL tools and run your first query": "Connect with SQL tools and run your first query",
-    "Seed sample data or import an existing schema": "Seed sample data or import an existing schema",
-    "Monitor usage and manage your free tier limits": "Monitor usage and manage your free tier limits",
-    "Browse Azure SQL Database tutorials and docs": "Browse Azure SQL Database tutorials and docs",
+    "Add tables and data, explore, and build with the MSSQL extension.": "Add tables and data, explore, and build with the MSSQL extension.",
+    "Design tables with Table Designer": "Design tables with Table Designer",
+    "Import from a flat file as a new table": "Import from a flat file as a new table",
+    "Visualize and design your database with Schema Designer": "Visualize and design your database with Schema Designer",
+    "Compare and deploy schema with Schema Compare": "Compare and deploy schema with Schema Compare",
+    "Run your first query": "Run your first query",
+    "Build with AI using GitHub Copilot": "Build with AI using GitHub Copilot",
+    "Collapse What's next": "Collapse What's next",
+    "Expand What's next": "Expand What's next",
     "Password must be changed to continue logging into '{0}'/{0} is the name of the server": {
         "message": "Password must be changed to continue logging into '{0}'",
         "comment": ["{0} is the name of the server"]

@@ -8,6 +8,7 @@ import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 import { DeploymentStepCard } from "../deploymentStepCard";
+import { WhatsNextCard } from "../../../common/whatsNextCard";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -174,6 +175,7 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                         )}
                     </div>
                 </DeploymentStepCard>
+                {connectionLoadState === ApiStatus.Loaded && <WhatsNextCard />}
             </div>
         </div>
     );

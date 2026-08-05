@@ -15,6 +15,8 @@ import { locConstants } from "../../../common/locConstants";
 import { stepPageStyles } from "./sharedStyles";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useLocalContainersDeploymentSelector } from "../deploymentSelector";
+import { ApiStatus } from "../../../../sharedInterfaces/webview";
+import { WhatsNextCard } from "../../../common/whatsNextCard";
 
 export const LocalContainersDeploymentProvisioningPage: React.FC = () => {
     const classes = stepPageStyles();
@@ -56,6 +58,9 @@ export const LocalContainersDeploymentProvisioningPage: React.FC = () => {
                 <StepCard step={dockerSteps[DockerStepOrder.startContainer]} />
                 <StepCard step={dockerSteps[DockerStepOrder.checkContainer]} />
                 <StepCard step={dockerSteps[DockerStepOrder.connectToContainer]} />
+                {dockerSteps[lastStep]?.loadState === ApiStatus.Loaded && (
+                    <WhatsNextCard className={classes.postDeploymentCard} />
+                )}
             </div>
         </div>
     );
