@@ -3,35 +3,34 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import {
-    HandleFirewallRuleRequest,
-    IHandleFirewallRuleParams,
-    IHandleFirewallRuleResponse,
-} from "../models/contracts/firewall/firewallRequest";
 import * as Constants from "../constants/constants";
-import { AccountService } from "../azure/accountService";
 import { FirewallRuleSpec } from "../sharedInterfaces/firewallRule";
 import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getErrorMessage } from "../utils/utils";
 import { Azure as LocAzure } from "../constants/locConstants";
 
-export class FirewallService {
-    constructor(private accountService: AccountService) {}
+export interface IHandleFirewallRuleResponse {
+    result: boolean;
+    ipAddress: string;
+}
 
+export class FirewallService {
     public async handleFirewallRule(
         errorCode: number,
         errorMessage: string,
     ): Promise<IHandleFirewallRuleResponse> {
-        let params: IHandleFirewallRuleParams = {
-            errorCode: errorCode,
-            errorMessage: errorMessage,
-            connectionTypeId: Constants.mssqlProviderName,
-        };
-        let result = await this.accountService.client.sendResourceRequest(
-            HandleFirewallRuleRequest.type,
-            params,
+        if (errorCode !== Constants.errorFirewallRule) {
+            return { result: false, ipAddress: "" };
+        }
+
+        const ipMatch = errorMessage.match(
+            /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b/,
         );
-        return result;
+
+        return {
+            result: ipMatch !== null,
+            ipAddress: ipMatch?.[0] ?? "",
+        };
     }
 
     public async createFirewallRuleWithVscodeAccount(

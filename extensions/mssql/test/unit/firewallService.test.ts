@@ -7,14 +7,7 @@ import { expect } from "chai";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import { FirewallService } from "../../src/firewall/firewallService";
-import { AccountService } from "../../src/azure/accountService";
-import {
-    HandleFirewallRuleRequest,
-    IHandleFirewallRuleResponse,
-} from "../../src/models/contracts/firewall/firewallRequest";
-import * as Constants from "../../src/constants/constants";
+import { FirewallService, IHandleFirewallRuleResponse } from "../../src/firewall/firewallService";
 import { VsCodeAzureHelper } from "../../src/connectionconfig/azureHelpers";
 import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
 
@@ -22,41 +15,47 @@ chai.use(sinonChai);
 
 suite("Firewall Service Tests", () => {
     let sandbox: sinon.SinonSandbox;
-    let client: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let accountService: sinon.SinonStubbedInstance<AccountService>;
     let firewallService: FirewallService;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        client = sandbox.createStubInstance(SqlToolsServiceClient);
-        accountService = sandbox.createStubInstance(AccountService);
-
-        sandbox.stub(accountService, "client").get(() => client);
-        firewallService = new FirewallService(accountService);
+        firewallService = new FirewallService();
     });
 
     teardown(() => {
         sandbox.restore();
     });
 
-    test("Handle Firewall Rule test", async () => {
-        const mockResponse: IHandleFirewallRuleResponse = {
-            result: true,
-            ipAddress: "128.0.0.0",
-        };
-        client.sendResourceRequest.resolves(mockResponse);
+    suite("handleFirewallRule", () => {
+        test("extracts the blocked IP address from an Azure firewall error", async () => {
+            const handleResult = await firewallService.handleFirewallRule(
+                40615,
+                "Client with IP address '128.0.0.0' is not allowed to access the server.",
+            );
 
-        const handleResult = await firewallService.handleFirewallRule(12345, "firewall error!");
+            expect(handleResult).to.deep.equal({
+                result: true,
+                ipAddress: "128.0.0.0",
+            } satisfies IHandleFirewallRuleResponse);
+        });
 
-        expect(handleResult).to.deep.equal(mockResponse);
-        expect(client.sendResourceRequest).to.have.been.calledOnceWithExactly(
-            HandleFirewallRuleRequest.type,
-            {
-                errorCode: 12345,
-                errorMessage: "firewall error!",
-                connectionTypeId: Constants.mssqlProviderName,
-            },
-        );
+        test("returns failure when the error code is not an Azure firewall error", async () => {
+            const handleResult = await firewallService.handleFirewallRule(
+                18456,
+                "Login failed for user.",
+            );
+
+            expect(handleResult).to.deep.equal({ result: false, ipAddress: "" });
+        });
+
+        test("returns failure when an Azure firewall error has no IP address", async () => {
+            const handleResult = await firewallService.handleFirewallRule(
+                40615,
+                "The client is not allowed to access the server.",
+            );
+
+            expect(handleResult).to.deep.equal({ result: false, ipAddress: "" });
+        });
     });
 
     test("creates firewall rule using the matching Azure subscription", async () => {
