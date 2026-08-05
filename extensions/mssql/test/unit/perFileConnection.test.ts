@@ -25,6 +25,7 @@ import * as Interfaces from "../../src/models/interfaces";
 import * as Utils from "../../src/models/utils";
 import { AuthenticationTypes } from "../../src/models/interfaces";
 import { ConnectionUI } from "../../src/views/connectionUI";
+import { AccountStore } from "../../src/azure/accountStore";
 import StatusView from "../../src/views/statusView";
 import { uuid } from "../../src/utils/utils";
 import { stubExtensionContext, stubPrompter } from "./utils";
@@ -541,6 +542,7 @@ suite("Per File Connection Tests", () => {
             connectionStoreInstance,
             sandbox.createStubInstance(CredentialStore),
             connectionUI,
+            sandbox.createStubInstance(AccountStore),
         );
     }
 });

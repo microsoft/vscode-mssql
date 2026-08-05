@@ -202,7 +202,9 @@ export default class ConnectionManager {
         }
 
         if (!this._accountStore) {
-            this._accountStore = new AccountStore(context);
+            throw new Error(
+                "ConnectionManager requires an AccountStore to be supplied by the caller.",
+            );
         }
 
         if (!this.azureController) {

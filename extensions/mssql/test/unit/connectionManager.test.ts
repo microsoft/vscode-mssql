@@ -162,7 +162,7 @@ suite("ConnectionManager Tests", () => {
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined, // connectionUI
-                undefined, // accountStore
+                mockAccountStore,
             );
 
             await connectionManager.initialized; // Wait for initialization to complete
@@ -229,7 +229,7 @@ suite("ConnectionManager Tests", () => {
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined, // connectionUI
-                undefined, // accountStore
+                mockAccountStore,
             );
 
             await connectionManager.initialized; // Wait for initialization to complete
@@ -259,7 +259,7 @@ suite("ConnectionManager Tests", () => {
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined, // connectionUI
-                undefined, // accountStore
+                mockAccountStore,
             );
         });
 
@@ -298,7 +298,7 @@ suite("ConnectionManager Tests", () => {
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined, // connectionUI
-                undefined, // accountStore
+                mockAccountStore,
             );
         });
         test("should return cached token when valid", async () => {
@@ -399,7 +399,7 @@ suite("ConnectionManager Tests", () => {
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined,
-                undefined,
+                mockAccountStore,
             );
             acquireTokenStub = sandbox.stub(
                 vscodeEntraMfaUtils,
@@ -742,7 +742,7 @@ suite("ConnectionManager Tests", () => {
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined,
-                undefined,
+                mockAccountStore,
             );
             acquireTokenStub = sandbox.stub(
                 vscodeEntraMfaUtils,
@@ -822,7 +822,7 @@ suite("ConnectionManager Tests", () => {
                 mockConnectionStore,
                 mockCredentialStore,
                 undefined,
-                undefined,
+                mockAccountStore,
             );
 
             mockAccountStore = sandbox.createStubInstance(AccountStore);
@@ -905,10 +905,10 @@ suite("ConnectionManager Tests", () => {
                 undefined, // client
                 mockConnectionStore,
                 mockCredentialStore,
+                mockConnectionUI,
+                mockAccountStore,
             );
 
-            testConnectionManager["_connectionUI"] = mockConnectionUI;
-            testConnectionManager["_accountStore"] = mockAccountStore;
             testConnectionManager.azureController = mockAzureController;
 
             // Setup default behaviors
@@ -1110,9 +1110,9 @@ suite("ConnectionManager Tests", () => {
                 undefined, // client
                 mockConnectionStore,
                 mockCredentialStore,
+                mockConnectionUI,
+                mockAccountStore,
             );
-
-            (testConnectionManager as any)._connectionUI = mockConnectionUI;
         });
 
         teardown(() => {
@@ -1175,6 +1175,8 @@ suite("ConnectionManager Tests", () => {
                 undefined, // client
                 mockConnectionStore,
                 mockCredentialStore,
+                undefined, // connectionUI
+                mockAccountStore,
             );
         });
 

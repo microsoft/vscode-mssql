@@ -42,6 +42,7 @@ import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServ
 import { CredentialStore, ICredentialStore } from "./credentialstore/credentialstore";
 import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
 import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
+import { IAccountStore, AccountStore } from "./azure/accountStore";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -56,6 +57,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     builder.define(ICredentialStore, new ServiceDescriptor(CredentialStore));
     builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
     builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
+    builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
 
     const instantiationService = builder.seal();
     context.subscriptions.push(instantiationService);

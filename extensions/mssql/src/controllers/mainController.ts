@@ -45,6 +45,7 @@ import { IConnectionGroup, IConnectionProfile, ISelectionData } from "../models/
 import ConnectionManager from "./connectionManager";
 import { CredentialStore, ICredentialStore } from "../credentialstore/credentialstore";
 import { IConnectionStore, ConnectionStore } from "../models/connectionStore";
+import { IAccountStore, AccountStore } from "../azure/accountStore";
 import { IInstantiationService } from "extension-toolkit/base";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
@@ -201,6 +202,7 @@ export default class MainController implements vscode.Disposable {
         connectionManager?: ConnectionManager,
         @ICredentialStore private _credentialStore?: CredentialStore,
         @IConnectionStore private _connectionStore?: ConnectionStore,
+        @IAccountStore private _accountStore?: AccountStore,
         @IInstantiationService private _instantiationService?: IInstantiationService,
     ) {
         this._context = context;
@@ -1082,6 +1084,8 @@ export default class MainController implements vscode.Disposable {
             undefined,
             this._connectionStore,
             this._credentialStore,
+            undefined,
+            this._accountStore,
         );
 
         this._sqlDocumentService = new SqlDocumentService(this);

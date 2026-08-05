@@ -15,6 +15,7 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import { CredentialStore, ICredentialStore } from "../../src/credentialstore/credentialstore";
 import { ConnectionConfig, IConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { ConnectionStore, IConnectionStore } from "../../src/models/connectionStore";
+import { AccountStore, IAccountStore } from "../../src/azure/accountStore";
 import { stubTelemetry, stubExtensionContext, stubMessageBoxes } from "./utils";
 import * as Constants from "../../src/constants/constants";
 import { HttpClient } from "../../src/http/httpClient";
@@ -999,12 +1000,13 @@ suite("MainController Tests", function () {
     });
 
     suite("Dependency injection", () => {
-        test("createInstance resolves container-owned CredentialStore and ConnectionStore", () => {
+        test("createInstance resolves container-owned CredentialStore, ConnectionStore, and AccountStore", () => {
             const builder = new InstantiationServiceBuilder();
             builder.define(IExtensionContextService, new ExtensionContextService(context));
             builder.define(ICredentialStore, new ServiceDescriptor(CredentialStore));
             builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
             builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
+            builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
             const instantiationService = builder.seal();
 
             const createdController = instantiationService.createInstance(MainController, context);
@@ -1015,9 +1017,31 @@ suite("MainController Tests", function () {
             const resolvedConnectionStore = instantiationService.invokeFunction((accessor) =>
                 accessor.get(IConnectionStore),
             );
+            const resolvedAccountStore = instantiationService.invokeFunction((accessor) =>
+                accessor.get(IAccountStore),
+            );
 
             expect(createdController["_credentialStore"]).to.equal(resolvedCredentialStore);
             expect(createdController["_connectionStore"]).to.equal(resolvedConnectionStore);
+            expect(createdController["_accountStore"]).to.equal(resolvedAccountStore);
+
+            instantiationService.dispose();
+        });
+
+        test("Resolves a cached AccountStore instance backed by the registered extension context", () => {
+            const builder = new InstantiationServiceBuilder();
+            builder.define(IExtensionContextService, new ExtensionContextService(context));
+            builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
+            const instantiationService = builder.seal();
+
+            const first = instantiationService.invokeFunction((accessor) =>
+                accessor.get(IAccountStore),
+            );
+            const second = instantiationService.invokeFunction((accessor) =>
+                accessor.get(IAccountStore),
+            );
+
+            expect(first).to.equal(second);
 
             instantiationService.dispose();
         });
