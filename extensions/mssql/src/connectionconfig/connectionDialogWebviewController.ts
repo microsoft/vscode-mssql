@@ -265,12 +265,12 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         );
 
         // Display intitial UI since it may take a moment for the connection to load
-        // due to fetching Azure account and tenant info
+        // due to fetching Azure account info
         this.loadEmptyConnection();
         await this.updateItemVisibility();
         this.updateState();
 
-        // Load VS Code Entra accounts and tenants in the background after the initial render
+        // Load VS Code Entra accounts in the background after the initial render
         if (useVscodeAccounts) {
             void this.loadVscodeEntraDataAsync();
         } else {
@@ -1979,7 +1979,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     //#region Azure helpers
 
     /**
-     * Loads VS Code Entra accounts and tenants for all accounts in the background
+     * Loads VS Code Entra accounts in the background. Tenant options are loaded on demand.
      */
     private async loadVscodeEntraDataAsync(): Promise<void> {
         this._entraDataLoaded = new Deferred<void>();
@@ -2110,7 +2110,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         return;
                     }
 
-                    // Invalidate cache and re-load all accounts + tenants
+                    // Invalidate account and tenant caches, then reload accounts
                     this.clearEntraAccountCache();
                     accountsComponent.loadStatus = { status: ApiStatus.Loading };
                     this.updateState();

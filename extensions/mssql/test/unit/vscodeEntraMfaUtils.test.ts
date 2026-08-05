@@ -12,7 +12,7 @@ import {
 } from "../../src/azure/vscodeEntraMfaUtils";
 import * as sinon from "sinon";
 import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
-import { mockAccounts } from "./azureHelperStubs";
+import { mockAccounts, mockTenants } from "./azureHelperStubs";
 
 suite("vscodeEntraMfaUtils", () => {
     let sandbox: sinon.SinonSandbox;
@@ -48,6 +48,7 @@ suite("vscodeEntraMfaUtils", () => {
 
     test("uses the selected tenant when tenant enumeration is unavailable", async () => {
         const selectedTenantId = "22222222-2222-2222-2222-222222222222";
+        const tenantIdWithWhitespace = ` ${selectedTenantId} `;
         sandbox
             .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
             .resolves([mockAccounts.signedInAccount]);
@@ -64,12 +65,40 @@ suite("vscodeEntraMfaUtils", () => {
         const result = await acquireTokenFromVscodeAccountForResource(
             "https://database.windows.net/",
             mockAccounts.signedInAccount.id,
-            selectedTenantId,
+            tenantIdWithWhitespace,
         );
 
         expect(result.tenantId).to.equal(selectedTenantId);
         expect(getTenantsForAccount).to.not.have.been.called;
         expect(getSession).to.have.been.called;
+    });
+
+    test("resolves the default tenant when the selected tenant is whitespace", async () => {
+        const expectedTenantId = AzureHelpers.getDefaultTenantId(
+            mockAccounts.signedInAccount.id,
+            mockTenants,
+        );
+        sandbox
+            .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+            .resolves([mockAccounts.signedInAccount]);
+        const getTenantsForAccount = sandbox
+            .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
+            .resolves(mockTenants);
+        sandbox.stub(vscode.authentication, "getSession").resolves({
+            id: "session-id",
+            accessToken: "access-token",
+            account: mockAccounts.signedInAccount,
+            scopes: [],
+        });
+
+        const result = await acquireTokenFromVscodeAccountForResource(
+            "https://database.windows.net/",
+            mockAccounts.signedInAccount.id,
+            "   ",
+        );
+
+        expect(result.tenantId).to.equal(expectedTenantId);
+        expect(getTenantsForAccount).to.have.been.calledOnceWith(mockAccounts.signedInAccount);
     });
 
     suite("areCompatibleEntraAccountIds", () => {

@@ -117,7 +117,7 @@ export async function acquireTokenFromVscodeAccountForResource(
         );
     }
 
-    let resolvedTenantId = tenantId;
+    let resolvedTenantId = tenantId?.trim() || undefined;
     if (!resolvedTenantId) {
         const tenants = await VsCodeAzureHelper.getTenantsForAccount(account);
         resolvedTenantId = getDefaultTenantId(account.id, tenants);
