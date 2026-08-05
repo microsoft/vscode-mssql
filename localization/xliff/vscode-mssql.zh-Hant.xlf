@@ -4048,6 +4048,10 @@ Error:
 {1} is the error message</note>
         <target state="translated">Fabric 長時間執行的 API 錯誤，錯誤碼為 '{0}': {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++e341345b2922855a5f87cfce904e4e54512090c13bba238e46fec614f1ba5cfc">
+        <source xml:lang="en">Fabric long-running operation response did not include a location header.</source>
+        <target state="new">Fabric long-running operation response did not include a location header.</target>
+      </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
         <target state="translated">失敗</target>
@@ -7459,17 +7463,6 @@ Error:
         <source xml:lang="en">Provisioning</source>
         <target state="translated">佈建</target>
       </trans-unit>
-      <trans-unit id="++CODE++678ad71e58face209dc9ea6475de66b19d0de037788611dae9e289e84f55e3fa">
-        <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
-        <note>{0} is the proxy URL
-{1} is the error message</note>
-        <target state="translated">找到 Proxy 設定，但解析 URL 時遇到錯誤: '{0}'。您在使用 MSSQL 延伸模組時可能會遇到連線問題。 錯誤: {1}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++a30e8b09ae56f5e3dd699c50044ea385b174fbe98b1f7ad333d1fffb7b694ea5">
-        <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.</source>
-        <note>{0} is the proxy URL</note>
-        <target state="translated">找到 Proxy 設定，但缺少通訊協定 (例如 http://): '{0}'。您在使用 MSSQL 延伸模組時可能會遇到連線問題。</target>
-      </trans-unit>
       <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
         <source xml:lang="en">Public</source>
         <target state="translated">公用</target>
@@ -10194,10 +10187,6 @@ Query: {2}</source>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
         <target state="translated">無法開啟資料表總管: 未提供目標節點。</target>
-      </trans-unit>
-      <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
-        <source xml:lang="en">Unable to read proxy agent options.</source>
-        <target state="translated">無法讀取 Proxy 代理程式選項。</target>
       </trans-unit>
       <trans-unit id="++CODE++5d1ae18e4c82efee8401c895242feeb54a8a5093d2b024877c83a7a08660a945">
         <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server.</source>
