@@ -11,7 +11,6 @@ import {
     makeStyles,
     mergeClasses,
     Text,
-    ToggleButton,
     tokens,
 } from "@fluentui/react-components";
 import {
@@ -22,6 +21,7 @@ import {
     Copy16Regular,
 } from "@fluentui/react-icons";
 import { locConstants } from "./locConstants";
+import { SegmentedControl } from "./segmentedControl";
 
 /** Ordered list of supported migration tools and the command each one runs. */
 const MIGRATION_TOOLS: { id: string; label: string; command: string; docsUrl: string }[] = [
@@ -44,12 +44,6 @@ const MIGRATION_TOOLS: { id: string; label: string; command: string; docsUrl: st
         docsUrl: "https://typeorm.io/docs/advanced-topics/migrations/",
     },
     {
-        id: "drizzle",
-        label: "Drizzle",
-        command: "npx drizzle-kit migrate",
-        docsUrl: "https://orm.drizzle.team/docs/migrations",
-    },
-    {
         id: "sqlAlchemy",
         label: "SQLAlchemy",
         command: "alembic upgrade head",
@@ -60,6 +54,12 @@ const MIGRATION_TOOLS: { id: string; label: string; command: string; docsUrl: st
         label: "EF Core",
         command: "dotnet ef database update",
         docsUrl: "https://learn.microsoft.com/ef/core/managing-schemas/migrations/",
+    },
+    {
+        id: "drizzle",
+        label: "Drizzle",
+        command: "npx drizzle-kit migrate",
+        docsUrl: "https://orm.drizzle.team/docs/migrations",
     },
     {
         id: "flyway",
@@ -174,10 +174,9 @@ const useStyles = makeStyles({
     copyButton: {
         flexShrink: 0,
     },
-    toolRow: {
-        display: "flex",
-        flexWrap: "wrap",
-        gap: "6px",
+    toolSelectorContainer: {
+        maxWidth: "100%",
+        overflowX: "auto",
     },
     toolButton: {
         minWidth: "auto",
@@ -284,23 +283,18 @@ export const ConnectToDatabaseCard: React.FC<ConnectToDatabaseCardProps> = ({
                                 </Text>
                             )}
                         </div>
-                        <div
-                            className={classes.toolRow}
-                            role="radiogroup"
-                            aria-label={loc.runYourMigrations}>
-                            {MIGRATION_TOOLS.map((tool) => (
-                                <ToggleButton
-                                    key={tool.id}
-                                    className={classes.toolButton}
-                                    size="small"
-                                    role="radio"
-                                    aria-checked={tool.id === selectedToolId}
-                                    appearance={tool.id === selectedToolId ? "primary" : "outline"}
-                                    checked={tool.id === selectedToolId}
-                                    onClick={() => setSelectedToolId(tool.id)}>
-                                    {tool.label}
-                                </ToggleButton>
-                            ))}
+                        <div className={classes.toolSelectorContainer}>
+                            <SegmentedControl
+                                value={selectedToolId}
+                                options={MIGRATION_TOOLS.map((tool) => ({
+                                    value: tool.id,
+                                    label: tool.label,
+                                }))}
+                                onValueChange={setSelectedToolId}
+                                size="small"
+                                buttonClassName={classes.toolButton}
+                                ariaLabel={loc.runYourMigrations}
+                            />
                         </div>
                         <div className={classes.codeRow}>
                             <span className={classes.codeText} title={selectedTool.command}>
