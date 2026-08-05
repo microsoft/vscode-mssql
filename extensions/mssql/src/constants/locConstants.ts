@@ -3691,26 +3691,6 @@ export class Profiler {
     );
 }
 
-export class Proxy {
-    public static unableToGetProxyAgentOptions = l10n.t("Unable to read proxy agent options.");
-
-    public static missingProtocolWarning = (proxy: string) =>
-        l10n.t({
-            message:
-                "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
-            args: [proxy],
-            comment: ["{0} is the proxy URL"],
-        });
-
-    public static unparseableWarning = (proxy: string, errorMessage: string) =>
-        l10n.t({
-            message:
-                "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
-            args: [proxy, errorMessage],
-            comment: ["{0} is the proxy URL", "{1} is the error message"],
-        });
-}
-
 export class BackupDatabase {
     public static backupDatabaseTitle = (databaseName: string) =>
         l10n.t({
