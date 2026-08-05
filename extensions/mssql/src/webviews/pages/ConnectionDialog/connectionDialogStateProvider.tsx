@@ -61,7 +61,12 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 });
             },
             connect: function (): void {
-                extensionRpc.action("connect");
+                const clickTimestamp = Date.now();
+                const clickId = `${clickTimestamp}-${Math.random().toString(36).slice(2)}`;
+                extensionRpc.log.debug(
+                    `[ConnectionTrace] Connect button clicked clickId=${clickId}`,
+                );
+                extensionRpc.action("connect", { clickId, clickTimestamp });
             },
             testConnection: function (): void {
                 extensionRpc.action("testConnection");

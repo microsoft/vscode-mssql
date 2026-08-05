@@ -993,6 +993,22 @@ suite("ConnectionDialogWebviewController Tests", () => {
             expect(controller.state.connectionProfile.tenantId).to.equal(mockTenants[0].tenantId);
         });
 
+        test("does not load tenants for every VS Code account in the background", async () => {
+            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+            sandbox.stub(AzureHelpers.VsCodeAzureHelper, "getAccounts").resolves([
+                mockAccounts.signedInAccount,
+                mockAccounts.notSignedInAccount,
+            ]);
+            const getTenantsForAccount = sandbox.stub(
+                AzureHelpers.VsCodeAzureHelper,
+                "getTenantsForAccount",
+            );
+
+            await controller["loadVscodeEntraDataAsync"]();
+
+            expect(getTenantsForAccount).to.not.have.been.called;
+        });
+
         suite("connect", () => {
             let mockConnectionNode: TreeNodeInfo;
             let testFormState: IConnectionDialogProfile;
@@ -1022,6 +1038,35 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     authenticationType: AuthenticationType.SqlLogin,
                     groupId: ConnectionConfig.ROOT_GROUP_ID,
                 } as IConnectionDialogProfile;
+            });
+
+            test("logs when the connection action reaches the extension host", async () => {
+                const loggerDebug = sandbox.stub(controller["logger"], "debug");
+                connectionManager.connect.resolves(true);
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("connect")(controller.state, {});
+
+                expect(loggerDebug).to.have.been.calledWithMatch(
+                    /Connection attempt started.*correlationId=/,
+                );
+            });
+
+            test("does not log an invalid webview correlation payload", async () => {
+                const loggerDebug = sandbox.stub(controller["logger"], "debug");
+                connectionManager.connect.resolves(true);
+                controller.state.formState = testFormState;
+
+                await controller["_reducerHandlers"].get("connect")(controller.state, {
+                    clickId: "forged\r\nlog-entry",
+                    clickTimestamp: Number.POSITIVE_INFINITY,
+                });
+
+                const connectionAttemptLog = loggerDebug.args
+                    .map(([message]) => String(message))
+                    .find((message) => message.includes("Connection attempt started"));
+                expect(connectionAttemptLog).to.not.include("forged");
+                expect(connectionAttemptLog).to.not.include("transportDurationMs");
             });
 
             test("connect happy path", async () => {

@@ -277,7 +277,10 @@ export interface ConnectionDialogReducers extends FormReducers<IConnectionDialog
     loadConnectionAsNewDraft: {
         connection: IConnectionDialogProfile;
     };
-    connect: {};
+    connect: {
+        clickId?: string;
+        clickTimestamp?: number;
+    };
     testConnection: {};
     saveWithoutConnecting: {};
     retryLastSubmitAction: {};

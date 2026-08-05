@@ -7,6 +7,7 @@ import * as vscode from "vscode";
 import { AzureTenant, getSessionFromVSCode } from "@microsoft/vscode-azext-azureauth";
 
 import { FormItemOptions } from "../sharedInterfaces/form";
+import { ILogger } from "../sharedInterfaces/logger";
 import { IProviderResources, IToken } from "../models/contracts/azure";
 import { getCloudProviderSettings } from "./providerSettings";
 import { VsCodeAzureHelper, getDefaultTenantId } from "../connectionconfig/azureHelpers";
@@ -19,6 +20,11 @@ export interface VscodeEntraSqlTokenInfo {
     token: IToken;
 }
 
+export interface VscodeEntraTokenTrace {
+    logger: ILogger;
+    requestId: string;
+}
+
 /**
  * Determines if the provided account IDs are compatible, meaning they are either exactly the same or one is a prefix of the other.
  */
@@ -26,17 +32,20 @@ export function areCompatibleEntraAccountIds(
     currentAccountId?: string,
     expectedAccountId?: string,
 ): boolean {
+    const normalizedCurrentAccountId = currentAccountId?.toLowerCase();
+    const normalizedExpectedAccountId = expectedAccountId?.toLowerCase();
+
     return (
-        !!currentAccountId &&
-        !!expectedAccountId &&
-        (currentAccountId === expectedAccountId ||
-            currentAccountId.startsWith(expectedAccountId) ||
-            expectedAccountId.startsWith(currentAccountId))
+        !!normalizedCurrentAccountId &&
+        !!normalizedExpectedAccountId &&
+        (normalizedCurrentAccountId === normalizedExpectedAccountId ||
+            normalizedCurrentAccountId.startsWith(normalizedExpectedAccountId) ||
+            normalizedExpectedAccountId.startsWith(normalizedCurrentAccountId))
     );
 }
 
 export async function getVscodeEntraAccountOptions(): Promise<FormItemOptions[]> {
-    const accounts = await VsCodeAzureHelper.getAccounts();
+    const accounts = await VsCodeAzureHelper.getAccounts(false);
     return accounts.map((account) => ({
         displayName: account.label,
         value: account.id,
@@ -47,7 +56,7 @@ export async function resolveVscodeEntraAccount(
     accountId?: string,
     accountLabel?: string,
 ): Promise<vscode.AuthenticationSessionAccountInformation | undefined> {
-    const accounts = await VsCodeAzureHelper.getAccounts();
+    const accounts = await VsCodeAzureHelper.getAccounts(false);
 
     if (accountId) {
         const exactMatch = accounts.find((account) => account.id === accountId);
@@ -64,7 +73,10 @@ export async function resolveVscodeEntraAccount(
     }
 
     if (accountLabel) {
-        return accounts.find((account) => account.label === accountLabel);
+        const normalizedAccountLabel = accountLabel.trim().toLowerCase();
+        return accounts.find(
+            (account) => account.label.trim().toLowerCase() === normalizedAccountLabel,
+        );
     }
 
     return undefined;
@@ -100,8 +112,14 @@ export async function acquireTokenFromVscodeAccountForResource(
     accountId?: string,
     tenantId?: string,
     accountLabel?: string,
+    trace?: VscodeEntraTokenTrace,
 ): Promise<VscodeEntraSqlTokenInfo> {
-    const account = await resolveVscodeEntraAccount(accountId, accountLabel);
+    const account = await traceTokenPhase(
+        trace,
+        "account resolution",
+        () => resolveVscodeEntraAccount(accountId, accountLabel),
+        (resolvedAccount) => `accountResolved=${resolvedAccount !== undefined}`,
+    );
     if (!account) {
         throw new MissingEntraAuthAccountError(
             locConstants.Accounts.accountNotAvailableThroughVsCode(
@@ -111,11 +129,22 @@ export async function acquireTokenFromVscodeAccountForResource(
         );
     }
 
-    const tenants = await VsCodeAzureHelper.getTenantsForAccount(account);
-    const resolvedTenantId =
-        tenantId && tenants.some((tenant) => tenant.tenantId === tenantId)
-            ? tenantId
-            : getDefaultTenantId(account.id, tenants);
+    let resolvedTenantId = tenantId;
+    if (!resolvedTenantId) {
+        resolvedTenantId = await traceTokenPhase(
+            trace,
+            "tenant resolution",
+            async () => {
+                const tenants = await VsCodeAzureHelper.getTenantsForAccount(account);
+                return getDefaultTenantId(account.id, tenants);
+            },
+            (selectedTenantId) => `tenantResolved=${selectedTenantId !== undefined}`,
+        );
+    } else {
+        trace?.logger.debug(
+            `[ConnectionTrace] VS Code accounts tenant resolution skipped requestId=${trace.requestId} reason=explicitTenantId`,
+        );
+    }
 
     if (!resolvedTenantId) {
         throw new MissingEntraAuthAccountError(
@@ -126,16 +155,29 @@ export async function acquireTokenFromVscodeAccountForResource(
         );
     }
 
+    const silentSession = await traceTokenPhase(
+        trace,
+        "silent token session request",
+        () =>
+            getSessionFromVSCode(resourceEndpoint, resolvedTenantId, {
+                createIfNone: false,
+                silent: true,
+                account,
+            }),
+        (session) => `sessionPresent=${session !== undefined}`,
+    );
     const session =
-        (await getSessionFromVSCode(resourceEndpoint, resolvedTenantId, {
-            createIfNone: false,
-            silent: true,
-            account,
-        })) ??
-        (await getSessionFromVSCode(resourceEndpoint, resolvedTenantId, {
-            createIfNone: true,
-            account,
-        }));
+        silentSession ??
+        (await traceTokenPhase(
+            trace,
+            "interactive token session request",
+            () =>
+                getSessionFromVSCode(resourceEndpoint, resolvedTenantId, {
+                    createIfNone: true,
+                    account,
+                }),
+            (session) => `sessionPresent=${session !== undefined}`,
+        ));
 
     if (!session) {
         throw new Error(
@@ -154,6 +196,31 @@ export async function acquireTokenFromVscodeAccountForResource(
             expiresOn: getTokenExpiration(session.accessToken),
         },
     };
+}
+
+async function traceTokenPhase<T>(
+    trace: VscodeEntraTokenTrace | undefined,
+    phase: string,
+    operation: () => Promise<T>,
+    describeResult?: (result: T) => string,
+): Promise<T> {
+    const startedAt = Date.now();
+    trace?.logger.debug(
+        `[ConnectionTrace] VS Code accounts ${phase} started requestId=${trace.requestId}`,
+    );
+
+    try {
+        const result = await operation();
+        trace?.logger.debug(
+            `[ConnectionTrace] VS Code accounts ${phase} completed requestId=${trace.requestId} durationMs=${Date.now() - startedAt}${describeResult ? ` ${describeResult(result)}` : ""}`,
+        );
+        return result;
+    } catch (error) {
+        trace?.logger.debug(
+            `[ConnectionTrace] VS Code accounts ${phase} failed requestId=${trace.requestId} durationMs=${Date.now() - startedAt}`,
+        );
+        throw error;
+    }
 }
 
 export function getCloudResourceEndpoint(endpoint: keyof IProviderResources): string {
