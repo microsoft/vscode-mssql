@@ -585,7 +585,7 @@ declare module "vscode-mssql" {
             deploymentOptions?: DeploymentOptions,
         ): Thenable<ResultStatus>;
         getDeploymentOptions(scenario: DeploymentScenario): Thenable<GetDeploymentOptionsResult>;
-        getCodeAnalysisRules(): Thenable<GetCodeAnalysisRulesResult>;
+        getCodeAnalysisRules(projectUri?: string): Thenable<GetCodeAnalysisRulesResult>;
     }
 
     /**
@@ -1459,7 +1459,9 @@ declare module "vscode-mssql" {
         defaultDeploymentOptions: DeploymentOptions;
     }
 
-    export interface GetCodeAnalysisRulesParams {}
+    export interface GetCodeAnalysisRulesParams {
+        projectUri?: string;
+    }
 
     export interface CodeAnalysisRuleInfo {
         ruleId: string;
@@ -1469,10 +1471,12 @@ declare module "vscode-mssql" {
         category: string;
         severity: string;
         ruleScope: string;
+        isBuiltIn: boolean;
     }
 
     export interface GetCodeAnalysisRulesResult extends ResultStatus {
         rules: CodeAnalysisRuleInfo[];
+        warning?: string;
     }
 
     export interface CodeAnalysisRuleOverride {

@@ -9,6 +9,13 @@ import { CodeAnalysisRuleSeverity } from "../enums";
 export { CodeAnalysisRuleSeverity };
 
 /**
+ * Grouping category for custom rules whose `[ExportCodeAnalysisRule]` attribute declares no
+ * category. Not localized: it is compared against the categories DacFx and rule packages report,
+ * which are themselves invariant strings.
+ */
+export const customRulesCategory = "Custom Rules";
+
+/**
  * Represents a SQL code analysis rule
  */
 export interface SqlCodeAnalysisRule {
@@ -28,6 +35,8 @@ export interface SqlCodeAnalysisRule {
     description?: string;
     /** The rule scope (Element/Model) */
     ruleScope?: string;
+    /** True for built-in DacFx rules; false for custom rules from NuGet packages */
+    isBuiltIn: boolean;
 }
 
 /**

@@ -38,7 +38,7 @@ import { DialogHeader } from "../../common/dialogHeader.component";
 import { DialogMessage } from "../../common/dialogMessage";
 import { ConfirmationDialog } from "../../common/confirmationDialog";
 import { allSeverities } from "../../common/constants";
-import { filterRules } from "./codeAnalysisUtils";
+import { filterRules, groupRulesByCategory } from "./codeAnalysisUtils";
 
 const codeAnalysisIconLight = require("../../../../media/codeAnalysis_light.svg");
 const codeAnalysisIconDark = require("../../../../media/codeAnalysis_dark.svg");
@@ -251,15 +251,7 @@ export const CodeAnalysisDialog = () => {
         [localRules, searchText, severityFilter],
     );
 
-    const groupedRuleEntries = useMemo(() => {
-        const groupedRules = new Map<string, SqlCodeAnalysisRule[]>();
-        filteredRules.forEach((rule) => {
-            const bucket = groupedRules.get(rule.category) ?? [];
-            bucket.push(rule);
-            groupedRules.set(rule.category, bucket);
-        });
-        return Array.from(groupedRules.entries()).sort(([a], [b]) => a.localeCompare(b));
-    }, [filteredRules]);
+    const groupedRuleEntries = useMemo(() => groupRulesByCategory(filteredRules), [filteredRules]);
 
     // --- Handlers ---
     /**
