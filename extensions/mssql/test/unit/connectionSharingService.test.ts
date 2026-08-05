@@ -299,6 +299,7 @@ suite("ConnectionSharingService Tests", () => {
 
             await new Promise<void>((resolve) => setImmediate(resolve));
 
+            expect(showInformationMessageStub).to.have.been.calledOnce;
             resolvePrompt!(LocalizedConstants.ConnectionSharing.Approve);
             await Promise.all([firstRequest, secondRequest]);
         });
