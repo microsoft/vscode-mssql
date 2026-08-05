@@ -6,7 +6,7 @@
 import * as vscode from "vscode";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { IPrompter } from "../../src/prompts/question";
-import { ConnectionStore } from "../../src/models/connectionStore";
+import { ConnectionStore, IConnectionStore } from "../../src/models/connectionStore";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import * as constants from "../../src/constants/constants";
 import {
@@ -15,7 +15,7 @@ import {
     IConnectionGroup,
 } from "../../src/models/interfaces";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
-import { AccountStore } from "../../src/azure/accountStore";
+import { AccountStore, IAccountStore } from "../../src/azure/accountStore";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
@@ -23,6 +23,7 @@ import { stubVscodeWindow } from "./utils";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import * as LocConstants from "../../src/constants/locConstants";
 import { CREATE_NEW_GROUP_ID } from "../../src/sharedInterfaces/connectionGroup";
+import { InstantiationServiceBuilder } from "extension-toolkit/base";
 
 const expect = chai.expect;
 
@@ -93,11 +94,11 @@ suite("Connection UI tests", () => {
         } as unknown as IPrompter;
 
         connectionUI = new ConnectionUI(
-            connectionStoreStub,
             azureControllerStub,
-            accountStoreStub,
             prompter,
             onDisconnectStub,
+            connectionStoreStub,
+            accountStoreStub,
         );
     });
 
@@ -422,5 +423,51 @@ suite("Connection UI tests", () => {
             "Parent Group Two > Child Group",
             "Other Child Group",
         ]);
+    });
+
+    suite("Dependency injection", () => {
+        test("createInstance produces distinct ConnectionUI instances sharing the same registered stores", () => {
+            const builder = new InstantiationServiceBuilder();
+            builder.define(IConnectionStore, connectionStoreStub as unknown as ConnectionStore);
+            builder.define(IAccountStore, accountStoreStub as unknown as AccountStore);
+            const instantiationService = builder.seal();
+
+            const firstOnDisconnect = sandbox.stub().resolves(true);
+            const secondOnDisconnect = sandbox.stub().resolves(false);
+
+            const firstConnectionUI = instantiationService.createInstance(
+                ConnectionUI,
+                azureControllerStub,
+                prompter,
+                firstOnDisconnect,
+            );
+            const secondConnectionUI = instantiationService.createInstance(
+                ConnectionUI,
+                azureControllerStub,
+                prompter,
+                secondOnDisconnect,
+            );
+
+            expect(firstConnectionUI).to.not.equal(secondConnectionUI);
+
+            expect(firstConnectionUI["_connectionStore"]).to.equal(connectionStoreStub);
+            expect(secondConnectionUI["_connectionStore"]).to.equal(connectionStoreStub);
+            expect(firstConnectionUI["_connectionStore"]).to.equal(
+                secondConnectionUI["_connectionStore"],
+            );
+
+            expect(firstConnectionUI["_accountStore"]).to.equal(accountStoreStub);
+            expect(secondConnectionUI["_accountStore"]).to.equal(accountStoreStub);
+            expect(firstConnectionUI["_accountStore"]).to.equal(
+                secondConnectionUI["_accountStore"],
+            );
+
+            // Runtime args (azureController, prompter, onDisconnect) remain manager-specific
+            // and are not shared/overridden by the DI container.
+            expect(firstConnectionUI["_onDisconnect"]).to.equal(firstOnDisconnect);
+            expect(secondConnectionUI["_onDisconnect"]).to.equal(secondOnDisconnect);
+
+            instantiationService.dispose();
+        });
     });
 });

@@ -1086,6 +1086,7 @@ export default class MainController implements vscode.Disposable {
             this._credentialStore,
             undefined,
             this._accountStore,
+            this._instantiationService,
         );
 
         this._sqlDocumentService = new SqlDocumentService(this);

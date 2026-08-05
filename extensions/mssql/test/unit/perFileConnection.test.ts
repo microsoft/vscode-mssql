@@ -26,6 +26,7 @@ import * as Utils from "../../src/models/utils";
 import { AuthenticationTypes } from "../../src/models/interfaces";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { AccountStore } from "../../src/azure/accountStore";
+import { AzureController } from "../../src/azure/azureController";
 import StatusView from "../../src/views/statusView";
 import { uuid } from "../../src/utils/utils";
 import { stubExtensionContext, stubPrompter } from "./utils";
@@ -533,7 +534,18 @@ suite("Per File Connection Tests", () => {
             connectionStoreInstance = stubConnectionStore;
         }
 
-        return new ConnectionManager(
+        let manager: ConnectionManager;
+        const connectionUIInstance =
+            connectionUI ??
+            new ConnectionUI(
+                sandbox.createStubInstance(AzureController),
+                prompterStub,
+                () => manager.onDisconnect(),
+                connectionStoreInstance,
+                sandbox.createStubInstance(AccountStore),
+            );
+
+        manager = new ConnectionManager(
             extensionContext,
             statusViewInstance,
             prompterStub,
@@ -541,9 +553,10 @@ suite("Per File Connection Tests", () => {
             serviceClient,
             connectionStoreInstance,
             sandbox.createStubInstance(CredentialStore),
-            connectionUI,
+            connectionUIInstance,
             sandbox.createStubInstance(AccountStore),
         );
+        return manager;
     }
 });
 

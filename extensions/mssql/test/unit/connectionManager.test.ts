@@ -59,6 +59,7 @@ suite("ConnectionManager Tests", () => {
     let mockStatusView: sinon.SinonStubbedInstance<StatusView>;
     let mockAccountStore: sinon.SinonStubbedInstance<AccountStore>;
     let mockAzureController: sinon.SinonStubbedInstance<MsalAzureController>;
+    let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
@@ -71,6 +72,7 @@ suite("ConnectionManager Tests", () => {
         mockStatusView = sandbox.createStubInstance(StatusView);
         mockAccountStore = sandbox.createStubInstance(AccountStore);
         mockAzureController = sandbox.createStubInstance(MsalAzureController);
+        mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
 
         const initializedDeferred = new Deferred<void>();
         initializedDeferred.resolve();
@@ -97,7 +99,7 @@ suite("ConnectionManager Tests", () => {
                     mockServiceClient,
                     mockConnectionStore,
                     mockCredentialStore,
-                    undefined, // connectionUI
+                    mockConnectionUI, // connectionUI
                     mockAccountStore,
                 );
             }).to.not.throw();
@@ -161,7 +163,7 @@ suite("ConnectionManager Tests", () => {
                 mockServiceClient,
                 mockConnectionStore,
                 mockCredentialStore,
-                undefined, // connectionUI
+                mockConnectionUI, // connectionUI
                 mockAccountStore,
             );
 
@@ -228,7 +230,7 @@ suite("ConnectionManager Tests", () => {
                 mockServiceClient,
                 mockConnectionStore,
                 mockCredentialStore,
-                undefined, // connectionUI
+                mockConnectionUI, // connectionUI
                 mockAccountStore,
             );
 
@@ -258,7 +260,7 @@ suite("ConnectionManager Tests", () => {
                 mockServiceClient,
                 mockConnectionStore,
                 mockCredentialStore,
-                undefined, // connectionUI
+                mockConnectionUI, // connectionUI
                 mockAccountStore,
             );
         });
@@ -297,7 +299,7 @@ suite("ConnectionManager Tests", () => {
                 mockServiceClient,
                 mockConnectionStore,
                 mockCredentialStore,
-                undefined, // connectionUI
+                mockConnectionUI, // connectionUI
                 mockAccountStore,
             );
         });
@@ -398,7 +400,7 @@ suite("ConnectionManager Tests", () => {
                 mockServiceClient,
                 mockConnectionStore,
                 mockCredentialStore,
-                undefined,
+                mockConnectionUI,
                 mockAccountStore,
             );
             acquireTokenStub = sandbox.stub(
@@ -540,7 +542,7 @@ suite("ConnectionManager Tests", () => {
                 mockServiceClient,
                 mockConnectionStore,
                 mockCredentialStore,
-                undefined,
+                mockConnectionUI,
                 mockAccountStore,
             );
             sendNotificationStub = mockServiceClient.sendNotification as sinon.SinonStub;
@@ -741,7 +743,7 @@ suite("ConnectionManager Tests", () => {
                 mockServiceClient,
                 mockConnectionStore,
                 mockCredentialStore,
-                undefined,
+                mockConnectionUI,
                 mockAccountStore,
             );
             acquireTokenStub = sandbox.stub(
@@ -821,7 +823,7 @@ suite("ConnectionManager Tests", () => {
                 mockServiceClient,
                 mockConnectionStore,
                 mockCredentialStore,
-                undefined,
+                mockConnectionUI,
                 mockAccountStore,
             );
 
@@ -1175,7 +1177,7 @@ suite("ConnectionManager Tests", () => {
                 undefined, // client
                 mockConnectionStore,
                 mockCredentialStore,
-                undefined, // connectionUI
+                mockConnectionUI, // connectionUI
                 mockAccountStore,
             );
         });

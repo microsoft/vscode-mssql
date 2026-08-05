@@ -50,6 +50,7 @@ import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { Deferred } from "../protocol";
 import { ConnectionUI } from "../views/connectionUI";
 import StatusView from "../views/statusView";
+import { IInstantiationService } from "extension-toolkit/base";
 import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 import {
     ActivityObject,
@@ -171,6 +172,7 @@ export default class ConnectionManager {
         private _credentialStore?: CredentialStore,
         private _connectionUI?: ConnectionUI,
         private _accountStore?: AccountStore,
+        private _instantiationService?: IInstantiationService,
     ) {
         this._statusView = statusView;
         this._connections = {};
@@ -216,10 +218,15 @@ export default class ConnectionManager {
         }
 
         if (!this._connectionUI) {
-            this._connectionUI = new ConnectionUI(
-                this._connectionStore,
+            if (!this._instantiationService) {
+                throw new Error(
+                    "ConnectionManager requires an IInstantiationService to be supplied by the caller in order to create a ConnectionUI.",
+                );
+            }
+
+            this._connectionUI = this._instantiationService.createInstance(
+                ConnectionUI,
                 this.azureController,
-                this._accountStore,
                 prompter,
                 () => this.onDisconnect(),
             );

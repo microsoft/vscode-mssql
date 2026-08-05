@@ -5,11 +5,11 @@
 
 import * as vscode from "vscode";
 import { IAccount, IConnectionInfo } from "vscode-mssql";
-import { AccountStore } from "../azure/accountStore";
+import { AccountStore, IAccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import * as constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
-import { ConnectionStore } from "../models/connectionStore";
+import { ConnectionStore, IConnectionStore } from "../models/connectionStore";
 import * as Utils from "../models/utils";
 import {
     CredentialsQuickPickItemType,
@@ -38,15 +38,15 @@ export interface ISqlProviderItem extends vscode.QuickPickItem {
 
 export class ConnectionUI {
     constructor(
-        private _connectionStore: ConnectionStore,
         private _azureController: AzureController,
-        private _accountStore: AccountStore,
         private _prompter: IPrompter,
         /**
          * Disconnects the active connection. Kept as a narrow callback (rather than a
          * reference to the manager owning this UI) to avoid reintroducing a construction cycle.
          */
         private _onDisconnect: () => Promise<boolean>,
+        @IConnectionStore private _connectionStore: ConnectionStore,
+        @IAccountStore private _accountStore: AccountStore,
     ) {}
 
     /**
