@@ -9,12 +9,20 @@ const { PassThrough, Writable } = require("node:stream");
 const { afterEach, beforeEach, describe, it, mock } = require("node:test");
 const { HttpClient, HttpDownloadError, ProxyMessages } = require("../dist/base/index.js");
 
-const proxyEnvironmentVariables = ["HTTP_PROXY", "http_proxy", "HTTPS_PROXY", "https_proxy"];
+const proxyEnvironmentVariables = [
+    "HTTP_PROXY",
+    "http_proxy",
+    "HTTPS_PROXY",
+    "https_proxy",
+    "NO_PROXY",
+    "no_proxy",
+];
 
 describe("HttpClient", () => {
     let environment;
     let httpClient;
     let logger;
+    let noProxyValue;
     let parseUriScheme;
     let proxyValue;
 
@@ -27,10 +35,12 @@ describe("HttpClient", () => {
         }
 
         logger = createMockLogger();
+        noProxyValue = undefined;
         parseUriScheme = (value) => new URL(value).protocol;
         proxyValue = undefined;
         httpClient = new HttpClient(logger, {
             getProxyConfig: () => proxyValue,
+            getNoProxyConfig: () => noProxyValue,
             parseUriScheme: (value) => parseUriScheme(value),
         });
     });
@@ -332,6 +342,50 @@ describe("HttpClient", () => {
             const proxy = httpClient.loadProxyConfig();
 
             assert.equal(proxy, process.env.HTTP_PROXY);
+        });
+
+        for (const source of ["NO_PROXY", "no_proxy", "VS Code http.noProxy"]) {
+            it(`bypasses the proxy for a host in ${source}`, () => {
+                proxyValue = "http://proxy.example.com:8080";
+                if (source === "VS Code http.noProxy") {
+                    noProxyValue = ["*.internal.example.com"];
+                } else {
+                    process.env[source] = ".internal.example.com";
+                }
+
+                const result = httpClient.setupConfigAndProxyForRequest(
+                    "https://api.internal.example.com",
+                    {},
+                );
+
+                assert.equal(result.proxy, false);
+                assert.equal(result.httpAgent, undefined);
+                assert.equal(result.httpsAgent, undefined);
+            });
+        }
+
+        it("honors the port in a proxy bypass rule", () => {
+            proxyValue = "http://proxy.example.com:8080";
+            process.env.NO_PROXY = "api.example.com:8443";
+
+            const bypassed = httpClient.setupConfigAndProxyForRequest(
+                "https://api.example.com:8443",
+                {},
+            );
+            const proxied = httpClient.setupConfigAndProxyForRequest("https://api.example.com", {});
+
+            assert.equal(bypassed.httpsAgent, undefined);
+            assert.ok(proxied.httpsAgent);
+        });
+
+        it("bypasses every proxy when the bypass list contains a wildcard", () => {
+            proxyValue = "http://proxy.example.com:8080";
+            process.env.NO_PROXY = "*";
+
+            const result = httpClient.setupConfigAndProxyForRequest("https://api.example.com", {});
+
+            assert.equal(result.proxy, false);
+            assert.equal(result.httpsAgent, undefined);
         });
 
         it("sets up an HTTP request with a proxy", () => {

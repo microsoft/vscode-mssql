@@ -30,6 +30,9 @@ export interface IHttpClientDependencies {
     /** Returns the configured proxy endpoint, if available. */
     getProxyConfig?: () => string | undefined;
 
+    /** Returns host patterns that should bypass the configured proxy. */
+    getNoProxyConfig?: () => readonly string[] | undefined;
+
     /** Returns whether proxy certificates should be validated. */
     getProxyStrictSSL?: () => boolean | undefined;
 
@@ -250,6 +253,12 @@ export class HttpClient {
             validateStatus: () => true,
         };
 
+        if (this.shouldBypassProxy(requestUrl)) {
+            this.logger?.debug("Request URL matched the proxy bypass list.");
+            config.proxy = false;
+            return config;
+        }
+
         const proxy = this.loadProxyConfig();
 
         if (proxy) {
@@ -290,6 +299,18 @@ export class HttpClient {
         }
 
         return proxy;
+    }
+
+    private shouldBypassProxy(requestUrl: string): boolean {
+        const configuredRules = this.dependencies.getNoProxyConfig?.() ?? [];
+        const environmentRules = [process.env.NO_PROXY, process.env.no_proxy]
+            .filter((value): value is string => Boolean(value))
+            .flatMap((value) => value.split(/[,\s]+/));
+        const requestEndpoint = new URL(requestUrl);
+
+        return [...configuredRules, ...environmentRules].some((rule) =>
+            matchesProxyBypassRule(requestEndpoint, rule),
+        );
     }
 
     private constructRequestUrl(requestUrl: string, config: AxiosRequestConfig): string {
@@ -493,6 +514,51 @@ interface ProxyAgentOptions {
     port?: string | number | null;
     protocol: string;
     rejectUnauthorized: boolean;
+}
+
+function matchesProxyBypassRule(requestEndpoint: URL, value: string): boolean {
+    const rule = value.trim().toLowerCase();
+    if (!rule) {
+        return false;
+    }
+    if (rule === "*") {
+        return true;
+    }
+
+    let ruleHost: string;
+    let rulePort: string | undefined;
+    if (rule.includes("://")) {
+        try {
+            const ruleEndpoint = new URL(rule);
+            ruleHost = ruleEndpoint.hostname;
+            rulePort = ruleEndpoint.port || undefined;
+        } catch {
+            return false;
+        }
+    } else {
+        const match = rule.match(/^(.+):(\d+)$/);
+        ruleHost = match?.[1] ?? rule;
+        rulePort = match?.[2];
+    }
+
+    const requestPort =
+        requestEndpoint.port ||
+        (requestEndpoint.protocol === "https:" ? String(HTTPS_PORT) : String(HTTP_PORT));
+    if (rulePort && rulePort !== requestPort) {
+        return false;
+    }
+
+    const requestHost = requestEndpoint.hostname.toLowerCase();
+    if (ruleHost.startsWith("*.")) {
+        ruleHost = ruleHost.slice(2);
+        return requestHost === ruleHost || requestHost.endsWith(`.${ruleHost}`);
+    }
+    if (ruleHost.startsWith(".")) {
+        ruleHost = ruleHost.slice(1);
+        return requestHost === ruleHost || requestHost.endsWith(`.${ruleHost}`);
+    }
+
+    return requestHost === ruleHost;
 }
 
 /** Error raised by a download when request or response streaming fails. */

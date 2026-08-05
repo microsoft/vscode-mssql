@@ -26,6 +26,8 @@ export class VscodeHttpClient extends HttpClient {
         const dependencies: IHttpClientDependencies = {
             getProxyConfig: () =>
                 vscode.workspace.getConfiguration("http")["proxy"] as string | undefined,
+            getNoProxyConfig: () =>
+                vscode.workspace.getConfiguration("http")["noProxy"] as string[] | undefined,
             getProxyStrictSSL: () =>
                 vscode.workspace.getConfiguration("http")["proxyStrictSSL"] as boolean | undefined,
             parseUriScheme: (value: string) => vscode.Uri.parse(value).scheme,
