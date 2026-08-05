@@ -203,7 +203,6 @@ export default class MainController implements vscode.Disposable {
         UserSurvey.createInstance(this._context);
         new VscodeHttpClient({
             logger: this._logger,
-            messages: LocalizedConstants.Proxy,
         }).warnOnInvalidProxySettings();
     }
 

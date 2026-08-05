@@ -5680,15 +5680,6 @@
     <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
       <source xml:lang="en">Provisioning</source>
     </trans-unit>
-    <trans-unit id="++CODE++678ad71e58face209dc9ea6475de66b19d0de037788611dae9e289e84f55e3fa">
-      <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: &apos;{0}&apos;. You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
-      <note>{0} is the proxy URL
-{1} is the error message</note>
-    </trans-unit>
-    <trans-unit id="++CODE++a30e8b09ae56f5e3dd699c50044ea385b174fbe98b1f7ad333d1fffb7b694ea5">
-      <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): &apos;{0}&apos;. You may encounter connection issues while using the MSSQL extension.</source>
-      <note>{0} is the proxy URL</note>
-    </trans-unit>
     <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
       <source xml:lang="en">Public</source>
     </trans-unit>
@@ -7756,9 +7747,6 @@
     </trans-unit>
     <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
       <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
-      <source xml:lang="en">Unable to read proxy agent options.</source>
     </trans-unit>
     <trans-unit id="++CODE++5d1ae18e4c82efee8401c895242feeb54a8a5093d2b024877c83a7a08660a945">
       <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server.</source>

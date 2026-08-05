@@ -10,11 +10,12 @@ import {
     IHttpClientLogger,
     IHttpClientMessages,
 } from "../../base";
+import { ProxyMessages } from "../localization/locConstants";
 
 /** Options for creating a VS Code-aware HTTP client. */
 export interface IVscodeHttpClientOptions {
     /** Localized messages used when reporting invalid VS Code proxy settings. */
-    messages: IHttpClientMessages;
+    messages?: IHttpClientMessages;
 
     /** Optional logger for HTTP diagnostics and proxy configuration warnings. */
     logger?: IHttpClientLogger;
@@ -30,7 +31,7 @@ export class VscodeHttpClient extends HttpClient {
      *
      * @param options Localized proxy messages and optional diagnostic logger.
      */
-    constructor(options: IVscodeHttpClientOptions) {
+    constructor(options: IVscodeHttpClientOptions = {}) {
         const dependencies: IHttpClientDependencies = {
             getProxyConfig: () =>
                 vscode.workspace.getConfiguration("http")["proxy"] as string | undefined,
@@ -40,7 +41,7 @@ export class VscodeHttpClient extends HttpClient {
             showWarningMessage: (message: string) => {
                 void vscode.window.showWarningMessage(message);
             },
-            messages: options.messages,
+            messages: options.messages ?? ProxyMessages,
         };
         super(options.logger, dependencies);
     }

@@ -64,9 +64,7 @@ export default class MainController implements vscode.Disposable {
         }
 
         // Warn about invalid proxy settings early during activation
-        new VscodeHttpClient({
-            messages: constants.Proxy,
-        }).warnOnInvalidProxySettings();
+        new VscodeHttpClient().warnOnInvalidProxySettings();
 
         await this.initializeDatabaseProjects();
         return new SqlDatabaseProjectProvider(this.projectsController);
