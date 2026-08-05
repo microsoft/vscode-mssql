@@ -49,6 +49,8 @@ export class ConnectionSharingError extends Error {
 
 export class ConnectionSharingService implements mssql.IConnectionSharingService {
     private _logger: ILogger;
+    private readonly _permissionRequests = new Map<string, Promise<boolean>>();
+
     constructor(
         private readonly _context: vscode.ExtensionContext,
         private readonly _client: SqlToolsServiceClient,
@@ -230,6 +232,26 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
     }
 
     private async requestConnectionSharingPermission(extensionId: string): Promise<boolean> {
+        const pendingRequest = this._permissionRequests.get(extensionId);
+        if (pendingRequest) {
+            return pendingRequest;
+        }
+
+        const permissionRequest = this.requestConnectionSharingPermissionCore(extensionId);
+        this._permissionRequests.set(extensionId, permissionRequest);
+
+        try {
+            return await permissionRequest;
+        } finally {
+            if (this._permissionRequests.get(extensionId) === permissionRequest) {
+                this._permissionRequests.delete(extensionId);
+            }
+        }
+    }
+
+    private async requestConnectionSharingPermissionCore(
+        extensionId: string,
+    ): Promise<boolean> {
         this._logger.info(`Requesting connection sharing permission for extension: ${extensionId}`);
 
         const currentPermission = await this.getExtensionPermission(extensionId);

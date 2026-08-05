@@ -272,6 +272,31 @@ suite("ConnectionSharingService Tests", () => {
             expect(showInformationMessageStub).to.not.have.been.called;
         });
 
+        test("should share an in-flight permission request for the same extension", async () => {
+            secretStorage.get.resolves(undefined);
+            let resolvePrompt: (value: string) => void;
+            const promptResult = new Promise<string>((resolve) => {
+                resolvePrompt = resolve;
+            });
+            showInformationMessageStub.returns(promptResult);
+
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
+                document: { uri: vscode.Uri.parse("file:///test.sql") },
+            }));
+
+            const command = registeredCommands.get(
+                "mssql.connectionSharing.getActiveEditorConnectionId",
+            );
+            const firstRequest = command!(testExtensionId);
+            const secondRequest = command!(testExtensionId);
+
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(showInformationMessageStub).to.have.been.calledOnce;
+
+            resolvePrompt!(LocalizedConstants.ConnectionSharing.Approve);
+            await Promise.all([firstRequest, secondRequest]);
+        });
+
         test("should reject denied extension without prompting", async () => {
             secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "denied" }));
 
