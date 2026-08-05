@@ -352,6 +352,18 @@ describe("HttpClient", () => {
             assert.equal(result.httpsAgent, undefined);
         });
 
+        it("applies proxyStrictSSL to an HTTPS proxy", () => {
+            proxyValue = "https://proxy.example.com:8080";
+            const client = new HttpClient(logger, {
+                getProxyConfig: () => proxyValue,
+                getProxyStrictSSL: () => false,
+            });
+
+            const result = client.setupConfigAndProxyForRequest("https://api.example.com", {});
+
+            assert.equal(result.httpsAgent.proxyOptions.rejectUnauthorized, false);
+        });
+
         it("sets up a request without a proxy", () => {
             const requestUrl = "https://api.example.com";
             const headers = { Authorization: "Bearer test-token" };
