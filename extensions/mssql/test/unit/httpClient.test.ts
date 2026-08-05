@@ -7,27 +7,41 @@ import * as chai from "chai";
 import { expect } from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
-import * as vscode from "vscode";
 import * as fs from "fs";
 import { PassThrough, Writable } from "stream";
-import axios, { AxiosResponse } from "axios";
-import * as LocalizedConstants from "../../src/constants/locConstants";
-import { HttpClient, HttpDownloadError } from "../../src/http/httpClient";
+import { HttpClient, HttpDownloadError, IHttpClientMessages } from "extension-toolkit/base";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
 
+const proxyMessages: IHttpClientMessages = {
+    missingProtocolWarning: (proxy) => `Invalid proxy protocol: ${proxy}`,
+    unparseableWarning: (proxy, errorMessage) => `Invalid proxy: ${proxy}. ${errorMessage}`,
+    unableToGetProxyAgentOptions: "Unable to read proxy agent options.",
+};
+
 suite("HttpClient tests", () => {
     let sandbox: sinon.SinonSandbox;
     let httpClient: HttpClient;
     let logger: sinon.SinonStubbedInstance<ILogger>;
+    let getProxyConfig: sinon.SinonStub;
+    let parseUriScheme: sinon.SinonStub;
+    let showWarningMessage: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
 
         logger = createStubLogger(sandbox);
-        httpClient = new HttpClient(logger);
+        getProxyConfig = sandbox.stub().returns(undefined);
+        parseUriScheme = sandbox.stub().callsFake((value: string) => new URL(value).protocol);
+        showWarningMessage = sandbox.stub();
+        httpClient = new HttpClient(logger, {
+            getProxyConfig,
+            parseUriScheme,
+            showWarningMessage,
+            messages: proxyMessages,
+        });
     });
 
     teardown(() => {
@@ -40,15 +54,17 @@ suite("HttpClient tests", () => {
             const token = "test-token";
             const responseData = { value: [{ id: 1, name: "test" }] };
 
-            const mockResponse: AxiosResponse = {
+            const mockResponse = {
                 data: responseData,
                 status: 200,
                 statusText: "OK",
                 headers: {},
-                config: {} as AxiosResponse["config"],
             };
 
-            const axiosGetStub = sandbox.stub(axios, "get").resolves(mockResponse);
+            const getStub = sandbox
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .stub(httpClient as any, "get")
+                .resolves(mockResponse);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             sandbox.stub(httpClient as any, "setupConfigAndProxyForRequest").returns({
                 headers: { Authorization: `Bearer ${token}` },
@@ -60,7 +76,7 @@ suite("HttpClient tests", () => {
             const result = await httpClient.makeGetRequest(requestUrl, token);
 
             expect(result).to.deep.equal(mockResponse);
-            expect(axiosGetStub).to.have.been.calledOnce;
+            expect(getStub).to.have.been.calledWith(requestUrl, sinon.match.any);
         });
     });
 
@@ -71,15 +87,17 @@ suite("HttpClient tests", () => {
             const payload = { name: "new item" };
             const responseData = { id: 2, name: "new item" };
 
-            const mockResponse: AxiosResponse = {
+            const mockResponse = {
                 data: responseData,
                 status: 201,
                 statusText: "Created",
                 headers: {},
-                config: {} as AxiosResponse["config"],
             };
 
-            const axiosPostStub = sandbox.stub(axios, "post").resolves(mockResponse);
+            const postStub = sandbox
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .stub(httpClient as any, "post")
+                .resolves(mockResponse);
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             sandbox.stub(httpClient as any, "setupConfigAndProxyForRequest").returns({
                 headers: { Authorization: `Bearer ${token}` },
@@ -91,7 +109,7 @@ suite("HttpClient tests", () => {
             const result = await httpClient.makePostRequest(requestUrl, token, payload);
 
             expect(result).to.deep.equal(mockResponse);
-            expect(axiosPostStub).to.have.been.calledWith(requestUrl, payload, sinon.match.any);
+            expect(postStub).to.have.been.calledWith(requestUrl, payload, sinon.match.any);
         });
     });
 
@@ -115,7 +133,8 @@ suite("HttpClient tests", () => {
             });
 
             sandbox
-                .stub(httpClient, "setupRequest")
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .stub(httpClient as any, "setupRequest")
                 .returns({ requestUrl: normalizedUrl, config: {} });
 
             sandbox
@@ -123,23 +142,23 @@ suite("HttpClient tests", () => {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .returns(tmpFileStream as any);
 
-            const mockResponse: AxiosResponse = {
+            const mockResponse = {
                 data: responseStream,
                 status: 200,
                 statusText: "OK",
                 headers,
-                config: {} as AxiosResponse["config"],
             };
-            sandbox.stub(axios, "get").resolves(mockResponse);
+            const getStub = sandbox
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .stub(httpClient as any, "get")
+                .resolves(mockResponse);
 
-            const onHeaders = sandbox.spy();
-            const onData = sandbox.spy((data: Buffer) => data.length);
+            const onProgress = sandbox.spy();
             let downloadCompleted = false;
 
             const downloadPromise = httpClient
                 .downloadFile(requestUrl, 123, {
-                    onHeaders,
-                    onData,
+                    onProgress,
                 })
                 .then((result) => {
                     downloadCompleted = true;
@@ -160,12 +179,19 @@ suite("HttpClient tests", () => {
 
             expect(result.status).to.equal(200);
             expect(result.headers).to.equal(headers);
-            expect(onHeaders).to.have.been.calledWithExactly(headers);
             expect(receivedChunkLengths).to.deep.equal([3, 2]);
-            expect(onData.args.map((args) => (args[0] as Buffer).length)).to.deep.equal([3, 2]);
-            expect(axios.get).to.have.been.calledWith(
+            expect(onProgress.args.map((args) => args[0])).to.deep.equal([
+                { downloadedBytes: 0, totalBytes: 5, percentage: 0 },
+                { downloadedBytes: 3, totalBytes: 5, percentage: 60 },
+                { downloadedBytes: 5, totalBytes: 5, percentage: 100 },
+            ]);
+            expect(getStub).to.have.been.calledWith(
                 normalizedUrl,
                 sinon.match({ responseType: "stream" }),
+            );
+            expect(fs.createWriteStream).to.have.been.calledWith(
+                "",
+                sinon.match({ fd: 123, autoClose: false }),
             );
         });
 
@@ -178,35 +204,64 @@ suite("HttpClient tests", () => {
             const destroySpy = sandbox.spy(responseStream, "destroy");
 
             sandbox
-                .stub(httpClient, "setupRequest")
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .stub(httpClient as any, "setupRequest")
                 .returns({ requestUrl: normalizedUrl, config: {} });
 
-            const mockResponse: AxiosResponse = {
+            const mockResponse = {
                 data: responseStream,
                 status: 404,
                 statusText: "Not Found",
                 headers,
-                config: {} as AxiosResponse["config"],
             };
-            sandbox.stub(axios, "get").resolves(mockResponse);
+            sandbox
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .stub(httpClient as any, "get")
+                .resolves(mockResponse);
 
-            const onHeaders = sandbox.spy();
-            const result = await httpClient.downloadFile(requestUrl, 123, { onHeaders });
+            const onProgress = sandbox.spy();
+            const result = await httpClient.downloadFile(requestUrl, 123, { onProgress });
 
             expect(result.status).to.equal(404);
             expect(result.headers).to.equal(headers);
-            expect(onHeaders).to.have.been.calledOnceWithExactly(headers);
+            expect(onProgress).to.have.been.calledWithExactly({
+                downloadedBytes: 0,
+                totalBytes: undefined,
+                percentage: undefined,
+            });
             expect(destroySpy).to.have.been.calledOnce;
+        });
+
+        test("should open and close path destinations", async () => {
+            const result = { status: 200, headers: {} };
+            const openStub = sandbox.stub(fs, "openSync").returns(123);
+            const closeStub = sandbox.stub(fs, "closeSync");
+            sandbox
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .stub(httpClient as any, "downloadToFileDescriptor")
+                .resolves(result);
+
+            expect(
+                await httpClient.downloadFile("https://example.com/file", "target.zip"),
+            ).to.equal(result);
+            expect(openStub).to.have.been.calledWith("target.zip", "w");
+            expect(closeStub).to.have.been.calledWith(123);
         });
 
         test("should wrap request errors in HttpDownloadError", async () => {
             const requestUrl = "https://download.example.com/file";
 
-            sandbox.stub(httpClient, "setupRequest").returns({ requestUrl, config: {} });
+            sandbox
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .stub(httpClient as any, "setupRequest")
+                .returns({ requestUrl, config: {} });
 
             const requestError = new Error("network error") as NodeJS.ErrnoException;
             requestError.code = "ECONNRESET";
-            sandbox.stub(axios, "get").rejects(requestError);
+            sandbox
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .stub(httpClient as any, "get")
+                .rejects(requestError);
 
             try {
                 await httpClient.downloadFile(requestUrl, 123);
@@ -223,20 +278,25 @@ suite("HttpClient tests", () => {
             const responseStream = new PassThrough();
             const tmpFileStream = new PassThrough();
 
-            sandbox.stub(httpClient, "setupRequest").returns({ requestUrl, config: {} });
+            sandbox
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .stub(httpClient as any, "setupRequest")
+                .returns({ requestUrl, config: {} });
             sandbox
                 .stub(fs, "createWriteStream")
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 .returns(tmpFileStream as any);
 
-            const mockResponse: AxiosResponse = {
+            const mockResponse = {
                 data: responseStream,
                 status: 200,
                 statusText: "OK",
                 headers: {},
-                config: {} as AxiosResponse["config"],
             };
-            sandbox.stub(axios, "get").resolves(mockResponse);
+            sandbox
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                .stub(httpClient as any, "get")
+                .resolves(mockResponse);
 
             const responseError = new Error("stream failed") as NodeJS.ErrnoException;
             responseError.code = "EPIPE";
@@ -265,19 +325,12 @@ suite("HttpClient tests", () => {
 
             httpClient["loadProxyConfig"] = sandbox.stub().returns(invalidProxyValue);
 
-            sandbox
-                .stub(vscode.Uri, "parse")
-                .withArgs(invalidProxyValue)
-                .returns({ scheme: undefined } as vscode.Uri);
-
-            const warningMessageStub = sandbox
-                .stub(vscode.window, "showWarningMessage")
-                .resolves(undefined);
+            parseUriScheme.withArgs(invalidProxyValue).returns(undefined);
 
             httpClient.warnOnInvalidProxySettings();
 
-            expect(warningMessageStub).to.have.been.calledOnceWithExactly(
-                LocalizedConstants.Proxy.missingProtocolWarning(invalidProxyValue),
+            expect(showWarningMessage).to.have.been.calledWithExactly(
+                proxyMessages.missingProtocolWarning(invalidProxyValue),
             );
         });
 
@@ -287,16 +340,12 @@ suite("HttpClient tests", () => {
             httpClient["loadProxyConfig"] = sandbox.stub().returns(invalidProxyValue);
 
             const uriError = new Error("invalid uri format");
-            sandbox.stub(vscode.Uri, "parse").withArgs(invalidProxyValue).throws(uriError);
-
-            const warningMessageStub = sandbox
-                .stub(vscode.window, "showWarningMessage")
-                .resolves(undefined);
+            parseUriScheme.withArgs(invalidProxyValue).throws(uriError);
 
             httpClient.warnOnInvalidProxySettings();
 
-            expect(warningMessageStub).to.have.been.calledOnceWithExactly(
-                LocalizedConstants.Proxy.unparseableWarning(invalidProxyValue, uriError.message),
+            expect(showWarningMessage).to.have.been.calledWithExactly(
+                proxyMessages.unparseableWarning(invalidProxyValue, uriError.message),
             );
         });
 
@@ -308,15 +357,13 @@ suite("HttpClient tests", () => {
             ];
 
             const proxyConfigStub = sandbox.stub();
-            const warningMessageSpy = sandbox.stub(vscode.window, "showWarningMessage");
-
             for (const validProxyValue of validProxyValues) {
                 proxyConfigStub.reset();
                 httpClient["loadProxyConfig"] = proxyConfigStub.returns(validProxyValue);
 
                 httpClient.warnOnInvalidProxySettings();
 
-                expect(warningMessageSpy, `Should not warn for valid proxy: ${validProxyValue}`).to
+                expect(showWarningMessage, `Should not warn for valid proxy: ${validProxyValue}`).to
                     .not.have.been.called;
             }
         });
@@ -324,18 +371,13 @@ suite("HttpClient tests", () => {
         test("Does not warn when proxy is undefined", () => {
             httpClient["loadProxyConfig"] = sandbox.stub().returns(undefined);
 
-            const warningMessageSpy = sandbox.stub(vscode.window, "showWarningMessage");
-
             httpClient.warnOnInvalidProxySettings();
 
-            expect(warningMessageSpy).to.not.have.been.called;
+            expect(showWarningMessage).to.not.have.been.called;
         });
 
         test("loadProxyConfig prefers VS Code configuration over environment variables", () => {
-            sandbox
-                .stub(vscode.workspace, "getConfiguration")
-                .withArgs("http")
-                .returns({ proxy: configProxy } as unknown as vscode.WorkspaceConfiguration);
+            getProxyConfig.returns(configProxy);
 
             sandbox.stub(process, "env").value({
                 HTTP_PROXY: envProxy,
@@ -348,11 +390,6 @@ suite("HttpClient tests", () => {
         });
 
         test("loadProxyConfig falls back to environment variables when config missing", () => {
-            sandbox
-                .stub(vscode.workspace, "getConfiguration")
-                .withArgs("http")
-                .returns({ proxy: undefined } as unknown as vscode.WorkspaceConfiguration);
-
             sandbox.stub(process, "env").value({
                 HTTP_PROXY: envProxy,
             });
@@ -409,10 +446,6 @@ suite("HttpClient tests", () => {
             const proxy = "https://proxy.example.com:8080";
 
             httpClient["loadProxyConfig"] = sandbox.stub().returns(proxy);
-            sandbox
-                .stub(vscode.workspace, "getConfiguration")
-                .withArgs("http")
-                .returns({ proxyStrictSSL: true } as unknown as vscode.WorkspaceConfiguration);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             sandbox.stub(httpClient as any, "createProxyAgent").returns({
@@ -434,10 +467,6 @@ suite("HttpClient tests", () => {
             const proxy = "http://proxy.example.com:8080";
 
             httpClient["loadProxyConfig"] = sandbox.stub().returns(proxy);
-            sandbox
-                .stub(vscode.workspace, "getConfiguration")
-                .withArgs("http")
-                .returns({ proxyStrictSSL: false } as unknown as vscode.WorkspaceConfiguration);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             sandbox.stub(httpClient as any, "createProxyAgent").returns({
@@ -449,8 +478,8 @@ suite("HttpClient tests", () => {
             const result = httpClient["setupConfigAndProxyForRequest"](requestUrl, token);
 
             expect(result.proxy).to.be.false;
-            expect(result.httpAgent).to.exist;
-            expect(result.httpsAgent).to.be.undefined;
+            expect(result.httpsAgent).to.exist;
+            expect(result.httpAgent).to.be.undefined;
         });
 
         test("should create proxy agent when proxy is found", () => {
@@ -459,10 +488,6 @@ suite("HttpClient tests", () => {
             const proxy = "http://proxy.example.com:8080";
 
             httpClient["loadProxyConfig"] = sandbox.stub().returns(proxy);
-            sandbox
-                .stub(vscode.workspace, "getConfiguration")
-                .withArgs("http")
-                .returns({ proxyStrictSSL: false } as unknown as vscode.WorkspaceConfiguration);
 
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             sandbox.stub(httpClient as any, "createProxyAgent").returns({

@@ -10,7 +10,7 @@ import * as utils from "../common/utils";
 import * as sqldbproj from "../sqldbproj";
 import extractZip = require("extract-zip");
 import * as constants from "../common/constants";
-import { HttpClient } from "../http/httpClient";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
 import { ProjectType } from "../common/enums";
 
@@ -195,10 +195,38 @@ export class BuildHelper {
         outputChannel: vscode.OutputChannel,
     ): Promise<void> {
         try {
-            const httpClient = new HttpClient();
+            const httpClient = new VscodeHttpClient();
             outputChannel.appendLine(constants.downloadingFromTo(downloadUrl, nugetPath));
-            await httpClient.download(downloadUrl, nugetPath, outputChannel);
+            let totalBytes: number | undefined;
+            let printThreshold = 0.1;
+            const result = await httpClient.downloadFile(downloadUrl, nugetPath, {
+                onProgress: (progress) => {
+                    if (progress.downloadedBytes === 0) {
+                        totalBytes = progress.totalBytes;
+                        if (totalBytes !== undefined) {
+                            outputChannel.appendLine(
+                                `${constants.downloading} ${downloadUrl} (0 / ${(totalBytes / (1024 * 1024)).toFixed(2)} MB)`,
+                            );
+                        }
+                        return;
+                    }
+
+                    if (
+                        totalBytes !== undefined &&
+                        progress.downloadedBytes / totalBytes >= printThreshold
+                    ) {
+                        outputChannel.appendLine(
+                            `${constants.downloadProgress} (${(progress.downloadedBytes / (1024 * 1024)).toFixed(2)} / ${(totalBytes / (1024 * 1024)).toFixed(2)} MB)`,
+                        );
+                        printThreshold += 0.1;
+                    }
+                },
+            });
+            if (result.status !== 200) {
+                throw new Error(`HTTP ${result.status}`);
+            }
         } catch (e) {
+            outputChannel.appendLine(`${constants.downloadError}: ${utils.getErrorMessage(e)}`);
             throw new NugetDownloadError(
                 constants.errorDownloading(downloadUrl, utils.getErrorMessage(e)),
             );
