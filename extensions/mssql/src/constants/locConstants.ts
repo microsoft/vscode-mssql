@@ -846,6 +846,16 @@ export let inMemoryDataProcessingThresholdExceeded = l10n.t(
 );
 
 export let newDeployment = l10n.t("New Deployment");
+export let noWorkspaceOpenForDeploymentScript = l10n.t(
+    "No workspace folder is open. Open a folder to add the deployment script.",
+);
+export let deploymentScriptAlreadyExists = (fileName: string) =>
+    l10n.t({
+        message: "A file named '{0}' already exists in the workspace root.",
+        args: [fileName],
+        comment: ["{0} is the deployment script file name"],
+    });
+export let overwriteDeploymentScript = l10n.t("Overwrite");
 
 export class Notebooks {
     // Status bar

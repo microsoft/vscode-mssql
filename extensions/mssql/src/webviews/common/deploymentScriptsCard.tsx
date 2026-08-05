@@ -8,7 +8,7 @@ import { Button, Card, makeStyles, tokens } from "@fluentui/react-components";
 import {
     BracesRegular,
     ChevronDownRegular,
-    ChevronUpRegular,
+    ChevronRightRegular,
     CodeFilled,
     DocumentChevronDoubleRegular,
 } from "@fluentui/react-icons";
@@ -57,6 +57,16 @@ const useStyles = makeStyles({
     scriptsCardTitle: {
         fontSize: tokens.fontSizeBase400,
         lineHeight: tokens.lineHeightBase400,
+        flexShrink: 0,
+    },
+    scriptsCardCollapsedText: {
+        minWidth: 0,
+        flexGrow: 1,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        fontSize: "13px",
+        color: tokens.colorNeutralForeground4,
     },
     scriptsCardText: {
         fontSize: "13px",
@@ -82,7 +92,7 @@ export interface DeploymentScriptsCardProps {
     /** Persists the given script content to disk (routed to the extension host). */
     onDownload: (content: string, fileName: string) => void;
     /** Adds the given script content to the current workspace. */
-    onAddToWorkspace?: (content: string, fileName: string) => void;
+    onAddToWorkspace: (content: string, fileName: string) => void;
 }
 
 /**
@@ -97,7 +107,7 @@ export const DeploymentScriptsCard: React.FC<DeploymentScriptsCardProps> = ({
     onAddToWorkspace,
 }) => {
     const classes = useStyles();
-    const [cardOpen, setCardOpen] = useState(true);
+    const [cardOpen, setCardOpen] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [initialTabId, setInitialTabId] = useState<string>(scripts[0]?.id ?? "");
 
@@ -119,7 +129,7 @@ export const DeploymentScriptsCard: React.FC<DeploymentScriptsCardProps> = ({
                             cardOpen ? (
                                 <ChevronDownRegular className={classes.scriptsChevron} />
                             ) : (
-                                <ChevronUpRegular className={classes.scriptsChevron} />
+                                <ChevronRightRegular className={classes.scriptsChevron} />
                             )
                         }
                         onClick={() => setCardOpen((prev) => !prev)}
@@ -127,6 +137,15 @@ export const DeploymentScriptsCard: React.FC<DeploymentScriptsCardProps> = ({
                     <span className={classes.scriptsCardTitle}>
                         {locConstants.deploymentScripts.downloadDeploymentScriptsTitle}
                     </span>
+                    {!cardOpen && (
+                        <span
+                            className={classes.scriptsCardCollapsedText}
+                            title={
+                                locConstants.deploymentScripts.downloadDeploymentScriptsDescription
+                            }>
+                            {locConstants.deploymentScripts.downloadDeploymentScriptsDescription}
+                        </span>
+                    )}
                 </div>
                 {cardOpen && (
                     <div className={classes.scriptsCardBody}>
@@ -153,12 +172,7 @@ export const DeploymentScriptsCard: React.FC<DeploymentScriptsCardProps> = ({
                 scripts={scripts}
                 initialTabId={initialTabId}
                 onDownload={onDownload}
-                onAddToWorkspace={
-                    onAddToWorkspace ??
-                    (() => {
-                        // No-op for now; workspace integration to be implemented.
-                    })
-                }
+                onAddToWorkspace={onAddToWorkspace}
             />
         </>
     );

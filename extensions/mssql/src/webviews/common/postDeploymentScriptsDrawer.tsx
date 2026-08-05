@@ -175,7 +175,7 @@ export const PostDeploymentScriptsDrawer: React.FC<PostDeploymentScriptsDrawerPr
                 </pre>
                 <div className={classes.footer}>
                     <Button
-                        appearance="primary"
+                        appearance="secondary"
                         className={classes.copyButton}
                         icon={copied ? <CheckmarkRegular /> : <CopyRegular />}
                         onClick={() => void handleCopy()}>
@@ -191,7 +191,7 @@ export const PostDeploymentScriptsDrawer: React.FC<PostDeploymentScriptsDrawerPr
                         {locConstants.deploymentScripts.download}
                     </Button>
                     <Button
-                        appearance="secondary"
+                        appearance="primary"
                         className={classes.actionButton}
                         icon={<FolderAddRegular />}
                         onClick={() =>

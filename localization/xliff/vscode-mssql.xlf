@@ -123,6 +123,10 @@
     <trans-unit id="++CODE++c8de997b7629be28d0a23b5051675226cd94e8dbce3b837e10491b7d60dc9903">
       <source xml:lang="en">A database with this name already exists on the server</source>
     </trans-unit>
+    <trans-unit id="++CODE++b120c5984701afdfec284eb8567363262db10fa29e8c4bd4c8ba44d673511b45">
+      <source xml:lang="en">A file named &apos;{0}&apos; already exists in the workspace root.</source>
+      <note>{0} is the deployment script file name</note>
+    </trans-unit>
     <trans-unit id="++CODE++6ab58ce9ca23e017bf594366b66b620458a5580640ddaf3aebf96f3c8fdf0977">
       <source xml:lang="en">A firewall rule is required to access this server.</source>
     </trans-unit>
@@ -5156,6 +5160,9 @@
     <trans-unit id="++CODE++751ae077912b834895870d0d5210c09ca02659375aab7843a26689a7aa50a0fc">
       <source xml:lang="en">No workspace folder is open. Open a folder to add the MCP server configuration.</source>
     </trans-unit>
+    <trans-unit id="++CODE++99a08e07827bc7f24060a74b7ffc267608800da571cb939d0b363307b4a0f7f0">
+      <source xml:lang="en">No workspace folder is open. Open a folder to add the deployment script.</source>
+    </trans-unit>
     <trans-unit id="++CODE++2e2fde2243e1e09534c9955387549ec84e351284a8ef12942f9d1cbab4a58039">
       <source xml:lang="en">No workspace folder is open. Open a folder to add the generated file.</source>
     </trans-unit>
@@ -5406,6 +5413,9 @@
     <trans-unit id="++CODE++cd184ad9e92906aa47b1a2a184c7d63d4c3642b0ee74079f2d428841ff17036c">
       <source xml:lang="en">Overall, how satisfied are you with {0}?</source>
       <note>{0} is the feature name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++b24963ea2cbc74b97321a347754137aa207b126695a95c860406098528966b55">
+      <source xml:lang="en">Overwrite</source>
     </trans-unit>
     <trans-unit id="++CODE++6e92fffc548b4ca49a6b4963939ef5c52a72dbcd88ec22bfad258e4c3e06fd58">
       <source xml:lang="en">Overwrite all existing backup sets</source>
@@ -6314,8 +6324,8 @@
     <trans-unit id="++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966">
       <source xml:lang="en">Save Connection Group</source>
     </trans-unit>
-    <trans-unit id="++CODE++51050ed792169713b7ec7293c35bf3aadc4a9aee3b98a38ac1d4c15e5710c30d">
-      <source xml:lang="en">Save Infrastructure-as-Code templates to your workspace to recreate this database later.</source>
+    <trans-unit id="++CODE++cf564a428e81bbe6843b079291c1bf098f4e7dc933decd522db75052937b9fed">
+      <source xml:lang="en">Save Infrastructure-as-Code templates to recreate this database later.</source>
     </trans-unit>
     <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
       <source xml:lang="en">Save Password</source>

@@ -239,6 +239,9 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                         onDownload={(content, fileName) =>
                             context?.downloadDeploymentScript(content, fileName)
                         }
+                        onAddToWorkspace={(content, fileName) =>
+                            context?.addDeploymentScriptToWorkspace(content, fileName)
+                        }
                     />
                 )}
             </div>

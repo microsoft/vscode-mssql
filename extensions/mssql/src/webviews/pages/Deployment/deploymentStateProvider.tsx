@@ -61,6 +61,12 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                     fileName: fileName,
                 });
             },
+            addDeploymentScriptToWorkspace: function (content: string, fileName: string): void {
+                extensionRpc.action("addDeploymentScriptToWorkspace", {
+                    content: content,
+                    fileName: fileName,
+                });
+            },
             //#endregion
             //#region Local Containers Reducers
             completeDockerStep: function (dockerStep: number): void {

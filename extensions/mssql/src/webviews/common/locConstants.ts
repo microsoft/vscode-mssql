@@ -2362,7 +2362,7 @@ export class LocConstants {
             exportInfrastructureAsCode: l10n.t("Export Infrastructure as Code"),
             downloadDeploymentScriptsTitle: l10n.t("Download deployment scripts"),
             downloadDeploymentScriptsDescription: l10n.t(
-                "Save Infrastructure-as-Code templates to your workspace to recreate this database later.",
+                "Save Infrastructure-as-Code templates to recreate this database later.",
             ),
             copy: l10n.t("Copy"),
             copied: l10n.t("Copied"),
