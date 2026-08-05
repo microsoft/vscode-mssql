@@ -2233,6 +2233,7 @@
     "Failed to resolve the refactor log for this file: {0}": "Failed to resolve the refactor log for this file: {0}",
     "Move to schema '{0}'": "Move to schema '{0}'",
     "Failed to move file to the new schema folder: {0}": "Failed to move file to the new schema folder: {0}",
+    "The move was rejected or could not be completed.": "The move was rejected or could not be completed.",
     "Failed to update the .sqlproj after moving the file: {0}": "Failed to update the .sqlproj after moving the file: {0}",
     "Close": "Close",
     "Apply": "Apply",

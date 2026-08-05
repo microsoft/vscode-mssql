@@ -447,7 +447,9 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             return false;
         }
         if (!moveApplied) {
-            void vscode.window.showErrorMessage(loc.moveFileFailed(""));
+            // `applyEdit` resolves to a bare `false` with no reason attached, so fall back to a
+            // generic explanation rather than interpolating an empty string.
+            void vscode.window.showErrorMessage(loc.moveFileFailed(loc.moveFileRejected));
             return false;
         }
         return true;

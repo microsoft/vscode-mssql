@@ -982,7 +982,7 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                     await provider.runMoveToSchema(doc, new vscode.Position(0, 14));
 
                     expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
-                        moveLoc.moveFileFailed(""),
+                        moveLoc.moveFileFailed(moveLoc.moveFileRejected),
                     );
                     expect(sqlProjectsServiceStub.moveSqlObjectScript).to.not.have.been.called;
                 });

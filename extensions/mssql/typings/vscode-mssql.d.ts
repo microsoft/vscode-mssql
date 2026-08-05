@@ -923,11 +923,14 @@ declare module "vscode-mssql" {
          * @param projectUri Absolute path of the project, including .sqlproj
          * @param path Path of the script, including .sql, relative to the .sqlproj
          * @param destinationPath Destination path of the file or folder, relative to the .sqlproj
+         * @param metadataOnly When true, only updates the .sqlproj metadata without moving the
+         * physical file on disk. Use this when the caller has already moved the file.
          */
         moveSqlObjectScript(
             projectUri: string,
             path: string,
             destinationPath: string,
+            metadataOnly?: boolean,
         ): Promise<ResultStatus>;
 
         /**

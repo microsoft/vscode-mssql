@@ -4185,6 +4185,7 @@ export class SqlMoveToSchema {
         l10n.t("Move to schema '{0}'", targetSchema);
     public static moveFileFailed = (message: string): string =>
         l10n.t("Failed to move file to the new schema folder: {0}", message);
+    public static moveFileRejected = l10n.t("The move was rejected or could not be completed.");
     public static sqlprojUpdateFailed = (message: string): string =>
         l10n.t("Failed to update the .sqlproj after moving the file: {0}", message);
 }

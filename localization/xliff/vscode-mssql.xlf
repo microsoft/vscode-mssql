@@ -7506,6 +7506,9 @@
     <trans-unit id="++CODE++ee33dcb49174e212fabe894df8373991cebe8d617d56b472934c7dcea6335b5b">
       <source xml:lang="en">The maximum length (in characters) that can be stored in this database object.</source>
     </trans-unit>
+    <trans-unit id="++CODE++497f95858a915b211f7f758c96976c859fb0e3695e61ec32971051e8b431c186">
+      <source xml:lang="en">The move was rejected or could not be completed.</source>
+    </trans-unit>
     <trans-unit id="++CODE++c368a965891e9479b44218cb42c8cddde404740e364b53367e897dcb17ef1d6b">
       <source xml:lang="en">The name of the check constraint.</source>
     </trans-unit>
