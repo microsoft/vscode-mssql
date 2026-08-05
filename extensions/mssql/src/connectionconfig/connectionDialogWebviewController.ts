@@ -714,7 +714,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             try {
                 const signInResult = await VsCodeAzureHelper.signIn(true /* forceSignInPrompt */);
 
-                state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map(
+                state.azureAccounts = (await VsCodeAzureHelper.getAccounts(false)).map(
                     (a) =>
                         ({
                             id: a.id,
@@ -1994,18 +1994,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 accountComponent.options = accountOptions;
             }
 
-            await Promise.all(
-                accountOptions.map(async (account) => {
-                    try {
-                        await this.getEntraMfaTenantOptions(account.value);
-                    } catch (err) {
-                        this.logger.error(
-                            `Error loading tenants for account '${account.value}': ${getErrorMessage(err)}`,
-                        );
-                    }
-                }),
-            );
-
             this._entraDataLoaded.resolve();
         } catch (err) {
             this.logger.error(`Error loading VS Code Entra data: ${getErrorMessage(err)}`);
@@ -2382,7 +2370,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             state.loadingAzureAccountsStatus = ApiStatus.Loading;
             this.updateState(state);
 
-            state.azureAccounts = (await VsCodeAzureHelper.getAccounts()).map((a) => {
+            state.azureAccounts = (await VsCodeAzureHelper.getAccounts(false)).map((a) => {
                 return {
                     id: a.id,
                     name: a.label,

@@ -993,6 +993,22 @@ suite("ConnectionDialogWebviewController Tests", () => {
             expect(controller.state.connectionProfile.tenantId).to.equal(mockTenants[0].tenantId);
         });
 
+        test("does not load tenants for every VS Code account in the background", async () => {
+            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+            sandbox.stub(AzureHelpers.VsCodeAzureHelper, "getAccounts").resolves([
+                mockAccounts.signedInAccount,
+                mockAccounts.notSignedInAccount,
+            ]);
+            const getTenantsForAccount = sandbox.stub(
+                AzureHelpers.VsCodeAzureHelper,
+                "getTenantsForAccount",
+            );
+
+            await controller["loadVscodeEntraDataAsync"]();
+
+            expect(getTenantsForAccount).to.not.have.been.called;
+        });
+
         suite("connect", () => {
             let mockConnectionNode: TreeNodeInfo;
             let testFormState: IConnectionDialogProfile;
