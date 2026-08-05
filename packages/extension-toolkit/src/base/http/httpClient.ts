@@ -250,7 +250,7 @@ export class HttpClient {
             validateStatus: () => true,
         };
 
-        const proxy = this.loadProxyConfig();
+        const proxy = this.loadProxyConfig(requestUrl);
 
         if (proxy) {
             this.logger?.debug(
@@ -279,14 +279,16 @@ export class HttpClient {
         return axios.request<TResponse>({ ...config, url: requestUrl });
     }
 
-    private loadProxyConfig(): string | undefined {
+    private loadProxyConfig(requestUrl?: string): string | undefined {
         let proxy = this.dependencies.getProxyConfig?.();
 
         if (!proxy) {
             this.logger?.debug(
                 "Workspace HTTP config didn't contain a proxy endpoint. Checking environment variables.",
             );
-            proxy = this.loadEnvironmentProxyValue();
+            proxy = requestUrl
+                ? this.getSystemProxyUrl(new URL(requestUrl))
+                : this.loadEnvironmentProxyValue();
         }
 
         return proxy;

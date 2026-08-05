@@ -334,6 +334,36 @@ describe("HttpClient", () => {
             assert.equal(proxy, process.env.HTTP_PROXY);
         });
 
+        it("selects the environment proxy for the request protocol", () => {
+            process.env.HTTP_PROXY = "http://http-proxy";
+            process.env.HTTPS_PROXY = "http://https-proxy";
+
+            assert.equal(
+                httpClient.loadProxyConfig("http://api.example.com"),
+                process.env.HTTP_PROXY,
+            );
+            assert.equal(
+                httpClient.loadProxyConfig("https://api.example.com"),
+                process.env.HTTPS_PROXY,
+            );
+        });
+
+        it("falls back to HTTP_PROXY for an HTTPS request", () => {
+            process.env.HTTP_PROXY = "http://http-proxy";
+
+            const proxy = httpClient.loadProxyConfig("https://api.example.com");
+
+            assert.equal(proxy, process.env.HTTP_PROXY);
+        });
+
+        it("does not use HTTPS_PROXY for an HTTP request", () => {
+            process.env.HTTPS_PROXY = "http://https-proxy";
+
+            const proxy = httpClient.loadProxyConfig("http://api.example.com");
+
+            assert.equal(proxy, undefined);
+        });
+
         it("sets up an HTTP request with a proxy", () => {
             const fakeToken = "fake-token";
             const fakeProxyUrl = new URL("http://fake-proxy.test:8080");
