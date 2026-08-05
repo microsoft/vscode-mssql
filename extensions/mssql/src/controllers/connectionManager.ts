@@ -1550,7 +1550,9 @@ export default class ConnectionManager {
             );
             initRequestCompleted = true;
             logConnectionPhase(
-                "SQL Tools Service connection request accepted",
+                initResponse
+                    ? "SQL Tools Service connection request accepted"
+                    : "SQL Tools Service connection request rejected",
                 `initResponse=${String(initResponse)}`,
             );
         } catch (error) {
