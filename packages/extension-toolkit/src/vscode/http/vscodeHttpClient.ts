@@ -5,6 +5,7 @@
 
 import * as vscode from "vscode";
 import {
+    describeProxyConfigurationIssue,
     HttpClient,
     IHttpClientLogger,
     IProxyConfiguration,
@@ -13,6 +14,7 @@ import {
     ProxyConfigurationIssue,
     resolveProxyConfiguration,
 } from "../../base";
+import { getProxyConfigurationIssueMessage } from "../localization/locConstants";
 
 /** Options for creating a VS Code-aware HTTP client. */
 export interface IVscodeHttpClientOptions {
@@ -27,9 +29,9 @@ export interface IVscodeHttpClientOptions {
  * then a direct connection. `http.proxyStrictSSL` controls certificate validation for `https:`
  * proxy connections only; the destination server's certificate is always validated.
  *
- * Invalid proxy settings surface as a `proxy-configuration` error on the failing request. Use
- * {@link getVscodeProxyConfigurationIssue} to report them during activation with a localized
- * message.
+ * Invalid proxy settings surface as a `proxy-configuration` error on the failing request. Call
+ * {@link VscodeHttpClient.warnOnInvalidProxySettings} during activation to report them with a
+ * localized, credential-safe message.
  */
 export class VscodeHttpClient extends HttpClient {
     /**
@@ -42,6 +44,19 @@ export class VscodeHttpClient extends HttpClient {
             logger: options.logger,
             proxyResolver: createVscodeProxyResolver(),
         });
+    }
+
+    /**
+     * Surfaces a localized, credential-safe warning when `http.proxy` cannot be used.
+     */
+    public warnOnInvalidProxySettings(): void {
+        const issue = getVscodeProxyConfigurationIssue();
+        if (!issue) {
+            return;
+        }
+
+        void vscode.window.showWarningMessage(getProxyConfigurationIssueMessage(issue));
+        this.logger?.warn(describeProxyConfigurationIssue(issue));
     }
 }
 
@@ -62,8 +77,7 @@ export function createVscodeProxyResolver(): IProxyResolver {
  * Validates VS Code's `http.proxy` setting using the same parser the client uses at request time.
  *
  * @returns The problem with the configured proxy, or `undefined` when the setting is empty or
- * valid. Callers own presenting a localized warning; the raw setting is intentionally not
- * returned because it may embed credentials.
+ * valid. The raw setting is intentionally not returned because it may embed credentials.
  */
 export function getVscodeProxyConfigurationIssue(): ProxyConfigurationIssue | undefined {
     const configured = getVscodeProxySetting();

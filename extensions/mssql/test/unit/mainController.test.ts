@@ -12,6 +12,7 @@ import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { stubTelemetry, stubExtensionContext, stubMessageBoxes } from "./utils";
 import * as Constants from "../../src/constants/constants";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
@@ -372,30 +373,17 @@ suite("MainController Tests", function () {
     });
 
     test("Proxy settings are checked on initialization", async () => {
-        const httpConfiguration = vscode.workspace.getConfiguration("http");
-        const originalProxy = httpConfiguration.inspect<string>("proxy")?.globalValue;
-        messageBoxes.showWarningMessage.resolves();
+        const httpHelperWarnSpy = sandbox.spy(
+            VscodeHttpClient.prototype,
+            "warnOnInvalidProxySettings",
+        );
 
-        try {
-            await httpConfiguration.update(
-                "proxy",
-                "localhost:8080",
-                vscode.ConfigurationTarget.Global,
-            );
+        new MainController(context, connectionManager);
 
-            new MainController(context, connectionManager);
-
-            expect(
-                messageBoxes.showWarningMessage.calledOnce,
-                "Expected a warning to be shown for a proxy setting without a protocol",
-            ).to.be.true;
-        } finally {
-            await httpConfiguration.update(
-                "proxy",
-                originalProxy,
-                vscode.ConfigurationTarget.Global,
-            );
-        }
+        expect(
+            httpHelperWarnSpy.calledOnce,
+            "Expected warnOnInvalidProxySettings to be called once during initialization",
+        ).to.be.true;
     });
 
     suite("onNewQueryWithConnection Tests", () => {

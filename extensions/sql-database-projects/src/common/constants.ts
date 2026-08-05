@@ -861,22 +861,6 @@ export const downloading = l10n.t("Downloading");
 
 //#endregion
 
-//#region proxy
-export const Proxy = {
-    missingProtocolWarning: l10n.t(
-        "Proxy settings found, but without a protocol (e.g. http://). You may encounter connection issues while using the SQL Database Projects extension.",
-    ),
-    unsupportedProtocolWarning: (protocol: string) =>
-        l10n.t(
-            "Proxy settings found, but the protocol '{0}' is not supported; only http and https proxies can be used. You may encounter connection issues while using the SQL Database Projects extension.",
-            protocol,
-        ),
-    unparseableWarning: l10n.t(
-        "Proxy settings found, but the URL could not be parsed. You may encounter connection issues while using the SQL Database Projects extension.",
-    ),
-};
-//#endregion
-
 //#region buildHelper
 export function nugetDownloadFailedHelp(buildDirPath: string): string {
     return l10n.t(

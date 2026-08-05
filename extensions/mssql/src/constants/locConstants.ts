@@ -3691,24 +3691,6 @@ export class Profiler {
     );
 }
 
-export class Proxy {
-    public static missingProtocolWarning = l10n.t(
-        "Proxy settings found, but without a protocol (e.g. http://). You may encounter connection issues while using the MSSQL extension.",
-    );
-
-    public static unsupportedProtocolWarning = (protocol: string) =>
-        l10n.t({
-            message:
-                "Proxy settings found, but the protocol '{0}' is not supported; only http and https proxies can be used. You may encounter connection issues while using the MSSQL extension.",
-            args: [protocol],
-            comment: ["{0} is the proxy protocol"],
-        });
-
-    public static unparseableWarning = l10n.t(
-        "Proxy settings found, but the URL could not be parsed. You may encounter connection issues while using the MSSQL extension.",
-    );
-}
-
 export class BackupDatabase {
     public static backupDatabaseTitle = (databaseName: string) =>
         l10n.t({

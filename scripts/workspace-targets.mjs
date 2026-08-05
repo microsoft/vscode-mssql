@@ -5,7 +5,7 @@ export const workspaceTargets = [
         aliases: ["extension-toolkit", "toolkit"],
         packageName: "extension-toolkit",
         directory: "packages/extension-toolkit",
-        scripts: ["build", "watch", "lint"],
+        scripts: ["build", "watch", "test", "lint"],
     },
     {
         target: "mssql",

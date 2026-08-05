@@ -2000,12 +2000,6 @@
     "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.": "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.",
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
-    "Proxy settings found, but without a protocol (e.g. http://). You may encounter connection issues while using the MSSQL extension.": "Proxy settings found, but without a protocol (e.g. http://). You may encounter connection issues while using the MSSQL extension.",
-    "Proxy settings found, but the protocol '{0}' is not supported; only http and https proxies can be used. You may encounter connection issues while using the MSSQL extension./{0} is the proxy protocol": {
-        "message": "Proxy settings found, but the protocol '{0}' is not supported; only http and https proxies can be used. You may encounter connection issues while using the MSSQL extension.",
-        "comment": ["{0} is the proxy protocol"]
-    },
-    "Proxy settings found, but the URL could not be parsed. You may encounter connection issues while using the MSSQL extension.": "Proxy settings found, but the URL could not be parsed. You may encounter connection issues while using the MSSQL extension.",
     "Backup Database - {0}/{0} is the database name": {
         "message": "Backup Database - {0}",
         "comment": ["{0} is the database name"]

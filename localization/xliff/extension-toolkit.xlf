@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file original="bundle" source-language="en" datatype="plaintext"><body>
+    <trans-unit id="++CODE++03e86b8a93bfc9f9e9b1bc32c0e70d0a56b87c549492271ecd319a5e52b24167">
+      <source xml:lang="en">Proxy settings found, but the URL could not be parsed. You may encounter connection issues.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++cec15815adc6012dbd6fe925172b7afff996189d69fdeb8463b5dec622c54822">
+      <source xml:lang="en">Proxy settings found, but the protocol &apos;{0}&apos; is not supported; only http and https proxies can be used. You may encounter connection issues.</source>
+      <note>{0} is the proxy protocol</note>
+    </trans-unit>
+    <trans-unit id="++CODE++f09165920d03e7ac6c5b4489c753f0c80dfe0416041d7faf73c18f863c463f0c">
+      <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://). You may encounter connection issues.</source>
+    </trans-unit>
+  </body></file>
+</xliff>

@@ -1,0 +1,8 @@
+{
+    "Proxy settings found, but without a protocol (e.g. http://). You may encounter connection issues.": "Proxy settings found, but without a protocol (e.g. http://). You may encounter connection issues.",
+    "Proxy settings found, but the protocol '{0}' is not supported; only http and https proxies can be used. You may encounter connection issues./{0} is the proxy protocol": {
+        "message": "Proxy settings found, but the protocol '{0}' is not supported; only http and https proxies can be used. You may encounter connection issues.",
+        "comment": ["{0} is the proxy protocol"]
+    },
+    "Proxy settings found, but the URL could not be parsed. You may encounter connection issues.": "Proxy settings found, but the URL could not be parsed. You may encounter connection issues."
+}

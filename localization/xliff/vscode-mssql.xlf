@@ -5680,16 +5680,6 @@
     <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
       <source xml:lang="en">Provisioning</source>
     </trans-unit>
-    <trans-unit id="++CODE++6c234905868c32464aa7fa50e9a3265f2dacdd759787095ed8fbf9cd473c88a3">
-      <source xml:lang="en">Proxy settings found, but the URL could not be parsed. You may encounter connection issues while using the MSSQL extension.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++986e863552ddafe231850afb24cc22510e7f10d07061b19fbe3357b6878d35b1">
-      <source xml:lang="en">Proxy settings found, but the protocol &apos;{0}&apos; is not supported; only http and https proxies can be used. You may encounter connection issues while using the MSSQL extension.</source>
-      <note>{0} is the proxy protocol</note>
-    </trans-unit>
-    <trans-unit id="++CODE++845e24bfa13cefa0a69b021f1469cf5334cc647be7744adc71f11734258a1690">
-      <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://). You may encounter connection issues while using the MSSQL extension.</source>
-    </trans-unit>
     <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
       <source xml:lang="en">Public</source>
     </trans-unit>
