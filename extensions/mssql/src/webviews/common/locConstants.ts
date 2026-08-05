@@ -2532,9 +2532,9 @@ export class LocConstants {
         };
     }
 
-    public get addYourSchema() {
+    public get connectToDatabase() {
         return {
-            title: l10n.t("Add your schema"),
+            title: l10n.t("Connect to Database"),
             subtitle: l10n.t(
                 "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.",
             ),
@@ -2550,8 +2550,8 @@ export class LocConstants {
                     args: [toolName],
                     comment: ["{0} is the name of a database migration tool"],
                 }),
-            collapseCard: l10n.t("Collapse Add your schema"),
-            expandCard: l10n.t("Expand Add your schema"),
+            collapseCard: l10n.t("Collapse Connect to Database"),
+            expandCard: l10n.t("Expand Connect to Database"),
         };
     }
 

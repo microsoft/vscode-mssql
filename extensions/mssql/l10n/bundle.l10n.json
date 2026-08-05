@@ -3676,7 +3676,6 @@
     "Seed sample data or import an existing schema": "Seed sample data or import an existing schema",
     "Monitor usage and manage your free tier limits": "Monitor usage and manage your free tier limits",
     "Browse Azure SQL Database tutorials and docs": "Browse Azure SQL Database tutorials and docs",
-    "Add your schema": "Add your schema",
     "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.": "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.",
     "Connection string": "Connection string",
     "Run your migrations": "Run your migrations",
@@ -3687,8 +3686,8 @@
         "message": "{0} docs",
         "comment": ["{0} is the name of a database migration tool"]
     },
-    "Collapse Add your schema": "Collapse Add your schema",
-    "Expand Add your schema": "Expand Add your schema",
+    "Collapse Connect to Database": "Collapse Connect to Database",
+    "Expand Connect to Database": "Expand Connect to Database",
     "Password must be changed to continue logging into '{0}'/{0} is the name of the server": {
         "message": "Password must be changed to continue logging into '{0}'",
         "comment": ["{0} is the name of the server"]

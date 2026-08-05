@@ -860,7 +860,7 @@ export async function connectToAzureSqlDatabase(
         state.connectionLoadState = ApiStatus.Loaded;
 
         // Capture the connection string (without the password) so the webview can
-        // surface it in the "Add your schema" card.
+        // surface it in the "Connect to Database" card.
         try {
             state.connectionString = await connManager.getConnectionString(
                 connManager.createConnectionDetails(connectionProfile),

@@ -259,9 +259,6 @@
     <trans-unit id="++CODE++dcc475b31b6d6d1bc68eede1badaf4b6af93c3683fe3a25ae08c8544b572e7fa">
       <source xml:lang="en">Add to workspace</source>
     </trans-unit>
-    <trans-unit id="++CODE++c5cfce3eb943523271b545b3dce2b96360ce33303862a3482fa15a407bab6169">
-      <source xml:lang="en">Add your schema</source>
-    </trans-unit>
     <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
       <source xml:lang="en">Added</source>
     </trans-unit>
@@ -1236,11 +1233,11 @@
     <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
       <source xml:lang="en">Collapse</source>
     </trans-unit>
-    <trans-unit id="++CODE++4e731cfd02081837f2325b653fb8a9ecb74cc7693858bd992bc69fa73d3d24b6">
-      <source xml:lang="en">Collapse Add your schema</source>
-    </trans-unit>
     <trans-unit id="++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4">
       <source xml:lang="en">Collapse All</source>
+    </trans-unit>
+    <trans-unit id="++CODE++ae34d5a6424e68736fc3b2450c3ca097bc7197da8fd3229e383fff8a5a4af425">
+      <source xml:lang="en">Collapse Connect to Database</source>
     </trans-unit>
     <trans-unit id="++CODE++55fbcb99ed7e8209673d373c82ce28bcbb2600ed756fae1b62f505adf64314bc">
       <source xml:lang="en">Collapse Subscription Explorer</source>
@@ -2907,11 +2904,11 @@
     <trans-unit id="++CODE++07548c2c6511d4d1780564de8a237a1966cf9c99a97cf5c8a185e6c2aeacff09">
       <source xml:lang="en">Expand</source>
     </trans-unit>
-    <trans-unit id="++CODE++e6663036b97c063a1dec29db31b61d9344db41186eb460fd5504d9ba8837eb0c">
-      <source xml:lang="en">Expand Add your schema</source>
-    </trans-unit>
     <trans-unit id="++CODE++9f5b023a413a7d0771cc3fb51b103dc0aaaafe8f7b7c88c7258d43e3bc5b243d">
       <source xml:lang="en">Expand All</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c9dc64661a6ab3a67d5b541e0c871443b068fc5e228176a3394054c2f83030d6">
+      <source xml:lang="en">Expand Connect to Database</source>
     </trans-unit>
     <trans-unit id="++CODE++acd7d6334485ffa9ac31c98945eaf0360abb86e3c80cbb460cb7e0b0e280466f">
       <source xml:lang="en">Expand Subscription Explorer</source>

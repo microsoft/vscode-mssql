@@ -26,12 +26,6 @@ import { locConstants } from "./locConstants";
 /** Ordered list of supported migration tools and the command each one runs. */
 const MIGRATION_TOOLS: { id: string; label: string; command: string; docsUrl: string }[] = [
     {
-        id: "efCore",
-        label: "EF Core",
-        command: "dotnet ef database update",
-        docsUrl: "https://learn.microsoft.com/ef/core/managing-schemas/migrations/",
-    },
-    {
         id: "prisma",
         label: "Prisma",
         command: "npx prisma migrate deploy",
@@ -60,6 +54,12 @@ const MIGRATION_TOOLS: { id: string; label: string; command: string; docsUrl: st
         label: "SQLAlchemy",
         command: "alembic upgrade head",
         docsUrl: "https://alembic.sqlalchemy.org/latest/tutorial.html",
+    },
+    {
+        id: "efCore",
+        label: "EF Core",
+        command: "dotnet ef database update",
+        docsUrl: "https://learn.microsoft.com/ef/core/managing-schemas/migrations/",
     },
     {
         id: "flyway",
@@ -111,6 +111,16 @@ const useStyles = makeStyles({
     title: {
         fontSize: tokens.fontSizeBase400,
         lineHeight: tokens.lineHeightBase400,
+        flexShrink: 0,
+    },
+    collapsedSubtitle: {
+        minWidth: 0,
+        flexGrow: 1,
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        fontSize: "13px",
+        color: tokens.colorNeutralForeground4,
     },
     body: {
         display: "flex",
@@ -182,7 +192,7 @@ const useStyles = makeStyles({
     },
 });
 
-export interface AddYourSchemaCardProps {
+export interface ConnectToDatabaseCardProps {
     /** Connection string to display in the card. */
     connectionString: string;
     /** Optional detected project framework (e.g. "Node.js"); the tag is hidden when unset. */
@@ -190,17 +200,17 @@ export interface AddYourSchemaCardProps {
     className?: string;
 }
 
-export const AddYourSchemaCard: React.FC<AddYourSchemaCardProps> = ({
+export const ConnectToDatabaseCard: React.FC<ConnectToDatabaseCardProps> = ({
     connectionString,
     detectedFramework,
     className,
 }) => {
     const classes = useStyles();
-    const loc = locConstants.addYourSchema;
+    const loc = locConstants.connectToDatabase;
     const [selectedToolId, setSelectedToolId] = useState<string>(MIGRATION_TOOLS[0].id);
     const [connectionCopied, setConnectionCopied] = useState(false);
     const [commandCopied, setCommandCopied] = useState(false);
-    const [isOpen, setIsOpen] = useState(true);
+    const [isOpen, setIsOpen] = useState(false);
 
     const selectedTool =
         MIGRATION_TOOLS.find((tool) => tool.id === selectedToolId) ?? MIGRATION_TOOLS[0];
@@ -230,6 +240,11 @@ export const AddYourSchemaCard: React.FC<AddYourSchemaCardProps> = ({
                     onClick={() => setIsOpen((open) => !open)}
                 />
                 <span className={classes.title}>{loc.title}</span>
+                {!isOpen && (
+                    <span className={classes.collapsedSubtitle} title={loc.subtitle}>
+                        {loc.subtitle}
+                    </span>
+                )}
             </div>
 
             {isOpen && (
