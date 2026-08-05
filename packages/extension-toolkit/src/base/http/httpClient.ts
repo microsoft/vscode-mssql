@@ -340,19 +340,19 @@ export class HttpClient {
             throw new Error(ProxyMessages.unableToGetProxyAgentOptions);
         }
 
+        const isHttpsProxy = agentOptions.protocol === "https:";
         const tunnelOptions: tunnel.HttpsOverHttpsOptions = {
             proxy: {
                 host: agentOptions.host,
                 port: Number(agentOptions.port),
                 ...(agentOptions.auth ? { proxyAuth: agentOptions.auth } : {}),
-                ...(proxy.startsWith("https")
+                ...(isHttpsProxy
                     ? { rejectUnauthorized: agentOptions.rejectUnauthorized }
                     : {}),
             },
         };
 
         const isHttpsRequest = requestUrl.startsWith("https");
-        const isHttpsProxy = proxy.startsWith("https");
         return {
             agent: this.createTunnelingAgent(isHttpsRequest, isHttpsProxy, tunnelOptions),
         };
@@ -400,6 +400,7 @@ export class HttpClient {
                 : undefined;
 
         return {
+            protocol: proxyEndpoint.protocol,
             host: proxyEndpoint.hostname,
             port: proxyEndpoint.port
                 ? Number(proxyEndpoint.port)
@@ -492,6 +493,7 @@ interface ProxyAgentOptions {
     auth: string | undefined;
     host?: string | null;
     port?: string | number | null;
+    protocol: string;
     rejectUnauthorized: boolean;
 }
 
