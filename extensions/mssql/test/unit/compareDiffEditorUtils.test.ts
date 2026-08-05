@@ -300,10 +300,10 @@ suite("CompareDiffEditor utils — constraint filtering and script aggregation",
             expect(aggregated).to.contain(parentScript);
             expect(aggregated).to.contain(pkScript);
             expect(aggregated).to.contain(uqScript);
-            // Parent must precede its children so the executed script creates the table
-            // before adding constraints to it.
+            // Both constraints must come after the parent CREATE so the executed script creates the
+            // table before adding constraints to it. (Sibling order among constraints is irrelevant.)
             expect(aggregated.indexOf(parentScript)).to.be.lessThan(aggregated.indexOf(pkScript));
-            expect(aggregated.indexOf(pkScript)).to.be.lessThan(aggregated.indexOf(uqScript));
+            expect(aggregated.indexOf(parentScript)).to.be.lessThan(aggregated.indexOf(uqScript));
         });
 
         test("uses the target script when getSourceScript is false", () => {
