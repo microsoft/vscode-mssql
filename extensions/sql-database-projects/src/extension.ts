@@ -5,7 +5,11 @@
 
 import * as vscode from "vscode";
 import { InstantiationServiceBuilder } from "extension-toolkit/base";
-import { ExtensionContextService, IExtensionContextService } from "extension-toolkit/vscode";
+import {
+    ExtensionContextService,
+    IExtensionContextService,
+    initializeExtensionToolkit,
+} from "extension-toolkit/vscode";
 import * as constants from "./common/constants";
 import MainController from "./controllers/mainController";
 import { TelemetryReporter } from "./common/telemetry";
@@ -15,6 +19,8 @@ import { SqlDatabaseProjectTaskProvider } from "./tasks/sqlDatabaseProjectTaskPr
 let activation: SqlDatabaseProjectsActivation | undefined;
 
 export function activate(context: vscode.ExtensionContext): Promise<SqlDatabaseProjectProvider> {
+    initializeExtensionToolkit();
+
     const builder = new InstantiationServiceBuilder();
 
     builder.define(IExtensionContextService, new ExtensionContextService(context));

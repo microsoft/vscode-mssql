@@ -15,3 +15,19 @@ The package has three public entry points with a one-way dependency direction:
   test-only behavior is not included in the shipped runtime.
 
 Do not import from the package root. Use an explicit layer import instead.
+
+## Localization
+
+Initialize the toolkit once during extension activation. It uses VS Code's display language and
+falls back to English when that language is not available.
+
+```ts
+import { initializeExtensionToolkit } from "extension-toolkit/vscode";
+
+export function activate() {
+    initializeExtensionToolkit();
+}
+```
+
+Toolkit-owned strings and translations are shipped in the package's `l10n` directory. Run
+`npm run localization` to extract source strings into the repository localization pipeline.
