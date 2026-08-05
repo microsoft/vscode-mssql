@@ -3078,6 +3078,9 @@
       <note>{0} is the error code
 {1} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++e341345b2922855a5f87cfce904e4e54512090c13bba238e46fec614f1ba5cfc">
+      <source xml:lang="en">Fabric long-running operation response did not include a location header.</source>
+    </trans-unit>
     <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
       <source xml:lang="en">Failed</source>
     </trans-unit>

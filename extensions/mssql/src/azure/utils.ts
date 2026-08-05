@@ -10,7 +10,7 @@ import { PagedAsyncIterableIterator } from "@azure/core-paging";
 import * as path from "path";
 import * as os from "os";
 import * as vscode from "vscode";
-import { VscodeHttpClient } from "extension-toolkit/vscode";
+import { VscodeHttpClient, withBearerToken } from "extension-toolkit/vscode";
 import { AzureAuthType, IToken, UserGroup } from "../models/contracts/azure";
 import * as Constants from "./constants";
 import { TokenCredentialWrapper } from "./credentialWrapper";
@@ -131,14 +131,15 @@ export async function fetchUserGroups(userId: string): Promise<UserGroup[]> {
         throw new Error("No access token found");
     }
 
+    const options = withBearerToken(token);
     let groups: UserGroup[] = [];
     let nextUrl: string | undefined = uri.toString();
     while (nextUrl) {
         try {
-            const response = await httpHelper.makeGetRequest<{
+            const response = await httpHelper.get<{
                 value: UserGroup[];
                 "@odata.nextLink"?: string;
-            }>(nextUrl, token);
+            }>(nextUrl, options);
 
             const result = response.data.value.map(
                 (group) => ({ displayName: group.displayName, id: group.id }) as UserGroup,

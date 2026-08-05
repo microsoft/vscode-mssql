@@ -3,4 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+export * from "./httpAuthentication";
 export * from "./httpClient";
+export * from "./httpHeaders";
+export * from "./httpTypes";

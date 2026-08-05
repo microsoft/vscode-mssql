@@ -1407,6 +1407,10 @@ export class Fabric {
         });
     };
 
+    public static fabricLongRunningApiMissingLocation = l10n.t(
+        "Fabric long-running operation response did not include a location header.",
+    );
+
     public static fabricAccount = l10n.t("Fabric Account");
     public static fabricAccountIsRequired = l10n.t("Fabric Account is required");
     public static workspace = l10n.t("Workspace");
