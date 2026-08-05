@@ -13,11 +13,10 @@ import { AccountService } from "../../src/azure/accountService";
 import {
     HandleFirewallRuleRequest,
     IHandleFirewallRuleResponse,
-    CreateFirewallRuleRequest,
-    ICreateFirewallRuleResponse,
-    ICreateFirewallRuleParams,
 } from "../../src/models/contracts/firewall/firewallRequest";
 import * as Constants from "../../src/constants/constants";
+import { VsCodeAzureHelper } from "../../src/connectionconfig/azureHelpers";
+import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
 
 chai.use(sinonChai);
 
@@ -60,28 +59,76 @@ suite("Firewall Service Tests", () => {
         );
     });
 
-    test("Create Firewall Rule Test", async () => {
-        const mockResponse: ICreateFirewallRuleResponse = {
-            result: true,
-            errorMessage: "",
+    test("creates firewall rule using the matching Azure subscription", async () => {
+        const subscription = {
+            subscriptionId: "subscription-id",
+            tenantId: "tenant-id",
+        } as AzureSubscription;
+        const firewallRuleSpec = {
+            name: "Test Rule",
+            azureAccountInfo: {
+                accountId: "account-id",
+                tenantId: "tenant-id",
+            },
+            ip: {
+                startIp: "1.2.3.1",
+                endIp: "1.2.3.255",
+            },
         };
-        client.sendResourceRequest.resolves(mockResponse);
+        sandbox.stub(VsCodeAzureHelper, "findSqlResource").resolves({
+            accountId: "account-id",
+            subscriptionId: "subscription-id",
+            resourceGroup: "resource-group",
+        });
+        sandbox.stub(VsCodeAzureHelper, "getSubscriptionsForAccount").resolves([subscription]);
+        const createFirewallRule = sandbox.stub(VsCodeAzureHelper, "createFirewallRule").resolves();
 
-        const request = {
-            account: { properties: { tenants: [] } },
-            firewallRuleName: "Test Rule",
-            startIpAddress: "1.2.3.1",
-            endIpAddress: "1.2.3.255",
-            serverName: "test_server",
-            securityTokenMappings: {},
-        } as ICreateFirewallRuleParams;
+        await firewallService.createFirewallRuleWithVscodeAccount(firewallRuleSpec, "test-server");
 
-        const result = await firewallService.createFirewallRule(request);
-
-        expect(result).to.deep.equal(mockResponse);
-        expect(client.sendResourceRequest).to.have.been.calledOnceWithExactly(
-            CreateFirewallRuleRequest.type,
-            request,
+        expect(VsCodeAzureHelper.findSqlResource).to.have.been.calledWithExactly(
+            "account-id",
+            "test-server",
         );
+        expect(VsCodeAzureHelper.getSubscriptionsForAccount).to.have.been.calledWithExactly(
+            "account-id",
+        );
+        expect(createFirewallRule).to.have.been.calledWithExactly(
+            subscription,
+            "resource-group",
+            "test-server",
+            "Test Rule",
+            "1.2.3.1",
+            "1.2.3.255",
+        );
+    });
+
+    test("reports an error when the Azure SQL server cannot be located", async () => {
+        sandbox.stub(VsCodeAzureHelper, "findSqlResource").resolves("UnableToCheck");
+        const getSubscriptions = sandbox.stub(VsCodeAzureHelper, "getSubscriptionsForAccount");
+        const createFirewallRule = sandbox.stub(VsCodeAzureHelper, "createFirewallRule");
+
+        const firewallRuleSpec = {
+            name: "Test Rule",
+            azureAccountInfo: {
+                accountId: "account-id",
+                tenantId: "tenant-id",
+            },
+            ip: "1.2.3.4",
+        };
+
+        try {
+            await firewallService.createFirewallRuleWithVscodeAccount(
+                firewallRuleSpec,
+                "missing-server",
+            );
+            expect.fail("Expected firewall rule creation to throw");
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+            expect(error.message).to.contain("Unable to locate Azure SQL server 'missing-server'");
+        }
+        expect(getSubscriptions).not.to.have.been.called;
+        expect(createFirewallRule).not.to.have.been.called;
     });
 });

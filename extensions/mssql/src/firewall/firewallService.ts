@@ -4,33 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
-    CreateFirewallRuleRequest,
     HandleFirewallRuleRequest,
     IHandleFirewallRuleParams,
     IHandleFirewallRuleResponse,
-    ICreateFirewallRuleResponse,
-    ICreateFirewallRuleParams,
 } from "../models/contracts/firewall/firewallRequest";
 import * as Constants from "../constants/constants";
 import { AccountService } from "../azure/accountService";
 import { FirewallRuleSpec } from "../sharedInterfaces/firewallRule";
-import { constructAzureAccountForTenant } from "../connectionconfig/azureHelpers";
+import { VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getErrorMessage } from "../utils/utils";
 import { Azure as LocAzure } from "../constants/locConstants";
-import { IAccount } from "../models/contracts/azure";
 
 export class FirewallService {
     constructor(private accountService: AccountService) {}
-
-    public async createFirewallRule(
-        params: ICreateFirewallRuleParams,
-    ): Promise<ICreateFirewallRuleResponse> {
-        let result = await this.accountService.client.sendResourceRequest(
-            CreateFirewallRuleRequest.type,
-            params,
-        );
-        return result;
-    }
 
     public async handleFirewallRule(
         errorCode: number,
@@ -57,36 +43,32 @@ export class FirewallService {
                 ? [firewallRuleSpec.ip, firewallRuleSpec.ip]
                 : [firewallRuleSpec.ip.startIp, firewallRuleSpec.ip.endIp];
 
-        let account: IAccount, tokenMappings: {};
-
         try {
-            ({ account, tokenMappings } = await constructAzureAccountForTenant(
-                firewallRuleSpec.azureAccountInfo,
-            ));
-        } catch (err) {
-            const error = new Error(
-                LocAzure.errorCreatingFirewallRule(
-                    `"${firewallRuleSpec.name}" (${startIp} - ${endIp})`,
-                    getErrorMessage(err),
-                ),
-            );
-            error.name = "constructAzureAccountForTenant";
-            throw error;
-        }
+            const { accountId, tenantId } = firewallRuleSpec.azureAccountInfo;
+            const resource = await VsCodeAzureHelper.findSqlResource(accountId, serverName);
 
-        try {
-            const result = await this.createFirewallRule({
-                account: account,
-                firewallRuleName: firewallRuleSpec.name,
-                startIpAddress: startIp,
-                endIpAddress: endIp,
-                serverName: serverName,
-                securityTokenMappings: tokenMappings,
-            });
-
-            if (!result.result) {
-                throw result.errorMessage;
+            if (resource === "UnableToCheck") {
+                throw new Error(LocAzure.unableToLocateSqlServer(serverName));
             }
+
+            const subscriptions = await VsCodeAzureHelper.getSubscriptionsForAccount(accountId);
+            const subscription = subscriptions.find(
+                (sub) =>
+                    sub.subscriptionId === resource.subscriptionId && sub.tenantId === tenantId,
+            );
+
+            if (!subscription) {
+                throw new Error(LocAzure.errorLoadingAzureAccountInfoForTenantId(tenantId));
+            }
+
+            await VsCodeAzureHelper.createFirewallRule(
+                subscription,
+                resource.resourceGroup,
+                serverName,
+                firewallRuleSpec.name,
+                startIp,
+                endIp,
+            );
         } catch (err) {
             const error = new Error(
                 LocAzure.errorCreatingFirewallRule(
