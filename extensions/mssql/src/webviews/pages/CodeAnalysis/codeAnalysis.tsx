@@ -62,6 +62,15 @@ const useStyles = makeStyles({
         overflow: "auto",
     },
 
+    // Keeps the bar at its natural height inside the flex column; without this it is
+    // shrunk below its content and long warnings overlap the controls beneath it.
+    // `pre-line` is inherited by the bar's text, so warnings joined with newlines by
+    // the service stay on separate lines instead of running together.
+    messageContainer: {
+        flexShrink: 0,
+        whiteSpace: "pre-line",
+    },
+
     // --- Table ---
     table: {
         width: "100%",
@@ -144,7 +153,6 @@ const useStyles = makeStyles({
         alignItems: "center",
         flexShrink: 0,
     },
-
     // --- Footer ---
     footer: {
         display: "flex",
@@ -355,11 +363,13 @@ export const CodeAnalysisDialog = () => {
 
             {/* Error message bar */}
             {message && (
-                <DialogMessage
-                    message={message}
-                    onMessageButtonClicked={() => {}}
-                    onCloseMessage={() => context.closeMessage()}
-                />
+                <div className={styles.messageContainer}>
+                    <DialogMessage
+                        message={message}
+                        onMessageButtonClicked={() => {}}
+                        onCloseMessage={() => context.closeMessage()}
+                    />
+                </div>
             )}
 
             {/* Enable Code Analysis on Build */}
