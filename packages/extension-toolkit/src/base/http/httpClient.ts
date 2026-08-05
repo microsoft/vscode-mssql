@@ -498,6 +498,17 @@ interface ProxyAgentOptions {
     rejectUnauthorized: boolean;
 }
 
+/**
+ * Redacts credentials and query or fragment values from proxy URL-like strings.
+ *
+ * Examples:
+ * - `http://user:password@proxy.example.com:8080` becomes
+ *   `http://<redacted>@proxy.example.com:8080`.
+ * - `http://proxy.example.com:8080?token=secret#fragment` becomes
+ *   `http://proxy.example.com:8080<redacted>`.
+ * - `proxy.example.com:8080` remains usable as a protocol-less proxy value while
+ *   still redacting any credentials or query and fragment values.
+ */
 function redactProxySecrets(proxy: string): string {
     const schemeSeparatorIndex = proxy.indexOf("://");
     const authorityStart = schemeSeparatorIndex >= 0 ? schemeSeparatorIndex + 3 : 0;
