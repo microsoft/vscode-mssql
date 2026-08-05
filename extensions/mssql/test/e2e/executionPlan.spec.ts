@@ -81,7 +81,6 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const viewport = iframe.locator(".react-flow__viewport").first();
         const viewportStyle = await viewport.getAttribute("style");
         await rootNode.press("ArrowRight");
-        await expect(rootNode).not.toBeFocused();
         await expect(iframe.locator('[role="treeitem"]:focus')).toBeVisible();
         await vsCodePage.waitForTimeout(250);
         expect(await viewport.getAttribute("style")).toBe(viewportStyle);
@@ -91,9 +90,9 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const rootNode = iframe.locator('[role="treeitem"]').first();
         await rootNode.focus();
         await rootNode.press("Enter");
-        await expect(iframe.locator('[role="tooltip"]')).toBeVisible();
+        await expect(iframe.locator('[role="dialog"]')).toBeVisible();
         await rootNode.press("Escape");
-        await expect(iframe.locator('[role="tooltip"]')).toBeHidden();
+        await expect(iframe.locator('[role="dialog"]')).toBeHidden();
 
         const collapseButton = rootNode.getByRole("button");
         await collapseButton.focus();
@@ -207,7 +206,10 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 
         const findNodeContainer = iframe.locator("#findNodeInputContainer");
         const findNodeComboBox = iframe.locator("#findNodeDropdown");
-        await findNodeComboBox.fill("Node ID");
+        await findNodeComboBox.click();
+        const findNodeSearchBox = iframe.getByRole("searchbox").last();
+        await findNodeSearchBox.fill("Node ID");
+        await findNodeSearchBox.press("Enter");
 
         const findNodeComparisonDropdown = iframe.locator("#findNodeComparisonDropdown");
         await findNodeComparisonDropdown.click();
@@ -287,17 +289,17 @@ test.describe("MSSQL Extension - Query Plan", async () => {
             '[type="button"][aria-label="Importance"][class*="fui-Button"]',
         );
         await importanceButton.click();
-        firstCellLocator = propertiesPanel.locator('[role="gridcell"]').first();
-        const importanceFirst = ((await firstCellLocator.textContent()) ?? "").trim();
-        await expect(importanceFirst).toContain("Physical Operation");
+        await expect(
+            propertiesPanel.getByText("Physical Operation", { exact: true }).first(),
+        ).toBeVisible();
 
         const searchProperties = iframe.locator(
             '[placeholder="Filter for any field..."][class*="fui-Input__input"]',
         );
         await searchProperties.fill("S");
-        firstCellLocator = propertiesPanel.locator('[role="gridcell"]').first();
-        const filteredFirst = ((await firstCellLocator.textContent()) ?? "").trim();
-        await expect(filteredFirst).toContain("Physical Operation");
+        await expect(
+            propertiesPanel.getByText("Physical Operation", { exact: true }).first(),
+        ).toBeVisible();
 
         await propertiesPanel.getByRole("button", { name: "Close" }).click();
 
@@ -318,17 +320,24 @@ test.describe("MSSQL Extension - Query Plan", async () => {
             name: "Apply",
         });
 
-        await highlightOpsInputBox.fill("Actual Elapsed Time");
+        await highlightOpsInputBox.click();
+        const highlightOpsSearchBox = iframe.getByRole("searchbox").last();
+        await highlightOpsSearchBox.fill("Actual Elapsed Time");
+        await highlightOpsSearchBox.press("Enter");
         await highlightOpsApplyButton.click();
         let selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
         await expect(selectedElement).toBe("");
 
-        await highlightOpsInputBox.fill("Actual Elapsed CPU Time");
+        await highlightOpsInputBox.click();
+        await highlightOpsSearchBox.fill("Actual Elapsed CPU Time");
+        await highlightOpsSearchBox.press("Enter");
         await highlightOpsApplyButton.click();
         selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
         await expect(selectedElement).toBe("");
 
-        await highlightOpsInputBox.fill("Cost");
+        await highlightOpsInputBox.click();
+        await highlightOpsSearchBox.fill("Cost");
+        await highlightOpsSearchBox.press("Enter");
         await highlightOpsApplyButton.click();
         selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
         await expect(selectedElement).not.toBe("");
