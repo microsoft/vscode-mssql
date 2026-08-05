@@ -346,9 +346,7 @@ export class HttpClient {
                 host: agentOptions.host,
                 port: Number(agentOptions.port),
                 ...(agentOptions.auth ? { proxyAuth: agentOptions.auth } : {}),
-                ...(isHttpsProxy
-                    ? { rejectUnauthorized: agentOptions.rejectUnauthorized }
-                    : {}),
+                ...(isHttpsProxy ? { rejectUnauthorized: agentOptions.rejectUnauthorized } : {}),
             },
         };
 
