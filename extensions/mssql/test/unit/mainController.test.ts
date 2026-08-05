@@ -9,7 +9,11 @@ import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
 import { InstantiationServiceBuilder, ServiceDescriptor } from "extension-toolkit/base";
-import { ExtensionContextService, IExtensionContextService } from "extension-toolkit/vscode";
+import {
+    ExtensionContextService,
+    IExtensionContextService,
+    VscodeHttpClient,
+} from "extension-toolkit/vscode";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { CredentialStore, ICredentialStore } from "../../src/credentialstore/credentialstore";
@@ -18,7 +22,6 @@ import { ConnectionStore, IConnectionStore } from "../../src/models/connectionSt
 import { AccountStore, IAccountStore } from "../../src/azure/accountStore";
 import { stubTelemetry, stubExtensionContext, stubMessageBoxes } from "./utils";
 import * as Constants from "../../src/constants/constants";
-import { VscodeHttpClient } from "extension-toolkit/vscode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
