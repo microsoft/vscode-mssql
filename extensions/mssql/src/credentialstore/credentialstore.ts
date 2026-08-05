@@ -3,11 +3,33 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// This code is originally from https://github.com/microsoft/vsts-vscode
+// License: https://github.com/Microsoft/vsts-vscode/blob/master/LICENSE.txt
+
 import * as vscode from "vscode";
+import { createServiceIdentifier } from "extension-toolkit/base";
 import { IExtensionContextService } from "extension-toolkit/vscode";
-import { ICredentialStore, Credential } from "./icredentialstore";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
+
+export interface Credential {
+    credentialId: string;
+    password: string;
+}
+
+export const ICredentialStore = createServiceIdentifier<ICredentialStore>("credentialStore");
+
+/**
+ * A credential store that securely stores sensitive information in a platform-specific manner
+ *
+ * @exports
+ */
+export interface ICredentialStore {
+    readonly _serviceBrand: undefined;
+    readCredential(credentialId: string): Promise<Credential>;
+    saveCredential(credentialId: string, password: string): Promise<boolean>;
+    deleteCredential(credentialId: string): Promise<void>;
+}
 
 /**
  * Implements a credential storage for Windows, Mac (darwin), or Linux.

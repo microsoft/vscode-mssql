@@ -39,10 +39,8 @@ import {
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
-import { ICredentialStore } from "./credentialstore/icredentialstore";
-import { CredentialStore } from "./credentialstore/credentialstore";
-import { IConnectionConfig } from "./connectionconfig/iconnectionconfig";
-import { ConnectionConfig } from "./connectionconfig/connectionconfig";
+import { CredentialStore, ICredentialStore } from "./credentialstore/credentialstore";
+import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
 import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
 
 /** exported for testing purposes only */

@@ -6,8 +6,7 @@
 import * as vscode from "vscode";
 import { ConfigurationTarget } from "vscode";
 import { InstantiationServiceBuilder, ServiceDescriptor } from "extension-toolkit/base";
-import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import { IConnectionConfig } from "../../src/connectionconfig/iconnectionconfig";
+import { ConnectionConfig, IConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";

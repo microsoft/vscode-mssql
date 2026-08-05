@@ -10,11 +10,9 @@ import { InstantiationServiceBuilder, ServiceDescriptor } from "extension-toolki
 import { ExtensionContextService, IExtensionContextService } from "extension-toolkit/vscode";
 import * as Constants from "../../src/constants/constants";
 import { ConnectionStore, IConnectionStore } from "../../src/models/connectionStore";
-import { CredentialStore } from "../../src/credentialstore/credentialstore";
-import { ICredentialStore } from "../../src/credentialstore/icredentialstore";
+import { CredentialStore, ICredentialStore } from "../../src/credentialstore/credentialstore";
 import { ILogger } from "../../src/sharedInterfaces/logger";
-import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import { IConnectionConfig } from "../../src/connectionconfig/iconnectionconfig";
+import { ConnectionConfig, IConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import {
     CredentialsQuickPickItemType,
     IConnectionProfile,

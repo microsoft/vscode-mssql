@@ -18,9 +18,8 @@ import {
     IConnectionProfileWithSource,
     IConnectionGroup,
 } from "./interfaces";
-import { ICredentialStore, Credential } from "../credentialstore/icredentialstore";
-import { ConnectionConfig } from "../connectionconfig/connectionconfig";
-import { IConnectionConfig } from "../connectionconfig/iconnectionconfig";
+import { ICredentialStore, Credential } from "../credentialstore/credentialstore";
+import { ConnectionConfig, IConnectionConfig } from "../connectionconfig/connectionconfig";
 import { IConnectionInfo } from "vscode-mssql";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "./logger";

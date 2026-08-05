@@ -21,8 +21,7 @@ import { getErrorMessage, uuid } from "../utils/utils";
 import { Deferred } from "../protocol";
 import * as Loc from "../constants/locConstants";
 import { IConnectionGroup } from "../models/interfaces";
-import { ConnectionConfig } from "../connectionconfig/connectionconfig";
-import { IConnectionConfig } from "../connectionconfig/iconnectionconfig";
+import { ConnectionConfig, IConnectionConfig } from "../connectionconfig/connectionconfig";
 import ConnectionManager from "./connectionManager";
 
 /**

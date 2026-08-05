@@ -36,8 +36,7 @@ import {
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { getErrorMessage } from "../utils/utils";
-import { ConnectionConfig } from "../connectionconfig/connectionconfig";
-import { IConnectionConfig } from "../connectionconfig/iconnectionconfig";
+import { ConnectionConfig, IConnectionConfig } from "../connectionconfig/connectionconfig";
 import { Deferred } from "../protocol";
 import { AzureAccountService } from "../services/azureAccountService";
 import { IAccount } from "vscode-mssql";

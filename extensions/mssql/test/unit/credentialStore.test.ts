@@ -10,8 +10,7 @@ import * as chai from "chai";
 import * as vscode from "vscode";
 import { InstantiationServiceBuilder, ServiceDescriptor } from "extension-toolkit/base";
 import { ExtensionContextService, IExtensionContextService } from "extension-toolkit/vscode";
-import { CredentialStore } from "../../src/credentialstore/credentialstore";
-import { ICredentialStore } from "../../src/credentialstore/icredentialstore";
+import { CredentialStore, ICredentialStore } from "../../src/credentialstore/credentialstore";
 
 chai.use(sinonChai);
 

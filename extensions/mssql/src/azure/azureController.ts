@@ -19,7 +19,7 @@ import { ILogger } from "../sharedInterfaces/logger";
 import { Logger } from "../models/logger";
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { AccountStore } from "./accountStore";
-import { ICredentialStore } from "../credentialstore/icredentialstore";
+import { ICredentialStore } from "../credentialstore/credentialstore";
 
 export abstract class AzureController {
     protected _credentialStoreInitialized = false;
