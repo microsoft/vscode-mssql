@@ -259,6 +259,9 @@
     <trans-unit id="++CODE++dcc475b31b6d6d1bc68eede1badaf4b6af93c3683fe3a25ae08c8544b572e7fa">
       <source xml:lang="en">Add to workspace</source>
     </trans-unit>
+    <trans-unit id="++CODE++c5cfce3eb943523271b545b3dce2b96360ce33303862a3482fa15a407bab6169">
+      <source xml:lang="en">Add your schema</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b02e0d363a4af1c95eef50364bb0202c8b250aa05a48a69e68fd7787b4b0632">
       <source xml:lang="en">Added</source>
     </trans-unit>
@@ -1233,6 +1236,9 @@
     <trans-unit id="++CODE++be6eb1fc3b05bf9dceebad2eac7841d1b2f40bda9aa2da34df8ca22af02bc3ed">
       <source xml:lang="en">Collapse</source>
     </trans-unit>
+    <trans-unit id="++CODE++4e731cfd02081837f2325b653fb8a9ecb74cc7693858bd992bc69fa73d3d24b6">
+      <source xml:lang="en">Collapse Add your schema</source>
+    </trans-unit>
     <trans-unit id="++CODE++55988e28a4e8720a588c5c53fd47616d929a404d3d2af7e6f8ba313dce6dc3e4">
       <source xml:lang="en">Collapse All</source>
     </trans-unit>
@@ -1607,6 +1613,9 @@
       <source xml:lang="en">Connection sharing permission is required for extension: &apos;{0}&apos;</source>
       <note>{0} is the extension ID</note>
     </trans-unit>
+    <trans-unit id="++CODE++511ada84b783506fb916797a09d9c19e21a5acd9cf2563a3b3629b28f6bc20bc">
+      <source xml:lang="en">Connection string</source>
+    </trans-unit>
     <trans-unit id="++CODE++83035e9200f6fdd69864139d77f16bd50bd19373c53fc216611778d70a865e2a">
       <source xml:lang="en">Connection string copied to clipboard</source>
     </trans-unit>
@@ -1696,6 +1705,9 @@
     <trans-unit id="++CODE++d37078fe6a1faa15fc48c293dd1d4c37698eb0cfafae8ca1c456b0cc4600db11">
       <source xml:lang="en">Copied to clipboard</source>
     </trans-unit>
+    <trans-unit id="++CODE++ea61bc15688d1e482ae5335e8dc030d8300b1afc07ecc7c2e6af5c43728b1d25">
+      <source xml:lang="en">Copied!</source>
+    </trans-unit>
     <trans-unit id="++CODE++2061058e9da24f0490ebc753877518c126993f42bfcc07975bca24b78f3e05c5">
       <source xml:lang="en">Copilot Changes</source>
     </trans-unit>
@@ -1763,6 +1775,9 @@
     <trans-unit id="++CODE++334c24c15237b0764eb8571f1e8a34621cb5dd78ccc9b17e26b1670d96aeade2">
       <source xml:lang="en">Copy command to clipboard</source>
     </trans-unit>
+    <trans-unit id="++CODE++0b85073a76f0a2d227512131c49920c0f094d12886747285f6510bd4b8ccf364">
+      <source xml:lang="en">Copy connection string</source>
+    </trans-unit>
     <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
       <source xml:lang="en">Copy connection string to clipboard</source>
     </trans-unit>
@@ -1774,6 +1789,9 @@
     </trans-unit>
     <trans-unit id="++CODE++cc4b07f956793d518a1f073565e7dceef4aab9bebae6e515dc7c9b046a38bc9d">
       <source xml:lang="en">Copy messages</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6267dc32ae62b09e5ba7edc15c8da2a45bf8872d72ed527ab581bf3644eb2ec3">
+      <source xml:lang="en">Copy migration command</source>
     </trans-unit>
     <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
       <source xml:lang="en">Copy script</source>
@@ -2888,6 +2906,9 @@
     </trans-unit>
     <trans-unit id="++CODE++07548c2c6511d4d1780564de8a237a1966cf9c99a97cf5c8a185e6c2aeacff09">
       <source xml:lang="en">Expand</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e6663036b97c063a1dec29db31b61d9344db41186eb460fd5504d9ba8837eb0c">
+      <source xml:lang="en">Expand Add your schema</source>
     </trans-unit>
     <trans-unit id="++CODE++9f5b023a413a7d0771cc3fb51b103dc0aaaafe8f7b7c88c7258d43e3bc5b243d">
       <source xml:lang="en">Expand All</source>
@@ -6190,6 +6211,9 @@
     <trans-unit id="++CODE++0bc00be2d21a631fedf64e0302de168c6a49105158a47fc837faf0df12f53fe4">
       <source xml:lang="en">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</source>
     </trans-unit>
+    <trans-unit id="++CODE++5879cfccb1c09591c9b8a1677e0e1f0935cb541d24aebeb7ed596666a3919113">
+      <source xml:lang="en">Run your migrations</source>
+    </trans-unit>
     <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
       <source xml:lang="en">Run, cancel, and create queries</source>
     </trans-unit>
@@ -8164,6 +8188,9 @@
     <trans-unit id="++CODE++fba27c1cc726f650cd3eceb3a036cce31854cde7aa2ad9fe4a073c12417098c4">
       <source xml:lang="en">Your database will continue running after the free offer limit and you will be charged for overages.</source>
     </trans-unit>
+    <trans-unit id="++CODE++20082bf42822ccf6b53770a9f51230df781d30b42a43691ef534a3ccef0cb044">
+      <source xml:lang="en">Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.</source>
+    </trans-unit>
     <trans-unit id="++CODE++e22a8e55997a44b12ff4f976b12df9cf1fd9b41a7521198b72b15a3cb9952ed0">
       <source xml:lang="en">Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).</source>
     </trans-unit>
@@ -8385,6 +8412,10 @@
     <trans-unit id="++CODE++0362d3ecbb7ec63592961e75fdb3b9cce59a91db85f4b99e2ba5106d1bf167ed">
       <source xml:lang="en">{0} deleted successfully.</source>
       <note>{0} deleted successfully.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++7f79912e776b14c310615f10e26f6ea1eca71fcacafb73e275603e152cb9f04d">
+      <source xml:lang="en">{0} docs</source>
+      <note>{0} is the name of a database migration tool</note>
     </trans-unit>
     <trans-unit id="++CODE++5c1afaa0e5ec640786450559a23d287ff17a8b5ffd18db119012de352e431731">
       <source xml:lang="en">{0} errors</source>

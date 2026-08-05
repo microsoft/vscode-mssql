@@ -8,6 +8,7 @@ import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 import { DeploymentStepCard } from "../deploymentStepCard";
+import { AddYourSchemaCard } from "../../../common/addYourSchemaCard";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -85,6 +86,7 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
     const resourceGroup = useAzureSqlDatabaseDeploymentSelector((s) => s.formState?.resourceGroup);
     const serverName = useAzureSqlDatabaseDeploymentSelector((s) => s.formState?.serverName);
     const serverRegion = useAzureSqlDatabaseDeploymentSelector((s) => s.serverRegion);
+    const connectionString = useAzureSqlDatabaseDeploymentSelector((s) => s.connectionString);
 
     if (!provisionLoadState) return undefined;
 
@@ -174,6 +176,9 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                         )}
                     </div>
                 </DeploymentStepCard>
+                {connectionLoadState === ApiStatus.Loaded && connectionString && (
+                    <AddYourSchemaCard connectionString={connectionString} />
+                )}
             </div>
         </div>
     );

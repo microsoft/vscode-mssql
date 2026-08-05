@@ -710,6 +710,21 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
         await deploymentController.mainController.createObjectExplorerSession(profile);
         state.connectionLoadState = ApiStatus.Loaded;
 
+        // Capture the connection string (without the password) so the webview can
+        // surface it in the "Add your schema" card.
+        try {
+            state.connectionString =
+                await deploymentController.mainController.connectionManager.getConnectionString(
+                    deploymentController.mainController.connectionManager.createConnectionDetails(
+                        databaseConnectionProfile,
+                    ),
+                    false /* includePassword */,
+                    false /* includeApplicationName */,
+                );
+        } catch {
+            state.connectionString = "";
+        }
+
         sendActionEvent(
             TelemetryViews.FabricProvisioning,
             TelemetryActions.ConnectToFabricDatabase,

@@ -859,6 +859,20 @@ export async function connectToAzureSqlDatabase(
         await deploymentController.mainController.createObjectExplorerSession(profile);
         state.connectionLoadState = ApiStatus.Loaded;
 
+        // Capture the connection string (without the password) so the webview can
+        // surface it in the "Add your schema" card.
+        try {
+            state.connectionString = await connManager.getConnectionString(
+                connManager.createConnectionDetails(connectionProfile),
+                false /* includePassword */,
+                false /* includeApplicationName */,
+            );
+        } catch (connectionStringError) {
+            cachedLogger?.error(
+                `Failed to build connection string: ${getErrorMessage(connectionStringError)}`,
+            );
+        }
+
         sendActionEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
