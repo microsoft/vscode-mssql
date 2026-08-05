@@ -7748,6 +7748,10 @@
       <source xml:lang="en">Unable to load database list from server: {0} You may enter the database name directly.</source>
       <note>{0} is the connection error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++7a5056ed1e67b52e901dddc3847ec82876056f171841b2d09a880a931018fe59">
+      <source xml:lang="en">Unable to locate Azure SQL server &apos;{0}&apos; in the selected Azure account.</source>
+      <note>{0} is the server name</note>
+    </trans-unit>
     <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
       <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
     </trans-unit>
