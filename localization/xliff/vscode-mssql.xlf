@@ -3107,9 +3107,6 @@
     <trans-unit id="++CODE++947b92af892bfe51ada5d9b6b16569d2ef1e0e398142db619de898a7f4299cc8">
       <source xml:lang="en">Failed to apply schema.</source>
     </trans-unit>
-    <trans-unit id="++CODE++6c64dac05dd8918aa9678f62042470c0ac3b232e4ac9ddc1f8423a5ab9800514">
-      <source xml:lang="en">Failed to apply the Move to Schema changes. Check that the files are writable and try again.</source>
-    </trans-unit>
     <trans-unit id="++CODE++0f20f13b4e0c02dbfd1419272fdc0223aea4745a0704daf5f91876a21476bda2">
       <source xml:lang="en">Failed to change database</source>
     </trans-unit>

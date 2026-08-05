@@ -4183,9 +4183,6 @@ export class SqlMoveToSchema {
         l10n.t("Failed to resolve the refactor log for this file: {0}", message);
     public static previewLabel = (targetSchema: string): string =>
         l10n.t("Move to schema '{0}'", targetSchema);
-    public static applyEditFailed = l10n.t(
-        "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
-    );
     public static moveFileFailed = (message: string): string =>
         l10n.t("Failed to move file to the new schema folder: {0}", message);
     public static sqlprojUpdateFailed = (message: string): string =>

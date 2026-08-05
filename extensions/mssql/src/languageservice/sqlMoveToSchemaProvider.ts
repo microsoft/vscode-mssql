@@ -26,6 +26,9 @@ import {
     resolveRefactorLogTarget,
 } from "./refactorLog";
 import { SqlProjectsService } from "../services/sqlProjectsService";
+import { getLogger } from "../models/logger";
+
+const logger = getLogger("SqlMoveToSchemaProvider");
 
 /**
  * Maps DacFx element type names (`<Type Name="SqlTable" .../>` in DacFx's SchemaModel/SqlModel.xml,
@@ -269,7 +272,9 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                 isRefactoring: true,
             });
             if (!applied) {
-                void vscode.window.showErrorMessage(loc.applyEditFailed);
+                // `applyEdit` returns false when the user clicks Discard in the refactor preview,
+                // which is a deliberate action — not an error worth surfacing to the user.
+                logger.debug("Move to Schema edits were not applied (discarded or rejected).");
             } else {
                 const moveResult = await this.moveFileToNewSchemaFolder(
                     document,

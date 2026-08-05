@@ -781,33 +781,6 @@ suite("SqlMoveToSchemaProvider Tests", () => {
                 );
             });
 
-            test("shows error message when applyEdit returns false", async () => {
-                applyEditStub.resolves(false);
-                const fileUri = vscode.Uri.file(defaultSqlFile).toString();
-                sendRequestStub
-                    .withArgs(ListProjectSchemasRequest.type)
-                    .resolves({ schemas: ["hr"] });
-                sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({
-                    changes: {
-                        [fileUri]: [
-                            {
-                                range: {
-                                    start: { line: 0, character: 7 },
-                                    end: { line: 0, character: 14 },
-                                },
-                                newText: "[hr].[MyTable]",
-                            },
-                        ],
-                    },
-                    refactorLogContent: undefined,
-                });
-                const doc = makeMoveDocument(sandbox, { lineText: "SELECT MyTable" });
-                await provider.runMoveToSchema(doc, new vscode.Position(0, 7));
-                expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
-                    moveLoc.applyEditFailed,
-                );
-            });
-
             test("does not call applyEdit when warning message is returned and user dismisses", async () => {
                 const fileUri = vscode.Uri.file(defaultSqlFile).toString();
                 sendRequestStub
