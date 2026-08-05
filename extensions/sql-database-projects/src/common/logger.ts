@@ -46,7 +46,7 @@ export enum LogLevel {
 
 /**
  * Logger that writes formatted, timestamped messages to a VS Code OutputChannel.
- * Implements ILogger so it can be passed directly to HttpClient / HttpClientCore.
+ * Implements the logger contract used by the shared HttpClient.
  *
  * During build operations the log level is always set to Verbose so that proxy
  * diagnostic messages are visible in the "Database Projects" output channel.

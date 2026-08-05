@@ -14,6 +14,9 @@
             "vscode": [
                 "dist/vscode/index.d.ts"
             ],
+            "vscode/telemetry": [
+                "dist/vscode/telemetry/telemetry.d.ts"
+            ],
             "vscode/testing": [
                 "dist/vscode/testing/index.d.ts"
             ]
@@ -30,6 +33,11 @@
             "require": "./dist/vscode/index.js",
             "default": "./dist/vscode/index.js"
         },
+        "./vscode/telemetry": {
+            "types": "./dist/vscode/telemetry/telemetry.d.ts",
+            "require": "./dist/vscode/telemetry/telemetry.js",
+            "default": "./dist/vscode/telemetry/telemetry.js"
+        },
         "./vscode/testing": {
             "types": "./dist/vscode/testing/index.d.ts",
             "require": "./dist/vscode/testing/index.js",
@@ -37,15 +45,26 @@
         }
     },
     "files": [
-        "dist"
+        "dist",
+        "l10n"
     ],
     "scripts": {
-        "build": "tsc -p tsconfig.json",
+        "build": "npm run build:runtime-localization && tsc -p tsconfig.json",
+        "build:runtime-localization": "node ../../scripts/localization-generate.js extension-toolkit .",
         "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
-        "lint": "eslint --quiet --cache ./src"
+        "lint": "eslint --quiet --cache ./src",
+        "localization": "node ../../scripts/localization-extract.js extension-toolkit",
+        "test": "npm run build && node --test test/*.test.js"
+    },
+    "dependencies": {
+        "@vscode/extension-telemetry": "1.5.2",
+        "@vscode/l10n": "^0.0.18",
+        "axios": "^1.18.0",
+        "tunnel": "0.0.6"
     },
     "devDependencies": {
         "@types/node": "^22.13.14",
+        "@types/tunnel": "0.0.1",
         "@types/vscode": "1.101.0",
         "typescript": "^5.8.3"
     }

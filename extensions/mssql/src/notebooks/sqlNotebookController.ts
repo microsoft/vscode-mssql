@@ -28,7 +28,7 @@ import type {
 import type { SelectionSummaryMetrics } from "../sharedInterfaces/queryResult";
 import { buildSelectionSummaryStatusBarStrings } from "../queryResult/selectionSummaryFormatter";
 import { saveNotebookResults } from "./notebookResultsSerializer";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
 
 const NOTEBOOK_RESULT_RENDERER_ID = "ms-mssql.sql-result-renderer";

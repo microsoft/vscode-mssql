@@ -14,8 +14,12 @@ import {
     Monaco,
     loader,
 } from "@monaco-editor/react";
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
+import "monaco-editor/esm/vs/basic-languages/sql/sql.contribution";
 import { useCallback, useEffect, useRef } from "react";
 import { ColorThemeKind } from "../../sharedInterfaces/webview";
+
+loader.config({ monaco });
 
 const VSCODE_MONACO_THEME_NAME = "vscode-webview-theme";
 const THEME_ATTRIBUTE_NAMES = ["class", "data-vscode-theme-id", "data-vscode-theme-kind"];
