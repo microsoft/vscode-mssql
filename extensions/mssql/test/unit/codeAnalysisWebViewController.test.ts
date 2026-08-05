@@ -35,6 +35,7 @@ const mockRules: CodeAnalysisRuleInfo[] = [
         category: "Design",
         severity: "Error",
         ruleScope: "Element",
+        isBuiltIn: true,
     },
     {
         ruleId: "SR0002",
@@ -44,6 +45,7 @@ const mockRules: CodeAnalysisRuleInfo[] = [
         category: "Performance",
         severity: "None",
         ruleScope: "Model",
+        isBuiltIn: true,
     },
     {
         ruleId: "SR0003",
@@ -53,6 +55,7 @@ const mockRules: CodeAnalysisRuleInfo[] = [
         category: "Naming",
         severity: "Warning",
         ruleScope: "Model",
+        isBuiltIn: true,
     },
 ];
 
