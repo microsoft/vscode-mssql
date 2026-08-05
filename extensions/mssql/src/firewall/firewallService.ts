@@ -45,7 +45,12 @@ export class FirewallService {
 
         try {
             const { accountId, tenantId } = firewallRuleSpec.azureAccountInfo;
-            const resource = await VsCodeAzureHelper.findSqlResource(accountId, serverName);
+            const azureSqlServerName = VsCodeAzureHelper.getAzureSqlServerName(serverName);
+            if (!azureSqlServerName) {
+                throw new Error(LocAzure.unableToLocateSqlServer(serverName));
+            }
+
+            const resource = await VsCodeAzureHelper.findSqlResource(accountId, azureSqlServerName);
 
             if (resource === "UnableToCheck") {
                 throw new Error(LocAzure.unableToLocateSqlServer(serverName));
@@ -64,7 +69,7 @@ export class FirewallService {
             await VsCodeAzureHelper.createFirewallRule(
                 subscription,
                 resource.resourceGroup,
-                serverName,
+                azureSqlServerName,
                 firewallRuleSpec.name,
                 startIp,
                 endIp,

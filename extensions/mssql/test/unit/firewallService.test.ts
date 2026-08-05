@@ -83,7 +83,10 @@ suite("Firewall Service Tests", () => {
         sandbox.stub(VsCodeAzureHelper, "getSubscriptionsForAccount").resolves([subscription]);
         const createFirewallRule = sandbox.stub(VsCodeAzureHelper, "createFirewallRule").resolves();
 
-        await firewallService.createFirewallRuleWithVscodeAccount(firewallRuleSpec, "test-server");
+        await firewallService.createFirewallRuleWithVscodeAccount(
+            firewallRuleSpec,
+            "test-server.database.windows.net,1433",
+        );
 
         expect(VsCodeAzureHelper.findSqlResource).to.have.been.calledWithExactly(
             "account-id",
