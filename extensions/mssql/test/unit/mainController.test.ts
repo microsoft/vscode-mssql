@@ -18,7 +18,7 @@ import { ConnectionStore, IConnectionStore } from "../../src/models/connectionSt
 import { AccountStore, IAccountStore } from "../../src/azure/accountStore";
 import { stubTelemetry, stubExtensionContext, stubMessageBoxes } from "./utils";
 import * as Constants from "../../src/constants/constants";
-import { HttpClient } from "../../src/http/httpClient";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
@@ -379,7 +379,10 @@ suite("MainController Tests", function () {
     });
 
     test("Proxy settings are checked on initialization", async () => {
-        const httpHelperWarnSpy = sandbox.spy(HttpClient.prototype, "warnOnInvalidProxySettings");
+        const httpHelperWarnSpy = sandbox.spy(
+            VscodeHttpClient.prototype,
+            "warnOnInvalidProxySettings",
+        );
 
         new MainController(context, connectionManager);
 

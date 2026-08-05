@@ -48,7 +48,7 @@ import { IConnectionStore, ConnectionStore } from "../models/connectionStore";
 import { IAccountStore, AccountStore } from "../azure/accountStore";
 import { IInstantiationService } from "extension-toolkit/base";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
-import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
+import { sendActionEvent, sendErrorEvent, VscodeHttpClient } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
@@ -122,7 +122,6 @@ import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabas
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
-import { HttpClient } from "../http/httpClient";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
@@ -213,7 +212,9 @@ export default class MainController implements vscode.Disposable {
         this.configuration = vscode.workspace.getConfiguration();
 
         UserSurvey.createInstance(this._context);
-        new HttpClient(this._logger).warnOnInvalidProxySettings();
+        new VscodeHttpClient({
+            logger: this._logger,
+        }).warnOnInvalidProxySettings();
     }
 
     /**

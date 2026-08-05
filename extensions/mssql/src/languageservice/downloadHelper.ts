@@ -3,8 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import {
+    HttpClient,
+    HttpDownloadError,
+    IDownloadProgress,
+    IDownloadResult,
+} from "extension-toolkit/base";
 import { ILogger } from "../sharedInterfaces/logger";
-import { HttpDownloadError, HttpClientCore, IDownloadFileResult } from "../http/httpClientCore";
 import { IPackage, IStatusView, PackageError } from "./interfaces";
 
 /*
@@ -29,34 +34,24 @@ export default class DownloadHelper {
         logger: ILogger,
         statusView: IStatusView,
     ): Promise<void> {
-        if (!pkg.tmpFile || pkg.tmpFile.fd === 0) {
+        if (!pkg.tmpFile || pkg.tmpFile.fd === undefined || pkg.tmpFile.fd === null) {
             throw new PackageError("Temporary package file unavailable", pkg);
         }
 
-        const progress: IDownloadProgress = {
-            packageSize: 0,
+        const progressState: IDownloadProgressState = {
             dots: 0,
-            downloadedBytes: 0,
             downloadPercentage: 0,
         };
 
-        const httpHelper = new HttpClientCore(logger);
+        const httpHelper = new HttpClient(logger);
 
         try {
-            const result: IDownloadFileResult = await httpHelper.downloadFile(
+            const result: IDownloadResult = await httpHelper.downloadToFileDescriptor(
                 urlString,
                 pkg.tmpFile.fd,
                 {
-                    onHeaders: (headers) => {
-                        progress.packageSize = this.getPackageSize(headers["content-length"]);
-                        if (progress.packageSize > 0) {
-                            logger.debug(
-                                `Package size: ${this.formatBytes(progress.packageSize)} (${Math.ceil(progress.packageSize / 1024)} KB)`,
-                            );
-                        }
-                    },
-                    onData: (data) => {
-                        this.handleDataReceivedEvent(progress, data, logger, statusView);
+                    onProgress: (progress) => {
+                        this.handleDownloadProgress(progress, progressState, logger, statusView);
                     },
                 },
             );
@@ -87,45 +82,43 @@ export default class DownloadHelper {
     /*
      * Calculate the download percentage and stores in the progress object
      */
-    public handleDataReceivedEvent(
+    public handleDownloadProgress(
         progress: IDownloadProgress,
-        data: Buffer,
+        progressState: IDownloadProgressState,
         logger: ILogger,
         statusView: IStatusView,
     ): void {
-        progress.downloadedBytes += data.length;
-
-        // Update status bar item with percentage
-        if (progress.packageSize > 0) {
-            let newPercentage = Math.min(
-                100,
-                Math.ceil(100 * (progress.downloadedBytes / progress.packageSize)),
+        if (progress.downloadedBytes === 0 && progress.totalBytes !== undefined) {
+            logger.debug(
+                `Package size: ${this.formatBytes(progress.totalBytes)} (${Math.ceil(progress.totalBytes / 1024)} KB)`,
             );
-            if (newPercentage !== progress.downloadPercentage) {
+        }
+
+        if (progress.percentage !== undefined && progress.totalBytes !== undefined) {
+            const newPercentage = Math.min(100, Math.ceil(progress.percentage));
+            if (newPercentage !== progressState.downloadPercentage) {
                 statusView.updateServiceDownloadingProgress(newPercentage);
-                progress.downloadPercentage = newPercentage;
+                progressState.downloadPercentage = newPercentage;
             }
 
-            // Emit a readable progress update every 5%.
-            let newDots = Math.ceil(progress.downloadPercentage / 5);
-            if (newDots > progress.dots) {
-                logger.info(this.formatProgressMessage(progress));
-                progress.dots = newDots;
+            const newDots = Math.ceil(progressState.downloadPercentage / 5);
+            if (newDots > progressState.dots) {
+                logger.info(this.formatProgressMessage(progress, progressState.downloadPercentage));
+                progressState.dots = newDots;
             }
         }
-        return;
     }
 
-    private formatProgressMessage(progress: IDownloadProgress): string {
+    private formatProgressMessage(progress: IDownloadProgress, percentage: number): string {
         const totalSteps = 20;
-        const completedSteps = Math.min(totalSteps, Math.ceil(progress.downloadPercentage / 5));
+        const completedSteps = Math.min(totalSteps, Math.ceil(percentage / 5));
         const progressBar = `${"#".repeat(completedSteps)}${"-".repeat(totalSteps - completedSteps)}`;
         const downloadedDisplay = this.formatBytes(
-            Math.min(progress.downloadedBytes, progress.packageSize),
+            Math.min(progress.downloadedBytes, progress.totalBytes ?? progress.downloadedBytes),
         );
-        const totalDisplay = this.formatBytes(progress.packageSize);
+        const totalDisplay = this.formatBytes(progress.totalBytes ?? progress.downloadedBytes);
 
-        return `Download progress [${progressBar}] ${progress.downloadPercentage}% (${downloadedDisplay} / ${totalDisplay})`;
+        return `Download progress [${progressBar}] ${percentage}% (${downloadedDisplay} / ${totalDisplay})`;
     }
 
     private formatBytes(bytes: number): string {
@@ -141,31 +134,12 @@ export default class DownloadHelper {
         const megabytes = kilobytes / 1024;
         return `${megabytes.toFixed(1)} MB`;
     }
-
-    private getPackageSize(contentLengthHeader: unknown): number {
-        if (typeof contentLengthHeader === "number") {
-            return contentLengthHeader;
-        }
-
-        if (Array.isArray(contentLengthHeader)) {
-            return this.getPackageSize(contentLengthHeader[0]);
-        }
-
-        if (typeof contentLengthHeader !== "string") {
-            return 0;
-        }
-
-        const packageSize = parseInt(contentLengthHeader, 10);
-        return Number.isNaN(packageSize) ? 0 : packageSize;
-    }
 }
 
 /*
  * Interface to store the values needed to calculate download percentage
  */
-export interface IDownloadProgress {
-    packageSize: number;
-    downloadedBytes: number;
+export interface IDownloadProgressState {
     downloadPercentage: number;
     dots: number;
 }
