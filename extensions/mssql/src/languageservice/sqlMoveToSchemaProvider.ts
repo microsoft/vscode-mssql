@@ -217,7 +217,19 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             return;
         }
 
-        // 3. Apply the script edits (and the .refactorlog write) via the refactor preview.
+        // 3. Work out where the definition file should end up, before the preview so the skip
+        //    conditions are known up front. `undefined` means the file stays put and only the
+        //    scripts change.
+        const plan = this.planSchemaFolderMove(
+            document,
+            refactorTarget,
+            targetSchema,
+            schemas,
+            response.definitionFileUri,
+            response.elementType,
+        );
+
+        // 4. Apply the script edits (and the .refactorlog write) via the refactor preview.
         const { workspaceEdit, tempUri } = await this.buildPreviewEdit(
             response,
             refactorTarget,
@@ -234,18 +246,12 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                 return;
             }
 
-            // 4. Relocate the definition file into its new schema folder and update the .sqlproj.
-            //    Skipped when the file doesn't need moving (see planSchemaFolderMove).
-            const moveResult = await this.moveFileToNewSchemaFolder(
-                document,
-                refactorTarget,
-                targetSchema,
-                schemas,
-                response.definitionFileUri,
-                response.elementType,
-            );
+            // 5. Relocate the definition file into its new schema folder and update the .sqlproj.
+            const moveResult = plan
+                ? await this.moveFileToNewSchemaFolder(refactorTarget, plan)
+                : FileMoveResult.Skipped;
 
-            // 5. Refresh the project tree to reflect the SQL text edits, .sqlproj changes, and
+            // 6. Refresh the project tree to reflect the SQL text edits, .sqlproj changes, and
             //    (when the file moved) the new file location. Skip only when the move failed —
             //    the user already saw the error message in that case.
             if (moveResult !== FileMoveResult.Failed) {
@@ -383,25 +389,9 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
      * updates the `.sqlproj` to match. For example: `dbo/Tables/table1.sql` → `sss/Tables/table1.sql`.
      */
     private async moveFileToNewSchemaFolder(
-        triggerDocument: vscode.TextDocument,
         refactorTarget: RefactorLogTarget,
-        targetSchema: string,
-        schemas: string[],
-        definitionFileUri: string | null | undefined,
-        elementType: string | null | undefined,
+        plan: SchemaFolderMovePlan,
     ): Promise<FileMoveResult> {
-        const plan = this.planSchemaFolderMove(
-            triggerDocument,
-            refactorTarget,
-            targetSchema,
-            schemas,
-            definitionFileUri,
-            elementType,
-        );
-        if (!plan) {
-            return FileMoveResult.Skipped;
-        }
-
         if (!(await this.moveDefinitionFile(plan.sourceUri, plan.newAbsUri))) {
             return FileMoveResult.Failed;
         }
