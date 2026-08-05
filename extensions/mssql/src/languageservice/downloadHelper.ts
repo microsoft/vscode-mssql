@@ -6,8 +6,8 @@
 import {
     HttpClient,
     HttpDownloadError,
-    IDownloadFileResult,
     IDownloadProgress,
+    IDownloadResult,
 } from "extension-toolkit/base";
 import { ILogger } from "../sharedInterfaces/logger";
 import { IPackage, IStatusView, PackageError } from "./interfaces";
@@ -34,7 +34,7 @@ export default class DownloadHelper {
         logger: ILogger,
         statusView: IStatusView,
     ): Promise<void> {
-        if (!pkg.tmpFile || pkg.tmpFile.fd === 0) {
+        if (!pkg.tmpFile || pkg.tmpFile.fd === undefined || pkg.tmpFile.fd === null) {
             throw new PackageError("Temporary package file unavailable", pkg);
         }
 
@@ -46,7 +46,7 @@ export default class DownloadHelper {
         const httpHelper = new HttpClient(logger);
 
         try {
-            const result: IDownloadFileResult = await httpHelper.downloadFile(
+            const result: IDownloadResult = await httpHelper.downloadToFileDescriptor(
                 urlString,
                 pkg.tmpFile.fd,
                 {
