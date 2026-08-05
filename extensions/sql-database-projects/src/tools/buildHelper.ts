@@ -195,9 +195,7 @@ export class BuildHelper {
         outputChannel: vscode.OutputChannel,
     ): Promise<void> {
         try {
-            const httpClient = new VscodeHttpClient({
-                messages: constants.Proxy,
-            });
+            const httpClient = new VscodeHttpClient();
             outputChannel.appendLine(constants.downloadingFromTo(downloadUrl, nugetPath));
             let totalBytes: number | undefined;
             let printThreshold = 0.1;

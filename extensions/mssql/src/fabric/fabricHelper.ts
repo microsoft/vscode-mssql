@@ -19,7 +19,7 @@ import {
 } from "../sharedInterfaces/fabric";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../utils/utils";
-import { Fabric as Loc, Proxy } from "../constants/locConstants";
+import { Fabric as Loc } from "../constants/locConstants";
 import { getCloudProviderSettings } from "../azure/providerSettings";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
@@ -374,7 +374,6 @@ export class FabricHelper {
         const fabricLogger = FabricHelper.getFabricLogger();
         const httpHelper = new VscodeHttpClient({
             logger: fabricLogger,
-            messages: Proxy,
         });
 
         const session = await this.createScopedFabricSession(tenantId, reason);
@@ -403,7 +402,6 @@ export class FabricHelper {
         const fabricLogger = FabricHelper.getFabricLogger();
         const httpHelper = new VscodeHttpClient({
             logger: fabricLogger,
-            messages: Proxy,
         });
 
         const session = await this.createScopedFabricSession(tenantId, reason, scopes);

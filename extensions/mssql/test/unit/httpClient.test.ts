@@ -9,12 +9,17 @@ import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
 import * as fs from "fs";
 import { PassThrough, Writable } from "stream";
-import { HttpClient, HttpDownloadError } from "extension-toolkit/base";
-import * as LocalizedConstants from "../../src/constants/locConstants";
+import { HttpClient, HttpDownloadError, IHttpClientMessages } from "extension-toolkit/base";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import { createStubLogger } from "./utils";
 
 chai.use(sinonChai);
+
+const proxyMessages: IHttpClientMessages = {
+    missingProtocolWarning: (proxy) => `Invalid proxy protocol: ${proxy}`,
+    unparseableWarning: (proxy, errorMessage) => `Invalid proxy: ${proxy}. ${errorMessage}`,
+    unableToGetProxyAgentOptions: "Unable to read proxy agent options.",
+};
 
 suite("HttpClient tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -35,7 +40,7 @@ suite("HttpClient tests", () => {
             getProxyConfig,
             parseUriScheme,
             showWarningMessage,
-            messages: LocalizedConstants.Proxy,
+            messages: proxyMessages,
         });
     });
 
@@ -325,7 +330,7 @@ suite("HttpClient tests", () => {
             httpClient.warnOnInvalidProxySettings();
 
             expect(showWarningMessage).to.have.been.calledWithExactly(
-                LocalizedConstants.Proxy.missingProtocolWarning(invalidProxyValue),
+                proxyMessages.missingProtocolWarning(invalidProxyValue),
             );
         });
 
@@ -340,7 +345,7 @@ suite("HttpClient tests", () => {
             httpClient.warnOnInvalidProxySettings();
 
             expect(showWarningMessage).to.have.been.calledWithExactly(
-                LocalizedConstants.Proxy.unparseableWarning(invalidProxyValue, uriError.message),
+                proxyMessages.unparseableWarning(invalidProxyValue, uriError.message),
             );
         });
 
