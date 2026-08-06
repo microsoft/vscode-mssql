@@ -9,6 +9,7 @@ import { locConstants } from "../../../common/locConstants";
 import { useFabricDeploymentSelector } from "../deploymentSelector";
 import { DeploymentStepCard } from "../deploymentStepCard";
 import { ConnectToDatabaseCard } from "../connectToDatabaseCard";
+import { WhatsNextCard } from "../whatsNextCard";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -155,6 +156,7 @@ export const FabricDeploymentProvisioningPage: React.FC = () => {
                 {connectionLoadState === ApiStatus.Loaded && connectionString && (
                     <ConnectToDatabaseCard connectionString={connectionString} />
                 )}
+                {connectionLoadState === ApiStatus.Loaded && <WhatsNextCard />}
             </div>
         </div>
     );
