@@ -200,6 +200,7 @@ export class HttpClient {
 
         let message: string | undefined;
         let localizedMessage: string | undefined;
+        const redactedProxy = redactProxySecrets(proxy);
 
         try {
             const scheme = this.dependencies.parseUriScheme
@@ -207,13 +208,15 @@ export class HttpClient {
                 : new URL(proxy).protocol;
 
             if (!scheme) {
-                message = `Proxy settings found, but without a protocol (e.g. http://): '${proxy}'.  You may encounter connection issues while using this extension.`;
-                localizedMessage = ProxyMessages.missingProtocolWarning(proxy);
+                message = `Proxy settings found, but without a protocol (e.g. http://): '${redactedProxy}'.  You may encounter connection issues while using this extension.`;
+                localizedMessage = ProxyMessages.missingProtocolWarning(redactedProxy);
             }
         } catch (error) {
-            const errorMessage = getErrorMessage(error);
-            message = `Proxy settings found, but encountered an error while parsing the URL: '${proxy}'.  You may encounter connection issues while using this extension.  Error: ${errorMessage}`;
-            localizedMessage = ProxyMessages.unparseableWarning(proxy, errorMessage);
+            const errorMessage = redactProxySecrets(
+                getErrorMessage(error).replaceAll(proxy, redactedProxy),
+            );
+            message = `Proxy settings found, but encountered an error while parsing the URL: '${redactedProxy}'.  You may encounter connection issues while using this extension.  Error: ${errorMessage}`;
+            localizedMessage = ProxyMessages.unparseableWarning(redactedProxy, errorMessage);
         }
 
         if (message) {
@@ -493,6 +496,40 @@ interface ProxyAgentOptions {
     port?: string | number | null;
     protocol: string;
     rejectUnauthorized: boolean;
+}
+
+/**
+ * Redacts credentials and query or fragment values from proxy URL-like strings.
+ *
+ * Examples:
+ * - `http://user:password@proxy.example.com:8080` becomes
+ *   `http://<redacted>@proxy.example.com:8080`.
+ * - `http://proxy.example.com:8080?token=secret#fragment` becomes
+ *   `http://proxy.example.com:8080<redacted>`.
+ * - `proxy.example.com:8080` remains usable as a protocol-less proxy value while
+ *   still redacting any credentials or query and fragment values.
+ */
+function redactProxySecrets(proxy: string): string {
+    const schemeSeparatorIndex = proxy.indexOf("://");
+    const authorityStart = schemeSeparatorIndex >= 0 ? schemeSeparatorIndex + 3 : 0;
+    const authorityEnd = ["/", "?", "#"]
+        .map((separator) => proxy.indexOf(separator, authorityStart))
+        .filter((index) => index >= 0)
+        .reduce((first, index) => Math.min(first, index), proxy.length);
+    const credentialSeparatorIndex = proxy.lastIndexOf("@", authorityEnd - 1);
+
+    let redacted =
+        credentialSeparatorIndex >= authorityStart
+            ? `${proxy.slice(0, authorityStart)}<redacted>@${proxy.slice(credentialSeparatorIndex + 1)}`
+            : proxy;
+    const sensitiveSuffixIndex = [redacted.indexOf("?"), redacted.indexOf("#")]
+        .filter((index) => index >= 0)
+        .reduce((first, index) => Math.min(first, index), redacted.length);
+    if (sensitiveSuffixIndex < redacted.length) {
+        redacted = `${redacted.slice(0, sensitiveSuffixIndex)}<redacted>`;
+    }
+
+    return redacted;
 }
 
 /** Error raised by a download when request or response streaming fails. */
