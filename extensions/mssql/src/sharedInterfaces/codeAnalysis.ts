@@ -8,11 +8,7 @@ import { CodeAnalysisRuleSeverity } from "../enums";
 
 export { CodeAnalysisRuleSeverity };
 
-/**
- * Grouping category for custom rules whose `[ExportCodeAnalysisRule]` attribute declares no
- * category. Not localized: it is compared against the categories DacFx and rule packages report,
- * which are themselves invariant strings.
- */
+/** Category shown for custom rules that don't specify one. */
 export const customRulesCategory = "Custom Rules";
 
 /**

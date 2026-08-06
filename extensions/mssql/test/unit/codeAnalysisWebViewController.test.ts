@@ -76,7 +76,7 @@ function toSqlCodeAnalysisRule(rule: CodeAnalysisRuleInfo): SqlCodeAnalysisRule 
         severity,
         enabled: severity !== CodeAnalysisRuleSeverity.Disabled,
         ruleScope: rule.ruleScope,
-        isBuiltIn: rule.isBuiltIn ?? true,
+        isBuiltIn: rule.isBuiltIn,
     };
 }
 
@@ -696,19 +696,6 @@ suite("CodeAnalysisWebViewController Tests", () => {
             await getInternalController().loadRules();
 
             expect(controller.state.rules[0].category).to.equal("Performance");
-        });
-
-        test("treats a rule as built-in when STS omits isBuiltIn", async () => {
-            createController();
-
-            await getInternalController().loadRules();
-
-            const rule = controller.state.rules[0];
-            expect(rule.isBuiltIn, "missing isBuiltIn should default to built-in").to.be.true;
-            expect(
-                rule.category,
-                "a built-in rule keeps its declared category rather than the custom fallback",
-            ).to.equal("Design");
         });
     });
 });

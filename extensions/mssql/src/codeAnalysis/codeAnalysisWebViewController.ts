@@ -289,18 +289,16 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
 
         const rules = (rulesResult.rules ?? []).map((rule) => {
             const severity = this.normalizeSeverity(rule.severity);
-            // Older STS builds omit isBuiltIn; treat those rules as built-in.
-            const isBuiltIn = rule.isBuiltIn ?? true;
             return {
                 ruleId: rule.ruleId,
                 shortRuleId: rule.shortRuleId,
                 displayName: rule.displayName,
                 severity,
                 enabled: severity !== CodeAnalysisRuleSeverity.Disabled,
-                category: rule.category || (isBuiltIn ? "" : customRulesCategory),
+                category: rule.category || (rule.isBuiltIn ? "" : customRulesCategory),
                 description: rule.description,
                 ruleScope: rule.ruleScope,
-                isBuiltIn,
+                isBuiltIn: rule.isBuiltIn,
             };
         });
 
