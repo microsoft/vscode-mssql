@@ -295,6 +295,23 @@ describe("HttpClient", () => {
             assert.equal(logger.warn.mock.callCount(), 1);
         });
 
+        it("redacts proxy credentials and query values from warnings", () => {
+            proxyValue = "http://user:super-secret@[invalid-host]?token=also-secret";
+            parseUriScheme = () => {
+                throw new Error(`Invalid URL: ${proxyValue}`);
+            };
+
+            const warning = httpClient.getInvalidProxySettingsWarning();
+            const loggedWarning = logger.warn.mock.calls[0].arguments[0];
+
+            for (const exposedValue of ["user", "super-secret", "token", "also-secret"]) {
+                assert.equal(warning.includes(exposedValue), false);
+                assert.equal(loggedWarning.includes(exposedValue), false);
+            }
+            assert.ok(warning.includes("<redacted>"));
+            assert.ok(loggedWarning.includes("<redacted>"));
+        });
+
         it("does not warn when the proxy is valid", () => {
             for (const validProxyValue of [
                 "http://valid-proxy.test:8080",
