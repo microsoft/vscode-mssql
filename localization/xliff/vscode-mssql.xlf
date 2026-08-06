@@ -2396,6 +2396,9 @@
     <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
       <source xml:lang="en">Don&apos;t Show Again</source>
     </trans-unit>
+    <trans-unit id="++CODE++e9fe164f97f673585a75f5149c901c36d0e3aea2ff0db8d821c3cde896ec335d">
+      <source xml:lang="en">Don&apos;t Show Again for This Extension</source>
+    </trans-unit>
     <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
       <source xml:lang="en">Don&apos;t show this again</source>
     </trans-unit>
@@ -5995,6 +5998,9 @@
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
     </trans-unit>
+    <trans-unit id="++CODE++556572ec740bed342e21b9f316329848eeaca81797f40ef1ca046c3ac857f951">
+      <source xml:lang="en">Report Migration Issue</source>
+    </trans-unit>
     <trans-unit id="++CODE++cc874c54b76cd239b02d7fddeea1dd3415c1a0a3fe476cd537f26b06c0e98dcd">
       <source xml:lang="en">Request a new feature</source>
     </trans-unit>
@@ -8622,6 +8628,10 @@
     </trans-unit>
     <trans-unit id="++CODE++c7c45c2f2ad470c2dc1a35bf3320d977e49bd4f4c804d9bf347d009669e5ebae">
       <source xml:lang="en">{{put-server-name-here}}</source>
+    </trans-unit>
+    <trans-unit id="++CODE++78049e807aba6f3058da1626c969c0cb383c43dfb68f40ea7d96d1e2cf8f3bcd">
+      <source xml:lang="en">“{0}” uses an MSSQL connection sharing API that will be retired in a future release. The API will continue to work until then. Please remove this dependency before it is retired.</source>
+      <note>{0} is the extension name</note>
     </trans-unit>
     <trans-unit id="++CODE++097beaf7cff8a2792062a02ba2078dcf76e2166c13dd935fbffcd530d655cdf6">
       <source xml:lang="en">✅ Grant Access</source>

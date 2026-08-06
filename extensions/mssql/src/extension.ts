@@ -36,6 +36,7 @@ import {
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
+import { withPublicApiRetirementWarnings } from "./utils/apiDeprecation";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -146,7 +147,7 @@ class MssqlActivation {
 
         await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
-        return {
+        const extensionApi: IExtension = {
             sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
             promptForConnection: async (ignoreFocusOut?: boolean) => {
                 const connectionProfileList =
@@ -274,6 +275,8 @@ class MssqlActivation {
             } as vscodeMssql.IConnectionSharingService,
             uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
         };
+
+        return withPublicApiRetirementWarnings(extensionApi);
     }
 
     async deactivate(): Promise<void> {
