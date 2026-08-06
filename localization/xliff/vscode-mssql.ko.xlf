@@ -401,6 +401,10 @@
         <source xml:lang="en">Advanced restore options</source>
         <target state="translated">고급 복원 옵션</target>
       </trans-unit>
+      <trans-unit id="++CODE++9273e47b2772e54616e881165737b64eca4d6db0c0eac30621a74e29696c1860">
+        <source xml:lang="en">Affected child objects</source>
+        <target state="new">Affected child objects</target>
+      </trans-unit>
       <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
         <source xml:lang="en">After</source>
         <target state="translated">이후</target>
@@ -2152,6 +2156,21 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
         <source xml:lang="en">Consider adding a name for this foreign key</source>
         <target state="translated">이 외래 키의 이름을 추가하는 것이 좋습니다.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++1fb78b59d106ba2e4cd956f77e6e0c4bb1090e2d57ac69e73e49aef3fc65d6aa">
+        <source xml:lang="en">Constraints added: {0}</source>
+        <note>{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.</note>
+        <target state="new">Constraints added: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++bbbe9ad1983802ef25e78bbea25d0abdc86664e6a53f1459d4cc71cda0a25d8e">
+        <source xml:lang="en">Constraints changed: {0}</source>
+        <note>{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.</note>
+        <target state="new">Constraints changed: {0}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c9d2fd860eb492e6f42e47058e7242c10daec76480b280a0886b242619243760">
+        <source xml:lang="en">Constraints dropped: {0}</source>
+        <note>{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.</note>
+        <target state="new">Constraints dropped: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++ca0fa7ee8e0d9d4e742094db2e8d59b963dce003cc884c8573d64d59fcfe16dd">
         <source xml:lang="en">Container Name</source>
