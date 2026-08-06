@@ -2557,6 +2557,29 @@ export class LocConstants {
         };
     }
 
+    public get connectToDatabase() {
+        return {
+            title: l10n.t("Connect to Database"),
+            subtitle: l10n.t(
+                "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.",
+            ),
+            connectionString: l10n.t("Connection string"),
+            runYourMigrations: l10n.t("Run your migrations"),
+            copy: l10n.t("Copy"),
+            copied: l10n.t("Copied!"),
+            copyConnectionString: l10n.t("Copy connection string"),
+            copyMigrationCommand: l10n.t("Copy migration command"),
+            toolDocs: (toolName: string) =>
+                l10n.t({
+                    message: "{0} docs",
+                    args: [toolName],
+                    comment: ["{0} is the name of a database migration tool"],
+                }),
+            collapseCard: l10n.t("Collapse Connect to Database"),
+            expandCard: l10n.t("Expand Connect to Database"),
+        };
+    }
+
     public get changePasswordDialog() {
         return {
             title: l10n.t("Change Password"),
