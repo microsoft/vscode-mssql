@@ -4048,6 +4048,10 @@ Error:
 {1} is the error message</note>
         <target state="translated">Fabric の長時間実行 API エラーが発生しました。エラー コード '{0}': {1}</target>
       </trans-unit>
+      <trans-unit id="++CODE++e341345b2922855a5f87cfce904e4e54512090c13bba238e46fec614f1ba5cfc">
+        <source xml:lang="en">Fabric long-running operation response did not include a location header.</source>
+        <target state="new">Fabric long-running operation response did not include a location header.</target>
+      </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
         <target state="translated">失敗</target>
@@ -7459,17 +7463,6 @@ Error:
         <source xml:lang="en">Provisioning</source>
         <target state="translated">プロビジョニング</target>
       </trans-unit>
-      <trans-unit id="++CODE++678ad71e58face209dc9ea6475de66b19d0de037788611dae9e289e84f55e3fa">
-        <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
-        <note>{0} is the proxy URL
-{1} is the error message</note>
-        <target state="translated">プロキシ設定が見つかりましたが、URL の解析中にエラーが発生しました: '{0}'。MSSQL 拡張機能の使用中に接続の問題が発生する場合があります。 エラー: {1}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++a30e8b09ae56f5e3dd699c50044ea385b174fbe98b1f7ad333d1fffb7b694ea5">
-        <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.</source>
-        <note>{0} is the proxy URL</note>
-        <target state="translated">プロキシ設定が見つかりましたが、プロトコル (例: http://) がありません: '{0}'。MSSQL 拡張機能の使用中に接続の問題が発生する場合があります。</target>
-      </trans-unit>
       <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
         <source xml:lang="en">Public</source>
         <target state="translated">パブリック</target>
@@ -10194,10 +10187,6 @@ Query: {2}</source>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
         <target state="translated">テーブル エクスプローラーを開けません: ターゲット ノードが指定されていません。</target>
-      </trans-unit>
-      <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
-        <source xml:lang="en">Unable to read proxy agent options.</source>
-        <target state="translated">プロキシ エージェント オプションを読み取れませんでした。</target>
       </trans-unit>
       <trans-unit id="++CODE++5d1ae18e4c82efee8401c895242feeb54a8a5093d2b024877c83a7a08660a945">
         <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server.</source>

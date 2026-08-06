@@ -127,7 +127,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
         // Treat all files as present and fail the test if a network download is attempted.
         sandbox.stub(utils, "exists").resolves(true);
         sandbox
-            .stub(VscodeHttpClient.prototype, "downloadFile")
+            .stub(VscodeHttpClient.prototype, "downloadToPath")
             .throws(new Error("download should not be called"));
 
         const testContext: TestContext = createContext();
@@ -173,7 +173,9 @@ suite("BuildHelper: Build Helper tests", function (): void {
         sandbox.stub(utils, "exists").resolves(false);
 
         // Make the actual HTTP download fail (simulates offline / proxy failure).
-        sandbox.stub(VscodeHttpClient.prototype, "downloadFile").rejects(new Error("ECONNREFUSED"));
+        sandbox
+            .stub(VscodeHttpClient.prototype, "downloadToPath")
+            .rejects(new Error("ECONNREFUSED"));
 
         // Capture the error message shown to the user.
         let shownMessage: string | undefined;
@@ -267,7 +269,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
     test("Returns true without downloading when all expected files already exist", async function (): Promise<void> {
         // All files already present → download should never be called.
         sandbox.stub(utils, "exists").resolves(true);
-        const downloadSpy = sandbox.stub(VscodeHttpClient.prototype, "downloadFile");
+        const downloadSpy = sandbox.stub(VscodeHttpClient.prototype, "downloadToPath");
 
         const outputChannel = {
             appendLine: () => {},
