@@ -22,7 +22,7 @@ import {
     Dismiss24Regular,
     FolderAddRegular,
 } from "@fluentui/react-icons";
-import { locConstants } from "./locConstants";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     header: {

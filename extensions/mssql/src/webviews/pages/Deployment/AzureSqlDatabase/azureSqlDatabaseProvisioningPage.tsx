@@ -10,7 +10,7 @@ import { locConstants } from "../../../common/locConstants";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 import { DeploymentStepCard } from "../deploymentStepCard";
 import { DeploymentContext } from "../deploymentStateProvider";
-import { PostDeploymentScript } from "../../../common/postDeploymentScriptsDrawer";
+import { PostDeploymentScript } from "../postDeploymentScriptsDrawer";
 import { DeploymentScriptsCard } from "../../../common/deploymentScriptsCard";
 import {
     generateAzureSqlDatabaseArm,

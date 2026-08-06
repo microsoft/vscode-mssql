@@ -13,7 +13,10 @@ import {
     DocumentChevronDoubleRegular,
 } from "@fluentui/react-icons";
 import { locConstants } from "./locConstants";
-import { PostDeploymentScript, PostDeploymentScriptsDrawer } from "./postDeploymentScriptsDrawer";
+import {
+    PostDeploymentScript,
+    PostDeploymentScriptsDrawer,
+} from "../pages/Deployment/postDeploymentScriptsDrawer";
 
 const useStyles = makeStyles({
     scriptsCard: {
