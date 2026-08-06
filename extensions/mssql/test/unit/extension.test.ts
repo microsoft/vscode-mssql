@@ -136,13 +136,13 @@ suite("Extension API Tests", () => {
 
     test("warns every time sqlToolsServicePath is accessed", async () => {
         expect(vscodeMssql.sqlToolsServicePath).to.not.be.null;
-        expect(consoleWarnStub).to.have.been.calledWith(
+        expect(consoleWarnStub).to.have.been.calledWithMatch(
             sinon.match('The public extension API member "sqlToolsServicePath"'),
         );
 
         consoleWarnStub.resetHistory();
         expect(vscodeMssql.sqlToolsServicePath).to.not.be.null;
-        expect(consoleWarnStub).to.have.been.calledWith(
+        expect(consoleWarnStub).to.have.been.calledWithMatch(
             sinon.match('The public extension API member "sqlToolsServicePath"'),
         );
     });

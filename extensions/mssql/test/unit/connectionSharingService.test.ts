@@ -213,11 +213,7 @@ suite("ConnectionSharingService Tests", () => {
                 LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension,
             );
             expect(openExternalStub).to.have.been.calledWithMatch(
-                sinon.match((uri: vscode.Uri) =>
-                    uri
-                        .toString()
-                        .startsWith("https://github.com/microsoft/vscode-mssql/issues/new"),
-                ),
+                sinon.match((uri: vscode.Uri) => uri.toString() === Constants.feedbackUrl),
             );
         });
 
@@ -264,6 +260,34 @@ suite("ConnectionSharingService Tests", () => {
             await command!(testExtensionId);
 
             expect(showWarningMessageStub).not.to.have.been.called;
+        });
+
+        test("shows the retirement toast when the API call fails without a connection", async () => {
+            secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
+            getExtensionStub.withArgs(testExtensionId).returns({
+                id: testExtensionId,
+                packageJSON: { displayName: "Test Extension" },
+            });
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => undefined);
+
+            const command = registeredCommands.get(
+                "mssql.connectionSharing.getActiveEditorConnectionId",
+            );
+            try {
+                await command!(testExtensionId);
+                expect.fail("Expected the API call to fail without an active editor");
+            } catch (error) {
+                expect(error).to.be.instanceOf(ConnectionSharingError);
+                expect((error as ConnectionSharingError).code).to.equal(
+                    ConnectionSharingErrorCode.NO_ACTIVE_EDITOR,
+                );
+            }
+
+            expect(showWarningMessageStub).to.have.been.calledWith(
+                LocalizedConstants.ConnectionSharing.retirementWarning("Test Extension"),
+                LocalizedConstants.ConnectionSharing.ReportMigrationIssue,
+                LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension,
+            );
         });
 
         test("does not show another toast after the extension opts out", async () => {
