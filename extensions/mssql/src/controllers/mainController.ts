@@ -43,9 +43,6 @@ import { ObjectManagementService } from "../services/objectManagementService";
 import StatusView from "../views/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "../models/interfaces";
 import ConnectionManager from "./connectionManager";
-import { CredentialStore, ICredentialStore } from "../credentialstore/credentialstore";
-import { IConnectionStore, ConnectionStore } from "../models/connectionStore";
-import { IAccountStore, AccountStore } from "../azure/accountStore";
 import { IInstantiationService } from "extension-toolkit/base";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import { sendActionEvent, sendErrorEvent, VscodeHttpClient } from "extension-toolkit/vscode";
@@ -198,11 +195,8 @@ export default class MainController implements vscode.Disposable {
      */
     constructor(
         context: vscode.ExtensionContext,
+        @IInstantiationService private readonly _instantiationService: IInstantiationService,
         connectionManager?: ConnectionManager,
-        @ICredentialStore private _credentialStore?: CredentialStore,
-        @IConnectionStore private _connectionStore?: ConnectionStore,
-        @IAccountStore private _accountStore?: AccountStore,
-        @IInstantiationService private _instantiationService?: IInstantiationService,
     ) {
         this._context = context;
         if (connectionManager) {
@@ -1077,18 +1071,14 @@ export default class MainController implements vscode.Disposable {
         );
 
         // Init connection manager and connection MRU
-        this._connectionMgr = new ConnectionManager(
-            this._context,
-            this._statusview,
-            this._prompter,
-            undefined,
-            undefined,
-            this._connectionStore,
-            this._credentialStore,
-            undefined,
-            this._accountStore,
-            this._instantiationService,
-        );
+        if (!this._connectionMgr) {
+            this._connectionMgr = this._instantiationService.createInstance(
+                ConnectionManager,
+                this._context,
+                this._statusview,
+                this._prompter,
+            );
+        }
 
         this._sqlDocumentService = new SqlDocumentService(this);
         this.configureQuickQueryService();

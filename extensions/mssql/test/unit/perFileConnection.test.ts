@@ -29,7 +29,7 @@ import { AccountStore } from "../../src/azure/accountStore";
 import { AzureController } from "../../src/azure/azureController";
 import StatusView from "../../src/views/statusView";
 import { uuid } from "../../src/utils/utils";
-import { stubExtensionContext, stubPrompter } from "./utils";
+import { stubExtensionContext, stubInstantiationService, stubPrompter } from "./utils";
 
 const expect = chai.expect;
 
@@ -313,7 +313,11 @@ suite("Per File Connection Tests", () => {
         connectionManagerStub.isConnected.returns(false);
         connectionManagerStub.promptToConnect.resolves();
 
-        const controller = new MainController(extensionContext, connectionManagerStub);
+        const controller = new MainController(
+            extensionContext,
+            stubInstantiationService(sandbox),
+            connectionManagerStub,
+        );
 
         await controller.onRunQuery();
 

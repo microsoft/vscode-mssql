@@ -22,7 +22,12 @@ import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { Deferred } from "../../src/protocol";
-import { createStubLogger, stubExtensionContext, stubTelemetry } from "./utils";
+import {
+    createStubLogger,
+    stubExtensionContext,
+    stubInstantiationService,
+    stubTelemetry,
+} from "./utils";
 
 chai.use(sinonChai);
 
@@ -61,7 +66,7 @@ suite("SqlDocumentService Tests", () => {
         ): vscode.Disposable => ({ dispose: () => {} });
 
         // Create main controller
-        mainController = new MainController(mockContext);
+        mainController = new MainController(mockContext, stubInstantiationService(sandbox));
         mainController.connectionManager = connectionManager;
         mainController.createObjectExplorerSession = sandbox.stub().resolves();
 
