@@ -20246,7 +20246,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Fabric databases in Query Profiler]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Database Fabric in Query Profiler]]></Val>
+            <Val><![CDATA[Database di Fabric in Query Profiler]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
