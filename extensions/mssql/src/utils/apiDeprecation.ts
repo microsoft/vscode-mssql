@@ -15,14 +15,17 @@ export function warnPublicApiRetirement(memberName: string): void {
 /**
  * Wraps the public extension API so properties and methods emit a retirement warning when accessed.
  */
-export function withPublicApiRetirementWarnings<T extends object>(api: T): T {
+export function withPublicApiRetirementWarnings<T extends object>(
+    api: T,
+    warn: (memberName: string) => void = warnPublicApiRetirement,
+): T {
     return new Proxy(api, {
         get(target, property, receiver) {
             if (
                 typeof property === "string" &&
                 Object.prototype.hasOwnProperty.call(target, property)
             ) {
-                warnPublicApiRetirement(property);
+                warn(property);
             }
             return Reflect.get(target, property, receiver);
         },

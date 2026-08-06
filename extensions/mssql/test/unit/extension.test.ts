@@ -29,6 +29,7 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as UriOwnershipInitialization from "../../src/uriOwnership/uriOwnershipInitialization";
 import { IconUtils } from "../../src/utils/iconUtils";
 import { UriOwnershipCoordinator } from "../../src/uriOwnership/uriOwnershipCore";
+import { withPublicApiRetirementWarnings } from "../../src/utils/apiDeprecation";
 
 const { expect } = chai;
 
@@ -43,11 +44,10 @@ suite("Extension API Tests", () => {
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionUiStub: sinon.SinonStubbedInstance<ConnectionUI>;
     let originalConnectionManager: ConnectionManager;
-    let consoleWarnStub: sinon.SinonStub;
+    let publicApiWarningStub: sinon.SinonStub;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
-        consoleWarnStub = sandbox.stub(console, "warn");
         context = stubExtensionContext(sandbox, { version: "1.0.0" });
 
         const disposable = { dispose: sandbox.stub() } as vscode.Disposable;
@@ -97,14 +97,20 @@ suite("Extension API Tests", () => {
         sandbox.stub(sqlToolsClient, "sqlToolsServicePath").get(() => "test/sqltoolsservice");
         sqlToolsClient.onNotification.returns(disposable); // handler stub necessary depending on test execution order
 
-        sandbox.stub(UriOwnershipInitialization, "createUriOwnershipCoordinator").returns({
+        const uriOwnershipCoordinatorStub = sandbox.createStubInstance(UriOwnershipCoordinator);
+        Object.assign(uriOwnershipCoordinatorStub, {
             uriOwnershipApi: {},
-            isActiveEditorOwnedByOtherExtensionWithWarning: () => false,
-        } as UriOwnershipCoordinator);
+            onCoordinatingOwnershipChanged: sandbox.stub().returns(disposable),
+        });
+        uriOwnershipCoordinatorStub.isActiveEditorOwnedByOtherExtensionWithWarning.returns(false);
+        sandbox
+            .stub(UriOwnershipInitialization, "createUriOwnershipCoordinator")
+            .returns(uriOwnershipCoordinatorStub);
         sandbox.stub(UriOwnershipInitialization, "initializeUriOwnershipCoordinator").returns();
 
         vscodeMssql = await Extension.activate(context);
         mainController = await Extension.getController();
+        publicApiWarningStub = sandbox.stub();
 
         connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
         connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
@@ -136,14 +142,20 @@ suite("Extension API Tests", () => {
 
     test("warns every time sqlToolsServicePath is accessed", async () => {
         expect(vscodeMssql.sqlToolsServicePath).to.not.be.null;
-        expect(consoleWarnStub).to.have.been.calledWithMatch(
-            sinon.match('The public extension API member "sqlToolsServicePath"'),
+        const warnedApi = withPublicApiRetirementWarnings(
+            { sqlToolsServicePath: "test/sqltoolsservice" },
+            (memberName) => publicApiWarningStub(memberName),
         );
 
-        consoleWarnStub.resetHistory();
-        expect(vscodeMssql.sqlToolsServicePath).to.not.be.null;
-        expect(consoleWarnStub).to.have.been.calledWithMatch(
-            sinon.match('The public extension API member "sqlToolsServicePath"'),
+        expect(warnedApi.sqlToolsServicePath).to.not.be.null;
+        expect(publicApiWarningStub).to.have.been.calledWithMatch(
+            sinon.match("sqlToolsServicePath"),
+        );
+
+        publicApiWarningStub.resetHistory();
+        expect(warnedApi.sqlToolsServicePath).to.not.be.null;
+        expect(publicApiWarningStub).to.have.been.calledWithMatch(
+            sinon.match("sqlToolsServicePath"),
         );
     });
 
