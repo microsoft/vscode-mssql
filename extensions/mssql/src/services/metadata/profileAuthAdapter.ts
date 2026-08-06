@@ -22,6 +22,10 @@ import { profileFingerprint, serverFingerprint } from "./profileFingerprint";
 export interface StoredConnectionProfile {
     id?: string;
     server?: string;
+    /** Optional SQL TCP port from classic IConnectionInfo profiles. The data
+     * plane carries endpoints as `server,port`, so this must be folded into
+     * the sanitized server identity before opening a session. */
+    port?: string | number;
     database?: string;
     user?: string;
     email?: string;
@@ -32,6 +36,15 @@ export interface StoredConnectionProfile {
     trustServerCertificate?: boolean;
     profileName?: string;
     savePassword?: boolean;
+}
+
+function profileServerEndpoint(stored: StoredConnectionProfile): string {
+    const server = stored.server ?? "";
+    const port = String(stored.port ?? "").trim();
+    if (!/^\d+$/.test(port) || server.includes(",")) {
+        return server;
+    }
+    return `${server},${port}`;
 }
 
 /** First usable human-readable principal; empty profile fields are not identities. */
@@ -56,7 +69,7 @@ export function stableProfileId(stored: StoredConnectionProfile): string {
     const principal = profilePrincipal(stored) ?? stored.accountId?.trim() ?? "";
     return (
         stored.id ??
-        `${stored.server}|${stored.database ?? ""}|${principal}|${stored.tenantId ?? ""}|${stored.authenticationType ?? ""}`
+        `${profileServerEndpoint(stored)}|${stored.database ?? ""}|${principal}|${stored.tenantId ?? ""}|${stored.authenticationType ?? ""}`
     );
 }
 
@@ -104,8 +117,13 @@ export function buildProfileRef(stored: StoredConnectionProfile): SqlConnectionP
     const authKind = resolveAuthKind(stored);
     const principal = profilePrincipal(stored);
     return {
-        profileFingerprint: profileFingerprint({ ...stored, user: principal, authKind }),
-        server: stored.server ?? "",
+        profileFingerprint: profileFingerprint({
+            ...stored,
+            server: profileServerEndpoint(stored),
+            user: principal,
+            authKind,
+        }),
+        server: profileServerEndpoint(stored),
         ...(stored.database ? { database: stored.database } : {}),
         authKind,
         ...(principal ? { user: principal } : {}),
@@ -173,7 +191,12 @@ export function prepareConnection(
         profileRef: buildProfileRef(stored),
         auth: buildAuthBundle(stored, secrets, tokens),
         authKind,
-        serverFingerprint: serverFingerprint({ ...stored, user: principal, authKind }),
+        serverFingerprint: serverFingerprint({
+            ...stored,
+            server: profileServerEndpoint(stored),
+            user: principal,
+            authKind,
+        }),
         ...(stored.database ? { defaultDatabase: stored.database } : {}),
         ...(stored.profileName || stored.server
             ? { displayName: stored.profileName ?? stored.server }

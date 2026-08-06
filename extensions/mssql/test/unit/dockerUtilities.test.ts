@@ -153,7 +153,7 @@ suite("Docker Utilities", () => {
         sandbox.restore();
     });
 
-    test("sanitizeErrorText: should truncate long error messages and sanitize SA_PASSWORD", () => {
+    test("sanitizeErrorText masks current and legacy SQL password variables", () => {
         // Test sanitization
         const errorWithPassword = "Connection failed: SA_PASSWORD={testtesttest} something broke";
         const sanitized = dockerUtils.sanitizeErrorText(errorWithPassword);
@@ -163,6 +163,11 @@ suite("Docker Utilities", () => {
             !sanitized.includes("testtesttest"),
             "Original password should not appear in sanitized output",
         ).to.be.true;
+        const current = dockerUtils.sanitizeErrorText(
+            "Connection failed: MSSQL_SA_PASSWORD={newsecret} something broke",
+        );
+        expect(current).to.include("MSSQL_SA_PASSWORD=******");
+        expect(current).not.to.include("newsecret");
     });
 
     test("checkDockerInstallation: should check Docker installation and return correct status", async () => {

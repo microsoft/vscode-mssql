@@ -288,6 +288,23 @@ suite("MetadataStore (B15)", () => {
         expect(resolveAuthKind({ authenticationType: "SqlLogin" })).to.equal("sql");
         expect(await sqlPrepared.auth.passwordProvider!()).to.equal("pw-value");
         expect(lookups).to.equal(1);
+
+        const portPrepared = prepareConnection(
+            {
+                server: "localhost",
+                port: 31433,
+                user: "sa",
+                authenticationType: "SqlLogin",
+            },
+            { lookupPassword: async () => "run-scoped-secret" },
+        );
+        expect(portPrepared.profileRef.server).to.equal("localhost,31433");
+        expect(portPrepared.profileRef.profileFingerprint).to.not.equal(
+            prepareConnection(
+                { server: "localhost", port: 31434, user: "sa", authenticationType: "SqlLogin" },
+                NO_SECRETS,
+            ).profileRef.profileFingerprint,
+        );
     });
 
     test("prepareConnection: AzureMFA uses deferred SQL token and isolates Entra identities", async () => {
