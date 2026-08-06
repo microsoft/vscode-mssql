@@ -8,7 +8,7 @@ import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { useFabricDeploymentSelector } from "../deploymentSelector";
 import { DeploymentStepCard } from "../deploymentStepCard";
-import { ConnectToDatabaseCard } from "../../../common/connectToDatabaseCard";
+import { ConnectToDatabaseCard } from "../connectToDatabaseCard";
 
 const useStyles = makeStyles({
     outerDiv: {

@@ -20,8 +20,8 @@ import {
     ChevronRightRegular,
     Copy16Regular,
 } from "@fluentui/react-icons";
-import { locConstants } from "./locConstants";
-import { SegmentedControl } from "./segmentedControl";
+import { locConstants } from "../../common/locConstants";
+import { SegmentedControl } from "../../common/segmentedControl";
 
 /** Ordered list of supported migration tools and the command each one runs. */
 const MIGRATION_TOOLS: { id: string; label: string; command: string; docsUrl: string }[] = [
