@@ -23,7 +23,7 @@ import { RequestType } from "vscode-languageclient";
 import { stubExtensionContext } from "./utils";
 import { ChangelogWebviewController } from "../../src/controllers/changelogWebviewController";
 import * as LocalizationCache from "../../src/controllers/localizationCache";
-import { HttpClient } from "../../src/http/httpClient";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { UserSurvey } from "../../src/nps/userSurvey";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as UriOwnershipInitialization from "../../src/uriOwnership/uriOwnershipInitialization";
@@ -87,7 +87,7 @@ suite("Extension API Tests", () => {
         sandbox.stub(LocalizationCache, "initializeWebviewLocalizationCache").returns();
         sandbox.stub(IconUtils, "initialize").returns();
         sandbox.stub(UserSurvey, "createInstance").returns();
-        sandbox.stub(HttpClient.prototype, "warnOnInvalidProxySettings").returns();
+        sandbox.stub(VscodeHttpClient.prototype, "warnOnInvalidProxySettings").returns();
         sandbox.stub(MainController.prototype, "activate").resolves(true);
 
         const sqlToolsClient: sinon.SinonStubbedInstance<SqlToolsServerClient> =

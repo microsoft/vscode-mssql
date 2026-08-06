@@ -3,16 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import AdsTelemetryReporter from "@microsoft/ads-extension-telemetry";
+import { TelemetryReporter as ExtensionTelemetryReporter } from "extension-toolkit/vscode";
 import * as utils from "./utils";
 
 const packageJson = require("../../../package.json");
 
 let packageInfo = utils.getPackageInfo(packageJson)!;
 
-export const TelemetryReporter = new AdsTelemetryReporter<TelemetryViews, TelemetryActions>(
-    packageInfo.name,
-    packageInfo.version,
+export const TelemetryReporter = new ExtensionTelemetryReporter<TelemetryViews, TelemetryActions>(
     packageInfo.aiKey,
 );
 

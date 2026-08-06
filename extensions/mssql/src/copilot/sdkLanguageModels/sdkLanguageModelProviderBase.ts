@@ -8,7 +8,7 @@ import * as Constants from "../../constants/constants";
 import { logger2 } from "../../models/logger2";
 import { getLatencyBucket } from "../../sharedInterfaces/latencyBuckets";
 import { TelemetryActions, TelemetryViews } from "../../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../../utils/utils";
 import {
     LanguageModelChatInformation,

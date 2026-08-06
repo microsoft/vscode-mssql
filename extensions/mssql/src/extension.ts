@@ -6,7 +6,14 @@
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
 import { InstantiationServiceBuilder } from "extension-toolkit/base";
-import { ExtensionContextService, IExtensionContextService } from "extension-toolkit/vscode";
+import {
+    ExtensionContextService,
+    IExtensionContextService,
+    initializeExtensionToolkit,
+    initializeTelemetryReporter,
+    sendActionEvent,
+    telemetryReporter,
+} from "extension-toolkit/vscode";
 import MainController from "./controllers/mainController";
 import { ConnectionDetails, IConnectionInfo, IExtension } from "vscode-mssql";
 import * as utils from "./models/utils";
@@ -18,7 +25,6 @@ import {
     ISqlChatResult,
     provideFollowups,
 } from "./copilot/chatAgentRequestHandler";
-import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
@@ -47,6 +53,7 @@ export let uriOwnershipCoordinator: UriOwnershipCoordinator = undefined;
 let activation: MssqlActivation | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
+    initializeExtensionToolkit();
     try {
         return await activateInternal(context);
     } catch (error) {
@@ -102,6 +109,7 @@ class MssqlActivation {
 
     async activate(): Promise<IExtension> {
         const context = this._contextService.context;
+        initializeTelemetryReporter(context.extension.packageJSON.aiKey);
 
         // Session Diag lifecycle FIRST: when mssql.sessionDiag.enabled is on, the
         // store sink must exist before the first activation marker fires so
@@ -125,6 +133,8 @@ class MssqlActivation {
 
         controller = new MainController(context);
         context.subscriptions.push(controller);
+        context.subscriptions.push(telemetryReporter);
+
         // Initialize loc cache for webviews early so that it's ready by the time any webview requests it.
         initializeWebviewLocalizationCache();
 

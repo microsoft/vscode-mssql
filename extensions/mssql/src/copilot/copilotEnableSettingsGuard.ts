@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../utils/utils";
 
 const dismissedStateKey = "copilotEnableGuard.dismissed";

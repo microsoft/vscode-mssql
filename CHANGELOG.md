@@ -1,5 +1,16 @@
 # Change Log
 
+## Version 1.44.1
+
+- Release date: July 29, 2026
+- Release status: GA
+
+### What's new in 1.44.1
+
+- Fixed an issue where some connection-related dialogs would be blank when opened on systems with case-sensitive file-systems
+- Added support for selected text in Quick Query shortcuts
+- Fixed an issue where Intellisense would stop working in SQL Notebooks when the notebook was saved and/or reconnected.
+
 ## Version 1.44.0
 
 - Release date: July 15, 2026

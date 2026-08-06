@@ -306,6 +306,9 @@
     <trans-unit id="++CODE++cfbdd6edf1303a7731f7ba735eee41c3618043e3cb424fe470dced0126aa8c71">
       <source xml:lang="en">Advanced restore options</source>
     </trans-unit>
+    <trans-unit id="++CODE++9273e47b2772e54616e881165737b64eca4d6db0c0eac30621a74e29696c1860">
+      <source xml:lang="en">Affected child objects</source>
+    </trans-unit>
     <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
       <source xml:lang="en">After</source>
     </trans-unit>
@@ -1664,6 +1667,18 @@
     </trans-unit>
     <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
       <source xml:lang="en">Consider adding a name for this foreign key</source>
+    </trans-unit>
+    <trans-unit id="++CODE++1fb78b59d106ba2e4cd956f77e6e0c4bb1090e2d57ac69e73e49aef3fc65d6aa">
+      <source xml:lang="en">Constraints added: {0}</source>
+      <note>{0} is a comma-separated list of fully-qualified object names (e.g. &apos;[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]&apos;) that will be added under the selected parent object when the diff is applied.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++bbbe9ad1983802ef25e78bbea25d0abdc86664e6a53f1459d4cc71cda0a25d8e">
+      <source xml:lang="en">Constraints changed: {0}</source>
+      <note>{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.</note>
+    </trans-unit>
+    <trans-unit id="++CODE++c9d2fd860eb492e6f42e47058e7242c10daec76480b280a0886b242619243760">
+      <source xml:lang="en">Constraints dropped: {0}</source>
+      <note>{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.</note>
     </trans-unit>
     <trans-unit id="++CODE++ca0fa7ee8e0d9d4e742094db2e8d59b963dce003cc884c8573d64d59fcfe16dd">
       <source xml:lang="en">Container Name</source>
@@ -3151,6 +3166,9 @@
       <note>{0} is the error code
 {1} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++e341345b2922855a5f87cfce904e4e54512090c13bba238e46fec614f1ba5cfc">
+      <source xml:lang="en">Fabric long-running operation response did not include a location header.</source>
+    </trans-unit>
     <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
       <source xml:lang="en">Failed</source>
     </trans-unit>
@@ -4605,6 +4623,9 @@
     <trans-unit id="++CODE++9f67971ab8a605f2aedf0b33a5fce37d2b135aef48f886231da5d8163aa488a6">
       <source xml:lang="en">MSSQL Feedback</source>
     </trans-unit>
+    <trans-unit id="++CODE++a5427462c277225a1de708f2b2b949ae62f5ef9a5248d7d4c11d6ed297afc756">
+      <source xml:lang="en">MSSQL Notebook Selection Summary</source>
+    </trans-unit>
     <trans-unit id="++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4">
       <source xml:lang="en">MSSQL Notebook connected to {0}</source>
       <note>{0} is the connection label</note>
@@ -5852,15 +5873,6 @@
     </trans-unit>
     <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
       <source xml:lang="en">Provisioning</source>
-    </trans-unit>
-    <trans-unit id="++CODE++678ad71e58face209dc9ea6475de66b19d0de037788611dae9e289e84f55e3fa">
-      <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: &apos;{0}&apos;. You may encounter connection issues while using the MSSQL extension.  Error: {1}</source>
-      <note>{0} is the proxy URL
-{1} is the error message</note>
-    </trans-unit>
-    <trans-unit id="++CODE++a30e8b09ae56f5e3dd699c50044ea385b174fbe98b1f7ad333d1fffb7b694ea5">
-      <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): &apos;{0}&apos;. You may encounter connection issues while using the MSSQL extension.</source>
-      <note>{0} is the proxy URL</note>
     </trans-unit>
     <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
       <source xml:lang="en">Public</source>
@@ -8001,9 +8013,6 @@
     </trans-unit>
     <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
       <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
-    </trans-unit>
-    <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
-      <source xml:lang="en">Unable to read proxy agent options.</source>
     </trans-unit>
     <trans-unit id="++CODE++5d1ae18e4c82efee8401c895242feeb54a8a5093d2b024877c83a7a08660a945">
       <source xml:lang="en">Unable to retrieve the list of databases. You may not have permission to list databases on this server.</source>

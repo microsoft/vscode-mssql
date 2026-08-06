@@ -9,7 +9,7 @@ import { diag } from "../diagnostics/diagnosticsCore";
 import * as Constants from "../constants/constants";
 import { logger2 } from "../models/logger2";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../utils/utils";
 import {
     defaultInlineCompletionModelPreference,

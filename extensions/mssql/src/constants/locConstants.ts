@@ -852,6 +852,7 @@ export class Notebooks {
     // Status bar
     public static statusBarClickToChangeConnection = l10n.t("MSSQL: Click to change connection");
     public static statusBarClickToChangeDatabase = l10n.t("MSSQL: Click to change database");
+    public static selectionSummaryStatusBarName = l10n.t("MSSQL Notebook Selection Summary");
 
     // Errors
     public static connectionFailed = l10n.t("Connection failed");
@@ -1406,6 +1407,10 @@ export class Fabric {
             comment: ["{0} is the error code", "{1} is the error message"],
         });
     };
+
+    public static fabricLongRunningApiMissingLocation = l10n.t(
+        "Fabric long-running operation response did not include a location header.",
+    );
 
     public static fabricAccount = l10n.t("Fabric Account");
     public static fabricAccountIsRequired = l10n.t("Fabric Account is required");
@@ -3689,26 +3694,6 @@ export class Profiler {
     public static noDatabasesFound = l10n.t(
         "No databases found on the server. Please check your connection.",
     );
-}
-
-export class Proxy {
-    public static unableToGetProxyAgentOptions = l10n.t("Unable to read proxy agent options.");
-
-    public static missingProtocolWarning = (proxy: string) =>
-        l10n.t({
-            message:
-                "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
-            args: [proxy],
-            comment: ["{0} is the proxy URL"],
-        });
-
-    public static unparseableWarning = (proxy: string, errorMessage: string) =>
-        l10n.t({
-            message:
-                "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
-            args: [proxy, errorMessage],
-            comment: ["{0} is the proxy URL", "{1} is the error message"],
-        });
 }
 
 export class BackupDatabase {

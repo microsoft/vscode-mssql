@@ -13,7 +13,7 @@ import SqlToolsServiceClient from "../../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
 import { SimpleExecuteResult, IDbColumn, DbCellValue } from "vscode-mssql";
 import { UserSurvey } from "../../nps/userSurvey";
-import { sendActionEvent } from "../../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../../sharedInterfaces/telemetry";
 import { getDisplayNameForTool } from "./toolsUtils";
 import { resolveQueryResultsParams } from "../../queryResults/queryResultsParams";

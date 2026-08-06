@@ -8,9 +8,9 @@ import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
 import sinonChai from "sinon-chai";
-import { AxiosResponse } from "axios";
+import { createHttpHeaders, IHttpResponse } from "extension-toolkit/base";
+import { VscodeHttpClient, withBearerToken } from "extension-toolkit/vscode";
 import { FabricHelper } from "../../src/fabric/fabricHelper";
-import { HttpClient } from "../../src/http/httpClient";
 import {
     ICapacity,
     IFabricError,
@@ -26,9 +26,22 @@ chai.use(sinonChai);
 
 suite("FabricHelper", () => {
     let sandbox: sinon.SinonSandbox;
-    let mockHttpHelper: sinon.SinonStubbedInstance<HttpClient>;
+    let mockHttpHelper: sinon.SinonStubbedInstance<VscodeHttpClient>;
+
+    const createHttpResponse = <TData>(
+        data: TData,
+        status = 200,
+        headers: Record<string, unknown> = {},
+    ): IHttpResponse<TData> => ({
+        data,
+        status,
+        statusText: "",
+        ok: status >= 200 && status < 300,
+        headers: createHttpHeaders(headers),
+    });
 
     const mockTenantId = "test-tenant-id";
+    const authenticatedOptions = withBearerToken("test-access-token");
 
     const mockCapacities: ICapacity[] = [
         {
@@ -59,11 +72,9 @@ suite("FabricHelper", () => {
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        mockHttpHelper = sandbox.createStubInstance(HttpClient);
+        mockHttpHelper = sandbox.createStubInstance(VscodeHttpClient);
 
-        sandbox
-            .stub(HttpClient.prototype, "makeGetRequest")
-            .callsFake(mockHttpHelper.makeGetRequest);
+        sandbox.stub(VscodeHttpClient.prototype, "get").callsFake(mockHttpHelper.get);
 
         sandbox.stub(vscode.authentication, "getSession").resolves(mockAuthSession);
     });
@@ -75,20 +86,14 @@ suite("FabricHelper", () => {
     suite("getFabricCapacities", () => {
         test("should return list of capacities", async () => {
             const mockResponse = { value: mockCapacities };
-            mockHttpHelper.makeGetRequest.resolves({
-                data: mockResponse,
-                status: 200,
-                statusText: "OK",
-                headers: {},
-                config: {} as AxiosResponse<{ value: ICapacity[] }>["config"],
-            } as AxiosResponse<{ value: ICapacity[] }>);
+            mockHttpHelper.get.resolves(createHttpResponse(mockResponse));
 
             const result = await FabricHelper.getFabricCapacities(mockTenantId);
 
             expect(result).to.deep.equal(mockCapacities);
-            expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
+            expect(mockHttpHelper.get).to.have.been.calledOnceWith(
                 "https://api.fabric.microsoft.com/v1/capacities",
-                "test-access-token",
+                authenticatedOptions,
             );
         });
 
@@ -97,13 +102,7 @@ suite("FabricHelper", () => {
                 errorCode: "CapacityNotFound",
                 message: "Capacity not found",
             };
-            mockHttpHelper.makeGetRequest.resolves({
-                data: fabricError,
-                status: 404,
-                statusText: "Not Found",
-                headers: {},
-                config: {} as AxiosResponse<IFabricError>["config"],
-            } as AxiosResponse<IFabricError>);
+            mockHttpHelper.get.resolves(createHttpResponse(fabricError, 404));
 
             try {
                 await FabricHelper.getFabricCapacities(mockTenantId);
@@ -149,20 +148,14 @@ suite("FabricHelper", () => {
             ];
 
             const mockResponse = { value: mockWorkspaces };
-            mockHttpHelper.makeGetRequest.resolves({
-                data: mockResponse,
-                status: 200,
-                statusText: "OK",
-                headers: {},
-                config: {} as AxiosResponse<{ value: IWorkspace[] }>["config"],
-            } as AxiosResponse<{ value: IWorkspace[] }>);
+            mockHttpHelper.get.resolves(createHttpResponse(mockResponse));
 
             const result = await FabricHelper.getFabricWorkspaces(capacityId);
 
             expect(result).to.deep.equal(mockWorkspaces);
-            expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
+            expect(mockHttpHelper.get).to.have.been.calledOnceWith(
                 "https://api.fabric.microsoft.com/v1/workspaces",
-                "test-access-token",
+                authenticatedOptions,
             );
         });
 
@@ -183,20 +176,14 @@ suite("FabricHelper", () => {
             };
 
             const mockResponse = { value: mockWorkspace };
-            mockHttpHelper.makeGetRequest.resolves({
-                data: mockResponse,
-                status: 200,
-                statusText: "OK",
-                headers: {},
-                config: {} as AxiosResponse<{ value: IWorkspace }>["config"],
-            } as AxiosResponse<{ value: IWorkspace }>);
+            mockHttpHelper.get.resolves(createHttpResponse(mockResponse));
 
             const result = await FabricHelper.getFabricWorkspace("workspace-1", "mock-tenant-id");
 
             expect(result).to.deep.equal({ value: mockWorkspace });
-            expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
+            expect(mockHttpHelper.get).to.have.been.calledOnceWith(
                 "https://api.fabric.microsoft.com/v1/workspaces/workspace-1",
-                "test-access-token",
+                authenticatedOptions,
             );
         });
 
@@ -218,13 +205,7 @@ suite("FabricHelper", () => {
             ];
 
             const mockResponse = { value: mockDatabases };
-            mockHttpHelper.makeGetRequest.resolves({
-                data: mockResponse,
-                status: 200,
-                statusText: "OK",
-                headers: {},
-                config: {} as AxiosResponse<{ value: ISqlDbArtifact[] }>["config"],
-            } as AxiosResponse<{ value: ISqlDbArtifact[] }>);
+            mockHttpHelper.get.resolves(createHttpResponse(mockResponse));
 
             const result = await FabricHelper.getFabricDatabases(
                 { displayName: "Test Workspace", id: "test-workspace-id" } as IWorkspace,
@@ -243,9 +224,9 @@ suite("FabricHelper", () => {
                     type: "SQLDatabase",
                 },
             ]);
-            expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
+            expect(mockHttpHelper.get).to.have.been.calledOnceWith(
                 "https://api.fabric.microsoft.com/v1/workspaces/test-workspace-id/sqlDatabases",
-                "test-access-token",
+                authenticatedOptions,
             );
         });
 
@@ -262,13 +243,7 @@ suite("FabricHelper", () => {
             ];
 
             const mockResponse = { value: mockDatabases };
-            mockHttpHelper.makeGetRequest.resolves({
-                data: mockResponse,
-                status: 200,
-                statusText: "OK",
-                headers: {},
-                config: {} as AxiosResponse<{ value: ISqlEndpointArtifact[] }>["config"],
-            } as AxiosResponse<{ value: ISqlEndpointArtifact[] }>);
+            mockHttpHelper.get.resolves(createHttpResponse(mockResponse));
 
             const result = await FabricHelper.getFabricSqlEndpoints(
                 { displayName: "Test Workspace", id: "test-workspace-id" } as IWorkspace,
@@ -287,9 +262,9 @@ suite("FabricHelper", () => {
                     type: "SQLEndpoint",
                 },
             ]);
-            expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
+            expect(mockHttpHelper.get).to.have.been.calledOnceWith(
                 "https://api.fabric.microsoft.com/v1/workspaces/test-workspace-id/sqlEndpoints",
-                "test-access-token",
+                authenticatedOptions,
             );
         });
 
@@ -311,13 +286,7 @@ suite("FabricHelper", () => {
             ];
 
             const mockResponse = { value: mockWarehouses };
-            mockHttpHelper.makeGetRequest.resolves({
-                data: mockResponse,
-                status: 200,
-                statusText: "OK",
-                headers: {},
-                config: {} as AxiosResponse<{ value: IWarehouseArtifact[] }>["config"],
-            } as AxiosResponse<{ value: IWarehouseArtifact[] }>);
+            mockHttpHelper.get.resolves(createHttpResponse(mockResponse));
 
             const result = await FabricHelper.getFabricWarehouses(
                 { displayName: "Test Workspace", id: "test-workspace-id" } as IWorkspace,
@@ -336,9 +305,9 @@ suite("FabricHelper", () => {
                     type: "Warehouse",
                 },
             ]);
-            expect(mockHttpHelper.makeGetRequest).to.have.been.calledOnceWith(
+            expect(mockHttpHelper.get).to.have.been.calledOnceWith(
                 "https://api.fabric.microsoft.com/v1/workspaces/test-workspace-id/warehouses",
-                "test-access-token",
+                authenticatedOptions,
             );
         });
 
@@ -349,13 +318,7 @@ suite("FabricHelper", () => {
                 message: "Capacity not found",
             };
 
-            mockHttpHelper.makeGetRequest.resolves({
-                data: fabricError,
-                status: 404,
-                statusText: "Not Found",
-                headers: {},
-                config: {} as AxiosResponse<IFabricError>["config"],
-            } as AxiosResponse<IFabricError>);
+            mockHttpHelper.get.resolves(createHttpResponse(fabricError, 404));
 
             try {
                 await FabricHelper.getFabricWorkspaces(capacityId);

@@ -12,7 +12,7 @@ import {
 } from "../constants/constants";
 import { LocalContainers, ObjectExplorer } from "../constants/locConstants";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { FormItemOptions } from "../sharedInterfaces/form";
 import { getErrorMessage } from "../utils/utils";
 import { diag, diagnosticErrorClass } from "../diagnostics/diagnosticsCore";
