@@ -123,6 +123,16 @@ suite("ExecutionPlanModel", () => {
         expect(getExecutionPlanEdgeWeight(Number.MAX_VALUE)).to.equal(6);
     });
 
+    test("normalizes a runtime payload with omitted edges", () => {
+        const source = node("root", "Root", [node("child", "Child")]);
+        delete (source as Partial<ExecutionPlanNode>).edges;
+
+        const model = new ExecutionPlanModel(source);
+
+        expect(model.edges).to.be.empty;
+        expect(model.getChildIds(model.root.id)).to.have.length(1);
+    });
+
     test("searches the complete plan and extracts zero-valued metrics", () => {
         const zeroMetricChild = node("zero", "Zero", [], {
             cost: 0,

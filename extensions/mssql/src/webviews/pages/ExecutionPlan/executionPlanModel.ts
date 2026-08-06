@@ -288,7 +288,7 @@ export class ExecutionPlanModel {
             node.children.map((child) => child.id),
         );
 
-        node.edges = source.edges.map((edge, index) => {
+        node.edges = (source.edges ?? []).map((edge, index) => {
             const targetId = node.children[index]?.id ?? `${id}-missing-child-${index}`;
             const edgeId = `element-edge-${id}-${targetId}-${index}`;
             const normalizedEdge: ExecutionPlanEdgeModel = {

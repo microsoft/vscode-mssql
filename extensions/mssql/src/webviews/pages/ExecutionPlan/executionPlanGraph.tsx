@@ -206,6 +206,8 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     const inputRef = useRef<any | null>(null);
     const useReactFlow = executionPlanState?.isReactFlowExecutionPlanEnabled === true;
     const graph = executionPlanState?.executionPlanGraphs?.[graphIndex];
+    const [reactFlowFailed, setReactFlowFailed] = useState(false);
+    const isReactFlowActive = useReactFlow && !reactFlowFailed;
 
     useEffect(() => {
         if (!executionPlanState || !graph) {
@@ -223,15 +225,19 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     }, [executionPlanState, graph, graphIndex]);
 
     useEffect(() => {
+        setReactFlowFailed(false);
+    }, [graph, useReactFlow]);
+
+    useEffect(() => {
         setZoomNumber(100);
         setCustomZoomClicked(false);
         setFindNodeClicked(false);
         setHighlightOpsClicked(false);
         setPropertiesClicked(false);
-    }, [useReactFlow]);
+    }, [isReactFlowActive]);
 
     useEffect(() => {
-        if (useReactFlow || !graph || !legacyGraphContainerRef.current) {
+        if (isReactFlowActive || !graph || !legacyGraphContainerRef.current) {
             return;
         }
 
@@ -272,7 +278,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
             const disposablePen = pen as unknown as { destroy?: () => void };
             disposablePen.destroy?.();
         };
-    }, [graph, themeKind, useReactFlow]);
+    }, [graph, isReactFlowActive, themeKind]);
 
     const handleReactFlowReady = useCallback((controller: ExecutionPlanGraphController | null) => {
         setExecutionPlanView(controller);
@@ -363,7 +369,9 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                 <div
                     id="queryCostContainer"
                     className={
-                        useReactFlow ? classes.queryCostContainer : classes.legacyQueryCostContainer
+                        isReactFlowActive
+                            ? classes.queryCostContainer
+                            : classes.legacyQueryCostContainer
                     }
                     style={{
                         background: tokens.colorNeutralBackground2,
@@ -377,7 +385,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                     }}
                     aria-live="polite"
                     aria-label={`${getQueryCostString()}, ${query}`}>
-                    {useReactFlow ? (
+                    {isReactFlowActive ? (
                         <>
                             <div className={classes.queryCostSummary}>{getQueryCostString()}</div>
                             <SqlText
@@ -405,13 +413,13 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             ? `calc(100% - ${propertiesWidth}px - 35px)`
                             : "calc(100% - 35px)",
                     }}>
-                    {!useReactFlow && (
+                    {!isReactFlowActive && (
                         <div
                             ref={legacyGraphContainerRef}
                             className={classes.legacyGraphContainer}
                         />
                     )}
-                    {useReactFlow && graph && (
+                    {isReactFlowActive && graph && (
                         <WebviewErrorBoundary
                             fallback={
                                 <div
@@ -424,6 +432,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                 </div>
                             }
                             onError={(error, errorInfo) => {
+                                setReactFlowFailed(true);
                                 setExecutionPlanView(null);
                                 extensionRpc.log.error(
                                     "React Flow execution plan renderer failed",
@@ -440,7 +449,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                     )}
                 </div>
                 {customZoomClicked &&
-                    (useReactFlow ? (
+                    (isReactFlowActive ? (
                         <VscodeFloatingWidget
                             id="customZoomInputContainer"
                             className={classes.previewInputContainer}
@@ -545,7 +554,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         </div>
                     ))}
                 {findNodeClicked && executionPlanView && (
-                    <div tabIndex={useReactFlow ? undefined : 0}>
+                    <div tabIndex={isReactFlowActive ? undefined : 0}>
                         <FindNode
                             // guaranteed to be non-null, because the plan will only
                             // show if it's non-null
@@ -554,19 +563,19 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             findNodeOptions={findNodeOptions}
                             setFindNodeClicked={setFindNodeClicked}
                             inputRef={inputRef}
-                            useReactFlow={useReactFlow}
+                            useReactFlow={isReactFlowActive}
                         />
                     </div>
                 )}
                 {highlightOpsClicked && executionPlanView && (
-                    <div tabIndex={useReactFlow ? undefined : 0}>
+                    <div tabIndex={isReactFlowActive ? undefined : 0}>
                         <HighlightExpensiveOperations
                             // guaranteed to be non-null
                             executionPlanView={executionPlanView!}
                             setExecutionPlanView={setExecutionPlanView}
                             setHighlightOpsClicked={setHighlightOpsClicked}
                             inputRef={inputRef}
-                            useReactFlow={useReactFlow}
+                            useReactFlow={isReactFlowActive}
                         />
                     </div>
                 )}
@@ -577,22 +586,24 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                         ref={resizableRef}>
                         <div
                             className={
-                                useReactFlow
+                                isReactFlowActive
                                     ? mergeClasses(classes.resizer, classes.previewResizer)
                                     : classes.resizer
                             }
-                            role={useReactFlow ? "separator" : undefined}
-                            aria-orientation={useReactFlow ? "vertical" : undefined}
+                            role={isReactFlowActive ? "separator" : undefined}
+                            aria-orientation={isReactFlowActive ? "vertical" : undefined}
                             aria-label={
-                                useReactFlow
+                                isReactFlowActive
                                     ? `${locConstants.queryResult.resize} ${locConstants.executionPlan.properties}`
                                     : undefined
                             }
-                            aria-valuemin={useReactFlow ? 295 : undefined}
-                            aria-valuenow={useReactFlow ? Math.round(propertiesWidth) : undefined}
-                            tabIndex={useReactFlow ? 0 : undefined}
+                            aria-valuemin={isReactFlowActive ? 295 : undefined}
+                            aria-valuenow={
+                                isReactFlowActive ? Math.round(propertiesWidth) : undefined
+                            }
+                            tabIndex={isReactFlowActive ? 0 : undefined}
                             onMouseDown={onMouseDown}
-                            onKeyDown={useReactFlow ? onResizerKeyDown : undefined}
+                            onKeyDown={isReactFlowActive ? onResizerKeyDown : undefined}
                         />
                         <div style={{ height: "100%" }} tabIndex={0}>
                             <PropertiesPane
@@ -600,7 +611,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                 executionPlanView={executionPlanView!}
                                 setPropertiesClicked={setPropertiesClicked}
                                 inputRef={inputRef}
-                                useReactFlow={useReactFlow}
+                                useReactFlow={isReactFlowActive}
                             />
                         </div>
                     </div>
@@ -608,7 +619,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
             </div>
             {executionPlanView && (
                 <>
-                    {useReactFlow ? (
+                    {isReactFlowActive ? (
                         <ReactFlowIconStack
                             executionPlanView={executionPlanView}
                             setExecutionPlanView={setExecutionPlanView}
