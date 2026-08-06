@@ -3000,6 +3000,16 @@ export class QueryEditor {
 }
 
 export class ConnectionSharing {
+    public static retirementWarning(extensionName: string) {
+        return l10n.t({
+            message:
+                "“{0}” uses an MSSQL connection sharing API that will be retired in a future release. The API will continue to work until then. Please remove this dependency before it is retired.",
+            args: [extensionName],
+            comment: ["{0} is the extension name"],
+        });
+    }
+    public static ReportMigrationIssue = l10n.t("Report Migration Issue");
+    public static DoNotShowAgainForExtension = l10n.t("Don't Show Again for This Extension");
     public static connectionSharingRequestNotification(extensionName: string) {
         return l10n.t({
             message:

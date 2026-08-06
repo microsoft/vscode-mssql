@@ -12,6 +12,7 @@ import * as Constants from "../../constants/constants";
 import { ITreeNodeInfo, ObjectMetadata } from "vscode-mssql";
 import { IConnectionProfile } from "../../models/interfaces";
 import { removeUndefinedProperties, uuid } from "../../utils/utils";
+import { warnPublicApiRetirement } from "../../utils/apiDeprecation";
 
 export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
     private _nodePath: string;
@@ -165,6 +166,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
      * If you want to update the actual connection info stored in the node, use the `updateConnectionProfile` method instead.
      */
     public get connectionProfile(): IConnectionProfile | undefined {
+        warnPublicApiRetirement("ITreeNodeInfo.connectionProfile");
         if (!this._connectionProfile) {
             return undefined;
         }

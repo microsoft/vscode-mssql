@@ -43,9 +43,11 @@ suite("Extension API Tests", () => {
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionUiStub: sinon.SinonStubbedInstance<ConnectionUI>;
     let originalConnectionManager: ConnectionManager;
+    let consoleWarnStub: sinon.SinonStub;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
+        consoleWarnStub = sandbox.stub(console, "warn");
         context = stubExtensionContext(sandbox, { version: "1.0.0" });
 
         const disposable = { dispose: sandbox.stub() } as vscode.Disposable;
@@ -132,8 +134,17 @@ suite("Extension API Tests", () => {
         }
     });
 
-    test("Gets sqlToolsServicePath", async () => {
+    test("warns every time sqlToolsServicePath is accessed", async () => {
         expect(vscodeMssql.sqlToolsServicePath).to.not.be.null;
+        expect(consoleWarnStub).to.have.been.calledWith(
+            sinon.match('The public extension API member "sqlToolsServicePath"'),
+        );
+
+        consoleWarnStub.resetHistory();
+        expect(vscodeMssql.sqlToolsServicePath).to.not.be.null;
+        expect(consoleWarnStub).to.have.been.calledWith(
+            sinon.match('The public extension API member "sqlToolsServicePath"'),
+        );
     });
 
     test("promptForConnection", async () => {
