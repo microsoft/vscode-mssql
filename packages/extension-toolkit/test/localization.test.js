@@ -9,7 +9,7 @@ const path = require("node:path");
 const { describe, it } = require("node:test");
 const l10n = require("@vscode/l10n");
 const { resolveLocalizationLanguage } = require("../dist/vscode/localization/language.js");
-const { ProxyMessages } = require("../dist/vscode/localization/locConstants.js");
+const { ProxyMessages } = require("../dist/base/localization/locConstants.js");
 
 const l10nDirectory = path.resolve(__dirname, "..", "l10n");
 

@@ -804,6 +804,7 @@
         "message": "Fabric long-running API error with error code '{0}': {1}",
         "comment": ["{0} is the error code", "{1} is the error message"]
     },
+    "Fabric long-running operation response did not include a location header.": "Fabric long-running operation response did not include a location header.",
     "Fabric Account": "Fabric Account",
     "Fabric Account is required": "Fabric Account is required",
     "Workspace": "Workspace",
@@ -3520,6 +3521,25 @@
     "Database Project": "Database Project",
     "Target": "Target",
     "Comparison Details": "Comparison Details",
+    "Affected child objects": "Affected child objects",
+    "Constraints added: {0}/{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.": {
+        "message": "Constraints added: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied."
+        ]
+    },
+    "Constraints changed: {0}/{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.": {
+        "message": "Constraints changed: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied."
+        ]
+    },
+    "Constraints dropped: {0}/{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.": {
+        "message": "Constraints dropped: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied."
+        ]
+    },
     "There was an error updating the project": "There was an error updating the project",
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
     "Publish Project - {0}/{0} is the name of the project being published": {
@@ -3675,10 +3695,27 @@
         "comment": ["{0} is the current IP address"]
     },
     "What's next?": "What's next?",
-    "Connect with SQL tools and run your first query": "Connect with SQL tools and run your first query",
-    "Seed sample data or import an existing schema": "Seed sample data or import an existing schema",
-    "Monitor usage and manage your free tier limits": "Monitor usage and manage your free tier limits",
-    "Browse Azure SQL Database tutorials and docs": "Browse Azure SQL Database tutorials and docs",
+    "Add tables and data, explore, and build with the MSSQL extension.": "Add tables and data, explore, and build with the MSSQL extension.",
+    "Design tables with Table Designer": "Design tables with Table Designer",
+    "Import from a flat file as a new table": "Import from a flat file as a new table",
+    "Visualize and design your database with Schema Designer": "Visualize and design your database with Schema Designer",
+    "Compare and deploy schema with Schema Compare": "Compare and deploy schema with Schema Compare",
+    "Run your first query": "Run your first query",
+    "Build with AI using GitHub Copilot": "Build with AI using GitHub Copilot",
+    "Collapse What's next": "Collapse What's next",
+    "Expand What's next": "Expand What's next",
+    "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.": "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.",
+    "Connection string": "Connection string",
+    "Run your migrations": "Run your migrations",
+    "Copied!": "Copied!",
+    "Copy connection string": "Copy connection string",
+    "Copy migration command": "Copy migration command",
+    "{0} docs/{0} is the name of a database migration tool": {
+        "message": "{0} docs",
+        "comment": ["{0} is the name of a database migration tool"]
+    },
+    "Collapse Connect to Database": "Collapse Connect to Database",
+    "Expand Connect to Database": "Expand Connect to Database",
     "Password must be changed to continue logging into '{0}'/{0} is the name of the server": {
         "message": "Password must be changed to continue logging into '{0}'",
         "comment": ["{0} is the name of the server"]
