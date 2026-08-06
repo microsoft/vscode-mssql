@@ -78,18 +78,12 @@ const useStyles = makeStyles({
 });
 
 const whatsNextUrls = {
-    tableDesigner:
-        "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code#table-designer",
-    importFlatFile:
-        "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-database-operations#import-flat-file",
-    schemaDesigner:
-        "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-designer",
-    schemaCompare:
-        "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-schema-compare",
-    firstQuery:
-        "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-run-first-query",
-    githubCopilot:
-        "https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/github-copilot/overview",
+    tableDesigner: "https://aka.ms/vscode-mssql/table-designer",
+    importFlatFile: "https://aka.ms/vscode-mssql/import-flat-file",
+    schemaDesigner: "https://aka.ms/vscode-mssql/schema-designer",
+    schemaCompare: "https://aka.ms/vscode-mssql/schema-compare",
+    firstQuery: "https://aka.ms/vscode-mssql/first-query",
+    githubCopilot: "https://aka.ms/vscode-mssql/github-copilot",
 } as const;
 
 export interface WhatsNextCardProps {
