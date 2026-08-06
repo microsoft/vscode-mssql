@@ -20,7 +20,7 @@ import { ConnectionUI } from "../../src/views/connectionUI";
 import ConnectionManager from "../../src/controllers/connectionManager";
 import { ObjectExplorerUtils } from "../../src/objectExplorer/objectExplorerUtils";
 import { RequestType } from "vscode-languageclient";
-import { stubExtensionContext } from "./utils";
+import { stubConsoleWarn, stubExtensionContext } from "./utils";
 import { ChangelogWebviewController } from "../../src/controllers/changelogWebviewController";
 import * as LocalizationCache from "../../src/controllers/localizationCache";
 import { VscodeHttpClient } from "extension-toolkit/vscode";
@@ -47,7 +47,7 @@ suite("Extension API Tests", () => {
 
     setup(async () => {
         sandbox = sinon.createSandbox();
-        consoleWarnStub = sandbox.stub(console, "warn");
+        consoleWarnStub = stubConsoleWarn(sandbox);
         context = stubExtensionContext(sandbox, { version: "1.0.0" });
 
         const disposable = { dispose: sandbox.stub() } as vscode.Disposable;

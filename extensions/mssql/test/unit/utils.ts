@@ -32,6 +32,26 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
 }
 
 /**
+ * Stubs `console.warn` and returns the created stub.
+ *
+ * The VS Code extension host redefines the `console` methods as accessors with a no-op setter, so
+ * `sandbox.stub(console, "warn")` silently leaves the original implementation in place. Replacing
+ * the getter instead is the only way to intercept the calls; the sandbox restores the original
+ * property descriptor on `sandbox.restore()`.
+ */
+export function stubConsoleWarn(sandbox: sinon.SinonSandbox): sinon.SinonStub {
+    const stub = sandbox.stub();
+
+    if (Object.getOwnPropertyDescriptor(console, "warn")?.get) {
+        sandbox.replaceGetter(console, "warn", () => stub);
+    } else {
+        sandbox.replace(console, "warn", stub);
+    }
+
+    return stub;
+}
+
+/**
  * Stubs the `vscode.window` message-box functions (`showErrorMessage`,
  * `showInformationMessage`, `showWarningMessage`) and returns the created stubs
  * so tests can configure return values and assert on calls.

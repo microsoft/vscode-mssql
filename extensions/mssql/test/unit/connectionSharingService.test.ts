@@ -143,7 +143,9 @@ suite("ConnectionSharingService Tests", () => {
 
         // Setup vscode stubs
         showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
-        showWarningMessageStub = sandbox.stub(vscode.window, "showWarningMessage");
+        showWarningMessageStub = sandbox
+            .stub(vscode.window, "showWarningMessage")
+            .resolves(undefined);
         showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick");
         registerCommandStub = sandbox.stub(vscode.commands, "registerCommand");
         getExtensionStub = sandbox.stub(vscode.extensions, "getExtension");
