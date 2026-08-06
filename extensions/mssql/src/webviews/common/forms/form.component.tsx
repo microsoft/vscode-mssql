@@ -43,7 +43,12 @@ import {
 } from "../../../sharedInterfaces/form";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { useEffect, useState } from "react";
-import { FluentOptionIcons, SearchableDropdown } from "../searchableDropdown.component";
+import {
+    FluentOptionIcons,
+    SearchableDropdown,
+    SearchableDropdownOptions,
+    SearchableDropdownProps,
+} from "../searchableDropdown.component";
 import { locConstants } from "../locConstants";
 import { EventType, KeyCode } from "../keys";
 
@@ -212,12 +217,18 @@ function FormDropdown<TForm>({
     };
     props?: DropdownProps;
 }) {
+    const hasFavoriteOptions = component.options.some(
+        (option) => option.favoriteResourceType && option.favoriteId,
+    );
     const [isOpen, setIsOpen] = useState(false);
     const [displayedOptions, setDisplayedOptions] = useState(() =>
         sortOptionsByFavoriteOrder(component.options),
     );
 
     useEffect(() => {
+        if (!hasFavoriteOptions) {
+            return;
+        }
         if (isOpen) {
             setDisplayedOptions((currentOptions) =>
                 currentOptions.map(
@@ -229,11 +240,12 @@ function FormDropdown<TForm>({
         } else {
             setDisplayedOptions(sortOptionsByFavoriteOrder(component.options));
         }
-    }, [component.options, isOpen]);
+    }, [component.options, hasFavoriteOptions, isOpen]);
+
+    const options = hasFavoriteOptions ? displayedOptions : component.options;
 
     return (
         <Dropdown
-            {...props}
             size="small"
             placeholder={component.placeholder ?? ""}
             value={
@@ -242,9 +254,12 @@ function FormDropdown<TForm>({
                 )?.displayName ?? ""
             }
             selectedOptions={[formState[component.propertyName] as string]}
+            {...props}
             onOpenChange={(event, data) => {
                 props?.onOpenChange?.(event, data);
-                setDisplayedOptions(sortOptionsByFavoriteOrder(component.options));
+                if (hasFavoriteOptions) {
+                    setDisplayedOptions(sortOptionsByFavoriteOrder(component.options));
+                }
                 setIsOpen(data.open);
             }}
             onOptionSelect={(event, data) => {
@@ -258,7 +273,7 @@ function FormDropdown<TForm>({
                     });
                 }
             }}>
-            {displayedOptions.map((option) => (
+            {options.map((option) => (
                 <Option key={option.value} value={option.value} text={option.displayName}>
                     <FavoriteDropdownOption
                         option={option}
@@ -268,6 +283,124 @@ function FormDropdown<TForm>({
                 </Option>
             ))}
         </Dropdown>
+    );
+}
+
+type FormSearchableDropdownProps = Omit<
+    Partial<SearchableDropdownProps>,
+    "options" | "selectedOption" | "onSelect" | "onOpenChange" | "getOptionAction"
+> & {
+    onSelect?: (value: string) => void;
+    onOpenChange?: (open: boolean) => void;
+};
+
+function FormSearchableDropdown<TForm>({
+    context,
+    formState,
+    component,
+    props,
+}: {
+    context: FormContextProps<TForm>;
+    formState: TForm;
+    component: {
+        propertyName: keyof TForm;
+        options: FormItemOptions[];
+        placeholder?: string;
+        searchBoxPlaceholder?: string;
+        label?: string;
+    };
+    props?: FormSearchableDropdownProps;
+}) {
+    const hasFavoriteOptions = component.options.some(
+        (option) => option.favoriteResourceType && option.favoriteId,
+    );
+    const [isOpen, setIsOpen] = useState(false);
+    const [displayedOptions, setDisplayedOptions] = useState(() =>
+        sortOptionsByFavoriteOrder(component.options),
+    );
+
+    useEffect(() => {
+        if (!hasFavoriteOptions) {
+            return;
+        }
+        if (isOpen) {
+            setDisplayedOptions((currentOptions) =>
+                currentOptions.map(
+                    (currentOption) =>
+                        component.options.find((option) => option.value === currentOption.value) ??
+                        currentOption,
+                ),
+            );
+        } else {
+            setDisplayedOptions(sortOptionsByFavoriteOrder(component.options));
+        }
+    }, [component.options, hasFavoriteOptions, isOpen]);
+
+    const options = hasFavoriteOptions ? displayedOptions : component.options;
+    const dropdownOptions: SearchableDropdownOptions[] = options.map((option) => ({
+        value: option.value,
+        text: option.displayName,
+        color: option.color as keyof typeof tokens | undefined,
+        description: option.description,
+        icon: option.icon as keyof typeof FluentOptionIcons | undefined,
+    }));
+    const selectedOption = dropdownOptions.find(
+        (option) => option.value === formState[component.propertyName],
+    );
+
+    return (
+        <SearchableDropdown
+            options={dropdownOptions}
+            placeholder={component.placeholder}
+            searchBoxPlaceholder={component.searchBoxPlaceholder}
+            selectedOption={selectedOption}
+            size="small"
+            clearable={true}
+            ariaLabel={component.label}
+            showPlaceholder={true}
+            {...props}
+            onOpenChange={(open) => {
+                props?.onOpenChange?.(open);
+                if (hasFavoriteOptions) {
+                    setDisplayedOptions(sortOptionsByFavoriteOrder(component.options));
+                }
+                setIsOpen(open);
+            }}
+            getOptionAction={(option) => {
+                const formOption = options.find((candidate) => candidate.value === option.value);
+                if (
+                    !formOption?.favoriteResourceType ||
+                    !formOption.favoriteId ||
+                    !context.toggleFavoriteOption
+                ) {
+                    return undefined;
+                }
+
+                return {
+                    label: formOption.isFavorite
+                        ? locConstants.connectionDialog.removeFromFavorites
+                        : locConstants.connectionDialog.addToFavorites,
+                    icon: formOption.isFavorite ? <Star16Filled /> : <Star16Regular />,
+                    onActivate: () =>
+                        context.toggleFavoriteOption!(
+                            formOption.favoriteResourceType!,
+                            formOption.favoriteId!,
+                        ),
+                    pressed: formOption.isFavorite,
+                };
+            }}
+            onSelect={(option) => {
+                if (props?.onSelect) {
+                    props.onSelect(option.value);
+                } else {
+                    context.formAction({
+                        propertyName: component.propertyName,
+                        isAction: false,
+                        value: option.value,
+                    });
+                }
+            }}
+        />
     );
 }
 
@@ -688,44 +821,18 @@ export function generateFormComponent<
             if (component.options === undefined) {
                 throw new Error("Dropdown component must have options");
             }
-            const dropdownOptions = component.options.map((opt) => ({
-                value: opt.value,
-                text: opt.displayName,
-                color: opt.color,
-                description: opt.description,
-                icon: opt.icon,
-                favoriteResourceType: opt.favoriteResourceType,
-                favoriteId: opt.favoriteId,
-                isFavorite: opt.isFavorite,
-                favoriteOrder: opt.favoriteOrder,
-            }));
-            const selectedOption = dropdownOptions.find(
-                (option) => option.value === formState[component.propertyName],
-            );
             return (
-                <SearchableDropdown
-                    options={dropdownOptions}
-                    placeholder={component.placeholder}
-                    searchBoxPlaceholder={component.searchBoxPlaceholder}
-                    selectedOption={selectedOption}
-                    freeform={component.freeform}
-                    onSelect={(option) => {
-                        if (props && props.onSelect) {
-                            props.onSelect(option.value);
-                        } else {
-                            context?.formAction({
-                                propertyName: component.propertyName,
-                                isAction: false,
-                                value: option.value,
-                            });
-                        }
+                <FormSearchableDropdown
+                    context={context}
+                    formState={formState}
+                    component={{
+                        propertyName: component.propertyName,
+                        options: component.options,
+                        placeholder: component.placeholder,
+                        searchBoxPlaceholder: component.searchBoxPlaceholder,
+                        label: component.label,
                     }}
-                    size="small"
-                    clearable={true}
-                    ariaLabel={component.label}
-                    showPlaceholder={true}
-                    onToggleFavorite={context.toggleFavoriteOption}
-                    {...props}
+                    props={props}
                 />
             );
         case FormItemType.Checkbox:

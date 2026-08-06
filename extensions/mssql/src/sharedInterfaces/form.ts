@@ -163,11 +163,7 @@ export function sortOptionsByFavoriteOrder<T extends FormItemOptions>(options: r
         .sort((a, b) => {
             const aFavoriteOrder = a.option.favoriteOrder ?? Number.MAX_SAFE_INTEGER;
             const bFavoriteOrder = b.option.favoriteOrder ?? Number.MAX_SAFE_INTEGER;
-            return (
-                aFavoriteOrder - bFavoriteOrder ||
-                a.option.displayName.localeCompare(b.option.displayName) ||
-                a.index - b.index
-            );
+            return aFavoriteOrder - bFavoriteOrder || a.index - b.index;
         })
         .map(({ option }) => option);
 }

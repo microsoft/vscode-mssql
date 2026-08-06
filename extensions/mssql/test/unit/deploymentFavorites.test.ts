@@ -14,7 +14,11 @@ import {
     toggleFavorite,
 } from "../../src/deployment/deploymentFavorites";
 import { configSelectedAzureSubscriptions } from "../../src/constants/constants";
-import { FavoriteResourceType, FormItemOptions } from "../../src/sharedInterfaces/form";
+import {
+    FavoriteResourceType,
+    FormItemOptions,
+    sortOptionsByFavoriteOrder,
+} from "../../src/sharedInterfaces/form";
 
 chai.use(sinonChai);
 
@@ -70,6 +74,15 @@ suite("Deployment Favorites", () => {
 
         expect(result[0].favoriteId).to.equal("subscription/resource-group");
         expect(result[0].isFavorite).to.equal(true);
+    });
+
+    test("preserves the original order when options do not use favorites", () => {
+        const options: FormItemOptions[] = [
+            { displayName: "Zulu", value: "zulu" },
+            { displayName: "Alpha", value: "alpha" },
+        ];
+
+        expect(sortOptionsByFavoriteOrder(options)).to.deep.equal(options);
     });
 
     test("reads legacy Azure subscription favorite IDs", () => {

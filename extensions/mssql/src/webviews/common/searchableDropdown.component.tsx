@@ -27,7 +27,6 @@ import React, {
     useState,
 } from "react";
 import { locConstants } from "./locConstants";
-import { FavoriteResourceType } from "../../sharedInterfaces/form";
 
 export interface SearchableDropdownOptions {
     /**
@@ -50,27 +49,14 @@ export interface SearchableDropdownOptions {
      * Optional text color for the option
      */
     color?: keyof typeof tokens;
-    favoriteResourceType?: FavoriteResourceType;
-    favoriteId?: string;
-    isFavorite?: boolean;
-    favoriteOrder?: number;
 }
 
-const sortOptionsByFavoriteOrder = (
-    options: readonly SearchableDropdownOptions[],
-): SearchableDropdownOptions[] =>
-    options
-        .map((option, index) => ({ option, index }))
-        .sort((a, b) => {
-            const aFavoriteOrder = a.option.favoriteOrder ?? Number.MAX_SAFE_INTEGER;
-            const bFavoriteOrder = b.option.favoriteOrder ?? Number.MAX_SAFE_INTEGER;
-            return (
-                aFavoriteOrder - bFavoriteOrder ||
-                getOptionDisplayText(a.option).localeCompare(getOptionDisplayText(b.option)) ||
-                a.index - b.index
-            );
-        })
-        .map(({ option }) => option);
+export interface SearchableDropdownOptionAction {
+    label: string;
+    icon: React.ReactNode;
+    onActivate: () => void;
+    pressed?: boolean;
+}
 
 export interface SearchableDropdownProps {
     /**
@@ -143,8 +129,13 @@ export interface SearchableDropdownProps {
      */
     renderDecoration?: (option: SearchableDropdownOptions) => React.JSX.Element | undefined;
 
-    /** Toggles a favorite without selecting or closing the dropdown. */
-    onToggleFavorite?: (resourceType: FavoriteResourceType, favoriteId: string) => void;
+    /** Returns a trailing action for an option. */
+    getOptionAction?: (
+        option: SearchableDropdownOptions,
+    ) => SearchableDropdownOptionAction | undefined;
+
+    /** Called when the dropdown opens or closes. */
+    onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -218,9 +209,6 @@ const sizeToFontSize: Record<string, string> = {
 
 export const SearchableDropdown = (props: SearchableDropdownProps) => {
     const [searchText, setSearchText] = useState("");
-    const [displayedOptions, setDisplayedOptions] = useState(() =>
-        sortOptionsByFavoriteOrder(props.options),
-    );
     const [selectedOption, setSelectedOption] = useState(
         props.selectedOption ?? {
             value: "",
@@ -236,8 +224,8 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     const listboxId = `${id}-listbox`;
 
     const filteredOptions = useMemo(
-        () => searchOptions(searchText, displayedOptions),
-        [searchText, displayedOptions],
+        () => searchOptions(searchText, props.options),
+        [searchText, props.options],
     );
 
     const [popoverWidth, setPopoverWidth] = useState(0);
@@ -261,8 +249,8 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             : "var(--vscode-settings-dropdownBorder, var(--vscode-input-border, transparent))";
 
     const selectedOptionIndex = useMemo(
-        () => displayedOptions.findIndex((opt) => opt.value === selectedOption.value),
-        [displayedOptions, selectedOption.value],
+        () => props.options.findIndex((opt) => opt.value === selectedOption.value),
+        [props.options, selectedOption.value],
     );
 
     const activeDescendantId = activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined;
@@ -276,13 +264,13 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
     const initActiveIndex = useCallback(
         (direction: "down" | "up" = "down") => {
-            const optionCount = displayedOptions.length;
+            const optionCount = props.options.length;
             if (optionCount === 0) {
                 setActiveIndex(-1);
                 return;
             }
 
-            const currentIndex = displayedOptions.findIndex(
+            const currentIndex = props.options.findIndex(
                 (opt) => opt.value === selectedOption.value,
             );
             const nextIndex =
@@ -290,26 +278,30 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
             setActiveIndex(nextIndex);
         },
-        [displayedOptions, selectedOption.value],
+        [props.options, selectedOption.value],
     );
 
-    const closePopup = useCallback((focusTrigger: boolean) => {
-        setIsOpen(false);
-        setSearchText("");
-        setActiveIndex(-1);
-        if (focusTrigger) {
-            requestAnimationFrame(() => buttonRef.current?.focus());
-        }
-    }, []);
+    const closePopup = useCallback(
+        (focusTrigger: boolean) => {
+            setIsOpen(false);
+            props.onOpenChange?.(false);
+            setSearchText("");
+            setActiveIndex(-1);
+            if (focusTrigger) {
+                requestAnimationFrame(() => buttonRef.current?.focus());
+            }
+        },
+        [props.onOpenChange],
+    );
 
     const updateOption = useCallback(
         (option: SearchableDropdownOptions) => {
-            const index = displayedOptions.findIndex((opt) => opt.value === option.value);
+            const index = props.options.findIndex((opt) => opt.value === option.value);
             setSelectedOption(option);
             props.onSelect(option, index);
             closePopup(true);
         },
-        [closePopup, displayedOptions, props],
+        [closePopup, props],
     );
 
     const openPopup = useCallback(
@@ -321,10 +313,11 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             // Match existing behavior: opening clears any prior search
             setSearchText("");
             setIsOpen(true);
+            props.onOpenChange?.(true);
 
             initActiveIndex(direction);
         },
-        [initActiveIndex, props.disabled],
+        [initActiveIndex, props],
     );
 
     const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -446,13 +439,9 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
         if (e.key === "Tab") {
             const activeOption = filteredOptions[activeIndex];
-            if (
-                activeOption?.favoriteResourceType &&
-                activeOption.favoriteId &&
-                props.onToggleFavorite
-            ) {
+            if (activeOption && props.getOptionAction?.(activeOption)) {
                 e.preventDefault();
-                document.getElementById(`${id}-favorite-${activeIndex}`)?.focus();
+                document.getElementById(`${id}-action-${activeIndex}`)?.focus();
                 return;
             }
             // Allow normal focus traversal; just close the popup.
@@ -475,10 +464,8 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
         }
 
         // If search is cleared, restore active index to the current selection when possible.
-        const currentIndex = displayedOptions.findIndex(
-            (opt) => opt.value === selectedOption.value,
-        );
-        const nextIndex = currentIndex >= 0 ? currentIndex : displayedOptions.length > 0 ? 0 : -1;
+        const currentIndex = props.options.findIndex((opt) => opt.value === selectedOption.value);
+        const nextIndex = currentIndex >= 0 ? currentIndex : props.options.length > 0 ? 0 : -1;
         setActiveIndex(nextIndex);
         if (nextIndex >= 0) {
             virtualizer.scrollToIndex(nextIndex, { align: "auto" });
@@ -524,26 +511,12 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     }, []);
 
     useEffect(() => {
-        if (isOpen) {
-            setDisplayedOptions((currentOptions) =>
-                currentOptions.map(
-                    (currentOption) =>
-                        props.options.find((option) => option.value === currentOption.value) ??
-                        currentOption,
-                ),
-            );
-        } else {
-            setDisplayedOptions(sortOptionsByFavoriteOrder(props.options));
-        }
-    }, [isOpen, props.options]);
-
-    useEffect(() => {
         // If showPlaceholder is true, use empty value to show placeholder; otherwise fall back to first option
         const fallbackOption = props.showPlaceholder
             ? { value: "" }
-            : (displayedOptions[0] ?? { value: "" });
+            : (props.options[0] ?? { value: "" });
         setSelectedOption(props.selectedOption ?? fallbackOption);
-    }, [displayedOptions, props.selectedOption, props.showPlaceholder]);
+    }, [props.options, props.selectedOption, props.showPlaceholder]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -588,8 +561,8 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             positioning={{ position: "below", align: "start" }}
             open={isOpen}
             onOpenChange={(_e, data) => {
-                setDisplayedOptions(sortOptionsByFavoriteOrder(props.options));
                 setIsOpen(data.open);
+                props.onOpenChange?.(data.open);
                 if (data.open) {
                     setSearchText("");
                     initActiveIndex("down");
@@ -714,6 +687,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
                                 const isSelected = option.value === selectedOption.value;
                                 const isActive = virtualRow.index === activeIndex;
+                                const optionAction = props.getOptionAction?.(option);
 
                                 return (
                                     <div
@@ -793,33 +767,17 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                                                     <Text>{option.description}</Text>
                                                 )}
                                                 {option.icon && FluentOptionIcons[option.icon]}
-                                                {option.favoriteResourceType &&
-                                                    option.favoriteId &&
-                                                    props.onToggleFavorite &&
-                                                    (option.isFavorite || isActive) && (
+                                                {optionAction &&
+                                                    (optionAction.pressed || isActive) && (
                                                         <Tooltip
-                                                            content={
-                                                                option.isFavorite
-                                                                    ? locConstants.connectionDialog
-                                                                          .removeFromFavorites
-                                                                    : locConstants.connectionDialog
-                                                                          .addToFavorites
-                                                            }
+                                                            content={optionAction.label}
                                                             relationship="label">
                                                             <button
-                                                                id={`${id}-favorite-${virtualRow.index}`}
+                                                                id={`${id}-action-${virtualRow.index}`}
                                                                 type="button"
                                                                 tabIndex={-1}
-                                                                aria-label={
-                                                                    option.isFavorite
-                                                                        ? locConstants
-                                                                              .connectionDialog
-                                                                              .removeFromFavorites
-                                                                        : locConstants
-                                                                              .connectionDialog
-                                                                              .addToFavorites
-                                                                }
-                                                                aria-pressed={option.isFavorite}
+                                                                aria-label={optionAction.label}
+                                                                aria-pressed={optionAction.pressed}
                                                                 onMouseDown={(event) => {
                                                                     event.preventDefault();
                                                                     event.stopPropagation();
@@ -827,10 +785,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                                                                 onClick={(event) => {
                                                                     event.preventDefault();
                                                                     event.stopPropagation();
-                                                                    props.onToggleFavorite!(
-                                                                        option.favoriteResourceType!,
-                                                                        option.favoriteId!,
-                                                                    );
+                                                                    optionAction.onActivate();
                                                                 }}
                                                                 onKeyDown={(event) => {
                                                                     if (event.key === "Escape") {
@@ -851,11 +806,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                                                                     color: "inherit",
                                                                     cursor: "pointer",
                                                                 }}>
-                                                                {option.isFavorite ? (
-                                                                    <FluentIcons.Star16Filled />
-                                                                ) : (
-                                                                    <FluentIcons.Star16Regular />
-                                                                )}
+                                                                {optionAction.icon}
                                                             </button>
                                                         </Tooltip>
                                                     )}
