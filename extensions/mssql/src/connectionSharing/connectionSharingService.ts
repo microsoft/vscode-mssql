@@ -24,8 +24,6 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 const CONNECTION_SHARING_PERMISSIONS_KEY = "mssql.connectionSharing.extensionPermissions";
 const CONNECTION_SHARING_RETIREMENT_SUPPRESSED_EXTENSIONS_KEY =
     "mssql.connectionSharing.retirementSuppressedExtensions";
-const CONNECTION_SHARING_MIGRATION_ISSUE_URL =
-    "https://github.com/microsoft/vscode-mssql/issues/new";
 
 type ExtensionPermission = "approved" | "denied";
 type ExtensionPermissionsMap = Record<string, ExtensionPermission>;
@@ -60,7 +58,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         string,
         { extensionId: string; connectionId: string; authenticationType: string }
     >();
-    private readonly _retirementWarningsShown = new Set<string>();
+    private readonly _retirementWarningKeysShown = new Set<string>();
     constructor(
         private readonly _context: vscode.ExtensionContext,
         private readonly _client: SqlToolsServiceClient,
@@ -368,7 +366,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         extensionId?: string,
         connectionId?: string,
     ): void {
-        if (!extensionId || !connectionId) {
+        if (!extensionId) {
             return;
         }
 
@@ -385,9 +383,12 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             CONNECTION_SHARING_RETIREMENT_SUPPRESSED_EXTENSIONS_KEY,
             [],
         );
+        const extensionWarningKey = `extension:${extensionId}`;
+        const warningKey = connectionId ? `connection:${connectionId}` : extensionWarningKey;
         if (
             suppressedExtensions.includes(extensionId) ||
-            this._retirementWarningsShown.has(connectionId)
+            this._retirementWarningKeysShown.has(extensionWarningKey) ||
+            this._retirementWarningKeysShown.has(warningKey)
         ) {
             return;
         }
@@ -397,15 +398,8 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             return;
         }
 
-        this._retirementWarningsShown.add(connectionId);
+        this._retirementWarningKeysShown.add(warningKey);
         const extensionName = extension.packageJSON.displayName ?? extension.id;
-        const issueTitle = encodeURIComponent(
-            `Connection sharing API migration for ${extensionName}`,
-        );
-        const issueBody = encodeURIComponent(
-            `The extension ${extensionName} (${extensionId}) depends on the MSSQL connection sharing API.`,
-        );
-        const issueUrl = `${CONNECTION_SHARING_MIGRATION_ISSUE_URL}?labels=Area%3A%20Connection%2CTriage%3A%20Needed&title=${issueTitle}&body=${issueBody}`;
         sendActionEvent(
             TelemetryViews.Connection,
             TelemetryActions.ConnectionSharingRetirementToast,
@@ -424,7 +418,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
                         TelemetryActions.ConnectionSharingRetirementToast,
                         { extensionId, action: "reportMigrationIssue" },
                     );
-                    void vscode.env.openExternal(vscode.Uri.parse(issueUrl));
+                    void vscode.env.openExternal(vscode.Uri.parse(Constants.feedbackUrl));
                 } else if (
                     selection === LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension
                 ) {
