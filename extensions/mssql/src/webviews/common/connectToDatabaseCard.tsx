@@ -29,50 +29,49 @@ const MIGRATION_TOOLS: { id: string; label: string; command: string; docsUrl: st
         id: "prisma",
         label: "Prisma",
         command: "npx prisma migrate deploy",
-        docsUrl: "https://www.prisma.io/docs/orm/prisma-migrate",
+        docsUrl: "https://aka.ms/prisma-migration",
     },
     {
         id: "sequelize",
         label: "Sequelize",
         command: "npx sequelize-cli db:migrate",
-        docsUrl: "https://sequelize.org/docs/v6/other-topics/migrations/",
+        docsUrl: "https://aka.ms/sequelize-migration",
     },
     {
         id: "typeORM",
         label: "TypeORM",
         command: "npx typeorm migration:run -d ./data-source.ts",
-        docsUrl: "https://typeorm.io/docs/advanced-topics/migrations/",
+        docsUrl: "https://aka.ms/typeorm-migration",
     },
     {
         id: "sqlAlchemy",
         label: "SQLAlchemy",
         command: "alembic upgrade head",
-        docsUrl: "https://alembic.sqlalchemy.org/latest/tutorial.html",
+        docsUrl: "https://aka.ms/sqlalchemy-migration",
     },
     {
         id: "efCore",
         label: "EF Core",
         command: "dotnet ef database update",
-        docsUrl: "https://learn.microsoft.com/ef/core/managing-schemas/migrations/",
+        docsUrl: "https://aka.ms/efcore-migration",
     },
     {
         id: "drizzle",
         label: "Drizzle",
         command: "npx drizzle-kit migrate",
-        docsUrl: "https://orm.drizzle.team/docs/migrations",
+        docsUrl: "https://aka.ms/drizzle-migration",
     },
     {
         id: "flyway",
         label: "Flyway",
         command: "flyway migrate",
-        docsUrl: "https://documentation.red-gate.com/flyway/reference/commands/migrate",
+        docsUrl: "https://aka.ms/flyway-migration",
     },
     {
         id: "tSql",
         label: "T-SQL",
         command: "sqlcmd -i ./schema.sql",
-        docsUrl:
-            "https://learn.microsoft.com/sql/tools/sqlcmd/sqlcmd-utility?view=sql-server-ver17&tabs=go%2Cwindows-support&pivots=cs1-bash",
+        docsUrl: "https://aka.ms/tsql-migration",
     },
 ];
 
