@@ -148,6 +148,7 @@ suite("ProjectsController", function (): void {
                 const showInputBoxStub = sandbox
                     .stub(vscode.window, "showInputBox")
                     .resolves(undefined);
+                sandbox.stub(utils, "sanitizeStringForFilename").returnsArg(0);
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
                     this.test,
@@ -168,6 +169,7 @@ suite("ProjectsController", function (): void {
                 const showInputBoxStub = sandbox
                     .stub(vscode.window, "showInputBox")
                     .resolves(undefined);
+                sandbox.stub(utils, "sanitizeStringForFilename").returnsArg(0);
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
                     this.test,
@@ -188,6 +190,7 @@ suite("ProjectsController", function (): void {
                 const showInputBoxStub = sandbox
                     .stub(vscode.window, "showInputBox")
                     .resolves(undefined);
+                sandbox.stub(utils, "sanitizeStringForFilename").returnsArg(0);
                 const projController = new ProjectsController(testContext.outputChannel);
                 const project = await testUtils.createTestProject(
                     this.test,
