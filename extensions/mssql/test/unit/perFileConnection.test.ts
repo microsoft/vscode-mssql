@@ -464,9 +464,11 @@ suite("Per File Connection Tests", () => {
             return;
         });
 
-        manager.client = serviceClientStub;
-        manager.statusView = statusViewStub;
-        manager.connectionStore = connectionStoreStub;
+        manager = createTestConnectionManager(
+            serviceClientStub,
+            statusViewStub,
+            connectionStoreStub,
+        );
 
         const result = await manager.connect(testFile, connectionCreds);
         expect(result).to.equal(true);
@@ -553,12 +555,13 @@ suite("Per File Connection Tests", () => {
             extensionContext,
             statusViewInstance,
             prompterStub,
-            undefined, // logger
-            serviceClient,
             connectionStoreInstance,
             sandbox.createStubInstance(CredentialStore),
-            connectionUIInstance,
             sandbox.createStubInstance(AccountStore),
+            stubInstantiationService(sandbox),
+            undefined, // logger
+            serviceClient,
+            connectionUIInstance,
         );
         return manager;
     }

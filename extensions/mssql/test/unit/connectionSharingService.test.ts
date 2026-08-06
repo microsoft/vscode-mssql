@@ -90,11 +90,12 @@ suite("ConnectionSharingService Tests", () => {
         } as unknown as vscode.ExtensionContext;
 
         // Setup connection manager stubs
-        connectionManager.connectionStore = {
+        const connectionStoreStub = {
             connectionConfig: {
                 getConnections: sandbox.stub().resolves([mockConnectionProfile]),
             },
         } as unknown as ConnectionStore;
+        sandbox.stub(connectionManager, "connectionStore").get(() => connectionStoreStub);
 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         connectionManager.isConnected = sandbox.stub().returns(true) as any;

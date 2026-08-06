@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { NotificationHandler, RequestType } from "vscode-languageclient";
 import { ConnectionDetails, IConnectionInfo, IServerInfo, IToken } from "vscode-mssql";
 import { AccountService } from "../azure/accountService";
-import { AccountStore } from "../azure/accountStore";
+import { AccountStore, IAccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
 import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
@@ -23,12 +23,12 @@ import {
 } from "../azure/vscodeEntraMfaUtils";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
-import { CredentialStore } from "../credentialstore/credentialstore";
+import { CredentialStore, ICredentialStore } from "../credentialstore/credentialstore";
 import { FirewallService } from "../firewall/firewallService";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ConnectionProfile } from "../models/connectionProfile";
-import { ConnectionStore } from "../models/connectionStore";
+import { ConnectionStore, IConnectionStore } from "../models/connectionStore";
 import {
     IAccount,
     RequestSecurityTokenParams,
@@ -166,13 +166,13 @@ export default class ConnectionManager {
         private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
+        @IConnectionStore private readonly _connectionStore: ConnectionStore,
+        @ICredentialStore private readonly _credentialStore: CredentialStore,
+        @IAccountStore private readonly _accountStore: AccountStore,
+        @IInstantiationService private readonly _instantiationService: IInstantiationService,
         private _logger?: ILogger,
         private _client?: SqlToolsServerClient,
-        private _connectionStore?: ConnectionStore,
-        private _credentialStore?: CredentialStore,
         private _connectionUI?: ConnectionUI,
-        private _accountStore?: AccountStore,
-        private _instantiationService?: IInstantiationService,
     ) {
         this._statusView = statusView;
         this._connections = {};
@@ -191,24 +191,6 @@ export default class ConnectionManager {
 
         this._entraLogger = logger.withPrefix("Entra Auth");
 
-        if (!this._credentialStore) {
-            throw new Error(
-                "ConnectionManager requires a CredentialStore to be supplied by the caller.",
-            );
-        }
-
-        if (!this._connectionStore) {
-            throw new Error(
-                "ConnectionManager requires a ConnectionStore to be supplied by the caller.",
-            );
-        }
-
-        if (!this._accountStore) {
-            throw new Error(
-                "ConnectionManager requires an AccountStore to be supplied by the caller.",
-            );
-        }
-
         if (!this.azureController) {
             this.azureController = new MsalAzureController(
                 context,
@@ -218,12 +200,6 @@ export default class ConnectionManager {
         }
 
         if (!this._connectionUI) {
-            if (!this._instantiationService) {
-                throw new Error(
-                    "ConnectionManager requires an IInstantiationService to be supplied by the caller in order to create a ConnectionUI.",
-                );
-            }
-
             this._connectionUI = this._instantiationService.createInstance(
                 ConnectionUI,
                 this.azureController,
@@ -321,28 +297,14 @@ export default class ConnectionManager {
      * Exposed for testing purposes
      */
     public get connectionStore(): ConnectionStore {
-        return this._connectionStore!;
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public set connectionStore(value: ConnectionStore) {
-        this._connectionStore = value;
+        return this._connectionStore;
     }
 
     /**
      * Exposed for testing purposes
      */
     public get accountStore(): AccountStore {
-        return this._accountStore!;
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public set accountStore(value: AccountStore) {
-        this._accountStore = value;
+        return this._accountStore;
     }
 
     /**
