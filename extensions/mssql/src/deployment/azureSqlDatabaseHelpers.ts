@@ -16,7 +16,12 @@ import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
 import { ILogger } from "../sharedInterfaces/logger";
 import * as asd from "../sharedInterfaces/azureSqlDatabase";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
-import { FormItemActionButton, FormItemOptions, FormItemType } from "../sharedInterfaces/form";
+import {
+    FavoriteResourceType,
+    FormItemActionButton,
+    FormItemOptions,
+    FormItemType,
+} from "../sharedInterfaces/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
@@ -31,6 +36,7 @@ import {
     getCloudResourceEndpoint,
 } from "../azure/vscodeEntraMfaUtils";
 import { getErrorMessage } from "../utils/utils";
+import { applyFavorites } from "./deploymentFavorites";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
@@ -905,8 +911,7 @@ async function loadAccountComponent(
         accountComponent.placeholder = AzureSqlDatabase.noAzureAccountsFound;
     }
 
-    azureSqlState.formState.accountId =
-        azureSqlState.accounts.length > 0 ? azureSqlState.accounts[0].id : "";
+    azureSqlState.formState.accountId = accountComponent.options[0]?.value ?? "";
 }
 
 async function loadTenantComponent(azureSqlState: asd.AzureSqlDatabaseState): Promise<void> {
@@ -924,9 +929,9 @@ async function loadTenantComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
     );
     clearCacheDownstream(azureSqlState, "tenantId");
 
-    tenantComponent.options = azureSqlState.tenants.map((t) => ({
-        displayName: t.displayName,
-        value: t.tenantId,
+    tenantComponent.options = azureSqlState.tenants.map((tenant) => ({
+        displayName: tenant.displayName,
+        value: tenant.tenantId,
     }));
     tenantComponent.placeholder =
         azureSqlState.tenants.length > 0
@@ -959,17 +964,19 @@ async function loadSubscriptionComponent(azureSqlState: asd.AzureSqlDatabaseStat
     azureSqlState.subscriptions = await VsCodeAzureHelper.getSubscriptionsForTenant(tenant);
     clearCacheDownstream(azureSqlState, "subscriptionId");
 
-    subscriptionComponent.options = azureSqlState.subscriptions.map((sub) => ({
-        displayName: `${sub.name} (${sub.subscriptionId})`,
-        value: sub.subscriptionId,
-    }));
+    subscriptionComponent.options = applyFavorites(
+        azureSqlState.subscriptions.map((sub) => ({
+            displayName: `${sub.name} (${sub.subscriptionId})`,
+            value: sub.subscriptionId,
+        })),
+        FavoriteResourceType.AzureSubscription,
+    );
     subscriptionComponent.placeholder =
         azureSqlState.subscriptions.length > 0
             ? AzureSqlDatabase.selectASubscription
             : AzureSqlDatabase.noSubscriptionsFound;
 
-    azureSqlState.formState.subscriptionId =
-        azureSqlState.subscriptions.length > 0 ? azureSqlState.subscriptions[0].subscriptionId : "";
+    azureSqlState.formState.subscriptionId = subscriptionComponent.options[0]?.value ?? "";
 
     // Load maintenance configurations for the selected subscription
     void loadMaintenanceConfigs(azureSqlState);
@@ -1034,10 +1041,14 @@ async function loadResourceGroupComponent(azureSqlState: asd.AzureSqlDatabaseSta
         await VsCodeAzureHelper.getResourceGroupsForSubscription(subscription);
     clearCacheDownstream(azureSqlState, "resourceGroup");
 
-    resourceGroupComponent.options = azureSqlState.resourceGroups.map((name) => ({
-        displayName: name,
-        value: name,
-    }));
+    resourceGroupComponent.options = applyFavorites(
+        azureSqlState.resourceGroups.map((name) => ({
+            displayName: name,
+            value: name,
+        })),
+        FavoriteResourceType.AzureResourceGroup,
+        (option) => `${azureSqlState.formState.subscriptionId}/${option.value}`,
+    );
     resourceGroupComponent.placeholder =
         azureSqlState.resourceGroups.length > 0
             ? AzureSqlDatabase.selectAResourceGroup
@@ -1048,8 +1059,7 @@ async function loadResourceGroupComponent(azureSqlState: asd.AzureSqlDatabaseSta
     if (currentRg && azureSqlState.resourceGroups.includes(currentRg)) {
         azureSqlState.formState.resourceGroup = currentRg;
     } else {
-        azureSqlState.formState.resourceGroup =
-            azureSqlState.resourceGroups.length > 0 ? azureSqlState.resourceGroups[0] : "";
+        azureSqlState.formState.resourceGroup = resourceGroupComponent.options[0]?.value ?? "";
     }
 }
 
@@ -1082,10 +1092,17 @@ async function loadServerComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
         azureSqlState.formState.resourceGroup,
     );
 
-    serverComponent.options = azureSqlState.servers.map((s) => ({
-        displayName: s.name ?? "",
-        value: s.name ?? "",
-    }));
+    serverComponent.options = applyFavorites(
+        azureSqlState.servers.map((s) => ({
+            displayName: s.name ?? "",
+            value: s.name ?? "",
+            favoriteId:
+                s.id ??
+                `${azureSqlState.formState.subscriptionId}/${azureSqlState.formState.resourceGroup}/${s.name ?? ""}`,
+        })),
+        FavoriteResourceType.AzureServer,
+        (option) => option.favoriteId!,
+    );
     serverComponent.placeholder =
         azureSqlState.servers.length > 0
             ? AzureSqlDatabase.selectAServer
@@ -1099,8 +1116,7 @@ async function loadServerComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
     if (matchedServer) {
         azureSqlState.formState.serverName = currentServer;
     } else {
-        azureSqlState.formState.serverName =
-            azureSqlState.servers.length > 0 ? (azureSqlState.servers[0].name ?? "") : "";
+        azureSqlState.formState.serverName = serverComponent.options[0]?.value ?? "";
     }
 
     // Auto-detect auth type based on the selected server's properties
@@ -1149,8 +1165,7 @@ async function getAzureActionButton(
             // Auto-select the newly added account, or keep the first one
             const newAccount = currentState.accounts.find((a) => !previousAccountIds.has(a.id));
             currentState.formState.accountId =
-                newAccount?.id ??
-                (currentState.accounts.length > 0 ? currentState.accounts[0].id : "");
+                newAccount?.id ?? accountsComponent.options[0]?.value ?? "";
 
             // Reset downstream components so they reload with the new account
             reloadAzureComponentsDownstream(currentState, "accountId");

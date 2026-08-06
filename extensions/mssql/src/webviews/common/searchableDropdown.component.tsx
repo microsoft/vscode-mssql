@@ -12,6 +12,7 @@ import {
     SearchBox,
     SearchBoxChangeEvent,
     Text,
+    Tooltip,
     tokens,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
@@ -26,6 +27,7 @@ import React, {
     useState,
 } from "react";
 import { locConstants } from "./locConstants";
+import { FavoriteResourceType } from "../../sharedInterfaces/form";
 
 export interface SearchableDropdownOptions {
     /**
@@ -48,7 +50,27 @@ export interface SearchableDropdownOptions {
      * Optional text color for the option
      */
     color?: keyof typeof tokens;
+    favoriteResourceType?: FavoriteResourceType;
+    favoriteId?: string;
+    isFavorite?: boolean;
+    favoriteOrder?: number;
 }
+
+const sortOptionsByFavoriteOrder = (
+    options: readonly SearchableDropdownOptions[],
+): SearchableDropdownOptions[] =>
+    options
+        .map((option, index) => ({ option, index }))
+        .sort((a, b) => {
+            const aFavoriteOrder = a.option.favoriteOrder ?? Number.MAX_SAFE_INTEGER;
+            const bFavoriteOrder = b.option.favoriteOrder ?? Number.MAX_SAFE_INTEGER;
+            return (
+                aFavoriteOrder - bFavoriteOrder ||
+                getOptionDisplayText(a.option).localeCompare(getOptionDisplayText(b.option)) ||
+                a.index - b.index
+            );
+        })
+        .map(({ option }) => option);
 
 export interface SearchableDropdownProps {
     /**
@@ -120,6 +142,9 @@ export interface SearchableDropdownProps {
      * Optional function to render a decoration element for each option.
      */
     renderDecoration?: (option: SearchableDropdownOptions) => React.JSX.Element | undefined;
+
+    /** Toggles a favorite without selecting or closing the dropdown. */
+    onToggleFavorite?: (resourceType: FavoriteResourceType, favoriteId: string) => void;
 }
 
 /**
@@ -193,6 +218,9 @@ const sizeToFontSize: Record<string, string> = {
 
 export const SearchableDropdown = (props: SearchableDropdownProps) => {
     const [searchText, setSearchText] = useState("");
+    const [displayedOptions, setDisplayedOptions] = useState(() =>
+        sortOptionsByFavoriteOrder(props.options),
+    );
     const [selectedOption, setSelectedOption] = useState(
         props.selectedOption ?? {
             value: "",
@@ -208,8 +236,8 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     const listboxId = `${id}-listbox`;
 
     const filteredOptions = useMemo(
-        () => searchOptions(searchText, props.options),
-        [searchText, props.options],
+        () => searchOptions(searchText, displayedOptions),
+        [searchText, displayedOptions],
     );
 
     const [popoverWidth, setPopoverWidth] = useState(0);
@@ -233,8 +261,8 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             : "var(--vscode-settings-dropdownBorder, var(--vscode-input-border, transparent))";
 
     const selectedOptionIndex = useMemo(
-        () => props.options.findIndex((opt) => opt.value === selectedOption.value),
-        [props.options, selectedOption.value],
+        () => displayedOptions.findIndex((opt) => opt.value === selectedOption.value),
+        [displayedOptions, selectedOption.value],
     );
 
     const activeDescendantId = activeIndex >= 0 ? `${id}-option-${activeIndex}` : undefined;
@@ -248,13 +276,13 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
     const initActiveIndex = useCallback(
         (direction: "down" | "up" = "down") => {
-            const optionCount = props.options.length;
+            const optionCount = displayedOptions.length;
             if (optionCount === 0) {
                 setActiveIndex(-1);
                 return;
             }
 
-            const currentIndex = props.options.findIndex(
+            const currentIndex = displayedOptions.findIndex(
                 (opt) => opt.value === selectedOption.value,
             );
             const nextIndex =
@@ -262,7 +290,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
             setActiveIndex(nextIndex);
         },
-        [props.options, selectedOption.value],
+        [displayedOptions, selectedOption.value],
     );
 
     const closePopup = useCallback((focusTrigger: boolean) => {
@@ -276,12 +304,12 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
     const updateOption = useCallback(
         (option: SearchableDropdownOptions) => {
-            const index = props.options.findIndex((opt) => opt.value === option.value);
+            const index = displayedOptions.findIndex((opt) => opt.value === option.value);
             setSelectedOption(option);
             props.onSelect(option, index);
             closePopup(true);
         },
-        [closePopup, props],
+        [closePopup, displayedOptions, props],
     );
 
     const openPopup = useCallback(
@@ -417,6 +445,16 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
         }
 
         if (e.key === "Tab") {
+            const activeOption = filteredOptions[activeIndex];
+            if (
+                activeOption?.favoriteResourceType &&
+                activeOption.favoriteId &&
+                props.onToggleFavorite
+            ) {
+                e.preventDefault();
+                document.getElementById(`${id}-favorite-${activeIndex}`)?.focus();
+                return;
+            }
             // Allow normal focus traversal; just close the popup.
             closePopup(false);
         }
@@ -437,8 +475,10 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
         }
 
         // If search is cleared, restore active index to the current selection when possible.
-        const currentIndex = props.options.findIndex((opt) => opt.value === selectedOption.value);
-        const nextIndex = currentIndex >= 0 ? currentIndex : props.options.length > 0 ? 0 : -1;
+        const currentIndex = displayedOptions.findIndex(
+            (opt) => opt.value === selectedOption.value,
+        );
+        const nextIndex = currentIndex >= 0 ? currentIndex : displayedOptions.length > 0 ? 0 : -1;
         setActiveIndex(nextIndex);
         if (nextIndex >= 0) {
             virtualizer.scrollToIndex(nextIndex, { align: "auto" });
@@ -484,12 +524,26 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
     }, []);
 
     useEffect(() => {
+        if (isOpen) {
+            setDisplayedOptions((currentOptions) =>
+                currentOptions.map(
+                    (currentOption) =>
+                        props.options.find((option) => option.value === currentOption.value) ??
+                        currentOption,
+                ),
+            );
+        } else {
+            setDisplayedOptions(sortOptionsByFavoriteOrder(props.options));
+        }
+    }, [isOpen, props.options]);
+
+    useEffect(() => {
         // If showPlaceholder is true, use empty value to show placeholder; otherwise fall back to first option
         const fallbackOption = props.showPlaceholder
             ? { value: "" }
-            : (props.options[0] ?? { value: "" });
+            : (displayedOptions[0] ?? { value: "" });
         setSelectedOption(props.selectedOption ?? fallbackOption);
-    }, [props.selectedOption, props.options, props.showPlaceholder]);
+    }, [displayedOptions, props.selectedOption, props.showPlaceholder]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -534,6 +588,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             positioning={{ position: "below", align: "start" }}
             open={isOpen}
             onOpenChange={(_e, data) => {
+                setDisplayedOptions(sortOptionsByFavoriteOrder(props.options));
                 setIsOpen(data.open);
                 if (data.open) {
                     setSearchText("");
@@ -738,6 +793,72 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                                                     <Text>{option.description}</Text>
                                                 )}
                                                 {option.icon && FluentOptionIcons[option.icon]}
+                                                {option.favoriteResourceType &&
+                                                    option.favoriteId &&
+                                                    props.onToggleFavorite &&
+                                                    (option.isFavorite || isActive) && (
+                                                        <Tooltip
+                                                            content={
+                                                                option.isFavorite
+                                                                    ? locConstants.connectionDialog
+                                                                          .removeFromFavorites
+                                                                    : locConstants.connectionDialog
+                                                                          .addToFavorites
+                                                            }
+                                                            relationship="label">
+                                                            <button
+                                                                id={`${id}-favorite-${virtualRow.index}`}
+                                                                type="button"
+                                                                tabIndex={-1}
+                                                                aria-label={
+                                                                    option.isFavorite
+                                                                        ? locConstants
+                                                                              .connectionDialog
+                                                                              .removeFromFavorites
+                                                                        : locConstants
+                                                                              .connectionDialog
+                                                                              .addToFavorites
+                                                                }
+                                                                aria-pressed={option.isFavorite}
+                                                                onMouseDown={(event) => {
+                                                                    event.preventDefault();
+                                                                    event.stopPropagation();
+                                                                }}
+                                                                onClick={(event) => {
+                                                                    event.preventDefault();
+                                                                    event.stopPropagation();
+                                                                    props.onToggleFavorite!(
+                                                                        option.favoriteResourceType!,
+                                                                        option.favoriteId!,
+                                                                    );
+                                                                }}
+                                                                onKeyDown={(event) => {
+                                                                    if (event.key === "Escape") {
+                                                                        event.preventDefault();
+                                                                        searchBoxRef.current?.focus();
+                                                                    } else if (
+                                                                        event.key === "Tab"
+                                                                    ) {
+                                                                        closePopup(false);
+                                                                    }
+                                                                }}
+                                                                style={{
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                    padding: 0,
+                                                                    border: "none",
+                                                                    background: "transparent",
+                                                                    color: "inherit",
+                                                                    cursor: "pointer",
+                                                                }}>
+                                                                {option.isFavorite ? (
+                                                                    <FluentIcons.Star16Filled />
+                                                                ) : (
+                                                                    <FluentIcons.Star16Regular />
+                                                                )}
+                                                            </button>
+                                                        </Tooltip>
+                                                    )}
                                                 {isSelected && <FluentIcons.Checkmark16Regular />}
                                             </span>
                                         </div>

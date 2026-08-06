@@ -9087,6 +9087,12 @@
     <trans-unit id="mssql.walkthroughs.nextSteps.description">
       <source xml:lang="en">Familiarize yourself with more features of the MSSQL extension that can help you be more productive.</source>
     </trans-unit>
+    <trans-unit id="mssql.favoriteAzureServers">
+      <source xml:lang="en">Favorite Azure SQL servers used during database provisioning</source>
+    </trans-unit>
+    <trans-unit id="mssql.favoriteAzureResourceGroups">
+      <source xml:lang="en">Favorite Azure resource groups used during database provisioning</source>
+    </trans-unit>
     <trans-unit id="mssql.filterNode">
       <source xml:lang="en">Filter</source>
     </trans-unit>

@@ -16,6 +16,7 @@ import {
 } from "../sharedInterfaces/fabric";
 import * as fp from "../sharedInterfaces/fabricProvisioning";
 import {
+    FavoriteResourceType,
     FormItemActionButton,
     FormItemOptions,
     FormItemSpec,
@@ -31,6 +32,7 @@ import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { UserSurvey } from "../nps/userSurvey";
+import { applyFavorites } from "./deploymentFavorites";
 
 export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;
 
@@ -328,8 +330,8 @@ export async function getAzureActionButton(
 
             // There should always be at least one account, because the user just went through the sign in workflow
             if (azureAccounts.length > 0) {
-                state.formState.accountId = azureAccounts[0].id;
-                logger.debug(`Selecting '${azureAccounts[0].id}'`);
+                state.formState.accountId = accountsComponent.options[0].value;
+                logger.debug(`Selecting '${accountsComponent.options[0].value}'`);
             }
 
             updateFabricProvisioningState(deploymentController, state);
@@ -402,17 +404,20 @@ export function getWorkspaceOptions(state: fp.FabricProvisioningState): FormItem
         ...Object.values(state.workspacesWithPermissions),
         ...Object.values(state.workspacesWithoutPermissions),
     ];
-    return orderedWorkspaces.map((workspace) => {
-        const hasPermission = workspace.id in state.workspacesWithPermissions;
+    return applyFavorites(
+        orderedWorkspaces.map((workspace) => {
+            const hasPermission = workspace.id in state.workspacesWithPermissions;
 
-        return {
-            displayName: workspace.displayName,
-            value: workspace.id,
-            color: hasPermission ? "" : "colorNeutralForegroundDisabled",
-            description: hasPermission ? "" : Fabric.insufficientWorkspacePermissions,
-            icon: hasPermission ? undefined : "Warning20Regular",
-        };
-    });
+            return {
+                displayName: workspace.displayName,
+                value: workspace.id,
+                color: hasPermission ? "" : "colorNeutralForegroundDisabled",
+                description: hasPermission ? "" : Fabric.insufficientWorkspacePermissions,
+                icon: hasPermission ? undefined : "Warning20Regular",
+            };
+        }),
+        FavoriteResourceType.FabricWorkspace,
+    );
 }
 
 export async function getWorkspaces(
@@ -435,7 +440,9 @@ export async function getWorkspaces(
         // Handle workspace state updates
         const workspaceOptions = getWorkspaceOptions(state);
         state.formComponents.workspace.options = workspaceOptions;
-        state.formState.workspace = workspaceOptions.length > 0 ? workspaceOptions[0].value : "";
+        state.formState.workspace =
+            workspaceOptions.find((option) => option.value in state.workspacesWithPermissions)
+                ?.value ?? "";
         updateFabricProvisioningState(deploymentController, state);
         sendActionEvent(
             TelemetryViews.FabricProvisioning,

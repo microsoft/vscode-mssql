@@ -3,7 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FormContextProps, FormEvent, FormItemOptions, FormItemSpec, FormState } from "./form";
+import {
+    FavoriteResourceType,
+    FormContextProps,
+    FormEvent,
+    FormItemOptions,
+    FormItemSpec,
+    FormState,
+} from "./form";
 import {
     LocalContainersContextProps,
     DockerConnectionProfile as LocalContainersFormState,
@@ -66,6 +73,9 @@ export interface DeploymentCommonReducers {
      */
     setConnectionGroupDialogState: { shouldOpen: boolean };
 
+    /** Toggles a provisioning resource favorite. */
+    toggleFavoriteOption: { resourceType: FavoriteResourceType; favoriteId: string };
+
     /**
      * Reducer for cleanup and disposal logic.
      */
@@ -95,6 +105,9 @@ export interface DeploymentCommonContextProps extends FormContextProps<Deploymen
      * @param shouldOpen - A boolean indicating whether the dialog should be open or closed.
      */
     setConnectionGroupDialogState(shouldOpen: boolean): void;
+
+    /** Toggles a provisioning resource favorite. */
+    toggleFavoriteOption(resourceType: FavoriteResourceType, favoriteId: string): void;
 
     /**
      * Cleans up and disposes of resources used by the deployment context.

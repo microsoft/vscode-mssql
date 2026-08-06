@@ -14,7 +14,7 @@ import {
 } from "../../../sharedInterfaces/deployment";
 import { getCoreRPCs } from "../../common/utils";
 import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
-import { FormEvent } from "../../../sharedInterfaces/form";
+import { FavoriteResourceType, FormEvent } from "../../../sharedInterfaces/form";
 
 const DeploymentContext = createContext<DeploymentContextProps | undefined>(undefined);
 
@@ -46,6 +46,12 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                 extensionRpc.action("setConnectionGroupDialogState", {
                     shouldOpen: shouldOpen,
                 });
+            },
+            toggleFavoriteOption: function (
+                resourceType: FavoriteResourceType,
+                favoriteId: string,
+            ): void {
+                extensionRpc.action("toggleFavoriteOption", { resourceType, favoriteId });
             },
             createConnectionGroup: function (connectionGroupSpec: ConnectionGroupSpec): void {
                 extensionRpc.action("createConnectionGroup", {

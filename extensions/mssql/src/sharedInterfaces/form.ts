@@ -20,6 +20,7 @@ export interface FormState<
 export interface FormContextProps<TForm> extends CoreRPCs {
     formAction: (event: FormEvent<TForm>) => void;
     openInfoLink?: (option: FormItemOptions) => void;
+    toggleFavoriteOption?: (resourceType: FavoriteResourceType, favoriteId: string) => void;
 }
 
 export interface FormReducers<TForm> {
@@ -146,6 +147,36 @@ export interface FormItemOptions {
      * then all options are rendered in a flat list.
      */
     groupName?: string;
+    /** Resource type used to persist this option as a favorite. */
+    favoriteResourceType?: FavoriteResourceType;
+    /** Stable, globally unique identifier persisted for this favorite. */
+    favoriteId?: string;
+    /** Whether this option is currently favorited. */
+    isFavorite?: boolean;
+    /** Zero-based order in which this option was favorited. */
+    favoriteOrder?: number;
+}
+
+export function sortOptionsByFavoriteOrder<T extends FormItemOptions>(options: readonly T[]): T[] {
+    return options
+        .map((option, index) => ({ option, index }))
+        .sort((a, b) => {
+            const aFavoriteOrder = a.option.favoriteOrder ?? Number.MAX_SAFE_INTEGER;
+            const bFavoriteOrder = b.option.favoriteOrder ?? Number.MAX_SAFE_INTEGER;
+            return (
+                aFavoriteOrder - bFavoriteOrder ||
+                a.option.displayName.localeCompare(b.option.displayName) ||
+                a.index - b.index
+            );
+        })
+        .map(({ option }) => option);
+}
+
+export enum FavoriteResourceType {
+    AzureSubscription = "azureSubscription",
+    AzureResourceGroup = "azureResourceGroup",
+    AzureServer = "azureServer",
+    FabricWorkspace = "fabricWorkspace",
 }
 
 /**
