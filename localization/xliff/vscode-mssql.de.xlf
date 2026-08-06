@@ -1634,6 +1634,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Collapse All</source>
         <target state="translated">Alle reduzieren</target>
       </trans-unit>
+      <trans-unit id="++CODE++ae34d5a6424e68736fc3b2450c3ca097bc7197da8fd3229e383fff8a5a4af425">
+        <source xml:lang="en">Collapse Connect to Database</source>
+        <target state="new">Collapse Connect to Database</target>
+      </trans-unit>
       <trans-unit id="++CODE++55fbcb99ed7e8209673d373c82ce28bcbb2600ed756fae1b62f505adf64314bc">
         <source xml:lang="en">Collapse Subscription Explorer</source>
         <target state="translated">Abonnement-Explorer reduzieren</target>
@@ -2117,6 +2121,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <note>{0} is the extension ID</note>
         <target state="translated">Eine Verbindungsfreigabeberechtigung ist für die Erweiterung erforderlich: „{0}“</target>
       </trans-unit>
+      <trans-unit id="++CODE++511ada84b783506fb916797a09d9c19e21a5acd9cf2563a3b3629b28f6bc20bc">
+        <source xml:lang="en">Connection string</source>
+        <target state="new">Connection string</target>
+      </trans-unit>
       <trans-unit id="++CODE++83035e9200f6fdd69864139d77f16bd50bd19373c53fc216611778d70a865e2a">
         <source xml:lang="en">Connection string copied to clipboard</source>
         <target state="translated">Die Verbindungzeichenfolge wurde in die Zwischenablage kopiert.</target>
@@ -2249,6 +2257,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Copied to clipboard</source>
         <target state="translated">In Zwischenablage kopiert</target>
       </trans-unit>
+      <trans-unit id="++CODE++ea61bc15688d1e482ae5335e8dc030d8300b1afc07ecc7c2e6af5c43728b1d25">
+        <source xml:lang="en">Copied!</source>
+        <target state="new">Copied!</target>
+      </trans-unit>
       <trans-unit id="++CODE++2061058e9da24f0490ebc753877518c126993f42bfcc07975bca24b78f3e05c5">
         <source xml:lang="en">Copilot Changes</source>
         <target state="translated">Copilot-Änderungen</target>
@@ -2338,6 +2350,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Copy command to clipboard</source>
         <target state="translated">Befehl in Zwischenablage kopieren</target>
       </trans-unit>
+      <trans-unit id="++CODE++0b85073a76f0a2d227512131c49920c0f094d12886747285f6510bd4b8ccf364">
+        <source xml:lang="en">Copy connection string</source>
+        <target state="new">Copy connection string</target>
+      </trans-unit>
       <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
         <source xml:lang="en">Copy connection string to clipboard</source>
         <target state="translated">Verbindungszeichenfolge in Zwischenablage kopieren</target>
@@ -2353,6 +2369,10 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
       <trans-unit id="++CODE++cc4b07f956793d518a1f073565e7dceef4aab9bebae6e515dc7c9b046a38bc9d">
         <source xml:lang="en">Copy messages</source>
         <target state="translated">Nachrichten kopieren</target>
+      </trans-unit>
+      <trans-unit id="++CODE++6267dc32ae62b09e5ba7edc15c8da2a45bf8872d72ed527ab581bf3644eb2ec3">
+        <source xml:lang="en">Copy migration command</source>
+        <target state="new">Copy migration command</target>
       </trans-unit>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
@@ -3821,6 +3841,10 @@ Fehler:
       <trans-unit id="++CODE++9f5b023a413a7d0771cc3fb51b103dc0aaaafe8f7b7c88c7258d43e3bc5b243d">
         <source xml:lang="en">Expand All</source>
         <target state="translated">Alle erweitern</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c9dc64661a6ab3a67d5b541e0c871443b068fc5e228176a3394054c2f83030d6">
+        <source xml:lang="en">Expand Connect to Database</source>
+        <target state="new">Expand Connect to Database</target>
       </trans-unit>
       <trans-unit id="++CODE++acd7d6334485ffa9ac31c98945eaf0360abb86e3c80cbb460cb7e0b0e280466f">
         <source xml:lang="en">Expand Subscription Explorer</source>
@@ -8144,6 +8168,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</source>
         <target state="translated">Führen Sie gespeichertes SQL sofort mit benutzerdefinierten Tastenkombinationen aus. Verwenden Sie {arg}, um den ausgewählten Text im Abfrage-Editor einzufügen; andernfalls wird er der Abfrage angehängt.</target>
       </trans-unit>
+      <trans-unit id="++CODE++5879cfccb1c09591c9b8a1677e0e1f0935cb541d24aebeb7ed596666a3919113">
+        <source xml:lang="en">Run your migrations</source>
+        <target state="new">Run your migrations</target>
+      </trans-unit>
       <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
         <source xml:lang="en">Run, cancel, and create queries</source>
         <target state="translated">Abfragen ausführen, abbrechen und erstellen</target>
@@ -10739,6 +10767,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">Your database will continue running after the free offer limit and you will be charged for overages.</source>
         <target state="translated">Ihre Datenbank wird nach dem Ende des kostenlosen Angebotslimits weiter ausgeführt, und Ihnen werden zusätzliche Nutzungskosten berechnet.</target>
       </trans-unit>
+      <trans-unit id="++CODE++20082bf42822ccf6b53770a9f51230df781d30b42a43691ef534a3ccef0cb044">
+        <source xml:lang="en">Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.</source>
+        <target state="new">Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.</target>
+      </trans-unit>
       <trans-unit id="++CODE++e22a8e55997a44b12ff4f976b12df9cf1fd9b41a7521198b72b15a3cb9952ed0">
         <source xml:lang="en">Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).</source>
         <target state="translated">Ihr Kennwort muss Zeichen aus mindestens drei der folgenden Kategorien enthalten: Großbuchstaben, Kleinbuchstaben, Zahlen (0-9) und Sonderzeichen (!, $, #, % usw.).</target>
@@ -11024,6 +11056,11 @@ Abfrage: {2}</target>
         <source xml:lang="en">{0} deleted successfully.</source>
         <note>{0} deleted successfully.</note>
         <target state="translated">„{0}“ wurde erfolgreich gelöscht.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++7f79912e776b14c310615f10e26f6ea1eca71fcacafb73e275603e152cb9f04d">
+        <source xml:lang="en">{0} docs</source>
+        <note>{0} is the name of a database migration tool</note>
+        <target state="new">{0} docs</target>
       </trans-unit>
       <trans-unit id="++CODE++5c1afaa0e5ec640786450559a23d287ff17a8b5ffd18db119012de352e431731">
         <source xml:lang="en">{0} errors</source>
