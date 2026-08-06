@@ -20,6 +20,12 @@
                     "LclFile": "localization\\LCL\\{Lang}\\data-workspace.xlf.lcl",
                     "CopyOption": "LangIDOnName",
                     "OutputPath": "localization\\xliff\\"
+                },
+                {
+                    "SourceFile": "localization\\xliff\\extension-toolkit.xlf",
+                    "LclFile": "localization\\LCL\\{Lang}\\extension-toolkit.xlf.lcl",
+                    "CopyOption": "LangIDOnName",
+                    "OutputPath": "localization\\xliff\\"
                 }
             ]
         }

@@ -9,6 +9,7 @@ import { InstantiationServiceBuilder } from "extension-toolkit/base";
 import {
     ExtensionContextService,
     IExtensionContextService,
+    initializeExtensionToolkit,
     initializeTelemetryReporter,
     sendActionEvent,
     telemetryReporter,
@@ -43,6 +44,8 @@ export let uriOwnershipCoordinator: UriOwnershipCoordinator = undefined;
 let activation: MssqlActivation | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
+    initializeExtensionToolkit();
+
     const builder = new InstantiationServiceBuilder();
 
     builder.define(IExtensionContextService, new ExtensionContextService(context));

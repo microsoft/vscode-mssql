@@ -48,6 +48,7 @@ void run(
                 ".js": "js",
                 ".png": "file",
                 ".gif": "file",
+                ".ttf": "file",
             },
             metafile: !isProd,
             minify: isProd,

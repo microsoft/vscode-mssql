@@ -76,29 +76,25 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
         });
 
         this.registerReducer("setPresetPinned", async (state, payload) => {
-            const filterPresets = await this._filterStore.setPinned(
-                state.filterScopeId,
-                payload.presetId,
-                payload.isPinned,
+            return this.updateFilterPresets(state, () =>
+                this._filterStore.setPinned(
+                    state.filterScopeId,
+                    payload.presetId,
+                    payload.isPinned,
+                ),
             );
-            return { ...state, filterPresets };
         });
 
         this.registerReducer("deletePreset", async (state, payload) => {
-            const filterPresets = await this._filterStore.deletePreset(
-                state.filterScopeId,
-                payload.presetId,
+            return this.updateFilterPresets(state, () =>
+                this._filterStore.deletePreset(state.filterScopeId, payload.presetId),
             );
-            return { ...state, filterPresets };
         });
 
         this.registerReducer("renamePreset", async (state, payload) => {
-            const filterPresets = await this._filterStore.renamePreset(
-                state.filterScopeId,
-                payload.presetId,
-                payload.name,
+            return this.updateFilterPresets(state, () =>
+                this._filterStore.renamePreset(state.filterScopeId, payload.presetId, payload.name),
             );
-            return { ...state, filterPresets };
         });
 
         this.registerReducer("cancel", (state) => {
@@ -106,6 +102,19 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
             this.panel.dispose();
             return state;
         });
+    }
+
+    private async updateFilterPresets(
+        state: ObjectExplorerFilterState,
+        update: () => Promise<ObjectExplorerFilterState["filterPresets"]>,
+    ): Promise<ObjectExplorerFilterState> {
+        try {
+            const filterPresets = await update();
+            return { ...state, filterPresets };
+        } catch (error) {
+            this.logger.error("Failed to update the Object Explorer filter presets", error);
+            return state;
+        }
     }
 
     public loadData(data: ObjectExplorerFilterState): void {
