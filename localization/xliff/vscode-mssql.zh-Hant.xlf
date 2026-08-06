@@ -327,6 +327,10 @@
         <source xml:lang="en">Add new foreign key</source>
         <target state="translated">新增新的外部索引鍵</target>
       </trans-unit>
+      <trans-unit id="++CODE++304b93680c049c9d66d5b61167de872af262e2d6990468fb171ddc263c40a8bb">
+        <source xml:lang="en">Add tables and data, explore, and build with the MSSQL extension.</source>
+        <target state="new">Add tables and data, explore, and build with the MSSQL extension.</target>
+      </trans-unit>
       <trans-unit id="++CODE++3e10b08cc874514175b51ba372ff955b27e2817963bc53ab489344968d5a472d">
         <source xml:lang="en">Add tag</source>
         <target state="translated">新增標記</target>
@@ -1023,10 +1027,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Browse Azure</source>
         <target state="translated">瀏覽 Azure</target>
       </trans-unit>
-      <trans-unit id="++CODE++1fd919fd5e24a6e11c02245971437276dd6793359fce501d4dc634b83a54982a">
-        <source xml:lang="en">Browse Azure SQL Database tutorials and docs</source>
-        <target state="translated">瀏覽 Azure SQL Database 教學課程和文件</target>
-      </trans-unit>
       <trans-unit id="++CODE++9b0636db073a79048ef4de667c447e516b7241e55ecf311c2a6f1fbe662574a1">
         <source xml:lang="en">Browse Fabric</source>
         <target state="translated">瀏覽 Fabric</target>
@@ -1062,6 +1062,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++00ea757097babdd3471ed3dbcef6f4a33b46658dfb023aa009b53fa1dd0ae30c">
         <source xml:lang="en">Build failed with exit code {0}</source>
         <target state="translated">建置失敗，結束代碼為 {0}。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++83786570b57c8ba630ba1a34a6392b74bd535658df4105674f535468e8bf66a3">
+        <source xml:lang="en">Build with AI using GitHub Copilot</source>
+        <target state="new">Build with AI using GitHub Copilot</target>
       </trans-unit>
       <trans-unit id="++CODE++070df86dfd0e7f4066a971ef2e0d5b9ee8ddbb826c4edf0924026bca37ac603f">
         <source xml:lang="en">Build {0}</source>
@@ -1642,6 +1646,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Collapse Subscription Explorer</source>
         <target state="translated">摺疊訂用帳戶總管</target>
       </trans-unit>
+      <trans-unit id="++CODE++18481ffd35a78ec18882e24611f0e4d1a0099e2121e4106ea773489d848dc2fe">
+        <source xml:lang="en">Collapse What's next</source>
+        <target state="new">Collapse What's next</target>
+      </trans-unit>
       <trans-unit id="++CODE++73bdb3fe57af851db2313c3716cc6e6d8584314063030d5262237ad2fa9f8201">
         <source xml:lang="en">Collapse Workspace Explorer</source>
         <target state="translated">摺疊工作區總管</target>
@@ -1767,6 +1775,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++c76e4efa9bdedc294be4e0c0a7e42040e5c921d0b30a36e1c6249893b941b662">
         <source xml:lang="en">Compare SQL Server editions</source>
         <target state="translated">比較 SQL Server 版本</target>
+      </trans-unit>
+      <trans-unit id="++CODE++c27f61f02d85bd66cd657c01ef308da726f0adba66b08e0c9d1623fca582892a">
+        <source xml:lang="en">Compare and deploy schema with Schema Compare</source>
+        <target state="new">Compare and deploy schema with Schema Compare</target>
       </trans-unit>
       <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
         <source xml:lang="en">Comparison Details</source>
@@ -1920,10 +1932,6 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Connect using profile {0}?</source>
         <note>{0} is the profile ID</note>
         <target state="translated">要使用設定檔 {0} 連接嗎?</target>
-      </trans-unit>
-      <trans-unit id="++CODE++f2d0178ddb6ab66f3ba6afff663a52bf766e08a8f4e7996d9890c75862ac6d29">
-        <source xml:lang="en">Connect with SQL tools and run your first query</source>
-        <target state="translated">使用 SQL 工具連線，然後執行您的第一個查詢</target>
       </trans-unit>
       <trans-unit id="++CODE++bf2b06cf5edeeb66a098a3a052ced6d9f0c647f587aa00f072c6de26abcacfa0">
         <source xml:lang="en">Connect with the current settings and save the connection profile</source>
@@ -3009,6 +3017,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Design Schemas with GitHub Copilot</source>
         <target state="translated">使用 GitHub Copilot 設計結構描述</target>
       </trans-unit>
+      <trans-unit id="++CODE++8d37f3b7ab96032942bf53c01232765ea61fe23d6b67d0fe0006711800e4c16e">
+        <source xml:lang="en">Design tables with Table Designer</source>
+        <target state="new">Design tables with Table Designer</target>
+      </trans-unit>
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
         <target state="translated">詳細資料</target>
@@ -3849,6 +3861,10 @@ Error:
       <trans-unit id="++CODE++acd7d6334485ffa9ac31c98945eaf0360abb86e3c80cbb460cb7e0b0e280466f">
         <source xml:lang="en">Expand Subscription Explorer</source>
         <target state="translated">展開訂用帳戶總管</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2cd5a153af1997ff786bb4dbbf1fce238624a6442d5097fd3a92b8276b5d27a4">
+        <source xml:lang="en">Expand What's next</source>
+        <target state="new">Expand What's next</target>
       </trans-unit>
       <trans-unit id="++CODE++48ad32aba89e3b0bbab4397b56bd23794212fe69606e0b644ff3b543035a048d">
         <source xml:lang="en">Expand Workspace Explorer</source>
@@ -5220,6 +5236,10 @@ Error:
         <source xml:lang="en">Import from Azure Data Studio</source>
         <target state="translated">從 Azure Data Studio 匯入</target>
       </trans-unit>
+      <trans-unit id="++CODE++ccc8cb224112819eff50f57e331a4b5a1ab1233a91d7eea66fedf3c446f0b42a">
+        <source xml:lang="en">Import from a flat file as a new table</source>
+        <target state="new">Import from a flat file as a new table</target>
+      </trans-unit>
       <trans-unit id="++CODE++f12310620d6f87e759ba952d49c66c25457a44fb9231a08c9e5f9ce40324f88e">
         <source xml:lang="en">Import selected</source>
         <target state="translated">已選取匯入</target>
@@ -6181,10 +6201,6 @@ Error:
       <trans-unit id="++CODE++999447c73dea8a58e7845ced946ec9030d22db88790df0320f35bf6bac6c588f">
         <source xml:lang="en">Modify Table</source>
         <target state="translated">修改資料表</target>
-      </trans-unit>
-      <trans-unit id="++CODE++20d04708439a97fe2875163d4e29918be227f86d5fa82847438232e6e626b5f5">
-        <source xml:lang="en">Monitor usage and manage your free tier limits</source>
-        <target state="translated">監視使用量並管理您的免費層限制</target>
       </trans-unit>
       <trans-unit id="++CODE++7b2f513a67abc570d3348717ad85ae669570734afe2bf57015c2cc9b0dce3764">
         <source xml:lang="en">Monthly limits</source>
@@ -8168,6 +8184,10 @@ Query: {2}</source>
         <source xml:lang="en">Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.</source>
         <target state="translated">使用自訂鍵盤快速鍵立即執行已儲存的 SQL。使用 {arg} 插入選取的查詢編輯器文字；否則會將其附加至查詢。</target>
       </trans-unit>
+      <trans-unit id="++CODE++18af8fd62b2930a61322517ce9e800c2f93abd52a7276963fac72b18f76cb44f">
+        <source xml:lang="en">Run your first query</source>
+        <target state="new">Run your first query</target>
+      </trans-unit>
       <trans-unit id="++CODE++5879cfccb1c09591c9b8a1677e0e1f0935cb541d24aebeb7ed596666a3919113">
         <source xml:lang="en">Run your migrations</source>
         <target state="new">Run your migrations</target>
@@ -8633,10 +8653,6 @@ Query: {2}</source>
       <trans-unit id="++CODE++78c9d9f6ace0e9b850ab68646c51dc2c990edf221c872d1c6ec389dd797c0f21">
         <source xml:lang="en">Searching...</source>
         <target state="translated">正在搜尋...</target>
-      </trans-unit>
-      <trans-unit id="++CODE++c4038f47497f61adc776523835e82f3bab98d497b1978fced8d46e61e6f435a4">
-        <source xml:lang="en">Seed sample data or import an existing schema</source>
-        <target state="translated">植入範例資料或匯入現有結構描述</target>
       </trans-unit>
       <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
         <source xml:lang="en">Select</source>
@@ -10585,6 +10601,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++eab0f257866b670694bf52eec427b7799ca53883151d4d4526b0e57660ce65ab">
         <source xml:lang="en">Visualize and Design Schema</source>
         <target state="translated">視覺化與設計結構描述</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9f01c06e42657754f1351fdd6c5c8fa9c5a15dc9bcaff5446038222ba1d3e694">
+        <source xml:lang="en">Visualize and design your database with Schema Designer</source>
+        <target state="new">Visualize and design your database with Schema Designer</target>
       </trans-unit>
       <trans-unit id="++CODE++b6af395c5020f3f19337172a94b2607d19ef6f8fed2424cf788b0d00b0572264">
         <source xml:lang="en">WHERE</source>
