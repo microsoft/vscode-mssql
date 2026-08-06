@@ -720,6 +720,7 @@ export class ProjectsController {
         folderPath: string,
         fileExtension?: string,
         defaultName?: string,
+        schemaPrefix?: string,
     ): Promise<string | undefined> {
         const suggestedName = utils.sanitizeStringForFilename(
             defaultName ?? itemType.friendlyName.replace(/\s+/g, ""),
@@ -735,9 +736,15 @@ export class ProjectsController {
             ))
         );
 
+        // The schema only qualifies the object in the generated script; the file itself is named
+        // after the object alone, so it is not part of the uniqueness check above.
+        const suggestedValue = schemaPrefix
+            ? `${schemaPrefix}.${suggestedName}${counter}`
+            : `${suggestedName}${counter}`;
+
         const itemObjectName = await vscode.window.showInputBox({
             prompt: constants.newObjectNamePrompt(itemType.friendlyName),
-            value: `${suggestedName}${counter}`,
+            value: suggestedValue,
             validateInput: (value) => {
                 return utils.isValidBasenameErrorMessage(value);
             },
@@ -745,6 +752,40 @@ export class ProjectsController {
         });
 
         return itemObjectName;
+    }
+
+    /**
+     * Returns the schema implied by the folder the command was invoked from, so the suggested
+     * name can be pre-qualified with it (e.g. under `sales/Tables`, suggest `sales.Table1`).
+     *
+     * @returns the schema, or `undefined` when the folder implies none: the item type isn't
+     * schema-dependent, the project root, an object-type folder like `Tables`, or `dbo`.
+     */
+    private getSchemaFromFolderPath(itemType: ItemType, relativePath: string): string | undefined {
+        if (!relativePath || !templates.itemTypeToFolderMap.get(itemType)?.schemaDependent) {
+            return undefined;
+        }
+
+        // relativePath comes from trimUri, which always joins with '/'; the regex also handles
+        // '\' defensively.
+        const firstSegment = relativePath.split(/[\\/]/).filter(Boolean)[0];
+        if (!firstSegment) {
+            return undefined;
+        }
+
+        // A root-level object-type folder (e.g. "Tables") is not a schema.
+        const isObjectTypeFolder = [...templates.itemTypeToFolderMap.values()].some(
+            (cfg) => cfg.folderName.toLowerCase() === firstSegment.toLowerCase(),
+        );
+        if (isObjectTypeFolder) {
+            return undefined;
+        }
+
+        // The default schema is what an unqualified name already produces, so leave the
+        // suggestion unqualified there.
+        return firstSegment.toLowerCase() === constants.defaultSchemaName.toLowerCase()
+            ? undefined
+            : firstSegment;
     }
 
     public isReservedFolder(absoluteFolderPath: string, projectFolderPath: string): boolean {
@@ -833,6 +874,7 @@ export class ProjectsController {
      * @param project The project to check / add folders to
      * @param schemaName The schema name parsed from user input (e.g. "dbo", "sales")
      * @param basePath The folder the user invoked the command from; empty string means project root
+     * @param allowCreate Whether missing folders may be created. When false, an existing folder or a fallback is returned and nothing is written.
      * @returns The relative folder path the item should be placed in
      */
     public async resolveItemFolder(
@@ -840,6 +882,7 @@ export class ProjectsController {
         project: ISqlProject,
         schemaName?: string,
         basePath?: string,
+        allowCreate: boolean = true,
     ): Promise<string> {
         const folderConfig = templates.itemTypeToFolderMap.get(itemType);
         if (!folderConfig) {
@@ -847,7 +890,7 @@ export class ProjectsController {
         }
 
         const { folderName, schemaDependent } = folderConfig;
-        const autoCreate = this.isAutoCreateFoldersEnabled();
+        const autoCreate = allowCreate && this.isAutoCreateFoldersEnabled();
 
         // Non-root path: user invoked from an existing folder node
         if (basePath) {
@@ -978,10 +1021,25 @@ export class ProjectsController {
         }
 
         const itemType = templates.get(itemTypeName);
-        const absolutePathToParent = path.join(project.projectFolderPath, relativePath);
         const isItemTypePublishProfile =
             itemTypeName === constants.publishProfileFriendlyName ||
             itemTypeName === ItemType.publishProfile;
+        // The schema of the folder the command came from, so the generated script matches where
+        // the file lands instead of always defaulting to dbo.
+        const folderSchema = isItemTypePublishProfile
+            ? undefined
+            : this.getSchemaFromFolderPath(itemType.type, relativePath);
+
+        // Predict the destination so the name suggestion probes the folder the file actually
+        // lands in (right-clicking `Person` writes to `Person/Tables`). Creates nothing.
+        const predictedFolder = await this.resolveItemFolder(
+            itemType.type,
+            project,
+            folderSchema,
+            relativePath || undefined,
+            false /* allowCreate */,
+        );
+        const absolutePathToParent = path.join(project.projectFolderPath, predictedFolder);
         const fileExtension = isItemTypePublishProfile
             ? constants.publishProfileExtension
             : constants.sqlFileExtension;
@@ -994,6 +1052,7 @@ export class ProjectsController {
             absolutePathToParent,
             fileExtension,
             defaultName,
+            folderSchema,
         );
 
         itemObjectName = itemObjectName?.trim();
