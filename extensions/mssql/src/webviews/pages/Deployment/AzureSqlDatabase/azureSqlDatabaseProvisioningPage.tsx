@@ -8,7 +8,7 @@ import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 import { DeploymentStepCard } from "../deploymentStepCard";
-import { WhatsNextCard } from "../../../common/whatsNextCard";
+import { WhatsNextCard } from "../whatsNextCard";
 
 const useStyles = makeStyles({
     outerDiv: {

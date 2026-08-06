@@ -10,7 +10,7 @@ import {
     ChevronDownRegular,
     ChevronRightRegular,
 } from "@fluentui/react-icons";
-import { locConstants } from "./locConstants";
+import { locConstants } from "../../common/locConstants";
 
 const useStyles = makeStyles({
     card: {

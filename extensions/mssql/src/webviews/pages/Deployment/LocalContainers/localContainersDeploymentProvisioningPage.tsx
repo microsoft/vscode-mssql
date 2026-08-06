@@ -16,7 +16,7 @@ import { stepPageStyles } from "./sharedStyles";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { useLocalContainersDeploymentSelector } from "../deploymentSelector";
 import { ApiStatus } from "../../../../sharedInterfaces/webview";
-import { WhatsNextCard } from "../../../common/whatsNextCard";
+import { WhatsNextCard } from "../whatsNextCard";
 
 export const LocalContainersDeploymentProvisioningPage: React.FC = () => {
     const classes = stepPageStyles();
