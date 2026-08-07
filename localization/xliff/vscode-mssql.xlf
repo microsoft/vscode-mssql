@@ -3485,6 +3485,9 @@
     <trans-unit id="++CODE++ca4c37cb4476ae2b0cba406f2d2ba86941c15e9d3a169ed2feb37fd0b9fe07b7">
       <source xml:lang="en">File Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++baf1d51cdc7979a93a41ca174cb518e1afc43d5060899597e99f13b33b17e1da">
+      <source xml:lang="en">File a feature request</source>
+    </trans-unit>
     <trans-unit id="++CODE++fa2a8ed323616e7b0d7d5c10ff86fe43e4709b714505299633c12807ac9c22f1">
       <source xml:lang="en">File already exists. It will be overwritten if you continue</source>
     </trans-unit>
@@ -6031,9 +6034,6 @@
     <trans-unit id="++CODE++cc874c54b76cd239b02d7fddeea1dd3415c1a0a3fe476cd537f26b06c0e98dcd">
       <source xml:lang="en">Request a new feature</source>
     </trans-unit>
-    <trans-unit id="++CODE++d82f3be6c7fa14b22d045c2a09ab4e2f4e7d311c993e5953d4c78971b4f83517">
-      <source xml:lang="en">Request this feature</source>
-    </trans-unit>
     <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
       <source xml:lang="en">Required</source>
     </trans-unit>
@@ -7618,6 +7618,10 @@
       <note>{0} is the service name
 {1} is the error message</note>
     </trans-unit>
+    <trans-unit id="++CODE++2500e74ebfdd53040c8458b3b5e89e97caf167df8686a8882b9e628ba5cb5447">
+      <source xml:lang="en">The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.</source>
+      <note>{0} is the extension name</note>
+    </trans-unit>
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>
     </trans-unit>
@@ -8671,10 +8675,6 @@
     </trans-unit>
     <trans-unit id="++CODE++c7c45c2f2ad470c2dc1a35bf3320d977e49bd4f4c804d9bf347d009669e5ebae">
       <source xml:lang="en">{{put-server-name-here}}</source>
-    </trans-unit>
-    <trans-unit id="++CODE++8d23097b42ca8ec5cc2aba47ac65da0eccb1472d900baf4d52361426fbc8c791">
-      <source xml:lang="en">“{0}” extension uses a connection-sharing capability that MSSQL is retiring. If you rely on what this extension does, tell us and we’ll consider adding it natively.</source>
-      <note>{0} is the extension name</note>
     </trans-unit>
     <trans-unit id="++CODE++097beaf7cff8a2792062a02ba2078dcf76e2166c13dd935fbffcd530d655cdf6">
       <source xml:lang="en">✅ Grant Access</source>

@@ -3003,12 +3003,12 @@ export class ConnectionSharing {
     public static retirementWarning(extensionName: string) {
         return l10n.t({
             message:
-                "“{0}” extension uses a connection-sharing capability that MSSQL is retiring. If you rely on what this extension does, tell us and we’ll consider adding it natively.",
+                "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.",
             args: [extensionName],
             comment: ["{0} is the extension name"],
         });
     }
-    public static RequestThisFeature = l10n.t("Request this feature");
+    public static FileFeatureRequest = l10n.t("File a feature request");
     public static DoNotShowAgainForExtension = l10n.t("Don’t show again for this extension");
     public static connectionSharingRequestNotification(extensionName: string) {
         return l10n.t({

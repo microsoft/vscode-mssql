@@ -407,14 +407,15 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             TelemetryActions.ConnectionSharingRetirementToast,
             { extensionId, action: "shown" },
         );
-        void vscode.window
-            .showWarningMessage(
+        void Promise.resolve(
+            vscode.window.showWarningMessage(
                 LocalizedConstants.ConnectionSharing.retirementWarning(extensionName),
-                LocalizedConstants.ConnectionSharing.RequestThisFeature,
+                LocalizedConstants.ConnectionSharing.FileFeatureRequest,
                 LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension,
-            )
+            ),
+        )
             .then(async (selection) => {
-                if (selection === LocalizedConstants.ConnectionSharing.RequestThisFeature) {
+                if (selection === LocalizedConstants.ConnectionSharing.FileFeatureRequest) {
                     sendActionEvent(
                         TelemetryViews.Connection,
                         TelemetryActions.ConnectionSharingRetirementToast,
@@ -440,6 +441,12 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
                         { extensionId, action: "dismissed" },
                     );
                 }
+            })
+            .catch((error) => {
+                this._logger.error(
+                    "Failed to handle the connection-sharing retirement notification.",
+                    error,
+                );
             });
     }
 

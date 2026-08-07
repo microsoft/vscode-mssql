@@ -51,6 +51,21 @@ suite("ConnectionSharingService Tests", () => {
     const testDatabase = "TestDatabase";
     const testQuery = "SELECT * FROM sys.databases";
 
+    function matchesStoredPermission(permission: "approved" | "denied"): sinon.SinonMatcher {
+        return sinon.match((value: unknown) => {
+            if (typeof value !== "string") {
+                return false;
+            }
+
+            try {
+                const storedPermissions = JSON.parse(value) as Record<string, unknown>;
+                return storedPermissions[testExtensionId] === permission;
+            } catch {
+                return false;
+            }
+        });
+    }
+
     const mockConnectionProfile: IConnectionProfile = {
         id: testConnectionId,
         server: "test-server",
@@ -202,7 +217,7 @@ suite("ConnectionSharingService Tests", () => {
                 packageJSON: { displayName: "Test Extension" },
             });
             showWarningMessageStub.resolves(
-                LocalizedConstants.ConnectionSharing.RequestThisFeature,
+                LocalizedConstants.ConnectionSharing.FileFeatureRequest,
             );
 
             sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
@@ -217,7 +232,7 @@ suite("ConnectionSharingService Tests", () => {
 
             expect(showWarningMessageStub).to.have.been.calledWith(
                 LocalizedConstants.ConnectionSharing.retirementWarning("Test Extension"),
-                LocalizedConstants.ConnectionSharing.RequestThisFeature,
+                LocalizedConstants.ConnectionSharing.FileFeatureRequest,
                 LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension,
             );
             expect(globalState.update).to.have.been.calledWith(
@@ -235,6 +250,38 @@ suite("ConnectionSharingService Tests", () => {
                         uri.toString() ===
                         vscode.Uri.parse(Constants.connectionSharingFeatureRequestUrl).toString(),
                 ),
+            );
+        });
+
+        test("logs errors from the retirement notification handler", async () => {
+            const notificationError = new Error("Failed to update retirement suppression");
+            const loggerErrorStub = sandbox.stub(
+                (
+                    connectionSharingService as unknown as {
+                        _logger: { error(message: string, ...args: unknown[]): void };
+                    }
+                )._logger,
+                "error",
+            );
+            secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
+            getExtensionStub.withArgs(testExtensionId).returns({
+                id: testExtensionId,
+                packageJSON: { displayName: "Test Extension" },
+            });
+            showWarningMessageStub.rejects(notificationError);
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
+                document: { uri: vscode.Uri.parse("file:///test.sql") },
+            }));
+
+            const command = registeredCommands.get(
+                "mssql.connectionSharing.getActiveEditorConnectionId",
+            );
+            await command!(testExtensionId);
+            await new Promise((resolve) => setImmediate(resolve));
+
+            expect(loggerErrorStub).to.have.been.calledWithMatch(
+                "Failed to handle the connection-sharing retirement notification.",
+                notificationError,
             );
         });
 
@@ -398,11 +445,11 @@ suite("ConnectionSharingService Tests", () => {
             );
             await command!(testExtensionId);
 
-            const storeCall = secretStorage.store.getCall(secretStorage.store.callCount - 1).args;
-            const storedPermissions = JSON.parse(storeCall[1]);
             expect(showInformationMessageStub).to.have.been.calledOnce;
-            expect(secretStorage.store).to.have.been.called;
-            expect(storedPermissions[testExtensionId]).to.equal("approved");
+            expect(secretStorage.store).to.have.been.calledWith(
+                "mssql.connectionSharing.extensionPermissions",
+                matchesStoredPermission("approved"),
+            );
         });
 
         test("should deny extension when user clicks Deny", async () => {
@@ -429,9 +476,10 @@ suite("ConnectionSharingService Tests", () => {
             }
 
             // Verify the permission was saved as denied
-            const storeCall = secretStorage.store.getCall(secretStorage.store.callCount - 1).args;
-            const storedPermissions = JSON.parse(storeCall[1]);
-            expect(storedPermissions[testExtensionId]).to.equal("denied");
+            expect(secretStorage.store).to.have.been.calledWith(
+                "mssql.connectionSharing.extensionPermissions",
+                matchesStoredPermission("denied"),
+            );
             expect(sendActionEventStub).to.have.been.calledWith(
                 TelemetryViews.Connection,
                 TelemetryActions.ConnectionSharingApiCalled,
