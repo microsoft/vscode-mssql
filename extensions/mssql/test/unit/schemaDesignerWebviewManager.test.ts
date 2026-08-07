@@ -13,7 +13,12 @@ import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schema
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import MainController from "../../src/controllers/mainController";
-import { stubExtensionContext, stubUserSurvey, stubWebviewPanel } from "./utils";
+import {
+    observeWebviewReady,
+    stubExtensionContext,
+    stubUserSurvey,
+    stubWebviewPanel,
+} from "./utils";
 import * as LocConstants from "../../src/constants/locConstants";
 
 chai.use(sinonChai);
@@ -498,6 +503,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
             });
 
             // Trigger disposal
+            observeWebviewReady(designer);
             await designer.dispose();
 
             expect((manager as any).schemaDesigners.has(key)).to.be.false;
@@ -525,6 +531,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
             });
 
             // Trigger disposal
+            observeWebviewReady(designer);
             await designer.dispose();
 
             // Allow async handler to execute
@@ -553,6 +560,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
                 isDirty: false,
             });
 
+            observeWebviewReady(designer);
             await designer.dispose();
 
             await new Promise((resolve) => setTimeout(resolve, 10));
@@ -582,6 +590,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
             });
 
             // Trigger disposal
+            observeWebviewReady(designer);
             await designer.dispose();
 
             // Allow async handler to execute
@@ -612,6 +621,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
             });
 
             // Trigger disposal
+            observeWebviewReady(designer);
             await designer.dispose();
 
             // Allow async handler to execute
@@ -646,6 +656,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
             expect((manager as any).schemaDesignerCache.has(key)).to.be.true;
 
             // Trigger disposal
+            observeWebviewReady(designer);
             await designer.dispose();
 
             // Allow async handler to execute
@@ -681,6 +692,7 @@ suite("SchemaDesignerWebviewManager tests", () => {
             mockSchemaDesignerService.disposeSession.rejects(error);
 
             // Trigger disposal - should not throw even if disposeSession fails
+            observeWebviewReady(designer);
             await designer.dispose();
 
             // Allow async handler to execute

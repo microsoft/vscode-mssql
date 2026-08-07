@@ -93,20 +93,14 @@ suite("ConnectionManager Tests", () => {
     /**
      * Creates a ConnectionManager using the suite's default mocks, allowing callers to
      * override individual dependencies for the handful of tests that need distinct instances.
-     * Pass `useDefaultClient: false` to opt out of the default `mockServiceClient` (falls back
-     * to the real client singleton), matching tests that intentionally exercise that behavior.
      */
     function createConnectionManager(overrides?: {
         prompter?: IPrompter;
         client?: SqlToolsServerClient;
-        useDefaultClient?: boolean;
         connectionStore?: sinon.SinonStubbedInstance<ConnectionStore>;
         accountStore?: sinon.SinonStubbedInstance<AccountStore>;
         connectionUI?: sinon.SinonStubbedInstance<ConnectionUI>;
     }): ConnectionManager {
-        const client =
-            overrides?.client ??
-            (overrides?.useDefaultClient === false ? undefined : mockServiceClient);
         return new ConnectionManager(
             mockContext,
             mockStatusView,
@@ -116,7 +110,7 @@ suite("ConnectionManager Tests", () => {
             overrides?.accountStore ?? mockAccountStore,
             stubInstantiationService(sandbox),
             mockLogger,
-            client,
+            overrides?.client ?? mockServiceClient,
             overrides?.connectionUI ?? mockConnectionUI,
         );
     }
@@ -693,7 +687,7 @@ suite("ConnectionManager Tests", () => {
             };
         }
 
-        setup(() => {
+        setup(async () => {
             stubPreviewService(sandbox, {
                 [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
             });
@@ -705,6 +699,7 @@ suite("ConnectionManager Tests", () => {
             sendNotificationStub = mockServiceClient.sendNotification as sinon.SinonStub;
             sendNotificationStub.reset();
             connectionManager["client"] = mockServiceClient;
+            await connectionManager.initialized;
         });
 
         test("happy path: sends TokenRefreshedNotification with token and expiresOn", async () => {
@@ -764,7 +759,7 @@ suite("ConnectionManager Tests", () => {
             } as IConnectionInfo;
         }
 
-        setup(() => {
+        setup(async () => {
             // Test the MSAL (non-VS-Code-accounts) path
             stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
 
@@ -831,18 +826,25 @@ suite("ConnectionManager Tests", () => {
         let handlePasswordBasedCredentialsStub: sinon.SinonStub;
         let refreshEntraTokenIfNeededStub: sinon.SinonStub;
 
-        setup(() => {
+        setup(async () => {
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
             mockAccountStore = sandbox.createStubInstance(AccountStore);
             mockAzureController = sandbox.createStubInstance(AzureController);
+
+            const initializedDeferred = new Deferred<void>();
+            initializedDeferred.resolve();
+            Object.defineProperty(mockConnectionStore, "initialized", {
+                get: () => initializedDeferred,
+            });
+            mockConnectionStore.readAllConnections.resolves([]);
+            mockConnectionStore.readAllConnectionGroups.resolves([]);
 
             const mockPrompter = sandbox.createStubInstance(TestPrompter);
 
             // Create a new connection manager instance for this test suite
             testConnectionManager = createConnectionManager({
                 prompter: mockPrompter,
-                useDefaultClient: false,
                 connectionStore: mockConnectionStore,
                 connectionUI: mockConnectionUI,
                 accountStore: mockAccountStore,
@@ -858,6 +860,7 @@ suite("ConnectionManager Tests", () => {
             refreshEntraTokenIfNeededStub = sandbox
                 .stub(testConnectionManager, "refreshEntraTokenIfNeeded")
                 .resolves();
+            await testConnectionManager.initialized;
         });
 
         teardown(() => {
@@ -1035,15 +1038,22 @@ suite("ConnectionManager Tests", () => {
         let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
         let testConnectionManager: ConnectionManager;
 
-        setup(() => {
+        setup(async () => {
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
+
+            const initializedDeferred = new Deferred<void>();
+            initializedDeferred.resolve();
+            Object.defineProperty(mockConnectionStore, "initialized", {
+                get: () => initializedDeferred,
+            });
+            mockConnectionStore.readAllConnections.resolves([]);
+            mockConnectionStore.readAllConnectionGroups.resolves([]);
 
             const mockPrompter = sandbox.createStubInstance(TestPrompter);
 
             testConnectionManager = createConnectionManager({
                 prompter: mockPrompter,
-                useDefaultClient: false,
                 connectionStore: mockConnectionStore,
                 connectionUI: mockConnectionUI,
             });
@@ -1102,7 +1112,6 @@ suite("ConnectionManager Tests", () => {
             const mockPrompter = sandbox.createStubInstance(TestPrompter);
             testConnectionManager = createConnectionManager({
                 prompter: mockPrompter,
-                useDefaultClient: false,
             });
         });
 

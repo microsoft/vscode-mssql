@@ -106,6 +106,7 @@ suite("SqlDocumentService Tests", () => {
     });
 
     teardown(() => {
+        sqlDocumentService.dispose();
         sandbox.restore();
     });
 
