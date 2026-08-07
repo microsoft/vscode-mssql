@@ -4230,10 +4230,6 @@ Error:
         <source xml:lang="en">Failed to apply schema.</source>
         <target state="translated">スキーマを適用できませんでした。</target>
       </trans-unit>
-      <trans-unit id="++CODE++6c64dac05dd8918aa9678f62042470c0ac3b232e4ac9ddc1f8423a5ab9800514">
-        <source xml:lang="en">Failed to apply the Move to Schema changes. Check that the files are writable and try again.</source>
-        <target state="translated">[スキーマに移動] の変更を適用できませんでした。ファイルが書き込み可能であることを確認してから、やり直してください。</target>
-      </trans-unit>
       <trans-unit id="++CODE++0f20f13b4e0c02dbfd1419272fdc0223aea4745a0704daf5f91876a21476bda2">
         <source xml:lang="en">Failed to change database</source>
         <target state="translated">データベースを変更できませんでした</target>
@@ -4426,6 +4422,10 @@ Error:
       <trans-unit id="++CODE++3124ddbedded23af64f8d5506005863517b446c2767c1d81660d1074b969e089">
         <source xml:lang="en">Failed to load publish profile</source>
         <target state="translated">公開プロファイルの読み込みに失敗しました</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b93e0a97fce96dfc718e10b11f3d87cd992eaaf44707ea040271b2ca47843a9f">
+        <source xml:lang="en">Failed to move file to the new schema folder: {0}</source>
+        <target state="new">Failed to move file to the new schema folder: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++14efaa6a7c132b195742fbff720af5eae802f47b83f7e56896d431c86cb0a172">
         <source xml:lang="en">Failed to obtain token for resource '{1}'.  Error: {0}</source>
@@ -4624,6 +4624,10 @@ Error:
       <trans-unit id="++CODE++b68093b3b98a837c8ebe082fc05f901c3e6aa924fecbb9ddb686339d7b40ffb9">
         <source xml:lang="en">Failed to update table.</source>
         <target state="translated">テーブルを更新できませんでした。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f1b9a1054c1b8d303c21a78abec22481d5d6c9e56dc0d06d19ff3f2a70815de4">
+        <source xml:lang="en">Failed to update the .sqlproj after moving the file: {0}</source>
+        <target state="new">Failed to update the .sqlproj after moving the file: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++60a33e6cf5151f2d52eddae9685cfa270426aa89d8dbc7dfb854606f1d1a40fe">
         <source xml:lang="en">False</source>
@@ -10068,6 +10072,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++ee33dcb49174e212fabe894df8373991cebe8d617d56b472934c7dcea6335b5b">
         <source xml:lang="en">The maximum length (in characters) that can be stored in this database object.</source>
         <target state="translated">このデータベース オブジェクトに格納できる最大長 (文字数) です。</target>
+      </trans-unit>
+      <trans-unit id="++CODE++497f95858a915b211f7f758c96976c859fb0e3695e61ec32971051e8b431c186">
+        <source xml:lang="en">The move was rejected or could not be completed.</source>
+        <target state="new">The move was rejected or could not be completed.</target>
       </trans-unit>
       <trans-unit id="++CODE++c368a965891e9479b44218cb42c8cddde404740e364b53367e897dcb17ef1d6b">
         <source xml:lang="en">The name of the check constraint.</source>
