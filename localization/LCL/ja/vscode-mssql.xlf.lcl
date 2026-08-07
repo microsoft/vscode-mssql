@@ -18716,7 +18716,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Configure and customize Azure SQL Databases]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure SQL データベースの構成とカスタマイズ]]></Val>
+            <Val><![CDATA[Azure SQL Database の構成とカスタマイズ]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20012,7 +20012,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Azure SQL databases provisioning]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure SQL データベースのプロビジョニング]]></Val>
+            <Val><![CDATA[Azure SQL Database のプロビジョニング]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />

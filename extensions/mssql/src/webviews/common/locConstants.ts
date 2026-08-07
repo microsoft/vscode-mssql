@@ -2180,6 +2180,31 @@ export class LocConstants {
             source: l10n.t("Source"),
             target: l10n.t("Target"),
             compareDetails: l10n.t("Comparison Details"),
+            affectedChildrenRegionLabel: l10n.t("Affected child objects"),
+            affectedChildrenAdded: (names: string) =>
+                l10n.t({
+                    message: "Constraints added: {0}",
+                    args: [names],
+                    comment: [
+                        "{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.",
+                    ],
+                }),
+            affectedChildrenChanged: (names: string) =>
+                l10n.t({
+                    message: "Constraints changed: {0}",
+                    args: [names],
+                    comment: [
+                        "{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.",
+                    ],
+                }),
+            affectedChildrenDropped: (names: string) =>
+                l10n.t({
+                    message: "Constraints dropped: {0}",
+                    args: [names],
+                    comment: [
+                        "{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.",
+                    ],
+                }),
             areYouSureYouWantToUpdateTheTarget: l10n.t(
                 "Are you sure you want to update the target?",
             ),
@@ -2523,12 +2548,46 @@ export class LocConstants {
                     args: [ip],
                     comment: ["{0} is the current IP address"],
                 }),
+        };
+    }
 
-            whatsNext: l10n.t("What's next?"),
-            connectAndRunQuery: l10n.t("Connect with SQL tools and run your first query"),
-            seedSampleData: l10n.t("Seed sample data or import an existing schema"),
-            monitorUsage: l10n.t("Monitor usage and manage your free tier limits"),
-            browseTutorials: l10n.t("Browse Azure SQL Database tutorials and docs"),
+    public get whatsNext() {
+        return {
+            title: l10n.t("What's next?"),
+            description: l10n.t(
+                "Add tables and data, explore, and build with the MSSQL extension.",
+            ),
+            designTables: l10n.t("Design tables with Table Designer"),
+            importFlatFile: l10n.t("Import from a flat file as a new table"),
+            schemaDesigner: l10n.t("Visualize and design your database with Schema Designer"),
+            schemaCompare: l10n.t("Compare and deploy schema with Schema Compare"),
+            runFirstQuery: l10n.t("Run your first query"),
+            githubCopilot: l10n.t("Build with AI using GitHub Copilot"),
+            collapseCard: l10n.t("Collapse What's next"),
+            expandCard: l10n.t("Expand What's next"),
+        };
+    }
+
+    public get connectToDatabase() {
+        return {
+            title: l10n.t("Connect to Database"),
+            subtitle: l10n.t(
+                "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.",
+            ),
+            connectionString: l10n.t("Connection string"),
+            runYourMigrations: l10n.t("Run your migrations"),
+            copy: l10n.t("Copy"),
+            copied: l10n.t("Copied!"),
+            copyConnectionString: l10n.t("Copy connection string"),
+            copyMigrationCommand: l10n.t("Copy migration command"),
+            toolDocs: (toolName: string) =>
+                l10n.t({
+                    message: "{0} docs",
+                    args: [toolName],
+                    comment: ["{0} is the name of a database migration tool"],
+                }),
+            collapseCard: l10n.t("Collapse Connect to Database"),
+            expandCard: l10n.t("Expand Connect to Database"),
         };
     }
 
