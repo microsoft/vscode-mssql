@@ -191,13 +191,30 @@ export class HttpClient {
         return result;
     }
 
-    /** Returns a localized warning when the configured proxy is invalid. */
+    /**
+     * Validates the configured proxy settings.
+     *
+     * @returns A localized warning for the first invalid proxy, or `undefined` when all proxies
+     * are valid or unset.
+     */
     protected getInvalidProxySettingsWarning(): string | undefined {
-        const proxy = this.loadProxyConfig();
-        if (!proxy) {
-            return undefined;
+        for (const proxy of this.getProxyCandidatesForValidation()) {
+            const warning = this.getInvalidProxyWarning(proxy);
+            if (warning) {
+                return warning;
+            }
         }
 
+        return undefined;
+    }
+
+    /**
+     * Validates a proxy endpoint and logs an invalid setting.
+     *
+     * @param proxy The proxy endpoint to validate.
+     * @returns A localized warning when the proxy is invalid; otherwise, `undefined`.
+     */
+    private getInvalidProxyWarning(proxy: string): string | undefined {
         let message: string | undefined;
         let localizedMessage: string | undefined;
         const redactedProxy = redactProxySecrets(proxy);
@@ -226,12 +243,19 @@ export class HttpClient {
         return localizedMessage;
     }
 
+    /**
+     * Parses a request and builds the URL and Axios configuration used to send it.
+     *
+     * @param request The HTTP request to configure.
+     * @param responseType The optional Axios response type.
+     * @returns The normalized request URL and its Axios configuration.
+     */
     private setupRequest<TBody>(
         request: IHttpRequest<TBody>,
         responseType?: "stream",
     ): { requestUrl: string; config: AxiosRequestConfig } {
-        const originalRequestUrl = request.url.toString();
-        const config = this.setupConfigAndProxyForRequest(originalRequestUrl, request.headers);
+        const requestUrl = new URL(request.url.toString());
+        const config = this.setupConfigAndProxyForRequest(requestUrl, request.headers);
         config.method = request.method;
         config.data = request.body;
         config.signal = request.signal;
@@ -239,13 +263,20 @@ export class HttpClient {
         config.responseType = responseType;
 
         return {
-            requestUrl: this.constructRequestUrl(originalRequestUrl, config),
+            requestUrl: this.constructRequestUrl(requestUrl, config),
             config,
         };
     }
 
+    /**
+     * Builds the Axios configuration and attaches a protocol-appropriate proxy agent.
+     *
+     * @param requestUrl The parsed request URL.
+     * @param headers The headers to include in the request.
+     * @returns The Axios configuration for the request.
+     */
     private setupConfigAndProxyForRequest(
-        requestUrl: string,
+        requestUrl: URL,
         headers: HttpRequestHeaders = {},
     ): AxiosRequestConfig {
         const config: AxiosRequestConfig = {
@@ -253,7 +284,7 @@ export class HttpClient {
             validateStatus: () => true,
         };
 
-        const proxy = this.loadProxyConfig();
+        const proxy = this.getProxyForRequest(requestUrl);
 
         if (proxy) {
             this.logger?.debug(
@@ -266,7 +297,7 @@ export class HttpClient {
                 proxy,
                 this.dependencies.getProxyStrictSSL?.(),
             );
-            if (requestUrl.startsWith("https")) {
+            if (requestUrl.protocol === "https:") {
                 config.httpsAgent = agent.agent;
             } else {
                 config.httpAgent = agent.agent;
@@ -282,62 +313,72 @@ export class HttpClient {
         return axios.request<TResponse>({ ...config, url: requestUrl });
     }
 
-    private loadProxyConfig(): string | undefined {
-        let proxy = this.dependencies.getProxyConfig?.();
-
-        if (!proxy) {
-            this.logger?.debug(
-                "Workspace HTTP config didn't contain a proxy endpoint. Checking environment variables.",
-            );
-            proxy = this.loadEnvironmentProxyValue();
-        }
-
-        return proxy;
-    }
-
-    private constructRequestUrl(requestUrl: string, config: AxiosRequestConfig): string {
-        if (!config.proxy) {
-            const parsedRequestUrl = new URL(requestUrl);
-            const port =
-                parsedRequestUrl.port ||
-                (parsedRequestUrl.protocol?.startsWith("https") ? HTTPS_PORT : HTTP_PORT);
-
-            return `${parsedRequestUrl.protocol}//${parsedRequestUrl.hostname}:${port}${parsedRequestUrl.pathname}${parsedRequestUrl.search}`;
-        }
-        return requestUrl;
-    }
-
-    private loadEnvironmentProxyValue(): string | undefined {
-        const HTTP_PROXY = "HTTP_PROXY";
-        const HTTPS_PROXY = "HTTPS_PROXY";
-
-        if (!process) {
-            this.logger?.debug(
-                "No process object found, unable to read environment variables for proxy.",
-            );
-            return undefined;
-        }
-
-        if (process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()]) {
-            this.logger?.debug("Loading proxy value from HTTP_PROXY environment variable.");
-            return process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()];
-        } else if (process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()]) {
-            this.logger?.debug("Loading proxy value from HTTPS_PROXY environment variable.");
-            return process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()];
+    /**
+     * Selects the workspace proxy or the environment proxy for the request protocol.
+     *
+     * @param requestUrl The parsed request URL used to select an environment proxy.
+     * @returns The selected proxy endpoint, or `undefined` when no proxy applies.
+     */
+    private getProxyForRequest(requestUrl: URL): string | undefined {
+        const configuredProxy = this.dependencies.getProxyConfig?.();
+        if (configuredProxy) {
+            return configuredProxy;
         }
 
         this.logger?.debug(
-            "No proxy value found in either HTTPS_PROXY or HTTP_PROXY environment variables.",
+            "Workspace HTTP config didn't contain a proxy endpoint. Checking environment variables.",
         );
-        return undefined;
+        return this.getEnvironmentProxyForRequest(requestUrl);
     }
 
-    private createProxyAgent(
-        requestUrl: string,
-        proxy: string,
-        proxyStrictSSL?: boolean,
-    ): ProxyAgent {
-        const agentOptions = this.getProxyAgentOptions(new URL(requestUrl), proxy, proxyStrictSSL);
+    /**
+     * Adds the default protocol port when Axios proxy handling is disabled.
+     *
+     * @param requestUrl The parsed request URL.
+     * @param config The Axios configuration for the request.
+     * @returns The request URL with an explicit port when required.
+     */
+    private constructRequestUrl(requestUrl: URL, config: AxiosRequestConfig): string {
+        if (!config.proxy) {
+            const port =
+                requestUrl.port || (requestUrl.protocol === "https:" ? HTTPS_PORT : HTTP_PORT);
+
+            return `${requestUrl.protocol}//${requestUrl.hostname}:${port}${requestUrl.pathname}${requestUrl.search}`;
+        }
+        return requestUrl.toString();
+    }
+
+    /**
+     * Gets the configured proxies that should be checked for diagnostic warnings.
+     *
+     * @returns The workspace proxy, or the protocol-specific environment proxies when no
+     * workspace proxy is configured.
+     */
+    private getProxyCandidatesForValidation(): string[] {
+        const configuredProxy = this.dependencies.getProxyConfig?.();
+        if (configuredProxy) {
+            return [configuredProxy];
+        }
+
+        this.logger?.debug(
+            "Workspace HTTP config didn't contain a proxy endpoint. Checking environment variables.",
+        );
+        return [
+            process.env.HTTPS_PROXY || process.env.https_proxy,
+            process.env.HTTP_PROXY || process.env.http_proxy,
+        ].filter((proxy): proxy is string => Boolean(proxy));
+    }
+
+    /**
+     * Creates the tunnel agent for the request and proxy protocols.
+     *
+     * @param requestUrl The parsed request URL.
+     * @param proxy The proxy endpoint through which the request will be sent.
+     * @param proxyStrictSSL Whether the proxy certificate must pass validation.
+     * @returns The configured proxy agent.
+     */
+    private createProxyAgent(requestUrl: URL, proxy: string, proxyStrictSSL?: boolean): ProxyAgent {
+        const agentOptions = this.getProxyAgentOptions(proxy, proxyStrictSSL);
         if (!agentOptions || !agentOptions.host || !agentOptions.port) {
             this.logger?.error("Unable to read proxy agent options to create proxy agent.");
             throw new Error(ProxyMessages.unableToGetProxyAgentOptions);
@@ -353,12 +394,20 @@ export class HttpClient {
             },
         };
 
-        const isHttpsRequest = requestUrl.startsWith("https");
+        const isHttpsRequest = requestUrl.protocol === "https:";
         return {
             agent: this.createTunnelingAgent(isHttpsRequest, isHttpsProxy, tunnelOptions),
         };
     }
 
+    /**
+     * Creates the tunnel implementation for the request and proxy protocol combination.
+     *
+     * @param isHttpsRequest Whether the request uses HTTPS.
+     * @param isHttpsProxy Whether the proxy endpoint uses HTTPS.
+     * @param tunnelOptions The proxy options passed to the tunnel package.
+     * @returns An HTTP or HTTPS tunneling agent for the protocol combination.
+     */
     private createTunnelingAgent(
         isHttpsRequest: boolean,
         isHttpsProxy: boolean,
@@ -379,18 +428,18 @@ export class HttpClient {
         return tunnel.httpOverHttp(tunnelOptions);
     }
 
+    /**
+     * Parses a proxy endpoint into the options required by the tunnel package.
+     *
+     * @param proxy The proxy endpoint to parse.
+     * @param strictSSL Whether the proxy certificate must pass validation.
+     * @returns Parsed proxy-agent options, or `undefined` for an unsupported proxy protocol.
+     */
     private getProxyAgentOptions(
-        requestUrl: URL,
-        proxy?: string,
+        proxy: string,
         strictSSL?: boolean,
     ): ProxyAgentOptions | undefined {
-        const proxyUrl = proxy || this.getSystemProxyUrl(requestUrl);
-
-        if (!proxyUrl) {
-            return undefined;
-        }
-
-        const proxyEndpoint = new URL(proxyUrl);
+        const proxyEndpoint = new URL(proxy);
         if (!/^https?:$/.test(proxyEndpoint.protocol)) {
             return undefined;
         }
@@ -413,7 +462,13 @@ export class HttpClient {
         };
     }
 
-    private getSystemProxyUrl(requestUrl: URL): string | undefined {
+    /**
+     * Selects an environment proxy according to the request protocol.
+     *
+     * @param requestUrl The parsed request URL.
+     * @returns The matching environment proxy, or `undefined` when none applies.
+     */
+    private getEnvironmentProxyForRequest(requestUrl: URL): string | undefined {
         if (requestUrl.protocol === "http:") {
             return process.env.HTTP_PROXY || process.env.http_proxy || undefined;
         } else if (requestUrl.protocol === "https:") {

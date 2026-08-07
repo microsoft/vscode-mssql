@@ -1816,6 +1816,12 @@
                     "description": "%mssql.preview.betaObjectExplorerFilter.description%",
                     "scope": "application"
                 },
+                "mssql.preview.betaExecutionPlan": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.preview.betaExecutionPlan.description%",
+                    "scope": "application"
+                },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
                     "type": [
                         "boolean",

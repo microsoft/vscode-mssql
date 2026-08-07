@@ -219,7 +219,7 @@ export default class ConnectionManager {
             this._accountStore,
             this.azureController,
         );
-        this._firewallService = new FirewallService(this._accountService);
+        this._firewallService = new FirewallService();
 
         this._changePasswordService = new ChangePasswordService(this.client, this.context);
 

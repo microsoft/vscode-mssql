@@ -736,6 +736,10 @@
             "{1} is the error message"
         ]
     },
+    "Unable to locate Azure SQL server '{0}' in the selected Azure account./{0} is the server name": {
+        "message": "Unable to locate Azure SQL server '{0}' in the selected Azure account.",
+        "comment": ["{0} is the server name"]
+    },
     "Failed to get tenant '{0}' for account '{1}'./{0} is the tenant id{1} is the account name": {
         "message": "Failed to get tenant '{0}' for account '{1}'.",
         "comment": ["{0} is the tenant id", "{1} is the account name"]
@@ -2812,6 +2816,7 @@
     "Highlight Expensive Operation": "Highlight Expensive Operation",
     "Toggle Tooltips": "Toggle Tooltips",
     "Properties": "Properties",
+    "Execution plan toolbar": "Execution plan toolbar",
     "Importance": "Importance",
     "Alphabetical": "Alphabetical",
     "Reverse Alphabetical": "Reverse Alphabetical",
@@ -2820,6 +2825,17 @@
     "Filter for any field...": "Filter for any field...",
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
+    "The React Flow execution plan preview could not render this plan.": "The React Flow execution plan preview could not render this plan.",
+    "Execution plan": "Execution plan",
+    "Execution plan details": "Execution plan details",
+    "Expand {0}/{0} is the name of an execution plan operation": {
+        "message": "Expand {0}",
+        "comment": ["{0} is the name of an execution plan operation"]
+    },
+    "Collapse {0}/{0} is the name of an execution plan operation": {
+        "message": "Collapse {0}",
+        "comment": ["{0} is the name of an execution plan operation"]
+    },
     "Microsoft would like your feedback": "Microsoft would like your feedback",
     "Very Satisfied": "Very Satisfied",
     "Satisfied": "Satisfied",

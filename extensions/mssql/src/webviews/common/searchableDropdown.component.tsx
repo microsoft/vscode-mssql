@@ -77,6 +77,10 @@ export interface SearchableDropdownProps {
      */
     ariaLabel?: string;
     /**
+     * Optional ref for the dropdown trigger button.
+     */
+    triggerRef?: React.Ref<HTMLButtonElement>;
+    /**
      * Size of the dropdown. Can be "small", "medium", or "large".
      * If not provided, the default size will be medium.
      */
@@ -245,6 +249,18 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
         estimateSize: () => OPTION_HEIGHT_PX,
         overscan: VIRTUAL_OVERSCAN,
     });
+
+    const setTriggerRef = useCallback(
+        (element: HTMLButtonElement | null) => {
+            buttonRef.current = element;
+            if (typeof props.triggerRef === "function") {
+                props.triggerRef(element);
+            } else if (props.triggerRef) {
+                (props.triggerRef as React.RefObject<HTMLButtonElement | null>).current = element;
+            }
+        },
+        [props.triggerRef],
+    );
 
     const initActiveIndex = useCallback(
         (direction: "down" | "up" = "down") => {
@@ -548,7 +564,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                     id={id}
                     size={props.size ?? "medium"}
                     appearance="transparent"
-                    ref={buttonRef}
+                    ref={setTriggerRef}
                     icon={getDropdownIcon()}
                     iconPosition="after"
                     aria-haspopup="listbox"
