@@ -33,6 +33,28 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
 }
 
 /**
+ * Stubs the `vscode.workspace.fs` methods used by file-relocation tests and
+ * installs them via `sandbox.stub(vscode.workspace, "fs").value(...)`.
+ */
+export function stubWorkspaceFileSystem(sandbox: sinon.SinonSandbox): {
+    stat: sinon.SinonStub;
+    writeFile: sinon.SinonStub;
+    delete: sinon.SinonStub;
+    createDirectory: sinon.SinonStub;
+    rename: sinon.SinonStub;
+} {
+    const stubs = {
+        stat: sandbox.stub().rejects(vscode.FileSystemError.FileNotFound()),
+        writeFile: sandbox.stub().resolves(),
+        delete: sandbox.stub().resolves(),
+        createDirectory: sandbox.stub().resolves(),
+        rename: sandbox.stub().resolves(),
+    };
+    sandbox.stub(vscode.workspace, "fs").value(stubs);
+    return stubs;
+}
+
+/**
  * Stubs the `vscode.window` message-box functions (`showErrorMessage`,
  * `showInformationMessage`, `showWarningMessage`) and returns the created stubs
  * so tests can configure return values and assert on calls.
