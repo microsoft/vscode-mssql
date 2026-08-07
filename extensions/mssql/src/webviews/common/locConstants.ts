@@ -875,6 +875,7 @@ export class LocConstants {
             highlightExpensiveOperation: l10n.t("Highlight Expensive Operation"),
             toggleTooltips: l10n.t("Toggle Tooltips"),
             properties: l10n.t("Properties"),
+            executionPlanToolbar: l10n.t("Execution plan toolbar"),
             name: l10n.t("Name"),
             value: l10n.t("Value"),
             importance: l10n.t("Importance"),
@@ -889,6 +890,23 @@ export class LocConstants {
             collapse: l10n.t("Collapse"),
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
+            reactFlowRendererError: l10n.t(
+                "The React Flow execution plan preview could not render this plan.",
+            ),
+            executionPlanGraph: l10n.t("Execution plan"),
+            executionPlanDetails: l10n.t("Execution plan details"),
+            expandNode: (name: string) =>
+                l10n.t({
+                    message: "Expand {0}",
+                    args: [name],
+                    comment: ["{0} is the name of an execution plan operation"],
+                }),
+            collapseNode: (name: string) =>
+                l10n.t({
+                    message: "Collapse {0}",
+                    args: [name],
+                    comment: ["{0} is the name of an execution plan operation"],
+                }),
         };
     }
 
