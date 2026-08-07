@@ -122,6 +122,14 @@ export const HighlightExpensiveOperations: React.FC<HighlightExpensiveOperations
                 setExecutionPlanView(executionPlanView);
                 return;
             }
+            if (
+                enumSelected === undefined ||
+                !executionPlanView.expensiveMetricTypes.has(enumSelected)
+            ) {
+                setHighlightedElement("");
+                setExecutionPlanView(executionPlanView);
+                return;
+            }
             const expensiveOperationDelegate: (
                 cell: ExecutionPlanMetricSource,
             ) => number | undefined = getExpensiveOperationDelegate(enumSelected);

@@ -133,7 +133,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await zoomInButtonLocator.click();
 
-        const newZoom = await getZoom(iframe);
+        const newZoom = await getSettledZoom(iframe);
         await expect(newZoom).toBeGreaterThan(currentZoom);
     });
 
@@ -144,7 +144,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await zoomOutButtonLocator.click();
 
-        const newZoom = await getZoom(iframe);
+        const newZoom = await getSettledZoom(iframe);
         await expect(newZoom).toBeLessThan(currentZoom);
     });
 
@@ -163,7 +163,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await zoomToFitButtonLocator.click();
 
-        const newZoom = await getZoom(iframe);
+        const newZoom = await getSettledZoom(iframe);
         await expect(newZoom).toBeGreaterThan(0);
         await expect(newZoom).toBeLessThanOrEqual(200);
     });
@@ -185,7 +185,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         });
         await customZoomApplyButton.click();
 
-        const newZoom = await getZoom(iframe);
+        const newZoom = await getSettledZoom(iframe);
         await expect(newZoom).toBeLessThan(currentZoom);
 
         await customZoomButtonLocator.click();
@@ -213,8 +213,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 
         const findNodeComparisonDropdown = iframe.locator("#findNodeComparisonDropdown");
         await findNodeComparisonDropdown.click();
-        for (let i = 0; i < 3; i++) await vsCodePage.keyboard.press("ArrowDown");
-        await vsCodePage.keyboard.press("Enter");
+        await iframe.getByRole("option", { name: "<", exact: true }).click();
 
         const findNodeInputBox = iframe.locator("#findNodeInputBox");
         await findNodeInputBox.fill("5");
@@ -224,17 +223,16 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await findNodeDownButtonLocator.click();
         await findNodeDownButtonLocator.click();
-        let selectedElement = await getFocusedGraphElement(queryPlanMXGraph);
-        await expect(selectedElement).toContain("Nested Loop");
+        const selectedNode = queryPlanMXGraph.locator(".execution-plan-flow-node.selected");
+        await expect(selectedNode).toContainText("Compute Scalar");
 
         const findNodeUpButtonLocator = iframe.locator(
             '[type="button"][aria-label="Previous"][class*="fui-Button"]',
         );
         await findNodeUpButtonLocator.click();
+        await expect(selectedNode).toContainText("Nested Loops");
         await findNodeUpButtonLocator.click();
-        await findNodeUpButtonLocator.click();
-        selectedElement = await getFocusedGraphElement(queryPlanMXGraph);
-        await expect(selectedElement).toContain("Index Scan");
+        await expect(selectedNode).toContainText("Index Scan");
 
         await findNodeContainer.getByRole("button", { name: "Close" }).click();
 
@@ -242,6 +240,12 @@ test.describe("MSSQL Extension - Query Plan", async () => {
     });
 
     test("Test the Query Plan Properties Panel", async () => {
+        // Select a plan operator so the panel shows operator properties even when
+        // this test is retried independently with the statement root selected.
+        const nestedLoopsNode = iframe.getByRole("treeitem", { name: /Nested Loops/ }).first();
+        await nestedLoopsNode.focus();
+        await expect(nestedLoopsNode).toHaveAttribute("aria-selected", "true");
+
         // Click Properties Button
         const propertiesButtonLocator = iframe.locator(
             '[type="button"][aria-label="Properties"][class*="fui-Button"]',
@@ -296,7 +300,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const searchProperties = iframe.locator(
             '[placeholder="Filter for any field..."][class*="fui-Input__input"]',
         );
-        await searchProperties.fill("S");
+        await searchProperties.fill("Physical");
         await expect(
             propertiesPanel.getByText("Physical Operation", { exact: true }).first(),
         ).toBeVisible();
@@ -319,48 +323,41 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const highlightOpsApplyButton = highlightOpsComponent.getByRole("button", {
             name: "Apply",
         });
+        const highlightedNode = queryPlanMXGraph.locator(".execution-plan-flow-node.highlighted");
+        const selectMetric = async (metric: string) => {
+            await highlightOpsInputBox.click();
+            const searchBox = iframe.getByRole("searchbox").last();
+            await searchBox.fill(metric);
+            await searchBox.press("Enter");
+        };
 
-        await highlightOpsInputBox.click();
-        const highlightOpsSearchBox = iframe.getByRole("searchbox").last();
-        await highlightOpsSearchBox.fill("Actual Elapsed Time");
-        await highlightOpsSearchBox.press("Enter");
+        await selectMetric("Actual Elapsed Time");
         await highlightOpsApplyButton.click();
-        let selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).toBe("");
+        await expect(highlightedNode).toHaveCount(0);
 
-        await highlightOpsInputBox.click();
-        await highlightOpsSearchBox.fill("Actual Elapsed CPU Time");
-        await highlightOpsSearchBox.press("Enter");
+        await selectMetric("Actual Elapsed CPU Time");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).toBe("");
+        await expect(highlightedNode).toHaveCount(0);
 
-        await highlightOpsInputBox.click();
-        await highlightOpsSearchBox.fill("Cost");
-        await highlightOpsSearchBox.press("Enter");
+        await selectMetric("Cost");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).not.toBe("");
+        await expect(highlightedNode).toHaveCount(1);
 
-        await highlightOpsInputBox.fill("Subtree Cost");
+        await selectMetric("Subtree Cost");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).not.toBe("");
+        await expect(highlightedNode).toHaveCount(1);
 
-        await highlightOpsInputBox.fill("Actual Number of Rows For All Executions");
+        await selectMetric("Actual Number of Rows For All Executions");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).not.toBe("");
+        await expect(highlightedNode).toHaveCount(1);
 
-        await highlightOpsInputBox.fill("Number of Rows Read");
+        await selectMetric("Number of Rows Read");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).not.toBe("");
+        await expect(highlightedNode).toHaveCount(1);
 
-        await highlightOpsInputBox.fill("Off");
+        await selectMetric("Off");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).toBe("");
+        await expect(highlightedNode).toHaveCount(0);
 
         await highlightOpsComponent.getByRole("button", { name: "Close" }).click();
 
@@ -401,19 +398,26 @@ export async function getZoom(iframe: FrameLocator) {
     }
 }
 
-export async function getFocusedGraphElement(graph: Locator) {
-    const selectedElement = await graph.locator(":focus");
-    try {
-        return selectedElement.textContent({ timeout: 2 * 1000 });
-    } catch {
-        // no selected element
-        return "";
-    }
-}
+export async function getSettledZoom(iframe: FrameLocator) {
+    let previousZoom = await getZoom(iframe);
+    let stableSamples = 0;
 
-export async function getHighlightedGraphElement(highlightComponent: Locator) {
-    await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
+    await expect
+        .poll(
+            async () => {
+                const currentZoom = await getZoom(iframe);
+                stableSamples =
+                    currentZoom !== undefined &&
+                    previousZoom !== undefined &&
+                    Math.abs(currentZoom - previousZoom) < 0.01
+                        ? stableSamples + 1
+                        : 0;
+                previousZoom = currentZoom;
+                return stableSamples;
+            },
+            { intervals: [50], timeout: 2_000 },
+        )
+        .toBeGreaterThanOrEqual(2);
 
-    const selectedElement = await highlightComponent.getAttribute("aria-label");
-    return selectedElement;
+    return previousZoom;
 }
