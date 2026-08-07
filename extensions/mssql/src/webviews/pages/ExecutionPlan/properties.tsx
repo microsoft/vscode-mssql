@@ -38,7 +38,7 @@ import {
     TextSortAscending16Regular,
     TextSortDescending16Regular,
 } from "@fluentui/react-icons";
-import { useEffect, useState } from "react";
+import { KeyboardEvent as ReactKeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
 import { locConstants } from "../../common/locConstants";
@@ -353,6 +353,27 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
     const [unfilteredItems, setUnfilteredItems] = useState<ep.ExecutionPlanPropertyTableItem[]>([]);
     const [numItems, setNumItems] = useState<number>(0);
     const [inputValue, setInputValue] = useState<string>("");
+    const propertiesPanelRef = useRef<HTMLDivElement>(null);
+
+    const visibleItems = useMemo(() => {
+        const itemsById = new Map(items.map((item) => [item.id, item]));
+        const visibleChildIds = new Set(shownChildren);
+
+        return items.filter((item) => {
+            let currentItem = item;
+            while (currentItem.isChild) {
+                if (!visibleChildIds.has(currentItem.id)) {
+                    return false;
+                }
+                const parentItem = itemsById.get(currentItem.parent);
+                if (!parentItem) {
+                    return false;
+                }
+                currentItem = parentItem;
+            }
+            return true;
+        });
+    }, [items, shownChildren]);
 
     const PROPERTIES = locConstants.executionPlan.properties;
     const NAME = locConstants.executionPlan.name;
@@ -425,6 +446,42 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
             setShownChildren((prevShownChildren) => [...prevShownChildren, ...children]);
             setOpenedButtons([...openedButtons, buttonName]);
         }
+    };
+
+    const handlePropertyRowKeyDown = (
+        event: ReactKeyboardEvent<HTMLDivElement>,
+        item: ep.ExecutionPlanPropertyTableItem,
+    ) => {
+        if (!useReactFlow || event.target !== event.currentTarget) {
+            return;
+        }
+
+        const isExpanded = item.children.length > 0 && shownChildren.includes(item.children[0]);
+        if (event.key === "ArrowRight" && item.children.length > 0) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (isExpanded) {
+                focusPropertyRow(item.children[0]);
+            } else {
+                void handleShowChildrenClick(item.name, item.children);
+            }
+        } else if (event.key === "ArrowLeft") {
+            if (isExpanded) {
+                event.preventDefault();
+                event.stopPropagation();
+                void handleShowChildrenClick(item.name, item.children);
+            } else if (item.parent >= 0) {
+                event.preventDefault();
+                event.stopPropagation();
+                focusPropertyRow(item.parent);
+            }
+        }
+    };
+
+    const focusPropertyRow = (itemId: number) => {
+        propertiesPanelRef.current
+            ?.querySelector<HTMLElement>(`[role="row"][data-property-id="${itemId}"]`)
+            ?.focus();
     };
 
     // ads removes filters before carrying out any of the toolbar actions
@@ -610,6 +667,7 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
 
     return (
         <div
+            ref={propertiesPanelRef}
             id="propertiesPanelContainer"
             className={classes.paneContainer}
             style={{
@@ -687,7 +745,6 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     size="small">
                     <ToolbarButton
                         className={classes.button}
-                        tabIndex={0}
                         icon={
                             useReactFlow ? (
                                 <ArrowSortDownLines16Regular
@@ -707,7 +764,6 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     />
                     <ToolbarButton
                         className={classes.button}
-                        tabIndex={0}
                         icon={
                             useReactFlow ? (
                                 <TextSortAscending16Regular
@@ -727,7 +783,6 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     />
                     <ToolbarButton
                         className={classes.button}
-                        tabIndex={0}
                         icon={
                             useReactFlow ? (
                                 <TextSortDescending16Regular
@@ -747,7 +802,6 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     />
                     <ToolbarButton
                         className={classes.button}
-                        tabIndex={0}
                         icon={
                             useReactFlow ? (
                                 <ExpandAllIcon16Regular className={classes.previewToolbarIcon} />
@@ -765,7 +819,6 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     />
                     <ToolbarButton
                         className={classes.button}
-                        tabIndex={0}
                         icon={
                             useReactFlow ? (
                                 <CollapseAllIcon16Regular className={classes.previewToolbarIcon} />
@@ -810,12 +863,13 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                 style={useReactFlow ? undefined : { width: "100%" }}>
                 <DataGrid
                     className={useReactFlow ? classes.previewGrid : undefined}
-                    items={items}
+                    items={visibleItems}
                     columns={columns}
                     focusMode="composite"
                     resizableColumns={true}
                     columnSizingOptions={useReactFlow ? previewColumnSizingOptions : undefined}
                     size="small"
+                    role={useReactFlow ? "treegrid" : "grid"}
                     aria-label={useReactFlow ? `${PROPERTIES}: ${name}` : undefined}>
                     <DataGridHeader
                         className={useReactFlow ? classes.previewTableHeader : classes.tableHeader}
@@ -843,32 +897,37 @@ export const PropertiesPane: React.FC<PropertiesPaneProps> = ({
                     <DataGridBody<ep.ExecutionPlanPropertyTableItem>
                         tabIndex={useReactFlow ? undefined : 0}>
                         {({ item, rowId }) => (
-                            <>
-                                {(!item.isChild || shownChildren.includes(item.id)) && (
-                                    <DataGridRow<ep.ExecutionPlanPropertyTableItem>
-                                        key={rowId}
+                            <DataGridRow<ep.ExecutionPlanPropertyTableItem>
+                                key={rowId}
+                                data-property-id={item.id}
+                                aria-level={useReactFlow ? item.level + 1 : undefined}
+                                aria-expanded={
+                                    useReactFlow && item.children.length > 0
+                                        ? shownChildren.includes(item.children[0])
+                                        : undefined
+                                }
+                                onKeyDown={(event: ReactKeyboardEvent<HTMLDivElement>) =>
+                                    handlePropertyRowKeyDown(event, item)
+                                }
+                                className={
+                                    useReactFlow
+                                        ? mergeClasses(
+                                              classes.previewTableRow,
+                                              item.children.length > 0 && classes.previewGroupRow,
+                                          )
+                                        : classes.tableRow
+                                }>
+                                {({ renderCell }) => (
+                                    <DataGridCell
                                         className={
                                             useReactFlow
-                                                ? mergeClasses(
-                                                      classes.previewTableRow,
-                                                      item.children.length > 0 &&
-                                                          classes.previewGroupRow,
-                                                  )
-                                                : classes.tableRow
+                                                ? classes.previewTableCell
+                                                : classes.tableCell
                                         }>
-                                        {({ renderCell }) => (
-                                            <DataGridCell
-                                                className={
-                                                    useReactFlow
-                                                        ? classes.previewTableCell
-                                                        : classes.tableCell
-                                                }>
-                                                {renderCell(item)}
-                                            </DataGridCell>
-                                        )}
-                                    </DataGridRow>
+                                        {renderCell(item)}
+                                    </DataGridCell>
                                 )}
-                            </>
+                            </DataGridRow>
                         )}
                     </DataGridBody>
                 </DataGrid>

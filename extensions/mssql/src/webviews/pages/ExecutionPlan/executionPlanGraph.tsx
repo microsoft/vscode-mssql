@@ -255,7 +255,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
         const mxClient = azdataGraph.mx();
 
         const executionPlanView = new ExecutionPlanView(graph.root);
-        const executionPlanGraph = executionPlanView.populate(graph.root);
+        const executionPlanGraph = executionPlanView.populate();
         const queryPlanConfiguration = {
             container: legacyGraphContainerRef.current,
             queryPlanGraph: executionPlanGraph,

@@ -102,6 +102,19 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await collapseButton.press("Enter");
         await expect(rootNode).toHaveAttribute("aria-expanded", "true");
         await expect(collapseButton).toBeFocused();
+
+        await rootNode.focus();
+        await rootNode.press("ArrowLeft");
+        await expect(rootNode).toHaveAttribute("aria-expanded", "false");
+        await expect(rootNode).toBeFocused();
+
+        await rootNode.press("ArrowRight");
+        await expect(rootNode).toHaveAttribute("aria-expanded", "true");
+        await expect(rootNode).toBeFocused();
+
+        await rootNode.press("ArrowRight");
+        const firstChildNode = iframe.locator('[role="treeitem"]').nth(1);
+        await expect(firstChildNode).toBeFocused();
     });
 
     test("Test Showing the XML file of a Query Plan", async () => {
@@ -293,9 +306,43 @@ test.describe("MSSQL Extension - Query Plan", async () => {
             '[type="button"][aria-label="Importance"][class*="fui-Button"]',
         );
         await importanceButton.click();
+        await importanceButton.press("ArrowRight");
+        await expect(alphabeticalButton).toBeFocused();
         await expect(
             propertiesPanel.getByText("Physical Operation", { exact: true }).first(),
         ).toBeVisible();
+
+        const propertiesTreeGrid = propertiesPanel.getByRole("treegrid");
+        const propertyRows = propertiesTreeGrid.locator('[role="row"][data-property-id]');
+        const firstPropertyRow = propertyRows.first();
+        const secondPropertyRow = propertyRows.nth(1);
+        await firstPropertyRow.focus();
+        await firstPropertyRow.press("ArrowDown");
+        await expect(secondPropertyRow).toBeFocused();
+        await secondPropertyRow.press("ArrowUp");
+        await expect(firstPropertyRow).toBeFocused();
+
+        const firstExpandableRowByButton = propertiesTreeGrid
+            .getByRole("button", { name: "Expand", exact: true })
+            .first()
+            .locator('xpath=ancestor::*[@role="row"]');
+        const expandablePropertyId =
+            await firstExpandableRowByButton.getAttribute("data-property-id");
+        const firstExpandableRow = propertiesTreeGrid.locator(
+            `[role="row"][data-property-id="${expandablePropertyId}"]`,
+        );
+        await firstExpandableRow.focus();
+        await firstExpandableRow.press("ArrowRight");
+        await expect(firstExpandableRow).toHaveAttribute("aria-expanded", "true");
+        await expect(firstExpandableRow).toBeFocused();
+
+        await firstExpandableRow.press("ArrowRight");
+        const focusedChildRow = propertiesTreeGrid.locator('[role="row"]:focus');
+        await expect(focusedChildRow).toHaveAttribute("aria-level", "2");
+        await focusedChildRow.press("ArrowLeft");
+        await expect(firstExpandableRow).toBeFocused();
+        await firstExpandableRow.press("ArrowLeft");
+        await expect(firstExpandableRow).toHaveAttribute("aria-expanded", "false");
 
         const searchProperties = iframe.locator(
             '[placeholder="Filter for any field..."][class*="fui-Input__input"]',
