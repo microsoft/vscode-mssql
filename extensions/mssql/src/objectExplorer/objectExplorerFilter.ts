@@ -150,7 +150,7 @@ export class ObjectExplorerFilter {
             treeNode.filterableProperties,
         );
         const isPreviewEnabled = previewService.isFeatureEnabled(
-            PreviewFeature.ObjectExplorerFilter,
+            PreviewFeature.BetaObjectExplorerFilter,
         );
         const data: ObjectExplorerFilterState = {
             filterProperties: treeNode.filterableProperties,

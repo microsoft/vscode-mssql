@@ -1810,10 +1810,10 @@
                     "description": "%mssql.preview.betaResultsGrid.description%",
                     "scope": "application"
                 },
-                "mssql.preview.objectExplorerFilter": {
+                "mssql.preview.betaObjectExplorerFilter": {
                     "type": "boolean",
                     "default": false,
-                    "description": "%mssql.preview.objectExplorerFilter.description%",
+                    "description": "%mssql.preview.betaObjectExplorerFilter.description%",
                     "scope": "application"
                 },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
