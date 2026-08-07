@@ -288,7 +288,9 @@ export class HttpClient {
         };
 
         if (this.shouldBypassProxy(requestUrl)) {
-            this.logger?.debug("Request URL matched the proxy bypass list.");
+            this.logger?.debug(
+                `Request endpoint '${requestUrl.origin}' matched the proxy bypass list.`,
+            );
             config.proxy = false;
             return config;
         }

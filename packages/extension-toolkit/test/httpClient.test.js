@@ -404,116 +404,121 @@ describe("HttpClient", () => {
             assert.equal(proxy, undefined);
         });
 
-        for (const source of ["NO_PROXY", "no_proxy", "VS Code http.noProxy"]) {
-            it(`bypasses the proxy for a host in ${source}`, () => {
-                proxyValue = "http://proxy.example.com:8080";
-                if (source === "VS Code http.noProxy") {
-                    noProxyValue = ["*.internal.example.com"];
-                } else {
-                    process.env[source] = ".internal.example.com";
-                }
+        it("evaluates proxy bypass rules", () => {
+            proxyValue = "http://proxy.example.com:8080";
+            const cases = [
+                {
+                    name: "uppercase environment variable",
+                    environment: { NO_PROXY: ".internal.example.com" },
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "lowercase environment variable",
+                    environment: { no_proxy: ".internal.example.com" },
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "VS Code setting",
+                    configuredRules: ["*.internal.example.com"],
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "VS Code setting takes precedence over environment variable",
+                    configuredRules: ["other.example.com"],
+                    environment: { NO_PROXY: "internal.example.com" },
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: false,
+                },
+                {
+                    name: "plain domain",
+                    configuredRules: ["internal.example.com"],
+                    requestUrl: "https://internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "plain domain subdomain",
+                    configuredRules: ["internal.example.com"],
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "wildcard subdomain",
+                    configuredRules: ["*.internal.example.com"],
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "wildcard bare domain",
+                    configuredRules: ["*.internal.example.com"],
+                    requestUrl: "https://internal.example.com",
+                    bypassed: false,
+                },
+                {
+                    name: "matching port",
+                    environment: { NO_PROXY: "api.example.com:8443" },
+                    requestUrl: "https://api.example.com:8443",
+                    bypassed: true,
+                },
+                {
+                    name: "mismatched port",
+                    environment: { NO_PROXY: "api.example.com:8443" },
+                    requestUrl: "https://api.example.com",
+                    bypassed: false,
+                },
+                {
+                    name: "matching bracketed IPv6 port",
+                    configuredRules: ["[::1]:8443"],
+                    requestUrl: "https://[::1]:8443",
+                    bypassed: true,
+                },
+                {
+                    name: "mismatched bracketed IPv6 port",
+                    configuredRules: ["[::1]:8443"],
+                    requestUrl: "https://[::1]:9443",
+                    bypassed: false,
+                },
+                {
+                    name: "global wildcard",
+                    environment: { NO_PROXY: "*" },
+                    requestUrl: "https://api.example.com",
+                    bypassed: true,
+                },
+            ];
+
+            for (const testCase of cases) {
+                noProxyValue = testCase.configuredRules;
+                delete process.env.NO_PROXY;
+                delete process.env.no_proxy;
+                Object.assign(process.env, testCase.environment);
 
                 const result = httpClient.setupConfigAndProxyForRequest(
-                    new URL("https://api.internal.example.com"),
+                    new URL(testCase.requestUrl),
                     {},
                 );
 
-                assert.equal(result.proxy, false);
-                assert.equal(result.httpAgent, undefined);
-                assert.equal(result.httpsAgent, undefined);
-            });
-        }
-
-        it("uses the VS Code bypass list instead of the environment bypass list", () => {
-            proxyValue = "http://proxy.example.com:8080";
-            noProxyValue = ["other.example.com"];
-            process.env.NO_PROXY = "internal.example.com";
-
-            const result = httpClient.setupConfigAndProxyForRequest(
-                new URL("https://api.internal.example.com"),
-                {},
-            );
-
-            assert.ok(result.httpsAgent);
-        });
-
-        it("matches a plain domain and its subdomains", () => {
-            proxyValue = "http://proxy.example.com:8080";
-            noProxyValue = ["internal.example.com"];
-
-            for (const requestUrl of [
-                "https://internal.example.com",
-                "https://api.internal.example.com",
-            ]) {
-                const result = httpClient.setupConfigAndProxyForRequest(new URL(requestUrl), {});
-
-                assert.equal(result.proxy, false);
-                assert.equal(result.httpsAgent, undefined);
+                assert.equal(result.httpsAgent === undefined, testCase.bypassed, testCase.name);
+                if (testCase.bypassed) {
+                    assert.equal(result.proxy, false, testCase.name);
+                    assert.equal(result.httpAgent, undefined, testCase.name);
+                }
             }
         });
 
-        it("matches wildcard rules against subdomains only", () => {
+        it("logs the bypassed request endpoint without URL secrets", () => {
             proxyValue = "http://proxy.example.com:8080";
-            noProxyValue = ["*.internal.example.com"];
+            noProxyValue = ["api.example.com"];
 
-            const bypassed = httpClient.setupConfigAndProxyForRequest(
-                new URL("https://api.internal.example.com"),
-                {},
-            );
-            const proxied = httpClient.setupConfigAndProxyForRequest(
-                new URL("https://internal.example.com"),
+            httpClient.setupConfigAndProxyForRequest(
+                new URL("https://user:password@api.example.com/path?token=secret#fragment"),
                 {},
             );
 
-            assert.equal(bypassed.httpsAgent, undefined);
-            assert.ok(proxied.httpsAgent);
-        });
-
-        it("honors the port in a proxy bypass rule", () => {
-            proxyValue = "http://proxy.example.com:8080";
-            process.env.NO_PROXY = "api.example.com:8443";
-
-            const bypassed = httpClient.setupConfigAndProxyForRequest(
-                new URL("https://api.example.com:8443"),
-                {},
-            );
-            const proxied = httpClient.setupConfigAndProxyForRequest(
-                new URL("https://api.example.com"),
-                {},
-            );
-
-            assert.equal(bypassed.httpsAgent, undefined);
-            assert.ok(proxied.httpsAgent);
-        });
-
-        it("honors the port in a bracketed IPv6 bypass rule", () => {
-            proxyValue = "http://proxy.example.com:8080";
-            noProxyValue = ["[::1]:8443"];
-
-            const bypassed = httpClient.setupConfigAndProxyForRequest(
-                new URL("https://[::1]:8443"),
-                {},
-            );
-            const proxied = httpClient.setupConfigAndProxyForRequest(
-                new URL("https://[::1]:9443"),
-                {},
-            );
-
-            assert.equal(bypassed.httpsAgent, undefined);
-            assert.ok(proxied.httpsAgent);
-        });
-
-        it("bypasses every proxy when the bypass list contains a wildcard", () => {
-            proxyValue = "http://proxy.example.com:8080";
-            process.env.NO_PROXY = "*";
-
-            const result = httpClient.setupConfigAndProxyForRequest(
-                new URL("https://api.example.com"),
-                {},
-            );
-
-            assert.equal(result.proxy, false);
-            assert.equal(result.httpsAgent, undefined);
+            assert.deepEqual(logger.debug.mock.calls.at(-1).arguments, [
+                "Request endpoint 'https://api.example.com' matched the proxy bypass list.",
+            ]);
         });
 
         it("sets up an HTTP request with a proxy", () => {
