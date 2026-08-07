@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 const assert = require("node:assert/strict");
-const { describe, it } = require("node:test");
+const { suite, test } = require("node:test");
 const { withBearerToken } = require("../dist/base/index.js");
 
-describe("withBearerToken", () => {
-    it("adds authorization without mutating existing options", () => {
+suite("withBearerToken", () => {
+    test("adds authorization without mutating existing options", () => {
         const headers = { Accept: "application/json" };
         const options = { headers, timeoutMs: 1_000 };
 
@@ -23,7 +23,7 @@ describe("withBearerToken", () => {
     });
 
     for (const token of ["", " token", "token ", "Bearer token", "token\nvalue"]) {
-        it(`rejects invalid token input ${JSON.stringify(token)}`, () => {
+        test(`rejects invalid token input ${JSON.stringify(token)}`, () => {
             assert.throws(
                 () => withBearerToken(token),
                 /Bearer token must be an unprefixed, non-empty value/,
@@ -31,7 +31,7 @@ describe("withBearerToken", () => {
         });
     }
 
-    it("rejects an existing authorization header case-insensitively", () => {
+    test("rejects an existing authorization header case-insensitively", () => {
         assert.throws(
             () =>
                 withBearerToken("token-value", {
