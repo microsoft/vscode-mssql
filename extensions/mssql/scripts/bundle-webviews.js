@@ -24,6 +24,7 @@ void run(
                 tableDesigner: "src/webviews/pages/TableDesigner/index.tsx",
                 objectExplorerFilter: "src/webviews/pages/ObjectExplorerFilter/index.tsx",
                 queryResult: "src/webviews/pages/QueryResult/index.tsx",
+                queryResultPreview: "src/webviews/pages/QueryResult/queryResultPreviewIndex.tsx",
                 userSurvey: "src/webviews/pages/UserSurvey/index.tsx",
                 schemaDesigner: "src/webviews/pages/SchemaDesigner/index.tsx",
                 schemaCompare: "src/webviews/pages/SchemaCompare/index.tsx",

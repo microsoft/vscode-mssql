@@ -5,15 +5,13 @@
 
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { makeStyles, Spinner } from "@fluentui/react-components";
-import { lazy, Suspense, useContext, useEffect } from "react";
+import { type ComponentType, lazy, Suspense, useContext, useEffect } from "react";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
 import { locConstants } from "../../common/locConstants";
-import { QueryResultFluentResultGridView } from "./queryResultFluentResultGrid";
-import { QueryResultsGridView } from "./queryResultsGridView";
 
 const useStyles = makeStyles({
     loadingContainer: {
@@ -35,7 +33,7 @@ const QueryResultsLoading = () => {
     return (
         <div className={classes.loadingContainer} role="status">
             <Spinner
-                label={locConstants.queryResult.loadingResultsMessage}
+                label={locConstants.queryResult.loadingTextView}
                 labelPosition="below"
                 size="large"
             />
@@ -48,7 +46,11 @@ const QueryResultsTextView = lazy(async () => {
     return { default: module.QueryResultsTextView };
 });
 
-export const QueryResultsTab = () => {
+interface QueryResultsTabProps {
+    GridView: ComponentType;
+}
+
+export const QueryResultsTab = ({ GridView }: QueryResultsTabProps) => {
     const context = useContext(QueryResultCommandsContext);
     if (!context) {
         return;
@@ -59,9 +61,6 @@ export const QueryResultsTab = () => {
         qr.QueryResultViewMode.Grid;
 
     const tabStates = useQueryResultSelector((state) => state.tabStates);
-    const isBetaResultsGridEnabled = useQueryResultSelector(
-        (state) => state.isBetaResultsGridEnabled,
-    );
     useEffect(() => {
         const handler = (event: KeyboardEvent) => {
             const isResultsTab = tabStates?.resultPaneTab === qr.QueryResultPaneTabs.Results;
@@ -99,8 +98,5 @@ export const QueryResultsTab = () => {
             </Suspense>
         );
     }
-    if (isBetaResultsGridEnabled) {
-        return <QueryResultFluentResultGridView />;
-    }
-    return <QueryResultsGridView />;
+    return <GridView />;
 };

@@ -253,6 +253,10 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
             setFindNodeOptions(controller.getUniqueElementProperties());
             setCost(controller.getTotalRelativeCost());
             setZoomNumber(controller.getZoomLevel());
+        } else {
+            setFindNodeOptions([]);
+            setCost(0);
+            setZoomNumber(100);
         }
     }, []);
 

@@ -181,6 +181,27 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         }
     }
 
+    /**
+     * Reloads the current webview with a different bundle entry point while preserving the
+     * controller and its state. If the webview has not been resolved yet, the selected entry point
+     * is used when it is first created.
+     */
+    protected reloadWebview(sourceFile: string): void {
+        if (sourceFile === this._sourceFile) {
+            return;
+        }
+
+        this._sourceFile = sourceFile;
+        const webview = this._getWebview();
+        if (!webview) {
+            return;
+        }
+
+        this._loadStartTime = Date.now();
+        this.updateConnectionWebview(webview);
+        webview.html = this._getHtmlTemplate();
+    }
+
     protected initializeBase() {
         if (!this.state) {
             this.state = this._initialData;

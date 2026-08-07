@@ -9,6 +9,8 @@ import { randomUUID } from "crypto";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
 import { registerCommonRequestHandlers } from "./utils";
+import { getQueryResultWebviewSource } from "./queryResultWebviewSource";
+import { PreviewFeature, previewService } from "../previews/previewService";
 
 export class QueryResultWebviewPanelController extends WebviewPanelController<
     qr.QueryResultWebviewState,
@@ -25,7 +27,9 @@ export class QueryResultWebviewPanelController extends WebviewPanelController<
     ) {
         super(
             context,
-            "queryResult",
+            getQueryResultWebviewSource(
+                previewService.isFeatureEnabled(PreviewFeature.BetaResultsGrid),
+            ),
             "queryResult",
             {
                 resultSetSummaries: {},
@@ -92,6 +96,10 @@ export class QueryResultWebviewPanelController extends WebviewPanelController<
 
     public updateUri(uri: string): void {
         this._uri = uri;
+    }
+
+    public reloadForResultsGridChange(isBetaResultsGridEnabled: boolean): void {
+        this.reloadWebview(getQueryResultWebviewSource(isBetaResultsGridEnabled));
     }
 
     public getQueryResultWebviewViewController(): QueryResultWebviewController {
