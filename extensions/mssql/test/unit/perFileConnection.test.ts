@@ -527,26 +527,23 @@ suite("Per File Connection Tests", () => {
     function createTestConnectionManager(
         serviceClient?: SqlToolsServiceClient,
         statusView?: StatusView,
-        connectionStore?: ConnectionStore,
+        connectionStore?: sinon.SinonStubbedInstance<ConnectionStore>,
         connectionUI?: ConnectionUI,
     ): ConnectionManager {
         prompterStub = stubPrompter(sandbox);
         const statusViewInstance = statusView ?? sandbox.createStubInstance(StatusView);
-
-        let connectionStoreInstance;
-
-        if (connectionStore) {
-            connectionStoreInstance = connectionStore;
-        } else {
-            const stubConnectionStore = sandbox.createStubInstance(ConnectionStore);
-            stubConnectionStore.addRecentlyUsed.resolves();
-            const initializedDeferred = new Deferred<void>();
-            initializedDeferred.resolve();
-            sandbox.stub(stubConnectionStore, "initialized").get(() => initializedDeferred);
-            stubConnectionStore.readAllConnections.resolves([]);
-            stubConnectionStore.readAllConnectionGroups.resolves([]);
-            connectionStoreInstance = stubConnectionStore;
+        const connectionStoreInstance =
+            connectionStore ?? sandbox.createStubInstance(ConnectionStore);
+        if (!connectionStore) {
+            connectionStoreInstance.addRecentlyUsed.resolves();
         }
+        const initializedDeferred = new Deferred<void>();
+        initializedDeferred.resolve();
+        sandbox.stub(connectionStoreInstance, "initialized").get(() => initializedDeferred);
+        connectionStoreInstance.readAllConnections.resolves([]);
+        connectionStoreInstance.readAllConnectionGroups.resolves([]);
+        const serviceClientInstance =
+            serviceClient ?? sandbox.createStubInstance(SqlToolsServiceClient);
 
         let manager: ConnectionManager;
         const connectionUIInstance =
@@ -568,7 +565,7 @@ suite("Per File Connection Tests", () => {
             sandbox.createStubInstance(AccountStore),
             stubInstantiationService(sandbox),
             undefined, // logger
-            serviceClient,
+            serviceClientInstance,
             connectionUIInstance,
         );
         return manager;

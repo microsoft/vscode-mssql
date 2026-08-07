@@ -584,7 +584,7 @@ suite("Docker Utilities", () => {
 
         // startDocker() polls for readiness via setInterval(2000ms). Use fake timers so the test
         // advances through the poll instead of waiting ~2s in real time.
-        const clock = sandbox.useFakeTimers();
+        const clock = sandbox.useFakeTimers({ shouldClearNativeTimers: true });
         const resultPromise = dockerUtils.startDocker();
         await clock.tickAsync(2100);
         const result = await resultPromise;
@@ -616,7 +616,7 @@ suite("Docker Utilities", () => {
 
         // startDocker() polls for readiness via setInterval(2000ms). Use fake timers so the test
         // advances through the poll instead of waiting ~2s in real time.
-        const clock = sandbox.useFakeTimers();
+        const clock = sandbox.useFakeTimers({ shouldClearNativeTimers: true });
         const resultPromise = dockerUtils.startDocker();
         await clock.tickAsync(2100);
         const result = await resultPromise;

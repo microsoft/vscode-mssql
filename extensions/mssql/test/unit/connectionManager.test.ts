@@ -93,20 +93,14 @@ suite("ConnectionManager Tests", () => {
     /**
      * Creates a ConnectionManager using the suite's default mocks, allowing callers to
      * override individual dependencies for the handful of tests that need distinct instances.
-     * Pass `useDefaultClient: false` to opt out of the default `mockServiceClient` (falls back
-     * to the real client singleton), matching tests that intentionally exercise that behavior.
      */
     function createConnectionManager(overrides?: {
         prompter?: IPrompter;
         client?: SqlToolsServerClient;
-        useDefaultClient?: boolean;
         connectionStore?: sinon.SinonStubbedInstance<ConnectionStore>;
         accountStore?: sinon.SinonStubbedInstance<AccountStore>;
         connectionUI?: sinon.SinonStubbedInstance<ConnectionUI>;
     }): ConnectionManager {
-        const client =
-            overrides?.client ??
-            (overrides?.useDefaultClient === false ? undefined : mockServiceClient);
         return new ConnectionManager(
             mockContext,
             mockStatusView,
@@ -116,7 +110,7 @@ suite("ConnectionManager Tests", () => {
             overrides?.accountStore ?? mockAccountStore,
             stubInstantiationService(sandbox),
             mockLogger,
-            client,
+            overrides?.client ?? mockServiceClient,
             overrides?.connectionUI ?? mockConnectionUI,
         );
     }
@@ -844,13 +838,13 @@ suite("ConnectionManager Tests", () => {
                 get: () => initializedDeferred,
             });
             mockConnectionStore.readAllConnections.resolves([]);
+            mockConnectionStore.readAllConnectionGroups.resolves([]);
 
             const mockPrompter = sandbox.createStubInstance(TestPrompter);
 
             // Create a new connection manager instance for this test suite
             testConnectionManager = createConnectionManager({
                 prompter: mockPrompter,
-                useDefaultClient: false,
                 connectionStore: mockConnectionStore,
                 connectionUI: mockConnectionUI,
                 accountStore: mockAccountStore,
@@ -1054,12 +1048,12 @@ suite("ConnectionManager Tests", () => {
                 get: () => initializedDeferred,
             });
             mockConnectionStore.readAllConnections.resolves([]);
+            mockConnectionStore.readAllConnectionGroups.resolves([]);
 
             const mockPrompter = sandbox.createStubInstance(TestPrompter);
 
             testConnectionManager = createConnectionManager({
                 prompter: mockPrompter,
-                useDefaultClient: false,
                 connectionStore: mockConnectionStore,
                 connectionUI: mockConnectionUI,
             });
@@ -1118,7 +1112,6 @@ suite("ConnectionManager Tests", () => {
             const mockPrompter = sandbox.createStubInstance(TestPrompter);
             testConnectionManager = createConnectionManager({
                 prompter: mockPrompter,
-                useDefaultClient: false,
             });
         });
 
