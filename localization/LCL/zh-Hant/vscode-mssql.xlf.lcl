@@ -18716,7 +18716,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Configure and customize Azure SQL Databases]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[設定和自訂 Azure SQL Database]]></Val>
+            <Val><![CDATA[設定和自訂 Azure SQL 資料庫]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -20246,7 +20246,7 @@
         <Str Cat="Text">
           <Val><![CDATA[Fabric databases in Query Profiler]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Query Profiler 中的網狀架構資料庫]]></Val>
+            <Val><![CDATA[查詢分析工具中的 Fabric 資料庫]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
