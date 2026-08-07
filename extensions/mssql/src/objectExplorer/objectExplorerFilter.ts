@@ -55,7 +55,7 @@ export class ObjectExplorerFilterWebviewController extends WebviewPanelControlle
             },
         );
 
-        this._filterStore = new ObjectExplorerFilterStore(context.globalState);
+        this._filterStore = new ObjectExplorerFilterStore(context);
 
         this.registerReducer("submit", async (state, payload) => {
             try {
@@ -144,7 +144,7 @@ export class ObjectExplorerFilter {
             nodeType: treeNode.nodeType,
             correlationId,
         });
-        const filterStore = new ObjectExplorerFilterStore(context.globalState);
+        const filterStore = new ObjectExplorerFilterStore(context);
         const filterScopeId = ObjectExplorerFilterStore.getScopeId(
             treeNode.nodeType,
             treeNode.filterableProperties,
@@ -157,7 +157,7 @@ export class ObjectExplorerFilter {
             existingFilters: treeNode.filters,
             isPreviewEnabled,
             filterScopeId,
-            filterPresets: isPreviewEnabled ? filterStore.getPresets(filterScopeId) : [],
+            filterPresets: isPreviewEnabled ? await filterStore.getPresets(filterScopeId) : [],
             nodePath: treeNode.nodePath,
         };
         if (!this._filterWebviewController || this._filterWebviewController.isDisposed) {

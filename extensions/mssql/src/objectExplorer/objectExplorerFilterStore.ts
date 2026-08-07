@@ -6,17 +6,24 @@
 import { randomUUID } from "crypto";
 import * as vscode from "vscode";
 import type * as vscodeMssql from "vscode-mssql";
+import * as Constants from "../constants/constants";
 import {
     NodeFilterPropertyDataType,
     ObjectExplorerFilterPreset,
 } from "../sharedInterfaces/objectExplorerFilter";
+import { EncryptedFileStorage } from "../utils/encryptedFileStorage";
 
-const objectExplorerFilterPresetsKey = "objectExplorerFilterPresets.v1";
+const objectExplorerFilterStorageVersion = 1;
 const maxRecentPresetsPerScope = 10;
 const maxRecentPresetsTotal = 50;
 
 interface StoredObjectExplorerFilterPreset extends ObjectExplorerFilterPreset {
     scopeId: string;
+}
+
+interface PersistedObjectExplorerFilters {
+    version: number;
+    presets: StoredObjectExplorerFilterPreset[];
 }
 
 function cloneFilters(filters: vscodeMssql.NodeFilter[]): vscodeMssql.NodeFilter[] {
@@ -91,7 +98,15 @@ function sortPresets<T extends ObjectExplorerFilterPreset>(presets: T[]): T[] {
 
 /** Persists reusable Object Explorer filters independently of any server or database. */
 export class ObjectExplorerFilterStore {
-    constructor(private readonly _storage: vscode.Memento) {}
+    private readonly _storage: EncryptedFileStorage;
+
+    constructor(context: vscode.ExtensionContext) {
+        this._storage = new EncryptedFileStorage(
+            context,
+            Constants.objectExplorerFilterGlobalStorageFileName,
+            Constants.objectExplorerFilterEncryptionKeySecretStorageKey,
+        );
+    }
 
     public static getScopeId(
         nodeType: string,
@@ -116,8 +131,15 @@ export class ObjectExplorerFilterStore {
         return JSON.stringify({ nodeType, propertySchema });
     }
 
-    public getPresets(scopeId: string): ObjectExplorerFilterPreset[] {
-        const presets = this.readPresets()
+    public async getPresets(scopeId: string): Promise<ObjectExplorerFilterPreset[]> {
+        return this.getPresetsForScope(await this.readPresets(), scopeId);
+    }
+
+    private getPresetsForScope(
+        storedPresets: StoredObjectExplorerFilterPreset[],
+        scopeId: string,
+    ): ObjectExplorerFilterPreset[] {
+        const presets = storedPresets
             .filter((preset) => preset.scopeId === scopeId)
             .map(({ scopeId: _scopeId, ...preset }) => ({
                 ...preset,
@@ -132,11 +154,11 @@ export class ObjectExplorerFilterStore {
         filters: vscodeMssql.NodeFilter[],
         saveName?: string,
     ): Promise<ObjectExplorerFilterPreset[]> {
+        const presets = await this.readPresets();
         if (filters.length === 0) {
-            return this.getPresets(scopeId);
+            return this.getPresetsForScope(presets, scopeId);
         }
 
-        const presets = this.readPresets();
         const filterKey = getFilterKey(filters);
         const normalizedSaveName = saveName?.trim();
         const matchingFilter = presets.find(
@@ -173,8 +195,9 @@ export class ObjectExplorerFilterStore {
             0,
             updatedPreset,
         );
-        await this.writePresets(this.prunePresets(remainingPresets));
-        return this.getPresets(scopeId);
+        const prunedPresets = this.prunePresets(remainingPresets);
+        await this.writePresets(prunedPresets);
+        return this.getPresetsForScope(prunedPresets, scopeId);
     }
 
     public async setPinned(
@@ -182,12 +205,12 @@ export class ObjectExplorerFilterStore {
         presetId: string,
         isPinned: boolean,
     ): Promise<ObjectExplorerFilterPreset[]> {
-        const presets = this.readPresets();
+        const presets = await this.readPresets();
         const preset = presets.find(
             (candidate) => candidate.scopeId === scopeId && candidate.id === presetId,
         );
         if (!preset) {
-            return this.getPresets(scopeId);
+            return this.getPresetsForScope(presets, scopeId);
         }
 
         if (!isPinned) {
@@ -195,8 +218,9 @@ export class ObjectExplorerFilterStore {
         }
         preset.isPinned = isPinned;
         preset.lastUsed = Date.now();
-        await this.writePresets(this.prunePresets(presets));
-        return this.getPresets(scopeId);
+        const prunedPresets = this.prunePresets(presets);
+        await this.writePresets(prunedPresets);
+        return this.getPresetsForScope(prunedPresets, scopeId);
     }
 
     public async renamePreset(
@@ -205,11 +229,11 @@ export class ObjectExplorerFilterStore {
         name: string,
     ): Promise<ObjectExplorerFilterPreset[]> {
         const normalizedName = name.trim();
+        const presets = await this.readPresets();
         if (!normalizedName) {
-            return this.getPresets(scopeId);
+            return this.getPresetsForScope(presets, scopeId);
         }
 
-        const presets = this.readPresets();
         const preset = presets.find(
             (candidate) =>
                 candidate.scopeId === scopeId && candidate.id === presetId && candidate.isPinned,
@@ -223,41 +247,68 @@ export class ObjectExplorerFilterStore {
                 }) === 0,
         );
         if (!preset || matchingName) {
-            return this.getPresets(scopeId);
+            return this.getPresetsForScope(presets, scopeId);
         }
 
         preset.name = normalizedName;
         await this.writePresets(presets);
-        return this.getPresets(scopeId);
+        return this.getPresetsForScope(presets, scopeId);
     }
 
     public async deletePreset(
         scopeId: string,
         presetId: string,
     ): Promise<ObjectExplorerFilterPreset[]> {
-        const presets = this.readPresets();
-        await this.writePresets(
-            presets.filter((preset) => !(preset.scopeId === scopeId && preset.id === presetId)),
+        const presets = await this.readPresets();
+        const remainingPresets = presets.filter(
+            (preset) => !(preset.scopeId === scopeId && preset.id === presetId),
         );
-        return this.getPresets(scopeId);
+        await this.writePresets(remainingPresets);
+        return this.getPresetsForScope(remainingPresets, scopeId);
     }
 
-    private readPresets(): StoredObjectExplorerFilterPreset[] {
-        const storedValue = this._storage.get<unknown>(objectExplorerFilterPresetsKey, []);
-        return Array.isArray(storedValue)
-            ? storedValue.filter(isStoredPreset).map((preset) => ({
-                  id: preset.id,
-                  scopeId: preset.scopeId,
-                  name: preset.name,
-                  filters: cloneFilters(preset.filters),
-                  isPinned: preset.isPinned,
-                  lastUsed: preset.lastUsed,
-              }))
-            : [];
+    private async readPresets(): Promise<StoredObjectExplorerFilterPreset[]> {
+        try {
+            const serializedFilters = await this._storage.read();
+            if (!serializedFilters) {
+                return [];
+            }
+
+            const persistedFilters = JSON.parse(
+                serializedFilters,
+            ) as PersistedObjectExplorerFilters;
+            if (
+                !persistedFilters ||
+                persistedFilters.version !== objectExplorerFilterStorageVersion ||
+                !Array.isArray(persistedFilters.presets)
+            ) {
+                return [];
+            }
+
+            return persistedFilters.presets.filter(isStoredPreset).map((preset) => ({
+                id: preset.id,
+                scopeId: preset.scopeId,
+                name: preset.name,
+                filters: cloneFilters(preset.filters),
+                isPinned: preset.isPinned,
+                lastUsed: preset.lastUsed,
+            }));
+        } catch {
+            return [];
+        }
     }
 
     private async writePresets(presets: StoredObjectExplorerFilterPreset[]): Promise<void> {
-        await this._storage.update(objectExplorerFilterPresetsKey, presets);
+        if (presets.length === 0) {
+            await this._storage.clear();
+            return;
+        }
+
+        const persistedFilters: PersistedObjectExplorerFilters = {
+            version: objectExplorerFilterStorageVersion,
+            presets,
+        };
+        await this._storage.write(JSON.stringify(persistedFilters));
     }
 
     private prunePresets(

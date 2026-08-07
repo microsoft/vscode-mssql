@@ -13,6 +13,7 @@ import {
     ObjectExplorerFilter,
     ObjectExplorerFilterWebviewController,
 } from "../../src/objectExplorer/objectExplorerFilter";
+import { ObjectExplorerFilterStore } from "../../src/objectExplorer/objectExplorerFilterStore";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { stubTelemetry } from "./utils";
 import { previewService } from "../../src/previews/previewService";
@@ -22,11 +23,15 @@ chai.use(sinonChai);
 suite("ObjectExplorerFilter tests", () => {
     let sandbox: sinon.SinonSandbox;
     let extensionContext: vscode.ExtensionContext;
+    let getPresetsStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
         sandbox.stub(previewService, "isFeatureEnabled").returns(false);
+        getPresetsStub = sandbox
+            .stub(ObjectExplorerFilterStore.prototype, "getPresets")
+            .resolves([]);
         extensionContext = {
             extensionUri: vscode.Uri.file("/tmp/test"),
             extensionPath: "/tmp/test",
@@ -135,14 +140,31 @@ suite("ObjectExplorerFilter tests", () => {
 
     test("loads reusable filters only when the preview is enabled", async () => {
         (previewService.isFeatureEnabled as sinon.SinonStub).returns(true);
+        getPresetsStub.resolves([
+            {
+                id: "saved-filter",
+                name: "Customer tables",
+                filters: [{ name: "Name", operator: 8, value: "customer" }],
+                isPinned: true,
+                lastUsed: 1,
+            },
+        ]);
         const { stub, submitEmitter } = createControllerStub();
         injectController(stub);
 
         const filtersPromise = ObjectExplorerFilter.getFilters(extensionContext, createTreeNode());
         await new Promise((resolve) => setTimeout(resolve, 0));
 
-        expect(stub.loadData).to.have.been.calledWithMatch({ isPreviewEnabled: true });
-        expect(extensionContext.globalState.get).to.have.been.called;
+        expect(getPresetsStub).to.have.been.called;
+        expect(stub.loadData).to.have.been.calledWithMatch({
+            isPreviewEnabled: true,
+            filterPresets: sinon.match(
+                (presets: unknown) =>
+                    Array.isArray(presets) &&
+                    presets[0]?.id === "saved-filter" &&
+                    presets[0]?.isPinned === true,
+            ),
+        });
 
         submitEmitter.fire([]);
         await filtersPromise;
