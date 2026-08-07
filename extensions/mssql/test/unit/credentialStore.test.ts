@@ -90,21 +90,25 @@ suite("Credential Store Tests", () => {
             builder.define(ICredentialStore, new ServiceDescriptor(CredentialStore));
             const instantiationService = builder.seal();
 
-            const first = instantiationService.invokeFunction((accessor) =>
-                accessor.get(ICredentialStore),
-            );
-            const second = instantiationService.invokeFunction((accessor) =>
-                accessor.get(ICredentialStore),
-            );
+            try {
+                const first = instantiationService.invokeFunction((accessor) =>
+                    accessor.get(ICredentialStore),
+                );
+                const second = instantiationService.invokeFunction((accessor) =>
+                    accessor.get(ICredentialStore),
+                );
 
-            expect(first).to.equal(second);
+                expect(first).to.equal(second);
 
-            await first.saveCredential(credentialId, "test_password");
+                await first.saveCredential(credentialId, "test_password");
 
-            expect(secretStorage.store).to.have.been.calledOnceWithExactly(
-                credentialId,
-                "test_password",
-            );
+                expect(secretStorage.store).to.have.been.calledOnceWithExactly(
+                    credentialId,
+                    "test_password",
+                );
+            } finally {
+                instantiationService.dispose();
+            }
         });
     });
 });

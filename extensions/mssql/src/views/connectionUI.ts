@@ -5,11 +5,11 @@
 
 import * as vscode from "vscode";
 import { IAccount, IConnectionInfo } from "vscode-mssql";
-import { AccountStore, IAccountStore } from "../azure/accountStore";
+import { IAccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import * as constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
-import { ConnectionStore, IConnectionStore } from "../models/connectionStore";
+import { IConnectionStore } from "../models/connectionStore";
 import * as Utils from "../models/utils";
 import {
     CredentialsQuickPickItemType,
@@ -45,8 +45,8 @@ export class ConnectionUI {
          * reference to the manager owning this UI) to avoid reintroducing a construction cycle.
          */
         private _onDisconnect: () => Promise<boolean>,
-        @IConnectionStore private _connectionStore: ConnectionStore,
-        @IAccountStore private _accountStore: AccountStore,
+        @IConnectionStore private _connectionStore: IConnectionStore,
+        @IAccountStore private _accountStore: IAccountStore,
     ) {}
 
     /**
