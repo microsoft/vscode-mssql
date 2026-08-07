@@ -3192,6 +3192,10 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Don't show this again</source>
         <target state="translated">Больше не показывать</target>
       </trans-unit>
+      <trans-unit id="++CODE++eb47b4eaa66b7f7140d56ad3570f642b5917fc2bb404d5d88b4a968198b02999">
+        <source xml:lang="en">Don’t show again for this extension</source>
+        <target state="new">Don’t show again for this extension</target>
+      </trans-unit>
       <trans-unit id="++CODE++ade5b866b0e6b83f736f3f1e46c0448a8ed129ae76c552d26cd62d610f1eb0e5">
         <source xml:lang="en">Download offline VSIX</source>
         <target state="translated">Скачать автономную версию VSIX</target>
@@ -4585,6 +4589,10 @@ Error:
       <trans-unit id="++CODE++ca4c37cb4476ae2b0cba406f2d2ba86941c15e9d3a169ed2feb37fd0b9fe07b7">
         <source xml:lang="en">File Name</source>
         <target state="translated">Имя файла</target>
+      </trans-unit>
+      <trans-unit id="++CODE++baf1d51cdc7979a93a41ca174cb518e1afc43d5060899597e99f13b33b17e1da">
+        <source xml:lang="en">File a feature request</source>
+        <target state="new">File a feature request</target>
       </trans-unit>
       <trans-unit id="++CODE++fa2a8ed323616e7b0d7d5c10ff86fe43e4709b714505299633c12807ac9c22f1">
         <source xml:lang="en">File already exists. It will be overwritten if you continue</source>
@@ -10031,6 +10039,11 @@ Query: {2}</source>
         <note>{0} is the service name
 {1} is the error message</note>
         <target state="translated">Сбой службы {0}. Подробности: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2500e74ebfdd53040c8458b3b5e89e97caf167df8686a8882b9e628ba5cb5447">
+        <source xml:lang="en">The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.</source>
+        <note>{0} is the extension name</note>
+        <target state="new">The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.</target>
       </trans-unit>
       <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
         <source xml:lang="en">There was an error updating the project</source>
