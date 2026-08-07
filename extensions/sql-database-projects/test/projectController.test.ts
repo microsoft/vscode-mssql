@@ -17,6 +17,7 @@ import * as utils from "../src/common/utils";
 
 import { SqlDatabaseProjectTreeViewProvider } from "../src/controllers/databaseProjectTreeViewProvider";
 import { ProjectsController } from "../src/controllers/projectController";
+import { NetCoreTool } from "../src/tools/netcoreTool";
 import { promises as fs } from "fs";
 import { createContext, TestContext } from "./testContext";
 import { Project } from "../src/models/project";
@@ -1267,6 +1268,89 @@ suite("ProjectsController", function (): void {
                 await projController.changeTargetPlatform(project);
                 expect(project.getProjectTargetVersion()).to.equal(
                     constants.targetPlatformToVersion.get(SqlTargetPlatform.sqlAzure),
+                );
+            });
+        });
+
+        suite("Restore Nuget Packages", function (): void {
+            /**
+             * Stubs task execution so restoreProject runs without spawning dotnet.
+             *
+             * `runTaskToCompletion` registers its listener inside the promise executor, so the
+             * end-of-task event is fired on a later tick to guarantee the listener is in place.
+             *
+             * @param exitCode code the task reports when it ends
+             * @returns the executeTask stub, so callers can assert on the task it received
+             */
+            function stubTaskRun(exitCode: number): sinon.SinonStub {
+                const execution = {} as vscode.TaskExecution;
+                const executeTaskStub = sandbox
+                    .stub(vscode.tasks, "executeTask")
+                    .resolves(execution);
+
+                sandbox
+                    .stub(vscode.tasks, "onDidEndTaskProcess")
+                    .callsFake((listener: (e: vscode.TaskProcessEndEvent) => void) => {
+                        setTimeout(
+                            () =>
+                                listener({
+                                    execution,
+                                    exitCode,
+                                } as vscode.TaskProcessEndEvent),
+                            0,
+                        );
+                        return { dispose: () => {} };
+                    });
+
+                return executeTaskStub;
+            }
+
+            test("Should run dotnet restore against the project file", async function (): Promise<void> {
+                sandbox.stub(NetCoreTool.prototype, "verifyNetCoreInstallation").resolves();
+                const executeTaskStub = stubTaskRun(0);
+                const showErrorMessageSpy = sandbox.spy(vscode.window, "showErrorMessage");
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    baselines.newProjectFileBaseline,
+                );
+                const projController = new ProjectsController(testContext.outputChannel);
+
+                await projController.restoreProject(project);
+
+                expect(executeTaskStub.calledOnce, "a task should have been executed").to.be.true;
+                const task = executeTaskStub.firstCall.args[0] as vscode.Task;
+                expect(task.name, "task should be labelled as a restore").to.equal(
+                    constants.restoreTaskName,
+                );
+
+                const execution = task.execution as vscode.ProcessExecution;
+                expect(execution.process, "should invoke dotnet").to.equal(constants.dotnet);
+                expect(execution.args, "should pass restore and the project path").to.deep.equal([
+                    constants.restore,
+                    utils.getNonQuotedPath(project.projectFilePath),
+                ]);
+                expect(showErrorMessageSpy.notCalled, "no error should be shown for exit code 0").to
+                    .be.true;
+            });
+
+            test("Should show an error when restore fails", async function (): Promise<void> {
+                sandbox.stub(NetCoreTool.prototype, "verifyNetCoreInstallation").resolves();
+                stubTaskRun(1);
+                const showErrorMessageSpy = sandbox.spy(vscode.window, "showErrorMessage");
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    baselines.newProjectFileBaseline,
+                );
+                const projController = new ProjectsController(testContext.outputChannel);
+
+                await projController.restoreProject(project);
+
+                expect(
+                    showErrorMessageSpy.calledOnce,
+                    "a failed restore should be surfaced to the user",
+                ).to.be.true;
+                expect(showErrorMessageSpy.firstCall.args[0]).to.equal(
+                    constants.projRestoreFailed(),
                 );
             });
         });

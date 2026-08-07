@@ -545,7 +545,9 @@ export function projBuildFailed(errorMessage: string) {
  * already in the task terminal.
  */
 export function projRestoreFailed(errorMessage?: string) {
-    const message = l10n.t("Restore failed. Check the terminal output for more details.");
+    const message = l10n.t(
+        "Restore NuGet packages failed. Check the terminal output for more details.",
+    );
     return errorMessage ? `${message} ${errorMessage}` : message;
 }
 export function unexpectedProjectContext(uri: string) {

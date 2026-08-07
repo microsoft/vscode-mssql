@@ -225,7 +225,7 @@
     "Circular reference from project {0} to project {1}": "Circular reference from project {0} to project {1}",
     "Error finding build files location: {0}": "Error finding build files location: {0}",
     "Build failed. Check output pane for more details. {0}": "Build failed. Check output pane for more details. {0}",
-    "Restore failed. Check the terminal output for more details.": "Restore failed. Check the terminal output for more details.",
+    "Restore NuGet packages failed. Check the terminal output for more details.": "Restore NuGet packages failed. Check the terminal output for more details.",
     "Unable to establish project context.  Command invoked from unexpected location: {0}": "Unable to establish project context.  Command invoked from unexpected location: {0}",
     "Unable to locate '{0}' target: '{1}'. {2}": "Unable to locate '{0}' target: '{1}'. {2}",
     "Unable to find {1} with path '{0}'": "Unable to find {1} with path '{0}'",
