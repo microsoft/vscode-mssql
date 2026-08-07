@@ -43,8 +43,9 @@ import { ObjectManagementService } from "../services/objectManagementService";
 import StatusView from "../views/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "../models/interfaces";
 import ConnectionManager from "./connectionManager";
+import { IInstantiationService } from "extension-toolkit/base";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, VscodeHttpClient } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { TableDesignerService } from "../services/tableDesignerService";
 import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
@@ -118,7 +119,6 @@ import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabas
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
 import { ShortcutsConfigurationWebviewController } from "./shortcutsConfigurationWebviewController";
-import { HttpClient } from "../http/httpClient";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import { FileBrowserService } from "../services/fileBrowserService";
@@ -137,6 +137,7 @@ import {
     normalizeQuickQueries,
     quickQueryCount,
 } from "../sharedInterfaces/shortcutsConfiguration";
+import { AzureResourcesExtensionIntegration } from "../integration/azureResourcesIntegration";
 
 /**
  * The main controller class that initializes the extension
@@ -185,12 +186,18 @@ export default class MainController implements vscode.Disposable {
     public profilerController: ProfilerController;
     public sqlNotebookController: SqlNotebookController;
     public cloudDeployService: CloudDeployService;
+    public protocolHandler: MssqlProtocolHandler;
+    public azureResourcesIntegration: AzureResourcesExtensionIntegration;
 
     /**
      * The main controller constructor
      * @constructor
      */
-    constructor(context: vscode.ExtensionContext, connectionManager?: ConnectionManager) {
+    constructor(
+        context: vscode.ExtensionContext,
+        @IInstantiationService private readonly _instantiationService: IInstantiationService,
+        connectionManager?: ConnectionManager,
+    ) {
         this._context = context;
         if (connectionManager) {
             this._connectionMgr = connectionManager;
@@ -199,7 +206,9 @@ export default class MainController implements vscode.Disposable {
         this.configuration = vscode.workspace.getConfiguration();
 
         UserSurvey.createInstance(this._context);
-        new HttpClient(this._logger).warnOnInvalidProxySettings();
+        new VscodeHttpClient({
+            logger: this._logger,
+        }).warnOnInvalidProxySettings();
     }
 
     /**
@@ -293,9 +302,6 @@ export default class MainController implements vscode.Disposable {
                 const commandId = getQuickQueryCommandId(slotNumber);
                 this.registerCommand(commandId);
                 this._event.on(commandId, () => {
-                    if (!this.isShortcutsConfigurationEnabled()) {
-                        return;
-                    }
                     void this.runAndLogErrors(quickQueryService.run(slotNumber));
                 });
             }
@@ -401,10 +407,8 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdOpenAzureDataStudioMigration);
             this._event.on(Constants.cmdOpenAzureDataStudioMigration, async () => {
-                const migrationController = new AzureDataStudioMigrationWebviewController(
-                    this._context,
-                    this.connectionManager.connectionStore,
-                    this.connectionManager.connectionStore.connectionConfig,
+                const migrationController = this._instantiationService.createInstance(
+                    AzureDataStudioMigrationWebviewController,
                     this.azureAccountService,
                 );
 
@@ -759,18 +763,23 @@ export default class MainController implements vscode.Disposable {
                 xelProviderInstance,
             );
 
-            const self = this;
-            const uriHandler: vscode.UriHandler = {
-                async handleUri(uri: vscode.Uri): Promise<void> {
-                    const mssqlProtocolHandler = new MssqlProtocolHandler(
-                        self,
-                        self._connectionMgr.client,
-                    );
+            this.protocolHandler = new MssqlProtocolHandler(this, this._connectionMgr.client);
 
-                    await mssqlProtocolHandler.handleUri(uri);
+            const uriHandler: vscode.UriHandler = {
+                handleUri: async (uri: vscode.Uri) => {
+                    await this.protocolHandler.handleUri(uri);
                 },
             };
+
             vscode.window.registerUriHandler(uriHandler);
+
+            this.azureResourcesIntegration = new AzureResourcesExtensionIntegration(
+                this.protocolHandler,
+            );
+
+            this._context.subscriptions.push(
+                this.azureResourcesIntegration.registerOpenInMssqlCommand(),
+            );
 
             // Register a virtual document provider once during extension activation
             vscode.workspace.registerTextDocumentContentProvider("query-result-link", {
@@ -1062,11 +1071,14 @@ export default class MainController implements vscode.Disposable {
         );
 
         // Init connection manager and connection MRU
-        this._connectionMgr = new ConnectionManager(
-            this._context,
-            this._statusview,
-            this._prompter,
-        );
+        if (!this._connectionMgr) {
+            this._connectionMgr = this._instantiationService.createInstance(
+                ConnectionManager,
+                this._context,
+                this._statusview,
+                this._prompter,
+            );
+        }
 
         this._sqlDocumentService = new SqlDocumentService(this);
         this.configureQuickQueryService();
@@ -1689,18 +1701,17 @@ export default class MainController implements vscode.Disposable {
 
         this.registerCommand(Constants.cmdConnectionGroupCreate);
         this._event.on(Constants.cmdConnectionGroupCreate, () => {
-            const connGroupDialog = new ConnectionGroupWebviewController(
-                this._context,
-                this.connectionManager.connectionStore.connectionConfig,
+            const connGroupDialog = this._instantiationService.createInstance(
+                ConnectionGroupWebviewController,
+                undefined,
             );
             connGroupDialog.revealToForeground();
         });
 
         this.registerCommandWithArgs(Constants.cmdConnectionGroupEdit);
         this._event.on(Constants.cmdConnectionGroupEdit, (node: ConnectionGroupNode) => {
-            const connGroupDialog = new ConnectionGroupWebviewController(
-                this._context,
-                this.connectionManager.connectionStore.connectionConfig,
+            const connGroupDialog = this._instantiationService.createInstance(
+                ConnectionGroupWebviewController,
                 node.connectionGroup,
             );
             connGroupDialog.revealToForeground();
@@ -2611,6 +2622,23 @@ export default class MainController implements vscode.Disposable {
     }
 
     /**
+     * Opens the connection dialog prepopulated with the given connection info, in "create new connection" mode
+     * (as opposed to "edit existing connection" mode). Used when an external source (e.g. protocol handler)
+     * provides connection parameters that don't match any existing saved profile.
+     */
+    public openConnectionDialogForNewProfile(connectionInfo?: IConnectionInfo): void {
+        const connDialog = new ConnectionDialogWebviewController(
+            this._context,
+            this,
+            this._objectExplorerProvider,
+            connectionInfo,
+            undefined,
+            true, // openAsNewDraft
+        );
+        connDialog.revealToForeground();
+    }
+
+    /**
      * Let users pick from a list of connections
      */
     public async promptToConnect(): Promise<boolean> {
@@ -2904,9 +2932,6 @@ export default class MainController implements vscode.Disposable {
     }
 
     public openShortcutsConfiguration(focusedQuickQuerySlot?: number): void {
-        if (!this.isShortcutsConfigurationEnabled()) {
-            return;
-        }
         if (
             this._shortcutsConfigurationController &&
             !this._shortcutsConfigurationController.isDisposed
@@ -2929,10 +2954,6 @@ export default class MainController implements vscode.Disposable {
         controller.revealToForeground();
     }
 
-    private isShortcutsConfigurationEnabled(): boolean {
-        return previewService.isFeatureEnabled(PreviewFeature.ShortcutsConfiguration);
-    }
-
     private configureQuickQueryService(): void {
         quickQueryService.configure({
             readQuickQueries: () =>
@@ -2941,6 +2962,40 @@ export default class MainController implements vscode.Disposable {
                 ),
             openConfiguration: (focusedQuickQuerySlot) =>
                 this.openShortcutsConfiguration(focusedQuickQuerySlot),
+            getActiveSqlEditor: () => {
+                const editor = vscode.window.activeTextEditor;
+                return editor?.document.languageId === Constants.languageId ? editor : undefined;
+            },
+            ensureSqlEditorConnected: async (editor) => {
+                const uri = getUriKey(editor.document.uri);
+                return (
+                    (await this.ensureReadyToExecuteQuery()) && this._connectionMgr.isConnected(uri)
+                );
+            },
+            runSqlEditorQueryString: async (editor, query) => {
+                const uri = getUriKey(editor.document.uri);
+                if (!this._connectionMgr.isConnected(uri)) {
+                    return;
+                }
+
+                await this._connectionMgr.refreshAzureAccountToken(uri);
+                store.deleteUriState(uri);
+                await this._outputContentProvider.runQueryString(
+                    this._statusview,
+                    uri,
+                    query,
+                    path.basename(editor.document.fileName),
+                );
+            },
+            showMultipleSelectionsError: () =>
+                vscode.window.showErrorMessage(
+                    LocalizedConstants.msgMultipleSelectionModeNotSupported,
+                ),
+            showSelectedTextRequiredError: () => {
+                void vscode.window.showErrorMessage(
+                    LocalizedConstants.quickQuerySelectedTextRequired,
+                );
+            },
             createSqlEditor: async (options) => await this.sqlDocumentService.newQuery(options),
             isSqlEditorConnected: (editor) =>
                 this._connectionMgr.isConnected(getUriKey(editor.document.uri)),

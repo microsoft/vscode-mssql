@@ -171,6 +171,32 @@ suite("Query Runner tests", () => {
         }
     });
 
+    test("executes a Quick Query string without reading the editor document", async () => {
+        const query = "select * from [dbo].[Orders]";
+        testSqlToolsServerClient.sendRequest
+            .withArgs(QueryExecuteContracts.QueryExecuteStringRequest.type, sinon.match.object)
+            .resolves(new QueryExecuteContracts.QueryExecuteResult());
+        setupStandardQueryNotificationHandlerMock(testQueryNotificationHandler);
+        const queryRunner = createQueryRunner();
+
+        await queryRunner.runQueryString(query);
+
+        expect(testSqlToolsServerClient.sendRequest).to.have.been.calledWith(
+            QueryExecuteContracts.QueryExecuteStringRequest.type,
+            {
+                ownerUri: standardUri,
+                query,
+            },
+        );
+        expect(vscodeWorkspace.openTextDocument).to.not.have.been.called;
+        expect(queryRunner.getQueryString(standardUri)).to.equal(query);
+        expect(queryRunner.executionSource).to.equal("quickQuery");
+        expect(testQueryNotificationHandler.registerRunner).to.have.been.calledWith(
+            queryRunner,
+            standardUri,
+        );
+    });
+
     test("Notification - Batch Start", () => {
         // Setup: Create a batch start notification with appropriate values
         // NOTE: nulls are used because that's what comes back from the service.

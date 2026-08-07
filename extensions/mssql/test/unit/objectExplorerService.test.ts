@@ -32,7 +32,7 @@ import {
     TelemetryActions,
     TelemetryViews,
 } from "../../src/sharedInterfaces/telemetry";
-import * as telemetry from "../../src/telemetry/telemetry";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 import { RefreshRequest } from "../../src/models/contracts/objectExplorer/refreshSessionRequest";
 import { ExpandErrorNode } from "../../src/objectExplorer/nodes/expandErrorNode";
 import * as LocalizedConstants from "../../src/constants/locConstants";
@@ -88,7 +88,7 @@ suite("OE Service Tests", () => {
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
             stubLogger(sandbox);
 
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
             mockConnectionManager.client = mockClient;
 
             objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
@@ -213,7 +213,7 @@ suite("OE Service Tests", () => {
             mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockClient = sandbox.createStubInstance(SqlToolsServiceClient);
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
             mockConnectionManager.client = mockClient;
             mockConnectionStore.readAllConnections.resolves([]);
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
@@ -1315,7 +1315,7 @@ suite("OE Service Tests", () => {
             mockConnectionStore.readAllConnections.resolves([]);
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
 
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
             mockConnectionManager.client = mockClient;
             (mockConnectionManager as any)._connectionUI = mockConnectionUI;
 
@@ -1578,7 +1578,7 @@ suite("OE Service Tests", () => {
 
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
             mockConnectionManager.client = mockClient;
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
 
             endStub = sandbox.stub();
             endFailedStub = sandbox.stub();
@@ -2265,7 +2265,7 @@ suite("OE Service Tests", () => {
             mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockConnectionStore.readAllConnections.resolves([]);
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
             mockConnectionManager.client = mockClient;
 
             endStub = sandbox.stub();
@@ -2582,7 +2582,7 @@ suite("OE Service Tests", () => {
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
 
             mockConnectionManager.client = mockClient;
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
             mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
             sandbox.stub(mockConnectionManager, "connectionUI").get(() => mockConnectionUI);
             mockAccountStore = sandbox.createStubInstance(AccountStore);
@@ -2828,7 +2828,9 @@ suite("OE Service Tests", () => {
                 entraMockConnectionStore.readAllConnectionGroups.resolves([
                     createMockRootConnectionGroup(),
                 ]);
-                mockConnectionManager.connectionStore = entraMockConnectionStore;
+                sandbox
+                    .stub(mockConnectionManager, "connectionStore")
+                    .get(() => entraMockConnectionStore);
                 mockConnectionManager.client = sandbox.createStubInstance(SqlToolsServiceClient);
 
                 stubLogger(sandbox);

@@ -4,6 +4,46 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-languageclient";
+import { TelemetryActions } from "../../sharedInterfaces/telemetry";
+
+// ------------------------------- < SQL Tools Service Telemetry Event > --------------------------
+
+export interface SqlToolsServiceTelemetryParams {
+    params: {
+        eventName: TelemetryActions;
+        properties?: Record<string, string>;
+        measures?: Record<string, number>;
+    };
+}
+
+/**
+ * Event sent when SQL Tools Service emits a telemetry event.
+ */
+export namespace SqlToolsServiceTelemetryNotification {
+    export const type = new NotificationType<SqlToolsServiceTelemetryParams>("telemetry/sqlevent");
+}
+
+// ------------------------------- </ SQL Tools Service Telemetry Event > -------------------------
+
+// ------------------------------- < Formatting Failed Event > ------------------------------------
+
+export type FormattingFailureReason = "ParseError";
+export type FormattingRequestType = "Document" | "Range";
+
+export interface FormattingFailedParams {
+    ownerUri: string;
+    formatType: FormattingRequestType;
+    reason: FormattingFailureReason;
+    parseErrorCount: number;
+}
+
+export namespace FormattingFailedNotification {
+    export const type = new NotificationType<FormattingFailedParams>(
+        "textDocument/formattingFailed",
+    );
+}
+
+// ------------------------------- </ Formatting Failed Event > -----------------------------------
 
 // ------------------------------- < IntelliSense Ready Event > ------------------------------------
 

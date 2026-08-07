@@ -356,7 +356,7 @@ export class LocConstants {
             subtitle: l10n.t("Configure Quick Query and Extension shortcuts."),
             quickQueries: l10n.t("Quick Queries"),
             quickQueriesDescription: l10n.t(
-                "Save frequently used SQL snippets and run or open them instantly with custom keyboard shortcuts.",
+                "Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.",
             ),
             quickQueriesKeyboardShortcutsBanner: l10n.t(
                 "Quick Queries keyboard shortcuts are managed by Visual Studio Code.",
@@ -437,7 +437,6 @@ export class LocConstants {
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),
             keybinding: l10n.t("Keybinding"),
-            autoExecute: l10n.t("Auto-execute"),
             clearQuickQuery: l10n.t("Clear Quick Query"),
             clearQuickQueryTooltip: l10n.t("Clear this Quick Query"),
             showAllShortcuts: l10n.t("Show All"),
@@ -462,6 +461,10 @@ export class LocConstants {
                     args: [name],
                     comment: ["{0} is the Quick Query shortcut name"],
                 }),
+            selectedTextArgumentHint: l10n.t(
+                "Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.",
+            ),
+            selectedTextCompletionDetail: l10n.t("Selected query-editor text"),
             noShortcut: l10n.t("No shortcut"),
             noQuerySet: l10n.t("No query set"),
             searchWebviewShortcuts: l10n.t("Search extension shortcut"),
@@ -872,6 +875,7 @@ export class LocConstants {
             highlightExpensiveOperation: l10n.t("Highlight Expensive Operation"),
             toggleTooltips: l10n.t("Toggle Tooltips"),
             properties: l10n.t("Properties"),
+            executionPlanToolbar: l10n.t("Execution plan toolbar"),
             name: l10n.t("Name"),
             value: l10n.t("Value"),
             importance: l10n.t("Importance"),
@@ -886,6 +890,23 @@ export class LocConstants {
             collapse: l10n.t("Collapse"),
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
+            reactFlowRendererError: l10n.t(
+                "The React Flow execution plan preview could not render this plan.",
+            ),
+            executionPlanGraph: l10n.t("Execution plan"),
+            executionPlanDetails: l10n.t("Execution plan details"),
+            expandNode: (name: string) =>
+                l10n.t({
+                    message: "Expand {0}",
+                    args: [name],
+                    comment: ["{0} is the name of an execution plan operation"],
+                }),
+            collapseNode: (name: string) =>
+                l10n.t({
+                    message: "Collapse {0}",
+                    args: [name],
+                    comment: ["{0} is the name of an execution plan operation"],
+                }),
         };
     }
 
@@ -2177,6 +2198,31 @@ export class LocConstants {
             source: l10n.t("Source"),
             target: l10n.t("Target"),
             compareDetails: l10n.t("Comparison Details"),
+            affectedChildrenRegionLabel: l10n.t("Affected child objects"),
+            affectedChildrenAdded: (names: string) =>
+                l10n.t({
+                    message: "Constraints added: {0}",
+                    args: [names],
+                    comment: [
+                        "{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.",
+                    ],
+                }),
+            affectedChildrenChanged: (names: string) =>
+                l10n.t({
+                    message: "Constraints changed: {0}",
+                    args: [names],
+                    comment: [
+                        "{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.",
+                    ],
+                }),
+            affectedChildrenDropped: (names: string) =>
+                l10n.t({
+                    message: "Constraints dropped: {0}",
+                    args: [names],
+                    comment: [
+                        "{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.",
+                    ],
+                }),
             areYouSureYouWantToUpdateTheTarget: l10n.t(
                 "Are you sure you want to update the target?",
             ),
@@ -2520,12 +2566,46 @@ export class LocConstants {
                     args: [ip],
                     comment: ["{0} is the current IP address"],
                 }),
+        };
+    }
 
-            whatsNext: l10n.t("What's next?"),
-            connectAndRunQuery: l10n.t("Connect with SQL tools and run your first query"),
-            seedSampleData: l10n.t("Seed sample data or import an existing schema"),
-            monitorUsage: l10n.t("Monitor usage and manage your free tier limits"),
-            browseTutorials: l10n.t("Browse Azure SQL Database tutorials and docs"),
+    public get whatsNext() {
+        return {
+            title: l10n.t("What's next?"),
+            description: l10n.t(
+                "Add tables and data, explore, and build with the MSSQL extension.",
+            ),
+            designTables: l10n.t("Design tables with Table Designer"),
+            importFlatFile: l10n.t("Import from a flat file as a new table"),
+            schemaDesigner: l10n.t("Visualize and design your database with Schema Designer"),
+            schemaCompare: l10n.t("Compare and deploy schema with Schema Compare"),
+            runFirstQuery: l10n.t("Run your first query"),
+            githubCopilot: l10n.t("Build with AI using GitHub Copilot"),
+            collapseCard: l10n.t("Collapse What's next"),
+            expandCard: l10n.t("Expand What's next"),
+        };
+    }
+
+    public get connectToDatabase() {
+        return {
+            title: l10n.t("Connect to Database"),
+            subtitle: l10n.t(
+                "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.",
+            ),
+            connectionString: l10n.t("Connection string"),
+            runYourMigrations: l10n.t("Run your migrations"),
+            copy: l10n.t("Copy"),
+            copied: l10n.t("Copied!"),
+            copyConnectionString: l10n.t("Copy connection string"),
+            copyMigrationCommand: l10n.t("Copy migration command"),
+            toolDocs: (toolName: string) =>
+                l10n.t({
+                    message: "{0} docs",
+                    args: [toolName],
+                    comment: ["{0} is the name of a database migration tool"],
+                }),
+            collapseCard: l10n.t("Collapse Connect to Database"),
+            expandCard: l10n.t("Expand Connect to Database"),
         };
     }
 

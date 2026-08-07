@@ -29,7 +29,7 @@ import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterface
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { UserSurvey } from "../nps/userSurvey";
 
 export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;
@@ -709,6 +709,21 @@ export async function connectToDatabase(deploymentController: DeploymentWebviewC
             );
         await deploymentController.mainController.createObjectExplorerSession(profile);
         state.connectionLoadState = ApiStatus.Loaded;
+
+        // Capture the connection string (without the password) so the webview can
+        // surface it in the "Connect to Database" card.
+        try {
+            state.connectionString =
+                await deploymentController.mainController.connectionManager.getConnectionString(
+                    deploymentController.mainController.connectionManager.createConnectionDetails(
+                        databaseConnectionProfile,
+                    ),
+                    false /* includePassword */,
+                    false /* includeApplicationName */,
+                );
+        } catch {
+            state.connectionString = "";
+        }
 
         sendActionEvent(
             TelemetryViews.FabricProvisioning,

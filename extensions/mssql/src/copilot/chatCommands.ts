@@ -5,7 +5,7 @@
 
 import * as vscode from "vscode";
 import MainController from "../controllers/mainController";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
 import { MssqlChatAgent as loc } from "../constants/locConstants";

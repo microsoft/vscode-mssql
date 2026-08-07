@@ -32,7 +32,6 @@ import {
     ConfigurableKeyCommand,
     configurableKeyCommands,
     getQuickQueryCommandId,
-    QuickQueryExecutionMode,
     quickQueryCount,
 } from "../../../sharedInterfaces/shortcutsConfiguration";
 import { ShortcutsConfigurationContext } from "./shortcutsConfigurationStateProvider";
@@ -110,13 +109,11 @@ const useStyles = makeStyles({
     },
     quickQueryGridCard: {
         borderRadius: 0,
-        height: "calc(100vh - 260px)",
-        minHeight: "360px",
         width: "100%",
     },
     quickQueryGridScroller: {
-        height: "100%",
         overflowX: "auto",
+        overflowY: "hidden",
     },
     quickQueryGridContainer: {
         "--slick-border-color": "var(--vscode-editorWidget-border)",
@@ -259,12 +256,6 @@ const useStyles = makeStyles({
         userSelect: "none",
         whiteSpace: "nowrap",
         width: "100%",
-    },
-    quickQueryCheckboxInput: {
-        cursor: "pointer",
-        height: "16px",
-        margin: 0,
-        width: "16px",
     },
     quickQueryShortcutCell: {
         alignItems: "center",
@@ -625,10 +616,8 @@ export const ShortcutsConfigurationPage = () => {
                     id: index + 1,
                     index,
                     commandId,
-                    slot,
                     name: slot.name,
                     query: slot.query,
-                    autoExecute: slot.executionMode === QuickQueryExecutionMode.OpenAndRun,
                 };
             }),
         [quickQueries],
@@ -660,7 +649,9 @@ export const ShortcutsConfigurationPage = () => {
     const quickQueryGridOptions = useMemo<GridOption>(
         () => ({
             ...baseFluentReadOnlyGridOption,
+            alwaysShowVerticalScroll: false,
             autoCommitEdit: true,
+            autoHeight: true,
             autoResize: createFluentAutoResizeOptions(`#${quickQueryGridContainerId}`),
             autoEdit: true,
             autoEditByKeypress: true,
@@ -685,7 +676,6 @@ export const ShortcutsConfigurationPage = () => {
             void context?.openQuickQueryKeybindings();
         },
         onEditQuery: (index) => setEditingQueryIndex(index),
-        updateQuickQuery,
         clearQuickQueryValues,
     });
 

@@ -103,6 +103,7 @@ suite("MssqlProtocolHandler Tests", () => {
                 server: "myServer",
                 database: "dbName",
                 user: "testUser",
+                source: "testSource",
             };
 
             const mockConnectionManager = sandbox.createStubInstance(ConnectionManager);
@@ -116,7 +117,8 @@ suite("MssqlProtocolHandler Tests", () => {
                     server: "myServer",
                     database: "dbName",
                     user: "testUser",
-                } as IConnectionProfile,
+                    source: "testSource",
+                } as unknown as IConnectionProfile,
                 score: MatchScore.ServerDatabaseAndAuth,
             });
 

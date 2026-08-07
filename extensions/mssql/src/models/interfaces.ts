@@ -70,6 +70,10 @@ export interface IConnectionProfile extends vscodeMssql.IConnectionInfo {
     azureAuthType: AzureAuthType;
     accountStore: AccountStore;
     configSource: ConfigTarget;
+    /**
+     * Optional sort order for display in the Object Explorer. Set manually in config JSON.
+     */
+    order?: number;
     isValidProfile(): boolean;
     isAzureActiveDirectory(): boolean;
 }
@@ -81,6 +85,10 @@ export interface IConnectionGroup {
     parentId?: string;
     color?: string;
     description?: string;
+    /**
+     * Optional sort order for display in the Object Explorer. Set manually in config JSON.
+     */
+    order?: number;
 }
 
 export enum CredentialsQuickPickItemType {

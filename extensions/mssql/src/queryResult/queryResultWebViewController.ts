@@ -9,7 +9,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { WebviewViewController } from "../controllers/webviewViewController";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { randomUUID } from "crypto";
 import { ApiStatus } from "../sharedInterfaces/webview";
@@ -25,7 +25,12 @@ import {
 } from "./utils";
 import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
-import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
+import {
+    getPreviewConfigKey,
+    isBetaExecutionPlanEnabled,
+    PreviewFeature,
+    previewService,
+} from "../previews/previewService";
 
 const QUERY_RESULT_VIEW_ID = "queryResult";
 
@@ -135,6 +140,16 @@ export class QueryResultWebviewController extends WebviewViewController<
                     this.updateSelectionSummary();
                     stateChanged = true;
                 }
+                if (e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaExecutionPlan))) {
+                    const newValue = isBetaExecutionPlanEnabled();
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        if (state.executionPlanState) {
+                            state.executionPlanState.isBetaExecutionPlanEnabled = newValue;
+                        }
+                        this._queryResultStateMap.set(uri, state);
+                    }
+                    stateChanged = true;
+                }
                 if (
                     e.affectsConfiguration("mssql.resultsGrid.alternatingRowColors") ||
                     e.affectsConfiguration("mssql.resultsGrid.showGridLines") ||
@@ -171,13 +186,16 @@ export class QueryResultWebviewController extends WebviewViewController<
 
         context.subscriptions.push(
             vscode.commands.registerCommand(Constants.cmdHandleSummaryOperation, async (uri) => {
-                const state = this._queryResultStateMap.get(uri);
-                if (!state) {
-                    return;
-                }
-                this._selectionSummaryContinuations.get(uri)?.resolve();
+                this.handleSelectionSummary(uri);
             }),
         );
+    }
+
+    public handleSelectionSummary(uri: string): void {
+        if (!this._queryResultStateMap.has(uri)) {
+            return;
+        }
+        this._selectionSummaryContinuations.get(uri)?.resolve();
     }
 
     private get shouldAutoRevealResultsPanel(): boolean {
@@ -404,6 +422,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                     executionPlanGraphs: [],
                     totalCost: 0,
                     xmlPlans: {},
+                    isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                 },
             }),
             fontSettings: {

@@ -6,7 +6,7 @@
 import { expect } from "chai";
 import * as templates from "../src/templates/templates";
 import { shouldThrowSpecificError, getTemplatesRootPath } from "./testUtils";
-import { ItemType } from "sqldbproj";
+import { ItemType } from "../src/sqldbproj";
 import * as vscode from "vscode";
 import * as constants from "../src/common/constants";
 import { DBProjectConfigurationKey } from "../src/tools/netcoreTool";

@@ -730,14 +730,6 @@
         <source xml:lang="en">Project was successfully updated.</source>
         <target state="translated">已成功更新專案。</target>
       </trans-unit>
-      <trans-unit id="++CODE++0f985b5f2f6e8763caa6b2f25235fe75ef4141e9cf1e7db22b1417d93a2a1362">
-        <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}</source>
-        <target state="translated">找到 Proxy 設定，但解析 URL 時遇到錯誤: '{0}'。使用 SQL Database 專案延伸模組時，可能會遇到連線問題。 錯誤: {1}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++9750573b32aa963fde1aee5156fb2fcd86a69be01757c0acffdb44d4baaa4de3">
-        <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the SQL Database Projects extension.</source>
-        <target state="translated">找到 Proxy 設定，但缺少通訊協定 (例如 http://): '{0}'。使用 SQL Database 專案延伸模組時，可能會遇到連線問題。</target>
-      </trans-unit>
       <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
         <source xml:lang="en">Publish</source>
         <target state="translated">發佈</target>
@@ -1089,10 +1081,6 @@
       <trans-unit id="++CODE++eedafe8ff2506c4b821270652d82a5ed959bb9297fb5e3f3408ca19018545705">
         <source xml:lang="en">Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}</source>
         <target state="translated">無法連線到 nuget.org。如果您在 Proxy 後方或離線環境中，您可以手動將必要的 DLL 檔案放在建置目錄: {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
-        <source xml:lang="en">Unable to read proxy agent options.</source>
-        <target state="translated">無法讀取 Proxy 代理程式選項。</target>
       </trans-unit>
       <trans-unit id="++CODE++768599fd8afd8acd64dffa68e96ad5970f54933220398e5b545b222719c8b353">
         <source xml:lang="en">Unhandled item type during delete: '{0}</source>

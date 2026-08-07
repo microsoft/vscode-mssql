@@ -12,7 +12,6 @@ import {
     PublicClientApplication,
     SilentFlowRequest,
 } from "@azure/msal-node";
-import * as url from "url";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../../constants/locConstants";
 import {
@@ -29,7 +28,7 @@ import { ILogger } from "../../sharedInterfaces/logger";
 import { AzureAuthError } from "../azureAuthError";
 import * as Constants from "../constants";
 import { ErrorResponseBody } from "@azure/arm-subscriptions";
-import { HttpClient } from "../../http/httpClient";
+import { VscodeHttpClient, withBearerToken } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../../utils/utils";
 
 export type GetTenantsResponseData = {
@@ -44,7 +43,7 @@ export abstract class MsalAzureAuth {
     protected readonly scopesString: string;
     protected readonly clientId: string;
     protected readonly resources: Resource[];
-    private readonly _httpHelper: HttpClient;
+    private readonly _httpHelper: VscodeHttpClient;
 
     constructor(
         protected readonly providerSettings: IProviderSettings,
@@ -60,7 +59,9 @@ export abstract class MsalAzureAuth {
         this.scopes = [...this.providerSettings.scopes];
         this.scopesString = this.scopes.join(" ");
 
-        this._httpHelper = new HttpClient(logger);
+        this._httpHelper = new VscodeHttpClient({
+            logger,
+        });
     }
 
     public async startLogin(): Promise<LoginResult> {
@@ -301,16 +302,16 @@ export abstract class MsalAzureAuth {
     }
 
     public async getTenants(token: string): Promise<ITenant[]> {
-        const tenantUri = url.resolve(
-            this.providerSettings.settings.armResource.endpoint,
+        const tenantUri = new URL(
             "tenants?api-version=2019-11-01",
-        );
+            this.providerSettings.settings.armResource.endpoint,
+        ).toString();
         try {
             this.logger.debug("Fetching tenants with uri {0}", tenantUri);
             let tenantList: string[] = [];
-            const tenantResponse = await this._httpHelper.makeGetRequest<GetTenantsResponseData>(
+            const tenantResponse = await this._httpHelper.get<GetTenantsResponseData>(
                 tenantUri,
-                token,
+                withBearerToken(token),
             );
             const data = tenantResponse.data;
             if (this.isErrorResponseBodyWithError(data)) {

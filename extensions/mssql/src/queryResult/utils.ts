@@ -13,7 +13,7 @@ import {
     showQuery,
     updateTotalCost,
 } from "../controllers/sharedExecutionPlanUtils";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import * as qr from "../sharedInterfaces/queryResult";
 import { QueryResultWebviewPanelController } from "./queryResultWebviewPanelController";
 import { QueryResultWebviewController } from "./queryResultWebViewController";
@@ -70,6 +70,14 @@ export function registerCommonRequestHandlers(
         webviewController instanceof QueryResultWebviewController
             ? webviewController
             : webviewController.getQueryResultWebviewViewController();
+
+    webviewController.onRequest(qr.CloseResultsPanelRequest.type, async () => {
+        await vscode.commands.executeCommand("workbench.action.closePanel");
+    });
+
+    webviewController.onRequest(qr.HandleSelectionSummaryRequest.type, async (uri) => {
+        webviewViewController.handleSelectionSummary(uri);
+    });
 
     webviewController.onRequest(qr.GetRowsRequest.type, async (message) => {
         const result = await webviewViewController

@@ -17,7 +17,6 @@ import {
     SaveShortcutsConfigurationResult,
     ShortcutsConfigurationData,
     normalizeQuickQueries,
-    QuickQueryExecutionMode,
 } from "../../src/sharedInterfaces/shortcutsConfiguration";
 import { WebviewAction } from "../../src/sharedInterfaces/webview";
 import { observeWebviewReady, stubTelemetry, stubWebviewPanel } from "./utils";
@@ -115,7 +114,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
                 {
                     name: "  Health Check  ",
                     query: "select 1",
-                    executionMode: QuickQueryExecutionMode.Open,
                 },
             ],
             webviewShortcuts: {
@@ -137,7 +135,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
         expect(quickQueries[0]).to.deep.equal({
             name: "Health Check",
             query: "select 1",
-            executionMode: QuickQueryExecutionMode.Open,
         });
         expect(result.message).to.equal(Loc.shortcutsConfigurationSaved);
         expect(result.errorMessage).to.equal(undefined);
@@ -253,7 +250,6 @@ suite("shortcutsConfiguration Webview Controller", () => {
             {
                 name: "Health Check",
                 query: "select 1",
-                executionMode: QuickQueryExecutionMode.Open,
             },
         ]);
         webviewShortcutsSetting = {
@@ -266,8 +262,25 @@ suite("shortcutsConfiguration Webview Controller", () => {
         expect(result.quickQueries[0]).to.deep.equal({
             name: "Health Check",
             query: "select 1",
-            executionMode: QuickQueryExecutionMode.Open,
         });
         expect(result.webviewShortcuts).to.deep.equal(webviewShortcutsSetting);
+    });
+
+    test("removes ignored legacy execution modes when saving Quick Query edits", async () => {
+        quickQueriesSetting = [
+            { name: "Legacy auto run", query: "select 1", executionMode: "openAndRun" },
+        ];
+        const saveMethods = getControllerSaveMethods();
+
+        await saveMethods.saveConfiguration({
+            quickQueries: [{ name: "Updated", query: "select 2" }],
+            webviewShortcuts: {},
+            changedSections: { quickQueries: true },
+        });
+
+        expect((quickQueriesSetting as Array<Record<string, unknown>>)[0]).to.deep.equal({
+            name: "Updated",
+            query: "select 2",
+        });
     });
 });

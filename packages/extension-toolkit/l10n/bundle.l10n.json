@@ -1,0 +1,11 @@
+{
+    "Unable to read proxy agent options.": "Unable to read proxy agent options.",
+    "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues./{0} is the proxy URL": {
+        "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues.",
+        "comment": ["{0} is the proxy URL"]
+    },
+    "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues. Error: {1}/{0} is the proxy URL{1} is the error message": {
+        "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues. Error: {1}",
+        "comment": ["{0} is the proxy URL", "{1} is the error message"]
+    }
+}

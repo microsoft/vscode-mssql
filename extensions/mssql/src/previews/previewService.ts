@@ -12,7 +12,7 @@ import * as vscode from "vscode";
  */
 export enum PreviewFeature {
     BetaResultsGrid = "betaResultsGrid",
-    ShortcutsConfiguration = "shortcutsConfiguration",
+    BetaExecutionPlan = "betaExecutionPlan",
     UseVscodeAccountsForEntraMFA = "useVscodeAccountsForEntraMFA",
 }
 
@@ -20,6 +20,20 @@ export const CONFIG_PREVIEW_PREFIX = "mssql.preview.";
 
 export function getPreviewConfigKey(feature: PreviewFeature): string {
     return `${CONFIG_PREVIEW_PREFIX}${feature}`;
+}
+
+/**
+ * Returns whether the beta execution plan experience is enabled.
+ *
+ * This preview is intentionally independent from the global
+ * `mssql.enableExperimentalFeatures` setting.
+ */
+export function isBetaExecutionPlanEnabled(): boolean {
+    return (
+        vscode.workspace
+            .getConfiguration()
+            .get<boolean>(getPreviewConfigKey(PreviewFeature.BetaExecutionPlan), false) ?? false
+    );
 }
 
 export class PreviewFeaturesService {

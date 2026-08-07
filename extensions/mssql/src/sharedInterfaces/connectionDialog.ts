@@ -317,6 +317,12 @@ export namespace OpenOptionInfoLinkNotification {
     );
 }
 
+export namespace OpenAzureDataStudioMigrationRequest {
+    export const type = new RequestType<void, void, void>(
+        "connectionDialog/openAzureDataStudioMigration",
+    );
+}
+
 export namespace GetConnectionDisplayNameRequest {
     export const type = new RequestType<IConnectionDialogProfile, string, void>(
         "getConnectionDisplayName",

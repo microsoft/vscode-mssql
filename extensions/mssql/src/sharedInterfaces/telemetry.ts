@@ -50,9 +50,12 @@ export enum TelemetryViews {
     SqlNotebooks = "SqlNotebooks",
     ServiceClient = "ServiceClient",
     SqlToolsMcp = "SqlToolsMcp",
+    ProtocolHandler = "ProtocolHandler",
 }
 
 export enum TelemetryActions {
+    ConnectionSharingApiCalled = "ConnectionSharingApiCalled",
+    ConnectionSharingRetirementToast = "ConnectionSharingRetirementToast",
     GetDatabaseProjectScriptFiles = "GetDatabaseProjectScriptFiles",
     GetDatabaseProjectSchemaProvider = "GetDatabaseProjectSchemaProvider",
     ListingDatabasesForActiveServer = "ListingDatabasesForActiveServer",
@@ -192,6 +195,7 @@ export enum TelemetryActions {
     ChatCommand = "ChatCommand",
     ReadCredential = "ReadCredential",
     Connect = "Connect",
+    Invoke = "Invoke",
     LoadFabricWorkspaces = "LoadFabricWorkspaces",
     LoadFabricDatabases = "LoadFabricDatabases",
     LoadAzureSubscriptions = "LoadAzureSubscriptions",
@@ -287,6 +291,14 @@ export enum TelemetryActions {
     NotebookChangeDatabase = "NotebookChangeDatabase",
     CancelCellExecution = "CancelCellExecution",
     KernelSelected = "KernelSelected",
+    Stats = "Stats",
+    // ------------------------------- < SQL Tools Service > ------------------------------------
+    FormatCode = "FormatCode",
+    FormatterParseErrorSendFeedback = "FormatterParseErrorSendFeedback",
+    FormatterParseErrorDontShowAgain = "FormatterParseErrorDontShowAgain",
+    PeekDefinitionRequested = "PeekDefinitionRequested",
+    IntellisenseQuantile = "IntellisenseQuantile",
+    // ------------------------------- </ SQL Tools Service > -----------------------------------
 }
 
 /**

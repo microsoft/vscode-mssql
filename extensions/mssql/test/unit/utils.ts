@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
-import * as telemetry from "../../src/telemetry/telemetry";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 import * as vscode from "vscode";
 import * as path from "path";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
@@ -18,6 +18,7 @@ import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import { logger as baseLogger } from "../../src/models/logger";
 import { PreviewFeature, previewService } from "../../src/previews/previewService";
+import { IInstantiationService, InstantiationService } from "extension-toolkit/base";
 
 // Stubs the telemetry code
 export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
@@ -273,6 +274,17 @@ export function stubPrompter(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedIn
     const prompter = stubber.createStubInstance(CodeAdapter); // CodeAdapter is an implementation of IPrompter
 
     return prompter;
+}
+
+// Stubs an IInstantiationService for tests that require the decorated dependency but don't
+// exercise real DI resolution behavior. Use InstantiationServiceBuilder instead when a test
+// needs createInstance to actually resolve registered services.
+export function stubInstantiationService(
+    sandbox?: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<IInstantiationService> {
+    const stubber = sandbox || sinon;
+
+    return stubber.createStubInstance(InstantiationService);
 }
 
 export function initializeIconUtils(): void {

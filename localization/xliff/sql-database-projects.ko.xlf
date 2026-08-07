@@ -730,14 +730,6 @@
         <source xml:lang="en">Project was successfully updated.</source>
         <target state="translated">프로젝트를 업데이트했습니다.</target>
       </trans-unit>
-      <trans-unit id="++CODE++0f985b5f2f6e8763caa6b2f25235fe75ef4141e9cf1e7db22b1417d93a2a1362">
-        <source xml:lang="en">Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}</source>
-        <target state="translated">프록시 설정은 찾았지만 URL을 분석하는 중 오류가 발생했습니다('{0}'). SQL Database Projects 확장을 사용하는 동안 연결 문제가 발생할 수 있습니다.  오류: {1}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++9750573b32aa963fde1aee5156fb2fcd86a69be01757c0acffdb44d4baaa4de3">
-        <source xml:lang="en">Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the SQL Database Projects extension.</source>
-        <target state="translated">프록시 설정은 찾았지만 프로토콜(e.g. http://)이 없습니다('{0}'). SQL Database Projects 확장을 사용하는 동안 연결 문제가 발생할 수 있습니다.</target>
-      </trans-unit>
       <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
         <source xml:lang="en">Publish</source>
         <target state="translated">게시</target>
@@ -1089,10 +1081,6 @@
       <trans-unit id="++CODE++eedafe8ff2506c4b821270652d82a5ed959bb9297fb5e3f3408ca19018545705">
         <source xml:lang="en">Unable to reach nuget.org. If you are behind a proxy or in an offline environment, you can manually place the required DLL files in the build directory: {0}</source>
         <target state="translated">nuget.org에 연결할 수 없습니다. 프록시 뒤에 있거나 오프라인 환경이라면, 필요한 DLL 파일을 빌드 디렉터리에 수동으로 넣으세요. {0}</target>
-      </trans-unit>
-      <trans-unit id="++CODE++96d229ad39923c7fdc914e4075785ffba3c0282697aa7f4f31a289baa4b83996">
-        <source xml:lang="en">Unable to read proxy agent options.</source>
-        <target state="translated">프록시 에이전트 옵션을 읽을 수 없습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++768599fd8afd8acd64dffa68e96ad5970f54933220398e5b545b222719c8b353">
         <source xml:lang="en">Unhandled item type during delete: '{0}</source>

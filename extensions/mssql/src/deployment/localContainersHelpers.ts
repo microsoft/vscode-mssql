@@ -17,7 +17,7 @@ import { DeploymentCommonReducers } from "../sharedInterfaces/deployment";
 import * as lc from "../sharedInterfaces/localContainers";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
 import * as dockerUtils from "../docker/dockerUtils";
 import * as sqlServerContainer from "./sqlServerContainer";

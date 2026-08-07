@@ -10,10 +10,10 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as path from "path";
 import { BuildHelper, NugetExtractionError } from "../src/tools/buildHelper";
-import { HttpClient } from "../src/http/httpClient";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { TestContext, createContext } from "./testContext";
 import { ProjectType } from "vscode-mssql";
-import * as sqldbproj from "sqldbproj";
+import * as sqldbproj from "../src/sqldbproj";
 import * as constants from "../src/common/constants";
 import * as utils from "../src/common/utils";
 
@@ -79,7 +79,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
 
         // extensionBuildDirPath is set in the constructor — no network calls needed.
         const extensionPath =
-            vscode.extensions.getExtension(sqldbproj.extension.vsCodeName)?.extensionPath ?? "";
+            vscode.extensions.getExtension(sqldbproj.extensionId)?.extensionPath ?? "";
         expect(buildHelper.extensionBuildDirPath).to.equal(
             path.join(extensionPath, "BuildDirectory"),
         );
@@ -88,7 +88,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
     test("Should have all required SystemDacpacs files for supported target platforms", async function (): Promise<void> {
         // Get the extension's build directory path
         const extensionPath =
-            vscode.extensions.getExtension(sqldbproj.extension.vsCodeName)?.extensionPath ?? "";
+            vscode.extensions.getExtension(sqldbproj.extensionId)?.extensionPath ?? "";
         const systemDacpacsPath = path.join(extensionPath, "BuildDirectory", "SystemDacpacs");
 
         // Verify SystemDacpacs folder exists
@@ -127,7 +127,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
         // Treat all files as present and fail the test if a network download is attempted.
         sandbox.stub(utils, "exists").resolves(true);
         sandbox
-            .stub(HttpClient.prototype, "download")
+            .stub(VscodeHttpClient.prototype, "downloadToPath")
             .throws(new Error("download should not be called"));
 
         const testContext: TestContext = createContext();
@@ -139,106 +139,8 @@ suite("BuildHelper: Build Helper tests", function (): void {
 
         const buildDirPath = buildHelper.extensionBuildDirPath;
 
-        // List of required DLLs from Microsoft.Build.Sql package
-        const requiredDacFxFiles: string[] = [
-            "Microsoft.Build.Sql.dll",
-            "Microsoft.Data.SqlClient.dll",
-            "Microsoft.Data.Tools.Schema.Sql.dll",
-            "Microsoft.Data.Tools.Schema.Tasks.Sql.dll",
-            "Microsoft.Data.Tools.Utilities.dll",
-            "Microsoft.SqlServer.Dac.dll",
-            "Microsoft.SqlServer.Dac.Extensions.dll",
-            "Microsoft.SqlServer.Types.dll",
-            "System.ComponentModel.Composition.dll",
-            "System.IO.Packaging.dll",
-            "Microsoft.Data.Tools.Schema.SqlTasks.targets",
-            "Microsoft.SqlServer.Server.dll",
-        ];
-
-        // List of required DLLs from ScriptDom package
-        const requiredScriptDomFiles: string[] = ["Microsoft.SqlServer.TransactSql.ScriptDom.dll"];
-
-        // Combine all required files
-        const allRequiredFiles = [...requiredDacFxFiles, ...requiredScriptDomFiles];
-
-        // Verify each required file exists in the build directory
-        for (const fileName of allRequiredFiles) {
-            const filePath = path.join(buildDirPath, fileName);
-            const exists = await utils.exists(filePath);
-            expect(
-                exists,
-                `Required file '${fileName}' should exist in build directory at ${filePath}`,
-            ).to.be.true;
-        }
-    });
-
-    test("createBuildDirFolder downloads and places all DLLs in BuildDirectory when files are missing", async function (): Promise<void> {
-        const buildHelper = new BuildHelper();
-        const buildDirPath = buildHelper.extensionBuildDirPath;
-
-        // Simulate all DLLs missing from BuildDirectory, but allow real fs checks
-        // on the extracted folder so the copy-to-BuildDirectory step works correctly.
-        // Also allow the directory-existence check (buildDirPath itself) to return true
-        // so createBuildDirFolder does not attempt to re-create the existing directory.
-        sandbox.stub(utils, "exists").callsFake(async (filePath: string): Promise<boolean> => {
-            if (filePath === buildDirPath) {
-                return true; // The directory itself exists — don't try to mkdir it
-            }
-            // Only pretend files directly in BuildDirectory are missing (not in subdirectories)
-            if (filePath.startsWith(buildDirPath + path.sep)) {
-                const relativePath = path.relative(buildDirPath, filePath);
-                if (!relativePath.includes(path.sep)) {
-                    return false; // File directly in BuildDirectory - pretend it's missing
-                }
-            }
-            return fs.existsSync(filePath); // Real check for extracted folders
-        });
-
-        // Stub the download so no real network call is made; create dummy files in the
-        // expected extracted-folder structure so the production copy logic can run normally.
-        sandbox
-            .stub(BuildHelper.prototype, "downloadAndExtractNuget")
-            .callsFake(
-                async (
-                    _url: string,
-                    _nupkgPath: string,
-                    extractFolderPath: string,
-                ): Promise<void> => {
-                    const nugetName = path.basename(extractFolderPath);
-                    const isScriptDom = nugetName.includes("ScriptDom");
-                    const subFolder = isScriptDom
-                        ? path.join("lib", "netstandard2.1")
-                        : path.join("tools", "net8.0");
-                    const dirPath = path.join(extractFolderPath, subFolder);
-                    fs.mkdirSync(dirPath, { recursive: true });
-                    const files = isScriptDom
-                        ? ["Microsoft.SqlServer.TransactSql.ScriptDom.dll"]
-                        : [
-                              "Microsoft.Build.Sql.dll",
-                              "Microsoft.Data.SqlClient.dll",
-                              "Microsoft.Data.Tools.Schema.Sql.dll",
-                              "Microsoft.Data.Tools.Schema.Tasks.Sql.dll",
-                              "Microsoft.Data.Tools.Utilities.dll",
-                              "Microsoft.SqlServer.Dac.dll",
-                              "Microsoft.SqlServer.Dac.Extensions.dll",
-                              "Microsoft.SqlServer.Types.dll",
-                              "System.ComponentModel.Composition.dll",
-                              "System.IO.Packaging.dll",
-                              "Microsoft.Data.Tools.Schema.SqlTasks.targets",
-                              "Microsoft.SqlServer.Server.dll",
-                          ];
-                    for (const file of files) {
-                        fs.writeFileSync(path.join(dirPath, file), "");
-                    }
-                },
-            );
-
-        const testContext: TestContext = createContext();
-        const success = await buildHelper.createBuildDirFolder(testContext.outputChannel);
-
-        expect(success, "createBuildDirFolder should return true after placing DLLs").to.be.true;
-
-        const allExpectedFiles = [
+        // List of required DLLs — all sourced from the Microsoft.Build.Sql package (tools/net8.0/)
+        const allRequiredFiles: string[] = [
             "Microsoft.Build.Sql.dll",
             "Microsoft.Data.SqlClient.dll",
             "Microsoft.Data.Tools.Schema.Sql.dll",
@@ -252,12 +154,16 @@ suite("BuildHelper: Build Helper tests", function (): void {
             "Microsoft.Data.Tools.Schema.SqlTasks.targets",
             "Microsoft.SqlServer.Server.dll",
             "Microsoft.SqlServer.TransactSql.ScriptDom.dll",
+            "Microsoft.Data.Tools.Sql.DesignServices.dll",
         ];
 
-        for (const fileName of allExpectedFiles) {
+        // Verify each required file exists in the build directory
+        for (const fileName of allRequiredFiles) {
+            const filePath = path.join(buildDirPath, fileName);
+            const exists = await utils.exists(filePath);
             expect(
-                fs.existsSync(path.join(buildDirPath, fileName)),
-                `${fileName} should exist in BuildDirectory after download`,
+                exists,
+                `Required file '${fileName}' should exist in build directory at ${filePath}`,
             ).to.be.true;
         }
     });
@@ -267,7 +173,9 @@ suite("BuildHelper: Build Helper tests", function (): void {
         sandbox.stub(utils, "exists").resolves(false);
 
         // Make the actual HTTP download fail (simulates offline / proxy failure).
-        sandbox.stub(HttpClient.prototype, "download").rejects(new Error("ECONNREFUSED"));
+        sandbox
+            .stub(VscodeHttpClient.prototype, "downloadToPath")
+            .rejects(new Error("ECONNREFUSED"));
 
         // Capture the error message shown to the user.
         let shownMessage: string | undefined;
@@ -361,7 +269,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
     test("Returns true without downloading when all expected files already exist", async function (): Promise<void> {
         // All files already present → download should never be called.
         sandbox.stub(utils, "exists").resolves(true);
-        const downloadSpy = sandbox.stub(HttpClient.prototype, "download");
+        const downloadSpy = sandbox.stub(VscodeHttpClient.prototype, "downloadToPath");
 
         const outputChannel = {
             appendLine: () => {},

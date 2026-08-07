@@ -13,7 +13,7 @@ import {
     sanitizeStringForFilename,
     getErrorMessage,
 } from "../common/utils";
-import { IConnectionInfo } from "vscode-mssql";
+import type { IConnectionInfo } from "vscode-mssql";
 import { defaultProjectNameFromDb, defaultProjectSaveLocation } from "../tools/newProjectTool";
 import { ImportDataModel } from "../models/api/import";
 import { mapExtractTargetEnum } from "./utils";
