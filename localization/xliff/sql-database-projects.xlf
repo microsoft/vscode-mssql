@@ -586,6 +586,12 @@
     <trans-unit id="++CODE++b0b75e297ad9735605b50a4457fc9ebf3ac736f3fe1a96c37e516bde80c0b529">
       <source xml:lang="en">Reset all variables</source>
     </trans-unit>
+    <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
+      <source xml:lang="en">Restore</source>
+    </trans-unit>
+    <trans-unit id="++CODE++594127f6bf36c7e2814ba80358ea4456656e0604a2d7dc66c6b56e38ec6de295">
+      <source xml:lang="en">Restore failed. Check the terminal output for more details.</source>
+    </trans-unit>
     <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
       <source xml:lang="en">Revert values to project defaults</source>
     </trans-unit>
@@ -1031,6 +1037,9 @@
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.rename">
       <source xml:lang="en">Rename</source>
+    </trans-unit>
+    <trans-unit id="sqlDatabaseProjects.restore">
+      <source xml:lang="en">Restore</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.objectExplorerSubmenu">
       <source xml:lang="en">SQL Database Projects</source>

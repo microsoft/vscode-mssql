@@ -8,6 +8,7 @@
     "sqlDatabaseProjects.close": "Close Database Project",
     "sqlDatabaseProjects.build": "Build",
     "sqlDatabaseProjects.buildWithCodeAnalysis": "Build With Code Analysis",
+    "sqlDatabaseProjects.restore": "Restore",
     "sqlDatabaseProjects.publish": "Publish",
     "sqlDatabaseProjects.createProjectFromDatabase": "Create Project from Database",
     "sqlDatabaseProjects.updateProjectFromDatabase": "Update Project from Database",

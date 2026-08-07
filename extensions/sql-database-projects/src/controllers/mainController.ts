@@ -101,6 +101,14 @@ export default class MainController implements vscode.Disposable {
         );
         this.context.subscriptions.push(
             vscode.commands.registerCommand(
+                "sqlDatabaseProjects.restore",
+                async (node: WorkspaceTreeItem) => {
+                    return this.projectsController.restoreProject(node);
+                },
+            ),
+        );
+        this.context.subscriptions.push(
+            vscode.commands.registerCommand(
                 "sqlDatabaseProjects.publish",
                 async (node: WorkspaceTreeItem) => {
                     return this.projectsController.publishProject(node);
