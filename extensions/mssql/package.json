@@ -1887,6 +1887,20 @@
                         "type": "string"
                     }
                 },
+                "mssql.favoriteAzureResourceGroups": {
+                    "type": "array",
+                    "description": "%mssql.favoriteAzureResourceGroups%",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "mssql.favoriteAzureServers": {
+                    "type": "array",
+                    "description": "%mssql.favoriteAzureServers%",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "mssql.azureActiveDirectory": {
                     "type": "string",
                     "default": "AuthCodeGrant",

@@ -326,6 +326,8 @@ export const configAutoDisableNonTSqlLanguageService = "mssql.autoDisableNonTSql
 export const copilotDebugLogging = "mssql.copilotDebugLogging";
 export const configSelectedAzureSubscriptions = "mssql.selectedAzureSubscriptions";
 export const configSelectedFabricWorkspaces = "mssql.selectedFabricWorkspaces";
+export const configFavoriteAzureResourceGroups = "mssql.favoriteAzureResourceGroups";
+export const configFavoriteAzureServers = "mssql.favoriteAzureServers";
 export const configShowActiveConnectionAsCodeLensSuggestion =
     "mssql.query.showActiveConnectionAsCodeLensSuggestion";
 export const configStatusBarConnectionInfoMaxLength = "statusBar.connectionInfoMaxLength";

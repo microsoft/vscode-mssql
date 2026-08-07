@@ -31,6 +31,7 @@ import {
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
 } from "../sharedInterfaces/azureSqlDatabase";
+import { toggleFavorite } from "./deploymentFavorites";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";
 
@@ -164,6 +165,33 @@ export class DeploymentWebviewController extends FormWebviewController<
                 state.dialog = undefined;
             }
             state.deploymentTypeState.dialog = state.dialog;
+            return state;
+        });
+
+        this.registerReducer("toggleFavoriteOption", async (state, payload) => {
+            const favoriteIds = await toggleFavorite(payload.resourceType, payload.favoriteId);
+            const favoriteOrderById = new Map(
+                favoriteIds.map((favoriteId, index) => [favoriteId, index]),
+            );
+            for (const component of Object.values(state.deploymentTypeState.formComponents)) {
+                if (!component?.options) {
+                    continue;
+                }
+                component.options = component.options.map((option) => {
+                    if (
+                        option.favoriteResourceType !== payload.resourceType ||
+                        !option.favoriteId
+                    ) {
+                        return option;
+                    }
+                    const favoriteOrder = favoriteOrderById.get(option.favoriteId);
+                    return {
+                        ...option,
+                        isFavorite: favoriteOrder !== undefined,
+                        favoriteOrder,
+                    };
+                });
+            }
             return state;
         });
 

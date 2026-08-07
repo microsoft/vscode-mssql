@@ -12,6 +12,7 @@ import {
     SearchBox,
     SearchBoxChangeEvent,
     Text,
+    Tooltip,
     tokens,
 } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
@@ -48,6 +49,13 @@ export interface SearchableDropdownOptions {
      * Optional text color for the option
      */
     color?: keyof typeof tokens;
+}
+
+export interface SearchableDropdownOptionAction {
+    label: string;
+    icon: React.ReactNode;
+    onActivate: () => void;
+    pressed?: boolean;
 }
 
 export interface SearchableDropdownProps {
@@ -120,6 +128,14 @@ export interface SearchableDropdownProps {
      * Optional function to render a decoration element for each option.
      */
     renderDecoration?: (option: SearchableDropdownOptions) => React.JSX.Element | undefined;
+
+    /** Returns a trailing action for an option. */
+    getOptionAction?: (
+        option: SearchableDropdownOptions,
+    ) => SearchableDropdownOptionAction | undefined;
+
+    /** Called when the dropdown opens or closes. */
+    onOpenChange?: (open: boolean) => void;
 }
 
 /**
@@ -265,14 +281,18 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
         [props.options, selectedOption.value],
     );
 
-    const closePopup = useCallback((focusTrigger: boolean) => {
-        setIsOpen(false);
-        setSearchText("");
-        setActiveIndex(-1);
-        if (focusTrigger) {
-            requestAnimationFrame(() => buttonRef.current?.focus());
-        }
-    }, []);
+    const closePopup = useCallback(
+        (focusTrigger: boolean) => {
+            setIsOpen(false);
+            props.onOpenChange?.(false);
+            setSearchText("");
+            setActiveIndex(-1);
+            if (focusTrigger) {
+                requestAnimationFrame(() => buttonRef.current?.focus());
+            }
+        },
+        [props.onOpenChange],
+    );
 
     const updateOption = useCallback(
         (option: SearchableDropdownOptions) => {
@@ -293,10 +313,11 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             // Match existing behavior: opening clears any prior search
             setSearchText("");
             setIsOpen(true);
+            props.onOpenChange?.(true);
 
             initActiveIndex(direction);
         },
-        [initActiveIndex, props.disabled],
+        [initActiveIndex, props],
     );
 
     const handleTriggerKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -417,6 +438,12 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
         }
 
         if (e.key === "Tab") {
+            const activeOption = filteredOptions[activeIndex];
+            if (activeOption && props.getOptionAction?.(activeOption)) {
+                e.preventDefault();
+                document.getElementById(`${id}-action-${activeIndex}`)?.focus();
+                return;
+            }
             // Allow normal focus traversal; just close the popup.
             closePopup(false);
         }
@@ -489,7 +516,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             ? { value: "" }
             : (props.options[0] ?? { value: "" });
         setSelectedOption(props.selectedOption ?? fallbackOption);
-    }, [props.selectedOption, props.options, props.showPlaceholder]);
+    }, [props.options, props.selectedOption, props.showPlaceholder]);
 
     useEffect(() => {
         if (!isOpen) {
@@ -535,6 +562,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
             open={isOpen}
             onOpenChange={(_e, data) => {
                 setIsOpen(data.open);
+                props.onOpenChange?.(data.open);
                 if (data.open) {
                     setSearchText("");
                     initActiveIndex("down");
@@ -659,6 +687,7 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
 
                                 const isSelected = option.value === selectedOption.value;
                                 const isActive = virtualRow.index === activeIndex;
+                                const optionAction = props.getOptionAction?.(option);
 
                                 return (
                                     <div
@@ -738,6 +767,49 @@ export const SearchableDropdown = (props: SearchableDropdownProps) => {
                                                     <Text>{option.description}</Text>
                                                 )}
                                                 {option.icon && FluentOptionIcons[option.icon]}
+                                                {optionAction &&
+                                                    (optionAction.pressed || isActive) && (
+                                                        <Tooltip
+                                                            content={optionAction.label}
+                                                            relationship="label">
+                                                            <button
+                                                                id={`${id}-action-${virtualRow.index}`}
+                                                                type="button"
+                                                                tabIndex={-1}
+                                                                aria-label={optionAction.label}
+                                                                aria-pressed={optionAction.pressed}
+                                                                onMouseDown={(event) => {
+                                                                    event.preventDefault();
+                                                                    event.stopPropagation();
+                                                                }}
+                                                                onClick={(event) => {
+                                                                    event.preventDefault();
+                                                                    event.stopPropagation();
+                                                                    optionAction.onActivate();
+                                                                }}
+                                                                onKeyDown={(event) => {
+                                                                    if (event.key === "Escape") {
+                                                                        event.preventDefault();
+                                                                        searchBoxRef.current?.focus();
+                                                                    } else if (
+                                                                        event.key === "Tab"
+                                                                    ) {
+                                                                        closePopup(false);
+                                                                    }
+                                                                }}
+                                                                style={{
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                    padding: 0,
+                                                                    border: "none",
+                                                                    background: "transparent",
+                                                                    color: "inherit",
+                                                                    cursor: "pointer",
+                                                                }}>
+                                                                {optionAction.icon}
+                                                            </button>
+                                                        </Tooltip>
+                                                    )}
                                                 {isSelected && <FluentIcons.Checkmark16Regular />}
                                             </span>
                                         </div>

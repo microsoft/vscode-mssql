@@ -288,6 +288,8 @@
     "mssql.userFeedback": "Send Feedback",
     "mssql.selectedAzureSubscriptions": "Selected Azure subscriptions for browsing and managing servers and databases",
     "mssql.selectedFabricWorkspaces": "Selected Microsoft Fabric workspaces for browsing and managing SQL databases",
+    "mssql.favoriteAzureResourceGroups": "Favorite Azure resource groups used during database provisioning",
+    "mssql.favoriteAzureServers": "Favorite Azure SQL servers used during database provisioning",
     "mssql.schemaDesigner": "Visualize and Design Schema...",
     "mssql.buildDataApi": "Build Data API...",
     "mssql.newDeployment": "New Deployment",
