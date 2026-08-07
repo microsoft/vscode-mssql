@@ -3,11 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import "./queryResultEagerStyles";
-import { renderQueryResult } from "./queryResultEntrypoint";
-import { QueryResultsGridView } from "./queryResultsGridView";
-import ResultGrid from "./resultGrid";
+export const LEGACY_QUERY_RESULT_SOURCE = "queryResult";
+export const PREVIEW_QUERY_RESULT_SOURCE = "queryResultPreview";
 
-const QueryResultLegacyGridView = () => <QueryResultsGridView GridComponent={ResultGrid} />;
-
-renderQueryResult(QueryResultLegacyGridView, false);
+export function getQueryResultWebviewSource(isBetaResultsGridEnabled: boolean): string {
+    return isBetaResultsGridEnabled ? PREVIEW_QUERY_RESULT_SOURCE : LEGACY_QUERY_RESULT_SOURCE;
+}

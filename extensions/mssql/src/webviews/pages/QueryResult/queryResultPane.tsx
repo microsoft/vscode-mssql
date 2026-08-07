@@ -14,7 +14,7 @@ import {
     Spinner,
     Toolbar,
 } from "@fluentui/react-components";
-import { useContext, useEffect, useState } from "react";
+import { type ComponentType, useContext, useEffect, useState } from "react";
 import { DatabaseSearch24Regular, ErrorCircle24Regular, OpenRegular } from "@fluentui/react-icons";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import { locConstants } from "../../common/locConstants";
@@ -116,7 +116,12 @@ const useStyles = makeStyles({
     },
 });
 
-export const QueryResultPane = () => {
+interface QueryResultPaneProps {
+    GridView: ComponentType;
+    isBetaResultsGridEnabled: boolean;
+}
+
+export const QueryResultPane = ({ GridView, isBetaResultsGridEnabled }: QueryResultPaneProps) => {
     const classes = useStyles();
     const context = useContext(QueryResultCommandsContext);
 
@@ -141,8 +146,6 @@ export const QueryResultPane = () => {
     const executionPlanGraphs = useQueryResultSelector<ExecutionPlanGraph[] | undefined>(
         (s) => s.executionPlanState?.executionPlanGraphs,
     );
-    const isBetaResultsGridEnabled = useQueryResultSelector((s) => s.isBetaResultsGridEnabled);
-
     const { keyBindings } = useVscodeWebview();
 
     useEffect(() => {
@@ -346,7 +349,7 @@ export const QueryResultPane = () => {
                                 : "hidden",
                     }}
                     aria-hidden={tabStates!.resultPaneTab !== qr.QueryResultPaneTabs.Results}>
-                    <QueryResultsTab />
+                    <QueryResultsTab GridView={GridView} />
                 </div>
 
                 <div

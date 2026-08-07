@@ -31,6 +31,7 @@ import {
     PreviewFeature,
     previewService,
 } from "../previews/previewService";
+import { getQueryResultWebviewSource } from "./queryResultWebviewSource";
 
 const QUERY_RESULT_VIEW_ID = "queryResult";
 
@@ -61,23 +62,29 @@ export class QueryResultWebviewController extends WebviewViewController<
         private _executionPlanService: ExecutionPlanService,
         private _sqlOutputContentProvider: SqlOutputContentProvider,
     ) {
-        super(context, QUERY_RESULT_VIEW_ID, QUERY_RESULT_VIEW_ID, {
-            resultSetSummaries: {},
-            messages: [],
-            tabStates: {
-                resultPaneTab: qr.QueryResultPaneTabs.Messages,
+        const isBetaResultsGridEnabled = previewService.isFeatureEnabled(
+            PreviewFeature.BetaResultsGrid,
+        );
+        super(
+            context,
+            getQueryResultWebviewSource(isBetaResultsGridEnabled),
+            QUERY_RESULT_VIEW_ID,
+            {
+                resultSetSummaries: {},
+                messages: [],
+                tabStates: {
+                    resultPaneTab: qr.QueryResultPaneTabs.Messages,
+                },
+                executionPlanState: {},
+                fontSettings: {},
+                gridSettings: {},
+                autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
+                isExecuting: false,
+                executionElapsedMilliseconds: undefined,
+                rowsAffected: undefined,
+                isBetaResultsGridEnabled,
             },
-            executionPlanState: {},
-            fontSettings: {},
-            gridSettings: {},
-            autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
-            isExecuting: false,
-            executionElapsedMilliseconds: undefined,
-            rowsAffected: undefined,
-            isBetaResultsGridEnabled: previewService.isFeatureEnabled(
-                PreviewFeature.BetaResultsGrid,
-            ),
-        });
+        );
 
         void this.initialize();
 
@@ -131,11 +138,18 @@ export class QueryResultWebviewController extends WebviewViewController<
                     }
                     stateChanged = true;
                 }
-                if (e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaResultsGrid))) {
+                if (
+                    e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaResultsGrid)) ||
+                    e.affectsConfiguration(Constants.configEnableExperimentalFeatures)
+                ) {
                     const newValue = this.isBetaResultsGridEnabled;
                     for (const [uri, state] of this._queryResultStateMap) {
                         state.isBetaResultsGridEnabled = newValue;
                         this._queryResultStateMap.set(uri, state);
+                    }
+                    this.reloadWebview(getQueryResultWebviewSource(newValue));
+                    for (const controller of this._queryResultWebviewPanelControllerMap.values()) {
+                        controller.reloadForResultsGridChange(newValue);
                     }
                     this.updateSelectionSummary();
                     stateChanged = true;

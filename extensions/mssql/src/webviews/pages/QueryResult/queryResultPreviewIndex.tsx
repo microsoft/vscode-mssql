@@ -5,9 +5,6 @@
 
 import "./queryResultEagerStyles";
 import { renderQueryResult } from "./queryResultEntrypoint";
-import { QueryResultsGridView } from "./queryResultsGridView";
-import ResultGrid from "./resultGrid";
+import { QueryResultFluentResultGridView } from "./queryResultFluentResultGrid";
 
-const QueryResultLegacyGridView = () => <QueryResultsGridView GridComponent={ResultGrid} />;
-
-renderQueryResult(QueryResultLegacyGridView, false);
+renderQueryResult(QueryResultFluentResultGridView, true);
