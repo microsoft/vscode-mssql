@@ -364,6 +364,10 @@ export const QueryResultPane = () => {
                 <div
                     className={classes.tabContent}
                     style={{
+                        display:
+                            tabStates!.resultPaneTab === qr.QueryResultPaneTabs.ExecutionPlan
+                                ? "block"
+                                : "none",
                         visibility:
                             tabStates!.resultPaneTab === qr.QueryResultPaneTabs.ExecutionPlan
                                 ? "visible"

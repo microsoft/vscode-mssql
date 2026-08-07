@@ -21,6 +21,9 @@ import { IConnectionProfile } from "../../src/models/interfaces";
 import { ScriptOperation } from "../../src/models/contracts/scripting/scriptingRequest";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import * as LocalizedConstants from "../../src/constants/locConstants";
+import * as Constants from "../../src/constants/constants";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 
 chai.use(sinonChai);
 
@@ -31,16 +34,37 @@ suite("ConnectionSharingService Tests", () => {
     let scriptingService: sinon.SinonStubbedInstance<ScriptingService>;
     let secretStorage: sinon.SinonStubbedInstance<vscode.SecretStorage>;
     let showInformationMessageStub: sinon.SinonStub;
+    let showWarningMessageStub: sinon.SinonStub;
     let showQuickPickStub: sinon.SinonStub;
     let registerCommandStub: sinon.SinonStub;
     let registeredCommands: Map<string, Function>;
     let getExtensionStub: sinon.SinonStub;
+    let openExternalStub: sinon.SinonStub;
+    let globalState: sinon.SinonStubbedInstance<vscode.Memento>;
+    let globalStateValues: Map<string, unknown>;
+    let sendActionEventStub: sinon.SinonStub;
+    let connectionSharingService: ConnectionSharingService;
 
     const testExtensionId = "test.extension";
     const testConnectionId = "test-connection-id";
     const testConnectionUri = "test-connection-uri";
     const testDatabase = "TestDatabase";
     const testQuery = "SELECT * FROM sys.databases";
+
+    function matchesStoredPermission(permission: "approved" | "denied"): sinon.SinonMatcher {
+        return sinon.match((value: unknown) => {
+            if (typeof value !== "string") {
+                return false;
+            }
+
+            try {
+                const storedPermissions = JSON.parse(value) as Record<string, unknown>;
+                return storedPermissions[testExtensionId] === permission;
+            } catch {
+                return false;
+            }
+        });
+    }
 
     const mockConnectionProfile: IConnectionProfile = {
         id: testConnectionId,
@@ -80,6 +104,19 @@ suite("ConnectionSharingService Tests", () => {
             delete: sandbox.stub(),
             onDidChange: sandbox.stub(),
         } as unknown as sinon.SinonStubbedInstance<vscode.SecretStorage>;
+        globalStateValues = new Map<string, unknown>();
+        globalState = {
+            get: sandbox
+                .stub()
+                .callsFake((key: string, defaultValue?: unknown) =>
+                    globalStateValues.has(key) ? globalStateValues.get(key) : defaultValue,
+                ),
+            update: sandbox.stub().callsFake(async (key: string, value: unknown) => {
+                globalStateValues.set(key, value);
+            }),
+            keys: sandbox.stub().returns([]),
+            setKeysForSync: sandbox.stub(),
+        } as unknown as sinon.SinonStubbedInstance<vscode.Memento>;
 
         // Setup extension context
         const context = {
@@ -87,6 +124,7 @@ suite("ConnectionSharingService Tests", () => {
             extensionUri: vscode.Uri.file("/test"),
             extensionPath: "/test",
             secrets: secretStorage,
+            globalState,
         } as unknown as vscode.ExtensionContext;
 
         // Setup connection manager stubs
@@ -121,9 +159,14 @@ suite("ConnectionSharingService Tests", () => {
 
         // Setup vscode stubs
         showInformationMessageStub = sandbox.stub(vscode.window, "showInformationMessage");
+        showWarningMessageStub = sandbox
+            .stub(vscode.window, "showWarningMessage")
+            .resolves(undefined);
         showQuickPickStub = sandbox.stub(vscode.window, "showQuickPick");
         registerCommandStub = sandbox.stub(vscode.commands, "registerCommand");
         getExtensionStub = sandbox.stub(vscode.extensions, "getExtension");
+        openExternalStub = sandbox.stub(vscode.env, "openExternal").resolves(true);
+        sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
 
         // Capture registered commands
         registerCommandStub.callsFake((name: string, callback: Function) => {
@@ -132,7 +175,12 @@ suite("ConnectionSharingService Tests", () => {
         });
 
         // Initialize service (this registers the commands)
-        new ConnectionSharingService(context, client, connectionManager, scriptingService);
+        connectionSharingService = new ConnectionSharingService(
+            context,
+            client,
+            connectionManager,
+            scriptingService,
+        );
     });
 
     teardown(() => {
@@ -160,6 +208,208 @@ suite("ConnectionSharingService Tests", () => {
             expectedCommands.forEach((command) => {
                 expect(registeredCommands.has(command)).to.be.true;
             });
+        });
+
+        test("shows the retirement toast, opens a feature request, and suppresses it", async () => {
+            secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
+            getExtensionStub.withArgs(testExtensionId).returns({
+                id: testExtensionId,
+                packageJSON: { displayName: "Test Extension" },
+            });
+            showWarningMessageStub.resolves(
+                LocalizedConstants.ConnectionSharing.FileFeatureRequest,
+            );
+
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
+                document: { uri: vscode.Uri.parse("file:///test.sql") },
+            }));
+
+            const command = registeredCommands.get(
+                "mssql.connectionSharing.getActiveEditorConnectionId",
+            );
+            await command!(testExtensionId);
+            await new Promise((resolve) => setImmediate(resolve));
+
+            expect(showWarningMessageStub).to.have.been.calledWith(
+                LocalizedConstants.ConnectionSharing.retirementWarning("Test Extension"),
+                LocalizedConstants.ConnectionSharing.FileFeatureRequest,
+                LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension,
+            );
+            expect(globalState.update).to.have.been.calledWith(
+                "mssql.connectionSharing.retirementSuppressedExtensions",
+                [testExtensionId],
+            );
+            expect(sendActionEventStub).to.have.been.calledWith(
+                TelemetryViews.Connection,
+                TelemetryActions.ConnectionSharingRetirementToast,
+                { extensionId: testExtensionId, action: "requestFeature" },
+            );
+            expect(openExternalStub).to.have.been.calledWithMatch(
+                sinon.match(
+                    (uri: vscode.Uri) =>
+                        uri.toString() ===
+                        vscode.Uri.parse(Constants.connectionSharingFeatureRequestUrl).toString(),
+                ),
+            );
+        });
+
+        test("logs errors from the retirement notification handler", async () => {
+            const notificationError = new Error("Failed to update retirement suppression");
+            const loggerErrorStub = sandbox.stub(
+                (
+                    connectionSharingService as unknown as {
+                        _logger: { error(message: string, ...args: unknown[]): void };
+                    }
+                )._logger,
+                "error",
+            );
+            secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
+            getExtensionStub.withArgs(testExtensionId).returns({
+                id: testExtensionId,
+                packageJSON: { displayName: "Test Extension" },
+            });
+            showWarningMessageStub.rejects(notificationError);
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
+                document: { uri: vscode.Uri.parse("file:///test.sql") },
+            }));
+
+            const command = registeredCommands.get(
+                "mssql.connectionSharing.getActiveEditorConnectionId",
+            );
+            await command!(testExtensionId);
+            await new Promise((resolve) => setImmediate(resolve));
+
+            expect(loggerErrorStub).to.have.been.calledWithMatch(
+                "Failed to handle the connection-sharing retirement notification.",
+                notificationError,
+            );
+        });
+
+        test("records the called API, authentication type, and extension ID", async () => {
+            secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
+                document: { uri: vscode.Uri.parse("file:///test.sql") },
+            }));
+
+            const command = registeredCommands.get(
+                "mssql.connectionSharing.getActiveEditorConnectionId",
+            );
+            await command!(testExtensionId);
+
+            expect(sendActionEventStub).to.have.been.calledWith(
+                TelemetryViews.Connection,
+                TelemetryActions.ConnectionSharingApiCalled,
+                {
+                    method: "getActiveEditorConnectionId",
+                    authenticationType: "SqlLogin",
+                    extensionId: testExtensionId,
+                },
+            );
+        });
+
+        test("shows the retirement toast only once per extension in a session", async () => {
+            secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
+            getExtensionStub.withArgs(testExtensionId).returns({
+                id: testExtensionId,
+                packageJSON: { displayName: "Test Extension" },
+            });
+            showWarningMessageStub.resolves(undefined);
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
+                document: { uri: vscode.Uri.parse("file:///test.sql") },
+            }));
+
+            const command = registeredCommands.get(
+                "mssql.connectionSharing.getActiveEditorConnectionId",
+            );
+            await command!(testExtensionId);
+            await Promise.resolve();
+            showWarningMessageStub.resetHistory();
+
+            await command!(testExtensionId);
+
+            expect(showWarningMessageStub).not.to.have.been.called;
+        });
+
+        test("shows the retirement notification when the API call fails without a connection", async () => {
+            secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
+            getExtensionStub.withArgs(testExtensionId).returns({
+                id: testExtensionId,
+                packageJSON: { displayName: "Test Extension" },
+            });
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => undefined);
+
+            const command = registeredCommands.get(
+                "mssql.connectionSharing.getActiveEditorConnectionId",
+            );
+            try {
+                await command!(testExtensionId);
+                expect.fail("Expected the API call to fail without an active editor");
+            } catch (error) {
+                expect(error).to.be.instanceOf(ConnectionSharingError);
+                expect((error as ConnectionSharingError).code).to.equal(
+                    ConnectionSharingErrorCode.NO_ACTIVE_EDITOR,
+                );
+            }
+
+            expect(showWarningMessageStub).to.have.been.called;
+        });
+
+        test("does not show another notification after the extension opts out", async () => {
+            secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
+            getExtensionStub.withArgs(testExtensionId).returns({
+                id: testExtensionId,
+                packageJSON: { displayName: "Test Extension" },
+            });
+            showWarningMessageStub.resolves(
+                LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension,
+            );
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
+                document: { uri: vscode.Uri.parse("file:///test.sql") },
+            }));
+
+            const command = registeredCommands.get(
+                "mssql.connectionSharing.getActiveEditorConnectionId",
+            );
+            await command!(testExtensionId);
+            await Promise.resolve();
+
+            expect(globalState.update).to.have.been.calledWith(
+                "mssql.connectionSharing.retirementSuppressedExtensions",
+                [testExtensionId],
+            );
+            expect(sendActionEventStub).to.have.been.calledWith(
+                TelemetryViews.Connection,
+                TelemetryActions.ConnectionSharingRetirementToast,
+                { extensionId: testExtensionId, action: "doNotShowAgain" },
+            );
+
+            connectionManager.getConnectionInfoFromUri.returns({
+                ...mockConnectionProfile,
+                id: "another-connection-id",
+            } as IConnectionProfile);
+            showWarningMessageStub.resetHistory();
+            await command!(testExtensionId);
+
+            expect(showWarningMessageStub).not.to.have.been.called;
+        });
+
+        test("does not show the notification for internal consumers", async () => {
+            const internalExtensionId = Constants.sqlDatabaseProjectsExtensionId;
+            secretStorage.get.resolves(JSON.stringify({ [internalExtensionId]: "approved" }));
+            getExtensionStub.withArgs(internalExtensionId).returns({
+                id: internalExtensionId,
+                packageJSON: { displayName: "SQL Database Projects" },
+            });
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => ({
+                document: { uri: vscode.Uri.parse("file:///test.sql") },
+            }));
+
+            const command = registeredCommands.get(
+                "mssql.connectionSharing.getActiveEditorConnectionId",
+            );
+            await command!(internalExtensionId);
+
+            expect(showWarningMessageStub).not.to.have.been.called;
         });
     });
 
@@ -195,11 +445,11 @@ suite("ConnectionSharingService Tests", () => {
             );
             await command!(testExtensionId);
 
-            const storeCall = secretStorage.store.getCall(secretStorage.store.callCount - 1).args;
-            const storedPermissions = JSON.parse(storeCall[1]);
             expect(showInformationMessageStub).to.have.been.calledOnce;
-            expect(secretStorage.store).to.have.been.called;
-            expect(storedPermissions[testExtensionId]).to.equal("approved");
+            expect(secretStorage.store).to.have.been.calledWith(
+                "mssql.connectionSharing.extensionPermissions",
+                matchesStoredPermission("approved"),
+            );
         });
 
         test("should deny extension when user clicks Deny", async () => {
@@ -226,9 +476,21 @@ suite("ConnectionSharingService Tests", () => {
             }
 
             // Verify the permission was saved as denied
-            const storeCall = secretStorage.store.getCall(secretStorage.store.callCount - 1).args;
-            const storedPermissions = JSON.parse(storeCall[1]);
-            expect(storedPermissions[testExtensionId]).to.equal("denied");
+            expect(secretStorage.store).to.have.been.calledWith(
+                "mssql.connectionSharing.extensionPermissions",
+                matchesStoredPermission("denied"),
+            );
+            expect(sendActionEventStub).to.have.been.calledWith(
+                TelemetryViews.Connection,
+                TelemetryActions.ConnectionSharingApiCalled,
+                {
+                    method: "getActiveEditorConnectionId",
+                    authenticationType: "unknown",
+                    extensionId: testExtensionId,
+                },
+            );
+            expect(connectionManager.getConnectionInfoFromUri).not.to.have.been.called;
+            expect(showWarningMessageStub).not.to.have.been.called;
         });
 
         test("should reject extension when user cancels permission dialog", async () => {
@@ -649,6 +911,25 @@ suite("ConnectionSharingService Tests", () => {
                     ConnectionSharingErrorCode.NO_ACTIVE_CONNECTION,
                 );
             }
+        });
+    });
+
+    suite("cancelQuery", () => {
+        test("should record telemetry and cancel the query", async () => {
+            client.sendRequest.resolves(undefined);
+
+            await connectionSharingService.cancelQuery(testConnectionUri);
+
+            expect(sendActionEventStub).to.have.been.calledWith(
+                TelemetryViews.Connection,
+                TelemetryActions.ConnectionSharingApiCalled,
+                {
+                    method: "cancelQuery",
+                    authenticationType: "SqlLogin",
+                    extensionId: "unknown",
+                },
+            );
+            expect(client.sendRequest).to.have.been.called;
         });
     });
 

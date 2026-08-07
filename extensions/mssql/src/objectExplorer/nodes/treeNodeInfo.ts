@@ -165,6 +165,7 @@ export class TreeNodeInfo extends vscode.TreeItem implements ITreeNodeInfo {
      * If you want to update the actual connection info stored in the node, use the `updateConnectionProfile` method instead.
      */
     public get connectionProfile(): IConnectionProfile | undefined {
+        // TODO(api-retirement): Remove this public API after dependent extensions have migrated.
         if (!this._connectionProfile) {
             return undefined;
         }

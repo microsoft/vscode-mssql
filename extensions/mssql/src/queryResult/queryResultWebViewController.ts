@@ -25,7 +25,12 @@ import {
 } from "./utils";
 import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
-import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
+import {
+    getPreviewConfigKey,
+    isBetaExecutionPlanEnabled,
+    PreviewFeature,
+    previewService,
+} from "../previews/previewService";
 
 const QUERY_RESULT_VIEW_ID = "queryResult";
 
@@ -133,6 +138,16 @@ export class QueryResultWebviewController extends WebviewViewController<
                         this._queryResultStateMap.set(uri, state);
                     }
                     this.updateSelectionSummary();
+                    stateChanged = true;
+                }
+                if (e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaExecutionPlan))) {
+                    const newValue = isBetaExecutionPlanEnabled();
+                    for (const [uri, state] of this._queryResultStateMap) {
+                        if (state.executionPlanState) {
+                            state.executionPlanState.isBetaExecutionPlanEnabled = newValue;
+                        }
+                        this._queryResultStateMap.set(uri, state);
+                    }
                     stateChanged = true;
                 }
                 if (
@@ -407,6 +422,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                     executionPlanGraphs: [],
                     totalCost: 0,
                     xmlPlans: {},
+                    isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                 },
             }),
             fontSettings: {
