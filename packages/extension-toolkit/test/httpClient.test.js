@@ -424,6 +424,51 @@ describe("HttpClient", () => {
             });
         }
 
+        it("uses the VS Code bypass list instead of the environment bypass list", () => {
+            proxyValue = "http://proxy.example.com:8080";
+            noProxyValue = ["other.example.com"];
+            process.env.NO_PROXY = "internal.example.com";
+
+            const result = httpClient.setupConfigAndProxyForRequest(
+                new URL("https://api.internal.example.com"),
+                {},
+            );
+
+            assert.ok(result.httpsAgent);
+        });
+
+        it("matches a plain domain and its subdomains", () => {
+            proxyValue = "http://proxy.example.com:8080";
+            noProxyValue = ["internal.example.com"];
+
+            for (const requestUrl of [
+                "https://internal.example.com",
+                "https://api.internal.example.com",
+            ]) {
+                const result = httpClient.setupConfigAndProxyForRequest(new URL(requestUrl), {});
+
+                assert.equal(result.proxy, false);
+                assert.equal(result.httpsAgent, undefined);
+            }
+        });
+
+        it("matches wildcard rules against subdomains only", () => {
+            proxyValue = "http://proxy.example.com:8080";
+            noProxyValue = ["*.internal.example.com"];
+
+            const bypassed = httpClient.setupConfigAndProxyForRequest(
+                new URL("https://api.internal.example.com"),
+                {},
+            );
+            const proxied = httpClient.setupConfigAndProxyForRequest(
+                new URL("https://internal.example.com"),
+                {},
+            );
+
+            assert.equal(bypassed.httpsAgent, undefined);
+            assert.ok(proxied.httpsAgent);
+        });
+
         it("honors the port in a proxy bypass rule", () => {
             proxyValue = "http://proxy.example.com:8080";
             process.env.NO_PROXY = "api.example.com:8443";
@@ -434,6 +479,23 @@ describe("HttpClient", () => {
             );
             const proxied = httpClient.setupConfigAndProxyForRequest(
                 new URL("https://api.example.com"),
+                {},
+            );
+
+            assert.equal(bypassed.httpsAgent, undefined);
+            assert.ok(proxied.httpsAgent);
+        });
+
+        it("honors the port in a bracketed IPv6 bypass rule", () => {
+            proxyValue = "http://proxy.example.com:8080";
+            noProxyValue = ["[::1]:8443"];
+
+            const bypassed = httpClient.setupConfigAndProxyForRequest(
+                new URL("https://[::1]:8443"),
+                {},
+            );
+            const proxied = httpClient.setupConfigAndProxyForRequest(
+                new URL("https://[::1]:9443"),
                 {},
             );
 

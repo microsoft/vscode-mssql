@@ -13,8 +13,9 @@ export interface IVscodeHttpClientOptions {
 }
 
 /**
- * An HTTP client configured from VS Code's `http.proxy` and `http.proxyStrictSSL` settings.
- * Invalid proxy settings are reported through VS Code notifications and the optional logger.
+ * An HTTP client configured from VS Code's `http.proxy`, `http.noProxy`, and
+ * `http.proxyStrictSSL` settings. Invalid proxy settings are reported through VS Code
+ * notifications and the optional logger.
  */
 export class VscodeHttpClient extends HttpClient {
     /**

@@ -325,21 +325,20 @@ export class HttpClient {
     /**
      * Determines whether a request should bypass the configured proxy.
      *
-     * Checks host patterns from the host configuration and the `NO_PROXY` and `no_proxy`
-     * environment variables.
+     * Uses host patterns from the host configuration when present, otherwise falling back to the
+     * `no_proxy` or `NO_PROXY` environment variable.
      *
      * @param requestUrl The parsed request URL to evaluate against the bypass rules.
      * @returns `true` when any configured rule matches the request endpoint; otherwise, `false`.
      */
     private shouldBypassProxy(requestUrl: URL): boolean {
         const configuredRules = this.dependencies.getNoProxyConfig?.() ?? [];
-        const environmentRules = [process.env.NO_PROXY, process.env.no_proxy]
-            .filter((value): value is string => Boolean(value))
-            .flatMap((value) => value.split(/[,\s]+/));
-
-        return [...configuredRules, ...environmentRules].some((rule) =>
-            matchesProxyBypassRule(requestUrl, rule),
+        const environmentRules = (process.env.no_proxy ?? process.env.NO_PROXY ?? "").split(
+            /[,\s]+/,
         );
+        const bypassRules = configuredRules.length > 0 ? configuredRules : environmentRules;
+
+        return bypassRules.some((rule) => matchesProxyBypassRule(requestUrl, rule));
     }
 
     /**
@@ -585,8 +584,9 @@ interface ProxyAgentOptions {
 /**
  * Determines whether a request endpoint matches a proxy bypass rule.
  *
- * Supports exact hosts, leading-dot and wildcard subdomains, optional schemes and ports, and the
- * `*` rule that bypasses the proxy for every endpoint.
+ * Supports domains, leading-dot domains, wildcard subdomains, optional schemes and ports, and the
+ * `*` rule that bypasses the proxy for every endpoint. Plain and leading-dot domains match the
+ * domain itself and its subdomains, while `*.` rules match subdomains only.
  *
  * @param requestEndpoint The parsed request URL to match.
  * @param value The proxy bypass rule to evaluate.
@@ -627,14 +627,13 @@ function matchesProxyBypassRule(requestEndpoint: URL, value: string): boolean {
     const requestHost = requestEndpoint.hostname.toLowerCase();
     if (ruleHost.startsWith("*.")) {
         ruleHost = ruleHost.slice(2);
-        return requestHost === ruleHost || requestHost.endsWith(`.${ruleHost}`);
+        return requestHost.endsWith(`.${ruleHost}`);
     }
     if (ruleHost.startsWith(".")) {
         ruleHost = ruleHost.slice(1);
-        return requestHost === ruleHost || requestHost.endsWith(`.${ruleHost}`);
     }
 
-    return requestHost === ruleHost;
+    return requestHost === ruleHost || requestHost.endsWith(`.${ruleHost}`);
 }
 
 /**
