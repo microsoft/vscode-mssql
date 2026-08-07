@@ -2284,6 +2284,74 @@
     "Move Down": "Move Down",
     "Filter Settings": "Filter Settings",
     "Clear All": "Clear All",
+    "Enter": "Enter",
+    "Escape": "Escape",
+    "Apply ({0})/{0} is the keyboard shortcut for applying the filter": {
+        "message": "Apply ({0})",
+        "comment": ["{0} is the keyboard shortcut for applying the filter"]
+    },
+    "Close ({0})/{0} is the keyboard shortcut for closing the filter dialog": {
+        "message": "Close ({0})",
+        "comment": ["{0} is the keyboard shortcut for closing the filter dialog"]
+    },
+    "Reusable Filters": "Reusable Filters",
+    "Saved": "Saved",
+    "Recent": "Recent",
+    "Applies across compatible folders": "Applies across compatible folders",
+    "Applied filters appear here so you can quickly reuse them.": "Applied filters appear here so you can quickly reuse them.",
+    "Save this filter for reuse": "Save this filter for reuse",
+    "Filter name": "Filter name",
+    "e.g. My tables": "e.g. My tables",
+    "Enter a name to save this filter.": "Enter a name to save this filter.",
+    "Add at least one filter value before saving this filter.": "Add at least one filter value before saving this filter.",
+    "Pin to Saved": "Pin to Saved",
+    "Move to Recent": "Move to Recent",
+    "Delete filter": "Delete filter",
+    "Rename filter": "Rename filter",
+    "Delete reusable filter?": "Delete reusable filter?",
+    "Are you sure you want to delete \"{0}\"? This action cannot be undone./{0} is the name or summary of a reusable filter": {
+        "message": "Are you sure you want to delete \"{0}\"? This action cannot be undone.",
+        "comment": ["{0} is the name or summary of a reusable filter"]
+    },
+    "A saved filter with this name already exists.": "A saved filter with this name already exists.",
+    "True": "True",
+    "False": "False",
+    "Use filter {0}/{0} is the name or summary of a reusable filter": {
+        "message": "Use filter {0}",
+        "comment": ["{0} is the name or summary of a reusable filter"]
+    },
+    "{0} filter value/{0} is a filter property name": {
+        "message": "{0} filter value",
+        "comment": ["{0} is a filter property name"]
+    },
+    "Filter by {0}…/{0} is a filter property name": {
+        "message": "Filter by {0}…",
+        "comment": ["{0} is a filter property name"]
+    },
+    "Second {0} filter value/{0} is a filter property name": {
+        "message": "Second {0} filter value",
+        "comment": ["{0} is a filter property name"]
+    },
+    "{0} filter operator/{0} is a filter property name": {
+        "message": "{0} filter operator",
+        "comment": ["{0} is a filter property name"]
+    },
+    "Clear {0} filter/{0} is a filter property name": {
+        "message": "Clear {0} filter",
+        "comment": ["{0} is a filter property name"]
+    },
+    "More actions for {0}/{0} is the name or summary of a reusable filter": {
+        "message": "More actions for {0}",
+        "comment": ["{0} is the name or summary of a reusable filter"]
+    },
+    "{0} {1} {2}/{0} is a filter property name{1} is a filter operator{2} is the filter value": {
+        "message": "{0} {1} {2}",
+        "comment": [
+            "{0} is a filter property name",
+            "{1} is a filter operator",
+            "{2} is the filter value"
+        ]
+    },
     "And": "And",
     "Contains": "Contains",
     "Not Contains": "Not Contains",
@@ -2523,7 +2591,6 @@
         "comment": ["{0} is the name of the command that already uses this shortcut"]
     },
     "Saving...": "Saving...",
-    "Saved": "Saved",
     "Navigation": "Navigation",
     "Switch between result panes and tabs": "Switch between result panes and tabs",
     "Control the results grid display": "Control the results grid display",

@@ -152,6 +152,11 @@
                 "category": "%sqlDatabaseProjects.displayName%"
             },
             {
+                "command": "sqlDatabaseProjects.restorePackages",
+                "title": "%sqlDatabaseProjects.restorePackages%",
+                "category": "%sqlDatabaseProjects.displayName%"
+            },
+            {
                 "command": "sqlDatabaseProjects.publish",
                 "title": "%sqlDatabaseProjects.publish%",
                 "category": "%sqlDatabaseProjects.displayName%"
@@ -314,6 +319,10 @@
                     "when": "false"
                 },
                 {
+                    "command": "sqlDatabaseProjects.restorePackages",
+                    "when": "false"
+                },
+                {
                     "command": "sqlDatabaseProjects.publish",
                     "when": "false"
                 },
@@ -409,9 +418,14 @@
                     "group": "1_dbProjectsFirst@2"
                 },
                 {
-                    "command": "sqlDatabaseProjects.publish",
+                    "command": "sqlDatabaseProjects.restorePackages",
                     "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
                     "group": "1_dbProjectsFirst@3"
+                },
+                {
+                    "command": "sqlDatabaseProjects.publish",
+                    "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
+                    "group": "1_dbProjectsFirst@4"
                 },
                 {
                     "command": "sqlDatabaseProjects.schemaCompare",

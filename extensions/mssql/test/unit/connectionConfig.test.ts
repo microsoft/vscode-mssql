@@ -5,7 +5,8 @@
 
 import * as vscode from "vscode";
 import { ConfigurationTarget } from "vscode";
-import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { InstantiationServiceBuilder, ServiceDescriptor } from "extension-toolkit/base";
+import { ConnectionConfig, IConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
@@ -1075,6 +1076,31 @@ suite("ConnectionConfig Tests", () => {
                 sinon.match.any,
                 sinon.match.any,
             );
+        });
+    });
+
+    suite("Dependency injection", () => {
+        test("Resolves a cached ConnectionConfig instance that finishes initialization", async () => {
+            const builder = new InstantiationServiceBuilder();
+            builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
+            const instantiationService = builder.seal();
+
+            const first = instantiationService.invokeFunction((accessor) =>
+                accessor.get(IConnectionConfig),
+            );
+            const second = instantiationService.invokeFunction((accessor) =>
+                accessor.get(IConnectionConfig),
+            );
+
+            expect(first).to.equal(second);
+
+            await first.initialized;
+
+            const savedGroups = mockGlobalConfigData.get(
+                Constants.connectionGroupsArrayName,
+            ) as IConnectionGroup[];
+            expect(savedGroups).to.have.lengthOf(1);
+            expect(savedGroups[0].id).to.equal(ConnectionConfig.ROOT_GROUP_ID);
         });
     });
 });

@@ -14,6 +14,9 @@ export const mssqlProviderName = "MSSQL";
 export const mssqlChatParticipantName = "mssql"; // must be the same as the one in package.json
 export const noneProviderName = "None";
 export const objectExplorerId = "objectExplorer";
+export const objectExplorerFilterEncryptionKeySecretStorageKey =
+    "mssql.objectExplorerFilterEncryptionKey";
+export const objectExplorerFilterGlobalStorageFileName = "objectExplorerFilters.enc";
 export const queryHistory = "queryHistory";
 export const backgroundTasks = "backgroundTasks";
 export const queryHistoryEncryptionKeySecretStorageKey = "mssql.queryHistoryTreeEncryptionKey";
