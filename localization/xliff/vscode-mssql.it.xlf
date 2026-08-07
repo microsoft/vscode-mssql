@@ -4093,7 +4093,7 @@ Errore:
       </trans-unit>
       <trans-unit id="++CODE++d7cd0dd0ca57b9a1b087c6af78aaedaec67c6c7c792c96b6d2e90ebf8e0a5c5f">
         <source xml:lang="en">Fabric databases in Query Profiler</source>
-        <target state="translated">Database Fabric in Query Profiler</target>
+        <target state="translated">Database di Fabric in Query Profiler</target>
       </trans-unit>
       <trans-unit id="++CODE++56dd693767481cc69348e746edb945f23807899ed5736241c47000f787be902a">
         <source xml:lang="en">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</source>

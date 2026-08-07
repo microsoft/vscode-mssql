@@ -6595,12 +6595,12 @@ Erro:
       </trans-unit>
       <trans-unit id="++CODE++ba88f7938c978ebe84712352f4ef26470066d230ff6332b1e5610b9bd3a81b26">
         <source xml:lang="en">No databases found in the selected workspace.</source>
-        <target state="translated">Nenhum banco de dados encontrado no workspace selecionado.</target>
+        <target state="translated">Nenhum banco de dados encontrado no espaço de trabalho selecionado.</target>
       </trans-unit>
       <trans-unit id="++CODE++44abb1efd9e1246e7a38688a54d76fd070a07de55884b732dff70f7eff9a0491">
         <source xml:lang="en">No databases found in workspace '{0}'.</source>
         <note>{0} is the name of the workspace</note>
-        <target state="translated">Nenhum banco de dados encontrado no workspace ''{0}''.</target>
+        <target state="translated">Nenhum banco de dados encontrado no espaço de trabalho ''{0}''.</target>
       </trans-unit>
       <trans-unit id="++CODE++eaef26d96ac327a47bc5d0d771f0ccdbe3ab48c8cbd5422d0856875988c7e50b">
         <source xml:lang="en">No databases found on the server. Please check your connection.</source>

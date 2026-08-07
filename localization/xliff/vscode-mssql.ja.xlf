@@ -848,7 +848,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a">
         <source xml:lang="en">Azure SQL databases provisioning</source>
-        <target state="translated">Azure SQL データベースのプロビジョニング</target>
+        <target state="translated">Azure SQL Database のプロビジョニング</target>
       </trans-unit>
       <trans-unit id="++CODE++6d457cc1e5982858c386c637bec86a3c2615e648054d4d5472a261e0b5004b2d">
         <source xml:lang="en">Azure Subscriptions</source>
@@ -1834,7 +1834,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++c6cc40d1bb74f7c0333c4264cbd7d9ac832fcd4a39f54a4f044b54471beffd71">
         <source xml:lang="en">Configure and customize Azure SQL Databases</source>
-        <target state="translated">Azure SQL データベースの構成とカスタマイズ</target>
+        <target state="translated">Azure SQL Database の構成とカスタマイズ</target>
       </trans-unit>
       <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
         <source xml:lang="en">Configure and customize SQL Server containers</source>

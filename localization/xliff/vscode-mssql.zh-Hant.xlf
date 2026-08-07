@@ -1834,7 +1834,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++c6cc40d1bb74f7c0333c4264cbd7d9ac832fcd4a39f54a4f044b54471beffd71">
         <source xml:lang="en">Configure and customize Azure SQL Databases</source>
-        <target state="translated">設定和自訂 Azure SQL Database</target>
+        <target state="translated">設定和自訂 Azure SQL 資料庫</target>
       </trans-unit>
       <trans-unit id="++CODE++33e3ae10b101f647412be0f940cfc04d7d17e7c6f8027b42ae6697852588d1fe">
         <source xml:lang="en">Configure and customize SQL Server containers</source>
@@ -4093,7 +4093,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++d7cd0dd0ca57b9a1b087c6af78aaedaec67c6c7c792c96b6d2e90ebf8e0a5c5f">
         <source xml:lang="en">Fabric databases in Query Profiler</source>
-        <target state="translated">Query Profiler 中的網狀架構資料庫</target>
+        <target state="translated">查詢分析工具中的 Fabric 資料庫</target>
       </trans-unit>
       <trans-unit id="++CODE++56dd693767481cc69348e746edb945f23807899ed5736241c47000f787be902a">
         <source xml:lang="en">Fabric is not supported in the current cloud ({0}).  Ensure setting '{1}' is configured correctly.</source>
