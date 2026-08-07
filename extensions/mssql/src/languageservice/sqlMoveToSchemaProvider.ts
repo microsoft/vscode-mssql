@@ -251,10 +251,8 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
                 ? await this.moveFileToNewSchemaFolder(refactorTarget, plan)
                 : FileMoveResult.Skipped;
 
-            // 6. Refresh the project tree to reflect the SQL text edits, .sqlproj changes, and
-            //    (when the file moved) the new file location. Skip only when the move failed —
-            //    the user already saw the error message in that case.
-            if (moveResult !== FileMoveResult.Failed) {
+            // 6. Refresh the project tree to reflect the SQL text edits, .sqlproj changes, and (when the file moved) the new file location.
+            if (moveResult === FileMoveResult.Moved) {
                 // Best-effort: the data-workspace extension activates on its own view and
                 // commands, so `dataworkspace.refresh` may not be registered yet. A failed
                 // refresh must not surface as a command error after a successful refactor.
