@@ -10247,6 +10247,11 @@ Query: {2}</source>
         <note>{0} is the connection error message</note>
         <target state="translated">无法从服务器加载数据库列表: {0}。可以直接输入数据库名称。</target>
       </trans-unit>
+      <trans-unit id="++CODE++7a5056ed1e67b52e901dddc3847ec82876056f171841b2d09a880a931018fe59">
+        <source xml:lang="en">Unable to locate Azure SQL server '{0}' in the selected Azure account.</source>
+        <note>{0} is the server name</note>
+        <target state="new">Unable to locate Azure SQL server '{0}' in the selected Azure account.</target>
+      </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
         <target state="translated">无法打开表资源管理器: 未提供目标节点。</target>

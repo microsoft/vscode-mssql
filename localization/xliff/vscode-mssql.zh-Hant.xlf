@@ -10247,6 +10247,11 @@ Query: {2}</source>
         <note>{0} is the connection error message</note>
         <target state="translated">無法從伺服器載入資料庫清單: {0} 您可以直接輸入資料庫名稱。</target>
       </trans-unit>
+      <trans-unit id="++CODE++7a5056ed1e67b52e901dddc3847ec82876056f171841b2d09a880a931018fe59">
+        <source xml:lang="en">Unable to locate Azure SQL server '{0}' in the selected Azure account.</source>
+        <note>{0} is the server name</note>
+        <target state="new">Unable to locate Azure SQL server '{0}' in the selected Azure account.</target>
+      </trans-unit>
       <trans-unit id="++CODE++955b62784673f0081b2a54d867245fa50ca1e830cea22348ff69caa6317e7889">
         <source xml:lang="en">Unable to open Table Explorer: No target node provided.</source>
         <target state="translated">無法開啟資料表總管: 未提供目標節點。</target>
