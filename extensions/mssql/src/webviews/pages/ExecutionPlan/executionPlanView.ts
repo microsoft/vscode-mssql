@@ -4,8 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as ep from "../../../sharedInterfaces/executionPlan";
-import { locConstants } from "../../common/locConstants";
-import { uuid } from "../../common/utils";
+import {
+    ExecutionPlanGraphController,
+    ExecutionPlanMetricSource,
+} from "./executionPlanGraphController";
+import { ExecutionPlanModel } from "./executionPlanModel";
 
 interface QueryPlanRectangle {
     x: number;
@@ -42,16 +45,19 @@ interface QueryPlanDiagram {
     highlightExpensiveOperator(predicate: (cell: ep.AzDataGraphCell) => number | undefined): string;
 }
 
-export class ExecutionPlanView {
+export class ExecutionPlanView implements ExecutionPlanGraphController {
     private _diagram!: QueryPlanDiagram;
     public expensiveMetricTypes: Set<ep.ExpensiveMetricType> = new Set();
     private _graphElementPropertiesSet: Set<string> = new Set();
     private _executionPlanRootNode: ep.ExecutionPlanNode;
+    private _model: ExecutionPlanModel;
     public static readonly SUBTREE_COST_DISPLAY_ORDER = 8;
     public static readonly OPERATOR_COST_DISPLAY_ORDER = 3;
 
     constructor(node: ep.ExecutionPlanNode) {
-        this._executionPlanRootNode = node;
+        this._model = new ExecutionPlanModel(node);
+        this._executionPlanRootNode = this._model.root;
+        this.expensiveMetricTypes = new Set(this._model.expensiveMetricTypes);
     }
 
     public getRoot(): ep.ExecutionPlanNode {
@@ -79,28 +85,9 @@ export class ExecutionPlanView {
 
         this.expensiveMetricTypes.add(ep.ExpensiveMetricType.Off);
 
-        if (!node.id.toString().startsWith(`element-`)) {
-            node.id = `element-${node.id}`;
-        }
         diagramNode.id = node.id;
 
         diagramNode.icon = node.type;
-
-        // Add subtree cost and cost props
-        node.properties.push({
-            name: locConstants.executionPlan.subtreeCostLabel,
-            displayValue: node.subTreeCost.toString(),
-            showInTooltip: true,
-            displayOrder: ExecutionPlanView.SUBTREE_COST_DISPLAY_ORDER,
-        } as ep.ExecutionPlanGraphElementProperty);
-
-        const opCost = node.relativeCost * this._executionPlanRootNode.subTreeCost;
-        node.properties.push({
-            name: locConstants.executionPlan.operatorCostLabel,
-            displayValue: `${parseFloat(opCost.toFixed(7)).toString()} (${node.costDisplayString})`,
-            showInTooltip: true,
-            displayOrder: ExecutionPlanView.OPERATOR_COST_DISPLAY_ORDER,
-        } as ep.ExecutionPlanGraphElementProperty);
         diagramNode.metrics = this.populateProperties(node.properties);
 
         diagramNode.badges = [];
@@ -218,9 +205,8 @@ export class ExecutionPlanView {
         }
 
         return edges.map((e) => {
-            e.id = this.createGraphElementId();
             return {
-                id: e.id,
+                id: e.id!,
                 metrics: this.populateProperties(e.properties),
                 weight: Math.max(0.5, Math.min(0.5 + 0.75 * Math.log10(e.rowCount), 6)),
                 label: "",
@@ -228,15 +214,11 @@ export class ExecutionPlanView {
         });
     }
 
-    private createGraphElementId(): string {
-        return `element-${uuid()}`;
-    }
-
     /**
      * Gets a list of unique properties of the graph elements.
      */
     public getUniqueElementProperties(): string[] {
-        return [...this._graphElementPropertiesSet].sort();
+        return this._model.getUniqueElementProperties();
     }
 
     /**
@@ -320,56 +302,7 @@ export class ExecutionPlanView {
      * Searches the diagram nodes based on the search query provided.
      */
     public searchNodes(searchQuery: ep.SearchQuery): ep.ExecutionPlanNode[] {
-        const resultNodes: ep.ExecutionPlanNode[] = [];
-
-        const nodeStack: ep.ExecutionPlanNode[] = [];
-        nodeStack.push(this._executionPlanRootNode);
-
-        while (nodeStack.length !== 0) {
-            const currentNode = nodeStack.pop()!;
-
-            const matchingProp = currentNode.properties.find(
-                (e) => e.name === searchQuery.propertyName,
-            );
-            let matchFound = false;
-            // Searching only properties with string value.
-            if (typeof matchingProp?.value === "string") {
-                // If the search type is '=' we look for exact match and for 'contains' we look search string occurrences in prop value
-                switch (searchQuery.searchType) {
-                    case ep.SearchType.Equals:
-                        matchFound = matchingProp.value === searchQuery.value;
-                        break;
-                    case ep.SearchType.Contains:
-                        matchFound = matchingProp.value.includes(searchQuery.value);
-                        break;
-                    case ep.SearchType.GreaterThan:
-                        matchFound = matchingProp.value > searchQuery.value;
-                        break;
-                    case ep.SearchType.LesserThan:
-                        matchFound = matchingProp.value < searchQuery.value;
-                        break;
-                    case ep.SearchType.GreaterThanEqualTo:
-                        matchFound = matchingProp.value >= searchQuery.value;
-                        break;
-                    case ep.SearchType.LesserThanEqualTo:
-                        matchFound = matchingProp.value <= searchQuery.value;
-                        break;
-                    case ep.SearchType.LesserAndGreaterThan:
-                        matchFound =
-                            matchingProp.value < searchQuery.value ||
-                            matchingProp.value > searchQuery.value;
-                        break;
-                }
-
-                if (matchFound) {
-                    resultNodes.push(currentNode);
-                }
-            }
-
-            nodeStack.push(...currentNode.children);
-        }
-
-        return resultNodes;
+        return this._model.searchNodes(searchQuery);
     }
 
     /**
@@ -457,9 +390,11 @@ export class ExecutionPlanView {
     }
 
     public highlightExpensiveOperator(
-        predicate: (cell: ep.AzDataGraphCell) => number | undefined,
-    ): string {
-        return this._diagram.highlightExpensiveOperator(predicate);
+        predicate: (cell: ExecutionPlanMetricSource) => number | undefined,
+    ): string | undefined {
+        return this._diagram.highlightExpensiveOperator((cell: ep.AzDataGraphCell) =>
+            predicate(cell),
+        );
     }
 
     /**
@@ -467,27 +402,7 @@ export class ExecutionPlanView {
      * @param id id of the diagram element
      */
     public getElementById(id: string): ep.InternalExecutionPlanElement | undefined {
-        const nodeStack: ep.ExecutionPlanNode[] = [];
-        nodeStack.push(this._executionPlanRootNode);
-
-        while (nodeStack.length !== 0) {
-            const currentNode = nodeStack.pop()!;
-            if (currentNode.id === id) {
-                return currentNode;
-            }
-
-            if (currentNode.edges) {
-                for (let i = 0; i < currentNode.edges.length; i++) {
-                    if ((<ep.InternalExecutionPlanEdge>currentNode.edges[i]).id === id) {
-                        return currentNode.edges[i];
-                    }
-                }
-            }
-
-            nodeStack.push(...currentNode.children);
-        }
-
-        return undefined;
+        return this._model.getElement(id);
     }
 
     public calculateRelativeQueryCost(): number {

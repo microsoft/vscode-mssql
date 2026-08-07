@@ -295,6 +295,23 @@ describe("HttpClient", () => {
             assert.equal(logger.warn.mock.callCount(), 1);
         });
 
+        it("redacts proxy credentials and query values from warnings", () => {
+            proxyValue = "http://user:super-secret@[invalid-host]?token=also-secret";
+            parseUriScheme = () => {
+                throw new Error(`Invalid URL: ${proxyValue}`);
+            };
+
+            const warning = httpClient.getInvalidProxySettingsWarning();
+            const loggedWarning = logger.warn.mock.calls[0].arguments[0];
+
+            for (const exposedValue of ["user", "super-secret", "token", "also-secret"]) {
+                assert.equal(warning.includes(exposedValue), false);
+                assert.equal(loggedWarning.includes(exposedValue), false);
+            }
+            assert.ok(warning.includes("<redacted>"));
+            assert.ok(loggedWarning.includes("<redacted>"));
+        });
+
         it("does not warn when the proxy is valid", () => {
             for (const validProxyValue of [
                 "http://valid-proxy.test:8080",
@@ -316,22 +333,65 @@ describe("HttpClient", () => {
             assert.equal(logger.warn.mock.callCount(), 0);
         });
 
-        it("prefers VS Code configuration over environment variables", () => {
+        it("validates both protocol-specific environment proxies", () => {
+            process.env.HTTPS_PROXY = "https://valid-proxy.example";
+            process.env.HTTP_PROXY = "invalid-proxy";
+
+            const warning = httpClient.getInvalidProxySettingsWarning();
+
+            assert.equal(
+                warning,
+                ProxyMessages.unparseableWarning(process.env.HTTP_PROXY, "Invalid URL"),
+            );
+            assert.equal(logger.warn.mock.callCount(), 1);
+        });
+
+        it("prefers VS Code configuration over environment variables for requests", () => {
             proxyValue = "config-proxy";
             process.env.HTTP_PROXY = "env-proxy";
             process.env.https_proxy = "env-proxy";
 
-            const proxy = httpClient.loadProxyConfig();
+            const proxy = httpClient.getProxyForRequest(new URL("https://api.example.com"));
 
             assert.equal(proxy, proxyValue);
         });
 
-        it("falls back to environment variables when configuration is missing", () => {
+        it("falls back to environment variables when request configuration is missing", () => {
             process.env.HTTP_PROXY = "http://env-proxy";
 
-            const proxy = httpClient.loadProxyConfig();
+            const proxy = httpClient.getProxyForRequest(new URL("http://api.example.com"));
 
             assert.equal(proxy, process.env.HTTP_PROXY);
+        });
+
+        it("selects the environment proxy for the request protocol", () => {
+            process.env.HTTP_PROXY = "http://http-proxy";
+            process.env.HTTPS_PROXY = "http://https-proxy";
+
+            assert.equal(
+                httpClient.getProxyForRequest(new URL("http://api.example.com")),
+                process.env.HTTP_PROXY,
+            );
+            assert.equal(
+                httpClient.getProxyForRequest(new URL("https://api.example.com")),
+                process.env.HTTPS_PROXY,
+            );
+        });
+
+        it("falls back to HTTP_PROXY for an HTTPS request", () => {
+            process.env.HTTP_PROXY = "http://http-proxy";
+
+            const proxy = httpClient.getProxyForRequest(new URL("https://api.example.com"));
+
+            assert.equal(proxy, process.env.HTTP_PROXY);
+        });
+
+        it("does not use HTTPS_PROXY for an HTTP request", () => {
+            process.env.HTTPS_PROXY = "http://https-proxy";
+
+            const proxy = httpClient.getProxyForRequest(new URL("http://api.example.com"));
+
+            assert.equal(proxy, undefined);
         });
 
         it("sets up an HTTP request with a proxy", () => {
@@ -339,7 +399,7 @@ describe("HttpClient", () => {
             const fakeProxyUrl = new URL("http://fake-proxy.test:8080");
             proxyValue = fakeProxyUrl.toString();
 
-            const result = httpClient.setupConfigAndProxyForRequest("http://fakeUrl.ms/", {
+            const result = httpClient.setupConfigAndProxyForRequest(new URL("http://fakeUrl.ms/"), {
                 Authorization: `Bearer ${fakeToken}`,
             });
 
@@ -363,14 +423,17 @@ describe("HttpClient", () => {
                     getProxyStrictSSL: () => false,
                 });
 
-                const result = client.setupConfigAndProxyForRequest("https://api.example.com", {});
+                const result = client.setupConfigAndProxyForRequest(
+                    new URL("https://api.example.com"),
+                    {},
+                );
 
                 assert.equal(result.httpsAgent.proxyOptions.rejectUnauthorized, false);
             }
         });
 
         it("sets up a request without a proxy", () => {
-            const requestUrl = "https://api.example.com";
+            const requestUrl = new URL("https://api.example.com");
             const headers = { Authorization: "Bearer test-token" };
 
             const result = httpClient.setupConfigAndProxyForRequest(requestUrl, headers);
@@ -389,7 +452,7 @@ describe("HttpClient", () => {
                 mock.method(httpClient, "createProxyAgent", () => ({ agent }));
 
                 const result = httpClient.setupConfigAndProxyForRequest(
-                    "https://api.example.com",
+                    new URL("https://api.example.com"),
                     {},
                 );
 
@@ -405,7 +468,7 @@ describe("HttpClient", () => {
                 agent: {},
             }));
 
-            httpClient.setupConfigAndProxyForRequest("https://api.example.com", {});
+            httpClient.setupConfigAndProxyForRequest(new URL("https://api.example.com"), {});
 
             assert.equal(createProxyAgent.mock.callCount(), 1);
         });

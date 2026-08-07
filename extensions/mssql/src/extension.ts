@@ -146,6 +146,7 @@ class MssqlActivation {
 
         await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
+        // TODO(api-retirement): Remove this public API after dependent extensions have migrated.
         return {
             sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
             promptForConnection: async (ignoreFocusOut?: boolean) => {

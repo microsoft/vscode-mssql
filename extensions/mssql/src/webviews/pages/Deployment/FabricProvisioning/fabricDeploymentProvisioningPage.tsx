@@ -8,6 +8,8 @@ import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { useFabricDeploymentSelector } from "../deploymentSelector";
 import { DeploymentStepCard } from "../deploymentStepCard";
+import { ConnectToDatabaseCard } from "../connectToDatabaseCard";
+import { WhatsNextCard } from "../whatsNextCard";
 
 const useStyles = makeStyles({
     outerDiv: {
@@ -73,6 +75,7 @@ export const FabricDeploymentProvisioningPage: React.FC = () => {
     const deploymentStartTime = useFabricDeploymentSelector((s) => s.deploymentStartTime);
     const tenantName = useFabricDeploymentSelector((s) => s.tenantName);
     const workspaceName = useFabricDeploymentSelector((s) => s.workspaceName);
+    const connectionString = useFabricDeploymentSelector((s) => s.connectionString);
 
     if (!provisionLoadState) return undefined;
 
@@ -150,6 +153,10 @@ export const FabricDeploymentProvisioningPage: React.FC = () => {
                         )}
                     </div>
                 </DeploymentStepCard>
+                {connectionLoadState === ApiStatus.Loaded && connectionString && (
+                    <ConnectToDatabaseCard connectionString={connectionString} />
+                )}
+                {connectionLoadState === ApiStatus.Loaded && <WhatsNextCard />}
             </div>
         </div>
     );
