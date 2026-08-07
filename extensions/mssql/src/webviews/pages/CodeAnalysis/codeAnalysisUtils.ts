@@ -66,15 +66,7 @@ function categoryOrder(category: string, rules: SqlCodeAnalysisRule[]): CodeAnal
 export function groupRulesByCategory(
     rules: SqlCodeAnalysisRule[],
 ): [string, SqlCodeAnalysisRule[]][] {
-    const grouped = new Map<string, SqlCodeAnalysisRule[]>();
-    for (const rule of rules) {
-        const bucket = grouped.get(rule.category);
-        if (bucket) {
-            bucket.push(rule);
-        } else {
-            grouped.set(rule.category, [rule]);
-        }
-    }
+    const grouped = Map.groupBy(rules, (rule) => rule.category);
 
     for (const bucket of grouped.values()) {
         bucket.sort((a, b) => a.displayName.localeCompare(b.displayName));
