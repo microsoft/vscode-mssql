@@ -1670,6 +1670,11 @@ Wählen Sie „{0}“, um eine Verbindung herzustellen.</target>
         <source xml:lang="en">Collapse settings</source>
         <target state="translated">Einstellungen reduzieren</target>
       </trans-unit>
+      <trans-unit id="++CODE++c16e13787ef517fceffdaa331280019a2a731f1c586faaf511680f3da0e9c96b">
+        <source xml:lang="en">Collapse {0}</source>
+        <note>{0} is the name of an execution plan operation</note>
+        <target state="new">Collapse {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++ce767f8068bba3846263c85f968cda6378384e175ff05bbf8efc38cab8476223">
         <source xml:lang="en">Collapse {0}</source>
         <note>{0} is the category name, e.g. Design</note>
@@ -3830,6 +3835,18 @@ Fehler:
         <source xml:lang="en">Execution cancelled</source>
         <target state="translated">Die Ausführung wurde abgebrochen.</target>
       </trans-unit>
+      <trans-unit id="++CODE++5b273fdcb747a01d31053e82b95e940110b6fe3d05d9bffc057856d6f21d127b">
+        <source xml:lang="en">Execution plan</source>
+        <target state="new">Execution plan</target>
+      </trans-unit>
+      <trans-unit id="++CODE++a49223aa30fb671e98c03012a63a1c68e98b7cf3c612f59d98ba0057c54da0c9">
+        <source xml:lang="en">Execution plan details</source>
+        <target state="new">Execution plan details</target>
+      </trans-unit>
+      <trans-unit id="++CODE++88a9a5f2694fe0574b7aedb637b626756bd9b763fe1f9853852480a5952e6c1d">
+        <source xml:lang="en">Execution plan toolbar</source>
+        <target state="new">Execution plan toolbar</target>
+      </trans-unit>
       <trans-unit id="++CODE++9c1c3546bc3e94eb9cf8d7e8bef7d64b5f0213e752e4be0185a9ffc4d87f671c">
         <source xml:lang="en">Execution time unavailable</source>
         <target state="translated">Ausführungszeit nicht verfügbar</target>
@@ -3909,6 +3926,11 @@ Fehler:
       <trans-unit id="++CODE++1f6fd5837dbaa5405a58b9b5a8a025cab673664f697a7c9a9ed2a59189e1843b">
         <source xml:lang="en">Expand the active grid to fill the panel</source>
         <target state="translated">Aktives Raster so erweitern, dass der Bereich ausgefüllt wird.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f3d94f8f0d2b5fc0a15cfced91afb81c48cf6f0664b564fb6129d58ddb328327">
+        <source xml:lang="en">Expand {0}</source>
+        <note>{0} is the name of an execution plan operation</note>
+        <target state="new">Expand {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++23950c524f395d8a86f042de7ea4cbba348146e9c1c79acb3d7fbb89d4198080">
         <source xml:lang="en">Expand {0}</source>
@@ -9835,6 +9857,10 @@ Abfrage: {2}</target>
         <source xml:lang="en">The Query Profiler now supports SQL database in Microsoft Fabric connections, with new Azure SQL Database templates including {code-snippet-0} for lightweight T-SQL profiling.</source>
         <target state="translated">Der Abfrageprofiler unterstützt jetzt SQL-Datenbanken in Microsoft Fabric-Verbindungen mit neuen Azure SQL-Datenbankvorlagen, einschließlich {code-snippet-0}, für leichtgewichtiges T-SQL-Profiling.</target>
       </trans-unit>
+      <trans-unit id="++CODE++5398977f3c4aae70864004d20248ee2d42a55e18b27aacd47584245aff84c300">
+        <source xml:lang="en">The React Flow execution plan preview could not render this plan.</source>
+        <target state="new">The React Flow execution plan preview could not render this plan.</target>
+      </trans-unit>
       <trans-unit id="++CODE++ba973d3ac7388307810e82027b3e31a9c129166646b4dda5ec93c249f05e7431">
         <source xml:lang="en">The SQL Server extension couldn't start because its required background service failed to launch. Install the offline VSIX for your operating system, or check your network connection and try again. Details: {0}</source>
         <note>{0} is the error message</note>
@@ -11956,6 +11982,10 @@ Nachdem Sie Ihre Änderungen vorgenommen haben, klicken Sie auf die Schaltfläch
       <trans-unit id="mssql.enableExperimentalFeatures.description">
         <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
         <target state="translated">Aktiviert experimentelle Features in der MSSQL-Erweiterung. Die Features sind nicht produktionsbereit und weisen möglicherweise Fehler oder Probleme auf. Starten Sie Visual Studio Code neu, nachdem Sie diese Einstellung geändert haben.</target>
+      </trans-unit>
+      <trans-unit id="mssql.preview.betaExecutionPlan.description">
+        <source xml:lang="en">Enables the preview query execution plan experience with improved layout, keyboard navigation, tooltips, SQL text display, and toolbar interactions. Disable this setting to use the existing execution plan experience.</source>
+        <target state="new">Enables the preview query execution plan experience with improved layout, keyboard navigation, tooltips, SQL text display, and toolbar interactions. Disable this setting to use the existing execution plan experience.</target>
       </trans-unit>
       <trans-unit id="mssql.preview.betaResultsGrid.description">
         <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>
