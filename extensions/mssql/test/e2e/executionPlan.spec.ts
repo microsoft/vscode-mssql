@@ -24,7 +24,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         launchOptions: {
             initialConfig: {
                 "mssql.showChangelogOnUpdate": false,
-                "mssql.preview.reactFlowExecutionPlan": true,
+                "mssql.preview.betaExecutionPlan": true,
             },
         },
         afterLaunch: async ({ page }) => {

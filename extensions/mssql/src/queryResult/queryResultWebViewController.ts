@@ -27,7 +27,7 @@ import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
 import {
     getPreviewConfigKey,
-    isReactFlowExecutionPlanPreviewEnabled,
+    isBetaExecutionPlanEnabled,
     PreviewFeature,
     previewService,
 } from "../previews/previewService";
@@ -140,15 +140,11 @@ export class QueryResultWebviewController extends WebviewViewController<
                     this.updateSelectionSummary();
                     stateChanged = true;
                 }
-                if (
-                    e.affectsConfiguration(
-                        getPreviewConfigKey(PreviewFeature.ReactFlowExecutionPlan),
-                    )
-                ) {
-                    const newValue = isReactFlowExecutionPlanPreviewEnabled();
+                if (e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaExecutionPlan))) {
+                    const newValue = isBetaExecutionPlanEnabled();
                     for (const [uri, state] of this._queryResultStateMap) {
                         if (state.executionPlanState) {
-                            state.executionPlanState.isReactFlowExecutionPlanEnabled = newValue;
+                            state.executionPlanState.isBetaExecutionPlanEnabled = newValue;
                         }
                         this._queryResultStateMap.set(uri, state);
                     }
@@ -426,7 +422,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                     executionPlanGraphs: [],
                     totalCost: 0,
                     xmlPlans: {},
-                    isReactFlowExecutionPlanEnabled: isReactFlowExecutionPlanPreviewEnabled(),
+                    isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                 },
             }),
             fontSettings: {

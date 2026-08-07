@@ -204,7 +204,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     const resizableRef = useRef<HTMLDivElement>(null);
     const legacyGraphContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<any | null>(null);
-    const useReactFlow = executionPlanState?.isReactFlowExecutionPlanEnabled === true;
+    const useReactFlow = executionPlanState?.isBetaExecutionPlanEnabled === true;
     const graph = executionPlanState?.executionPlanGraphs?.[graphIndex];
     const [reactFlowFailed, setReactFlowFailed] = useState(false);
     const isReactFlowActive = useReactFlow && !reactFlowFailed;

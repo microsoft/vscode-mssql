@@ -1810,10 +1810,10 @@
                     "description": "%mssql.preview.betaResultsGrid.description%",
                     "scope": "application"
                 },
-                "mssql.preview.reactFlowExecutionPlan": {
+                "mssql.preview.betaExecutionPlan": {
                     "type": "boolean",
                     "default": false,
-                    "description": "%mssql.preview.reactFlowExecutionPlan.description%",
+                    "description": "%mssql.preview.betaExecutionPlan.description%",
                     "scope": "application"
                 },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {

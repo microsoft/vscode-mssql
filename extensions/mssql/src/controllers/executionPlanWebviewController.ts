@@ -18,7 +18,7 @@ import {
 import { ExecutionPlanService } from "../services/executionPlanService";
 import {
     getPreviewConfigKey,
-    isReactFlowExecutionPlanPreviewEnabled,
+    isBetaExecutionPlanEnabled,
     PreviewFeature,
 } from "../previews/previewService";
 
@@ -44,7 +44,7 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                     loadState: ApiStatus.Loading,
                     executionPlanGraphs: [],
                     totalCost: 0,
-                    isReactFlowExecutionPlanEnabled: isReactFlowExecutionPlanPreviewEnabled(),
+                    isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                 },
             },
             {
@@ -75,15 +75,14 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
             vscode.workspace.onDidChangeConfiguration((event) => {
                 if (
                     event.affectsConfiguration(
-                        getPreviewConfigKey(PreviewFeature.ReactFlowExecutionPlan),
+                        getPreviewConfigKey(PreviewFeature.BetaExecutionPlan),
                     )
                 ) {
                     this.updateState({
                         ...this.state,
                         executionPlanState: {
                             ...this.state.executionPlanState,
-                            isReactFlowExecutionPlanEnabled:
-                                isReactFlowExecutionPlanPreviewEnabled(),
+                            isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                         },
                     });
                 }
@@ -103,8 +102,8 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                 ...state,
                 executionPlanState: {
                     ...state.executionPlanState,
-                    isReactFlowExecutionPlanEnabled:
-                        this.state.executionPlanState.isReactFlowExecutionPlanEnabled,
+                    isBetaExecutionPlanEnabled:
+                        this.state.executionPlanState.isBetaExecutionPlanEnabled,
                 },
             };
         });

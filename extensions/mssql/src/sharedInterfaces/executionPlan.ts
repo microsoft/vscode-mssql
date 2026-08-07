@@ -13,7 +13,7 @@ export interface ExecutionPlanState {
     /**
      * Whether execution plans should use the React Flow preview renderer.
      */
-    isReactFlowExecutionPlanEnabled?: boolean;
+    isBetaExecutionPlanEnabled?: boolean;
     /**
      * The execution plan graphs returned by the tools service
      */

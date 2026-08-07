@@ -8,7 +8,7 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 import {
     CONFIG_PREVIEW_PREFIX,
-    isReactFlowExecutionPlanPreviewEnabled,
+    isBetaExecutionPlanEnabled,
     PreviewFeature,
     PreviewFeaturesService,
 } from "../../src/previews/previewService";
@@ -95,19 +95,19 @@ suite("PreviewFeaturesService", () => {
         });
     });
 
-    suite("React Flow execution plan preview", () => {
+    suite("Beta execution plan", () => {
         test("defaults to false independently of the global experimental flag", () => {
             stubMssqlConfig(true);
 
-            expect(isReactFlowExecutionPlanPreviewEnabled()).to.be.false;
+            expect(isBetaExecutionPlanEnabled()).to.be.false;
         });
 
         test("reads only the dedicated preview setting", () => {
             stubMssqlConfig(false, {
-                [PreviewFeature.ReactFlowExecutionPlan]: true,
+                [PreviewFeature.BetaExecutionPlan]: true,
             });
 
-            expect(isReactFlowExecutionPlanPreviewEnabled()).to.be.true;
+            expect(isBetaExecutionPlanEnabled()).to.be.true;
         });
     });
 
