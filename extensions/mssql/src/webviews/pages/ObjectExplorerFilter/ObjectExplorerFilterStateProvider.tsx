@@ -29,12 +29,21 @@ const ObjectExplorerFilterStateProvider: React.FC<ObjectExplorerFilterStateProvi
     const commands = useMemo<ObjectExplorerFilterContextProps>(
         () => ({
             ...getCoreRPCs(extensionRpc),
-            submit: function (filters): void {
+            submit: function (filters, saveName): void {
                 extensionRpc.action("submit", {
                     filters: filters,
+                    saveName,
                 });
             },
-            clearAllFilters: function (): void {},
+            setPresetPinned: function (presetId, isPinned): void {
+                extensionRpc.action("setPresetPinned", { presetId, isPinned });
+            },
+            deletePreset: function (presetId): void {
+                extensionRpc.action("deletePreset", { presetId });
+            },
+            renamePreset: function (presetId, name): void {
+                extensionRpc.action("renamePreset", { presetId, name });
+            },
             cancel: function (): void {
                 extensionRpc.action("cancel", {});
             },

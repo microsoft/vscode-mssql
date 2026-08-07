@@ -138,6 +138,9 @@
     <trans-unit id="++CODE++c9cc5580497f31a6459320e9857b20d5c7638e934bf3e7ec2ba1b0f4c13a13ab">
       <source xml:lang="en">A required .NET runtime could not be found or installed.</source>
     </trans-unit>
+    <trans-unit id="++CODE++cfdcb47ff9f029cb83b66a913ad547fff407ef9ff383c870163fd5538a10068a">
+      <source xml:lang="en">A saved filter with this name already exists.</source>
+    </trans-unit>
     <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
       <source xml:lang="en">API Type</source>
     </trans-unit>
@@ -227,6 +230,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ee7ee5830f091690030fed013c05a7073f6cb971891c3fc6f16e928bd6d69e61">
       <source xml:lang="en">Add account</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f929081d85d7455c7414f04435ed1583c3ae9bcbbb8b0ab7cb160848f4945d5d">
+      <source xml:lang="en">Add at least one filter value before saving this filter.</source>
     </trans-unit>
     <trans-unit id="++CODE++e520df698000f85f2862a9e7403a405b562c793f67bebe0ad0235ef93a55a84e">
       <source xml:lang="en">Add filter</source>
@@ -441,8 +447,18 @@
     <trans-unit id="++CODE++70e9cc5a50f7eb5ba95c18dffd367c22caeef8814be8188d6af4f5654a8fc728">
       <source xml:lang="en">Application version must be in format n.n.n.n where n is a number (e.g., 1.0.0.0)</source>
     </trans-unit>
+    <trans-unit id="++CODE++2aa5dbc8da21dbd591285c19bf38ba8dca4da0bb860ec10ed076c6bbd8bd4183">
+      <source xml:lang="en">Applied filters appear here so you can quickly reuse them.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9fc11680588e8e0fc4ec6085f88aafacb7ca4e0069cedc71f36f72fd3e89fa3f">
+      <source xml:lang="en">Applies across compatible folders</source>
+    </trans-unit>
     <trans-unit id="++CODE++31e392d1c0378beca611de66c0f4c71cba29159905cc54242d9bddee5b23d851">
       <source xml:lang="en">Apply</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3af727980c47d6c77e3eb8eb6dfedf90c233379e440d7f03d74495da1d5f932c">
+      <source xml:lang="en">Apply ({0})</source>
+      <note>{0} is the keyboard shortcut for applying the filter</note>
     </trans-unit>
     <trans-unit id="++CODE++d80d0faa58963b92ed9852bcaab84b26d34ded47f6abe3ac786e9ad48c983aa2">
       <source xml:lang="en">Apply Changes</source>
@@ -467,6 +483,10 @@
     </trans-unit>
     <trans-unit id="++CODE++34ab1d94f3f0ea49596bfd3fdbba6358a366ecd259be4bf46543ee58caad0614">
       <source xml:lang="en">Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++a5f7bdeb8b8d721b93527ed55ffa46715a34936e3af60c3516c8b24ebdb16952">
+      <source xml:lang="en">Are you sure you want to delete &quot;{0}&quot;? This action cannot be undone.</source>
+      <note>{0} is the name or summary of a reusable filter</note>
     </trans-unit>
     <trans-unit id="++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0">
       <source xml:lang="en">Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.</source>
@@ -1172,6 +1192,10 @@
     <trans-unit id="++CODE++524ed5b794acd857648e76bead9db5ba131ebcb17f3a92d98ece51db61e65dbf">
       <source xml:lang="en">Clear token cache</source>
     </trans-unit>
+    <trans-unit id="++CODE++9077a43e7efd113054ed64a9edad9270b949a9674eb8bd93b02d0d05039a074b">
+      <source xml:lang="en">Clear {0} filter</source>
+      <note>{0} is a filter property name</note>
+    </trans-unit>
     <trans-unit id="++CODE++4e0d71f8a0b3fdc5cdaba4028072ad8cf788bac47864232a1988ac9453453a36">
       <source xml:lang="en">Click to cancel loading summary</source>
     </trans-unit>
@@ -1198,6 +1222,10 @@
     </trans-unit>
     <trans-unit id="++CODE++7d9eb7acb13e24625c404401d8e88b2350e32162455885f18276cf802f7701ed">
       <source xml:lang="en">Close</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6d6a346453c46fc4181a5c8d87788eb4b7f8e53567bbbf2274ed56f8a083afff">
+      <source xml:lang="en">Close ({0})</source>
+      <note>{0} is the keyboard shortcut for closing the filter dialog</note>
     </trans-unit>
     <trans-unit id="++CODE++a9d0b49f48a51a21c93552032bd3ac0b356430187424536e274c84b493cac48e">
       <source xml:lang="en">Close Designer</source>
@@ -2213,6 +2241,12 @@
     <trans-unit id="++CODE++3e12474b79fc61d3695fc46a2588df801c380eccc6edc9cb20dd223f4e9ed76e">
       <source xml:lang="en">Delete backup and restore history</source>
     </trans-unit>
+    <trans-unit id="++CODE++5fc8c270921fb866e4aa1b9356162c9f6d09f36b054ef907670ae5a323a5c194">
+      <source xml:lang="en">Delete filter</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9dc9a5899540822ee3afbe7a96c94c9ed4d62c6bd038568abcfb99bd3c9d23e8">
+      <source xml:lang="en">Delete reusable filter?</source>
+    </trans-unit>
     <trans-unit id="++CODE++ce719226a83119822d8c5e6c1981ecfe801b8324890fce617664184849c24491">
       <source xml:lang="en">Delete saved connection</source>
     </trans-unit>
@@ -2599,6 +2633,9 @@
     <trans-unit id="++CODE++11c21b54b49bcb3c27b1f9371f18ba2da2f6c80cf2cb66a608ff8396ade41518">
       <source xml:lang="en">Ensuring Docker Desktop is running</source>
     </trans-unit>
+    <trans-unit id="++CODE++dc8659db6d416dc32fcad510cc921af3c7eaf1176ddedfbe050ecf708fbac087">
+      <source xml:lang="en">Enter</source>
+    </trans-unit>
     <trans-unit id="++CODE++b8a643021b4a76524ae2ef4dad6de2ec180e23fd99ca204282cca599d43792f3">
       <source xml:lang="en">Enter Database Description</source>
     </trans-unit>
@@ -2616,6 +2653,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f302fdbca94d65797221e8c829c55961e7b47aebf753ca2dd797862c8453649a">
       <source xml:lang="en">Enter a name for the new server</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0b6b6b952de279231813a153a77a2d37ce7959d6e8e3131de11dc6eb8e788b94">
+      <source xml:lang="en">Enter a name to save this filter.</source>
     </trans-unit>
     <trans-unit id="++CODE++8c50a1a6a69f19f52d48a8ec9ac6d8fa30c1b8ae5f3b9448aabffc2dd94184c9">
       <source xml:lang="en">Enter a number...</source>
@@ -2856,6 +2896,9 @@
     <trans-unit id="++CODE++beab8d6b59ef40883dd9887fd21f67e4716b5d4581461c3eae2825e09b698ad0">
       <source xml:lang="en">Error: {0}</source>
       <note>{0} is the error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++037c968467aa3fd7c059c7d0b57e3460aa332f30db816efcd98943724a1d8db0">
+      <source xml:lang="en">Escape</source>
     </trans-unit>
     <trans-unit id="++CODE++a8b7377a6bf2ffa25b15e9b8a56623d97657aadcf02e7a1946c0e892978628d3">
       <source xml:lang="en">Estimated Operator Cost</source>
@@ -3486,6 +3529,9 @@
     <trans-unit id="++CODE++b68093b3b98a837c8ebe082fc05f901c3e6aa924fecbb9ddb686339d7b40ffb9">
       <source xml:lang="en">Failed to update table.</source>
     </trans-unit>
+    <trans-unit id="++CODE++60a33e6cf5151f2d52eddae9685cfa270426aa89d8dbc7dfb854606f1d1a40fe">
+      <source xml:lang="en">False</source>
+    </trans-unit>
     <trans-unit id="++CODE++aac77df347205252b074d45aff7891debdba0ff1466cc0c351416d1662bb71ab">
       <source xml:lang="en">Feedback</source>
     </trans-unit>
@@ -3579,6 +3625,10 @@
     <trans-unit id="++CODE++51035b5b67dca0d1ea2348d44a4b18658fd03a3ea4f774aaadc2ac6bcb4c61bc">
       <source xml:lang="en">Filter by type</source>
     </trans-unit>
+    <trans-unit id="++CODE++5cb5bf4e8c5630bc8a98fc64b154572423c9e9ae209006f36a45383277640427">
+      <source xml:lang="en">Filter by {0}…</source>
+      <note>{0} is a filter property name</note>
+    </trans-unit>
     <trans-unit id="++CODE++b69848561e02841b68dcbfadcbba33ea9008d49fb44c61fd4e670bc3fa3b9968">
       <source xml:lang="en">Filter changes</source>
     </trans-unit>
@@ -3593,6 +3643,9 @@
     </trans-unit>
     <trans-unit id="++CODE++01a0e0d1c3cdcf7bac1e7280e753431937f8773ddd7b6ba85bf7fea4b842ad4e">
       <source xml:lang="en">Filter for any field...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++957064d14820b9158cd1649e003561f159512475f6a6399c62efc5729892dab6">
+      <source xml:lang="en">Filter name</source>
     </trans-unit>
     <trans-unit id="++CODE++5e8d7eea75a574fd6922c307c83c7f88891a7cb299cc402fbdbe1acbf97c63ec">
       <source xml:lang="en">Filter operator</source>
@@ -4759,6 +4812,10 @@
     <trans-unit id="++CODE++0149b409a73e8498a5256e13dbf70225738e9e1fed0d976e20ad8ef338cc2d22">
       <source xml:lang="en">More Query Actions</source>
     </trans-unit>
+    <trans-unit id="++CODE++0c94b5f19becc4862e3862d599e2d386c40079841aba3ab70d05241df1ff6802">
+      <source xml:lang="en">More actions for {0}</source>
+      <note>{0} is the name or summary of a reusable filter</note>
+    </trans-unit>
     <trans-unit id="++CODE++b58330ac25057a441365f4f4f1be20daba2d6d940142c891231e0eac66843ff4">
       <source xml:lang="en">Move Down</source>
     </trans-unit>
@@ -4779,6 +4836,9 @@
     </trans-unit>
     <trans-unit id="++CODE++b76bc80b8a0e64a7d4bdcb44be4f61adea3c7657d8ab9c599ab349d1d772d7b1">
       <source xml:lang="en">Move selection to the last cell in the row</source>
+    </trans-unit>
+    <trans-unit id="++CODE++8710c37bff459c290072633f29a51f66f7ffc220d8594a461ea44aff3640e749">
+      <source xml:lang="en">Move to Recent</source>
     </trans-unit>
     <trans-unit id="++CODE++27b4c707cf413882a14ef7b762694ed52bbf69755646afa8cf1972dec4cf3c92">
       <source xml:lang="en">Move to Root</source>
@@ -5542,6 +5602,9 @@
     <trans-unit id="++CODE++4c09d189302f2506e79be79caf623ccc300816ff936119f9dc5f5bbfd9ee5b0a">
       <source xml:lang="en">Pick from multiple SQL Server versions, including SQL Server 2025 with built-in AI capabilities like vector search and JSON enhancements.</source>
     </trans-unit>
+    <trans-unit id="++CODE++7402b850c8ea04211c0bde6a01e934211ac94feed7e01d1d719473b9a453b644">
+      <source xml:lang="en">Pin to Saved</source>
+    </trans-unit>
     <trans-unit id="++CODE++2d88a61abeffd59a3bd59240d49c72a6b54deaecde6c449c2a4fd88f698d2628">
       <source xml:lang="en">Please Accept the SQL Server EULA</source>
     </trans-unit>
@@ -5914,6 +5977,9 @@
     <trans-unit id="++CODE++6aafab6eae72092eb7c25ffb6f34dab1a3eb70f1ef79e6e159f0fe540ca6b675">
       <source xml:lang="en">Receive natural language explanations to help developers unfamiliar with T-SQL understand code</source>
     </trans-unit>
+    <trans-unit id="++CODE++690dbe9dc0993c4256683738fc3fd541cfa96f60d299be33343615dd58179d93">
+      <source xml:lang="en">Recent</source>
+    </trans-unit>
     <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
       <source xml:lang="en">Recent Connections</source>
     </trans-unit>
@@ -6027,6 +6093,9 @@
     </trans-unit>
     <trans-unit id="++CODE++39b10e9a29841c96618fdf773450de8dbc3c86e0d4392b03e0c13ae1c6dfd938">
       <source xml:lang="en">Rename Options</source>
+    </trans-unit>
+    <trans-unit id="++CODE++559a6c1e10f7f39dfe926aa2a49dca3f8235e2e6de311a27354a24d14477c3f2">
+      <source xml:lang="en">Rename filter</source>
     </trans-unit>
     <trans-unit id="++CODE++98340672aa64e0201bd86c0c7c68acd1f368e2f4ce9565da2425778a5c29b6fa">
       <source xml:lang="en">Rename is not supported at this position.</source>
@@ -6164,6 +6233,9 @@
     </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5bd5c339ebe498309ce5a1daa054527532d3a64a93065f801c9e913f722877c2">
+      <source xml:lang="en">Reusable Filters</source>
     </trans-unit>
     <trans-unit id="++CODE++36b830bdb447f8c758a9b58f190eed468c4bd53e9c7662ee19bca9c53d3a3e3d">
       <source xml:lang="en">Reveal</source>
@@ -6437,6 +6509,9 @@
     <trans-unit id="++CODE++0a12b3e51f64e705d6de90db7bcada67844d93e118f414b2fc703b2014efabc5">
       <source xml:lang="en">Save source and target, options, and excluded elements</source>
     </trans-unit>
+    <trans-unit id="++CODE++65c2ce4c13ec3a32d62c618c0dd7fcd050eb87d877318da88bd69031d987fc00">
+      <source xml:lang="en">Save this filter for reuse</source>
+    </trans-unit>
     <trans-unit id="++CODE++a701a23564bced0d11aff79b9a763c7762b296c9c77fead713abfa0267cd8ca3">
       <source xml:lang="en">Save to Disk</source>
     </trans-unit>
@@ -6608,6 +6683,10 @@
     </trans-unit>
     <trans-unit id="++CODE++78c9d9f6ace0e9b850ab68646c51dc2c990edf221c872d1c6ec389dd797c0f21">
       <source xml:lang="en">Searching...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++06945f53f6f3426aff80ff3d1ebd63cc295edc8d60121dc8fdb5ee773d4db823">
+      <source xml:lang="en">Second {0} filter value</source>
+      <note>{0} is a filter property name</note>
     </trans-unit>
     <trans-unit id="++CODE++2a78025de6aae5e7ff88e5a951bb3a78ddd67388913529cf9e2dd9653e62b02d">
       <source xml:lang="en">Select</source>
@@ -7774,6 +7853,9 @@
     <trans-unit id="++CODE++573843c55dfcb6caf7a345bf40ff4dfe681f4e262ed72c68ac5f55ce0b2a7749">
       <source xml:lang="en">Transfer active connection (Default)</source>
     </trans-unit>
+    <trans-unit id="++CODE++3cbc87c7681f34db4617feaa2c8801931bc5e42d8d0f560e756dd4cd92885f18">
+      <source xml:lang="en">True</source>
+    </trans-unit>
     <trans-unit id="++CODE++dadabe100e080a7068316b2a91caeb46ed5a60c2bf94a1a30acf4703bd3eb24d">
       <source xml:lang="en">Truncate the transaction log</source>
     </trans-unit>
@@ -7946,6 +8028,10 @@
     </trans-unit>
     <trans-unit id="++CODE++413d7418205c532ce289074072d8841df2c720313cb19bd9180ad2c4de3383c7">
       <source xml:lang="en">Use encryption for this backup</source>
+    </trans-unit>
+    <trans-unit id="++CODE++b2d79fbdb8737e1fa927a178beca0b91c1f29d09202fbd60f4b1f838ff549a1d">
+      <source xml:lang="en">Use filter {0}</source>
+      <note>{0} is the name or summary of a reusable filter</note>
     </trans-unit>
     <trans-unit id="++CODE++db3264529da0968f55cf4d37e71f355fcda342a20fe7cbb114d534807215f634">
       <source xml:lang="en">Use format: YYYY-MM-DD HH:mm:ss[.SSS]</source>
@@ -8300,6 +8386,9 @@
     <trans-unit id="++CODE++80ccd8c9b9af87acd9ce5bea7f8b6c9978971ca8f81888ab1d2ab3a3de6d2c06">
       <source xml:lang="en">does not contain</source>
     </trans-unit>
+    <trans-unit id="++CODE++9213fe0ba9ab011cd201be662e521ffae88e0c1824e6ee49dd9d525fd3f115ce">
+      <source xml:lang="en">e.g. My tables</source>
+    </trans-unit>
     <trans-unit id="++CODE++c6072170d758e5358d717360829bd1f9b1603b355b5f7fe375d1aabdca7a20de">
       <source xml:lang="en">encrypt</source>
     </trans-unit>
@@ -8477,6 +8566,14 @@
       <source xml:lang="en">{0} events</source>
       <note>{0} is the number of events</note>
     </trans-unit>
+    <trans-unit id="++CODE++73a3b5564a6f6d4a90ee66b091f6e9326921f7465dd5a35abe9112ae716ec35c">
+      <source xml:lang="en">{0} filter operator</source>
+      <note>{0} is a filter property name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++69b96dbb650a078a1de2f0d5190029748a0530448136853be144116411920739">
+      <source xml:lang="en">{0} filter value</source>
+      <note>{0} is a filter property name</note>
+    </trans-unit>
     <trans-unit id="++CODE++16885df9a4767fe04d26b997deabc5a36f96f34bf58bbed4b4a87d029f25209b">
       <source xml:lang="en">{0} has been closed. Would you like to restore it?</source>
       <note>{0} is the webview name</note>
@@ -8602,6 +8699,12 @@
       <source xml:lang="en">{0} {1} issues</source>
       <note>{0} is the tab name
 {1} is the number of issues</note>
+    </trans-unit>
+    <trans-unit id="++CODE++3bbbd181bbc54529d60456818a15b4fbe42aa74833733c720e75b974d0e3f4fc">
+      <source xml:lang="en">{0} {1} {2}</source>
+      <note>{0} is a filter property name
+{1} is a filter operator
+{2} is the filter value</note>
     </trans-unit>
     <trans-unit id="++CODE++b0020ab38fda5f63913e80f99f68a50881b2b83866c16fcd3abb83ce43c4aea3">
       <source xml:lang="en">{0}, +{1} more</source>
@@ -9136,6 +9239,9 @@
     </trans-unit>
     <trans-unit id="mssql.enableExperimentalFeatures.description">
       <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.preview.betaObjectExplorerFilter.description">
+      <source xml:lang="en">Enables the preview Object Explorer filter experience with saved filter presets and recently applied filters. Disable this setting to use the existing Object Explorer filter experience.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.betaExecutionPlan.description">
       <source xml:lang="en">Enables the preview query execution plan experience with improved layout, keyboard navigation, tooltips, SQL text display, and toolbar interactions. Disable this setting to use the existing execution plan experience.</source>

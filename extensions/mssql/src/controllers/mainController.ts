@@ -43,6 +43,7 @@ import { ObjectManagementService } from "../services/objectManagementService";
 import StatusView from "../views/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "../models/interfaces";
 import ConnectionManager from "./connectionManager";
+import { IInstantiationService } from "extension-toolkit/base";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import { sendActionEvent, sendErrorEvent, VscodeHttpClient } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -192,7 +193,11 @@ export default class MainController implements vscode.Disposable {
      * The main controller constructor
      * @constructor
      */
-    constructor(context: vscode.ExtensionContext, connectionManager?: ConnectionManager) {
+    constructor(
+        context: vscode.ExtensionContext,
+        @IInstantiationService private readonly _instantiationService: IInstantiationService,
+        connectionManager?: ConnectionManager,
+    ) {
         this._context = context;
         if (connectionManager) {
             this._connectionMgr = connectionManager;
@@ -402,10 +407,8 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdOpenAzureDataStudioMigration);
             this._event.on(Constants.cmdOpenAzureDataStudioMigration, async () => {
-                const migrationController = new AzureDataStudioMigrationWebviewController(
-                    this._context,
-                    this.connectionManager.connectionStore,
-                    this.connectionManager.connectionStore.connectionConfig,
+                const migrationController = this._instantiationService.createInstance(
+                    AzureDataStudioMigrationWebviewController,
                     this.azureAccountService,
                 );
 
@@ -1068,11 +1071,14 @@ export default class MainController implements vscode.Disposable {
         );
 
         // Init connection manager and connection MRU
-        this._connectionMgr = new ConnectionManager(
-            this._context,
-            this._statusview,
-            this._prompter,
-        );
+        if (!this._connectionMgr) {
+            this._connectionMgr = this._instantiationService.createInstance(
+                ConnectionManager,
+                this._context,
+                this._statusview,
+                this._prompter,
+            );
+        }
 
         this._sqlDocumentService = new SqlDocumentService(this);
         this.configureQuickQueryService();
@@ -1695,18 +1701,17 @@ export default class MainController implements vscode.Disposable {
 
         this.registerCommand(Constants.cmdConnectionGroupCreate);
         this._event.on(Constants.cmdConnectionGroupCreate, () => {
-            const connGroupDialog = new ConnectionGroupWebviewController(
-                this._context,
-                this.connectionManager.connectionStore.connectionConfig,
+            const connGroupDialog = this._instantiationService.createInstance(
+                ConnectionGroupWebviewController,
+                undefined,
             );
             connGroupDialog.revealToForeground();
         });
 
         this.registerCommandWithArgs(Constants.cmdConnectionGroupEdit);
         this._event.on(Constants.cmdConnectionGroupEdit, (node: ConnectionGroupNode) => {
-            const connGroupDialog = new ConnectionGroupWebviewController(
-                this._context,
-                this.connectionManager.connectionStore.connectionConfig,
+            const connGroupDialog = this._instantiationService.createInstance(
+                ConnectionGroupWebviewController,
                 node.connectionGroup,
             );
             connGroupDialog.revealToForeground();

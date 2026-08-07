@@ -18,15 +18,18 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import MainController from "../../src/controllers/mainController";
 import { languageId } from "../../src/constants/constants";
 import { ConnectionStore } from "../../src/models/connectionStore";
+import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import * as ConnectionContracts from "../../src/models/contracts/connection";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import * as Interfaces from "../../src/models/interfaces";
 import * as Utils from "../../src/models/utils";
 import { AuthenticationTypes } from "../../src/models/interfaces";
 import { ConnectionUI } from "../../src/views/connectionUI";
+import { AccountStore } from "../../src/azure/accountStore";
+import { AzureController } from "../../src/azure/azureController";
 import StatusView from "../../src/views/statusView";
 import { uuid } from "../../src/utils/utils";
-import { stubExtensionContext, stubPrompter } from "./utils";
+import { stubExtensionContext, stubInstantiationService, stubPrompter } from "./utils";
 
 const expect = chai.expect;
 
@@ -310,7 +313,11 @@ suite("Per File Connection Tests", () => {
         connectionManagerStub.isConnected.returns(false);
         connectionManagerStub.promptToConnect.resolves();
 
-        const controller = new MainController(extensionContext, connectionManagerStub);
+        const controller = new MainController(
+            extensionContext,
+            stubInstantiationService(sandbox),
+            connectionManagerStub,
+        );
 
         await controller.onRunQuery();
 
@@ -457,9 +464,11 @@ suite("Per File Connection Tests", () => {
             return;
         });
 
-        manager.client = serviceClientStub;
-        manager.statusView = statusViewStub;
-        manager.connectionStore = connectionStoreStub;
+        manager = createTestConnectionManager(
+            serviceClientStub,
+            statusViewStub,
+            connectionStoreStub,
+        );
 
         const result = await manager.connect(testFile, connectionCreds);
         expect(result).to.equal(true);
@@ -531,16 +540,30 @@ suite("Per File Connection Tests", () => {
             connectionStoreInstance = stubConnectionStore;
         }
 
-        return new ConnectionManager(
+        let manager: ConnectionManager;
+        const connectionUIInstance =
+            connectionUI ??
+            new ConnectionUI(
+                sandbox.createStubInstance(AzureController),
+                prompterStub,
+                () => manager.onDisconnect(),
+                connectionStoreInstance,
+                sandbox.createStubInstance(AccountStore),
+            );
+
+        manager = new ConnectionManager(
             extensionContext,
             statusViewInstance,
             prompterStub,
+            connectionStoreInstance,
+            sandbox.createStubInstance(CredentialStore),
+            sandbox.createStubInstance(AccountStore),
+            stubInstantiationService(sandbox),
             undefined, // logger
             serviceClient,
-            connectionStoreInstance,
-            undefined, // credentialStore
-            connectionUI,
+            connectionUIInstance,
         );
+        return manager;
     }
 });
 

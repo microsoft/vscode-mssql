@@ -237,9 +237,12 @@ suite("Scripting Service", () => {
         });
 
         removeRecentlyUsedStub = sandbox.stub().resolves();
-        connectionManager.connectionStore = {
-            removeRecentlyUsed: removeRecentlyUsedStub,
-        } as any;
+        sandbox.stub(connectionManager, "connectionStore").get(
+            () =>
+                ({
+                    removeRecentlyUsed: removeRecentlyUsedStub,
+                }) as any,
+        );
 
         connectionManager.getServerInfo.callsFake(() => serverInfo);
         connectionManager.isConnected.returns(true);

@@ -7,7 +7,7 @@ import * as os from "os";
 import * as crypto from "crypto";
 import * as vscode from "vscode";
 import * as LocalizedConstants from "../constants/locConstants";
-import { ICredentialStore } from "../credentialstore/icredentialstore";
+import { ICredentialStore } from "../credentialstore/credentialstore";
 import {
     DidChangeEncryptionIVKeyParams,
     EncryptionKeysChangedNotification,
