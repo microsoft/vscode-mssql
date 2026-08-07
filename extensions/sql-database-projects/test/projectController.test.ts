@@ -144,6 +144,67 @@ suite("ProjectsController", function (): void {
                 expect(spy.calledWith(msg)).to.be.true; // showErrorMessage not called with expected message '${msg}' Actual '${spy.getCall(0).args[0]}'
             });
 
+            test("Should suggest the folder's schema when adding an object from a schema folder", async function (): Promise<void> {
+                const showInputBoxStub = sandbox
+                    .stub(vscode.window, "showInputBox")
+                    .resolves(undefined);
+                sandbox.stub(utils, "sanitizeStringForFilename").returnsArg(0);
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    baselines.newProjectFileBaseline,
+                );
+
+                await projController.addItemPrompt(project, "sales/Tables", {
+                    itemType: ItemType.table,
+                });
+
+                expect(
+                    showInputBoxStub.firstCall.args[0]?.value,
+                    "the suggested name should be qualified with the folder's schema",
+                ).to.match(/^sales\.Table\d+$/);
+            });
+
+            test("Should not qualify the suggested name when adding from a dbo folder", async function (): Promise<void> {
+                const showInputBoxStub = sandbox
+                    .stub(vscode.window, "showInputBox")
+                    .resolves(undefined);
+                sandbox.stub(utils, "sanitizeStringForFilename").returnsArg(0);
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    baselines.newProjectFileBaseline,
+                );
+
+                await projController.addItemPrompt(project, "dbo/Tables", {
+                    itemType: ItemType.table,
+                });
+
+                expect(
+                    showInputBoxStub.firstCall.args[0]?.value,
+                    "dbo is the default schema, so the suggestion stays unqualified",
+                ).to.match(/^Table\d+$/);
+            });
+
+            test("Should not qualify the suggested name when adding from the project root", async function (): Promise<void> {
+                const showInputBoxStub = sandbox
+                    .stub(vscode.window, "showInputBox")
+                    .resolves(undefined);
+                sandbox.stub(utils, "sanitizeStringForFilename").returnsArg(0);
+                const projController = new ProjectsController(testContext.outputChannel);
+                const project = await testUtils.createTestProject(
+                    this.test,
+                    baselines.newProjectFileBaseline,
+                );
+
+                await projController.addItemPrompt(project, "", { itemType: ItemType.table });
+
+                expect(
+                    showInputBoxStub.firstCall.args[0]?.value,
+                    "the project root implies no schema",
+                ).to.match(/^Table\d+$/);
+            });
+
             test("Should not create file if no itemTypeName is selected", async function (): Promise<void> {
                 sandbox.stub(vscode.window, "showQuickPick").resolves(undefined);
                 const spy = sandbox.spy(vscode.window, "showErrorMessage");

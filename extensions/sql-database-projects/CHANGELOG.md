@@ -9,6 +9,7 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [1.6.3] - 2026-08-19
 
 - Fixed an issue where the **Rename Symbol** feature was incorrectly enabled on SQL alias identifiers (column aliases, table aliases, subquery aliases, and CTE names), which could generate an invalid `.refactorlog` entry.
+- Added support for creating SQL objects with the schema corresponding to the selected folder instead of defaulting to `dbo`.
 
 ## [1.6.2] - 2026-07-15
 
