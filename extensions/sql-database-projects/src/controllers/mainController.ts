@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as vscodeMssql from "vscode-mssql";
+import type * as vscodeMssql from "vscode-mssql";
 import * as templates from "../templates/templates";
 import * as path from "path";
 
@@ -17,12 +17,12 @@ import {
     NetCoreTool,
 } from "../tools/netcoreTool";
 import { IconPathHelper } from "../common/iconHelper";
-import { WorkspaceTreeItem } from "dataworkspace";
+import type { WorkspaceTreeItem } from "dataworkspace";
 import * as constants from "../common/constants";
 import { SqlDatabaseProjectProvider } from "../projectProvider/projectProvider";
-import { GenerateProjectFromOpenApiSpecOptions, ItemType } from "sqldbproj";
+import { ItemType } from "../sqldbproj";
 import { FileNode } from "../models/tree/fileFolderTreeItem";
-import { HttpClient } from "../http/httpClient";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
 
 /**
  * The main controller class that initializes the extension
@@ -64,7 +64,7 @@ export default class MainController implements vscode.Disposable {
         }
 
         // Warn about invalid proxy settings early during activation
-        new HttpClient().warnOnInvalidProxySettings();
+        new VscodeHttpClient().warnOnInvalidProxySettings();
 
         await this.initializeDatabaseProjects();
         return new SqlDatabaseProjectProvider(this.projectsController);
@@ -96,6 +96,14 @@ export default class MainController implements vscode.Disposable {
                 "sqlDatabaseProjects.buildWithCodeAnalysis",
                 async (node: WorkspaceTreeItem) => {
                     return this.projectsController.buildProject(node, true);
+                },
+            ),
+        );
+        this.context.subscriptions.push(
+            vscode.commands.registerCommand(
+                "sqlDatabaseProjects.restorePackages",
+                async (node: WorkspaceTreeItem) => {
+                    return this.projectsController.restoreProject(node);
                 },
             ),
         );
@@ -152,14 +160,6 @@ export default class MainController implements vscode.Disposable {
                 "sqlDatabaseProjects.createProjectFromDatabase",
                 async (context: vscodeMssql.ITreeNodeInfo | undefined) => {
                     return this.projectsController.createProjectFromDatabase(context);
-                },
-            ),
-        );
-        this.context.subscriptions.push(
-            vscode.commands.registerCommand(
-                "sqlDatabaseProjects.generateProjectFromOpenApiSpec",
-                async (options?: GenerateProjectFromOpenApiSpecOptions) => {
-                    return this.projectsController.generateProjectFromOpenApiSpec(options);
                 },
             ),
         );

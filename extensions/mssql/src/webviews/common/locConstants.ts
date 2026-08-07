@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as l10n from "@vscode/l10n";
+import type { ConfigurableKeyCommandId } from "../../sharedInterfaces/shortcutsConfiguration";
 import { WebviewAction } from "../../sharedInterfaces/webview";
 
 export class LocConstants {
@@ -96,6 +97,99 @@ export class LocConstants {
             filterSettings: l10n.t("Filter Settings"),
             clearAll: l10n.t("Clear All"),
             ok: l10n.t("OK"),
+            apply: l10n.t("Apply"),
+            enter: l10n.t("Enter"),
+            escape: l10n.t("Escape"),
+            applyTooltip: (shortcut: string) =>
+                l10n.t({
+                    message: "Apply ({0})",
+                    args: [shortcut],
+                    comment: ["{0} is the keyboard shortcut for applying the filter"],
+                }),
+            closeTooltip: (shortcut: string) =>
+                l10n.t({
+                    message: "Close ({0})",
+                    args: [shortcut],
+                    comment: ["{0} is the keyboard shortcut for closing the filter dialog"],
+                }),
+            reusableFilters: l10n.t("Reusable Filters"),
+            savedFilters: l10n.t("Saved"),
+            recentFilters: l10n.t("Recent"),
+            reusableFiltersDescription: l10n.t("Applies across compatible folders"),
+            noReusableFilters: l10n.t("Applied filters appear here so you can quickly reuse them."),
+            saveThisFilter: l10n.t("Save this filter for reuse"),
+            filterName: l10n.t("Filter name"),
+            filterNamePlaceholder: l10n.t("e.g. My tables"),
+            filterNameRequired: l10n.t("Enter a name to save this filter."),
+            filterValueRequiredToSave: l10n.t(
+                "Add at least one filter value before saving this filter.",
+            ),
+            pinFilter: l10n.t("Pin to Saved"),
+            unpinFilter: l10n.t("Move to Recent"),
+            deleteFilter: l10n.t("Delete filter"),
+            renameFilter: l10n.t("Rename filter"),
+            confirmDeleteFilterTitle: l10n.t("Delete reusable filter?"),
+            confirmDeleteFilterMessage: (filterName: string) =>
+                l10n.t({
+                    message: 'Are you sure you want to delete "{0}"? This action cannot be undone.',
+                    args: [filterName],
+                    comment: ["{0} is the name or summary of a reusable filter"],
+                }),
+            filterNameAlreadyExists: l10n.t("A saved filter with this name already exists."),
+            true: l10n.t("True"),
+            false: l10n.t("False"),
+            useFilter: (filterName: string) =>
+                l10n.t({
+                    message: "Use filter {0}",
+                    args: [filterName],
+                    comment: ["{0} is the name or summary of a reusable filter"],
+                }),
+            filterValueLabel: (property: string) =>
+                l10n.t({
+                    message: "{0} filter value",
+                    args: [property],
+                    comment: ["{0} is a filter property name"],
+                }),
+            filterByProperty: (property: string) =>
+                l10n.t({
+                    message: "Filter by {0}…",
+                    args: [property],
+                    comment: ["{0} is a filter property name"],
+                }),
+            secondFilterValueLabel: (property: string) =>
+                l10n.t({
+                    message: "Second {0} filter value",
+                    args: [property],
+                    comment: ["{0} is a filter property name"],
+                }),
+            filterOperatorLabel: (property: string) =>
+                l10n.t({
+                    message: "{0} filter operator",
+                    args: [property],
+                    comment: ["{0} is a filter property name"],
+                }),
+            clearPropertyFilter: (property: string) =>
+                l10n.t({
+                    message: "Clear {0} filter",
+                    args: [property],
+                    comment: ["{0} is a filter property name"],
+                }),
+            moreFilterActions: (filterName: string) =>
+                l10n.t({
+                    message: "More actions for {0}",
+                    args: [filterName],
+                    comment: ["{0} is the name or summary of a reusable filter"],
+                }),
+            filterClauseSummary: (property: string, operator: string, value: string) =>
+                l10n.t({
+                    message: "{0} {1} {2}",
+                    args: [property, operator, value],
+                    comment: [
+                        "{0} is a filter property name",
+                        "{1} is a filter operator",
+                        "{2} is the filter value",
+                    ],
+                }),
             and: l10n.t("And"),
             contains: l10n.t("Contains"),
             notContains: l10n.t("Not Contains"),
@@ -349,25 +443,95 @@ export class LocConstants {
 
     public get shortcutsConfiguration() {
         return {
-            title: l10n.t("Shortcuts Configuration"),
+            title: l10n.t("Shortcuts Configuration (Preview)"),
             pageAriaLabel: l10n.t("Shortcuts configuration page"),
             configurationSections: l10n.t("Configuration sections"),
-            subtitle: l10n.t("Configure Quick Query and in-app shortcuts."),
+            subtitle: l10n.t("Configure Quick Query and Extension shortcuts."),
             quickQueries: l10n.t("Quick Queries"),
             quickQueriesDescription: l10n.t(
-                "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.",
+                "Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.",
             ),
-            webviewShortcuts: l10n.t("In-App Shortcuts"),
+            quickQueriesKeyboardShortcutsBanner: l10n.t(
+                "Quick Queries keyboard shortcuts are managed by Visual Studio Code.",
+            ),
+            openKeyboardShortcutsEditor: l10n.t("Open Keyboard Shortcuts editor."),
+            webviewShortcuts: l10n.t("Extension Shortcuts"),
             webviewShortcutsDescription: l10n.t(
-                "Configure shortcuts that are handled inside MSSQL views.",
+                "Configure keyboard shortcuts used by the MSSQL extension.",
             ),
+            queryEditorShortcuts: l10n.t("Query Editor"),
+            queryEditorKeyboardShortcutsBanner: l10n.t(
+                "Query Editor shortcuts are managed by Visual Studio Code.",
+            ),
+            queryEditorKeyboardShortcutsFooter: l10n.t(
+                "Configure the full list of Query Editor shortcuts.",
+            ),
+            resultViewShortcuts: l10n.t("Result View"),
+            resultViewShortcutsBanner: l10n.t(
+                "Result View shortcuts are managed by the MSSQL extension. You can configure their keybindings directly here.",
+            ),
+            keyboardShortcutsEditor: l10n.t("Keyboard Shortcuts editor"),
+            viewConfigureKeybinding: l10n.t("View/configure keybinding"),
+            viewConfigureKeybindingTooltip: (name: string) =>
+                l10n.t({
+                    message: "View/configure keybinding for {0}",
+                    args: [name],
+                    comment: ["{0} is the command or shortcut display name"],
+                }),
+            configurableKeyCommandCategoryLabels: {
+                queryExecution: l10n.t("Query Execution"),
+                connection: l10n.t("Connection"),
+                others: l10n.t("Others"),
+            },
+            configurableKeyCommandCategoryDescriptions: {
+                queryExecution: l10n.t("Run, cancel, and create queries"),
+                connection: l10n.t("Connect and manage database connections"),
+                others: l10n.t("Extension and deployment actions"),
+            },
+            configurableKeyCommandLabels: {
+                "mssql.runQuery": l10n.t("Execute Query"),
+                "mssql.runCurrentStatement": l10n.t("Execute Selection or Current Statement"),
+                "mssql.cancelQuery": l10n.t("Cancel Query"),
+                "mssql.newQuery": l10n.t("New Query"),
+                "mssql.toggleSqlCmd": l10n.t("Toggle SQLCMD Mode"),
+                "mssql.connect": l10n.t("Connect"),
+                "mssql.disconnect": l10n.t("Disconnect"),
+                "mssql.changeConnection": l10n.t("Change Connection"),
+                "mssql.changeDatabase": l10n.t("Change Database"),
+                "mssql.showEstimatedPlan": l10n.t("Show Estimated Plan"),
+                "mssql.toggleActualPlan": l10n.t("Toggle Actual Plan"),
+                "mssql.copyAll": l10n.t("Copy All"),
+                "mssql.toggleQueryResultPanel": l10n.t("Toggle Query Result Panel"),
+            } satisfies Record<ConfigurableKeyCommandId, string>,
+            configurableKeyCommandDescriptions: {
+                "mssql.runQuery": l10n.t("Run a query for the current active SQL document"),
+                "mssql.runCurrentStatement": l10n.t(
+                    "Execute only the T-SQL statement under the cursor",
+                ),
+                "mssql.cancelQuery": l10n.t("Cancel the query execution in progress"),
+                "mssql.newQuery": l10n.t("Open a new SQL query file"),
+                "mssql.toggleSqlCmd": l10n.t(
+                    "Enable or disable SQLCMD mode for the active SQL document",
+                ),
+                "mssql.connect": l10n.t("Connect the active SQL document to a database"),
+                "mssql.disconnect": l10n.t("Disconnect the active SQL document from the database"),
+                "mssql.changeConnection": l10n.t(
+                    "Change the connection for the active SQL document",
+                ),
+                "mssql.changeDatabase": l10n.t("Change the database for the active SQL document"),
+                "mssql.showEstimatedPlan": l10n.t("View the estimated query execution plan"),
+                "mssql.toggleActualPlan": l10n.t(
+                    "Toggle actual execution plan collection for SQL queries",
+                ),
+                "mssql.copyAll": l10n.t("Copy all query result content"),
+                "mssql.toggleQueryResultPanel": l10n.t("Show or hide the query result panel"),
+            } satisfies Record<ConfigurableKeyCommandId, string>,
             name: l10n.t("Name"),
             query: l10n.t("Query"),
             shortcut: l10n.t("Shortcut"),
-            autoExecute: l10n.t("Auto-execute"),
+            keybinding: l10n.t("Keybinding"),
             clearQuickQuery: l10n.t("Clear Quick Query"),
             clearQuickQueryTooltip: l10n.t("Clear this Quick Query"),
-            managedInVsCode: l10n.t("Managed in VS Code"),
             showAllShortcuts: l10n.t("Show All"),
             showAllQuickQueryShortcutsTooltip: l10n.t(
                 "Show all Quick Query shortcuts in VS Code Keyboard Shortcuts",
@@ -390,9 +554,17 @@ export class LocConstants {
                     args: [name],
                     comment: ["{0} is the Quick Query shortcut name"],
                 }),
+            selectedTextArgumentHint: l10n.t(
+                "Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.",
+            ),
+            selectedTextCompletionDetail: l10n.t("Selected query-editor text"),
             noShortcut: l10n.t("No shortcut"),
             noQuerySet: l10n.t("No query set"),
-            searchWebviewShortcuts: l10n.t("Search in-app shortcuts"),
+            searchWebviewShortcuts: l10n.t("Search extension shortcut"),
+            noShortcutResultsTitle: l10n.t("No matching shortcuts"),
+            noShortcutResultsDescription: l10n.t(
+                "Try searching by command name, description, or keybinding.",
+            ),
             recordShortcut: l10n.t("Record shortcut"),
             recordShortcutDescription: l10n.t(
                 "Press desired key combination and then press ENTER.",
@@ -796,6 +968,7 @@ export class LocConstants {
             highlightExpensiveOperation: l10n.t("Highlight Expensive Operation"),
             toggleTooltips: l10n.t("Toggle Tooltips"),
             properties: l10n.t("Properties"),
+            executionPlanToolbar: l10n.t("Execution plan toolbar"),
             name: l10n.t("Name"),
             value: l10n.t("Value"),
             importance: l10n.t("Importance"),
@@ -810,6 +983,23 @@ export class LocConstants {
             collapse: l10n.t("Collapse"),
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
+            reactFlowRendererError: l10n.t(
+                "The React Flow execution plan preview could not render this plan.",
+            ),
+            executionPlanGraph: l10n.t("Execution plan"),
+            executionPlanDetails: l10n.t("Execution plan details"),
+            expandNode: (name: string) =>
+                l10n.t({
+                    message: "Expand {0}",
+                    args: [name],
+                    comment: ["{0} is the name of an execution plan operation"],
+                }),
+            collapseNode: (name: string) =>
+                l10n.t({
+                    message: "Collapse {0}",
+                    args: [name],
+                    comment: ["{0} is the name of an execution plan operation"],
+                }),
         };
     }
 
@@ -1270,6 +1460,7 @@ export class LocConstants {
             ),
             failedToAddTable: l10n.t("Failed to add table."),
             failedToUpdateTable: l10n.t("Failed to update table."),
+            failedToApplySchema: l10n.t("Failed to apply schema."),
             failedToDeleteTable: l10n.t("Failed to delete table."),
             tableIdAlreadyExists: l10n.t("Table id already exists."),
             foreignKeyMappingRequired: l10n.t("Foreign key column mappings are required."),
@@ -2100,6 +2291,31 @@ export class LocConstants {
             source: l10n.t("Source"),
             target: l10n.t("Target"),
             compareDetails: l10n.t("Comparison Details"),
+            affectedChildrenRegionLabel: l10n.t("Affected child objects"),
+            affectedChildrenAdded: (names: string) =>
+                l10n.t({
+                    message: "Constraints added: {0}",
+                    args: [names],
+                    comment: [
+                        "{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.",
+                    ],
+                }),
+            affectedChildrenChanged: (names: string) =>
+                l10n.t({
+                    message: "Constraints changed: {0}",
+                    args: [names],
+                    comment: [
+                        "{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.",
+                    ],
+                }),
+            affectedChildrenDropped: (names: string) =>
+                l10n.t({
+                    message: "Constraints dropped: {0}",
+                    args: [names],
+                    comment: [
+                        "{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.",
+                    ],
+                }),
             areYouSureYouWantToUpdateTheTarget: l10n.t(
                 "Are you sure you want to update the target?",
             ),
@@ -2443,12 +2659,46 @@ export class LocConstants {
                     args: [ip],
                     comment: ["{0} is the current IP address"],
                 }),
+        };
+    }
 
-            whatsNext: l10n.t("What's next?"),
-            connectAndRunQuery: l10n.t("Connect with SQL tools and run your first query"),
-            seedSampleData: l10n.t("Seed sample data or import an existing schema"),
-            monitorUsage: l10n.t("Monitor usage and manage your free tier limits"),
-            browseTutorials: l10n.t("Browse Azure SQL Database tutorials and docs"),
+    public get whatsNext() {
+        return {
+            title: l10n.t("What's next?"),
+            description: l10n.t(
+                "Add tables and data, explore, and build with the MSSQL extension.",
+            ),
+            designTables: l10n.t("Design tables with Table Designer"),
+            importFlatFile: l10n.t("Import from a flat file as a new table"),
+            schemaDesigner: l10n.t("Visualize and design your database with Schema Designer"),
+            schemaCompare: l10n.t("Compare and deploy schema with Schema Compare"),
+            runFirstQuery: l10n.t("Run your first query"),
+            githubCopilot: l10n.t("Build with AI using GitHub Copilot"),
+            collapseCard: l10n.t("Collapse What's next"),
+            expandCard: l10n.t("Expand What's next"),
+        };
+    }
+
+    public get connectToDatabase() {
+        return {
+            title: l10n.t("Connect to Database"),
+            subtitle: l10n.t(
+                "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.",
+            ),
+            connectionString: l10n.t("Connection string"),
+            runYourMigrations: l10n.t("Run your migrations"),
+            copy: l10n.t("Copy"),
+            copied: l10n.t("Copied!"),
+            copyConnectionString: l10n.t("Copy connection string"),
+            copyMigrationCommand: l10n.t("Copy migration command"),
+            toolDocs: (toolName: string) =>
+                l10n.t({
+                    message: "{0} docs",
+                    args: [toolName],
+                    comment: ["{0} is the name of a database migration tool"],
+                }),
+            collapseCard: l10n.t("Collapse Connect to Database"),
+            expandCard: l10n.t("Expand Connect to Database"),
         };
     }
 

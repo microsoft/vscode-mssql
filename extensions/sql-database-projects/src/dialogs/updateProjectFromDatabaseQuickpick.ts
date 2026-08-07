@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
-import * as mssqlVscode from "vscode-mssql";
+import type * as mssqlVscode from "vscode-mssql";
 import { ExtractTarget, SchemaCompareEndpointType } from "../common/enums";
 import * as constants from "../common/constants";
 import { getSqlProjectsInWorkspace, getVscodeMssqlApi } from "../common/utils";
-import { IConnectionInfo } from "vscode-mssql";
+import type { IConnectionInfo } from "vscode-mssql";
 import { Project } from "../models/project";
 import { UpdateProjectDataModel, UpdateProjectAction } from "../models/api/updateProject";
 

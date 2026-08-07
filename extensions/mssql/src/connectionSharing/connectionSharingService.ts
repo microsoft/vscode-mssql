@@ -10,7 +10,6 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { IConnectionProfile } from "../models/interfaces";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
 import { RequestType } from "vscode-languageclient";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import * as Constants from "../constants/constants";
@@ -18,8 +17,12 @@ import { ScriptingService } from "../scripting/scriptingService";
 import { ScriptOperation } from "../models/contracts/scripting/scriptingRequest";
 import { QueryCancelRequest } from "../models/contracts/queryCancel";
 import { uuid } from "../utils/utils";
+import { sendActionEvent } from "extension-toolkit/vscode";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 const CONNECTION_SHARING_PERMISSIONS_KEY = "mssql.connectionSharing.extensionPermissions";
+const CONNECTION_SHARING_RETIREMENT_SUPPRESSED_EXTENSIONS_KEY =
+    "mssql.connectionSharing.retirementSuppressedExtensions";
 
 type ExtensionPermission = "approved" | "denied";
 type ExtensionPermissionsMap = Record<string, ExtensionPermission>;
@@ -48,13 +51,18 @@ export class ConnectionSharingError extends Error {
     }
 }
 
+// TODO(api-retirement): Remove this public API after dependent extensions have migrated.
 export class ConnectionSharingService implements mssql.IConnectionSharingService {
     private _logger: ILogger;
+    private readonly _connectionMetadata = new Map<
+        string,
+        { extensionId: string; authenticationType: string }
+    >();
+    private readonly _retirementWarningExtensionIdsShown = new Set<string>();
     constructor(
         private readonly _context: vscode.ExtensionContext,
         private readonly _client: SqlToolsServiceClient,
         private readonly _connectionManager: ConnectionManager,
-        _vscodeWrapper: VscodeWrapper,
         private readonly _scriptingService: ScriptingService,
     ) {
         this._logger = logger.withPrefix("ConnectionSharingService");
@@ -150,6 +158,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             vscode.commands.registerCommand(
                 "mssql.connectionSharing.clearAllConnectionSharingPermissions",
                 async () => {
+                    this.recordConnectionSharingApiCall("clearAllConnectionSharingPermissions");
                     const response = await vscode.window.showInformationMessage(
                         LocalizedConstants.ConnectionSharing.ClearAllPermissions,
                         LocalizedConstants.ConnectionSharing.Clear,
@@ -322,10 +331,158 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         return extensionId;
     }
 
-    public async getActiveEditorConnectionId(extensionId: string): Promise<string | undefined> {
-        await this.validateExtensionPermission(extensionId);
+    private recordConnectionSharingApiCall(
+        apiName: string,
+        extensionId?: string,
+        authenticationType?: string,
+    ): void {
+        sendActionEvent(TelemetryViews.Connection, TelemetryActions.ConnectionSharingApiCalled, {
+            method: apiName,
+            authenticationType: authenticationType ?? "unknown",
+            extensionId: extensionId ?? "unknown",
+        });
+    }
 
+    private async validateExtensionPermissionForApiCall(
+        apiName: string,
+        extensionId: string,
+    ): Promise<void> {
+        try {
+            await this.validateExtensionPermission(extensionId);
+        } catch (error) {
+            this.recordConnectionSharingApiCall(apiName, extensionId);
+            throw error;
+        }
+    }
+
+    private recordConnectionSharingApiCallForUri(apiName: string, connectionUri: string): void {
+        const metadata = this._connectionMetadata.get(connectionUri);
+        const connectionProfile = connectionUri
+            ? (this._connectionManager.getConnectionInfoFromUri(
+                  connectionUri,
+              ) as IConnectionProfile)
+            : undefined;
+        this.recordConnectionSharingApiCall(
+            apiName,
+            metadata?.extensionId,
+            connectionProfile?.authenticationType?.toString() ?? metadata?.authenticationType,
+        );
+        this.showConnectionSharingRetirementWarning(metadata?.extensionId);
+    }
+
+    private showConnectionSharingRetirementWarning(extensionId?: string): void {
+        if (!extensionId) {
+            return;
+        }
+
+        if (Constants.internalConnectionSharingExtensionIds.has(extensionId)) {
+            sendActionEvent(
+                TelemetryViews.Connection,
+                TelemetryActions.ConnectionSharingRetirementToast,
+                { extensionId, action: "suppressedInternalConsumer" },
+            );
+            return;
+        }
+
+        const suppressedExtensions = this._context.globalState.get<string[]>(
+            CONNECTION_SHARING_RETIREMENT_SUPPRESSED_EXTENSIONS_KEY,
+            [],
+        );
+        if (
+            suppressedExtensions.includes(extensionId) ||
+            this._retirementWarningExtensionIdsShown.has(extensionId)
+        ) {
+            return;
+        }
+
+        const extension = vscode.extensions.getExtension(extensionId);
+        if (!extension) {
+            return;
+        }
+
+        this._retirementWarningExtensionIdsShown.add(extensionId);
+        const extensionName = extension.packageJSON.displayName ?? extension.id;
+        sendActionEvent(
+            TelemetryViews.Connection,
+            TelemetryActions.ConnectionSharingRetirementToast,
+            { extensionId, action: "shown" },
+        );
+        void Promise.resolve(
+            vscode.window.showWarningMessage(
+                LocalizedConstants.ConnectionSharing.retirementWarning(extensionName),
+                LocalizedConstants.ConnectionSharing.FileFeatureRequest,
+                LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension,
+            ),
+        )
+            .then(async (selection) => {
+                if (selection === LocalizedConstants.ConnectionSharing.FileFeatureRequest) {
+                    sendActionEvent(
+                        TelemetryViews.Connection,
+                        TelemetryActions.ConnectionSharingRetirementToast,
+                        { extensionId, action: "requestFeature" },
+                    );
+                    await this.suppressConnectionSharingRetirementWarning(extensionId);
+                    void vscode.env.openExternal(
+                        vscode.Uri.parse(Constants.connectionSharingFeatureRequestUrl),
+                    );
+                } else if (
+                    selection === LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension
+                ) {
+                    sendActionEvent(
+                        TelemetryViews.Connection,
+                        TelemetryActions.ConnectionSharingRetirementToast,
+                        { extensionId, action: "doNotShowAgain" },
+                    );
+                    await this.suppressConnectionSharingRetirementWarning(extensionId);
+                } else {
+                    sendActionEvent(
+                        TelemetryViews.Connection,
+                        TelemetryActions.ConnectionSharingRetirementToast,
+                        { extensionId, action: "dismissed" },
+                    );
+                }
+            })
+            .catch((error) => {
+                this._logger.error(
+                    "Failed to handle the connection-sharing retirement notification.",
+                    error,
+                );
+            });
+    }
+
+    private async suppressConnectionSharingRetirementWarning(extensionId: string): Promise<void> {
+        const suppressedExtensions = this._context.globalState.get<string[]>(
+            CONNECTION_SHARING_RETIREMENT_SUPPRESSED_EXTENSIONS_KEY,
+            [],
+        );
+        await this._context.globalState.update(
+            CONNECTION_SHARING_RETIREMENT_SUPPRESSED_EXTENSIONS_KEY,
+            [...new Set([...suppressedExtensions, extensionId])],
+        );
+    }
+
+    public async getActiveEditorConnectionId(extensionId: string): Promise<string | undefined> {
+        await this.validateExtensionPermissionForApiCall(
+            "getActiveEditorConnectionId",
+            extensionId,
+        );
         const activeEditor = vscode.window.activeTextEditor;
+        const activeEditorUri = activeEditor?.document.uri.toString();
+        const isConnected = activeEditorUri
+            ? this._connectionManager.isConnected(activeEditorUri)
+            : false;
+        const connectionDetails = isConnected
+            ? (this._connectionManager.getConnectionInfoFromUri(
+                  activeEditorUri,
+              ) as IConnectionProfile)
+            : undefined;
+        this.recordConnectionSharingApiCall(
+            "getActiveEditorConnectionId",
+            extensionId,
+            connectionDetails?.authenticationType?.toString(),
+        );
+        this.showConnectionSharingRetirementWarning(extensionId);
+
         if (!activeEditor) {
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.NO_ACTIVE_EDITOR,
@@ -334,25 +491,36 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             );
         }
 
-        const activeEditorUri = activeEditor.document.uri.toString();
-        const isConnected = this._connectionManager.isConnected(activeEditorUri);
-
         if (!isConnected) {
             return undefined; // No active connection for the editor
         }
 
-        const connectionDetails = this._connectionManager.getConnectionInfoFromUri(activeEditorUri);
         if (!connectionDetails) {
             return undefined; // No connection details found
         }
 
-        return (connectionDetails as IConnectionProfile).id;
+        return connectionDetails.id;
     }
 
     public async getActiveDatabase(extensionId: string): Promise<string | undefined> {
-        await this.validateExtensionPermission(extensionId);
-
+        await this.validateExtensionPermissionForApiCall("getActiveDatabase", extensionId);
         const activeEditor = vscode.window.activeTextEditor;
+        const activeEditorUri = activeEditor?.document.uri.toString();
+        const isConnected = activeEditorUri
+            ? this._connectionManager.isConnected(activeEditorUri)
+            : false;
+        const connectionDetails = isConnected
+            ? (this._connectionManager.getConnectionInfoFromUri(
+                  activeEditorUri,
+              ) as IConnectionProfile)
+            : undefined;
+        this.recordConnectionSharingApiCall(
+            "getActiveDatabase",
+            extensionId,
+            connectionDetails?.authenticationType?.toString(),
+        );
+        this.showConnectionSharingRetirementWarning(extensionId);
+
         if (!activeEditor) {
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.NO_ACTIVE_EDITOR,
@@ -361,14 +529,10 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             );
         }
 
-        const activeEditorUri = activeEditor.document.uri.toString();
-        const isConnected = this._connectionManager.isConnected(activeEditorUri);
-
         if (!isConnected) {
             return undefined; // No active connection for the editor
         }
 
-        const connectionDetails = this._connectionManager.getConnectionInfoFromUri(activeEditorUri);
         if (!connectionDetails) {
             return undefined; // No connection details found
         }
@@ -380,11 +544,16 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         extensionId: string,
         connectionId: string,
     ): Promise<string | undefined> {
-        await this.validateExtensionPermission(extensionId);
-
+        await this.validateExtensionPermissionForApiCall("getDatabaseForConnectionId", extensionId);
         const connections =
             await this._connectionManager.connectionStore.connectionConfig.getConnections();
         const targetConnection = connections.find((conn) => conn.id === connectionId);
+        this.recordConnectionSharingApiCall(
+            "getDatabaseForConnectionId",
+            extensionId,
+            targetConnection?.authenticationType?.toString(),
+        );
+        this.showConnectionSharingRetirementWarning(extensionId);
 
         if (!targetConnection) {
             return undefined; // Connection not found
@@ -398,11 +567,16 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         connectionId: string,
         databaseName?: string,
     ): Promise<string | undefined> {
-        await this.validateExtensionPermission(extensionId);
-
+        await this.validateExtensionPermissionForApiCall("connect", extensionId);
         const connections =
             await this._connectionManager.connectionStore.connectionConfig.getConnections();
         const targetConnection = connections.find((conn) => conn.id === connectionId);
+        this.recordConnectionSharingApiCall(
+            "connect",
+            extensionId,
+            targetConnection?.authenticationType?.toString(),
+        );
+        this.showConnectionSharingRetirementWarning(extensionId);
 
         if (!targetConnection) {
             this._logger.error(
@@ -442,20 +616,27 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         this._logger.debug(
             `Successfully connected to database with ID "${connectionId}" for extension "${extensionId}".`,
         );
+        this._connectionMetadata.set(connectionUri, {
+            extensionId,
+            authenticationType: targetConnection.authenticationType?.toString() ?? "unknown",
+        });
         return connectionUri; // Return the connection URI
     }
 
     public disconnect(connectionUri: string): void {
+        this.recordConnectionSharingApiCallForUri("disconnect", connectionUri);
         if (!connectionUri) {
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.INVALID_CONNECTION_URI,
                 LocalizedConstants.ConnectionSharing.invalidConnectionUri,
             );
         }
+        this._connectionMetadata.delete(connectionUri);
         void this._connectionManager.disconnect(connectionUri);
     }
 
     public isConnected(connectionUri: string): boolean {
+        this.recordConnectionSharingApiCallForUri("isConnected", connectionUri);
         if (!connectionUri) {
             return false;
         }
@@ -466,6 +647,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         connectionUri: string,
         queryString: string,
     ): Promise<mssql.SimpleExecuteResult> {
+        this.recordConnectionSharingApiCallForUri("executeSimpleQuery", connectionUri);
         if (!connectionUri) {
             this._logger.warn("Invalid connection URI provided for query execution.");
             throw new ConnectionSharingError(
@@ -474,7 +656,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
             );
         }
 
-        if (!this.isConnected(connectionUri)) {
+        if (!this._connectionManager.isConnected(connectionUri)) {
             throw new ConnectionSharingError(
                 ConnectionSharingErrorCode.NO_ACTIVE_CONNECTION,
                 LocalizedConstants.ConnectionSharing.connectionNotActive,
@@ -496,6 +678,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
     }
 
     public async cancelQuery(connectionUri: string): Promise<void> {
+        this.recordConnectionSharingApiCallForUri("cancelQuery", connectionUri);
         if (!connectionUri) {
             return;
         }
@@ -505,6 +688,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
     }
 
     public getServerInfo(connectionUri: string): mssql.IServerInfo {
+        this.recordConnectionSharingApiCallForUri("getServerInfo", connectionUri);
         this._logger.debug(`Retrieving server info for connection URI: ${connectionUri}`);
         this.validateConnection(connectionUri);
         const connectionDetails = this._connectionManager.getConnectionInfoFromUri(connectionUri);
@@ -512,6 +696,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
     }
 
     public async listDatabases(connectionUri: string): Promise<string[]> {
+        this.recordConnectionSharingApiCallForUri("listDatabases", connectionUri);
         this._logger.debug(`Listing databases for connection URI: ${connectionUri}`);
         this.validateConnection(connectionUri);
         return await this._connectionManager.listDatabases(connectionUri);
@@ -522,13 +707,15 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         operation: ScriptOperation,
         scriptingObject: mssql.IScriptingObject,
     ) {
+        this.recordConnectionSharingApiCallForUri("scriptObject", connectionUri);
         this._logger.debug(
             `Executing script operation "${operation}" for connection URI: ${connectionUri}`,
         );
         this.validateConnection(connectionUri);
         await this._connectionManager.refreshAzureAccountToken(connectionUri);
 
-        const serverInfo = this.getServerInfo(connectionUri); // Ensure connection is valid
+        const connectionDetails = this._connectionManager.getConnectionInfoFromUri(connectionUri);
+        const serverInfo = this._connectionManager.getServerInfo(connectionDetails);
         const scriptingParams = this._scriptingService.createScriptingRequestParams(
             serverInfo,
             scriptingObject,
@@ -541,6 +728,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
     public async editConnectionSharingPermissions(
         extensionId?: string,
     ): Promise<ExtensionPermission | undefined> {
+        this.recordConnectionSharingApiCall("editConnectionSharingPermissions", extensionId);
         this._logger.info(
             `Editing connection sharing permissions for extension: ${extensionId ?? "not specified"}`,
         );
@@ -622,11 +810,16 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         extensionId: string,
         connectionId: string,
     ): Promise<string | undefined> {
-        await this.validateExtensionPermission(extensionId);
-
+        await this.validateExtensionPermissionForApiCall("getConnectionString", extensionId);
         const connections =
             await this._connectionManager.connectionStore.connectionConfig.getConnections();
         const targetConnection = connections.find((conn) => conn.id === connectionId);
+        this.recordConnectionSharingApiCall(
+            "getConnectionString",
+            extensionId,
+            targetConnection?.authenticationType?.toString(),
+        );
+        this.showConnectionSharingRetirementWarning(extensionId);
 
         if (!targetConnection) {
             this._logger.error(

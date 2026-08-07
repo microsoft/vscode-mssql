@@ -5,20 +5,23 @@
 
 import * as vscode from "vscode";
 import { WebviewPanelController } from "./webviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
 import {
     ConnectionGroupState,
     ConnectionGroupReducers,
     ConnectionGroupSpec,
     CreateConnectionGroupDialogProps,
 } from "../sharedInterfaces/connectionGroup";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import {
+    sendActionEvent,
+    sendErrorEvent,
+    IExtensionContextService,
+} from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { Deferred } from "../protocol";
 import * as Loc from "../constants/locConstants";
 import { IConnectionGroup } from "../models/interfaces";
-import { ConnectionConfig } from "../connectionconfig/connectionconfig";
+import { ConnectionConfig, IConnectionConfig } from "../connectionconfig/connectionconfig";
 import ConnectionManager from "./connectionManager";
 
 /**
@@ -32,15 +35,13 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
     public readonly initialized: Deferred<void> = new Deferred<void>();
 
     constructor(
-        context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
-        private connectionConfig: ConnectionConfig,
-        private connectionGroupToEdit?: IConnectionGroup,
+        private connectionGroupToEdit: IConnectionGroup | undefined,
+        @IExtensionContextService contextService: IExtensionContextService,
+        @IConnectionConfig private connectionConfig: ConnectionConfig,
     ) {
         super(
-            context,
-            vscodeWrapper,
-            "ConnectionGroup",
+            contextService.context,
+            "connectionGroup",
             "ConnectionGroup",
             {
                 existingGroupName: connectionGroupToEdit?.name,
@@ -56,12 +57,12 @@ export class ConnectionGroupWebviewController extends WebviewPanelController<
                 viewColumn: vscode.ViewColumn.One,
                 iconPath: {
                     light: vscode.Uri.joinPath(
-                        context.extensionUri,
+                        contextService.context.extensionUri,
                         "media",
                         "connectionGroup_light.svg",
                     ),
                     dark: vscode.Uri.joinPath(
-                        context.extensionUri,
+                        contextService.context.extensionUri,
                         "media",
                         "connectionGroup_dark.svg",
                     ),

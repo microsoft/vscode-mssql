@@ -463,20 +463,20 @@ suite("DacFxService Tests", () => {
             expect(result).to.equal(expectedResult);
         });
 
-        test("should send request with GetCodeAnalysisRulesRequest.type and empty params", async () => {
+        test("should send request with GetCodeAnalysisRulesRequest.type and the project uri", async () => {
             // Arrange
             const expectedResult = { success: true, errorMessage: "", rules: [] };
             sqlToolsClientStub.sendRequest.resolves(expectedResult);
             const service = new DacFxService(sqlToolsClientStub, sqlTasksServiceStub);
 
             // Act
-            const result = await service.getCodeAnalysisRules();
+            const result = await service.getCodeAnalysisRules("C:\\proj\\MyProject.sqlproj");
 
             // Assert
             expect(sqlToolsClientStub.sendRequest).to.have.been.calledOnce;
             expect(sqlToolsClientStub.sendRequest).to.have.been.calledWith(
                 dacFxContracts.GetCodeAnalysisRulesRequest.type,
-                {},
+                { projectUri: "C:\\proj\\MyProject.sqlproj" },
             );
             expect(result).to.equal(expectedResult);
         });

@@ -80,14 +80,13 @@ export async function launchVsCodeWithMssqlExtension(
     // TODO: Workaround for macOS CI EINVAL error — revert once the upstream VS Code issue is fixed.
     // A recent VS Code build changed the socket filename format (e.g. "1.12-main.sock"), pushing the
     // default user-data-dir path over macOS's hard 103-char Unix socket path limit. On macOS,
-    // os.tmpdir() returns a long "/var/folders/.../T" path which, combined with the nested
-    // "vscode-mssql-test-<timestamp>/user-data" directories, exceeds the limit and fails to launch.
-    // Use a short "/tmp" base on macOS to keep the resulting socket path under the limit.
+    // os.tmpdir() returns a long "/var/folders/.../T" path. Keep temp directories as short as
+    // possible to keep the resulting socket path under the limit.
     // Tracked in: https://github.com/microsoft/vscode/issues/319752
     const tmpBaseDir = process.platform === "darwin" ? "/tmp" : os.tmpdir();
-    const tmpRoot = path.join(tmpBaseDir, `vscode-mssql-test-${Date.now()}`);
-    const userDataDir = path.join(tmpRoot, "user-data");
-    const extensionsDir = path.join(tmpRoot, "extensions");
+    const tmpRoot = fs.mkdtempSync(path.join(tmpBaseDir, "mssql-"));
+    const userDataDir = path.join(tmpRoot, "u");
+    const extensionsDir = path.join(tmpRoot, "e");
     const videoDir = path.join(
         process.cwd(),
         "test-reports",

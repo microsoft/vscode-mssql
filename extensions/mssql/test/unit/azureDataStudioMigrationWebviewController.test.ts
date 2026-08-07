@@ -13,17 +13,11 @@ import { promises as fs } from "fs";
 import { expect } from "chai";
 
 import { AzureDataStudioMigrationWebviewController } from "../../src/controllers/azureDataStudioMigrationWebviewController";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import { AzureAccountService } from "../../src/services/azureAccountService";
-import {
-    stubTelemetry,
-    stubLogger,
-    stubVscodeWrapper,
-    stubWebviewConnectionRpc,
-    stubExtensionContext,
-} from "./utils";
+import { ExtensionContextService } from "extension-toolkit/vscode";
+import { stubTelemetry, stubLogger, stubWebviewConnectionRpc, stubExtensionContext } from "./utils";
 import * as utils from "../../src/utils/utils";
 import { AzureDataStudioMigration } from "../../src/constants/locConstants";
 import {
@@ -44,7 +38,6 @@ chai.use(sinonChai);
 suite("AzureDataStudioMigrationWebviewController", () => {
     let sandbox: sinon.SinonSandbox;
     let mockContext: vscode.ExtensionContext;
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionConfigStub: sinon.SinonStubbedInstance<ConnectionConfig>;
     let azureAccountServiceStub: sinon.SinonStubbedInstance<AzureAccountService>;
@@ -77,7 +70,6 @@ suite("AzureDataStudioMigrationWebviewController", () => {
             .returns(rpc.connection as unknown as jsonRpc.MessageConnection);
 
         mockContext = stubExtensionContext(sandbox);
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
         connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
         connectionStoreStub.saveProfile.resolves();
 
@@ -100,13 +92,22 @@ suite("AzureDataStudioMigrationWebviewController", () => {
 
     function createController(): AzureDataStudioMigrationWebviewController {
         return new AzureDataStudioMigrationWebviewController(
-            mockContext,
-            vscodeWrapperStub,
+            azureAccountServiceStub,
+            new ExtensionContextService(mockContext),
             connectionStoreStub,
             connectionConfigStub,
-            azureAccountServiceStub,
         );
     }
+
+    test("distinct instances share the same injected connection store and configuration", () => {
+        const secondController = createController();
+
+        expect(secondController).to.not.equal(controller);
+        expect(secondController["connectionStore"]).to.equal(controller["connectionStore"]);
+        expect(secondController["connectionStore"]).to.equal(connectionStoreStub);
+        expect(secondController["connectionConfig"]).to.equal(controller["connectionConfig"]);
+        expect(secondController["connectionConfig"]).to.equal(connectionConfigStub);
+    });
 
     test("loadSettingsFromFile reads ADS config and updates state with parsed objects", async () => {
         const settingsPath = "C:\\temp\\settings.json";

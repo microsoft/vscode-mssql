@@ -6,12 +6,13 @@
 import { expect } from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
+import { InstantiationServiceBuilder, ServiceDescriptor } from "extension-toolkit/base";
+import { ExtensionContextService, IExtensionContextService } from "extension-toolkit/vscode";
 import * as Constants from "../../src/constants/constants";
-import { ConnectionStore } from "../../src/models/connectionStore";
-import { CredentialStore } from "../../src/credentialstore/credentialstore";
+import { ConnectionStore, IConnectionStore } from "../../src/models/connectionStore";
+import { CredentialStore, ICredentialStore } from "../../src/credentialstore/credentialstore";
 import { ILogger } from "../../src/sharedInterfaces/logger";
-import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { ConnectionConfig, IConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import {
     CredentialsQuickPickItemType,
     IConnectionProfile,
@@ -27,21 +28,18 @@ suite("ConnectionStore Tests", () => {
     let connectionStore: ConnectionStore;
 
     let mockContext: vscode.ExtensionContext;
+    let mockContextService: IExtensionContextService;
     let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let mockCredentialStore: sinon.SinonStubbedInstance<CredentialStore>;
     let mockConnectionConfig: sinon.SinonStubbedInstance<ConnectionConfig>;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
     let initializedDeferred: Deferred<void>;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
 
         mockContext = stubExtensionContext(sandbox);
+        mockContextService = new ExtensionContextService(mockContext);
         (mockContext.globalState.update as sinon.SinonStub).resolves();
-        mockVscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-        mockVscodeWrapper.getConfiguration.returns({
-            [Constants.configMaxRecentConnections]: 5,
-        } as unknown as vscode.WorkspaceConfiguration);
         mockLogger = createStubLogger(sandbox);
 
         mockCredentialStore = sandbox.createStubInstance(CredentialStore);
@@ -63,11 +61,10 @@ suite("ConnectionStore Tests", () => {
     test("Initializes correctly", async () => {
         expect(() => {
             connectionStore = new ConnectionStore(
-                mockContext,
+                mockContextService,
                 mockCredentialStore,
-                mockLogger,
                 mockConnectionConfig,
-                mockVscodeWrapper,
+                mockLogger,
             );
         }).to.not.throw();
 
@@ -116,11 +113,10 @@ suite("ConnectionStore Tests", () => {
 
     test("findMatchingProfile", async () => {
         connectionStore = new ConnectionStore(
-            mockContext,
+            mockContextService,
             mockCredentialStore,
-            mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
+            mockLogger,
         );
 
         await connectionStore.initialized;
@@ -166,11 +162,10 @@ suite("ConnectionStore Tests", () => {
         mockConnectionConfig.getConnections.resolves([savedConnection]);
 
         connectionStore = new ConnectionStore(
-            mockContext,
+            mockContextService,
             mockCredentialStore,
-            mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
+            mockLogger,
         );
 
         await connectionStore.initialized;
@@ -195,11 +190,10 @@ suite("ConnectionStore Tests", () => {
             .returns(recentConnections);
 
         connectionStore = new ConnectionStore(
-            mockContext,
+            mockContextService,
             mockCredentialStore,
-            mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
+            mockLogger,
         );
 
         await connectionStore.initialized;
@@ -234,11 +228,10 @@ suite("ConnectionStore Tests", () => {
             .returns(recentConnections);
 
         connectionStore = new ConnectionStore(
-            mockContext,
+            mockContextService,
             mockCredentialStore,
-            mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
+            mockLogger,
         );
 
         await connectionStore.initialized;
@@ -279,11 +272,10 @@ suite("ConnectionStore Tests", () => {
             .returns([recentConnection]);
 
         connectionStore = new ConnectionStore(
-            mockContext,
+            mockContextService,
             mockCredentialStore,
-            mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
+            mockLogger,
         );
 
         await connectionStore.initialized;
@@ -316,11 +308,10 @@ suite("ConnectionStore Tests", () => {
         } as IConnectionProfile;
 
         connectionStore = new ConnectionStore(
-            mockContext,
+            mockContextService,
             mockCredentialStore,
-            mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
+            mockLogger,
         );
 
         await connectionStore.initialized;
@@ -366,11 +357,10 @@ suite("ConnectionStore Tests", () => {
         ] as IConnectionProfile[];
 
         connectionStore = new ConnectionStore(
-            mockContext,
+            mockContextService,
             mockCredentialStore,
-            mockLogger,
             mockConnectionConfig,
-            mockVscodeWrapper,
+            mockLogger,
         );
 
         await connectionStore.initialized;
@@ -396,5 +386,31 @@ suite("ConnectionStore Tests", () => {
                 remainingConnectionsMatch,
             ),
         ).to.be.true;
+    });
+
+    suite("Dependency injection", () => {
+        test("Resolves a cached ConnectionStore instance sharing the registered ConnectionConfig", async () => {
+            const builder = new InstantiationServiceBuilder();
+            builder.define(IExtensionContextService, mockContextService);
+            builder.define(ICredentialStore, mockCredentialStore);
+            builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
+            builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
+            const instantiationService = builder.seal();
+
+            const first = instantiationService.invokeFunction((accessor) =>
+                accessor.get(IConnectionStore),
+            );
+            const second = instantiationService.invokeFunction((accessor) =>
+                accessor.get(IConnectionStore),
+            );
+
+            expect(first).to.equal(second);
+
+            const resolvedConnectionConfig = instantiationService.invokeFunction((accessor) =>
+                accessor.get(IConnectionConfig),
+            );
+
+            expect(first.connectionConfig).to.equal(resolvedConnectionConfig);
+        });
     });
 });

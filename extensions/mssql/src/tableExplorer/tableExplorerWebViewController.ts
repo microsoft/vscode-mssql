@@ -15,7 +15,6 @@ import {
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ObjectExplorerUtils } from "../objectExplorer/objectExplorerUtils";
 import { ITableExplorerService } from "../services/tableExplorerService";
 import { EditSessionReadyNotification } from "../models/contracts/tableExplorer";
@@ -23,7 +22,7 @@ import * as LocConstants from "../constants/locConstants";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { bracketEscapeSqlIdentifier } from "../models/utils";
 import * as Constants from "../constants/constants";
-import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
 
@@ -36,7 +35,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private _tableExplorerService: ITableExplorerService,
         private _connectionManager: ConnectionManager,
         private _targetNode: TreeNodeInfo,
@@ -49,7 +47,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
         super(
             context,
-            vscodeWrapper,
             "tableExplorer",
             "tableExplorer",
             {

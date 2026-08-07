@@ -1,19 +1,11 @@
 // Prettier configuration for the monorepo
-// Uses CRLF line endings to match .gitattributes default
 
 const config = {
     tabWidth: 4,
     printWidth: 100,
     bracketSameLine: true,
-    endOfLine: "crlf",
+    endOfLine: "lf",
     overrides: [
-        {
-            // Shell scripts and husky hooks use LF per .gitattributes
-            files: ["*.sh", "*.init", ".husky/**/*"],
-            options: {
-                endOfLine: "lf",
-            },
-        },
         {
             files: "*.svg",
             options: {

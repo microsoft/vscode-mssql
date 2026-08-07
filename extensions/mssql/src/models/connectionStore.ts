@@ -18,16 +18,68 @@ import {
     IConnectionProfileWithSource,
     IConnectionGroup,
 } from "./interfaces";
-import { ICredentialStore, Credential } from "../credentialstore/icredentialstore";
-import { ConnectionConfig } from "../connectionconfig/connectionconfig";
-import VscodeWrapper from "../controllers/vscodeWrapper";
+import { ICredentialStore, Credential } from "../credentialstore/credentialstore";
+import { ConnectionConfig, IConnectionConfig } from "../connectionconfig/connectionconfig";
 import { IConnectionInfo } from "vscode-mssql";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "./logger";
 import { Deferred } from "../protocol";
 import { ConnectionMatcher, MatchScore } from "./utils";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { createServiceIdentifier } from "extension-toolkit/base";
+import { IExtensionContextService, sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
+
+/**
+ * Contract for the connection storage manager consumed by connection webviews, object
+ * explorer, code lens, connection sharing, and the public API surface.
+ */
+export const IConnectionStore = createServiceIdentifier<IConnectionStore>("connectionStore");
+
+export interface IConnectionStore {
+    readonly _serviceBrand: undefined;
+
+    readonly initialized: Deferred<void>;
+    readonly connectionConfig: IConnectionConfig;
+
+    getPickListItems(): Promise<IConnectionCredentialsQuickPickItem[]>;
+    getProfilePickListItems(): Promise<IConnectionCredentialsQuickPickItem[]>;
+    addSavedPassword(
+        credentialsItem: IConnectionCredentialsQuickPickItem,
+    ): Promise<IConnectionCredentialsQuickPickItem>;
+    lookupPassword(
+        connectionCredentials: IConnectionInfo,
+        isConnectionString?: boolean,
+    ): Promise<string>;
+    storeSessionPassword(connectionCredentials: IConnectionInfo, password: string): void;
+    shouldLookupSavedPassword(connectionCreds: IConnectionProfile): boolean;
+    saveProfile(
+        profile: IConnectionProfile,
+        forceWritePlaintextPassword?: boolean,
+    ): Promise<IConnectionProfile>;
+    getRecentlyUsedConnections(limit?: number): IConnectionInfo[];
+    addRecentlyUsed(conn: IConnectionInfo): Promise<void>;
+    clearRecentlyUsed(): Promise<boolean>;
+    removeRecentlyUsed(conn: IConnectionProfile, keepCredentialStore?: boolean): Promise<void>;
+    saveProfilePasswordIfNeeded(profile: IConnectionProfile): Promise<boolean>;
+    saveProfileWithConnectionString(profile: IConnectionProfile): Promise<boolean>;
+    removeProfile(profile: IConnectionProfile, keepCredentialStore?: boolean): Promise<boolean>;
+    deleteCredential(profile: IConnectionProfile): Promise<void>;
+    removeProfilePassword(connection: IConnectionInfo): Promise<void>;
+    readAllConnectionGroups(): Promise<IConnectionGroup[]>;
+    getGroupForConnectionId(connectionId: string): Promise<IConnectionGroup | undefined>;
+    readAllConnections(
+        includeRecentConnections?: boolean,
+        recentConnectionsLimit?: number,
+    ): Promise<IConnectionProfileWithSource[]>;
+    findMatchingProfile(
+        connProfile: IConnectionProfile,
+    ): Promise<{ profile: IConnectionProfile; score: MatchScore }>;
+    getConnectionQuickpickItems(
+        includeRecentConnections?: boolean,
+        recentConnectionsLimit?: number,
+    ): Promise<IConnectionCredentialsQuickPickItem[]>;
+    getMaxRecentConnectionsCount(): number;
+}
 
 /**
  * Manages the connections list including saved profiles and the most recently used connections
@@ -35,7 +87,11 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
  * @export
  * @class ConnectionStore
  */
-export class ConnectionStore {
+export class ConnectionStore implements IConnectionStore {
+    declare readonly _serviceBrand: undefined;
+
+    private _context: vscode.ExtensionContext;
+
     /**
      * Map to store password for connections where savePassword is false for the session.
      * For connections with savePassword = true, the password will be saved to the credential
@@ -43,22 +99,15 @@ export class ConnectionStore {
      */
     private _sessionPasswords: Map<string, string> = new Map();
     constructor(
-        private _context: vscode.ExtensionContext,
-        private _credentialStore: ICredentialStore,
+        @IExtensionContextService contextService: IExtensionContextService,
+        @ICredentialStore private _credentialStore: ICredentialStore,
+        @IConnectionConfig private _connectionConfig: ConnectionConfig,
         private _logger?: ILogger,
-        private _connectionConfig?: ConnectionConfig,
-        private _vscodeWrapper?: VscodeWrapper,
     ) {
-        if (!this.vscodeWrapper) {
-            this.vscodeWrapper = new VscodeWrapper();
-        }
+        this._context = contextService.context;
 
         if (!this._logger) {
             this._logger = logger.withPrefix("ConnectionStore");
-        }
-
-        if (!this._connectionConfig) {
-            this._connectionConfig = new ConnectionConfig(this.vscodeWrapper);
         }
     }
 
@@ -192,14 +241,6 @@ export class ConnectionStore {
         if (Utils.isNotEmpty(value)) {
             arr.push(prefix.concat(value));
         }
-    }
-
-    private get vscodeWrapper(): VscodeWrapper {
-        return this._vscodeWrapper;
-    }
-
-    private set vscodeWrapper(value: VscodeWrapper) {
-        this._vscodeWrapper = value;
     }
 
     /**
@@ -789,9 +830,9 @@ export class ConnectionStore {
     }
 
     public getMaxRecentConnectionsCount(): number {
-        let config = this._vscodeWrapper.getConfiguration(Constants.extensionConfigSectionName);
+        let config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
 
-        let maxConnections: number = config[Constants.configMaxRecentConnections];
+        let maxConnections = config.get<number>(Constants.configMaxRecentConnections);
         if (typeof maxConnections !== "number" || maxConnections <= 0) {
             maxConnections = 5;
         }

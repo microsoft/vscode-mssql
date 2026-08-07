@@ -23,7 +23,6 @@ import {
     FilterType,
     ProfilerSelectedEventDetails,
 } from "../sharedInterfaces/profiler";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { getProfilerConfigService, FIELD_DATABASE_NAME } from "./profilerConfigService";
 import { ProfilerSessionManager } from "./profilerSessionManager";
 import { ProfilerSession } from "./profilerSession";
@@ -38,7 +37,7 @@ import {
 } from "./profilerTypes";
 import { Profiler as LocProfiler, msgYes } from "../constants/locConstants";
 import { generateCsvContent, generateExportTimestamp } from "./csvUtils";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 /**
@@ -80,7 +79,6 @@ export class ProfilerWebviewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         sessionManager: ProfilerSessionManager,
         availableSessions: Array<{ id: string; name: string }> = [],
         sessionName?: string,
@@ -118,7 +116,6 @@ export class ProfilerWebviewController extends WebviewPanelController<
 
         super(
             context,
-            vscodeWrapper,
             "profiler",
             "profiler",
             {

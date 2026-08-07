@@ -9,8 +9,8 @@ import * as utils from "../common/utils";
 import * as UUID from "vscode-languageclient/lib/utils/uuid";
 import * as templates from "../templates/templates";
 import * as vscode from "vscode";
-import * as dataworkspace from "dataworkspace";
-import * as mssqlVscode from "vscode-mssql";
+import type * as dataworkspace from "dataworkspace";
+import type * as mssqlVscode from "vscode-mssql";
 
 import { promises as fs } from "fs";
 import { Project } from "../models/project";
@@ -34,20 +34,18 @@ import { TelemetryActions, TelemetryReporter, TelemetryViews } from "../common/t
 import {
     AddItemOptions,
     EntryType,
-    GenerateProjectFromOpenApiSpecOptions,
     IDatabaseReferenceProjectEntry,
     ISqlProject,
     ItemType,
     SqlTargetPlatform,
-} from "sqldbproj";
-import { AutorestHelper } from "../tools/autorestHelper";
+} from "../sqldbproj";
 import { createNewProjectFromDatabaseWithQuickpick } from "../dialogs/createProjectFromDatabaseQuickpick";
 import { UpdateProjectFromDatabaseWithQuickpick } from "../dialogs/updateProjectFromDatabaseQuickpick";
 import { addDatabaseReferenceQuickpick } from "../dialogs/addDatabaseReferenceQuickpick";
 import { FileProjectEntry, SqlProjectReferenceProjectEntry } from "../models/projectEntry";
 import { UpdateProjectAction, UpdateProjectDataModel } from "../models/api/updateProject";
 import { SqlCmdVariableTreeItem } from "../models/tree/sqlcmdVariableTreeItem";
-import { DeploymentScenario, ExtractTarget, TaskExecutionMode } from "../common/enums";
+import { DeploymentScenario, ExtractTarget, ProjectType, TaskExecutionMode } from "../common/enums";
 
 export type AddDatabaseReferenceSettings =
     | ISystemDatabaseReferenceSettings
@@ -65,7 +63,6 @@ interface FileWatcherStatus {
 export class ProjectsController {
     private netCoreTool: NetCoreTool;
     private buildHelper: BuildHelper;
-    private autorestHelper: AutorestHelper;
 
     private projFileWatchers = new Map<string, vscode.FileSystemWatcher>();
     private fileWatchers = new Map<string, FileWatcherStatus>();
@@ -73,7 +70,6 @@ export class ProjectsController {
     constructor(private _outputChannel: vscode.OutputChannel) {
         this.netCoreTool = new NetCoreTool(this._outputChannel);
         this.buildHelper = new BuildHelper();
-        this.autorestHelper = new AutorestHelper(this._outputChannel);
     }
 
     //#region Create new project
@@ -140,8 +136,8 @@ export class ProjectsController {
         const sqlProjectsService = await utils.getSqlProjectsService();
         const microsoftBuildSqlSDKStyleDefaultVersion = getMicrosoftBuildSqlVersion();
         const projectStyle = creationParams.sdkStyle
-            ? mssqlVscode.ProjectType.SdkStyle
-            : mssqlVscode.ProjectType.LegacyStyle;
+            ? ProjectType.SdkStyle
+            : ProjectType.LegacyStyle;
         const result = await (sqlProjectsService as mssqlVscode.ISqlProjectsService).createProject(
             newProjFilePath,
             projectStyle,
@@ -318,7 +314,7 @@ export class ProjectsController {
                 const errorMessage = utils.getErrorMessage(error);
                 this._outputChannel.appendLine(constants.tasksJsonUpdateError(errorMessage));
 
-                TelemetryReporter.createErrorEvent2(
+                TelemetryReporter.createErrorEvent(
                     TelemetryViews.ProjectController,
                     TelemetryActions.tasksJsonError,
                     error,
@@ -449,7 +445,7 @@ export class ProjectsController {
         const startTime = new Date();
 
         // get dlls and targets file needed for building for legacy style projects
-        if (project.sqlProjStyle === mssqlVscode.ProjectType.LegacyStyle) {
+        if (project.sqlProjStyle === ProjectType.LegacyStyle) {
             const result = await this.buildHelper.createBuildDirFolder(this._outputChannel);
 
             if (!result) {
@@ -493,20 +489,7 @@ export class ProjectsController {
             await this.netCoreTool.verifyNetCoreInstallation();
 
             // Execute the task and wait for it to complete
-            const execution = await vscode.tasks.executeTask(vscodeTask);
-
-            // Wait until the build task instance is finishes.
-            // `onDidEndTaskProcess` fires for every task in the workspace, so Filtering events to the exact TaskExecution
-            // object we kicked off (`e.execution === execution`), ensuring we don't resolve because some other task ended.
-            await new Promise<void>((resolve) => {
-                const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
-                    if (e.execution === execution) {
-                        // Once we get the matching event, dispose the listener to avoid leaks and resolve the promise.
-                        disposable.dispose();
-                        resolve();
-                    }
-                });
-            });
+            await this.runTaskToCompletion(vscodeTask);
 
             // If the build was successful, we will get the path to the built dacpac
             const timeToBuild = new Date().getTime() - startTime.getTime();
@@ -525,7 +508,7 @@ export class ProjectsController {
         } catch (err) {
             const timeToFailureBuild = new Date().getTime() - startTime.getTime();
 
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.build,
                 err,
@@ -548,6 +531,77 @@ export class ProjectsController {
     }
 
     /**
+     * Restores the NuGet packages referenced by a project. Analyzer packages that supply custom
+     * code analysis rules are only discoverable once they have been restored, so this gives users
+     * a way to restore without dropping to a terminal.
+     * @param context a treeItem in a project's hierarchy, to be used to obtain a Project
+     */
+    public async restoreProject(treeNode: dataworkspace.WorkspaceTreeItem): Promise<void>;
+    /**
+     * Restores the NuGet packages referenced by a project.
+     * @param project Project to restore
+     */
+    public async restoreProject(project: Project): Promise<void>;
+    public async restoreProject(context: Project | dataworkspace.WorkspaceTreeItem): Promise<void> {
+        const project: Project = await this.getProjectFromContext(context);
+        const startTime = new Date();
+
+        try {
+            // Check if the dotnet core is installed and if not, prompt the user to install it
+            await this.netCoreTool.verifyNetCoreInstallation();
+
+            const exitCode = await this.runTaskToCompletion(
+                this.createDotnetTask(project, constants.restoreTaskName, [
+                    constants.restore,
+                    utils.getNonQuotedPath(project.projectFilePath),
+                ]),
+            );
+
+            const duration = new Date().getTime() - startTime.getTime();
+
+            // A non-zero exit code means dotnet reported the failure in the task terminal, but the
+            // task itself ran fine, so nothing was thrown — surface the outcome to the user here.
+            if (exitCode !== 0) {
+                TelemetryReporter.createErrorEvent(
+                    TelemetryViews.ProjectController,
+                    TelemetryActions.restore,
+                )
+                    .withAdditionalProperties({ exitCode: String(exitCode) })
+                    .withAdditionalMeasurements({ duration })
+                    .send();
+
+                void vscode.window.showErrorMessage(constants.projRestoreFailed());
+                return;
+            }
+
+            TelemetryReporter.createActionEvent(
+                TelemetryViews.ProjectController,
+                TelemetryActions.restore,
+            )
+                .withAdditionalMeasurements({ duration })
+                .send();
+        } catch (err) {
+            TelemetryReporter.createErrorEvent(
+                TelemetryViews.ProjectController,
+                TelemetryActions.restore,
+                err,
+            )
+                .withAdditionalMeasurements({
+                    duration: new Date().getTime() - startTime.getTime(),
+                })
+                .send();
+
+            const message = utils.getErrorMessage(err);
+            if (err instanceof DotNetError) {
+                // DotNetErrors already get shown by the netCoreTool so just show this one in the console
+                console.error(message);
+            } else {
+                void vscode.window.showErrorMessage(constants.projRestoreFailed(message));
+            }
+        }
+    }
+
+    /**
      * Creates a VS Code task for building the project
      * @param project Project to be built
      * @param codeAnalysis Whether to run code analysis
@@ -559,7 +613,6 @@ export class ProjectsController {
         codeAnalysis: boolean,
         buildArguments: string[],
     ): Promise<vscode.Task> {
-        let vscodeTask: vscode.Task | undefined = undefined;
         const label = codeAnalysis
             ? constants.buildWithCodeAnalysisTaskName
             : constants.buildTaskName;
@@ -574,6 +627,16 @@ export class ProjectsController {
         // Adding build arguments to the args
         args.push(...buildArguments);
 
+        return this.createDotnetTask(project, label, args);
+    }
+
+    /**
+     * Creates a VS Code task that runs `dotnet` with the given arguments in the project's folder.
+     * @param project Project the task runs against
+     * @param label Task label shown in the terminal
+     * @param args Arguments passed to `dotnet`
+     */
+    private createDotnetTask(project: Project, label: string, args: string[]): vscode.Task {
         // Task definition with required args
         const taskDefinition: vscode.TaskDefinition = {
             type: constants.sqlProjTaskType,
@@ -584,7 +647,7 @@ export class ProjectsController {
         };
 
         // Create a new task with the definition and process executable
-        vscodeTask = new vscode.Task(
+        return new vscode.Task(
             taskDefinition,
             vscode.TaskScope.Workspace,
             taskDefinition.label,
@@ -594,8 +657,28 @@ export class ProjectsController {
             }),
             taskDefinition.problemMatcher,
         );
+    }
 
-        return vscodeTask;
+    /**
+     * Executes a task and resolves once that specific execution has ended.
+     *
+     * `onDidEndTaskProcess` fires for every task in the workspace, so events are filtered to the
+     * exact TaskExecution we kicked off, ensuring we don't resolve because some other task ended.
+     *
+     * @returns the process exit code, or `undefined` if the task ended without reporting one
+     */
+    private async runTaskToCompletion(task: vscode.Task): Promise<number | undefined> {
+        const execution = await vscode.tasks.executeTask(task);
+
+        return new Promise<number | undefined>((resolve) => {
+            const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
+                if (e.execution === execution) {
+                    // Once we get the matching event, dispose the listener to avoid leaks and resolve the promise.
+                    disposable.dispose();
+                    resolve(e.exitCode);
+                }
+            });
+        });
     }
 
     //#region Publish
@@ -663,7 +746,7 @@ export class ProjectsController {
                 props.errorMessage = message;
             }
 
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.projectSchemaCompareCommandInvoked,
                 err,
@@ -724,6 +807,7 @@ export class ProjectsController {
         folderPath: string,
         fileExtension?: string,
         defaultName?: string,
+        schemaPrefix?: string,
     ): Promise<string | undefined> {
         const suggestedName = utils.sanitizeStringForFilename(
             defaultName ?? itemType.friendlyName.replace(/\s+/g, ""),
@@ -739,9 +823,15 @@ export class ProjectsController {
             ))
         );
 
+        // The schema only qualifies the object in the generated script; the file itself is named
+        // after the object alone, so it is not part of the uniqueness check above.
+        const suggestedValue = schemaPrefix
+            ? `${schemaPrefix}.${suggestedName}${counter}`
+            : `${suggestedName}${counter}`;
+
         const itemObjectName = await vscode.window.showInputBox({
             prompt: constants.newObjectNamePrompt(itemType.friendlyName),
-            value: `${suggestedName}${counter}`,
+            value: suggestedValue,
             validateInput: (value) => {
                 return utils.isValidBasenameErrorMessage(value);
             },
@@ -749,6 +839,40 @@ export class ProjectsController {
         });
 
         return itemObjectName;
+    }
+
+    /**
+     * Returns the schema implied by the folder the command was invoked from, so the suggested
+     * name can be pre-qualified with it (e.g. under `sales/Tables`, suggest `sales.Table1`).
+     *
+     * @returns the schema, or `undefined` when the folder implies none: the item type isn't
+     * schema-dependent, the project root, an object-type folder like `Tables`, or `dbo`.
+     */
+    private getSchemaFromFolderPath(itemType: ItemType, relativePath: string): string | undefined {
+        if (!relativePath || !templates.itemTypeToFolderMap.get(itemType)?.schemaDependent) {
+            return undefined;
+        }
+
+        // relativePath comes from trimUri, which always joins with '/'; the regex also handles
+        // '\' defensively.
+        const firstSegment = relativePath.split(/[\\/]/).filter(Boolean)[0];
+        if (!firstSegment) {
+            return undefined;
+        }
+
+        // A root-level object-type folder (e.g. "Tables") is not a schema.
+        const isObjectTypeFolder = [...templates.itemTypeToFolderMap.values()].some(
+            (cfg) => cfg.folderName.toLowerCase() === firstSegment.toLowerCase(),
+        );
+        if (isObjectTypeFolder) {
+            return undefined;
+        }
+
+        // The default schema is what an unqualified name already produces, so leave the
+        // suggestion unqualified there.
+        return firstSegment.toLowerCase() === constants.defaultSchemaName.toLowerCase()
+            ? undefined
+            : firstSegment;
     }
 
     public isReservedFolder(absoluteFolderPath: string, projectFolderPath: string): boolean {
@@ -792,8 +916,12 @@ export class ProjectsController {
         fallback: string,
         autoCreate: boolean,
     ): Promise<string> {
+        // Normalize paths for comparison: convert backslashes to forward slashes for cross-platform comparison
+        const normalizedTargetPath = utils.getPlatformSafeFileEntryPath(targetPath).toLowerCase();
         const existing = project.folders.find(
-            (f) => f.relativePath.toLowerCase() === targetPath.toLowerCase(),
+            (f) =>
+                utils.getPlatformSafeFileEntryPath(f.relativePath).toLowerCase() ===
+                normalizedTargetPath,
         );
         if (existing) {
             return existing.relativePath;
@@ -833,6 +961,7 @@ export class ProjectsController {
      * @param project The project to check / add folders to
      * @param schemaName The schema name parsed from user input (e.g. "dbo", "sales")
      * @param basePath The folder the user invoked the command from; empty string means project root
+     * @param allowCreate Whether missing folders may be created. When false, an existing folder or a fallback is returned and nothing is written.
      * @returns The relative folder path the item should be placed in
      */
     public async resolveItemFolder(
@@ -840,6 +969,7 @@ export class ProjectsController {
         project: ISqlProject,
         schemaName?: string,
         basePath?: string,
+        allowCreate: boolean = true,
     ): Promise<string> {
         const folderConfig = templates.itemTypeToFolderMap.get(itemType);
         if (!folderConfig) {
@@ -847,7 +977,7 @@ export class ProjectsController {
         }
 
         const { folderName, schemaDependent } = folderConfig;
-        const autoCreate = this.isAutoCreateFoldersEnabled();
+        const autoCreate = allowCreate && this.isAutoCreateFoldersEnabled();
 
         // Non-root path: user invoked from an existing folder node
         if (basePath) {
@@ -881,7 +1011,7 @@ export class ProjectsController {
 
             // basePath is a single-segment schema folder (e.g. "dbo").
             // Check for / create the ObjectType subfolder under it.
-            const subfolderPath = utils.convertSlashesForSqlProj(path.join(basePath, folderName));
+            const subfolderPath = path.join(basePath, folderName);
             return this.findOrAddFolder(project, subfolderPath, basePath, autoCreate);
         }
 
@@ -904,11 +1034,15 @@ export class ProjectsController {
 
         // Schema-dependent items (e.g. dbo/Tables/, sales/StoredProcedures/)
         const resolvedSchema = schemaName ?? constants.defaultSchemaName;
-        const nestedPath = utils.convertSlashesForSqlProj(path.join(resolvedSchema, folderName));
+        const nestedPath = path.join(resolvedSchema, folderName);
 
         // Single scan for nestedPath — avoids a second scan inside findOrAddFolder.
+        // Normalize paths for comparison: convert backslashes to forward slashes for cross-platform comparison
+        const normalizedNestedPath = utils.getPlatformSafeFileEntryPath(nestedPath).toLowerCase();
         const existingNested = project.folders.find(
-            (f) => f.relativePath.toLowerCase() === nestedPath.toLowerCase(),
+            (f) =>
+                utils.getPlatformSafeFileEntryPath(f.relativePath).toLowerCase() ===
+                normalizedNestedPath,
         );
         if (existingNested) {
             return existingNested.relativePath;
@@ -974,10 +1108,25 @@ export class ProjectsController {
         }
 
         const itemType = templates.get(itemTypeName);
-        const absolutePathToParent = path.join(project.projectFolderPath, relativePath);
         const isItemTypePublishProfile =
             itemTypeName === constants.publishProfileFriendlyName ||
             itemTypeName === ItemType.publishProfile;
+        // The schema of the folder the command came from, so the generated script matches where
+        // the file lands instead of always defaulting to dbo.
+        const folderSchema = isItemTypePublishProfile
+            ? undefined
+            : this.getSchemaFromFolderPath(itemType.type, relativePath);
+
+        // Predict the destination so the name suggestion probes the folder the file actually
+        // lands in (right-clicking `Person` writes to `Person/Tables`). Creates nothing.
+        const predictedFolder = await this.resolveItemFolder(
+            itemType.type,
+            project,
+            folderSchema,
+            relativePath || undefined,
+            false /* allowCreate */,
+        );
+        const absolutePathToParent = path.join(project.projectFolderPath, predictedFolder);
         const fileExtension = isItemTypePublishProfile
             ? constants.publishProfileExtension
             : constants.sqlFileExtension;
@@ -990,6 +1139,7 @@ export class ProjectsController {
             absolutePathToParent,
             fileExtension,
             defaultName,
+            folderSchema,
         );
 
         itemObjectName = itemObjectName?.trim();
@@ -1056,7 +1206,7 @@ export class ProjectsController {
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
 
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectTree,
                 TelemetryActions.addItemFromTree,
                 err,
@@ -1091,7 +1241,7 @@ export class ProjectsController {
             this.refreshProjectsTree(treeNode);
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectTree,
                 TelemetryActions.addExistingItem,
                 err,
@@ -1131,7 +1281,7 @@ export class ProjectsController {
                     throw new Error(constants.unhandledExcludeType(node.type));
             }
         } else {
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectTree,
                 TelemetryActions.excludeFromProject,
             );
@@ -1211,7 +1361,7 @@ export class ProjectsController {
 
             this.refreshProjectsTree(context);
         } catch (err) {
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectTree,
                 TelemetryActions.deleteObjectFromProject,
             )
@@ -1263,7 +1413,7 @@ export class ProjectsController {
         if (result?.success) {
             TelemetryReporter.sendActionEvent(TelemetryViews.ProjectTree, TelemetryActions.rename);
         } else {
-            TelemetryReporter.sendErrorEvent2(TelemetryViews.ProjectTree, TelemetryActions.rename);
+            TelemetryReporter.sendErrorEvent(TelemetryViews.ProjectTree, TelemetryActions.rename);
             void vscode.window.showErrorMessage(
                 constants.errorRenamingFile(node.entryKey!, newFilePath, result?.errorMessage),
             );
@@ -1661,110 +1811,6 @@ export class ProjectsController {
         return result;
     }
 
-    //#region AutoRest
-
-    public async selectAutorestSpecFile(): Promise<string | undefined> {
-        let quickpickSelection = await vscode.window.showQuickPick(
-            [constants.browseEllipsisWithIcon],
-            { title: constants.selectSpecFile, ignoreFocusOut: true },
-        );
-        if (!quickpickSelection) {
-            return;
-        }
-
-        const filters: { [name: string]: string[] } = {};
-        filters[constants.specSelectionText] = constants.openApiSpecFileExtensions;
-
-        let uris = await vscode.window.showOpenDialog({
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: false,
-            openLabel: constants.selectString,
-            filters: filters,
-            title: constants.selectSpecFile,
-        });
-
-        if (!uris) {
-            return;
-        }
-
-        return uris[0].fsPath;
-    }
-
-    /**
-     * @returns \{ newProjectFolder: 'C:\Source\MyProject',
-     * 			outputFolder: 'C:\Source',
-     * 			projectName: 'MyProject'}
-     */
-    public async selectAutorestProjectLocation(
-        projectName: string,
-        defaultOutputLocation: vscode.Uri | undefined,
-    ): Promise<
-        { newProjectFolder: string; outputFolder: string; projectName: string } | undefined
-    > {
-        let newProjectFolder = defaultOutputLocation
-            ? path.join(defaultOutputLocation.fsPath, projectName)
-            : "";
-        let outputFolder = defaultOutputLocation?.fsPath || "";
-        while (true) {
-            let quickPickTitle = "";
-            if (newProjectFolder && (await utils.exists(newProjectFolder))) {
-                // Folder already exists at target location, prompt for new location
-                quickPickTitle = constants.folderAlreadyExistsChooseNewLocation(newProjectFolder);
-            } else if (!newProjectFolder) {
-                // No target location yet
-                quickPickTitle = constants.selectProjectLocation;
-            } else {
-                // Folder doesn't exist at target location so we're done
-                break;
-            }
-            const quickpickSelection = await vscode.window.showQuickPick(
-                [constants.browseEllipsisWithIcon],
-                { title: quickPickTitle, ignoreFocusOut: true },
-            );
-            if (!quickpickSelection) {
-                return;
-            }
-
-            const folders = await vscode.window.showOpenDialog({
-                canSelectFiles: false,
-                canSelectFolders: true,
-                canSelectMany: false,
-                openLabel: constants.selectString,
-                defaultUri: defaultOutputLocation ?? vscode.workspace.workspaceFolders?.[0]?.uri,
-                title: constants.selectProjectLocation,
-            });
-
-            if (!folders) {
-                return;
-            }
-
-            outputFolder = folders[0].fsPath;
-
-            newProjectFolder = path.join(outputFolder, projectName);
-        }
-
-        return { newProjectFolder, outputFolder, projectName };
-    }
-
-    public async generateAutorestFiles(
-        specPath: string,
-        newProjectFolder: string,
-    ): Promise<string | undefined> {
-        await fs.mkdir(newProjectFolder, { recursive: true });
-
-        return vscode.window.withProgress(
-            {
-                location: vscode.ProgressLocation.Notification,
-                title: constants.generatingProjectFromAutorest(path.basename(specPath)),
-                cancellable: false,
-            },
-            async (_progress, _token) => {
-                return this.autorestHelper.generateAutorestFiles(specPath, newProjectFolder);
-            },
-        );
-    }
-
     /**
      * Adds the provided project in the workspace, opening it in the projects viewlet
      * @param projectFilePath
@@ -1776,175 +1822,6 @@ export class ProjectsController {
 
         workspaceApi.showProjectsView();
     }
-
-    public async promptForAutorestProjectName(defaultName?: string): Promise<string | undefined> {
-        let name: string | undefined = await vscode.window.showInputBox({
-            ignoreFocusOut: true,
-            prompt: constants.autorestProjectName,
-            value: defaultName,
-            validateInput: (value) => {
-                return utils.isValidBasenameErrorMessage(value);
-            },
-        });
-
-        if (name === undefined) {
-            return; // cancelled by user
-        }
-
-        name = name.trim();
-
-        return name;
-    }
-
-    /**
-     * Prompts the user with vscode quickpicks to select an OpenApi or Swagger spec to generate sql project from
-     * @param options optional options to pass in instead of using quickpicks to prompt
-     * @returns created sql project
-     */
-    public async generateProjectFromOpenApiSpec(
-        options?: GenerateProjectFromOpenApiSpecOptions,
-    ): Promise<Project | undefined> {
-        try {
-            TelemetryReporter.sendActionEvent(
-                TelemetryViews.ProjectController,
-                TelemetryActions.generateProjectFromOpenApiSpec,
-            );
-
-            // 1. select spec file
-            const specPath: string | undefined =
-                options?.openApiSpecFile?.fsPath || (await this.selectAutorestSpecFile());
-            if (!specPath) {
-                return;
-            }
-
-            // 2. prompt for project name
-            const projectName = await this.promptForAutorestProjectName(
-                options?.defaultProjectName || path.basename(specPath, path.extname(specPath)),
-            );
-            if (!projectName) {
-                return;
-            }
-
-            // 3. select location, make new folder
-            const projectInfo = await this.selectAutorestProjectLocation(
-                projectName!,
-                options?.defaultOutputLocation,
-            );
-            if (!projectInfo) {
-                return;
-            }
-
-            // 4. run AutoRest to generate .sql files
-            const result = await this.generateAutorestFiles(specPath, projectInfo.newProjectFolder);
-            if (!result) {
-                // user canceled operation when choosing how to run autorest
-                return;
-            }
-
-            const scriptList: vscode.Uri[] | undefined = await this.getSqlFileList(
-                projectInfo.newProjectFolder,
-            );
-
-            if (!scriptList || scriptList.length === 0) {
-                void vscode.window.showInformationMessage(constants.noSqlFilesGenerated);
-                this._outputChannel.show();
-                return;
-            }
-
-            // 5. create new SQL project
-            const newProjFilePath = await this.createNewProject({
-                newProjName: projectInfo.projectName,
-                folderUri: vscode.Uri.file(projectInfo.outputFolder),
-                projectTypeId: constants.emptySqlDatabaseProjectTypeId,
-                sdkStyle: !!options?.isSDKStyle,
-                configureDefaultBuild: true,
-            });
-
-            const project = await Project.openProject(newProjFilePath);
-
-            // 6. add generated files to SQL project
-
-            const uriList = scriptList.filter(
-                (f) => !f.fsPath.endsWith(constants.autorestPostDeploymentScriptName),
-            );
-            const relativePaths = uriList.map((f) =>
-                path.relative(project.projectFolderPath, f.fsPath),
-            );
-            await project.addSqlObjectScripts(relativePaths); // Add generated file structure to the project
-
-            const postDeploymentScript: vscode.Uri | undefined =
-                this.findPostDeploymentScript(scriptList);
-
-            if (postDeploymentScript) {
-                await project.addPostDeploymentScript(
-                    path.relative(project.projectFolderPath, postDeploymentScript.fsPath),
-                );
-            }
-
-            if (options?.doNotOpenInWorkspace !== true) {
-                // 7. add project to workspace and open
-                await this.openProjectInWorkspace(newProjFilePath);
-            }
-
-            return project;
-        } catch (err) {
-            void vscode.window.showErrorMessage(
-                constants.generatingProjectFailed(utils.getErrorMessage(err)),
-            );
-            TelemetryReporter.sendErrorEvent2(
-                TelemetryViews.ProjectController,
-                TelemetryActions.generateProjectFromOpenApiSpec,
-                err,
-            );
-            this._outputChannel.show();
-            return;
-        }
-    }
-
-    private findPostDeploymentScript(files: vscode.Uri[]): vscode.Uri | undefined {
-        // Locate the post-deployment script generated by autorest, if one exists.
-        // It's only generated if enums are present in spec, b/c the enum values need to be inserted into the generated table.
-        // Because autorest is executed via command rather than API, we can't easily "receive" the name of the script,
-        // so we're stuck just matching on a file name.
-        const results = files.filter((f) =>
-            f.fsPath.endsWith(constants.autorestPostDeploymentScriptName),
-        );
-
-        switch (results.length) {
-            case 0:
-                return undefined;
-            case 1:
-                return results[0];
-            default:
-                throw new Error(constants.multipleMostDeploymentScripts(results.length));
-        }
-    }
-
-    private async getSqlFileList(folder: string): Promise<vscode.Uri[] | undefined> {
-        if (!(await utils.exists(folder))) {
-            return undefined;
-        }
-
-        const entries = await fs.readdir(folder, { withFileTypes: true });
-
-        const folders = entries
-            .filter((dir) => dir.isDirectory())
-            .map((dir) => path.join(folder, dir.name));
-        const files = entries
-            .filter(
-                (file) =>
-                    !file.isDirectory() && path.extname(file.name) === constants.sqlFileExtension,
-            )
-            .map((file) => vscode.Uri.file(path.join(folder, file.name)));
-
-        for (const folder of folders) {
-            files.push(...((await this.getSqlFileList(folder)) ?? []));
-        }
-
-        return files;
-    }
-
-    //#endregion
 
     //#region Helper methods
 
@@ -1997,9 +1874,9 @@ export class ProjectsController {
     ): Promise<void> {
         const profile = this.getConnectionProfileFromContext(context);
         if (context) {
-            // The profile we get from VS Code is for the overall server connection and isn't updated based on the database node
-            // the command was launched from like it is in ADS. So get the actual database name from the MSSQL extension and
-            // update the connection info here.
+            // The profile we get from VS Code is for the overall server connection and isn't updated based
+            // on the database node the command was launched from. Get the actual database name from the
+            // MSSQL extension and update the connection info here.
             const treeNodeContext = context as mssqlVscode.ITreeNodeInfo;
             const databaseName = (await utils.getVscodeMssqlApi()).getDatabaseNameFromTreeNode(
                 treeNodeContext,
@@ -2087,7 +1964,7 @@ export class ProjectsController {
             await workspaceApi.addProjectsToWorkspace([vscode.Uri.file(newProjFilePath)]);
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.createProjectFromDatabase,
                 err,
@@ -2176,9 +2053,8 @@ export class ProjectsController {
         let projectFilePath: string | undefined;
         if (context) {
             // VS Code's connection/profile may only represent the server-level connection and won't reflect
-            // the database selected in the MSSQL tree node that the user invoked the command from.
-            // In ADS the context can include the database info, but in VS Code we need to ask the MSSQL
-            // extension for the actual database name for this tree node and then update the connection object.
+            // the database selected in the MSSQL tree node that the user invoked the command from. Ask the
+            // MSSQL extension for the actual database name and then update the connection object.
             if (connection !== undefined) {
                 const treeNodeContext = context as mssqlVscode.ITreeNodeInfo;
                 const databaseName = (await utils.getVscodeMssqlApi()).getDatabaseNameFromTreeNode(
@@ -2216,7 +2092,7 @@ export class ProjectsController {
                 .send();
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.updateProjectFromDatabase,
                 err,
@@ -2313,7 +2189,7 @@ export class ProjectsController {
         );
 
         if (!comparisonResult || !comparisonResult.success) {
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectController,
                 "SchemaComparisonFailed",
             )
@@ -2457,7 +2333,7 @@ export class ProjectsController {
             );
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.configureCodeAnalysisSettings,
                 err,
@@ -2544,7 +2420,7 @@ export class ProjectsController {
         if (moveResult?.success) {
             TelemetryReporter.sendActionEvent(TelemetryViews.ProjectTree, TelemetryActions.move);
         } else {
-            TelemetryReporter.sendErrorEvent2(TelemetryViews.ProjectTree, TelemetryActions.move);
+            TelemetryReporter.sendErrorEvent(TelemetryViews.ProjectTree, TelemetryActions.move);
             void vscode.window.showErrorMessage(
                 constants.errorMovingFile(
                     sourceFileNode.fileSystemUri.fsPath,

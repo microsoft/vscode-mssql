@@ -11,14 +11,16 @@ import { expect } from "chai";
 import { ConnectionDetails, IToken, IConnectionInfo } from "vscode-mssql";
 import { ConnectionStore } from "../../src/models/connectionStore";
 import { ILogger } from "../../src/sharedInterfaces/logger";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import ConnectionManager, {
+    serverlessWakeMaxRetryAttempts,
+} from "../../src/controllers/connectionManager";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import StatusView from "../../src/views/statusView";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
 import { ParseConnectionStringRequest } from "../../src/models/contracts/connection";
 import * as ConnectionContracts from "../../src/models/contracts/connection";
+import * as Constants from "../../src/constants/constants";
 import { IAccount, RequestSecurityTokenParams } from "../../src/models/contracts/azure";
 import { AzureController } from "../../src/azure/azureController";
 import {
@@ -27,19 +29,21 @@ import {
 } from "../../src/azure/providerSettings";
 import { ConnectionUI } from "../../src/views/connectionUI";
 import { AccountStore } from "../../src/azure/accountStore";
+import { IPrompter } from "../../src/prompts/question";
 import { TestPrompter } from "./stubs";
 import {
     stubExtensionContext,
+    stubMessageBoxes,
     stubPreviewService,
-    stubVscodeWrapper,
     createStubLogger,
+    stubInstantiationService,
 } from "./utils";
 import { Deferred } from "../../src/protocol";
 import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
 import { PreviewFeature } from "../../src/previews/previewService";
 import * as vscodeEntraMfaUtils from "../../src/azure/vscodeEntraMfaUtils";
 import * as azureHelpers from "../../src/connectionconfig/azureHelpers";
-import * as telemetry from "../../src/telemetry/telemetry";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 
 chai.use(sinonChai);
@@ -51,17 +55,18 @@ suite("ConnectionManager Tests", () => {
     let mockContext: vscode.ExtensionContext;
     let mockLogger: sinon.SinonStubbedInstance<ILogger>;
     let mockCredentialStore: sinon.SinonStubbedInstance<CredentialStore>;
-    let mockVscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let mockConnectionStore: sinon.SinonStubbedInstance<ConnectionStore>;
     let mockServiceClient: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let mockStatusView: sinon.SinonStubbedInstance<StatusView>;
     let mockAccountStore: sinon.SinonStubbedInstance<AccountStore>;
     let mockAzureController: sinon.SinonStubbedInstance<MsalAzureController>;
+    let mockConnectionUI: sinon.SinonStubbedInstance<ConnectionUI>;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
         mockContext = stubExtensionContext(sandbox);
-        mockVscodeWrapper = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         mockLogger = createStubLogger(sandbox);
         mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
         mockCredentialStore = sandbox.createStubInstance(CredentialStore);
@@ -69,6 +74,7 @@ suite("ConnectionManager Tests", () => {
         mockStatusView = sandbox.createStubInstance(StatusView);
         mockAccountStore = sandbox.createStubInstance(AccountStore);
         mockAzureController = sandbox.createStubInstance(MsalAzureController);
+        mockConnectionUI = sandbox.createStubInstance(ConnectionUI);
 
         const initializedDeferred = new Deferred<void>();
         initializedDeferred.resolve();
@@ -77,27 +83,48 @@ suite("ConnectionManager Tests", () => {
         });
 
         mockConnectionStore.readAllConnections.resolves([]);
+        mockConnectionStore.readAllConnectionGroups.resolves([]);
     });
 
     teardown(() => {
         sandbox.restore();
     });
 
+    /**
+     * Creates a ConnectionManager using the suite's default mocks, allowing callers to
+     * override individual dependencies for the handful of tests that need distinct instances.
+     * Pass `useDefaultClient: false` to opt out of the default `mockServiceClient` (falls back
+     * to the real client singleton), matching tests that intentionally exercise that behavior.
+     */
+    function createConnectionManager(overrides?: {
+        prompter?: IPrompter;
+        client?: SqlToolsServerClient;
+        useDefaultClient?: boolean;
+        connectionStore?: sinon.SinonStubbedInstance<ConnectionStore>;
+        accountStore?: sinon.SinonStubbedInstance<AccountStore>;
+        connectionUI?: sinon.SinonStubbedInstance<ConnectionUI>;
+    }): ConnectionManager {
+        const client =
+            overrides?.client ??
+            (overrides?.useDefaultClient === false ? undefined : mockServiceClient);
+        return new ConnectionManager(
+            mockContext,
+            mockStatusView,
+            overrides?.prompter,
+            overrides?.connectionStore ?? mockConnectionStore,
+            mockCredentialStore,
+            overrides?.accountStore ?? mockAccountStore,
+            stubInstantiationService(sandbox),
+            mockLogger,
+            client,
+            overrides?.connectionUI ?? mockConnectionUI,
+        );
+    }
+
     suite("Initialization Tests", () => {
         test("Initializes correctly", async () => {
             expect(() => {
-                connectionManager = new ConnectionManager(
-                    mockContext,
-                    mockStatusView,
-                    undefined, // prompter
-                    mockLogger,
-                    mockServiceClient,
-                    mockVscodeWrapper,
-                    mockConnectionStore,
-                    mockCredentialStore,
-                    undefined, // connectionUI
-                    mockAccountStore,
-                );
+                connectionManager = createConnectionManager();
             }).to.not.throw();
 
             await connectionManager.initialized; // Wait for initialization to complete
@@ -151,18 +178,7 @@ suite("ConnectionManager Tests", () => {
                     },
                 } as ConnectionDetails);
 
-            connectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                undefined, // prompter
-                mockLogger,
-                mockServiceClient,
-                mockVscodeWrapper,
-                mockConnectionStore,
-                mockCredentialStore,
-                undefined, // connectionUI
-                undefined, // accountStore
-            );
+            connectionManager = createConnectionManager();
 
             await connectionManager.initialized; // Wait for initialization to complete
 
@@ -219,18 +235,7 @@ suite("ConnectionManager Tests", () => {
                     },
                 } as ConnectionDetails);
 
-            connectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                undefined, // prompter
-                mockLogger,
-                mockServiceClient,
-                mockVscodeWrapper,
-                mockConnectionStore,
-                mockCredentialStore,
-                undefined, // connectionUI
-                undefined, // accountStore
-            );
+            connectionManager = createConnectionManager();
 
             await connectionManager.initialized; // Wait for initialization to complete
 
@@ -250,18 +255,7 @@ suite("ConnectionManager Tests", () => {
 
     suite("Functionality tests", () => {
         setup(() => {
-            connectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                undefined, // prompter
-                mockLogger,
-                mockServiceClient,
-                mockVscodeWrapper,
-                mockConnectionStore,
-                mockCredentialStore,
-                undefined, // connectionUI
-                undefined, // accountStore
-            );
+            connectionManager = createConnectionManager();
         });
 
         test("User is informed when legacy connection migration fails", async () => {
@@ -270,7 +264,7 @@ suite("ConnectionManager Tests", () => {
                 id: "00000000-1111-2222-3333-444444444444",
             } as IConnectionProfile;
 
-            mockVscodeWrapper.showErrorMessage.resolves(undefined);
+            messageBoxes.showErrorMessage.resolves(undefined);
 
             mockServiceClient.sendRequest
                 .withArgs(ParseConnectionStringRequest.type, sinon.match.any)
@@ -282,7 +276,7 @@ suite("ConnectionManager Tests", () => {
                 "error",
             );
 
-            expect(mockVscodeWrapper.showErrorMessage).to.have.been.calledOnce;
+            expect(messageBoxes.showErrorMessage).to.have.been.calledOnce;
         });
     });
 
@@ -290,18 +284,7 @@ suite("ConnectionManager Tests", () => {
         setup(() => {
             // Test the MSAL (non-VS-Code-accounts) path
             stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
-            connectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                undefined, // prompter
-                mockLogger,
-                mockServiceClient,
-                mockVscodeWrapper,
-                mockConnectionStore,
-                mockCredentialStore,
-                undefined, // connectionUI
-                undefined, // accountStore
-            );
+            connectionManager = createConnectionManager();
         });
         test("should return cached token when valid", async () => {
             const params: RequestSecurityTokenParams = {
@@ -339,12 +322,6 @@ suite("ConnectionManager Tests", () => {
                 scopes: [],
             };
 
-            connectionManager["_keyVaultTokenCache"].clear();
-
-            // selectAccount and selectTenantId return string IDs in the new delegate-based flow
-            connectionManager["selectAccount"] = sandbox.stub().resolves("account-key");
-            connectionManager["selectTenantId"] = sandbox.stub().resolves("tenant-id");
-
             // _accountStore is needed by the getAccounts and getTenants delegates
             const mockAccountStore = sandbox.createStubInstance(AccountStore);
             const mockAccount = {
@@ -355,7 +332,12 @@ suite("ConnectionManager Tests", () => {
             } as any;
             mockAccountStore.getAccounts.resolves([mockAccount]);
             mockAccountStore.getAccount.resolves(mockAccount);
-            connectionManager["_accountStore"] = mockAccountStore;
+            connectionManager = createConnectionManager({ accountStore: mockAccountStore });
+            connectionManager["_keyVaultTokenCache"].clear();
+
+            // selectAccount and selectTenantId return string IDs in the new delegate-based flow
+            connectionManager["selectAccount"] = sandbox.stub().resolves("account-key");
+            connectionManager["selectTenantId"] = sandbox.stub().resolves("tenant-id");
 
             const stubbedAzureController = sandbox.createStubInstance(MsalAzureController);
             const token: IToken = {
@@ -392,18 +374,7 @@ suite("ConnectionManager Tests", () => {
             stubPreviewService(sandbox, {
                 [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
             });
-            connectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                undefined,
-                mockLogger,
-                mockServiceClient,
-                mockVscodeWrapper,
-                mockConnectionStore,
-                mockCredentialStore,
-                undefined,
-                undefined,
-            );
+            connectionManager = createConnectionManager();
             acquireTokenStub = sandbox.stub(
                 vscodeEntraMfaUtils,
                 "acquireTokenFromVscodeAccountForResource",
@@ -535,18 +506,7 @@ suite("ConnectionManager Tests", () => {
             stubPreviewService(sandbox, {
                 [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
             });
-            connectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                undefined,
-                mockLogger,
-                mockServiceClient,
-                mockVscodeWrapper,
-                mockConnectionStore,
-                mockCredentialStore,
-                undefined,
-                mockAccountStore,
-            );
+            connectionManager = createConnectionManager();
             sendNotificationStub = mockServiceClient.sendNotification as sinon.SinonStub;
             sendNotificationStub.reset();
             connectionManager["client"] = mockServiceClient;
@@ -737,18 +697,7 @@ suite("ConnectionManager Tests", () => {
             stubPreviewService(sandbox, {
                 [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
             });
-            connectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                undefined,
-                mockLogger,
-                mockServiceClient,
-                mockVscodeWrapper,
-                mockConnectionStore,
-                mockCredentialStore,
-                undefined,
-                undefined,
-            );
+            connectionManager = createConnectionManager();
             acquireTokenStub = sandbox.stub(
                 vscodeEntraMfaUtils,
                 "acquireTokenFromVscodeAccountForResource",
@@ -818,22 +767,10 @@ suite("ConnectionManager Tests", () => {
         setup(() => {
             // Test the MSAL (non-VS-Code-accounts) path
             stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: false });
-            connectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                undefined,
-                mockLogger,
-                mockServiceClient,
-                mockVscodeWrapper,
-                mockConnectionStore,
-                mockCredentialStore,
-                undefined,
-                undefined,
-            );
 
             mockAccountStore = sandbox.createStubInstance(AccountStore);
             mockAzureController = sandbox.createStubInstance(MsalAzureController);
-            connectionManager.accountStore = mockAccountStore;
+            connectionManager = createConnectionManager();
             connectionManager.azureController = mockAzureController;
 
             mockAccountStore.getAccount.resolves(account);
@@ -903,16 +840,14 @@ suite("ConnectionManager Tests", () => {
             const mockPrompter = sandbox.createStubInstance(TestPrompter);
 
             // Create a new connection manager instance for this test suite
-            testConnectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                mockPrompter,
-                mockLogger,
-            );
+            testConnectionManager = createConnectionManager({
+                prompter: mockPrompter,
+                useDefaultClient: false,
+                connectionStore: mockConnectionStore,
+                connectionUI: mockConnectionUI,
+                accountStore: mockAccountStore,
+            });
 
-            testConnectionManager.connectionStore = mockConnectionStore;
-            testConnectionManager["_connectionUI"] = mockConnectionUI;
-            testConnectionManager["_accountStore"] = mockAccountStore;
             testConnectionManager.azureController = mockAzureController;
 
             // Setup default behaviors
@@ -1106,15 +1041,12 @@ suite("ConnectionManager Tests", () => {
 
             const mockPrompter = sandbox.createStubInstance(TestPrompter);
 
-            testConnectionManager = new ConnectionManager(
-                mockContext,
-                mockStatusView,
-                mockPrompter,
-                mockLogger,
-            );
-
-            testConnectionManager.connectionStore = mockConnectionStore;
-            (testConnectionManager as any)._connectionUI = mockConnectionUI;
+            testConnectionManager = createConnectionManager({
+                prompter: mockPrompter,
+                useDefaultClient: false,
+                connectionStore: mockConnectionStore,
+                connectionUI: mockConnectionUI,
+            });
         });
 
         teardown(() => {
@@ -1160,6 +1092,155 @@ suite("ConnectionManager Tests", () => {
             expect(creds.emptyPasswordInput).to.be.true;
             expect(creds.password).to.equal("");
             expect(creds.azureAccountToken).to.be.undefined;
+        });
+    });
+
+    suite("Serverless pause-aware retry helpers", () => {
+        let testConnectionManager: ConnectionManager;
+
+        setup(() => {
+            const mockPrompter = sandbox.createStubInstance(TestPrompter);
+            testConnectionManager = createConnectionManager({
+                prompter: mockPrompter,
+                useDefaultClient: false,
+            });
+        });
+
+        teardown(() => {
+            sandbox.restore();
+        });
+
+        const azureMfaUserDbConnection = (): IConnectionInfo =>
+            ({
+                server: "test.database.windows.net",
+                database: "userDb",
+                authenticationType: Constants.azureMfa,
+                accountId: "account-1",
+            }) as IConnectionInfo;
+
+        suite("isServerlessWakeRetryableTimeout", () => {
+            test("returns false for a null/undefined error", () => {
+                expect(testConnectionManager.isServerlessWakeRetryableTimeout(undefined as any)).to
+                    .be.false;
+            });
+
+            test("returns true for the OE expand timeout error code", () => {
+                expect(
+                    testConnectionManager.isServerlessWakeRetryableTimeout({
+                        errorCode: Constants.oeExpandTimeoutErrorCode,
+                    }),
+                ).to.be.true;
+            });
+
+            test("returns true for the OE create-session timeout error code", () => {
+                expect(
+                    testConnectionManager.isServerlessWakeRetryableTimeout({
+                        errorCode: Constants.oeCreateSessionTimeoutErrorCode,
+                    }),
+                ).to.be.true;
+            });
+
+            test("returns true for the SqlClient connection-timeout error number", () => {
+                expect(
+                    testConnectionManager.isServerlessWakeRetryableTimeout({
+                        errorNumber: Constants.errorConnectionTimeout,
+                    }),
+                ).to.be.true;
+            });
+
+            test("returns false for unrelated error codes/numbers", () => {
+                expect(
+                    testConnectionManager.isServerlessWakeRetryableTimeout({
+                        errorCode: "SOME_OTHER_CODE",
+                        errorNumber: 18456,
+                        errorMessage: "Login failed",
+                    }),
+                ).to.be.false;
+            });
+        });
+
+        suite("shouldRetryForPausedServerlessDatabase", () => {
+            test("returns false once the retry budget is exhausted", async () => {
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    azureMfaUserDbConnection(),
+                    serverlessWakeMaxRetryAttempts + 1, // exceeds the allowed number of attempts
+                    Promise.resolve("Paused"),
+                );
+                expect(result).to.be.false;
+            });
+
+            test("returns false when the connection is not eligible for a pause check", async () => {
+                const notAzure = {
+                    server: "localhost",
+                    database: "userDb",
+                    authenticationType: Constants.azureMfa,
+                } as IConnectionInfo;
+
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    notAzure,
+                    1,
+                    Promise.resolve("Paused"),
+                );
+                expect(result).to.be.false;
+            });
+
+            test("returns false when the status check reports UnableToCheck", async () => {
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    azureMfaUserDbConnection(),
+                    1,
+                    Promise.resolve("UnableToCheck"),
+                );
+                expect(result).to.be.false;
+            });
+
+            test("returns false when the database is online (not a waking status)", async () => {
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    azureMfaUserDbConnection(),
+                    1,
+                    Promise.resolve("Online"),
+                );
+                expect(result).to.be.false;
+            });
+
+            test("returns false immediately when the status check hasn't resolved before the timeout", async () => {
+                // A never-resolving promise simulates an ARM check still in flight when the
+                // connection attempt has already timed out. The method must not wait for it.
+                const neverResolves = new Promise<azureHelpers.AzureSqlDatabaseStatus>(() => {});
+
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    azureMfaUserDbConnection(),
+                    1,
+                    neverResolves,
+                );
+                expect(result).to.be.false;
+            });
+
+            test("returns true when eligible, within budget, and the database reports a status", async () => {
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    azureMfaUserDbConnection(),
+                    1,
+                    Promise.resolve("Resuming"),
+                );
+                expect(result).to.be.true;
+            });
+
+            test("honors the databaseName override for eligibility", async () => {
+                // Connection targets master (not checkable), but the override targets a user db.
+                const connectionOnMaster = {
+                    server: "test.database.windows.net",
+                    database: "master",
+                    authenticationType: Constants.azureMfa,
+                    accountId: "account-1",
+                } as IConnectionInfo;
+
+                const result = await testConnectionManager.shouldRetryForPausedServerlessDatabase(
+                    connectionOnMaster,
+                    1,
+                    Promise.resolve("Pausing"),
+                    "userDb",
+                );
+                expect(result).to.be.true;
+            });
         });
     });
 });

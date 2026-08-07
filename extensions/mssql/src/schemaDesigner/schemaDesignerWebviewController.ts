@@ -6,13 +6,12 @@
 import * as vscode from "vscode";
 import { WebviewPanelController } from "../controllers/webviewPanelController";
 import { SchemaDesigner } from "../sharedInterfaces/schemaDesigner";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import * as LocConstants from "../constants/locConstants";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import MainController from "../controllers/mainController";
 import { homedir } from "os";
 import { getErrorMessage, getUniqueFilePath, uuid } from "../utils/utils";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { configSchemaDesignerEnableExpandCollapseButtons } from "../constants/constants";
 import { IConnectionInfo } from "vscode-mssql";
@@ -103,7 +102,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
 
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         private mainController: MainController,
         private schemaDesignerService: SchemaDesigner.ISchemaDesignerService,
         private connectionString: string,
@@ -117,7 +115,6 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            vscodeWrapper,
             SCHEMA_DESIGNER_VIEW_ID,
             SCHEMA_DESIGNER_VIEW_ID,
             {
@@ -176,6 +173,10 @@ export class SchemaDesignerWebviewController extends WebviewPanelController<
     }
 
     private setupRequestHandlers() {
+        this.onRequest(CopilotChat.OpenFromUiRequest.type, async (payload) => {
+            await vscode.commands.executeCommand(CopilotChat.openFromUiCommand, payload);
+        });
+
         this.onRequest(SchemaDesigner.InitializeSchemaDesignerRequest.type, async () => {
             if (!this._initializeSchemaDesignerPromise) {
                 this._initializeSchemaDesignerPromise = this.initializeSchemaDesignerSession();

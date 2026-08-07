@@ -23,12 +23,13 @@
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",
-    "Shortcuts Configuration": "Shortcuts Configuration",
+    "Shortcuts Configuration (Preview)": "Shortcuts Configuration (Preview)",
     "Configuration saved.": "Configuration saved.",
     "Quick Query slot must be between 1 and {0}./{0} is the maximum Quick Query slot number": {
         "message": "Quick Query slot must be between 1 and {0}.",
         "comment": ["{0} is the maximum Quick Query slot number"]
     },
+    "This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.": "This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.",
     "Please select a server node in Object Explorer to create a database.": "Please select a server node in Object Explorer to create a database.",
     "Please select a database node in Object Explorer to drop.": "Please select a database node in Object Explorer to drop.",
     "Please select a database node in Object Explorer to rename.": "Please select a database node in Object Explorer to rename.",
@@ -519,6 +520,7 @@
     "New Deployment": "New Deployment",
     "MSSQL: Click to change connection": "MSSQL: Click to change connection",
     "MSSQL: Click to change database": "MSSQL: Click to change database",
+    "MSSQL Notebook Selection Summary": "MSSQL Notebook Selection Summary",
     "Connection failed": "Connection failed",
     "Query execution failed": "Query execution failed",
     "No active notebook.": "No active notebook.",
@@ -597,6 +599,7 @@
     "Edit connection profile": "Edit connection profile",
     "Sign in and retry": "Sign in and retry",
     "Connecting...": "Connecting...",
+    "Resuming database": "Resuming database",
     "Are you sure you want to remove {0}?/{0} is the node label": {
         "message": "Are you sure you want to remove {0}?",
         "comment": ["{0} is the node label"]
@@ -733,6 +736,10 @@
             "{1} is the error message"
         ]
     },
+    "Unable to locate Azure SQL server '{0}' in the selected Azure account./{0} is the server name": {
+        "message": "Unable to locate Azure SQL server '{0}' in the selected Azure account.",
+        "comment": ["{0} is the server name"]
+    },
     "Failed to get tenant '{0}' for account '{1}'./{0} is the tenant id{1} is the account name": {
         "message": "Failed to get tenant '{0}' for account '{1}'.",
         "comment": ["{0} is the tenant id", "{1} is the account name"]
@@ -801,6 +808,7 @@
         "message": "Fabric long-running API error with error code '{0}': {1}",
         "comment": ["{0} is the error code", "{1} is the error message"]
     },
+    "Fabric long-running operation response did not include a location header.": "Fabric long-running operation response did not include a location header.",
     "Fabric Account": "Fabric Account",
     "Fabric Account is required": "Fabric Account is required",
     "Workspace": "Workspace",
@@ -1038,6 +1046,7 @@
     "Rosetta is required to run SQL Server container images on Apple Silicon. Enable \"Use Rosetta for x86_64/amd64 emulation on Apple Silicon\" in Docker Desktop > Settings > General.": "Rosetta is required to run SQL Server container images on Apple Silicon. Enable \"Use Rosetta for x86_64/amd64 emulation on Apple Silicon\" in Docker Desktop > Settings > General.",
     "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.": "SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.",
     "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.": "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
+    "Cannot access the Docker socket. Your user may not be in the 'docker' group, or VS Code was started before group membership took effect. Run 'sudo usermod -aG docker $USER' and then log out and back in (or reboot) before relaunching VS Code.": "Cannot access the Docker socket. Your user may not be in the 'docker' group, or VS Code was started before group membership took effect. Run 'sudo usermod -aG docker $USER' and then log out and back in (or reboot) before relaunching VS Code.",
     "Docker failed to start within the timeout period. Please manually start Docker and try again.": "Docker failed to start within the timeout period. Please manually start Docker and try again.",
     "Container failed to start within the timeout period. Please wait a few minutes and try again.": "Container failed to start within the timeout period. Please wait a few minutes and try again.",
     "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.": "We can't find where Docker Desktop is located on your machine. Please manually start Docker Desktop and try again.",
@@ -1632,6 +1641,12 @@
         "message": "Failed disposing query: {0}",
         "comment": ["{0} is the error message"]
     },
+    "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively./{0} is the extension name": {
+        "message": "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.",
+        "comment": ["{0} is the extension name"]
+    },
+    "File a feature request": "File a feature request",
+    "Don’t show again for this extension": "Don’t show again for this extension",
     "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
         "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
         "comment": ["{0} is the extension name"]
@@ -1846,6 +1861,8 @@
     "Highlights": "Highlights",
     "Schema Designer with GitHub Copilot": "Schema Designer with GitHub Copilot",
     "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.": "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
+    "Shortcuts Configuration": "Shortcuts Configuration",
+    "Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.": "Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.",
     "Azure SQL databases provisioning": "Azure SQL databases provisioning",
     "Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.": "Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.",
     "Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.": "Create REST, GraphQL, and MCP endpoints for your SQL database tables from a visual interface within Visual Studio Code. Configure entities, permissions, and deployment settings — then deploy locally with Docker.",
@@ -1994,15 +2011,6 @@
     "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.": "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.",
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
-    "Unable to read proxy agent options.": "Unable to read proxy agent options.",
-    "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
-        "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
-        "comment": ["{0} is the proxy URL"]
-    },
-    "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
-        "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
-        "comment": ["{0} is the proxy URL", "{1} is the error message"]
-    },
     "Backup Database - {0}/{0} is the database name": {
         "message": "Backup Database - {0}",
         "comment": ["{0} is the database name"]
@@ -2145,6 +2153,8 @@
     },
     "View known issues": "View known issues",
     "Service installation failed.": "Service installation failed.",
+    "SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.": "SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.",
+    "Send Feedback": "Send Feedback",
     "Azure sign in failed.": "Azure sign in failed.",
     "Select subscriptions": "Select subscriptions",
     "Error loading Azure subscriptions.": "Error loading Azure subscriptions.",
@@ -2233,7 +2243,9 @@
     "Move to Schema request failed: {0}": "Move to Schema request failed: {0}",
     "Failed to resolve the refactor log for this file: {0}": "Failed to resolve the refactor log for this file: {0}",
     "Move to schema '{0}'": "Move to schema '{0}'",
-    "Failed to apply the Move to Schema changes. Check that the files are writable and try again.": "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
+    "Failed to move file to the new schema folder: {0}": "Failed to move file to the new schema folder: {0}",
+    "The move was rejected or could not be completed.": "The move was rejected or could not be completed.",
+    "Failed to update the .sqlproj after moving the file: {0}": "Failed to update the .sqlproj after moving the file: {0}",
     "Close": "Close",
     "Apply": "Apply",
     "Next": "Next",
@@ -2272,6 +2284,74 @@
     "Move Down": "Move Down",
     "Filter Settings": "Filter Settings",
     "Clear All": "Clear All",
+    "Enter": "Enter",
+    "Escape": "Escape",
+    "Apply ({0})/{0} is the keyboard shortcut for applying the filter": {
+        "message": "Apply ({0})",
+        "comment": ["{0} is the keyboard shortcut for applying the filter"]
+    },
+    "Close ({0})/{0} is the keyboard shortcut for closing the filter dialog": {
+        "message": "Close ({0})",
+        "comment": ["{0} is the keyboard shortcut for closing the filter dialog"]
+    },
+    "Reusable Filters": "Reusable Filters",
+    "Saved": "Saved",
+    "Recent": "Recent",
+    "Applies across compatible folders": "Applies across compatible folders",
+    "Applied filters appear here so you can quickly reuse them.": "Applied filters appear here so you can quickly reuse them.",
+    "Save this filter for reuse": "Save this filter for reuse",
+    "Filter name": "Filter name",
+    "e.g. My tables": "e.g. My tables",
+    "Enter a name to save this filter.": "Enter a name to save this filter.",
+    "Add at least one filter value before saving this filter.": "Add at least one filter value before saving this filter.",
+    "Pin to Saved": "Pin to Saved",
+    "Move to Recent": "Move to Recent",
+    "Delete filter": "Delete filter",
+    "Rename filter": "Rename filter",
+    "Delete reusable filter?": "Delete reusable filter?",
+    "Are you sure you want to delete \"{0}\"? This action cannot be undone./{0} is the name or summary of a reusable filter": {
+        "message": "Are you sure you want to delete \"{0}\"? This action cannot be undone.",
+        "comment": ["{0} is the name or summary of a reusable filter"]
+    },
+    "A saved filter with this name already exists.": "A saved filter with this name already exists.",
+    "True": "True",
+    "False": "False",
+    "Use filter {0}/{0} is the name or summary of a reusable filter": {
+        "message": "Use filter {0}",
+        "comment": ["{0} is the name or summary of a reusable filter"]
+    },
+    "{0} filter value/{0} is a filter property name": {
+        "message": "{0} filter value",
+        "comment": ["{0} is a filter property name"]
+    },
+    "Filter by {0}…/{0} is a filter property name": {
+        "message": "Filter by {0}…",
+        "comment": ["{0} is a filter property name"]
+    },
+    "Second {0} filter value/{0} is a filter property name": {
+        "message": "Second {0} filter value",
+        "comment": ["{0} is a filter property name"]
+    },
+    "{0} filter operator/{0} is a filter property name": {
+        "message": "{0} filter operator",
+        "comment": ["{0} is a filter property name"]
+    },
+    "Clear {0} filter/{0} is a filter property name": {
+        "message": "Clear {0} filter",
+        "comment": ["{0} is a filter property name"]
+    },
+    "More actions for {0}/{0} is the name or summary of a reusable filter": {
+        "message": "More actions for {0}",
+        "comment": ["{0} is the name or summary of a reusable filter"]
+    },
+    "{0} {1} {2}/{0} is a filter property name{1} is a filter operator{2} is the filter value": {
+        "message": "{0} {1} {2}",
+        "comment": [
+            "{0} is a filter property name",
+            "{1} is a filter operator",
+            "{2} is the filter value"
+        ]
+    },
     "And": "And",
     "Contains": "Contains",
     "Not Contains": "Not Contains",
@@ -2430,17 +2510,58 @@
     },
     "Shortcuts configuration page": "Shortcuts configuration page",
     "Configuration sections": "Configuration sections",
-    "Configure Quick Query and in-app shortcuts.": "Configure Quick Query and in-app shortcuts.",
+    "Configure Quick Query and Extension shortcuts.": "Configure Quick Query and Extension shortcuts.",
     "Quick Queries": "Quick Queries",
-    "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.": "Configure command-backed SQL snippets that can open or run from keyboard shortcuts.",
-    "In-App Shortcuts": "In-App Shortcuts",
-    "Configure shortcuts that are handled inside MSSQL views.": "Configure shortcuts that are handled inside MSSQL views.",
+    "Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.": "Run saved SQL instantly with custom keyboard shortcuts. Use {arg} to insert selected query-editor text; otherwise, it is appended to the query.",
+    "Quick Queries keyboard shortcuts are managed by Visual Studio Code.": "Quick Queries keyboard shortcuts are managed by Visual Studio Code.",
+    "Open Keyboard Shortcuts editor.": "Open Keyboard Shortcuts editor.",
+    "Extension Shortcuts": "Extension Shortcuts",
+    "Configure keyboard shortcuts used by the MSSQL extension.": "Configure keyboard shortcuts used by the MSSQL extension.",
+    "Query Editor": "Query Editor",
+    "Query Editor shortcuts are managed by Visual Studio Code.": "Query Editor shortcuts are managed by Visual Studio Code.",
+    "Configure the full list of Query Editor shortcuts.": "Configure the full list of Query Editor shortcuts.",
+    "Result View": "Result View",
+    "Result View shortcuts are managed by the MSSQL extension. You can configure their keybindings directly here.": "Result View shortcuts are managed by the MSSQL extension. You can configure their keybindings directly here.",
+    "Keyboard Shortcuts editor": "Keyboard Shortcuts editor",
+    "View/configure keybinding": "View/configure keybinding",
+    "View/configure keybinding for {0}/{0} is the command or shortcut display name": {
+        "message": "View/configure keybinding for {0}",
+        "comment": ["{0} is the command or shortcut display name"]
+    },
+    "Query Execution": "Query Execution",
+    "Connection": "Connection",
+    "Others": "Others",
+    "Run, cancel, and create queries": "Run, cancel, and create queries",
+    "Connect and manage database connections": "Connect and manage database connections",
+    "Extension and deployment actions": "Extension and deployment actions",
+    "Execute Query": "Execute Query",
+    "Execute Selection or Current Statement": "Execute Selection or Current Statement",
+    "Cancel Query": "Cancel Query",
+    "New Query": "New Query",
+    "Toggle SQLCMD Mode": "Toggle SQLCMD Mode",
+    "Change Connection": "Change Connection",
+    "Show Estimated Plan": "Show Estimated Plan",
+    "Toggle Actual Plan": "Toggle Actual Plan",
+    "Copy All": "Copy All",
+    "Toggle Query Result Panel": "Toggle Query Result Panel",
+    "Run a query for the current active SQL document": "Run a query for the current active SQL document",
+    "Execute only the T-SQL statement under the cursor": "Execute only the T-SQL statement under the cursor",
+    "Cancel the query execution in progress": "Cancel the query execution in progress",
+    "Open a new SQL query file": "Open a new SQL query file",
+    "Enable or disable SQLCMD mode for the active SQL document": "Enable or disable SQLCMD mode for the active SQL document",
+    "Connect the active SQL document to a database": "Connect the active SQL document to a database",
+    "Disconnect the active SQL document from the database": "Disconnect the active SQL document from the database",
+    "Change the connection for the active SQL document": "Change the connection for the active SQL document",
+    "Change the database for the active SQL document": "Change the database for the active SQL document",
+    "View the estimated query execution plan": "View the estimated query execution plan",
+    "Toggle actual execution plan collection for SQL queries": "Toggle actual execution plan collection for SQL queries",
+    "Copy all query result content": "Copy all query result content",
+    "Show or hide the query result panel": "Show or hide the query result panel",
     "Query": "Query",
     "Shortcut": "Shortcut",
-    "Auto-execute": "Auto-execute",
+    "Keybinding": "Keybinding",
     "Clear Quick Query": "Clear Quick Query",
     "Clear this Quick Query": "Clear this Quick Query",
-    "Managed in VS Code": "Managed in VS Code",
     "Show All": "Show All",
     "Show all Quick Query shortcuts in VS Code Keyboard Shortcuts": "Show all Quick Query shortcuts in VS Code Keyboard Shortcuts",
     "Query {0}/{0} is the Quick Query slot number": {
@@ -2455,9 +2576,13 @@
         "message": "Query editor for {0}",
         "comment": ["{0} is the Quick Query shortcut name"]
     },
+    "Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.": "Insert selected query-editor text using {arg}. If you don't use the placeholder, selected text is automatically appended to the end of the query.",
+    "Selected query-editor text": "Selected query-editor text",
     "No shortcut": "No shortcut",
     "No query set": "No query set",
-    "Search in-app shortcuts": "Search in-app shortcuts",
+    "Search extension shortcut": "Search extension shortcut",
+    "No matching shortcuts": "No matching shortcuts",
+    "Try searching by command name, description, or keybinding.": "Try searching by command name, description, or keybinding.",
     "Record shortcut": "Record shortcut",
     "Press desired key combination and then press ENTER.": "Press desired key combination and then press ENTER.",
     "Recording shortcut": "Recording shortcut",
@@ -2466,7 +2591,6 @@
         "comment": ["{0} is the name of the command that already uses this shortcut"]
     },
     "Saving...": "Saving...",
-    "Saved": "Saved",
     "Navigation": "Navigation",
     "Switch between result panes and tabs": "Switch between result panes and tabs",
     "Control the results grid display": "Control the results grid display",
@@ -2700,6 +2824,7 @@
     "Highlight Expensive Operation": "Highlight Expensive Operation",
     "Toggle Tooltips": "Toggle Tooltips",
     "Properties": "Properties",
+    "Execution plan toolbar": "Execution plan toolbar",
     "Importance": "Importance",
     "Alphabetical": "Alphabetical",
     "Reverse Alphabetical": "Reverse Alphabetical",
@@ -2708,6 +2833,17 @@
     "Filter for any field...": "Filter for any field...",
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
+    "The React Flow execution plan preview could not render this plan.": "The React Flow execution plan preview could not render this plan.",
+    "Execution plan": "Execution plan",
+    "Execution plan details": "Execution plan details",
+    "Expand {0}/{0} is the name of an execution plan operation": {
+        "message": "Expand {0}",
+        "comment": ["{0} is the name of an execution plan operation"]
+    },
+    "Collapse {0}/{0} is the name of an execution plan operation": {
+        "message": "Collapse {0}",
+        "comment": ["{0} is the name of an execution plan operation"]
+    },
     "Microsoft would like your feedback": "Microsoft would like your feedback",
     "Very Satisfied": "Very Satisfied",
     "Satisfied": "Satisfied",
@@ -2951,6 +3087,7 @@
     "Invalid table payload. Expected table with columns array.": "Invalid table payload. Expected table with columns array.",
     "Failed to add table.": "Failed to add table.",
     "Failed to update table.": "Failed to update table.",
+    "Failed to apply schema.": "Failed to apply schema.",
     "Failed to delete table.": "Failed to delete table.",
     "Table id already exists.": "Table id already exists.",
     "Foreign key column mappings are required.": "Foreign key column mappings are required.",
@@ -3463,6 +3600,25 @@
     "Database Project": "Database Project",
     "Target": "Target",
     "Comparison Details": "Comparison Details",
+    "Affected child objects": "Affected child objects",
+    "Constraints added: {0}/{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.": {
+        "message": "Constraints added: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied."
+        ]
+    },
+    "Constraints changed: {0}/{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.": {
+        "message": "Constraints changed: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied."
+        ]
+    },
+    "Constraints dropped: {0}/{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.": {
+        "message": "Constraints dropped: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied."
+        ]
+    },
     "There was an error updating the project": "There was an error updating the project",
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
     "Publish Project - {0}/{0} is the name of the project being published": {
@@ -3618,10 +3774,27 @@
         "comment": ["{0} is the current IP address"]
     },
     "What's next?": "What's next?",
-    "Connect with SQL tools and run your first query": "Connect with SQL tools and run your first query",
-    "Seed sample data or import an existing schema": "Seed sample data or import an existing schema",
-    "Monitor usage and manage your free tier limits": "Monitor usage and manage your free tier limits",
-    "Browse Azure SQL Database tutorials and docs": "Browse Azure SQL Database tutorials and docs",
+    "Add tables and data, explore, and build with the MSSQL extension.": "Add tables and data, explore, and build with the MSSQL extension.",
+    "Design tables with Table Designer": "Design tables with Table Designer",
+    "Import from a flat file as a new table": "Import from a flat file as a new table",
+    "Visualize and design your database with Schema Designer": "Visualize and design your database with Schema Designer",
+    "Compare and deploy schema with Schema Compare": "Compare and deploy schema with Schema Compare",
+    "Run your first query": "Run your first query",
+    "Build with AI using GitHub Copilot": "Build with AI using GitHub Copilot",
+    "Collapse What's next": "Collapse What's next",
+    "Expand What's next": "Expand What's next",
+    "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.": "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.",
+    "Connection string": "Connection string",
+    "Run your migrations": "Run your migrations",
+    "Copied!": "Copied!",
+    "Copy connection string": "Copy connection string",
+    "Copy migration command": "Copy migration command",
+    "{0} docs/{0} is the name of a database migration tool": {
+        "message": "{0} docs",
+        "comment": ["{0} is the name of a database migration tool"]
+    },
+    "Collapse Connect to Database": "Collapse Connect to Database",
+    "Expand Connect to Database": "Expand Connect to Database",
     "Password must be changed to continue logging into '{0}'/{0} is the name of the server": {
         "message": "Password must be changed to continue logging into '{0}'",
         "comment": ["{0} is the name of the server"]

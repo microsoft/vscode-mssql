@@ -8,9 +8,9 @@ import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
-import { CredentialStore } from "../../src/credentialstore/credentialstore";
-import { ICredentialStore } from "../../src/credentialstore/icredentialstore";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
+import { InstantiationServiceBuilder, ServiceDescriptor } from "extension-toolkit/base";
+import { ExtensionContextService, IExtensionContextService } from "extension-toolkit/vscode";
+import { CredentialStore, ICredentialStore } from "../../src/credentialstore/credentialstore";
 
 chai.use(sinonChai);
 
@@ -23,7 +23,6 @@ suite("Credential Store Tests", () => {
         delete: sinon.SinonStub<[string], Promise<void>>;
     };
     let context: vscode.ExtensionContext;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
 
     const credentialId = "test_credential";
 
@@ -44,9 +43,7 @@ suite("Credential Store Tests", () => {
             secrets: secretStorage as unknown as vscode.SecretStorage,
         } as vscode.ExtensionContext;
 
-        vscodeWrapper = sandbox.createStubInstance(VscodeWrapper);
-
-        credentialStore = new CredentialStore(context, vscodeWrapper);
+        credentialStore = new CredentialStore(new ExtensionContextService(context));
     });
 
     teardown(() => {
@@ -84,5 +81,34 @@ suite("Credential Store Tests", () => {
         await credentialStore.deleteCredential(credentialId);
 
         expect(secretStorage.delete).to.have.been.calledOnceWithExactly(credentialId);
+    });
+
+    suite("Dependency injection", () => {
+        test("Resolves a cached CredentialStore instance backed by the registered context's secret storage", async () => {
+            const builder = new InstantiationServiceBuilder();
+            builder.define(IExtensionContextService, new ExtensionContextService(context));
+            builder.define(ICredentialStore, new ServiceDescriptor(CredentialStore));
+            const instantiationService = builder.seal();
+
+            try {
+                const first = instantiationService.invokeFunction((accessor) =>
+                    accessor.get(ICredentialStore),
+                );
+                const second = instantiationService.invokeFunction((accessor) =>
+                    accessor.get(ICredentialStore),
+                );
+
+                expect(first).to.equal(second);
+
+                await first.saveCredential(credentialId, "test_password");
+
+                expect(secretStorage.store).to.have.been.calledOnceWithExactly(
+                    credentialId,
+                    "test_password",
+                );
+            } finally {
+                instantiationService.dispose();
+            }
+        });
     });
 });

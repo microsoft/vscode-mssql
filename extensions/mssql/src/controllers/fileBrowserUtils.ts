@@ -7,7 +7,7 @@ import { allFileTypes } from "../constants/constants";
 import { FileBrowserService } from "../services/fileBrowserService";
 import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterfaces/fileBrowser";
 import { WebviewPanelController } from "./webviewPanelController";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 export function registerFileBrowserReducers<TResult>(

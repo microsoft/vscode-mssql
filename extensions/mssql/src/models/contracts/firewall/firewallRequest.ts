@@ -15,14 +15,6 @@ export namespace CreateFirewallRuleRequest {
     >("resource/createFirewallRule");
 }
 
-export namespace HandleFirewallRuleRequest {
-    export const type = new RequestType<
-        IHandleFirewallRuleParams,
-        IHandleFirewallRuleResponse,
-        void
-    >("resource/handleFirewallRule");
-}
-
 // Firewall rule interfaces
 
 export interface ICreateFirewallRuleParams {
@@ -37,17 +29,6 @@ export interface ICreateFirewallRuleParams {
 export interface ICreateFirewallRuleResponse {
     result: boolean;
     errorMessage: string;
-}
-
-export interface IHandleFirewallRuleParams {
-    errorCode: number;
-    errorMessage: string;
-    connectionTypeId: string;
-}
-
-export interface IHandleFirewallRuleResponse {
-    result: boolean;
-    ipAddress: string;
 }
 
 export interface IFirewallIpAddressRange {

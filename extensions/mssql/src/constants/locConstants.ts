@@ -41,7 +41,7 @@ export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
-export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
+export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration (Preview)");
 export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
 export let quickQuerySlotOutOfRange = (maxSlot: number) =>
     l10n.t({
@@ -49,6 +49,9 @@ export let quickQuerySlotOutOfRange = (maxSlot: number) =>
         args: [maxSlot],
         comment: ["{0} is the maximum Quick Query slot number"],
     });
+export let quickQuerySelectedTextRequired = l10n.t(
+    "This shortcut requires selected text to be passed as a parameter. Select text in the SQL editor, then run the shortcut again.",
+);
 export let msgSelectServerNodeToCreateDatabase = l10n.t(
     "Please select a server node in Object Explorer to create a database.",
 );
@@ -848,6 +851,7 @@ export class Notebooks {
     // Status bar
     public static statusBarClickToChangeConnection = l10n.t("MSSQL: Click to change connection");
     public static statusBarClickToChangeDatabase = l10n.t("MSSQL: Click to change database");
+    public static selectionSummaryStatusBarName = l10n.t("MSSQL Notebook Selection Summary");
 
     // Errors
     public static connectionFailed = l10n.t("Connection failed");
@@ -992,6 +996,7 @@ export class ObjectExplorer {
     public static FailedOEConnectionErrorUpdate = l10n.t("Edit connection profile");
     public static FailedOEConnectionErrorSignIn = l10n.t("Sign in and retry");
     public static Connecting = l10n.t("Connecting...");
+    public static ResumingDatabase = l10n.t("Resuming database");
     public static NodeDeletionConfirmation(nodeLabel: string) {
         return l10n.t({
             message: "Are you sure you want to remove {0}?",
@@ -1250,6 +1255,14 @@ export class Azure {
         });
     };
 
+    public static unableToLocateSqlServer = (serverName: string) => {
+        return l10n.t({
+            message: "Unable to locate Azure SQL server '{0}' in the selected Azure account.",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+
     public static failedToGetTenantForAccount = (tenantId: string, accountName: string) => {
         return l10n.t({
             message: "Failed to get tenant '{0}' for account '{1}'.",
@@ -1401,6 +1414,10 @@ export class Fabric {
             comment: ["{0} is the error code", "{1} is the error message"],
         });
     };
+
+    public static fabricLongRunningApiMissingLocation = l10n.t(
+        "Fabric long-running operation response did not include a location header.",
+    );
 
     public static fabricAccount = l10n.t("Fabric Account");
     public static fabricAccountIsRequired = l10n.t("Fabric Account is required");
@@ -1824,6 +1841,9 @@ export class LocalContainers {
     );
     public static linuxDockerPermissionsError = l10n.t(
         "Docker requires root permissions to run. Please run Docker with sudo or add your user to the docker group using sudo usermod -aG docker $USER. Then, reboot your machine and retry.",
+    );
+    public static dockerSocketPermissionError = l10n.t(
+        "Cannot access the Docker socket. Your user may not be in the 'docker' group, or VS Code was started before group membership took effect. Run 'sudo usermod -aG docker $USER' and then log out and back in (or reboot) before relaunching VS Code.",
     );
     public static dockerFailedToStartWithinTimeout = l10n.t(
         "Docker failed to start within the timeout period. Please manually start Docker and try again.",
@@ -2988,6 +3008,16 @@ export class QueryEditor {
 }
 
 export class ConnectionSharing {
+    public static retirementWarning(extensionName: string) {
+        return l10n.t({
+            message:
+                "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.",
+            args: [extensionName],
+            comment: ["{0} is the extension name"],
+        });
+    }
+    public static FileFeatureRequest = l10n.t("File a feature request");
+    public static DoNotShowAgainForExtension = l10n.t("Don’t show again for this extension");
     public static connectionSharingRequestNotification(extensionName: string) {
         return l10n.t({
             message:
@@ -3406,6 +3436,10 @@ export class Changelog {
     public static schemaDesignerCopilotDescription = l10n.t(
         "Use natural language to design database schemas directly within the visual Schema Designer. Create schemas from scratch, evolve existing designs, review changes through a diff view, and import external artifacts - all reflected live in the visual diagram and T-SQL script.",
     );
+    public static shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
+    public static shortcutsConfigurationDescription = l10n.t(
+        "Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.",
+    );
     public static azureSqlProvisioningTitle = l10n.t("Azure SQL databases provisioning");
     public static azureSqlProvisioningDescription = l10n.t(
         "Easily start with the Azure SQL database free tier to create and connect to a database directly from your editor at no cost.",
@@ -3679,26 +3713,6 @@ export class Profiler {
     );
 }
 
-export class Proxy {
-    public static unableToGetProxyAgentOptions = l10n.t("Unable to read proxy agent options.");
-
-    public static missingProtocolWarning = (proxy: string) =>
-        l10n.t({
-            message:
-                "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
-            args: [proxy],
-            comment: ["{0} is the proxy URL"],
-        });
-
-    public static unparseableWarning = (proxy: string, errorMessage: string) =>
-        l10n.t({
-            message:
-                "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
-            args: [proxy, errorMessage],
-            comment: ["{0} is the proxy URL", "{1} is the error message"],
-        });
-}
-
 export class BackupDatabase {
     public static backupDatabaseTitle = (databaseName: string) =>
         l10n.t({
@@ -3910,6 +3924,13 @@ export class ServiceClient {
     public static viewKnownIssues = l10n.t("View known issues");
 
     public static installFailedStatusText = l10n.t("Service installation failed.");
+}
+
+export class Formatter {
+    public static parseError = l10n.t(
+        "SQL formatting could not be completed because the T-SQL could not be fully parsed. If you believe the syntax is valid, please send feedback.",
+    );
+    public static sendFeedback = l10n.t("Send Feedback");
 }
 
 export const azureSignInFailed = l10n.t("Azure sign in failed.");
@@ -4184,7 +4205,9 @@ export class SqlMoveToSchema {
         l10n.t("Failed to resolve the refactor log for this file: {0}", message);
     public static previewLabel = (targetSchema: string): string =>
         l10n.t("Move to schema '{0}'", targetSchema);
-    public static applyEditFailed = l10n.t(
-        "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
-    );
+    public static moveFileFailed = (message: string): string =>
+        l10n.t("Failed to move file to the new schema folder: {0}", message);
+    public static moveFileRejected = l10n.t("The move was rejected or could not be completed.");
+    public static sqlprojUpdateFailed = (message: string): string =>
+        l10n.t("Failed to update the .sqlproj after moving the file: {0}", message);
 }

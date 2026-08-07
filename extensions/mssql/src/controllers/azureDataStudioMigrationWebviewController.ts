@@ -27,18 +27,22 @@ import {
 } from "../sharedInterfaces/azureDataStudioMigration";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { WebviewPanelController } from "./webviewPanelController";
-import VscodeWrapper from "./vscodeWrapper";
-import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import {
+    sendActionEvent,
+    sendErrorEvent,
+    startActivity,
+    IExtensionContextService,
+} from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { IConnectionGroup } from "../sharedInterfaces/connectionGroup";
 import { getErrorMessage } from "../utils/utils";
-import { ConnectionConfig } from "../connectionconfig/connectionconfig";
+import { ConnectionConfig, IConnectionConfig } from "../connectionconfig/connectionconfig";
 import { Deferred } from "../protocol";
 import { AzureAccountService } from "../services/azureAccountService";
 import { IAccount } from "vscode-mssql";
 import { getConnectionDisplayName } from "../models/connectionInfo";
 import * as interfaces from "../models/interfaces";
-import { ConnectionStore } from "../models/connectionStore";
+import { ConnectionStore, IConnectionStore } from "../models/connectionStore";
 import { ApiStatus } from "../sharedInterfaces/webview";
 
 const defaultState: AzureDataStudioMigrationWebviewState = {
@@ -92,16 +96,14 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
     private _adsRootGroupIds: Set<string> = new Set<string>();
 
     constructor(
-        context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
-        private connectionStore: ConnectionStore,
-        private connectionConfig: ConnectionConfig,
         private azureAccountService: AzureAccountService,
+        @IExtensionContextService contextService: IExtensionContextService,
+        @IConnectionStore private connectionStore: ConnectionStore,
+        @IConnectionConfig private connectionConfig: ConnectionConfig,
         initialState: AzureDataStudioMigrationWebviewState = defaultState,
     ) {
         super(
-            context,
-            vscodeWrapper,
+            contextService.context,
             AZURE_DATA_STUDIO_MIGRATION_VIEW_ID,
             AZURE_DATA_STUDIO_MIGRATION_VIEW_ID,
             initialState,
@@ -109,8 +111,16 @@ export class AzureDataStudioMigrationWebviewController extends WebviewPanelContr
                 title: AzureDataStudioMigration.PageTitle,
                 viewColumn: vscode.ViewColumn.Active,
                 iconPath: {
-                    dark: vscode.Uri.joinPath(context.extensionUri, "media", "connect_dark.svg"),
-                    light: vscode.Uri.joinPath(context.extensionUri, "media", "connect_light.svg"),
+                    dark: vscode.Uri.joinPath(
+                        contextService.context.extensionUri,
+                        "media",
+                        "connect_dark.svg",
+                    ),
+                    light: vscode.Uri.joinPath(
+                        contextService.context.extensionUri,
+                        "media",
+                        "connect_light.svg",
+                    ),
                 },
             },
         );

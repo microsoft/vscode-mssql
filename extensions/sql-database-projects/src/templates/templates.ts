@@ -5,7 +5,7 @@
 
 import * as path from "path";
 import { promises as fs } from "fs";
-import { ItemType } from "sqldbproj";
+import { ItemType } from "../sqldbproj";
 import * as constants from "../common/constants";
 import { getMicrosoftBuildSqlVersion } from "../tools/netcoreTool";
 

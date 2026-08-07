@@ -8,12 +8,26 @@ import sinonChai from "sinon-chai";
 import { expect } from "chai";
 import * as chai from "chai";
 import * as vscode from "vscode";
+import {
+    InstantiationServiceBuilder,
+    ServiceDescriptor,
+    IInstantiationService,
+} from "extension-toolkit/base";
+import {
+    ExtensionContextService,
+    IExtensionContextService,
+    VscodeHttpClient,
+} from "extension-toolkit/vscode";
 import MainController from "../../src/controllers/mainController";
 import ConnectionManager from "../../src/controllers/connectionManager";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
-import { stubTelemetry, stubExtensionContext, stubVscodeWrapper } from "./utils";
+import { AccountStore, IAccountStore } from "../../src/azure/accountStore";
+import {
+    stubTelemetry,
+    stubExtensionContext,
+    stubMessageBoxes,
+    stubInstantiationService,
+} from "./utils";
 import * as Constants from "../../src/constants/constants";
-import { HttpClient } from "../../src/http/httpClient";
 import * as LocalizedConstants from "../../src/constants/locConstants";
 import { SchemaDesignerWebviewManager } from "../../src/schemaDesigner/schemaDesignerWebviewManager";
 import { CopilotChat } from "../../src/sharedInterfaces/copilotChat";
@@ -22,18 +36,12 @@ import { DabTool } from "../../src/copilot/tools/dabTool";
 import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schemaDesignerWebviewController";
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
+import * as Utils from "../../src/models/utils";
 
 chai.use(sinonChai);
 
 type MainControllerTestAccess = {
     validateTextDocumentHasFocus(): boolean;
-    _vscodeWrapper: {
-        activeTextEditorUri?: string;
-        activeTextEditor?: vscode.TextEditor;
-        isEditingSqlFile?: boolean;
-        showInformationMessage(message: string): Thenable<unknown> | void;
-        showErrorMessage?(message: string): Thenable<unknown> | void;
-    };
     _outputContentProvider: {
         runCurrentStatement: sinon.SinonStub;
         runQuery: sinon.SinonStub;
@@ -53,8 +61,9 @@ suite("MainController Tests", function () {
     let sandbox: sinon.SinonSandbox;
     let mainController: MainController;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
-    let vscodeWrapper: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let messageBoxes: ReturnType<typeof stubMessageBoxes>;
     let context: vscode.ExtensionContext;
+    let instantiationService: sinon.SinonStubbedInstance<IInstantiationService>;
 
     function createMockTextEditor(
         uri: string,
@@ -91,10 +100,10 @@ suite("MainController Tests", function () {
 
         // Setting up a stubbed connectionManager
         connectionManager = sandbox.createStubInstance(ConnectionManager);
-
-        vscodeWrapper = stubVscodeWrapper(sandbox);
+        messageBoxes = stubMessageBoxes(sandbox);
         context = stubExtensionContext(sandbox);
-        mainController = new MainController(context, connectionManager, vscodeWrapper);
+        instantiationService = stubInstantiationService(sandbox);
+        mainController = new MainController(context, instantiationService, connectionManager);
     });
 
     teardown(() => {
@@ -102,16 +111,11 @@ suite("MainController Tests", function () {
     });
 
     test("validateTextDocumentHasFocus returns false if there is no active text document", () => {
-        const vscodeWrapper = stubVscodeWrapper(sandbox);
-        let getterCalls = 0;
-        sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => {
-            getterCalls += 1;
-            return undefined;
-        });
+        sandbox.stub(Utils, "getActiveTextEditorUri").returns(undefined);
         const controller: MainController = new MainController(
             context,
+            instantiationService,
             undefined, // ConnectionManager
-            vscodeWrapper,
         );
         const controllerAccess = accessMainController(controller);
 
@@ -121,16 +125,14 @@ suite("MainController Tests", function () {
             result,
             "Expected validateTextDocumentHasFocus to return false when the active document URI is undefined",
         ).to.be.false;
-        expect(getterCalls).to.equal(1);
     });
 
     test("validateTextDocumentHasFocus returns true if there is an active text document", () => {
-        const vscodeWrapper = stubVscodeWrapper(sandbox);
-        sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "test_uri");
+        sandbox.stub(Utils, "getActiveTextEditorUri").returns("test_uri");
         const controller: MainController = new MainController(
             context,
+            instantiationService,
             undefined, // ConnectionManager
-            vscodeWrapper,
         );
         const controllerAccess = accessMainController(controller);
 
@@ -143,13 +145,12 @@ suite("MainController Tests", function () {
     });
 
     test("onManageProfiles should call the connection manager to manage profiles", async () => {
-        const vscodeWrapper = stubVscodeWrapper(sandbox);
         connectionManager.onManageProfiles.resolves();
 
         const controller: MainController = new MainController(
             context,
+            instantiationService,
             connectionManager,
-            vscodeWrapper,
         );
 
         await controller.onManageProfiles();
@@ -169,7 +170,7 @@ suite("MainController Tests", function () {
             ensureReadyToExecuteQueryStub = sandbox
                 .stub(mainController, "ensureReadyToExecuteQuery")
                 .resolves(true);
-            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "file:///test/query.sql");
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns("file:///test/query.sql");
 
             runCurrentStatementStub = sandbox.stub().resolves();
             runQueryStub = sandbox.stub().resolves();
@@ -184,7 +185,7 @@ suite("MainController Tests", function () {
         test("runs the current statement when there is no selection", async () => {
             const selection = new vscode.Selection(1, 7, 1, 7);
             sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
+                .stub(vscode.window, "activeTextEditor")
                 .get(() => createQueryTextEditor(selection, "select 'a';\nselect 'b';"));
 
             await mainController.onRunCurrentStatement();
@@ -206,7 +207,7 @@ suite("MainController Tests", function () {
         test("runs selected text when there is a non-empty selection", async () => {
             const selection = new vscode.Selection(0, 0, 0, 11);
             sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
+                .stub(vscode.window, "activeTextEditor")
                 .get(() =>
                     createQueryTextEditor(selection, "select 'a'; select 'b';", "select 'a';"),
                 );
@@ -235,7 +236,7 @@ suite("MainController Tests", function () {
                 "select 'a';\nselect 'b';",
                 "select 'a';",
             );
-            sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => activeEditor);
             ensureReadyToExecuteQueryStub.callsFake(async () => {
                 activeEditor = createQueryTextEditor(
                     changedSelection,
@@ -265,7 +266,7 @@ suite("MainController Tests", function () {
             const originalSelection = new vscode.Selection(0, 7, 0, 7);
             const changedSelection = new vscode.Selection(1, 7, 1, 7);
             let activeEditor = createQueryTextEditor(originalSelection, "select 'a';\nselect 'b';");
-            sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => activeEditor);
             ensureReadyToExecuteQueryStub.callsFake(async () => {
                 activeEditor = createQueryTextEditor(changedSelection, "select 'a';\nselect 'b';");
                 return true;
@@ -290,7 +291,7 @@ suite("MainController Tests", function () {
         test("does not execute when the selection contains only whitespace", async () => {
             const selection = new vscode.Selection(0, 0, 0, 4);
             sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
+                .stub(vscode.window, "activeTextEditor")
                 .get(() => createQueryTextEditor(selection, "    select 'a';", "    "));
 
             await mainController.onRunCurrentStatement();
@@ -303,7 +304,7 @@ suite("MainController Tests", function () {
             const selection = new vscode.Selection(0, 0, 0, 11);
             const secondSelection = new vscode.Selection(1, 0, 1, 11);
             sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
+                .stub(vscode.window, "activeTextEditor")
                 .get(() =>
                     createQueryTextEditor(selection, "select 'a';\nselect 'b';", "select 'a';", [
                         selection,
@@ -313,7 +314,7 @@ suite("MainController Tests", function () {
 
             await mainController.onRunCurrentStatement();
 
-            expect(vscodeWrapper.showErrorMessage).to.have.been.calledOnceWithExactly(
+            expect(messageBoxes.showErrorMessage).to.have.been.calledOnceWithExactly(
                 LocalizedConstants.msgMultipleSelectionModeNotSupported,
             );
             expect(runQueryStub).to.not.have.been.called;
@@ -323,7 +324,7 @@ suite("MainController Tests", function () {
         test("does not execute when the document is empty", async () => {
             const selection = new vscode.Selection(0, 0, 0, 0);
             sandbox
-                .stub(vscodeWrapper, "activeTextEditor")
+                .stub(vscode.window, "activeTextEditor")
                 .get(() => createQueryTextEditor(selection, ""));
 
             await mainController.onRunCurrentStatement();
@@ -344,7 +345,7 @@ suite("MainController Tests", function () {
             ensureReadyToExecuteQueryStub = sandbox
                 .stub(mainController, "ensureReadyToExecuteQuery")
                 .resolves(true);
-            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => "file:///test/query.sql");
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns("file:///test/query.sql");
 
             runQueryStub = sandbox.stub().resolves();
             controllerAccess._outputContentProvider = {
@@ -364,7 +365,7 @@ suite("MainController Tests", function () {
                 "select 'a';\nselect 'b';",
                 "select 'a';",
             );
-            sandbox.stub(vscodeWrapper, "activeTextEditor").get(() => activeEditor);
+            sandbox.stub(vscode.window, "activeTextEditor").get(() => activeEditor);
             ensureReadyToExecuteQueryStub.callsFake(async () => {
                 activeEditor = createQueryTextEditor(
                     changedSelection,
@@ -395,9 +396,12 @@ suite("MainController Tests", function () {
     });
 
     test("Proxy settings are checked on initialization", async () => {
-        const httpHelperWarnSpy = sandbox.spy(HttpClient.prototype, "warnOnInvalidProxySettings");
+        const httpHelperWarnSpy = sandbox.spy(
+            VscodeHttpClient.prototype,
+            "warnOnInvalidProxySettings",
+        );
 
-        new MainController(context, connectionManager, vscodeWrapper);
+        new MainController(context, instantiationService, connectionManager);
 
         expect(
             httpHelperWarnSpy.calledOnce,
@@ -526,8 +530,8 @@ suite("MainController Tests", function () {
     suite("ensureReadyToExecuteQuery Tests", () => {
         test("returns true when the active SQL editor is already connected", async () => {
             const testUri = "file:///test/connected.sql";
-            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => testUri);
-            sandbox.stub(vscodeWrapper, "isEditingSqlFile").get(() => true);
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(testUri);
+            sandbox.stub(Utils, "isEditingSqlFile").returns(true);
             connectionManager.isConnected.withArgs(testUri).returns(true);
 
             const result = await mainController.ensureReadyToExecuteQuery();
@@ -538,8 +542,8 @@ suite("MainController Tests", function () {
 
         test("returns true after prompting and connecting", async () => {
             const testUri = "file:///test/notConnected.sql";
-            sandbox.stub(vscodeWrapper, "activeTextEditorUri").get(() => testUri);
-            sandbox.stub(vscodeWrapper, "isEditingSqlFile").get(() => true);
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(testUri);
+            sandbox.stub(Utils, "isEditingSqlFile").returns(true);
             connectionManager.isConnected.withArgs(testUri).returns(false);
             connectionManager.isConnecting.withArgs(testUri).returns(false);
             const promptToConnectStub = sandbox
@@ -554,17 +558,11 @@ suite("MainController Tests", function () {
 
         test("returns false and shows info message when connection is in progress", async () => {
             const testUri = "file:///test/connecting.sql";
-            const controllerAccess = accessMainController(mainController);
 
-            // Stub the private _vscodeWrapper so ensureActiveSqlFile passes
-            // and the isConnecting path is exercised
-            const originalWrapper = controllerAccess._vscodeWrapper;
-            const showInfoStub = sandbox.stub().resolves();
-            controllerAccess._vscodeWrapper = {
-                activeTextEditorUri: testUri,
-                isEditingSqlFile: true,
-                showInformationMessage: showInfoStub,
-            };
+            // Make the active editor a SQL file so ensureActiveSqlFile passes
+            // and the isConnecting path is exercised.
+            sandbox.stub(Utils, "getActiveTextEditorUri").returns(testUri);
+            sandbox.stub(Utils, "isEditingSqlFile").returns(true);
 
             // connectionManager is already a stub from the outer setup
             connectionManager.isConnected.withArgs(testUri).returns(false);
@@ -585,7 +583,7 @@ suite("MainController Tests", function () {
                     false,
                     "Should return false when connection is in progress",
                 );
-                expect(showInfoStub).to.have.been.calledOnceWith(
+                expect(messageBoxes.showInformationMessage).to.have.been.calledOnceWith(
                     LocalizedConstants.msgConnectionInProgress,
                 );
                 expect(promptToConnectCalled).to.equal(
@@ -593,7 +591,6 @@ suite("MainController Tests", function () {
                     "promptToConnect should not be called when connection is already in progress",
                 );
             } finally {
-                controllerAccess._vscodeWrapper = originalWrapper;
                 mainController.promptToConnect = originalPromptToConnect;
             }
         });
@@ -602,21 +599,20 @@ suite("MainController Tests", function () {
     suite("Schema Designer Copilot Agent Command", () => {
         const createIsolatedController = () => {
             const isolatedConnectionManager = sandbox.createStubInstance(ConnectionManager);
-            const isolatedVscodeWrapper = stubVscodeWrapper(sandbox);
             const isolatedContext = stubExtensionContext(sandbox);
             const isolatedController = new MainController(
                 isolatedContext,
+                stubInstantiationService(sandbox),
                 isolatedConnectionManager,
-                isolatedVscodeWrapper,
             );
-            return { isolatedController, isolatedVscodeWrapper };
+            return { isolatedController };
         };
 
         test("shows error when no active schema designer exists", async () => {
-            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const { isolatedController } = createIsolatedController();
             const controllerAccess = accessMainController(isolatedController);
             const { sendActionEvent } = stubTelemetry(sandbox);
-            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const showErrorMessageStub = messageBoxes.showErrorMessage;
             const findChatOpenAgentCommandStub = sandbox.stub(
                 controllerAccess,
                 "findChatOpenAgentCommand",
@@ -648,9 +644,9 @@ suite("MainController Tests", function () {
         });
 
         test("shows error when chat command is unavailable", async () => {
-            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const { isolatedController } = createIsolatedController();
             const controllerAccess = accessMainController(isolatedController);
-            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const showErrorMessageStub = messageBoxes.showErrorMessage;
             sandbox.stub(SchemaDesignerWebviewManager, "getInstance").returns({
                 getActiveDesigner: sandbox.stub().returns({}),
             } as unknown as SchemaDesignerWebviewManager);
@@ -667,9 +663,9 @@ suite("MainController Tests", function () {
         });
 
         test("opens chat with schema designer starter prompt when chat command is available", async () => {
-            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const { isolatedController } = createIsolatedController();
             const controllerAccess = accessMainController(isolatedController);
-            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const showErrorMessageStub = messageBoxes.showErrorMessage;
             const executeCommandStub = sandbox
                 .stub(vscode.commands, "executeCommand")
                 .resolves(undefined);
@@ -693,10 +689,10 @@ suite("MainController Tests", function () {
         });
 
         test("opens chat with dab starter prompt and sends telemetry", async () => {
-            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const { isolatedController } = createIsolatedController();
             const controllerAccess = accessMainController(isolatedController);
             const { sendActionEvent } = stubTelemetry(sandbox);
-            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const showErrorMessageStub = messageBoxes.showErrorMessage;
             const executeCommandStub = sandbox
                 .stub(vscode.commands, "executeCommand")
                 .resolves(undefined);
@@ -730,9 +726,9 @@ suite("MainController Tests", function () {
         });
 
         test("opens chat with prompt override when provided", async () => {
-            const { isolatedController, isolatedVscodeWrapper } = createIsolatedController();
+            const { isolatedController } = createIsolatedController();
             const controllerAccess = accessMainController(isolatedController);
-            const showErrorMessageStub = isolatedVscodeWrapper.showErrorMessage as sinon.SinonStub;
+            const showErrorMessageStub = messageBoxes.showErrorMessage;
             const executeCommandStub = sandbox
                 .stub(vscode.commands, "executeCommand")
                 .resolves(undefined);
@@ -763,7 +759,6 @@ suite("MainController Tests", function () {
                 .stub(vscode.lm, "registerTool")
                 .returns({ dispose: sandbox.stub() } as vscode.Disposable);
             const isolatedConnectionManager = sandbox.createStubInstance(ConnectionManager);
-            const isolatedVscodeWrapper = stubVscodeWrapper(sandbox);
             const isolatedContext = stubExtensionContext(sandbox);
             const mockDesigner = sandbox.createStubInstance(SchemaDesignerWebviewController);
             const getSchemaDesignerStub = sandbox.stub().resolves(mockDesigner);
@@ -777,8 +772,8 @@ suite("MainController Tests", function () {
 
             const isolatedController = new MainController(
                 isolatedContext,
+                stubInstantiationService(sandbox),
                 isolatedConnectionManager,
-                isolatedVscodeWrapper,
             );
             const controllerAccess = accessMainController(isolatedController);
             controllerAccess.registerLanguageModelTools();
@@ -805,7 +800,6 @@ suite("MainController Tests", function () {
             expect(result.success).to.equal(true);
             expect(getSchemaDesignerStub).to.have.been.calledOnceWith(
                 isolatedContext,
-                isolatedVscodeWrapper,
                 isolatedController,
                 isolatedController.schemaDesignerService,
                 "AdventureWorks",
@@ -829,7 +823,7 @@ suite("MainController Tests", function () {
         let sendErrorEvent: sinon.SinonStub;
 
         setup(() => {
-            controller = new MainController(context, connectionManager, vscodeWrapper);
+            controller = new MainController(context, instantiationService, connectionManager);
             controllerAccess = accessMainController(controller);
 
             ({ sendActionEvent, sendErrorEvent } = stubTelemetry(sandbox));
@@ -1025,5 +1019,40 @@ suite("MainController Tests", function () {
             expect(configStub).to.have.been.calledWithExactly();
         });
         /* eslint-enable @typescript-eslint/no-deprecated */
+    });
+
+    suite("Dependency injection", () => {
+        test("createInstance resolves the container-owned IInstantiationService for MainController", () => {
+            const builder = new InstantiationServiceBuilder();
+            builder.define(IExtensionContextService, new ExtensionContextService(context));
+            const sealedInstantiationService = builder.seal();
+
+            const createdController = sealedInstantiationService.createInstance(
+                MainController,
+                context,
+            );
+
+            expect(createdController["_instantiationService"]).to.equal(sealedInstantiationService);
+
+            sealedInstantiationService.dispose();
+        });
+
+        test("Resolves a cached AccountStore instance backed by the registered extension context", () => {
+            const builder = new InstantiationServiceBuilder();
+            builder.define(IExtensionContextService, new ExtensionContextService(context));
+            builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
+            const instantiationService = builder.seal();
+
+            const first = instantiationService.invokeFunction((accessor) =>
+                accessor.get(IAccountStore),
+            );
+            const second = instantiationService.invokeFunction((accessor) =>
+                accessor.get(IAccountStore),
+            );
+
+            expect(first).to.equal(second);
+
+            instantiationService.dispose();
+        });
     });
 });

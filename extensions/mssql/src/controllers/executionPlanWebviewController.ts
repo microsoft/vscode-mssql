@@ -16,7 +16,11 @@ import {
     updateTotalCost,
 } from "./sharedExecutionPlanUtils";
 import { ExecutionPlanService } from "../services/executionPlanService";
-import VscodeWrapper from "./vscodeWrapper";
+import {
+    getPreviewConfigKey,
+    isBetaExecutionPlanEnabled,
+    PreviewFeature,
+} from "../previews/previewService";
 
 export class ExecutionPlanWebviewController extends WebviewPanelController<
     ep.ExecutionPlanWebviewState,
@@ -24,7 +28,6 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
 > {
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         public executionPlanService: ExecutionPlanService, // public for testing purposes
         public sqlDocumentService: SqlDocumentService,
         public executionPlanContents: string,
@@ -34,7 +37,6 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
     ) {
         super(
             context,
-            vscodeWrapper,
             "executionPlan",
             "executionPlan",
             {
@@ -42,6 +44,7 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                     loadState: ApiStatus.Loading,
                     executionPlanGraphs: [],
                     totalCost: 0,
+                    isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                 },
             },
             {
@@ -68,6 +71,23 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
         this.state.executionPlanState.loadState = ApiStatus.Loading;
         this.updateState();
         this.registerRpcHandlers();
+        this.registerDisposable(
+            vscode.workspace.onDidChangeConfiguration((event) => {
+                if (
+                    event.affectsConfiguration(
+                        getPreviewConfigKey(PreviewFeature.BetaExecutionPlan),
+                    )
+                ) {
+                    this.updateState({
+                        ...this.state,
+                        executionPlanState: {
+                            ...this.state.executionPlanState,
+                            isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
+                        },
+                    });
+                }
+            }),
+        );
     }
 
     private registerRpcHandlers() {
@@ -82,7 +102,8 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                 ...state,
                 executionPlanState: {
                     ...state.executionPlanState,
-                    executionPlanGraphs: this.state.executionPlanState.executionPlanGraphs,
+                    isBetaExecutionPlanEnabled:
+                        this.state.executionPlanState.isBetaExecutionPlanEnabled,
                 },
             };
         });

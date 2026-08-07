@@ -33,6 +33,13 @@ export class ExpandResponse {
      * Error message returned from the engine for a object explorer expand failure reason, if any.
      */
     public errorMessage: string;
+
+    /**
+     * Stable, non-localized error code identifying the expand failure reason (e.g.
+     * "EXPAND_TIMEOUT"), if a known one applies. Lets the client detect specific failures
+     * without matching on the localized error message.
+     */
+    public errorCode?: string;
 }
 
 /**

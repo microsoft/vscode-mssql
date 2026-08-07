@@ -4,9 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
-import * as telemetry from "../../src/telemetry/telemetry";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 import * as vscode from "vscode";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import * as path from "path";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as jsonRpc from "vscode-jsonrpc/node";
@@ -19,7 +18,7 @@ import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import { logger as baseLogger } from "../../src/models/logger";
 import { PreviewFeature, previewService } from "../../src/previews/previewService";
-import { createLogOutputChannelStub } from "./stubs";
+import { IInstantiationService, InstantiationService } from "extension-toolkit/base";
 
 // Stubs the telemetry code
 export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
@@ -33,18 +32,113 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
     };
 }
 
-export function stubVscodeWrapper(
-    sandbox?: sinon.SinonSandbox,
-): sinon.SinonStubbedInstance<VscodeWrapper> {
-    const stubber = sandbox || sinon;
+/**
+ * Stubs the `vscode.workspace.fs` methods used by file-relocation tests and
+ * installs them via `sandbox.stub(vscode.workspace, "fs").value(...)`.
+ */
+export function stubWorkspaceFileSystem(sandbox: sinon.SinonSandbox): {
+    stat: sinon.SinonStub;
+    writeFile: sinon.SinonStub;
+    delete: sinon.SinonStub;
+    createDirectory: sinon.SinonStub;
+    rename: sinon.SinonStub;
+} {
+    const stubs = {
+        stat: sandbox.stub().rejects(vscode.FileSystemError.FileNotFound()),
+        writeFile: sandbox.stub().resolves(),
+        delete: sandbox.stub().resolves(),
+        createDirectory: sandbox.stub().resolves(),
+        rename: sandbox.stub().resolves(),
+    };
+    sandbox.stub(vscode.workspace, "fs").value(stubs);
+    return stubs;
+}
 
-    const vscodeWrapper = stubber.createStubInstance(VscodeWrapper);
+/**
+ * Stubs the `vscode.window` message-box functions (`showErrorMessage`,
+ * `showInformationMessage`, `showWarningMessage`) and returns the created stubs
+ * so tests can configure return values and assert on calls.
+ */
+export function stubMessageBoxes(sandbox: sinon.SinonSandbox): {
+    showErrorMessage: sinon.SinonStub;
+    showInformationMessage: sinon.SinonStub;
+    showWarningMessage: sinon.SinonStub;
+} {
+    return {
+        showErrorMessage: sandbox.stub(vscode.window, "showErrorMessage"),
+        showInformationMessage: sandbox.stub(vscode.window, "showInformationMessage"),
+        showWarningMessage: sandbox.stub(vscode.window, "showWarningMessage"),
+    };
+}
 
-    const outputChannel: vscode.OutputChannel = createLogOutputChannelStub(stubber);
+/**
+ * Stubs common `vscode.window` functions and returns the created stubs so tests
+ * can configure return values and assert on calls.
+ */
+export function stubVscodeWindow(sandbox: sinon.SinonSandbox): {
+    showErrorMessage: sinon.SinonStub;
+    showInformationMessage: sinon.SinonStub;
+    showWarningMessage: sinon.SinonStub;
+    showSaveDialog: sinon.SinonStub;
+    showInputBox: sinon.SinonStub;
+    showQuickPick: sinon.SinonStub;
+    showTextDocument: sinon.SinonStub;
+    createQuickPick: sinon.SinonStub;
+} {
+    return {
+        ...stubMessageBoxes(sandbox),
+        showSaveDialog: sandbox.stub(vscode.window, "showSaveDialog"),
+        showInputBox: sandbox.stub(vscode.window, "showInputBox"),
+        showQuickPick: sandbox.stub(vscode.window, "showQuickPick"),
+        showTextDocument: sandbox.stub(vscode.window, "showTextDocument"),
+        createQuickPick: sandbox.stub(vscode.window, "createQuickPick"),
+    };
+}
 
-    stubber.stub(vscodeWrapper, "outputChannel").get(() => outputChannel);
+/**
+ * Stubs common `vscode.env` functions and returns the created stubs so tests
+ * can configure return values and assert on calls.
+ */
+export function stubVscodeEnv(sandbox: sinon.SinonSandbox): {
+    openExternal: sinon.SinonStub;
+} {
+    return {
+        openExternal: sandbox.stub(vscode.env, "openExternal"),
+    };
+}
 
-    return vscodeWrapper;
+/**
+ * Stubs common `vscode.workspace` event functions and returns the created stubs
+ * so tests can configure handlers and assert on subscriptions.
+ */
+export function stubVscodeWorkspace(sandbox: sinon.SinonSandbox): {
+    onDidCloseTextDocument: sinon.SinonStub;
+    onDidOpenTextDocument: sinon.SinonStub;
+    onDidSaveTextDocument: sinon.SinonStub;
+    onDidChangeTextDocument: sinon.SinonStub;
+    onDidChangeConfiguration: sinon.SinonStub;
+    openTextDocument: sinon.SinonStub;
+} {
+    const disposable = new vscode.Disposable(() => undefined);
+
+    return {
+        openTextDocument: sandbox.stub(vscode.workspace, "openTextDocument"),
+        onDidCloseTextDocument: sandbox
+            .stub(vscode.workspace, "onDidCloseTextDocument")
+            .returns(disposable),
+        onDidOpenTextDocument: sandbox
+            .stub(vscode.workspace, "onDidOpenTextDocument")
+            .returns(disposable),
+        onDidSaveTextDocument: sandbox
+            .stub(vscode.workspace, "onDidSaveTextDocument")
+            .returns(disposable),
+        onDidChangeTextDocument: sandbox
+            .stub(vscode.workspace, "onDidChangeTextDocument")
+            .returns(disposable),
+        onDidChangeConfiguration: sandbox
+            .stub(vscode.workspace, "onDidChangeConfiguration")
+            .returns(disposable),
+    };
 }
 
 export function stubGetCapabilitiesRequest(
@@ -202,6 +296,17 @@ export function stubPrompter(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedIn
     const prompter = stubber.createStubInstance(CodeAdapter); // CodeAdapter is an implementation of IPrompter
 
     return prompter;
+}
+
+// Stubs an IInstantiationService for tests that require the decorated dependency but don't
+// exercise real DI resolution behavior. Use InstantiationServiceBuilder instead when a test
+// needs createInstance to actually resolve registered services.
+export function stubInstantiationService(
+    sandbox?: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<IInstantiationService> {
+    const stubber = sandbox || sinon;
+
+    return stubber.createStubInstance(InstantiationService);
 }
 
 export function initializeIconUtils(): void {

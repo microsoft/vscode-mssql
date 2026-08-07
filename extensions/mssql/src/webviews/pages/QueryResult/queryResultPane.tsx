@@ -21,7 +21,7 @@ import { locConstants } from "../../common/locConstants";
 import { hasResultsOrMessages } from "./queryResultUtils";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
-import { ExecuteCommandRequest, WebviewAction } from "../../../sharedInterfaces/webview";
+import { WebviewAction } from "../../../sharedInterfaces/webview";
 import { ExecutionPlanGraph } from "../../../sharedInterfaces/executionPlan";
 import { getGridCount } from "./table/utils";
 import { QueryMessageTab } from "./queryMessageTab";
@@ -245,10 +245,7 @@ export const QueryResultPane = () => {
                                     className={classes.hidePanelLink}
                                     onClick={async () => {
                                         await context.extensionRpc.sendRequest(
-                                            ExecuteCommandRequest.type,
-                                            {
-                                                command: "workbench.action.closePanel",
-                                            },
+                                            qr.CloseResultsPanelRequest.type,
                                         );
                                     }}>
                                     {locConstants.queryResult.clickHereToHideThisPanel}
@@ -367,6 +364,10 @@ export const QueryResultPane = () => {
                 <div
                     className={classes.tabContent}
                     style={{
+                        display:
+                            tabStates!.resultPaneTab === qr.QueryResultPaneTabs.ExecutionPlan
+                                ? "block"
+                                : "none",
                         visibility:
                             tabStates!.resultPaneTab === qr.QueryResultPaneTabs.ExecutionPlan
                                 ? "visible"

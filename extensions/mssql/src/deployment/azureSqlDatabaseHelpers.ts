@@ -19,7 +19,7 @@ import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterface
 import { FormItemActionButton, FormItemOptions, FormItemType } from "../sharedInterfaces/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
@@ -30,6 +30,7 @@ import {
     acquireTokenFromVscodeAccountForResource,
     getCloudResourceEndpoint,
 } from "../azure/vscodeEntraMfaUtils";
+import { getErrorMessage } from "../utils/utils";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.
@@ -379,9 +380,15 @@ export function registerAzureSqlDatabaseReducers(
                 void connectToAzureSqlDatabase(deploymentController);
             } catch (error) {
                 azureSqlState.provisionLoadState = ApiStatus.Error;
-                azureSqlState.errorMessage = error instanceof Error ? error.message : String(error);
+                azureSqlState.errorMessage = getErrorMessage(error);
                 cachedLogger?.error(
                     `Azure SQL Database provisioning failed: ${azureSqlState.errorMessage}`,
+                );
+                sendErrorEvent(
+                    TelemetryViews.AzureSqlDatabase,
+                    TelemetryActions.ProvisionAzureSqlDatabase,
+                    error as Error,
+                    false,
                 );
             }
 
@@ -708,7 +715,7 @@ export async function connectToAzureSqlDatabase(
             );
 
         const connectionProfile: IConnectionDialogProfile =
-            await ConnectionCredentials.createConnectionInfo(connectionDetails);
+            ConnectionCredentials.createConnectionInfo(connectionDetails);
         connectionProfile.profileName = state.formState.profileName || state.formState.databaseName;
         connectionProfile.groupId = state.formState.groupId;
         connectionProfile.authenticationType =
@@ -852,6 +859,20 @@ export async function connectToAzureSqlDatabase(
         await deploymentController.mainController.createObjectExplorerSession(profile);
         state.connectionLoadState = ApiStatus.Loaded;
 
+        // Capture the connection string (without the password) so the webview can
+        // surface it in the "Connect to Database" card.
+        try {
+            state.connectionString = await connManager.getConnectionString(
+                connManager.createConnectionDetails(connectionProfile),
+                false /* includePassword */,
+                false /* includeApplicationName */,
+            );
+        } catch (connectionStringError) {
+            cachedLogger?.error(
+                `Failed to build connection string: ${getErrorMessage(connectionStringError)}`,
+            );
+        }
+
         sendActionEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
@@ -864,11 +885,11 @@ export async function connectToAzureSqlDatabase(
         UserSurvey.getInstance().promptUserForNPSFeedback(`${DEPLOYMENT_VIEW_ID}_azureSqlDatabase`);
     } catch (err) {
         state.connectionLoadState = ApiStatus.Error;
-        state.errorMessage = err instanceof Error ? err.message : String(err);
+        state.errorMessage = getErrorMessage(err);
         sendErrorEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
-            err instanceof Error ? err : new Error(String(err)),
+            err as Error,
             false,
         );
     }

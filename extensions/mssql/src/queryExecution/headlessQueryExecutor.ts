@@ -54,7 +54,7 @@ export interface HeadlessQueryResult {
 const SUBSET_PAGE_SIZE = 500;
 
 // Why not reuse QueryRunner? QueryRunner is tightly coupled to the query
-// editor: it requires StatusView/VscodeWrapper, fires Query Editor telemetry,
+// editor: it requires StatusView, fires Query Editor telemetry,
 // manages editor toolbar state, adjusts batch selections by editor line
 // offsets, and exposes results through UI-oriented EventEmitters. Notebooks
 // and MCP need a promise-based STS execution path without those dependencies.

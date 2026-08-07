@@ -7,13 +7,12 @@ import * as vscode from "vscode";
 import * as path from "path";
 import { promises as fs } from "fs";
 import * as utils from "../common/utils";
-import * as sqldbproj from "sqldbproj";
-import * as extractZip from "extract-zip";
+import * as sqldbproj from "../sqldbproj";
+import extractZip = require("extract-zip");
 import * as constants from "../common/constants";
-import { HttpClient } from "../http/httpClient";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { getMicrosoftBuildSqlVersion } from "./netcoreTool";
-import { ProjectType } from "../common/typeHelper";
-import * as vscodeMssql from "vscode-mssql";
+import { ProjectType } from "../common/enums";
 
 const buildDirectory = "BuildDirectory";
 
@@ -43,7 +42,7 @@ export class BuildHelper {
     private initialized: boolean = false;
 
     constructor() {
-        const extName = sqldbproj.extension.vsCodeName;
+        const extName = sqldbproj.extensionId;
         this.extensionDir = vscode.extensions.getExtension(extName)?.extensionPath ?? "";
         this.extensionBuildDir = path.join(this.extensionDir, buildDirectory);
     }
@@ -62,9 +61,8 @@ export class BuildHelper {
         }
 
         const dacFxDllsExist = await this.ensureDacFxDllsPresence(outputChannel);
-        const scriptDomExists = await this.ensureScriptDomDllPresence(outputChannel);
 
-        if (!dacFxDllsExist || !scriptDomExists) {
+        if (!dacFxDllsExist) {
             return false;
         }
 
@@ -87,6 +85,8 @@ export class BuildHelper {
             "System.IO.Packaging.dll",
             "Microsoft.Data.Tools.Schema.SqlTasks.targets",
             "Microsoft.SqlServer.Server.dll",
+            "Microsoft.SqlServer.TransactSql.ScriptDom.dll",
+            "Microsoft.Data.Tools.Sql.DesignServices.dll",
         ];
 
         const sdkVersion = getMicrosoftBuildSqlVersion();
@@ -96,21 +96,6 @@ export class BuildHelper {
             sdkVersion,
             dacFxBuildFiles,
             microsoftBuildSqlDllLocation,
-            outputChannel,
-        );
-    }
-
-    public async ensureScriptDomDllPresence(outputChannel: vscode.OutputChannel): Promise<boolean> {
-        const scriptdomNugetPkgName = "Microsoft.SqlServer.TransactSql.ScriptDom";
-        const scriptDomDll = "Microsoft.SqlServer.TransactSql.ScriptDom.dll";
-        const scriptDomNugetVersion = "170.128.0"; // TODO: make this a configurable setting, like the Microsoft.Build.Sql version
-        const scriptDomDllLocation = path.join("lib", "netstandard2.1");
-
-        return this.ensureNugetAndFilesPresence(
-            scriptdomNugetPkgName,
-            scriptDomNugetVersion,
-            [scriptDomDll],
-            scriptDomDllLocation,
             outputChannel,
         );
     }
@@ -210,10 +195,37 @@ export class BuildHelper {
         outputChannel: vscode.OutputChannel,
     ): Promise<void> {
         try {
-            const httpClient = new HttpClient();
+            const httpClient = new VscodeHttpClient();
             outputChannel.appendLine(constants.downloadingFromTo(downloadUrl, nugetPath));
-            await httpClient.download(downloadUrl, nugetPath, outputChannel);
+            let printThreshold = 10;
+            const result = await httpClient.downloadToPath(downloadUrl, nugetPath, {
+                onProgress: (progress) => {
+                    if (progress.downloadedBytes === 0) {
+                        if (progress.totalBytes !== undefined) {
+                            outputChannel.appendLine(
+                                `${constants.downloading} ${downloadUrl} (0 / ${(progress.totalBytes / (1024 * 1024)).toFixed(2)} MB)`,
+                            );
+                        }
+                        return;
+                    }
+
+                    if (
+                        progress.percentage !== undefined &&
+                        progress.totalBytes !== undefined &&
+                        progress.percentage >= printThreshold
+                    ) {
+                        outputChannel.appendLine(
+                            `${constants.downloadProgress} (${(progress.downloadedBytes / (1024 * 1024)).toFixed(2)} / ${(progress.totalBytes / (1024 * 1024)).toFixed(2)} MB)`,
+                        );
+                        printThreshold += 10;
+                    }
+                },
+            });
+            if (result.status !== 200) {
+                throw new Error(`HTTP ${result.status}`);
+            }
         } catch (e) {
+            outputChannel.appendLine(`${constants.downloadError}: ${utils.getErrorMessage(e)}`);
             throw new NugetDownloadError(
                 constants.errorDownloading(downloadUrl, utils.getErrorMessage(e)),
             );
@@ -246,7 +258,7 @@ export class BuildHelper {
         ];
 
         // Adding NETCoreTargetsPath only for non-SDK style projects
-        const isSdkStyle = sqlProjStyle === vscodeMssql.ProjectType.SdkStyle;
+        const isSdkStyle = sqlProjStyle === ProjectType.SdkStyle;
 
         if (!isSdkStyle) {
             args.push(`${constants.netCoreTargetsPathArgPrefix}${buildDirPath}`);

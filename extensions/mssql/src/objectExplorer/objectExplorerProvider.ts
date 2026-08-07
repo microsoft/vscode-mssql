@@ -8,7 +8,6 @@ import ConnectionManager from "../controllers/connectionManager";
 import { CreateSessionResult, ObjectExplorerService } from "./objectExplorerService";
 import { TreeNodeInfo } from "./nodes/treeNodeInfo";
 import { IConnectionInfo } from "vscode-mssql";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { IConnectionProfile } from "../models/interfaces";
 import { ConnectionNode } from "./nodes/connectionNode";
 import { serverLabel } from "../constants/constants";
@@ -25,21 +24,10 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
     private _objectExplorerService: ObjectExplorerService;
     private _logger: ILogger = logger.withPrefix("ObjectExplorerProvider");
 
-    constructor(
-        private _vscodeWrapper: VscodeWrapper,
-        connectionManager: ConnectionManager,
-    ) {
-        if (!_vscodeWrapper) {
-            this._vscodeWrapper = new VscodeWrapper();
-        }
-
-        this._objectExplorerService = new ObjectExplorerService(
-            this._vscodeWrapper,
-            connectionManager,
-            (node) => {
-                this.refresh(node);
-            },
-        );
+    constructor(connectionManager: ConnectionManager) {
+        this._objectExplorerService = new ObjectExplorerService(connectionManager, (node) => {
+            this.refresh(node);
+        });
     }
 
     public getParent(element: TreeNodeInfo) {

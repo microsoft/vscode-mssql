@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import { IConnectionInfo } from "vscode-mssql";
 import SqlToolsServiceClient from "../languageservice/serviceclient";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ChangePasswordWebviewController } from "../controllers/changePasswordWebviewController";
 import { ChangePasswordRequest } from "../models/contracts/changePassword";
@@ -17,7 +16,6 @@ export class ChangePasswordService {
     constructor(
         private _client: SqlToolsServiceClient,
         private _context?: vscode.ExtensionContext,
-        private _vscodeWrapper?: VscodeWrapper,
     ) {}
 
     /**
@@ -28,12 +26,7 @@ export class ChangePasswordService {
      * @returns A promise that resolves to the new password or undefined if the operation was canceled.
      */
     public async handleChangePassword(credentials: IConnectionInfo): Promise<string | undefined> {
-        const webview = new ChangePasswordWebviewController(
-            this._context,
-            this._vscodeWrapper,
-            credentials,
-            this,
-        );
+        const webview = new ChangePasswordWebviewController(this._context, credentials, this);
 
         await webview.whenWebviewReady();
         webview.revealToForeground();

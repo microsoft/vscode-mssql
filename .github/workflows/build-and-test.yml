@@ -66,6 +66,10 @@ jobs:
         run: |
           npm ci
 
+      - name: Stamp build as pull request version
+        run: |
+          node scripts/stamp-prerelease-version.mjs "${{ github.run_id }}" --label pr
+
       - name: MSSQL - Install dependencies and build
         uses: ./.github/actions/build-mssql
 
@@ -79,12 +83,18 @@ jobs:
         run: |
           npm run lint
 
+      - name: Inject extension telemetry key
+        env:
+          MSSQL_APP_INSIGHTS_KEY: ${{ vars.MSSQL_APP_INSIGHTS_KEY }}
+        run: |
+          node scripts/inject-telemetry-key.mjs
+
       # Calculate sizes and package before testing;
       # Testing generates sourcemaps and instrumented code
       # that increase size
       - name: Package extensions
         run: |
-          npm run package
+          npm run package -- --preview
 
       - name: MSSQL - Upload VSIX files
         uses: actions/upload-artifact@v7
@@ -494,6 +504,16 @@ jobs:
             CHANGES_FOUND=true
           fi
 
+          if ! git diff --quiet --exit-code ./localization/xliff/extension-toolkit.xlf; then
+            echo "Changes found in extension-toolkit.xlf"
+            CHANGES_FOUND=true
+          fi
+
+          if ! git diff --quiet --exit-code ./packages/extension-toolkit/l10n/bundle.l10n.json; then
+            echo "Changes found in extension-toolkit bundle.l10n.json"
+            CHANGES_FOUND=true
+          fi
+
           if [ "$CHANGES_FOUND" = "true" ]; then
             echo "loc_update_required=true" >> $GITHUB_ENV
           else
@@ -524,9 +544,9 @@ jobs:
               1. Run `npm run localization` from the root directory of the PR branch.
               2. Commit the updated localization files:
                   * XLIFF files: `localization/xliff/*.xlf`
-                  * Bundle files: `extensions/mssql/l10n/bundle.l10n.json` and `extensions/sql-database-projects/l10n/bundle.l10n.json`
+                  * Bundle files: `extensions/*/l10n/bundle.l10n.json` and `packages/extension-toolkit/l10n/bundle.l10n.json`
 
-              The localization system extracts strings from both extensions to a centralized location.
+              The localization system extracts strings from all configured extensions and packages to a centralized location.
           edit-mode: replace
 
       - name: Delete comment

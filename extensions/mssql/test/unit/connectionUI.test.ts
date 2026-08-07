@@ -5,24 +5,25 @@
 
 import * as vscode from "vscode";
 import { ConnectionUI } from "../../src/views/connectionUI";
-import VscodeWrapper from "../../src/controllers/vscodeWrapper";
 import { IPrompter } from "../../src/prompts/question";
-import { ConnectionStore } from "../../src/models/connectionStore";
-import ConnectionManager from "../../src/controllers/connectionManager";
+import { ConnectionStore, IConnectionStore } from "../../src/models/connectionStore";
+import { MsalAzureController } from "../../src/azure/msal/msalAzureController";
+import * as constants from "../../src/constants/constants";
 import {
     IConnectionCredentialsQuickPickItem,
     CredentialsQuickPickItemType,
     IConnectionGroup,
 } from "../../src/models/interfaces";
 import { ConnectionCredentials } from "../../src/models/connectionCredentials";
-import { AccountStore } from "../../src/azure/accountStore";
+import { AccountStore, IAccountStore } from "../../src/azure/accountStore";
 import * as sinon from "sinon";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
-import { stubVscodeWrapper } from "./utils";
+import { stubVscodeWindow } from "./utils";
 import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
 import * as LocConstants from "../../src/constants/locConstants";
 import { CREATE_NEW_GROUP_ID } from "../../src/sharedInterfaces/connectionGroup";
+import { InstantiationServiceBuilder } from "extension-toolkit/base";
 
 const expect = chai.expect;
 
@@ -31,11 +32,11 @@ chai.use(sinonChai);
 suite("Connection UI tests", () => {
     let sandbox: sinon.SinonSandbox;
     let connectionUI: ConnectionUI;
-
-    let vscodeWrapperStub: sinon.SinonStubbedInstance<VscodeWrapper>;
+    let vscodeWindowStubs: ReturnType<typeof stubVscodeWindow>;
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
-    let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
+    let azureControllerStub: sinon.SinonStubbedInstance<MsalAzureController>;
     let accountStoreStub: sinon.SinonStubbedInstance<AccountStore>;
+    let onDisconnectStub: sinon.SinonStub;
 
     let promptStub: sinon.SinonStub;
     let promptSingleStub: sinon.SinonStub;
@@ -45,14 +46,13 @@ suite("Connection UI tests", () => {
     let quickPickShowStub: sinon.SinonStub;
     let quickPickHideStub: sinon.SinonStub;
     let quickPickDisposeStub: sinon.SinonStub;
+    let executeCommandStub: sinon.SinonStub;
     let onDidChangeSelectionEmitter: vscode.EventEmitter<IConnectionCredentialsQuickPickItem[]>;
     let onDidHideEmitter: vscode.EventEmitter<void>;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-
-        vscodeWrapperStub = stubVscodeWrapper(sandbox);
-        const outputChannel = vscodeWrapperStub.outputChannel;
+        vscodeWindowStubs = stubVscodeWindow(sandbox);
 
         quickPickShowStub = sandbox.stub();
         quickPickHideStub = sandbox.stub();
@@ -76,16 +76,14 @@ suite("Connection UI tests", () => {
             onDidHide: onDidHideEmitter.event,
         } as unknown as vscode.QuickPick<IConnectionCredentialsQuickPickItem>;
 
-        vscodeWrapperStub.createOutputChannel.returns(outputChannel);
-        vscodeWrapperStub.createQuickPick.returns(quickPick);
-        vscodeWrapperStub.showErrorMessage.resolves(undefined);
-        vscodeWrapperStub.executeCommand.resolves(undefined);
+        vscodeWindowStubs.createQuickPick.returns(quickPick);
+        vscodeWindowStubs.showErrorMessage.resolves(undefined);
+        executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
 
         connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
         accountStoreStub = sandbox.createStubInstance(AccountStore);
-
-        connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
-        connectionManagerStub.connectionStore = connectionStoreStub;
+        azureControllerStub = sandbox.createStubInstance(MsalAzureController);
+        onDisconnectStub = sandbox.stub().resolves(true);
 
         promptStub = sandbox.stub();
         promptSingleStub = sandbox.stub();
@@ -96,10 +94,11 @@ suite("Connection UI tests", () => {
         } as unknown as IPrompter;
 
         connectionUI = new ConnectionUI(
-            connectionManagerStub,
-            accountStoreStub,
+            azureControllerStub,
             prompter,
-            vscodeWrapperStub,
+            onDisconnectStub,
+            connectionStoreStub,
+            accountStoreStub,
         );
     });
 
@@ -150,6 +149,31 @@ suite("Connection UI tests", () => {
         expect(quickPickShowStub).to.have.been.calledOnce;
     });
 
+    test("showDatabasesOnCurrentServer should disconnect using the injected disconnect callback", async () => {
+        vscodeWindowStubs.showQuickPick.callsFake(async (items: vscode.QuickPickItem[]) => {
+            return items[items.length - 1]; // the "disconnect" option is appended last
+        });
+        promptSingleStub.resolves(true);
+
+        const result = await connectionUI.showDatabasesOnCurrentServer({ server: "test" } as any, [
+            "db1",
+            "db2",
+        ]);
+
+        expect(result).to.be.undefined;
+        expect(onDisconnectStub).to.have.been.calledOnce;
+    });
+
+    test("addNewAccount should add an account using the injected azure controller", async () => {
+        const mockAccount = { displayInfo: { displayName: "test" } };
+        azureControllerStub.addAccount.resolves(mockAccount as any);
+
+        const result = await connectionUI.addNewAccount();
+
+        expect(result).to.equal(mockAccount);
+        expect(azureControllerStub.addAccount).to.have.been.calledOnceWithExactly(accountStoreStub);
+    });
+
     test("promptLanguageFlavor should prompt for a language flavor", async () => {
         const mockProvider = { providerId: "test" };
         promptSingleStub.resolves(mockProvider);
@@ -186,7 +210,7 @@ suite("Connection UI tests", () => {
         await connectionUI.promptToChangeLanguageMode();
 
         expect(promptSingleStub).to.have.been.calledOnce;
-        expect(vscodeWrapperStub.executeCommand).to.have.been.calledOnceWithExactly(
+        expect(executeCommandStub).to.have.been.calledOnceWithExactly(
             "workbench.action.editor.changeLanguageMode",
         );
     });
@@ -197,7 +221,7 @@ suite("Connection UI tests", () => {
         await connectionUI.promptToChangeLanguageMode();
 
         expect(promptSingleStub).to.have.been.calledOnce;
-        expect(vscodeWrapperStub.executeCommand).to.not.have.been.called;
+        expect(executeCommandStub).to.not.have.been.called;
     });
 
     test("removeProfile should prompt for a profile and remove it", async () => {
@@ -231,7 +255,7 @@ suite("Connection UI tests", () => {
 
         expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnce;
         expect(promptStub).to.not.have.been.called;
-        expect(vscodeWrapperStub.showErrorMessage).to.have.been.calledOnce;
+        expect(vscodeWindowStubs.showErrorMessage).to.have.been.calledOnce;
     });
 
     test("promptToManageProfiles should prompt to manage profile", async () => {
@@ -265,10 +289,70 @@ suite("Connection UI tests", () => {
         await connectionUI.promptToManageProfiles();
 
         expect(connectionStoreStub.getProfilePickListItems).to.have.been.calledOnce;
-        expect(vscodeWrapperStub.executeCommand).to.have.been.calledWithExactly(
+        expect(executeCommandStub).to.have.been.calledWithExactly(
             "mssql.editConnection",
             selectedProfileItem.connectionCreds,
         );
+    });
+
+    test("promptToManageProfiles Create task should open the connection dialog directly", async () => {
+        promptSingleStub.onFirstCall().callsFake(async (question: any) => {
+            const createChoice = question.choices.find(
+                (choice: { name: string; value: number }) =>
+                    choice.name === LocConstants.CreateProfileLabel,
+            );
+            await question.onAnswered(createChoice.value);
+            return undefined;
+        });
+
+        await connectionUI.promptToManageProfiles();
+
+        expect(executeCommandStub).to.have.been.calledWithExactly(constants.cmdAddObjectExplorer);
+    });
+
+    test("promptToManageProfiles Remove task should remove a profile using the injected connection store", async () => {
+        connectionStoreStub.getProfilePickListItems.resolves([
+            {
+                connectionCreds: {} as any,
+                quickPickItemType: undefined,
+                label: "test",
+            },
+        ]);
+        connectionStoreStub.removeProfile.resolves(true);
+        promptStub.resolves({
+            ConfirmRemoval: true,
+            ChooseProfile: { connectionCreds: {} },
+        });
+
+        promptSingleStub.onFirstCall().callsFake(async (question: any) => {
+            const removeChoice = question.choices.find(
+                (choice: { name: string; value: number }) =>
+                    choice.name === LocConstants.RemoveProfileLabel,
+            );
+            await question.onAnswered(removeChoice.value);
+            return undefined;
+        });
+
+        await connectionUI.promptToManageProfiles();
+
+        expect(connectionStoreStub.removeProfile).to.have.been.calledOnce;
+    });
+
+    test("promptToManageProfiles ClearRecentlyUsed task should clear recently used connections using the injected connection store", async () => {
+        connectionStoreStub.clearRecentlyUsed.resolves(true);
+        promptSingleStub.onFirstCall().callsFake(async (question: any) => {
+            const clearChoice = question.choices.find(
+                (choice: { name: string; value: number }) =>
+                    choice.name === LocConstants.ClearRecentlyUsedLabel,
+            );
+            await question.onAnswered(clearChoice.value);
+            return undefined;
+        });
+        promptSingleStub.onSecondCall().resolves(true);
+
+        await connectionUI.promptToManageProfiles();
+
+        expect(connectionStoreStub.clearRecentlyUsed).to.have.been.calledOnce;
     });
 
     test("editProfile should show an error if there are no saved profiles", async () => {
@@ -277,12 +361,10 @@ suite("Connection UI tests", () => {
         const result = await connectionUI.editProfile();
 
         expect(result).to.be.false;
-        expect(vscodeWrapperStub.showErrorMessage).to.have.been.calledOnceWithExactly(
+        expect(vscodeWindowStubs.showErrorMessage).to.have.been.calledOnceWithExactly(
             LocConstants.msgNoProfilesToEdit,
         );
-        expect(vscodeWrapperStub.executeCommand).to.not.have.been.calledWith(
-            "mssql.editConnection",
-        );
+        expect(executeCommandStub).to.not.have.been.calledWith("mssql.editConnection");
     });
 
     test("getConnectionGroupOptions", async () => {
@@ -341,5 +423,51 @@ suite("Connection UI tests", () => {
             "Parent Group Two > Child Group",
             "Other Child Group",
         ]);
+    });
+
+    suite("Dependency injection", () => {
+        test("createInstance produces distinct ConnectionUI instances sharing the same registered stores", () => {
+            const builder = new InstantiationServiceBuilder();
+            builder.define(IConnectionStore, connectionStoreStub as unknown as ConnectionStore);
+            builder.define(IAccountStore, accountStoreStub as unknown as AccountStore);
+            const instantiationService = builder.seal();
+
+            const firstOnDisconnect = sandbox.stub().resolves(true);
+            const secondOnDisconnect = sandbox.stub().resolves(false);
+
+            const firstConnectionUI = instantiationService.createInstance(
+                ConnectionUI,
+                azureControllerStub,
+                prompter,
+                firstOnDisconnect,
+            );
+            const secondConnectionUI = instantiationService.createInstance(
+                ConnectionUI,
+                azureControllerStub,
+                prompter,
+                secondOnDisconnect,
+            );
+
+            expect(firstConnectionUI).to.not.equal(secondConnectionUI);
+
+            expect(firstConnectionUI["_connectionStore"]).to.equal(connectionStoreStub);
+            expect(secondConnectionUI["_connectionStore"]).to.equal(connectionStoreStub);
+            expect(firstConnectionUI["_connectionStore"]).to.equal(
+                secondConnectionUI["_connectionStore"],
+            );
+
+            expect(firstConnectionUI["_accountStore"]).to.equal(accountStoreStub);
+            expect(secondConnectionUI["_accountStore"]).to.equal(accountStoreStub);
+            expect(firstConnectionUI["_accountStore"]).to.equal(
+                secondConnectionUI["_accountStore"],
+            );
+
+            // Runtime args (azureController, prompter, onDisconnect) remain manager-specific
+            // and are not shared/overridden by the DI container.
+            expect(firstConnectionUI["_onDisconnect"]).to.equal(firstOnDisconnect);
+            expect(secondConnectionUI["_onDisconnect"]).to.equal(secondOnDisconnect);
+
+            instantiationService.dispose();
+        });
     });
 });

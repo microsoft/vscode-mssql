@@ -5,20 +5,19 @@
 
 import { Changelog } from "../constants/locConstants";
 import {
-    ChangelogCommandRequest,
-    ChangelogCommandRequestParams,
+    ChangelogActionId,
     ChangelogDontShowAgainRequest,
     ChangelogLinkRequest,
     ChangelogLinkRequestParams,
     ChangelogWebviewState,
     CloseChangelogRequest,
+    RunChangelogActionRequest,
 } from "../sharedInterfaces/changelog";
 import { WebviewPanelController } from "./webviewPanelController";
 import * as vscode from "vscode";
-import VscodeWrapper from "./vscodeWrapper";
 import { changelogConfig } from "../configurations/changelog";
 import * as constants from "../constants/constants";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 const GLOBAL_STATE_LAST_CHANGELOG_VERSION_KEY = "changelog/lastChangeLogVersion";
@@ -30,10 +29,9 @@ export class ChangelogWebviewController extends WebviewPanelController<
 > {
     constructor(
         context: vscode.ExtensionContext,
-        vscodeWrapper: VscodeWrapper,
         initialState: ChangelogWebviewState = changelogConfig,
     ) {
-        super(context, vscodeWrapper, "changelog", "changelog", initialState, {
+        super(context, "changelog", "changelog", initialState, {
             title: Changelog.ChangelogDocumentTitle,
             viewColumn: vscode.ViewColumn.Active,
             iconPath: {
@@ -54,15 +52,42 @@ export class ChangelogWebviewController extends WebviewPanelController<
             });
         });
 
-        this.onRequest(
-            ChangelogCommandRequest.type,
-            async (params: ChangelogCommandRequestParams) => {
-                vscode.commands.executeCommand(params.commandId, ...(params.args || []));
-                sendActionEvent(TelemetryViews.ChangelogPage, TelemetryActions.ExecuteCommand, {
-                    command: params.commandId,
-                });
-            },
-        );
+        this.onRequest(RunChangelogActionRequest.type, async (action) => {
+            let command: string;
+            let args: unknown[] = [];
+            switch (action) {
+                case ChangelogActionId.OpenShortcutsConfiguration:
+                    command = constants.cmdOpenShortcutsConfiguration;
+                    break;
+                case ChangelogActionId.DeployNewDatabase:
+                    command = constants.cmdDeployNewDatabase;
+                    break;
+                case ChangelogActionId.CreateNotebook:
+                    command = constants.cmdNotebooksCreate;
+                    break;
+                case ChangelogActionId.OpenAzureDataStudioMigration:
+                    command = constants.cmdOpenAzureDataStudioMigration;
+                    break;
+                case ChangelogActionId.OpenDacpacDialog:
+                    command = constants.cmdDacpacDialog;
+                    break;
+                case ChangelogActionId.OpenMssqlWalkthrough:
+                    command = "workbench.action.openWalkthrough";
+                    args = [`${constants.extensionId}#mssql.getStarted`];
+                    break;
+                case ChangelogActionId.OpenCopilotWalkthrough:
+                    command = "workbench.action.openWalkthrough";
+                    args = ["GitHub.copilot-chat#copilotWelcome"];
+                    break;
+                default:
+                    throw new Error("Unknown changelog action");
+            }
+
+            await vscode.commands.executeCommand(command, ...args);
+            sendActionEvent(TelemetryViews.ChangelogPage, TelemetryActions.ExecuteCommand, {
+                command,
+            });
+        });
 
         this.onRequest(CloseChangelogRequest.type, async () => {
             this.panel.dispose();

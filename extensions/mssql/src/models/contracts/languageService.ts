@@ -4,6 +4,46 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NotificationType, RequestType } from "vscode-languageclient";
+import { TelemetryActions } from "../../sharedInterfaces/telemetry";
+
+// ------------------------------- < SQL Tools Service Telemetry Event > --------------------------
+
+export interface SqlToolsServiceTelemetryParams {
+    params: {
+        eventName: TelemetryActions;
+        properties?: Record<string, string>;
+        measures?: Record<string, number>;
+    };
+}
+
+/**
+ * Event sent when SQL Tools Service emits a telemetry event.
+ */
+export namespace SqlToolsServiceTelemetryNotification {
+    export const type = new NotificationType<SqlToolsServiceTelemetryParams>("telemetry/sqlevent");
+}
+
+// ------------------------------- </ SQL Tools Service Telemetry Event > -------------------------
+
+// ------------------------------- < Formatting Failed Event > ------------------------------------
+
+export type FormattingFailureReason = "ParseError";
+export type FormattingRequestType = "Document" | "Range";
+
+export interface FormattingFailedParams {
+    ownerUri: string;
+    formatType: FormattingRequestType;
+    reason: FormattingFailureReason;
+    parseErrorCount: number;
+}
+
+export namespace FormattingFailedNotification {
+    export const type = new NotificationType<FormattingFailedParams>(
+        "textDocument/formattingFailed",
+    );
+}
+
+// ------------------------------- </ Formatting Failed Event > -----------------------------------
 
 // ------------------------------- < IntelliSense Ready Event > ------------------------------------
 
@@ -175,6 +215,13 @@ export interface SqlSymbolRenameResponse {
      */
     refactorLogContent: string | null;
     newName: string;
+    /**
+     * When non-null, a message to surface to the user.
+     * If isWarning is true, show a confirmation dialog; otherwise show a blocking error.
+     */
+    message?: string | null;
+    /** True when message is a confirmation warning; false (default) when it is a hard rejection. */
+    isWarning?: boolean;
 }
 
 export namespace SqlSymbolRenameRequest {
@@ -196,6 +243,35 @@ export interface SqlMoveToSchemaParams {
     existingRefactorLogContent: string | null;
 }
 
+/**
+ * Result of a `sql/moveToSchema` request. Example — moving `[dbo].[Orders]` to the `sales` schema,
+ * where the table is defined in `Orders.sql` and also referenced by a trigger:
+ *
+ * ```json
+ * {
+ *   "changes": {
+ *     "file:///c%3A/proj/dbo/Tables/Orders.sql": [
+ *       { "range": { "start": { "line": 0, "character": 13 },
+ *                    "end":   { "line": 0, "character": 18 } },
+ *         "newText": "sales" }
+ *     ],
+ *     "file:///c%3A/proj/dbo/Triggers/OrdersAudit.sql": [
+ *       { "range": { "start": { "line": 2, "character": 3 },
+ *                    "end":   { "line": 2, "character": 8 } },
+ *         "newText": "sales" }
+ *     ]
+ *   },
+ *   "refactorLogContent": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<Operations ...>...</Operations>",
+ *   "targetSchema": "sales",
+ *   "definitionFileUri": "file:///c%3A/proj/dbo/Tables/Orders.sql",
+ *   "elementType": "SqlTable"
+ * }
+ * ```
+ *
+ * When the target schema already contains an object with the same name, STS instead returns a
+ * confirmation prompt: `{ "message": "A schema object with the name [sales].[Orders] already
+ * exists. Would you like to continue?", "isWarning": true, ... }`.
+ */
 export interface SqlMoveToSchemaResponse {
     changes: { [uri: string]: SqlSymbolRenameTextEdit[] } | null;
     /**
@@ -204,6 +280,23 @@ export interface SqlMoveToSchemaResponse {
      */
     refactorLogContent: string | null;
     targetSchema: string;
+    /**
+     * URI of the file that declares the moved object. The client uses this to physically relocate
+     * the definition file to the new schema folder. Null when the file could not be resolved.
+     */
+    definitionFileUri?: string | null;
+    /**
+     * STS element-type string for the moved object (e.g. "SqlTable", "SqlView"). The client maps
+     * this to a conventional SSDT folder name using its own lookup table.
+     */
+    elementType?: string | null;
+    /**
+     * When non-null, a message to surface to the user.
+     * If isWarning is true, show a confirmation dialog; otherwise show a blocking error.
+     */
+    message?: string | null;
+    /** True when message is a confirmation warning; false (default) when it is a hard rejection. */
+    isWarning?: boolean;
 }
 
 export namespace SqlMoveToSchemaRequest {

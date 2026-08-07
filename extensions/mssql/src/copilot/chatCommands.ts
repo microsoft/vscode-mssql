@@ -5,10 +5,9 @@
 
 import * as vscode from "vscode";
 import MainController from "../controllers/mainController";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { SchemaDesignerWebviewManager } from "../schemaDesigner/schemaDesignerWebviewManager";
-import VscodeWrapper from "../controllers/vscodeWrapper";
 import { MssqlChatAgent as loc } from "../constants/locConstants";
 import { CHAT_COMMAND_PROMPTS } from "./prompts";
 import {
@@ -225,7 +224,6 @@ export const CHAT_COMMANDS: Record<string, CommandDefinition> = {
 
                 const designer = await SchemaDesignerWebviewManager.getInstance().getSchemaDesigner(
                     controller.context,
-                    new VscodeWrapper(),
                     controller,
                     controller.schemaDesignerService,
                     connCreds.database,

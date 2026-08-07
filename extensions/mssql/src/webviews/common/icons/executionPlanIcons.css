@@ -1,0 +1,21 @@
+.execution-plan-icon-accent-blue {
+    fill: var(--vscode-charts-blue);
+}
+
+.execution-plan-icon-accent-yellow {
+    fill: var(--vscode-charts-yellow);
+}
+
+.vscode-high-contrast .execution-plan-icon-accent-blue,
+.vscode-high-contrast .execution-plan-icon-accent-yellow,
+.vscode-high-contrast-light .execution-plan-icon-accent-blue,
+.vscode-high-contrast-light .execution-plan-icon-accent-yellow {
+    fill: currentColor;
+}
+
+@media (forced-colors: active) {
+    .execution-plan-icon-accent-blue,
+    .execution-plan-icon-accent-yellow {
+        fill: currentColor;
+    }
+}
