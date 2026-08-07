@@ -46,6 +46,7 @@ import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureau
 import {
     initializeIconUtils,
     stubGetCapabilitiesRequest,
+    stubInstantiationService,
     stubMessageBoxes,
     stubPreviewService,
     stubTelemetry,
@@ -160,7 +161,11 @@ suite("ConnectionDialogWebviewController Tests", () => {
             } as IAccount,
         ]);
 
-        mainController = new MainController(mockContext, connectionManager);
+        mainController = new MainController(
+            mockContext,
+            stubInstantiationService(sandbox),
+            connectionManager,
+        );
 
         sandbox.stub(vscode.commands, "registerCommand");
         sandbox.stub(vscode.window, "registerWebviewViewProvider");
