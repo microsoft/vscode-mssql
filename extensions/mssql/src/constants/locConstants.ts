@@ -1255,6 +1255,14 @@ export class Azure {
         });
     };
 
+    public static unableToLocateSqlServer = (serverName: string) => {
+        return l10n.t({
+            message: "Unable to locate Azure SQL server '{0}' in the selected Azure account.",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+
     public static failedToGetTenantForAccount = (tenantId: string, accountName: string) => {
         return l10n.t({
             message: "Failed to get tenant '{0}' for account '{1}'.",

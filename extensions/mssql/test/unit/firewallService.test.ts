@@ -7,81 +7,130 @@ import { expect } from "chai";
 import * as chai from "chai";
 import sinonChai from "sinon-chai";
 import * as sinon from "sinon";
-import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
-import { FirewallService } from "../../src/firewall/firewallService";
-import { AccountService } from "../../src/azure/accountService";
-import {
-    HandleFirewallRuleRequest,
-    IHandleFirewallRuleResponse,
-    CreateFirewallRuleRequest,
-    ICreateFirewallRuleResponse,
-    ICreateFirewallRuleParams,
-} from "../../src/models/contracts/firewall/firewallRequest";
-import * as Constants from "../../src/constants/constants";
+import { FirewallService, IHandleFirewallRuleResponse } from "../../src/firewall/firewallService";
+import { VsCodeAzureHelper } from "../../src/connectionconfig/azureHelpers";
+import { AzureSubscription } from "@microsoft/vscode-azext-azureauth";
 
 chai.use(sinonChai);
 
 suite("Firewall Service Tests", () => {
     let sandbox: sinon.SinonSandbox;
-    let client: sinon.SinonStubbedInstance<SqlToolsServiceClient>;
-    let accountService: sinon.SinonStubbedInstance<AccountService>;
     let firewallService: FirewallService;
 
     setup(() => {
         sandbox = sinon.createSandbox();
-        client = sandbox.createStubInstance(SqlToolsServiceClient);
-        accountService = sandbox.createStubInstance(AccountService);
-
-        sandbox.stub(accountService, "client").get(() => client);
-        firewallService = new FirewallService(accountService);
+        firewallService = new FirewallService();
     });
 
     teardown(() => {
         sandbox.restore();
     });
 
-    test("Handle Firewall Rule test", async () => {
-        const mockResponse: IHandleFirewallRuleResponse = {
-            result: true,
-            ipAddress: "128.0.0.0",
-        };
-        client.sendResourceRequest.resolves(mockResponse);
+    suite("handleFirewallRule", () => {
+        test("extracts the blocked IP address from an Azure firewall error", async () => {
+            const handleResult = await firewallService.handleFirewallRule(
+                40615,
+                "Client with IP address '128.0.0.0' is not allowed to access the server.",
+            );
 
-        const handleResult = await firewallService.handleFirewallRule(12345, "firewall error!");
+            expect(handleResult).to.deep.equal({
+                result: true,
+                ipAddress: "128.0.0.0",
+            } satisfies IHandleFirewallRuleResponse);
+        });
 
-        expect(handleResult).to.deep.equal(mockResponse);
-        expect(client.sendResourceRequest).to.have.been.calledOnceWithExactly(
-            HandleFirewallRuleRequest.type,
-            {
-                errorCode: 12345,
-                errorMessage: "firewall error!",
-                connectionTypeId: Constants.mssqlProviderName,
+        test("returns failure when the error code is not an Azure firewall error", async () => {
+            const handleResult = await firewallService.handleFirewallRule(
+                18456,
+                "Login failed for user.",
+            );
+
+            expect(handleResult).to.deep.equal({ result: false, ipAddress: "" });
+        });
+
+        test("returns failure when an Azure firewall error has no IP address", async () => {
+            const handleResult = await firewallService.handleFirewallRule(
+                40615,
+                "The client is not allowed to access the server.",
+            );
+
+            expect(handleResult).to.deep.equal({ result: false, ipAddress: "" });
+        });
+    });
+
+    test("creates firewall rule using the matching Azure subscription", async () => {
+        const subscription = {
+            subscriptionId: "subscription-id",
+            tenantId: "tenant-id",
+        } as AzureSubscription;
+        const firewallRuleSpec = {
+            name: "Test Rule",
+            azureAccountInfo: {
+                accountId: "account-id",
+                tenantId: "tenant-id",
             },
+            ip: {
+                startIp: "1.2.3.1",
+                endIp: "1.2.3.255",
+            },
+        };
+        sandbox.stub(VsCodeAzureHelper, "findSqlResource").resolves({
+            accountId: "account-id",
+            subscriptionId: "subscription-id",
+            resourceGroup: "resource-group",
+        });
+        sandbox.stub(VsCodeAzureHelper, "getSubscriptionsForAccount").resolves([subscription]);
+        const createFirewallRule = sandbox.stub(VsCodeAzureHelper, "createFirewallRule").resolves();
+
+        await firewallService.createFirewallRuleWithVscodeAccount(
+            firewallRuleSpec,
+            "test-server.database.windows.net,1433",
+        );
+
+        expect(VsCodeAzureHelper.findSqlResource).to.have.been.calledWithExactly(
+            "account-id",
+            "test-server",
+        );
+        expect(VsCodeAzureHelper.getSubscriptionsForAccount).to.have.been.calledWithExactly(
+            "account-id",
+        );
+        expect(createFirewallRule).to.have.been.calledWithExactly(
+            subscription,
+            "resource-group",
+            "test-server",
+            "Test Rule",
+            "1.2.3.1",
+            "1.2.3.255",
         );
     });
 
-    test("Create Firewall Rule Test", async () => {
-        const mockResponse: ICreateFirewallRuleResponse = {
-            result: true,
-            errorMessage: "",
+    test("reports an error when the Azure SQL server cannot be located", async () => {
+        sandbox.stub(VsCodeAzureHelper, "findSqlResource").resolves("UnableToCheck");
+        const getSubscriptions = sandbox.stub(VsCodeAzureHelper, "getSubscriptionsForAccount");
+        const createFirewallRule = sandbox.stub(VsCodeAzureHelper, "createFirewallRule");
+
+        const firewallRuleSpec = {
+            name: "Test Rule",
+            azureAccountInfo: {
+                accountId: "account-id",
+                tenantId: "tenant-id",
+            },
+            ip: "1.2.3.4",
         };
-        client.sendResourceRequest.resolves(mockResponse);
 
-        const request = {
-            account: { properties: { tenants: [] } },
-            firewallRuleName: "Test Rule",
-            startIpAddress: "1.2.3.1",
-            endIpAddress: "1.2.3.255",
-            serverName: "test_server",
-            securityTokenMappings: {},
-        } as ICreateFirewallRuleParams;
-
-        const result = await firewallService.createFirewallRule(request);
-
-        expect(result).to.deep.equal(mockResponse);
-        expect(client.sendResourceRequest).to.have.been.calledOnceWithExactly(
-            CreateFirewallRuleRequest.type,
-            request,
-        );
+        try {
+            await firewallService.createFirewallRuleWithVscodeAccount(
+                firewallRuleSpec,
+                "missing-server",
+            );
+            expect.fail("Expected firewall rule creation to throw");
+        } catch (error) {
+            if (!(error instanceof Error)) {
+                throw error;
+            }
+            expect(error.message).to.contain("Unable to locate Azure SQL server 'missing-server'");
+        }
+        expect(getSubscriptions).not.to.have.been.called;
+        expect(createFirewallRule).not.to.have.been.called;
     });
 });
