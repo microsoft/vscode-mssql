@@ -152,8 +152,8 @@
                 "category": "%sqlDatabaseProjects.displayName%"
             },
             {
-                "command": "sqlDatabaseProjects.restore",
-                "title": "%sqlDatabaseProjects.restore%",
+                "command": "sqlDatabaseProjects.restorePackages",
+                "title": "%sqlDatabaseProjects.restorePackages%",
                 "category": "%sqlDatabaseProjects.displayName%"
             },
             {
@@ -319,7 +319,7 @@
                     "when": "false"
                 },
                 {
-                    "command": "sqlDatabaseProjects.restore",
+                    "command": "sqlDatabaseProjects.restorePackages",
                     "when": "false"
                 },
                 {
@@ -418,7 +418,7 @@
                     "group": "1_dbProjectsFirst@2"
                 },
                 {
-                    "command": "sqlDatabaseProjects.restore",
+                    "command": "sqlDatabaseProjects.restorePackages",
                     "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
                     "group": "1_dbProjectsFirst@3"
                 },

@@ -365,7 +365,7 @@ export const confirmCreateProjectWithBuildTaskDialogName = l10n.t(
 );
 export const buildTaskName = l10n.t("Build");
 export const buildWithCodeAnalysisTaskName = l10n.t("Build with Code Analysis");
-export const restoreTaskName = l10n.t("Restore");
+export const restoreTaskName = l10n.t("Restore NuGet packages");
 
 //#endregion
 

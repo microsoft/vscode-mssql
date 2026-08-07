@@ -586,8 +586,8 @@
     <trans-unit id="++CODE++b0b75e297ad9735605b50a4457fc9ebf3ac736f3fe1a96c37e516bde80c0b529">
       <source xml:lang="en">Reset all variables</source>
     </trans-unit>
-    <trans-unit id="++CODE++a76e13b9839270eb73ed11417f7d8acca55df0ad52065799361631d0fff74f27">
-      <source xml:lang="en">Restore</source>
+    <trans-unit id="++CODE++a1fd0aa6b9bdf8696143377ec1bf93d31e265ac3127aaee41867716f69f4405e">
+      <source xml:lang="en">Restore NuGet packages</source>
     </trans-unit>
     <trans-unit id="++CODE++633c647dc177f1bc66b204e5f67b5243fa1a1fbcdf8848eca20af08cc00cfea2">
       <source xml:lang="en">Restore NuGet packages failed. Check the terminal output for more details.</source>
@@ -1038,8 +1038,8 @@
     <trans-unit id="sqlDatabaseProjects.rename">
       <source xml:lang="en">Rename</source>
     </trans-unit>
-    <trans-unit id="sqlDatabaseProjects.restore">
-      <source xml:lang="en">Restore</source>
+    <trans-unit id="sqlDatabaseProjects.restorePackages">
+      <source xml:lang="en">Restore Packages</source>
     </trans-unit>
     <trans-unit id="sqlDatabaseProjects.objectExplorerSubmenu">
       <source xml:lang="en">SQL Database Projects</source>
