@@ -1435,6 +1435,19 @@ export default class ConnectionManager {
             serverlessWakeFailedAttempts = 0,
         } = options;
 
+        const connectionAttemptId = uuid();
+        const connectionStartedAt = Date.now();
+        const logConnectionPhase = (phase: string, details = "") => {
+            this._logger.debug(
+                `[ConnectionTrace] ${phase} correlationId=${connectionAttemptId} durationMs=${Date.now() - connectionStartedAt}${details ? ` ${details}` : ""}`,
+            );
+        };
+
+        logConnectionPhase(
+            "Connection manager entered",
+            `connectionSource=${connectionSource} authenticationType=${credentials.authenticationType ?? "unknown"}`,
+        );
+
         const connectionActivity = startActivity(
             TelemetryViews.ConnectionManager,
             TelemetryActions.Connect,
@@ -1454,7 +1467,12 @@ export default class ConnectionManager {
             fileUri = `${ObjectExplorerUtils.getNodeUriFromProfile(credentials as IConnectionProfile)}_${uuid()}`;
         }
 
-        credentials = await this.prepareConnectionInfo(credentials, connectionActivity);
+        credentials = await this.prepareConnectionInfo(
+            credentials,
+            connectionActivity,
+            logConnectionPhase,
+        );
+        logConnectionPhase("Connection information prepared");
 
         // Check if the connection is one that we can check for pause status (i.e., a Azure SQL database using Entra MFA auth)
         const isPauseAwareConnection =
@@ -1482,6 +1500,7 @@ export default class ConnectionManager {
         }
 
         this._logger.info(LocalizedConstants.msgConnecting(credentials.server, fileUri));
+        logConnectionPhase("SQL Tools Service connection request sending");
 
         // Create connection request params
         const connectionDetails = ConnectionCredentials.createConnectionDetails(credentials);
@@ -1511,6 +1530,12 @@ export default class ConnectionManager {
                 connectParams,
             );
             initRequestCompleted = true;
+            logConnectionPhase(
+                initResponse
+                    ? "SQL Tools Service connection request accepted"
+                    : "SQL Tools Service connection request rejected",
+                `initResponse=${String(initResponse)}`,
+            );
         } catch (error) {
             initRequestCompleted = true;
             this.removeActiveConnection(fileUri);
@@ -1554,6 +1579,10 @@ export default class ConnectionManager {
         });
 
         const result = await connectionCompletePromise.promise;
+        logConnectionPhase(
+            "SQL Tools Service connection completed",
+            `connectionIdPresent=${String(Utils.isNotEmpty(result.connectionId))}`,
+        );
 
         connectionInfo.connecting = false;
 
@@ -1566,6 +1595,7 @@ export default class ConnectionManager {
              */
 
             await this.handleConnectionSuccess(fileUri, connectionInfo, result);
+            logConnectionPhase("Connection manager completed successfully");
             connectionActivity.end(
                 ActivityStatus.Succeeded,
                 undefined,
@@ -1730,8 +1760,10 @@ export default class ConnectionManager {
     public async prepareConnectionInfo(
         credentials: IConnectionInfo,
         telemetryActivity?: ActivityObject,
+        logConnectionPhase?: (phase: string, details?: string) => void,
     ): Promise<IConnectionInfo> {
         const telemetryActivityErrorType = "ConnectionPreparationError";
+        logConnectionPhase?.("Connection preparation entered");
         // Verify that the connection info has server or connection string
         if (!credentials.server && !credentials.connectionString) {
             const error = new Error(LocalizedConstants.serverNameMissing);
@@ -1749,6 +1781,7 @@ export default class ConnectionManager {
         if (credentials.authenticationType === Constants.azureMfa) {
             try {
                 await this.refreshEntraTokenIfNeeded(credentials);
+                logConnectionPhase?.("Entra token preparation completed");
             } catch (error) {
                 telemetryActivity?.endFailed(
                     error,
@@ -1763,6 +1796,7 @@ export default class ConnectionManager {
 
         // Handle password-based credentials
         const passwordResult = await this.handlePasswordBasedCredentials(credentials);
+        logConnectionPhase?.("Password credential preparation completed");
         if (!passwordResult) {
             // User cancelled the password prompt
             const passwordError = new Error(LocalizedConstants.cannotConnect);
@@ -1783,6 +1817,7 @@ export default class ConnectionManager {
         ) {
             let connectionString = await this.connectionStore.lookupPassword(credentials, true);
             credentials.connectionString = connectionString;
+            logConnectionPhase?.("Connection string credential resolved");
         }
 
         if (
@@ -1795,6 +1830,7 @@ export default class ConnectionManager {
         telemetryActivity?.update({
             connectionPrepared: "true",
         });
+        logConnectionPhase?.("Connection preparation exited");
         return credentials;
     }
 
@@ -2247,10 +2283,11 @@ export default class ConnectionManager {
     private async performConnectionStartupChecks(): Promise<void> {
         this._logger.trace("Beginning connection startup checks");
 
-        const connections: IConnectionProfile[] =
-            await this.connectionStore.readAllConnections(false);
-        const connectionGroups: IConnectionGroup[] =
-            await this.connectionStore.readAllConnectionGroups();
+        const [connections, connectionGroups]: [IConnectionProfile[], IConnectionGroup[]] =
+            await Promise.all([
+                this.connectionStore.readAllConnections(false),
+                this.connectionStore.readAllConnectionGroups(),
+            ]);
 
         const migrationTally = {
             migrated: 0,
@@ -2404,8 +2441,10 @@ export default class ConnectionManager {
         params: RequestSecurityTokenParams,
     ): Promise<RequestSecurityTokenResponse> {
         if (params.accountId) {
-            this._entraLogger.info(
-                `VS Code accounts token request received for ${params.resource} with accountId '${params.accountId}' and tenantId '${params.tenantId}'`,
+            const tokenRequestId = uuid();
+            const tokenRequestStartedAt = Date.now();
+            this._entraLogger.debug(
+                `[ConnectionTrace] VS Code accounts token request received requestId=${tokenRequestId}`,
             );
             try {
                 const resourceEndpoint = params.resource || getCloudResourceEndpoint("sqlResource");
@@ -2413,13 +2452,12 @@ export default class ConnectionManager {
                     resourceEndpoint,
                     params.accountId,
                     params.tenantId,
+                    undefined,
+                    { logger: this._entraLogger, requestId: tokenRequestId },
                 );
 
-                const expiry = Utils.epochToDisplay(
-                    tokenInfo.token.expiresOn ? tokenInfo.token.expiresOn * 1000 : undefined,
-                );
-                this._entraLogger.info(
-                    `VS Code accounts token acquired successfully for ${resourceEndpoint} with accountId '${params.accountId}' and tenantId '${params.tenantId}'; expires on ${tokenInfo.token.expiresOn} (${expiry.iso}, ${expiry.relative})`,
+                this._entraLogger.debug(
+                    `[ConnectionTrace] VS Code accounts token acquired successfully requestId=${tokenRequestId} durationMs=${Date.now() - tokenRequestStartedAt}`,
                 );
 
                 return {
@@ -2428,6 +2466,9 @@ export default class ConnectionManager {
                     expiresOn: tokenInfo.token.expiresOn,
                 };
             } catch (error) {
+                this._entraLogger.error(
+                    `[ConnectionTrace] VS Code accounts token acquisition failed requestId=${tokenRequestId} durationMs=${Date.now() - tokenRequestStartedAt}`,
+                );
                 this._logger.error(
                     `VS Code accounts token acquisition failed: ${getErrorMessage(error)}`,
                 );

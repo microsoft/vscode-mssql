@@ -63,7 +63,7 @@ import {
 import { ObjectExplorerFilter } from "../objectExplorer/objectExplorerFilter";
 import { ExecutionPlanService } from "../services/executionPlanService";
 import { MssqlProtocolHandler } from "../mssqlProtocolHandler";
-import { getErrorMessage, getUriKey, isIConnectionInfo } from "../utils/utils";
+import { getErrorMessage, getUriKey, isIConnectionInfo, uuid } from "../utils/utils";
 import { getStandardNPSQuestions, UserSurvey } from "../nps/userSurvey";
 import { ExecutionPlanOptions } from "../models/contracts/queryExecute";
 import { ObjectExplorerDragAndDropController } from "../objectExplorer/objectExplorerDragAndDropController";
@@ -1213,6 +1213,8 @@ export default class MainController implements vscode.Disposable {
      */
     public async createObjectExplorerSession(
         connectionCredentials?: IConnectionInfo,
+        correlationId?: string,
+        startedAt = Date.now(),
     ): Promise<TreeNodeInfo> {
         let retry = true;
         // There can be many reasons for the session creation to fail, so we will retry until we get a successful result or the user cancels the operation.
@@ -1220,7 +1222,11 @@ export default class MainController implements vscode.Disposable {
         while (retry) {
             retry = false;
             sessionCreationResult =
-                await this._objectExplorerProvider.createSession(connectionCredentials);
+                await this._objectExplorerProvider.createSession(
+                    connectionCredentials,
+                    correlationId,
+                    startedAt,
+                );
             if (sessionCreationResult?.shouldRetryOnFailure) {
                 retry = true;
             }
@@ -1255,6 +1261,20 @@ export default class MainController implements vscode.Disposable {
             ),
         });
         this._context.subscriptions.push(this.objectExplorerTree);
+        this._context.subscriptions.push(
+            this.objectExplorerTree.onDidChangeSelection((event) => {
+                const node = event.selection[0];
+                if (!(node instanceof ConnectionNode)) {
+                    return;
+                }
+
+                const correlationId = uuid();
+                this._logger.debug(
+                    `[ConnectionTrace] Object Explorer connection selected correlationId=${correlationId} durationMs=0`,
+                );
+                this._objectExplorerProvider.recordConnectionClick(node, correlationId);
+            }),
+        );
 
         // Register command for table node double-click action
         let lastTableClickTime = 0;
