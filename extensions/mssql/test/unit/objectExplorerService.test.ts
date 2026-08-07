@@ -1091,7 +1091,7 @@ suite("OE Service Tests", () => {
             const mockConnectionStore = sandbox.createStubInstance(ConnectionStore);
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
             mockConnectionStore.readAllConnections.resolves([]);
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
 
             mockConnectionManager.client = mockClient;
             (mockConnectionManager as any)._connectionUI = mockConnectionUI;
@@ -1511,7 +1511,7 @@ suite("OE Service Tests", () => {
             mockConnectionStore.readAllConnectionGroups.resolves([createMockRootConnectionGroup()]);
             mockConnectionStore.readAllConnections.resolves([]);
 
-            mockConnectionManager.connectionStore = mockConnectionStore;
+            sandbox.stub(mockConnectionManager, "connectionStore").get(() => mockConnectionStore);
 
             objectExplorerService = new ObjectExplorerService(mockConnectionManager, () => {});
             objectExplorerService.initialized.resolve();
