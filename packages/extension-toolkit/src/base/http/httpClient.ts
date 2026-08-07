@@ -322,6 +322,15 @@ export class HttpClient {
         return axios.request<TResponse>({ ...config, url: requestUrl });
     }
 
+    /**
+     * Determines whether a request should bypass the configured proxy.
+     *
+     * Checks host patterns from the host configuration and the `NO_PROXY` and `no_proxy`
+     * environment variables.
+     *
+     * @param requestUrl The parsed request URL to evaluate against the bypass rules.
+     * @returns `true` when any configured rule matches the request endpoint; otherwise, `false`.
+     */
     private shouldBypassProxy(requestUrl: URL): boolean {
         const configuredRules = this.dependencies.getNoProxyConfig?.() ?? [];
         const environmentRules = [process.env.NO_PROXY, process.env.no_proxy]
@@ -573,6 +582,16 @@ interface ProxyAgentOptions {
     rejectUnauthorized: boolean;
 }
 
+/**
+ * Determines whether a request endpoint matches a proxy bypass rule.
+ *
+ * Supports exact hosts, leading-dot and wildcard subdomains, optional schemes and ports, and the
+ * `*` rule that bypasses the proxy for every endpoint.
+ *
+ * @param requestEndpoint The parsed request URL to match.
+ * @param value The proxy bypass rule to evaluate.
+ * @returns `true` when the endpoint matches the rule; otherwise, `false`.
+ */
 function matchesProxyBypassRule(requestEndpoint: URL, value: string): boolean {
     const rule = value.trim().toLowerCase();
     if (!rule) {
