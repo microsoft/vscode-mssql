@@ -7630,9 +7630,6 @@
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
-    <trans-unit id="++CODE++f2452454491596fc0a8c37633788650d87b982077890fe2e72fc1838cf96f4be">
-      <source xml:lang="en">This extension uses a connection-sharing capability that MSSQL is retiring. If you rely on what this extension does, tell us and we’ll consider adding it natively.</source>
-    </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
     </trans-unit>
@@ -8675,8 +8672,8 @@
     <trans-unit id="++CODE++c7c45c2f2ad470c2dc1a35bf3320d977e49bd4f4c804d9bf347d009669e5ebae">
       <source xml:lang="en">{{put-server-name-here}}</source>
     </trans-unit>
-    <trans-unit id="++CODE++5ac7e84ece88860f7b849ad4de40628cff9d605b3eb74501dbdba4bb775c88b6">
-      <source xml:lang="en">“{0}” depends on a feature we’re removing</source>
+    <trans-unit id="++CODE++8d23097b42ca8ec5cc2aba47ac65da0eccb1472d900baf4d52361426fbc8c791">
+      <source xml:lang="en">“{0}” extension uses a connection-sharing capability that MSSQL is retiring. If you rely on what this extension does, tell us and we’ll consider adding it natively.</source>
       <note>{0} is the extension name</note>
     </trans-unit>
     <trans-unit id="++CODE++097beaf7cff8a2792062a02ba2078dcf76e2166c13dd935fbffcd530d655cdf6">

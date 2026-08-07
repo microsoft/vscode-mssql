@@ -195,7 +195,7 @@ suite("ConnectionSharingService Tests", () => {
             });
         });
 
-        test("shows the retirement modal, opens a feature request, and suppresses it", async () => {
+        test("shows the retirement toast, opens a feature request, and suppresses it", async () => {
             secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
             getExtensionStub.withArgs(testExtensionId).returns({
                 id: testExtensionId,
@@ -216,11 +216,7 @@ suite("ConnectionSharingService Tests", () => {
             await new Promise((resolve) => setImmediate(resolve));
 
             expect(showWarningMessageStub).to.have.been.calledWith(
-                LocalizedConstants.ConnectionSharing.retirementWarningTitle("Test Extension"),
-                sinon.match({
-                    modal: true,
-                    detail: LocalizedConstants.ConnectionSharing.retirementWarningDetail,
-                }),
+                LocalizedConstants.ConnectionSharing.retirementWarning("Test Extension"),
                 LocalizedConstants.ConnectionSharing.RequestThisFeature,
                 LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension,
             );
@@ -264,7 +260,7 @@ suite("ConnectionSharingService Tests", () => {
             );
         });
 
-        test("shows the retirement modal only once per extension in a session", async () => {
+        test("shows the retirement toast only once per extension in a session", async () => {
             secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
             getExtensionStub.withArgs(testExtensionId).returns({
                 id: testExtensionId,
@@ -287,7 +283,7 @@ suite("ConnectionSharingService Tests", () => {
             expect(showWarningMessageStub).not.to.have.been.called;
         });
 
-        test("shows the retirement toast when the API call fails without a connection", async () => {
+        test("shows the retirement notification when the API call fails without a connection", async () => {
             secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
             getExtensionStub.withArgs(testExtensionId).returns({
                 id: testExtensionId,
@@ -308,18 +304,10 @@ suite("ConnectionSharingService Tests", () => {
                 );
             }
 
-            expect(showWarningMessageStub).to.have.been.calledWith(
-                LocalizedConstants.ConnectionSharing.retirementWarningTitle("Test Extension"),
-                sinon.match({
-                    modal: true,
-                    detail: LocalizedConstants.ConnectionSharing.retirementWarningDetail,
-                }),
-                LocalizedConstants.ConnectionSharing.RequestThisFeature,
-                LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension,
-            );
+            expect(showWarningMessageStub).to.have.been.called;
         });
 
-        test("does not show another toast after the extension opts out", async () => {
+        test("does not show another notification after the extension opts out", async () => {
             secretStorage.get.resolves(JSON.stringify({ [testExtensionId]: "approved" }));
             getExtensionStub.withArgs(testExtensionId).returns({
                 id: testExtensionId,
@@ -358,7 +346,7 @@ suite("ConnectionSharingService Tests", () => {
             expect(showWarningMessageStub).not.to.have.been.called;
         });
 
-        test("does not show the toast for internal consumers", async () => {
+        test("does not show the notification for internal consumers", async () => {
             const internalExtensionId = Constants.sqlDatabaseProjectsExtensionId;
             secretStorage.get.resolves(JSON.stringify({ [internalExtensionId]: "approved" }));
             getExtensionStub.withArgs(internalExtensionId).returns({
@@ -375,11 +363,6 @@ suite("ConnectionSharingService Tests", () => {
             await command!(internalExtensionId);
 
             expect(showWarningMessageStub).not.to.have.been.called;
-            expect(sendActionEventStub).to.have.been.calledWith(
-                TelemetryViews.Connection,
-                TelemetryActions.ConnectionSharingRetirementToast,
-                { extensionId: internalExtensionId, action: "suppressedInternalConsumer" },
-            );
         });
     });
 

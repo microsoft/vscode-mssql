@@ -409,11 +409,7 @@ export class ConnectionSharingService implements mssql.IConnectionSharingService
         );
         void vscode.window
             .showWarningMessage(
-                LocalizedConstants.ConnectionSharing.retirementWarningTitle(extensionName),
-                {
-                    modal: true,
-                    detail: LocalizedConstants.ConnectionSharing.retirementWarningDetail,
-                },
+                LocalizedConstants.ConnectionSharing.retirementWarning(extensionName),
                 LocalizedConstants.ConnectionSharing.RequestThisFeature,
                 LocalizedConstants.ConnectionSharing.DoNotShowAgainForExtension,
             )

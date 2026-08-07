@@ -95,15 +95,11 @@ suite("Extension API Tests", () => {
         sandbox.stub(sqlToolsClient, "sqlToolsServicePath").get(() => "test/sqltoolsservice");
         sqlToolsClient.onNotification.returns(disposable); // handler stub necessary depending on test execution order
 
-        const uriOwnershipCoordinatorStub = sandbox.createStubInstance(UriOwnershipCoordinator);
-        Object.assign(uriOwnershipCoordinatorStub, {
+        sandbox.stub(UriOwnershipInitialization, "createUriOwnershipCoordinator").returns({
             uriOwnershipApi: {},
             onCoordinatingOwnershipChanged: sandbox.stub().returns(disposable),
-        });
-        uriOwnershipCoordinatorStub.isActiveEditorOwnedByOtherExtensionWithWarning.returns(false);
-        sandbox
-            .stub(UriOwnershipInitialization, "createUriOwnershipCoordinator")
-            .returns(uriOwnershipCoordinatorStub);
+            isActiveEditorOwnedByOtherExtensionWithWarning: () => false,
+        } as unknown as UriOwnershipCoordinator);
         sandbox.stub(UriOwnershipInitialization, "initializeUriOwnershipCoordinator").returns();
 
         vscodeMssql = await Extension.activate(context);
@@ -135,6 +131,10 @@ suite("Extension API Tests", () => {
         } finally {
             sandbox.restore();
         }
+    });
+
+    test("Gets sqlToolsServicePath", async () => {
+        expect(vscodeMssql.sqlToolsServicePath).to.not.be.null;
     });
 
     test("promptForConnection", async () => {

@@ -3000,16 +3000,14 @@ export class QueryEditor {
 }
 
 export class ConnectionSharing {
-    public static retirementWarningTitle(extensionName: string) {
+    public static retirementWarning(extensionName: string) {
         return l10n.t({
-            message: "“{0}” depends on a feature we’re removing",
+            message:
+                "“{0}” extension uses a connection-sharing capability that MSSQL is retiring. If you rely on what this extension does, tell us and we’ll consider adding it natively.",
             args: [extensionName],
             comment: ["{0} is the extension name"],
         });
     }
-    public static retirementWarningDetail = l10n.t(
-        "This extension uses a connection-sharing capability that MSSQL is retiring. If you rely on what this extension does, tell us and we’ll consider adding it natively.",
-    );
     public static RequestThisFeature = l10n.t("Request this feature");
     public static DoNotShowAgainForExtension = l10n.t("Don’t show again for this extension");
     public static connectionSharingRequestNotification(extensionName: string) {

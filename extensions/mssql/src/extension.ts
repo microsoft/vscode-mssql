@@ -147,7 +147,7 @@ class MssqlActivation {
         await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
         // TODO(api-retirement): Remove this public API after dependent extensions have migrated.
-        const extensionApi: IExtension = {
+        return {
             sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
             promptForConnection: async (ignoreFocusOut?: boolean) => {
                 const connectionProfileList =
@@ -275,8 +275,6 @@ class MssqlActivation {
             } as vscodeMssql.IConnectionSharingService,
             uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
         };
-
-        return extensionApi;
     }
 
     async deactivate(): Promise<void> {
