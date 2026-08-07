@@ -3,14 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import "azdataGraph/src/css/common.css";
-import "azdataGraph/src/css/explorer.css";
 import "./executionPlan.css";
 
-import * as azdataGraph from "azdataGraph";
-import * as utils from "./queryPlanSetup";
-
-import { Button, Input, makeStyles, mergeClasses, tokens } from "@fluentui/react-components";
+import {
+    Button,
+    Input,
+    makeStyles,
+    mergeClasses,
+    Spinner,
+    tokens,
+} from "@fluentui/react-components";
 import {
     Checkmark16Regular,
     Checkmark20Regular,
@@ -19,20 +21,20 @@ import {
 } from "@fluentui/react-icons";
 import {
     KeyboardEvent as ReactKeyboardEvent,
+    lazy,
+    Suspense,
     useCallback,
     useEffect,
     useRef,
     useState,
 } from "react";
 
-import { ExecutionPlanView } from "./executionPlanView";
 import { ExecutionPlanGraphController } from "./executionPlanGraphController";
 import { normalizeExecutionPlanQuery } from "./executionPlanQuery";
 import { FindNode } from "./findNodes";
 import { HighlightExpensiveOperations } from "./highlightExpensiveOperations";
 import { LegacyIconStack } from "./legacyIconMenu";
 import { PropertiesPane } from "./properties";
-import { ReactFlowExecutionPlan } from "./reactFlowExecutionPlan";
 import { ReactFlowIconStack } from "./reactFlowIconMenu";
 import { locConstants } from "../../common/locConstants";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
@@ -44,6 +46,16 @@ import {
     VscodeFloatingWidget,
     VscodeFloatingWidgetAction,
 } from "../../common/vscodeFloatingWidget";
+
+const ReactFlowExecutionPlan = lazy(async () => {
+    const module = await import("./reactFlowExecutionPlan");
+    return { default: module.ReactFlowExecutionPlan };
+});
+
+const LegacyExecutionPlanRenderer = lazy(async () => {
+    const module = await import("./legacyExecutionPlanRenderer");
+    return { default: module.LegacyExecutionPlanRenderer };
+});
 
 const useStyles = makeStyles({
     panelContainer: {
@@ -202,7 +214,6 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
     const [propertiesWidth, setPropertiesWidth] = useState(400);
     const [containerHeight, setContainerHeight] = useState("100%");
     const resizableRef = useRef<HTMLDivElement>(null);
-    const legacyGraphContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<any | null>(null);
     const useReactFlow = executionPlanState?.isBetaExecutionPlanEnabled === true;
     const graph = executionPlanState?.executionPlanGraphs?.[graphIndex];
@@ -236,51 +247,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
         setPropertiesClicked(false);
     }, [isReactFlowActive]);
 
-    useEffect(() => {
-        if (isReactFlowActive || !graph || !legacyGraphContainerRef.current) {
-            return;
-        }
-
-        // @ts-ignore
-        window["mxLoadResources"] = false;
-        // @ts-ignore
-        window["mxForceIncludes"] = false;
-        // @ts-ignore
-        window["mxResourceExtension"] = ".txt";
-        // @ts-ignore
-        window["mxLoadStylesheets"] = false;
-        // @ts-ignore
-        window["mxBasePath"] = "./src/webviews/pages/ExecutionPlan/mxgraph";
-
-        const mxClient = azdataGraph.mx();
-
-        const executionPlanView = new ExecutionPlanView(graph.root);
-        const executionPlanGraph = executionPlanView.populate();
-        const queryPlanConfiguration = {
-            container: legacyGraphContainerRef.current,
-            queryPlanGraph: executionPlanGraph,
-            iconPaths: utils.getIconPaths(),
-            badgeIconPaths: utils.getBadgePaths(),
-            expandCollapsePaths: utils.getCollapseExpandPaths(themeKind),
-            // Keep the fallback's original azdataGraph tooltip implementation.
-            showTooltipOnClick: true,
-        };
-        const pen = new mxClient.azdataQueryPlan(queryPlanConfiguration);
-        pen.setTextFontColor("var(--vscode-editor-foreground)");
-        pen.setEdgeColor("var(--vscode-editor-foreground)");
-        executionPlanView.setDiagram(pen);
-
-        setExecutionPlanView(executionPlanView);
-        setFindNodeOptions(executionPlanView.getUniqueElementProperties());
-        setCost(executionPlanView.getTotalRelativeCost());
-
-        return () => {
-            const disposablePen = pen as unknown as { destroy?: () => void };
-            disposablePen.destroy?.();
-        };
-    }, [graph, isReactFlowActive, themeKind]);
-
-    const handleReactFlowReady = useCallback((controller: ExecutionPlanGraphController | null) => {
+    const handleRendererReady = useCallback((controller: ExecutionPlanGraphController | null) => {
         setExecutionPlanView(controller);
         if (controller) {
             setFindNodeOptions(controller.getUniqueElementProperties());
@@ -413,11 +380,18 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                             ? `calc(100% - ${propertiesWidth}px - 35px)`
                             : "calc(100% - 35px)",
                     }}>
-                    {!isReactFlowActive && (
-                        <div
-                            ref={legacyGraphContainerRef}
-                            className={classes.legacyGraphContainer}
-                        />
+                    {!isReactFlowActive && graph && (
+                        <Suspense
+                            fallback={
+                                <Spinner label={locConstants.executionPlan.loadingExecutionPlan} />
+                            }>
+                            <LegacyExecutionPlanRenderer
+                                root={graph.root}
+                                themeKind={themeKind}
+                                className={classes.legacyGraphContainer}
+                                onReady={handleRendererReady}
+                            />
+                        </Suspense>
                     )}
                     {isReactFlowActive && graph && (
                         <WebviewErrorBoundary
@@ -440,11 +414,18 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                     errorInfo.componentStack,
                                 );
                             }}>
-                            <ReactFlowExecutionPlan
-                                root={graph.root}
-                                themeKind={themeKind}
-                                onReady={handleReactFlowReady}
-                            />
+                            <Suspense
+                                fallback={
+                                    <Spinner
+                                        label={locConstants.executionPlan.loadingExecutionPlan}
+                                    />
+                                }>
+                                <ReactFlowExecutionPlan
+                                    root={graph.root}
+                                    themeKind={themeKind}
+                                    onReady={handleRendererReady}
+                                />
+                            </Suspense>
                         </WebviewErrorBoundary>
                     )}
                 </div>

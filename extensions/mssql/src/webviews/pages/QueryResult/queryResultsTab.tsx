@@ -4,15 +4,49 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as qr from "../../../sharedInterfaces/queryResult";
-import { useContext, useEffect } from "react";
+import { makeStyles, Spinner } from "@fluentui/react-components";
+import { lazy, Suspense, useContext, useEffect } from "react";
 import { QueryResultCommandsContext } from "./queryResultStateProvider";
-import { QueryResultsTextView } from "./queryResultsTextView";
-import { QueryResultFluentResultGridView } from "./queryResultFluentResultGrid";
-import { QueryResultsGridView } from "./queryResultsGridView";
 import { useQueryResultSelector } from "./queryResultSelector";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
 import { WebviewAction } from "../../../sharedInterfaces/webview";
+import { locConstants } from "../../common/locConstants";
+import { QueryResultFluentResultGridView } from "./queryResultFluentResultGrid";
+import { QueryResultsGridView } from "./queryResultsGridView";
+
+const useStyles = makeStyles({
+    loadingContainer: {
+        alignItems: "center",
+        backgroundColor: "var(--vscode-editor-background)",
+        boxSizing: "border-box",
+        display: "flex",
+        height: "100%",
+        justifyContent: "center",
+        minHeight: "120px",
+        padding: "20px",
+        width: "100%",
+    },
+});
+
+const QueryResultsLoading = () => {
+    const classes = useStyles();
+
+    return (
+        <div className={classes.loadingContainer} role="status">
+            <Spinner
+                label={locConstants.queryResult.loadingResultsMessage}
+                labelPosition="below"
+                size="large"
+            />
+        </div>
+    );
+};
+
+const QueryResultsTextView = lazy(async () => {
+    const module = await import("./queryResultsTextView");
+    return { default: module.QueryResultsTextView };
+});
 
 export const QueryResultsTab = () => {
     const context = useContext(QueryResultCommandsContext);
@@ -59,7 +93,11 @@ export const QueryResultsTab = () => {
     }, [tabStates?.resultPaneTab, context, keyBindings, viewMode]);
 
     if (viewMode === qr.QueryResultViewMode.Text) {
-        return <QueryResultsTextView />;
+        return (
+            <Suspense fallback={<QueryResultsLoading />}>
+                <QueryResultsTextView />
+            </Suspense>
+        );
     }
     if (isBetaResultsGridEnabled) {
         return <QueryResultFluentResultGridView />;

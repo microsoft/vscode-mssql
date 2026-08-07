@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import ReactDOM from "react-dom/client";
-import "../../index.css";
+import "./queryResultEagerStyles";
 import { QueryResultStateProvider } from "./queryResultStateProvider";
 import { QueryResult } from "./queryResultPage";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
