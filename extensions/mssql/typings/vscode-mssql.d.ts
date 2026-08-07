@@ -20,6 +20,7 @@ declare module "vscode-mssql" {
 
     /**
      * The APIs provided by Mssql extension
+     * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
      */
     export interface IExtension {
         /**
@@ -132,10 +133,12 @@ declare module "vscode-mssql" {
         getServerInfo(connectionInfo: IConnectionInfo): IServerInfo;
         /**
          * APIs for working with mssql connections
+         * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
          */
         connectionSharing: IConnectionSharingService;
         /**
          * APIs for coordinating URI ownership with other database extensions
+         * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
          */
         uriOwnershipApi: UriOwnershipApi;
     }
@@ -2017,6 +2020,9 @@ declare module "vscode-mssql" {
     //#endregion
 
     export interface ITreeNodeInfo extends vscode.TreeItem {
+        /**
+         * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
+         */
         readonly connectionProfile: IConnectionInfo;
         nodeType: string;
         metadata: ObjectMetadata;
@@ -2772,6 +2778,9 @@ declare module "vscode-mssql" {
         parentTypeName?: string;
     }
 
+    /**
+     * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
+     */
     export interface UriOwnershipApi {
         ownsUri(uri: vscode.Uri): boolean;
         onDidChangeUriOwnership: vscode.Event<void>;
@@ -2794,6 +2803,7 @@ declare module "vscode-mssql" {
     /**
      * Interface for connection sharing service
      * This service allows external extensions to use connections established by the mssql extension.
+     * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
      */
     export interface IConnectionSharingService {
         /**

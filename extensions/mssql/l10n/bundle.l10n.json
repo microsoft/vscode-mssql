@@ -1637,12 +1637,13 @@
         "message": "Failed disposing query: {0}",
         "comment": ["{0} is the error message"]
     },
-    "“{0}” uses an MSSQL connection sharing API that will be retired in a future release. The API will continue to work until then. Please remove this dependency before it is retired./{0} is the extension name": {
-        "message": "“{0}” uses an MSSQL connection sharing API that will be retired in a future release. The API will continue to work until then. Please remove this dependency before it is retired.",
+    "“{0}” depends on a feature we’re removing/{0} is the extension name": {
+        "message": "“{0}” depends on a feature we’re removing",
         "comment": ["{0} is the extension name"]
     },
-    "Report Migration Issue": "Report Migration Issue",
-    "Don't Show Again for This Extension": "Don't Show Again for This Extension",
+    "This extension uses a connection-sharing capability that MSSQL is retiring. If you rely on what this extension does, tell us and we’ll consider adding it natively.": "This extension uses a connection-sharing capability that MSSQL is retiring. If you rely on what this extension does, tell us and we’ll consider adding it natively.",
+    "Request this feature": "Request this feature",
+    "Don’t show again for this extension": "Don’t show again for this extension",
     "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
         "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
         "comment": ["{0} is the extension name"]

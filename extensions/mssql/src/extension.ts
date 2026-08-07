@@ -36,7 +36,6 @@ import {
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
-import { withPublicApiRetirementWarnings } from "./utils/apiDeprecation";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -147,6 +146,7 @@ class MssqlActivation {
 
         await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
+        // TODO(api-retirement): Remove this public API after dependent extensions have migrated.
         const extensionApi: IExtension = {
             sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
             promptForConnection: async (ignoreFocusOut?: boolean) => {
@@ -276,7 +276,7 @@ class MssqlActivation {
             uriOwnershipApi: uriOwnershipCoordinator.uriOwnershipApi,
         };
 
-        return withPublicApiRetirementWarnings(extensionApi);
+        return extensionApi;
     }
 
     async deactivate(): Promise<void> {

@@ -2420,11 +2420,11 @@
     <trans-unit id="++CODE++1d60d0cdcb5408b8e39ed364f675c9cad8a2f6174a413324d1e34437bd41269b">
       <source xml:lang="en">Don&apos;t Show Again</source>
     </trans-unit>
-    <trans-unit id="++CODE++e9fe164f97f673585a75f5149c901c36d0e3aea2ff0db8d821c3cde896ec335d">
-      <source xml:lang="en">Don&apos;t Show Again for This Extension</source>
-    </trans-unit>
     <trans-unit id="++CODE++831c69f02fd7c9c62450695c18f11c56b34ae3ababb1670737507a5cc01404b4">
       <source xml:lang="en">Don&apos;t show this again</source>
+    </trans-unit>
+    <trans-unit id="++CODE++eb47b4eaa66b7f7140d56ad3570f642b5917fc2bb404d5d88b4a968198b02999">
+      <source xml:lang="en">Don’t show again for this extension</source>
     </trans-unit>
     <trans-unit id="++CODE++ade5b866b0e6b83f736f3f1e46c0448a8ed129ae76c552d26cd62d610f1eb0e5">
       <source xml:lang="en">Download offline VSIX</source>
@@ -6028,11 +6028,11 @@
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
     </trans-unit>
-    <trans-unit id="++CODE++556572ec740bed342e21b9f316329848eeaca81797f40ef1ca046c3ac857f951">
-      <source xml:lang="en">Report Migration Issue</source>
-    </trans-unit>
     <trans-unit id="++CODE++cc874c54b76cd239b02d7fddeea1dd3415c1a0a3fe476cd537f26b06c0e98dcd">
       <source xml:lang="en">Request a new feature</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d82f3be6c7fa14b22d045c2a09ab4e2f4e7d311c993e5953d4c78971b4f83517">
+      <source xml:lang="en">Request this feature</source>
     </trans-unit>
     <trans-unit id="++CODE++4850b174b713d88cfc63de107830d5388929020e78abc91fc19bba7a6821625f">
       <source xml:lang="en">Required</source>
@@ -7630,6 +7630,9 @@
     <trans-unit id="++CODE++a616eb2bf2f817c4898b6d9709fa799bf564dc58ec7bdb879358e3f47795106e">
       <source xml:lang="en">This database name is already in use. Please choose a different name.</source>
     </trans-unit>
+    <trans-unit id="++CODE++f2452454491596fc0a8c37633788650d87b982077890fe2e72fc1838cf96f4be">
+      <source xml:lang="en">This extension uses a connection-sharing capability that MSSQL is retiring. If you rely on what this extension does, tell us and we’ll consider adding it natively.</source>
+    </trans-unit>
     <trans-unit id="++CODE++28e2aa59c50b2de24bda79539297a180c3ea379c3aa11b5af049a2cf66375999">
       <source xml:lang="en">This message couldn&apos;t be processed. If this issue persists, please check the logs and open an issue on GitHub.</source>
     </trans-unit>
@@ -8672,8 +8675,8 @@
     <trans-unit id="++CODE++c7c45c2f2ad470c2dc1a35bf3320d977e49bd4f4c804d9bf347d009669e5ebae">
       <source xml:lang="en">{{put-server-name-here}}</source>
     </trans-unit>
-    <trans-unit id="++CODE++78049e807aba6f3058da1626c969c0cb383c43dfb68f40ea7d96d1e2cf8f3bcd">
-      <source xml:lang="en">“{0}” uses an MSSQL connection sharing API that will be retired in a future release. The API will continue to work until then. Please remove this dependency before it is retired.</source>
+    <trans-unit id="++CODE++5ac7e84ece88860f7b849ad4de40628cff9d605b3eb74501dbdba4bb775c88b6">
+      <source xml:lang="en">“{0}” depends on a feature we’re removing</source>
       <note>{0} is the extension name</note>
     </trans-unit>
     <trans-unit id="++CODE++097beaf7cff8a2792062a02ba2078dcf76e2166c13dd935fbffcd530d655cdf6">

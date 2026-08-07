@@ -29,7 +29,6 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import * as UriOwnershipInitialization from "../../src/uriOwnership/uriOwnershipInitialization";
 import { IconUtils } from "../../src/utils/iconUtils";
 import { UriOwnershipCoordinator } from "../../src/uriOwnership/uriOwnershipCore";
-import { withPublicApiRetirementWarnings } from "../../src/utils/apiDeprecation";
 
 const { expect } = chai;
 
@@ -44,7 +43,6 @@ suite("Extension API Tests", () => {
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionUiStub: sinon.SinonStubbedInstance<ConnectionUI>;
     let originalConnectionManager: ConnectionManager;
-    let publicApiWarningStub: sinon.SinonStub;
 
     setup(async () => {
         sandbox = sinon.createSandbox();
@@ -110,7 +108,6 @@ suite("Extension API Tests", () => {
 
         vscodeMssql = await Extension.activate(context);
         mainController = await Extension.getController();
-        publicApiWarningStub = sandbox.stub();
 
         connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
         connectionStoreStub = sandbox.createStubInstance(ConnectionStore);
@@ -138,25 +135,6 @@ suite("Extension API Tests", () => {
         } finally {
             sandbox.restore();
         }
-    });
-
-    test("warns every time sqlToolsServicePath is accessed", async () => {
-        expect(vscodeMssql.sqlToolsServicePath).to.not.be.null;
-        const warnedApi = withPublicApiRetirementWarnings(
-            { sqlToolsServicePath: "test/sqltoolsservice" },
-            (memberName) => publicApiWarningStub(memberName),
-        );
-
-        expect(warnedApi.sqlToolsServicePath).to.not.be.null;
-        expect(publicApiWarningStub).to.have.been.calledWithMatch(
-            sinon.match("sqlToolsServicePath"),
-        );
-
-        publicApiWarningStub.resetHistory();
-        expect(warnedApi.sqlToolsServicePath).to.not.be.null;
-        expect(publicApiWarningStub).to.have.been.calledWithMatch(
-            sinon.match("sqlToolsServicePath"),
-        );
     });
 
     test("promptForConnection", async () => {
