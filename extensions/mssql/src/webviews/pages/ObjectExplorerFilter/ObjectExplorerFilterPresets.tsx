@@ -13,6 +13,7 @@ import {
     DialogTitle,
     Input,
     makeStyles,
+    mergeClasses,
     Menu,
     MenuItem,
     MenuList,
@@ -418,7 +419,10 @@ export const ObjectExplorerFilterPresets = ({
                                 return (
                                     <div
                                         key={row.id}
-                                        className={`${classes.groupRow} ${row.separated ? classes.separatedGroupRow : ""}`}
+                                        className={mergeClasses(
+                                            classes.groupRow,
+                                            row.separated && classes.separatedGroupRow,
+                                        )}
                                         role="presentation"
                                         style={{
                                             transform: `translateY(${virtualRow.start}px)`,
@@ -459,7 +463,10 @@ export const ObjectExplorerFilterPresets = ({
                             return (
                                 <div
                                     key={row.id}
-                                    className={`${classes.row} ${isSelected ? classes.selectedRow : ""}`}
+                                    className={mergeClasses(
+                                        classes.row,
+                                        isSelected && classes.selectedRow,
+                                    )}
                                     role="listitem"
                                     aria-posinset={row.position + 1}
                                     aria-setsize={presets.length}
@@ -559,7 +566,10 @@ export const ObjectExplorerFilterPresets = ({
                                                     onClick={() => onSelect(row.preset)}>
                                                     <span className={classes.presetText}>
                                                         <Text
-                                                            className={`${classes.truncate} ${classes.presetTitle}`}
+                                                            className={mergeClasses(
+                                                                classes.truncate,
+                                                                classes.presetTitle,
+                                                            )}
                                                             weight={
                                                                 row.preset.isPinned &&
                                                                 row.preset.name
@@ -570,7 +580,10 @@ export const ObjectExplorerFilterPresets = ({
                                                         </Text>
                                                         {showSummary && (
                                                             <Text
-                                                                className={`${classes.truncate} ${classes.presetMetadata}`}
+                                                                className={mergeClasses(
+                                                                    classes.truncate,
+                                                                    classes.presetMetadata,
+                                                                )}
                                                                 size={200}>
                                                                 {summary}
                                                             </Text>

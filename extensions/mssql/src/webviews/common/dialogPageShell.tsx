@@ -5,6 +5,7 @@
 
 import {
     makeStyles,
+    mergeClasses,
     MessageBar,
     MessageBarBody,
     Spinner,
@@ -220,7 +221,10 @@ export const DialogPageShell = ({
                                       }
                             }>
                             <div
-                                className={`${styles.header} ${compactHeader ? styles.compactHeader : ""}`}
+                                className={mergeClasses(
+                                    styles.header,
+                                    compactHeader && styles.compactHeader,
+                                )}
                                 style={{
                                     ...contentWidthStyle,
                                     gridTemplateColumns:
@@ -234,7 +238,10 @@ export const DialogPageShell = ({
                                 }}>
                                 {hasHeaderIcon && (
                                     <div
-                                        className={`${styles.iconContainer} ${compactHeader ? styles.compactIconContainer : ""}`}
+                                        className={mergeClasses(
+                                            styles.iconContainer,
+                                            compactHeader && styles.compactIconContainer,
+                                        )}
                                         style={{
                                             width: `${iconSize}px`,
                                             height: `${iconSize}px`,
@@ -245,7 +252,10 @@ export const DialogPageShell = ({
                                 <div className={styles.headerText}>
                                     {title && (
                                         <div
-                                            className={`${styles.title} ${compactHeader ? styles.compactTitle : ""}`}>
+                                            className={mergeClasses(
+                                                styles.title,
+                                                compactHeader && styles.compactTitle,
+                                            )}>
                                             {title}
                                         </div>
                                     )}
