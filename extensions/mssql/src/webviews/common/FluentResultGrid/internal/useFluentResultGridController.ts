@@ -42,12 +42,13 @@ import {
 } from "./fluentResultGridHeaderController";
 import {
     FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
-    createFluentResultGridColumnSignature,
     createFluentResultGridIdentitySignature,
     getFluentResultGridRowHeight,
     getFluentResultGridStateForEmit,
     normalizeFluentResultGridFrozenColumnIndex,
     normalizeFluentResultGridRowPadding,
+    stabilizeFluentResultGridColumnInfo,
+    type FluentResultGridColumnInfoSnapshot,
 } from "./fluentResultGridState";
 import {
     restoreFluentResultGridHorizontalScrollPosition,
@@ -102,10 +103,13 @@ export function useFluentResultGridController({
 
     const rowPadding = normalizeFluentResultGridRowPadding(gridSettings?.rowPadding);
     const rowHeight = getFluentResultGridRowHeight(rowHeightOverride, rowPadding);
-    const columnSignature = useMemo(
-        () => createFluentResultGridColumnSignature(resultSetSummary.columnInfo),
-        [resultSetSummary.columnInfo],
+    const stableColumnInfoRef = useRef<FluentResultGridColumnInfoSnapshot | undefined>(undefined);
+    stableColumnInfoRef.current = stabilizeFluentResultGridColumnInfo(
+        stableColumnInfoRef.current,
+        resultSetSummary.columnInfo,
     );
+    const columnSignature = stableColumnInfoRef.current.signature;
+    const stableColumnInfo = stableColumnInfoRef.current.value;
     const resultIdentitySignature = useMemo(
         () =>
             createFluentResultGridIdentitySignature({
@@ -148,10 +152,10 @@ export function useFluentResultGridController({
     const columns = useMemo<Column<FluentResultGridDataRow>[]>(
         () =>
             createFluentResultGridColumns({
-                columnInfo: resultSetSummary.columnInfo,
+                columnInfo: stableColumnInfo,
                 showRowNumberColumn,
             }),
-        [columnSignature, resultSetSummary.columnInfo, showRowNumberColumn],
+        [showRowNumberColumn, stableColumnInfo],
     );
 
     const emitStateChange = useCallback(
