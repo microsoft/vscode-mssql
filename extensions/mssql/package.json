@@ -2709,6 +2709,14 @@
                     "description": "%mssql.intelliSense.enableIntelliSense%",
                     "scope": "window"
                 },
+                "mssql.intelliSense.completionTimeoutMilliseconds": {
+                    "type": "integer",
+                    "default": 2000,
+                    "minimum": 100,
+                    "maximum": 30000,
+                    "description": "%mssql.intelliSense.completionTimeoutMilliseconds%",
+                    "scope": "window"
+                },
                 "mssql.intelliSense.enableErrorChecking": {
                     "type": "boolean",
                     "default": true,
