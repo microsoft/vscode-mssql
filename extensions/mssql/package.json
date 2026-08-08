@@ -2712,7 +2712,7 @@
                 "mssql.intelliSense.completionTimeoutMilliseconds": {
                     "type": "integer",
                     "default": 2000,
-                    "minimum": 100,
+                    "minimum": 500,
                     "maximum": 30000,
                     "description": "%mssql.intelliSense.completionTimeoutMilliseconds%",
                     "scope": "window"
