@@ -27,6 +27,32 @@ import {
 import type { FluentResultGridActiveDataColumn } from "./fluentResultGridControllerTypes";
 import type { FluentResultGridDataRow } from "./fluentResultGridDataView";
 
+function updateFluentResultGridHeaderButtonState({
+    headerNode,
+    columnId,
+    filters,
+    sort,
+}: {
+    headerNode: HTMLElement | null | undefined;
+    columnId: string;
+    filters: ColumnFilterMap;
+    sort: { columnId: string; direction: SortProperties } | undefined;
+}): void {
+    const filterButton = headerNode?.querySelector<HTMLButtonElement>(".slick-header-filterbutton");
+    const sortButton = headerNode?.querySelector<HTMLButtonElement>(".slick-header-sortbutton");
+    const filterValues = filters[columnId]?.filterValues ?? [];
+    filterButton?.classList.toggle("filtered", filterValues.length > 0);
+
+    sortButton?.classList.remove("sorted-asc", "sorted-desc");
+    if (sort?.columnId === columnId) {
+        if (sort.direction === "ASC") {
+            sortButton?.classList.add("sorted-asc");
+        } else if (sort.direction === "DESC") {
+            sortButton?.classList.add("sorted-desc");
+        }
+    }
+}
+
 export function updateFluentResultGridHeaderButtonStates({
     grid,
     filters,
@@ -42,22 +68,12 @@ export function updateFluentResultGridHeaderButtonStates({
             continue;
         }
 
-        const headerNode = grid.getHeaderColumn(grid.getColumnIndex(column.id));
-        const filterButton = headerNode?.querySelector<HTMLButtonElement>(
-            ".slick-header-filterbutton",
-        );
-        const sortButton = headerNode?.querySelector<HTMLButtonElement>(".slick-header-sortbutton");
-        const filterValues = filters[columnId]?.filterValues ?? [];
-        filterButton?.classList.toggle("filtered", filterValues.length > 0);
-
-        sortButton?.classList.remove("sorted-asc", "sorted-desc");
-        if (sort?.columnId === columnId) {
-            if (sort.direction === "ASC") {
-                sortButton?.classList.add("sorted-asc");
-            } else if (sort.direction === "DESC") {
-                sortButton?.classList.add("sorted-desc");
-            }
-        }
+        updateFluentResultGridHeaderButtonState({
+            headerNode: grid.getHeaderColumn(grid.getColumnIndex(column.id)),
+            columnId,
+            filters,
+            sort,
+        });
     }
 }
 
@@ -114,17 +130,6 @@ export function useFluentResultGridHeaderController({
         column: Column<FluentResultGridDataRow>,
     ) => Promise<void>;
 }): FluentResultGridHeaderController {
-    const updateHeaderButtonStates = useCallback(
-        (grid: SlickGrid) => {
-            updateFluentResultGridHeaderButtonStates({
-                grid,
-                filters: filterStateRef.current,
-                sort: sortStateRef.current,
-            });
-        },
-        [filterStateRef, sortStateRef],
-    );
-
     const openHeaderContextMenuForColumn = useCallback(
         (grid: SlickGrid, column: Column<FluentResultGridDataRow>, x: number, y: number) => {
             const columnId = column.id?.toString();
@@ -222,11 +227,20 @@ export function useFluentResultGridHeaderController({
             }
 
             node.tabIndex = -1;
+            const columnId = column.id?.toString();
+            if (!columnId) {
+                return;
+            }
             if (node.classList.contains("slick-header-with-filter")) {
                 node.classList.remove("slick-header-sortable", "slick-header-column-sorted");
                 node.querySelector(".slick-sort-indicator")?.remove();
                 node.querySelector(".slick-sort-indicator-numbered")?.remove();
-                updateHeaderButtonStates(grid);
+                updateFluentResultGridHeaderButtonState({
+                    headerNode: node,
+                    columnId,
+                    filters: filterStateRef.current,
+                    sort: sortStateRef.current,
+                });
                 return;
             }
 
@@ -277,9 +291,20 @@ export function useFluentResultGridHeaderController({
                 await openFilterMenuForColumn(grid, column);
             });
             node.insertBefore(filterButton, resizableHandle);
-            updateHeaderButtonStates(grid);
+            updateFluentResultGridHeaderButtonState({
+                headerNode: node,
+                columnId,
+                filters: filterStateRef.current,
+                sort: sortStateRef.current,
+            });
         },
-        [openFilterMenuForColumn, strings.commands, toggleSortForColumn, updateHeaderButtonStates],
+        [
+            filterStateRef,
+            openFilterMenuForColumn,
+            sortStateRef,
+            strings.commands,
+            toggleSortForColumn,
+        ],
     );
 
     const handleBeforeHeaderCellDestroy = useCallback((event: CustomEvent) => {
