@@ -203,7 +203,7 @@ SELECT
     ordinal = m.ordinal,
     is_output = m.is_output,
     synonym_target = sy.base_object_name
-FROM sys.objects AS o
+FROM sys.all_objects AS o
 JOIN sys.schemas AS s ON s.schema_id = o.schema_id
 OUTER APPLY (
     SELECT
@@ -216,7 +216,7 @@ OUTER APPLY (
         is_nullable = c.is_nullable,
         ordinal = c.column_id,
         is_output = CONVERT(bit, 0)
-    FROM sys.columns AS c
+    FROM sys.all_columns AS c
     WHERE c.object_id = o.object_id
     UNION ALL
     SELECT
@@ -229,12 +229,12 @@ OUTER APPLY (
         is_nullable = CONVERT(bit, 1),
         ordinal = p.parameter_id,
         is_output = p.is_output
-    FROM sys.parameters AS p
+    FROM sys.all_parameters AS p
     WHERE p.object_id = o.object_id
 ) AS m
 LEFT JOIN sys.types AS ty ON ty.user_type_id = m.user_type_id
 LEFT JOIN sys.synonyms AS sy ON sy.object_id = o.object_id
-WHERE o.is_ms_shipped = 0
+WHERE (o.is_ms_shipped = 0 OR s.name IN (N'sys', N'INFORMATION_SCHEMA'))
   AND o.type IN (N'U', N'V', N'P', N'PC', N'FN', N'FS', N'IF', N'TF', N'FT', N'SN')
 ORDER BY s.name, o.name, member_kind, ordinal;
 `;

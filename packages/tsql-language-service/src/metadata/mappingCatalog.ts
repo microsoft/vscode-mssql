@@ -29,6 +29,8 @@ export interface SqlCatalogMapping {
  */
 export class MappingCatalogProvider implements SqlCatalogProvider {
     private readonly relations: readonly MappingRelation[];
+    private readonly relationsBySuffix: ReadonlyMap<string, readonly MappingRelation[]>;
+    private readonly childrenByPrefix = new Map<string, readonly SqlCatalogChild[]>();
 
     public constructor(
         mapping: SqlCatalogMapping,
@@ -36,6 +38,18 @@ export class MappingCatalogProvider implements SqlCatalogProvider {
         public readonly world: "open" | "closed" = "open",
     ) {
         this.relations = Object.freeze(collectRelations(mapping));
+        const relationsBySuffix = new Map<string, MappingRelation[]>();
+        for (const relation of this.relations) {
+            for (let start = 0; start < relation.foldedParts.length; start++) {
+                const key = partsKey(relation.foldedParts.slice(start));
+                const matches = relationsBySuffix.get(key) ?? [];
+                matches.push(relation);
+                relationsBySuffix.set(key, matches);
+            }
+        }
+        this.relationsBySuffix = new Map(
+            [...relationsBySuffix].map(([key, matches]) => [key, Object.freeze(matches)]),
+        );
     }
 
     public columnsFor(parts: readonly string[]): readonly SqlCatalogColumn[] | undefined {
@@ -55,17 +69,21 @@ export class MappingCatalogProvider implements SqlCatalogProvider {
 
     public tableCandidates(parts: readonly string[]): readonly (readonly string[])[] {
         const folded = parts.map(normalizeIdentifier);
-        return this.relations
-            .filter((relation) => suffixMatches(relation.parts, folded))
-            .map((relation) => relation.parts);
+        return (this.relationsBySuffix.get(partsKey(folded)) ?? []).map(
+            (relation) => relation.parts,
+        );
     }
 
     public childrenOf(prefixParts: readonly string[]): readonly SqlCatalogChild[] {
         const foldedPrefix = prefixParts.map(normalizeIdentifier);
+        const key = partsKey(foldedPrefix);
+        const cached = this.childrenByPrefix.get(key);
+        if (cached) {
+            return cached;
+        }
         const children = new Map<string, SqlCatalogChild>();
         for (const relation of this.relations) {
-            const foldedParts = relation.parts.map(normalizeIdentifier);
-            const prefixStart = findPrefixStart(foldedParts, foldedPrefix);
+            const prefixStart = findPrefixStart(relation.foldedParts, foldedPrefix);
             if (prefixStart < 0) {
                 continue;
             }
@@ -80,7 +98,9 @@ export class MappingCatalogProvider implements SqlCatalogProvider {
             };
             children.set(`${child.kind}:${normalizeIdentifier(name)}`, child);
         }
-        return [...children.values()];
+        const result = Object.freeze([...children.values()]);
+        this.childrenByPrefix.set(key, result);
+        return result;
     }
 
     public tables(): readonly string[] {
@@ -89,7 +109,7 @@ export class MappingCatalogProvider implements SqlCatalogProvider {
 
     private resolve(parts: readonly string[]): MappingRelation | undefined {
         const folded = parts.map(normalizeIdentifier);
-        const matches = this.relations.filter((relation) => suffixMatches(relation.parts, folded));
+        const matches = this.relationsBySuffix.get(partsKey(folded)) ?? [];
         if (matches.length === 0) {
             return undefined;
         }
@@ -106,6 +126,7 @@ export class MappingCatalogProvider implements SqlCatalogProvider {
 
 interface MappingRelation {
     readonly parts: readonly string[];
+    readonly foldedParts: readonly string[];
     readonly columns: readonly SqlCatalogColumn[];
 }
 
@@ -114,14 +135,14 @@ function collectRelations(mapping: SqlCatalogMapping): MappingRelation[] {
     const visit = (node: SqlCatalogMapping, path: readonly string[]): void => {
         const entries = Object.entries(node);
         if (entries.length === 0 && path.length > 0) {
-            relations.push({ parts: Object.freeze([...path]), columns: Object.freeze([]) });
+            relations.push(createRelation(path, []));
             return;
         }
         const columnEntries = entries.filter(([, value]) => isLeaf(value));
         if (columnEntries.length > 0) {
-            relations.push({
-                parts: Object.freeze([...path]),
-                columns: Object.freeze(
+            relations.push(
+                createRelation(
+                    path,
                     columnEntries.map(([name, rawValue]) => {
                         const value = rawValue as SqlCatalogMappingLeaf;
                         return {
@@ -131,7 +152,7 @@ function collectRelations(mapping: SqlCatalogMapping): MappingRelation[] {
                         };
                     }),
                 ),
-            });
+            );
             return;
         }
         for (const [name, value] of entries) {
@@ -142,6 +163,17 @@ function collectRelations(mapping: SqlCatalogMapping): MappingRelation[] {
     };
     visit(mapping, []);
     return relations;
+}
+
+function createRelation(
+    parts: readonly string[],
+    columns: readonly SqlCatalogColumn[],
+): MappingRelation {
+    return {
+        parts: Object.freeze([...parts]),
+        foldedParts: Object.freeze(parts.map(normalizeIdentifier)),
+        columns: Object.freeze([...columns]),
+    };
 }
 
 function isLeaf(value: SqlCatalogMapping | SqlCatalogMappingLeaf): value is SqlCatalogMappingLeaf {
@@ -157,14 +189,8 @@ function isLeaf(value: SqlCatalogMapping | SqlCatalogMappingLeaf): value is SqlC
     );
 }
 
-function suffixMatches(parts: readonly string[], foldedSuffix: readonly string[]): boolean {
-    if (foldedSuffix.length > parts.length) {
-        return false;
-    }
-    const offset = parts.length - foldedSuffix.length;
-    return foldedSuffix.every(
-        (part, index) => normalizeIdentifier(parts[offset + index] ?? "") === part,
-    );
+function partsKey(parts: readonly string[]): string {
+    return parts.join("\u0000");
 }
 
 function findPrefixStart(parts: readonly string[], prefix: readonly string[]): number {

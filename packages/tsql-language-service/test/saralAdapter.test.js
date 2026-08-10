@@ -5,7 +5,7 @@
 
 const assert = require("node:assert/strict");
 const { describe, it } = require("node:test");
-const { SaralSqlAnalysisEngine } = require("../dist/index.js");
+const { MappingCatalogProvider, SaralSqlAnalysisEngine } = require("../dist/index.js");
 
 const users = [
     { name: "Id", type: "int", nullable: false },
@@ -130,6 +130,54 @@ VALUES (
         );
     });
 
+    it("does not cascade a recovered INSERT target into an invalid-keyword object error", () => {
+        const text = [
+            "INSERT INTO -- unfinished target",
+            "IF OBJECT_ID(N'SchemaName.TableName', N'U') IS NOT NULL",
+            "    DROP TABLE SchemaName.TableName;",
+            "GO",
+            "CREATE TABLE SchemaName.TableName (Id int);",
+        ].join("\n");
+        const snapshot = new SaralSqlAnalysisEngine().createSnapshot({
+            text,
+            catalog: createCatalog(),
+        });
+
+        assert.equal(
+            snapshot.syntaxDiagnostics.some(
+                (diagnostic) => diagnostic.message === "Incorrect syntax near 'IF'.",
+            ),
+            true,
+        );
+        assert.equal(
+            snapshot.semanticDiagnostics.some(
+                (diagnostic) =>
+                    diagnostic.code === "MSSQL208" && diagnostic.message.includes("'IF'"),
+            ),
+            false,
+        );
+    });
+
+    it("does not report valid unmodeled external DDL as SQL syntax errors", () => {
+        const text = [
+            "CREATE DATABASE SCOPED CREDENTIAL [sa] WITH IDENTITY = N'sa', SECRET = N'test';",
+            "CREATE EXTERNAL DATA SOURCE [MyDs] WITH (LOCATION = N'sqlserver://localhost');",
+            "CREATE EXTERNAL TABLE dbo.ExternalRows ([Id] int) WITH (LOCATION = N'/rows', DATA_SOURCE = [MyDs]);",
+            "N",
+        ].join("\n");
+        const snapshot = new SaralSqlAnalysisEngine().createSnapshot({ text });
+
+        assert.deepEqual(snapshot.syntaxDiagnostics, [
+            {
+                kind: "syntax",
+                code: "syntax",
+                message: "Incorrect syntax near 'N'.",
+                span: { start: text.length - 1, end: text.length },
+                severity: "error",
+            },
+        ]);
+    });
+
     it("binds schema-qualified document DDL in statement order across GO batches", () => {
         const text = [
             "CREATE TABLE dbo.gbf ([ggg] int NULL, [ColumnName] nvarchar(20) NOT NULL);",
@@ -153,6 +201,111 @@ VALUES (
         );
         const reference = snapshot.symbolAt(text.lastIndexOf("dbo.gbf") + 5);
         assert.equal(text.slice(reference.definition.start, reference.definition.end), "dbo.gbf");
+    });
+
+    it("binds conditional CREATE TABLE statements used by deployment scripts", () => {
+        const text = [
+            "IF OBJECT_ID(N'dbo.LongTextTable', N'U') IS NULL",
+            "BEGIN",
+            "    CREATE TABLE dbo.LongTextTable (Id int, Payload varchar(max));",
+            "END;",
+            "GO",
+            "SELECT Payload FROM dbo.LongTextTable;",
+        ].join("\n");
+        const snapshot = new SaralSqlAnalysisEngine().createSnapshot({
+            text,
+            catalog: createCatalog(),
+        });
+
+        assert.deepEqual(
+            snapshot.semanticDiagnostics.filter((diagnostic) => diagnostic.code === "MSSQL208"),
+            [],
+        );
+        assert.equal(
+            snapshot.typeAt(text.lastIndexOf("Payload")).display.toLowerCase(),
+            "varchar(max)",
+        );
+    });
+
+    it("applies USE database context to later two- and three-part object references", () => {
+        const text = [
+            "USE TestData_1M;",
+            "GO",
+            "IF OBJECT_ID(N'dbo.EmployeeData', N'U') IS NULL",
+            "BEGIN",
+            "    CREATE TABLE dbo.EmployeeData (EmployeeId int);",
+            "END;",
+            "GO",
+            "SELECT * FROM dbo.EmployeeData;",
+            "SELECT * FROM [TestData_1M].[dbo].[EmployeeData];",
+        ].join("\n");
+        const snapshot = new SaralSqlAnalysisEngine().createSnapshot({
+            text,
+            catalog: createCatalog(),
+        });
+
+        assert.deepEqual(
+            snapshot.semanticDiagnostics.filter((diagnostic) => diagnostic.code === "MSSQL208"),
+            [],
+        );
+    });
+
+    it("validates explicit CTE columns and implicit aliases without leaking sibling sources", () => {
+        const text = [
+            "CREATE TABLE dbo.EmployeeData (ID int, Department nvarchar(50), Salary decimal(12,2));",
+            "WITH E1(N) AS (SELECT 1 UNION ALL SELECT 1),",
+            "E2(N) AS (SELECT 1 FROM E1 a CROSS JOIN E1 b),",
+            "RowsToInsert(RowNumber) AS (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) FROM E2)",
+            "INSERT INTO dbo.EmployeeData (ID, Department, Salary)",
+            "SELECT RowNumber, N'Engineering', 50000 FROM RowsToInsert;",
+        ].join("\n");
+        const snapshot = new SaralSqlAnalysisEngine().createSnapshot({
+            text,
+            catalog: createCatalog(),
+        });
+
+        assert.deepEqual(snapshot.syntaxDiagnostics, []);
+        assert.deepEqual(snapshot.semanticDiagnostics, []);
+    });
+
+    it("resolves unqualified columns in the nearest nested query and accepts FOR XML directives", () => {
+        const text = [
+            "CREATE TABLE dbo.EmployeeData (ID int, Department nvarchar(50), Salary decimal(12,2));",
+            "SELECT Department, AVG(Salary),",
+            "  (SELECT TOP 3 Salary FROM dbo.EmployeeData AS e2 ORDER BY Salary DESC FOR XML PATH('Employee'), TYPE)",
+            "FROM dbo.EmployeeData AS e1",
+            "GROUP BY Department",
+            "FOR XML RAW('Department'), ELEMENTS;",
+        ].join("\n");
+        const snapshot = new SaralSqlAnalysisEngine().createSnapshot({
+            text,
+            catalog: createCatalog(),
+        });
+
+        assert.deepEqual(snapshot.syntaxDiagnostics, []);
+        assert.deepEqual(snapshot.semanticDiagnostics, []);
+    });
+
+    it("does not leak tables declared inside stored module bodies into the script catalog", () => {
+        const text = [
+            "CREATE PROCEDURE dbo.BuildHidden AS",
+            "BEGIN",
+            "    CREATE TABLE dbo.HiddenAtRuntime (Id int);",
+            "END;",
+            "GO",
+            "SELECT * FROM dbo.HiddenAtRuntime;",
+        ].join("\n");
+        const snapshot = new SaralSqlAnalysisEngine().createSnapshot({
+            text,
+            catalog: createCatalog(),
+        });
+
+        assert.deepEqual(
+            snapshot.semanticDiagnostics
+                .filter((diagnostic) => diagnostic.code === "MSSQL208")
+                .map((diagnostic) => diagnostic.message),
+            ["Invalid object name 'dbo.HiddenAtRuntime'."],
+        );
     });
 
     it("does not make document DDL visible before CREATE or after DROP", () => {
@@ -233,6 +386,15 @@ VALUES (
                 start: completionText.indexOf("Dis"),
                 end: completionOffset,
             },
+            context: {
+                kind: "qualifiedMember",
+                qualifiers: ["u"],
+                prefix: "Dis",
+                replaceSpan: {
+                    start: completionText.indexOf("Dis"),
+                    end: completionOffset,
+                },
+            },
         });
         assert.deepEqual(
             snapshot.semanticDiagnostics.filter((diagnostic) => diagnostic.code === "MSSQL208"),
@@ -247,6 +409,127 @@ VALUES (
             builtin.semanticDiagnostics.some((item) => item.code === "MSSQL208"),
             false,
         );
+    });
+
+    it("returns parser-owned relation context after a JSON and temporary-table script", () => {
+        const text = `CREATE TABLE #ProductsWithJson (
+    ProductId INT,
+    ProductName NVARCHAR(100),
+    JsonData NVARCHAR(MAX)
+);
+INSERT INTO #ProductsWithJson (ProductId, ProductName, JsonData)
+VALUES (1, 'Laptop', '{"brand":"Dell"}');
+SELECT ProductId, JSON_VALUE(JsonData, '$.brand') AS Brand
+FROM #ProductsWithJson;
+DROP TABLE #ProductsWithJson;
+
+SELECT * FROM dbo.`;
+        const snapshot = new SaralSqlAnalysisEngine().createSnapshot({ text });
+        const result = snapshot.completeAt(text.length);
+
+        assert.deepEqual(result.context, {
+            kind: "object",
+            qualifiers: ["dbo"],
+            prefix: "",
+            replaceSpan: { start: text.length, end: text.length },
+        });
+        assert.equal(snapshot.text, text);
+    });
+
+    it("caps relation completion for a large catalog without losing prefix matches", () => {
+        const tables = {};
+        for (let index = 0; index < 1_000; index++) {
+            tables[`Table${String(index).padStart(4, "0")}`] = { Id: "int" };
+        }
+        const text = "SELECT * FROM dbo.Ta";
+        const snapshot = new SaralSqlAnalysisEngine().createSnapshot({
+            text,
+            catalog: new MappingCatalogProvider({ dbo: tables }, 1, "closed"),
+        });
+        const completion = snapshot.completeAt(text.length);
+
+        assert.equal(completion.items.length, 200);
+        assert.equal(
+            completion.items.some((item) => item.label === "Table0000"),
+            true,
+        );
+    });
+
+    it("classifies partial relation, execute, and qualified-member completion from one snapshot", () => {
+        const cases = [
+            {
+                text: "SELECT * FROM ",
+                context: {
+                    kind: "object",
+                    qualifiers: [],
+                    prefix: "",
+                    replaceSpan: { start: 14, end: 14 },
+                },
+            },
+            {
+                text: "SELECT * FROM d",
+                context: {
+                    kind: "object",
+                    qualifiers: [],
+                    prefix: "d",
+                    replaceSpan: { start: 14, end: 15 },
+                },
+            },
+            {
+                text: "SELECT * FROM dbo.[Ord",
+                context: {
+                    kind: "object",
+                    qualifiers: ["dbo"],
+                    prefix: "Ord",
+                    replaceSpan: { start: 18, end: 22 },
+                },
+            },
+            {
+                text: "SELECT * FROM Linked.Warehouse.sales.Ord",
+                context: {
+                    kind: "object",
+                    qualifiers: ["Linked", "Warehouse", "sales"],
+                    prefix: "Ord",
+                    replaceSpan: { start: 37, end: 40 },
+                },
+            },
+            {
+                text: "EXEC dbo.",
+                context: {
+                    kind: "execute",
+                    qualifiers: ["dbo"],
+                    prefix: "",
+                    replaceSpan: { start: 9, end: 9 },
+                },
+            },
+            {
+                text: "SELECT u. FROM dbo.Users AS u",
+                offset: 9,
+                context: {
+                    kind: "qualifiedMember",
+                    qualifiers: ["u"],
+                    prefix: "",
+                    replaceSpan: { start: 9, end: 9 },
+                },
+            },
+            {
+                text: 'SELECT "Remote"."Warehouse"."dbo"."Users".',
+                context: {
+                    kind: "qualifiedMember",
+                    qualifiers: ["Remote", "Warehouse", "dbo", "Users"],
+                    prefix: "",
+                    replaceSpan: { start: 42, end: 42 },
+                },
+            },
+        ];
+
+        for (const testCase of cases) {
+            const snapshot = new SaralSqlAnalysisEngine().createSnapshot({ text: testCase.text });
+            assert.deepEqual(
+                snapshot.completeAt(testCase.offset ?? testCase.text.length).context,
+                testCase.context,
+            );
+        }
     });
 
     it("binds XML method receivers and generated nodes columns without catalog false positives", () => {

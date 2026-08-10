@@ -18,7 +18,7 @@ import type {
     DropNode,
     IdentifierNode,
 } from "../parser/saral/ast/types.js";
-import type { AnalysisResult } from "../parser/saral/index.js";
+import { walkAST, type AnalysisResult, type ASTNode } from "../parser/saral/index.js";
 import {
     DocumentSchemaEvolution,
     normalizeSemanticIdentifier,
@@ -107,26 +107,96 @@ export function createDocumentSchemaEvolution(
     uri?: string,
 ): DocumentSchemaEvolution {
     const changes: DocumentSchemaChange[] = [];
-    let batch = 0;
-    for (const statement of analysis.ast.body) {
-        switch (statement.type) {
-            case "BatchSeparatorStatement":
-                batch++;
-                break;
-            case "CreateStatement":
-                changes.push(createChange(statement, batch));
-                break;
-            case "AlterTableStatement": {
-                const change = alterTableChange(statement, batch);
-                if (change) changes.push(change);
-                break;
+    const batchSeparators = analysis.ast.body
+        .filter((statement) => statement.type === "BatchSeparatorStatement")
+        .map((statement) => statement.start);
+    const databaseChanges = analysis.ast.body
+        .filter((statement) => statement.type === "UseStatement")
+        .map((statement) => ({
+            offset: statement.start,
+            parts: expressionIdentifierParts(statement.database),
+        }))
+        .filter(
+            (change): change is { readonly offset: number; readonly parts: readonly string[] } =>
+                change.parts.length > 0,
+        );
+    let moduleDepth = 0;
+    walkAST(analysis.ast, {
+        enter(node) {
+            const batch = countBefore(batchSeparators, node.start);
+            const database = databaseChanges.findLast(
+                (change) => change.offset < node.start,
+            )?.parts;
+            const insideStoredModule = moduleDepth > 0;
+            if (isStoredModule(node)) {
+                moduleDepth++;
             }
-            case "DropStatement":
-                changes.push(...dropChanges(statement, batch));
-                break;
-        }
-    }
+            if (insideStoredModule) {
+                return;
+            }
+            switch (node.type) {
+                case "CreateStatement":
+                    changes.push(withDatabase(createChange(node as CreateNode, batch), database));
+                    break;
+                case "AlterTableStatement": {
+                    const change = alterTableChange(node as AlterTableNode, batch);
+                    if (change) changes.push(withDatabase(change, database));
+                    break;
+                }
+                case "DropStatement":
+                    changes.push(
+                        ...dropChanges(node as DropNode, batch).map((change) =>
+                            withDatabase(change, database),
+                        ),
+                    );
+                    break;
+            }
+        },
+        exit(node) {
+            if (isStoredModule(node)) {
+                moduleDepth--;
+            }
+        },
+    });
     return new DocumentSchemaEvolution(changes, { uri });
+}
+
+function isStoredModule(node: ASTNode): node is CreateNode {
+    if (node.type !== "CreateStatement") return false;
+    const create = node as CreateNode;
+    return create.objectType === "PROCEDURE" || create.objectType === "FUNCTION";
+}
+
+function countBefore(sortedOffsets: readonly number[], offset: number): number {
+    let low = 0;
+    let high = sortedOffsets.length;
+    while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+        if ((sortedOffsets[middle] ?? Number.POSITIVE_INFINITY) < offset) low = middle + 1;
+        else high = middle;
+    }
+    return low;
+}
+
+function expressionIdentifierParts(expression: ASTNode | null): readonly string[] {
+    if (!expression || !("parts" in expression) || !Array.isArray(expression.parts)) {
+        return [];
+    }
+    return expression.parts.map(String).map(unquoteIdentifier);
+}
+
+function withDatabase(
+    change: DocumentSchemaChange,
+    database: readonly string[] | undefined,
+): DocumentSchemaChange {
+    if (!database?.length || change.nameParts.length >= 3 || change.nameParts[0]?.startsWith("#")) {
+        return change;
+    }
+    const nameParts =
+        change.nameParts.length === 1
+            ? [...database, "dbo", ...change.nameParts]
+            : [...database, ...change.nameParts];
+    return { ...change, nameParts };
 }
 
 function createChange(statement: CreateNode, batch: number): DocumentSchemaChange {

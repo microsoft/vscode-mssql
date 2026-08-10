@@ -319,6 +319,24 @@ describe("BEGIN…END block scoping", () => {
 // ─── 4. CTEs ─────────────────────────────────────────────────────────────────
 
 describe("CTEs", () => {
+    test("explicit CTE column aliases replace inferred projection names", () => {
+        const result = build(
+            "WITH RowsToInsert(RowNumber) AS (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT NULL))) SELECT RowNumber FROM RowsToInsert",
+        );
+        const withScope = result.root.getChildren().find((scope) => scope.name === "with");
+
+        expect(withScope?.resolveLocal("RowsToInsert")?.columns).toEqual(["RowNumber"]);
+    });
+
+    test("CTE wildcard projections inherit columns from an earlier CTE", () => {
+        const result = build(
+            "WITH Base AS (SELECT 1 AS Id, 2 AS CategoryId), Latest AS (SELECT * FROM Base) SELECT l.Id FROM Latest AS l",
+        );
+        const withScope = result.root.getChildren().find((scope) => scope.name === "with");
+
+        expect(withScope?.resolveLocal("Latest")?.columns).toEqual(["Id", "CategoryId"]);
+    });
+
     test("CTE name is visible inside WITH scope", () => {
         const scope = rootScope(`
             WITH Users AS (SELECT 1 Id)

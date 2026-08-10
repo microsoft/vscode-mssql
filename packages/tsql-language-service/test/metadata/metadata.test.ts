@@ -31,9 +31,11 @@ describe("metadata layer", () => {
     });
 
     test("loads normalized objects through an executor strategy", async () => {
+        let metadataQuery = "";
         const executor: SqlQueryExecutor = {
-            execute: async (_sql, mapRow) =>
-                rows
+            execute: async (sql, mapRow) => {
+                metadataQuery = sql;
+                return rows
                     .map((row) =>
                         mapRow(
                             Object.entries(row).map(
@@ -44,7 +46,8 @@ describe("metadata layer", () => {
                             ),
                         ),
                     )
-                    .filter((value) => value !== undefined),
+                    .filter((value) => value !== undefined);
+            },
         };
         const loader = new DatabaseMetadataLoader(executor);
         const result = await loader.load();
@@ -59,6 +62,12 @@ describe("metadata layer", () => {
         });
         expect(catalog.resolve(["TESTDB", "DBO", "CUSTOMERS"])).toBeDefined();
         expect(catalog.search(["cust"])).toHaveLength(1);
+        expect(metadataQuery).toContain(
+            "o.is_ms_shipped = 0 OR s.name IN (N'sys', N'INFORMATION_SCHEMA')",
+        );
+        expect(metadataQuery).toContain("FROM sys.all_objects AS o");
+        expect(metadataQuery).toContain("FROM sys.all_columns AS c");
+        expect(metadataQuery).toContain("FROM sys.all_parameters AS p");
     });
 
     test("deduplicates concurrent repository refreshes", async () => {

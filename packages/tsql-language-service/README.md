@@ -62,6 +62,18 @@ MSSQL_TEST_CONNECTION_STRING=Data Source=localhost,1433;User ID=sa;Password=...;
 No password or connection string is committed. Applications may instead implement
 `SqlQueryExecutor` or provide an already-populated `SqlCatalogProvider`.
 
+The external `sql-test-files/mssql` workspace is also an opt-in regression corpus. The default
+command uses an open catalog; add `--live --database <test-database>` to validate catalog-backed
+diagnostics without logging the connection string:
+
+```sh
+npm run audit:corpus
+npm run audit:corpus -- --live --database Issue21930Repro_6d31c8a4
+```
+
+The audit recursively scans every `.sql` file and fails on diagnostics outside the reviewed,
+intentionally invalid stress cases recorded by the script.
+
 ## SaralSQL attribution
 
 The parser under `src/parser/saral` is derived from `@saralsql/tsql-parser` 0.4.7 at commit

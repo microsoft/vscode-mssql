@@ -846,7 +846,11 @@ export class ScopeBuilder {
             // (b) earlier CTEs in the chain are already declared and visible here.
             this.visitQuery(cte.query);
 
-            const columns = this.getQueryOutputColumns(cte.query);
+            // An explicit CTE column list renames the projection and is the authoritative shape
+            // visible to the following statement (for example RowsToInsert(RowNumber)).
+            const columns = cte.columns?.length
+                ? [...cte.columns]
+                : this.getQueryOutputColumns(cte.query);
             const localColumns = columns?.map((name) =>
                 this.makeSymbolColumn(name, undefined, cte),
             );
@@ -1460,11 +1464,44 @@ export class ScopeBuilder {
             return this.getQueryOutputColumns(query.left);
         }
 
-        const columns = query.columns
-            .map((col) => col.alias || col.outputName || col.sourceName)
-            .filter((name): name is string => Boolean(name));
+        const columns = query.columns.flatMap((column) => {
+            if (!column.wildcard) {
+                const name = column.alias || column.outputName || column.sourceName;
+                return name ? [name] : [];
+            }
+            const prefix =
+                column.expression.type === "WildcardExpression"
+                    ? column.expression.tablePrefix?.name
+                    : undefined;
+            return this.getQueryWildcardColumns(query, prefix);
+        });
 
-        return columns.length ? columns : undefined;
+        return columns.length ? this.uniqueColumnNames(columns) : undefined;
+    }
+
+    private getQueryWildcardColumns(query: SelectNode, prefix?: string): string[] {
+        const result: string[] = [];
+        const addSource = (
+            source: Expression | TableReference | null | undefined,
+            alias?: string,
+            explicitColumns?: readonly string[],
+        ): void => {
+            const sourceName = source?.type === "Identifier" ? source.parts.at(-1) : undefined;
+            if (
+                prefix &&
+                ![alias, sourceName].some((name) => name && this.isSameColumnName(name, prefix))
+            ) {
+                return;
+            }
+            result.push(...(explicitColumns ?? this.getExpressionOutputColumns(source) ?? []));
+        };
+        for (const reference of query.from ?? []) {
+            addSource(reference.table, reference.alias, reference.aliasColumns);
+            for (const join of reference.joins) {
+                addSource(join.table, join.alias, join.aliasColumns);
+            }
+        }
+        return this.uniqueColumnNames(result);
     }
 
     private getExpressionIdentifierNames(expr: Expression | null | undefined): string[] {

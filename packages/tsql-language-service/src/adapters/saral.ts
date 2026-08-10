@@ -41,6 +41,7 @@ import type {
     SqlAnalysisUpdate,
     SqlClause,
     SqlCompletion,
+    SqlCompletionContext,
     SqlCompletionKind,
     SqlCompletionResult,
     SqlDiagnostic,
@@ -239,7 +240,10 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
         );
         this.syntaxDiagnostics = Object.freeze(
             deduplicateDiagnostics([
-                ...diagnostics.filter((diagnostic) => diagnostic.kind === "syntax"),
+                ...diagnostics.filter(
+                    (diagnostic) =>
+                        diagnostic.kind === "syntax" && !isUnsupportedGrammarDiagnostic(diagnostic),
+                ),
                 ...structuralSyntaxDiagnostics(this.text, this.tokens),
             ]).filter((diagnostic) => !isNamedWindowParserArtifact(this.text, diagnostic)),
         );
@@ -281,6 +285,7 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
                 this._analysis,
                 this.text,
                 this._documentSchema,
+                this.syntaxDiagnostics,
             ),
             ...catalogColumnDiagnostics(
                 this._baseCatalog,
@@ -289,6 +294,7 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
                 this.statements,
                 this.text,
                 this._documentSchema,
+                this._analysis,
             ),
         ]);
     }
@@ -404,6 +410,7 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
     public completeAt(offset: number): SqlCompletionResult {
         const boundedOffset = clamp(offset, 0, this.text.length);
         const catalog = this.catalogAt(boundedOffset);
+        const context = completionContextAt(this.text, this.tokens, boundedOffset);
         try {
             const nativeItems = getCompletionsAtFromAnalysis(
                 this.text,
@@ -477,16 +484,15 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
             }
             const relationPrefix = relationCompletionPrefix(this.text, boundedOffset);
             if (relationPrefix && catalog.childrenOf) {
+                const seen = new Set(items.map((item) => `${item.kind}:${foldName(item.label)}`));
+                let addedCatalogItems = 0;
                 for (const child of catalog.childrenOf(relationPrefix.prefixParts)) {
+                    const key = `${child.kind}:${foldName(child.name)}`;
                     if (
                         !child.name
                             .toLocaleLowerCase()
                             .startsWith(relationPrefix.filter.toLocaleLowerCase()) ||
-                        items.some(
-                            (item) =>
-                                item.kind === child.kind &&
-                                foldName(item.label) === foldName(child.name),
-                        )
+                        seen.has(key)
                     ) {
                         continue;
                     }
@@ -501,6 +507,10 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
                             documentation: completionDocumentation(child.name, child.kind),
                         }),
                     );
+                    seen.add(key);
+                    if (++addedCatalogItems >= 200) {
+                        break;
+                    }
                 }
                 items.sort((left, right) => left.label.localeCompare(right.label));
             }
@@ -553,9 +563,10 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
                         : first
                           ? freezeSpan(first.start, first.end, this.text.length)
                           : undefined,
+                context,
             });
         } catch {
-            return Object.freeze({ items: Object.freeze([]) });
+            return Object.freeze({ items: Object.freeze([]), context });
         }
     }
 
@@ -960,6 +971,57 @@ function identifierPrefixAt(
         : { text: "", start: offset };
 }
 
+function completionContextAt(
+    text: string,
+    tokens: readonly SqlToken[],
+    offset: number,
+): SqlCompletionContext {
+    const relation = relationCompletionPrefix(text, offset);
+    if (relation) {
+        return Object.freeze({
+            kind:
+                relation.command === "EXEC" || relation.command === "EXECUTE"
+                    ? "execute"
+                    : "object",
+            qualifiers: Object.freeze([...relation.prefixParts]),
+            prefix: relation.filter,
+            replaceSpan: freezeSpan(relation.filterStart, offset, text.length),
+        });
+    }
+
+    const qualified = qualifiedCompletionPrefix(text, offset);
+    if (qualified) {
+        return Object.freeze({
+            kind: "qualifiedMember",
+            qualifiers: qualified.qualifiers,
+            prefix: qualified.filter,
+            replaceSpan: freezeSpan(qualified.filterStart, offset, text.length),
+        });
+    }
+
+    const prefix = identifierPrefixAt(text, offset);
+    const previous = tokens
+        .filter((token) => token.channel === "code" && token.span.end <= prefix.start)
+        .at(-1);
+    const typePosition =
+        previous?.role === "identifier" &&
+        /\b(?:CREATE|ALTER)\s+TABLE\b/iu.test(
+            text.slice(Math.max(0, prefix.start - 512), prefix.start),
+        );
+    return Object.freeze({
+        kind: typePosition
+            ? "type"
+            : isColumnCompletionPosition(text, offset)
+              ? "column"
+              : prefix.text
+                ? "expression"
+                : "unknown",
+        qualifiers: Object.freeze([]),
+        prefix: prefix.text,
+        replaceSpan: freezeSpan(prefix.start, offset, text.length),
+    });
+}
+
 function relationCompletionPrefix(
     text: string,
     offset: number,
@@ -968,28 +1030,44 @@ function relationCompletionPrefix(
           readonly prefixParts: readonly string[];
           readonly filter: string;
           readonly filterStart: number;
+          readonly command: string;
       }
     | undefined {
     const before = text.slice(0, offset);
     const match =
-        /\b(?:FROM|JOIN|APPLY|UPDATE|INTO|USING|MERGE|EXEC(?:UTE)?)\s+((?:\[[^\]]*\]|"(?:[^"]|"")*"|[#@A-Za-z_][\w$#@]*)(?:\s*\.\s*(?:\[[^\]]*\]|"(?:[^"]|"")*"|[#@A-Za-z_][\w$#@]*)){0,3}|(?:\[[^\]]*\]|"(?:[^"]|"")*"|[#@A-Za-z_][\w$#@]*)?\s*\.\s*)$/iu.exec(
+        /\b(FROM|JOIN|APPLY|UPDATE|INTO|USING|MERGE|EXEC(?:UTE)?)\s+((?:\[[^\]]*\]|"(?:[^"]|"")*"|[#@A-Za-z_][\w$#@]*)(?:\s*\.\s*(?:\[[^\]]*\]|"(?:[^"]|"")*"|[#@A-Za-z_][\w$#@]*)){0,3}|(?:\[[^\]]*\]|"(?:[^"]|"")*"|[#@A-Za-z_][\w$#@]*)?\s*\.\s*)$/iu.exec(
+            before,
+        ) ??
+        /\b(FROM|JOIN|APPLY|UPDATE|INTO|USING|MERGE|EXEC(?:UTE)?)\s+((?:(?:\[[^\]]*(?:\]\][^\]]*)*\]|"(?:[^"]|"")+"|[#@A-Za-z_][\w$#@]*)\s*\.\s*){0,3}(?:\[[^\]\r\n]*|"(?:[^"\r\n]|"")*|[#@A-Za-z_][\w$#@]*)?)$/iu.exec(
             before,
         );
     if (!match) {
         return undefined;
     }
-    const reference = match[1].trim();
+    const reference = match[2].trim();
     const endsWithDot = /\.\s*$/u.test(reference);
     const parts = identifierParts(reference).map(unquoteIdentifier);
-    const filter = endsWithDot ? "" : (parts.pop() ?? "");
+    const filter = endsWithDot ? "" : unquoteCompletionIdentifier(parts.pop() ?? "");
     const rawFilter = endsWithDot
         ? ""
-        : (/(?:\[[^\]]*\]|"(?:[^"]|"")*"|[#@A-Za-z_][\w$#@]*)\s*$/u.exec(reference)?.[0] ?? filter);
+        : (/(?:\[[^\]]*\]?|"(?:[^"]|"")*"?|[#@A-Za-z_][\w$#@]*)\s*$/u.exec(reference)?.[0] ??
+          filter);
     return {
         prefixParts: Object.freeze(parts),
         filter,
         filterStart: offset - rawFilter.trimEnd().length,
+        command: match[1].toLocaleUpperCase(),
     };
+}
+
+function unquoteCompletionIdentifier(identifier: string): string {
+    if (identifier.startsWith("[")) {
+        return identifier.slice(1, identifier.endsWith("]") ? -1 : undefined).replace(/\]\]/g, "]");
+    }
+    if (identifier.startsWith('"')) {
+        return identifier.slice(1, identifier.endsWith('"') ? -1 : undefined).replace(/""/g, '"');
+    }
+    return identifier;
 }
 
 function isFunctionCompletionPosition(text: string, prefixStart: number): boolean {
@@ -1081,6 +1159,7 @@ function catalogObjectDiagnostics(
     analysis: AnalysisResult,
     text: string,
     documentSchema: DocumentSchemaEvolution,
+    syntaxDiagnostics: readonly SqlDiagnostic[],
 ): SqlDiagnostic[] {
     if (!catalog || catalog.world !== "closed") {
         return [];
@@ -1094,6 +1173,7 @@ function catalogObjectDiagnostics(
             /^[#@]/.test(reference.name) ||
             reference.kind === "function" ||
             /^(?:OPENJSON|OPENXML|STRING_SPLIT|GENERATE_SERIES)$/iu.test(reference.name) ||
+            syntaxDiagnostics.some((diagnostic) => spansOverlap(diagnostic.span, reference.span)) ||
             isDocumentLocalRelation(reference, analysis)
         ) {
             continue;
@@ -1123,6 +1203,65 @@ function catalogObjectDiagnostics(
     return diagnostics;
 }
 
+function semanticOwnerScopeAt(scope: SaralScope): SaralScope | undefined {
+    for (let current: SaralScope | null = scope; current; current = current.parent) {
+        if (["select", "insert", "update", "delete", "merge"].includes(current.name ?? "")) {
+            return current;
+        }
+    }
+    return undefined;
+}
+
+function isScopeAncestor(ancestor: SaralScope, scope: SaralScope): boolean {
+    for (let current: SaralScope | null = scope; current; current = current.parent) {
+        if (current === ancestor) return true;
+    }
+    return false;
+}
+
+function relationResolutionGroups<T extends { readonly ownerScope: SaralScope | undefined }>(
+    relations: readonly T[],
+    ownerScope: SaralScope | undefined,
+): readonly (readonly T[])[] {
+    if (!ownerScope) return [relations];
+    const groups: T[][] = [];
+    for (let current: SaralScope | null = ownerScope; current; current = current.parent) {
+        if (!["select", "insert", "update", "delete", "merge"].includes(current.name ?? "")) {
+            continue;
+        }
+        const group = relations.filter((relation) => relation.ownerScope === current);
+        if (group.length > 0) groups.push(group);
+    }
+    return groups;
+}
+
+function localRelationColumns(
+    analysis: AnalysisResult,
+    reference: SqlExternalReference,
+): readonly SqlCatalogColumn[] | undefined {
+    const parts = reference.nameParts ?? identifierParts(reference.name);
+    const name = unquoteIdentifier(parts.at(-1) ?? reference.name);
+    const symbol = analysis.scope.root.findInnermost(reference.span.start).resolve(name);
+    if (
+        !symbol ||
+        ![
+            saralSymbolKind.CTE,
+            saralSymbolKind.TempTable,
+            saralSymbolKind.Table,
+            saralSymbolKind.Alias,
+        ].includes(symbol.kind)
+    ) {
+        return undefined;
+    }
+    if (symbol.localColumns?.length) {
+        return symbol.localColumns.map((column) => ({
+            name: column.rawName,
+            type: column.dataType,
+        }));
+    }
+    return symbol.columns?.map((column) => ({ name: column }));
+}
+
 function normalizeParserDiagnostic(
     diagnostic: SqlDiagnostic,
     tokens: readonly SqlToken[],
@@ -1141,23 +1280,39 @@ function normalizeParserDiagnostic(
     if (diagnostic.kind !== "syntax" || !/^Unexpected token:/i.test(diagnostic.message)) {
         return diagnostic;
     }
-    const previous = tokens
-        .filter(
-            (token) =>
-                token.channel === "code" &&
-                token.role === "keyword" &&
-                token.span.end <= diagnostic.span.start,
-        )
+    const offending = tokens.find(
+        (token) =>
+            token.channel === "code" &&
+            token.span.start <= diagnostic.span.start &&
+            diagnostic.span.start < token.span.end,
+    );
+    const immediatelyPrevious = tokens
+        .filter((token) => token.channel === "code" && token.span.end <= diagnostic.span.start)
         .at(-1);
-    if (!previous) {
-        return diagnostic;
+    if (offending?.role !== "keyword" && immediatelyPrevious?.role === "keyword") {
+        return Object.freeze({
+            ...diagnostic,
+            code: "syntax",
+            message: `Incorrect syntax near '${immediatelyPrevious.text}'.`,
+            span: immediatelyPrevious.span,
+        });
     }
-    return Object.freeze({
-        ...diagnostic,
-        code: "syntax",
-        message: `Incorrect syntax near '${previous.text.toLocaleLowerCase()}'.`,
-        span: freezeSpan(previous.span.start, previous.span.end, text.length),
-    });
+    if (offending) {
+        return Object.freeze({
+            ...diagnostic,
+            code: "syntax",
+            message: `Incorrect syntax near '${offending.text}'.`,
+            span: offending.span,
+        });
+    }
+    return diagnostic;
+}
+
+function isUnsupportedGrammarDiagnostic(diagnostic: SqlDiagnostic): boolean {
+    return (
+        diagnostic.code === "PARSE_CREATE_TYPE" &&
+        /^Unsupported CREATE (?:object type|PARTITION subtype):/iu.test(diagnostic.message)
+    );
 }
 
 function structuralSyntaxDiagnostics(text: string, tokens: readonly SqlToken[]): SqlDiagnostic[] {
@@ -1216,6 +1371,7 @@ function catalogColumnDiagnostics(
     statements: readonly SqlStatement[],
     text: string,
     documentSchema: DocumentSchemaEvolution,
+    analysis: AnalysisResult,
 ): SqlDiagnostic[] {
     if (!catalog || catalog.world !== "closed") {
         return [];
@@ -1231,11 +1387,15 @@ function catalogColumnDiagnostics(
             span: reference.span,
             statementIndex: statementIndexAt(statements, reference.span.start),
             alias: sourceAliasAfter(text, reference.span),
+            ownerScope: semanticOwnerScopeAt(
+                analysis.scope.root.findInnermost(reference.span.start),
+            ),
             columns:
                 documentSchema.columnsForAt(
                     reference.nameParts ?? identifierParts(reference.name).map(unquoteIdentifier),
                     reference.span.start,
                 ) ??
+                localRelationColumns(analysis, reference) ??
                 catalogColumnsFor(
                     catalog,
                     reference.nameParts ?? identifierParts(reference.name).map(unquoteIdentifier),
@@ -1250,7 +1410,11 @@ function catalogColumnDiagnostics(
     }
     const code = tokens.filter((token) => token.channel === "code");
     const namedWindows = namedWindowNames(text);
-    const localQualifiers = documentLocalQualifiers(text);
+    const localQualifiers = new Set(documentLocalQualifiers(text));
+    for (const reference of externalReferences) {
+        const alias = sourceAliasAfter(text, reference.span);
+        if (alias) localQualifiers.add(foldName(alias));
+    }
     const relationsByStatement = new Map<number, typeof relations>();
     for (const relation of relations) {
         const current = relationsByStatement.get(relation.statementIndex) ?? [];
@@ -1285,6 +1449,15 @@ function catalogColumnDiagnostics(
         }
         const statement = statementAt(statements, token.span.start);
         let visibleRelations = statement ? (relationsByStatement.get(statement.index) ?? []) : [];
+        const ownerScope = semanticOwnerScopeAt(
+            analysis.scope.root.findInnermost(token.span.start),
+        );
+        visibleRelations = ownerScope
+            ? visibleRelations.filter(
+                  (relation) =>
+                      relation.ownerScope && isScopeAncestor(relation.ownerScope, ownerScope),
+              )
+            : visibleRelations.filter((relation) => !relation.ownerScope);
         if (statement) {
             const segment = segmentAt(
                 segmentsByStatement.get(statement.index) ?? [statement.span],
@@ -1364,15 +1537,24 @@ function catalogColumnDiagnostics(
                 (relation) => relation.alias && foldName(relation.alias) === foldName(token.text),
             ) ||
             isNonColumnIdentifier(token, previous, next) ||
+            (statement && isSerializationDirective(text, statement.span, token.span)) ||
             (statement && isDmlTargetColumn(text, statement.span, token.span)) ||
             (statement && isGeneratedRowsetAliasColumn(text, statement.span, token.span)) ||
             (statement && generatedRowsetStatements.has(statement.index))
         ) {
             continue;
         }
-        const matches = visibleRelations.filter((relation) =>
-            relation.columns.some((column) => foldName(column.name) === foldName(token.text)),
-        );
+        const resolutionGroups = relationResolutionGroups(visibleRelations, ownerScope);
+        const matches =
+            resolutionGroups
+                .map((group) =>
+                    group.filter((relation) =>
+                        relation.columns.some(
+                            (column) => foldName(column.name) === foldName(token.text),
+                        ),
+                    ),
+                )
+                .find((group) => group.length > 0) ?? [];
         if (matches.length === 0) {
             diagnostics.push(columnDiagnostic("unknown-column", token, text));
         } else if (matches.length > 1) {
@@ -1447,6 +1629,30 @@ function isNonColumnIdentifier(
         previous?.text.toLocaleUpperCase() === "OVER" ||
         next?.text.toLocaleUpperCase() === "AS"
     );
+}
+
+function isSerializationDirective(text: string, statement: SqlSpan, token: SqlSpan): boolean {
+    const word = unquoteIdentifier(text.slice(token.start, token.end)).toLocaleUpperCase();
+    if (
+        ![
+            "AUTO",
+            "RAW",
+            "EXPLICIT",
+            "PATH",
+            "TYPE",
+            "ROOT",
+            "ELEMENTS",
+            "XSINIL",
+            "ABSENT",
+            "BINARY",
+            "BASE64",
+            "INCLUDE_NULL_VALUES",
+            "WITHOUT_ARRAY_WRAPPER",
+        ].includes(word)
+    ) {
+        return false;
+    }
+    return /\bFOR\s+(?:XML|JSON)\b[^;]*$/iu.test(text.slice(statement.start, token.start));
 }
 
 function namedWindowNames(text: string): ReadonlySet<string> {
@@ -1725,17 +1931,29 @@ function isColumnCompletionPosition(text: string, offset: number): boolean {
 function qualifiedCompletionPrefix(
     text: string,
     offset: number,
-): { qualifier: string; filter: string; filterStart: number } | undefined {
+):
+    | {
+          qualifier: string;
+          qualifiers: readonly string[];
+          filter: string;
+          filterStart: number;
+      }
+    | undefined {
     const before = text.slice(0, offset);
-    const match = /(\[[^\]]+\]|"(?:[^"]|"")+"|[#@A-Za-z_][\w$#@]*)\.([#@A-Za-z_][\w$#@]*)?$/u.exec(
-        before,
-    );
+    const match =
+        /((?:(?:\[[^\]]+\]|"(?:[^"]|"")+"|[#@A-Za-z_][\w$#@]*)\s*\.\s*){1,4})([#@A-Za-z_][\w$#@]*)?$/u.exec(
+            before,
+        );
     if (!match) {
         return undefined;
     }
     const filter = match[2] ?? "";
+    const qualifiers = Object.freeze(
+        identifierParts(match[1]).map((part) => unquoteIdentifier(part)),
+    );
     return {
-        qualifier: match[1],
+        qualifier: qualifiers.at(-1)!,
+        qualifiers,
         filter,
         filterStart: offset - filter.length,
     };

@@ -6,7 +6,6 @@
 import * as vscode from "vscode";
 import {
     MappingCatalogProvider,
-    SaralSqlAnalysisEngine,
     createCompletionResolveData,
     type SqlAnalysisSnapshot,
 } from "@vscode-mssql/tsql-language-service";
@@ -66,7 +65,6 @@ import {
     getExecuteRoutineCallContext,
     getInsertValuesContext,
     getParseableEditorText,
-    getRecoveryWindow,
     getRoutineCallContext,
     isLocalObjectName,
     isPartialMultipartIdentifier,
@@ -130,7 +128,6 @@ const systemSchemaNames = new Set([
     "loginmanager",
     "sys",
 ]);
-const completionAnalysisEngine = new SaralSqlAnalysisEngine();
 const tsqlDataTypes = [
     "bigint",
     "binary",
@@ -1360,18 +1357,11 @@ export class BetaSqlSessionManager implements vscode.Disposable {
             }
         }
 
-        const localMapping = getLocalSchemaMapping(
-            documentText,
-            hasSchemaEntries(remoteMapping) ? new Schema(remoteMapping) : undefined,
-        );
         if (this.isCurrent(document, entry)) {
             // Never publish final-script CREATE TABLE declarations as a global catalog. The
             // package's DocumentSchemaEvolution resolves them at each occurrence offset, so
             // references before CREATE and after DROP retain SQL Server's MSSQL208 behavior.
             entry.schema.update(remoteMapping, metadataComplete);
-            entry.featureSchema = hasSchemaEntries(localMapping)
-                ? new OverlaySchemaProvider(new Schema(localMapping), entry.schema)
-                : entry.schema;
             entry.document = updateFromVsCodeDocument(this.documents, document, {
                 catalog: {
                     provider: entry.schema,
@@ -1381,6 +1371,10 @@ export class BetaSqlSessionManager implements vscode.Disposable {
                 parseText: entry.session.text,
             });
             entry.session = requireAnalysisSnapshot(entry.document);
+            const localMapping = getLocalSchemaMapping(entry.session, entry.schema);
+            entry.featureSchema = hasSchemaEntries(localMapping)
+                ? new OverlaySchemaProvider(new Schema(localMapping), entry.schema)
+                : entry.schema;
         } else {
             return undefined;
         }
@@ -1486,13 +1480,28 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         ) {
             return finalize([]);
         }
-        const qualifiers = this.getQualifiers(document, position);
-        const qualifiedPrefix =
-            qualifiers.length === 0 ? this.getQualifiedPrefix(document, position) : undefined;
+        const parsedSessionResult = this._sessions.getParsedSession(document, token);
+        if (!parsedSessionResult || token?.isCancellationRequested) {
+            return finalize([]);
+        }
+        const offset = document.offsetAt(position);
+        const parserCompletion = parsedSessionResult.session.completeAt(offset);
+        const parserContext = parserCompletion.context;
+        const contextQualifiers = [...(parserContext?.qualifiers ?? [])];
+        const qualifiedPrefix: QualifiedPrefix | undefined =
+            contextQualifiers.length > 0 && Boolean(parserContext?.prefix)
+                ? { qualifiers: contextQualifiers, prefix: parserContext?.prefix ?? "" }
+                : undefined;
+        const qualifiers = qualifiedPrefix ? [] : contextQualifiers;
+        const currentPrefix = parserContext?.prefix ?? "";
         const insertColumnContext = this.getInsertColumnContext(document, position);
-        const executeParameterContext = this.getExecuteParameterContext(document, position);
-        const relationPosition = this.isRelationPosition(document, position);
-        const executePosition = this.isExecutePosition(document, position);
+        const executeParameterContext = this.getExecuteParameterContext(
+            document,
+            position,
+            currentPrefix,
+        );
+        const relationPosition = parserContext?.kind === "object";
+        const executePosition = parserContext?.kind === "execute";
         const objectTypes: DatabaseObject["type"][] | undefined = relationPosition
             ? ["table", "view", "tableValuedFunction"]
             : executePosition
@@ -1500,8 +1509,8 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
               : undefined;
         const references = relationPosition
             ? new Map<string, ObjectReference>()
-            : this.getObjectReferences(document, position, Boolean(qualifiedPrefix));
-        const fallbackItems = this.getKeywordItems(document, position);
+            : getObjectReferences(parsedSessionResult.session);
+        const fallbackItems = this.getKeywordItems(currentPrefix);
         const connection = this._connectionManager.getConnectionInfo(getUriKey(document.uri));
         const requestedVersion = document.version;
         if (
@@ -1577,6 +1586,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
                 position,
                 insertColumnContext,
                 this.getSchemaObjectMembers(sessionResult.schema, insertColumnContext.target),
+                currentPrefix,
             );
             if (localItems.length > 0) {
                 return finalize(localItems);
@@ -1592,14 +1602,10 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         if (schemaItems.length > 0) {
             return finalize(schemaItems);
         }
-        const recoveredCteItems = getRecoveredCteProjectionItems(document, position);
-        if (recoveredCteItems.length > 0) {
-            return finalize(recoveredCteItems);
-        }
         if (!connection?.connectionId) {
             return finalize(
                 this.mergeItems(
-                    this.getAnalysisItems(document, position, undefined, sessionResult.session),
+                    this.getAnalysisItems(document, position, sessionResult.session),
                     fallbackItems,
                 ),
             );
@@ -1608,7 +1614,6 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
 
         try {
             if (insertColumnContext) {
-                const prefix = this.getCurrentPrefix(document, position);
                 const object = await this._catalog.getObject(
                     connection.connectionId,
                     insertColumnContext.target,
@@ -1621,18 +1626,13 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
                     position,
                     insertColumnContext,
                     members,
-                    prefix,
+                    currentPrefix,
                 );
                 return columnItems.length > 0
                     ? finalize(columnItems)
                     : finalize(
                           this.mergeItems(
-                              this.getAnalysisItems(
-                                  document,
-                                  position,
-                                  undefined,
-                                  sessionResult.session,
-                              ),
+                              this.getAnalysisItems(document, position, sessionResult.session),
                               fallbackItems,
                           ),
                       );
@@ -1673,12 +1673,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
                     }
                 }
             }
-            const analysisItems = this.getAnalysisItems(
-                document,
-                position,
-                undefined,
-                sessionResult.session,
-            );
+            const analysisItems = this.getAnalysisItems(document, position, sessionResult.session);
             if (qualifiers.length > 0) {
                 const reference = references.get(qualifiers[0].toLocaleLowerCase());
                 if (reference) {
@@ -1730,9 +1725,8 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
                 );
             }
             if (executePosition) {
-                const prefix = this.getCurrentPrefix(document, position);
                 const routines = await this._catalog.searchObjects(connection.connectionId, {
-                    prefix: prefix || undefined,
+                    prefix: currentPrefix || undefined,
                     types: ["storedProcedure"],
                 });
                 return finalize(
@@ -1748,8 +1742,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
             return finalize(
                 await this.getRootItems(
                     connection.connectionId,
-                    document,
-                    position,
+                    currentPrefix,
                     this.mergeItems(analysisItems, fallbackItems),
                     token,
                 ),
@@ -1757,7 +1750,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         } catch {
             return finalize(
                 this.mergeItems(
-                    this.getAnalysisItems(document, position, undefined, sessionResult.session),
+                    this.getAnalysisItems(document, position, sessionResult.session),
                     fallbackItems,
                 ),
             );
@@ -1796,12 +1789,10 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
 
     private async getRootItems(
         connectionId: string,
-        document: vscode.TextDocument,
-        position: vscode.Position,
+        prefix: string,
         keywordItems: vscode.CompletionItem[],
         token?: vscode.CancellationToken,
     ): Promise<vscode.CompletionItem[]> {
-        const prefix = this.getCurrentPrefix(document, position);
         const [databases, schemas, objects] = await Promise.all([
             this._catalog.getDatabases(connectionId).catch(() => []),
             this._catalog.getSchemas(connectionId).catch(() => []),
@@ -1892,13 +1883,10 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         return items;
     }
 
-    private getKeywordItems(
-        document: vscode.TextDocument,
-        position: vscode.Position,
-    ): vscode.CompletionItem[] {
-        const prefix = this.getCurrentPrefix(document, position).toLocaleUpperCase();
+    private getKeywordItems(prefix: string): vscode.CompletionItem[] {
+        const normalizedPrefix = prefix.toLocaleUpperCase();
         return tsqlReservedKeywords
-            .filter((keyword) => keyword.startsWith(prefix))
+            .filter((keyword) => keyword.startsWith(normalizedPrefix))
             .map((keyword) => {
                 const item = new vscode.CompletionItem(keyword, vscode.CompletionItemKind.Keyword);
                 item.sortText = `2_${keyword}`;
@@ -2341,7 +2329,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         position: vscode.Position,
         context: InsertColumnContext,
         members: ObjectMember[],
-        prefix = this.getCurrentPrefix(document, position),
+        prefix: string,
     ): vscode.CompletionItem[] {
         const insertableMembers = members.filter((member) => member.insertable !== false);
         const items = insertableMembers
@@ -2508,21 +2496,6 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
             });
     }
 
-    private getQualifiers(document: vscode.TextDocument, position: vscode.Position): string[] {
-        const prefix = getCompletionPrefix(document, position).text;
-        const identifier = sqlIdentifierPattern(false);
-        const match = new RegExp(
-            String.raw`((?:${identifier})(?:\s*\.\s*${identifier})*\s*\.)\s*$`,
-        ).exec(prefix);
-        return match ? splitMultipartIdentifier(match[1].replace(/\.\s*$/, "")) : [];
-    }
-
-    private getCurrentPrefix(document: vscode.TextDocument, position: vscode.Position): string {
-        const prefix = getCompletionPrefix(document, position).text;
-        const match = new RegExp(`(${sqlIdentifierPattern(true)})$`).exec(prefix);
-        return match ? unquoteIdentifier(match[1]) : "";
-    }
-
     private getInsertColumnContext(
         document: vscode.TextDocument,
         position: vscode.Position,
@@ -2578,6 +2551,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
     private getExecuteParameterContext(
         document: vscode.TextDocument,
         position: vscode.Position,
+        prefix: string,
     ): ExecuteParameterContext | undefined {
         const text = getCompletionPrefix(document, position).text;
         const identifier = sqlIdentifierPattern(false);
@@ -2596,75 +2570,20 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         );
         return {
             routine,
-            prefix: this.getCurrentPrefix(document, position),
+            prefix,
             usedParameters,
         };
-    }
-
-    private getQualifiedPrefix(
-        document: vscode.TextDocument,
-        position: vscode.Position,
-    ): QualifiedPrefix | undefined {
-        const text = getCompletionPrefix(document, position).text;
-        const identifier = sqlIdentifierPattern(false);
-        const partialIdentifier = sqlIdentifierPattern(true);
-        const match = new RegExp(
-            String.raw`((?:${identifier}\s*\.\s*)+)(${partialIdentifier})$`,
-        ).exec(text);
-        if (!match) {
-            return undefined;
-        }
-        const qualifiers = splitMultipartIdentifier(match[1].replace(/\.\s*$/, ""));
-        const prefix = unquoteIdentifier(match[2]);
-        return qualifiers.length > 0 ? { qualifiers, prefix } : undefined;
-    }
-
-    private isRelationPosition(document: vscode.TextDocument, position: vscode.Position): boolean {
-        const prefix = getCompletionPrefix(document, position).text;
-        const identifier = sqlIdentifierPattern(true);
-        return new RegExp(
-            String.raw`\b(?:from|join|apply|update|into)\s+${identifier}?(?:\s*\.\s*${identifier}?){0,3}$`,
-            "i",
-        ).test(prefix);
-    }
-
-    private isExecutePosition(document: vscode.TextDocument, position: vscode.Position): boolean {
-        const prefix = getCompletionPrefix(document, position).text;
-        const identifier = sqlIdentifierPattern(true);
-        return new RegExp(
-            String.raw`\bexec(?:ute)?\s+${identifier}?(?:\s*\.\s*${identifier}?){0,3}$`,
-            "i",
-        ).test(prefix);
-    }
-
-    private getObjectReferences(
-        document: vscode.TextDocument,
-        position: vscode.Position,
-        qualifiedPrefix = false,
-    ): Map<string, ObjectReference> {
-        return getObjectReferences(
-            document,
-            position,
-            this.getQualifiers(document, position).length > 0 || qualifiedPrefix,
-        );
     }
 
     private getAnalysisItems(
         document: vscode.TextDocument,
         position: vscode.Position,
-        schema?: SchemaProvider,
-        existingSession?: SqlAnalysisSnapshot,
+        session: SqlAnalysisSnapshot,
     ): vscode.CompletionItem[] {
-        const text = document.getText();
         const offset = document.offsetAt(position);
-        const session =
-            existingSession ??
-            completionAnalysisEngine.createSnapshot({
-                text: getParseableEditorText(text),
-                catalog: schema,
-            });
+        const result = session.completeAt(offset);
         if (isDataTypePosition(session.tokens, offset)) {
-            const prefix = this.getCurrentPrefix(document, position).toLocaleLowerCase();
+            const prefix = (result.context?.prefix ?? "").toLocaleLowerCase();
             return tsqlDataTypes
                 .filter((type) => type.startsWith(prefix))
                 .map(
@@ -2672,42 +2591,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
                         new vscode.CompletionItem(type, vscode.CompletionItemKind.TypeParameter),
                 );
         }
-        const result = session.completeAt(offset);
         const candidates = [...result.items];
-        if (/\.\s*$/.test(text.slice(Math.max(0, offset - 64), offset))) {
-            const window = getRecoveryWindow(text, offset);
-            const recoveredText = `${window.text.slice(0, window.offset)}*${window.text.slice(window.offset)}`;
-            const recovered = completionAnalysisEngine
-                .createSnapshot({ text: getParseableEditorText(recoveredText), catalog: schema })
-                .completeAt(window.offset).items;
-            const seen = new Set(
-                candidates.map((candidate) => `${candidate.kind}:${candidate.label}`),
-            );
-            candidates.push(
-                ...recovered.filter(
-                    (candidate) =>
-                        candidate.kind === "column" &&
-                        !seen.has(`${candidate.kind}:${candidate.label}`),
-                ),
-            );
-
-            const separated = getSelectIntoCompletionRecovery(window.text, window.offset);
-            if (separated) {
-                const separatedResult = completionAnalysisEngine
-                    .createSnapshot({
-                        text: getParseableEditorText(separated.text),
-                        catalog: schema,
-                    })
-                    .completeAt(separated.offset).items;
-                candidates.push(
-                    ...separatedResult.filter(
-                        (candidate) =>
-                            candidate.kind === "column" &&
-                            !seen.has(`${candidate.kind}:${candidate.label}`),
-                    ),
-                );
-            }
-        }
         const range = result.replaceSpan
             ? new vscode.Range(
                   document.positionAt(result.replaceSpan.start),
@@ -2896,7 +2780,11 @@ function isDataTypePosition(tokens: readonly Token[], offset: number): boolean {
     return false;
 }
 
-function getLocalSchemaMapping(text: string, baseSchema?: SchemaProvider): SchemaMapping {
+function getLocalSchemaMapping(
+    session: SqlAnalysisSnapshot,
+    baseSchema?: SchemaProvider,
+): SchemaMapping {
+    const text = session.text;
     const mapping: SchemaMapping = {};
     addDeclaredLocalTables(text, mapping);
     addDeclaredSynonyms(text, mapping, baseSchema);
@@ -2904,9 +2792,7 @@ function getLocalSchemaMapping(text: string, baseSchema?: SchemaProvider): Schem
         addLocalAliasMappings(text, mapping);
         return mapping;
     }
-    const tokens = completionAnalysisEngine
-        .createSnapshot({ text: getParseableEditorText(text), catalog: baseSchema })
-        .tokens.filter((token) => token.channel === "code");
+    const tokens = session.tokens.filter((token) => token.channel === "code");
     for (let intoIndex = 1; intoIndex < tokens.length - 1; intoIndex++) {
         if (
             tokens[intoIndex].text.toLocaleLowerCase() !== "into" ||
@@ -2923,19 +2809,10 @@ function getLocalSchemaMapping(text: string, baseSchema?: SchemaProvider): Schem
         const target = unquoteIdentifier(tokens[intoIndex + 1].text);
         let columnNames = getProjectionNames(text, tokens, selectIndex, intoIndex);
         if (columnNames.includes("*")) {
-            const intoStart = tokens[intoIndex].span.start;
-            const intoEnd = tokens[intoIndex + 1].span.end;
-            const recoveredText = `${text.slice(0, intoStart)}${" ".repeat(
-                intoEnd - intoStart,
-            )}${text.slice(intoEnd)}`;
-            const recovered = completionAnalysisEngine.createSnapshot({
-                text: getParseableEditorText(recoveredText),
-                catalog: new OverlaySchemaProvider(new Schema(mapping), baseSchema),
-            });
             const star = tokens
                 .slice(selectIndex + 1, intoIndex)
                 .find((token) => token.text === "*");
-            const expanded = star ? recovered.expandStarAt(star.span.start) : undefined;
+            const expanded = star ? session.expandStarAt(star.span.start) : undefined;
             if (expanded?.length) {
                 columnNames = expanded.map((column) => column.name);
             }
@@ -3102,41 +2979,6 @@ function getProjectionNames(
         }
     }
     return columns;
-}
-
-function getSelectIntoCompletionRecovery(
-    text: string,
-    offset: number,
-): { text: string; offset: number } | undefined {
-    if (!/#\w/.test(text) || !/\binto\b/i.test(text)) {
-        return undefined;
-    }
-    const tokens = completionAnalysisEngine
-        .createSnapshot({ text: getParseableEditorText(text) })
-        .tokens.filter((token) => token.channel === "code");
-    const intoIndex = tokens.findIndex(
-        (token, index) =>
-            token.text.toLocaleLowerCase() === "into" && tokens[index + 1]?.text.startsWith("#"),
-    );
-    if (intoIndex < 0) {
-        return undefined;
-    }
-    const nextSelect = tokens.find(
-        (token, index) =>
-            index > intoIndex + 1 &&
-            token.span.start < offset &&
-            token.text.toLocaleLowerCase() === "select",
-    );
-    if (
-        !nextSelect ||
-        text.slice(tokens[intoIndex + 1].span.end, nextSelect.span.start).includes(";")
-    ) {
-        return undefined;
-    }
-    return {
-        text: `${text.slice(0, nextSelect.span.start)};${text.slice(nextSelect.span.start)}`,
-        offset: offset + 1,
-    };
 }
 
 function hasSchemaEntries(mapping: SchemaMapping): boolean {
@@ -3375,23 +3217,9 @@ function getAliasedObjectReference(
     return undefined;
 }
 
-function getObjectReferences(
-    document: vscode.TextDocument,
-    position: vscode.Position,
-    qualified: boolean,
-): Map<string, ObjectReference> {
-    const offset = document.offsetAt(position);
-    const text = document.getText();
-    const session = completionAnalysisEngine.createSnapshot({
-        text: getParseableEditorText(
-            `${text.slice(0, offset)}${qualified ? "*" : "__beta_completion__"}${text.slice(offset)}`,
-        ),
-    });
+function getObjectReferences(session: SqlAnalysisSnapshot): Map<string, ObjectReference> {
     const references = new Map<string, ObjectReference>();
     for (const external of session.externalReferences()) {
-        if (external.name.includes("__beta_completion__")) {
-            continue;
-        }
         const reference = objectReferenceFromParts(
             external.nameParts ?? splitMultipartIdentifier(external.name),
         );
@@ -3752,59 +3580,6 @@ function isIdentifierTokenForMetadata(token: Token): boolean {
     return token.role === "identifier" || token.consumedAs === "identifier";
 }
 
-/** Recovers completed CTE projection names when a dangling member access damaged the CTE parse. */
-function getRecoveredCteProjectionItems(
-    document: vscode.TextDocument,
-    position: vscode.Position,
-): vscode.CompletionItem[] {
-    const text = document.getText();
-    const offset = document.offsetAt(position);
-    const identifier = sqlIdentifierPattern(false);
-    const qualifierMatch = new RegExp(`(${identifier})\s*\.\s*$`, "i").exec(text.slice(0, offset));
-    if (!qualifierMatch) {
-        return [];
-    }
-    const qualifier = unquoteIdentifier(qualifierMatch[1]);
-    const ctePattern = new RegExp(String.raw`(?:\bwith|,)\s*(${identifier})\s+as\s*\(`, "gi");
-    for (let match = ctePattern.exec(text); match; match = ctePattern.exec(text)) {
-        const cteName = unquoteIdentifier(match[1]);
-        if (cteName.toLocaleLowerCase() !== qualifier.toLocaleLowerCase()) {
-            continue;
-        }
-        const openParenthesis = ctePattern.lastIndex - 1;
-        const closeParenthesis = findMatchingParenthesis(text, openParenthesis);
-        if (closeParenthesis < 0) {
-            continue;
-        }
-        const body = text.slice(openParenthesis + 1, closeParenthesis);
-        const projection = /\bselect\b([\s\S]*?)\bfrom\b/i.exec(body)?.[1];
-        if (!projection) {
-            continue;
-        }
-        const names = splitTopLevel(projection, ",")
-            .map(projectionName)
-            .filter((name): name is string => Boolean(name));
-        return [...new Set(names)].map(
-            (name) => new vscode.CompletionItem(name, vscode.CompletionItemKind.Field),
-        );
-    }
-    return [];
-}
-
-function projectionName(expression: string): string | undefined {
-    const trimmed = expression.trim();
-    if (!trimmed || trimmed.endsWith(".")) {
-        return undefined;
-    }
-    const identifier = sqlIdentifierPattern(false);
-    const alias = new RegExp(`\bas\s+(${identifier})\s*$`, "i").exec(trimmed)?.[1];
-    if (alias) {
-        return unquoteIdentifier(alias);
-    }
-    const direct = new RegExp(`(?:^|\.)(${identifier})\s*$`, "i").exec(trimmed)?.[1];
-    return direct ? unquoteIdentifier(direct) : undefined;
-}
-
 export class BetaSqlDefinitionProvider implements vscode.DefinitionProvider {
     constructor(
         private readonly _connectionManager: ConnectionManager,
@@ -4081,18 +3856,7 @@ export class BetaSqlDiagnostics implements vscode.Disposable {
         try {
             result = await this._sessions.getSession(document);
         } catch {
-            const schema = new BetaSqlDocumentSchema();
-            schema.update(getLocalSchemaMapping(document.getText()), false);
-            const langiumDocument = updateFromVsCodeDocument(this._sessions.documents, document, {
-                catalog: { provider: schema, revision: schema.version },
-                parseText: getParseableEditorText(document.getText()),
-            });
-            result = {
-                session: requireAnalysisSnapshot(langiumDocument),
-                schema,
-                metadataComplete: false,
-                document: langiumDocument,
-            };
+            result = this._sessions.getParsedSession(document);
         }
         if (!result || this._versions.get(key) !== version) {
             return;

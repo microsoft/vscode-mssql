@@ -267,9 +267,30 @@ export interface SqlCompletion {
     readonly documentation?: string;
 }
 
+/** Grammar evidence computed from the same immutable snapshot that supplies completion items. */
+export interface SqlCompletionContext {
+    readonly kind:
+        | "object"
+        | "qualifiedMember"
+        | "column"
+        | "expression"
+        | "execute"
+        | "type"
+        | "unknown";
+    readonly qualifiers: readonly string[];
+    readonly prefix: string;
+    readonly replaceSpan: SqlSpan;
+}
+
 export interface SqlCompletionResult {
     readonly items: readonly SqlCompletion[];
     readonly replaceSpan?: SqlSpan;
+    /**
+     * Parser-owned context for hosts that need to combine grammar and remote metadata results.
+     * Keeping it on the result prevents a host from running a second parser or a divergent regex
+     * classifier for the same request.
+     */
+    readonly context?: SqlCompletionContext;
 }
 
 export interface SqlOccurrence {

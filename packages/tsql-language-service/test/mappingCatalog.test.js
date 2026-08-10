@@ -43,4 +43,17 @@ describe("MappingCatalogProvider", () => {
         ]);
         assert.deepEqual(catalog.tables(), ["one.Inventory", "two.Inventory"]);
     });
+
+    it("indexes suffix resolution and caches namespace children for large catalogs", () => {
+        const tables = {};
+        for (let index = 0; index < 10_000; index++) {
+            tables[`Table${String(index).padStart(5, "0")}`] = { Id: "int" };
+        }
+        const catalog = new MappingCatalogProvider({ Large: { dbo: tables } }, 1, "closed");
+
+        assert.equal(catalog.columnsFor(["dbo", "Table09999"])[0].name, "Id");
+        const children = catalog.childrenOf(["Large", "dbo"]);
+        assert.equal(children.length, 10_000);
+        assert.equal(catalog.childrenOf(["large", "DBO"]), children);
+    });
 });
