@@ -19,12 +19,7 @@ import { QueryHistoryUI, QueryHistoryAction } from "../views/queryHistoryUI";
 import { getUriKey } from "../utils/utils";
 import { Deferred } from "../protocol";
 import * as vscodeMssql from "vscode-mssql";
-import {
-    decryptData,
-    type EncryptedData,
-    encryptData,
-    generateEncryptionKey,
-} from "../utils/encryptionUtils";
+import { EncryptedFileStorage } from "../utils/encryptedFileStorage";
 
 type QueryHistoryTreeNode = QueryHistoryNode | EmptyHistoryNode;
 
@@ -38,6 +33,7 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
     private _queryHistoryLimit: number;
     private _queryHistoryUI: QueryHistoryUI;
     private _queryHistoryMutationId = 0;
+    private readonly _persistedQueryHistoryStorage: EncryptedFileStorage;
 
     /**
      * Version number for the persisted query history. Increment this if there are breaking changes to the persisted format to ensure old formats are not loaded.
@@ -50,11 +46,16 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
         private _sqlDocumentService: SqlDocumentService,
         private _statusView: StatusView,
         private _prompter: IPrompter,
-        private _context: vscode.ExtensionContext,
+        context: vscode.ExtensionContext,
     ) {
         const config = vscode.workspace.getConfiguration(Constants.extensionConfigSectionName);
         this._queryHistoryLimit = config.get(Constants.configQueryHistoryLimit);
         this._queryHistoryUI = new QueryHistoryUI(this._prompter);
+        this._persistedQueryHistoryStorage = new EncryptedFileStorage(
+            context,
+            Constants.queryHistoryGlobalStorageFileName,
+            Constants.queryHistoryEncryptionKeySecretStorageKey,
+        );
         void this.restoreQueryHistory();
     }
 
@@ -402,77 +403,15 @@ export class QueryHistoryProvider implements vscode.TreeDataProvider<QueryHistor
     }
 
     private async readEncryptedPersistedQueryHistory(): Promise<string | undefined> {
-        const storageFileUri = this.getPersistedQueryHistoryFileUri();
-        if (!(await this.persistedQueryHistoryFileExists(storageFileUri))) {
-            return undefined;
-        }
-
-        const encryptionKey = await this._context.secrets.get(
-            Constants.queryHistoryEncryptionKeySecretStorageKey,
-        );
-        if (!encryptionKey) {
-            return undefined;
-        }
-
-        const encryptedFileContents = await vscode.workspace.fs.readFile(storageFileUri);
-        const encryptedData = JSON.parse(
-            new TextDecoder().decode(encryptedFileContents),
-        ) as EncryptedData;
-
-        return decryptData(encryptedData, encryptionKey);
+        return this._persistedQueryHistoryStorage.read();
     }
 
     private async writePersistedQueryHistoryContent(serializedHistory: string): Promise<void> {
-        const storageFileUri = this.getPersistedQueryHistoryFileUri();
-        const encryptionKey = await this.getOrCreateQueryHistoryEncryptionKey();
-        const encryptedData = encryptData(serializedHistory, encryptionKey);
-
-        await vscode.workspace.fs.createDirectory(this._context.globalStorageUri);
-        await vscode.workspace.fs.writeFile(
-            storageFileUri,
-            new TextEncoder().encode(JSON.stringify(encryptedData)),
-        );
+        await this._persistedQueryHistoryStorage.write(serializedHistory);
     }
 
     private async clearPersistedQueryHistoryContent(): Promise<void> {
-        try {
-            await vscode.workspace.fs.delete(this.getPersistedQueryHistoryFileUri(), {
-                useTrash: false,
-            });
-        } catch {
-            // Ignore missing file errors when clearing persisted history.
-        }
-    }
-
-    private async getOrCreateQueryHistoryEncryptionKey(): Promise<string> {
-        let encryptionKey = await this._context.secrets.get(
-            Constants.queryHistoryEncryptionKeySecretStorageKey,
-        );
-        if (!encryptionKey) {
-            encryptionKey = generateEncryptionKey();
-            await this._context.secrets.store(
-                Constants.queryHistoryEncryptionKeySecretStorageKey,
-                encryptionKey,
-            );
-        }
-
-        return encryptionKey;
-    }
-
-    private async persistedQueryHistoryFileExists(storageFileUri: vscode.Uri): Promise<boolean> {
-        try {
-            await vscode.workspace.fs.stat(storageFileUri);
-            return true;
-        } catch {
-            return false;
-        }
-    }
-
-    private getPersistedQueryHistoryFileUri(): vscode.Uri {
-        return vscode.Uri.joinPath(
-            this._context.globalStorageUri,
-            Constants.queryHistoryGlobalStorageFileName,
-        );
+        await this._persistedQueryHistoryStorage.clear();
     }
 }
 

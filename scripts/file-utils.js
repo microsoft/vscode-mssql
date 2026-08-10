@@ -5,10 +5,8 @@
 
 const fs = require("fs").promises;
 
-// Prettier output respects endOfLine, but enforce CRLF after formatting to guard against
-// contributors with custom setups.
+// Generated XLF files can opt into CRLF at the OneLoc boundary.
 const CRLF = "\r\n";
-const LF = "\n";
 
 /**
  * Formats content using Prettier
@@ -82,7 +80,7 @@ async function writeAndFormat(filePath, content, prettier = true, crlf = false) 
  */
 async function writeJsonAndFormat(filePath, data, indent = 2) {
     const content = JSON.stringify(data, null, indent);
-    return await writeAndFormat(filePath, content, true, true);
+    return await writeAndFormat(filePath, content, true, false);
 }
 
 module.exports = {

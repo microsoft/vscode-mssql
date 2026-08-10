@@ -18,8 +18,8 @@ import { AzureAuthType, IAADResource, IAccount, ITenant, IToken } from "../model
 import { ILogger } from "../sharedInterfaces/logger";
 import { Logger } from "../models/logger";
 import { INameValueChoice, IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
-import { AccountStore } from "./accountStore";
-import { ICredentialStore } from "../credentialstore/icredentialstore";
+import { AccountStore, IAccountStore } from "./accountStore";
+import { ICredentialStore } from "../credentialstore/credentialstore";
 
 export abstract class AzureController {
     protected _credentialStoreInitialized = false;
@@ -52,7 +52,7 @@ export abstract class AzureController {
 
     public abstract populateAccountProperties(
         profile: ConnectionProfile,
-        accountStore: AccountStore,
+        accountStore: IAccountStore,
         settings: IAADResource,
     ): Promise<ConnectionProfile>;
 
@@ -77,7 +77,7 @@ export abstract class AzureController {
 
     public abstract handleAuthMapping(): void;
 
-    public async addAccount(accountStore: AccountStore): Promise<IAccount | undefined> {
+    public async addAccount(accountStore: IAccountStore): Promise<IAccount | undefined> {
         let config = azureUtils.getAzureActiveDirectoryConfig();
         let account = await this.login(config!);
         await accountStore.addAccount(account!);

@@ -71,6 +71,8 @@ export class AzureSqlDatabaseState
     publicIp: string = "";
     subscriptionName: string = "";
     serverRegion: string = "";
+    /** Connection string to the provisioned database (password excluded), populated once the connection succeeds. */
+    connectionString: string = "";
     constructor(params?: Partial<AzureSqlDatabaseState>) {
         for (const key in params) {
             if (key in this) {

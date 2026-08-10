@@ -19,7 +19,7 @@ import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterface
 import { FormItemActionButton, FormItemOptions, FormItemType } from "../sharedInterfaces/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { IConnectionProfile } from "../models/interfaces";
 import { DEPLOYMENT_VIEW_ID, DeploymentWebviewController } from "./deploymentWebviewController";
@@ -858,6 +858,20 @@ export async function connectToAzureSqlDatabase(
         );
         await deploymentController.mainController.createObjectExplorerSession(profile);
         state.connectionLoadState = ApiStatus.Loaded;
+
+        // Capture the connection string (without the password) so the webview can
+        // surface it in the "Connect to Database" card.
+        try {
+            state.connectionString = await connManager.getConnectionString(
+                connManager.createConnectionDetails(connectionProfile),
+                false /* includePassword */,
+                false /* includeApplicationName */,
+            );
+        } catch (connectionStringError) {
+            cachedLogger?.error(
+                `Failed to build connection string: ${getErrorMessage(connectionStringError)}`,
+            );
+        }
 
         sendActionEvent(
             TelemetryViews.AzureSqlDatabase,

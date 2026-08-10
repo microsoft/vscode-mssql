@@ -13,7 +13,7 @@ import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionStore } from "../models/connectionStore";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ConnectionConfig } from "../connectionconfig/connectionconfig";
 

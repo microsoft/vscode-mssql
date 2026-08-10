@@ -45,6 +45,17 @@ export enum CodeAnalysisRuleSeverity {
 }
 
 /**
+ * Display order of a code analysis rule category relative to other categories.
+ * Built-in categories are listed first, then categories declared by custom analyzer
+ * packages, then the catch-all group for custom rules that declare no category.
+ */
+export enum CodeAnalysisCategoryOrder {
+    BuiltIn = 0,
+    Custom = 1,
+    UncategorizedCustom = 2,
+}
+
+/**
  * The type of update action for a schema comparison difference.
  * Must be kept in-sync with SchemaUpdateAction in SQL Tools Service.
  */

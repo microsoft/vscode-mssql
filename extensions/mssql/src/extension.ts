@@ -5,8 +5,19 @@
 
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
-import { InstantiationServiceBuilder } from "extension-toolkit/base";
-import { ExtensionContextService, IExtensionContextService } from "extension-toolkit/vscode";
+import {
+    IInstantiationService,
+    InstantiationServiceBuilder,
+    ServiceDescriptor,
+} from "extension-toolkit/base";
+import {
+    ExtensionContextService,
+    IExtensionContextService,
+    initializeExtensionToolkit,
+    initializeTelemetryReporter,
+    sendActionEvent,
+    telemetryReporter,
+} from "extension-toolkit/vscode";
 import MainController from "./controllers/mainController";
 import { ConnectionDetails, IConnectionInfo, IExtension } from "vscode-mssql";
 import * as utils from "./models/utils";
@@ -18,7 +29,6 @@ import {
     ISqlChatResult,
     provideFollowups,
 } from "./copilot/chatAgentRequestHandler";
-import { sendActionEvent } from "./telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "./sharedInterfaces/telemetry";
 import { ChatResultFeedbackKind } from "vscode";
 import { IconUtils } from "./utils/iconUtils";
@@ -30,6 +40,10 @@ import {
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
+import { CredentialStore, ICredentialStore } from "./credentialstore/credentialstore";
+import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
+import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
+import { IAccountStore, AccountStore } from "./azure/accountStore";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -38,9 +52,15 @@ export let uriOwnershipCoordinator: UriOwnershipCoordinator = undefined;
 let activation: MssqlActivation | undefined;
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
+    initializeExtensionToolkit();
+
     const builder = new InstantiationServiceBuilder();
 
     builder.define(IExtensionContextService, new ExtensionContextService(context));
+    builder.define(ICredentialStore, new ServiceDescriptor(CredentialStore));
+    builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
+    builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
+    builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
 
     const instantiationService = builder.seal();
     context.subscriptions.push(instantiationService);
@@ -70,16 +90,20 @@ export async function getController(): Promise<MainController> {
 class MssqlActivation {
     constructor(
         @IExtensionContextService private readonly _contextService: IExtensionContextService,
+        @IInstantiationService private readonly _instantiationService: IInstantiationService,
     ) {}
 
     async activate(): Promise<IExtension> {
         const context = this._contextService.context;
+        initializeTelemetryReporter(context.extension.packageJSON.aiKey);
 
         // Create coordinator early so uriOwnershipApi is available for export
         uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
 
-        controller = new MainController(context);
+        controller = this._instantiationService.createInstance(MainController, context);
         context.subscriptions.push(controller);
+        context.subscriptions.push(telemetryReporter);
+
         // Initialize loc cache for webviews early so that it's ready by the time any webview requests it.
         initializeWebviewLocalizationCache();
 
@@ -135,6 +159,7 @@ class MssqlActivation {
 
         await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
+        // TODO(api-retirement): Remove this public API after dependent extensions have migrated.
         return {
             sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
             promptForConnection: async (ignoreFocusOut?: boolean) => {

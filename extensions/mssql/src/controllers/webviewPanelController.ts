@@ -10,7 +10,7 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 
 import { MssqlWebviewPanelOptions } from "../sharedInterfaces/webview";
 import { WebviewBaseController } from "./webviewBaseController";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { Deferred } from "../protocol";
 
 /**

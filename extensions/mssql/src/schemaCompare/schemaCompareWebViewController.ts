@@ -39,7 +39,7 @@ import {
     includeExcludeAllNodes,
 } from "./schemaCompareUtils";
 import { DiffEntry } from "vscode-mssql";
-import { sendActionEvent, startActivity, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity, sendErrorEvent } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import * as locConstants from "../constants/locConstants";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";

@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { shallowEqualObjects } from "shallow-equal";
 import * as LocalizedConstants from "../constants/locConstants";
 import { getAccounts, getTenants, VsCodeAzureHelper, VsCodeAzureAuth } from "./azureHelpers";
-import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import {

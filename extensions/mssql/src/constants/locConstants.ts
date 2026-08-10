@@ -861,6 +861,7 @@ export class Notebooks {
     // Status bar
     public static statusBarClickToChangeConnection = l10n.t("MSSQL: Click to change connection");
     public static statusBarClickToChangeDatabase = l10n.t("MSSQL: Click to change database");
+    public static selectionSummaryStatusBarName = l10n.t("MSSQL Notebook Selection Summary");
 
     // Errors
     public static connectionFailed = l10n.t("Connection failed");
@@ -1264,6 +1265,14 @@ export class Azure {
         });
     };
 
+    public static unableToLocateSqlServer = (serverName: string) => {
+        return l10n.t({
+            message: "Unable to locate Azure SQL server '{0}' in the selected Azure account.",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+
     public static failedToGetTenantForAccount = (tenantId: string, accountName: string) => {
         return l10n.t({
             message: "Failed to get tenant '{0}' for account '{1}'.",
@@ -1415,6 +1424,10 @@ export class Fabric {
             comment: ["{0} is the error code", "{1} is the error message"],
         });
     };
+
+    public static fabricLongRunningApiMissingLocation = l10n.t(
+        "Fabric long-running operation response did not include a location header.",
+    );
 
     public static fabricAccount = l10n.t("Fabric Account");
     public static fabricAccountIsRequired = l10n.t("Fabric Account is required");
@@ -3005,6 +3018,16 @@ export class QueryEditor {
 }
 
 export class ConnectionSharing {
+    public static retirementWarning(extensionName: string) {
+        return l10n.t({
+            message:
+                "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.",
+            args: [extensionName],
+            comment: ["{0} is the extension name"],
+        });
+    }
+    public static FileFeatureRequest = l10n.t("File a feature request");
+    public static DoNotShowAgainForExtension = l10n.t("Don’t show again for this extension");
     public static connectionSharingRequestNotification(extensionName: string) {
         return l10n.t({
             message:
@@ -3700,26 +3723,6 @@ export class Profiler {
     );
 }
 
-export class Proxy {
-    public static unableToGetProxyAgentOptions = l10n.t("Unable to read proxy agent options.");
-
-    public static missingProtocolWarning = (proxy: string) =>
-        l10n.t({
-            message:
-                "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
-            args: [proxy],
-            comment: ["{0} is the proxy URL"],
-        });
-
-    public static unparseableWarning = (proxy: string, errorMessage: string) =>
-        l10n.t({
-            message:
-                "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
-            args: [proxy, errorMessage],
-            comment: ["{0} is the proxy URL", "{1} is the error message"],
-        });
-}
-
 export class BackupDatabase {
     public static backupDatabaseTitle = (databaseName: string) =>
         l10n.t({
@@ -4212,7 +4215,9 @@ export class SqlMoveToSchema {
         l10n.t("Failed to resolve the refactor log for this file: {0}", message);
     public static previewLabel = (targetSchema: string): string =>
         l10n.t("Move to schema '{0}'", targetSchema);
-    public static applyEditFailed = l10n.t(
-        "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
-    );
+    public static moveFileFailed = (message: string): string =>
+        l10n.t("Failed to move file to the new schema folder: {0}", message);
+    public static moveFileRejected = l10n.t("The move was rejected or could not be completed.");
+    public static sqlprojUpdateFailed = (message: string): string =>
+        l10n.t("Failed to update the .sqlproj after moving the file: {0}", message);
 }

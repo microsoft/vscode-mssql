@@ -9,6 +9,8 @@ import { ApiStatus } from "../../../../sharedInterfaces/webview";
 import { locConstants } from "../../../common/locConstants";
 import { useAzureSqlDatabaseDeploymentSelector } from "../deploymentSelector";
 import { DeploymentStepCard } from "../deploymentStepCard";
+import { ConnectToDatabaseCard } from "../connectToDatabaseCard";
+import { WhatsNextCard } from "../whatsNextCard";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { PostDeploymentScript } from "../postDeploymentScriptsDrawer";
 import { DeploymentScriptsCard } from "../../../common/deploymentScriptsCard";
@@ -100,6 +102,7 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
     );
     const maxVcores = useAzureSqlDatabaseDeploymentSelector((s) => s.formState?.maxVcores);
     const serverRegion = useAzureSqlDatabaseDeploymentSelector((s) => s.serverRegion);
+    const connectionString = useAzureSqlDatabaseDeploymentSelector((s) => s.connectionString);
 
     const scriptBaseName = (databaseName || "database").replace(/[^a-zA-Z0-9-_]/g, "_");
     const scripts = useMemo<PostDeploymentScript[]>(() => {
@@ -233,6 +236,10 @@ export const AzureSqlDatabaseProvisioningPage: React.FC = () => {
                         )}
                     </div>
                 </DeploymentStepCard>
+                {connectionLoadState === ApiStatus.Loaded && connectionString && (
+                    <ConnectToDatabaseCard connectionString={connectionString} />
+                )}
+                {connectionLoadState === ApiStatus.Loaded && <WhatsNextCard />}
                 {deploymentSucceeded && (
                     <DeploymentScriptsCard
                         scripts={scripts}

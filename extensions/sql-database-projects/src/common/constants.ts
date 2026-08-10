@@ -29,6 +29,7 @@ export const problemMatcher = "$sqlproj-problem-matcher";
 export const sqlProjTaskType = "sqlproj-build";
 export const dotnet = "dotnet";
 export const build = "build";
+export const restore = "restore";
 export const runCodeAnalysisParam = "/p:RunSqlCodeAnalysis=true";
 export const checkoutOutputMessage = l10n.t("Check output pane for more details");
 
@@ -364,6 +365,7 @@ export const confirmCreateProjectWithBuildTaskDialogName = l10n.t(
 );
 export const buildTaskName = l10n.t("Build");
 export const buildWithCodeAnalysisTaskName = l10n.t("Build with Code Analysis");
+export const restoreTaskName = l10n.t("Restore NuGet packages");
 
 //#endregion
 
@@ -537,6 +539,16 @@ export function errorFindingBuildFilesLocation(err: any) {
 }
 export function projBuildFailed(errorMessage: string) {
     return l10n.t("Build failed. Check output pane for more details. {0}", errorMessage);
+}
+/**
+ * @param errorMessage omitted when dotnet reported the failure itself, since the details are
+ * already in the task terminal.
+ */
+export function projRestoreFailed(errorMessage?: string) {
+    const message = l10n.t(
+        "Restore NuGet packages failed. Check the terminal output for more details.",
+    );
+    return errorMessage ? `${message} ${errorMessage}` : message;
 }
 export function unexpectedProjectContext(uri: string) {
     return l10n.t(
@@ -859,23 +871,6 @@ export const downloadError = l10n.t("Download error");
 export const downloadProgress = l10n.t("Download progress");
 export const downloading = l10n.t("Downloading");
 
-//#endregion
-
-//#region proxy
-export const Proxy = {
-    missingProtocolWarning: (proxy: string) =>
-        l10n.t(
-            "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the SQL Database Projects extension.",
-            proxy,
-        ),
-    unparseableWarning: (proxy: string, errorMessage: string) =>
-        l10n.t(
-            "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the SQL Database Projects extension.  Error: {1}",
-            proxy,
-            errorMessage,
-        ),
-    unableToGetProxyAgentOptions: l10n.t("Unable to read proxy agent options."),
-};
 //#endregion
 
 //#region buildHelper

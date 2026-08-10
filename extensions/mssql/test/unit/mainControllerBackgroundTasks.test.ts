@@ -10,7 +10,7 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 import MainController from "../../src/controllers/mainController";
 import * as LocalizedConstants from "../../src/constants/locConstants";
-import { stubExtensionContext } from "./utils";
+import { stubExtensionContext, stubInstantiationService } from "./utils";
 
 chai.use(sinonChai);
 
@@ -27,7 +27,7 @@ suite("MainController Background Tasks Tests", () => {
 
     test("background task action opens only on double click", async () => {
         const context = stubExtensionContext(sandbox);
-        const controller = new MainController(context, undefined);
+        const controller = new MainController(context, stubInstantiationService(sandbox));
         const openTaskStub = sandbox.stub().resolves();
 
         (controller as any)._backgroundTasksProvider = {
@@ -47,7 +47,7 @@ suite("MainController Background Tasks Tests", () => {
 
     test("cancel background task prompts before canceling", async () => {
         const context = stubExtensionContext(sandbox);
-        const controller = new MainController(context, undefined);
+        const controller = new MainController(context, stubInstantiationService(sandbox));
         const cancelTaskStub = sandbox.stub().resolves();
 
         (controller as any)._backgroundTasksProvider = {
@@ -79,7 +79,7 @@ suite("MainController Background Tasks Tests", () => {
 
     test("cancel background task does nothing when confirmation is dismissed", async () => {
         const context = stubExtensionContext(sandbox);
-        const controller = new MainController(context, undefined);
+        const controller = new MainController(context, stubInstantiationService(sandbox));
         const cancelTaskStub = sandbox.stub().resolves();
 
         (controller as any)._backgroundTasksProvider = {
