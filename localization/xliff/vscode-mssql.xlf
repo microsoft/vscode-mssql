@@ -1983,8 +1983,8 @@
     <trans-unit id="++CODE++80faaf9291799236b19a2c456248f32cf3aa3c5d9760093871da70c540cd9240">
       <source xml:lang="en">Create a new profiling session</source>
     </trans-unit>
-    <trans-unit id="++CODE++ba9ae98bcb402b5a736ffd9e5da622d3bf7e67b5a7da246d9238029b9d1449ed">
-      <source xml:lang="en">Create an Azure SQL Database (Preview)</source>
+    <trans-unit id="++CODE++2dda2d5e705c870b4711000d9e6e1a1552a6426ff2835af34a45eb0ea5f3182b">
+      <source xml:lang="en">Create an Azure SQL Database</source>
     </trans-unit>
     <trans-unit id="++CODE++dfc42cab83fbac4fe6fa1922367034eb24905e5540deef714d06396fb60dbe31">
       <source xml:lang="en">Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.</source>
