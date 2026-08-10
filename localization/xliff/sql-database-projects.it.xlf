@@ -784,11 +784,11 @@
       </trans-unit>
       <trans-unit id="++CODE++a1fd0aa6b9bdf8696143377ec1bf93d31e265ac3127aaee41867716f69f4405e">
         <source xml:lang="en">Restore NuGet packages</source>
-        <target state="new">Restore NuGet packages</target>
+        <target state="translated">Ripristina i pacchetti NuGet</target>
       </trans-unit>
       <trans-unit id="++CODE++633c647dc177f1bc66b204e5f67b5243fa1a1fbcdf8848eca20af08cc00cfea2">
         <source xml:lang="en">Restore NuGet packages failed. Check the terminal output for more details.</source>
-        <target state="new">Restore NuGet packages failed. Check the terminal output for more details.</target>
+        <target state="translated">Ripristino dei pacchetti NuGet non riuscito. Controlla l'output del terminale per informazioni dettagliate.</target>
       </trans-unit>
       <trans-unit id="++CODE++29185835a277f43007e12333c37a5bca92231e5bf3f9de29afc41a0497e2f8f3">
         <source xml:lang="en">Revert values to project defaults</source>
@@ -1400,7 +1400,7 @@ Progetti:
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.restorePackages">
         <source xml:lang="en">Restore Packages</source>
-        <target state="new">Restore Packages</target>
+        <target state="translated">Ripristina pacchetti</target>
       </trans-unit>
       <trans-unit id="sqlDatabaseProjects.objectExplorerSubmenu">
         <source xml:lang="en">SQL Database Projects</source>
