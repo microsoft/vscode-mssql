@@ -12261,6 +12261,10 @@ Puede conectarse a una base de datos escribiendo su información de conexión, u
         <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
         <target state="translated">Tamaño máximo del texto y datos de ntext devueltos por una instrucción SELECT</target>
       </trans-unit>
+      <trans-unit id="mssql.intelliSense.completionTimeoutMilliseconds">
+        <source xml:lang="en">Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.</source>
+        <target state="new">Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.</target>
+      </trans-unit>
       <trans-unit id="mssql.openAzureDataStudioMigration">
         <source xml:lang="en">Migrate from Azure Data Studio</source>
         <target state="translated">Migrar desde Azure Data Studio</target>

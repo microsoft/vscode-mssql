@@ -12261,6 +12261,10 @@ Sie können eine Verbindung mit einer Datenbank herstellen, indem Sie Ihre Verbi
         <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
         <target state="translated">Maximale Größe von text- und ntext-Daten, die von einer SELECT-Anweisung zurückgegeben werden</target>
       </trans-unit>
+      <trans-unit id="mssql.intelliSense.completionTimeoutMilliseconds">
+        <source xml:lang="en">Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.</source>
+        <target state="new">Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.</target>
+      </trans-unit>
       <trans-unit id="mssql.openAzureDataStudioMigration">
         <source xml:lang="en">Migrate from Azure Data Studio</source>
         <target state="translated">Von Azure Data Studio migrieren</target>

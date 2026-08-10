@@ -12261,6 +12261,10 @@ You can connect to a database by entering your connection information, using a c
         <source xml:lang="en">Maximum size of text and ntext data returned from a SELECT statement</source>
         <target state="translated">Максимальный размер данных типа text и ntext, возвращаемых инструкцией SELECT</target>
       </trans-unit>
+      <trans-unit id="mssql.intelliSense.completionTimeoutMilliseconds">
+        <source xml:lang="en">Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.</source>
+        <target state="new">Maximum time in milliseconds to wait for one IntelliSense completion operation before it times out. This does not change the SQL command timeout.</target>
+      </trans-unit>
       <trans-unit id="mssql.openAzureDataStudioMigration">
         <source xml:lang="en">Migrate from Azure Data Studio</source>
         <target state="translated">Миграция из Azure Data Studio</target>
