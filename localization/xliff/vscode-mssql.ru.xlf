@@ -337,7 +337,7 @@
       </trans-unit>
       <trans-unit id="++CODE++304b93680c049c9d66d5b61167de872af262e2d6990468fb171ddc263c40a8bb">
         <source xml:lang="en">Add tables and data, explore, and build with the MSSQL extension.</source>
-        <target state="new">Add tables and data, explore, and build with the MSSQL extension.</target>
+        <target state="translated">Добавляйте таблицы и данные, исследуйте и создавайте с помощью расширения MSSQL.</target>
       </trans-unit>
       <trans-unit id="++CODE++3e10b08cc874514175b51ba372ff955b27e2817963bc53ab489344968d5a472d">
         <source xml:lang="en">Add tag</source>
@@ -415,7 +415,7 @@
       </trans-unit>
       <trans-unit id="++CODE++9273e47b2772e54616e881165737b64eca4d6db0c0eac30621a74e29696c1860">
         <source xml:lang="en">Affected child objects</source>
-        <target state="new">Affected child objects</target>
+        <target state="translated">Затронутые дочерние объекты</target>
       </trans-unit>
       <trans-unit id="++CODE++7b68fe5510851da3d89100c569d3265e044d8656d95750c376b7a0972dea7330">
         <source xml:lang="en">After</source>
@@ -1091,7 +1091,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++83786570b57c8ba630ba1a34a6392b74bd535658df4105674f535468e8bf66a3">
         <source xml:lang="en">Build with AI using GitHub Copilot</source>
-        <target state="new">Build with AI using GitHub Copilot</target>
+        <target state="translated">Создавайте с помощью ИИ с использованием GitHub Copilot</target>
       </trans-unit>
       <trans-unit id="++CODE++070df86dfd0e7f4066a971ef2e0d5b9ee8ddbb826c4edf0924026bca37ac603f">
         <source xml:lang="en">Build {0}</source>
@@ -1676,7 +1676,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++ae34d5a6424e68736fc3b2450c3ca097bc7197da8fd3229e383fff8a5a4af425">
         <source xml:lang="en">Collapse Connect to Database</source>
-        <target state="new">Collapse Connect to Database</target>
+        <target state="translated">Свернуть подключение к базе данных</target>
       </trans-unit>
       <trans-unit id="++CODE++55fbcb99ed7e8209673d373c82ce28bcbb2600ed756fae1b62f505adf64314bc">
         <source xml:lang="en">Collapse Subscription Explorer</source>
@@ -1684,7 +1684,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++18481ffd35a78ec18882e24611f0e4d1a0099e2121e4106ea773489d848dc2fe">
         <source xml:lang="en">Collapse What's next</source>
-        <target state="new">Collapse What's next</target>
+        <target state="translated">Свернуть раздел "Что дальше"</target>
       </trans-unit>
       <trans-unit id="++CODE++73bdb3fe57af851db2313c3716cc6e6d8584314063030d5262237ad2fa9f8201">
         <source xml:lang="en">Collapse Workspace Explorer</source>
@@ -1819,7 +1819,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++c27f61f02d85bd66cd657c01ef308da726f0adba66b08e0c9d1623fca582892a">
         <source xml:lang="en">Compare and deploy schema with Schema Compare</source>
-        <target state="new">Compare and deploy schema with Schema Compare</target>
+        <target state="translated">Сравнение и развертывание схемы с помощью функции "Сравнение схем"</target>
       </trans-unit>
       <trans-unit id="++CODE++5b79ce1b6eead3275d92572d5997ed876b99fe9d47141f8b785abf94a4ff52c0">
         <source xml:lang="en">Comparison Details</source>
@@ -2172,7 +2172,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++511ada84b783506fb916797a09d9c19e21a5acd9cf2563a3b3629b28f6bc20bc">
         <source xml:lang="en">Connection string</source>
-        <target state="new">Connection string</target>
+        <target state="translated">Строка подключения</target>
       </trans-unit>
       <trans-unit id="++CODE++83035e9200f6fdd69864139d77f16bd50bd19373c53fc216611778d70a865e2a">
         <source xml:lang="en">Connection string copied to clipboard</source>
@@ -2217,17 +2217,17 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++1fb78b59d106ba2e4cd956f77e6e0c4bb1090e2d57ac69e73e49aef3fc65d6aa">
         <source xml:lang="en">Constraints added: {0}</source>
         <note>{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.</note>
-        <target state="new">Constraints added: {0}</target>
+        <target state="translated">Добавлены ограничения: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++bbbe9ad1983802ef25e78bbea25d0abdc86664e6a53f1459d4cc71cda0a25d8e">
         <source xml:lang="en">Constraints changed: {0}</source>
         <note>{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.</note>
-        <target state="new">Constraints changed: {0}</target>
+        <target state="translated">Изменены ограничения: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++c9d2fd860eb492e6f42e47058e7242c10daec76480b280a0886b242619243760">
         <source xml:lang="en">Constraints dropped: {0}</source>
         <note>{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.</note>
-        <target state="new">Constraints dropped: {0}</target>
+        <target state="translated">Удалены ограничения: {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++ca0fa7ee8e0d9d4e742094db2e8d59b963dce003cc884c8573d64d59fcfe16dd">
         <source xml:lang="en">Container Name</source>
@@ -2308,7 +2308,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++ea61bc15688d1e482ae5335e8dc030d8300b1afc07ecc7c2e6af5c43728b1d25">
         <source xml:lang="en">Copied!</source>
-        <target state="new">Copied!</target>
+        <target state="translated">Скопировано!</target>
       </trans-unit>
       <trans-unit id="++CODE++2061058e9da24f0490ebc753877518c126993f42bfcc07975bca24b78f3e05c5">
         <source xml:lang="en">Copilot Changes</source>
@@ -2401,7 +2401,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++0b85073a76f0a2d227512131c49920c0f094d12886747285f6510bd4b8ccf364">
         <source xml:lang="en">Copy connection string</source>
-        <target state="new">Copy connection string</target>
+        <target state="translated">Копировать строку подключения</target>
       </trans-unit>
       <trans-unit id="++CODE++c06d8c1acc124f7c2fb5ce0e63e4b287b27bb49db0d25492ca85d5565f957ea2">
         <source xml:lang="en">Copy connection string to clipboard</source>
@@ -2421,7 +2421,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++6267dc32ae62b09e5ba7edc15c8da2a45bf8872d72ed527ab581bf3644eb2ec3">
         <source xml:lang="en">Copy migration command</source>
-        <target state="new">Copy migration command</target>
+        <target state="translated">Копировать команду миграции</target>
       </trans-unit>
       <trans-unit id="++CODE++c8b5428b9ac790b3952e08ceea5a8a170ad8b0af1e0f51c98a159f1147631e8a">
         <source xml:lang="en">Copy script</source>
@@ -3068,7 +3068,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++8d37f3b7ab96032942bf53c01232765ea61fe23d6b67d0fe0006711800e4c16e">
         <source xml:lang="en">Design tables with Table Designer</source>
-        <target state="new">Design tables with Table Designer</target>
+        <target state="translated">Разработка таблиц с помощью конструктора таблиц</target>
       </trans-unit>
       <trans-unit id="++CODE++45989de49fb7f66dfe17a8fc26f3a02c7abcd74f7e8e6cf9f39fa0e3775780df">
         <source xml:lang="en">Details</source>
@@ -3933,7 +3933,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++c9dc64661a6ab3a67d5b541e0c871443b068fc5e228176a3394054c2f83030d6">
         <source xml:lang="en">Expand Connect to Database</source>
-        <target state="new">Expand Connect to Database</target>
+        <target state="translated">Развернуть подключение к базе данных</target>
       </trans-unit>
       <trans-unit id="++CODE++acd7d6334485ffa9ac31c98945eaf0360abb86e3c80cbb460cb7e0b0e280466f">
         <source xml:lang="en">Expand Subscription Explorer</source>
@@ -3941,7 +3941,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++2cd5a153af1997ff786bb4dbbf1fce238624a6442d5097fd3a92b8276b5d27a4">
         <source xml:lang="en">Expand What's next</source>
-        <target state="new">Expand What's next</target>
+        <target state="translated">Развернуть раздел "Что дальше"</target>
       </trans-unit>
       <trans-unit id="++CODE++48ad32aba89e3b0bbab4397b56bd23794212fe69606e0b644ff3b543035a048d">
         <source xml:lang="en">Expand Workspace Explorer</source>
@@ -4191,7 +4191,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++e341345b2922855a5f87cfce904e4e54512090c13bba238e46fec614f1ba5cfc">
         <source xml:lang="en">Fabric long-running operation response did not include a location header.</source>
-        <target state="new">Fabric long-running operation response did not include a location header.</target>
+        <target state="translated">Ответ Fabric на длительную операцию не содержал заголовка расположения.</target>
       </trans-unit>
       <trans-unit id="++CODE++031a8f0f659df890dfd53c92e45295b0f14c997185bae46e168831e403b273f7">
         <source xml:lang="en">Failed</source>
@@ -5341,7 +5341,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++ccc8cb224112819eff50f57e331a4b5a1ab1233a91d7eea66fedf3c446f0b42a">
         <source xml:lang="en">Import from a flat file as a new table</source>
-        <target state="new">Import from a flat file as a new table</target>
+        <target state="translated">Импорт из неструктурированного файла в виде новой таблицы</target>
       </trans-unit>
       <trans-unit id="++CODE++f12310620d6f87e759ba952d49c66c25457a44fb9231a08c9e5f9ce40324f88e">
         <source xml:lang="en">Import selected</source>
@@ -6040,7 +6040,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++a5427462c277225a1de708f2b2b949ae62f5ef9a5248d7d4c11d6ed297afc756">
         <source xml:lang="en">MSSQL Notebook Selection Summary</source>
-        <target state="new">MSSQL Notebook Selection Summary</target>
+        <target state="translated">Сводка по выбору записной книжки MSSQL</target>
       </trans-unit>
       <trans-unit id="++CODE++65298a316736d0742788a35a1a44d804842b5f5d39234b03faa3be7815a545e4">
         <source xml:lang="en">MSSQL Notebook connected to {0}</source>
@@ -8314,11 +8314,11 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++18af8fd62b2930a61322517ce9e800c2f93abd52a7276963fac72b18f76cb44f">
         <source xml:lang="en">Run your first query</source>
-        <target state="new">Run your first query</target>
+        <target state="translated">Выполнение первого запроса</target>
       </trans-unit>
       <trans-unit id="++CODE++5879cfccb1c09591c9b8a1677e0e1f0935cb541d24aebeb7ed596666a3919113">
         <source xml:lang="en">Run your migrations</source>
-        <target state="new">Run your migrations</target>
+        <target state="translated">Запуск миграции</target>
       </trans-unit>
       <trans-unit id="++CODE++5ccbc78ca828a71e0c83f5dba0f6c6c3ccb094127f40d984565fdf61ef016ae7">
         <source xml:lang="en">Run, cancel, and create queries</source>
@@ -10768,7 +10768,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++9f01c06e42657754f1351fdd6c5c8fa9c5a15dc9bcaff5446038222ba1d3e694">
         <source xml:lang="en">Visualize and design your database with Schema Designer</source>
-        <target state="new">Visualize and design your database with Schema Designer</target>
+        <target state="translated">Визуализируйте и спроектируйте базу данных с помощью конструктора схем</target>
       </trans-unit>
       <trans-unit id="++CODE++b6af395c5020f3f19337172a94b2607d19ef6f8fed2424cf788b0d00b0572264">
         <source xml:lang="en">WHERE</source>
@@ -10953,7 +10953,7 @@ Query: {2}</source>
       </trans-unit>
       <trans-unit id="++CODE++20082bf42822ccf6b53770a9f51230df781d30b42a43691ef534a3ccef0cb044">
         <source xml:lang="en">Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.</source>
-        <target state="new">Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.</target>
+        <target state="translated">Новая база данных пуста. Укажите на нее приложение, ORM или средство миграции и запустите миграции либо используйте расширение для развертывания локальной базы данных или проекта SQL.</target>
       </trans-unit>
       <trans-unit id="++CODE++e22a8e55997a44b12ff4f976b12df9cf1fd9b41a7521198b72b15a3cb9952ed0">
         <source xml:lang="en">Your password must contain characters from at least three of the following categories: uppercase letters, lowercase letters, numbers (0-9), and special characters (!, $, #, %, etc.).</source>
@@ -11248,7 +11248,7 @@ Query: {2}</source>
       <trans-unit id="++CODE++7f79912e776b14c310615f10e26f6ea1eca71fcacafb73e275603e152cb9f04d">
         <source xml:lang="en">{0} docs</source>
         <note>{0} is the name of a database migration tool</note>
-        <target state="new">{0} docs</target>
+        <target state="translated">Документы {0}</target>
       </trans-unit>
       <trans-unit id="++CODE++5c1afaa0e5ec640786450559a23d287ff17a8b5ffd18db119012de352e431731">
         <source xml:lang="en">{0} errors</source>

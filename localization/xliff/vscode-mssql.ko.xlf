@@ -2308,7 +2308,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++ea61bc15688d1e482ae5335e8dc030d8300b1afc07ecc7c2e6af5c43728b1d25">
         <source xml:lang="en">Copied!</source>
-        <target state="new">Copied!</target>
+        <target state="translated">복사했습니다.</target>
       </trans-unit>
       <trans-unit id="++CODE++2061058e9da24f0490ebc753877518c126993f42bfcc07975bca24b78f3e05c5">
         <source xml:lang="en">Copilot Changes</source>
