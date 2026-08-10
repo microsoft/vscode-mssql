@@ -1460,12 +1460,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private combineServerAndPort(connection: IConnectionDialogProfile): void {
-        if (connection.port !== undefined) {
+        const port = String(connection.port ?? "").trim();
+        if (port) {
             if (connection.server && !connection.server.includes(",")) {
-                connection.server = `${connection.server},${connection.port}`;
+                connection.server = `${connection.server},${port}`;
             }
-            connection.port = undefined;
         }
+        connection.port = undefined;
     }
 
     private async testConnectionStep(
