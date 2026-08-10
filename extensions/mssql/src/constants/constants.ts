@@ -84,6 +84,7 @@ export const cmdConfigureCodeAnalysisSettings = "mssql.configureCodeAnalysisSett
 export const cmdManageConnectionProfiles = "mssql.manageProfiles";
 export const cmdClearPooledConnections = "mssql.clearPooledConnections";
 export const cmdRebuildIntelliSenseCache = "mssql.rebuildIntelliSenseCache";
+export const cmdRefreshBetaLanguageService = "mssql.betaLanguageService.refresh";
 export const cmdAddObjectExplorer = "mssql.addObjectExplorer";
 export const cmdConnectionGroupCreate = "mssql.connectionGroups.create";
 export const cmdConnectionGroupEdit = "mssql.connectionGroups.edit";

@@ -112,8 +112,8 @@ import { openExecutionPlanWebview } from "./sharedExecutionPlanUtils";
 import { ITableExplorerService, TableExplorerService } from "../services/tableExplorerService";
 import { IMetadataService, MetadataService } from "../services/metadataService";
 import { TableExplorerWebViewController } from "../tableExplorer/tableExplorerWebViewController";
-import { SqlSymbolRenameProvider } from "../languageservice/sqlSymbolRenameProvider";
 import { SqlMoveToSchemaProvider } from "../languageservice/sqlMoveToSchemaProvider";
+import { registerBetaSqlLanguageService } from "../languageservice/betaSqlCompletionProvider";
 import { SearchDatabaseWebViewController } from "../searchDatabase/searchDatabaseWebViewController";
 import { ChangelogWebviewController } from "./changelogWebviewController";
 import { AzureDataStudioMigrationWebviewController } from "./azureDataStudioMigrationWebviewController";
@@ -378,16 +378,13 @@ export default class MainController implements vscode.Disposable {
             this._event.on(Constants.cmdClearAzureTokenCache, () =>
                 this.connectionManager.onClearAzureTokenCache(),
             );
-            // Register the RenameProvider so F2 / "Rename Symbol" uses our STS backend.
-            // This gives the native inline rename textbox + VS Code's preview panel.
-            const renameProvider = new SqlSymbolRenameProvider();
-            this._context.subscriptions.push(
-                vscode.languages.registerRenameProvider({ language: "sql" }, renameProvider),
-            );
-
             // Register the "Move to Schema..." refactor action (under the Refactor... menu) plus its
             // backing command. Picking it shows a QuickPick to choose the target schema.
             this._context.subscriptions.push(...SqlMoveToSchemaProvider.register());
+
+            this._context.subscriptions.push(
+                ...registerBetaSqlLanguageService(this._connectionMgr, this._scriptingService),
+            );
 
             this.registerCommand(Constants.cmdShowEstimatedPlan);
             this._event.on(Constants.cmdShowEstimatedPlan, () => {

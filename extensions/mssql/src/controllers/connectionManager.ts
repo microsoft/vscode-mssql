@@ -68,6 +68,10 @@ import * as AzureConstants from "../azure/constants";
 import { ChangePasswordService } from "../services/changePasswordService";
 import { checkIfConnectionIsDockerContainer } from "../docker/dockerUtils";
 import { PreviewFeature, previewService } from "../previews/previewService";
+import {
+    betaSqlOwnsDocumentUri,
+    setLegacySqlDocumentOwnership,
+} from "../languageservice/betaSqlLanguageServiceOwnership";
 
 /**
  * Maximum number of connection retries when a target serverless Azure SQL database is
@@ -1079,6 +1083,7 @@ export default class ConnectionManager {
         const fileUri = Utils.getActiveTextEditorUri();
         if (fileUri && Utils.isEditingSqlFile()) {
             if (isSqlCmdMode) {
+                setLegacySqlDocumentOwnership(fileUri, true);
                 SqlToolsServerClient.instance.sendNotification(
                     LanguageServiceContracts.LanguageFlavorChangedNotification.type,
                     <LanguageServiceContracts.DidChangeLanguageFlavorParams>{
@@ -1087,6 +1092,11 @@ export default class ConnectionManager {
                         flavor: "MSSQL",
                     },
                 );
+                return true;
+            }
+            setLegacySqlDocumentOwnership(fileUri, false);
+            if (betaSqlOwnsDocumentUri(fileUri)) {
+                this.setLanguageServiceForFile(fileUri, Constants.noneProviderName);
                 return true;
             }
             const flavor = await this.connectionUI.promptLanguageFlavor();
@@ -1107,6 +1117,15 @@ export default class ConnectionManager {
             await vscode.window.showWarningMessage(LocalizedConstants.msgOpenSqlFile);
             return false;
         }
+    }
+
+    public setLanguageServiceForFile(fileUri: string, flavor: string): void {
+        changeLanguageServiceForFile(
+            SqlToolsServerClient.instance,
+            fileUri,
+            flavor,
+            this.statusView,
+        );
     }
 
     // close active connection, if any
@@ -1495,9 +1514,12 @@ export default class ConnectionManager {
 
         // Note: must call flavor changed before connecting, or the timer showing an animation doesn't occur
         if (this.statusView) {
-            this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+            const languageServiceFlavor = betaSqlOwnsDocumentUri(fileUri)
+                ? Constants.noneProviderName
+                : Constants.mssqlProviderName;
+            this.statusView.languageFlavorChanged(fileUri, languageServiceFlavor);
             this.statusView.setConnecting(fileUri, credentials);
-            this.statusView.languageFlavorChanged(fileUri, Constants.mssqlProviderName);
+            this.statusView.languageFlavorChanged(fileUri, languageServiceFlavor);
         }
 
         this._logger.info(LocalizedConstants.msgConnecting(credentials.server, fileUri));
@@ -1863,10 +1885,14 @@ export default class ConnectionManager {
 
         void this.statusView.connectSuccess(fileUri, newCredentials, connectionInfo.serverInfo);
 
-        this.statusView.languageServiceStatusChanged(
-            fileUri,
-            LocalizedConstants.updatingIntelliSenseStatus,
-        );
+        if (betaSqlOwnsDocumentUri(fileUri)) {
+            this.setLanguageServiceForFile(fileUri, Constants.noneProviderName);
+        } else {
+            this.statusView.languageServiceStatusChanged(
+                fileUri,
+                LocalizedConstants.updatingIntelliSenseStatus,
+            );
+        }
 
         this._onSuccessfulConnectionEmitter.fire({
             connection: connectionInfo,

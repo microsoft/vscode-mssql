@@ -38,6 +38,7 @@ import { serviceName } from "../azure/constants";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { PreviewFeature, previewService } from "../previews/previewService";
+import { betaSqlOwnsDocument } from "./betaSqlLanguageServiceOwnership";
 import { getRuntimeConfigPath, ServiceExecutable } from "./serviceExecutablePaths";
 
 const STS_OVERRIDE_ENV_VAR = "MSSQL_SQLTOOLSSERVICE";
@@ -422,7 +423,17 @@ export default class SqlToolsServiceClient {
             },
             errorHandler: new LanguageClientErrorHandler(Constants.sqlToolsServiceName),
             middleware: {
+                // The preview language service owns these requests in the extension host. Short-
+                // circuiting the legacy client avoids duplicate providers and, more importantly,
+                // prevents an otherwise unused SQL Tools Service parse from sitting on the critical
+                // path for every editor gesture. Project-wide refactor operations remain on SQL
+                // Tools Service; document formatting is owned by the package provider below.
+                handleDiagnostics: (uri, diagnostics, next) =>
+                    next(uri, betaSqlOwnsDocument(uri) ? [] : diagnostics),
                 provideCompletionItem: async (document, position, context, token, next) => {
+                    if (betaSqlOwnsDocument(document)) {
+                        return [];
+                    }
                     const result = await next(document, position, context, token);
                     const count = Array.isArray(result)
                         ? result.length
@@ -439,6 +450,38 @@ export default class SqlToolsServiceClient {
                     }
                     return result;
                 },
+                provideHover: (document, position, token, next) =>
+                    betaSqlOwnsDocument(document) ? undefined : next(document, position, token),
+                provideDefinition: (document, position, token, next) =>
+                    betaSqlOwnsDocument(document) ? undefined : next(document, position, token),
+                provideSignatureHelp: (document, position, context, token, next) =>
+                    betaSqlOwnsDocument(document)
+                        ? undefined
+                        : next(document, position, context, token),
+                provideReferences: (document, position, options, token, next) =>
+                    betaSqlOwnsDocument(document) ? [] : next(document, position, options, token),
+                provideDocumentHighlights: (document, position, token, next) =>
+                    betaSqlOwnsDocument(document) ? [] : next(document, position, token),
+                provideDocumentSymbols: (document, token, next) =>
+                    betaSqlOwnsDocument(document) ? [] : next(document, token),
+                provideFoldingRanges: (document, context, token, next) =>
+                    betaSqlOwnsDocument(document) ? [] : next(document, context, token),
+                provideSelectionRanges: (document, positions, token, next) =>
+                    betaSqlOwnsDocument(document) ? [] : next(document, positions, token),
+                provideDocumentFormattingEdits: (document, options, token, next) =>
+                    betaSqlOwnsDocument(document) ? [] : next(document, options, token),
+                provideDocumentSemanticTokens: (document, token, next) =>
+                    betaSqlOwnsDocument(document)
+                        ? new vscode.SemanticTokens(new Uint32Array())
+                        : next(document, token),
+                provideDocumentSemanticTokensEdits: (document, previousResultId, token, next) =>
+                    betaSqlOwnsDocument(document)
+                        ? new vscode.SemanticTokens(new Uint32Array())
+                        : next(document, previousResultId, token),
+                provideDocumentRangeSemanticTokens: (document, range, token, next) =>
+                    betaSqlOwnsDocument(document)
+                        ? new vscode.SemanticTokens(new Uint32Array())
+                        : next(document, range, token),
             },
         };
 
@@ -729,13 +772,26 @@ export default class SqlToolsServiceClient {
      * @param params The params to pass with the request
      * @returns A thenable object for when the request receives a response
      */
-    public sendRequest<P, R, E>(type: RequestType<P, R, E>, params?: P): Thenable<R> {
+    public sendRequest<P, R, E>(
+        type: RequestType<P, R, E>,
+        params?: P,
+        token?: vscode.CancellationToken,
+    ): Thenable<R> {
         if (this.client !== undefined) {
-            return this.client.sendRequest(type, params as RequestParam<P>);
+            return this.client.sendRequest(type, params as RequestParam<P>, token);
         }
         return Promise.reject(
             new Error("Cannot send request before the language client is initialized"),
         );
+    }
+
+    /** Clears diagnostics published by the legacy language client during provider hand-off. */
+    public clearLanguageServiceDiagnostics(uri?: vscode.Uri): void {
+        if (uri) {
+            this.client?.diagnostics?.delete(uri);
+        } else {
+            this.client?.diagnostics?.clear();
+        }
     }
 
     /**

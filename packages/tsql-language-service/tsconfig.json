@@ -1,0 +1,20 @@
+{
+    "extends": "../../extensions/tsconfig.base.json",
+    "compilerOptions": {
+        "rootDir": "src",
+        "outDir": "dist",
+        "module": "CommonJS",
+        "moduleResolution": "Node",
+        "baseUrl": ".",
+        "paths": {
+            "langium": ["node_modules/langium/lib/index.d.ts"]
+        },
+        "declaration": true,
+        "declarationMap": true,
+        "noEmit": false,
+        "strict": false,
+        "types": ["node"]
+    },
+    "include": ["src/**/*.ts"],
+    "exclude": ["dist", "node_modules", "test"]
+}

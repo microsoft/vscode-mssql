@@ -1637,6 +1637,11 @@
         "message": "Failed disposing query: {0}",
         "comment": ["{0} is the error message"]
     },
+    "$(check) Beta language service ready": "$(check) Beta language service ready",
+    "$(database) Beta language service connected": "$(database) Beta language service connected",
+    "$(sync~spin) Loading language service metadata": "$(sync~spin) Loading language service metadata",
+    "$(warning) Language service metadata needs refresh": "$(warning) Language service metadata needs refresh",
+    "Refresh beta language service metadata": "Refresh beta language service metadata",
     "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
         "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
         "comment": ["{0} is the extension name"]

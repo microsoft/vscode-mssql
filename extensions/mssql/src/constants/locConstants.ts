@@ -2999,6 +2999,14 @@ export class QueryEditor {
     }
 }
 
+export class BetaLanguageService {
+    public static codeLensReady = l10n.t("$(check) Beta language service ready");
+    public static codeLensIdle = l10n.t("$(database) Beta language service connected");
+    public static codeLensLoading = l10n.t("$(sync~spin) Loading language service metadata");
+    public static codeLensError = l10n.t("$(warning) Language service metadata needs refresh");
+    public static codeLensRefreshTooltip = l10n.t("Refresh beta language service metadata");
+}
+
 export class ConnectionSharing {
     public static connectionSharingRequestNotification(extensionName: string) {
         return l10n.t({

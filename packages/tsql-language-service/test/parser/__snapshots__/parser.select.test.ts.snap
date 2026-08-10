@@ -1,0 +1,96 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`T-SQL Parser - SELECT clauses should build AST for a basic SELECT 1`] = `
+{
+  "body": [
+    {
+      "columns": [
+        {
+          "alias": undefined,
+          "end": 11,
+          "expression": {
+            "end": 11,
+            "name": "Name",
+            "parts": [
+              "Name",
+            ],
+            "start": 7,
+            "type": "Identifier",
+          },
+          "outputName": "Name",
+          "sourceName": "Name",
+          "start": 7,
+          "type": "Column",
+          "wildcard": false,
+        },
+        {
+          "alias": undefined,
+          "end": 16,
+          "expression": {
+            "end": 16,
+            "name": "Age",
+            "parts": [
+              "Age",
+            ],
+            "start": 13,
+            "type": "Identifier",
+          },
+          "outputName": "Age",
+          "sourceName": "Age",
+          "start": 13,
+          "type": "Column",
+          "wildcard": false,
+        },
+      ],
+      "distinct": false,
+      "end": 40,
+      "from": [
+        {
+          "alias": undefined,
+          "end": 27,
+          "hints": undefined,
+          "joins": [],
+          "start": 17,
+          "table": {
+            "end": 27,
+            "name": "Users",
+            "parts": [
+              "Users",
+            ],
+            "start": 22,
+            "type": "Identifier",
+          },
+          "type": "TableReference",
+        },
+      ],
+      "start": 0,
+      "type": "SelectStatement",
+      "where": {
+        "end": 40,
+        "left": {
+          "end": 36,
+          "name": "Id",
+          "parts": [
+            "Id",
+          ],
+          "start": 34,
+          "type": "Identifier",
+        },
+        "operator": "=",
+        "right": {
+          "end": 40,
+          "start": 39,
+          "type": "Literal",
+          "value": 1,
+          "variant": "number",
+        },
+        "start": 34,
+        "type": "BinaryExpression",
+      },
+    },
+  ],
+  "end": 41,
+  "start": 0,
+  "type": "Program",
+}
+`;

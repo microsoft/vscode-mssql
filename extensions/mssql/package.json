@@ -74,7 +74,11 @@
         "localization": "node ../../scripts/localization-extract.js mssql",
         "localization:generate-pseudoloc": "node scripts/generate-pseudoloc.js",
         "smoketest": "npm run instrument && npm run e2eTest",
-        "test": "vscode-test --coverage",
+        "test": "vscode-test --coverage --label \"Unit Tests\" --label \"Parser Unit Tests\"",
+        "test:parser": "npm run build:extension && vscode-test --label \"Parser Unit Tests\" --label \"Parser Integration Tests\"",
+        "test:parser:unit": "npm run build:extension && vscode-test --label \"Parser Unit Tests\"",
+        "test:parser:integration": "npm run build:extension && vscode-test --label \"Parser Integration Tests\"",
+        "benchmark:parser-comparison": "npm run build:extension && node scripts/benchmark-parser-engines.mjs",
         "package": "node scripts/package-extension.js",
         "install:sqltools-mcp": "node scripts/install-sqltools-mcp.js",
         "instrument": "nyc instrument ./dist/views ./dist/views --in-place",
@@ -135,6 +139,7 @@
         "slickgrid": "github:Microsoft/SlickGrid.ADS#v2.3.51",
         "slickgrid-react": "10.8.2",
         "source-map-support": "^0.5.21",
+        "tedious": "^20.0.0",
         "ts-node": "^10.9.2",
         "typescript": "^5.8.3",
         "vscode-oniguruma": "^2.0.1",
@@ -154,6 +159,7 @@
         "@azure/storage-blob": "^12.31.0",
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
         "@microsoft/vscode-azureresources-api": "^3.1.1",
+        "@vscode-mssql/tsql-language-service": "file:../../packages/tsql-language-service",
         "@xmldom/xmldom": "^0.9.10",
         "dockerode": "^4.0.9",
         "dotenv": "^16.4.5",
@@ -1808,6 +1814,12 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.preview.betaResultsGrid.description%",
+                    "scope": "application"
+                },
+                "mssql.preview.betaLanguageService": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.preview.betaLanguageService.description%",
                     "scope": "application"
                 },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {

@@ -4,11 +4,23 @@
     <trans-unit id="++CODE++fd10453f63e5c663d4e640ea9cbe1adcc832b6fed0454e62686773ac486ce64d">
       <source xml:lang="en"> is required.</source>
     </trans-unit>
+    <trans-unit id="++CODE++c2e1b9679ea51898b8638aa912221576f42c0c0f35120c1dfb25d124dfab7fb5">
+      <source xml:lang="en">$(check) Beta language service ready</source>
+    </trans-unit>
     <trans-unit id="++CODE++fd3bd9305a1a7d5dfd79fa21b626163609a8f298aab892396554e74842a84f9b">
       <source xml:lang="en">$(check) Copied messages</source>
     </trans-unit>
+    <trans-unit id="++CODE++a635a9b73ce3b73ea211e5230ffa0e8a5ded68d3c0d2176be385285bc2dfbc3f">
+      <source xml:lang="en">$(database) Beta language service connected</source>
+    </trans-unit>
     <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
       <source xml:lang="en">$(plug)  Connect to MSSQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++6807361019c17abb8c104a936a407230ea4a8e025ed2be8a44ccd7e9c7b1d1d9">
+      <source xml:lang="en">$(sync~spin) Loading language service metadata</source>
+    </trans-unit>
+    <trans-unit id="++CODE++17b6cb9a179ae3dc918e391d19879d446558ed65958d9e0dfac7201221dae42c">
+      <source xml:lang="en">$(warning) Language service metadata needs refresh</source>
     </trans-unit>
     <trans-unit id="++CODE++7ab8e89a60b445298b22409ca4e3a36b6032cd1f4b770cd638e11e0ebf23fabd">
       <source xml:lang="en">&apos;mssql.newEditorConnectionBehavior&apos; is set to &apos;defaultConnection&apos;, but &apos;mssql.defaultConnectionId&apos; is not configured. New editors will fall back to transferring the active connection.</source>
@@ -5935,6 +5947,9 @@
     <trans-unit id="++CODE++627fc5f9740b31ca7868476caa3694a842a494bf358329d1aaf28f3fd7a5a4f0">
       <source xml:lang="en">Refresh Credentials</source>
     </trans-unit>
+    <trans-unit id="++CODE++cc7e1e3f4719e43d9b4a5476c33dbda4ef65fc2c28e11f9ea17320bcbdbfac49">
+      <source xml:lang="en">Refresh beta language service metadata</source>
+    </trans-unit>
     <trans-unit id="++CODE++8244520578a62efeba5421b2c34605b58d39c05080245ba8a33abc9efc035f0e">
       <source xml:lang="en">Refresh dataset</source>
     </trans-unit>
@@ -9102,6 +9117,9 @@
     </trans-unit>
     <trans-unit id="mssql.enableExperimentalFeatures.description">
       <source xml:lang="en">Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.</source>
+    </trans-unit>
+    <trans-unit id="mssql.preview.betaLanguageService.description">
+      <source xml:lang="en">Enables the beta SQL language service with local, connection-aware metadata suggestions.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.betaResultsGrid.description">
       <source xml:lang="en">Enables the preview query results grid experience with improved state management and more column customization options, including showing, hiding, and freezing columns.</source>

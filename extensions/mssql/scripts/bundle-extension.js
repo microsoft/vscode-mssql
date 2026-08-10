@@ -13,7 +13,9 @@ void run(
                 extension: "src/extension.ts",
                 serviceInstallerUtil: "src/languageservice/serviceInstallerUtil.ts",
             },
-            external: ["vscode-mssql"],
+            // ssh2 treats cpu-features as an optional optimization and falls back when it is
+            // unavailable. Keep the native addon out of the portable extension bundle.
+            external: ["cpu-features", "vscode-mssql"],
             loader: {
                 ".ts": "ts",
                 ".js": "js",

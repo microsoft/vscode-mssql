@@ -62,7 +62,7 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
      * Returns true if `filePath` lives under the directory of any `.sqlproj` file
      * currently in the workspace. Uses VS Code's cached file index — no directory walks.
      */
-    private static async isInSqlProject(filePath: string): Promise<boolean> {
+    public static async isInSqlProject(filePath: string): Promise<boolean> {
         const sqlprojFiles = await vscode.workspace.findFiles("**/*.sqlproj");
         const normalizedFile = path.normalize(filePath);
         return sqlprojFiles.some((projUri) => {

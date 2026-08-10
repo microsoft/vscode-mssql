@@ -1,0 +1,89 @@
+{
+    "name": "@vscode-mssql/tsql-language-service",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Parser-independent T-SQL analysis and Langium document services",
+    "license": "SEE LICENSE IN ../../LICENSE.txt",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
+        "./analysis": {
+            "types": "./dist/analysis/index.d.ts",
+            "require": "./dist/analysis/index.js",
+            "default": "./dist/analysis/index.js"
+        },
+        "./adapters": {
+            "types": "./dist/adapters/index.d.ts",
+            "require": "./dist/adapters/index.js",
+            "default": "./dist/adapters/index.js"
+        },
+        "./core": {
+            "types": "./dist/core/index.d.ts",
+            "require": "./dist/core/index.js",
+            "default": "./dist/core/index.js"
+        },
+        "./langium": {
+            "types": "./dist/langium/index.d.ts",
+            "require": "./dist/langium/index.js",
+            "default": "./dist/langium/index.js"
+        },
+        "./metadata": {
+            "types": "./dist/metadata/index.d.ts",
+            "require": "./dist/metadata/index.js",
+            "default": "./dist/metadata/index.js"
+        },
+        "./parser": {
+            "types": "./dist/parser/index.d.ts",
+            "require": "./dist/parser/index.js",
+            "default": "./dist/parser/index.js"
+        },
+        "./semantic": {
+            "types": "./dist/semantic/index.d.ts",
+            "require": "./dist/semantic/index.js",
+            "default": "./dist/semantic/index.js"
+        }
+    },
+    "files": [
+        "dist",
+        "docs",
+        "README.md",
+        "third-party"
+    ],
+    "scripts": {
+        "build": "tsc -p tsconfig.json",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
+        "lint": "eslint --quiet --cache ./src/index.ts ./src/analysis ./src/adapters ./src/core ./src/langium ./src/metadata ./src/parser/index.ts ./src/parser/incremental ./test/*.test.js ./eslint.config.mjs",
+        "test": "npm run build && npm run test:facade && npm run test:parser && npm run test:oracle",
+        "test:facade": "node --test test/*.test.js",
+        "test:parser": "node --env-file-if-exists=.env ./node_modules/jest/bin/jest.js --runInBand --config jest.config.cjs",
+        "test:oracle": "node --test test/oracle/*.test.mjs",
+        "benchmark": "npm run build && node --expose-gc benchmarks/parser-benchmark.mjs",
+        "benchmark:analysis": "npm run build && node --max-old-space-size=8192 --expose-gc benchmarks/analysis-engine-benchmark.mjs",
+        "benchmark:generate-large": "node benchmarks/generate-large-corpora.mjs",
+        "benchmark:large": "npm run build && node --max-old-space-size=8192 --expose-gc benchmarks/large-file-benchmark.mjs"
+    },
+    "dependencies": {
+        "langium": "^4.3.1",
+        "tedious": "^20.0.0",
+        "vscode-languageserver-types": "~3.18.0"
+    },
+    "devDependencies": {
+        "@types/jest": "^30.0.0",
+        "@types/node": "^22.13.14",
+        "eslint": "^9.32.0",
+        "eslint-config-prettier": "^9.1.0",
+        "eslint-plugin-notice": "^1.0.0",
+        "eslint-plugin-prettier": "^5.2.1",
+        "jest": "^30.3.0",
+        "prettier": "^3.3.3",
+        "ts-jest": "^29.4.6",
+        "typescript": "^5.8.3",
+        "typescript-eslint": "^8.34.0"
+    }
+}
