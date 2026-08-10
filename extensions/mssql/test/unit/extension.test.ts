@@ -97,8 +97,9 @@ suite("Extension API Tests", () => {
 
         sandbox.stub(UriOwnershipInitialization, "createUriOwnershipCoordinator").returns({
             uriOwnershipApi: {},
+            onCoordinatingOwnershipChanged: sandbox.stub().returns(disposable),
             isActiveEditorOwnedByOtherExtensionWithWarning: () => false,
-        } as UriOwnershipCoordinator);
+        } as unknown as UriOwnershipCoordinator);
         sandbox.stub(UriOwnershipInitialization, "initializeUriOwnershipCoordinator").returns();
 
         vscodeMssql = await Extension.activate(context);

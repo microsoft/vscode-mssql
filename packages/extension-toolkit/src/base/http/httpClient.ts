@@ -30,6 +30,9 @@ export interface IHttpClientDependencies {
     /** Returns the configured proxy endpoint, if available. */
     getProxyConfig?: () => string | undefined;
 
+    /** Returns host patterns that should bypass the configured proxy. */
+    getNoProxyConfig?: () => readonly string[] | undefined;
+
     /** Returns whether proxy certificates should be validated. */
     getProxyStrictSSL?: () => boolean | undefined;
 
@@ -284,6 +287,14 @@ export class HttpClient {
             validateStatus: () => true,
         };
 
+        if (this.shouldBypassProxy(requestUrl)) {
+            this.logger?.debug(
+                `Request endpoint '${requestUrl.origin}' matched the proxy bypass list.`,
+            );
+            config.proxy = false;
+            return config;
+        }
+
         const proxy = this.getProxyForRequest(requestUrl);
 
         if (proxy) {
@@ -311,6 +322,25 @@ export class HttpClient {
         config: AxiosRequestConfig,
     ): Promise<AxiosResponse<TResponse>> {
         return axios.request<TResponse>({ ...config, url: requestUrl });
+    }
+
+    /**
+     * Determines whether a request should bypass the configured proxy.
+     *
+     * Uses host patterns from the host configuration when present, otherwise falling back to the
+     * `no_proxy` or `NO_PROXY` environment variable.
+     *
+     * @param requestUrl The parsed request URL to evaluate against the bypass rules.
+     * @returns `true` when any configured rule matches the request endpoint; otherwise, `false`.
+     */
+    private shouldBypassProxy(requestUrl: URL): boolean {
+        const configuredRules = this.dependencies.getNoProxyConfig?.() ?? [];
+        const environmentRules = (process.env.no_proxy ?? process.env.NO_PROXY ?? "").split(
+            /[,\s]+/,
+        );
+        const bypassRules = configuredRules.length > 0 ? configuredRules : environmentRules;
+
+        return bypassRules.some((rule) => matchesProxyBypassRule(requestUrl, rule));
     }
 
     /**
@@ -551,6 +581,61 @@ interface ProxyAgentOptions {
     port?: string | number | null;
     protocol: string;
     rejectUnauthorized: boolean;
+}
+
+/**
+ * Determines whether a request endpoint matches a proxy bypass rule.
+ *
+ * Supports domains, leading-dot domains, wildcard subdomains, optional schemes and ports, and the
+ * `*` rule that bypasses the proxy for every endpoint. Plain and leading-dot domains match the
+ * domain itself and its subdomains, while `*.` rules match subdomains only.
+ *
+ * @param requestEndpoint The parsed request URL to match.
+ * @param value The proxy bypass rule to evaluate.
+ * @returns `true` when the endpoint matches the rule; otherwise, `false`.
+ */
+function matchesProxyBypassRule(requestEndpoint: URL, value: string): boolean {
+    const rule = value.trim().toLowerCase();
+    if (!rule) {
+        return false;
+    }
+    if (rule === "*") {
+        return true;
+    }
+
+    let ruleHost: string;
+    let rulePort: string | undefined;
+    if (rule.includes("://")) {
+        try {
+            const ruleEndpoint = new URL(rule);
+            ruleHost = ruleEndpoint.hostname;
+            rulePort = ruleEndpoint.port || undefined;
+        } catch {
+            return false;
+        }
+    } else {
+        const match = rule.match(/^(.+):(\d+)$/);
+        ruleHost = match?.[1] ?? rule;
+        rulePort = match?.[2];
+    }
+
+    const requestPort =
+        requestEndpoint.port ||
+        (requestEndpoint.protocol === "https:" ? String(HTTPS_PORT) : String(HTTP_PORT));
+    if (rulePort && rulePort !== requestPort) {
+        return false;
+    }
+
+    const requestHost = requestEndpoint.hostname.toLowerCase();
+    if (ruleHost.startsWith("*.")) {
+        ruleHost = ruleHost.slice(2);
+        return requestHost.endsWith(`.${ruleHost}`);
+    }
+    if (ruleHost.startsWith(".")) {
+        ruleHost = ruleHost.slice(1);
+    }
+
+    return requestHost === ruleHost || requestHost.endsWith(`.${ruleHost}`);
 }
 
 /**

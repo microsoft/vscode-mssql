@@ -8,7 +8,7 @@ import { promises as fsPromises } from "fs";
 
 import * as lockFile from "lockfile";
 import * as path from "path";
-import { ICredentialStore } from "../../credentialstore/icredentialstore";
+import { ICredentialStore } from "../../credentialstore/credentialstore";
 import { ILogger } from "../../sharedInterfaces/logger";
 import { FileEncryptionHelper } from "../fileEncryptionHelper";
 

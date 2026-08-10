@@ -5,15 +5,36 @@
 
 import "./executionPlan.css";
 
-import * as utils from "./queryPlanSetup";
-
-import { Toolbar, ToolbarButton, makeStyles, tokens } from "@fluentui/react-components";
-import { useContext, useState } from "react";
+import {
+    makeStyles,
+    Toolbar,
+    ToolbarButton,
+    ToolbarDivider,
+    tokens,
+} from "@fluentui/react-components";
+import {
+    DocumentBulletListFilled,
+    DocumentBulletListRegular,
+    SaveRegular,
+    SearchFilled,
+    SearchRegular,
+    ZoomFitRegular,
+    ZoomInRegular,
+    ZoomOutRegular,
+} from "@fluentui/react-icons";
+import { Dispatch, SetStateAction, useContext, useState } from "react";
 
 import { ExecutionPlanContext } from "./executionPlanStateProvider";
-import { ExecutionPlanView } from "./executionPlanView";
+import { ExecutionPlanGraphController } from "./executionPlanGraphController";
+import {
+    DocumentCodeIcon16Regular,
+    HighlightExpensiveOperationIcon16Regular,
+    OpenQueryIcon16Regular,
+    TooltipIcon16Regular,
+    TooltipOffIcon16Regular,
+    ZoomControlIcon16Regular,
+} from "../../common/icons/executionPlanIcons";
 import { locConstants } from "../../common/locConstants";
-import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 
 const useStyles = makeStyles({
     iconStack: {
@@ -21,66 +42,96 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        width: "25px",
+        boxSizing: "border-box",
+        width: "35px",
+        paddingTop: "2px",
+        paddingRight: "1px",
+        paddingBottom: "2px",
+        paddingLeft: "1px",
+        rowGap: "0",
         opacity: 1,
         zIndex: "1",
         position: "absolute",
         height: "100%",
+        backgroundColor: tokens.colorNeutralBackground2,
     },
     button: {
+        minWidth: "32px",
+        width: "32px",
+        height: "32px",
         cursor: "pointer",
     },
-    buttonImg: {
-        display: "block",
-        height: "16px",
-        width: "16px",
+    selectedButton: {
+        backgroundColor: tokens.colorNeutralBackground1Selected,
     },
-    seperator: {
-        width: "100%",
-        height: "2px",
-        border: "none",
+    icon: {
+        width: "20px",
+        height: "20px",
+        fontSize: "20px",
+    },
+    divider: {
+        flexGrow: 0,
+        alignSelf: "center",
+        boxSizing: "border-box",
+        width: "24px",
+        minWidth: "24px",
+        height: "1px",
+        minHeight: "1px",
+        paddingTop: "0",
+        paddingRight: "0",
+        paddingBottom: "0",
+        paddingLeft: "0",
+        marginTop: "4px",
+        marginBottom: "4px",
     },
 });
 
-interface IconStackProps {
-    executionPlanView: ExecutionPlanView;
-    setExecutionPlanView: any;
-    setZoomNumber: any;
-    setCustomZoomClicked: any;
-    setFindNodeClicked: any;
-    setHighlightOpsClicked: any;
-    setPropertiesClicked: any;
+interface ReactFlowIconStackProps {
+    executionPlanView: ExecutionPlanGraphController;
+    setExecutionPlanView: Dispatch<SetStateAction<ExecutionPlanGraphController | null>>;
+    setZoomNumber: Dispatch<SetStateAction<number>>;
+    customZoomClicked: boolean;
+    setCustomZoomClicked: Dispatch<SetStateAction<boolean>>;
+    findNodeClicked: boolean;
+    setFindNodeClicked: Dispatch<SetStateAction<boolean>>;
+    highlightOpsClicked: boolean;
+    setHighlightOpsClicked: Dispatch<SetStateAction<boolean>>;
+    propertiesClicked: boolean;
+    setPropertiesClicked: Dispatch<SetStateAction<boolean>>;
     query: string;
     xml: string;
 }
 
-export const IconStack: React.FC<IconStackProps> = ({
+enum InputEnum {
+    CustomZoom,
+    FindNode,
+    HighlightOps,
+    Properties,
+}
+
+export const ReactFlowIconStack: React.FC<ReactFlowIconStackProps> = ({
     executionPlanView,
     setExecutionPlanView,
     setZoomNumber,
+    customZoomClicked,
     setCustomZoomClicked,
+    findNodeClicked,
     setFindNodeClicked,
+    highlightOpsClicked,
     setHighlightOpsClicked,
+    propertiesClicked,
     setPropertiesClicked,
     query,
     xml,
 }) => {
     const classes = useStyles();
-    const { themeKind } = useVscodeWebview();
     const context = useContext(ExecutionPlanContext);
 
     if (!context) {
         return undefined;
     }
 
-    const theme = themeKind;
     const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
-    enum InputEnum {
-        CustomZoom,
-        FindNode,
-        HighlightOps,
-        Properties,
-    }
 
     const SAVE_PLAN = locConstants.executionPlan.savePlan;
     const OPEN_XML = locConstants.executionPlan.openXml;
@@ -132,193 +183,128 @@ export const IconStack: React.FC<IconStackProps> = ({
 
     const handleToggleTooltips = async () => {
         if (executionPlanView) {
-            executionPlanView.toggleTooltip();
+            const enabled = executionPlanView.toggleTooltip();
             setExecutionPlanView(executionPlanView);
-            setTooltipsEnabled(!tooltipsEnabled);
+            setTooltipsEnabled(enabled);
         }
     };
 
     const setInputContainer = (inputType: InputEnum) => {
-        if (inputType == InputEnum.CustomZoom) {
-            setFindNodeClicked(false);
-            setHighlightOpsClicked(false);
-            setPropertiesClicked(false);
-            setCustomZoomClicked(true);
-        } else if (inputType == InputEnum.FindNode) {
-            setFindNodeClicked(true);
-            setHighlightOpsClicked(false);
-            setCustomZoomClicked(false);
-            setPropertiesClicked(false);
-        } else if (inputType == InputEnum.HighlightOps) {
-            setFindNodeClicked(false);
-            setHighlightOpsClicked(true);
-            setCustomZoomClicked(false);
-            setPropertiesClicked(false);
-        } else {
-            setFindNodeClicked(false);
-            setHighlightOpsClicked(false);
-            setCustomZoomClicked(false);
-            setPropertiesClicked(true);
-        }
+        setCustomZoomClicked(inputType === InputEnum.CustomZoom ? !customZoomClicked : false);
+        setFindNodeClicked(inputType === InputEnum.FindNode ? !findNodeClicked : false);
+        setHighlightOpsClicked(inputType === InputEnum.HighlightOps ? !highlightOpsClicked : false);
+        setPropertiesClicked(inputType === InputEnum.Properties ? !propertiesClicked : false);
     };
+
+    const buttonClassName = (selected = false) =>
+        `${classes.button}${selected ? ` ${classes.selectedButton}` : ""}`;
 
     return (
         <Toolbar
             className={classes.iconStack}
-            style={{
-                background: `${tokens.colorNeutralBackground2}`,
-                minHeight: "300px",
-            }}
+            aria-label={locConstants.executionPlan.executionPlanToolbar}
             vertical>
             <ToolbarButton
                 className={classes.button}
-                tabIndex={0}
-                icon={<img className={classes.buttonImg} src={utils.save(theme)} alt={SAVE_PLAN} />}
+                icon={<SaveRegular className={classes.icon} />}
                 onClick={handleSavePlan}
                 title={SAVE_PLAN}
                 aria-label={SAVE_PLAN}
             />
             <ToolbarButton
                 className={classes.button}
-                tabIndex={0}
-                icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={utils.openPlanFile(theme)}
-                        alt={OPEN_XML}
-                    />
-                }
+                icon={<DocumentCodeIcon16Regular className={classes.icon} />}
                 onClick={handleShowXml}
                 title={OPEN_XML}
                 aria-label={OPEN_XML}
             />
             <ToolbarButton
                 className={classes.button}
-                tabIndex={0}
-                icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={utils.openQuery(theme)}
-                        alt={OPEN_QUERY}
-                    />
-                }
+                icon={<OpenQueryIcon16Regular className={classes.icon} />}
                 onClick={handleShowQuery}
                 title={OPEN_QUERY}
                 aria-label={OPEN_QUERY}
             />
-            <hr
-                className={classes.seperator}
-                style={{
-                    background: tokens.colorNeutralStroke1,
-                }}></hr>
+            <ToolbarDivider className={classes.divider} />
             <ToolbarButton
                 className={classes.button}
-                tabIndex={0}
-                icon={<img className={classes.buttonImg} src={utils.zoomIn(theme)} alt={ZOOM_IN} />}
+                icon={<ZoomInRegular className={classes.icon} />}
                 onClick={handleZoomIn}
                 title={ZOOM_IN}
                 aria-label={ZOOM_IN}
             />
             <ToolbarButton
                 className={classes.button}
-                tabIndex={0}
-                icon={
-                    <img className={classes.buttonImg} src={utils.zoomOut(theme)} alt={ZOOM_OUT} />
-                }
+                icon={<ZoomOutRegular className={classes.icon} />}
                 onClick={handleZoomOut}
                 title={ZOOM_OUT}
                 aria-label={ZOOM_OUT}
             />
             <ToolbarButton
                 className={classes.button}
-                tabIndex={0}
-                icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={utils.zoomToFit(theme)}
-                        alt={ZOOM_TO_FIT}
-                    />
-                }
+                icon={<ZoomFitRegular className={classes.icon} />}
                 onClick={handleZoomToFit}
                 title={ZOOM_TO_FIT}
                 aria-label={ZOOM_TO_FIT}
             />
             <ToolbarButton
-                className={classes.button}
-                tabIndex={0}
-                icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={utils.customZoom(theme)}
-                        alt={CUSTOM_ZOOM}
-                    />
-                }
+                className={buttonClassName(customZoomClicked)}
+                icon={<ZoomControlIcon16Regular className={classes.icon} />}
                 onClick={() => setInputContainer(InputEnum.CustomZoom)}
                 title={CUSTOM_ZOOM}
                 aria-label={CUSTOM_ZOOM}
+                aria-pressed={customZoomClicked}
             />
-            <hr
-                className={classes.seperator}
-                style={{
-                    background: tokens.colorNeutralStroke1,
-                }}></hr>
+            <ToolbarDivider className={classes.divider} />
             <ToolbarButton
-                className={classes.button}
-                tabIndex={0}
+                className={buttonClassName(findNodeClicked)}
                 icon={
-                    <img className={classes.buttonImg} src={utils.search(theme)} alt={FIND_NODE} />
+                    findNodeClicked ? (
+                        <SearchFilled className={classes.icon} />
+                    ) : (
+                        <SearchRegular className={classes.icon} />
+                    )
                 }
                 onClick={() => setInputContainer(InputEnum.FindNode)}
                 title={FIND_NODE}
                 aria-label={FIND_NODE}
+                aria-pressed={findNodeClicked}
             />
             <ToolbarButton
-                className={classes.button}
-                tabIndex={0}
+                className={buttonClassName(propertiesClicked)}
                 icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={utils.properties(theme)}
-                        alt={PROPERTIES}
-                    />
+                    propertiesClicked ? (
+                        <DocumentBulletListFilled className={classes.icon} />
+                    ) : (
+                        <DocumentBulletListRegular className={classes.icon} />
+                    )
                 }
                 onClick={() => setInputContainer(InputEnum.Properties)}
                 title={PROPERTIES}
                 aria-label={PROPERTIES}
+                aria-pressed={propertiesClicked}
             />
             <ToolbarButton
-                className={classes.button}
-                tabIndex={0}
-                icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={utils.highlightOps(theme)}
-                        alt={HIGHLIGHT_OPS}
-                    />
-                }
+                className={buttonClassName(highlightOpsClicked)}
+                icon={<HighlightExpensiveOperationIcon16Regular className={classes.icon} />}
                 onClick={() => setInputContainer(InputEnum.HighlightOps)}
                 title={HIGHLIGHT_OPS}
                 aria-label={HIGHLIGHT_OPS}
-                role="button"
+                aria-pressed={highlightOpsClicked}
             />
             <ToolbarButton
-                className={classes.button}
-                tabIndex={0}
+                className={buttonClassName(tooltipsEnabled)}
                 icon={
-                    <img
-                        className={classes.buttonImg}
-                        src={
-                            tooltipsEnabled
-                                ? utils.enableTooltip(theme)
-                                : utils.disableTooltip(theme)
-                        }
-                        alt={TOGGLE_TOOLTIPS}
-                    />
+                    tooltipsEnabled ? (
+                        <TooltipIcon16Regular className={classes.icon} />
+                    ) : (
+                        <TooltipOffIcon16Regular className={classes.icon} />
+                    )
                 }
                 onClick={handleToggleTooltips}
                 title={TOGGLE_TOOLTIPS}
                 aria-label={TOGGLE_TOOLTIPS}
-                role="button"
+                aria-pressed={tooltipsEnabled}
             />
         </Toolbar>
     );

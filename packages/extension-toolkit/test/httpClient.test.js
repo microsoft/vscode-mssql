@@ -6,15 +6,23 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const { PassThrough, Writable } = require("node:stream");
-const { afterEach, beforeEach, describe, it, mock } = require("node:test");
+const { afterEach, beforeEach, mock, suite, test } = require("node:test");
 const { HttpClient, HttpDownloadError, ProxyMessages } = require("../dist/base/index.js");
 
-const proxyEnvironmentVariables = ["HTTP_PROXY", "http_proxy", "HTTPS_PROXY", "https_proxy"];
+const proxyEnvironmentVariables = [
+    "HTTP_PROXY",
+    "http_proxy",
+    "HTTPS_PROXY",
+    "https_proxy",
+    "NO_PROXY",
+    "no_proxy",
+];
 
-describe("HttpClient", () => {
+suite("HttpClient", () => {
     let environment;
     let httpClient;
     let logger;
+    let noProxyValue;
     let parseUriScheme;
     let proxyValue;
 
@@ -27,10 +35,12 @@ describe("HttpClient", () => {
         }
 
         logger = createMockLogger();
+        noProxyValue = undefined;
         parseUriScheme = (value) => new URL(value).protocol;
         proxyValue = undefined;
         httpClient = new HttpClient(logger, {
             getProxyConfig: () => proxyValue,
+            getNoProxyConfig: () => noProxyValue,
             parseUriScheme: (value) => parseUriScheme(value),
         });
     });
@@ -47,8 +57,8 @@ describe("HttpClient", () => {
         }
     });
 
-    describe("get", () => {
-        it("makes a successful GET request", async () => {
+    suite("get", () => {
+        test("makes a successful GET request", async () => {
             const requestUrl = "https://api.example.com/data";
             const token = "test-token";
             const mockResponse = {
@@ -78,8 +88,8 @@ describe("HttpClient", () => {
         });
     });
 
-    describe("postJson", () => {
-        it("makes a successful POST request", async () => {
+    suite("postJson", () => {
+        test("makes a successful POST request", async () => {
             const requestUrl = "https://api.example.com/data";
             const token = "test-token";
             const payload = { name: "new item" };
@@ -110,8 +120,8 @@ describe("HttpClient", () => {
         });
     });
 
-    describe("downloads", () => {
-        it("downloads successfully and invokes callbacks", async () => {
+    suite("downloads", () => {
+        test("downloads successfully and invokes callbacks", async () => {
             const requestUrl = "https://download.example.com/file";
             const normalizedUrl = "https://download.example.com:443/file";
             const headers = { "content-length": "5" };
@@ -179,7 +189,7 @@ describe("HttpClient", () => {
             ]);
         });
 
-        it("returns the error code and destroys the stream for an HTTP error", async () => {
+        test("returns the error code and destroys the stream for an HTTP error", async () => {
             const requestUrl = "https://download.example.com/file";
             const normalizedUrl = "https://download.example.com:443/file";
             const headers = { "content-length": "0" };
@@ -210,7 +220,7 @@ describe("HttpClient", () => {
             assert.equal(destroy.mock.callCount(), 1);
         });
 
-        it("opens and closes path destinations", async () => {
+        test("opens and closes path destinations", async () => {
             const result = { status: 200, headers: {} };
             const openSync = mock.method(fs, "openSync", () => 123);
             const closeSync = mock.method(fs, "closeSync", () => undefined);
@@ -226,7 +236,7 @@ describe("HttpClient", () => {
             assert.deepEqual(closeSync.mock.calls[0].arguments, [123]);
         });
 
-        it("wraps request errors in HttpDownloadError", async () => {
+        test("wraps request errors in HttpDownloadError", async () => {
             const requestUrl = "https://download.example.com/file";
             mock.method(httpClient, "setupRequest", () => ({ requestUrl, config: {} }));
             const requestError = Object.assign(new Error("network error"), {
@@ -244,7 +254,7 @@ describe("HttpClient", () => {
             });
         });
 
-        it("wraps response stream errors in HttpDownloadError", async () => {
+        test("wraps response stream errors in HttpDownloadError", async () => {
             const requestUrl = "https://download.example.com/file";
             const responseStream = new PassThrough();
             const tmpFileStream = new PassThrough();
@@ -271,8 +281,8 @@ describe("HttpClient", () => {
         });
     });
 
-    describe("proxy configuration", () => {
-        it("warns when the proxy lacks a protocol", () => {
+    suite("proxy configuration", () => {
+        test("warns when the proxy lacks a protocol", () => {
             proxyValue = "localhost:1234";
             parseUriScheme = () => undefined;
 
@@ -282,7 +292,7 @@ describe("HttpClient", () => {
             assert.equal(logger.warn.mock.callCount(), 1);
         });
 
-        it("warns when proxy parsing throws", () => {
+        test("warns when proxy parsing throws", () => {
             proxyValue = "env-proxy.example";
             const uriError = new Error("invalid uri format");
             parseUriScheme = () => {
@@ -295,7 +305,7 @@ describe("HttpClient", () => {
             assert.equal(logger.warn.mock.callCount(), 1);
         });
 
-        it("redacts proxy credentials and query values from warnings", () => {
+        test("redacts proxy credentials and query values from warnings", () => {
             proxyValue = "http://user:super-secret@[invalid-host]?token=also-secret";
             parseUriScheme = () => {
                 throw new Error(`Invalid URL: ${proxyValue}`);
@@ -312,7 +322,7 @@ describe("HttpClient", () => {
             assert.ok(loggedWarning.includes("<redacted>"));
         });
 
-        it("does not warn when the proxy is valid", () => {
+        test("does not warn when the proxy is valid", () => {
             for (const validProxyValue of [
                 "http://valid-proxy.test:8080",
                 "https://valid-proxy.example",
@@ -326,14 +336,14 @@ describe("HttpClient", () => {
             assert.equal(logger.warn.mock.callCount(), 0);
         });
 
-        it("does not warn when the proxy is undefined", () => {
+        test("does not warn when the proxy is undefined", () => {
             const warning = httpClient.getInvalidProxySettingsWarning();
 
             assert.equal(warning, undefined);
             assert.equal(logger.warn.mock.callCount(), 0);
         });
 
-        it("validates both protocol-specific environment proxies", () => {
+        test("validates both protocol-specific environment proxies", () => {
             process.env.HTTPS_PROXY = "https://valid-proxy.example";
             process.env.HTTP_PROXY = "invalid-proxy";
 
@@ -346,7 +356,7 @@ describe("HttpClient", () => {
             assert.equal(logger.warn.mock.callCount(), 1);
         });
 
-        it("prefers VS Code configuration over environment variables for requests", () => {
+        test("prefers VS Code configuration over environment variables for requests", () => {
             proxyValue = "config-proxy";
             process.env.HTTP_PROXY = "env-proxy";
             process.env.https_proxy = "env-proxy";
@@ -356,7 +366,7 @@ describe("HttpClient", () => {
             assert.equal(proxy, proxyValue);
         });
 
-        it("falls back to environment variables when request configuration is missing", () => {
+        test("falls back to environment variables when request configuration is missing", () => {
             process.env.HTTP_PROXY = "http://env-proxy";
 
             const proxy = httpClient.getProxyForRequest(new URL("http://api.example.com"));
@@ -364,7 +374,7 @@ describe("HttpClient", () => {
             assert.equal(proxy, process.env.HTTP_PROXY);
         });
 
-        it("selects the environment proxy for the request protocol", () => {
+        test("selects the environment proxy for the request protocol", () => {
             process.env.HTTP_PROXY = "http://http-proxy";
             process.env.HTTPS_PROXY = "http://https-proxy";
 
@@ -378,7 +388,7 @@ describe("HttpClient", () => {
             );
         });
 
-        it("falls back to HTTP_PROXY for an HTTPS request", () => {
+        test("falls back to HTTP_PROXY for an HTTPS request", () => {
             process.env.HTTP_PROXY = "http://http-proxy";
 
             const proxy = httpClient.getProxyForRequest(new URL("https://api.example.com"));
@@ -386,7 +396,7 @@ describe("HttpClient", () => {
             assert.equal(proxy, process.env.HTTP_PROXY);
         });
 
-        it("does not use HTTPS_PROXY for an HTTP request", () => {
+        test("does not use HTTPS_PROXY for an HTTP request", () => {
             process.env.HTTPS_PROXY = "http://https-proxy";
 
             const proxy = httpClient.getProxyForRequest(new URL("http://api.example.com"));
@@ -394,7 +404,124 @@ describe("HttpClient", () => {
             assert.equal(proxy, undefined);
         });
 
-        it("sets up an HTTP request with a proxy", () => {
+        test("evaluates proxy bypass rules", () => {
+            proxyValue = "http://proxy.example.com:8080";
+            const cases = [
+                {
+                    name: "uppercase environment variable",
+                    environment: { NO_PROXY: ".internal.example.com" },
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "lowercase environment variable",
+                    environment: { no_proxy: ".internal.example.com" },
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "VS Code setting",
+                    configuredRules: ["*.internal.example.com"],
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "VS Code setting takes precedence over environment variable",
+                    configuredRules: ["other.example.com"],
+                    environment: { NO_PROXY: "internal.example.com" },
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: false,
+                },
+                {
+                    name: "plain domain",
+                    configuredRules: ["internal.example.com"],
+                    requestUrl: "https://internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "plain domain subdomain",
+                    configuredRules: ["internal.example.com"],
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "wildcard subdomain",
+                    configuredRules: ["*.internal.example.com"],
+                    requestUrl: "https://api.internal.example.com",
+                    bypassed: true,
+                },
+                {
+                    name: "wildcard bare domain",
+                    configuredRules: ["*.internal.example.com"],
+                    requestUrl: "https://internal.example.com",
+                    bypassed: false,
+                },
+                {
+                    name: "matching port",
+                    environment: { NO_PROXY: "api.example.com:8443" },
+                    requestUrl: "https://api.example.com:8443",
+                    bypassed: true,
+                },
+                {
+                    name: "mismatched port",
+                    environment: { NO_PROXY: "api.example.com:8443" },
+                    requestUrl: "https://api.example.com",
+                    bypassed: false,
+                },
+                {
+                    name: "matching bracketed IPv6 port",
+                    configuredRules: ["[::1]:8443"],
+                    requestUrl: "https://[::1]:8443",
+                    bypassed: true,
+                },
+                {
+                    name: "mismatched bracketed IPv6 port",
+                    configuredRules: ["[::1]:8443"],
+                    requestUrl: "https://[::1]:9443",
+                    bypassed: false,
+                },
+                {
+                    name: "global wildcard",
+                    environment: { NO_PROXY: "*" },
+                    requestUrl: "https://api.example.com",
+                    bypassed: true,
+                },
+            ];
+
+            for (const testCase of cases) {
+                noProxyValue = testCase.configuredRules;
+                delete process.env.NO_PROXY;
+                delete process.env.no_proxy;
+                Object.assign(process.env, testCase.environment);
+
+                const result = httpClient.setupConfigAndProxyForRequest(
+                    new URL(testCase.requestUrl),
+                    {},
+                );
+
+                assert.equal(result.httpsAgent === undefined, testCase.bypassed, testCase.name);
+                if (testCase.bypassed) {
+                    assert.equal(result.proxy, false, testCase.name);
+                    assert.equal(result.httpAgent, undefined, testCase.name);
+                }
+            }
+        });
+
+        test("logs the bypassed request endpoint without URL secrets", () => {
+            proxyValue = "http://proxy.example.com:8080";
+            noProxyValue = ["api.example.com"];
+
+            httpClient.setupConfigAndProxyForRequest(
+                new URL("https://user:password@api.example.com/path?token=secret#fragment"),
+                {},
+            );
+
+            assert.deepEqual(logger.debug.mock.calls.at(-1).arguments, [
+                "Request endpoint 'https://api.example.com' matched the proxy bypass list.",
+            ]);
+        });
+
+        test("sets up an HTTP request with a proxy", () => {
             const fakeToken = "fake-token";
             const fakeProxyUrl = new URL("http://fake-proxy.test:8080");
             proxyValue = fakeProxyUrl.toString();
@@ -412,7 +539,7 @@ describe("HttpClient", () => {
             assert.equal(result.httpsAgent, undefined);
         });
 
-        it("applies proxyStrictSSL to an HTTPS proxy case-insensitively", () => {
+        test("applies proxyStrictSSL to an HTTPS proxy case-insensitively", () => {
             for (const proxy of [
                 "https://proxy.example.com:8080",
                 "HTTPS://proxy.example.com:8080",
@@ -432,7 +559,7 @@ describe("HttpClient", () => {
             }
         });
 
-        it("sets up a request without a proxy", () => {
+        test("sets up a request without a proxy", () => {
             const requestUrl = new URL("https://api.example.com");
             const headers = { Authorization: "Bearer test-token" };
 
@@ -446,7 +573,7 @@ describe("HttpClient", () => {
         });
 
         for (const proxy of ["https://proxy.example.com:8080", "http://proxy.example.com:8080"]) {
-            it(`sets up an HTTPS request through ${new URL(proxy).protocol}`, () => {
+            test(`sets up an HTTPS request through ${new URL(proxy).protocol}`, () => {
                 const agent = {};
                 proxyValue = proxy;
                 mock.method(httpClient, "createProxyAgent", () => ({ agent }));
@@ -462,7 +589,7 @@ describe("HttpClient", () => {
             });
         }
 
-        it("creates a proxy agent when a proxy is configured", () => {
+        test("creates a proxy agent when a proxy is configured", () => {
             proxyValue = "http://proxy.example.com:8080";
             const createProxyAgent = mock.method(httpClient, "createProxyAgent", () => ({
                 agent: {},

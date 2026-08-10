@@ -1255,6 +1255,14 @@ export class Azure {
         });
     };
 
+    public static unableToLocateSqlServer = (serverName: string) => {
+        return l10n.t({
+            message: "Unable to locate Azure SQL server '{0}' in the selected Azure account.",
+            args: [serverName],
+            comment: ["{0} is the server name"],
+        });
+    };
+
     public static failedToGetTenantForAccount = (tenantId: string, accountName: string) => {
         return l10n.t({
             message: "Failed to get tenant '{0}' for account '{1}'.",
@@ -3008,6 +3016,16 @@ export class BetaLanguageService {
 }
 
 export class ConnectionSharing {
+    public static retirementWarning(extensionName: string) {
+        return l10n.t({
+            message:
+                "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.",
+            args: [extensionName],
+            comment: ["{0} is the extension name"],
+        });
+    }
+    public static FileFeatureRequest = l10n.t("File a feature request");
+    public static DoNotShowAgainForExtension = l10n.t("Don’t show again for this extension");
     public static connectionSharingRequestNotification(extensionName: string) {
         return l10n.t({
             message:
@@ -4195,7 +4213,9 @@ export class SqlMoveToSchema {
         l10n.t("Failed to resolve the refactor log for this file: {0}", message);
     public static previewLabel = (targetSchema: string): string =>
         l10n.t("Move to schema '{0}'", targetSchema);
-    public static applyEditFailed = l10n.t(
-        "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
-    );
+    public static moveFileFailed = (message: string): string =>
+        l10n.t("Failed to move file to the new schema folder: {0}", message);
+    public static moveFileRejected = l10n.t("The move was rejected or could not be completed.");
+    public static sqlprojUpdateFailed = (message: string): string =>
+        l10n.t("Failed to update the .sqlproj after moving the file: {0}", message);
 }

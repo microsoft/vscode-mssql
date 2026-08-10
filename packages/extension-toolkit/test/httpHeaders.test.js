@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 const assert = require("node:assert/strict");
-const { describe, it } = require("node:test");
+const { suite, test } = require("node:test");
 const { createHttpHeaders } = require("../dist/base/index.js");
 
-describe("HttpHeaders", () => {
-    it("resolves names case-insensitively", () => {
+suite("HttpHeaders", () => {
+    test("resolves names case-insensitively", () => {
         const headers = createHttpHeaders({ "Content-Type": "application/json" });
 
         assert.equal(headers.get("content-type"), "application/json");
@@ -16,7 +16,7 @@ describe("HttpHeaders", () => {
         assert.equal(headers.has("Content-Type"), true);
     });
 
-    it("preserves repeated values", () => {
+    test("preserves repeated values", () => {
         const headers = createHttpHeaders([
             ["Set-Cookie", "a=1"],
             ["set-cookie", "b=2"],
@@ -26,7 +26,7 @@ describe("HttpHeaders", () => {
         assert.deepEqual(headers.getAll("Set-Cookie"), ["a=1", "b=2"]);
     });
 
-    it("normalizes primitive values and omits unsupported values", () => {
+    test("normalizes primitive values and omits unsupported values", () => {
         const headers = createHttpHeaders({
             "content-length": 42,
             secure: true,

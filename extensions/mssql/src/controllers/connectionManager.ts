@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { NotificationHandler, RequestType } from "vscode-languageclient";
 import { ConnectionDetails, IConnectionInfo, IServerInfo, IToken } from "vscode-mssql";
 import { AccountService } from "../azure/accountService";
-import { AccountStore } from "../azure/accountStore";
+import { AccountStore, IAccountStore } from "../azure/accountStore";
 import { AzureController } from "../azure/azureController";
 import { MsalAzureController } from "../azure/msal/msalAzureController";
 import { getCloudId, getCloudProviderSettings } from "../azure/providerSettings";
@@ -23,12 +23,12 @@ import {
 } from "../azure/vscodeEntraMfaUtils";
 import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
-import { CredentialStore } from "../credentialstore/credentialstore";
+import { CredentialStore, ICredentialStore } from "../credentialstore/credentialstore";
 import { FirewallService } from "../firewall/firewallService";
 import SqlToolsServerClient from "../languageservice/serviceclient";
 import { ConnectionCredentials } from "../models/connectionCredentials";
 import { ConnectionProfile } from "../models/connectionProfile";
-import { ConnectionStore } from "../models/connectionStore";
+import { ConnectionStore, IConnectionStore } from "../models/connectionStore";
 import {
     IAccount,
     RequestSecurityTokenParams,
@@ -50,6 +50,7 @@ import { IPrompter, IQuestion, QuestionTypes } from "../prompts/question";
 import { Deferred } from "../protocol";
 import { ConnectionUI } from "../views/connectionUI";
 import StatusView from "../views/statusView";
+import { IInstantiationService } from "extension-toolkit/base";
 import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 import {
     ActivityObject,
@@ -169,12 +170,13 @@ export default class ConnectionManager {
         private context: vscode.ExtensionContext,
         statusView: StatusView,
         prompter: IPrompter,
+        @IConnectionStore private readonly _connectionStore: ConnectionStore,
+        @ICredentialStore private readonly _credentialStore: CredentialStore,
+        @IAccountStore private readonly _accountStore: AccountStore,
+        @IInstantiationService private readonly _instantiationService: IInstantiationService,
         private _logger?: ILogger,
         private _client?: SqlToolsServerClient,
-        private _connectionStore?: ConnectionStore,
-        private _credentialStore?: CredentialStore,
         private _connectionUI?: ConnectionUI,
-        private _accountStore?: AccountStore,
     ) {
         this._statusView = statusView;
         this._connections = {};
@@ -193,27 +195,20 @@ export default class ConnectionManager {
 
         this._entraLogger = logger.withPrefix("Entra Auth");
 
-        if (!this._credentialStore) {
-            this._credentialStore = new CredentialStore(context);
-        }
-
-        if (!this._connectionStore) {
-            this._connectionStore = new ConnectionStore(context, this._credentialStore);
-        }
-
-        if (!this._accountStore) {
-            this._accountStore = new AccountStore(context);
-        }
-
-        if (!this._connectionUI) {
-            this._connectionUI = new ConnectionUI(this, this._accountStore, prompter);
-        }
-
         if (!this.azureController) {
             this.azureController = new MsalAzureController(
                 context,
                 prompter,
                 this._credentialStore,
+            );
+        }
+
+        if (!this._connectionUI) {
+            this._connectionUI = this._instantiationService.createInstance(
+                ConnectionUI,
+                this.azureController,
+                prompter,
+                () => this.onDisconnect(),
             );
         }
 
@@ -223,7 +218,7 @@ export default class ConnectionManager {
             this._accountStore,
             this.azureController,
         );
-        this._firewallService = new FirewallService(this._accountService);
+        this._firewallService = new FirewallService();
 
         this._changePasswordService = new ChangePasswordService(this.client, this.context);
 
@@ -306,28 +301,14 @@ export default class ConnectionManager {
      * Exposed for testing purposes
      */
     public get connectionStore(): ConnectionStore {
-        return this._connectionStore!;
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public set connectionStore(value: ConnectionStore) {
-        this._connectionStore = value;
+        return this._connectionStore;
     }
 
     /**
      * Exposed for testing purposes
      */
     public get accountStore(): AccountStore {
-        return this._accountStore!;
-    }
-
-    /**
-     * Exposed for testing purposes
-     */
-    public set accountStore(value: AccountStore) {
-        this._accountStore = value;
+        return this._accountStore;
     }
 
     /**

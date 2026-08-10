@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import ReactDOM from "react-dom/client";
-import "../../index.css";
+import "./executionPlanEagerStyles";
 import { ExecutionPlanStateProvider } from "./executionPlanStateProvider";
 import { ExecutionPlanPage } from "./executionPlanPage";
 import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";

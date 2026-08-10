@@ -120,8 +120,7 @@ suite("Object Explorer Provider Tests", function () {
         connectionManagerStub = sandbox.createStubInstance(ConnectionManager);
         (connectionManagerStub as unknown as { client: SqlToolsServiceClient }).client =
             clientStub as unknown as SqlToolsServiceClient;
-        (connectionManagerStub as unknown as { connectionStore: ConnectionStore }).connectionStore =
-            connectionStore;
+        sandbox.stub(connectionManagerStub, "connectionStore").get(() => connectionStore);
 
         connectionManagerStub.disconnect.resolves();
         connectionManagerStub.connect.resolves(true);
