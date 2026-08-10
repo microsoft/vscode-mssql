@@ -19,6 +19,7 @@ import {
     TableRow,
     Text,
     makeStyles,
+    mergeClasses,
     tokens,
 } from "@fluentui/react-components";
 import { CodeAnalysisContext } from "./codeAnalysisStateProvider";
@@ -436,7 +437,10 @@ export const CodeAnalysisDialog = () => {
                                     {loc.rules}
                                 </TableHeaderCell>
                                 <TableHeaderCell
-                                    className={`${styles.tableHeaderCell} ${styles.severityCell}`}>
+                                    className={mergeClasses(
+                                        styles.tableHeaderCell,
+                                        styles.severityCell,
+                                    )}>
                                     {loc.severity}
                                 </TableHeaderCell>
                             </TableRow>
@@ -449,7 +453,10 @@ export const CodeAnalysisDialog = () => {
                                         {/* Category row */}
                                         <TableRow>
                                             <TableCell
-                                                className={`${styles.groupHeaderCell} ${styles.categoryHeaderCellClickable}`}
+                                                className={mergeClasses(
+                                                    styles.groupHeaderCell,
+                                                    styles.categoryHeaderCellClickable,
+                                                )}
                                                 onDoubleClick={() =>
                                                     toggleCategoryCollapsed(category)
                                                 }>
