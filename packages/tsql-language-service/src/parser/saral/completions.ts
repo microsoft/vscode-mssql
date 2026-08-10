@@ -242,13 +242,36 @@ function getQualifiedSymbolColumns(symbol: Symbol | undefined, scope: Scope): st
     return null;
 }
 
+/**
+ * Matches the way an editor filters a completion list: a case-insensitive subsequence, so `ordhdr`
+ * still finds `OrderHeader`. A strict prefix test here silently discarded results the editor would
+ * otherwise have ranked and shown.
+ */
+export function matchesCompletionFilter(label: string, filter: string): boolean {
+    if (!filter) {
+        return true;
+    }
+    const candidate = label.toLowerCase();
+    const needle = filter.toLowerCase();
+    let index = 0;
+    for (const character of candidate) {
+        if (character === needle[index]) {
+            index++;
+            if (index === needle.length) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 function pushCompletion(
     items: CompletionItem[],
     seen: Set<string>,
     item: CompletionItem,
     prefix: string,
 ): void {
-    if (prefix && !item.label.toLowerCase().startsWith(prefix.toLowerCase())) {
+    if (!matchesCompletionFilter(item.label, prefix)) {
         return;
     }
 

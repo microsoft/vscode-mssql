@@ -37,6 +37,16 @@
             "require": "./dist/metadata/index.js",
             "default": "./dist/metadata/index.js"
         },
+        "./metadata/tedious": {
+            "types": "./dist/metadata/tediousQueryExecutor.d.ts",
+            "require": "./dist/metadata/tediousQueryExecutor.js",
+            "default": "./dist/metadata/tediousQueryExecutor.js"
+        },
+        "./metadata/connectionString": {
+            "types": "./dist/metadata/connectionString.d.ts",
+            "require": "./dist/metadata/connectionString.js",
+            "default": "./dist/metadata/connectionString.js"
+        },
         "./parser": {
             "types": "./dist/parser/index.d.ts",
             "require": "./dist/parser/index.js",
@@ -70,7 +80,6 @@
     },
     "dependencies": {
         "langium": "^4.3.1",
-        "tedious": "^20.0.0",
         "vscode-languageserver-types": "~3.18.0"
     },
     "devDependencies": {
@@ -82,6 +91,7 @@
         "eslint-plugin-prettier": "^5.2.1",
         "jest": "^30.3.0",
         "prettier": "^3.3.3",
+        "tedious": "^20.0.0",
         "ts-jest": "^29.4.6",
         "typescript": "^5.8.3",
         "typescript-eslint": "^8.34.0"

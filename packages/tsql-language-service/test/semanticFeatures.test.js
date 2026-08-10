@@ -101,7 +101,17 @@ describe("semantic editor feature strategies", () => {
             catalog,
         });
 
-        assert.deepEqual(result.items, [{ label: "dbo.Users", kind: "table", detail: "table" }]);
+        // Filtering is subsequence-based to match how an editor filters, so `SaveUser` is offered
+        // alongside `Users` and the editor ranks the exact prefix first.
+        assert.deepEqual(result.items, [
+            {
+                label: "dbo.SaveUser",
+                kind: "procedure",
+                detail: "procedure",
+                filterText: "SaveUser",
+            },
+            { label: "dbo.Users", kind: "table", detail: "table", filterText: "Users" },
+        ]);
         assert.deepEqual(
             document.columnsFor(["Users"]).map((column) => column.name),
             ["Id", "Name"],

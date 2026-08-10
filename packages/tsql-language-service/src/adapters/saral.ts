@@ -8,6 +8,7 @@ import {
     extractDeclarations,
     extractReferences,
     getCompletionsAtFromAnalysis,
+    matchesCompletionFilter,
     Lexer,
     resolveTypeMember,
     walkAST,
@@ -423,9 +424,7 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
                 if (columns) {
                     for (const column of columns) {
                         if (
-                            !column.name
-                                .toLocaleLowerCase()
-                                .startsWith(qualified.filter.toLocaleLowerCase()) ||
+                            !matchesCompletionFilter(column.name, qualified.filter) ||
                             items.some(
                                 (item) =>
                                     item.kind === "column" &&

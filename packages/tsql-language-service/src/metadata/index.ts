@@ -5,9 +5,11 @@
 
 export * from "./catalogSnapshot.js";
 export * from "./analysisCatalogAdapter.js";
-export * from "./connectionString.js";
 export * from "./contracts.js";
 export * from "./databaseMetadataLoader.js";
 export * from "./metadataRepository.js";
 export * from "./mappingCatalog.js";
-export * from "./tediousQueryExecutor.js";
+
+// connectionString.js and tediousQueryExecutor.js are deliberately absent: they import `tedious`,
+// and re-exporting them here would drag the whole TDS driver into the extension bundle. Import
+// them from "@vscode-mssql/tsql-language-service/metadata/tedious" instead.

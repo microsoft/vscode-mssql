@@ -128,9 +128,7 @@ export class IncrementalBatchParser {
         let reusedCharacterCount = 0;
         const regions = partitionSqlBatches(text);
         const batches = regions.map((region): ParsedBatch => {
-            const key = batchKey(region);
-            const candidates = reusable.get(key);
-            const reused = candidates?.shift();
+            const reused = takeReusableBatch(reusable, region);
             if (reused) {
                 reusedBatchCount++;
                 reusedCharacterCount += region.text.length;
@@ -152,8 +150,8 @@ export class IncrementalBatchParser {
     }
 }
 
-function indexReusableBatches(batches: readonly ParsedBatch[]): Map<string, ParsedBatch[]> {
-    const result = new Map<string, ParsedBatch[]>();
+function indexReusableBatches(batches: readonly ParsedBatch[]): Map<number, ParsedBatch[]> {
+    const result = new Map<number, ParsedBatch[]>();
     for (const batch of batches) {
         const key = batchKey(batch.region);
         const matches = result.get(key);
@@ -166,23 +164,75 @@ function indexReusableBatches(batches: readonly ParsedBatch[]): Map<string, Pars
     return result;
 }
 
-function batchKey(region: SqlBatchRegion): string {
-    // Separators are materialized independently and are never input to the batch parser.
-    return `${region.text.length}:${region.text}`;
+/** Hash buckets can collide, so the candidate text is still compared before an artifact is reused. */
+function takeReusableBatch(
+    reusable: Map<number, ParsedBatch[]>,
+    region: SqlBatchRegion,
+): ParsedBatch | undefined {
+    const candidates = reusable.get(batchKey(region));
+    if (!candidates) {
+        return undefined;
+    }
+    const index = candidates.findIndex((candidate) => candidate.region.text === region.text);
+    return index < 0 ? undefined : candidates.splice(index, 1)[0];
+}
+
+// Separators are materialized independently and are never input to the batch parser.
+function batchKey(region: SqlBatchRegion): number {
+    // FNV-1a over the batch text. Using the text itself as a Map key duplicated the whole document
+    // into the reuse index and re-hashed every character on each keystroke.
+    const text = region.text;
+    let hash = 0x811c9dc5;
+    for (let index = 0; index < text.length; index++) {
+        hash ^= text.charCodeAt(index);
+        hash = Math.imul(hash, 0x01000193);
+    }
+    return (hash ^ text.length) >>> 0;
+}
+
+/**
+ * Translated statements are keyed by parse artifact and offset delta. An edit only shifts the
+ * batches after it, so every batch before the edit point is served from this cache unchanged.
+ */
+const translationCache = new WeakMap<ParseResult, Map<string, TranslatedBatch>>();
+
+interface TranslatedBatch {
+    readonly body: Program["body"];
+    readonly issues: readonly ParseIssue[];
+}
+
+function translateBatch(batch: ParsedBatch): TranslatedBatch {
+    const delta = batch.region.start;
+    const lineDelta = batch.region.startLine - 1;
+    let cache = translationCache.get(batch.artifact);
+    if (!cache) {
+        cache = new Map();
+        translationCache.set(batch.artifact, cache);
+    }
+    const key = `${delta}:${lineDelta}`;
+    const cached = cache.get(key);
+    if (cached) {
+        return cached;
+    }
+    const translated: TranslatedBatch = {
+        body: batch.artifact.ast.body.map((statement) =>
+            translateLocations(statement, delta, lineDelta),
+        ),
+        issues: (batch.artifact.issues ?? []).map((issue) =>
+            translateLocations(issue, delta, lineDelta),
+        ),
+    };
+    cache.set(key, translated);
+    return translated;
 }
 
 function materialize(text: string, batches: readonly ParsedBatch[]): ParseResult {
     const body: Program["body"] = [];
     const issues: ParseIssue[] = [];
     for (const batch of batches) {
-        for (const statement of batch.artifact.ast.body) {
-            body.push(
-                translateLocations(statement, batch.region.start, batch.region.startLine - 1),
-            );
-        }
-        for (const issue of batch.artifact.issues ?? []) {
-            issues.push(translateLocations(issue, batch.region.start, batch.region.startLine - 1));
-        }
+        const translated = translateBatch(batch);
+        body.push(...translated.body);
+        issues.push(...translated.issues);
         if (batch.region.separator) {
             const separator: BatchSeparatorNode = {
                 type: "BatchSeparatorStatement",
@@ -207,6 +257,10 @@ function translateLocations<T>(
     lineDelta: number,
     seen = new Map<object, unknown>(),
 ): T {
+    if (delta === 0 && lineDelta === 0) {
+        // Relative offsets already match absolute ones, so the immutable artifact is shared as-is.
+        return value;
+    }
     if (value === null || typeof value !== "object") {
         return value;
     }

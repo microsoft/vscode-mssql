@@ -8,9 +8,9 @@ import {
     DatabaseMetadataLoader,
     MetadataAnalysisCatalogAdapter,
     MetadataRepository,
-    parseSqlServerConnectionString,
-    TediousQueryExecutor,
 } from "../../src/metadata";
+import { parseSqlServerConnectionString } from "../../src/metadata/connectionString";
+import { TediousQueryExecutor } from "../../src/metadata/tediousQueryExecutor";
 
 const connectionString = process.env.MSSQL_TEST_CONNECTION_STRING;
 const liveTest = connectionString ? test : test.skip;

@@ -74,6 +74,7 @@ export {
     getCompletionContextFromAnalysis,
     getCompletionsAt,
     getCompletionsAtFromAnalysis,
+    matchesCompletionFilter,
 } from "./completions.js";
 export type { CompletionContext, CompletionItem, CompletionItemKind } from "./completions.js";
 

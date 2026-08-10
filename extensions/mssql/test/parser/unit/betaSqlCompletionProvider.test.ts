@@ -36,6 +36,14 @@ import { createStubLogger } from "../../unit/utils";
 
 chai.use(sinonChai);
 
+/** Unwraps the provider's `CompletionList` so assertions keep operating on plain item arrays. */
+async function completionItems(
+    provider: BetaSqlCompletionProvider,
+    ...args: Parameters<BetaSqlCompletionProvider["provideCompletionItems"]>
+): Promise<vscode.CompletionItem[]> {
+    return (await provider.provideCompletionItems(...args)).items;
+}
+
 suite("BetaSqlCompletionProvider", () => {
     let sandbox: sinon.SinonSandbox;
     let connectionManager: sinon.SinonStubbedInstance<ConnectionManager>;
@@ -124,7 +132,7 @@ select * from dbo.`;
         previewEnabledStub.returns(false);
         const document = await openSqlDocument("SELECT * FROM ");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items).to.be.empty;
         expect(client.sendRequest).to.not.have.been.called;
@@ -157,7 +165,7 @@ select * from dbo.`;
         const document = await openSqlDocument(sql);
         const position = document.positionAt(sql.indexOf("x. FROM") + 2);
 
-        const items = await provider.provideCompletionItems(document, position);
+        const items = await completionItems(provider, document, position);
 
         expect(items.map((item) => item.label)).to.include("Id");
     });
@@ -170,7 +178,7 @@ select * from dbo.`;
         ]) {
             const document = await openSqlDocument(sql);
 
-            const items = await provider.provideCompletionItems(document, endPosition(document));
+            const items = await completionItems(provider, document, endPosition(document));
 
             expect(items, sql).to.be.empty;
         }
@@ -181,7 +189,7 @@ select * from dbo.`;
     test("suppresses completions on an implicit relation alias", async () => {
         const document = await openSqlDocument("SELECT * FROM dbo.Users u");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items).to.be.empty;
     });
@@ -190,7 +198,7 @@ select * from dbo.`;
     test("restores clause completions after a completed relation alias", async () => {
         const document = await openSqlDocument("SELECT * FROM dbo.Users AS u ");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items.map(labelOf)).to.include("WHERE");
     });
@@ -199,7 +207,7 @@ select * from dbo.`;
         const getSession = sandbox.spy(sessions, "getSession");
         const document = await openSqlDocument(jsonTempTableCompletionScript);
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items.map(labelOf)).to.include.members(["Users", "GetUsers"]);
         const users = items.find((item) => labelOf(item) === "Users")!;
@@ -246,7 +254,7 @@ select * from dbo.`;
     test("loads bounded relation metadata for an empty object prefix", async () => {
         const document = await openSqlDocument("SELECT * FROM ");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const labels = items.map(labelOf);
 
         expect(labels).to.include.members([
@@ -276,7 +284,7 @@ select * from dbo.`;
     test("searches relations from the first typed character", async () => {
         const document = await openSqlDocument("SELECT * FROM U");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items.map(labelOf)).to.include("dbo.Users");
         expect(queryStrings(client)).to.satisfy((queries: string[]) =>
@@ -307,7 +315,7 @@ select * from dbo.`;
         });
         const document = await openSqlDocument("SELECT * FROM T");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const tables = items.filter((item) => labelOf(item).startsWith("dbo.Table"));
 
         expect(tables).to.have.lengthOf(200);
@@ -416,7 +424,8 @@ select * from dbo.`;
             "SELECT currentUser. FROM dbo.CurrentUsers AS currentUser";
         const document = await openSqlDocument(sql);
 
-        const items = await provider.provideCompletionItems(
+        const items = await completionItems(
+            provider,
             document,
             document.positionAt(sql.indexOf("currentUser.") + "currentUser.".length),
         );
@@ -451,7 +460,7 @@ select * from dbo.`;
     test("suggests all SQL Server reserved keywords", async () => {
         const document = await openSqlDocument("");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const keywords = items
             .filter((item) => item.kind === vscode.CompletionItemKind.Keyword)
             .map(labelOf);
@@ -465,7 +474,7 @@ select * from dbo.`;
     test("suggests package functions with a precise replacement range", async () => {
         const document = await openSqlDocument("SELECT SUB");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const substring = items.find((item) => labelOf(item) === "substring");
 
         expect(substring?.kind).to.equal(vscode.CompletionItemKind.Function);
@@ -484,7 +493,8 @@ select * from dbo.`;
             connectionManager.getConnectionInfo.returns(undefined);
             const document = await openSqlDocument(sql);
 
-            const items = await provider.provideCompletionItems(
+            const items = await completionItems(
+                provider,
                 document,
                 document.positionAt(sql.indexOf("f") + 1),
             );
@@ -499,7 +509,7 @@ select * from dbo.`;
     test("suggests a table skeleton and namespaces after CREATE TABLE", async () => {
         const document = await openSqlDocument("CREATE TABLE ");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const labels = items.map(labelOf);
 
         expect(labels).to.include.members(["New table definition", "Warehouse", "dbo"]);
@@ -514,7 +524,7 @@ select * from dbo.`;
     test("suggests CREATE TABLE definition snippets after an opening parenthesis", async () => {
         const document = await openSqlDocument("CREATE TABLE dbo.NewUsers (");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const labels = items.map(labelOf);
 
         expect(labels).to.include.members([
@@ -531,7 +541,7 @@ select * from dbo.`;
     test("suggests CREATE TABLE definition snippets after a completed column", async () => {
         const document = await openSqlDocument("CREATE TABLE dbo.NewUsers (UserId int, ");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items.map(labelOf)).to.include.members([
             "Column definition",
@@ -544,7 +554,7 @@ select * from dbo.`;
     test("suppresses completion noise while naming a CREATE TABLE column", async () => {
         const document = await openSqlDocument("CREATE TABLE dbo.NewUsers (Customer");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items).to.be.empty;
         expect(client.sendRequest).to.not.have.been.called;
@@ -554,7 +564,7 @@ select * from dbo.`;
     test("suggests data types for CREATE TABLE columns", async () => {
         const document = await openSqlDocument("CREATE TABLE dbo.NewUsers (CustomerId in");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const intItem = items.find((item) => labelOf(item) === "int");
 
         expect(intItem?.kind).to.equal(vscode.CompletionItemKind.TypeParameter);
@@ -567,7 +577,7 @@ select * from dbo.`;
     test("inserts parameterized data type snippets for CREATE TABLE columns", async () => {
         const document = await openSqlDocument("CREATE TABLE dbo.NewUsers (DisplayName nvar");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const nvarchar = items.find((item) => labelOf(item) === "nvarchar");
 
         expect((nvarchar?.insertText as vscode.SnippetString | undefined)?.value).to.equal(
@@ -579,7 +589,7 @@ select * from dbo.`;
     test("suggests length values inside CREATE TABLE data types", async () => {
         const document = await openSqlDocument("CREATE TABLE dbo.NewUsers (DisplayName nvarchar(");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items.map(labelOf)).to.include.members(["MAX", "50", "100", "255"]);
         expect(items.every((item) => item.kind === vscode.CompletionItemKind.Value)).to.be.true;
@@ -589,7 +599,7 @@ select * from dbo.`;
     test("suggests CREATE TABLE column options after a data type", async () => {
         const document = await openSqlDocument("CREATE TABLE dbo.NewUsers (UserId int ");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const labels = items.map(labelOf);
 
         expect(labels).to.include.members([
@@ -615,7 +625,7 @@ select * from dbo.`;
             ["CREATE TABLE dbo.NewUsers (UserId int PRIMARY ", "KEY"],
         ]) {
             const document = await openSqlDocument(sql);
-            const items = await provider.provideCompletionItems(document, endPosition(document));
+            const items = await completionItems(provider, document, endPosition(document));
 
             expect(items.map(labelOf), sql).to.deep.equal([expected]);
         }
@@ -627,7 +637,7 @@ select * from dbo.`;
             "CREATE TABLE dbo.NewUsers (UserId int, CONSTRAINT PK_NewUsers ",
         );
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items.map(labelOf)).to.include.members([
             "PRIMARY KEY",
@@ -644,7 +654,7 @@ select * from dbo.`;
             "CREATE TABLE dbo.NewUsers (UserId int, TenantId int, CONSTRAINT PK_NewUsers PRIMARY KEY (UserId, ",
         );
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const labels = items.map(labelOf);
 
         expect(labels).to.include("TenantId");
@@ -659,7 +669,7 @@ select * from dbo.`;
             "CREATE TABLE dbo.NewUsers (ManagerId int REFERENCES U",
         );
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const labels = items.map(labelOf);
 
         expect(labels).to.include("dbo.Users");
@@ -672,7 +682,7 @@ select * from dbo.`;
             "CREATE TABLE dbo.NewUsers (ManagerId int REFERENCES dbo.Users (",
         );
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const displayName = items.find((item) => labelOf(item) === "Display Name");
 
         expect(items.map(labelOf)).to.include.members(["UserId", "Display Name"]);
@@ -688,7 +698,7 @@ select * from dbo.`;
                 "CREATE TABLE dbo.Child (ParentId int REFERENCES dbo.Parent (",
         );
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items.map(labelOf)).to.include.members(["ParentId", "ParentName"]);
         expect(items.find((item) => labelOf(item) === "ParentName")?.detail).to.equal(
@@ -703,7 +713,7 @@ select * from dbo.`;
             "CREATE TABLE dbo.Invoice (Quantity int, UnitPrice decimal(18,2), Total AS (",
         );
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items.map(labelOf)).to.include.members(["Quantity", "UnitPrice"]);
         expect(client.sendRequest).to.not.have.been.called;
@@ -726,7 +736,7 @@ select * from dbo.`;
 SELECT * FROM #Test WHERE #Test.`;
             const document = await openSqlDocument(sql);
 
-            const items = await provider.provideCompletionItems(document, endPosition(document));
+            const items = await completionItems(provider, document, endPosition(document));
 
             expect(items.map(labelOf)).to.include(expected);
         });
@@ -739,7 +749,7 @@ SELECT * FROM #Test WHERE #Test.`;
             "WITH recent AS (SELECT 1 AS OrderId) SELECT * FROM rec",
         );
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const recent = items.find((item) => labelOf(item) === "recent");
 
         expect(recent?.kind).to.equal(vscode.CompletionItemKind.Reference);
@@ -752,7 +762,7 @@ SELECT * FROM #Test WHERE #Test.`;
         client.sendRequest.rejects(new Error("metadata unavailable"));
         const document = await openSqlDocument("SELECT * FROM SEL");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items.map(labelOf)).to.include("SELECT");
     });
@@ -848,7 +858,7 @@ SELECT * FROM #Test WHERE #Test.`;
         const document = await openSqlDocument(sql);
         const hoverProvider = new BetaSqlHoverProvider(connectionManager, catalog, sessions);
 
-        await provider.provideCompletionItems(document, new vscode.Position(0, 8));
+        await completionItems(provider, document, new vscode.Position(0, 8));
         const callsAfterCompletion = client.sendRequest.callCount;
         const hover = await hoverProvider.provideHover(
             document,
@@ -878,7 +888,7 @@ SELECT * FROM #Test WHERE #Test.`;
     test("filters relation completions by object kind", async () => {
         const document = await openSqlDocument("SELECT * FROM dbo.");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const labels = items.map(labelOf);
 
         expect(labels).to.include.members(["Users", "GetUsers"]);
@@ -893,7 +903,7 @@ SELECT * FROM #Test WHERE #Test.`;
     test("suggests stored procedures after EXEC", async () => {
         const document = await openSqlDocument("EXEC dbo.Ar");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items.map(labelOf)).to.include("ArchiveUsers");
         expect(items.map(labelOf)).to.not.include.members(["Users", "CalculateTax"]);
@@ -906,7 +916,7 @@ SELECT * FROM #Test WHERE #Test.`;
     test("suggests only unused named procedure parameters", async () => {
         const document = await openSqlDocument("EXEC dbo.ArchiveUsers @UserId = 1, @F");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items.map(labelOf)).to.deep.equal(["@Force"]);
         expect(items[0].insertText).to.equal("@Force = ");
@@ -1073,7 +1083,7 @@ SELECT * FROM #Test WHERE #Test.`;
         const document = await openSqlDocument("SELECT * FROM dbo.[Ord");
         const consoleError = sandbox.stub(console, "error");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const orderDetails = items.find((item) => labelOf(item) === "Order Details");
 
         expect(orderDetails?.insertText).to.equal("[Order Details]");
@@ -1092,7 +1102,8 @@ SELECT * FROM #Test WHERE #Test.`;
             `Queries: ${queryStrings(client).join("\n---\n")}`,
         ).to.include("SELECT]Value");
 
-        const items = await provider.provideCompletionItems(
+        const items = await completionItems(
+            provider,
             document,
             new vscode.Position(0, "SELECT u.".length),
         );
@@ -1106,7 +1117,7 @@ SELECT * FROM #Test WHERE #Test.`;
     test("supports double-quoted database and schema qualifiers", async () => {
         const document = await openSqlDocument('SELECT * FROM "Warehouse"."dbo".');
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items.map(labelOf)).to.include("Users");
         expect(queryStrings(client)).to.satisfy((queries: string[]) =>
@@ -1118,7 +1129,7 @@ SELECT * FROM #Test WHERE #Test.`;
     test("supports four-part linked-server member completion", async () => {
         const document = await openSqlDocument('SELECT "Remote"."Warehouse"."dbo"."Users".');
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
 
         expect(items.map(labelOf)).to.include.members(["UserId", "Display Name"]);
         expect(queryStrings(client)).to.satisfy((queries: string[]) =>
@@ -1131,7 +1142,8 @@ SELECT * FROM #Test WHERE #Test.`;
         const sql = "INSERT INTO dbo.Users (UserId, )";
         const document = await openSqlDocument(sql);
 
-        const items = await provider.provideCompletionItems(
+        const items = await completionItems(
+            provider,
             document,
             new vscode.Position(0, sql.indexOf(")")),
         );
@@ -1146,7 +1158,7 @@ SELECT * FROM #Test WHERE #Test.`;
     test("expands INSERT columns and VALUES from catalog metadata", async () => {
         const document = await openSqlDocument("INSERT INTO dbo.Users (");
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const expansion = items.find(
             (item) => labelOf(item) === "Expand INSERT columns and VALUES",
         );
@@ -1169,7 +1181,7 @@ SELECT * FROM #Test WHERE #Test.`;
         const sql = "CREATE TABLE #Rows (RowId int, Note nvarchar(50)); INSERT INTO #Rows (";
         const document = await openSqlDocument(sql);
 
-        const items = await provider.provideCompletionItems(document, endPosition(document));
+        const items = await completionItems(provider, document, endPosition(document));
         const expansion = items.find(
             (item) => labelOf(item) === "Expand INSERT columns and VALUES",
         );
@@ -1186,7 +1198,7 @@ SELECT * FROM #Test WHERE #Test.`;
         const document = await openSqlDocument(sql);
         const position = document.positionAt(sql.indexOf("*") + 1);
 
-        const items = await provider.provideCompletionItems(document, position);
+        const items = await completionItems(provider, document, position);
         const expansion = items.find((item) => labelOf(item) === "Expand * to columns");
 
         expect(expansion?.kind).to.equal(vscode.CompletionItemKind.Snippet);
@@ -1202,7 +1214,7 @@ SELECT * FROM #Test WHERE #Test.`;
         const document = await openSqlDocument(sql);
         const position = document.positionAt(sql.indexOf("*") + 1);
 
-        const items = await provider.provideCompletionItems(document, position);
+        const items = await completionItems(provider, document, position);
         const expansion = items.find((item) => labelOf(item) === "Expand * to columns");
 
         expect(expansion?.insertText).to.equal(
@@ -1220,7 +1232,7 @@ SELECT * FROM #Test WHERE #Test.`;
         const document = await openSqlDocument(sql);
         const position = document.positionAt(sql.indexOf("u.") + 2);
 
-        const items = await provider.provideCompletionItems(document, position);
+        const items = await completionItems(provider, document, position);
 
         expect(items.map(labelOf)).to.include.members(["User Id", "Name"]);
     });
@@ -1231,7 +1243,8 @@ SELECT * FROM #Test WHERE #Test.`;
         const sql = "DECLARE @Users TABLE (UserId int, Name nvarchar(20)); SELECT u. FROM @Users u";
         const document = await openSqlDocument(sql);
 
-        const items = await provider.provideCompletionItems(
+        const items = await completionItems(
+            provider,
             document,
             document.positionAt(sql.indexOf("u.") + 2),
         );
@@ -1246,7 +1259,8 @@ SELECT * FROM #Test WHERE #Test.`;
             "SELECT local. FROM dbo.LocalUsers AS local";
         const document = await openSqlDocument(sql);
 
-        const items = await provider.provideCompletionItems(
+        const items = await completionItems(
+            provider,
             document,
             document.positionAt(sql.indexOf("local.") + "local.".length),
         );
@@ -1260,7 +1274,8 @@ SELECT * FROM #Test WHERE #Test.`;
         const document = await openSqlDocument(sql);
         const session = await sessions.getSession(document);
 
-        const items = await provider.provideCompletionItems(
+        const items = await completionItems(
+            provider,
             document,
             document.positionAt(sql.indexOf("copy.") + "copy.".length),
         );

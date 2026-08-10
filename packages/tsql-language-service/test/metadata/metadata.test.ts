@@ -7,11 +7,11 @@ import {
     DatabaseMetadataLoader,
     MetadataCatalogSnapshot,
     MetadataRepository,
-    parseSqlServerConnectionString,
     type SqlMetadataLoader,
     type SqlQueryColumn,
     type SqlQueryExecutor,
 } from "../../src/metadata";
+import { parseSqlServerConnectionString } from "../../src/metadata/connectionString";
 
 describe("metadata layer", () => {
     test("parses SQL-password connection strings without exposing secrets", () => {

@@ -31,6 +31,8 @@ export interface SemanticCompletionItem {
     readonly label: string;
     readonly kind: SemanticCompletionKind;
     readonly detail?: string;
+    /** Text an editor should filter against when it differs from the label, e.g. `dbo.Orders`. */
+    readonly filterText?: string;
 }
 
 export interface SemanticCompletionResult {
@@ -241,10 +243,13 @@ function columnItem(column: SemanticColumn): SemanticCompletionItem {
 }
 
 function objectItem(object: SemanticObject): SemanticCompletionItem {
+    const label = object.parts.join(".");
     return {
-        label: object.parts.join("."),
+        label,
         kind: completionKind(object.kind),
         detail: object.kind,
+        // The unqualified name is what the user types, so an editor must filter on it too.
+        filterText: object.name && object.name !== label ? object.name : undefined,
     };
 }
 
@@ -324,6 +329,9 @@ function filterAndSort(
 }
 
 function completionLabelMatches(item: SemanticCompletionItem, filter: string): boolean {
+    if (!filter) {
+        return true;
+    }
     const candidate =
         item.kind === "table" ||
         item.kind === "view" ||
@@ -332,7 +340,21 @@ function completionLabelMatches(item: SemanticCompletionItem, filter: string): b
         item.kind === "type"
             ? (item.label.split(".").at(-1) ?? item.label)
             : item.label;
-    return normalizeSemanticIdentifier(candidate).startsWith(normalizeSemanticIdentifier(filter));
+    // Subsequence rather than prefix: a strict prefix test drops candidates the editor would rank.
+    return isSubsequence(
+        normalizeSemanticIdentifier(candidate),
+        normalizeSemanticIdentifier(filter),
+    );
+}
+
+function isSubsequence(candidate: string, needle: string): boolean {
+    let index = 0;
+    for (const character of candidate) {
+        if (character === needle[index] && ++index === needle.length) {
+            return true;
+        }
+    }
+    return needle.length === 0;
 }
 
 function matchesObjectPrefix(parts: readonly string[], prefix: readonly string[]): boolean {

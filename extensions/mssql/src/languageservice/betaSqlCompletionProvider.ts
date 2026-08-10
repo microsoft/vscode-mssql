@@ -9,14 +9,6 @@ import {
     SaralSqlAnalysisEngine,
     createCompletionResolveData,
     type SqlAnalysisSnapshot,
-    type SqlCatalogColumn,
-    type SqlCatalogMapping,
-    type SqlCatalogMappingLeaf,
-    type SqlCatalogProvider,
-    type SqlCompletion,
-    type SqlDiagnostic,
-    type SqlSymbol,
-    type SqlToken,
 } from "@vscode-mssql/tsql-language-service";
 import { RequestType } from "vscode-languageclient";
 import type { SimpleExecuteResult } from "vscode-mssql";
@@ -24,7 +16,7 @@ import * as Constants from "../constants/constants";
 import { BetaLanguageService as loc } from "../constants/locConstants";
 import ConnectionManager from "../controllers/connectionManager";
 import { getLogger } from "../models/logger";
-import { getPreviewConfigKey, PreviewFeature } from "../previews/previewService";
+import { getPreviewConfigKey, PreviewFeature, previewService } from "../previews/previewService";
 import { ILogger } from "../sharedInterfaces/logger";
 import { getUriKey } from "../utils/utils";
 import { betaSqlOwnsDocument, forgetSqlDocumentOwnership } from "./betaSqlLanguageServiceOwnership";
@@ -44,111 +36,49 @@ import {
     type ScriptingDefinitionScriptingApi,
 } from "./scriptingDefinitionProvider";
 
-export interface DatabaseObject {
-    server?: string;
-    database?: string;
-    schema: string;
-    name: string;
-    type: "table" | "view" | "scalarFunction" | "tableValuedFunction" | "storedProcedure";
-    baseObject?: ObjectReference;
-}
+export type { DatabaseObject } from "./betaSqlLanguageServiceTypes";
 
-interface ObjectReference {
-    server?: string;
-    database?: string;
-    schema?: string;
-    name: string;
-}
-
-interface ObjectMember {
-    name: string;
-    type: string;
-    nullable?: boolean;
-    insertable?: boolean;
-}
-
-interface QualifiedPrefix {
-    qualifiers: string[];
-    prefix: string;
-}
-
-interface InsertColumnContext {
-    target: ObjectReference;
-    usedColumns: Set<string>;
-    contentStartOffset: number;
-    canExpand: boolean;
-}
-
-interface SelectStarExpansionContext {
-    startOffset: number;
-    endOffset: number;
-}
-
-interface ExecuteParameterContext {
-    routine: ObjectReference;
-    prefix: string;
-    usedParameters: Set<string>;
-}
-
-interface RoutineCallContext {
-    routine: ObjectReference;
-    activeParameter: number;
-    kind: "function" | "execute";
-}
-
-interface InsertValuesContext {
-    target: ObjectReference;
-    columns?: string[];
-    activeParameter: number;
-}
-
-type CreateTableCompletionKind =
-    | "tableName"
-    | "columnName"
-    | "definition"
-    | "dataType"
-    | "typeArgument"
-    | "columnOption"
-    | "nullKeyword"
-    | "keyKeyword"
-    | "constraintType"
-    | "localColumn"
-    | "referencesKeyword"
-    | "referenceTable"
-    | "referenceColumn"
-    | "expression";
-
-interface CreateTableCompletionContext {
-    kind: CreateTableCompletionKind;
-    table?: ObjectReference;
-    columns: ObjectMember[];
-    prefix: string;
-    qualifiers?: string[];
-    referencedTable?: ObjectReference;
-    usedColumns?: Set<string>;
-    typeName?: string;
-}
-
-type AnalysisDiagnostic = SqlDiagnostic;
-type Column = SqlCatalogColumn;
-type Completion = SqlCompletion;
-type Sym = SqlSymbol;
-type Token = SqlToken;
-type SchemaMapping = SqlCatalogMapping;
-type SchemaLeaf = SqlCatalogMappingLeaf;
-
-interface SchemaProvider extends SqlCatalogProvider {
-    columnsFor(parts: readonly string[], dialect?: string): readonly Column[] | undefined;
-    tableCandidates?(parts: readonly string[], dialect?: string): readonly (readonly string[])[];
-    childrenOf?(
-        prefixParts: readonly string[],
-        dialect?: string,
-    ): readonly {
-        name: string;
-        kind: "namespace" | "table";
-    }[];
-    tables?(dialect?: string): readonly string[];
-}
+import type {
+    AnalysisDiagnostic,
+    Column,
+    Completion,
+    CreateTableCompletionContext,
+    DatabaseObject,
+    ExecuteParameterContext,
+    InsertColumnContext,
+    InsertValuesContext,
+    ObjectMember,
+    ObjectReference,
+    QualifiedPrefix,
+    SchemaMapping,
+    SchemaProvider,
+    SelectStarExpansionContext,
+    Sym,
+    Token,
+} from "./betaSqlLanguageServiceTypes";
+import {
+    collectTextObjectReferences,
+    deduplicatePaths,
+    findMatchingParenthesis,
+    getCompletionIdentifierPrefix,
+    getCompletionPath,
+    getCompletionPrefix,
+    getExecuteRoutineCallContext,
+    getInsertValuesContext,
+    getParseableEditorText,
+    getRecoveryWindow,
+    getRoutineCallContext,
+    isLocalObjectName,
+    isPartialMultipartIdentifier,
+    isSchemaLeaf,
+    objectReferenceFromParts,
+    parseObjectReference,
+    quoteCompletionIdentifier,
+    splitMultipartIdentifier,
+    splitTopLevel,
+    sqlIdentifierPattern,
+    unquoteIdentifier,
+} from "./betaSqlIdentifiers";
 
 class Schema extends MappingCatalogProvider implements SchemaProvider {
     public constructor(mapping: SchemaMapping) {
@@ -1378,11 +1308,11 @@ export class BetaSqlSessionManager implements vscode.Disposable {
     ): Promise<SessionResult | undefined> {
         let remoteMapping: SchemaMapping = {};
         let metadataComplete = false;
+        const documentText = document.getText();
         if (entry.connectionId) {
             const ownerUri = getUriKey(document.uri);
             this._catalog.setOwnerUri(entry.connectionId, ownerUri);
             const references = new Map<string, ObjectReference>();
-            const documentText = document.getText();
             const localQualifierNames = new Set(
                 entry.session
                     .symbols()
@@ -1394,13 +1324,16 @@ export class BetaSqlSessionManager implements vscode.Disposable {
                     .filter((symbol) => !symbol.name.includes("."))
                     .map((symbol) => symbol.name.toLocaleLowerCase()),
             );
+            // Sticky, so the lookahead never copies the rest of the document per reference.
+            const followedByDot = /\s*\./uy;
             for (const reference of entry.session.externalReferences()) {
                 const parts = reference.nameParts ?? splitMultipartIdentifier(reference.name);
+                followedByDot.lastIndex = reference.span.end;
                 if (
                     (reference.kind === "function" &&
                         (parts.length === 1 ||
                             localQualifierNames.has(parts[0]?.toLocaleLowerCase()))) ||
-                    /^\s*\./u.test(documentText.slice(reference.span.end))
+                    followedByDot.test(documentText)
                 ) {
                     continue;
                 }
@@ -1428,7 +1361,7 @@ export class BetaSqlSessionManager implements vscode.Disposable {
         }
 
         const localMapping = getLocalSchemaMapping(
-            document.getText(),
+            documentText,
             hasSchemaEntries(remoteMapping) ? new Schema(remoteMapping) : undefined,
         );
         if (this.isCurrent(document, entry)) {
@@ -1521,15 +1454,21 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         position: vscode.Position,
         token?: vscode.CancellationToken,
         context?: vscode.CompletionContext,
-    ): Promise<vscode.CompletionItem[]> {
+    ): Promise<vscode.CompletionList> {
         if (!betaSqlOwnsDocument(document)) {
-            return [];
+            return new vscode.CompletionList([], false);
         }
         if (isExplicitRelationAliasPosition(document, position)) {
-            return [];
+            return new vscode.CompletionList([], false);
         }
-        const finalize = (items: vscode.CompletionItem[]): vscode.CompletionItem[] =>
-            this.prepareCompletionItems(items, document, position);
+        // Marks the list incomplete so the editor re-queries instead of caching a metadata-less
+        // list while the catalog round trip is still outstanding.
+        let metadataPending = false;
+        const finalize = (items: vscode.CompletionItem[]): vscode.CompletionList =>
+            new vscode.CompletionList(
+                this.prepareCompletionItems(items, document, position),
+                metadataPending,
+            );
 
         const createTableContext = getCreateTableCompletionContext(document, position);
         if (createTableContext) {
@@ -1545,7 +1484,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
             context.triggerCharacter === "*" &&
             !starExpansionContext
         ) {
-            return [];
+            return finalize([]);
         }
         const qualifiers = this.getQualifiers(document, position);
         const qualifiedPrefix =
@@ -1586,23 +1525,25 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
                           objectTypes,
                       );
                 return token?.isCancellationRequested || document.version !== requestedVersion
-                    ? []
+                    ? finalize([])
                     : finalize(items);
             } catch {
                 if (token?.isCancellationRequested || document.version !== requestedVersion) {
-                    return [];
+                    return finalize([]);
                 }
                 // Preserve grammar/local completion if the direct catalog lookup is unavailable.
+                metadataPending = true;
             }
         }
 
         const sessionPromise = this._sessions.getSession(document, token);
         const sessionResult = await sessionPromise;
         if (!sessionResult || token?.isCancellationRequested) {
-            return [];
+            return finalize([]);
         }
+        metadataPending ||= Boolean(connection?.connectionId) && !sessionResult.metadataComplete;
         if (isRelationAliasSymbolAt(sessionResult.session, document.offsetAt(position))) {
-            return [];
+            return finalize([]);
         }
         if (createTableContext) {
             const metadataItems = await this.getCreateTableMetadataItems(
@@ -1627,7 +1568,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
                 context?.triggerKind === vscode.CompletionTriggerKind.TriggerCharacter &&
                 context.triggerCharacter === "*"
             ) {
-                return [];
+                return finalize([]);
             }
         }
         if (insertColumnContext && !connection?.connectionId) {
@@ -1804,12 +1745,14 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
             if (!relationPosition) {
                 return finalize(this.mergeItems(analysisItems, fallbackItems));
             }
-            return this.getRootItems(
-                connection.connectionId,
-                document,
-                position,
-                this.mergeItems(analysisItems, fallbackItems),
-                token,
+            return finalize(
+                await this.getRootItems(
+                    connection.connectionId,
+                    document,
+                    position,
+                    this.mergeItems(analysisItems, fallbackItems),
+                    token,
+                ),
             );
         } catch {
             return finalize(
@@ -1878,7 +1821,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
             ...schemas.map((schema) => this.createContainerItem(schema, false)),
             ...objects.map((object) => this.createObjectItem(object, true)),
         ];
-        return this.prepareCompletionItems(items, document, position);
+        return items;
     }
 
     private prepareCompletionItems(
@@ -1887,6 +1830,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         position: vscode.Position,
     ): vscode.CompletionItem[] {
         this.applyMetadataReplacementRange(items, document, position);
+        this.applyQualifiedFilterText(items, document);
         const offset = document.offsetAt(position);
         for (const item of items) {
             this._completionResolveData.set(
@@ -1902,13 +1846,38 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         return items;
     }
 
+    /**
+     * A `dbo.Orders` label cannot be filtered by an editor when the replaced word is only `Ord`.
+     * Filtering on the unqualified segment is what the user is actually typing.
+     */
+    private applyQualifiedFilterText(
+        items: vscode.CompletionItem[],
+        document: vscode.TextDocument,
+    ): void {
+        for (const item of items) {
+            if (item.filterText !== undefined) {
+                continue;
+            }
+            const label = completionItemLabel(item);
+            const separator = label.lastIndexOf(".");
+            if (separator < 0) {
+                continue;
+            }
+            const range = item.range instanceof vscode.Range ? item.range : item.range?.inserting;
+            if (range && document.getText(range).includes(".")) {
+                continue;
+            }
+            item.filterText = label.slice(separator + 1);
+        }
+    }
+
     private applyMetadataReplacementRange(
         items: vscode.CompletionItem[],
         document: vscode.TextDocument,
         position: vscode.Position,
     ): vscode.CompletionItem[] {
         const offset = document.offsetAt(position);
-        const prefix = document.getText().slice(0, offset);
+        const prefix = getCompletionPrefix(document, position).text;
         const match = new RegExp(`(${sqlIdentifierPattern(true)})$`).exec(prefix);
         // Always provide an explicit range for metadata items. In particular, VS Code can otherwise
         // derive `dbo` as the filtering word at `dbo.|` and discard every returned object even though
@@ -2540,8 +2509,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
     }
 
     private getQualifiers(document: vscode.TextDocument, position: vscode.Position): string[] {
-        const offset = document.offsetAt(position);
-        const prefix = document.getText().slice(0, offset);
+        const prefix = getCompletionPrefix(document, position).text;
         const identifier = sqlIdentifierPattern(false);
         const match = new RegExp(
             String.raw`((?:${identifier})(?:\s*\.\s*${identifier})*\s*\.)\s*$`,
@@ -2550,7 +2518,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
     }
 
     private getCurrentPrefix(document: vscode.TextDocument, position: vscode.Position): string {
-        const prefix = document.getText().slice(0, document.offsetAt(position));
+        const prefix = getCompletionPrefix(document, position).text;
         const match = new RegExp(`(${sqlIdentifierPattern(true)})$`).exec(prefix);
         return match ? unquoteIdentifier(match[1]) : "";
     }
@@ -2559,7 +2527,8 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         document: vscode.TextDocument,
         position: vscode.Position,
     ): InsertColumnContext | undefined {
-        const text = document.getText().slice(0, document.offsetAt(position));
+        const prefix = getCompletionPrefix(document, position);
+        const text = prefix.text;
         const identifier = sqlIdentifierPattern(false);
         const qualifiedIdentifier = String.raw`${identifier}(?:\s*\.\s*${identifier}){0,3}`;
         const match = new RegExp(
@@ -2597,7 +2566,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
                 .map((column) => unquoteIdentifier(column.trim()).toLocaleLowerCase())
                 .filter(Boolean),
         );
-        const contentStartOffset = match.index + match[0].lastIndexOf("(") + 1;
+        const contentStartOffset = prefix.startOffset + match.index + match[0].lastIndexOf("(") + 1;
         return {
             target,
             usedColumns,
@@ -2610,7 +2579,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         document: vscode.TextDocument,
         position: vscode.Position,
     ): ExecuteParameterContext | undefined {
-        const text = document.getText().slice(0, document.offsetAt(position));
+        const text = getCompletionPrefix(document, position).text;
         const identifier = sqlIdentifierPattern(false);
         const match = new RegExp(
             String.raw`\bexec(?:ute)?\s+(${identifier}(?:\s*\.\s*${identifier}){0,3})\s+([^;]*)$`,
@@ -2636,7 +2605,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         document: vscode.TextDocument,
         position: vscode.Position,
     ): QualifiedPrefix | undefined {
-        const text = document.getText().slice(0, document.offsetAt(position));
+        const text = getCompletionPrefix(document, position).text;
         const identifier = sqlIdentifierPattern(false);
         const partialIdentifier = sqlIdentifierPattern(true);
         const match = new RegExp(
@@ -2651,7 +2620,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
     }
 
     private isRelationPosition(document: vscode.TextDocument, position: vscode.Position): boolean {
-        const prefix = document.getText().slice(0, document.offsetAt(position));
+        const prefix = getCompletionPrefix(document, position).text;
         const identifier = sqlIdentifierPattern(true);
         return new RegExp(
             String.raw`\b(?:from|join|apply|update|into)\s+${identifier}?(?:\s*\.\s*${identifier}?){0,3}$`,
@@ -2660,7 +2629,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
     }
 
     private isExecutePosition(document: vscode.TextDocument, position: vscode.Position): boolean {
-        const prefix = document.getText().slice(0, document.offsetAt(position));
+        const prefix = getCompletionPrefix(document, position).text;
         const identifier = sqlIdentifierPattern(true);
         return new RegExp(
             String.raw`\bexec(?:ute)?\s+${identifier}?(?:\s*\.\s*${identifier}?){0,3}$`,
@@ -2705,11 +2674,12 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         }
         const result = session.completeAt(offset);
         const candidates = [...result.items];
-        if (/\.\s*$/.test(text.slice(0, offset))) {
-            const recoveredText = `${text.slice(0, offset)}*${text.slice(offset)}`;
+        if (/\.\s*$/.test(text.slice(Math.max(0, offset - 64), offset))) {
+            const window = getRecoveryWindow(text, offset);
+            const recoveredText = `${window.text.slice(0, window.offset)}*${window.text.slice(window.offset)}`;
             const recovered = completionAnalysisEngine
                 .createSnapshot({ text: getParseableEditorText(recoveredText), catalog: schema })
-                .completeAt(offset).items;
+                .completeAt(window.offset).items;
             const seen = new Set(
                 candidates.map((candidate) => `${candidate.kind}:${candidate.label}`),
             );
@@ -2721,7 +2691,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
                 ),
             );
 
-            const separated = getSelectIntoCompletionRecovery(text, offset);
+            const separated = getSelectIntoCompletionRecovery(window.text, window.offset);
             if (separated) {
                 const separatedResult = completionAnalysisEngine
                     .createSnapshot({
@@ -2861,7 +2831,7 @@ function isExplicitRelationAliasPosition(
     document: vscode.TextDocument,
     position: vscode.Position,
 ): boolean {
-    const text = document.getText().slice(0, document.offsetAt(position));
+    const text = getCompletionPrefix(document, position).text;
     const identifier = sqlIdentifierPattern(false);
     const partialIdentifier = sqlIdentifierPattern(true);
     const qualifiedIdentifier = String.raw`${identifier}(?:\s*\.\s*${identifier}){0,3}`;
@@ -2890,8 +2860,7 @@ function getSelectStarExpansionContext(
     document: vscode.TextDocument,
     position: vscode.Position,
 ): SelectStarExpansionContext | undefined {
-    const endOffset = document.offsetAt(position);
-    const prefix = document.getText().slice(0, endOffset);
+    const { text: prefix, endOffset } = getCompletionPrefix(document, position);
     const identifier = sqlIdentifierPattern(false);
     const qualifiedIdentifier = `${identifier}(?:\\s*\\.\\s*${identifier}){0,3}`;
     const match = new RegExp(`((?:${qualifiedIdentifier}\\s*\\.\\s*)?\\*)$`).exec(prefix);
@@ -3135,70 +3104,6 @@ function getProjectionNames(
     return columns;
 }
 
-function findMatchingParenthesis(text: string, openParen: number): number {
-    let depth = 0;
-    let quote: "'" | '"' | "]" | undefined;
-    for (let index = openParen; index < text.length; index++) {
-        const character = text[index];
-        if (quote) {
-            if (character === quote) {
-                if (text[index + 1] === quote) {
-                    index++;
-                } else {
-                    quote = undefined;
-                }
-            }
-            continue;
-        }
-        if (character === "'") {
-            quote = "'";
-        } else if (character === '"') {
-            quote = '"';
-        } else if (character === "[") {
-            quote = "]";
-        } else if (character === "(") {
-            depth++;
-        } else if (character === ")" && --depth === 0) {
-            return index;
-        }
-    }
-    return -1;
-}
-
-function splitTopLevel(value: string, separator: string): string[] {
-    const parts: string[] = [];
-    let start = 0;
-    let depth = 0;
-    let quote: "'" | '"' | "]" | undefined;
-    for (let index = 0; index < value.length; index++) {
-        const character = value[index];
-        if (quote) {
-            if (character === quote) {
-                if (value[index + 1] === quote) {
-                    index++;
-                } else {
-                    quote = undefined;
-                }
-            }
-            continue;
-        }
-        if (character === "'" || character === '"') {
-            quote = character;
-        } else if (character === "[") {
-            quote = "]";
-        } else if (character === "(") {
-            depth++;
-        } else if (character === ")") {
-            depth--;
-        } else if (character === separator && depth === 0) {
-            parts.push(value.slice(start, index));
-            start = index + 1;
-        }
-    }
-    parts.push(value.slice(start));
-    return parts;
-}
-
 function getSelectIntoCompletionRecovery(
     text: string,
     offset: number,
@@ -3236,74 +3141,6 @@ function getSelectIntoCompletionRecovery(
 
 function hasSchemaEntries(mapping: SchemaMapping): boolean {
     return Object.keys(mapping).length > 0;
-}
-
-function isLocalObjectName(name: string): boolean {
-    return name.startsWith("#") || name.startsWith("@");
-}
-
-function sqlIdentifierPattern(allowIncomplete: boolean): string {
-    const bracketed = allowIncomplete
-        ? String.raw`\[(?:[^\]\r\n]|\]\])*\]?`
-        : String.raw`\[(?:[^\]\r\n]|\]\])*\]`;
-    const quoted = allowIncomplete
-        ? String.raw`"(?:[^"\r\n]|"")*"?`
-        : String.raw`"(?:[^"\r\n]|"")*"`;
-    return String.raw`(?:${bracketed}|${quoted}|[A-Za-z_@#][\w$#@]*)`;
-}
-
-function quoteCompletionIdentifier(value: string): string {
-    if (
-        value.startsWith("@") ||
-        (/^[A-Za-z_#][\w$#@]*$/.test(value) &&
-            !tsqlReservedKeywords.some((keyword) => keyword.toLowerCase() === value.toLowerCase()))
-    ) {
-        return value;
-    }
-    return `[${value.replaceAll("]", "]]")}]`;
-}
-
-function deduplicatePaths(paths: readonly (readonly string[])[]): readonly (readonly string[])[] {
-    const seen = new Set<string>();
-    return paths.filter((parts) => {
-        const key = parts.map((part) => part.toLowerCase()).join("\u0000");
-        if (seen.has(key)) {
-            return false;
-        }
-        seen.add(key);
-        return true;
-    });
-}
-
-function isSchemaLeaf(
-    value: SchemaMapping | Exclude<SchemaLeaf, string>,
-): value is Exclude<SchemaLeaf, string> {
-    return "type" in value || "nullable" in value;
-}
-
-function parseObjectReference(value: string | undefined): ObjectReference | undefined {
-    if (!value) {
-        return undefined;
-    }
-    const parts = splitMultipartIdentifier(value);
-    if (parts.length === 0) {
-        return undefined;
-    }
-    if (parts.length === 1) {
-        return { name: parts[0] };
-    }
-    if (parts.length === 2) {
-        return { schema: parts[0], name: parts[1] };
-    }
-    if (parts.length === 3) {
-        return { database: parts[0], schema: parts[1], name: parts[2] };
-    }
-    return {
-        server: parts.at(-4),
-        database: parts.at(-3),
-        schema: parts.at(-2),
-        name: parts.at(-1)!,
-    };
 }
 
 function getCreateTableCompletionContext(
@@ -3520,169 +3357,6 @@ function getUsedCreateTableColumns(value: string): Set<string> {
     );
 }
 
-function getCompletionPath(value: string): { qualifiers: string[]; prefix: string } {
-    const trimmed = value.trim();
-    if (!trimmed) {
-        return { qualifiers: [], prefix: "" };
-    }
-    const trailingDot = /\.\s*$/.test(trimmed);
-    const parts = splitMultipartIdentifier(trimmed.replace(/\.\s*$/, ""));
-    return trailingDot
-        ? { qualifiers: parts, prefix: "" }
-        : { qualifiers: parts.slice(0, -1), prefix: parts.at(-1) ?? "" };
-}
-
-function isPartialMultipartIdentifier(value: string): boolean {
-    const trimmed = value.trim();
-    if (!trimmed) {
-        return true;
-    }
-    const identifier = sqlIdentifierPattern(true);
-    return new RegExp(String.raw`^${identifier}(?:\s*\.\s*${identifier}){0,3}\s*$`, "i").test(
-        trimmed,
-    );
-}
-
-function getCompletionIdentifierPrefix(value: string): string {
-    const match = new RegExp(`(${sqlIdentifierPattern(true)})$`).exec(value);
-    return match ? unquoteIdentifier(match[1]) : "";
-}
-
-function getRoutineCallContext(prefix: string): RoutineCallContext | undefined {
-    const openParen = findActiveOpenParenthesis(prefix);
-    if (openParen === undefined) {
-        return undefined;
-    }
-    const identifier = sqlIdentifierPattern(false);
-    const match = new RegExp(
-        String.raw`(${identifier}(?:\s*\.\s*${identifier}){0,3})\s*$`,
-        "i",
-    ).exec(prefix.slice(0, openParen));
-    const routine = parseObjectReference(match?.[1]);
-    return routine
-        ? {
-              routine,
-              activeParameter: Math.max(
-                  0,
-                  splitTopLevel(prefix.slice(openParen + 1), ",").length - 1,
-              ),
-              kind: "function",
-          }
-        : undefined;
-}
-
-function getExecuteRoutineCallContext(prefix: string): RoutineCallContext | undefined {
-    const identifier = sqlIdentifierPattern(false);
-    const match = new RegExp(
-        String.raw`\bexec(?:ute)?\s+(?:@[A-Za-z_][\w$#@]*\s*=\s*)?(${identifier}(?:\s*\.\s*${identifier}){0,3})(?:\s+([^;]*))?$`,
-        "i",
-    ).exec(prefix);
-    const routine = parseObjectReference(match?.[1]);
-    if (!routine) {
-        return undefined;
-    }
-    return {
-        routine,
-        activeParameter: Math.max(0, splitTopLevel(match?.[2] ?? "", ",").length - 1),
-        kind: "execute",
-    };
-}
-
-function getInsertValuesContext(prefix: string): InsertValuesContext | undefined {
-    const openParen = findActiveOpenParenthesis(prefix);
-    if (openParen === undefined) {
-        return undefined;
-    }
-    const identifier = sqlIdentifierPattern(false);
-    const qualifiedIdentifier = String.raw`${identifier}(?:\s*\.\s*${identifier}){0,3}`;
-    const pattern = new RegExp(
-        String.raw`\binsert\s+into\s+(${qualifiedIdentifier})(?:\s*\(([^)]*)\))?\s+values\b`,
-        "gi",
-    );
-    const beforeRow = prefix.slice(0, openParen);
-    let insertMatch: RegExpExecArray | undefined;
-    for (let match = pattern.exec(beforeRow); match; match = pattern.exec(beforeRow)) {
-        insertMatch = match;
-    }
-    const target = parseObjectReference(insertMatch?.[1]);
-    if (!insertMatch || !target) {
-        return undefined;
-    }
-    const completedRows = beforeRow.slice(insertMatch.index + insertMatch[0].length);
-    if (completedRows.trim()) {
-        const rowSegments = splitTopLevel(completedRows, ",");
-        if (
-            rowSegments.at(-1)?.trim() ||
-            rowSegments.slice(0, -1).some((row) => !/^\s*\([\s\S]*\)\s*$/.test(row))
-        ) {
-            return undefined;
-        }
-    }
-    const columns = insertMatch[2]
-        ? splitTopLevel(insertMatch[2], ",")
-              .map((column) => unquoteIdentifier(column.trim()))
-              .filter(Boolean)
-        : undefined;
-    return {
-        target,
-        columns,
-        activeParameter: Math.max(0, splitTopLevel(prefix.slice(openParen + 1), ",").length - 1),
-    };
-}
-
-function findActiveOpenParenthesis(text: string): number | undefined {
-    const stack: number[] = [];
-    let quote: "'" | '"' | "]" | undefined;
-    let lineComment = false;
-    let blockCommentDepth = 0;
-    for (let index = 0; index < text.length; index++) {
-        const character = text[index];
-        const next = text[index + 1];
-        if (lineComment) {
-            if (character === "\n" || character === "\r") {
-                lineComment = false;
-            }
-            continue;
-        }
-        if (blockCommentDepth > 0) {
-            if (character === "/" && next === "*") {
-                blockCommentDepth++;
-                index++;
-            } else if (character === "*" && next === "/") {
-                blockCommentDepth--;
-                index++;
-            }
-            continue;
-        }
-        if (quote) {
-            if (character === quote) {
-                if (next === quote) {
-                    index++;
-                } else {
-                    quote = undefined;
-                }
-            }
-            continue;
-        }
-        if (character === "-" && next === "-") {
-            lineComment = true;
-            index++;
-        } else if (character === "/" && next === "*") {
-            blockCommentDepth = 1;
-            index++;
-        } else if (character === "'" || character === '"') {
-            quote = character;
-        } else if (character === "[") {
-            quote = "]";
-        } else if (character === "(") {
-            stack.push(index);
-        } else if (character === ")") {
-            stack.pop();
-        }
-    }
-    return stack.at(-1);
-}
-
 function getAliasedObjectReference(
     text: string,
     expectedAlias: string,
@@ -3699,112 +3373,6 @@ function getAliasedObjectReference(
         }
     }
     return undefined;
-}
-
-function splitMultipartIdentifier(value: string): string[] {
-    const parts: string[] = [];
-    let current = "";
-    let quote: "]" | '"' | undefined;
-    for (let index = 0; index < value.length; index++) {
-        const character = value[index];
-        if (quote) {
-            current += character;
-            if (character === quote) {
-                if (value[index + 1] === quote) {
-                    current += value[++index];
-                } else {
-                    quote = undefined;
-                }
-            }
-            continue;
-        }
-        if (character === "[") {
-            quote = "]";
-            current += character;
-        } else if (character === '"') {
-            quote = '"';
-            current += character;
-        } else if (character === ".") {
-            parts.push(unquoteIdentifier(current.trim()));
-            current = "";
-        } else {
-            current += character;
-        }
-    }
-    if (current.trim()) {
-        parts.push(unquoteIdentifier(current.trim()));
-    }
-    return parts.filter(Boolean);
-}
-
-function unquoteIdentifier(value: string): string {
-    if (value.startsWith("[")) {
-        return value.slice(1, value.endsWith("]") ? -1 : undefined).replaceAll("]]", "]");
-    }
-    const unicodeString = value.startsWith("N'") || value.startsWith("n'");
-    if ((unicodeString || value.startsWith("'")) && value.endsWith("'")) {
-        return value.slice(unicodeString ? 2 : 1, -1).replaceAll("''", "'");
-    }
-    if (value.startsWith('"')) {
-        return value.slice(1, value.endsWith('"') ? -1 : undefined).replaceAll('""', '"');
-    }
-    return value;
-}
-
-/** Closes an editor's unfinished quoted identifier at EOF so parser recovery stays silent. */
-function getParseableEditorText(text: string): string {
-    let state: "normal" | "string" | "bracket" | "quoted" | "lineComment" | "blockComment" =
-        "normal";
-    let blockCommentDepth = 0;
-    for (let index = 0; index < text.length; index++) {
-        const character = text[index];
-        const next = text[index + 1];
-        if (state === "lineComment") {
-            if (character === "\n" || character === "\r") {
-                state = "normal";
-            }
-            continue;
-        }
-        if (state === "blockComment") {
-            if (character === "/" && next === "*") {
-                blockCommentDepth++;
-                index++;
-            } else if (character === "*" && next === "/") {
-                blockCommentDepth--;
-                index++;
-                if (blockCommentDepth === 0) {
-                    state = "normal";
-                }
-            }
-            continue;
-        }
-        if (state === "string" || state === "bracket" || state === "quoted") {
-            const terminator = state === "string" ? "'" : state === "bracket" ? "]" : '"';
-            if (character === terminator) {
-                if (next === terminator) {
-                    index++;
-                } else {
-                    state = "normal";
-                }
-            }
-            continue;
-        }
-        if (character === "-" && next === "-") {
-            state = "lineComment";
-            index++;
-        } else if (character === "/" && next === "*") {
-            state = "blockComment";
-            blockCommentDepth = 1;
-            index++;
-        } else if (character === "'") {
-            state = "string";
-        } else if (character === "[") {
-            state = "bracket";
-        } else if (character === '"') {
-            state = "quoted";
-        }
-    }
-    return state === "bracket" ? `${text}]` : state === "quoted" ? `${text}"` : text;
 }
 
 function getObjectReferences(
@@ -3834,63 +3402,6 @@ function getObjectReferences(
         references.set(reference.name.toLocaleLowerCase(), reference);
     }
     return references;
-}
-
-function collectTextObjectReferences(text: string, references: Map<string, ObjectReference>): void {
-    const identifier = sqlIdentifierPattern(false);
-    const qualifiedIdentifier = String.raw`${identifier}(?:\s*\.\s*${identifier}){0,3}`;
-    const cteNames = new Set(
-        [
-            ...text.matchAll(
-                new RegExp(String.raw`(?:\bwith|,)\s*(${identifier})\s+as\s*\(`, "gi"),
-            ),
-        ].map((match) => unquoteIdentifier(match[1]).toLocaleLowerCase()),
-    );
-    const source = new RegExp(
-        String.raw`\b(?:from|join|apply|update|into)\s+(${qualifiedIdentifier})`,
-        "gi",
-    );
-    for (let match = source.exec(text); match; match = source.exec(text)) {
-        if (/^\s*[.(]/u.test(text.slice(source.lastIndex))) {
-            continue;
-        }
-        const reference = parseObjectReference(match[1]);
-        if (!reference || cteNames.has(reference.name.toLocaleLowerCase())) {
-            continue;
-        }
-        const key = [reference.server, reference.database, reference.schema, reference.name]
-            .filter((part): part is string => Boolean(part))
-            .map((part) => part.toLocaleLowerCase())
-            .join(".");
-        references.set(key, reference);
-    }
-    const synonymTarget = new RegExp(
-        String.raw`\bcreate\s+synonym\s+${qualifiedIdentifier}\s+for\s+(${qualifiedIdentifier})`,
-        "gi",
-    );
-    for (let match = synonymTarget.exec(text); match; match = synonymTarget.exec(text)) {
-        const reference = parseObjectReference(match[1]);
-        if (!reference) {
-            continue;
-        }
-        const key = [reference.server, reference.database, reference.schema, reference.name]
-            .filter((part): part is string => Boolean(part))
-            .map((part) => part.toLocaleLowerCase())
-            .join(".");
-        references.set(key, reference);
-    }
-}
-
-function objectReferenceFromParts(parts: readonly string[]): ObjectReference | undefined {
-    if (parts.length === 0) {
-        return undefined;
-    }
-    return {
-        server: parts.at(-4),
-        database: parts.at(-3),
-        schema: parts.at(-2),
-        name: parts.at(-1)!,
-    };
 }
 
 function rangeFromSpan(document: vscode.TextDocument, span: Sym["span"]): vscode.Range {
@@ -4393,7 +3904,7 @@ export class BetaSqlSignatureHelpProvider implements vscode.SignatureHelpProvide
             !token?.isCancellationRequested && document.version === requestedVersion;
         const offset = document.offsetAt(position);
         const connection = this._connectionManager.getConnectionInfo(getUriKey(document.uri));
-        const prefix = document.getText().slice(0, offset);
+        const prefix = getCompletionPrefix(document, position).text;
         const insertValuesContext = getInsertValuesContext(prefix);
         const call = insertValuesContext
             ? undefined
@@ -4997,24 +4508,13 @@ export function registerBetaSqlLanguageService(
             diagnostics.schedule(document, 0);
         }
     };
-    synchronizeBetaSqlLanguageService(connectionManager);
-    for (const document of vscode.workspace.textDocuments) {
-        void diagnostics.update(document);
-    }
-    return [
-        codeLensProvider,
-        diagnostics,
-        sessions,
-        catalog,
-        ...(scriptingDefinitions
-            ? [
-                  scriptingDefinitions,
-                  vscode.workspace.registerTextDocumentContentProvider(
-                      ScriptingDefinitionProvider.scheme,
-                      scriptingDefinitions,
-                  ),
-              ]
-            : []),
+
+    /**
+     * Language providers are registered only while the preview is on. Registration alone is
+     * user-visible: an always-registered formatter makes VS Code treat SQL as having competing
+     * formatters and prompt for a default even when this service never returns edits.
+     */
+    const registerLanguageFeatures = (): vscode.Disposable[] => [
         ...langiumFeatureProviders.register({ language: "sql" }),
         vscode.languages.registerCompletionItemProvider(
             { language: "sql" },
@@ -5023,6 +4523,8 @@ export function registerBetaSqlLanguageService(
             "(",
             ",",
             "*",
+            "@",
+            "[",
         ),
         vscode.languages.registerHoverProvider(
             { language: "sql" },
@@ -5049,6 +4551,42 @@ export function registerBetaSqlLanguageService(
             BetaSqlCodeActionProvider.metadata,
         ),
         vscode.languages.registerCodeLensProvider({ language: "sql" }, codeLensProvider),
+    ];
+
+    let languageFeatures: vscode.Disposable[] = [];
+    const syncLanguageFeatureRegistration = (): void => {
+        const enabled = previewService.isFeatureEnabled(PreviewFeature.BetaLanguageService);
+        if (enabled === languageFeatures.length > 0) {
+            return;
+        }
+        if (enabled) {
+            languageFeatures = registerLanguageFeatures();
+        } else {
+            vscode.Disposable.from(...languageFeatures).dispose();
+            languageFeatures = [];
+        }
+    };
+    syncLanguageFeatureRegistration();
+
+    synchronizeBetaSqlLanguageService(connectionManager);
+    for (const document of vscode.workspace.textDocuments) {
+        void diagnostics.update(document);
+    }
+    return [
+        codeLensProvider,
+        diagnostics,
+        sessions,
+        catalog,
+        new vscode.Disposable(() => vscode.Disposable.from(...languageFeatures).dispose()),
+        ...(scriptingDefinitions
+            ? [
+                  scriptingDefinitions,
+                  vscode.workspace.registerTextDocumentContentProvider(
+                      ScriptingDefinitionProvider.scheme,
+                      scriptingDefinitions,
+                  ),
+              ]
+            : []),
         vscode.commands.registerCommand(
             Constants.cmdRefreshBetaLanguageService,
             (documentUri: vscode.Uri) => {
@@ -5100,14 +4638,19 @@ export function registerBetaSqlLanguageService(
         }),
         vscode.workspace.onDidChangeConfiguration((event) => {
             if (
-                event.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaLanguageService))
+                !event.affectsConfiguration(
+                    getPreviewConfigKey(PreviewFeature.BetaLanguageService),
+                ) &&
+                !event.affectsConfiguration(Constants.configEnableExperimentalFeatures)
             ) {
-                synchronizeBetaSqlLanguageService(connectionManager);
-                sessions.invalidate();
-                codeLensProvider.notifyChanged();
-                for (const document of vscode.workspace.textDocuments) {
-                    void diagnostics.update(document);
-                }
+                return;
+            }
+            syncLanguageFeatureRegistration();
+            synchronizeBetaSqlLanguageService(connectionManager);
+            sessions.invalidate();
+            codeLensProvider.notifyChanged();
+            for (const document of vscode.workspace.textDocuments) {
+                void diagnostics.update(document);
             }
         }),
     ];
