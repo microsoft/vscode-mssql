@@ -1404,6 +1404,50 @@ SELECT * FROM #Test WHERE #Test.`;
         diagnostics.dispose();
     });
 
+    /** Verifies repeated built-in calls are not mistaken for colliding FROM-clause relations. */
+    test("does not report duplicate exposed names for repeated built-in calls", async () => {
+        connectionManager.getConnectionInfo.returns(undefined);
+        const document = await openSqlDocument(
+            "SELECT 'a' + CHAR(10) + 'b' + CHAR(10) + 'c' AS MultiLineText;",
+        );
+        const collection = vscode.languages.createDiagnosticCollection(
+            "mssql-beta-builtin-collision-test",
+        );
+        const diagnostics = new BetaSqlDiagnostics(
+            connectionManager,
+            catalog,
+            collection,
+            sessions,
+        );
+
+        await diagnostics.update(document);
+
+        expect(collection.get(document.uri) ?? []).to.be.empty;
+        diagnostics.dispose();
+    });
+
+    /** Verifies prose inside comments is never mistaken for a relation reference. */
+    test("ignores FROM-like words inside comments", async () => {
+        connectionManager.getConnectionInfo.returns(undefined);
+        const document = await openSqlDocument(
+            "-- formatted text using tabs and newlines\nSELECT 1 AS Value;",
+        );
+        const collection = vscode.languages.createDiagnosticCollection(
+            "mssql-beta-comment-reference-test",
+        );
+        const diagnostics = new BetaSqlDiagnostics(
+            connectionManager,
+            catalog,
+            collection,
+            sessions,
+        );
+
+        await diagnostics.update(document);
+
+        expect(collection.get(document.uri) ?? []).to.be.empty;
+        diagnostics.dispose();
+    });
+
     /** Verifies undeclared local variables are diagnosed without a database connection. */
     test("publishes variable diagnostics without metadata", async () => {
         connectionManager.getConnectionInfo.returns(undefined);

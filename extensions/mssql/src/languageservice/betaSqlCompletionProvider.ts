@@ -4173,6 +4173,11 @@ function getDuplicateSourceDiagnostics(
             .externalReferences()
             .filter(
                 (reference) =>
+                    // Only relations can share an exposed name. Without this, two CHAR(10) calls
+                    // in one SELECT were reported as duplicate FROM-clause objects.
+                    (reference.kind === "table" ||
+                        reference.kind === "view" ||
+                        reference.kind === "tempTable") &&
                     reference.role === "read" &&
                     !/^[#@]/.test(reference.name) &&
                     !session

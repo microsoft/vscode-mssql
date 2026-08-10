@@ -257,6 +257,7 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
                 this._declarations,
                 this._analysis,
                 this.text,
+                this.tokens,
             ),
         );
         this._symbols = Object.freeze(
@@ -2079,7 +2080,7 @@ function addCatalogColumnSymbols(
     );
     const parserReferences: readonly ExtractedReference[] = [
         ...extractedReferences,
-        ...textualExternalReferences(text)
+        ...textualExternalReferences(text, tokens)
             .filter(
                 (reference) =>
                     reference.kind === "table" &&
@@ -2784,6 +2785,7 @@ function buildExternalReferences(
     declarations: readonly ExtractedDeclaration[],
     analysis: AnalysisResult,
     text: string,
+    tokens: readonly SqlToken[],
 ): SqlExternalReference[] {
     const result: SqlExternalReference[] = extractedReferences
         .filter((reference) => isExternalReference(reference))
@@ -2818,7 +2820,7 @@ function buildExternalReferences(
             known.add(`${merge.target.kind}:${merge.target.span.start}:${merge.target.span.end}`);
         }
     }
-    for (const reference of textualExternalReferences(text)) {
+    for (const reference of textualExternalReferences(text, tokens)) {
         const key = `${reference.kind}:${reference.span.start}:${reference.span.end}`;
         if (!known.has(key)) {
             known.add(key);
@@ -2852,15 +2854,29 @@ function mapExternalReference(reference: ExtractedReference, text: string): SqlE
     });
 }
 
-function textualExternalReferences(text: string): SqlExternalReference[] {
+/**
+ * Salvages relation references the AST missed on damaged input. It is a text scan, so it must be
+ * restricted to code tokens: prose in a comment like "using multiple tabs" otherwise became two
+ * table references and was reported as an invalid object name.
+ */
+function textualExternalReferences(
+    text: string,
+    tokens: readonly SqlToken[],
+): SqlExternalReference[] {
     const identifier = String.raw`(?:\[(?:[^\]]|\]\])*\]|"(?:[^"]|"")+"|[#@A-Za-z_][\w$#@]*)`;
     const qualified = String.raw`${identifier}(?:\s*\.\s*${identifier}){0,3}`;
     const pattern = new RegExp(String.raw`\b(?:from|join|apply|using)\s+(${qualified})`, "giu");
+    const codeStarts = new Set(
+        tokens.filter((token) => token.channel === "code").map((token) => token.span.start),
+    );
     const result: SqlExternalReference[] = [];
     for (let match = pattern.exec(text); match; match = pattern.exec(text)) {
         const nameText = match[1];
         const relativeStart = match[0].lastIndexOf(nameText);
         const start = match.index + relativeStart;
+        if (!codeStarts.has(match.index) || !codeStarts.has(start)) {
+            continue;
+        }
         const compact = nameText.replace(/\s*\.\s*/g, ".");
         const parts = identifierParts(compact).map(unquoteIdentifier);
         if (isSqlTypeMethodName(parts.at(-1) ?? "")) {
