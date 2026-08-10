@@ -19,6 +19,7 @@ import {
     LabelProps,
     Link,
     makeStyles,
+    mergeClasses,
     MessageBar,
     Option,
     OptionOnSelectData,
@@ -248,7 +249,10 @@ export const AddFirewallRuleDialog = ({
                                         </span>
                                     ),
                                 }}
-                                className={`${formStyles.formComponentDiv} ${styles.horizontalField}`}
+                                className={mergeClasses(
+                                    formStyles.formComponentDiv,
+                                    styles.horizontalField,
+                                )}
                                 orientation="horizontal">
                                 <Dropdown
                                     value={
@@ -288,7 +292,10 @@ export const AddFirewallRuleDialog = ({
                                         </span>
                                     ),
                                 }}
-                                className={`${formStyles.formComponentDiv} ${styles.horizontalField}`}
+                                className={mergeClasses(
+                                    formStyles.formComponentDiv,
+                                    styles.horizontalField,
+                                )}
                                 orientation="horizontal">
                                 <Dropdown
                                     value={
@@ -316,7 +323,10 @@ export const AddFirewallRuleDialog = ({
 
                     <Field
                         label={Loc.firewallRules.ruleName}
-                        className={`${formStyles.formComponentDiv} ${styles.horizontalField}`}
+                        className={mergeClasses(
+                            formStyles.formComponentDiv,
+                            styles.horizontalField,
+                        )}
                         orientation="horizontal">
                         <Input
                             value={ruleName}
@@ -328,7 +338,10 @@ export const AddFirewallRuleDialog = ({
                     </Field>
                     <Field
                         label={Loc.firewallRules.ipAddressRange}
-                        className={`${formStyles.formComponentDiv} ${styles.horizontalField}`}
+                        className={mergeClasses(
+                            formStyles.formComponentDiv,
+                            styles.horizontalField,
+                        )}
                         orientation="horizontal">
                         <RadioGroup
                             value={ipSelectionMode}

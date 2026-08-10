@@ -18,6 +18,7 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import MainController from "../../src/controllers/mainController";
 import { languageId } from "../../src/constants/constants";
 import { ConnectionStore } from "../../src/models/connectionStore";
+import { Deferred } from "../../src/protocol";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import * as ConnectionContracts from "../../src/models/contracts/connection";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
@@ -56,10 +57,11 @@ suite("Per File Connection Tests", () => {
     let manager: ConnectionManager;
     let prompterStub: sinon.SinonStubbedInstance<IPrompter>;
 
-    setup(() => {
+    setup(async () => {
         sandbox = sinon.createSandbox();
         extensionContext = stubExtensionContext(sandbox);
         manager = createTestConnectionManager();
+        await manager.initialized;
     });
 
     teardown(() => {
@@ -328,6 +330,7 @@ suite("Per File Connection Tests", () => {
         const testFile = "file:///my/test/file.sql";
 
         let connectionManager: ConnectionManager = createTestConnectionManager();
+        await connectionManager.initialized;
 
         const serviceClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         serviceClientStub.sendRequest
@@ -524,21 +527,23 @@ suite("Per File Connection Tests", () => {
     function createTestConnectionManager(
         serviceClient?: SqlToolsServiceClient,
         statusView?: StatusView,
-        connectionStore?: ConnectionStore,
+        connectionStore?: sinon.SinonStubbedInstance<ConnectionStore>,
         connectionUI?: ConnectionUI,
     ): ConnectionManager {
         prompterStub = stubPrompter(sandbox);
         const statusViewInstance = statusView ?? sandbox.createStubInstance(StatusView);
-
-        let connectionStoreInstance;
-
-        if (connectionStore) {
-            connectionStoreInstance = connectionStore;
-        } else {
-            const stubConnectionStore = sandbox.createStubInstance(ConnectionStore);
-            stubConnectionStore.addRecentlyUsed.resolves();
-            connectionStoreInstance = stubConnectionStore;
+        const connectionStoreInstance =
+            connectionStore ?? sandbox.createStubInstance(ConnectionStore);
+        if (!connectionStore) {
+            connectionStoreInstance.addRecentlyUsed.resolves();
         }
+        const initializedDeferred = new Deferred<void>();
+        initializedDeferred.resolve();
+        sandbox.stub(connectionStoreInstance, "initialized").get(() => initializedDeferred);
+        connectionStoreInstance.readAllConnections.resolves([]);
+        connectionStoreInstance.readAllConnectionGroups.resolves([]);
+        const serviceClientInstance =
+            serviceClient ?? sandbox.createStubInstance(SqlToolsServiceClient);
 
         let manager: ConnectionManager;
         const connectionUIInstance =
@@ -560,7 +565,7 @@ suite("Per File Connection Tests", () => {
             sandbox.createStubInstance(AccountStore),
             stubInstantiationService(sandbox),
             undefined, // logger
-            serviceClient,
+            serviceClientInstance,
             connectionUIInstance,
         );
         return manager;

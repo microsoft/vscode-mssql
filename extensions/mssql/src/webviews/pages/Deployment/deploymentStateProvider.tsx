@@ -42,6 +42,15 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                 });
             },
             formAction: formAction as DeploymentContextProps["formAction"],
+            toggleFormOptionFavorite: function (
+                propertyName: keyof DeploymentFormState,
+                favoriteId: string,
+            ): void {
+                extensionRpc.action("toggleFormOptionFavorite", {
+                    propertyName,
+                    favoriteId,
+                });
+            },
             setConnectionGroupDialogState: function (shouldOpen: boolean): void {
                 extensionRpc.action("setConnectionGroupDialogState", {
                     shouldOpen: shouldOpen,

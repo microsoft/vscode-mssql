@@ -12,6 +12,7 @@ import {
     Input,
     Label,
     makeStyles,
+    mergeClasses,
     Popover,
     PopoverSurface,
     PopoverTrigger,
@@ -308,9 +309,10 @@ const ColumnsTable = ({
                     <Button
                         size="small"
                         appearance="subtle"
-                        className={`${classes.dragHandleButton} ${
-                            draggedRowId === index ? classes.draggingHandleButton : ""
-                        }`}
+                        className={mergeClasses(
+                            classes.dragHandleButton,
+                            draggedRowId === index && classes.draggingHandleButton,
+                        )}
                         icon={<FluentIcons.ReOrderRegular />}
                         draggable={true}
                         onDragEnter={() => {

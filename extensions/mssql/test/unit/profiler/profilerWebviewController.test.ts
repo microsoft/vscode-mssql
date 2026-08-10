@@ -18,6 +18,7 @@ import {
     TEMPLATE_ID_STANDARD_ONPREM,
 } from "../../../src/profiler/profilerTypes";
 import { ProfilerService } from "../../../src/services/profilerService";
+import { observeWebviewReady } from "../utils";
 import { uuid } from "../../../src/utils/utils";
 
 chai.use(sinonChai);
@@ -132,13 +133,15 @@ suite("ProfilerWebviewController Tests", () => {
         sessionName?: string,
         templateId: string = TEMPLATE_ID_STANDARD_ONPREM,
     ): ProfilerWebviewController {
-        return new ProfilerWebviewController(
+        const controller = new ProfilerWebviewController(
             mockContext,
             mockSessionManager,
             availableSessions,
             sessionName,
             templateId,
         );
+        observeWebviewReady(controller);
+        return controller;
     }
 
     suite("constructor", () => {
