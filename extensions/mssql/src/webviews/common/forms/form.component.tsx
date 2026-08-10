@@ -29,6 +29,8 @@ import {
     Eye16Regular,
     EyeOff16Regular,
     Info16Regular,
+    Star16Filled,
+    Star16Regular,
 } from "@fluentui/react-icons";
 import {
     FormContextProps,
@@ -42,6 +44,7 @@ import { useEffect, useState } from "react";
 import { FluentOptionIcons, SearchableDropdown } from "../searchableDropdown.component";
 import { locConstants } from "../locConstants";
 import { EventType, KeyCode } from "../keys";
+import { sortOptionsWithFavorites } from "../../../utils/formOptions";
 
 export const useFormStyles = makeStyles({
     formRoot: {
@@ -193,6 +196,36 @@ export const FormInput = <
     );
 };
 
+const FavoriteDropdownOrder = ({
+    favoriteOptionIds,
+    componentProps,
+    children,
+}: {
+    favoriteOptionIds: string[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    componentProps?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    children: (componentProps: any) => React.ReactNode;
+}) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [favoriteOrderIds, setFavoriteOrderIds] = useState(favoriteOptionIds);
+
+    useEffect(() => {
+        if (!isOpen) {
+            setFavoriteOrderIds(favoriteOptionIds);
+        }
+    }, [favoriteOptionIds, isOpen]);
+
+    return children({
+        ...componentProps,
+        favoriteOrderIds,
+        onOpenChange: (event: unknown, data: { open: boolean }) => {
+            setIsOpen(data.open);
+            componentProps?.onOpenChange?.(event, data);
+        },
+    });
+};
+
 export const FormField = <
     TForm,
     TState extends FormState<TForm, TState, TFormItemSpec>,
@@ -220,6 +253,28 @@ export const FormField = <
     }
 
     const formStyles = useFormStyles();
+    const formControl =
+        component.type === FormItemType.Dropdown && component.favoriteOptionIds !== undefined ? (
+            <FavoriteDropdownOrder
+                favoriteOptionIds={component.favoriteOptionIds}
+                componentProps={componentProps}>
+                {(favoriteComponentProps) =>
+                    generateFormComponent<TForm, TState, TFormItemSpec, TContext>(
+                        context,
+                        formState,
+                        component,
+                        favoriteComponentProps,
+                    )
+                }
+            </FavoriteDropdownOrder>
+        ) : (
+            generateFormComponent<TForm, TState, TFormItemSpec, TContext>(
+                context,
+                formState,
+                component,
+                componentProps,
+            )
+        );
 
     return (
         <div className={formStyles.formComponentDiv} key={idx}>
@@ -284,12 +339,7 @@ export const FormField = <
                 }}
                 {...props}
                 style={{ color: tokens.colorNeutralForeground1 }}>
-                {generateFormComponent<TForm, TState, TFormItemSpec, TContext>(
-                    context,
-                    formState,
-                    component,
-                    componentProps,
-                )}
+                {formControl}
             </Field>
             {component?.actionButtons?.length! > 0 && (
                 <div className={formStyles.formComponentActionDiv}>
@@ -481,6 +531,20 @@ export function generateFormComponent<
             if (component.options === undefined) {
                 throw new Error("Dropdown component must have options");
             }
+            const {
+                favoriteOrderIds,
+                ...dropdownProps
+            }: {
+                favoriteOrderIds?: string[];
+                [key: string]: unknown;
+            } = props ?? {};
+            const sortedFormOptions =
+                component.favoriteOptionIds === undefined
+                    ? component.options
+                    : sortOptionsWithFavorites(
+                          component.options,
+                          favoriteOrderIds ?? component.favoriteOptionIds,
+                      );
             return (
                 <Dropdown
                     size="small"
@@ -502,8 +566,10 @@ export function generateFormComponent<
                             });
                         }
                     }}
-                    {...props}>
-                    {component.options?.map((option, idx) => {
+                    {...dropdownProps}>
+                    {sortedFormOptions.map((option, idx) => {
+                        const favoriteId = option.favoriteId ?? option.value;
+                        const isFavorite = component.favoriteOptionIds?.includes(favoriteId);
                         return (
                             <Option
                                 key={(component.propertyName as string) + idx}
@@ -528,6 +594,59 @@ export function generateFormComponent<
                                         }}>
                                         {option.description && <Text>{option.description}</Text>}
                                         {option.icon && FluentOptionIcons[option.icon]}
+                                        {component.favoriteOptionIds !== undefined &&
+                                            "toggleFormOptionFavorite" in context && (
+                                                <button
+                                                    type="button"
+                                                    aria-label={
+                                                        isFavorite
+                                                            ? locConstants.connectionDialog
+                                                                  .removeFromFavorites
+                                                            : locConstants.connectionDialog
+                                                                  .addToFavorites
+                                                    }
+                                                    aria-pressed={isFavorite}
+                                                    title={
+                                                        isFavorite
+                                                            ? locConstants.connectionDialog
+                                                                  .removeFromFavorites
+                                                            : locConstants.connectionDialog
+                                                                  .addToFavorites
+                                                    }
+                                                    onMouseDown={(event) => {
+                                                        event.preventDefault();
+                                                        event.stopPropagation();
+                                                    }}
+                                                    onClick={(event) => {
+                                                        event.preventDefault();
+                                                        event.stopPropagation();
+                                                        (
+                                                            context as TContext & {
+                                                                toggleFormOptionFavorite: (
+                                                                    propertyName: keyof TForm,
+                                                                    favoriteId: string,
+                                                                ) => void;
+                                                            }
+                                                        ).toggleFormOptionFavorite(
+                                                            component.propertyName,
+                                                            favoriteId,
+                                                        );
+                                                    }}
+                                                    style={{
+                                                        display: "flex",
+                                                        padding: 0,
+                                                        border: 0,
+                                                        background: "transparent",
+                                                        color: "inherit",
+                                                        cursor: "pointer",
+                                                    }}>
+                                                    {isFavorite ? (
+                                                        <Star16Filled />
+                                                    ) : (
+                                                        <Star16Regular />
+                                                    )}
+                                                </button>
+                                            )}
                                         {option.infoTooltip && (
                                             <span
                                                 onClick={(e) => {
@@ -585,6 +704,7 @@ export function generateFormComponent<
             const dropdownOptions = component.options.map((opt) => ({
                 value: opt.value,
                 text: opt.displayName,
+                favoriteId: opt.favoriteId,
                 color: opt.color,
                 description: opt.description,
                 icon: opt.icon,
@@ -614,6 +734,21 @@ export function generateFormComponent<
                     clearable={true}
                     ariaLabel={component.label}
                     showPlaceholder={true}
+                    favoriteOptionIds={component.favoriteOptionIds}
+                    onToggleFavorite={
+                        component.favoriteOptionIds !== undefined &&
+                        "toggleFormOptionFavorite" in context
+                            ? (favoriteId) =>
+                                  (
+                                      context as TContext & {
+                                          toggleFormOptionFavorite: (
+                                              propertyName: keyof TForm,
+                                              favoriteId: string,
+                                          ) => void;
+                                      }
+                                  ).toggleFormOptionFavorite(component.propertyName, favoriteId)
+                            : undefined
+                    }
                     {...props}
                 />
             );

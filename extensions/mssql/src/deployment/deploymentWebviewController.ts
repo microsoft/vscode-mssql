@@ -31,8 +31,12 @@ import {
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
 } from "../sharedInterfaces/azureSqlDatabase";
+import { findFirstFavoriteOption } from "../utils/formOptions";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";
+const DEPLOYMENT_FAVORITES_STATE_KEY = "mssql.deploymentResourceFavorites";
+
+type DeploymentFavorites = Record<string, string[]>;
 
 /**
  * Overarching controller for the deployment webview.
@@ -110,6 +114,10 @@ export class DeploymentWebviewController extends FormWebviewController<
             state.dialog = newDeploymentTypeState.dialog;
             state.formState = newDeploymentTypeState.formState;
             state.formComponents = newDeploymentTypeState.formComponents as any;
+            this.applyFavoritesToFormComponents(state);
+            if (payload.deploymentType === DeploymentType.FabricProvisioning) {
+                void fabricProvisioning.getWorkspaces(this);
+            }
             return state;
         });
 
@@ -130,6 +138,33 @@ export class DeploymentWebviewController extends FormWebviewController<
                 state.deploymentTypeState.formComponents = state.formComponents as any;
             }
 
+            return state;
+        });
+
+        this.registerReducer("toggleFormOptionFavorite", async (state, payload) => {
+            const component = state.formComponents[payload.propertyName];
+            if (component?.favoriteOptionIds === undefined) {
+                return state;
+            }
+
+            const favoriteKey = this.getFavoriteKey(state.deploymentType, payload.propertyName);
+            const favorites =
+                this._context.globalState.get<DeploymentFavorites>(
+                    DEPLOYMENT_FAVORITES_STATE_KEY,
+                ) ?? {};
+            const currentFavorites = favorites[favoriteKey] ?? [];
+            const nextFavorites = currentFavorites.includes(payload.favoriteId)
+                ? currentFavorites.filter((id) => id !== payload.favoriteId)
+                : [...currentFavorites, payload.favoriteId];
+
+            await this._context.globalState.update(DEPLOYMENT_FAVORITES_STATE_KEY, {
+                ...favorites,
+                [favoriteKey]: nextFavorites,
+            });
+
+            component.favoriteOptionIds = nextFavorites;
+            state.deploymentTypeState.formComponents[payload.propertyName].favoriteOptionIds =
+                nextFavorites;
             return state;
         });
 
@@ -190,6 +225,34 @@ export class DeploymentWebviewController extends FormWebviewController<
         localContainers.registerLocalContainersReducers(this);
         fabricProvisioning.registerFabricProvisioningReducers(this);
         azureSqlDatabase.registerAzureSqlDatabaseReducers(this);
+    }
+
+    private applyFavoritesToFormComponents(state: DeploymentWebviewState): void {
+        const favorites =
+            this._context.globalState.get<DeploymentFavorites>(DEPLOYMENT_FAVORITES_STATE_KEY) ??
+            {};
+
+        for (const [propertyName, component] of Object.entries(state.formComponents)) {
+            if (component.favoriteOptionIds === undefined) {
+                continue;
+            }
+
+            component.favoriteOptionIds =
+                favorites[this.getFavoriteKey(state.deploymentType, propertyName)] ?? [];
+            const favoriteOption = findFirstFavoriteOption(
+                component.options ?? [],
+                component.favoriteOptionIds,
+            );
+            if (favoriteOption) {
+                state.formState[propertyName] = favoriteOption.value;
+            }
+        }
+
+        state.deploymentTypeState.formComponents = state.formComponents as any;
+    }
+
+    private getFavoriteKey(deploymentType: DeploymentType, propertyName: string): string {
+        return `${DeploymentType[deploymentType]}.${propertyName}`;
     }
 
     async updateItemVisibility() {}

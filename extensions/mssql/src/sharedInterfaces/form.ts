@@ -77,6 +77,11 @@ export interface FormItemSpec<
      */
     searchBoxPlaceholder?: string;
     /**
+     * Resource identities currently marked as favorites. When undefined, the form field does not
+     * expose favorite controls.
+     */
+    favoriteOptionIds?: string[];
+    /**
      * Validation callback for the form item
      */
     validate?: (state: TState, value: string | boolean | number) => FormItemValidationState;
@@ -124,6 +129,11 @@ export interface FormItemActionButton {
 export interface FormItemOptions {
     displayName: string;
     value: string;
+    /**
+     * Stable identity used for favorites when the option value is only unique within a parent
+     * resource. Defaults to value when omitted.
+     */
+    favoriteId?: string;
     /**
      * Option description
      */

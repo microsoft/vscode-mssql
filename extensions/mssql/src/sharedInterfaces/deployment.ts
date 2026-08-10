@@ -54,6 +54,11 @@ export interface DeploymentCommonReducers {
         event: FormEvent<DeploymentFormState>;
     };
 
+    toggleFormOptionFavorite: {
+        propertyName: keyof DeploymentFormState;
+        favoriteId: string;
+    };
+
     /**
      * Handles the action of creating a connection group.
      */
@@ -84,6 +89,8 @@ export interface DeploymentCommonContextProps extends FormContextProps<Deploymen
      * @param event The form event containing the action and data.
      */
     formAction(event: FormEvent<DeploymentFormState>): void;
+
+    toggleFormOptionFavorite(propertyName: keyof DeploymentFormState, favoriteId: string): void;
 
     /**
      * Creates a connection group based on the provided spec.
