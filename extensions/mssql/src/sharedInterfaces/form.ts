@@ -126,7 +126,7 @@ export interface FormItemActionButton {
     callback: () => void | Promise<void>;
 }
 
-//#
+//#region Favorites
 export interface FavoritableOption {
     value: string;
     favoriteId?: string;
@@ -166,6 +166,7 @@ export function findFirstFavoriteOption<T extends FavoritableOption>(
     const favoriteIds = new Set(favoriteOptionIds);
     return options.find((option) => favoriteIds.has(option.favoriteId ?? option.value));
 }
+//#endregion
 
 export interface FormItemOptions {
     displayName: string;
