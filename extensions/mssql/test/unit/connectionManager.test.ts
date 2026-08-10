@@ -283,6 +283,16 @@ suite("ConnectionManager Tests", () => {
 
             expect(messageBoxes.showErrorMessage).to.have.been.calledOnce;
         });
+
+        test("strips a trailing comma from the server", () => {
+            const credentials = {
+                server: "localhost,",
+            } as IConnectionInfo;
+
+            connectionManager["normalizeServerName"](credentials);
+
+            expect(credentials.server).to.equal("localhost");
+        });
     });
 
     suite("Token request handling", () => {

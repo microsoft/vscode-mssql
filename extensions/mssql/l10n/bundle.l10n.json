@@ -19,6 +19,7 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
+    "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
     "SQL Tools (MSSQL)": "SQL Tools (MSSQL)",
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
@@ -1137,7 +1138,6 @@
     "Select Connection": "Select Connection",
     "Checking Docker prerequisites...": "Checking Docker prerequisites...",
     "Creating SQL Server container...": "Creating SQL Server container...",
-    "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
     "Port {0} is already in use. Please choose a different port./{0} is the port number": {
         "message": "Port {0} is already in use. Please choose a different port.",
         "comment": ["{0} is the port number"]

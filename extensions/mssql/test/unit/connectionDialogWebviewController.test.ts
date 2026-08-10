@@ -1832,6 +1832,35 @@ suite("ConnectionDialogWebviewController Tests", () => {
             expect(connection.port).to.be.undefined;
         });
 
+        test("does not append a comma when the port is blank", () => {
+            const connection = {
+                server: "localhost",
+            } as IConnectionDialogProfile;
+            Object.assign(connection, { port: "" });
+
+            controller["combineServerAndPort"](connection);
+
+            expect(connection.server).to.equal("localhost");
+            expect(connection.port).to.be.undefined;
+        });
+
+        test("accepts a blank port", () => {
+            const validation = controller.state.formComponents.port.validate(controller.state, "");
+
+            expect(validation.isValid).to.be.true;
+            expect(validation.validationMessage).to.equal("");
+        });
+
+        test("rejects a nonnumeric port", () => {
+            const validation = controller.state.formComponents.port.validate(
+                controller.state,
+                "not-a-port",
+            );
+
+            expect(validation.isValid).to.be.false;
+            expect(validation.validationMessage).to.not.equal("");
+        });
+
         test("does not combine when the server already contains a port", () => {
             const connection = {
                 server: "localhost,1500",

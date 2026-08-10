@@ -20,7 +20,7 @@ import {
 } from "../sharedInterfaces/form";
 import { sendErrorEvent } from "../telemetry/telemetry";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { ConnectionDialog as Loc } from "../constants/locConstants";
+import { Common, ConnectionDialog as Loc } from "../constants/locConstants";
 import { CapabilitiesResult, GetCapabilitiesRequest } from "../models/contracts/connection";
 import { getErrorMessage } from "../utils/utils";
 import ConnectionManager from "../controllers/connectionManager";
@@ -319,6 +319,20 @@ export async function completeFormComponents(
             validationMessage: "",
         };
     };
+
+    if (components["port"]) {
+        components["port"].validate = (_state: ConnectionDialogWebviewState, value) => {
+            const portValue = String(value ?? "").trim();
+            const port = Number(portValue);
+            const isValid =
+                portValue.length === 0 || (Number.isInteger(port) && port >= 1 && port <= 65535);
+
+            return {
+                isValid,
+                validationMessage: isValid ? "" : Common.invalidPort,
+            };
+        };
+    }
 
     components["user"].validate = (state: ConnectionDialogWebviewState, value: string) => {
         if (

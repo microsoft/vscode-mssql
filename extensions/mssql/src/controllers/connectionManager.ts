@@ -1430,6 +1430,12 @@ export default class ConnectionManager {
         return "";
     }
 
+    private normalizeServerName(credentials: IConnectionInfo): void {
+        if (credentials.server?.endsWith(",")) {
+            credentials.server = credentials.server.slice(0, -1);
+        }
+    }
+
     /**
      * Creates a new connection with provided credentials.
      * @param fileUri file URI for the connection. If not provided, a new URI will be generated.
@@ -1448,6 +1454,8 @@ export default class ConnectionManager {
             serverlessWakeFailedAttempts?: number;
         } = {},
     ): Promise<boolean> {
+        this.normalizeServerName(credentials);
+
         const {
             shouldHandleErrors = true,
             connectionSource = "",
