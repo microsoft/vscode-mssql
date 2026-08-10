@@ -575,6 +575,30 @@ export abstract class ParserBase {
         this.recoverTo([";", ...extra, ...RESYNC_KEYWORDS]);
     }
 
+    /**
+     * Skips an unmodeled statement's whole definition. Stopping at a resync keyword is wrong here
+     * because the definition itself contains them — `CREATE EXTERNAL TABLE ... WITH (...)` would
+     * resume inside the WITH and be misread as a CTE.
+     */
+    protected skipToStatementTerminator(): void {
+        let depth = 0;
+        while (this.pos < this.tokens.length) {
+            const token = this.peek();
+            if (depth === 0 && token.value.toUpperCase() === "GO") {
+                return;
+            }
+            if (token.type === TokenType.OpenParen) {
+                depth++;
+            } else if (token.type === TokenType.CloseParen) {
+                depth = Math.max(0, depth - 1);
+            } else if (depth === 0 && token.type === TokenType.Semicolon) {
+                this.consume();
+                return;
+            }
+            this.consume();
+        }
+    }
+
     protected resyncToBlockBoundary(): void {
         // consumeCommaAsBoundary: false — block bodies routinely contain
         // commas (e.g. inside expressions); only END/ELSE/CATCH/semicolon

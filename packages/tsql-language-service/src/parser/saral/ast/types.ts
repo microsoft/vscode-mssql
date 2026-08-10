@@ -487,7 +487,10 @@ export interface CreateNode extends NodeLocation, Recoverable {
         | "PARTITION_FUNCTION"
         | "PARTITION_SCHEME"
         | "LOGIN"
-        | "USER";
+        | "USER"
+        | "DATABASE";
+    /** Set when the CREATE target is not modeled; the statement carries no name or body. */
+    unsupportedObjectType?: string;
     orAlter: boolean;
     name: string;
     nameNode: IdentifierNode;

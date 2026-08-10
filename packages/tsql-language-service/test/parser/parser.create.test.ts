@@ -437,4 +437,35 @@ describe("CREATE PROCEDURE / FUNCTION / TRIGGER — body must stop at BEGIN...EN
         expect(trgResult.ast.body).toHaveLength(2);
         expect(trgResult.ast.body[1].type).toBe("SelectStatement");
     });
+
+    test("should parse CREATE DATABASE", () => {
+        const result = new Parser(new Lexer(`CREATE DATABASE TestData_1M;`)).parse();
+        const node = result.ast.body[0] as CreateNode;
+
+        expect(result.issues).toEqual([]);
+        expect(node.objectType).toBe("DATABASE");
+        expect(node.name).toBe("TestData_1M");
+    });
+
+    test("should report an unmodeled CREATE target once and without inventing a name", () => {
+        const sql = `CREATE EXTERNAL DATA SOURCE [MyDs] WITH (LOCATION = N'x', CREDENTIAL = [sa]);
+            SELECT 1;`;
+        const result = new Parser(new Lexer(sql)).parse();
+        const node = result.ast.body[0] as CreateNode;
+
+        expect(node.unsupportedObjectType).toBe("EXTERNAL");
+        expect(node.name).toBe("");
+        expect(result.issues.map((issue) => issue.code)).toEqual(["PARSE_CREATE_TYPE"]);
+        expect(result.ast.body[1].type).toBe("SelectStatement");
+    });
+
+    test("should not read CREATE DATABASE SCOPED CREDENTIAL as a database named SCOPED", () => {
+        const sql = `CREATE DATABASE SCOPED CREDENTIAL [sa] WITH IDENTITY = N'sa';`;
+        const result = new Parser(new Lexer(sql)).parse();
+        const node = result.ast.body[0] as CreateNode;
+
+        expect(node.unsupportedObjectType).toBe("DATABASE SCOPED");
+        expect(node.name).toBe("");
+        expect(result.issues.map((issue) => issue.code)).toEqual(["PARSE_CREATE_TYPE"]);
+    });
 });

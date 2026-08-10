@@ -70,7 +70,7 @@ function statementSymbols(stmt: Statement): DocumentSymbol[] {
             return [];
 
         case "CreateStatement":
-            return [createSymbol(stmt)];
+            return stmt.unsupportedObjectType ? [] : [createSymbol(stmt)];
 
         case "DeclareStatement":
             return declareSymbols(stmt);

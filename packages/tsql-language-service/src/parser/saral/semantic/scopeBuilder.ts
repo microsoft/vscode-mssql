@@ -698,6 +698,11 @@ export class ScopeBuilder {
     }
 
     private visitCreate(stmt: CreateNode): void {
+        // An unmodeled CREATE target has no parsed name, so declaring it would put an empty
+        // symbol in scope and report it as a duplicate against the next one.
+        if (stmt.unsupportedObjectType || !stmt.name) {
+            return;
+        }
         switch (stmt.objectType) {
             case "TABLE": {
                 const localColumns = stmt.columns?.map((c) =>

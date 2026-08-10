@@ -178,7 +178,11 @@ function collectDeclarationsFromStatement(
             return;
 
         case "CreateStatement":
-            declarations.push(createObjectDeclaration(stmt));
+            // An unmodeled CREATE target has no parsed name; declaring it would surface an
+            // <anonymous> object in completion, outline and go-to-definition.
+            if (!stmt.unsupportedObjectType) {
+                declarations.push(createObjectDeclaration(stmt));
+            }
 
             if (Array.isArray(stmt.body)) {
                 for (const child of stmt.body) {

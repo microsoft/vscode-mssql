@@ -555,6 +555,7 @@ export abstract class CreateParser extends ControlFlowParser {
 
         // 1. Object type
         let objectType: CreateNode["objectType"] = "TABLE";
+        let unsupportedObjectType: string | undefined;
 
         try {
             const typeToken = this.consume();
@@ -570,6 +571,7 @@ export abstract class CreateParser extends ControlFlowParser {
                     objectType = "PARTITION_SCHEME";
                 } else {
                     incomplete = true;
+                    unsupportedObjectType = `PARTITION ${subtype}`;
 
                     this.addRecoverableError(
                         errors,
@@ -584,15 +586,21 @@ export abstract class CreateParser extends ControlFlowParser {
             } else {
                 const mapped = CREATE_OBJECT_TYPES[rawType as keyof typeof CREATE_OBJECT_TYPES];
 
-                if (mapped) {
+                // DATABASE SCOPED CREDENTIAL is a different object from DATABASE; without this
+                // it parsed as a database named SCOPED and left CREDENTIAL dangling.
+                const scoped =
+                    rawType === "DATABASE" && this.peek()?.value?.toUpperCase() === "SCOPED";
+
+                if (mapped && !scoped) {
                     objectType = mapped;
                 } else {
                     incomplete = true;
+                    unsupportedObjectType = scoped ? "DATABASE SCOPED" : rawType;
 
                     this.addRecoverableError(
                         errors,
                         "PARSE_CREATE_TYPE",
-                        `Unsupported CREATE object type: ${rawType}`,
+                        `Unsupported CREATE object type: ${unsupportedObjectType}`,
                         typeToken.offset,
                         typeToken.offset + typeToken.value.length,
                     );
@@ -610,6 +618,31 @@ export abstract class CreateParser extends ControlFlowParser {
                 startToken.offset,
                 endOffset,
             );
+        }
+
+        if (unsupportedObjectType) {
+            // Continuing would read the next token as the object's name and emit it as a real
+            // CREATE TABLE, so `CREATE DATABASE SCOPED CREDENTIAL [sa]` declared a table named
+            // SCOPED and then failed again on the missing column list.
+            this.skipToStatementTerminator();
+            return {
+                type: "CreateStatement",
+                objectType,
+                unsupportedObjectType,
+                orAlter,
+                name: "",
+                nameNode: {
+                    type: "Identifier",
+                    name: "",
+                    parts: [],
+                    start: endOffset,
+                    end: endOffset,
+                },
+                start: startToken.offset,
+                end: this.lastConsumedEnd(),
+                incomplete: true,
+                errors,
+            };
         }
 
         // 2. Name
