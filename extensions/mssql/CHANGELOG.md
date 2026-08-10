@@ -1,5 +1,22 @@
 # Change Log
 
+## Version 1.45.0
+
+- Release date: August 19, 2026
+- Release status: GA
+
+### What's new in 1.45.0
+
+- Introduced a new SQL formatter (Preview), enabled by default with `mssql.format.enablePreviewFormatter` and an option to temporarily use the existing formatter.
+- Added a new React Flow execution plan renderer (Preview). Enable it with `mssql.preview.betaExecutionPlan` in settings.
+- Enhanced Azure SQL and Fabric provisioning with favorite resources and post-deployment actions to connect to the database, download deployment scripts, and discover next steps.
+- Added selection aggregates (Average, Count, and Sum) to the SQL Notebooks results status bar.
+- Added a Restore command to the SQL Database Projects tree and support for custom code analysis rules from NuGet analyzer packages.
+- Improved SQL Database Projects schema operations so new objects use the selected folder's schema and moved objects relocate to the corresponding schema folder.
+- Improved streaming performance in the Query Results Grid preview.
+- Improved Table Designer validation for default values and vector columns.
+- Fixed reliability issues that could cancel queries unexpectedly or cause Object Explorer filtering to hang.
+
 ## Version 1.44.1
 
 - Release date: July 29, 2026
