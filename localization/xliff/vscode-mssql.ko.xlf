@@ -163,6 +163,11 @@
         <source xml:lang="en">A database with this name already exists on the server</source>
         <target state="translated">이 이름의 데이터베이스가 서버에 이미 있습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++b120c5984701afdfec284eb8567363262db10fa29e8c4bd4c8ba44d673511b45">
+        <source xml:lang="en">A file named '{0}' already exists in the workspace root.</source>
+        <note>{0} is the deployment script file name</note>
+        <target state="new">A file named '{0}' already exists in the workspace root.</target>
+      </trans-unit>
       <trans-unit id="++CODE++6ab58ce9ca23e017bf594366b66b620458a5580640ddaf3aebf96f3c8fdf0977">
         <source xml:lang="en">A firewall rule is required to access this server.</source>
         <target state="translated">이 서버에 액세스하려면 방화벽 규칙이 필요합니다.</target>
@@ -190,6 +195,10 @@
       <trans-unit id="++CODE++72e7cc4c4f1c083b8607c0e8d0e5093cb5756df15336523ee5d00f194829168b">
         <source xml:lang="en">API Type</source>
         <target state="translated">API 유형</target>
+      </trans-unit>
+      <trans-unit id="++CODE++810a308ea3cf5aa3f49ed6152899a6baa212e12f047653d5523bf0190a1ade5f">
+        <source xml:lang="en">ARM template</source>
+        <target state="new">ARM template</target>
       </trans-unit>
       <trans-unit id="++CODE++9aa3df89bd0844fc7cab254d4e810af6cf12b5d9fa011b7675f45bbae8bcadf7">
         <source xml:lang="en">Accelerate schema evolution by autogenerating ORM migrations or T-SQL change scripts</source>
@@ -1004,6 +1013,10 @@ Select "{0}" to establish a connection.</source>
       <trans-unit id="++CODE++c1ea3f5e7aa473034872296473c7fcf9c79344355ba4fd003120627f6ec1a5f7">
         <source xml:lang="en">Between</source>
         <target state="translated">사이</target>
+      </trans-unit>
+      <trans-unit id="++CODE++58dc7c57a2a33c0296c19821b099c26fbc36524b42f44701954de1580e1b394c">
+        <source xml:lang="en">Bicep</source>
+        <target state="new">Bicep</target>
       </trans-unit>
       <trans-unit id="++CODE++79654f98221029c4c838b279ed9a41aa49c8a3cdb1cc95d81a456c510e6854d0">
         <source xml:lang="en">Blanks</source>
@@ -3240,6 +3253,14 @@ Select "{0}" to establish a connection.</source>
         <source xml:lang="en">Don’t show again for this extension</source>
         <target state="translated">이 확장에 대해 다시 표시 안 함</target>
       </trans-unit>
+      <trans-unit id="++CODE++d6eafe82359100423c93c5ce53c352c1b51ca1e699215fcec3f5c5dd9bf12d24">
+        <source xml:lang="en">Download</source>
+        <target state="new">Download</target>
+      </trans-unit>
+      <trans-unit id="++CODE++400da40cfed58da293f9d4814548dd8f6d03a1acb727c417e2022f8202a988a5">
+        <source xml:lang="en">Download deployment scripts</source>
+        <target state="new">Download deployment scripts</target>
+      </trans-unit>
       <trans-unit id="++CODE++ade5b866b0e6b83f736f3f1e46c0448a8ed129ae76c552d26cd62d610f1eb0e5">
         <source xml:lang="en">Download offline VSIX</source>
         <target state="translated">오프라인 VSIX 다운로드</target>
@@ -4024,6 +4045,10 @@ Error:
       <trans-unit id="++CODE++59be81f2f62e6ced348ccc806b1a50d9370c0f19a8bb5f7fbf8a801d4c93bdca">
         <source xml:lang="en">Export BACPAC</source>
         <target state="translated">BACPAC 내보내기</target>
+      </trans-unit>
+      <trans-unit id="++CODE++354c23855ffdc2a762eda7724646c278d8edd844c4452f3102e57a45a401616c">
+        <source xml:lang="en">Export Infrastructure as Code</source>
+        <target state="new">Export Infrastructure as Code</target>
       </trans-unit>
       <trans-unit id="++CODE++3ea11e5375be0ce5e379faa26d710b97b89245399ffbc2531367154056e88037">
         <source xml:lang="en">Export all captured events to a CSV file</source>
@@ -6927,6 +6952,10 @@ Error:
         <source xml:lang="en">No workspace folder is open. Open a folder to add the MCP server configuration.</source>
         <target state="translated">작업 영역 폴더가 열려 있지 않습니다. 폴더를 열어 MCP 서버 구성을 추가하세요.</target>
       </trans-unit>
+      <trans-unit id="++CODE++99a08e07827bc7f24060a74b7ffc267608800da571cb939d0b363307b4a0f7f0">
+        <source xml:lang="en">No workspace folder is open. Open a folder to add the deployment script.</source>
+        <target state="new">No workspace folder is open. Open a folder to add the deployment script.</target>
+      </trans-unit>
       <trans-unit id="++CODE++2e2fde2243e1e09534c9955387549ec84e351284a8ef12942f9d1cbab4a58039">
         <source xml:lang="en">No workspace folder is open. Open a folder to add the generated file.</source>
         <target state="translated">열려 있는 작업 영역 폴더가 없습니다. 폴더를 열어 생성된 파일을 추가하세요.</target>
@@ -7259,6 +7288,10 @@ Error:
         <source xml:lang="en">Overall, how satisfied are you with {0}?</source>
         <note>{0} is the feature name</note>
         <target state="translated">전반적으로 {0}에 얼마나 만족하시나요?</target>
+      </trans-unit>
+      <trans-unit id="++CODE++b24963ea2cbc74b97321a347754137aa207b126695a95c860406098528966b55">
+        <source xml:lang="en">Overwrite</source>
+        <target state="new">Overwrite</target>
       </trans-unit>
       <trans-unit id="++CODE++6e92fffc548b4ca49a6b4963939ef5c52a72dbcd88ec22bfad258e4c3e06fd58">
         <source xml:lang="en">Overwrite all existing backup sets</source>
@@ -8467,6 +8500,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++df2839447956141d6503caf44145db003e70b17dc128d5c4fefec188b28d6966">
         <source xml:lang="en">Save Connection Group</source>
         <target state="translated">연결 그룹 저장</target>
+      </trans-unit>
+      <trans-unit id="++CODE++cf564a428e81bbe6843b079291c1bf098f4e7dc933decd522db75052937b9fed">
+        <source xml:lang="en">Save Infrastructure-as-Code templates to recreate this database later.</source>
+        <target state="new">Save Infrastructure-as-Code templates to recreate this database later.</target>
       </trans-unit>
       <trans-unit id="++CODE++caf4128d5bf679fef30d60d545684f44efcc2e9a7098df16fcbd0b625580c89f">
         <source xml:lang="en">Save Password</source>
@@ -9935,6 +9972,10 @@ Query: {2}</source>
       <trans-unit id="++CODE++2af9bc0ac247853b98b854b657784c881cc649d3f1a660aafecd1b8b1a26d535">
         <source xml:lang="en">Terms &amp; Conditions</source>
         <target state="translated">사용 약관</target>
+      </trans-unit>
+      <trans-unit id="++CODE++05b073bd5e46bbede792d1e77a68c71801b7bac2dd8e0236299dede9a3a1909d">
+        <source xml:lang="en">Terraform</source>
+        <target state="new">Terraform</target>
       </trans-unit>
       <trans-unit id="++CODE++799f6f8acde01a01209703f348f68f7802b5c8623007342d362bed19959e7ed5">
         <source xml:lang="en">Test connecting with the current settings</source>
