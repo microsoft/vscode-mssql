@@ -127,7 +127,7 @@ export class IncrementalBatchParser {
         let reusedBatchCount = 0;
         let reusedCharacterCount = 0;
         const regions = partitionSqlBatches(text);
-        const batches = regions.map((region): ParsedBatch => {
+        const batches = regions.map((region, index): ParsedBatch => {
             const reused = takeReusableBatch(reusable, region);
             if (reused) {
                 reusedBatchCount++;
@@ -137,7 +137,7 @@ export class IncrementalBatchParser {
             parsedBatchCount++;
             return {
                 region,
-                artifact: new Parser(new Lexer(region.text)).parse(),
+                artifact: parseBatch(region, previous?.batches[index]),
             };
         });
         return new IncrementalParseSnapshot(text, version, Object.freeze(batches), {
@@ -175,6 +175,66 @@ function takeReusableBatch(
     }
     const index = candidates.findIndex((candidate) => candidate.region.text === region.text);
     return index < 0 ? undefined : candidates.splice(index, 1)[0];
+}
+
+/**
+ * Reuse below the batch level. An edit inside a large batch leaves every statement before it
+ * byte-identical, so those statements are carried over and parsing resumes at the first one the
+ * edit can reach. Without this, one keystroke reparses the whole batch.
+ */
+const minimumStatementReusePrefix = 512;
+
+function parseBatch(region: SqlBatchRegion, candidate: ParsedBatch | undefined): ParseResult {
+    const resume = candidate && statementReusePoint(candidate.artifact, candidate.region, region);
+    if (!resume) {
+        return new Parser(new Lexer(region.text)).parse();
+    }
+    const parsed = new Parser(new Lexer(region.text)).parseResumingAt(resume.offset);
+    return {
+        ast: {
+            ...parsed.ast,
+            body: [...resume.body, ...parsed.ast.body],
+        },
+        issues: [...resume.issues, ...(parsed.issues ?? [])],
+    };
+}
+
+function statementReusePoint(
+    artifact: ParseResult,
+    previous: SqlBatchRegion,
+    region: SqlBatchRegion,
+):
+    | { readonly offset: number; readonly body: Program["body"]; readonly issues: ParseIssue[] }
+    | undefined {
+    const shared = commonPrefixLength(previous.text, region.text);
+    if (shared < minimumStatementReusePrefix) {
+        return undefined;
+    }
+    const body = artifact.ast.body;
+    // A statement is safe to reuse only once the following statement has already started inside
+    // the identical prefix: its extent is then fixed by text the edit did not touch.
+    let count = 0;
+    while (count + 1 < body.length && body[count + 1].start <= shared) {
+        count++;
+    }
+    if (count === 0) {
+        return undefined;
+    }
+    const offset = body[count].start;
+    return {
+        offset,
+        body: body.slice(0, count),
+        issues: (artifact.issues ?? []).filter((issue) => issue.end <= offset),
+    };
+}
+
+function commonPrefixLength(left: string, right: string): number {
+    const limit = Math.min(left.length, right.length);
+    let index = 0;
+    while (index < limit && left.charCodeAt(index) === right.charCodeAt(index)) {
+        index++;
+    }
+    return index;
 }
 
 // Separators are materialized independently and are never input to the batch parser.

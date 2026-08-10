@@ -1646,6 +1646,20 @@
     "$(sync~spin) Loading language service metadata": "$(sync~spin) Loading language service metadata",
     "$(warning) Language service metadata needs refresh": "$(warning) Language service metadata needs refresh",
     "Refresh beta language service metadata": "Refresh beta language service metadata",
+    "SQL Server data type": "SQL Server data type",
+    "Expand * to columns": "Expand * to columns",
+    "Replace the wildcard with resolved column names": "Replace the wildcard with resolved column names",
+    "Expand INSERT columns and VALUES": "Expand INSERT columns and VALUES",
+    "Insert every resolved column with editable value placeholders": "Insert every resolved column with editable value placeholders",
+    "{0} columns/{0} is the number of columns": {
+        "message": "{0} columns",
+        "comment": ["{0} is the number of columns"]
+    },
+    "Column definition": "Column definition",
+    "Name, type, and nullability": "Name, type, and nullability",
+    "Named table primary key": "Named table primary key",
+    "Named table foreign key": "Named table foreign key",
+    "Named table check constraint": "Named table check constraint",
     "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively./{0} is the extension name": {
         "message": "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.",
         "comment": ["{0} is the extension name"]

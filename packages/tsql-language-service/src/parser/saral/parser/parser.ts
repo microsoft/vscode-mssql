@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 /*
  * Derived from SaralSQL commit e95951c1ba48c41c026a1244ac23cedc2ced7fb7.
  * Copyright (c) Saral Simon Stalin. Licensed under the MIT License.
@@ -22,6 +27,19 @@ export { JoinKeywords };
 export type { JoinKeyword };
 
 export class Parser extends AlterDropParser {
+    /**
+     * Resumes parsing at `offset`, for callers that reuse a statement prefix whose text is
+     * byte-identical to a previous parse. Lexing still covers the whole input; only parsing and
+     * the issues it reports are skipped for the reused span.
+     */
+    public parseResumingAt(offset: number): ParseResult {
+        while (this.pos < this.tokens.length && this.tokens[this.pos].offset < offset) {
+            this.pos++;
+        }
+        this.issues = this.issues.filter((issue) => issue.start >= offset);
+        return this.parse();
+    }
+
     public parse(): ParseResult {
         const statements: Statement[] = [];
 
@@ -35,6 +53,7 @@ export class Parser extends AlterDropParser {
             }
 
             const beforePos = this.pos;
+            const statementStart = token?.offset ?? this.inputLength;
 
             let stmt: Statement | null = null;
 
@@ -51,7 +70,11 @@ export class Parser extends AlterDropParser {
                     token ? token.offset + token.value.length : 0,
                 );
 
-                //this.resync();
+                // Skip to the next statement boundary instead of advancing one token at a time.
+                // Single-token advancement turned one bad statement into a PARSE_STUCK per token
+                // and destroyed the scope every following statement depends on.
+                this.resync();
+                stmt = this.createErrorStatement(statementStart, message);
             }
 
             if (stmt) {
@@ -87,6 +110,18 @@ export class Parser extends AlterDropParser {
         return {
             ast,
             issues: this.issues,
+        };
+    }
+
+    /** Keeps the damaged span in the tree so later passes see a hole instead of nothing. */
+    private createErrorStatement(start: number, message: string): ErrorNode {
+        const previous = this.tokens[this.pos - 1];
+        const end = previous ? previous.offset + previous.value.length : start;
+        return {
+            type: "ErrorStatement",
+            start,
+            end: Math.max(end, start),
+            message,
         };
     }
 

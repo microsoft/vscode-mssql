@@ -24,8 +24,12 @@ remaining limits. A feature is not described as complete merely because a provid
 ## Correctness boundaries
 
 - The vendored parser is derived from SaralSQL 0.4.7 and is maintained locally with attribution.
-- `GO`-batch updates reuse immutable parse artifacts. Semantic analysis currently refreshes over the
-  materialized program, so incremental parser reuse does not imply incremental semantic analysis.
+- `GO`-batch updates reuse immutable parse artifacts, and a changed batch additionally reuses the
+  statements that end inside the byte-identical prefix, so an edit reparses only from the first
+  statement it can reach. Semantic analysis still refreshes over the materialized program, so
+  incremental parser reuse does not imply incremental semantic analysis.
+- A statement whose parse throws is recorded as an `ErrorStatement` and the parser resynchronizes to
+  the next statement boundary, so one damaged statement no longer discards the statements after it.
 - Catalog diagnostics use a closed-world catalog only after metadata is complete. An open catalog
   never turns a cache miss into `MSSQL208`.
 - Script-local `CREATE`, `ALTER`, and `DROP` visibility is evaluated at the reference offset and

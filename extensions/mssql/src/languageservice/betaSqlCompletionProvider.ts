@@ -2068,27 +2068,27 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         if (!context.prefix) {
             items.unshift(
                 this.createSnippetItem(
-                    "Column definition",
+                    loc.columnDefinitionLabel,
                     "[${1:ColumnName}] ${2:int} ${3:NULL}",
-                    "Name, type, and nullability",
+                    loc.columnDefinitionDetail,
                     "0_0",
                 ),
                 this.createSnippetItem(
                     "PRIMARY KEY constraint",
                     `CONSTRAINT [\${1:PK_${safeName}}] PRIMARY KEY (\${2:ColumnName})`,
-                    "Named table primary key",
+                    loc.primaryKeyConstraintDetail,
                     "0_1",
                 ),
                 this.createSnippetItem(
                     "FOREIGN KEY constraint",
                     `CONSTRAINT [\${1:FK_${safeName}}] FOREIGN KEY (\${2:ColumnName}) REFERENCES \${3:dbo.Parent} (\${4:Id})`,
-                    "Named table foreign key",
+                    loc.foreignKeyConstraintDetail,
                     "0_2",
                 ),
                 this.createSnippetItem(
                     "CHECK constraint",
                     `CONSTRAINT [\${1:CK_${safeName}}] CHECK (\${2:expression})`,
-                    "Named table check constraint",
+                    loc.checkConstraintDetail,
                     "0_3",
                 ),
             );
@@ -2158,7 +2158,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
                     type,
                     vscode.CompletionItemKind.TypeParameter,
                 );
-                item.detail = "SQL Server data type";
+                item.detail = loc.dataTypeDetail;
                 item.insertText = this.getDataTypeSnippet(type);
                 item.sortText = `0_${type}`;
                 return item;
@@ -2276,12 +2276,12 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         const continuationIndent = " ".repeat(start.character);
         const item = new vscode.CompletionItem(
             {
-                label: "Expand * to columns",
-                description: `${columns.length} columns`,
+                label: loc.expandStarLabel,
+                description: loc.columnCountDescription(columns.length),
             },
             vscode.CompletionItemKind.Snippet,
         );
-        item.detail = "Replace the wildcard with resolved column names";
+        item.detail = loc.expandStarDetail;
         item.filterText = "*";
         item.insertText = columnText.join(`,\n${continuationIndent}`);
         item.range = new vscode.Range(start, document.positionAt(context.endOffset));
@@ -2318,12 +2318,12 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
 
         const item = new vscode.CompletionItem(
             {
-                label: "Expand INSERT columns and VALUES",
-                description: `${members.length} columns`,
+                label: loc.expandInsertLabel,
+                description: loc.columnCountDescription(members.length),
             },
             vscode.CompletionItemKind.Snippet,
         );
-        item.detail = "Insert every resolved column with editable value placeholders";
+        item.detail = loc.expandInsertDetail;
         item.filterText = "columns values";
         item.insertText = snippet;
         item.range = new vscode.Range(document.positionAt(context.contentStartOffset), position);

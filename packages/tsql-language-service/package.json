@@ -90,7 +90,7 @@
         "eslint-plugin-notice": "^1.0.0",
         "eslint-plugin-prettier": "^5.2.1",
         "jest": "^30.3.0",
-        "prettier": "^3.3.3",
+        "prettier": "3.6.2",
         "tedious": "^20.0.0",
         "ts-jest": "^29.4.6",
         "typescript": "^5.8.3",

@@ -1350,6 +1350,9 @@
     <trans-unit id="++CODE++186b1f01ef876a3c1fd8101430b6e3f0b83c8960f32e74b36ebe6015c4b15a25">
       <source xml:lang="en">Column Name</source>
     </trans-unit>
+    <trans-unit id="++CODE++b58702f47ac5c9c59602902377acce4c8c98cf48ffcae397b81a56946469bd32">
+      <source xml:lang="en">Column definition</source>
+    </trans-unit>
     <trans-unit id="++CODE++acc8a3fcd4b7b62165cfa6e4b832566d25a6c172b6c1ec229a59b4eb7eb655a5">
       <source xml:lang="en">Column max length cannot be empty</source>
     </trans-unit>
@@ -2999,11 +3002,17 @@
     <trans-unit id="++CODE++07548c2c6511d4d1780564de8a237a1966cf9c99a97cf5c8a185e6c2aeacff09">
       <source xml:lang="en">Expand</source>
     </trans-unit>
+    <trans-unit id="++CODE++750f2491a5242bcb25e815e0a17335b664c1448cec72745adad1bb6a46729203">
+      <source xml:lang="en">Expand * to columns</source>
+    </trans-unit>
     <trans-unit id="++CODE++9f5b023a413a7d0771cc3fb51b103dc0aaaafe8f7b7c88c7258d43e3bc5b243d">
       <source xml:lang="en">Expand All</source>
     </trans-unit>
     <trans-unit id="++CODE++c9dc64661a6ab3a67d5b541e0c871443b068fc5e228176a3394054c2f83030d6">
       <source xml:lang="en">Expand Connect to Database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++e6142861b8d25ecae9e25264ccaf698e12fa293d0112e8ad437086b7a0f9dfc3">
+      <source xml:lang="en">Expand INSERT columns and VALUES</source>
     </trans-unit>
     <trans-unit id="++CODE++acd7d6334485ffa9ac31c98945eaf0360abb86e3c80cbb460cb7e0b0e280466f">
       <source xml:lang="en">Expand Subscription Explorer</source>
@@ -4143,6 +4152,9 @@
     <trans-unit id="++CODE++8aa318eb7eaa233aada0d332bec14cb6a631c8fda25deb2c7d4f402888f1b1e2">
       <source xml:lang="en">Insert</source>
     </trans-unit>
+    <trans-unit id="++CODE++c267b6c0e64e9b47cabc62a27007b75b2dbc5f74184d588148bd701e39fee6b0">
+      <source xml:lang="en">Insert every resolved column with editable value placeholders</source>
+    </trans-unit>
     <trans-unit id="++CODE++7231a7d45a700048f4057a8040de5fb2afc1ebd67638a7a2fa96da6b8f24e3ba">
       <source xml:lang="en">Insert selected query-editor text using {arg}. If you don&apos;t use the placeholder, selected text is automatically appended to the end of the query.</source>
     </trans-unit>
@@ -4903,6 +4915,18 @@
     </trans-unit>
     <trans-unit id="++CODE++ad4811485a0a0f3f000987d581730b04c0bf33a9d4ccf59a9ff1c127b33d76d1">
       <source xml:lang="en">Name of the primary key.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++97a6d23255b8cb84cbe60d9208005f78fa48b74d31959783883073876d85eb03">
+      <source xml:lang="en">Name, type, and nullability</source>
+    </trans-unit>
+    <trans-unit id="++CODE++c6311fdc5e37675a46f5ba5e415e509f21db648589ba64124a0ced8c01ec8f92">
+      <source xml:lang="en">Named table check constraint</source>
+    </trans-unit>
+    <trans-unit id="++CODE++5013677b463d5f23fdc91f0783f6078c04ca1a28363df0a8001eba355a697984">
+      <source xml:lang="en">Named table foreign key</source>
+    </trans-unit>
+    <trans-unit id="++CODE++794da6013bb9bc0c12a94fffb18aa632c68589dd824109740a5c256719bd5c80">
+      <source xml:lang="en">Named table primary key</source>
     </trans-unit>
     <trans-unit id="++CODE++2b7cfe25c7ec50bed3130625cf2450de919a7f1961b5081b5e069d3bc41bb9f5">
       <source xml:lang="en">Navigate to this item in the diagram</source>
@@ -6132,6 +6156,9 @@
       <note>{0} is the current database name
 {1} is the new database name</note>
     </trans-unit>
+    <trans-unit id="++CODE++95c4253e1df626f1737c62eaf073ca05ed7dd122ac8e5d297539ca58de6ee424">
+      <source xml:lang="en">Replace the wildcard with resolved column names</source>
+    </trans-unit>
     <trans-unit id="++CODE++0b73ca14b5d89fd5c289af312a66842146e766baf6c5018848b36f086944cb0b">
       <source xml:lang="en">Replication</source>
     </trans-unit>
@@ -6404,6 +6431,9 @@
     </trans-unit>
     <trans-unit id="++CODE++8fb9e52bba9bdebaf10c130eca428ca15b770d0ba41c5f854c47db14a380f8ae">
       <source xml:lang="en">SQL Server admin password</source>
+    </trans-unit>
+    <trans-unit id="++CODE++09a0ae485feb8ce824b813a5c597395ddfb74753b2996ee106da6d41395b11c3">
+      <source xml:lang="en">SQL Server data type</source>
     </trans-unit>
     <trans-unit id="++CODE++49946129c776c67af592a7bd5399b229d9e11260362f8dd0ee8a96778dbc3bee">
       <source xml:lang="en">SQL Server does not support Windows containers. Please switch to Linux containers in Docker Desktop settings.</source>
@@ -8548,6 +8578,10 @@
     </trans-unit>
     <trans-unit id="++CODE++682728640d4b8510d70b847b61ea921db8626fc0e0682e33d1f72e59a9d52315">
       <source xml:lang="en">{0} column data</source>
+      <note>{0} is the number of columns</note>
+    </trans-unit>
+    <trans-unit id="++CODE++369b4102c1e681e12b1ecdaeaaf2dcbc060fe697b24aabbfa2b61d66a3b916fb">
+      <source xml:lang="en">{0} columns</source>
       <note>{0} is the number of columns</note>
     </trans-unit>
     <trans-unit id="++CODE++f5b9a5e5e605057aa53be69b163fecc2183dcc3350e0366142ead290ae058b81">

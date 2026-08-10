@@ -3013,6 +3013,25 @@ export class BetaLanguageService {
     public static codeLensLoading = l10n.t("$(sync~spin) Loading language service metadata");
     public static codeLensError = l10n.t("$(warning) Language service metadata needs refresh");
     public static codeLensRefreshTooltip = l10n.t("Refresh beta language service metadata");
+    public static dataTypeDetail = l10n.t("SQL Server data type");
+    public static expandStarLabel = l10n.t("Expand * to columns");
+    public static expandStarDetail = l10n.t("Replace the wildcard with resolved column names");
+    public static expandInsertLabel = l10n.t("Expand INSERT columns and VALUES");
+    public static expandInsertDetail = l10n.t(
+        "Insert every resolved column with editable value placeholders",
+    );
+    public static columnCountDescription(count: number) {
+        return l10n.t({
+            message: "{0} columns",
+            args: [count],
+            comment: ["{0} is the number of columns"],
+        });
+    }
+    public static columnDefinitionLabel = l10n.t("Column definition");
+    public static columnDefinitionDetail = l10n.t("Name, type, and nullability");
+    public static primaryKeyConstraintDetail = l10n.t("Named table primary key");
+    public static foreignKeyConstraintDetail = l10n.t("Named table foreign key");
+    public static checkConstraintDetail = l10n.t("Named table check constraint");
 }
 
 export class ConnectionSharing {
