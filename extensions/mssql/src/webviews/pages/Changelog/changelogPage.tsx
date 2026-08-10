@@ -12,6 +12,7 @@ import {
     Link,
     Text,
     makeStyles,
+    mergeClasses,
     shorthands,
     tokens,
 } from "@fluentui/react-components";
@@ -628,7 +629,10 @@ export const ChangelogPage = () => {
                 </div>
                 {changeIcon && (
                     <div
-                        className={`${classes.featureIconWrap} ${classes.featureIconWrapRight}`}
+                        className={mergeClasses(
+                            classes.featureIconWrap,
+                            classes.featureIconWrapRight,
+                        )}
                         style={{ width: `${iconSize}px`, height: `${iconSize}px` }}>
                         <img
                             className={classes.featureImage}

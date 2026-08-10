@@ -11,10 +11,11 @@ import {
     CodeAnalysisReducers,
     SqlCodeAnalysisRule,
     CodeAnalysisRuleSeverity,
+    customRulesCategory,
 } from "../sharedInterfaces/codeAnalysis";
 import * as constants from "../constants/constants";
 import { CodeAnalysis as Loc } from "../constants/locConstants";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 import { getErrorMessage, uuid } from "../utils/utils";
 import { DacFxService } from "../services/dacFxService";
@@ -266,16 +267,27 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
 
     /**
      * Fetches rules from the DacFx service and maps them to the UI view model.
+     * Also returns any non-fatal warning reported alongside the rules (e.g. the project has not
+     * been restored, an analyzer assembly failed to load, or a rule ID conflicts with a built-in).
      * Throws on service failure or mapping errors — caught by loadRules.
      */
-    private async fetchRulesFromDacFx(): Promise<SqlCodeAnalysisRule[]> {
-        const rulesResult = await this.dacFxService.getCodeAnalysisRules();
+    private async fetchRulesFromDacFx(): Promise<{
+        rules: SqlCodeAnalysisRule[];
+        warning?: DialogMessageSpec;
+    }> {
+        const rulesResult = await this.dacFxService.getCodeAnalysisRules(
+            this.state.projectFilePath,
+        );
         if (!rulesResult.success) {
             const detail = rulesResult.errorMessage;
             throw new Error(detail ? `${Loc.failedToLoadRules}: ${detail}` : Loc.failedToLoadRules);
         }
 
-        return (rulesResult.rules ?? []).map((rule) => {
+        const warning = rulesResult.warning
+            ? ({ message: rulesResult.warning, intent: "warning" } as DialogMessageSpec)
+            : undefined;
+
+        const rules = (rulesResult.rules ?? []).map((rule) => {
             const severity = this.normalizeSeverity(rule.severity);
             return {
                 ruleId: rule.ruleId,
@@ -283,11 +295,14 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
                 displayName: rule.displayName,
                 severity,
                 enabled: severity !== CodeAnalysisRuleSeverity.Disabled,
-                category: rule.category,
+                category: rule.category || (rule.isBuiltIn ? "" : customRulesCategory),
                 description: rule.description,
                 ruleScope: rule.ruleScope,
+                isBuiltIn: rule.isBuiltIn,
             };
         });
+
+        return { rules, warning };
     }
 
     /**
@@ -300,7 +315,7 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
             this.updateState();
 
             // Get the static code analysis rules from dacfx
-            const dacfxStaticRules = await this.fetchRulesFromDacFx();
+            const { rules: dacfxStaticRules, warning } = await this.fetchRulesFromDacFx();
 
             // Load saved overrides from the .sqlproj and apply them.
             // Isolated in its own method so a failure here doesn't discard the DacFx rules.
@@ -308,7 +323,8 @@ export class CodeAnalysisWebViewController extends WebviewPanelController<
             this.state.rules = overrideResult.rules;
             this.state.dacfxStaticRules = dacfxStaticRules;
             this.state.enableCodeAnalysisOnBuild = overrideResult.enableCodeAnalysisOnBuild;
-            this.state.message = overrideResult.message;
+            // An override-load failure is the more actionable of the two, so it wins the banner.
+            this.state.message = overrideResult.message ?? warning;
             this.state.isLoading = false;
             this.updateState();
 

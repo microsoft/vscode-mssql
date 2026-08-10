@@ -42,6 +42,15 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                 });
             },
             formAction: formAction as DeploymentContextProps["formAction"],
+            toggleFormOptionFavorite: function (
+                propertyName: keyof DeploymentFormState,
+                favoriteId: string,
+            ): void {
+                extensionRpc.action("toggleFormOptionFavorite", {
+                    propertyName,
+                    favoriteId,
+                });
+            },
             setConnectionGroupDialogState: function (shouldOpen: boolean): void {
                 extensionRpc.action("setConnectionGroupDialogState", {
                     shouldOpen: shouldOpen,
@@ -54,6 +63,18 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
             },
             dispose: function (): void {
                 extensionRpc.action("dispose", {});
+            },
+            downloadDeploymentScript: function (content: string, fileName: string): void {
+                extensionRpc.action("downloadDeploymentScript", {
+                    content: content,
+                    fileName: fileName,
+                });
+            },
+            addDeploymentScriptToWorkspace: function (content: string, fileName: string): void {
+                extensionRpc.action("addDeploymentScriptToWorkspace", {
+                    content: content,
+                    fileName: fileName,
+                });
             },
             //#endregion
             //#region Local Containers Reducers

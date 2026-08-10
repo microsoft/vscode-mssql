@@ -314,7 +314,7 @@ export class ProjectsController {
                 const errorMessage = utils.getErrorMessage(error);
                 this._outputChannel.appendLine(constants.tasksJsonUpdateError(errorMessage));
 
-                TelemetryReporter.createErrorEvent2(
+                TelemetryReporter.createErrorEvent(
                     TelemetryViews.ProjectController,
                     TelemetryActions.tasksJsonError,
                     error,
@@ -489,20 +489,7 @@ export class ProjectsController {
             await this.netCoreTool.verifyNetCoreInstallation();
 
             // Execute the task and wait for it to complete
-            const execution = await vscode.tasks.executeTask(vscodeTask);
-
-            // Wait until the build task instance is finishes.
-            // `onDidEndTaskProcess` fires for every task in the workspace, so Filtering events to the exact TaskExecution
-            // object we kicked off (`e.execution === execution`), ensuring we don't resolve because some other task ended.
-            await new Promise<void>((resolve) => {
-                const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
-                    if (e.execution === execution) {
-                        // Once we get the matching event, dispose the listener to avoid leaks and resolve the promise.
-                        disposable.dispose();
-                        resolve();
-                    }
-                });
-            });
+            await this.runTaskToCompletion(vscodeTask);
 
             // If the build was successful, we will get the path to the built dacpac
             const timeToBuild = new Date().getTime() - startTime.getTime();
@@ -521,7 +508,7 @@ export class ProjectsController {
         } catch (err) {
             const timeToFailureBuild = new Date().getTime() - startTime.getTime();
 
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.build,
                 err,
@@ -544,6 +531,77 @@ export class ProjectsController {
     }
 
     /**
+     * Restores the NuGet packages referenced by a project. Analyzer packages that supply custom
+     * code analysis rules are only discoverable once they have been restored, so this gives users
+     * a way to restore without dropping to a terminal.
+     * @param context a treeItem in a project's hierarchy, to be used to obtain a Project
+     */
+    public async restoreProject(treeNode: dataworkspace.WorkspaceTreeItem): Promise<void>;
+    /**
+     * Restores the NuGet packages referenced by a project.
+     * @param project Project to restore
+     */
+    public async restoreProject(project: Project): Promise<void>;
+    public async restoreProject(context: Project | dataworkspace.WorkspaceTreeItem): Promise<void> {
+        const project: Project = await this.getProjectFromContext(context);
+        const startTime = new Date();
+
+        try {
+            // Check if the dotnet core is installed and if not, prompt the user to install it
+            await this.netCoreTool.verifyNetCoreInstallation();
+
+            const exitCode = await this.runTaskToCompletion(
+                this.createDotnetTask(project, constants.restoreTaskName, [
+                    constants.restore,
+                    utils.getNonQuotedPath(project.projectFilePath),
+                ]),
+            );
+
+            const duration = new Date().getTime() - startTime.getTime();
+
+            // A non-zero exit code means dotnet reported the failure in the task terminal, but the
+            // task itself ran fine, so nothing was thrown — surface the outcome to the user here.
+            if (exitCode !== 0) {
+                TelemetryReporter.createErrorEvent(
+                    TelemetryViews.ProjectController,
+                    TelemetryActions.restore,
+                )
+                    .withAdditionalProperties({ exitCode: String(exitCode) })
+                    .withAdditionalMeasurements({ duration })
+                    .send();
+
+                void vscode.window.showErrorMessage(constants.projRestoreFailed());
+                return;
+            }
+
+            TelemetryReporter.createActionEvent(
+                TelemetryViews.ProjectController,
+                TelemetryActions.restore,
+            )
+                .withAdditionalMeasurements({ duration })
+                .send();
+        } catch (err) {
+            TelemetryReporter.createErrorEvent(
+                TelemetryViews.ProjectController,
+                TelemetryActions.restore,
+                err,
+            )
+                .withAdditionalMeasurements({
+                    duration: new Date().getTime() - startTime.getTime(),
+                })
+                .send();
+
+            const message = utils.getErrorMessage(err);
+            if (err instanceof DotNetError) {
+                // DotNetErrors already get shown by the netCoreTool so just show this one in the console
+                console.error(message);
+            } else {
+                void vscode.window.showErrorMessage(constants.projRestoreFailed(message));
+            }
+        }
+    }
+
+    /**
      * Creates a VS Code task for building the project
      * @param project Project to be built
      * @param codeAnalysis Whether to run code analysis
@@ -555,7 +613,6 @@ export class ProjectsController {
         codeAnalysis: boolean,
         buildArguments: string[],
     ): Promise<vscode.Task> {
-        let vscodeTask: vscode.Task | undefined = undefined;
         const label = codeAnalysis
             ? constants.buildWithCodeAnalysisTaskName
             : constants.buildTaskName;
@@ -570,6 +627,16 @@ export class ProjectsController {
         // Adding build arguments to the args
         args.push(...buildArguments);
 
+        return this.createDotnetTask(project, label, args);
+    }
+
+    /**
+     * Creates a VS Code task that runs `dotnet` with the given arguments in the project's folder.
+     * @param project Project the task runs against
+     * @param label Task label shown in the terminal
+     * @param args Arguments passed to `dotnet`
+     */
+    private createDotnetTask(project: Project, label: string, args: string[]): vscode.Task {
         // Task definition with required args
         const taskDefinition: vscode.TaskDefinition = {
             type: constants.sqlProjTaskType,
@@ -580,7 +647,7 @@ export class ProjectsController {
         };
 
         // Create a new task with the definition and process executable
-        vscodeTask = new vscode.Task(
+        return new vscode.Task(
             taskDefinition,
             vscode.TaskScope.Workspace,
             taskDefinition.label,
@@ -590,8 +657,28 @@ export class ProjectsController {
             }),
             taskDefinition.problemMatcher,
         );
+    }
 
-        return vscodeTask;
+    /**
+     * Executes a task and resolves once that specific execution has ended.
+     *
+     * `onDidEndTaskProcess` fires for every task in the workspace, so events are filtered to the
+     * exact TaskExecution we kicked off, ensuring we don't resolve because some other task ended.
+     *
+     * @returns the process exit code, or `undefined` if the task ended without reporting one
+     */
+    private async runTaskToCompletion(task: vscode.Task): Promise<number | undefined> {
+        const execution = await vscode.tasks.executeTask(task);
+
+        return new Promise<number | undefined>((resolve) => {
+            const disposable = vscode.tasks.onDidEndTaskProcess((e) => {
+                if (e.execution === execution) {
+                    // Once we get the matching event, dispose the listener to avoid leaks and resolve the promise.
+                    disposable.dispose();
+                    resolve(e.exitCode);
+                }
+            });
+        });
     }
 
     //#region Publish
@@ -659,7 +746,7 @@ export class ProjectsController {
                 props.errorMessage = message;
             }
 
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.projectSchemaCompareCommandInvoked,
                 err,
@@ -720,6 +807,7 @@ export class ProjectsController {
         folderPath: string,
         fileExtension?: string,
         defaultName?: string,
+        schemaPrefix?: string,
     ): Promise<string | undefined> {
         const suggestedName = utils.sanitizeStringForFilename(
             defaultName ?? itemType.friendlyName.replace(/\s+/g, ""),
@@ -735,9 +823,15 @@ export class ProjectsController {
             ))
         );
 
+        // The schema only qualifies the object in the generated script; the file itself is named
+        // after the object alone, so it is not part of the uniqueness check above.
+        const suggestedValue = schemaPrefix
+            ? `${schemaPrefix}.${suggestedName}${counter}`
+            : `${suggestedName}${counter}`;
+
         const itemObjectName = await vscode.window.showInputBox({
             prompt: constants.newObjectNamePrompt(itemType.friendlyName),
-            value: `${suggestedName}${counter}`,
+            value: suggestedValue,
             validateInput: (value) => {
                 return utils.isValidBasenameErrorMessage(value);
             },
@@ -745,6 +839,40 @@ export class ProjectsController {
         });
 
         return itemObjectName;
+    }
+
+    /**
+     * Returns the schema implied by the folder the command was invoked from, so the suggested
+     * name can be pre-qualified with it (e.g. under `sales/Tables`, suggest `sales.Table1`).
+     *
+     * @returns the schema, or `undefined` when the folder implies none: the item type isn't
+     * schema-dependent, the project root, an object-type folder like `Tables`, or `dbo`.
+     */
+    private getSchemaFromFolderPath(itemType: ItemType, relativePath: string): string | undefined {
+        if (!relativePath || !templates.itemTypeToFolderMap.get(itemType)?.schemaDependent) {
+            return undefined;
+        }
+
+        // relativePath comes from trimUri, which always joins with '/'; the regex also handles
+        // '\' defensively.
+        const firstSegment = relativePath.split(/[\\/]/).filter(Boolean)[0];
+        if (!firstSegment) {
+            return undefined;
+        }
+
+        // A root-level object-type folder (e.g. "Tables") is not a schema.
+        const isObjectTypeFolder = [...templates.itemTypeToFolderMap.values()].some(
+            (cfg) => cfg.folderName.toLowerCase() === firstSegment.toLowerCase(),
+        );
+        if (isObjectTypeFolder) {
+            return undefined;
+        }
+
+        // The default schema is what an unqualified name already produces, so leave the
+        // suggestion unqualified there.
+        return firstSegment.toLowerCase() === constants.defaultSchemaName.toLowerCase()
+            ? undefined
+            : firstSegment;
     }
 
     public isReservedFolder(absoluteFolderPath: string, projectFolderPath: string): boolean {
@@ -833,6 +961,7 @@ export class ProjectsController {
      * @param project The project to check / add folders to
      * @param schemaName The schema name parsed from user input (e.g. "dbo", "sales")
      * @param basePath The folder the user invoked the command from; empty string means project root
+     * @param allowCreate Whether missing folders may be created. When false, an existing folder or a fallback is returned and nothing is written.
      * @returns The relative folder path the item should be placed in
      */
     public async resolveItemFolder(
@@ -840,6 +969,7 @@ export class ProjectsController {
         project: ISqlProject,
         schemaName?: string,
         basePath?: string,
+        allowCreate: boolean = true,
     ): Promise<string> {
         const folderConfig = templates.itemTypeToFolderMap.get(itemType);
         if (!folderConfig) {
@@ -847,7 +977,7 @@ export class ProjectsController {
         }
 
         const { folderName, schemaDependent } = folderConfig;
-        const autoCreate = this.isAutoCreateFoldersEnabled();
+        const autoCreate = allowCreate && this.isAutoCreateFoldersEnabled();
 
         // Non-root path: user invoked from an existing folder node
         if (basePath) {
@@ -978,10 +1108,25 @@ export class ProjectsController {
         }
 
         const itemType = templates.get(itemTypeName);
-        const absolutePathToParent = path.join(project.projectFolderPath, relativePath);
         const isItemTypePublishProfile =
             itemTypeName === constants.publishProfileFriendlyName ||
             itemTypeName === ItemType.publishProfile;
+        // The schema of the folder the command came from, so the generated script matches where
+        // the file lands instead of always defaulting to dbo.
+        const folderSchema = isItemTypePublishProfile
+            ? undefined
+            : this.getSchemaFromFolderPath(itemType.type, relativePath);
+
+        // Predict the destination so the name suggestion probes the folder the file actually
+        // lands in (right-clicking `Person` writes to `Person/Tables`). Creates nothing.
+        const predictedFolder = await this.resolveItemFolder(
+            itemType.type,
+            project,
+            folderSchema,
+            relativePath || undefined,
+            false /* allowCreate */,
+        );
+        const absolutePathToParent = path.join(project.projectFolderPath, predictedFolder);
         const fileExtension = isItemTypePublishProfile
             ? constants.publishProfileExtension
             : constants.sqlFileExtension;
@@ -994,6 +1139,7 @@ export class ProjectsController {
             absolutePathToParent,
             fileExtension,
             defaultName,
+            folderSchema,
         );
 
         itemObjectName = itemObjectName?.trim();
@@ -1060,7 +1206,7 @@ export class ProjectsController {
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
 
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectTree,
                 TelemetryActions.addItemFromTree,
                 err,
@@ -1095,7 +1241,7 @@ export class ProjectsController {
             this.refreshProjectsTree(treeNode);
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectTree,
                 TelemetryActions.addExistingItem,
                 err,
@@ -1135,7 +1281,7 @@ export class ProjectsController {
                     throw new Error(constants.unhandledExcludeType(node.type));
             }
         } else {
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectTree,
                 TelemetryActions.excludeFromProject,
             );
@@ -1215,7 +1361,7 @@ export class ProjectsController {
 
             this.refreshProjectsTree(context);
         } catch (err) {
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectTree,
                 TelemetryActions.deleteObjectFromProject,
             )
@@ -1267,7 +1413,7 @@ export class ProjectsController {
         if (result?.success) {
             TelemetryReporter.sendActionEvent(TelemetryViews.ProjectTree, TelemetryActions.rename);
         } else {
-            TelemetryReporter.sendErrorEvent2(TelemetryViews.ProjectTree, TelemetryActions.rename);
+            TelemetryReporter.sendErrorEvent(TelemetryViews.ProjectTree, TelemetryActions.rename);
             void vscode.window.showErrorMessage(
                 constants.errorRenamingFile(node.entryKey!, newFilePath, result?.errorMessage),
             );
@@ -1818,7 +1964,7 @@ export class ProjectsController {
             await workspaceApi.addProjectsToWorkspace([vscode.Uri.file(newProjFilePath)]);
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.createProjectFromDatabase,
                 err,
@@ -1946,7 +2092,7 @@ export class ProjectsController {
                 .send();
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.updateProjectFromDatabase,
                 err,
@@ -2043,7 +2189,7 @@ export class ProjectsController {
         );
 
         if (!comparisonResult || !comparisonResult.success) {
-            TelemetryReporter.createErrorEvent2(
+            TelemetryReporter.createErrorEvent(
                 TelemetryViews.ProjectController,
                 "SchemaComparisonFailed",
             )
@@ -2187,7 +2333,7 @@ export class ProjectsController {
             );
         } catch (err) {
             void vscode.window.showErrorMessage(utils.getErrorMessage(err));
-            TelemetryReporter.sendErrorEvent2(
+            TelemetryReporter.sendErrorEvent(
                 TelemetryViews.ProjectController,
                 TelemetryActions.configureCodeAnalysisSettings,
                 err,
@@ -2274,7 +2420,7 @@ export class ProjectsController {
         if (moveResult?.success) {
             TelemetryReporter.sendActionEvent(TelemetryViews.ProjectTree, TelemetryActions.move);
         } else {
-            TelemetryReporter.sendErrorEvent2(TelemetryViews.ProjectTree, TelemetryActions.move);
+            TelemetryReporter.sendErrorEvent(TelemetryViews.ProjectTree, TelemetryActions.move);
             void vscode.window.showErrorMessage(
                 constants.errorMovingFile(
                     sourceFileNode.fileSystemUri.fsPath,

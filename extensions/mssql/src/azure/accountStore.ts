@@ -12,12 +12,38 @@ import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
 import { Deferred } from "../protocol";
 import { getErrorMessage } from "../utils/utils";
+import { createServiceIdentifier } from "extension-toolkit/base";
+import { IExtensionContextService } from "extension-toolkit/vscode";
 
-export class AccountStore {
+/**
+ * Contract for the Entra account cache consumed by the connection UI, azure controllers,
+ * account/resource services, and connection profile helpers.
+ */
+export const IAccountStore = createServiceIdentifier<IAccountStore>("accountStore");
+
+export interface IAccountStore {
+    readonly _serviceBrand: undefined;
+
+    /** Resolves once the initial prune-invalid-accounts pass has completed. */
+    readonly initialized: Deferred<void>;
+
+    getAccounts(): Promise<IAccount[]>;
+    getAccount(key: string): Promise<IAccount | undefined>;
+    removeAccount(key: string): Promise<void>;
+    addAccount(account: IAccount): Promise<boolean>;
+    pruneInvalidAccounts(): Promise<void>;
+    clearAccounts(): Promise<void>;
+}
+
+export class AccountStore implements IAccountStore {
+    declare readonly _serviceBrand: undefined;
+
     public readonly initialized: Deferred<void> = new Deferred<void>();
     private readonly _logger: ILogger;
+    private _context: vscode.ExtensionContext;
 
-    constructor(private _context: vscode.ExtensionContext) {
+    constructor(@IExtensionContextService contextService: IExtensionContextService) {
+        this._context = contextService.context;
         this._logger = logger.withPrefix("AccountStore");
 
         void this.initialize().then(() => {

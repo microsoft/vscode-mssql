@@ -10,7 +10,7 @@ import * as sinon from "sinon";
 import * as vscode from "vscode";
 import * as path from "path";
 import { BuildHelper, NugetExtractionError } from "../src/tools/buildHelper";
-import { HttpClient } from "../src/http/httpClient";
+import { VscodeHttpClient } from "extension-toolkit/vscode";
 import { TestContext, createContext } from "./testContext";
 import { ProjectType } from "vscode-mssql";
 import * as sqldbproj from "../src/sqldbproj";
@@ -127,7 +127,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
         // Treat all files as present and fail the test if a network download is attempted.
         sandbox.stub(utils, "exists").resolves(true);
         sandbox
-            .stub(HttpClient.prototype, "download")
+            .stub(VscodeHttpClient.prototype, "downloadToPath")
             .throws(new Error("download should not be called"));
 
         const testContext: TestContext = createContext();
@@ -173,7 +173,9 @@ suite("BuildHelper: Build Helper tests", function (): void {
         sandbox.stub(utils, "exists").resolves(false);
 
         // Make the actual HTTP download fail (simulates offline / proxy failure).
-        sandbox.stub(HttpClient.prototype, "download").rejects(new Error("ECONNREFUSED"));
+        sandbox
+            .stub(VscodeHttpClient.prototype, "downloadToPath")
+            .rejects(new Error("ECONNREFUSED"));
 
         // Capture the error message shown to the user.
         let shownMessage: string | undefined;
@@ -267,7 +269,7 @@ suite("BuildHelper: Build Helper tests", function (): void {
     test("Returns true without downloading when all expected files already exist", async function (): Promise<void> {
         // All files already present → download should never be called.
         sandbox.stub(utils, "exists").resolves(true);
-        const downloadSpy = sandbox.stub(HttpClient.prototype, "download");
+        const downloadSpy = sandbox.stub(VscodeHttpClient.prototype, "downloadToPath");
 
         const outputChannel = {
             appendLine: () => {},

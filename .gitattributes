@@ -1,6 +1,15 @@
-# Enforce LF line endings for all text files by default
-* text=auto eol=crlf
-# Ensure shell scripts use LF line endings
+# Normal source and configuration files use LF in the repository and working tree.
+* text=auto eol=lf
+
+# Explicit Unix-sensitive files.
 .husky/** text eol=lf
 *.sh text eol=lf
 *.init text eol=lf
+
+# Windows-native scripts.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# OneLocBuild generates and commits literal CRLF bytes.
+# Disable Git EOL conversion at this generated boundary.
+localization/xliff/*.xlf -text !eol

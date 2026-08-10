@@ -20,6 +20,7 @@ declare module "vscode-mssql" {
 
     /**
      * The APIs provided by Mssql extension
+     * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
      */
     export interface IExtension {
         /**
@@ -132,10 +133,12 @@ declare module "vscode-mssql" {
         getServerInfo(connectionInfo: IConnectionInfo): IServerInfo;
         /**
          * APIs for working with mssql connections
+         * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
          */
         connectionSharing: IConnectionSharingService;
         /**
          * APIs for coordinating URI ownership with other database extensions
+         * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
          */
         uriOwnershipApi: UriOwnershipApi;
     }
@@ -585,7 +588,7 @@ declare module "vscode-mssql" {
             deploymentOptions?: DeploymentOptions,
         ): Thenable<ResultStatus>;
         getDeploymentOptions(scenario: DeploymentScenario): Thenable<GetDeploymentOptionsResult>;
-        getCodeAnalysisRules(): Thenable<GetCodeAnalysisRulesResult>;
+        getCodeAnalysisRules(projectUri?: string): Thenable<GetCodeAnalysisRulesResult>;
     }
 
     /**
@@ -923,11 +926,14 @@ declare module "vscode-mssql" {
          * @param projectUri Absolute path of the project, including .sqlproj
          * @param path Path of the script, including .sql, relative to the .sqlproj
          * @param destinationPath Destination path of the file or folder, relative to the .sqlproj
+         * @param metadataOnly When true, only updates the .sqlproj metadata without moving the
+         * physical file on disk. Use this when the caller has already moved the file.
          */
         moveSqlObjectScript(
             projectUri: string,
             path: string,
             destinationPath: string,
+            metadataOnly?: boolean,
         ): Promise<ResultStatus>;
 
         /**
@@ -1459,7 +1465,9 @@ declare module "vscode-mssql" {
         defaultDeploymentOptions: DeploymentOptions;
     }
 
-    export interface GetCodeAnalysisRulesParams {}
+    export interface GetCodeAnalysisRulesParams {
+        projectUri?: string;
+    }
 
     export interface CodeAnalysisRuleInfo {
         ruleId: string;
@@ -1469,10 +1477,12 @@ declare module "vscode-mssql" {
         category: string;
         severity: string;
         ruleScope: string;
+        isBuiltIn: boolean;
     }
 
     export interface GetCodeAnalysisRulesResult extends ResultStatus {
         rules: CodeAnalysisRuleInfo[];
+        warning?: string;
     }
 
     export interface CodeAnalysisRuleOverride {
@@ -1841,6 +1851,11 @@ declare module "vscode-mssql" {
          * Destination path of the file or folder, relative to the .sqlproj
          */
         destinationPath: string;
+        /**
+         * When true, only updates the .sqlproj metadata without moving the physical file on disk.
+         * Use this when the caller has already moved the file (e.g. via VS Code's WorkspaceEdit API).
+         */
+        metadataOnly?: boolean;
     }
 
     export interface SetDatabaseSourceParams extends SqlProjectParams {
@@ -2017,6 +2032,9 @@ declare module "vscode-mssql" {
     //#endregion
 
     export interface ITreeNodeInfo extends vscode.TreeItem {
+        /**
+         * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
+         */
         readonly connectionProfile: IConnectionInfo;
         nodeType: string;
         metadata: ObjectMetadata;
@@ -2772,6 +2790,9 @@ declare module "vscode-mssql" {
         parentTypeName?: string;
     }
 
+    /**
+     * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
+     */
     export interface UriOwnershipApi {
         ownsUri(uri: vscode.Uri): boolean;
         onDidChangeUriOwnership: vscode.Event<void>;
@@ -2794,6 +2815,7 @@ declare module "vscode-mssql" {
     /**
      * Interface for connection sharing service
      * This service allows external extensions to use connections established by the mssql extension.
+     * TODO(api-retirement): Remove this public API after dependent extensions have migrated.
      */
     export interface IConnectionSharingService {
         /**

@@ -13,7 +13,7 @@ import StatusView from "../views/statusView";
 import { ISelectionData } from "./interfaces";
 import { Deferred } from "../protocol";
 import { ExecutionPlanOptions, ResultSetSubset, ResultSetSummary } from "./contracts/queryExecute";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { QueryResultWebviewController } from "../queryResult/queryResultWebViewController";
 import { IMessage, QueryResultPaneTabs } from "../sharedInterfaces/queryResult";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -732,6 +732,7 @@ export class SqlOutputContentProvider {
 
                 resultWebviewState.isExecutionPlan = true;
                 resultWebviewState.executionPlanState = {
+                    ...resultWebviewState.executionPlanState,
                     errorMessage: planGraphs.errorMessage,
                     executionPlanGraphs: existingGraphs,
                     loadState: ApiStatus.Loaded,

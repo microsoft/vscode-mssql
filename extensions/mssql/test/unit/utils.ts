@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as sinon from "sinon";
-import * as telemetry from "../../src/telemetry/telemetry";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 import * as vscode from "vscode";
 import * as path from "path";
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
@@ -18,6 +18,7 @@ import { GetCapabilitiesRequest } from "../../src/models/contracts/connection";
 import { ILogger } from "../../src/sharedInterfaces/logger";
 import { logger as baseLogger } from "../../src/models/logger";
 import { PreviewFeature, previewService } from "../../src/previews/previewService";
+import { IInstantiationService, InstantiationService } from "extension-toolkit/base";
 
 // Stubs the telemetry code
 export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
@@ -29,6 +30,28 @@ export function stubTelemetry(sandbox?: sinon.SinonSandbox): {
         sendActionEvent: stubber.stub(telemetry, "sendActionEvent").callsFake(() => {}),
         sendErrorEvent: stubber.stub(telemetry, "sendErrorEvent").callsFake(() => {}),
     };
+}
+
+/**
+ * Stubs the `vscode.workspace.fs` methods used by file-relocation tests and
+ * installs them via `sandbox.stub(vscode.workspace, "fs").value(...)`.
+ */
+export function stubWorkspaceFileSystem(sandbox: sinon.SinonSandbox): {
+    stat: sinon.SinonStub;
+    writeFile: sinon.SinonStub;
+    delete: sinon.SinonStub;
+    createDirectory: sinon.SinonStub;
+    rename: sinon.SinonStub;
+} {
+    const stubs = {
+        stat: sandbox.stub().rejects(vscode.FileSystemError.FileNotFound()),
+        writeFile: sandbox.stub().resolves(),
+        delete: sandbox.stub().resolves(),
+        createDirectory: sandbox.stub().resolves(),
+        rename: sandbox.stub().resolves(),
+    };
+    sandbox.stub(vscode.workspace, "fs").value(stubs);
+    return stubs;
 }
 
 /**
@@ -275,6 +298,17 @@ export function stubPrompter(sandbox?: sinon.SinonSandbox): sinon.SinonStubbedIn
     return prompter;
 }
 
+// Stubs an IInstantiationService for tests that require the decorated dependency but don't
+// exercise real DI resolution behavior. Use InstantiationServiceBuilder instead when a test
+// needs createInstance to actually resolve registered services.
+export function stubInstantiationService(
+    sandbox?: sinon.SinonSandbox,
+): sinon.SinonStubbedInstance<IInstantiationService> {
+    const stubber = sandbox || sinon;
+
+    return stubber.createStubInstance(InstantiationService);
+}
+
 export function initializeIconUtils(): void {
     const { IconUtils } = require("../../src/utils/iconUtils");
     IconUtils.initialize(vscode.Uri.file(path.join(__dirname, "..", "..")));
@@ -356,4 +390,18 @@ export function stubPreviewService(
     sandbox
         .stub(previewService, "isFeatureEnabled")
         .callsFake((feature: PreviewFeature) => previews[feature] ?? experimentalFeaturesEnabled);
+}
+
+/**
+ * Observes a webview controller's internal "webview ready" promise so the rejection produced
+ * when the controller is disposed before its webview becomes ready (see
+ * WebviewBaseController.dispose) is handled instead of surfacing as an unhandled promise
+ * rejection during unit tests. Safe to call on any controller; it is a no-op if the promise
+ * is already settled or absent.
+ */
+export function observeWebviewReady(controller: unknown): void {
+    const ready = (controller as { _webviewReady?: { promise?: Promise<void> } })?._webviewReady;
+    void ready?.promise?.catch(() => {
+        /* Swallow the disposed-before-ready rejection in tests. */
+    });
 }

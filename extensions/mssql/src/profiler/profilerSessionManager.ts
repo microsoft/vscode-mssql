@@ -11,7 +11,7 @@ import {
     ProfilerSessionCreatedParams,
     ProfilerSessionTemplate,
 } from "../models/contracts/profiler";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions } from "../sharedInterfaces/telemetry";
 
 /**

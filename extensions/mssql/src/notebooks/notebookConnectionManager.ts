@@ -18,7 +18,7 @@ import {
 } from "../models/contracts/connection";
 import { generateQueryUri } from "../models/utils";
 import * as LocalizedConstants from "../constants/locConstants";
-import { sendActionEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, startActivity } from "extension-toolkit/vscode";
 import { TelemetryViews, TelemetryActions, ActivityStatus } from "../sharedInterfaces/telemetry";
 import { ILogger } from "../sharedInterfaces/logger";
 import {

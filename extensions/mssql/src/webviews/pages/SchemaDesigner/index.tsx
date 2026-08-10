@@ -11,7 +11,14 @@ import { useSchemaDesignerSelector } from "./schemaDesignerSelector";
 import { SchemaDesignerPage } from "./schemaDesignerPage";
 import { ReactFlowProvider } from "@xyflow/react";
 import { useEffect, useState } from "react";
-import { makeStyles, Toolbar, ToolbarButton, tokens, Tooltip } from "@fluentui/react-components";
+import {
+    makeStyles,
+    mergeClasses,
+    Toolbar,
+    ToolbarButton,
+    tokens,
+    Tooltip,
+} from "@fluentui/react-components";
 import { TableSettingsRegular } from "@fluentui/react-icons";
 import { DabPage } from "./dab/dabPage";
 import { SchemaDesigner } from "../../../sharedInterfaces/schemaDesigner";
@@ -109,11 +116,11 @@ const MainLayout = () => {
             </div>
             <div className={classes.content}>
                 <div
-                    className={`${classes.viewPane} ${
-                        activeView === SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner
-                            ? ""
-                            : classes.inactiveViewPane
-                    }`}
+                    className={mergeClasses(
+                        classes.viewPane,
+                        activeView !== SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner &&
+                            classes.inactiveViewPane,
+                    )}
                     aria-hidden={
                         activeView !== SchemaDesigner.SchemaDesignerActiveView.SchemaDesigner
                     }
@@ -130,11 +137,11 @@ const MainLayout = () => {
                     />
                 </div>
                 <div
-                    className={`${classes.viewPane} ${
-                        activeView === SchemaDesigner.SchemaDesignerActiveView.Dab
-                            ? ""
-                            : classes.inactiveViewPane
-                    }`}
+                    className={mergeClasses(
+                        classes.viewPane,
+                        activeView !== SchemaDesigner.SchemaDesignerActiveView.Dab &&
+                            classes.inactiveViewPane,
+                    )}
                     aria-hidden={activeView !== SchemaDesigner.SchemaDesignerActiveView.Dab}
                     inert={
                         activeView !== SchemaDesigner.SchemaDesignerActiveView.Dab

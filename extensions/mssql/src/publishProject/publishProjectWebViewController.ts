@@ -23,7 +23,7 @@ import {
 } from "../sharedInterfaces/publishDialog";
 import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import { SqlPackageService } from "../services/sqlPackageService";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { generatePublishFormComponents } from "./formComponentHelpers";
 import {
     parsePublishProfileXml,
