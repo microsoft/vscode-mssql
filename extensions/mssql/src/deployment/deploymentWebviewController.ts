@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as path from "node:path";
 import {
     createConnectionGroup,
     getDefaultConnectionGroupDialogProps,
@@ -25,7 +26,12 @@ import * as localContainers from "./localContainersHelpers";
 import { LocalContainersState } from "../sharedInterfaces/localContainers";
 import * as fabricProvisioning from "./fabricProvisioningHelpers";
 import * as azureSqlDatabase from "./azureSqlDatabaseHelpers";
-import { newDeployment } from "../constants/locConstants";
+import {
+    deploymentScriptAlreadyExists,
+    newDeployment,
+    noWorkspaceOpenForDeploymentScript,
+    overwriteDeploymentScript,
+} from "../constants/locConstants";
 import { FabricProvisioningState } from "../sharedInterfaces/fabricProvisioning";
 import {
     AzureSqlDatabaseState,
@@ -219,6 +225,55 @@ export class DeploymentWebviewController extends FormWebviewController<
 
             this.panel.dispose();
             this.dispose();
+            return state;
+        });
+
+        this.registerReducer("downloadDeploymentScript", async (state, payload) => {
+            const extension = payload.fileName.includes(".")
+                ? payload.fileName.slice(payload.fileName.lastIndexOf(".") + 1)
+                : undefined;
+            const targetUri = await vscode.window.showSaveDialog({
+                defaultUri: vscode.Uri.file(payload.fileName),
+                filters: extension ? { [extension.toUpperCase()]: [extension] } : undefined,
+            });
+            if (targetUri) {
+                await vscode.workspace.fs.writeFile(
+                    targetUri,
+                    Buffer.from(payload.content, "utf8"),
+                );
+                await vscode.window.showTextDocument(targetUri, { preview: false });
+            }
+            return state;
+        });
+
+        this.registerReducer("addDeploymentScriptToWorkspace", async (state, payload) => {
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            if (!workspaceFolder) {
+                void vscode.window.showErrorMessage(noWorkspaceOpenForDeploymentScript);
+                return state;
+            }
+
+            const fileName = path.basename(payload.fileName);
+            const targetUri = vscode.Uri.joinPath(workspaceFolder.uri, fileName);
+
+            try {
+                await vscode.workspace.fs.stat(targetUri);
+                const overwrite = await vscode.window.showWarningMessage(
+                    deploymentScriptAlreadyExists(fileName),
+                    { modal: true },
+                    overwriteDeploymentScript,
+                );
+                if (overwrite !== overwriteDeploymentScript) {
+                    return state;
+                }
+            } catch (error) {
+                if (!(error instanceof vscode.FileSystemError && error.code === "FileNotFound")) {
+                    throw error;
+                }
+            }
+
+            await vscode.workspace.fs.writeFile(targetUri, Buffer.from(payload.content, "utf8"));
+            await vscode.window.showTextDocument(targetUri, { preview: false });
             return state;
         });
 

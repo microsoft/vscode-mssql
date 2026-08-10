@@ -75,6 +75,16 @@ export interface DeploymentCommonReducers {
      * Reducer for cleanup and disposal logic.
      */
     dispose: {};
+
+    /**
+     * Prompts the user to save the provided deployment script to a file.
+     */
+    downloadDeploymentScript: { content: string; fileName: string };
+
+    /**
+     * Adds the provided deployment script to the root of the current workspace.
+     */
+    addDeploymentScriptToWorkspace: { content: string; fileName: string };
 }
 
 export interface DeploymentCommonContextProps extends FormContextProps<DeploymentFormState> {
@@ -107,6 +117,16 @@ export interface DeploymentCommonContextProps extends FormContextProps<Deploymen
      * Cleans up and disposes of resources used by the deployment context.
      */
     dispose(): void;
+
+    /**
+     * Prompts the user to save the provided deployment script to a file.
+     */
+    downloadDeploymentScript(content: string, fileName: string): void;
+
+    /**
+     * Adds the provided deployment script to the root of the current workspace.
+     */
+    addDeploymentScriptToWorkspace(content: string, fileName: string): void;
 }
 
 /**
