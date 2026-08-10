@@ -38,13 +38,13 @@ import {
     FormItemSpec,
     FormItemType,
     FormState,
+    sortOptionsWithFavorites,
 } from "../../../sharedInterfaces/form";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import { useEffect, useState } from "react";
 import { FluentOptionIcons, SearchableDropdown } from "../searchableDropdown.component";
 import { locConstants } from "../locConstants";
 import { EventType, KeyCode } from "../keys";
-import { sortOptionsWithFavorites } from "../../../utils/formOptions";
 
 export const useFormStyles = makeStyles({
     formRoot: {

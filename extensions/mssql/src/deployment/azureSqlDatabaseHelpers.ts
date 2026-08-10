@@ -16,7 +16,12 @@ import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
 import { ILogger } from "../sharedInterfaces/logger";
 import * as asd from "../sharedInterfaces/azureSqlDatabase";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
-import { FormItemActionButton, FormItemOptions, FormItemType } from "../sharedInterfaces/form";
+import {
+    findFirstFavoriteOption,
+    FormItemActionButton,
+    FormItemOptions,
+    FormItemType,
+} from "../sharedInterfaces/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
@@ -31,7 +36,6 @@ import {
     getCloudResourceEndpoint,
 } from "../azure/vscodeEntraMfaUtils";
 import { getErrorMessage } from "../utils/utils";
-import { findFirstFavoriteOption } from "../utils/formOptions";
 
 // Cached logger reference for use in helper functions that don't have
 // direct access to the controller's protected logger.

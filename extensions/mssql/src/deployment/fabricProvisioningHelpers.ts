@@ -16,6 +16,7 @@ import {
 } from "../sharedInterfaces/fabric";
 import * as fp from "../sharedInterfaces/fabricProvisioning";
 import {
+    findFirstFavoriteOption,
     FormItemActionButton,
     FormItemOptions,
     FormItemSpec,
@@ -31,7 +32,6 @@ import { IConnectionProfile } from "../models/interfaces";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { UserSurvey } from "../nps/userSurvey";
-import { findFirstFavoriteOption } from "../utils/formOptions";
 
 export const WORKSPACE_ROLE_REQUEST_LIMIT = 20;
 

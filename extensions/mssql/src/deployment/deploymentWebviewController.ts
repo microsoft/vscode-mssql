@@ -31,7 +31,7 @@ import {
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
 } from "../sharedInterfaces/azureSqlDatabase";
-import { findFirstFavoriteOption } from "../utils/formOptions";
+import { findFirstFavoriteOption } from "../sharedInterfaces/form";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";
 const DEPLOYMENT_FAVORITES_STATE_KEY = "mssql.deploymentResourceFavorites";

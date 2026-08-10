@@ -26,7 +26,7 @@ import React, {
     useState,
 } from "react";
 import { locConstants } from "./locConstants";
-import { findOptionIndex, sortOptionsWithFavorites } from "../../utils/formOptions";
+import { findOptionIndex, sortOptionsWithFavorites } from "../../sharedInterfaces/form";
 
 export interface SearchableDropdownOptions {
     /**
