@@ -12,11 +12,8 @@ import {
     CodeFilled,
     DocumentChevronDoubleRegular,
 } from "@fluentui/react-icons";
-import { locConstants } from "./locConstants";
-import {
-    PostDeploymentScript,
-    PostDeploymentScriptsDrawer,
-} from "../pages/Deployment/postDeploymentScriptsDrawer";
+import { locConstants } from "../../common/locConstants";
+import { PostDeploymentScript, PostDeploymentScriptsDrawer } from "./postDeploymentScriptsDrawer";
 
 const useStyles = makeStyles({
     scriptsCard: {

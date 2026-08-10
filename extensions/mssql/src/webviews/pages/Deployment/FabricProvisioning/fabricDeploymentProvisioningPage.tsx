@@ -13,7 +13,7 @@ import { ConnectToDatabaseCard } from "../connectToDatabaseCard";
 import { WhatsNextCard } from "../whatsNextCard";
 import { DeploymentContext } from "../deploymentStateProvider";
 import { PostDeploymentScript } from "../postDeploymentScriptsDrawer";
-import { DeploymentScriptsCard } from "../../../common/deploymentScriptsCard";
+import { DeploymentScriptsCard } from "../deploymentScriptsCard";
 import {
     generateFabricSqlDatabaseArm,
     generateFabricSqlDatabaseBicep,
@@ -194,7 +194,6 @@ export const FabricDeploymentProvisioningPage: React.FC = () => {
                 {connectionLoadState === ApiStatus.Loaded && connectionString && (
                     <ConnectToDatabaseCard connectionString={connectionString} />
                 )}
-                {connectionLoadState === ApiStatus.Loaded && <WhatsNextCard />}
                 {deploymentSucceeded && (
                     <DeploymentScriptsCard
                         scripts={scripts}
@@ -206,6 +205,7 @@ export const FabricDeploymentProvisioningPage: React.FC = () => {
                         }
                     />
                 )}
+                {connectionLoadState === ApiStatus.Loaded && <WhatsNextCard />}
             </div>
         </div>
     );

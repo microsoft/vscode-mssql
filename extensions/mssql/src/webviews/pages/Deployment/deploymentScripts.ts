@@ -32,7 +32,35 @@ const getServerlessSku = (maxVcores?: string) => {
     };
 };
 
-const escapeBicepString = (value: string | undefined): string => (value ?? "").replace(/'/g, "\\'");
+const getControlCharacterHex = (character: string): string =>
+    character.charCodeAt(0).toString(16).padStart(4, "0");
+
+const escapeBicepString = (value: string | undefined): string =>
+    (value ?? "")
+        .replace(/\\/g, "\\\\")
+        .replace(/'/g, "\\'")
+        .replace(/\r/g, "\\r")
+        .replace(/\n/g, "\\n")
+        .replace(/\t/g, "\\t")
+        .replace(/\$\{/g, "\\${")
+        .replace(
+            /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,
+            (character) => `\\u{${getControlCharacterHex(character)}}`,
+        );
+
+const escapeTerraformString = (value: string | undefined): string =>
+    (value ?? "")
+        .replace(/\\/g, "\\\\")
+        .replace(/"/g, '\\"')
+        .replace(/\r/g, "\\r")
+        .replace(/\n/g, "\\n")
+        .replace(/\t/g, "\\t")
+        .replace(/\$\{/g, () => "$${")
+        .replace(/%\{/g, "%%{")
+        .replace(
+            /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g,
+            (character) => `\\u${getControlCharacterHex(character)}`,
+        );
 
 export interface AzureSqlDatabaseScriptParams {
     databaseName?: string;
@@ -136,7 +164,6 @@ export function generateAzureSqlDatabaseArm(params: AzureSqlDatabaseScriptParams
  * Database based on the provisioning form values.
  */
 export function generateAzureSqlDatabaseTerraform(params: AzureSqlDatabaseScriptParams): string {
-    const escapeHcl = (value: string | undefined): string => (value ?? "").replace(/"/g, '\\"');
     // Terraform resource/reference labels must be valid identifiers.
     const toTerraformId = (value: string | undefined, fallback: string): string => {
         const sanitized = (value ?? "").replace(/[^a-zA-Z0-9_]/g, "_");
@@ -146,11 +173,13 @@ export function generateAzureSqlDatabaseTerraform(params: AzureSqlDatabaseScript
         return /^[0-9]/.test(sanitized) ? `_${sanitized}` : sanitized;
     };
 
-    const databaseName = escapeHcl(params.databaseName) || "mySqlDatabase";
-    const collation = escapeHcl(params.collation) || DEFAULT_COLLATION;
-    const freeLimitBehavior = escapeHcl(params.freeLimitBehavior) || DEFAULT_FREE_LIMIT_BEHAVIOR;
-    const subscriptionName = escapeHcl(params.subscriptionName) || "<subscription name>";
-    const resourceGroup = escapeHcl(params.resourceGroup) || "<resource group name>";
+    const databaseName = escapeTerraformString(params.databaseName) || "mySqlDatabase";
+    const collation = escapeTerraformString(params.collation) || DEFAULT_COLLATION;
+    const freeLimitBehavior =
+        escapeTerraformString(params.freeLimitBehavior) || DEFAULT_FREE_LIMIT_BEHAVIOR;
+    const subscriptionName =
+        escapeTerraformString(params.subscriptionName) || "<subscription name>";
+    const resourceGroup = escapeTerraformString(params.resourceGroup) || "<resource group name>";
     const sku = getServerlessSku(params.maxVcores);
     const databaseLabel = toTerraformId(params.databaseName, "this");
     const serverLabel = toTerraformId(params.serverName, "sql_server");
@@ -265,7 +294,6 @@ export function generateFabricSqlDatabaseArm(params: FabricSqlDatabaseScriptPara
  * modeled through the AzAPI provider, which mirrors the ARM/Bicep resource type.
  */
 export function generateFabricSqlDatabaseTerraform(params: FabricSqlDatabaseScriptParams): string {
-    const escapeHcl = (value: string | undefined): string => (value ?? "").replace(/"/g, '\\"');
     // Terraform resource labels must be valid identifiers.
     const toTerraformId = (value: string | undefined, fallback: string): string => {
         const sanitized = (value ?? "").replace(/[^a-zA-Z0-9_]/g, "_");
@@ -275,10 +303,11 @@ export function generateFabricSqlDatabaseTerraform(params: FabricSqlDatabaseScri
         return /^[0-9]/.test(sanitized) ? `_${sanitized}` : sanitized;
     };
 
-    const databaseName = escapeHcl(params.databaseName) || "mySqlDatabase";
-    const workspaceId = escapeHcl(params.workspaceId) || "00000000-0000-0000-0000-000000000000";
-    const workspaceName = escapeHcl(params.workspaceName) || "<workspace name>";
-    const tenantName = escapeHcl(params.tenantName) || "<tenant name>";
+    const databaseName = escapeTerraformString(params.databaseName) || "mySqlDatabase";
+    const workspaceId =
+        escapeTerraformString(params.workspaceId) || "00000000-0000-0000-0000-000000000000";
+    const workspaceName = escapeTerraformString(params.workspaceName) || "<workspace name>";
+    const tenantName = escapeTerraformString(params.tenantName) || "<tenant name>";
     const databaseLabel = toTerraformId(params.databaseName, "this");
 
     return `# Microsoft Fabric SQL Database — ${databaseName}
