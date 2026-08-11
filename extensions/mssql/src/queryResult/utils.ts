@@ -407,7 +407,7 @@ export function registerCommonRequestHandlers(
     });
     webviewController.registerReducer("compareExecutionPlan", async (state, payload) => {
         if (
-            state.executionPlanState.isReactFlowExecutionPlanEnabled &&
+            state.executionPlanState.isBetaExecutionPlanEnabled &&
             state.executionPlanState.executionPlanGraphs?.length
         ) {
             openExecutionPlanComparisonWebview(

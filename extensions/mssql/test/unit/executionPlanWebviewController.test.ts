@@ -218,7 +218,7 @@ suite("ExecutionPlanWebviewController", () => {
         const state: ep.ExecutionPlanWebviewState = {
             executionPlanState: {
                 ...mockInitialState.executionPlanState,
-                isReactFlowExecutionPlanEnabled: true,
+                isBetaExecutionPlanEnabled: true,
                 executionPlanGraphs: [graph],
             },
         };
@@ -242,7 +242,7 @@ suite("ExecutionPlanWebviewController", () => {
         const state: ep.ExecutionPlanWebviewState = {
             executionPlanState: {
                 ...mockInitialState.executionPlanState,
-                isReactFlowExecutionPlanEnabled: false,
+                isBetaExecutionPlanEnabled: false,
                 executionPlanGraphs: [{} as ep.ExecutionPlanGraph],
             },
         };

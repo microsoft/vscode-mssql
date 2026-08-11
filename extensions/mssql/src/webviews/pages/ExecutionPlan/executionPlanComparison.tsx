@@ -219,6 +219,7 @@ function ComparisonPlanPane({
                             }
                         }}
                         inputRef={inputRef}
+                        useReactFlow={true}
                     />
                 )}
             </div>
@@ -522,7 +523,7 @@ export function ExecutionPlanComparison() {
     const context = useContext(ExecutionPlanContext);
     const comparisonState = useExecutionPlanSelector((state) => state.executionPlanComparisonState);
     const isPreviewEnabled = useExecutionPlanSelector(
-        (state) => state.executionPlanState.isReactFlowExecutionPlanEnabled === true,
+        (state) => state.executionPlanState.isBetaExecutionPlanEnabled === true,
     );
     const [primaryController, setPrimaryController] = useState<ExecutionPlanGraphController | null>(
         null,

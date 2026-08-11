@@ -10,7 +10,7 @@ import * as LocalizedConstants from "../constants/locConstants";
 import { sqlPlanLanguageId } from "../constants/constants";
 import {
     getPreviewConfigKey,
-    isReactFlowExecutionPlanPreviewEnabled,
+    isBetaExecutionPlanEnabled,
     PreviewFeature,
 } from "../previews/previewService";
 import * as ep from "../sharedInterfaces/executionPlan";
@@ -102,7 +102,7 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
                     loadState: ApiStatus.Loaded,
                     executionPlanGraphs: [],
                     totalCost: 0,
-                    isReactFlowExecutionPlanEnabled: isReactFlowExecutionPlanPreviewEnabled(),
+                    isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                 },
                 executionPlanComparisonState: {
                     primary: {
@@ -139,15 +139,14 @@ export class ExecutionPlanComparisonWebviewController extends WebviewPanelContro
             vscode.workspace.onDidChangeConfiguration((event) => {
                 if (
                     event.affectsConfiguration(
-                        getPreviewConfigKey(PreviewFeature.ReactFlowExecutionPlan),
+                        getPreviewConfigKey(PreviewFeature.BetaExecutionPlan),
                     )
                 ) {
                     this.updateState({
                         ...this.state,
                         executionPlanState: {
                             ...this.state.executionPlanState,
-                            isReactFlowExecutionPlanEnabled:
-                                isReactFlowExecutionPlanPreviewEnabled(),
+                            isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                         },
                     });
                 }
