@@ -98,6 +98,7 @@ export const schemaCompareRunComparisonCommand = "schemaCompare.runComparison";
 export const mssqlSchemaCompareCommand = "mssql.schemaCompare";
 export const mssqlPublishProjectCommand = "mssql.publishDatabaseProject";
 export const mssqlConfigureCodeAnalysisSettingsCommand = "mssql.configureCodeAnalysisSettings";
+export const mssqlMoveToSchemaCommand = "mssql.moveToSchema";
 export const vscodeOpenCommand = "vscode.open";
 export const refreshDataWorkspaceCommand = "dataworkspace.refresh";
 

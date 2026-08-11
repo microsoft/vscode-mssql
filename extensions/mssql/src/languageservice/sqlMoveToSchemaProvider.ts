@@ -67,6 +67,11 @@ interface SchemaFolderMovePlan {
     newAbsUri: vscode.Uri;
 }
 
+interface MoveToSchemaSqlToken {
+    text: string;
+    start: number;
+}
+
 /**
  * Surfaces a "Move to Schema..." action under the editor's **Refactor...** menu for SQL files in a
  * SQL project.
@@ -96,8 +101,12 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
             }),
             vscode.commands.registerCommand(
                 cmdMoveToSchema,
-                (document: vscode.TextDocument, position: vscode.Position) =>
-                    provider.runMoveToSchema(document, position),
+                (documentOrPath: vscode.TextDocument | string, position?: vscode.Position) =>
+                    typeof documentOrPath === "string"
+                        ? provider.runMoveToSchemaFromFilePath(documentOrPath)
+                        : position
+                          ? provider.runMoveToSchema(documentOrPath, position)
+                          : undefined,
             ),
         ];
     }
@@ -188,6 +197,103 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
 
         await this.applyMove(document, position, selected.label, schemas);
     }
+
+    //#region Tree Entry Local Parsing (replaceable)
+    // NOTE: This region exists only to bridge the tree-entry (file path only) flow into the
+    // existing Move-to-Schema document+position flow. If STS exposes an API that resolves the
+    // movable object position from a file path, replace this entire region with that STS call.
+
+    /**
+     * Starts Move to Schema from a Database Projects tree file path.
+     */
+    public async runMoveToSchemaFromFilePath(filePath: string): Promise<void> {
+        const document = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
+        const position = this.findMoveToSchemaSymbolPosition(document);
+        if (!position) {
+            void vscode.window.showInformationMessage(loc.noMovableSymbolAtCursor);
+            return;
+        }
+
+        await this.runMoveToSchema(document, position);
+    }
+
+    /**
+     * Finds the position of the object identifier used as the Move-to-Schema cursor target.
+     * Supports CREATE/ALTER forms, including CREATE OR ALTER, and schema-qualified names.
+     */
+    private findMoveToSchemaSymbolPosition(
+        document: vscode.TextDocument,
+    ): vscode.Position | undefined {
+        const tokens = this.tokenizeMoveToSchemaSql(document.getText());
+        const objectTypes = new Set([
+            "table",
+            "view",
+            "proc",
+            "procedure",
+            "function",
+            "trigger",
+            "sequence",
+        ]);
+
+        for (let i = 0; i < tokens.length; i++) {
+            const statement = tokens[i].text.toLowerCase();
+            if (statement !== "create" && statement !== "alter") {
+                continue;
+            }
+
+            let objectTypeIndex = i + 1;
+            if (
+                tokens[objectTypeIndex]?.text.toLowerCase() === "or" &&
+                tokens[objectTypeIndex + 1]?.text.toLowerCase() === "alter"
+            ) {
+                objectTypeIndex += 2;
+            }
+
+            const objectType = tokens[objectTypeIndex]?.text.toLowerCase();
+            if (!objectType || !objectTypes.has(objectType)) {
+                continue;
+            }
+
+            const firstNameToken = tokens[objectTypeIndex + 1];
+            if (!firstNameToken) {
+                return undefined;
+            }
+
+            // schema.object -> target object token; object -> target first name token
+            if (tokens[objectTypeIndex + 2]?.text === "." && tokens[objectTypeIndex + 3]) {
+                return document.positionAt(tokens[objectTypeIndex + 3].start);
+            }
+            return document.positionAt(firstNameToken.start);
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Tokenizes SQL text into identifiers and separators while skipping whitespace, comments,
+     * and string literals so statement detection ignores non-executable text.
+     */
+    private tokenizeMoveToSchemaSql(text: string): MoveToSchemaSqlToken[] {
+        const tokenPattern =
+            /\s+|--[^\r\n]*|\/\*[\s\S]*?\*\/|'(?:''|[^'])*'|\[(?:[^\]]|\]\])+\]|"(?:""|[^"])*"|`(?:``|[^`])*`|[A-Za-z0-9_$#@]+|\./gy;
+        const tokens: MoveToSchemaSqlToken[] = [];
+
+        let match: RegExpExecArray | null;
+        while ((match = tokenPattern.exec(text)) !== null) {
+            const value = match[0];
+            if (!value || /^\s+$/.test(value)) {
+                continue;
+            }
+            if (value.startsWith("--") || value.startsWith("/*") || value.startsWith("'")) {
+                continue;
+            }
+            tokens.push({ text: value, start: match.index });
+        }
+
+        return tokens;
+    }
+
+    //#endregion
 
     /**
      * Runs the move end to end: asks STS for the script edits, applies them through VS Code's

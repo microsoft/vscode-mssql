@@ -63,6 +63,10 @@ function makeMoveDocument(
             if (!range) return lineText;
             return lineText.slice(range.start.character, range.end.character);
         }),
+        positionAt: sandbox.stub().callsFake((offset: number) => {
+            const lines = lineText.slice(0, offset).split("\n");
+            return new vscode.Position(lines.length - 1, lines[lines.length - 1].length);
+        }),
     } as unknown as vscode.TextDocument;
 }
 
@@ -661,6 +665,27 @@ suite("SqlMoveToSchemaProvider Tests", () => {
 
     // -------------------------------------------------------------------------
     suite("runMoveToSchema", () => {
+        test("resolves the object position when started from a file path", async () => {
+            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            showQuickPickStub.resolves({ label: "hr" });
+            sendRequestStub.withArgs(ListProjectSchemasRequest.type).resolves({ schemas: ["hr"] });
+            sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({ changes: {} });
+
+            const document = makeMoveDocument(sandbox, {
+                lineText: "Alter Table dbo.Table1\nAdd NewColumn1 INT NULL;",
+            });
+            sandbox.stub(vscode.workspace, "openTextDocument").resolves(document);
+
+            await provider.runMoveToSchemaFromFilePath(defaultSqlFile);
+
+            expect(sendRequestStub).to.have.been.calledWith(
+                SqlMoveToSchemaRequest.type,
+                sinon.match({
+                    position: { line: 0, character: 16 },
+                }),
+            );
+        });
+
         test("shows message when file is not in a SQL project", async () => {
             const doc = makeMoveDocument(sandbox);
             await provider.runMoveToSchema(doc, new vscode.Position(0, 0));

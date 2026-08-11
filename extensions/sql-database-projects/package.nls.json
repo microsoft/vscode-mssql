@@ -13,6 +13,7 @@
     "sqlDatabaseProjects.createProjectFromDatabase": "Create Project from Database",
     "sqlDatabaseProjects.updateProjectFromDatabase": "Update Project from Database",
     "sqlDatabaseProjects.configureCodeAnalysisSettings": "Code Analysis Settings",
+    "sqlDatabaseProjects.moveToSchema": "Move to Schema...",
     "sqlDatabaseProjects.properties": "Properties",
     "sqlDatabaseProjects.schemaCompare": "Schema Compare",
     "sqlDatabaseProjects.delete": "Delete",

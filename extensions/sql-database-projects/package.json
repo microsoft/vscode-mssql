@@ -189,6 +189,11 @@
                 "category": "%sqlDatabaseProjects.displayName%"
             },
             {
+                "command": "sqlDatabaseProjects.moveToSchema",
+                "title": "%sqlDatabaseProjects.moveToSchema%",
+                "category": "%sqlDatabaseProjects.displayName%"
+            },
+            {
                 "command": "sqlDatabaseProjects.addDatabaseReference",
                 "title": "%sqlDatabaseProjects.addDatabaseReference%",
                 "category": "%sqlDatabaseProjects.displayName%"
@@ -342,6 +347,10 @@
                 },
                 {
                     "command": "sqlDatabaseProjects.configureCodeAnalysisSettings",
+                    "when": "false"
+                },
+                {
+                    "command": "sqlDatabaseProjects.moveToSchema",
                     "when": "false"
                 },
                 {
@@ -536,6 +545,11 @@
                     "command": "sqlDatabaseProjects.openContainingFolder",
                     "when": "view == dataworkspace.views.main && viewItem =~ /^(databaseProject.itemType.project|databaseProject.itemType.legacyProject)$/",
                     "group": "9_dbProjectsLast@9"
+                },
+                {
+                    "command": "sqlDatabaseProjects.moveToSchema",
+                    "when": "view == dataworkspace.views.main && viewItem =~ /^databaseProject.itemType.file/",
+                    "group": "9_dbProjectsLast@4"
                 },
                 {
                     "submenu": "sqlDatabaseProjects.objectExplorerSubmenu",

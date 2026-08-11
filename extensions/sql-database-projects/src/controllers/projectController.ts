@@ -2341,6 +2341,42 @@ export class ProjectsController {
         }
     }
 
+    /**
+     * Launches Move to Schema from a SQL object file node in the Database Projects tree.
+     * This reuses the mssql extension's existing quickpick + refactor preview flow.
+     */
+    public async moveToSchema(treeNode: dataworkspace.WorkspaceTreeItem): Promise<void> {
+        try {
+            const element = treeNode.element;
+            if (!(element instanceof FileNode)) {
+                return;
+            }
+
+            if (element.type !== constants.DatabaseProjectItemType.sqlObjectScript) {
+                return;
+            }
+
+            if (
+                path.extname(element.fileSystemUri.fsPath).toLowerCase() !==
+                constants.sqlFileExtension
+            ) {
+                return;
+            }
+
+            await vscode.commands.executeCommand(
+                constants.mssqlMoveToSchemaCommand,
+                element.fileSystemUri.fsPath,
+            );
+        } catch (err) {
+            void vscode.window.showErrorMessage(utils.getErrorMessage(err));
+            TelemetryReporter.sendErrorEvent(
+                TelemetryViews.ProjectController,
+                TelemetryActions.move,
+                err,
+            );
+        }
+    }
+
     //#endregion
 
     /**
