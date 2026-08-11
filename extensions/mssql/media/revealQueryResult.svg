@@ -1,5 +1,27 @@
-<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="none">
-    <path
-        d="M2 4.5A2.5 2.5 0 0 1 4.5 2h7A2.5 2.5 0 0 1 14 4.5v7a2.5 2.5 0 0 1-2.5 2.5h-7A2.5 2.5 0 0 1 2 11.5v-7ZM6 13h4v-2H6v2Zm-1-2H3v.5c0 .83.67 1.5 1.5 1.5H5v-2Zm1-1h4V6H6v4ZM5 6H3v4h2V6Zm1-1h4V3H6v2ZM5 3h-.5C3.67 3 3 3.67 3 4.5V5h2V3Zm8 3h-2v4h2V6Zm0 5h-2v2h.5c.83 0 1.5-.67 1.5-1.5V11Zm0-6v-.5c0-.83-.67-1.5-1.5-1.5H11v2h2Z"
-        fill="currentColor" />
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <mask id="personCutout" x="0" y="0" width="24" height="24" maskUnits="userSpaceOnUse">
+            <rect width="24" height="24" fill="white" />
+            <circle cx="6" cy="14" r="3.25" fill="black" />
+            <path d="M1 22C1 18.5 3.2 16.5 6 16.5C8.8 16.5 11 18.5 11 22Z" fill="black" />
+        </mask>
+    </defs>
+    <g
+        mask="url(#personCutout)"
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round">
+        <rect x="5" y="3" width="17" height="16" rx="2" />
+        <path d="M5 8H22" />
+        <path d="M12 13L14 15L18 11" />
+    </g>
+    <g
+        stroke="currentColor"
+        stroke-width="1.5"
+        stroke-linecap="round"
+        stroke-linejoin="round">
+        <circle cx="6" cy="14" r="2.5" />
+        <path d="M1.5 22C1.5 18.9 3.5 17 6 17C8.5 17 10.5 18.9 10.5 22C8.1 23.5 3.9 23.5 1.5 22Z" />
+    </g>
 </svg>
