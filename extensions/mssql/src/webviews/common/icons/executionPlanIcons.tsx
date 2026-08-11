@@ -5,8 +5,7 @@
 
 import "./executionPlanIcons.css";
 
-import { SearchFilled, SearchRegular } from "@fluentui/react-icons";
-import { forwardRef, HTMLAttributes, SVGProps } from "react";
+import { forwardRef, SVGProps } from "react";
 
 type IconProps = SVGProps<SVGSVGElement>;
 
@@ -72,6 +71,42 @@ export const OpenQueryIcon16Regular = forwardRef<SVGSVGElement, IconProps>((prop
     </svg>
 ));
 OpenQueryIcon16Regular.displayName = "OpenQueryIcon16Regular";
+
+export const ExpandAllIcon16Regular = forwardRef<SVGSVGElement, IconProps>((props, ref) => (
+    <svg ref={ref} {...commonIconProps(props)}>
+        <path d="M9 9H4v1h5V9z" />
+        <path d="M7 12V7H6v5h1z" />
+        <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M5 3l1-1h7l1 1v7l-1 1h-2v2l-1 1H3l-1-1V6l1-1h2V3zm1 2h4l1 1v4h2V3H6v2zm4 1H3v7h7V6z"
+        />
+    </svg>
+));
+ExpandAllIcon16Regular.displayName = "ExpandAllIcon16Regular";
+
+export const CollapseAllIcon16Regular = forwardRef<SVGSVGElement, IconProps>((props, ref) => (
+    <svg ref={ref} {...commonIconProps(props)}>
+        <path d="M9 9H4v1h5V9z" />
+        <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M5 3l1-1h7l1 1v7l-1 1h-2v2l-1 1H3l-1-1V6l1-1h2V3zm1 2h4l1 1v4h2V3H6v2zm4 1H3v7h7V6z"
+        />
+    </svg>
+));
+CollapseAllIcon16Regular.displayName = "CollapseAllIcon16Regular";
+
+export const FilterIcon16Regular = forwardRef<SVGSVGElement, IconProps>((props, ref) => (
+    <svg ref={ref} {...commonIconProps(props)}>
+        <path
+            fillRule="evenodd"
+            clipRule="evenodd"
+            d="M15 2v1.67l-5 4.759V14H6V8.429l-5-4.76V2h14zM7 8v5h2V8l5-4.76V3H2v.24L7 8z"
+        />
+    </svg>
+));
+FilterIcon16Regular.displayName = "FilterIcon16Regular";
 
 export const ZoomControlIcon16Regular = forwardRef<SVGSVGElement, IconProps>((props, ref) => (
     <svg ref={ref} {...commonIconProps(props)}>
@@ -144,33 +179,3 @@ export const TooltipOffIcon16Regular = forwardRef<SVGSVGElement, IconProps>((pro
     </svg>
 ));
 TooltipOffIcon16Regular.displayName = "TooltipOffIcon16Regular";
-
-export const ZoomOriginalSizeIcon16Regular = forwardRef<SVGSVGElement, IconProps>((props, ref) => (
-    <svg ref={ref} {...commonIconProps(props)}>
-        <path d="M4.50001 5.00023C4.37201 5.00023 4.24401 4.95123 4.14601 4.85423L2.14601 2.85423C1.95101 2.65923 1.95101 2.34223 2.14601 2.14723C2.34101 1.95223 2.65801 1.95223 2.85301 2.14723L4.85301 4.14723C5.04801 4.34223 5.04801 4.65923 4.85301 4.85423C4.75501 4.95223 4.62801 5.00023 4.50001 5.00023ZM2.85401 13.8542L4.85401 11.8542C5.04901 11.6592 5.04901 11.3422 4.85401 11.1472C4.65901 10.9522 4.34201 10.9522 4.14701 11.1472L2.14701 13.1472C1.95201 13.3422 1.95201 13.6592 2.14701 13.8542C2.24501 13.9522 2.37301 14.0002 2.50101 14.0002C2.62901 14.0002 2.75601 13.9512 2.85401 13.8542ZM13.854 13.8542C14.049 13.6592 14.049 13.3422 13.854 13.1472L11.854 11.1472C11.659 10.9522 11.342 10.9522 11.147 11.1472C10.952 11.3422 10.952 11.6592 11.147 11.8542L13.147 13.8542C13.245 13.9522 13.373 14.0002 13.501 14.0002C13.629 14.0002 13.756 13.9512 13.854 13.8542ZM11.854 4.85423L13.854 2.85423C14.049 2.65923 14.049 2.34223 13.854 2.14723C13.659 1.95223 13.342 1.95223 13.147 2.14723L11.147 4.14723C10.952 4.34223 10.952 4.65923 11.147 4.85423C11.245 4.95223 11.373 5.00023 11.501 5.00023C11.629 5.00023 11.756 4.95123 11.854 4.85423Z" />
-    </svg>
-));
-ZoomOriginalSizeIcon16Regular.displayName = "ZoomOriginalSizeIcon16Regular";
-
-interface SearchPlanIconProps extends HTMLAttributes<HTMLSpanElement> {
-    planNumber: 1 | 2;
-    selected?: boolean;
-}
-
-export function SearchPlanIcon({
-    planNumber,
-    selected = false,
-    className,
-    ...props
-}: SearchPlanIconProps) {
-    const SearchIcon = selected ? SearchFilled : SearchRegular;
-    return (
-        <span
-            className={`execution-plan-numbered-icon${className ? ` ${className}` : ""}`}
-            aria-hidden="true"
-            {...props}>
-            <SearchIcon />
-            <span className="execution-plan-numbered-icon-badge">{planNumber}</span>
-        </span>
-    );
-}

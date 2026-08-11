@@ -12,7 +12,7 @@ import { Answers, UserSurveyReducers, UserSurveyState } from "../sharedInterface
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 import { WebviewPanelController } from "../controllers/webviewPanelController";
-import { sendActionEvent } from "../telemetry/telemetry";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import { previewService } from "../previews/previewService";
 import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";

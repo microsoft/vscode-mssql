@@ -10,10 +10,10 @@ import { PagedAsyncIterableIterator } from "@azure/core-paging";
 import * as path from "path";
 import * as os from "os";
 import * as vscode from "vscode";
+import { VscodeHttpClient, withBearerToken } from "extension-toolkit/vscode";
 import { AzureAuthType, IToken, UserGroup } from "../models/contracts/azure";
 import * as Constants from "./constants";
 import { TokenCredentialWrapper } from "./credentialWrapper";
-import { HttpClient } from "../http/httpClient";
 import { getLogger } from "../models/logger";
 import { getErrorMessage } from "../utils/utils";
 
@@ -121,7 +121,7 @@ export function getAppDataPath(): string {
 export async function fetchUserGroups(userId: string): Promise<UserGroup[]> {
     const graphBaseUri = vscode.Uri.parse("https://graph.microsoft.com/v1.0/");
     const uri = vscode.Uri.joinPath(graphBaseUri, `users/${userId}/memberOf`);
-    const httpHelper = new HttpClient();
+    const httpHelper = new VscodeHttpClient();
 
     const session = await vscode.authentication.getSession("microsoft", [], {
         createIfNone: true,
@@ -131,14 +131,15 @@ export async function fetchUserGroups(userId: string): Promise<UserGroup[]> {
         throw new Error("No access token found");
     }
 
+    const options = withBearerToken(token);
     let groups: UserGroup[] = [];
     let nextUrl: string | undefined = uri.toString();
     while (nextUrl) {
         try {
-            const response = await httpHelper.makeGetRequest<{
+            const response = await httpHelper.get<{
                 value: UserGroup[];
                 "@odata.nextLink"?: string;
-            }>(nextUrl, token);
+            }>(nextUrl, options);
 
             const result = response.data.value.map(
                 (group) => ({ displayName: group.displayName, id: group.id }) as UserGroup,

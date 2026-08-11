@@ -288,7 +288,7 @@ export class ExecutionPlanModel {
             node.children.map((child) => child.id),
         );
 
-        node.edges = source.edges.map((edge, index) => {
+        node.edges = (source.edges ?? []).map((edge, index) => {
             const targetId = node.children[index]?.id ?? `${id}-missing-child-${index}`;
             const edgeId = `element-edge-${id}-${targetId}-${index}`;
             const normalizedEdge: ExecutionPlanEdgeModel = {
@@ -394,7 +394,9 @@ function defaultMeasureText(text: string): number {
     if (!context) {
         return text.length * 6;
     }
-    context.font = "10px Monaco, Menlo, Consolas, monospace";
+    // azdataGraph does not set a font on its measurement canvas, whose default
+    // is 10px sans-serif. Keep that behavior so horizontal spacing remains equal.
+    context.font = "10px sans-serif";
     return context.measureText(text).width;
 }
 

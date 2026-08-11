@@ -26,7 +26,7 @@ import { FabricHelper } from "../fabric/fabricHelper";
 import { VsCodeAzureHelper } from "./azureHelpers";
 import { ILogger } from "../sharedInterfaces/logger";
 import { getCloudId } from "../azure/providerSettings";
-import { startActivity } from "../telemetry/telemetry";
+import { startActivity } from "extension-toolkit/vscode";
 import { getErrorMessage } from "../utils/utils";
 
 /** Per-mode limit for auto-loading the contents of every collection on the current tenant. */

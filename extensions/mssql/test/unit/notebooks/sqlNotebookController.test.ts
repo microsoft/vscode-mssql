@@ -106,6 +106,15 @@ suite("SqlNotebookController", () => {
         hide: sinon.SinonStub;
         dispose: sinon.SinonStub;
     };
+    let mockSelectionSummaryStatusBarItem: {
+        text: string;
+        tooltip: string;
+        command: string;
+        name: string;
+        show: sinon.SinonStub;
+        hide: sinon.SinonStub;
+        dispose: sinon.SinonStub;
+    };
     let mockExecution: {
         executionOrder: number;
         start: sinon.SinonStub;
@@ -155,6 +164,7 @@ suite("SqlNotebookController", () => {
     // handleNotebookOpened/handleNotebookClosed methods directly instead.
     let didSaveNotebookHandler: (notebook: vscode.NotebookDocument) => void;
     let didOpenTextDocumentHandler: (doc: vscode.TextDocument) => void;
+    let rendererMessageHandler: (e: { editor: vscode.NotebookEditor; message: unknown }) => void;
     let openNotebookDocuments: vscode.NotebookDocument[];
 
     function setupVscodeMocks(sb: sinon.SinonSandbox): void {
@@ -162,12 +172,23 @@ suite("SqlNotebookController", () => {
             mockController as unknown as vscode.NotebookController,
         );
         sb.stub(vscode.notebooks, "createRendererMessaging").returns({
-            onDidReceiveMessage: sb.stub().returns({ dispose: sb.stub() }),
+            onDidReceiveMessage: sb.stub().callsFake((listener) => {
+                rendererMessageHandler = listener as (e: {
+                    editor: vscode.NotebookEditor;
+                    message: unknown;
+                }) => void;
+                return { dispose: sb.stub() };
+            }),
             postMessage: sb.stub().resolves(true),
         } as unknown as vscode.NotebookRendererMessaging);
-        sb.stub(vscode.window, "createStatusBarItem").returns(
-            mockStatusBarItem as unknown as vscode.StatusBarItem,
-        );
+        // Return the matching mock by status bar priority (connection = 99,
+        // selection summary = 98) so the test does not depend on creation order.
+        sb.stub(vscode.window, "createStatusBarItem").callsFake((...args: unknown[]) => {
+            const priority = args[1] as number | undefined;
+            return (priority === 99
+                ? mockStatusBarItem
+                : mockSelectionSummaryStatusBarItem) as unknown as vscode.StatusBarItem;
+        });
         sb.stub(vscode.window, "createOutputChannel").returns({
             info: sb.stub(),
             warn: sb.stub(),
@@ -241,6 +262,15 @@ suite("SqlNotebookController", () => {
 
         // Mock status bar
         mockStatusBarItem = {
+            text: "",
+            tooltip: "",
+            command: "",
+            name: "",
+            show: sandbox.stub(),
+            hide: sandbox.stub(),
+            dispose: sandbox.stub(),
+        };
+        mockSelectionSummaryStatusBarItem = {
             text: "",
             tooltip: "",
             command: "",
@@ -1400,11 +1430,53 @@ suite("SqlNotebookController", () => {
         });
     });
 
+    suite("selection summary", () => {
+        const notebookMessage = (message: unknown) =>
+            rendererMessageHandler({ editor: {} as vscode.NotebookEditor, message });
+
+        test("shows the summary status bar item for reported metrics", () => {
+            notebookMessage({
+                type: "selectionSummary",
+                metrics: {
+                    count: 3,
+                    distinctCount: 3,
+                    nullCount: 0,
+                    average: 4,
+                    sum: 12,
+                    min: 2,
+                    max: 6,
+                },
+            });
+            expect(mockSelectionSummaryStatusBarItem.show).to.have.been.called;
+            expect(mockSelectionSummaryStatusBarItem.text).to.contain("Average");
+        });
+
+        test("shows non-numeric metrics without an average", () => {
+            notebookMessage({
+                type: "selectionSummary",
+                metrics: {
+                    count: 4,
+                    distinctCount: 3,
+                    nullCount: 1,
+                },
+            });
+            expect(mockSelectionSummaryStatusBarItem.show).to.have.been.called;
+            expect(mockSelectionSummaryStatusBarItem.text).to.not.contain("Average");
+            expect(mockSelectionSummaryStatusBarItem.text).to.contain("Distinct");
+        });
+
+        test("hides the summary status bar item when there is no selection", () => {
+            notebookMessage({ type: "selectionSummary", metrics: undefined });
+            expect(mockSelectionSummaryStatusBarItem.hide).to.have.been.called;
+        });
+    });
+
     suite("dispose", () => {
         test("disposes all resources", () => {
             controller.dispose();
             expect(mockController.dispose).to.have.been.calledOnce;
             expect(mockStatusBarItem.dispose).to.have.been.calledOnce;
+            expect(mockSelectionSummaryStatusBarItem.dispose).to.have.been.calledOnce;
         });
     });
 });

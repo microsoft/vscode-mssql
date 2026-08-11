@@ -56,7 +56,7 @@ import { FileBrowserReducers, FileBrowserWebviewState } from "../sharedInterface
 import { WebviewPanelController } from "./webviewPanelController";
 import { ConnectionProfile } from "../models/connectionProfile";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { getServerTypes, ServerType } from "../models/connectionInfo";
 
 export class RestoreDatabaseWebviewController extends ObjectManagementWebviewController<

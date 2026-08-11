@@ -10,8 +10,43 @@ import {
 } from "./executionPlanGraphController";
 import { ExecutionPlanModel } from "./executionPlanModel";
 
+interface QueryPlanRectangle {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+interface QueryPlanDiagram {
+    graph: {
+        showTooltip: boolean;
+        model: {
+            getCell(id: string | undefined): unknown;
+        };
+        view: {
+            getScale(): number;
+        };
+        container: HTMLElement;
+        getSelectionCell(): { id?: string } | undefined;
+        getCellBounds(cell: unknown): QueryPlanRectangle;
+        getSelectionModel(): {
+            setCell(cell: unknown): void;
+        };
+    };
+    showTooltip(show: boolean): void;
+    drawPolygon(cell: unknown, fillColor: string, borderColor: string): void;
+    removeDrawnPolygons(): void;
+    disableNodeCollapse(disable: boolean): void;
+    zoomIn(): void;
+    zoomOut(): void;
+    zoomToFit(): void;
+    zoomTo(level: number): void;
+    clearExpensiveOperatorHighlighting(): void;
+    highlightExpensiveOperator(predicate: (cell: ep.AzDataGraphCell) => number | undefined): string;
+}
+
 export class ExecutionPlanView implements ExecutionPlanGraphController {
-    private _diagram: any;
+    private _diagram!: QueryPlanDiagram;
     public expensiveMetricTypes: Set<ep.ExpensiveMetricType> = new Set();
     private _graphElementPropertiesSet: Set<string> = new Set();
     private _executionPlanRootNode: ep.ExecutionPlanNode;
@@ -33,11 +68,11 @@ export class ExecutionPlanView implements ExecutionPlanGraphController {
         return this._executionPlanRootNode.cost + this._executionPlanRootNode.subTreeCost;
     }
 
-    public getDiagram(): any {
+    public getDiagram(): QueryPlanDiagram {
         return this._diagram;
     }
 
-    public setDiagram(model: any): void {
+    public setDiagram(model: QueryPlanDiagram): void {
         this._diagram = model;
     }
 

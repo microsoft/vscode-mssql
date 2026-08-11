@@ -5,6 +5,7 @@
 
 import {
     makeStyles,
+    mergeClasses,
     Menu,
     MenuItem,
     MenuList,
@@ -104,7 +105,7 @@ const ToolbarOverflowButton = ({
     ...props
 }: ToolbarOverflowButtonProps & { className?: string }) => {
     const classes = useStyles();
-    const mergedClassName = [classes.toolbarButton, className].filter(Boolean).join(" ");
+    const mergedClassName = mergeClasses(classes.toolbarButton, className);
     return (
         <OverflowItem id={overflowId} groupId={overflowGroupId}>
             <ToolbarButton appearance="subtle" {...props} className={mergedClassName} />

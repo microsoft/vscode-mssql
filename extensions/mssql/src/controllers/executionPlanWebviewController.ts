@@ -10,7 +10,6 @@ import { WebviewPanelController } from "./webviewPanelController";
 import SqlDocumentService from "./sqlDocumentService";
 import {
     createExecutionPlanGraphs,
-    openExecutionPlanComparisonWebview,
     saveExecutionPlan,
     showPlanXml,
     showQuery,
@@ -19,10 +18,9 @@ import {
 import { ExecutionPlanService } from "../services/executionPlanService";
 import {
     getPreviewConfigKey,
-    isReactFlowExecutionPlanPreviewEnabled,
+    isBetaExecutionPlanEnabled,
     PreviewFeature,
 } from "../previews/previewService";
-import { executionPlanSourceRegistry } from "./executionPlanSourceRegistry";
 
 export class ExecutionPlanWebviewController extends WebviewPanelController<
     ep.ExecutionPlanWebviewState,
@@ -46,7 +44,7 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                     loadState: ApiStatus.Loading,
                     executionPlanGraphs: [],
                     totalCost: 0,
-                    isReactFlowExecutionPlanEnabled: isReactFlowExecutionPlanPreviewEnabled(),
+                    isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                 },
             },
             {
@@ -66,9 +64,6 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                 },
             },
         );
-        this.registerDisposable(
-            executionPlanSourceRegistry.register(xmlPlanFileName, executionPlanContents),
-        );
         void this.initialize();
     }
 
@@ -80,15 +75,14 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
             vscode.workspace.onDidChangeConfiguration((event) => {
                 if (
                     event.affectsConfiguration(
-                        getPreviewConfigKey(PreviewFeature.ReactFlowExecutionPlan),
+                        getPreviewConfigKey(PreviewFeature.BetaExecutionPlan),
                     )
                 ) {
                     this.updateState({
                         ...this.state,
                         executionPlanState: {
                             ...this.state.executionPlanState,
-                            isReactFlowExecutionPlanEnabled:
-                                isReactFlowExecutionPlanPreviewEnabled(),
+                            isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                         },
                     });
                 }
@@ -108,8 +102,8 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
                 ...state,
                 executionPlanState: {
                     ...state.executionPlanState,
-                    isReactFlowExecutionPlanEnabled:
-                        this.state.executionPlanState.isReactFlowExecutionPlanEnabled,
+                    isBetaExecutionPlanEnabled:
+                        this.state.executionPlanState.isBetaExecutionPlanEnabled,
                 },
             };
         });
@@ -125,22 +119,5 @@ export class ExecutionPlanWebviewController extends WebviewPanelController<
         this.registerReducer("updateTotalCost", async (state, payload) => {
             return updateTotalCost(state, payload);
         });
-        this.registerReducer("compareExecutionPlan", async (state, payload) => {
-            if (
-                state.executionPlanState.isReactFlowExecutionPlanEnabled &&
-                state.executionPlanState.executionPlanGraphs?.length
-            ) {
-                openExecutionPlanComparisonWebview(
-                    this._context,
-                    this.executionPlanService,
-                    state.executionPlanState.executionPlanGraphs,
-                    payload.graphIndex,
-                    this.panel.title,
-                );
-            }
-            return state;
-        });
-        this.registerReducer("selectComparisonPlan", async (state) => state);
-        this.registerReducer("setComparisonGraphIndexes", async (state) => state);
     }
 }

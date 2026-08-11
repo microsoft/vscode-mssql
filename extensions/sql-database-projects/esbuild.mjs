@@ -15,9 +15,7 @@ const outputFile = path.join(extensionDirectory, "dist/extension.js");
  * Bundle the TypeScript entry point and its runtime dependencies into dist/extension.js so VSCE
  * can package the extension with --no-dependencies. The dataworkspace and vscode-mssql ambient
  * APIs must be imported with `import type`; runtime IDs and enum values live in local TypeScript
- * modules. azdata remains external because @microsoft/ads-extension-telemetry probes for it
- * optionally at runtime. The unresolved-module guard fails the build if an ambient API is
- * accidentally emitted as a runtime import.
+ * modules.
  */
 await run(
     ({ isProd }) =>
@@ -25,7 +23,6 @@ await run(
             entryPoints: {
                 extension: path.join(extensionDirectory, "src/extension.ts"),
             },
-            external: ["azdata"],
             outdir: path.join(extensionDirectory, "dist"),
             minify: isProd,
             plugins: [

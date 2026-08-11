@@ -9,7 +9,7 @@ import * as Constants from "../constants/constants";
 import * as LocalizedConstants from "../constants/locConstants";
 import { WebviewViewController } from "../controllers/webviewViewController";
 import { SqlOutputContentProvider } from "../models/sqlOutputContentProvider";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { randomUUID } from "crypto";
 import { ApiStatus } from "../sharedInterfaces/webview";
@@ -27,10 +27,11 @@ import { Deferred } from "../protocol";
 import { getUriKey } from "../utils/utils";
 import {
     getPreviewConfigKey,
-    isReactFlowExecutionPlanPreviewEnabled,
+    isBetaExecutionPlanEnabled,
     PreviewFeature,
     previewService,
 } from "../previews/previewService";
+import { getQueryResultWebviewSource } from "./queryResultWebviewSource";
 
 const QUERY_RESULT_VIEW_ID = "queryResult";
 
@@ -61,23 +62,29 @@ export class QueryResultWebviewController extends WebviewViewController<
         private _executionPlanService: ExecutionPlanService,
         private _sqlOutputContentProvider: SqlOutputContentProvider,
     ) {
-        super(context, QUERY_RESULT_VIEW_ID, QUERY_RESULT_VIEW_ID, {
-            resultSetSummaries: {},
-            messages: [],
-            tabStates: {
-                resultPaneTab: qr.QueryResultPaneTabs.Messages,
+        const isBetaResultsGridEnabled = previewService.isFeatureEnabled(
+            PreviewFeature.BetaResultsGrid,
+        );
+        super(
+            context,
+            getQueryResultWebviewSource(isBetaResultsGridEnabled),
+            QUERY_RESULT_VIEW_ID,
+            {
+                resultSetSummaries: {},
+                messages: [],
+                tabStates: {
+                    resultPaneTab: qr.QueryResultPaneTabs.Messages,
+                },
+                executionPlanState: {},
+                fontSettings: {},
+                gridSettings: {},
+                autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
+                isExecuting: false,
+                executionElapsedMilliseconds: undefined,
+                rowsAffected: undefined,
+                isBetaResultsGridEnabled,
             },
-            executionPlanState: {},
-            fontSettings: {},
-            gridSettings: {},
-            autoSizeColumnsMode: qr.ResultsGridAutoSizeStyle.HeadersAndData,
-            isExecuting: false,
-            executionElapsedMilliseconds: undefined,
-            rowsAffected: undefined,
-            isBetaResultsGridEnabled: previewService.isFeatureEnabled(
-                PreviewFeature.BetaResultsGrid,
-            ),
-        });
+        );
 
         void this.initialize();
 
@@ -131,24 +138,27 @@ export class QueryResultWebviewController extends WebviewViewController<
                     }
                     stateChanged = true;
                 }
-                if (e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaResultsGrid))) {
+                if (
+                    e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaResultsGrid)) ||
+                    e.affectsConfiguration(Constants.configEnableExperimentalFeatures)
+                ) {
                     const newValue = this.isBetaResultsGridEnabled;
                     for (const [uri, state] of this._queryResultStateMap) {
                         state.isBetaResultsGridEnabled = newValue;
                         this._queryResultStateMap.set(uri, state);
                     }
+                    this.reloadWebview(getQueryResultWebviewSource(newValue));
+                    for (const controller of this._queryResultWebviewPanelControllerMap.values()) {
+                        controller.reloadForResultsGridChange(newValue);
+                    }
                     this.updateSelectionSummary();
                     stateChanged = true;
                 }
-                if (
-                    e.affectsConfiguration(
-                        getPreviewConfigKey(PreviewFeature.ReactFlowExecutionPlan),
-                    )
-                ) {
-                    const newValue = isReactFlowExecutionPlanPreviewEnabled();
+                if (e.affectsConfiguration(getPreviewConfigKey(PreviewFeature.BetaExecutionPlan))) {
+                    const newValue = isBetaExecutionPlanEnabled();
                     for (const [uri, state] of this._queryResultStateMap) {
                         if (state.executionPlanState) {
-                            state.executionPlanState.isReactFlowExecutionPlanEnabled = newValue;
+                            state.executionPlanState.isBetaExecutionPlanEnabled = newValue;
                         }
                         this._queryResultStateMap.set(uri, state);
                     }
@@ -426,7 +436,7 @@ export class QueryResultWebviewController extends WebviewViewController<
                     executionPlanGraphs: [],
                     totalCost: 0,
                     xmlPlans: {},
-                    isReactFlowExecutionPlanEnabled: isReactFlowExecutionPlanPreviewEnabled(),
+                    isBetaExecutionPlanEnabled: isBetaExecutionPlanEnabled(),
                 },
             }),
             fontSettings: {

@@ -46,23 +46,6 @@ const ExecutionPlanStateProvider: React.FC<ExecutionPlanProviderProps> = ({ chil
                     addedCost: addedCost,
                 });
             },
-            compareExecutionPlan: function (graphIndex: number): void {
-                extensionRpc.action("compareExecutionPlan", {
-                    graphIndex,
-                });
-            },
-            selectComparisonPlan: function (): void {
-                extensionRpc.action("selectComparisonPlan", {});
-            },
-            setComparisonGraphIndexes: function (
-                primaryGraphIndex: number | undefined,
-                secondaryGraphIndex: number | undefined,
-            ): void {
-                extensionRpc.action("setComparisonGraphIndexes", {
-                    primaryGraphIndex,
-                    secondaryGraphIndex,
-                });
-            },
         }),
         [extensionRpc],
     );

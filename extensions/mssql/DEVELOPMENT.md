@@ -17,6 +17,7 @@ npm run build -- --target mssql --prod
 npm run watch -- --target mssql
 npm run lint -- --target mssql
 npm run test -- --target mssql
+npm run test -- --target mssql [--reporter spec] # uses a failure-only reporter by default; add "--reporter spec" to show full output
 npm run smoketest -- --target mssql
 npm run package -- --target mssql --online
 npm run package -- --target mssql --offline

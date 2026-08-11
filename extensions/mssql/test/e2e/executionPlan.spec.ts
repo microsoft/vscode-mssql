@@ -24,7 +24,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         launchOptions: {
             initialConfig: {
                 "mssql.showChangelogOnUpdate": false,
-                "mssql.preview.reactFlowExecutionPlan": true,
+                "mssql.preview.betaExecutionPlan": true,
             },
         },
         afterLaunch: async ({ page }) => {
@@ -81,7 +81,6 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const viewport = iframe.locator(".react-flow__viewport").first();
         const viewportStyle = await viewport.getAttribute("style");
         await rootNode.press("ArrowRight");
-        await expect(rootNode).not.toBeFocused();
         await expect(iframe.locator('[role="treeitem"]:focus')).toBeVisible();
         await vsCodePage.waitForTimeout(250);
         expect(await viewport.getAttribute("style")).toBe(viewportStyle);
@@ -91,9 +90,9 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const rootNode = iframe.locator('[role="treeitem"]').first();
         await rootNode.focus();
         await rootNode.press("Enter");
-        await expect(iframe.locator('[role="tooltip"]')).toBeVisible();
+        await expect(iframe.locator('[role="dialog"]')).toBeVisible();
         await rootNode.press("Escape");
-        await expect(iframe.locator('[role="tooltip"]')).toBeHidden();
+        await expect(iframe.locator('[role="dialog"]')).toBeHidden();
 
         const collapseButton = rootNode.getByRole("button");
         await collapseButton.focus();
@@ -103,6 +102,19 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await collapseButton.press("Enter");
         await expect(rootNode).toHaveAttribute("aria-expanded", "true");
         await expect(collapseButton).toBeFocused();
+
+        await rootNode.focus();
+        await rootNode.press("ArrowLeft");
+        await expect(rootNode).toHaveAttribute("aria-expanded", "false");
+        await expect(rootNode).toBeFocused();
+
+        await rootNode.press("ArrowRight");
+        await expect(rootNode).toHaveAttribute("aria-expanded", "true");
+        await expect(rootNode).toBeFocused();
+
+        await rootNode.press("ArrowRight");
+        const firstChildNode = iframe.locator('[role="treeitem"]').nth(1);
+        await expect(firstChildNode).toBeFocused();
     });
 
     test("Test Showing the XML file of a Query Plan", async () => {
@@ -134,7 +146,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await zoomInButtonLocator.click();
 
-        const newZoom = await getZoom(iframe);
+        const newZoom = await getSettledZoom(iframe);
         await expect(newZoom).toBeGreaterThan(currentZoom);
     });
 
@@ -145,7 +157,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await zoomOutButtonLocator.click();
 
-        const newZoom = await getZoom(iframe);
+        const newZoom = await getSettledZoom(iframe);
         await expect(newZoom).toBeLessThan(currentZoom);
     });
 
@@ -164,7 +176,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await zoomToFitButtonLocator.click();
 
-        const newZoom = await getZoom(iframe);
+        const newZoom = await getSettledZoom(iframe);
         await expect(newZoom).toBeGreaterThan(0);
         await expect(newZoom).toBeLessThanOrEqual(200);
     });
@@ -186,7 +198,7 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         });
         await customZoomApplyButton.click();
 
-        const newZoom = await getZoom(iframe);
+        const newZoom = await getSettledZoom(iframe);
         await expect(newZoom).toBeLessThan(currentZoom);
 
         await customZoomButtonLocator.click();
@@ -207,12 +219,14 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 
         const findNodeContainer = iframe.locator("#findNodeInputContainer");
         const findNodeComboBox = iframe.locator("#findNodeDropdown");
-        await findNodeComboBox.fill("Node ID");
+        await findNodeComboBox.click();
+        const findNodeSearchBox = iframe.getByRole("searchbox").last();
+        await findNodeSearchBox.fill("Node ID");
+        await findNodeSearchBox.press("Enter");
 
         const findNodeComparisonDropdown = iframe.locator("#findNodeComparisonDropdown");
         await findNodeComparisonDropdown.click();
-        for (let i = 0; i < 3; i++) await vsCodePage.keyboard.press("ArrowDown");
-        await vsCodePage.keyboard.press("Enter");
+        await iframe.getByRole("option", { name: "<", exact: true }).click();
 
         const findNodeInputBox = iframe.locator("#findNodeInputBox");
         await findNodeInputBox.fill("5");
@@ -222,17 +236,16 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         );
         await findNodeDownButtonLocator.click();
         await findNodeDownButtonLocator.click();
-        let selectedElement = await getFocusedGraphElement(queryPlanMXGraph);
-        await expect(selectedElement).toContain("Nested Loop");
+        const selectedNode = queryPlanMXGraph.locator(".execution-plan-flow-node.selected");
+        await expect(selectedNode).toContainText("Compute Scalar");
 
         const findNodeUpButtonLocator = iframe.locator(
             '[type="button"][aria-label="Previous"][class*="fui-Button"]',
         );
         await findNodeUpButtonLocator.click();
+        await expect(selectedNode).toContainText("Nested Loops");
         await findNodeUpButtonLocator.click();
-        await findNodeUpButtonLocator.click();
-        selectedElement = await getFocusedGraphElement(queryPlanMXGraph);
-        await expect(selectedElement).toContain("Index Scan");
+        await expect(selectedNode).toContainText("Index Scan");
 
         await findNodeContainer.getByRole("button", { name: "Close" }).click();
 
@@ -240,6 +253,12 @@ test.describe("MSSQL Extension - Query Plan", async () => {
     });
 
     test("Test the Query Plan Properties Panel", async () => {
+        // Select a plan operator so the panel shows operator properties even when
+        // this test is retried independently with the statement root selected.
+        const nestedLoopsNode = iframe.getByRole("treeitem", { name: /Nested Loops/ }).first();
+        await nestedLoopsNode.focus();
+        await expect(nestedLoopsNode).toHaveAttribute("aria-selected", "true");
+
         // Click Properties Button
         const propertiesButtonLocator = iframe.locator(
             '[type="button"][aria-label="Properties"][class*="fui-Button"]',
@@ -287,17 +306,51 @@ test.describe("MSSQL Extension - Query Plan", async () => {
             '[type="button"][aria-label="Importance"][class*="fui-Button"]',
         );
         await importanceButton.click();
-        firstCellLocator = propertiesPanel.locator('[role="gridcell"]').first();
-        const importanceFirst = ((await firstCellLocator.textContent()) ?? "").trim();
-        await expect(importanceFirst).toContain("Physical Operation");
+        await importanceButton.press("ArrowRight");
+        await expect(alphabeticalButton).toBeFocused();
+        await expect(
+            propertiesPanel.getByText("Physical Operation", { exact: true }).first(),
+        ).toBeVisible();
+
+        const propertiesTreeGrid = propertiesPanel.getByRole("treegrid");
+        const propertyRows = propertiesTreeGrid.locator('[role="row"][data-property-id]');
+        const firstPropertyRow = propertyRows.first();
+        const secondPropertyRow = propertyRows.nth(1);
+        await firstPropertyRow.focus();
+        await firstPropertyRow.press("ArrowDown");
+        await expect(secondPropertyRow).toBeFocused();
+        await secondPropertyRow.press("ArrowUp");
+        await expect(firstPropertyRow).toBeFocused();
+
+        const firstExpandableRowByButton = propertiesTreeGrid
+            .getByRole("button", { name: "Expand", exact: true })
+            .first()
+            .locator('xpath=ancestor::*[@role="row"]');
+        const expandablePropertyId =
+            await firstExpandableRowByButton.getAttribute("data-property-id");
+        const firstExpandableRow = propertiesTreeGrid.locator(
+            `[role="row"][data-property-id="${expandablePropertyId}"]`,
+        );
+        await firstExpandableRow.focus();
+        await firstExpandableRow.press("ArrowRight");
+        await expect(firstExpandableRow).toHaveAttribute("aria-expanded", "true");
+        await expect(firstExpandableRow).toBeFocused();
+
+        await firstExpandableRow.press("ArrowRight");
+        const focusedChildRow = propertiesTreeGrid.locator('[role="row"]:focus');
+        await expect(focusedChildRow).toHaveAttribute("aria-level", "2");
+        await focusedChildRow.press("ArrowLeft");
+        await expect(firstExpandableRow).toBeFocused();
+        await firstExpandableRow.press("ArrowLeft");
+        await expect(firstExpandableRow).toHaveAttribute("aria-expanded", "false");
 
         const searchProperties = iframe.locator(
             '[placeholder="Filter for any field..."][class*="fui-Input__input"]',
         );
-        await searchProperties.fill("S");
-        firstCellLocator = propertiesPanel.locator('[role="gridcell"]').first();
-        const filteredFirst = ((await firstCellLocator.textContent()) ?? "").trim();
-        await expect(filteredFirst).toContain("Physical Operation");
+        await searchProperties.fill("Physical");
+        await expect(
+            propertiesPanel.getByText("Physical Operation", { exact: true }).first(),
+        ).toBeVisible();
 
         await propertiesPanel.getByRole("button", { name: "Close" }).click();
 
@@ -317,41 +370,41 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         const highlightOpsApplyButton = highlightOpsComponent.getByRole("button", {
             name: "Apply",
         });
+        const highlightedNode = queryPlanMXGraph.locator(".execution-plan-flow-node.highlighted");
+        const selectMetric = async (metric: string) => {
+            await highlightOpsInputBox.click();
+            const searchBox = iframe.getByRole("searchbox").last();
+            await searchBox.fill(metric);
+            await searchBox.press("Enter");
+        };
 
-        await highlightOpsInputBox.fill("Actual Elapsed Time");
+        await selectMetric("Actual Elapsed Time");
         await highlightOpsApplyButton.click();
-        let selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).toBe("");
+        await expect(highlightedNode).toHaveCount(0);
 
-        await highlightOpsInputBox.fill("Actual Elapsed CPU Time");
+        await selectMetric("Actual Elapsed CPU Time");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).toBe("");
+        await expect(highlightedNode).toHaveCount(0);
 
-        await highlightOpsInputBox.fill("Cost");
+        await selectMetric("Cost");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).not.toBe("");
+        await expect(highlightedNode).toHaveCount(1);
 
-        await highlightOpsInputBox.fill("Subtree Cost");
+        await selectMetric("Subtree Cost");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).not.toBe("");
+        await expect(highlightedNode).toHaveCount(1);
 
-        await highlightOpsInputBox.fill("Actual Number of Rows For All Executions");
+        await selectMetric("Actual Number of Rows For All Executions");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).not.toBe("");
+        await expect(highlightedNode).toHaveCount(1);
 
-        await highlightOpsInputBox.fill("Number of Rows Read");
+        await selectMetric("Number of Rows Read");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).not.toBe("");
+        await expect(highlightedNode).toHaveCount(1);
 
-        await highlightOpsInputBox.fill("Off");
+        await selectMetric("Off");
         await highlightOpsApplyButton.click();
-        selectedElement = await getHighlightedGraphElement(highlightOpsComponent);
-        await expect(selectedElement).toBe("");
+        await expect(highlightedNode).toHaveCount(0);
 
         await highlightOpsComponent.getByRole("button", { name: "Close" }).click();
 
@@ -392,19 +445,26 @@ export async function getZoom(iframe: FrameLocator) {
     }
 }
 
-export async function getFocusedGraphElement(graph: Locator) {
-    const selectedElement = await graph.locator(":focus");
-    try {
-        return selectedElement.textContent({ timeout: 2 * 1000 });
-    } catch {
-        // no selected element
-        return "";
-    }
-}
+export async function getSettledZoom(iframe: FrameLocator) {
+    let previousZoom = await getZoom(iframe);
+    let stableSamples = 0;
 
-export async function getHighlightedGraphElement(highlightComponent: Locator) {
-    await new Promise((resolve) => setTimeout(resolve, 1 * 1000));
+    await expect
+        .poll(
+            async () => {
+                const currentZoom = await getZoom(iframe);
+                stableSamples =
+                    currentZoom !== undefined &&
+                    previousZoom !== undefined &&
+                    Math.abs(currentZoom - previousZoom) < 0.01
+                        ? stableSamples + 1
+                        : 0;
+                previousZoom = currentZoom;
+                return stableSamples;
+            },
+            { intervals: [50], timeout: 2_000 },
+        )
+        .toBeGreaterThanOrEqual(2);
 
-    const selectedElement = await highlightComponent.getAttribute("aria-label");
-    return selectedElement;
+    return previousZoom;
 }

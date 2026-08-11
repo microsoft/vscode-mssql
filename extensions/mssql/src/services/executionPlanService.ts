@@ -4,12 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import SqlToolsServiceClient from "../languageservice/serviceclient";
-import {
-    ExecutionPlanComparisonParams,
-    ExecutionPlanComparisonRequest,
-    GetExecutionPlanRequest,
-    GetExecutionPlanParams,
-} from "../models/contracts/executionPlan";
+import { GetExecutionPlanRequest, GetExecutionPlanParams } from "../models/contracts/executionPlan";
 import { getLogger } from "../models/logger";
 import * as ep from "../sharedInterfaces/executionPlan";
 
@@ -27,25 +22,6 @@ export class ExecutionPlanService implements ep.ExecutionPlanService {
             return await this._sqlToolsClient.sendRequest(GetExecutionPlanRequest.type, params);
         } catch (e) {
             logger.error("Failed to get execution plan", e);
-            throw e;
-        }
-    }
-
-    async compareExecutionPlanGraph(
-        firstPlanFile: ep.ExecutionPlanGraphInfo,
-        secondPlanFile: ep.ExecutionPlanGraphInfo,
-    ): Promise<ep.ExecutionPlanComparisonResult> {
-        try {
-            const params: ExecutionPlanComparisonParams = {
-                firstExecutionPlanGraphInfo: firstPlanFile,
-                secondExecutionPlanGraphInfo: secondPlanFile,
-            };
-            return await this._sqlToolsClient.sendRequest(
-                ExecutionPlanComparisonRequest.type,
-                params,
-            );
-        } catch (e) {
-            logger.error("Failed to compare execution plans", e);
             throw e;
         }
     }

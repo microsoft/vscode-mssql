@@ -29,7 +29,7 @@ suite("QueryResultWebviewController", () => {
     };
     let onDidChangeConfigurationHandler: ((e: vscode.ConfigurationChangeEvent) => void) | undefined;
     let openResultsInTabByDefault = false;
-    let reactFlowExecutionPlanEnabled = false;
+    let betaExecutionPlanEnabled = false;
     let vscodeWorkspace: ReturnType<typeof stubVscodeWorkspace>;
 
     const testUri = "file:///test.sql";
@@ -76,8 +76,8 @@ suite("QueryResultWebviewController", () => {
                 if (key === Constants.configOpenQueryResultsInTabByDefault) {
                     return openResultsInTabByDefault;
                 }
-                if (key === getPreviewConfigKey(PreviewFeature.ReactFlowExecutionPlan)) {
-                    return reactFlowExecutionPlanEnabled;
+                if (key === getPreviewConfigKey(PreviewFeature.BetaExecutionPlan)) {
+                    return betaExecutionPlanEnabled;
                 }
                 return defaultValue;
             }),
@@ -147,18 +147,18 @@ suite("QueryResultWebviewController", () => {
 
         expect(
             controller.getQueryResultState(executionPlanUri).executionPlanState
-                .isReactFlowExecutionPlanEnabled,
+                .isBetaExecutionPlanEnabled,
         ).to.be.false;
 
-        reactFlowExecutionPlanEnabled = true;
+        betaExecutionPlanEnabled = true;
         onDidChangeConfigurationHandler?.({
             affectsConfiguration: (section: string) =>
-                section === getPreviewConfigKey(PreviewFeature.ReactFlowExecutionPlan),
+                section === getPreviewConfigKey(PreviewFeature.BetaExecutionPlan),
         } as vscode.ConfigurationChangeEvent);
 
         expect(
             controller.getQueryResultState(executionPlanUri).executionPlanState
-                .isReactFlowExecutionPlanEnabled,
+                .isBetaExecutionPlanEnabled,
         ).to.be.true;
     });
 

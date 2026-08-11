@@ -7,7 +7,7 @@ import * as vscode from "vscode";
 import { shallowEqualObjects } from "shallow-equal";
 import * as LocalizedConstants from "../constants/locConstants";
 import { getAccounts, getTenants, VsCodeAzureHelper, VsCodeAzureAuth } from "./azureHelpers";
-import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import {
@@ -1460,12 +1460,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     private combineServerAndPort(connection: IConnectionDialogProfile): void {
-        if (connection.port !== undefined) {
+        const port = String(connection.port ?? "").trim();
+        if (port) {
             if (connection.server && !connection.server.includes(",")) {
-                connection.server = `${connection.server},${connection.port}`;
+                connection.server = `${connection.server},${port}`;
             }
-            connection.port = undefined;
         }
+        connection.port = undefined;
     }
 
     private async testConnectionStep(
@@ -1979,9 +1980,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     //#region Azure helpers
 
     /**
-     * Loads VS Code Entra accounts and tenants for all accounts in the background
+     * Loads VS Code Entra accounts and tenants for all accounts in the background.
+     * Public for testing purposes only.
      */
-    private async loadVscodeEntraDataAsync(): Promise<void> {
+    public async loadVscodeEntraDataAsync(): Promise<void> {
         this._entraDataLoaded = new Deferred<void>();
         this._cachedEntraAccounts = undefined;
         this._cachedEntraTenants.clear();

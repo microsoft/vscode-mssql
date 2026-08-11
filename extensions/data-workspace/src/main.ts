@@ -5,7 +5,11 @@
 
 import * as vscode from "vscode";
 import { InstantiationServiceBuilder } from "extension-toolkit/base";
-import { ExtensionContextService, IExtensionContextService } from "extension-toolkit/vscode";
+import {
+    ExtensionContextService,
+    IExtensionContextService,
+    initializeExtensionToolkit,
+} from "extension-toolkit/vscode";
 import { WorkspaceTreeItem, IExtension } from "dataworkspace";
 import { DataWorkspaceExtension } from "./common/dataWorkspaceExtension";
 import { IconPathHelper } from "./common/iconHelper";
@@ -18,6 +22,8 @@ import { createNewProjectWithQuickpick } from "./dialogs/newProjectQuickpick";
 import { WorkspaceService } from "./services/workspaceService";
 
 export async function activate(context: vscode.ExtensionContext): Promise<IExtension> {
+    initializeExtensionToolkit();
+
     const builder = new InstantiationServiceBuilder();
 
     builder.define(IExtensionContextService, new ExtensionContextService(context));

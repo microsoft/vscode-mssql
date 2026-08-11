@@ -123,6 +123,16 @@ suite("ExecutionPlanModel", () => {
         expect(getExecutionPlanEdgeWeight(Number.MAX_VALUE)).to.equal(6);
     });
 
+    test("normalizes a runtime payload with omitted edges", () => {
+        const source = node("root", "Root", [node("child", "Child")]);
+        delete (source as Partial<ExecutionPlanNode>).edges;
+
+        const model = new ExecutionPlanModel(source);
+
+        expect(model.edges).to.be.empty;
+        expect(model.getChildIds(model.root.id)).to.have.length(1);
+    });
+
     test("searches the complete plan and extracts zero-valued metrics", () => {
         const zeroMetricChild = node("zero", "Zero", [], {
             cost: 0,
@@ -164,6 +174,7 @@ suite("ExecutionPlanModel", () => {
         const positions = layoutExecutionPlan(model, (text) => text.length * 10);
         const [childId, siblingId] = model.getChildIds(model.root.id);
         const grandchildId = model.getChildIds(childId)[0];
+        const initialGrandchildPosition = { ...positions.get(grandchildId)! };
 
         expect(positions.get(model.root.id)!.x).to.equal(25);
         expect(positions.get(childId)!.x).to.be.greaterThan(positions.get(model.root.id)!.x);
@@ -181,7 +192,7 @@ suite("ExecutionPlanModel", () => {
         expect([...getHiddenExecutionPlanElementIds(model, collapsed)]).to.deep.equal([
             grandchildId,
         ]);
-        expect(positions.get(grandchildId)).to.deep.equal(positions.get(grandchildId));
+        expect(positions.get(grandchildId)).to.deep.equal(initialGrandchildPosition);
     });
 
     test("formats tooltip text safely and truncates flattened footer values", () => {
@@ -198,6 +209,7 @@ suite("ExecutionPlanModel", () => {
                 property("Statement", "-- comment\r\nSELECT 1", {
                     positionAtBottom: true,
                 }),
+                property("Predicate", longValue),
             ],
         });
 
@@ -213,5 +225,7 @@ suite("ExecutionPlanModel", () => {
             value: "-- comment\r\nSELECT 1",
             isSql: true,
         });
+        expect(tooltip.metrics[0].value).to.have.length(103);
+        expect(tooltip.metrics[0].value.endsWith("...")).to.be.true;
     });
 });

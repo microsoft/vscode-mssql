@@ -12,7 +12,8 @@ import * as vscode from "vscode";
  */
 export enum PreviewFeature {
     BetaResultsGrid = "betaResultsGrid",
-    ReactFlowExecutionPlan = "reactFlowExecutionPlan",
+    BetaObjectExplorerFilter = "betaObjectExplorerFilter",
+    BetaExecutionPlan = "betaExecutionPlan",
     UseVscodeAccountsForEntraMFA = "useVscodeAccountsForEntraMFA",
 }
 
@@ -23,17 +24,16 @@ export function getPreviewConfigKey(feature: PreviewFeature): string {
 }
 
 /**
- * Returns whether the React Flow execution plan preview is enabled.
+ * Returns whether the beta execution plan experience is enabled.
  *
  * This preview is intentionally independent from the global
  * `mssql.enableExperimentalFeatures` setting.
  */
-export function isReactFlowExecutionPlanPreviewEnabled(): boolean {
+export function isBetaExecutionPlanEnabled(): boolean {
     return (
         vscode.workspace
             .getConfiguration()
-            .get<boolean>(getPreviewConfigKey(PreviewFeature.ReactFlowExecutionPlan), false) ??
-        false
+            .get<boolean>(getPreviewConfigKey(PreviewFeature.BetaExecutionPlan), false) ?? false
     );
 }
 

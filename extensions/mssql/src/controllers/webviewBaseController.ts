@@ -25,7 +25,7 @@ import {
     WebviewTelemetryActionEvent,
     WebviewTelemetryErrorEvent,
 } from "../sharedInterfaces/webview";
-import { sendActionEvent, sendErrorEvent, startActivity } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 
 import { getEditorEOL, getErrorMessage, getNonce } from "../utils/utils";
 import { LoggerMethod, ILogger, LogEvent } from "../sharedInterfaces/logger";
@@ -179,6 +179,27 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
             this._connectionReader.updateWebview(webview);
             this._connectionWriter.updateWebview(webview);
         }
+    }
+
+    /**
+     * Reloads the current webview with a different bundle entry point while preserving the
+     * controller and its state. If the webview has not been resolved yet, the selected entry point
+     * is used when it is first created.
+     */
+    protected reloadWebview(sourceFile: string): void {
+        if (sourceFile === this._sourceFile) {
+            return;
+        }
+
+        this._sourceFile = sourceFile;
+        const webview = this._getWebview();
+        if (!webview) {
+            return;
+        }
+
+        this._loadStartTime = Date.now();
+        this.updateConnectionWebview(webview);
+        webview.html = this._getHtmlTemplate();
     }
 
     protected initializeBase() {
@@ -548,21 +569,11 @@ export abstract class WebviewBaseController<State, Reducers> implements vscode.D
         if (!this.connection) {
             return;
         }
+
         if (this._isDisposed) {
             throw new Error("Cannot register notification handler on disposed controller");
         }
-        sendActionEvent(
-            TelemetryViews.WebviewController,
-            TelemetryActions.onNotification,
-            {
-                type: type.method,
-                webviewId: this._sourceFile,
-            },
-            undefined,
-            undefined,
-            undefined,
-            true, // include call stack
-        );
+
         this.connection.onNotification(type, handler);
     }
 

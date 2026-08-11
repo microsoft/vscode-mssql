@@ -3,9 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import "@xyflow/react/dist/style.css";
-import "./reactFlowExecutionPlan.css";
-
 import {
     Edge,
     EdgeProps,
@@ -17,8 +14,6 @@ import {
     Position,
     ReactFlow,
     ReactFlowInstance,
-    Viewport,
-    ViewportPortal,
     getSmoothStepPath,
 } from "@xyflow/react";
 import { Button } from "@fluentui/react-components";
@@ -30,6 +25,7 @@ import {
     useCallback,
     useEffect,
     useId,
+    useLayoutEffect,
     useMemo,
     useRef,
     useState,
@@ -48,9 +44,11 @@ import {
     ExecutionPlanGraphController,
     ExecutionPlanMetricSource,
 } from "./executionPlanGraphController";
+import { getExecutionPlanOperatorIcon } from "./executionPlanOperatorIcons";
 import {
     EXECUTION_PLAN_NODE_HEIGHT,
     EXECUTION_PLAN_NODE_WIDTH,
+    EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
     ExecutionPlanEdgeModel,
     ExecutionPlanModel,
     ExecutionPlanNodePositions,
@@ -63,17 +61,30 @@ import {
     formatExecutionPlanEdgeTooltip,
     formatExecutionPlanNodeTooltip,
 } from "./executionPlanTooltip";
-import { getViewportToRevealExecutionPlanNode } from "./executionPlanViewport";
-import { getBadgePaths, getCollapseExpandPaths, getIconPaths } from "./queryPlanSetup";
+import {
+    ExecutionPlanTooltipSourceBounds,
+    fitExecutionPlanTooltipPlacement,
+    getExecutionPlanTooltipPlacement,
+} from "./executionPlanTooltipPosition";
+import {
+    getViewportForExecutionPlanZoom,
+    getViewportToRevealExecutionPlanNode,
+} from "./executionPlanViewport";
+import { getBadgePaths, getCollapseExpandPaths } from "./queryPlanSetup";
 
 const EXECUTION_PLAN_REVEAL_PADDING = 0;
 const EXECUTION_PLAN_FOCUS_RETRY_FRAMES = 20;
+const EXECUTION_PLAN_LABEL_TOP = 49;
+const EXECUTION_PLAN_LABEL_LINE_HEIGHT = 14;
+const EXECUTION_PLAN_SELECTION_VERTICAL_PADDING = 10;
+const EXECUTION_PLAN_SELECTION_TOP_OFFSET = -1;
 
 interface TooltipState {
     targetId: string;
     content: ExecutionPlanTooltipContent;
     x: number;
     y: number;
+    sourceBounds?: ExecutionPlanTooltipSourceBounds;
 }
 
 interface ExecutionPlanFlowNodeData extends Record<string, unknown> {
@@ -84,12 +95,18 @@ interface ExecutionPlanFlowNodeData extends Record<string, unknown> {
     collapsed: boolean;
     highlighted: boolean;
     selected: boolean;
+    selectionWidth: number;
+    selectionHeight: number;
     themeKind: ColorThemeKind;
     registerElement: (id: string, element: HTMLDivElement | null) => void;
     focusSelection: (id: string) => void;
     closeTooltip: () => void;
-    activate: (id: string, bounds: DOMRect) => void;
-    navigate: (id: string, event: ReactKeyboardEvent<HTMLDivElement>, bounds: DOMRect) => void;
+    activate: (id: string, bounds: ExecutionPlanTooltipSourceBounds) => void;
+    navigate: (
+        id: string,
+        event: ReactKeyboardEvent<HTMLDivElement>,
+        bounds: ExecutionPlanTooltipSourceBounds,
+    ) => void;
     toggleCollapse: (id: string) => void;
 }
 
@@ -108,6 +125,8 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
         collapsed,
         highlighted,
         selected,
+        selectionWidth,
+        selectionHeight,
         themeKind,
         registerElement,
         focusSelection,
@@ -115,10 +134,40 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
         navigate,
         toggleCollapse,
     } = data;
-    const iconPaths = getIconPaths() as Record<string, string>;
     const badgePaths = getBadgePaths();
     const collapseExpandPaths = getCollapseExpandPaths(themeKind);
-    const iconPath = iconPaths[planNode.type] ?? iconPaths.iteratorCatchAll;
+    const OperatorIcon = getExecutionPlanOperatorIcon(planNode.type);
+    const labelRef = useRef<HTMLDivElement>(null);
+    const [renderedSelectionSize, setRenderedSelectionSize] = useState({
+        width: selectionWidth,
+        height: selectionHeight,
+    });
+
+    useLayoutEffect(() => {
+        const label = labelRef.current;
+        if (!label) {
+            return;
+        }
+
+        const nextSize = {
+            width: Math.min(
+                EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
+                Math.max(EXECUTION_PLAN_NODE_WIDTH, Math.ceil(label.scrollWidth) + 8),
+            ),
+            height: Math.max(
+                EXECUTION_PLAN_NODE_HEIGHT + 8,
+                label.offsetTop +
+                    Math.ceil(label.scrollHeight) +
+                    EXECUTION_PLAN_SELECTION_VERTICAL_PADDING,
+            ),
+        };
+        setRenderedSelectionSize((currentSize) =>
+            currentSize.width === nextSize.width && currentSize.height === nextSize.height
+                ? currentSize
+                : nextSize,
+        );
+    }, [planNode, selectionHeight, selectionWidth]);
+
     const badgePath = (type: BadgeType): string => {
         switch (type) {
             case BadgeType.CriticalWarning:
@@ -129,8 +178,22 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
                 return badgePaths.warning;
         }
     };
-    const bounds = (event: { currentTarget: EventTarget & HTMLElement }) =>
-        event.currentTarget.getBoundingClientRect();
+    const bounds = (event: {
+        currentTarget: EventTarget & HTMLElement;
+    }): ExecutionPlanTooltipSourceBounds => {
+        const cellBounds = event.currentTarget.getBoundingClientRect();
+        const horizontalOverflow = Math.max(
+            0,
+            (renderedSelectionSize.width - cellBounds.width) / 2,
+        );
+        const selectionTop = cellBounds.top + EXECUTION_PLAN_SELECTION_TOP_OFFSET;
+        return {
+            left: cellBounds.left - horizontalOverflow,
+            right: cellBounds.right + horizontalOverflow,
+            top: selectionTop,
+            bottom: selectionTop + renderedSelectionSize.height,
+        };
+    };
 
     return (
         <div
@@ -169,10 +232,18 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
             }}
             onClick={(event) => activate(planNode.id, bounds(event))}
             onKeyDown={(event) => navigate(planNode.id, event, bounds(event))}>
+            <div
+                className="execution-plan-flow-selection-outline"
+                style={{
+                    width: renderedSelectionSize.width,
+                    height: renderedSelectionSize.height,
+                }}
+                aria-hidden="true"
+            />
             <Handle type="target" position={Position.Left} className="execution-plan-flow-handle" />
             <div className="execution-plan-flow-row-count">{planNode.rowCountDisplayString}</div>
             <div className="execution-plan-flow-icon-container">
-                <img className="execution-plan-flow-icon" src={iconPath} alt="" draggable={false} />
+                <OperatorIcon className="execution-plan-flow-icon" />
                 {planNode.badges.map((badge, index) => (
                     <img
                         key={`${badge.type}-${index}`}
@@ -185,7 +256,7 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
                 ))}
             </div>
             <div className="execution-plan-flow-cost">{planNode.costDisplayString}</div>
-            <div className="execution-plan-flow-label">
+            <div ref={labelRef} className="execution-plan-flow-label">
                 {planNode.subtext.map((line, index) => (
                     <div key={index}>{line}</div>
                 ))}
@@ -230,6 +301,42 @@ function ExecutionPlanReactFlowNode({ data }: NodeProps<ExecutionPlanFlowNode>) 
 const NODE_TYPES: NodeTypes = {
     executionPlan: ExecutionPlanReactFlowNode,
 };
+
+let nodeLabelMeasurementCanvas: HTMLCanvasElement | undefined;
+
+function getNodeSelectionWidth(node: ExecutionPlanNode): number {
+    const fallbackWidth = Math.max(0, ...node.subtext.map((line) => line.length * 6));
+    if (typeof document === "undefined") {
+        return Math.min(
+            EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
+            Math.max(EXECUTION_PLAN_NODE_WIDTH, fallbackWidth + 8),
+        );
+    }
+
+    nodeLabelMeasurementCanvas ??= document.createElement("canvas");
+    const context = nodeLabelMeasurementCanvas.getContext("2d");
+    if (!context) {
+        return Math.min(
+            EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
+            Math.max(EXECUTION_PLAN_NODE_WIDTH, fallbackWidth + 8),
+        );
+    }
+
+    context.font = "10px Monaco, Menlo, Consolas, monospace";
+    const labelWidth = Math.max(0, ...node.subtext.map((line) => context.measureText(line).width));
+    return Math.min(
+        EXECUTION_PLAN_MAXIMUM_LABEL_WIDTH,
+        Math.max(EXECUTION_PLAN_NODE_WIDTH, Math.ceil(labelWidth) + 8),
+    );
+}
+
+function getNodeSelectionHeight(node: ExecutionPlanNode): number {
+    const labelHeight =
+        EXECUTION_PLAN_LABEL_TOP +
+        Math.max(1, node.subtext.length) * EXECUTION_PLAN_LABEL_LINE_HEIGHT +
+        EXECUTION_PLAN_SELECTION_VERTICAL_PADDING;
+    return Math.max(EXECUTION_PLAN_NODE_HEIGHT + 6, labelHeight);
+}
 
 function ExecutionPlanReactFlowEdge({
     sourceX,
@@ -344,12 +451,22 @@ export class ReactFlowExecutionPlanController implements ExecutionPlanGraphContr
         return enabled;
     }
 
+    private setAnchoredZoom(zoom: number): void {
+        const viewport = getViewportForExecutionPlanZoom(
+            this._options.instance.getViewport(),
+            Math.min(2, Math.max(0.01, zoom)),
+        );
+        if (viewport) {
+            void this._options.instance.setViewport(viewport, { duration: 150 });
+        }
+    }
+
     public zoomIn(): void {
-        void this._options.instance.zoomIn({ duration: 150 });
+        this.setAnchoredZoom(this._options.instance.getZoom() * 1.2);
     }
 
     public zoomOut(): void {
-        void this._options.instance.zoomOut({ duration: 150 });
+        this.setAnchoredZoom(this._options.instance.getZoom() / 1.2);
     }
 
     public zoomToFit(): void {
@@ -361,9 +478,7 @@ export class ReactFlowExecutionPlanController implements ExecutionPlanGraphContr
     }
 
     public setZoomLevel(level: number): void {
-        void this._options.instance.zoomTo(Math.min(200, Math.max(1, level)) / 100, {
-            duration: 150,
-        });
+        this.setAnchoredZoom(Math.min(200, Math.max(1, level)) / 100);
     }
 
     public searchNodes(searchQuery: SearchQuery): ExecutionPlanNode[] {
@@ -422,20 +537,12 @@ interface ReactFlowExecutionPlanProps {
     root: ExecutionPlanNode;
     themeKind: ColorThemeKind;
     onReady: (controller: ExecutionPlanGraphController | null) => void;
-    comparisonGroupRoots?: ReadonlyMap<string, number>;
-    onSelectionChange?: (node: ExecutionPlanNode) => void;
-    viewport?: Viewport;
-    onViewportChange?: (viewport: Viewport) => void;
 }
 
 export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     root,
     themeKind,
     onReady,
-    comparisonGroupRoots,
-    onSelectionChange,
-    viewport,
-    onViewportChange,
 }) => {
     const model = useMemo(() => new ExecutionPlanModel(root), [root]);
     const positions = useMemo(() => layoutExecutionPlan(model), [model]);
@@ -448,7 +555,6 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     const [tooltip, setTooltip] = useState<TooltipState>();
     const selectedIdRef = useRef(selectedId);
     const tooltipsEnabledRef = useRef(tooltipsEnabled);
-    const onSelectionChangeRef = useRef(onSelectionChange);
     const nodeElementsRef = useRef(new Map<string, HTMLDivElement>());
     const canvasRef = useRef<HTMLDivElement>(null);
 
@@ -488,10 +594,6 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     useEffect(() => {
         tooltipsEnabledRef.current = tooltipsEnabled;
     }, [tooltipsEnabled]);
-    useEffect(() => {
-        onSelectionChangeRef.current = onSelectionChange;
-    }, [onSelectionChange]);
-
     const expandAncestors = useCallback(
         (id: string) => {
             const ancestorIds = model.getAncestorIds(id);
@@ -537,10 +639,6 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
             expandAncestors(id);
             selectedIdRef.current = id;
             setSelectedId(id);
-            const node = model.getNode(id);
-            if (node) {
-                onSelectionChangeRef.current?.(node);
-            }
             if (reveal) {
                 revealNode(id);
             }
@@ -550,7 +648,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     );
 
     const showNodeTooltip = useCallback(
-        (id: string, bounds: DOMRect) => {
+        (id: string, bounds: ExecutionPlanTooltipSourceBounds) => {
             if (!tooltipsEnabledRef.current) {
                 setTooltip(undefined);
                 return;
@@ -567,6 +665,12 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                         content: formatExecutionPlanNodeTooltip(node),
                         x: bounds.right + 8,
                         y: bounds.top,
+                        sourceBounds: {
+                            left: bounds.left,
+                            right: bounds.right,
+                            top: bounds.top,
+                            bottom: bounds.bottom,
+                        },
                     };
                 });
             }
@@ -575,7 +679,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     );
 
     const activateNode = useCallback(
-        (id: string, bounds: DOMRect) => {
+        (id: string, bounds: ExecutionPlanTooltipSourceBounds) => {
             selectNode(id);
             showNodeTooltip(id, bounds);
         },
@@ -583,7 +687,11 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
     );
 
     const navigateNode = useCallback(
-        (id: string, event: ReactKeyboardEvent<HTMLDivElement>, bounds: DOMRect) => {
+        (
+            id: string,
+            event: ReactKeyboardEvent<HTMLDivElement>,
+            bounds: ExecutionPlanTooltipSourceBounds,
+        ) => {
             const node = model.getNode(id);
             if (!node) {
                 return;
@@ -596,14 +704,24 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
             switch (event.key) {
                 case "ArrowRight":
                     if (collapsedNodeIds.has(id)) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        setTooltip(undefined);
-                        return;
+                        setCollapsedNodeIds((current) => {
+                            const next = new Set(current);
+                            next.delete(id);
+                            return next;
+                        });
+                        break;
                     }
                     targetId = model.getChildIds(id)[0];
                     break;
                 case "ArrowLeft":
+                    if (model.getChildIds(id).length > 0 && !collapsedNodeIds.has(id)) {
+                        setCollapsedNodeIds((current) => {
+                            const next = new Set(current);
+                            next.add(id);
+                            return next;
+                        });
+                        break;
+                    }
                     targetId = parentId;
                     break;
                 case "ArrowUp":
@@ -669,6 +787,8 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                         collapsed: collapsedNodeIds.has(planNode.id),
                         highlighted: highlightedId === planNode.id,
                         selected: selectedId === planNode.id,
+                        selectionWidth: getNodeSelectionWidth(planNode),
+                        selectionHeight: getNodeSelectionHeight(planNode),
                         themeKind,
                         registerElement: registerNodeElement,
                         closeTooltip: () => setTooltip(undefined),
@@ -726,56 +846,6 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
         [hiddenNodeIds, model],
     );
 
-    const comparisonGroups = useMemo(() => {
-        const groups: {
-            id: string;
-            groupIndex: number;
-            x: number;
-            y: number;
-            width: number;
-            height: number;
-        }[] = [];
-        for (const [rootId, groupIndex] of comparisonGroupRoots ?? []) {
-            if (!positions.has(rootId) || hiddenNodeIds.has(rootId)) {
-                continue;
-            }
-            const memberIds: string[] = [];
-            const visit = (id: string) => {
-                if (hiddenNodeIds.has(id)) {
-                    return;
-                }
-                memberIds.push(id);
-                model.getChildIds(id).forEach(visit);
-            };
-            visit(rootId);
-            const memberPositions = memberIds
-                .map((id) => positions.get(id))
-                .filter((position) => position !== undefined);
-            if (memberPositions.length === 0) {
-                continue;
-            }
-            const left = Math.min(...memberPositions.map((position) => position.x)) - 10;
-            const top = Math.min(...memberPositions.map((position) => position.y)) - 10;
-            const right =
-                Math.max(...memberPositions.map((position) => position.x)) +
-                EXECUTION_PLAN_NODE_WIDTH +
-                10;
-            const bottom =
-                Math.max(...memberPositions.map((position) => position.y)) +
-                EXECUTION_PLAN_NODE_HEIGHT +
-                10;
-            groups.push({
-                id: `${groupIndex}-${rootId}`,
-                groupIndex,
-                x: left,
-                y: top,
-                width: right - left,
-                height: bottom - top,
-            });
-        }
-        return groups;
-    }, [comparisonGroupRoots, hiddenNodeIds, model, positions]);
-
     useEffect(() => {
         if (!instance) {
             return;
@@ -816,8 +886,6 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                 edgeTypes={EDGE_TYPES}
                 onInit={setInstance}
                 defaultViewport={{ x: 0, y: 0, zoom: 1 }}
-                viewport={viewport}
-                onViewportChange={onViewportChange}
                 minZoom={0.01}
                 maxZoom={2}
                 panOnDrag
@@ -854,24 +922,7 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                         });
                         focusNode(selectedIdRef.current);
                     }
-                }}>
-                {comparisonGroups.length > 0 && (
-                    <ViewportPortal>
-                        {comparisonGroups.map((group) => (
-                            <div
-                                key={group.id}
-                                className={`execution-plan-comparison-group execution-plan-comparison-group-${Math.abs(group.groupIndex) % 4}`}
-                                style={{
-                                    transform: `translate(${group.x}px, ${group.y}px)`,
-                                    width: group.width,
-                                    height: group.height,
-                                }}
-                                aria-hidden
-                            />
-                        ))}
-                    </ViewportPortal>
-                )}
-            </ReactFlow>
+                }}></ReactFlow>
             {tooltip && (
                 <ExecutionPlanTooltip
                     tooltip={tooltip}
@@ -893,17 +944,44 @@ function ExecutionPlanTooltip({
     onClose: () => void;
 }) {
     const titleId = useId();
-    const left = Math.max(8, Math.min(tooltip.x, window.innerWidth - 568));
-    const top = Math.max(8, Math.min(tooltip.y, window.innerHeight - 200));
-    const maxHeight = Math.min(420, Math.max(80, window.innerHeight - top - 8));
+    const tooltipRef = useRef<HTMLDivElement>(null);
+    const viewport = {
+        width: window.innerWidth,
+        height: window.innerHeight,
+    };
+    const placement = getExecutionPlanTooltipPlacement(tooltip, viewport);
+
+    useLayoutEffect(() => {
+        const element = tooltipRef.current;
+        if (!element) {
+            return;
+        }
+
+        // Measure without a constraint first so scrolling is enabled only when
+        // the tooltip's natural height cannot fit inside the viewport.
+        element.style.maxHeight = "";
+        element.style.overflowY = "hidden";
+        const naturalHeight = element.scrollHeight;
+        const fittedPlacement = fitExecutionPlanTooltipPlacement(
+            placement,
+            { width: element.offsetWidth, height: naturalHeight },
+            viewport,
+        );
+        element.style.left = `${fittedPlacement.left}px`;
+        element.style.top = `${fittedPlacement.top}px`;
+        if (naturalHeight > fittedPlacement.maxHeight) {
+            element.style.maxHeight = `${fittedPlacement.maxHeight}px`;
+            element.style.overflowY = "auto";
+        }
+    }, [placement.left, placement.top, tooltip.targetId, viewport.height, viewport.width]);
 
     return (
         <div
+            ref={tooltipRef}
             className="execution-plan-flow-tooltip"
             style={{
-                left: `${left}px`,
-                top: `${top}px`,
-                maxHeight: `${maxHeight}px`,
+                left: `${placement.left}px`,
+                top: `${placement.top}px`,
             }}
             role="dialog"
             aria-labelledby={titleId}

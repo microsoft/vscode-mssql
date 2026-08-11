@@ -19,6 +19,7 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
+    "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
     "SQL Tools (MSSQL)": "SQL Tools (MSSQL)",
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
@@ -467,6 +468,7 @@
     "The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.": "The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.",
     "Testing connection profile...": "Testing connection profile...",
     "Running query is not supported when the editor is in multiple selection mode.": "Running query is not supported when the editor is in multiple selection mode.",
+    "There is no query text to execute. Enter a query or select non-empty query text.": "There is no query text to execute. Enter a query or select non-empty query text.",
     "Please select a node from Object Explorer to script.": "Please select a node from Object Explorer to script.",
     "Please select only one node to script. Multiple node scripting is not supported.": "Please select only one node to script. Multiple node scripting is not supported.",
     "Could not find scripting metadata for {0} '{1}'./{0} is the node type{1} is the node label": {
@@ -497,18 +499,6 @@
     "Loading": "Loading",
     "Execution Plan": "Execution Plan",
     "SQL Plan Files": "SQL Plan Files",
-    "Compare Execution Plans": "Compare Execution Plans",
-    "Compare Execution Plans {0}/{0} is the unique comparison editor number": {
-        "message": "Compare Execution Plans {0}",
-        "comment": ["{0} is the unique comparison editor number"]
-    },
-    "Browse for an execution plan...": "Browse for an execution plan...",
-    "Select an execution plan to compare": "Select an execution plan to compare",
-    "No execution plan was selected.": "No execution plan was selected.",
-    "Failed to compare execution plans.": "Failed to compare execution plans.",
-    "Failed to load the selected execution plan.": "Failed to load the selected execution plan.",
-    "The selected file does not contain an execution plan.": "The selected file does not contain an execution plan.",
-    "Open execution plan": "Open execution plan",
     "Script copied to clipboard": "Script copied to clipboard",
     "Copied": "Copied",
     "Failed to open text in editor: {0}/{0} is the error message": {
@@ -530,8 +520,15 @@
     "Keep in query pane": "Keep in query pane",
     "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold": "Max row count for filtering/sorting has been exceeded. To update it, navigate to User Settings and change the setting: mssql.resultsGrid.inMemoryDataProcessingThreshold",
     "New Deployment": "New Deployment",
+    "No workspace folder is open. Open a folder to add the deployment script.": "No workspace folder is open. Open a folder to add the deployment script.",
+    "A file named '{0}' already exists in the workspace root./{0} is the deployment script file name": {
+        "message": "A file named '{0}' already exists in the workspace root.",
+        "comment": ["{0} is the deployment script file name"]
+    },
+    "Overwrite": "Overwrite",
     "MSSQL: Click to change connection": "MSSQL: Click to change connection",
     "MSSQL: Click to change database": "MSSQL: Click to change database",
+    "MSSQL Notebook Selection Summary": "MSSQL Notebook Selection Summary",
     "Connection failed": "Connection failed",
     "Query execution failed": "Query execution failed",
     "No active notebook.": "No active notebook.",
@@ -747,6 +744,10 @@
             "{1} is the error message"
         ]
     },
+    "Unable to locate Azure SQL server '{0}' in the selected Azure account./{0} is the server name": {
+        "message": "Unable to locate Azure SQL server '{0}' in the selected Azure account.",
+        "comment": ["{0} is the server name"]
+    },
     "Failed to get tenant '{0}' for account '{1}'./{0} is the tenant id{1} is the account name": {
         "message": "Failed to get tenant '{0}' for account '{1}'.",
         "comment": ["{0} is the tenant id", "{1} is the account name"]
@@ -815,6 +816,7 @@
         "message": "Fabric long-running API error with error code '{0}': {1}",
         "comment": ["{0} is the error code", "{1} is the error message"]
     },
+    "Fabric long-running operation response did not include a location header.": "Fabric long-running operation response did not include a location header.",
     "Fabric Account": "Fabric Account",
     "Fabric Account is required": "Fabric Account is required",
     "Workspace": "Workspace",
@@ -1149,7 +1151,6 @@
     "Select Connection": "Select Connection",
     "Checking Docker prerequisites...": "Checking Docker prerequisites...",
     "Creating SQL Server container...": "Creating SQL Server container...",
-    "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
     "Port {0} is already in use. Please choose a different port./{0} is the port number": {
         "message": "Port {0} is already in use. Please choose a different port.",
         "comment": ["{0} is the port number"]
@@ -1647,6 +1648,12 @@
         "message": "Failed disposing query: {0}",
         "comment": ["{0} is the error message"]
     },
+    "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively./{0} is the extension name": {
+        "message": "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.",
+        "comment": ["{0} is the extension name"]
+    },
+    "File a feature request": "File a feature request",
+    "Don’t show again for this extension": "Don’t show again for this extension",
     "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database./{0} is the extension name": {
         "message": "The extension '{0}' is requesting access to your SQL Server connections. This will allow it to execute queries and access your database.",
         "comment": ["{0} is the extension name"]
@@ -2011,15 +2018,6 @@
     "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.": "Are you sure you want to close the current session? All captured events will be lost. You can export events to CSV from the toolbar before closing.",
     "Select a database for profiling (Azure SQL requires a specific database)": "Select a database for profiling (Azure SQL requires a specific database)",
     "No databases found on the server. Please check your connection.": "No databases found on the server. Please check your connection.",
-    "Unable to read proxy agent options.": "Unable to read proxy agent options.",
-    "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension./{0} is the proxy URL": {
-        "message": "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues while using the MSSQL extension.",
-        "comment": ["{0} is the proxy URL"]
-    },
-    "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}/{0} is the proxy URL{1} is the error message": {
-        "message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues while using the MSSQL extension.  Error: {1}",
-        "comment": ["{0} is the proxy URL", "{1} is the error message"]
-    },
     "Backup Database - {0}/{0} is the database name": {
         "message": "Backup Database - {0}",
         "comment": ["{0} is the database name"]
@@ -2252,7 +2250,9 @@
     "Move to Schema request failed: {0}": "Move to Schema request failed: {0}",
     "Failed to resolve the refactor log for this file: {0}": "Failed to resolve the refactor log for this file: {0}",
     "Move to schema '{0}'": "Move to schema '{0}'",
-    "Failed to apply the Move to Schema changes. Check that the files are writable and try again.": "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
+    "Failed to move file to the new schema folder: {0}": "Failed to move file to the new schema folder: {0}",
+    "The move was rejected or could not be completed.": "The move was rejected or could not be completed.",
+    "Failed to update the .sqlproj after moving the file: {0}": "Failed to update the .sqlproj after moving the file: {0}",
     "Close": "Close",
     "Apply": "Apply",
     "Next": "Next",
@@ -2291,6 +2291,74 @@
     "Move Down": "Move Down",
     "Filter Settings": "Filter Settings",
     "Clear All": "Clear All",
+    "Enter": "Enter",
+    "Escape": "Escape",
+    "Apply ({0})/{0} is the keyboard shortcut for applying the filter": {
+        "message": "Apply ({0})",
+        "comment": ["{0} is the keyboard shortcut for applying the filter"]
+    },
+    "Close ({0})/{0} is the keyboard shortcut for closing the filter dialog": {
+        "message": "Close ({0})",
+        "comment": ["{0} is the keyboard shortcut for closing the filter dialog"]
+    },
+    "Reusable Filters": "Reusable Filters",
+    "Saved": "Saved",
+    "Recent": "Recent",
+    "Applies across compatible folders": "Applies across compatible folders",
+    "Applied filters appear here so you can quickly reuse them.": "Applied filters appear here so you can quickly reuse them.",
+    "Save this filter for reuse": "Save this filter for reuse",
+    "Filter name": "Filter name",
+    "e.g. My tables": "e.g. My tables",
+    "Enter a name to save this filter.": "Enter a name to save this filter.",
+    "Add at least one filter value before saving this filter.": "Add at least one filter value before saving this filter.",
+    "Pin to Saved": "Pin to Saved",
+    "Move to Recent": "Move to Recent",
+    "Delete filter": "Delete filter",
+    "Rename filter": "Rename filter",
+    "Delete reusable filter?": "Delete reusable filter?",
+    "Are you sure you want to delete \"{0}\"? This action cannot be undone./{0} is the name or summary of a reusable filter": {
+        "message": "Are you sure you want to delete \"{0}\"? This action cannot be undone.",
+        "comment": ["{0} is the name or summary of a reusable filter"]
+    },
+    "A saved filter with this name already exists.": "A saved filter with this name already exists.",
+    "True": "True",
+    "False": "False",
+    "Use filter {0}/{0} is the name or summary of a reusable filter": {
+        "message": "Use filter {0}",
+        "comment": ["{0} is the name or summary of a reusable filter"]
+    },
+    "{0} filter value/{0} is a filter property name": {
+        "message": "{0} filter value",
+        "comment": ["{0} is a filter property name"]
+    },
+    "Filter by {0}…/{0} is a filter property name": {
+        "message": "Filter by {0}…",
+        "comment": ["{0} is a filter property name"]
+    },
+    "Second {0} filter value/{0} is a filter property name": {
+        "message": "Second {0} filter value",
+        "comment": ["{0} is a filter property name"]
+    },
+    "{0} filter operator/{0} is a filter property name": {
+        "message": "{0} filter operator",
+        "comment": ["{0} is a filter property name"]
+    },
+    "Clear {0} filter/{0} is a filter property name": {
+        "message": "Clear {0} filter",
+        "comment": ["{0} is a filter property name"]
+    },
+    "More actions for {0}/{0} is the name or summary of a reusable filter": {
+        "message": "More actions for {0}",
+        "comment": ["{0} is the name or summary of a reusable filter"]
+    },
+    "{0} {1} {2}/{0} is a filter property name{1} is a filter operator{2} is the filter value": {
+        "message": "{0} {1} {2}",
+        "comment": [
+            "{0} is a filter property name",
+            "{1} is a filter operator",
+            "{2} is the filter value"
+        ]
+    },
     "And": "And",
     "Contains": "Contains",
     "Not Contains": "Not Contains",
@@ -2530,7 +2598,6 @@
         "comment": ["{0} is the name of the command that already uses this shortcut"]
     },
     "Saving...": "Saving...",
-    "Saved": "Saved",
     "Navigation": "Navigation",
     "Switch between result panes and tabs": "Switch between result panes and tabs",
     "Control the results grid display": "Control the results grid display",
@@ -2765,53 +2832,6 @@
     "Toggle Tooltips": "Toggle Tooltips",
     "Properties": "Properties",
     "Execution plan toolbar": "Execution plan toolbar",
-    "Compare Execution Plan": "Compare Execution Plan",
-    "Add execution plan": "Add execution plan",
-    "Replace execution plan": "Replace execution plan",
-    "Reset zoom": "Reset zoom",
-    "Toggle comparison orientation": "Toggle comparison orientation",
-    "Switch to side-by-side comparison": "Switch to side-by-side comparison",
-    "Switch to top-and-bottom comparison": "Switch to top-and-bottom comparison",
-    "Find in primary plan": "Find in primary plan",
-    "Find in added plan": "Find in added plan",
-    "Primary plan": "Primary plan",
-    "Added plan": "Added plan",
-    "Choose an execution plan to compare.": "Choose an execution plan to compare.",
-    "Loading similar areas in compared plans...": "Loading similar areas in compared plans...",
-    "Execution plan comparison is available when the React Flow execution plan preview is enabled.": "Execution plan comparison is available when the React Flow execution plan preview is enabled.",
-    "Comparison properties": "Comparison properties",
-    "Equivalent Properties": "Equivalent Properties",
-    "Different Properties": "Different Properties",
-    "Top operation: {0}/{0} is an execution plan operation name": {
-        "message": "Top operation: {0}",
-        "comment": ["{0} is an execution plan operation name"]
-    },
-    "Bottom operation: {0}/{0} is an execution plan operation name": {
-        "message": "Bottom operation: {0}",
-        "comment": ["{0} is an execution plan operation name"]
-    },
-    "Left operation: {0}/{0} is an execution plan operation name": {
-        "message": "Left operation: {0}",
-        "comment": ["{0} is an execution plan operation name"]
-    },
-    "Right operation: {0}/{0} is an execution plan operation name": {
-        "message": "Right operation: {0}",
-        "comment": ["{0} is an execution plan operation name"]
-    },
-    "Value (Top Plan)": "Value (Top Plan)",
-    "Value (Bottom Plan)": "Value (Bottom Plan)",
-    "Value (Left Plan)": "Value (Left Plan)",
-    "Value (Right Plan)": "Value (Right Plan)",
-    "Comparison": "Comparison",
-    "Not equal to": "Not equal to",
-    "Less than": "Less than",
-    "Greater than": "Greater than",
-    "Filter comparison properties...": "Filter comparison properties...",
-    "Select statement": "Select statement",
-    "Statement {0}/{0} is an execution plan statement number": {
-        "message": "Statement {0}",
-        "comment": ["{0} is an execution plan statement number"]
-    },
     "Importance": "Importance",
     "Alphabetical": "Alphabetical",
     "Reverse Alphabetical": "Reverse Alphabetical",
@@ -3587,6 +3607,25 @@
     "Database Project": "Database Project",
     "Target": "Target",
     "Comparison Details": "Comparison Details",
+    "Affected child objects": "Affected child objects",
+    "Constraints added: {0}/{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied.": {
+        "message": "Constraints added: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names (e.g. '[dbo].[PK_Customers], [dbo].[UQ_Customers_Email]') that will be added under the selected parent object when the diff is applied."
+        ]
+    },
+    "Constraints changed: {0}/{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied.": {
+        "message": "Constraints changed: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names that will be altered under the selected parent object when the diff is applied."
+        ]
+    },
+    "Constraints dropped: {0}/{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.": {
+        "message": "Constraints dropped: {0}",
+        "comment": [
+            "{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied."
+        ]
+    },
     "There was an error updating the project": "There was an error updating the project",
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
     "Publish Project - {0}/{0} is the name of the project being published": {
@@ -3644,6 +3683,13 @@
     "Show full error message": "Show full error message",
     "Previous step failed. Please check the error message and try again.": "Previous step failed. Please check the error message and try again.",
     "+ Add Fabric Account": "+ Add Fabric Account",
+    "Export Infrastructure as Code": "Export Infrastructure as Code",
+    "Download deployment scripts": "Download deployment scripts",
+    "Save Infrastructure-as-Code templates to recreate this database later.": "Save Infrastructure-as-Code templates to recreate this database later.",
+    "Download": "Download",
+    "Bicep": "Bicep",
+    "ARM template": "ARM template",
+    "Terraform": "Terraform",
     "Loading Fabric provisioning...": "Loading Fabric provisioning...",
     "SQL database in Fabric": "SQL database in Fabric",
     "Loading workspaces": "Loading workspaces",
@@ -3742,10 +3788,27 @@
         "comment": ["{0} is the current IP address"]
     },
     "What's next?": "What's next?",
-    "Connect with SQL tools and run your first query": "Connect with SQL tools and run your first query",
-    "Seed sample data or import an existing schema": "Seed sample data or import an existing schema",
-    "Monitor usage and manage your free tier limits": "Monitor usage and manage your free tier limits",
-    "Browse Azure SQL Database tutorials and docs": "Browse Azure SQL Database tutorials and docs",
+    "Add tables and data, explore, and build with the MSSQL extension.": "Add tables and data, explore, and build with the MSSQL extension.",
+    "Design tables with Table Designer": "Design tables with Table Designer",
+    "Import from a flat file as a new table": "Import from a flat file as a new table",
+    "Visualize and design your database with Schema Designer": "Visualize and design your database with Schema Designer",
+    "Compare and deploy schema with Schema Compare": "Compare and deploy schema with Schema Compare",
+    "Run your first query": "Run your first query",
+    "Build with AI using GitHub Copilot": "Build with AI using GitHub Copilot",
+    "Collapse What's next": "Collapse What's next",
+    "Expand What's next": "Expand What's next",
+    "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.": "Your new database is empty. Point your app, ORM, or migration tool at it and run your migrations, or use the extension to deploy a local database or SQL project.",
+    "Connection string": "Connection string",
+    "Run your migrations": "Run your migrations",
+    "Copied!": "Copied!",
+    "Copy connection string": "Copy connection string",
+    "Copy migration command": "Copy migration command",
+    "{0} docs/{0} is the name of a database migration tool": {
+        "message": "{0} docs",
+        "comment": ["{0} is the name of a database migration tool"]
+    },
+    "Collapse Connect to Database": "Collapse Connect to Database",
+    "Expand Connect to Database": "Expand Connect to Database",
     "Password must be changed to continue logging into '{0}'/{0} is the name of the server": {
         "message": "Password must be changed to continue logging into '{0}'",
         "comment": ["{0} is the name of the server"]
@@ -3914,6 +3977,7 @@
     "Script as Execute": "Script as Execute",
     "Copy Object Name": "Copy Object Name",
     "Not contains": "Not contains",
+    "Not equal to": "Not equal to",
     "Starts with": "Starts with",
     "Ends with": "Ends with",
     "All selected": "All selected",
@@ -3933,11 +3997,13 @@
     "Filter shortcuts": "Filter shortcuts",
     "Force fit columns": "Force fit columns",
     "Freeze columns": "Freeze columns",
+    "Greater than": "Greater than",
     "Greater than or equal to": "Greater than or equal to",
     "Hide column": "Hide column",
     "items": "items",
     "items per page": "items per page",
     "items selected": "items selected",
+    "Less than": "Less than",
     "Less than or equal to": "Less than or equal to",
     "No elements found": "No elements found",
     "No matches found": "No matches found",

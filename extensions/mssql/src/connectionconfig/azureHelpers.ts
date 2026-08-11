@@ -23,7 +23,7 @@ import {
     ConnectionDialogWebviewState,
 } from "../sharedInterfaces/connectionDialog";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendErrorEvent } from "../telemetry/telemetry";
+import { sendErrorEvent } from "extension-toolkit/vscode";
 import { getErrorMessage, listAllIterator } from "../utils/utils";
 import {
     activeDirectory,
@@ -635,7 +635,7 @@ export class VsCodeAzureHelper {
         return "UnableToCheck";
     }
 
-    private static getAzureSqlServerName(server: string | undefined): string | undefined {
+    public static getAzureSqlServerName(server: string | undefined): string | undefined {
         if (!server) {
             return undefined;
         }

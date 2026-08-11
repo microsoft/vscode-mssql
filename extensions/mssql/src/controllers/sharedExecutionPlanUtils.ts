@@ -16,11 +16,10 @@ import * as vscode from "vscode";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
-import { sendActionEvent, sendErrorEvent } from "../telemetry/telemetry";
+import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
 import { sqlPlanLanguageId } from "../constants/constants";
 import { executionPlanFileFilter } from "../constants/locConstants";
 import { ExecutionPlanWebviewController } from "./executionPlanWebviewController";
-import { ExecutionPlanComparisonWebviewController } from "./executionPlanComparisonWebviewController";
 
 export function openExecutionPlanWebview(
     context: vscode.ExtensionContext,
@@ -40,24 +39,6 @@ export function openExecutionPlanWebview(
     executionPlanController.revealToForeground();
 
     sendActionEvent(TelemetryViews.ExecutionPlan, TelemetryActions.Open);
-}
-
-export function openExecutionPlanComparisonWebview(
-    context: vscode.ExtensionContext,
-    executionPlanService: ExecutionPlanService,
-    graphs: import("../sharedInterfaces/executionPlan").ExecutionPlanGraph[],
-    graphIndex: number,
-    sourceName: string,
-): ExecutionPlanComparisonWebviewController {
-    const controller = new ExecutionPlanComparisonWebviewController(
-        context,
-        executionPlanService,
-        graphs,
-        graphIndex,
-        sourceName,
-    );
-    controller.revealToForeground();
-    return controller;
 }
 export async function saveExecutionPlan(
     state: QueryResultWebviewState | ExecutionPlanWebviewState,
