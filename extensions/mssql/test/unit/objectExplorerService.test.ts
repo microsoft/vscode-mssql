@@ -623,6 +623,62 @@ suite("OE Service Tests", () => {
             });
         });
 
+        test("pause-status loading update should not queue another refresh", async () => {
+            sandbox.stub(ObjectExplorerUtils, "iconPath").callsFake(() => undefined);
+            const connectionProfile = createMockConnectionProfile({ id: "conn1" });
+            setUpOETreeRoot(objectExplorerService, [connectionProfile]);
+
+            const connectionNode = (objectExplorerService as any)._connectionNodes.get(
+                connectionProfile.id,
+            ) as ConnectionNode;
+            connectionNode.sessionId = "session123";
+            connectionNode.shouldRefresh = true;
+
+            mockClient.sendRequest.withArgs(RefreshRequest.type, sinon.match.any).resolves(true);
+
+            await (objectExplorerService as any).getNodeChildren(connectionNode);
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            const pendingExpandKey = `${connectionNode.sessionId}${connectionNode.nodePath}`;
+            const pendingExpand = (objectExplorerService as any)._pendingExpands.get(
+                pendingExpandKey,
+            ) as Deferred<any>;
+            const inFlightPromise = (objectExplorerService as any)._inFlightChildrenFetches.get(
+                connectionNode,
+            );
+
+            (objectExplorerService as any).showResumingDatabaseLabelWhenWaking(
+                () => connectionNode,
+                Promise.resolve("Paused"),
+                () => true,
+            );
+            await new Promise((resolve) => setTimeout(resolve, 0));
+
+            const childrenAfterPauseUpdate = await (objectExplorerService as any).getNodeChildren(
+                connectionNode,
+            );
+
+            expect(childrenAfterPauseUpdate[0].label).to.equal(
+                LocalizedConstants.ObjectExplorer.ResumingDatabase,
+            );
+            expect(
+                (objectExplorerService as any)._refreshQueuedAfterInFlight.has(connectionNode),
+                "An internal loading-label refresh should not be treated as another user refresh",
+            ).to.be.false;
+
+            pendingExpand.resolve({
+                sessionId: connectionNode.sessionId,
+                nodes: [],
+                errorMessage: "",
+            });
+            await inFlightPromise;
+
+            expect(
+                mockClient.sendRequest,
+                "The pause-status loading update should not trigger another refresh request",
+            ).to.have.been.calledOnceWithExactly(RefreshRequest.type, sinon.match.any);
+        });
+
         test("getNodeChildren should reuse the in-flight fetch when re-entered", async () => {
             const connectionProfile = createMockConnectionProfile({ id: "conn1" });
             setUpOETreeRoot(objectExplorerService, [connectionProfile]);

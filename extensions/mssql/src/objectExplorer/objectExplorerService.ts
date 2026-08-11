@@ -193,12 +193,15 @@ export class ObjectExplorerService {
      * Expands a node in the Object Explorer tree. If the node has the shouldRefresh flag set, it will be refreshed.
      * @param node The node to expand
      * @param sessionId The session ID to use for the expansion
+     * @param shouldRefresh Whether to refresh the node instead of expanding its cached state
      * @returns The children of the expanded node
      */
     public async expandNode(
         node: TreeNodeInfo,
         sessionId: string,
+        shouldRefresh = node.shouldRefresh,
     ): Promise<vscode.TreeItem[] | undefined> {
+        node.shouldRefresh = false;
         const expandActivity = startActivity(
             TelemetryViews.ObjectExplorer,
             TelemetryActions.ExpandNode,
@@ -206,7 +209,7 @@ export class ObjectExplorerService {
             {
                 nodeType: node.nodeType,
                 nodeSubType: node.nodeSubType,
-                isRefresh: node.shouldRefresh.toString(),
+                isRefresh: shouldRefresh.toString(),
             },
         );
         this._logger.trace(`expandNode start: ${getNodeDescriptor(node)}`);
@@ -263,7 +266,7 @@ export class ObjectExplorerService {
                         `expandNode: reusing in-flight expand for ${getNodeDescriptor(node)}`,
                     );
                     response = true;
-                } else if (node.shouldRefresh) {
+                } else if (shouldRefresh) {
                     this._logger.trace(
                         `expandNode: sending RefreshRequest for ${getNodeDescriptor(node)}`,
                     );
@@ -357,7 +360,7 @@ export class ObjectExplorerService {
                          * (clearing the cached error), which is what lets the retry succeed once
                          * the database finishes resuming.
                          */
-                        node.shouldRefresh = true;
+                        shouldRefresh = true;
                         continue;
                     }
                 }
@@ -597,6 +600,7 @@ export class ObjectExplorerService {
         this._logger.trace(
             `getNodeChildren: ${getNodeDescriptor(element)}, hadCache=${hadCache}, hasInFlight=${hasInFlight}`,
         );
+        element.shouldRefresh = false;
 
         if (wasRefresh) {
             this.cleanNodeChildren(element);
@@ -621,7 +625,7 @@ export class ObjectExplorerService {
          * Tree expansion is queued, so without this if multiple connections are expanding,
          * one blocked operation can delay the other.
          */
-        void this.getOrCreateNodeChildrenWithSession(element);
+        void this.getOrCreateNodeChildrenWithSession(element, wasRefresh);
         return this.setLoadingUiForNode(element);
     }
 
@@ -688,8 +692,12 @@ export class ObjectExplorerService {
      * Get or create the children of a node. If the node has a session ID, expand it.
      * If it doesn't, create a new session and expand it.
      * @param element The node to get or create children for
+     * @param shouldRefresh Whether to refresh the node instead of expanding its cached state
      */
-    private async getOrCreateNodeChildrenWithSession(element: TreeNodeInfo): Promise<void> {
+    private async getOrCreateNodeChildrenWithSession(
+        element: TreeNodeInfo,
+        shouldRefresh = false,
+    ): Promise<void> {
         const existing = this._inFlightChildrenFetches.get(element);
 
         this._logger.trace(
@@ -697,13 +705,16 @@ export class ObjectExplorerService {
         );
 
         if (existing) {
+            if (shouldRefresh) {
+                this._refreshQueuedAfterInFlight.add(element);
+            }
             return existing;
         }
 
         const fetchPromise = (async () => {
             try {
                 if (element.sessionId) {
-                    await this.expandExistingNode(element);
+                    await this.expandExistingNode(element, shouldRefresh);
                 } else {
                     await this.createSessionAndExpandNode(element);
                 }
@@ -714,11 +725,10 @@ export class ObjectExplorerService {
                     this._logger.trace(
                         `getOrCreateNodeChildrenWithSession: starting queued refresh for ${getNodeDescriptor(element)}`,
                     );
-                    element.shouldRefresh = true;
                     element.loadingLabel = undefined;
                     this.cleanNodeChildren(element);
                     await this.setLoadingUiForNode(element);
-                    void this.getOrCreateNodeChildrenWithSession(element);
+                    void this.getOrCreateNodeChildrenWithSession(element, true);
                 } else {
                     element.shouldRefresh = false;
                     this._logger.trace(
@@ -736,10 +746,14 @@ export class ObjectExplorerService {
     /**
      * Expand a node that already has a session ID.
      * @param element The node to expand
+     * @param shouldRefresh Whether to refresh the node instead of expanding its cached state
      * @returns The children of the node
      */
-    private async expandExistingNode(element: TreeNodeInfo): Promise<vscode.TreeItem[]> {
-        const children = await this.expandNode(element, element.sessionId);
+    private async expandExistingNode(
+        element: TreeNodeInfo,
+        shouldRefresh = false,
+    ): Promise<vscode.TreeItem[]> {
+        const children = await this.expandNode(element, element.sessionId, shouldRefresh);
         if (children?.length === 0) {
             const noItemsNode = [new NoItemsNode(element)];
             this._treeNodeToChildrenMap.set(element, noItemsNode);
