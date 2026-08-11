@@ -17,6 +17,8 @@
 - Improved Table Designer validation for default values and vector columns.
 - Fixed reliability issues that could cancel queries unexpectedly or cause Object Explorer filtering to hang.
 
+Thank you to @cjohnsto-nz for contributing Microsoft Entra account and token resolution performance improvements!
+
 ## Version 1.44.1
 
 - Release date: July 29, 2026
