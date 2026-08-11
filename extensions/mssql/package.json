@@ -211,7 +211,7 @@
                 {
                     "id": "queryResult",
                     "title": "%extension.queryResult%",
-                    "icon": "media/SignIn.svg"
+                    "icon": "media/queryResultView.svg"
                 }
             ]
         },
@@ -222,7 +222,7 @@
                     "id": "queryResult",
                     "name": "%extension.queryResult%",
                     "when": "!config.mssql.openQueryResultsInTabByDefault",
-                    "icon": "media/objectTypes/Table.svg"
+                    "icon": "media/queryResultView.svg"
                 }
             ],
             "objectExplorer": [
@@ -1210,7 +1210,10 @@
                 "command": "mssql.revealQueryResult",
                 "title": "%mssql.revealQueryResult%",
                 "category": "MS SQL",
-                "icon": "$(table)"
+                "icon": {
+                    "dark": "media/queryResultView_dark.svg",
+                    "light": "media/queryResultView_light.svg"
+                }
             },
             {
                 "command": "mssql.toggleQueryResultPanel",
