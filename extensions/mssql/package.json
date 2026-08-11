@@ -1210,7 +1210,7 @@
                 "command": "mssql.revealQueryResult",
                 "title": "%mssql.revealQueryResult%",
                 "category": "MS SQL",
-                "icon": "$(table)"
+                "icon": "media/revealQueryResult.svg"
             },
             {
                 "command": "mssql.toggleQueryResultPanel",
