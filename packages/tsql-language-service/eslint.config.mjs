@@ -55,7 +55,13 @@ export default [
         },
     },
     {
-        files: ["test/**/*.js", "eslint.config.mjs"],
+        files: [
+            "test/**/*.js",
+            "scripts/**/*.mjs",
+            "benchmarks/worker-comparison.mjs",
+            "benchmarks/large-corpora.mjs",
+            "eslint.config.mjs",
+        ],
         languageOptions: { ecmaVersion: "latest", sourceType: "module" },
         plugins: { notice, ...eslintPluginPrettierRecommended.plugins },
         rules: commonRules,

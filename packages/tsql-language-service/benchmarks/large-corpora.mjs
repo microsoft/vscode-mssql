@@ -10,9 +10,11 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 export const MEBIBYTE = 1024 * 1024;
 
 export const LARGE_CORPUS_SPECS = Object.freeze([
+    Object.freeze({ name: "tsql-100kib.sql", mebibytes: 100 / 1024, bytes: 100 * 1024 }),
     Object.freeze({ name: "tsql-1mib.sql", mebibytes: 1, bytes: MEBIBYTE }),
     Object.freeze({ name: "tsql-10mib.sql", mebibytes: 10, bytes: 10 * MEBIBYTE }),
     Object.freeze({ name: "tsql-50mib.sql", mebibytes: 50, bytes: 50 * MEBIBYTE }),
+    Object.freeze({ name: "tsql-100mib.sql", mebibytes: 100, bytes: 100 * MEBIBYTE }),
 ]);
 
 export const DEFAULT_OUTPUT_DIRECTORY = fileURLToPath(new URL("./generated/", import.meta.url));

@@ -266,7 +266,7 @@ function parseSizes(value) {
         .filter(Number.isFinite);
     const supported = new Set(LARGE_CORPUS_SPECS.map((entry) => entry.mebibytes));
     if (requested.length === 0 || requested.some((size) => !supported.has(size))) {
-        throw new Error("--sizes accepts a comma-separated subset of 1,10,50");
+        throw new Error("--sizes accepts a comma-separated subset of 1,10,50,100");
     }
     return [...new Set(requested)];
 }

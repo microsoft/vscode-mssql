@@ -86,9 +86,10 @@ percentiles, reuse, memory qualification, and correctness checksums are included
 ## Exact-size large files
 
 The large-file profile uses deterministic SQL corpora of exactly 1 MiB (1,048,576 bytes), 10 MiB
-(10,485,760 bytes), and 50 MiB (52,428,800 bytes). The generated `.sql` files and their manifest are
-written to the ignored `benchmarks/generated/` directory, so 61 MiB of derived data is never checked
-into Git.
+(10,485,760 bytes), and 50 MiB (52,428,800 bytes). The shared generator also creates the 100 KiB
+and 100 MiB worker-comparison inputs. Generated `.sql` files and their manifest are written to the
+ignored `benchmarks/generated/` directory, so roughly 161 MiB of derived data is never checked into
+Git.
 
 Generate the files without running a benchmark:
 
@@ -113,7 +114,7 @@ Large-profile options are:
 
 ```text
 --quick                         # 1 MiB, one sample, no warmup
---sizes 1,10,50                 # any comma-separated subset
+--sizes 1,10,50,100             # any comma-separated subset
 --samples <positive integer>
 --warmups <non-negative integer>
 --include-analysis
@@ -215,3 +216,51 @@ fresh-engine canonical checksums matched, and forced-GC retained-heap samples we
 These are only a local smoke observation—not a baseline, regression threshold, or a prediction for
 the 1/10/50 MiB runs. The generated corpora now assert exact UTF-8 byte round trips, and all three
 benchmark edits assert that they preserve byte size before timing.
+
+## Worker and SQL Parser comparison
+
+`worker-comparison.mjs` compares parser-only work over exact 100 KiB, 1 MiB, 10 MiB, and
+100 MiB generated files. Every engine runs in an isolated process. It reports initial parse,
+warmed whole-file parse, a fixed-width one-batch edit, peak working set, batch reuse, and a 5 ms
+main-thread heartbeat:
+
+- package `IncrementalBatchParser` in the Node process;
+- the same parser in the package Node worker, with wall and worker-internal timings;
+- the Release/net8.0 assembly from the sibling `SqlParser` repository.
+
+The benchmark invokes SQL Parser's `Parser.IncrementalParse` API directly, keeping parser throughput
+comparable while the heartbeat separately demonstrates why the JS worker matters to the extension
+host. The harness intentionally has no dependency on a local SQL Tools Service checkout.
+
+Build the local SqlParser Release assembly once, then run the comparison:
+
+```powershell
+dotnet build ..\..\..\SqlParser\src\Microsoft\SqlServer\Management\SqlParser\Microsoft.SqlServer.Management.SqlParser.csproj -c Release
+npm run benchmark:worker
+```
+
+Options are `--sizes 100k,1,10,100`, `--samples <n>`, `--warmups <n>`, and `--json <path>`.
+Defaults use five, three, two, and one samples respectively; 100 MiB has no extra warmup to bound
+runtime and memory. Generated SQL, edited SQL, and JSON results stay under the ignored
+`benchmarks/generated/` directory. A single 100 MiB observation is an upper-bound scale check, not a
+stable regression threshold.
+
+### Qualified local worker comparison
+
+The 2026-08-10 reference run used Node 26.3.0 on Windows, local SqlParser commit
+`41286b483f1a3d66f8cc57f7458868ec61ac6888` (Release/net8.0). Smaller files used repeated samples;
+100 MiB used one sample and no extra warmup.
+
+| Size    | Package sync initial | Package worker initial | Local SqlParser initial | Package sync edit | Package worker edit | Local SqlParser edit |
+| ------- | -------------------: | ---------------------: | ----------------------: | ----------------: | ------------------: | -------------------: |
+| 100 KiB |             68.47 ms |              136.10 ms |               247.88 ms |          10.61 ms |            10.35 ms |             22.07 ms |
+| 1 MiB   |            308.32 ms |              383.80 ms |             1,096.23 ms |         108.85 ms |           105.53 ms |            126.17 ms |
+| 10 MiB  |          2,560.72 ms |            2,651.87 ms |             4,814.24 ms |       1,091.32 ms |         1,088.05 ms |          1,737.01 ms |
+| 100 MiB |         24,251.85 ms |           23,108.83 ms |            35,868.25 ms |      24,638.98 ms |        18,797.90 ms |         18,158.69 ms |
+
+The in-process lane delivered zero 5 ms heartbeats during parsing. The worker remained responsive at
+every size; its observed maximum initial heartbeat lag ranged from 12.15 to 23.31 ms. The worker
+reused exactly the same batches as the in-process parser: 80/81, 822/823, 8,224/8,225, and
+82,241/82,242. At 100 MiB, SQL Parser's native incremental edit was slightly faster than the package
+worker, while the package worker had substantially faster initial parsing. Treat the 100 MiB timing
+and peak-memory figures as scale observations because they are single samples and GC-sensitive.

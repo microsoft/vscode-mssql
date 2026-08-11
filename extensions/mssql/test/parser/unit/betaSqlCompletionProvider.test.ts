@@ -1175,6 +1175,36 @@ SELECT * FROM #Test WHERE #Test.`;
         expect(items.map(labelOf)).to.include.members(["UserId", "Display Name"]);
     });
 
+    /** Verifies expansion replaces the closing parenthesis inserted by the editor. */
+    test("replaces an auto-closing INSERT parenthesis during expansion", async () => {
+        const sql = "INSERT INTO dbo.Users ()";
+        const document = await openSqlDocument(sql);
+        const position = document.positionAt(sql.indexOf(")"));
+
+        const items = await completionItems(provider, document, position);
+        const expansion = items.find(
+            (item) => labelOf(item) === "Expand INSERT columns and VALUES",
+        );
+
+        expect(document.getText(expansion?.range as vscode.Range)).to.equal(")");
+        expect((expansion?.insertText as vscode.SnippetString).value).to.match(/\);\$0$/);
+    });
+
+    /** Verifies expansion replaces both delimiter pairs from an empty INSERT skeleton. */
+    test("replaces an empty INSERT columns and VALUES skeleton", async () => {
+        const sql = "INSERT INTO dbo.Users (\n)\nVALUES (\n);";
+        const document = await openSqlDocument(sql);
+        const position = document.positionAt(sql.indexOf("(") + 1);
+
+        const items = await completionItems(provider, document, position);
+        const expansion = items.find(
+            (item) => labelOf(item) === "Expand INSERT columns and VALUES",
+        );
+
+        expect(document.getText(expansion?.range as vscode.Range)).to.equal("\n)\nVALUES (\n);");
+        expect((expansion?.insertText as vscode.SnippetString).value).to.match(/\);\$0$/);
+    });
+
     /** Verifies INSERT expansion uses parser-local temp-table metadata without a catalog request. */
     test("expands INSERT values for a locally declared temp table", async () => {
         connectionManager.getConnectionInfo.returns(undefined);
@@ -1423,6 +1453,33 @@ SELECT * FROM #Test WHERE #Test.`;
         await diagnostics.update(document);
 
         expect(collection.get(document.uri) ?? []).to.be.empty;
+        diagnostics.dispose();
+    });
+
+    /** Verifies aliases after table-valued function arguments are used as exposed names. */
+    test("does not report duplicate exposed names for aliased OPENJSON APPLY sources", async () => {
+        connectionManager.getConnectionInfo.returns(undefined);
+        const document = await openSqlDocument(`DECLARE @json NVARCHAR(MAX) = N'{}';
+SELECT JSON_VALUE(u.value, '$.id') AS UserId, r.value AS RoleName
+FROM OPENJSON(@json, '$.users') u
+CROSS APPLY OPENJSON(JSON_QUERY(u.value, '$.roles')) r;`);
+        const collection = vscode.languages.createDiagnosticCollection(
+            "mssql-beta-openjson-collision-test",
+        );
+        const diagnostics = new BetaSqlDiagnostics(
+            connectionManager,
+            catalog,
+            collection,
+            sessions,
+        );
+
+        await diagnostics.update(document);
+
+        expect(
+            (collection.get(document.uri) ?? []).filter(
+                (diagnostic) => diagnostic.code === "duplicate-exposed-name",
+            ),
+        ).to.be.empty;
         diagnostics.dispose();
     });
 

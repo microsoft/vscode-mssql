@@ -13,6 +13,7 @@ export * from "./langium/index.js";
 export * from "./metadata/index.js";
 export * from "./parser/index.js";
 export * from "./semantic/index.js";
+export * from "./worker/index.js";
 
 /** Default package-owned incremental T-SQL facade used by vscode-mssql. */
 export function createTsqlLanguageService<T extends object = Record<never, never>>(

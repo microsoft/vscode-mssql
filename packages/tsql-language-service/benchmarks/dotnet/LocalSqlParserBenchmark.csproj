@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LocalSqlParserAssembly Condition="'$(LocalSqlParserAssembly)' == ''">$(MSBuildThisFileDirectory)..\..\..\..\..\SqlParser\bin\Release\net8.0\Microsoft.SqlServer.Management.SqlParser.dll</LocalSqlParserAssembly>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.SqlServer.Management.SqlParser">
+      <HintPath>$(LocalSqlParserAssembly)</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+</Project>

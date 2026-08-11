@@ -13,6 +13,8 @@ The public layers are:
 - `adapters`: the catalog-aware adapter translating the package parser into analysis contracts.
 - `langium`: cancellable, generation-aware documents and parser-neutral LSP feature providers.
 - `core`: a facade and factories that compose an engine strategy with Langium lifecycle services.
+- `worker`: asynchronous Node worker-thread and browser Web Worker transports that keep parser and
+  analysis state off the UI or extension-host thread.
 
 ```text
 Tedious / host metadata -> MetadataRepository -> immutable catalog
@@ -49,6 +51,34 @@ and quoted identifiers. An edit reparses only changed batches and reuses relativ
 artifacts for unchanged batches. Materialization produces a conventional absolute-offset AST without
 mutating earlier snapshots. Semantic layers currently refresh over the materialized program; parser
 reuse and semantic work are reported separately in benchmarks.
+
+## Workers
+
+The worker owns document text, parser artifacts, and analysis snapshots. The host sends incremental
+UTF-16 edits and serializable catalog mappings; credentials, database connections, ASTs, and full
+document snapshots do not cross the boundary. Results are version-gated after computation, and
+aborted requests are discarded.
+
+Node hosts use the packaged worker-thread entry:
+
+```ts
+import { createNodeSqlWorkerClient } from "@vscode-mssql/tsql-language-service/worker/node";
+
+const client = createNodeSqlWorkerClient();
+await client.openDocument("file:///query.sql", 1, "SELECT 1;", { mode: "analysis" });
+const diagnostics = await client.snapshot("file:///query.sql");
+await client.dispose();
+```
+
+Browser hosts create a module `Worker` from the exported
+`@vscode-mssql/tsql-language-service/worker/browser-entry` asset, then wrap it with
+`createBrowserSqlWorkerClient` from `/worker/browser`. URL resolution stays with the host bundler so
+CSP and asset deployment remain application-owned. Use `mode: "parse"` when only batch parsing and
+reuse statistics are needed; analysis features intentionally reject parse-only documents.
+
+The existing `createTsqlLanguageService()` facade remains synchronous for compatibility and for the
+non-worker benchmark/fallback lane. Hosts opt into the asynchronous worker client explicitly; the
+package does not hide worker latency behind a blocking synchronous shim.
 
 ## Metadata and live tests
 

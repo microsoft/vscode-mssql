@@ -56,6 +56,27 @@
             "types": "./dist/semantic/index.d.ts",
             "require": "./dist/semantic/index.js",
             "default": "./dist/semantic/index.js"
+        },
+        "./worker": {
+            "types": "./dist/worker/index.d.ts",
+            "require": "./dist/worker/index.js",
+            "default": "./dist/worker/index.js"
+        },
+        "./worker/node": {
+            "types": "./dist/worker/nodeClient.d.ts",
+            "require": "./dist/worker/nodeClient.js",
+            "default": "./dist/worker/nodeClient.js"
+        },
+        "./worker/browser": {
+            "types": "./dist/worker/browserClient.d.mts",
+            "import": "./dist/worker/browserClient.mjs",
+            "default": "./dist/worker/browserClient.mjs"
+        },
+        "./worker/browser-entry": "./dist/worker/browserWorker.mjs",
+        "./worker/protocol": {
+            "types": "./dist/worker/protocol.d.ts",
+            "require": "./dist/worker/protocol.js",
+            "default": "./dist/worker/protocol.js"
         }
     },
     "files": [
@@ -65,10 +86,10 @@
         "third-party"
     ],
     "scripts": {
-        "build": "tsc -p tsconfig.json",
+        "build": "tsc -p tsconfig.json && node scripts/build-workers.mjs",
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
-        "lint": "eslint --quiet --cache ./src/index.ts ./src/analysis ./src/adapters ./src/core ./src/langium ./src/metadata ./src/parser/index.ts ./src/parser/incremental ./scripts ./test/*.test.js ./eslint.config.mjs",
+        "lint": "eslint --quiet --cache ./src/index.ts ./src/analysis ./src/adapters ./src/core ./src/langium ./src/metadata ./src/parser/index.ts ./src/parser/incremental ./src/worker ./scripts ./benchmarks/worker-comparison.mjs ./benchmarks/large-corpora.mjs ./test/*.test.js ./eslint.config.mjs",
         "test": "npm run build && npm run test:facade && npm run test:parser && npm run test:oracle",
         "test:facade": "node --test test/*.test.js",
         "test:parser": "node --env-file-if-exists=.env ./node_modules/jest/bin/jest.js --runInBand --config jest.config.cjs",
@@ -77,7 +98,8 @@
         "benchmark": "npm run build && node --expose-gc benchmarks/parser-benchmark.mjs",
         "benchmark:analysis": "npm run build && node --max-old-space-size=8192 --expose-gc benchmarks/analysis-engine-benchmark.mjs",
         "benchmark:generate-large": "node benchmarks/generate-large-corpora.mjs",
-        "benchmark:large": "npm run build && node --max-old-space-size=8192 --expose-gc benchmarks/large-file-benchmark.mjs"
+        "benchmark:large": "npm run build && node --max-old-space-size=8192 --expose-gc benchmarks/large-file-benchmark.mjs",
+        "benchmark:worker": "npm run build && node --max-old-space-size=16384 --expose-gc benchmarks/worker-comparison.mjs"
     },
     "dependencies": {
         "langium": "^4.3.1",
@@ -86,6 +108,7 @@
     "devDependencies": {
         "@types/jest": "^30.0.0",
         "@types/node": "^22.13.14",
+        "esbuild": "^0.28.1",
         "eslint": "^9.32.0",
         "eslint-config-prettier": "^9.1.0",
         "eslint-plugin-notice": "^1.0.0",

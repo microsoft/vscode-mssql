@@ -2314,7 +2314,10 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         item.detail = loc.expandInsertDetail;
         item.filterText = "columns values";
         item.insertText = snippet;
-        item.range = new vscode.Range(document.positionAt(context.contentStartOffset), position);
+        item.range = new vscode.Range(
+            document.positionAt(context.contentStartOffset),
+            document.positionAt(getInsertExpansionEndOffset(document, position)),
+        );
         item.sortText = "0_expand_insert";
         item.preselect = true;
         item.command = {
@@ -3389,7 +3392,9 @@ export class BetaSqlHoverProvider implements vscode.HoverProvider {
         }
         const sourceAlias =
             symbol.alias?.name ??
-            (symbol.kind === "table" ? sourceAliasForSpan(session.text, symbol.span) : undefined);
+            (symbol.kind === "table"
+                ? sourceAliasForSpan(session.text, symbol.span, session.tokens)
+                : undefined);
         if (sourceAlias) {
             appendHoverField(contents, "Alias", sourceAlias);
         }
@@ -3537,7 +3542,11 @@ function schemaColumnAt(
     for (const reference of session.externalReferences()) {
         if (
             reference.role !== "read" ||
-            sourceAliasForSpan(session.text, reference.span)?.toLocaleLowerCase() !== qualifier
+            sourceAliasForSpan(
+                session.text,
+                reference.span,
+                session.tokens,
+            )?.toLocaleLowerCase() !== qualifier
         ) {
             continue;
         }
@@ -3562,7 +3571,46 @@ function schemaColumnAt(
     return undefined;
 }
 
-function sourceAliasForSpan(text: string, span: { readonly end: number }): string | undefined {
+function sourceAliasForSpan(
+    text: string,
+    span: { readonly end: number },
+    tokens?: readonly Token[],
+): string | undefined {
+    if (tokens) {
+        const codeTokens = tokens.filter((token) => token.channel === "code");
+        let tokenIndex = codeTokens.findIndex((token) => token.span.start >= span.end);
+        if (tokenIndex < 0) {
+            return undefined;
+        }
+
+        // A table-valued function's reference span covers its name, not its arguments. Walk
+        // over the invocation (and OPENJSON's optional WITH projection) before looking for
+        // the correlation name. This keeps `OPENJSON(...) u ... OPENJSON(...) r` distinct.
+        if (codeTokens[tokenIndex].text === "(") {
+            tokenIndex = tokenAfterBalancedParentheses(codeTokens, tokenIndex);
+            if (tokenIndex < 0) {
+                return undefined;
+            }
+            if (
+                codeTokens[tokenIndex]?.text.toLocaleLowerCase() === "with" &&
+                codeTokens[tokenIndex + 1]?.text === "("
+            ) {
+                tokenIndex = tokenAfterBalancedParentheses(codeTokens, tokenIndex + 1);
+                if (tokenIndex < 0) {
+                    return undefined;
+                }
+            }
+        }
+
+        if (codeTokens[tokenIndex]?.text.toLocaleLowerCase() === "as") {
+            tokenIndex++;
+        }
+        const alias = codeTokens[tokenIndex];
+        return alias && isIdentifierTokenForMetadata(alias)
+            ? unquoteIdentifier(alias.text)
+            : undefined;
+    }
+
     const identifier = sqlIdentifierPattern(false);
     const match = new RegExp(String.raw`^\s+(?:as\s+)?(${identifier})`, "i").exec(
         text.slice(span.end),
@@ -3574,6 +3622,48 @@ function sourceAliasForSpan(text: string, span: { readonly end: number }): strin
         return undefined;
     }
     return unquoteIdentifier(match[1]);
+}
+
+function tokenAfterBalancedParentheses(tokens: readonly Token[], openIndex: number): number {
+    let depth = 0;
+    for (let index = openIndex; index < tokens.length; index++) {
+        if (tokens[index].text === "(") {
+            depth++;
+        } else if (tokens[index].text === ")") {
+            depth--;
+            if (depth === 0) {
+                return index + 1;
+            }
+        }
+    }
+    return -1;
+}
+
+/**
+ * Includes editor-inserted closing delimiters in the INSERT expansion replacement. An empty
+ * VALUES skeleton is also replaced so accepting the completion cannot leave a trailing `)` or
+ * a second VALUES clause behind.
+ */
+function getInsertExpansionEndOffset(
+    document: vscode.TextDocument,
+    position: vscode.Position,
+): number {
+    const startOffset = document.offsetAt(position);
+    const suffix = document.getText().slice(startOffset);
+    const targetClose = /^\s*\)/.exec(suffix);
+    if (!targetClose) {
+        return startOffset;
+    }
+
+    let consumed = targetClose[0].length;
+    const afterTarget = suffix.slice(consumed);
+    const emptyValues = /^\s*values\s*\(\s*\)(?:[ \t]*;)?/i.exec(afterTarget);
+    if (emptyValues) {
+        consumed += emptyValues[0].length;
+    } else {
+        consumed += /^(?:[ \t]*;)?/.exec(afterTarget)?.[0].length ?? 0;
+    }
+    return startOffset + consumed;
 }
 
 function isIdentifierTokenForMetadata(token: Token): boolean {
@@ -3966,7 +4056,7 @@ function getDuplicateSourceDiagnostics(
         const byExposedName = new Map<string, typeof references>();
         for (const reference of references) {
             const exposed =
-                sourceAliasForSpan(session.text, reference.span) ??
+                sourceAliasForSpan(session.text, reference.span, session.tokens) ??
                 reference.nameParts?.at(-1) ??
                 reference.name.split(".").at(-1)!;
             const values = byExposedName.get(exposed.toLocaleLowerCase()) ?? [];
