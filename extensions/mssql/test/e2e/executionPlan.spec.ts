@@ -99,6 +99,13 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await collapseButton.press("Space");
         await expect(rootNode).toHaveAttribute("aria-expanded", "false");
         await expect(collapseButton).toBeFocused();
+
+        await rootNode.focus();
+        await rootNode.press("ArrowRight");
+        await expect(rootNode).toHaveAttribute("aria-expanded", "false");
+        await expect(rootNode).toBeFocused();
+
+        await collapseButton.focus();
         await collapseButton.press("Enter");
         await expect(rootNode).toHaveAttribute("aria-expanded", "true");
         await expect(collapseButton).toBeFocused();
