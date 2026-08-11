@@ -207,14 +207,20 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
      * Starts Move to Schema from a Database Projects tree file path.
      */
     public async runMoveToSchemaFromFilePath(filePath: string): Promise<void> {
-        const document = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
-        const position = this.findMoveToSchemaSymbolPosition(document);
-        if (!position) {
-            void vscode.window.showInformationMessage(loc.noMovableSymbolAtCursor);
-            return;
-        }
+        try {
+            const document = await vscode.workspace.openTextDocument(vscode.Uri.file(filePath));
+            const position = this.findMoveToSchemaSymbolPosition(document);
+            if (!position) {
+                void vscode.window.showInformationMessage(loc.noMovableSymbolAtCursor);
+                return;
+            }
 
-        await this.runMoveToSchema(document, position);
+            await this.runMoveToSchema(document, position);
+        } catch (err) {
+            void vscode.window.showErrorMessage(
+                loc.moveToSchemaRequestFailed(err instanceof Error ? err.message : String(err)),
+            );
+        }
     }
 
     /**
@@ -275,12 +281,19 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
      */
     private tokenizeMoveToSchemaSql(text: string): MoveToSchemaSqlToken[] {
         const tokenPattern =
-            /\s+|--[^\r\n]*|\/\*[\s\S]*?\*\/|'(?:''|[^'])*'|\[(?:[^\]]|\]\])+\]|"(?:""|[^"])*"|`(?:``|[^`])*`|[A-Za-z0-9_$#@]+|\./gy;
+            /\s+|--[^\r\n]*|\/\*[\s\S]*?\*\/|'(?:''|[^'])*'|\[(?:[^\]]|\]\])+\]|"(?:""|[^"])*"|`(?:``|[^`])*`|[A-Za-z0-9_$#@]+|\./y;
         const tokens: MoveToSchemaSqlToken[] = [];
 
-        let match: RegExpExecArray | null;
-        while ((match = tokenPattern.exec(text)) !== null) {
+        for (let index = 0; index < text.length; ) {
+            tokenPattern.lastIndex = index;
+            const match = tokenPattern.exec(text);
+            if (!match) {
+                index++;
+                continue;
+            }
+
             const value = match[0];
+            index = tokenPattern.lastIndex;
             if (!value || /^\s+$/.test(value)) {
                 continue;
             }

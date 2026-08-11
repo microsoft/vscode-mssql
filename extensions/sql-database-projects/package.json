@@ -548,7 +548,7 @@
                 },
                 {
                     "command": "sqlDatabaseProjects.moveToSchema",
-                    "when": "view == dataworkspace.views.main && viewItem =~ /^databaseProject.itemType.file/",
+                    "when": "view == dataworkspace.views.main && viewItem == databaseProject.itemType.file.sqlObjectScript",
                     "group": "9_dbProjectsLast@4"
                 },
                 {

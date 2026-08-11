@@ -44,6 +44,7 @@ function makeMoveDocument(
 ): vscode.TextDocument {
     const fsPath = opts.fsPath ?? defaultSqlFile;
     const lineText = opts.lineText ?? "CREATE TABLE [dbo].[MyTable]";
+    const lines = lineText.split("\n");
     const uri = vscode.Uri.file(fsPath);
     const uriString = uri.toString();
     return {
@@ -51,17 +52,24 @@ function makeMoveDocument(
         lineAt: sandbox.stub().callsFake((lineOrPos: number | vscode.Position) => {
             const lineNum =
                 typeof lineOrPos === "number" ? lineOrPos : (lineOrPos as vscode.Position).line;
+            const text = lines[lineNum] ?? "";
             return {
-                text: lineNum === 0 ? lineText : "",
+                text,
                 range: new vscode.Range(
                     new vscode.Position(lineNum, 0),
-                    new vscode.Position(lineNum, (lineNum === 0 ? lineText : "").length),
+                    new vscode.Position(lineNum, text.length),
                 ),
             };
         }),
         getText: sandbox.stub().callsFake((range?: vscode.Range) => {
             if (!range) return lineText;
-            return lineText.slice(range.start.character, range.end.character);
+            if (range.start.line === range.end.line) {
+                return (lines[range.start.line] ?? "").slice(
+                    range.start.character,
+                    range.end.character,
+                );
+            }
+            return lineText.slice(0, range.end.character);
         }),
         positionAt: sandbox.stub().callsFake((offset: number) => {
             const lines = lineText.slice(0, offset).split("\n");
@@ -665,14 +673,15 @@ suite("SqlMoveToSchemaProvider Tests", () => {
 
     // -------------------------------------------------------------------------
     suite("runMoveToSchema", () => {
-        test("resolves the object position when started from a file path", async () => {
+        test("resolves the object position after a preamble when started from a file path", async () => {
             findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
             showQuickPickStub.resolves({ label: "hr" });
             sendRequestStub.withArgs(ListProjectSchemasRequest.type).resolves({ schemas: ["hr"] });
             sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({ changes: {} });
 
             const document = makeMoveDocument(sandbox, {
-                lineText: "Alter Table dbo.Table1\nAdd NewColumn1 INT NULL;",
+                lineText:
+                    "SET ANSI_NULLS ON;\nGO\nAlter Table dbo.Table1\nAdd NewColumn1 INT NULL;",
             });
             sandbox.stub(vscode.workspace, "openTextDocument").resolves(document);
 
@@ -681,8 +690,19 @@ suite("SqlMoveToSchemaProvider Tests", () => {
             expect(sendRequestStub).to.have.been.calledWith(
                 SqlMoveToSchemaRequest.type,
                 sinon.match({
-                    position: { line: 0, character: 16 },
+                    position: { line: 2, character: 16 },
                 }),
+            );
+        });
+
+        test("shows error when opening a file path fails", async () => {
+            const error = new Error("File not found");
+            sandbox.stub(vscode.workspace, "openTextDocument").rejects(error);
+
+            await provider.runMoveToSchemaFromFilePath(defaultSqlFile);
+
+            expect(messageBoxes.showErrorMessage).to.have.been.calledWith(
+                moveLoc.moveToSchemaRequestFailed(error.message),
             );
         });
 
