@@ -77,7 +77,13 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 
         const rootNode = iframe.locator('[role="treeitem"][tabindex="0"]').first();
         await expect(rootNode).toBeVisible();
+        await expect(
+            iframe.getByRole("tree", { name: /Execution plan 1, use arrow keys/ }),
+        ).toBeVisible();
         await rootNode.focus();
+        await expect(iframe.getByRole("status")).toHaveText(
+            "Execution plan 1, use arrow keys to navigate between nodes",
+        );
         const viewport = iframe.locator(".react-flow__viewport").first();
         const viewportStyle = await viewport.getAttribute("style");
         await rootNode.press("ArrowRight");
@@ -99,16 +105,19 @@ test.describe("MSSQL Extension - Query Plan", async () => {
         await collapseButton.press("Space");
         await expect(rootNode).toHaveAttribute("aria-expanded", "false");
         await expect(collapseButton).toBeFocused();
+
+        await rootNode.focus();
+        await rootNode.press("ArrowRight");
+        await expect(rootNode).toHaveAttribute("aria-expanded", "false");
+        await expect(rootNode).toBeFocused();
+
+        await collapseButton.focus();
         await collapseButton.press("Enter");
         await expect(rootNode).toHaveAttribute("aria-expanded", "true");
         await expect(collapseButton).toBeFocused();
 
         await rootNode.focus();
         await rootNode.press("ArrowLeft");
-        await expect(rootNode).toHaveAttribute("aria-expanded", "false");
-        await expect(rootNode).toBeFocused();
-
-        await rootNode.press("ArrowRight");
         await expect(rootNode).toHaveAttribute("aria-expanded", "true");
         await expect(rootNode).toBeFocused();
 

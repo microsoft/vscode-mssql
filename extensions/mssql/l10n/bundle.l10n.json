@@ -2841,7 +2841,10 @@
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
     "The React Flow execution plan preview could not render this plan.": "The React Flow execution plan preview could not render this plan.",
-    "Execution plan": "Execution plan",
+    "Execution plan {0}, use arrow keys to navigate between nodes/{0} is the one-based execution plan number": {
+        "message": "Execution plan {0}, use arrow keys to navigate between nodes",
+        "comment": ["{0} is the one-based execution plan number"]
+    },
     "Execution plan details": "Execution plan details",
     "Expand {0}/{0} is the name of an execution plan operation": {
         "message": "Expand {0}",
