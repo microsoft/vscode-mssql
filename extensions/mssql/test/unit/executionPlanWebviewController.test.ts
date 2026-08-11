@@ -17,6 +17,11 @@ import * as epUtils from "../../src/controllers/sharedExecutionPlanUtils";
 import { contents } from "../resources/testsqlplan";
 import SqlToolsServiceClient from "../../src/languageservice/serviceclient";
 import { GetExecutionPlanRequest } from "../../src/models/contracts/executionPlan";
+import {
+    getComparisonExecutionPlanGraphs,
+    getExecutionPlanComparisonGraphInfo,
+    getValidExecutionPlanComparisonResult,
+} from "../../src/controllers/executionPlanComparisonWebviewController";
 
 chai.use(sinonChai);
 
@@ -201,6 +206,107 @@ suite("ExecutionPlanWebviewController", () => {
         expect(result, "State should have an updated total cost").to.deep.equal(mockResultState);
 
         updateTotalCostStub.restore();
+    });
+
+    test("should open React Flow comparison for the selected graph", async () => {
+        const graph = {
+            root: {
+                cost: 1,
+                subTreeCost: 2,
+            },
+        } as ep.ExecutionPlanGraph;
+        const state: ep.ExecutionPlanWebviewState = {
+            executionPlanState: {
+                ...mockInitialState.executionPlanState,
+                isBetaExecutionPlanEnabled: true,
+                executionPlanGraphs: [graph],
+            },
+        };
+        const openComparisonStub = sandbox.stub(epUtils, "openExecutionPlanComparisonWebview");
+
+        const result = await controller["_reducerHandlers"].get("compareExecutionPlan")(state, {
+            graphIndex: 0,
+        });
+
+        expect(openComparisonStub).to.have.been.calledWithExactly(
+            mockContext,
+            mockExecutionPlanService,
+            [graph],
+            0,
+            xmlPlanFileName,
+        );
+        expect(result).to.equal(state);
+    });
+
+    test("should not open comparison when the React Flow preview is disabled", async () => {
+        const state: ep.ExecutionPlanWebviewState = {
+            executionPlanState: {
+                ...mockInitialState.executionPlanState,
+                isBetaExecutionPlanEnabled: false,
+                executionPlanGraphs: [{} as ep.ExecutionPlanGraph],
+            },
+        };
+        const openComparisonStub = sandbox.stub(epUtils, "openExecutionPlanComparisonWebview");
+
+        await controller["_reducerHandlers"].get("compareExecutionPlan")(state, {
+            graphIndex: 0,
+        });
+
+        expect(openComparisonStub).not.to.have.been.called;
+    });
+});
+
+suite("ExecutionPlanComparisonWebviewController", () => {
+    test("normalizes comparison file types without mutating loaded graph metadata", () => {
+        const graphInfo: ep.ExecutionPlanGraphInfo = {
+            graphFileContent: "<ShowPlanXML />",
+            graphFileType: ".sqlplan",
+            planIndexInFile: 3,
+        };
+
+        const comparisonGraphInfo = getExecutionPlanComparisonGraphInfo(graphInfo);
+
+        expect(comparisonGraphInfo).to.deep.equal({
+            graphFileContent: "<ShowPlanXML />",
+            graphFileType: "sqlplan",
+            planIndexInFile: 3,
+        });
+        expect(graphInfo.graphFileType).to.equal(".sqlplan");
+        expect(comparisonGraphInfo).not.to.equal(graphInfo);
+    });
+
+    test("accepts graphs when an older service response omits success", () => {
+        const graphs = [{} as ep.ExecutionPlanGraph];
+        const result: ep.GetExecutionPlanResult = {
+            graphs,
+            success: undefined!,
+            errorMessage: "",
+        };
+
+        expect(getComparisonExecutionPlanGraphs(result)).to.equal(graphs);
+    });
+
+    test("rejects an explicit service failure with a useful fallback message", () => {
+        const result: ep.GetExecutionPlanResult = {
+            graphs: [],
+            success: false,
+            errorMessage: "",
+        };
+
+        expect(() => getComparisonExecutionPlanGraphs(result)).to.throw(
+            "Failed to load the selected execution plan.",
+        );
+    });
+
+    test("accepts comparison trees when an older service response omits success", () => {
+        const result: ep.ExecutionPlanComparisonResult = {
+            firstComparisonResult: {} as ep.ExecutionGraphComparisonResult,
+            secondComparisonResult: {} as ep.ExecutionGraphComparisonResult,
+            success: undefined!,
+            errorMessage: "",
+        };
+
+        expect(getValidExecutionPlanComparisonResult(result)).to.equal(result);
     });
 });
 
