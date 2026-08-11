@@ -4,9 +4,76 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { areCompatibleEntraAccountIds } from "../../src/azure/vscodeEntraMfaUtils";
+import * as vscode from "vscode";
+import {
+    areCompatibleEntraAccountIds,
+    acquireTokenFromVscodeAccountForResource,
+} from "../../src/azure/vscodeEntraMfaUtils";
+import * as sinon from "sinon";
+import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
+import { mockAccounts, mockTenants } from "./azureHelperStubs";
+import { createStubLogger } from "./utils";
 
 suite("vscodeEntraMfaUtils", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("traces silent and interactive token session acquisition separately", async () => {
+        const traceLogger = createStubLogger(sandbox);
+        const selectedTenantId = mockTenants[0].tenantId;
+        const session = {
+            id: "session-id",
+            accessToken: "access-token",
+            account: mockAccounts.signedInAccount,
+            scopes: [],
+        };
+
+        sandbox
+            .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+            .resolves([mockAccounts.signedInAccount]);
+        sandbox
+            .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
+            .resolves(
+                mockTenants.filter(
+                    (tenant) => tenant.account.id === mockAccounts.signedInAccount.id,
+                ),
+            );
+        sandbox
+            .stub(vscode.authentication, "getSession")
+            .onFirstCall()
+            .resolves(undefined)
+            .onSecondCall()
+            .resolves(session);
+
+        await acquireTokenFromVscodeAccountForResource(
+            "https://database.windows.net/",
+            mockAccounts.signedInAccount.id,
+            selectedTenantId,
+            undefined,
+            { logger: traceLogger, requestId: "token-request" },
+        );
+
+        expect(traceLogger.debug).to.have.been.calledWithMatch(
+            "silent token session request started requestId=token-request",
+        );
+        expect(traceLogger.debug).to.have.been.calledWithMatch(
+            "silent token session request completed requestId=token-request",
+        );
+        expect(traceLogger.debug).to.have.been.calledWithMatch(
+            "interactive token session request started requestId=token-request",
+        );
+        expect(traceLogger.debug).to.have.been.calledWithMatch(
+            "interactive token session request completed requestId=token-request",
+        );
+    });
+
     suite("areCompatibleEntraAccountIds", () => {
         test("returns true for exact match", () => {
             expect(areCompatibleEntraAccountIds("user@example.com", "user@example.com")).to.be.true;

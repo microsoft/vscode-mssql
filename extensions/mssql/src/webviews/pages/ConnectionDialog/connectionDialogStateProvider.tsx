@@ -16,7 +16,7 @@ import {
 } from "../../../sharedInterfaces/connectionDialog";
 import { FirewallRuleSpec } from "../../../sharedInterfaces/firewallRule";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
-import { getCoreRPCs } from "../../common/utils";
+import { getCoreRPCs, uuid } from "../../common/utils";
 import { ConnectionGroupSpec } from "../../../sharedInterfaces/connectionGroup";
 import { SqlDbInfo } from "../../../sharedInterfaces/fabric";
 import {
@@ -61,7 +61,12 @@ const ConnectionDialogStateProvider: React.FC<ConnectionDialogProviderProps> = (
                 });
             },
             connect: function (): void {
-                extensionRpc.action("connect");
+                const clickTimestamp = Date.now();
+                const clickId = `${clickTimestamp}-${uuid().replace(/-/g, "")}`;
+                extensionRpc.log.debug(
+                    `[ConnectionTrace] Connect button clicked clickId=${clickId}`,
+                );
+                extensionRpc.action("connect", { clickId, clickTimestamp });
             },
             testConnection: function (): void {
                 extensionRpc.action("testConnection");

@@ -17,7 +17,11 @@ import ConnectionManager, {
 import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import StatusView from "../../src/views/statusView";
 import { CredentialStore } from "../../src/credentialstore/credentialstore";
-import { IConnectionProfile, IConnectionProfileWithSource } from "../../src/models/interfaces";
+import {
+    IConnectionGroup,
+    IConnectionProfile,
+    IConnectionProfileWithSource,
+} from "../../src/models/interfaces";
 import { ParseConnectionStringRequest } from "../../src/models/contracts/connection";
 import * as ConnectionContracts from "../../src/models/contracts/connection";
 import * as Constants from "../../src/constants/constants";
@@ -122,6 +126,33 @@ suite("ConnectionManager Tests", () => {
             }).to.not.throw();
 
             await connectionManager.initialized; // Wait for initialization to complete
+        });
+
+        test("starts loading connections and groups concurrently", async () => {
+            const connectionsReady = new Deferred<IConnectionProfileWithSource[]>();
+            const groupsReady = new Deferred<IConnectionGroup[]>();
+            mockConnectionStore.readAllConnections.callsFake(() => connectionsReady.promise);
+            mockConnectionStore.readAllConnectionGroups.callsFake(() => groupsReady.promise);
+
+            connectionManager = new ConnectionManager(
+                mockContext,
+                mockStatusView,
+                undefined, // prompter
+                mockLogger,
+                mockServiceClient,
+                mockConnectionStore,
+                mockCredentialStore,
+                undefined, // connectionUI
+                mockAccountStore,
+            );
+
+            await new Promise<void>((resolve) => setImmediate(resolve));
+            expect(mockConnectionStore.readAllConnections).to.have.been.called;
+            expect(mockConnectionStore.readAllConnectionGroups).to.have.been.called;
+
+            connectionsReady.resolve([]);
+            groupsReady.resolve([]);
+            await connectionManager.initialized;
         });
 
         test("Initialization migrates legacy Connection String connections in credential store", async () => {

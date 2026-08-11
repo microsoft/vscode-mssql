@@ -387,8 +387,29 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return state;
         });
 
-        this.registerReducer("connect", async (state) => {
-            return this.submitConnectionAction(state, ConnectionSubmitAction.Connect);
+        this.registerReducer("connect", async (state, payload = {}) => {
+            const now = Date.now();
+            const correlationId =
+                typeof payload.clickId === "string" &&
+                payload.clickId.length <= 64 &&
+                /^\d{13}-[a-z0-9]+$/.test(payload.clickId)
+                    ? payload.clickId
+                    : uuid();
+            const transportDurationMs =
+                typeof payload.clickTimestamp === "number" &&
+                Number.isFinite(payload.clickTimestamp) &&
+                payload.clickTimestamp >= 0 &&
+                payload.clickTimestamp <= now
+                    ? now - payload.clickTimestamp
+                    : undefined;
+            this.logger.debug(
+                `[ConnectionTrace] Connection attempt started correlationId=${correlationId}${transportDurationMs === undefined ? "" : ` transportDurationMs=${transportDurationMs}`}`,
+            );
+            return this.submitConnectionAction(
+                state,
+                ConnectionSubmitAction.Connect,
+                correlationId,
+            );
         });
 
         this.registerReducer("testConnection", async (state) => {
@@ -1353,18 +1374,27 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async submitConnectionAction(
         state: ConnectionDialogWebviewState,
         action: ConnectionSubmitAction,
+        correlationId: string = uuid(),
     ): Promise<ConnectionDialogWebviewState> {
         this._lastSubmittedAction = action;
         this.state.connectionAction = action;
 
-        const cleanedConnection = await this.prepareConnectionForSubmit(state);
+        this.logger.debug(
+            `[ConnectionTrace] Submit action started correlationId=${correlationId} action=${action}`,
+        );
+
+        const cleanedConnection = await this.prepareConnectionForSubmit(state, correlationId);
         if (!cleanedConnection) {
             return state;
         }
 
         try {
             if (action === ConnectionSubmitAction.TestConnection) {
-                const testSucceeded = await this.testConnectionStep(cleanedConnection, state);
+                const testSucceeded = await this.testConnectionStep(
+                    cleanedConnection,
+                    state,
+                    correlationId,
+                );
                 if (!testSucceeded) {
                     return state;
                 }
@@ -1386,7 +1416,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            const testSucceeded = await this.testConnectionStep(cleanedConnection, state);
+            const testSucceeded = await this.testConnectionStep(
+                cleanedConnection,
+                state,
+                correlationId,
+            );
             if (!testSucceeded) {
                 return state;
             }
@@ -1394,7 +1428,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const preparedConnection = await this.prepareConnectionForSave(cleanedConnection);
             await this.removeEditedConnectionIfNeeded();
             await this.saveProfileStep(preparedConnection, state);
-            await this.connectAndRevealStep(preparedConnection, state);
+            await this.connectAndRevealStep(preparedConnection, state, correlationId);
 
             this.state.connectionStatus = ApiStatus.Loaded;
             this.updateState();
@@ -1439,7 +1473,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
     private async prepareConnectionForSubmit(
         state: ConnectionDialogWebviewState,
+        correlationId: string,
     ): Promise<IConnectionDialogProfile | undefined> {
+        this.logger.debug(
+            `[ConnectionTrace] Connection form preparation started correlationId=${correlationId}`,
+        );
         this.clearFormError();
         this.state.connectionStatus = ApiStatus.Loading;
         this.updateState();
@@ -1455,6 +1493,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         this.combineServerAndPort(cleanedConnection);
+
+        this.logger.debug(
+            `[ConnectionTrace] Connection form preparation completed correlationId=${correlationId}`,
+        );
 
         return cleanedConnection;
     }
@@ -1472,8 +1514,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async testConnectionStep(
         connection: IConnectionDialogProfile,
         state: ConnectionDialogWebviewState,
+        correlationId: string,
     ): Promise<boolean> {
         const tempConnectionUri = uuid();
+        const startedAt = Date.now();
+        this.logger.debug(
+            `[ConnectionTrace] Test connection started correlationId=${correlationId} durationMs=0`,
+        );
 
         try {
             const result = await this._mainController.connectionManager.connect(
@@ -1493,6 +1540,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this.updateState(state);
                 return false;
             }
+
+            this.logger.debug(
+                `[ConnectionTrace] Test connection completed correlationId=${correlationId} durationMs=${Date.now() - startedAt}`,
+            );
 
             return true;
         } catch (error) {
@@ -1738,8 +1789,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async connectAndRevealStep(
         connection: IConnectionDialogProfile,
         state: ConnectionDialogWebviewState,
+        correlationId: string,
     ): Promise<void> {
-        let node = await this._mainController.createObjectExplorerSession(connection);
+        const startedAt = Date.now();
+        this.logger.debug(
+            `[ConnectionTrace] Object Explorer session creation started correlationId=${correlationId}`,
+        );
+        let node = await this._mainController.createObjectExplorerSession(
+            connection,
+            correlationId,
+            startedAt,
+        );
+        this.logger.debug(
+            `[ConnectionTrace] Object Explorer session created correlationId=${correlationId} durationMs=${Date.now() - startedAt}`,
+        );
 
         try {
             await this._mainController.objectExplorerTree.reveal(node, {
@@ -1747,10 +1810,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 select: true,
                 expand: true,
             });
+            this.logger.debug(
+                `[ConnectionTrace] Connection reveal completed correlationId=${correlationId} durationMs=${Date.now() - startedAt}`,
+            );
         } catch {
             // If revealing the node fails, we've hit an event-based race condition; re-saving and creating the profile should fix it.
             await this.saveProfileStep(connection, state);
-            node = await this._mainController.createObjectExplorerSession(connection);
+            node = await this._mainController.createObjectExplorerSession(
+                connection,
+                correlationId,
+                startedAt,
+            );
             await this._mainController.objectExplorerTree.reveal(node, {
                 focus: true,
                 select: true,
