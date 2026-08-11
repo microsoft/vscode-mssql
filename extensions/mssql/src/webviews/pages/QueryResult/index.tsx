@@ -3,16 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import ReactDOM from "react-dom/client";
-import "../../index.css";
-import { QueryResultStateProvider } from "./queryResultStateProvider";
-import { QueryResult } from "./queryResultPage";
-import { VscodeWebviewProvider } from "../../common/vscodeWebviewProvider";
+import "./queryResultEagerStyles";
+import { renderQueryResult } from "./queryResultEntrypoint";
+import { QueryResultsGridView } from "./queryResultsGridView";
+import ResultGrid from "./resultGrid";
 
-ReactDOM.createRoot(document.getElementById("root")!).render(
-    <VscodeWebviewProvider>
-        <QueryResultStateProvider>
-            <QueryResult />
-        </QueryResultStateProvider>
-    </VscodeWebviewProvider>,
-);
+const QueryResultLegacyGridView = () => <QueryResultsGridView GridComponent={ResultGrid} />;
+
+renderQueryResult(QueryResultLegacyGridView, false);

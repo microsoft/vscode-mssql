@@ -124,19 +124,6 @@ export const DacpacDialogForm = () => {
         void updateSuggestedPath();
     }, [databaseName, operationType, context]);
 
-    // Clear state when switching operations (Deploy <-> Extract <-> Export <-> Import)
-    useEffect(() => {
-        setDatabaseName("");
-        setFilePath("");
-        setApplicationName("");
-        setApplicationVersion(DEFAULT_APPLICATION_VERSION);
-    }, [operationType]);
-
-    // Clear the selected database if the server is changed
-    useEffect(() => {
-        setDatabaseName("");
-    }, [selectedProfileId]);
-
     const loadConnections = async () => {
         try {
             setIsConnecting(true);
@@ -195,6 +182,8 @@ export const DacpacDialogForm = () => {
 
     const handleServerChange = async (profileId: string) => {
         setSelectedProfileId(profileId);
+        setDatabaseName("");
+        setAvailableDatabases([]);
         setValidationMessages({});
         setDatabaseListError(null);
 
@@ -255,11 +244,10 @@ export const DacpacDialogForm = () => {
             const result = await context?.listDatabases({ ownerUri: ownerUri || "" });
             if (result?.databases) {
                 setAvailableDatabases(result.databases);
-                // Auto-select database if:
-                // 1. Fabric connection (always select first database)
-                if (isFabric && result.databases.length > 0) {
-                    // For Fabric, always select the first database
-                    setDatabaseName(result.databases[0]);
+                if (result.databases.length > 0) {
+                    setDatabaseName((currentDatabaseName) => {
+                        return currentDatabaseName || result.databases[0];
+                    });
                 }
             }
 
@@ -269,7 +257,6 @@ export const DacpacDialogForm = () => {
             if (result?.errorMessage) {
                 if (result.databases && result.databases.length > 0) {
                     // We have a fallback database from the connection - show as warning
-                    setDatabaseName(result.databases[0]);
                     setDatabaseListError({
                         message: locConstants.dacpacDialog.databasesCannotBeLoadedDueToPermissions,
                         severity: "warning",
@@ -718,6 +705,8 @@ export const DacpacDialogForm = () => {
                     setOperationType={setOperationType}
                     isOperationInProgress={isOperationInProgress}
                     onOperationTypeChange={() => {
+                        setApplicationName("");
+                        setApplicationVersion(DEFAULT_APPLICATION_VERSION);
                         setValidationMessages({});
                         setDatabaseListError(null);
                         // Reset file path when switching operation types
@@ -754,7 +743,7 @@ export const DacpacDialogForm = () => {
                         validationMessages={validationMessages}
                         showDatabaseSource={showDatabaseSource}
                         showNewDatabase={false}
-                        isFabric={isFabric}
+                        isDatabaseListUnavailable={databaseListError !== null}
                     />
                 )}
 
@@ -794,7 +783,7 @@ export const DacpacDialogForm = () => {
                         validationMessages={validationMessages}
                         showDatabaseSource={false}
                         showNewDatabase={showNewDatabase}
-                        isFabric={isFabric}
+                        isDatabaseListUnavailable={databaseListError !== null}
                     />
                 )}
 

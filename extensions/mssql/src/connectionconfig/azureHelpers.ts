@@ -635,7 +635,7 @@ export class VsCodeAzureHelper {
         return "UnableToCheck";
     }
 
-    private static getAzureSqlServerName(server: string | undefined): string | undefined {
+    public static getAzureSqlServerName(server: string | undefined): string | undefined {
         if (!server) {
             return undefined;
         }

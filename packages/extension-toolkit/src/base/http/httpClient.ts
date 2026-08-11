@@ -7,91 +7,37 @@ import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
 import { Readable } from "stream";
-import axios, { AxiosRequestConfig, AxiosResponse, RawAxiosResponseHeaders } from "axios";
+import axios, { AxiosRequestConfig, AxiosResponse } from "axios";
 import * as tunnel from "tunnel";
 import { getErrorMessage } from "../common";
+import { ProxyMessages } from "../localization";
+import { createHttpHeaders } from "./httpHeaders";
+import {
+    HttpRequestHeaders,
+    IDownloadOptions,
+    IDownloadResult,
+    IHttpClientLogger,
+    IHttpRequest,
+    IHttpRequestOptions,
+    IHttpResponse,
+} from "./httpTypes";
 
-const UnableToGetProxyAgentOptionsMessage = "Unable to read proxy agent options.";
 const HTTPS_PORT = 443;
 const HTTP_PORT = 80;
 
-/** Optional logger contract used by the HTTP client for diagnostics and errors. */
-export interface IHttpClientLogger {
-    /** Writes a diagnostic message. */
-    debug(message: string, ...args: unknown[]): void;
-
-    /** Writes a warning message. */
-    warn(message: string, ...args: unknown[]): void;
-
-    /** Writes an error message. */
-    error(message: string, ...args: unknown[]): void;
-
-    /**
-     * Writes a message with explicit PII sanitization metadata.
-     */
-    piiSanitized(
-        message: unknown,
-        objectsToSanitize: { name: string; objOrArray: unknown | unknown[] }[],
-        stringsToShorten: { name: string; value: string }[],
-        ...values: unknown[]
-    ): void;
-}
-
-/** Localized proxy warning messages used by the HTTP client. */
-export interface IHttpClientMessages {
-    /** Builds a warning when a proxy is configured without a protocol. */
-    missingProtocolWarning(proxy: string): string;
-
-    /** Builds a warning when a proxy URL cannot be parsed. */
-    unparseableWarning(proxy: string, errorMessage: string): string;
-
-    /** Message used when a proxy agent cannot be constructed. */
-    unableToGetProxyAgentOptions: string;
-}
-
-/** Runtime integration points for proxy settings and warning presentation. */
+/** Runtime integration points for proxy settings. */
 export interface IHttpClientDependencies {
     /** Returns the configured proxy endpoint, if available. */
     getProxyConfig?: () => string | undefined;
+
+    /** Returns host patterns that should bypass the configured proxy. */
+    getNoProxyConfig?: () => readonly string[] | undefined;
 
     /** Returns whether proxy certificates should be validated. */
     getProxyStrictSSL?: () => boolean | undefined;
 
     /** Parses a URI and returns its scheme. */
     parseUriScheme?: (value: string) => string | undefined;
-
-    /** Displays a warning message to the user. */
-    showWarningMessage?: (message: string) => void;
-
-    /** Localized proxy warning messages. */
-    messages?: IHttpClientMessages;
-}
-
-/** Progress payload for download callbacks. */
-export interface IDownloadProgress {
-    /** Number of bytes downloaded so far. */
-    downloadedBytes: number;
-
-    /** Total bytes, when known from response headers. */
-    totalBytes?: number;
-
-    /** Percentage in the range `[0, 100]`, when total bytes are known. */
-    percentage?: number;
-}
-
-/** Optional settings for file download operations. */
-export interface IDownloadFileOptions {
-    /** Receives progress updates while the response stream is being written. */
-    onProgress?: (progress: IDownloadProgress) => void;
-}
-
-/** Result returned by a completed download operation. */
-export interface IDownloadFileResult {
-    /** HTTP response status code. */
-    status: number;
-
-    /** Response headers from the download request. */
-    headers: RawAxiosResponseHeaders;
 }
 
 /**
@@ -102,162 +48,91 @@ export class HttpClient {
      * Creates an HTTP client.
      *
      * @param logger Optional logger for diagnostics and warnings.
-     * @param dependencies Optional host-specific proxy and UI integrations.
+     * @param dependencies Optional host-specific proxy integrations.
      */
     constructor(
         protected readonly logger?: IHttpClientLogger,
         private readonly dependencies: IHttpClientDependencies = {},
     ) {}
 
-    /**
-     * Sends an HTTP GET request.
-     *
-     * @param requestUrl Target URL.
-     * @param token Bearer token sent in the `Authorization` header.
-     */
-    public async makeGetRequest<TResponse>(
-        requestUrl: string,
-        token: string,
-    ): Promise<AxiosResponse<TResponse>> {
-        const request = this.setupRequest(requestUrl, token);
-
-        const response: AxiosResponse = await this.get<TResponse>(
-            request.requestUrl,
-            request.config,
-        );
-        this.logger?.piiSanitized(
-            "GET request ",
-            [
-                {
-                    name: "response",
-                    objOrArray:
-                        (response.data?.value as TResponse) ??
-                        (response.data as { value: TResponse }),
-                },
-            ],
-            [],
-            request.requestUrl,
-        );
-        return response;
+    /** Sends a fully described HTTP request. */
+    public async request<TResponse = unknown, TBody = undefined>(
+        request: IHttpRequest<TBody>,
+    ): Promise<IHttpResponse<TResponse>> {
+        const { requestUrl, config } = this.setupRequest(request);
+        const response = await this.send<TResponse>(requestUrl, config);
+        return toHttpResponse(response);
     }
 
-    /**
-     * Sends an HTTP POST request.
-     *
-     * @param requestUrl Target URL.
-     * @param token Bearer token sent in the `Authorization` header.
-     * @param payload JSON payload to post.
-     */
-    public async makePostRequest<TResponse, TPayload>(
-        requestUrl: string,
-        token: string,
-        payload: TPayload,
-    ): Promise<AxiosResponse<TResponse>> {
-        const request = this.setupRequest(requestUrl, token);
-
-        const response: AxiosResponse = await this.post<TResponse, TPayload>(
-            request.requestUrl,
-            payload,
-            request.config,
-        );
-        this.logger?.piiSanitized(
-            "POST request ",
-            [{ name: "response", objOrArray: response.data }],
-            [],
-            request.requestUrl,
-        );
-        return response;
+    /** Sends an HTTP GET request. */
+    public get<TResponse = unknown>(
+        url: string | URL,
+        options?: IHttpRequestOptions,
+    ): Promise<IHttpResponse<TResponse>> {
+        return this.request<TResponse>({ ...options, method: "GET", url });
     }
 
-    /**
-     * Downloads a URL to a path or an open file descriptor.
-     * The caller retains ownership of a supplied file descriptor.
-     *
-     * @param requestUrl Target URL.
-     * @param destination Output path or open file descriptor.
-     * @param options Optional download settings including progress callback.
-     */
-    public async downloadFile(
-        requestUrl: string,
-        destination: string | number,
-        options?: IDownloadFileOptions,
-    ): Promise<IDownloadFileResult> {
-        const destinationFd =
-            typeof destination === "string" ? fs.openSync(destination, "w") : destination;
+    /** Sends an HTTP POST request with a JSON body. */
+    public postJson<TResponse = unknown, TBody = unknown>(
+        url: string | URL,
+        body: TBody,
+        options?: IHttpRequestOptions,
+    ): Promise<IHttpResponse<TResponse>> {
+        return this.request<TResponse, TBody>({
+            ...options,
+            method: "POST",
+            url,
+            body,
+            headers: withDefaultHeaders(options?.headers, {
+                "Content-Type": "application/json",
+                Accept: "application/json",
+            }),
+        });
+    }
+
+    /** Downloads a URL to a file path and closes the file when the download completes. */
+    public async downloadToPath(
+        requestUrl: string | URL,
+        destinationPath: string,
+        options?: IDownloadOptions,
+    ): Promise<IDownloadResult> {
+        const destinationFd = fs.openSync(destinationPath, "w");
 
         try {
             return await this.downloadToFileDescriptor(requestUrl, destinationFd, options);
         } finally {
-            if (typeof destination === "string") {
-                fs.closeSync(destinationFd);
-            }
+            fs.closeSync(destinationFd);
         }
     }
 
     /**
-     * Validates proxy settings and emits warnings for invalid values.
+     * Downloads a URL to an open file descriptor.
+     * The descriptor remains owned by the caller and is not closed by this method.
      */
-    public warnOnInvalidProxySettings(): void {
-        const proxy = this.loadProxyConfig();
-        if (!proxy) {
-            return;
-        }
-
-        let message = undefined;
-        let localizedMessage = undefined;
-
-        try {
-            const scheme = this.dependencies.parseUriScheme
-                ? this.dependencies.parseUriScheme(proxy)
-                : new URL(proxy).protocol;
-
-            if (!scheme) {
-                message = `Proxy settings found, but without a protocol (e.g. http://): '${proxy}'.  You may encounter connection issues while using this extension.`;
-                localizedMessage = this.dependencies.messages?.missingProtocolWarning(proxy);
-            }
-        } catch (error) {
-            const errorMessage = getErrorMessage(error);
-            message = `Proxy settings found, but encountered an error while parsing the URL: '${proxy}'.  You may encounter connection issues while using this extension.  Error: ${errorMessage}`;
-            localizedMessage = this.dependencies.messages?.unparseableWarning(proxy, errorMessage);
-        }
-
-        if (message) {
-            if (localizedMessage) {
-                this.dependencies.showWarningMessage?.(localizedMessage);
-            }
-            this.logger?.warn(message);
-        }
-    }
-
-    private setupRequest(
-        requestUrl: string,
-        token?: string,
-    ): { requestUrl: string; config: AxiosRequestConfig } {
-        const config = this.setupConfigAndProxyForRequest(requestUrl, token);
-        return {
-            requestUrl: this.constructRequestUrl(requestUrl, config),
-            config,
-        };
-    }
-
-    private async downloadToFileDescriptor(
-        requestUrl: string,
+    public async downloadToFileDescriptor(
+        requestUrl: string | URL,
         destinationFd: number,
-        options?: IDownloadFileOptions,
-    ): Promise<IDownloadFileResult> {
-        const request = this.setupRequest(requestUrl);
-        const requestConfig: AxiosRequestConfig = {
-            ...request.config,
-            responseType: "stream",
-        };
+        options?: IDownloadOptions,
+    ): Promise<IDownloadResult> {
+        const request = this.setupRequest(
+            {
+                method: "GET",
+                url: requestUrl,
+                headers: options?.headers,
+                signal: options?.signal,
+                timeoutMs: options?.timeoutMs,
+            },
+            "stream",
+        );
 
         let response: AxiosResponse<Readable>;
         try {
-            response = await this.get<Readable>(request.requestUrl, requestConfig);
+            response = await this.send<Readable>(request.requestUrl, request.config);
         } catch (error) {
             throw new HttpDownloadError("request", error as NodeJS.ErrnoException);
         }
 
+        const result = toDownloadResult(response);
         const totalBytes = this.getContentLength(response.headers["content-length"]);
         let downloadedBytes = 0;
         options?.onProgress?.({
@@ -266,12 +141,9 @@ export class HttpClient {
             percentage: totalBytes === undefined ? undefined : 0,
         });
 
-        if (response.status !== 200) {
+        if (!result.ok) {
             response.data.destroy();
-            return {
-                status: response.status,
-                headers: response.headers,
-            };
+            return result;
         }
 
         await new Promise<void>((resolve, reject) => {
@@ -319,27 +191,111 @@ export class HttpClient {
             response.data.pipe(destinationStream);
         });
 
+        return result;
+    }
+
+    /**
+     * Validates the configured proxy settings.
+     *
+     * @returns A localized warning for the first invalid proxy, or `undefined` when all proxies
+     * are valid or unset.
+     */
+    protected getInvalidProxySettingsWarning(): string | undefined {
+        for (const proxy of this.getProxyCandidatesForValidation()) {
+            const warning = this.getInvalidProxyWarning(proxy);
+            if (warning) {
+                return warning;
+            }
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Validates a proxy endpoint and logs an invalid setting.
+     *
+     * @param proxy The proxy endpoint to validate.
+     * @returns A localized warning when the proxy is invalid; otherwise, `undefined`.
+     */
+    private getInvalidProxyWarning(proxy: string): string | undefined {
+        let message: string | undefined;
+        let localizedMessage: string | undefined;
+        const redactedProxy = redactProxySecrets(proxy);
+
+        try {
+            const scheme = this.dependencies.parseUriScheme
+                ? this.dependencies.parseUriScheme(proxy)
+                : new URL(proxy).protocol;
+
+            if (!scheme) {
+                message = `Proxy settings found, but without a protocol (e.g. http://): '${redactedProxy}'.  You may encounter connection issues while using this extension.`;
+                localizedMessage = ProxyMessages.missingProtocolWarning(redactedProxy);
+            }
+        } catch (error) {
+            const errorMessage = redactProxySecrets(
+                getErrorMessage(error).replaceAll(proxy, redactedProxy),
+            );
+            message = `Proxy settings found, but encountered an error while parsing the URL: '${redactedProxy}'.  You may encounter connection issues while using this extension.  Error: ${errorMessage}`;
+            localizedMessage = ProxyMessages.unparseableWarning(redactedProxy, errorMessage);
+        }
+
+        if (message) {
+            this.logger?.warn(message);
+        }
+
+        return localizedMessage;
+    }
+
+    /**
+     * Parses a request and builds the URL and Axios configuration used to send it.
+     *
+     * @param request The HTTP request to configure.
+     * @param responseType The optional Axios response type.
+     * @returns The normalized request URL and its Axios configuration.
+     */
+    private setupRequest<TBody>(
+        request: IHttpRequest<TBody>,
+        responseType?: "stream",
+    ): { requestUrl: string; config: AxiosRequestConfig } {
+        const requestUrl = new URL(request.url.toString());
+        const config = this.setupConfigAndProxyForRequest(requestUrl, request.headers);
+        config.method = request.method;
+        config.data = request.body;
+        config.signal = request.signal;
+        config.timeout = request.timeoutMs;
+        config.responseType = responseType;
+
         return {
-            status: response.status,
-            headers: response.headers,
+            requestUrl: this.constructRequestUrl(requestUrl, config),
+            config,
         };
     }
 
-    private setupConfigAndProxyForRequest(requestUrl: string, token?: string): AxiosRequestConfig {
-        const headers: { "Content-Type": string; Authorization?: string } = {
-            "Content-Type": "application/json",
-        };
-
-        if (token) {
-            headers.Authorization = `Bearer ${token}`;
-        }
-
+    /**
+     * Builds the Axios configuration and attaches a protocol-appropriate proxy agent.
+     *
+     * @param requestUrl The parsed request URL.
+     * @param headers The headers to include in the request.
+     * @returns The Axios configuration for the request.
+     */
+    private setupConfigAndProxyForRequest(
+        requestUrl: URL,
+        headers: HttpRequestHeaders = {},
+    ): AxiosRequestConfig {
         const config: AxiosRequestConfig = {
-            headers,
+            headers: { ...headers },
             validateStatus: () => true,
         };
 
-        const proxy = this.loadProxyConfig();
+        if (this.shouldBypassProxy(requestUrl)) {
+            this.logger?.debug(
+                `Request endpoint '${requestUrl.origin}' matched the proxy bypass list.`,
+            );
+            config.proxy = false;
+            return config;
+        }
+
+        const proxy = this.getProxyForRequest(requestUrl);
 
         if (proxy) {
             this.logger?.debug(
@@ -352,7 +308,7 @@ export class HttpClient {
                 proxy,
                 this.dependencies.getProxyStrictSSL?.(),
             );
-            if (requestUrl.startsWith("https")) {
+            if (requestUrl.protocol === "https:") {
                 config.httpsAgent = agent.agent;
             } else {
                 config.httpAgent = agent.agent;
@@ -361,100 +317,127 @@ export class HttpClient {
         return config;
     }
 
-    private get<TResponse>(
+    private send<TResponse>(
         requestUrl: string,
         config: AxiosRequestConfig,
     ): Promise<AxiosResponse<TResponse>> {
-        return axios.get<TResponse>(requestUrl, config);
+        return axios.request<TResponse>({ ...config, url: requestUrl });
     }
 
-    private post<TResponse, TPayload>(
-        requestUrl: string,
-        payload: TPayload,
-        config: AxiosRequestConfig,
-    ): Promise<AxiosResponse<TResponse>> {
-        return axios.post<TResponse>(requestUrl, payload, config);
+    /**
+     * Determines whether a request should bypass the configured proxy.
+     *
+     * Uses host patterns from the host configuration when present, otherwise falling back to the
+     * `no_proxy` or `NO_PROXY` environment variable.
+     *
+     * @param requestUrl The parsed request URL to evaluate against the bypass rules.
+     * @returns `true` when any configured rule matches the request endpoint; otherwise, `false`.
+     */
+    private shouldBypassProxy(requestUrl: URL): boolean {
+        const configuredRules = this.dependencies.getNoProxyConfig?.() ?? [];
+        const environmentRules = (process.env.no_proxy ?? process.env.NO_PROXY ?? "").split(
+            /[,\s]+/,
+        );
+        const bypassRules = configuredRules.length > 0 ? configuredRules : environmentRules;
+
+        return bypassRules.some((rule) => matchesProxyBypassRule(requestUrl, rule));
     }
 
-    private loadProxyConfig(): string | undefined {
-        let proxy = this.dependencies.getProxyConfig?.();
-
-        if (!proxy) {
-            this.logger?.debug(
-                "Workspace HTTP config didn't contain a proxy endpoint. Checking environment variables.",
-            );
-            proxy = this.loadEnvironmentProxyValue();
-        }
-
-        return proxy;
-    }
-
-    private constructRequestUrl(requestUrl: string, config: AxiosRequestConfig): string {
-        if (!config.proxy) {
-            const parsedRequestUrl = new URL(requestUrl);
-            const port =
-                parsedRequestUrl.port ||
-                (parsedRequestUrl.protocol?.startsWith("https") ? HTTPS_PORT : HTTP_PORT);
-
-            return `${parsedRequestUrl.protocol}//${parsedRequestUrl.hostname}:${port}${parsedRequestUrl.pathname}${parsedRequestUrl.search}`;
-        }
-        return requestUrl;
-    }
-
-    private loadEnvironmentProxyValue(): string | undefined {
-        const HTTP_PROXY = "HTTP_PROXY";
-        const HTTPS_PROXY = "HTTPS_PROXY";
-
-        if (!process) {
-            this.logger?.debug(
-                "No process object found, unable to read environment variables for proxy.",
-            );
-            return undefined;
-        }
-
-        if (process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()]) {
-            this.logger?.debug("Loading proxy value from HTTP_PROXY environment variable.");
-            return process.env[HTTP_PROXY] || process.env[HTTP_PROXY.toLowerCase()];
-        } else if (process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()]) {
-            this.logger?.debug("Loading proxy value from HTTPS_PROXY environment variable.");
-            return process.env[HTTPS_PROXY] || process.env[HTTPS_PROXY.toLowerCase()];
+    /**
+     * Selects the workspace proxy or the environment proxy for the request protocol.
+     *
+     * @param requestUrl The parsed request URL used to select an environment proxy.
+     * @returns The selected proxy endpoint, or `undefined` when no proxy applies.
+     */
+    private getProxyForRequest(requestUrl: URL): string | undefined {
+        const configuredProxy = this.dependencies.getProxyConfig?.();
+        if (configuredProxy) {
+            return configuredProxy;
         }
 
         this.logger?.debug(
-            "No proxy value found in either HTTPS_PROXY or HTTP_PROXY environment variables.",
+            "Workspace HTTP config didn't contain a proxy endpoint. Checking environment variables.",
         );
-        return undefined;
+        return this.getEnvironmentProxyForRequest(requestUrl);
     }
 
-    private createProxyAgent(
-        requestUrl: string,
-        proxy: string,
-        proxyStrictSSL?: boolean,
-    ): ProxyAgent {
-        const agentOptions = this.getProxyAgentOptions(new URL(requestUrl), proxy, proxyStrictSSL);
-        if (!agentOptions || !agentOptions.host || !agentOptions.port) {
-            this.logger?.error("Unable to read proxy agent options to create proxy agent.");
-            throw new Error(
-                this.dependencies.messages?.unableToGetProxyAgentOptions ??
-                    UnableToGetProxyAgentOptionsMessage,
-            );
+    /**
+     * Adds the default protocol port when Axios proxy handling is disabled.
+     *
+     * @param requestUrl The parsed request URL.
+     * @param config The Axios configuration for the request.
+     * @returns The request URL with an explicit port when required.
+     */
+    private constructRequestUrl(requestUrl: URL, config: AxiosRequestConfig): string {
+        if (!config.proxy) {
+            const port =
+                requestUrl.port || (requestUrl.protocol === "https:" ? HTTPS_PORT : HTTP_PORT);
+
+            return `${requestUrl.protocol}//${requestUrl.hostname}:${port}${requestUrl.pathname}${requestUrl.search}`;
+        }
+        return requestUrl.toString();
+    }
+
+    /**
+     * Gets the configured proxies that should be checked for diagnostic warnings.
+     *
+     * @returns The workspace proxy, or the protocol-specific environment proxies when no
+     * workspace proxy is configured.
+     */
+    private getProxyCandidatesForValidation(): string[] {
+        const configuredProxy = this.dependencies.getProxyConfig?.();
+        if (configuredProxy) {
+            return [configuredProxy];
         }
 
+        this.logger?.debug(
+            "Workspace HTTP config didn't contain a proxy endpoint. Checking environment variables.",
+        );
+        return [
+            process.env.HTTPS_PROXY || process.env.https_proxy,
+            process.env.HTTP_PROXY || process.env.http_proxy,
+        ].filter((proxy): proxy is string => Boolean(proxy));
+    }
+
+    /**
+     * Creates the tunnel agent for the request and proxy protocols.
+     *
+     * @param requestUrl The parsed request URL.
+     * @param proxy The proxy endpoint through which the request will be sent.
+     * @param proxyStrictSSL Whether the proxy certificate must pass validation.
+     * @returns The configured proxy agent.
+     */
+    private createProxyAgent(requestUrl: URL, proxy: string, proxyStrictSSL?: boolean): ProxyAgent {
+        const agentOptions = this.getProxyAgentOptions(proxy, proxyStrictSSL);
+        if (!agentOptions || !agentOptions.host || !agentOptions.port) {
+            this.logger?.error("Unable to read proxy agent options to create proxy agent.");
+            throw new Error(ProxyMessages.unableToGetProxyAgentOptions);
+        }
+
+        const isHttpsProxy = agentOptions.protocol === "https:";
         const tunnelOptions: tunnel.HttpsOverHttpsOptions = {
             proxy: {
                 host: agentOptions.host,
                 port: Number(agentOptions.port),
                 ...(agentOptions.auth ? { proxyAuth: agentOptions.auth } : {}),
+                ...(isHttpsProxy ? { rejectUnauthorized: agentOptions.rejectUnauthorized } : {}),
             },
         };
 
-        const isHttpsRequest = requestUrl.startsWith("https");
-        const isHttpsProxy = proxy.startsWith("https");
+        const isHttpsRequest = requestUrl.protocol === "https:";
         return {
             agent: this.createTunnelingAgent(isHttpsRequest, isHttpsProxy, tunnelOptions),
         };
     }
 
+    /**
+     * Creates the tunnel implementation for the request and proxy protocol combination.
+     *
+     * @param isHttpsRequest Whether the request uses HTTPS.
+     * @param isHttpsProxy Whether the proxy endpoint uses HTTPS.
+     * @param tunnelOptions The proxy options passed to the tunnel package.
+     * @returns An HTTP or HTTPS tunneling agent for the protocol combination.
+     */
     private createTunnelingAgent(
         isHttpsRequest: boolean,
         isHttpsProxy: boolean,
@@ -475,18 +458,18 @@ export class HttpClient {
         return tunnel.httpOverHttp(tunnelOptions);
     }
 
+    /**
+     * Parses a proxy endpoint into the options required by the tunnel package.
+     *
+     * @param proxy The proxy endpoint to parse.
+     * @param strictSSL Whether the proxy certificate must pass validation.
+     * @returns Parsed proxy-agent options, or `undefined` for an unsupported proxy protocol.
+     */
     private getProxyAgentOptions(
-        requestUrl: URL,
-        proxy?: string,
+        proxy: string,
         strictSSL?: boolean,
     ): ProxyAgentOptions | undefined {
-        const proxyUrl = proxy || this.getSystemProxyUrl(requestUrl);
-
-        if (!proxyUrl) {
-            return undefined;
-        }
-
-        const proxyEndpoint = new URL(proxyUrl);
+        const proxyEndpoint = new URL(proxy);
         if (!/^https?:$/.test(proxyEndpoint.protocol)) {
             return undefined;
         }
@@ -497,6 +480,7 @@ export class HttpClient {
                 : undefined;
 
         return {
+            protocol: proxyEndpoint.protocol,
             host: proxyEndpoint.hostname,
             port: proxyEndpoint.port
                 ? Number(proxyEndpoint.port)
@@ -508,7 +492,13 @@ export class HttpClient {
         };
     }
 
-    private getSystemProxyUrl(requestUrl: URL): string | undefined {
+    /**
+     * Selects an environment proxy according to the request protocol.
+     *
+     * @param requestUrl The parsed request URL.
+     * @returns The matching environment proxy, or `undefined` when none applies.
+     */
+    private getEnvironmentProxyForRequest(requestUrl: URL): string | undefined {
         if (requestUrl.protocol === "http:") {
             return process.env.HTTP_PROXY || process.env.http_proxy || undefined;
         } else if (requestUrl.protocol === "https:") {
@@ -534,6 +524,53 @@ export class HttpClient {
     }
 }
 
+function toHttpResponse<TResponse>(response: AxiosResponse<TResponse>): IHttpResponse<TResponse> {
+    return {
+        data: response.data,
+        status: response.status,
+        statusText: response.statusText ?? "",
+        ok: isSuccessStatus(response.status),
+        headers: createHttpHeaders(toHeaderRecord(response.headers)),
+    };
+}
+
+function toDownloadResult(response: AxiosResponse<Readable>): IDownloadResult {
+    return {
+        status: response.status,
+        statusText: response.statusText ?? "",
+        ok: isSuccessStatus(response.status),
+        headers: createHttpHeaders(toHeaderRecord(response.headers)),
+    };
+}
+
+function toHeaderRecord(headers: unknown): Record<string, unknown> {
+    if (typeof headers !== "object" || headers === null) {
+        return {};
+    }
+
+    return Object.fromEntries(Object.entries(headers as Record<string, unknown>));
+}
+
+function isSuccessStatus(status: number): boolean {
+    return status >= 200 && status < 300;
+}
+
+function withDefaultHeaders(
+    headers: HttpRequestHeaders | undefined,
+    defaults: Record<string, string>,
+): HttpRequestHeaders {
+    const merged: Record<string, string> = { ...headers };
+    const supplied = new Set(Object.keys(merged).map((name) => name.toLowerCase()));
+
+    for (const [name, value] of Object.entries(defaults)) {
+        if (!supplied.has(name.toLowerCase())) {
+            merged[name] = value;
+        }
+    }
+
+    return merged;
+}
+
 interface ProxyAgent {
     agent: http.Agent | https.Agent;
 }
@@ -542,10 +579,100 @@ interface ProxyAgentOptions {
     auth: string | undefined;
     host?: string | null;
     port?: string | number | null;
+    protocol: string;
     rejectUnauthorized: boolean;
 }
 
-/** Error raised by `downloadFile` when request or response streaming fails. */
+/**
+ * Determines whether a request endpoint matches a proxy bypass rule.
+ *
+ * Supports domains, leading-dot domains, wildcard subdomains, optional schemes and ports, and the
+ * `*` rule that bypasses the proxy for every endpoint. Plain and leading-dot domains match the
+ * domain itself and its subdomains, while `*.` rules match subdomains only.
+ *
+ * @param requestEndpoint The parsed request URL to match.
+ * @param value The proxy bypass rule to evaluate.
+ * @returns `true` when the endpoint matches the rule; otherwise, `false`.
+ */
+function matchesProxyBypassRule(requestEndpoint: URL, value: string): boolean {
+    const rule = value.trim().toLowerCase();
+    if (!rule) {
+        return false;
+    }
+    if (rule === "*") {
+        return true;
+    }
+
+    let ruleHost: string;
+    let rulePort: string | undefined;
+    if (rule.includes("://")) {
+        try {
+            const ruleEndpoint = new URL(rule);
+            ruleHost = ruleEndpoint.hostname;
+            rulePort = ruleEndpoint.port || undefined;
+        } catch {
+            return false;
+        }
+    } else {
+        const match = rule.match(/^(.+):(\d+)$/);
+        ruleHost = match?.[1] ?? rule;
+        rulePort = match?.[2];
+    }
+
+    const requestPort =
+        requestEndpoint.port ||
+        (requestEndpoint.protocol === "https:" ? String(HTTPS_PORT) : String(HTTP_PORT));
+    if (rulePort && rulePort !== requestPort) {
+        return false;
+    }
+
+    const requestHost = requestEndpoint.hostname.toLowerCase();
+    if (ruleHost.startsWith("*.")) {
+        ruleHost = ruleHost.slice(2);
+        return requestHost.endsWith(`.${ruleHost}`);
+    }
+    if (ruleHost.startsWith(".")) {
+        ruleHost = ruleHost.slice(1);
+    }
+
+    return requestHost === ruleHost || requestHost.endsWith(`.${ruleHost}`);
+}
+
+/**
+ * Redacts credentials and query or fragment values from proxy URL-like strings.
+ *
+ * Examples:
+ * - `http://user:password@proxy.example.com:8080` becomes
+ *   `http://<redacted>@proxy.example.com:8080`.
+ * - `http://proxy.example.com:8080?token=secret#fragment` becomes
+ *   `http://proxy.example.com:8080<redacted>`.
+ * - `proxy.example.com:8080` remains usable as a protocol-less proxy value while
+ *   still redacting any credentials or query and fragment values.
+ */
+function redactProxySecrets(proxy: string): string {
+    const schemeSeparatorIndex = proxy.indexOf("://");
+    const authorityStart = schemeSeparatorIndex >= 0 ? schemeSeparatorIndex + 3 : 0;
+    const authorityEnd = ["/", "?", "#"]
+        .map((separator) => proxy.indexOf(separator, authorityStart))
+        .filter((index) => index >= 0)
+        .reduce((first, index) => Math.min(first, index), proxy.length);
+    const credentialSeparatorIndex = proxy.lastIndexOf("@", authorityEnd - 1);
+
+    let redacted =
+        credentialSeparatorIndex >= authorityStart
+            ? `${proxy.slice(0, authorityStart)}<redacted>@${proxy.slice(credentialSeparatorIndex + 1)}`
+            : proxy;
+    const sensitiveSuffixIndex = [redacted.indexOf("?"), redacted.indexOf("#")]
+        .filter((index) => index >= 0)
+        .reduce((first, index) => Math.min(first, index), redacted.length);
+    if (sensitiveSuffixIndex < redacted.length) {
+        redacted = `${redacted.slice(0, sensitiveSuffixIndex)}<redacted>`;
+    }
+
+    return redacted;
+}
+
+/** Error raised by a download when request or response streaming fails. */
 export class HttpDownloadError extends Error {
     /**
      * Creates a download error with phase metadata.

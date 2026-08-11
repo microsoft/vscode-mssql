@@ -12,6 +12,7 @@ import {
     DialogSurface,
     DialogTitle,
     makeStyles,
+    mergeClasses,
 } from "@fluentui/react-components";
 import { useSetKeyboardNavigation } from "@fluentui/react-tabster";
 import { ReactElement, ReactNode, useEffect, useRef } from "react";
@@ -173,7 +174,7 @@ export function PublishDialogReport({
         <div className={classes.reportLayout}>
             {header}
             <div className={classes.reportScroll}>
-                <div className={`${markdownClasses.markdownPage} ${classes.markdownFill}`}>
+                <div className={mergeClasses(markdownClasses.markdownPage, classes.markdownFill)}>
                     <Markdown>{markdown}</Markdown>
                 </div>
             </div>

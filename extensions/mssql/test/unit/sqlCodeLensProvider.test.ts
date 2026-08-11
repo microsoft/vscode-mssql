@@ -34,9 +34,12 @@ suite("SqlCodeLensProvider Tests", () => {
             new vscode.Disposable(() => {});
 
         getConnectionById = sandbox.stub().resolves(undefined);
-        (connectionManager as any).connectionStore = {
-            connectionConfig: { getConnectionById },
-        };
+        sandbox.stub(connectionManager, "connectionStore").get(
+            () =>
+                ({
+                    connectionConfig: { getConnectionById },
+                }) as any,
+        );
 
         document = {
             uri: vscode.Uri.parse("file:///test.sql"),

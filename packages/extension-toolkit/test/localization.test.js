@@ -6,15 +6,15 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { describe, it } = require("node:test");
+const { suite, test } = require("node:test");
 const l10n = require("@vscode/l10n");
 const { resolveLocalizationLanguage } = require("../dist/vscode/localization/language.js");
-const { ProxyMessages } = require("../dist/vscode/localization/locConstants.js");
+const { ProxyMessages } = require("../dist/base/localization/locConstants.js");
 
 const l10nDirectory = path.resolve(__dirname, "..", "l10n");
 
-describe("toolkit localization", () => {
-    it("resolves supported VS Code languages and falls back to English", () => {
+suite("toolkit localization", () => {
+    test("resolves supported VS Code languages and falls back to English", () => {
         assert.equal(resolveLocalizationLanguage("de"), "de");
         assert.equal(resolveLocalizationLanguage("fr-CA"), "fr");
         assert.equal(resolveLocalizationLanguage("pt"), "pt-br");
@@ -23,7 +23,7 @@ describe("toolkit localization", () => {
         assert.equal(resolveLocalizationLanguage(undefined), "en");
     });
 
-    it("keeps every translated bundle aligned with the English source bundle", () => {
+    test("keeps every translated bundle aligned with the English source bundle", () => {
         const englishBundle = readBundle("bundle.l10n.json");
         const expectedKeys = Object.keys(englishBundle).sort();
 
@@ -36,8 +36,18 @@ describe("toolkit localization", () => {
         }
     });
 
-    it("loads translated messages and replaces parameters", () => {
-        l10n.config({ contents: readBundle("bundle.l10n.de.json") });
+    test("loads localized messages and replaces parameters", () => {
+        const englishBundle = readBundle("bundle.l10n.json");
+        const missingProtocolKey = Object.keys(englishBundle).find((key) =>
+            key.startsWith("Proxy settings found, but without a protocol"),
+        );
+        assert.ok(missingProtocolKey);
+        l10n.config({
+            contents: {
+                [missingProtocolKey]:
+                    "Proxyeinstellungen gefunden, jedoch ohne Protokoll (z. B. http://): „{0}“. Es können Verbindungsprobleme auftreten.",
+            },
+        });
 
         assert.equal(
             ProxyMessages.missingProtocolWarning("proxy.example"),

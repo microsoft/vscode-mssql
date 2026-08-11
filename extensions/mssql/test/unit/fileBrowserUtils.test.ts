@@ -61,7 +61,6 @@ suite("File Browser Utilities", () => {
             title: "Test Panel",
             viewColumn: vscode.ViewColumn.One,
             preserveFocus: true,
-            iconPath: vscode.Uri.file("path"),
             showRestorePromptAfterClose: true,
         };
 

@@ -7,3 +7,4 @@ export * from "./common";
 export * from "./di";
 export * from "./http";
 export * from "./lifecycle";
+export * from "./localization";

@@ -47,6 +47,7 @@ suite("ExecutionPlanWebviewController", () => {
                 loadState: ApiStatus.Loading,
                 executionPlanGraphs: [],
                 totalCost: 0,
+                isBetaExecutionPlanEnabled: false,
             },
         };
 
@@ -55,6 +56,7 @@ suite("ExecutionPlanWebviewController", () => {
                 executionPlanGraphs: [],
                 loadState: ApiStatus.Loaded,
                 totalCost: 100,
+                isBetaExecutionPlanEnabled: false,
             },
         };
 
@@ -179,6 +181,7 @@ suite("ExecutionPlanWebviewController", () => {
                 executionPlanGraphs: [],
                 loadState: ApiStatus.Loaded,
                 totalCost: 100,
+                isBetaExecutionPlanEnabled: false,
             },
         });
 

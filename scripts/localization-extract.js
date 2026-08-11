@@ -22,7 +22,7 @@ const PROJECT_CONFIG = {
     "extension-toolkit": {
         projectPath: "packages/extension-toolkit",
         xliffName: "extension-toolkit",
-        sourceFiles: ["src/vscode/localization/locConstants.ts"],
+        sourceFiles: ["src/base/localization/locConstants.ts"],
         includePackageLocalization: false,
     },
     mssql: {
