@@ -202,7 +202,7 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
     // NOTE: This region exists only to bridge the tree-entry (file path only) flow into the
     // existing Move-to-Schema document+position flow. If STS exposes an API that resolves the
     // movable object position from a file path, replace this entire region with that STS call.
-
+    // TODO Task: https://github.com/microsoft/vscode-mssql/issues/22709
     /**
      * Starts Move to Schema from a Database Projects tree file path.
      */

@@ -695,6 +695,70 @@ suite("SqlMoveToSchemaProvider Tests", () => {
             );
         });
 
+        test("ignores CREATE text in comments and string literals", async () => {
+            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            showQuickPickStub.resolves({ label: "hr" });
+            sendRequestStub.withArgs(ListProjectSchemasRequest.type).resolves({ schemas: ["hr"] });
+            sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({ changes: {} });
+
+            const document = makeMoveDocument(sandbox, {
+                lineText:
+                    "-- CREATE TABLE dbo.CommentedOut\n/* CREATE VIEW dbo.BlockCommentedOut */\nSELECT 'CREATE VIEW dbo.InString';\nCREATE TABLE dbo.RealTable;",
+            });
+            sandbox.stub(vscode.workspace, "openTextDocument").resolves(document);
+
+            await provider.runMoveToSchemaFromFilePath(defaultSqlFile);
+
+            expect(sendRequestStub).to.have.been.calledWith(
+                SqlMoveToSchemaRequest.type,
+                sinon.match({
+                    position: { line: 3, character: 17 },
+                }),
+            );
+        });
+
+        test("resolves the object token for CREATE OR ALTER with quoted names", async () => {
+            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            showQuickPickStub.resolves({ label: "hr" });
+            sendRequestStub.withArgs(ListProjectSchemasRequest.type).resolves({ schemas: ["hr"] });
+            sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({ changes: {} });
+
+            const document = makeMoveDocument(sandbox, {
+                lineText: "CREATE OR ALTER VIEW [sales].[Order Details] AS SELECT 1;",
+            });
+            sandbox.stub(vscode.workspace, "openTextDocument").resolves(document);
+
+            await provider.runMoveToSchemaFromFilePath(defaultSqlFile);
+
+            expect(sendRequestStub).to.have.been.calledWith(
+                SqlMoveToSchemaRequest.type,
+                sinon.match({
+                    position: { line: 0, character: 29 },
+                }),
+            );
+        });
+
+        test("skips unsupported object types and finds a later supported definition", async () => {
+            findFilesStub.resolves([vscode.Uri.file(defaultProjFile)]);
+            showQuickPickStub.resolves({ label: "hr" });
+            sendRequestStub.withArgs(ListProjectSchemasRequest.type).resolves({ schemas: ["hr"] });
+            sendRequestStub.withArgs(SqlMoveToSchemaRequest.type).resolves({ changes: {} });
+
+            const document = makeMoveDocument(sandbox, {
+                lineText: "CREATE DATABASE MyDatabase;\nCREATE SEQUENCE dbo.OrderSequence;",
+            });
+            sandbox.stub(vscode.workspace, "openTextDocument").resolves(document);
+
+            await provider.runMoveToSchemaFromFilePath(defaultSqlFile);
+
+            expect(sendRequestStub).to.have.been.calledWith(
+                SqlMoveToSchemaRequest.type,
+                sinon.match({
+                    position: { line: 1, character: 20 },
+                }),
+            );
+        });
+
         test("shows error when opening a file path fails", async () => {
             const error = new Error("File not found");
             sandbox.stub(vscode.workspace, "openTextDocument").rejects(error);
