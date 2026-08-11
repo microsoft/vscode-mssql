@@ -211,7 +211,7 @@
                 {
                     "id": "queryResult",
                     "title": "%extension.queryResult%",
-                    "icon": "media/SignIn.svg"
+                    "icon": "media/queryResultView.svg"
                 }
             ]
         },
