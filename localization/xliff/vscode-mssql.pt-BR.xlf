@@ -3916,10 +3916,6 @@ Erro:
         <source xml:lang="en">Execution cancelled</source>
         <target state="translated">Execução cancelada</target>
       </trans-unit>
-      <trans-unit id="++CODE++5b273fdcb747a01d31053e82b95e940110b6fe3d05d9bffc057856d6f21d127b">
-        <source xml:lang="en">Execution plan</source>
-        <target state="translated">Plano de execução</target>
-      </trans-unit>
       <trans-unit id="++CODE++a49223aa30fb671e98c03012a63a1c68e98b7cf3c612f59d98ba0057c54da0c9">
         <source xml:lang="en">Execution plan details</source>
         <target state="translated">Detalhes do plano de execução</target>
@@ -3927,6 +3923,11 @@ Erro:
       <trans-unit id="++CODE++88a9a5f2694fe0574b7aedb637b626756bd9b763fe1f9853852480a5952e6c1d">
         <source xml:lang="en">Execution plan toolbar</source>
         <target state="translated">Barra de ferramentas do plano de execução</target>
+      </trans-unit>
+      <trans-unit id="++CODE++2755320f7f041c845a3a28a6143d1595e153faab71dbe4b039f618d209b12c7c">
+        <source xml:lang="en">Execution plan {0}, use arrow keys to navigate between nodes</source>
+        <note>{0} is the one-based execution plan number</note>
+        <target state="new">Execution plan {0}, use arrow keys to navigate between nodes</target>
       </trans-unit>
       <trans-unit id="++CODE++9c1c3546bc3e94eb9cf8d7e8bef7d64b5f0213e752e4be0185a9ffc4d87f671c">
         <source xml:lang="en">Execution time unavailable</source>
