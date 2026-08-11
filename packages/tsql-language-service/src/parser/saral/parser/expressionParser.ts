@@ -1300,7 +1300,7 @@ export abstract class ExpressionParser extends ParserBase {
     protected parseDataType(): string {
         return this.collectTypeTokens({
             extraStopTokenTypes: [TokenType.Semicolon],
-            extraStopKeywords: ["OUTPUT", "OUT", "READONLY"],
+            extraStopKeywords: ["OUTPUT", "OUT", "READONLY", "VARYING"],
             stopOnResyncKeywords: true,
             stopOnVariable: true,
             stopOnAssignmentOperator: true,

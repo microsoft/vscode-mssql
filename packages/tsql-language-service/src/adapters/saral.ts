@@ -28,7 +28,19 @@ import {
     type IncrementalAnalysisSnapshot,
     type IncrementalParseStatistics,
 } from "../parser/incremental/incrementalBatchParser.js";
-import type { DocumentSchemaEvolution } from "../semantic/index.js";
+import type {
+    CastExpression,
+    CreateNode,
+    DeclareNode,
+    FunctionCallNode,
+} from "../parser/saral/ast/types.js";
+import {
+    canonicalSqlDataTypeName,
+    parseSqlDataType,
+    sqlServerDataTypeNamesForUsage,
+    type DocumentSchemaEvolution,
+    type SqlDataTypeUsage,
+} from "../semantic/index.js";
 import {
     createDocumentSchemaEvolution,
     DocumentSchemaCatalogProvider,
@@ -64,6 +76,7 @@ import type {
     SqlType,
     SqlCatalogProvider,
     SqlCatalogColumn,
+    SqlCatalogObject,
 } from "../analysis/contracts.js";
 
 const supported = Object.freeze({ level: "supported" as const });
@@ -296,6 +309,7 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
                 this._documentSchema,
                 this._analysis,
             ),
+            ...catalogDataTypeDiagnostics(this._symbols, (offset) => this.catalogAt(offset)),
         ]);
     }
 
@@ -427,10 +441,19 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
                 });
             });
             if (context.kind === "type") {
-                for (const dataType of builtinDataTypes) {
+                const xmlSchemaContext = xmlSchemaCompletionPrefix(this.text, boundedOffset);
+                const typeUsage = dataTypeUsageAt(this.text, boundedOffset);
+                for (const dataType of xmlSchemaContext
+                    ? []
+                    : sqlServerDataTypeNamesForUsage(typeUsage)) {
                     if (
                         !dataType.startsWith(context.prefix.toLocaleLowerCase()) ||
-                        items.some((item) => foldName(item.label) === foldName(dataType))
+                        items.some(
+                            (item) =>
+                                item.kind === "type" &&
+                                item.label.toLocaleLowerCase("en-US") ===
+                                    dataType.toLocaleLowerCase("en-US"),
+                        )
                     ) {
                         continue;
                     }
@@ -440,6 +463,57 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
                             kind: "type" as const,
                             detail: "T-SQL data type",
                             documentation: `Built-in T-SQL data type \`${dataType}\`.`,
+                        }),
+                    );
+                }
+                const requestedType = [...context.qualifiers, context.prefix];
+                const catalogTypes = xmlSchemaContext
+                    ? (catalog.xmlSchemaCandidates?.(requestedType) ?? [])
+                    : (catalog.typeCandidates?.(requestedType) ?? []);
+                for (const type of catalogTypes) {
+                    const name = type.parts.at(-1) ?? "";
+                    if (!name.toLocaleLowerCase().startsWith(context.prefix.toLocaleLowerCase())) {
+                        continue;
+                    }
+                    const label =
+                        context.qualifiers.length > 0 ? name : type.parts.slice(-2).join(".");
+                    if (items.some((item) => foldName(item.label) === foldName(label))) {
+                        continue;
+                    }
+                    items.push(
+                        Object.freeze({
+                            label,
+                            kind: "type" as const,
+                            detail: catalogTypeDetail(type),
+                            documentation: completionDocumentation(
+                                label,
+                                "type",
+                                catalogTypeDetail(type),
+                            ),
+                        }),
+                    );
+                }
+            }
+            const staticType = staticTypeCompletionPrefix(this.text, boundedOffset);
+            if (staticType) {
+                for (const member of staticTypeFunctions[staticType.type] ?? []) {
+                    if (
+                        !member.name
+                            .toLocaleLowerCase()
+                            .startsWith(staticType.filter.toLocaleLowerCase())
+                    ) {
+                        continue;
+                    }
+                    items.push(
+                        Object.freeze({
+                            label: member.name,
+                            kind: "function" as const,
+                            detail: `${member.returnType} — ${staticType.type.toLocaleLowerCase()} static method`,
+                            documentation: completionDocumentation(
+                                member.name,
+                                "function",
+                                member.returnType,
+                            ),
                         }),
                     );
                 }
@@ -976,8 +1050,91 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
 
 const unknownType: SqlType = Object.freeze({ kind: "unknown", display: "unknown" });
 
+interface StaticTypeFunction {
+    readonly name: string;
+    readonly returnType: string;
+    readonly parameters: readonly string[];
+}
+
+function spatialStaticFunctions(
+    type: "GEOGRAPHY" | "GEOMETRY",
+    pointParameters: readonly string[],
+): readonly StaticTypeFunction[] {
+    const constructors = [
+        ["STGeomCollFromText", "spatial_text"],
+        ["STGeomCollFromWKB", "spatial_wkb"],
+        ["STGeomFromText", "spatial_text"],
+        ["STGeomFromWKB", "spatial_wkb"],
+        ["STLineFromText", "spatial_text"],
+        ["STLineFromWKB", "spatial_wkb"],
+        ["STMLineFromText", "spatial_text"],
+        ["STMLineFromWKB", "spatial_wkb"],
+        ["STMPointFromText", "spatial_text"],
+        ["STMPointFromWKB", "spatial_wkb"],
+        ["STMPolyFromText", "spatial_text"],
+        ["STMPolyFromWKB", "spatial_wkb"],
+        ["STPointFromText", "spatial_text"],
+        ["STPointFromWKB", "spatial_wkb"],
+        ["STPolyFromText", "spatial_text"],
+        ["STPolyFromWKB", "spatial_wkb"],
+    ] as const;
+    return Object.freeze([
+        ...constructors.map(([name, value]) => ({
+            name,
+            returnType: type,
+            parameters: Object.freeze([value, "srid"]),
+        })),
+        { name: "GeomFromGml", returnType: type, parameters: ["gml", "srid"] },
+        { name: "Parse", returnType: type, parameters: ["spatial_text"] },
+        { name: "Point", returnType: type, parameters: pointParameters },
+    ]);
+}
+
+const staticTypeFunctions: Readonly<Record<string, readonly StaticTypeFunction[]>> = Object.freeze({
+    GEOGRAPHY: Object.freeze([
+        ...spatialStaticFunctions("GEOGRAPHY", ["latitude", "longitude", "srid"]),
+        {
+            name: "CollectionAggregate",
+            returnType: "GEOGRAPHY",
+            parameters: ["geography_value"],
+        },
+        {
+            name: "ConvexHullAggregate",
+            returnType: "GEOGRAPHY",
+            parameters: ["geography_value"],
+        },
+        {
+            name: "EnvelopeAggregate",
+            returnType: "GEOGRAPHY",
+            parameters: ["geography_value"],
+        },
+        {
+            name: "UnionAggregate",
+            returnType: "GEOGRAPHY",
+            parameters: ["geography_value"],
+        },
+    ]),
+    GEOMETRY: spatialStaticFunctions("GEOMETRY", ["x", "y", "srid"]),
+    HIERARCHYID: Object.freeze([
+        { name: "GetRoot", returnType: "HIERARCHYID", parameters: [] },
+        { name: "Parse", returnType: "HIERARCHYID", parameters: ["hierarchy_path"] },
+    ]),
+});
+
+const staticTypeFunctionByName: ReadonlyMap<string, StaticTypeFunction> = new Map(
+    Object.entries(staticTypeFunctions).flatMap(([type, functions]) =>
+        functions.map((member) => [`${type}.${member.name.toLocaleUpperCase()}`, member] as const),
+    ),
+);
+
 const builtinSignatures: Readonly<Record<string, readonly { readonly label: string }[]>> =
     Object.freeze({
+        ...Object.fromEntries(
+            [...staticTypeFunctionByName].map(([name, member]) => [
+                name,
+                Object.freeze(member.parameters.map((label) => Object.freeze({ label }))),
+            ]),
+        ),
         ABS: Object.freeze([{ label: "numeric_expression" }]),
         COUNT: Object.freeze([{ label: "expression" }]),
         SUM: Object.freeze([{ label: "expression" }]),
@@ -1061,44 +1218,6 @@ const builtinFunctionNames = Object.freeze([
     "vector_search",
 ]);
 
-const builtinDataTypes = Object.freeze([
-    "bigint",
-    "binary",
-    "bit",
-    "char",
-    "date",
-    "datetime",
-    "datetime2",
-    "datetimeoffset",
-    "decimal",
-    "float",
-    "geography",
-    "geometry",
-    "hierarchyid",
-    "image",
-    "int",
-    "json",
-    "money",
-    "nchar",
-    "ntext",
-    "numeric",
-    "nvarchar",
-    "real",
-    "smalldatetime",
-    "smallint",
-    "smallmoney",
-    "sql_variant",
-    "text",
-    "time",
-    "timestamp",
-    "tinyint",
-    "uniqueidentifier",
-    "varbinary",
-    "varchar",
-    "vector",
-    "xml",
-]);
-
 function identifierPrefixAt(
     text: string,
     offset: number,
@@ -1114,6 +1233,15 @@ function completionContextAt(
     tokens: readonly SqlToken[],
     offset: number,
 ): SqlCompletionContext {
+    const type = dataTypeCompletionPrefix(text, offset);
+    if (type) {
+        return Object.freeze({
+            kind: "type",
+            qualifiers: type.qualifiers,
+            prefix: type.prefix,
+            replaceSpan: freezeSpan(type.filterStart, offset, text.length),
+        });
+    }
     const relation = relationCompletionPrefix(text, offset);
     if (relation) {
         return Object.freeze({
@@ -1158,6 +1286,135 @@ function completionContextAt(
         prefix: prefix.text,
         replaceSpan: freezeSpan(prefix.start, offset, text.length),
     });
+}
+
+function dataTypeCompletionPrefix(
+    text: string,
+    offset: number,
+):
+    | {
+          readonly qualifiers: readonly string[];
+          readonly prefix: string;
+          readonly filterStart: number;
+      }
+    | undefined {
+    const xmlSchema = xmlSchemaCompletionPrefix(text, offset);
+    if (xmlSchema) {
+        return xmlSchema;
+    }
+    const before = text.slice(Math.max(0, offset - 4096), offset);
+    const identifier = String.raw`(?:\[[^\]\r\n]*\]?|"(?:[^"\r\n]|"")*"?|[A-Za-z_][\w$#@]*)`;
+    const typePrefix = String.raw`((?:${identifier}\s*\.\s*){0,2}${identifier}?)`;
+    const patterns = [
+        new RegExp(String.raw`\bDECLARE\s+@[A-Za-z_]\w*\s+(?:AS\s+)?${typePrefix}$`, "iu"),
+        new RegExp(
+            String.raw`\b(?:CAST|TRY_CAST|PARSE|TRY_PARSE)\s*\([\s\S]*\bAS\s+${typePrefix}$`,
+            "iu",
+        ),
+        new RegExp(String.raw`\bCONVERT\s*\(\s*${typePrefix}$`, "iu"),
+        new RegExp(String.raw`\bRETURNS\s+${typePrefix}$`, "iu"),
+        new RegExp(
+            String.raw`\bCREATE\s+TYPE\s+${identifier}(?:\s*\.\s*${identifier})?\s+FROM\s+${typePrefix}$`,
+            "iu",
+        ),
+        new RegExp(
+            String.raw`\b(?:CREATE|ALTER)\s+(?:PROC(?:EDURE)?|FUNCTION)\b[\s\S]*@[A-Za-z_]\w*\s+(?:AS\s+)?${typePrefix}$`,
+            "iu",
+        ),
+        new RegExp(
+            String.raw`\b(?:CREATE|ALTER)\s+TABLE\b[\s\S]*(?:\(|,)\s*${identifier}\s+${typePrefix}$`,
+            "iu",
+        ),
+        new RegExp(
+            String.raw`\bOPENJSON\s*\([\s\S]*\)\s+WITH\s*\([\s\S]*(?:\(|,)\s*${identifier}\s+${typePrefix}$`,
+            "iu",
+        ),
+    ];
+    const match = patterns.map((pattern) => pattern.exec(before)).find(Boolean);
+    if (!match) {
+        return undefined;
+    }
+    const raw = match[1] ?? "";
+    const endsWithDot = /\.\s*$/u.test(raw);
+    const parts = identifierParts(raw).map(unquoteIdentifier);
+    const prefix = endsWithDot ? "" : (parts.pop() ?? "");
+    const rawPrefix = endsWithDot
+        ? ""
+        : (/(?:\[[^\]]*\]?|"(?:[^"]|"")*"?|[A-Za-z_][\w$#@]*)\s*$/u.exec(raw)?.[0] ?? prefix);
+    return {
+        qualifiers: Object.freeze(parts),
+        prefix,
+        filterStart: offset - rawPrefix.trimEnd().length,
+    };
+}
+
+function xmlSchemaCompletionPrefix(
+    text: string,
+    offset: number,
+):
+    | {
+          readonly qualifiers: readonly string[];
+          readonly prefix: string;
+          readonly filterStart: number;
+      }
+    | undefined {
+    const before = text.slice(Math.max(0, offset - 4096), offset);
+    const match =
+        /\bXML\s*\(\s*(?:(?:CONTENT|DOCUMENT)\s+)?((?:(?:\[[^\]\r\n]*\]?|"(?:[^"\r\n]|"")*"?|[A-Za-z_][\w$#@]*)\s*\.\s*){0,2}(?:\[[^\]\r\n]*\]?|"(?:[^"\r\n]|"")*"?|[A-Za-z_][\w$#@]*)?)$/iu.exec(
+            before,
+        );
+    if (!match) return undefined;
+    const raw = match[1] ?? "";
+    const endsWithDot = /\.\s*$/u.test(raw);
+    const parts = identifierParts(raw).map(unquoteIdentifier);
+    const prefix = endsWithDot ? "" : (parts.pop() ?? "");
+    const rawPrefix = endsWithDot
+        ? ""
+        : (/(?:\[[^\]]*\]?|"(?:[^"]|"")*"?|[A-Za-z_][\w$#@]*)\s*$/u.exec(raw)?.[0] ?? prefix);
+    return {
+        qualifiers: Object.freeze(parts),
+        prefix,
+        filterStart: offset - rawPrefix.trimEnd().length,
+    };
+}
+
+function dataTypeUsageAt(text: string, offset: number): SqlDataTypeUsage {
+    const before = text.slice(Math.max(0, offset - 4096), offset);
+    if (/\bDECLARE\s+@[A-Za-z_]\w*\s+(?:AS\s+)?[^,;]*$/iu.test(before)) {
+        return "variable";
+    }
+    if (/\bRETURNS\s+[^;]*$/iu.test(before)) {
+        return "return";
+    }
+    if (
+        /\b(?:CAST|TRY_CAST|PARSE|TRY_PARSE)\s*\([\s\S]*\bAS\s+[^;]*$/iu.test(before) ||
+        /\bCONVERT\s*\(\s*[^,;]*$/iu.test(before)
+    ) {
+        return "cast";
+    }
+    if (
+        /\b(?:CREATE|ALTER)\s+(?:PROC(?:EDURE)?|FUNCTION)\b[\s\S]*@[A-Za-z_]\w*\s+(?:AS\s+)?[^,;]*$/iu.test(
+            before,
+        )
+    ) {
+        return "parameter";
+    }
+    return "column";
+}
+
+function catalogTypeDetail(type: SqlCatalogObject): string {
+    switch (type.typeKind) {
+        case "alias":
+            return type.baseType ? `Alias type — ${type.baseType}` : "Alias data type";
+        case "table":
+            return `Table type${type.columns?.length ? ` — ${type.columns.length} columns` : ""}`;
+        case "clr":
+            return "CLR user-defined type";
+        case "xmlSchema":
+            return "XML schema collection";
+        default:
+            return "User-defined data type";
+    }
 }
 
 function relationCompletionPrefix(
@@ -1279,10 +1536,12 @@ function callAt(
                 continue;
             }
             const prefix = text.slice(0, index);
-            const match = /([#@A-Za-z_][\w$#@]*(?:\s*\.\s*[#@A-Za-z_][\w$#@]*)*)\s*$/u.exec(prefix);
+            const match = /([#@A-Za-z_][\w$#@]*(?:\s*(?:\.|::)\s*[#@A-Za-z_][\w$#@]*)*)\s*$/u.exec(
+                prefix,
+            );
             return match
                 ? {
-                      name: match[1].replace(/\s+/g, ""),
+                      name: match[1].replace(/\s+/gu, "").replaceAll("::", "."),
                       activeParameter,
                   }
                 : undefined;
@@ -2139,6 +2398,16 @@ function qualifiedCompletionPrefix(
     };
 }
 
+function staticTypeCompletionPrefix(
+    text: string,
+    offset: number,
+): { readonly type: string; readonly filter: string } | undefined {
+    const match = /\b(GEOGRAPHY|GEOMETRY|HIERARCHYID)\s*::\s*([A-Za-z_]\w*)?$/iu.exec(
+        text.slice(0, offset),
+    );
+    return match ? { type: match[1].toLocaleUpperCase(), filter: match[2] ?? "" } : undefined;
+}
+
 function readTokens(text: string, positionAt: (offset: number) => SqlPosition): SqlToken[] {
     const lexer = new Lexer(text);
     const result: SqlToken[] = [];
@@ -2384,10 +2653,273 @@ function mapSymbols(
     addDerivedProjectionDefinitions(symbols, text, statements);
     addGeneratedRowsetSymbols(symbols, text);
     enrichBuiltinFunctionSymbols(symbols, statements, text);
+    addDataTypeSymbols(analysis, symbols, text, catalogAt);
     return deduplicateSymbols(symbols).sort(
         (left, right) =>
             left.span.start - right.span.start || spanWidth(left.span) - spanWidth(right.span),
     );
+}
+
+interface DataTypeUse {
+    readonly text: string;
+    readonly start: number;
+    readonly end: number;
+    readonly preferFirst?: boolean;
+}
+
+/**
+ * Adds symbols for data type occurrences which the upstream declaration/reference extractor does
+ * not model. Keeping these in the common symbol index gives hover, coloring, local navigation,
+ * and the host's scripting-definition bridge one precise identity.
+ */
+function addDataTypeSymbols(
+    analysis: AnalysisResult,
+    target: SqlSymbol[],
+    text: string,
+    catalogAt: (offset: number) => SqlCatalogProvider,
+): void {
+    const uses: DataTypeUse[] = [];
+    const add = (
+        dataType: string | undefined,
+        start: number,
+        end: number,
+        preferFirst = false,
+    ): void => {
+        if (dataType?.trim()) {
+            uses.push({ text: dataType, start, end, preferFirst });
+        }
+    };
+
+    walkAST(analysis.ast, {
+        enter(node) {
+            switch (node.type) {
+                case "DeclareStatement": {
+                    const statement = node as DeclareNode;
+                    for (const variable of statement.variables) {
+                        add(variable.dataType, variable.start + variable.name.length, variable.end);
+                        for (const column of variable.columns ?? []) {
+                            add(column.dataType, column.start + column.name.length, column.end);
+                        }
+                    }
+                    break;
+                }
+                case "CreateStatement": {
+                    const statement = node as CreateNode;
+                    for (const column of statement.columns ?? []) {
+                        add(column.dataType, column.start + column.name.length, column.end);
+                    }
+                    for (const parameter of statement.parameters ?? []) {
+                        add(
+                            parameter.dataType,
+                            parameter.start + parameter.name.length,
+                            parameter.end,
+                        );
+                    }
+                    for (const column of statement.returnColumns ?? []) {
+                        add(column.dataType, column.start + column.name.length, column.end);
+                    }
+                    add(statement.returnType, statement.start, statement.end);
+                    add(statement.baseType, statement.start, statement.end);
+                    add(statement.partitionInputType, statement.start, statement.end);
+                    break;
+                }
+                case "CastExpression": {
+                    const expression = node as CastExpression;
+                    add(
+                        expression.dataType,
+                        expression.start,
+                        expression.end,
+                        expression.kind === "CONVERT",
+                    );
+                    break;
+                }
+                case "FunctionCall": {
+                    const call = node as FunctionCallNode;
+                    for (const column of call.openJsonWith ?? []) {
+                        add(column.dataType, column.start + column.name.length, column.end);
+                    }
+                    add(call.jsonClause?.returningType, call.start, call.end);
+                    break;
+                }
+            }
+        },
+    });
+
+    for (const use of uses) {
+        const parsed = parseSqlDataType(use.text);
+        const span = findDataTypeNameSpan(text, use, parsed.name);
+        if (!span) {
+            continue;
+        }
+        const nameParts = identifierParts(parsed.name).map(unquoteIdentifier);
+        const catalogType = parsed.descriptor
+            ? undefined
+            : exactCatalogType(catalogAt(span.start), nameParts);
+        target.push(
+            Object.freeze({
+                kind: "type" as const,
+                modifiers: Object.freeze(["reference" as const]),
+                name: parsed.name,
+                span,
+                frame: "_main_",
+                definition: catalogType?.definition,
+                type: typeFromText(catalogType?.baseType ?? use.text),
+                partSpans: Object.freeze(identifierPartSpans(text, span)),
+            }),
+        );
+        if (parsed.canonicalName === "xml" && parsed.arguments.length === 1) {
+            const schemaName = parsed.arguments[0]!.replace(/^(?:CONTENT|DOCUMENT)\s+/iu, "");
+            const schemaSpan = findDataTypeNameSpan(text, use, schemaName);
+            const schemaParts = identifierParts(schemaName).map(unquoteIdentifier);
+            const schemaObject = schemaSpan
+                ? exactXmlSchema(catalogAt(schemaSpan.start), schemaParts)
+                : undefined;
+            if (schemaSpan) {
+                target.push(
+                    Object.freeze({
+                        kind: "type" as const,
+                        modifiers: Object.freeze(["reference" as const]),
+                        name: schemaName,
+                        span: schemaSpan,
+                        frame: "_main_",
+                        definition: schemaObject?.definition,
+                        type: typeFromText("XML schema collection"),
+                        partSpans: Object.freeze(identifierPartSpans(text, schemaSpan)),
+                    }),
+                );
+            }
+        }
+    }
+}
+
+function catalogDataTypeDiagnostics(
+    symbols: readonly SqlSymbol[],
+    catalogAt: (offset: number) => SqlCatalogProvider,
+): readonly SqlDiagnostic[] {
+    return symbols
+        .filter(
+            (symbol) =>
+                symbol.kind === "type" &&
+                symbol.modifiers.includes("reference") &&
+                !symbol.definition,
+        )
+        .flatMap((symbol): SqlDiagnostic[] => {
+            const catalog = catalogAt(symbol.span.start);
+            if (catalog.world !== "closed") return [];
+            const parts = identifierParts(symbol.name).map(unquoteIdentifier);
+            if (symbol.type?.display === "XML schema collection") {
+                return exactXmlSchema(catalog, parts)
+                    ? []
+                    : [
+                          Object.freeze({
+                              kind: "semantic" as const,
+                              code: "MSSQL6314",
+                              message: `Collection specified does not exist in metadata: '${symbol.name}'.`,
+                              span: symbol.span,
+                              severity: "error" as const,
+                          }),
+                      ];
+            }
+            if (parseSqlDataType(symbol.name).descriptor || exactCatalogType(catalog, parts)) {
+                return [];
+            }
+            return [
+                Object.freeze({
+                    kind: "semantic" as const,
+                    code: "MSSQL2715",
+                    message: `Cannot find data type '${symbol.name}'.`,
+                    span: symbol.span,
+                    severity: "error" as const,
+                }),
+            ];
+        });
+}
+
+function findDataTypeNameSpan(
+    text: string,
+    use: DataTypeUse,
+    typeName: string,
+): SqlSpan | undefined {
+    const pattern = dataTypeNamePattern(typeName);
+    if (!pattern) {
+        return undefined;
+    }
+    const source = text.slice(use.start, use.end);
+    const expression = new RegExp(pattern, "giu");
+    const matches = [...source.matchAll(expression)];
+    const match = use.preferFirst ? matches[0] : matches.at(-1);
+    return match
+        ? freezeSpan(
+              use.start + (match.index ?? 0),
+              use.start + (match.index ?? 0) + match[0].length,
+              text.length,
+          )
+        : undefined;
+}
+
+function dataTypeNamePattern(typeName: string): string | undefined {
+    const parsed = parseSqlDataType(typeName);
+    if (parsed.descriptor) {
+        const words = typeName.trim().split(/\s+/u).filter(Boolean);
+        return words.length ? words.map(escapeRegExp).join(String.raw`\s+`) : undefined;
+    }
+    const parts = identifierParts(typeName).map(unquoteIdentifier);
+    if (parts.length === 0) {
+        return undefined;
+    }
+    return parts.map(sqlIdentifierPattern).join(String.raw`\s*\.\s*`);
+}
+
+function sqlIdentifierPattern(value: string): string {
+    const plain = escapeRegExp(value);
+    const bracketed = `\\[${escapeRegExp(value.replaceAll("]", "]]"))}\\]`;
+    const quoted = `"${escapeRegExp(value.replaceAll('"', '""'))}"`;
+    return `(?:${bracketed}|${quoted}|${plain})`;
+}
+
+function exactCatalogType(
+    catalog: SqlCatalogProvider,
+    parts: readonly string[],
+): SqlCatalogObject | undefined {
+    const direct = catalog.objectFor?.(parts);
+    if (direct?.kind === "type" && direct.typeKind !== "xmlSchema") {
+        return direct;
+    }
+    return catalog
+        .typeCandidates?.(parts)
+        .find(
+            (candidate) =>
+                candidate.kind === "type" &&
+                parts.length <= candidate.parts.length &&
+                parts.every(
+                    (part, index) =>
+                        foldName(part) ===
+                        foldName(
+                            candidate.parts[candidate.parts.length - parts.length + index] ?? "",
+                        ),
+                ),
+        );
+}
+
+function exactXmlSchema(
+    catalog: SqlCatalogProvider,
+    parts: readonly string[],
+): SqlCatalogObject | undefined {
+    return catalog
+        .xmlSchemaCandidates?.(parts)
+        .find(
+            (candidate) =>
+                candidate.kind === "type" &&
+                candidate.typeKind === "xmlSchema" &&
+                parts.length <= candidate.parts.length &&
+                parts.every(
+                    (part, index) =>
+                        foldName(part) ===
+                        foldName(
+                            candidate.parts[candidate.parts.length - parts.length + index] ?? "",
+                        ),
+                ),
+        );
 }
 
 function addProjectionSymbols(
@@ -3004,6 +3536,10 @@ function builtinFunctionReturnType(
     argumentType: SqlType | undefined,
     callText: string,
 ): SqlType | undefined {
+    const staticMember = staticTypeFunctionByName.get(name);
+    if (staticMember) {
+        return typeFromText(staticMember.returnType);
+    }
     switch (name) {
         case "ISJSON":
         case "JSON_PATH_EXISTS":
@@ -3497,9 +4033,12 @@ function identifierPartSpans(text: string, span: SqlSpan): SqlSpan[] {
 }
 
 function typeFromText(value: string | undefined): SqlType | undefined {
-    return value
-        ? Object.freeze({ kind: "scalar" as const, name: value, display: value })
-        : undefined;
+    if (!value) {
+        return undefined;
+    }
+    const parsed = parseSqlDataType(value);
+    const display = parsed.isAlias ? canonicalSqlDataTypeName(value) : value.trim();
+    return Object.freeze({ kind: "scalar" as const, name: display, display });
 }
 
 function deduplicateSymbols(symbols: readonly SqlSymbol[]): SqlSymbol[] {

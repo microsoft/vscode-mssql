@@ -640,6 +640,28 @@ select * from dbo.`;
         expect(dimensions.map(labelOf)).to.include.members(["384", "768", "1536"]);
     });
 
+    test("suggests catalog alias, table, CLR, and XML schema collection types", async () => {
+        const aliasDocument = await openSqlDocument("CREATE TABLE dbo.Contacts (Phone dbo.Ph");
+        const aliasItems = await completionItems(
+            provider,
+            aliasDocument,
+            endPosition(aliasDocument),
+        );
+        expect(aliasItems.map(labelOf)).to.include("PhoneNumber");
+        expect(aliasItems.find((item) => labelOf(item) === "PhoneNumber")?.detail).to.equal(
+            "Alias type — nvarchar(24)",
+        );
+
+        const xmlDocument = await openSqlDocument(
+            "CREATE TABLE dbo.Documents (Payload xml(DOCUMENT dbo.Inv",
+        );
+        const xmlItems = await completionItems(provider, xmlDocument, endPosition(xmlDocument));
+        expect(xmlItems.map(labelOf)).to.include("InvoiceSchemaCollection");
+        expect(
+            xmlItems.find((item) => labelOf(item) === "InvoiceSchemaCollection")?.detail,
+        ).to.equal("XML schema collection");
+    });
+
     /** Verifies a type argument position offers useful SQL Server length choices. */
     test("suggests length values inside CREATE TABLE data types", async () => {
         const document = await openSqlDocument("CREATE TABLE dbo.NewUsers (DisplayName nvarchar(");
@@ -1410,6 +1432,26 @@ SELECT * FROM #Test WHERE #Test.`;
         );
     });
 
+    test("shows catalog user-defined type kind and base type on hover", async () => {
+        const sql = "DECLARE @phone dbo.PhoneNumber;";
+        const document = await openSqlDocument(sql);
+        const hoverProvider = new BetaSqlHoverProvider(connectionManager, catalog, sessions);
+
+        const hover = await hoverProvider.provideHover(
+            document,
+            document.positionAt(sql.indexOf("PhoneNumber") + 2),
+        );
+
+        const contents = (hover?.contents[0] as vscode.MarkdownString).value;
+        const renderedText = contents
+            .replaceAll("&nbsp;", " ")
+            .replaceAll("\\(", "(")
+            .replaceAll("\\)", ")");
+        expect(renderedText).to.contain("dbo.PhoneNumber: nvarchar(24)");
+        expect(renderedText).to.contain("Alias type");
+        expect(renderedText).to.contain("**Base type:** nvarchar(24)");
+    });
+
     test("shows schema hover for an XML method receiver omitted by parser symbols", async () => {
         const sql =
             "SELECT u.UserId FROM dbo.Users AS u " +
@@ -1903,7 +1945,51 @@ function catalogResponse(queryString: string): SimpleExecuteResult {
     if (queryString.includes("SELECT TOP (201) SchemaName")) {
         return searchCatalogResult(queryString);
     }
+    if (queryString.includes("FROM sys.types t WITH (NOLOCK)")) {
+        return typeCatalogResult();
+    }
     return emptyResult();
+}
+
+function typeCatalogResult(): SimpleExecuteResult {
+    return result([
+        [
+            cell("dbo"),
+            cell("PhoneNumber"),
+            cell("alias"),
+            cell("nvarchar(24)"),
+            nullCell(),
+            nullCell(),
+            nullCell(),
+        ],
+        [
+            cell("sales"),
+            cell("OrderLine"),
+            cell("table"),
+            nullCell(),
+            cell("OrderId"),
+            cell("int"),
+            cell("0"),
+        ],
+        [
+            cell("dbo"),
+            cell("GeoPoint"),
+            cell("clr"),
+            nullCell(),
+            nullCell(),
+            nullCell(),
+            nullCell(),
+        ],
+        [
+            cell("dbo"),
+            cell("InvoiceSchemaCollection"),
+            cell("xmlSchema"),
+            nullCell(),
+            nullCell(),
+            nullCell(),
+            nullCell(),
+        ],
+    ]);
 }
 
 function searchCatalogResult(queryString: string): SimpleExecuteResult {

@@ -5,6 +5,7 @@
 
 export * from "./completion.js";
 export * from "./contracts.js";
+export * from "./dataTypes.js";
 export * from "./documentSchema.js";
 export * from "./hover.js";
 export * from "./metadataQueryPlanner.js";

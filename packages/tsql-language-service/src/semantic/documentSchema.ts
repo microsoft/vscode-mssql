@@ -31,10 +31,13 @@ export interface DocumentSchemaChange {
     readonly kind: SemanticObjectKind;
     readonly nameParts: readonly string[];
     readonly span: SemanticSpan;
+    readonly declarationSpan?: SemanticSpan;
     readonly batch?: number;
     readonly columns?: readonly SemanticColumn[];
     readonly parameters?: readonly SemanticParameter[];
     readonly returnType?: string;
+    readonly typeKind?: "alias" | "table" | "clr" | "xmlSchema";
+    readonly baseType?: string;
 }
 
 export interface DocumentSchemaOptions {
@@ -238,7 +241,9 @@ export class DocumentSchemaEvolution {
                 replace ? change.parameters : (change.parameters ?? source?.parameters),
             ),
             returnType: change.returnType ?? source?.returnType,
-            definition: change.span,
+            typeKind: change.typeKind ?? source?.typeKind,
+            baseType: change.baseType ?? source?.baseType,
+            definition: change.declarationSpan ?? change.span,
             uri: this.uri,
             batch: change.batch ?? 0,
         });

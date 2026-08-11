@@ -22,6 +22,14 @@ import { RESYNC_KEYWORDS, STRUCTURAL_KEYWORDS } from "./grammar.js";
 
 import { stringifyExpression as stringifyExpressionNode } from "./expressionStringifier.js";
 
+const dataTypeWordTokenTypes = new Set([
+    TokenType.Keyword,
+    TokenType.Identifier,
+    TokenType.Variable,
+    TokenType.TempTable,
+    TokenType.Number,
+]);
+
 export abstract class ParserBase {
     protected tokens: Token[] = [];
     protected pos = 0;
@@ -456,7 +464,7 @@ export abstract class ParserBase {
         stopOnVariable?: boolean;
         stopOnAssignmentOperator?: boolean;
     }): string {
-        const parts: string[] = [];
+        const parts: Token[] = [];
         let parenDepth = 0;
 
         const stopTokenTypes = new Set<TokenType>([
@@ -519,7 +527,7 @@ export abstract class ParserBase {
                 parenDepth++;
             }
 
-            parts.push(token.value);
+            parts.push(token);
             this.consume();
 
             if (token.type === TokenType.CloseParen) {
@@ -527,7 +535,12 @@ export abstract class ParserBase {
             }
         }
 
-        return parts.join("");
+        return parts
+            .map((token, index) => {
+                const previous = parts[index - 1];
+                return `${previous && needsDataTypeTokenSpace(previous, token) ? " " : ""}${token.value}`;
+            })
+            .join("");
     }
 
     protected recoverTo(values: string[]) {
@@ -736,4 +749,8 @@ export abstract class ParserBase {
         indexes: TableIndexNode[];
         incomplete?: boolean;
     };
+}
+
+function needsDataTypeTokenSpace(previous: Token, current: Token): boolean {
+    return dataTypeWordTokenTypes.has(previous.type) && dataTypeWordTokenTypes.has(current.type);
 }

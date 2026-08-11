@@ -31,7 +31,24 @@ export class MetadataAnalysisCatalogAdapter implements SqlCatalogProvider {
     }
 
     public tableCandidates(parts: readonly string[]): readonly (readonly string[])[] {
-        return this.catalog.search(parts).map((object) => [object.schema, object.name]);
+        return this.catalog
+            .search(parts)
+            .filter(isRelation)
+            .map((object) => [object.schema, object.name]);
+    }
+
+    public typeCandidates(parts: readonly string[]): readonly SqlCatalogObject[] {
+        return this.catalog
+            .search(parts)
+            .filter((object) => object.kind === "type" && object.typeKind !== "xmlSchema")
+            .map(mapCatalogObject);
+    }
+
+    public xmlSchemaCandidates(parts: readonly string[]): readonly SqlCatalogObject[] {
+        return this.catalog
+            .search(parts)
+            .filter((object) => object.kind === "type" && object.typeKind === "xmlSchema")
+            .map(mapCatalogObject);
     }
 
     public childrenOf(prefixParts: readonly string[]): readonly SqlCatalogChild[] {
@@ -68,19 +85,25 @@ export class MetadataAnalysisCatalogAdapter implements SqlCatalogProvider {
         if (!object) {
             return undefined;
         }
-        return {
-            parts: [object.database, object.schema, object.name],
-            kind: object.kind,
-            columns: object.columns,
-            parameters: object.parameters.map((parameter) => ({
-                name: parameter.name,
-                type: parameter.type,
-                direction: parameter.output ? ("inputOutput" as const) : ("input" as const),
-            })),
-            returnType: object.returnType,
-            synonymTarget: object.synonymTarget,
-        };
+        return mapCatalogObject(object);
     }
+}
+
+function mapCatalogObject(object: SqlMetadataObject): SqlCatalogObject {
+    return {
+        parts: [object.database, object.schema, object.name],
+        kind: object.kind,
+        columns: object.columns,
+        parameters: object.parameters.map((parameter) => ({
+            name: parameter.name,
+            type: parameter.type,
+            direction: parameter.output ? ("inputOutput" as const) : ("input" as const),
+        })),
+        returnType: object.returnType,
+        synonymTarget: object.synonymTarget,
+        typeKind: object.typeKind,
+        baseType: object.baseType,
+    };
 }
 
 function isRelation(object: SqlMetadataObject): boolean {

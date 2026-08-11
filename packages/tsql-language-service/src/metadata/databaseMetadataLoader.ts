@@ -26,6 +26,8 @@ interface MetadataRow {
     readonly ordinal?: number;
     readonly output?: boolean;
     readonly synonymTarget?: string;
+    readonly typeKind?: "alias" | "table" | "clr" | "xmlSchema";
+    readonly baseType?: string;
 }
 
 /** Repository loader which turns normalized catalog rows into immutable object aggregates. */
@@ -46,11 +48,22 @@ export class DatabaseMetadataLoader implements SqlMetadataLoader {
                 parameters: SqlMetadataParameter[];
                 returnType?: string;
                 synonymTarget?: readonly string[];
+                typeKind?: "alias" | "table" | "clr" | "xmlSchema";
+                baseType?: string;
             }
         >();
 
         for (const row of rows) {
-            const key = `${row.database}\u0000${row.schema}\u0000${row.object}`;
+            // SQL Server keeps relations, user-defined types, and XML schema collections in
+            // separate namespaces. Preserve each object when names overlap so relation binding
+            // and type completion do not overwrite one another in the metadata snapshot.
+            const key = [
+                row.database,
+                row.schema,
+                row.object,
+                row.objectType,
+                row.typeKind ?? "",
+            ].join("\u0000");
             let object = builders.get(key);
             if (!object) {
                 object = {
@@ -61,6 +74,8 @@ export class DatabaseMetadataLoader implements SqlMetadataLoader {
                     columns: [],
                     parameters: [],
                     synonymTarget: splitMultipartName(row.synonymTarget),
+                    typeKind: row.typeKind,
+                    baseType: row.baseType,
                 };
                 builders.set(key, object);
             }
@@ -114,6 +129,8 @@ function mapMetadataRow(columns: readonly SqlQueryColumn[]): MetadataRow | undef
         ordinal: toNumber(values.get("ordinal")),
         output: toBoolean(values.get("is_output")),
         synonymTarget: toString(values.get("synonym_target")),
+        typeKind: toTypeKind(values.get("type_kind")),
+        baseType: toString(values.get("base_type")),
     };
 }
 
@@ -135,9 +152,19 @@ function mapObjectKind(type: string): SqlMetadataObjectKind {
             return "tableFunction";
         case "SN":
             return "synonym";
+        case "TYPE":
+            return "type";
         default:
             return "unknown";
     }
+}
+
+function toTypeKind(value: unknown): "alias" | "table" | "clr" | "xmlSchema" | undefined {
+    const normalized = toString(value)?.toLocaleLowerCase();
+    if (normalized === "xmlschema") return "xmlSchema";
+    return normalized === "alias" || normalized === "table" || normalized === "clr"
+        ? normalized
+        : undefined;
 }
 
 function toString(value: unknown): string | undefined {
@@ -202,7 +229,9 @@ SELECT
     is_nullable = m.is_nullable,
     ordinal = m.ordinal,
     is_output = m.is_output,
-    synonym_target = sy.base_object_name
+    synonym_target = sy.base_object_name,
+    type_kind = CAST(NULL AS nvarchar(16)),
+    base_type = CAST(NULL AS nvarchar(256))
 FROM sys.all_objects AS o
 JOIN sys.schemas AS s ON s.schema_id = o.schema_id
 OUTER APPLY (
@@ -236,5 +265,70 @@ LEFT JOIN sys.types AS ty ON ty.user_type_id = m.user_type_id
 LEFT JOIN sys.synonyms AS sy ON sy.object_id = o.object_id
 WHERE (o.is_ms_shipped = 0 OR s.name IN (N'sys', N'INFORMATION_SCHEMA'))
   AND o.type IN (N'U', N'V', N'P', N'PC', N'FN', N'FS', N'IF', N'TF', N'FT', N'SN')
-ORDER BY s.name, o.name, member_kind, ordinal;
+UNION ALL
+SELECT
+    DB_NAME(),
+    s.name,
+    t.name,
+    N'TYPE',
+    CASE WHEN c.name IS NULL THEN N'object' ELSE N'column' END,
+    c.name,
+    CASE
+        WHEN member_ty.name IN (N'nvarchar', N'nchar') AND c.max_length <> -1
+            THEN CONCAT(member_ty.name, N'(', c.max_length / 2, N')')
+        WHEN member_ty.name IN (N'varchar', N'char', N'varbinary', N'binary')
+            THEN CONCAT(member_ty.name, N'(', CASE WHEN c.max_length = -1 THEN N'max'
+                ELSE CONVERT(nvarchar(10), c.max_length) END, N')')
+        WHEN member_ty.name IN (N'decimal', N'numeric')
+            THEN CONCAT(member_ty.name, N'(', c.precision, N',', c.scale, N')')
+        WHEN member_ty.name IN (N'datetime2', N'datetimeoffset', N'time')
+            THEN CONCAT(member_ty.name, N'(', c.scale, N')')
+        ELSE member_ty.name
+    END,
+    c.is_nullable,
+    c.column_id,
+    CONVERT(bit, 0),
+    CAST(NULL AS nvarchar(1035)),
+    CASE WHEN t.is_table_type = 1 THEN N'table'
+         WHEN t.is_assembly_type = 1 THEN N'clr'
+         ELSE N'alias' END,
+    CASE WHEN t.is_table_type = 1 OR t.is_assembly_type = 1 THEN NULL
+         WHEN base_ty.name IN (N'nvarchar', N'nchar') AND t.max_length <> -1
+            THEN CONCAT(base_ty.name, N'(', t.max_length / 2, N')')
+         WHEN base_ty.name IN (N'varchar', N'char', N'varbinary', N'binary')
+            THEN CONCAT(base_ty.name, N'(', CASE WHEN t.max_length = -1 THEN N'max'
+                ELSE CONVERT(nvarchar(10), t.max_length) END, N')')
+         WHEN base_ty.name IN (N'decimal', N'numeric')
+            THEN CONCAT(base_ty.name, N'(', t.precision, N',', t.scale, N')')
+         WHEN base_ty.name IN (N'datetime2', N'datetimeoffset', N'time')
+            THEN CONCAT(base_ty.name, N'(', t.scale, N')')
+         ELSE base_ty.name END
+FROM sys.types AS t
+JOIN sys.schemas AS s ON s.schema_id = t.schema_id
+LEFT JOIN sys.table_types AS tt ON tt.user_type_id = t.user_type_id
+LEFT JOIN sys.columns AS c ON c.object_id = tt.type_table_object_id
+LEFT JOIN sys.types AS member_ty ON member_ty.user_type_id = c.user_type_id
+LEFT JOIN sys.types AS base_ty
+    ON base_ty.system_type_id = t.system_type_id
+    AND base_ty.user_type_id = base_ty.system_type_id
+WHERE t.is_user_defined = 1 OR t.is_table_type = 1
+UNION ALL
+SELECT
+    DB_NAME(),
+    s.name,
+    x.name,
+    N'TYPE',
+    N'object',
+    CAST(NULL AS sysname),
+    CAST(NULL AS nvarchar(256)),
+    CAST(NULL AS bit),
+    CAST(NULL AS int),
+    CONVERT(bit, 0),
+    CAST(NULL AS nvarchar(1035)),
+    N'xmlSchema',
+    CAST(NULL AS nvarchar(256))
+FROM sys.xml_schema_collections AS x
+JOIN sys.schemas AS s ON s.schema_id = x.schema_id
+WHERE x.xml_collection_id > 0 AND x.name <> N'sys'
+ORDER BY schema_name, object_name, member_kind, ordinal;
 `;

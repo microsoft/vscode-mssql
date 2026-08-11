@@ -106,9 +106,60 @@ suite("Beta SQL external definition integration", () => {
         expect((actual as vscode.Location).uri.toString()).to.equal(document.uri.toString());
         expect(bridge.resolveDefinition).not.to.have.been.called;
     });
+
+    test("delegates a catalog alias type using the matching scripting object kind", async () => {
+        const sql = "DECLARE @phone dbo.PhoneNumber;";
+        const document = await vscode.workspace.openTextDocument({
+            language: Constants.languageId,
+            content: sql,
+        });
+        const expected = new vscode.Location(
+            vscode.Uri.parse(
+                "mssql-definition://definition-integration/master/dbo/type/PhoneNumber",
+            ),
+            new vscode.Range(0, 12, 0, 23),
+        );
+        const bridge = sandbox.createStubInstance(ScriptingDefinitionProvider);
+        bridge.resolveDefinition.resolves(expected);
+        const provider = new BetaSqlDefinitionProvider(
+            connectionManager,
+            catalog,
+            sessions,
+            bridge,
+        );
+
+        const actual = await provider.provideDefinition(
+            document,
+            document.positionAt(sql.indexOf("PhoneNumber") + 2),
+        );
+
+        expect(actual).to.deep.equal(expected);
+        expect(bridge.resolveDefinition.firstCall.args[1]).to.deep.include({
+            schema: "dbo",
+            name: "PhoneNumber",
+            kind: "aliasType",
+        });
+    });
 });
 
 function metadataResponse(query: string): SimpleExecuteResult {
+    if (query.includes("FROM sys.types t WITH (NOLOCK)")) {
+        return {
+            rowCount: 1,
+            columnInfo: [],
+            rows: [
+                [
+                    cell("dbo"),
+                    cell("PhoneNumber"),
+                    cell("alias"),
+                    cell("nvarchar(24)"),
+                    nullCell(),
+                    nullCell(),
+                    nullCell(),
+                ],
+            ],
+        };
+    }
     if (!query.includes("WITH Requested(RequestKey")) {
         return { rowCount: 0, columnInfo: [], rows: [] };
     }

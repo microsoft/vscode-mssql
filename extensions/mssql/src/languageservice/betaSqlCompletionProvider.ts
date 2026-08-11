@@ -7,7 +7,10 @@ import * as vscode from "vscode";
 import {
     MappingCatalogProvider,
     createCompletionResolveData,
+    parseSqlDataType,
+    sqlServerDataTypeCompletionNames,
     type SqlAnalysisSnapshot,
+    type SqlCatalogObject,
 } from "@vscode-mssql/tsql-language-service";
 import { RequestType } from "vscode-languageclient";
 import type { SimpleExecuteResult } from "vscode-mssql";
@@ -91,6 +94,8 @@ interface ConnectionMetadata {
     objects: Map<string, Promise<DatabaseObject | undefined>>;
     members: Map<string, Promise<ObjectMember[]>>;
     referenceLoads: Map<string, Promise<void>>;
+    types: Map<string, Promise<readonly SqlCatalogObject[]>>;
+    typeValues: Map<string, readonly SqlCatalogObject[]>;
 }
 
 export interface ObjectSearch {
@@ -128,43 +133,7 @@ const systemSchemaNames = new Set([
     "loginmanager",
     "sys",
 ]);
-const tsqlDataTypes = [
-    "bigint",
-    "binary",
-    "bit",
-    "char",
-    "date",
-    "datetime",
-    "datetime2",
-    "datetimeoffset",
-    "decimal",
-    "float",
-    "geography",
-    "geometry",
-    "hierarchyid",
-    "image",
-    "int",
-    "json",
-    "money",
-    "nchar",
-    "ntext",
-    "numeric",
-    "nvarchar",
-    "real",
-    "smalldatetime",
-    "smallint",
-    "smallmoney",
-    "sql_variant",
-    "text",
-    "time",
-    "timestamp",
-    "tinyint",
-    "uniqueidentifier",
-    "varbinary",
-    "varchar",
-    "vector",
-    "xml",
-] as const;
+const tsqlDataTypes = sqlServerDataTypeCompletionNames;
 const createTableDefinitionKeywords = [
     "CONSTRAINT",
     "PRIMARY KEY",
@@ -189,7 +158,7 @@ const createTableColumnOptions = [
     "GENERATED ALWAYS AS ROW END",
     "MASKED WITH",
 ] as const;
-type MetadataFetchType = "databases" | "schemas" | "objects" | "members";
+type MetadataFetchType = "databases" | "schemas" | "objects" | "members" | "types";
 type MetadataStatus = "idle" | "loading" | "ready" | "error";
 
 export interface SessionResult {
@@ -225,6 +194,7 @@ class BetaSqlDocumentSchema implements SchemaProvider {
     private _version = 0;
     private _world: "open" | "closed" = "open";
     private _fingerprint = "";
+    private _types: readonly SqlCatalogObject[] = [];
 
     public get version(): number {
         return this._version;
@@ -234,13 +204,18 @@ class BetaSqlDocumentSchema implements SchemaProvider {
         return this._world;
     }
 
-    public update(mapping: SchemaMapping, complete: boolean): void {
-        const fingerprint = JSON.stringify(mapping);
+    public update(
+        mapping: SchemaMapping,
+        complete: boolean,
+        types: readonly SqlCatalogObject[] = [],
+    ): void {
+        const fingerprint = JSON.stringify([mapping, types]);
         const world = complete ? "closed" : "open";
         if (fingerprint === this._fingerprint && world === this._world) {
             return;
         }
         this._schema = new Schema(mapping);
+        this._types = Object.freeze([...types]);
         this._fingerprint = fingerprint;
         this._world = world;
         this._version++;
@@ -259,6 +234,18 @@ class BetaSqlDocumentSchema implements SchemaProvider {
         _dialect = "tsql",
     ): readonly (readonly string[])[] {
         return this._schema.tableCandidates(parts);
+    }
+
+    public typeCandidates(parts: readonly string[]): readonly SqlCatalogObject[] {
+        return this._types.filter(
+            (type) => type.typeKind !== "xmlSchema" && catalogTypeSearchMatches(type.parts, parts),
+        );
+    }
+
+    public xmlSchemaCandidates(parts: readonly string[]): readonly SqlCatalogObject[] {
+        return this._types.filter(
+            (type) => type.typeKind === "xmlSchema" && catalogTypeSearchMatches(type.parts, parts),
+        );
     }
 
     public childrenOf(
@@ -305,6 +292,34 @@ class OverlaySchemaProvider implements SchemaProvider {
         ]);
     }
 
+    public typeCandidates(parts: readonly string[], dialect = "tsql") {
+        const types = [
+            ...(this._primary.typeCandidates?.(parts, dialect) ?? []),
+            ...(this._fallback?.typeCandidates?.(parts, dialect) ?? []),
+        ];
+        const seen = new Set<string>();
+        return types.filter((type) => {
+            const key = type.parts.map((part) => part.toLocaleLowerCase()).join(".");
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    }
+
+    public xmlSchemaCandidates(parts: readonly string[], dialect = "tsql") {
+        const types = [
+            ...(this._primary.xmlSchemaCandidates?.(parts, dialect) ?? []),
+            ...(this._fallback?.xmlSchemaCandidates?.(parts, dialect) ?? []),
+        ];
+        const seen = new Set<string>();
+        return types.filter((type) => {
+            const key = type.parts.map((part) => part.toLocaleLowerCase()).join(".");
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    }
+
     public childrenOf(
         prefixParts: readonly string[],
         dialect = "tsql",
@@ -331,6 +346,27 @@ class OverlaySchemaProvider implements SchemaProvider {
             ]),
         ];
     }
+}
+
+function catalogTypeSearchMatches(
+    candidate: readonly string[],
+    search: readonly string[],
+): boolean {
+    if (search.length === 0) return true;
+    const normalize = (value: string): string =>
+        unquoteIdentifier(value).toLocaleLowerCase("en-US");
+    const filter = normalize(search.at(-1) ?? "");
+    if (!normalize(candidate.at(-1) ?? "").startsWith(filter)) {
+        return false;
+    }
+    const qualifiers = search.slice(0, -1);
+    if (qualifiers.length > candidate.length - 1) {
+        return false;
+    }
+    const start = candidate.length - 1 - qualifiers.length;
+    return qualifiers.every(
+        (part, index) => normalize(part) === normalize(candidate[start + index] ?? ""),
+    );
 }
 
 export class BetaSqlMetadataCatalog implements vscode.Disposable {
@@ -398,6 +434,116 @@ WHERE name <> 'INFORMATION_SCHEMA'
 ORDER BY name`,
             );
         });
+    }
+
+    public getTypes(connectionId: string, database?: string): Promise<readonly SqlCatalogObject[]> {
+        const metadata = this.getConnectionMetadata(connectionId);
+        const key = database?.toLocaleLowerCase() ?? "";
+        return this.getOrCreate(metadata.types, key, async () => {
+            const catalog = this.catalogPrefix({ database });
+            const result = await this.execute(
+                connectionId,
+                "types",
+                `SELECT s.name AS SchemaName, t.name AS TypeName,
+    CASE WHEN t.is_table_type = 1 THEN N'table'
+         WHEN t.is_assembly_type = 1 THEN N'clr'
+         ELSE N'alias' END AS TypeKind,
+    CASE WHEN t.is_table_type = 1 OR t.is_assembly_type = 1 THEN NULL
+         WHEN base_ty.name IN (N'nvarchar', N'nchar') AND t.max_length <> -1
+            THEN CONCAT(base_ty.name, N'(', t.max_length / 2, N')')
+         WHEN base_ty.name IN (N'varchar', N'char', N'varbinary', N'binary')
+            THEN CONCAT(base_ty.name, N'(', CASE WHEN t.max_length = -1 THEN N'max'
+                ELSE CONVERT(nvarchar(10), t.max_length) END, N')')
+         WHEN base_ty.name IN (N'decimal', N'numeric')
+            THEN CONCAT(base_ty.name, N'(', t.precision, N',', t.scale, N')')
+         WHEN base_ty.name IN (N'datetime2', N'datetimeoffset', N'time')
+            THEN CONCAT(base_ty.name, N'(', t.scale, N')')
+         ELSE base_ty.name END AS BaseType,
+    c.name AS ColumnName,
+    CASE
+        WHEN member_ty.name IN (N'nvarchar', N'nchar') AND c.max_length <> -1
+            THEN CONCAT(member_ty.name, N'(', c.max_length / 2, N')')
+        WHEN member_ty.name IN (N'varchar', N'char', N'varbinary', N'binary')
+            THEN CONCAT(member_ty.name, N'(', CASE WHEN c.max_length = -1 THEN N'max'
+                ELSE CONVERT(nvarchar(10), c.max_length) END, N')')
+        WHEN member_ty.name IN (N'decimal', N'numeric')
+            THEN CONCAT(member_ty.name, N'(', c.precision, N',', c.scale, N')')
+        WHEN member_ty.name IN (N'datetime2', N'datetimeoffset', N'time')
+            THEN CONCAT(member_ty.name, N'(', c.scale, N')')
+        ELSE member_ty.name END AS ColumnType,
+    c.is_nullable AS IsNullable
+FROM ${catalog}sys.types t WITH (NOLOCK)
+JOIN ${catalog}sys.schemas s WITH (NOLOCK) ON s.schema_id = t.schema_id
+LEFT JOIN ${catalog}sys.table_types tt WITH (NOLOCK) ON tt.user_type_id = t.user_type_id
+LEFT JOIN ${catalog}sys.columns c WITH (NOLOCK) ON c.object_id = tt.type_table_object_id
+LEFT JOIN ${catalog}sys.types member_ty WITH (NOLOCK)
+    ON member_ty.user_type_id = c.user_type_id
+LEFT JOIN ${catalog}sys.types base_ty WITH (NOLOCK)
+    ON base_ty.system_type_id = t.system_type_id
+    AND base_ty.user_type_id = base_ty.system_type_id
+WHERE t.is_user_defined = 1 OR t.is_table_type = 1
+UNION ALL
+SELECT s.name, x.name, N'xmlSchema', NULL, NULL, NULL, NULL
+FROM ${catalog}sys.xml_schema_collections x WITH (NOLOCK)
+JOIN ${catalog}sys.schemas s WITH (NOLOCK) ON s.schema_id = x.schema_id
+WHERE x.xml_collection_id > 0 AND x.name <> N'sys'
+ORDER BY SchemaName, TypeName, ColumnName`,
+            );
+            const types = new Map<string, SqlCatalogObject & { columns: ObjectMember[] }>();
+            for (const row of result.rows) {
+                const schema = this.cellValue(row, 0);
+                const name = this.cellValue(row, 1);
+                const typeKind = this.cellValue(row, 2);
+                if (
+                    !schema ||
+                    !name ||
+                    (typeKind !== "alias" &&
+                        typeKind !== "table" &&
+                        typeKind !== "clr" &&
+                        typeKind !== "xmlSchema")
+                ) {
+                    continue;
+                }
+                const typeKey = `${schema.toLocaleLowerCase()}.${name.toLocaleLowerCase()}`;
+                let type = types.get(typeKey);
+                if (!type) {
+                    type = {
+                        parts: Object.freeze(database ? [database, schema, name] : [schema, name]),
+                        kind: "type",
+                        typeKind,
+                        baseType: this.cellValue(row, 3),
+                        columns: [],
+                    };
+                    types.set(typeKey, type);
+                }
+                const columnName = this.cellValue(row, 4);
+                if (columnName) {
+                    const nullable = this.cellValue(row, 6);
+                    type.columns.push({
+                        name: columnName,
+                        type: this.cellValue(row, 5) ?? "unknown",
+                        nullable:
+                            nullable === undefined
+                                ? undefined
+                                : nullable === "1" || nullable.toLocaleLowerCase() === "true",
+                    });
+                }
+            }
+            const resultTypes = Object.freeze(
+                [...types.values()].map((type) =>
+                    Object.freeze({ ...type, columns: Object.freeze([...type.columns]) }),
+                ),
+            );
+            metadata.typeValues.set(key, resultTypes);
+            return resultTypes;
+        });
+    }
+
+    public getCachedTypes(connectionId: string, database?: string): readonly SqlCatalogObject[] {
+        return (
+            this._metadata.get(connectionId)?.typeValues.get(database?.toLocaleLowerCase() ?? "") ??
+            []
+        );
     }
 
     public searchObjects(connectionId: string, search: ObjectSearch): Promise<DatabaseObject[]> {
@@ -858,6 +1004,8 @@ ORDER BY candidates.RequestKey, members.Ordinal`,
                 objects: new Map(),
                 members: new Map(),
                 referenceLoads: new Map(),
+                types: new Map(),
+                typeValues: new Map(),
             };
             this._metadata.set(connectionId, metadata);
         }
@@ -1306,6 +1454,7 @@ export class BetaSqlSessionManager implements vscode.Disposable {
         entry: SessionCacheEntry,
     ): Promise<SessionResult | undefined> {
         let remoteMapping: SchemaMapping = {};
+        let remoteTypes: readonly SqlCatalogObject[] = [];
         let metadataComplete = false;
         const documentText = document.getText();
         if (entry.connectionId) {
@@ -1348,11 +1497,23 @@ export class BetaSqlSessionManager implements vscode.Disposable {
             const remoteReferences = [...references.values()].filter(
                 (reference) => !isLocalObjectName(reference.name),
             );
-            try {
-                remoteMapping = await this._catalog.createSchemaMapping(
-                    entry.connectionId,
-                    remoteReferences,
+            const needsTypeMetadata = entry.document.analysis
+                .symbols()
+                .some(
+                    (symbol) =>
+                        symbol.kind === "type" &&
+                        symbol.modifiers.includes("reference") &&
+                        !symbol.definition &&
+                        (!parseSqlDataType(symbol.name).descriptor ||
+                            symbol.type?.display === "XML schema collection"),
                 );
+            try {
+                [remoteMapping, remoteTypes] = await Promise.all([
+                    this._catalog.createSchemaMapping(entry.connectionId, remoteReferences),
+                    needsTypeMetadata
+                        ? this._catalog.getTypes(entry.connectionId)
+                        : Promise.resolve(this._catalog.getCachedTypes(entry.connectionId)),
+                ]);
                 metadataComplete = true;
             } catch {
                 metadataComplete = false;
@@ -1363,7 +1524,7 @@ export class BetaSqlSessionManager implements vscode.Disposable {
             // Never publish final-script CREATE TABLE declarations as a global catalog. The
             // package's DocumentSchemaEvolution resolves them at each occurrence offset, so
             // references before CREATE and after DROP retain SQL Server's MSSQL208 behavior.
-            entry.schema.update(remoteMapping, metadataComplete);
+            entry.schema.update(remoteMapping, metadataComplete, remoteTypes);
             entry.document = updateFromVsCodeDocument(this.documents, document, {
                 catalog: {
                     provider: entry.schema,
@@ -1676,6 +1837,34 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
                 }
             }
             const analysisItems = this.getAnalysisItems(document, position, sessionResult.session);
+            if (parserContext?.kind === "type" && contextQualifiers.length > 0) {
+                const requestedType = [...contextQualifiers, currentPrefix];
+                const xmlSchema = /\bXML\s*\(\s*(?:(?:CONTENT|DOCUMENT)\s+)?[^)]*$/iu.test(
+                    document.getText().slice(0, offset),
+                );
+                const metadataTypes = await this._catalog.getTypes(connection.connectionId);
+                const typeItems = metadataTypes
+                    .filter(
+                        (candidate) =>
+                            (xmlSchema
+                                ? candidate.typeKind === "xmlSchema"
+                                : candidate.typeKind !== "xmlSchema") &&
+                            catalogTypeSearchMatches(candidate.parts, requestedType),
+                    )
+                    .map((candidate) => {
+                        const name = candidate.parts.at(-1) ?? "";
+                        const item = new vscode.CompletionItem(
+                            name,
+                            vscode.CompletionItemKind.TypeParameter,
+                        );
+                        item.detail = catalogTypeDetail(candidate);
+                        item.insertText = name;
+                        item.filterText = name;
+                        item.sortText = `0_${name}`;
+                        return item;
+                    });
+                return finalize(this.mergeItems(typeItems, analysisItems));
+            }
             if (qualifiers.length > 0) {
                 const reference = references.get(qualifiers[0].toLocaleLowerCase());
                 if (reference) {
@@ -1905,8 +2094,13 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
             case "definition":
                 return this.createCreateTableDefinitionItems(context);
             case "dataType":
-                return this.createDataTypeItems(context.prefix);
+                if (context.qualifiers?.length) return undefined;
+                {
+                    const builtins = this.createDataTypeItems(context.prefix);
+                    return builtins.length > 0 ? builtins : undefined;
+                }
             case "typeArgument":
+                if (context.typeName === "xml-schema") return undefined;
                 return this.createTypeArgumentItems(context.typeName ?? "", context.prefix);
             case "columnOption":
                 return this.createCreateTableColumnOptionItems(context.prefix);
@@ -1937,6 +2131,61 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         schema: SchemaProvider,
         connectionId?: string,
     ): Promise<vscode.CompletionItem[] | undefined> {
+        if (context.kind === "dataType") {
+            const items = context.qualifiers?.length
+                ? []
+                : this.createDataTypeItems(context.prefix);
+            const search = [...(context.qualifiers ?? []), context.prefix];
+            const catalogTypes = dedupeCatalogTypes([
+                ...(schema.typeCandidates?.(search, "tsql") ?? []),
+                ...(connectionId ? await this._catalog.getTypes(connectionId).catch(() => []) : []),
+            ]);
+            for (const type of catalogTypes.filter(
+                (candidate) =>
+                    candidate.typeKind !== "xmlSchema" &&
+                    catalogTypeSearchMatches(candidate.parts, search),
+            )) {
+                const name = type.parts.at(-1) ?? "";
+                const label = context.qualifiers?.length ? name : type.parts.slice(-2).join(".");
+                const item = new vscode.CompletionItem(
+                    label,
+                    vscode.CompletionItemKind.TypeParameter,
+                );
+                item.detail = catalogTypeDetail(type);
+                item.insertText = label;
+                item.filterText = name;
+                item.sortText = `0_${label}`;
+                items.push(item);
+            }
+            return items;
+        }
+        if (context.kind === "typeArgument" && context.typeName === "xml-schema") {
+            const search = [...(context.qualifiers ?? []), context.prefix];
+            const collections = dedupeCatalogTypes([
+                ...(schema.xmlSchemaCandidates?.(search, "tsql") ?? []),
+                ...(connectionId ? await this._catalog.getTypes(connectionId).catch(() => []) : []),
+            ]).filter(
+                (candidate) =>
+                    candidate.typeKind === "xmlSchema" &&
+                    catalogTypeSearchMatches(candidate.parts, search),
+            );
+            return collections.map((collection) => {
+                const name = collection.parts.at(-1) ?? "";
+                const label = context.qualifiers?.length
+                    ? name
+                    : collection.parts.slice(-2).join(".");
+                const item = new vscode.CompletionItem(
+                    label,
+                    vscode.CompletionItemKind.TypeParameter,
+                );
+                item.detail = "XML schema collection";
+                item.insertText = label;
+                item.filterText = name;
+                item.sortText = `0_${label}`;
+                return item;
+            });
+        }
+
         if (context.kind === "tableName") {
             const items = [this.createTableDefinitionItem(context)];
             if (!connectionId) {
@@ -2155,22 +2404,21 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
             });
     }
 
-    private getDataTypeSnippet(
-        type: (typeof tsqlDataTypes)[number],
-    ): string | vscode.SnippetString {
-        if (["binary", "char", "nchar", "varbinary", "varchar", "nvarchar"].includes(type)) {
+    private getDataTypeSnippet(type: string): string | vscode.SnippetString {
+        const canonical = parseSqlDataType(type).canonicalName;
+        if (["binary", "char", "nchar", "varbinary", "varchar", "nvarchar"].includes(canonical)) {
             return new vscode.SnippetString(`${type}(\${1:50})`);
         }
-        if (type === "decimal" || type === "numeric") {
+        if (canonical === "decimal" || canonical === "numeric") {
             return new vscode.SnippetString(`${type}(\${1:18}, \${2:2})`);
         }
-        if (["datetime2", "datetimeoffset", "time"].includes(type)) {
+        if (["datetime2", "datetimeoffset", "time"].includes(canonical)) {
             return new vscode.SnippetString(`${type}(\${1:7})`);
         }
-        if (type === "float") {
+        if (canonical === "float") {
             return new vscode.SnippetString(`${type}(\${1:53})`);
         }
-        if (type === "vector") {
+        if (canonical === "vector") {
             return new vscode.SnippetString(`${type}(\${1:1536})`);
         }
         return type;
@@ -2183,7 +2431,7 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
                 : typeName === "decimal" || typeName === "numeric"
                   ? ["18, 2", "10, 2", "19, 4"]
                   : typeName === "vector"
-                    ? ["3", "384", "768", "1536"]
+                    ? ["3", "384", "768", "1536", "float32", "float16"]
                     : ["varchar", "nvarchar", "varbinary"].includes(typeName)
                       ? ["MAX", "50", "100", "255"]
                       : ["7", "6", "3", "0"];
@@ -2593,13 +2841,20 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         const offset = document.offsetAt(position);
         const result = session.completeAt(offset);
         if (isDataTypePosition(session.tokens, offset)) {
-            const prefix = (result.context?.prefix ?? "").toLocaleLowerCase();
-            return tsqlDataTypes
-                .filter((type) => type.startsWith(prefix))
-                .map(
-                    (type) =>
-                        new vscode.CompletionItem(type, vscode.CompletionItemKind.TypeParameter),
-                );
+            return result.items
+                .filter((candidate) => candidate.kind === "type")
+                .map((candidate) => {
+                    const item = new vscode.CompletionItem(
+                        candidate.label,
+                        vscode.CompletionItemKind.TypeParameter,
+                    );
+                    item.detail = candidate.detail;
+                    item.documentation = candidate.documentation;
+                    if (tsqlDataTypes.includes(candidate.label.toLocaleLowerCase())) {
+                        item.insertText = this.getDataTypeSnippet(candidate.label);
+                    }
+                    return item;
+                });
         }
         const candidates = [...result.items];
         const range = result.replaceSpan
@@ -3135,6 +3390,22 @@ function getCreateTableCompletionContext(
             prefix: scaleArgument[2].trim(),
         };
     }
+    const xmlSchemaArgument = /^\s*xml\s*\(\s*(?:(?:content|document)\s+)?([^)]*)$/i.exec(
+        remainder,
+    );
+    if (xmlSchemaArgument) {
+        const raw = xmlSchemaArgument[1].trim();
+        const parts = splitMultipartIdentifier(raw);
+        const endsWithDot = /\.\s*$/u.test(raw);
+        const prefix = endsWithDot ? "" : unquoteIdentifier(parts.pop() ?? "");
+        return {
+            ...base,
+            kind: "typeArgument",
+            typeName: "xml-schema",
+            prefix,
+            qualifiers: parts.map(unquoteIdentifier),
+        };
+    }
     const typeArgument = /^\s*([A-Za-z_][\w$#@]*)\s*\(\s*([^,)]*)$/i.exec(remainder);
     if (typeArgument) {
         return {
@@ -3157,13 +3428,14 @@ function getCreateTableCompletionContext(
     }
     const typeParts = splitMultipartIdentifier(type[1].replace(/\s*\([^)]*\)\s*$/, ""));
     const typeName = typeParts.at(-1)?.toLocaleLowerCase() ?? "";
-    const knownType = tsqlDataTypes.includes(typeName as (typeof tsqlDataTypes)[number]);
+    const knownType = tsqlDataTypes.includes(typeName);
     const qualifiedType = typeParts.length > 1;
     if (!type[2] && !/\s$/.test(remainder)) {
         return {
             ...base,
             kind: "dataType",
             prefix: knownType || qualifiedType ? currentPrefix : typeName,
+            qualifiers: qualifiedType ? typeParts.slice(0, -1).map(unquoteIdentifier) : undefined,
         };
     }
 
@@ -3363,7 +3635,20 @@ export class BetaSqlHoverProvider implements vscode.HoverProvider {
         if (!symbol) {
             return undefined;
         }
-        const object = await this.getCatalogObject(document, symbol);
+        let catalogType =
+            symbol.kind === "type"
+                ? exactCatalogType(result.schema, splitMultipartIdentifier(symbol.name))
+                : undefined;
+        if (symbol.kind === "type" && !catalogType) {
+            const connection = this._connectionManager.getConnectionInfo(getUriKey(document.uri));
+            if (connection?.connectionId) {
+                catalogType = findExactCatalogType(
+                    await this._catalog.getTypes(connection.connectionId).catch(() => []),
+                    splitMultipartIdentifier(symbol.name),
+                );
+            }
+        }
+        const object = catalogType ? undefined : await this.getCatalogObject(document, symbol);
         if (
             token?.isCancellationRequested ||
             this._sessions.documents.get(document.uri.toString())?.version !== document.version
@@ -3373,14 +3658,32 @@ export class BetaSqlHoverProvider implements vscode.HoverProvider {
         const contents = new vscode.MarkdownString();
         const inferredType = session.typeAt(offset);
         const displayType =
+            catalogType?.baseType ??
             symbol.type?.display ??
             (inferredType.kind === "unknown" ? undefined : inferredType.display);
         const type = displayType ? `: ${displayType}` : "";
         contents.appendCodeblock(
-            `${object ? formatDatabaseObjectName(object) : symbol.name}${type}`,
+            `${object ? formatDatabaseObjectName(object) : (catalogType?.parts.join(".") ?? symbol.name)}${type}`,
             "sql",
         );
-        if (object) {
+        if (catalogType) {
+            appendHoverField(contents, "Object type", catalogTypeDetail(catalogType));
+            if (catalogType.baseType) {
+                appendHoverField(contents, "Base type", catalogType.baseType);
+            }
+            if (catalogType.columns?.length) {
+                appendHoverField(
+                    contents,
+                    "Columns",
+                    catalogType.columns
+                        .map(
+                            (column) =>
+                                `${column.name} ${column.type ?? "unknown"}${column.nullable === false ? " NOT NULL" : ""}`,
+                        )
+                        .join(", "),
+                );
+            }
+        } else if (object) {
             appendHoverField(
                 contents,
                 "Object type",
@@ -3482,6 +3785,77 @@ function symbolKindLabel(kind: Sym["kind"]): string {
             return "Temporary table";
         case "type":
             return "Type";
+    }
+}
+
+function catalogTypeDetail(type: SqlCatalogObject): string {
+    switch (type.typeKind) {
+        case "alias":
+            return type.baseType ? `Alias type — ${type.baseType}` : "Alias data type";
+        case "table":
+            return `Table type${type.columns?.length ? ` — ${type.columns.length} columns` : ""}`;
+        case "clr":
+            return "CLR user-defined type";
+        case "xmlSchema":
+            return "XML schema collection";
+        default:
+            return "User-defined data type";
+    }
+}
+
+function dedupeCatalogTypes(types: readonly SqlCatalogObject[]): readonly SqlCatalogObject[] {
+    return [
+        ...new Map(
+            types.map((type) => [
+                type.parts.map((part) => part.toLocaleLowerCase("en-US")).join("."),
+                type,
+            ]),
+        ).values(),
+    ];
+}
+
+function exactCatalogType(
+    schema: SchemaProvider,
+    parts: readonly string[],
+): SqlCatalogObject | undefined {
+    return findExactCatalogType(
+        [
+            ...(schema.typeCandidates?.(parts, "tsql") ?? []),
+            ...(schema.xmlSchemaCandidates?.(parts, "tsql") ?? []),
+        ],
+        parts,
+    );
+}
+
+function findExactCatalogType(
+    candidates: readonly SqlCatalogObject[],
+    parts: readonly string[],
+): SqlCatalogObject | undefined {
+    return candidates.find((candidate) => {
+        if (parts.length > candidate.parts.length) return false;
+        const start = candidate.parts.length - parts.length;
+        return parts.every(
+            (part, index) =>
+                unquoteIdentifier(part).toLocaleLowerCase("en-US") ===
+                unquoteIdentifier(candidate.parts[start + index] ?? "").toLocaleLowerCase("en-US"),
+        );
+    });
+}
+
+function scriptingKindForCatalogType(
+    type: SqlCatalogObject,
+): "aliasType" | "tableType" | "clrType" | "xmlSchemaCollection" | undefined {
+    switch (type.typeKind) {
+        case "alias":
+            return "aliasType";
+        case "table":
+            return "tableType";
+        case "clr":
+            return "clrType";
+        case "xmlSchema":
+            return "xmlSchemaCollection";
+        default:
+            return undefined;
     }
 }
 
@@ -3693,10 +4067,11 @@ export class BetaSqlDefinitionProvider implements vscode.DefinitionProvider {
         if (!betaSqlOwnsDocument(document)) {
             return undefined;
         }
-        const session = (await this._sessions.getSession(document, token))?.session;
-        if (!session) {
+        const sessionResult = await this._sessions.getSession(document, token);
+        if (!sessionResult) {
             return undefined;
         }
+        const session = sessionResult.session;
         const offset = document.offsetAt(position);
         const symbol = session.symbolAt(offset);
         const declaration = symbol?.definition ?? session.referencesAt(offset)?.declaration;
@@ -3706,6 +4081,37 @@ export class BetaSqlDefinitionProvider implements vscode.DefinitionProvider {
 
         if (!this._scriptingDefinitions) {
             return undefined;
+        }
+        if (symbol?.kind === "type") {
+            const connection = this._connectionManager.getConnectionInfo(getUriKey(document.uri));
+            let type = exactCatalogType(
+                sessionResult.schema,
+                splitMultipartIdentifier(symbol.name),
+            );
+            if (!type && connection?.connectionId) {
+                type = findExactCatalogType(
+                    await this._catalog.getTypes(connection.connectionId).catch(() => []),
+                    splitMultipartIdentifier(symbol.name),
+                );
+            }
+            const scriptingKind = type ? scriptingKindForCatalogType(type) : undefined;
+            const scriptingObject =
+                type && scriptingKind
+                    ? catalogObjectFromMultipart(type.parts, scriptingKind)
+                    : undefined;
+            if (!scriptingObject || !connection?.connectionId || token?.isCancellationRequested) {
+                return undefined;
+            }
+            const location = await this._scriptingDefinitions.resolveDefinition(
+                document.uri,
+                scriptingObject,
+                this._catalog.generationFor(connection.connectionId),
+                token,
+            );
+            return !token?.isCancellationRequested &&
+                this._sessions.documents.get(document.uri.toString())?.version === document.version
+                ? location
+                : undefined;
         }
         const external = session
             .externalReferences()

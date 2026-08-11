@@ -85,6 +85,10 @@ export interface SqlCatalogObject {
     readonly parameters?: readonly SqlRoutineParameter[];
     readonly returnType?: string;
     readonly synonymTarget?: readonly string[];
+    readonly typeKind?: "alias" | "table" | "clr" | "xmlSchema";
+    readonly baseType?: string;
+    /** Source declaration for script-local catalog objects. */
+    readonly definition?: SqlSpan;
 }
 
 /** Synchronous view over a host-owned, asynchronously populated metadata cache. */
@@ -93,6 +97,8 @@ export interface SqlCatalogProvider {
     readonly world: "open" | "closed";
     columnsFor(parts: readonly string[]): readonly SqlCatalogColumn[] | undefined;
     tableCandidates?(parts: readonly string[]): readonly (readonly string[])[];
+    typeCandidates?(parts: readonly string[]): readonly SqlCatalogObject[];
+    xmlSchemaCandidates?(parts: readonly string[]): readonly SqlCatalogObject[];
     childrenOf?(prefixParts: readonly string[]): readonly SqlCatalogChild[];
     tables?(): readonly string[];
     objectFor?(parts: readonly string[]): SqlCatalogObject | undefined;

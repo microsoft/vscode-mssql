@@ -53,6 +53,8 @@ export interface SemanticObject {
     readonly columns?: readonly SemanticColumn[];
     readonly parameters?: readonly SemanticParameter[];
     readonly returnType?: string;
+    readonly typeKind?: "alias" | "table" | "clr" | "xmlSchema";
+    readonly baseType?: string;
     readonly definition?: SemanticSpan;
     readonly uri?: string;
     readonly batch: number;
@@ -68,6 +70,8 @@ export interface SemanticCatalogObject {
     readonly columns?: readonly SemanticColumn[];
     readonly parameters?: readonly SemanticParameter[];
     readonly returnType?: string;
+    readonly typeKind?: "alias" | "table" | "clr" | "xmlSchema";
+    readonly baseType?: string;
 }
 
 export interface SemanticCatalogChild {
@@ -82,6 +86,8 @@ export interface SemanticCatalogProvider {
     objectFor?(parts: readonly string[]): SemanticCatalogObject | undefined;
     childrenOf?(prefixParts: readonly string[]): readonly SemanticCatalogChild[];
     tableCandidates?(parts: readonly string[]): readonly (readonly string[])[];
+    typeCandidates?(parts: readonly string[]): readonly SemanticCatalogObject[];
+    xmlSchemaCandidates?(parts: readonly string[]): readonly SemanticCatalogObject[];
     tables?(): readonly string[];
 }
 

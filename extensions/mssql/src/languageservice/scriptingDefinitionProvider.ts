@@ -16,7 +16,11 @@ export type ScriptingDefinitionObjectKind =
     | "view"
     | "scalarFunction"
     | "tableValuedFunction"
-    | "storedProcedure";
+    | "storedProcedure"
+    | "aliasType"
+    | "tableType"
+    | "clrType"
+    | "xmlSchemaCollection";
 
 /**
  * Stable catalog identity used by the definition bridge. Names are unquoted
@@ -373,6 +377,14 @@ export function toScriptingObjectType(kind: ScriptingDefinitionObjectKind): stri
         case "scalarFunction":
         case "tableValuedFunction":
             return "UserDefinedFunction";
+        case "aliasType":
+            return "UserDefinedDataType";
+        case "tableType":
+            return "UserDefinedTableType";
+        case "clrType":
+            return "UserDefinedType";
+        case "xmlSchemaCollection":
+            return "XmlSchemaCollection";
         default:
             return undefined;
     }
@@ -469,6 +481,12 @@ function createTypePattern(kind: ScriptingDefinitionObjectKind): string {
         case "scalarFunction":
         case "tableValuedFunction":
             return "FUNCTION";
+        case "aliasType":
+        case "tableType":
+        case "clrType":
+            return "TYPE";
+        case "xmlSchemaCollection":
+            return "XML\\s+SCHEMA\\s+COLLECTION";
     }
 }
 

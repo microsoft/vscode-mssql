@@ -167,6 +167,10 @@ suite("ScriptingDefinitionProvider", () => {
         expect(toScriptingObjectType("storedProcedure")).to.equal("StoredProcedure");
         expect(toScriptingObjectType("scalarFunction")).to.equal("UserDefinedFunction");
         expect(toScriptingObjectType("tableValuedFunction")).to.equal("UserDefinedFunction");
+        expect(toScriptingObjectType("aliasType")).to.equal("UserDefinedDataType");
+        expect(toScriptingObjectType("tableType")).to.equal("UserDefinedTableType");
+        expect(toScriptingObjectType("clrType")).to.equal("UserDefinedType");
+        expect(toScriptingObjectType("xmlSchemaCollection")).to.equal("XmlSchemaCollection");
 
         expect(
             catalogObjectFromMultipart(

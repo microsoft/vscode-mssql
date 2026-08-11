@@ -177,6 +177,7 @@ export class Lexer {
         "ROLE",
         "MEMBER",
         "INDEX",
+        "EXTERNAL",
 
         // ── DDL — Column / constraint modifiers ───────────────────────────────────
         // Only safe to keyword-ise because the parser has explicit DDL handling.

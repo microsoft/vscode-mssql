@@ -160,52 +160,22 @@ export abstract class CreateParser extends ControlFlowParser {
                 }
 
                 // datatype
-                let dataType = "";
-                let parenDepth = 0;
-
-                while (this.peek()) {
-                    const next = this.peek()!;
-                    const nextVal = next.value;
-
-                    if (parenDepth === 0) {
-                        if (
-                            next.type === TokenType.Semicolon ||
-                            (next.type === TokenType.Keyword && RESYNC_KEYWORDS.has(next.value))
-                        ) {
-                            incomplete = true;
-                            break;
-                        }
-
-                        if (next.type === TokenType.Comma || next.type === TokenType.CloseParen) {
-                            break;
-                        }
-
-                        if (
-                            nextVal === "CONSTRAINT" ||
-                            nextVal === "PRIMARY" ||
-                            nextVal === "FOREIGN" ||
-                            nextVal === "UNIQUE" ||
-                            nextVal === "CHECK" ||
-                            nextVal === "DEFAULT" ||
-                            nextVal === "NOT" ||
-                            nextVal === "NULL" ||
-                            nextVal === "REFERENCES" ||
-                            nextVal === "IDENTITY"
-                        ) {
-                            break;
-                        }
-                    }
-
-                    if (next.type === TokenType.OpenParen) {
-                        parenDepth++;
-                    }
-
-                    dataType += this.consume().value;
-
-                    if (next.type === TokenType.CloseParen) {
-                        parenDepth--;
-                    }
-                }
+                const dataType = this.collectTypeTokens({
+                    extraStopTokenTypes: [TokenType.Semicolon],
+                    extraStopKeywords: [
+                        "CONSTRAINT",
+                        "PRIMARY",
+                        "FOREIGN",
+                        "UNIQUE",
+                        "CHECK",
+                        "DEFAULT",
+                        "NOT",
+                        "NULL",
+                        "REFERENCES",
+                        "IDENTITY",
+                    ],
+                    stopOnResyncKeywords: true,
+                });
 
                 // missing datatype
                 if (!dataType.trim()) {
@@ -692,9 +662,14 @@ export abstract class CreateParser extends ControlFlowParser {
         let indexes: TableIndexNode[] | undefined;
         let parameters: ParameterDefinition[] | undefined;
         let returnVariable: string | undefined;
+        let returnType: string | undefined;
         let returnColumns: ColumnDefinition[] | undefined;
         let body: Statement | Statement[] | undefined;
         let isTableType: boolean | undefined;
+        let baseType: string | undefined;
+        let isClrType: boolean | undefined;
+        let externalName: string | undefined;
+        let nullable: boolean | undefined;
         let storage: StorageTargetNode | undefined;
         let textImageOn: StorageTargetNode | undefined;
         let partitionRange: "LEFT" | "RIGHT" | undefined;
@@ -728,6 +703,40 @@ export abstract class CreateParser extends ControlFlowParser {
                         isTableType = true;
                         endOffset = this.lastConsumedEnd();
                     }
+                } else if (this.peekKeyword("FROM")) {
+                    this.consume();
+                    baseType = this.collectTypeTokens({
+                        extraStopKeywords: ["NULL", "NOT", "GO"],
+                        extraStopTokenTypes: [TokenType.Semicolon],
+                    });
+                    endOffset = this.lastConsumedEnd();
+                    if (this.peekKeyword("NOT")) {
+                        this.consume();
+                        if (this.peekKeyword("NULL")) {
+                            this.consume();
+                            nullable = false;
+                        }
+                    } else if (this.peekKeyword("NULL")) {
+                        this.consume();
+                        nullable = true;
+                    }
+                    endOffset = this.lastConsumedEnd();
+                } else if (this.peekKeyword("EXTERNAL")) {
+                    this.consume();
+                    if (this.peek()?.value.toUpperCase() === "NAME") {
+                        this.consume();
+                    }
+                    const externalParts: string[] = [];
+                    while (
+                        this.peek() &&
+                        this.peek()?.type !== TokenType.Semicolon &&
+                        !this.peekKeyword("GO")
+                    ) {
+                        externalParts.push(this.consume().value);
+                    }
+                    externalName = externalParts.join("");
+                    isClrType = true;
+                    endOffset = this.lastConsumedEnd();
                 }
             } catch (e) {
                 incomplete = true;
@@ -813,6 +822,7 @@ export abstract class CreateParser extends ControlFlowParser {
 
                             let isOutput = false;
                             let isReadOnly = false;
+                            let isVarying = false;
 
                             // optional default
                             if (
@@ -842,6 +852,12 @@ export abstract class CreateParser extends ControlFlowParser {
                                     continue;
                                 }
 
+                                if (kw === "VARYING") {
+                                    isVarying = true;
+                                    this.consume();
+                                    continue;
+                                }
+
                                 break;
                             }
 
@@ -851,6 +867,7 @@ export abstract class CreateParser extends ControlFlowParser {
                                 ...(defaultValue !== null ? { defaultValue } : {}),
                                 ...(isOutput ? { isOutput: true } : {}),
                                 ...(isReadOnly ? { isReadOnly: true } : {}),
+                                ...(isVarying ? { isVarying: true } : {}),
                                 start: paramToken.offset,
                                 end: this.lastConsumedEnd(),
                             };
@@ -897,6 +914,7 @@ export abstract class CreateParser extends ControlFlowParser {
 
                     if (this.peekKeyword("TABLE")) {
                         this.consume();
+                        returnType = "TABLE";
                         endOffset = this.lastConsumedEnd();
                         try {
                             const tableDef = this.parseTableColumns();
@@ -907,8 +925,11 @@ export abstract class CreateParser extends ControlFlowParser {
                         }
                     }
                 } else {
-                    // RETURNS scalar_type or RETURNS TABLE (inline TVF) — skip
-                    endOffset = this.skipCreatePreambleUntil(["AS", "BEGIN", "GO"]);
+                    returnType = this.collectTypeTokens({
+                        extraStopKeywords: ["BEGIN", "GO"],
+                        extraStopTokenTypes: [TokenType.Semicolon],
+                    });
+                    endOffset = this.lastConsumedEnd();
                 }
             }
 
@@ -1136,9 +1157,14 @@ export abstract class CreateParser extends ControlFlowParser {
             constraints,
             ...(indexes?.length ? { indexes } : {}),
             parameters,
+            ...(returnType ? { returnType } : {}),
             ...(returnVariable ? { returnVariable, returnColumns } : {}),
             body,
             isTableType,
+            ...(baseType ? { baseType } : {}),
+            ...(isClrType ? { isClrType: true } : {}),
+            ...(externalName ? { externalName } : {}),
+            ...(nullable !== undefined ? { nullable } : {}),
             ...(storage ? { storage } : {}),
             ...(textImageOn ? { textImageOn } : {}),
             ...(partitionRange ? { partitionRange } : {}),
@@ -2247,58 +2273,21 @@ export abstract class CreateParser extends ControlFlowParser {
         }
 
         // 1. Data Type
-        let dataType = "";
-        let parenDepth = 0;
-        while (this.peek()) {
-            const next = this.peek()!;
-            const val = next.value.toUpperCase();
-
-            if (parenDepth === 0) {
-                // Stop if we hit a separator or a column constraint keyword
-                if (
-                    next.type === TokenType.Comma ||
-                    next.type === TokenType.CloseParen ||
-                    next.type === TokenType.Semicolon
-                )
-                    break;
-                if (
-                    [
-                        "CONSTRAINT",
-                        "PRIMARY",
-                        "FOREIGN",
-                        "UNIQUE",
-                        "CHECK",
-                        "DEFAULT",
-                        "NOT",
-                        "NULL",
-                        "REFERENCES",
-                        "IDENTITY",
-                    ].includes(val)
-                )
-                    break;
-            }
-
-            if (next.type === TokenType.OpenParen) parenDepth++;
-
-            const tokenValue = this.consume().value;
-
-            // Smarter spacing logic:
-            // Only add space if both the last char and current token are "word" characters.
-            // This keeps "VARCHAR(255)" tight but "DOUBLE PRECISION" spaced.
-            if (dataType.length > 0) {
-                const lastChar = dataType[dataType.length - 1];
-                const isCurrentWord = /^[A-Za-z0-9_]+$/.test(tokenValue);
-                const isLastWord = /^[A-Za-z0-9_]+$/.test(lastChar);
-
-                if (isCurrentWord && isLastWord) {
-                    dataType += " ";
-                }
-            }
-
-            dataType += tokenValue;
-
-            if (next.type === TokenType.CloseParen) parenDepth--;
-        }
+        const dataType = this.collectTypeTokens({
+            extraStopTokenTypes: [TokenType.Semicolon],
+            extraStopKeywords: [
+                "CONSTRAINT",
+                "PRIMARY",
+                "FOREIGN",
+                "UNIQUE",
+                "CHECK",
+                "DEFAULT",
+                "NOT",
+                "NULL",
+                "REFERENCES",
+                "IDENTITY",
+            ],
+        });
 
         // 2. Inline Constraints
         const constraints: ConstraintNode[] = [];

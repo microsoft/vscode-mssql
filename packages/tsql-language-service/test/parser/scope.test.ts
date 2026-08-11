@@ -106,6 +106,48 @@ describe("DECLARE", () => {
         expect(
             node?.typeMembers?.some((m) => m.name === "IsDescendantOf" && m.returnType === "BIT"),
         ).toBe(true);
+        expect(
+            node?.typeMembers?.some(
+                (m) => m.name === "GetReparentedValue" && m.returnType === "HIERARCHYID",
+            ),
+        ).toBe(true);
+    });
+
+    test("spatial columns expose the complete common instance-member surface", () => {
+        const scope = rootScope(`
+            DECLARE @Spatial TABLE(
+                World GEOGRAPHY,
+                Shape GEOMETRY
+            );
+        `);
+        const spatial = scope.resolve("@Spatial");
+        const world = spatial?.localColumns?.find((c) => c.rawName === "World");
+        const shape = spatial?.localColumns?.find((c) => c.rawName === "Shape");
+
+        expect(
+            world?.typeMembers?.some(
+                (m) => m.name === "BufferWithCurves" && m.returnType === "GEOGRAPHY",
+            ),
+        ).toBe(true);
+        expect(
+            world?.typeMembers?.some(
+                (m) => m.name === "EnvelopeCenter" && m.returnType === "GEOGRAPHY",
+            ),
+        ).toBe(true);
+        expect(
+            world?.typeMembers?.some(
+                (m) => m.name === "STAsBinary" && m.returnType === "VARBINARY(MAX)",
+            ),
+        ).toBe(true);
+        expect(
+            shape?.typeMembers?.some((m) => m.name === "STCentroid" && m.returnType === "GEOMETRY"),
+        ).toBe(true);
+        expect(shape?.typeMembers?.some((m) => m.name === "STX" && m.kind === "property")).toBe(
+            true,
+        );
+        expect(
+            shape?.typeMembers?.some((m) => m.name === "STRelate" && m.returnType === "BIT"),
+        ).toBe(true);
     });
 
     test("declaration with initialiser visits expression", () => {

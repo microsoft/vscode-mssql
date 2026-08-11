@@ -29,12 +29,15 @@ export class MetadataCatalogSnapshot implements SqlMetadataCatalog {
                 }),
             ),
         );
-        this.byQualifiedName = new Map(
-            this.objects.map((object) => [
-                qualifiedKey(object.database, object.schema, object.name),
-                object,
-            ]),
-        );
+        const byQualifiedName = new Map<string, SqlMetadataObject>();
+        for (const object of this.objects) {
+            const key = qualifiedKey(object.database, object.schema, object.name);
+            const existing = byQualifiedName.get(key);
+            if (!existing || (existing.kind === "type" && object.kind !== "type")) {
+                byQualifiedName.set(key, object);
+            }
+        }
+        this.byQualifiedName = byQualifiedName;
     }
 
     public resolve(parts: readonly string[]): SqlMetadataObject | undefined {
@@ -43,8 +46,13 @@ export class MetadataCatalogSnapshot implements SqlMetadataCatalog {
             const matches = this.objects.filter(
                 (object) => normalizeIdentifier(object.name) === normalized[0],
             );
+            const dboMatches = matches.filter(
+                (object) => normalizeIdentifier(object.schema) === "dbo",
+            );
             return (
-                matches.find((object) => normalizeIdentifier(object.schema) === "dbo") ??
+                dboMatches.find((object) => object.kind !== "type") ??
+                dboMatches[0] ??
+                matches.find((object) => object.kind !== "type") ??
                 (matches.length === 1 ? matches[0] : undefined)
             );
         }

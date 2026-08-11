@@ -36,6 +36,8 @@ export interface SqlMetadataObject {
     readonly parameters: readonly SqlMetadataParameter[];
     readonly returnType?: string;
     readonly synonymTarget?: readonly string[];
+    readonly typeKind?: "alias" | "table" | "clr" | "xmlSchema";
+    readonly baseType?: string;
 }
 
 export interface SqlMetadataLoadResult {

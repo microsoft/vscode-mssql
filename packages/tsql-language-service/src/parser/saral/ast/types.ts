@@ -496,6 +496,7 @@ export interface ParameterDefinition extends NodeLocation {
     defaultValue?: Expression | null;
     isOutput?: boolean;
     isReadOnly?: boolean;
+    isVarying?: boolean;
 }
 
 export interface CreateNode extends NodeLocation, Recoverable {
@@ -525,9 +526,14 @@ export interface CreateNode extends NodeLocation, Recoverable {
     indexes?: TableIndexNode[];
     parameters?: ParameterDefinition[];
     returnVariable?: string;
+    returnType?: string;
     returnColumns?: ColumnDefinition[];
     body?: Statement | Statement[];
     isTableType?: boolean;
+    baseType?: string;
+    isClrType?: boolean;
+    externalName?: string;
+    nullable?: boolean;
     storage?: StorageTargetNode;
     textImageOn?: StorageTargetNode;
     partitionRange?: "LEFT" | "RIGHT";

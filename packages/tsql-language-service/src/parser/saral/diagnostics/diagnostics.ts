@@ -29,6 +29,11 @@ import {
 
 import { type ScopeBuilderResult } from "../semantic/scopeBuilder.js";
 import { SymbolKind, Scope } from "../semantic/scope.js";
+import {
+    parseSqlDataType,
+    validateSqlDataType,
+    type SqlDataTypeUsage,
+} from "../../../semantic/dataTypes.js";
 
 // ─── Core types ───────────────────────────────────────────────────────────────
 
@@ -78,6 +83,7 @@ export enum DiagnosticCode {
     InvalidVectorSearch = "VEC002",
     InvalidSpecializedIndex = "IDX001",
     InvalidApproximateQuery = "VEC003",
+    InvalidDataType = "TYPE001",
 }
 
 // ─── Engine ───────────────────────────────────────────────────────────────────
@@ -404,6 +410,16 @@ export class DiagnosticEngine {
                 });
                 break;
 
+            case "DeclareStatement":
+                for (const variable of stmt.variables) {
+                    this.checkDataType(variable.dataType, "variable", variable);
+                    for (const column of variable.columns ?? []) {
+                        this.checkDataType(column.dataType, "column", column);
+                    }
+                    this.visitExpression(variable.initialValue, insideView);
+                }
+                break;
+
             case "SetOperator":
                 this.visitQuery(stmt, insideView);
                 break;
@@ -689,10 +705,58 @@ export class DiagnosticEngine {
 
         for (const column of stmt.columns ?? []) {
             this.checkColumnNameText(column.name, column.start, column.start + column.name.length);
+            this.checkDataType(column.dataType, "column", column);
 
             for (const constraint of column.constraints ?? []) {
                 this.checkUnnamedConstraint(constraint);
             }
+        }
+
+        for (const parameter of stmt.parameters ?? []) {
+            this.checkDataType(parameter.dataType, "parameter", parameter);
+            if (
+                parseSqlDataType(parameter.dataType).canonicalName === "cursor" &&
+                stmt.objectType !== "PROCEDURE"
+            ) {
+                this.emit({
+                    code: DiagnosticCode.InvalidDataType,
+                    message: "The cursor data type is valid only for stored procedure parameters.",
+                    severity: "error",
+                    start: parameter.start,
+                    end: parameter.end,
+                });
+            } else if (parseSqlDataType(parameter.dataType).canonicalName === "cursor") {
+                if (!parameter.isVarying) {
+                    this.emit({
+                        code: DiagnosticCode.InvalidDataType,
+                        message: "A cursor procedure parameter must be declared VARYING.",
+                        severity: "error",
+                        start: parameter.start,
+                        end: parameter.end,
+                    });
+                }
+                if (!parameter.isOutput) {
+                    this.emit({
+                        code: DiagnosticCode.InvalidDataType,
+                        message: "A cursor procedure parameter must be declared OUTPUT.",
+                        severity: "error",
+                        start: parameter.start,
+                        end: parameter.end,
+                    });
+                }
+            }
+        }
+        for (const column of stmt.returnColumns ?? []) {
+            this.checkDataType(column.dataType, "column", column);
+        }
+        if (stmt.returnType) {
+            this.checkDataType(stmt.returnType, "return", stmt);
+        }
+        if (stmt.baseType) {
+            this.checkDataType(stmt.baseType, "column", stmt);
+        }
+        if (stmt.partitionInputType) {
+            this.checkDataType(stmt.partitionInputType, "parameter", stmt);
         }
 
         if (!stmt.body) return;
@@ -947,10 +1011,27 @@ export class DiagnosticEngine {
 
             case "FunctionCall":
                 this.checkFunctionCall(expr);
+                for (const column of expr.openJsonWith ?? []) {
+                    this.checkDataType(column.dataType, "column", column);
+                }
                 this.visitExpression(expr.receiver, insideView);
                 for (const arg of expr.args) {
                     this.visitExpression(arg, insideView);
                 }
+                break;
+
+            case "CastExpression":
+                this.checkDataType(expr.dataType, "cast", expr);
+                this.visitExpression(expr.expression, insideView);
+                this.visitExpression(expr.style, insideView);
+                this.visitExpression(expr.culture, insideView);
+                break;
+
+            case "ExistsExpression":
+                this.visitQuery(expr.query, insideView);
+                break;
+
+            case "BuiltInArgument":
                 break;
 
             case "OverExpression":
@@ -980,6 +1061,25 @@ export class DiagnosticEngine {
             case "Identifier":
                 this.checkQualifiedIdentifierColumn(expr);
                 break;
+        }
+    }
+
+    private checkDataType(
+        dataType: string | undefined,
+        usage: SqlDataTypeUsage,
+        location: NodeLocation,
+    ): void {
+        if (!dataType?.trim()) {
+            return;
+        }
+        for (const issue of validateSqlDataType(dataType, usage)) {
+            this.emit({
+                code: DiagnosticCode.InvalidDataType,
+                message: issue.message,
+                severity: "error",
+                start: location.start,
+                end: location.end,
+            });
         }
     }
 

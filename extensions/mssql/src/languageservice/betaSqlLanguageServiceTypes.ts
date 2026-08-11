@@ -5,6 +5,7 @@
 
 import type {
     SqlCatalogColumn,
+    SqlCatalogObject,
     SqlCatalogMapping,
     SqlCatalogMappingLeaf,
     SqlCatalogProvider,
@@ -110,6 +111,8 @@ export type SchemaLeaf = SqlCatalogMappingLeaf;
 export interface SchemaProvider extends SqlCatalogProvider {
     columnsFor(parts: readonly string[], dialect?: string): readonly Column[] | undefined;
     tableCandidates?(parts: readonly string[], dialect?: string): readonly (readonly string[])[];
+    typeCandidates?(parts: readonly string[], dialect?: string): readonly SqlCatalogObject[];
+    xmlSchemaCandidates?(parts: readonly string[], dialect?: string): readonly SqlCatalogObject[];
     childrenOf?(
         prefixParts: readonly string[],
         dialect?: string,

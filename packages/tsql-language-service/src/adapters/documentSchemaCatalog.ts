@@ -60,6 +60,40 @@ export class DocumentSchemaCatalogProvider implements SqlCatalogProvider {
         ]);
     }
 
+    public typeCandidates(parts: readonly string[]): readonly SqlCatalogObject[] {
+        const local = this.visibleObjects()
+            .filter(
+                (object) =>
+                    object.kind === "type" &&
+                    object.typeKind !== "xmlSchema" &&
+                    typeSearchMatches(object.parts, parts),
+            )
+            .map(mapObject);
+        const fallback = this.fallback?.typeCandidates?.(parts) ?? [];
+        const seen = new Set<string>();
+        return [...local, ...fallback].filter((object) => {
+            const key = object.parts.map(normalizeSemanticIdentifier).join(".");
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    }
+
+    public xmlSchemaCandidates(parts: readonly string[]): readonly SqlCatalogObject[] {
+        const local = this.visibleObjects()
+            .filter(
+                (object) =>
+                    object.kind === "type" &&
+                    object.typeKind === "xmlSchema" &&
+                    typeSearchMatches(object.parts, parts),
+            )
+            .map(mapObject);
+        return dedupeCatalogObjects([
+            ...local,
+            ...(this.fallback?.xmlSchemaCandidates?.(parts) ?? []),
+        ]);
+    }
+
     public childrenOf(prefixParts: readonly string[]): readonly SqlCatalogChild[] {
         const children: SqlCatalogChild[] = [
             ...localChildren(this.visibleObjects(), prefixParts),
@@ -210,6 +244,7 @@ function createChange(statement: CreateNode, batch: number): DocumentSchemaChang
         kind,
         nameParts: identifierParts(statement.nameNode),
         span: { start: statement.start, end: statement.end },
+        declarationSpan: { start: statement.nameNode.start, end: statement.nameNode.end },
         batch,
         columns,
         parameters: (statement.parameters ?? []).map((parameter) => ({
@@ -219,10 +254,16 @@ function createChange(statement: CreateNode, batch: number): DocumentSchemaChang
             optional: parameter.defaultValue !== undefined && parameter.defaultValue !== null,
             span: { start: parameter.start, end: parameter.start + parameter.name.length },
         })),
-        // Saral's returnVariable is the name of the table variable used by a
-        // multi-statement TVF, not the scalar function's SQL return type. Keep
-        // this unknown until the parser exposes the actual RETURNS type.
-        returnType: undefined,
+        returnType: statement.returnType,
+        typeKind:
+            statement.objectType === "TYPE"
+                ? statement.isTableType
+                    ? "table"
+                    : statement.isClrType
+                      ? "clr"
+                      : "alias"
+                : undefined,
+        baseType: statement.baseType,
     };
 }
 
@@ -286,7 +327,10 @@ function createKind(statement: CreateNode): SemanticObjectKind {
         case "PROCEDURE":
             return "procedure";
         case "FUNCTION":
-            return statement.returnColumns?.length ? "tableFunction" : "scalarFunction";
+            return statement.returnColumns?.length ||
+                statement.returnType?.toUpperCase() === "TABLE"
+                ? "tableFunction"
+                : "scalarFunction";
         case "TYPE":
             return "type";
         case "SYNONYM":
@@ -332,6 +376,9 @@ function mapObject(object: SemanticObject): SqlCatalogObject {
         columns: object.columns,
         parameters: object.parameters as readonly SqlRoutineParameter[] | undefined,
         returnType: object.returnType,
+        typeKind: object.typeKind,
+        baseType: object.baseType,
+        definition: object.definition,
     };
 }
 
@@ -354,6 +401,24 @@ function suffixMatches(parts: readonly string[], suffix: readonly string[]): boo
         (part, index) =>
             normalizeSemanticIdentifier(part) ===
             normalizeSemanticIdentifier(parts[offset + index] ?? ""),
+    );
+}
+
+function typeSearchMatches(parts: readonly string[], search: readonly string[]): boolean {
+    if (search.length === 0) return true;
+    const filter = normalizeSemanticIdentifier(search.at(-1) ?? "");
+    const qualifiers = search.slice(0, -1);
+    if (
+        !normalizeSemanticIdentifier(parts.at(-1) ?? "").startsWith(filter) ||
+        qualifiers.length > parts.length - 1
+    ) {
+        return false;
+    }
+    const qualifierStart = parts.length - 1 - qualifiers.length;
+    return qualifiers.every(
+        (part, index) =>
+            normalizeSemanticIdentifier(part) ===
+            normalizeSemanticIdentifier(parts[qualifierStart + index] ?? ""),
     );
 }
 
@@ -397,6 +462,16 @@ function dedupePaths(paths: readonly (readonly string[])[]): readonly (readonly 
     const seen = new Set<string>();
     return paths.filter((parts) => {
         const key = parts.map(normalizeSemanticIdentifier).join(".");
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+}
+
+function dedupeCatalogObjects(objects: readonly SqlCatalogObject[]): readonly SqlCatalogObject[] {
+    const seen = new Set<string>();
+    return objects.filter((object) => {
+        const key = object.parts.map(normalizeSemanticIdentifier).join(".");
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
