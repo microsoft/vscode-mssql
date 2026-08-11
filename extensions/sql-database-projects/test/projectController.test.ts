@@ -8,6 +8,7 @@ import * as path from "path";
 import * as vscode from "vscode";
 import * as sinon from "sinon";
 import * as dataworkspace from "dataworkspace";
+import * as vscodeMssql from "vscode-mssql";
 import * as baselines from "./baselines/baselines";
 import * as templates from "../src/templates/templates";
 import * as testUtils from "./testUtils";
@@ -15,9 +16,11 @@ import * as constants from "../src/common/constants";
 import { ExtractTarget } from "../src/common/enums";
 import * as utils from "../src/common/utils";
 
+import * as createProjectFromDatabaseQuickpick from "../src/dialogs/createProjectFromDatabaseQuickpick";
 import { SqlDatabaseProjectTreeViewProvider } from "../src/controllers/databaseProjectTreeViewProvider";
 import { ProjectsController } from "../src/controllers/projectController";
 import { NetCoreTool } from "../src/tools/netcoreTool";
+import { mockConnectionInfo } from "./dialogTestUtils";
 import { promises as fs } from "fs";
 import { createContext, TestContext } from "./testContext";
 import { Project } from "../src/models/project";
@@ -1416,6 +1419,59 @@ suite("ProjectsController", function (): void {
 
     suite("Create project from database operations and dialog", function (): void {
         teardown(() => {});
+
+        suite("launch context handling", function (): void {
+            let quickpickStub: sinon.SinonStub;
+            let getDatabaseNameFromTreeNodeStub: sinon.SinonStub;
+
+            setup(function (): void {
+                quickpickStub = sandbox
+                    .stub(
+                        createProjectFromDatabaseQuickpick,
+                        "createNewProjectFromDatabaseWithQuickpick",
+                    )
+                    .resolves();
+                getDatabaseNameFromTreeNodeStub = sandbox.stub().returns("NodeDatabase");
+                sandbox.stub(utils, "getVscodeMssqlApi").resolves({
+                    getDatabaseNameFromTreeNode: getDatabaseNameFromTreeNodeStub,
+                } as unknown as vscodeMssql.IExtension);
+            });
+
+            test("Should preselect the database when launched from an Object Explorer node", async function (): Promise<void> {
+                const projController = new ProjectsController(testContext.outputChannel);
+                const objectExplorerNode = {
+                    connectionProfile: { ...mockConnectionInfo },
+                } as unknown as vscodeMssql.ITreeNodeInfo;
+
+                await projController.createProjectFromDatabase(objectExplorerNode);
+
+                expect(quickpickStub.calledOnce, "quickpick should have been launched").to.be.true;
+                expect(
+                    quickpickStub.firstCall.args[0].database,
+                    "database should be taken from the selected Object Explorer node",
+                ).to.equal("NodeDatabase");
+            });
+
+            test("Should prompt for a connection when launched from the projects view", async function (): Promise<void> {
+                const projController = new ProjectsController(testContext.outputChannel);
+                const projectsViewItem: dataworkspace.WorkspaceTreeItem = {
+                    treeDataProvider: new SqlDatabaseProjectTreeViewProvider(),
+                    element: undefined,
+                };
+
+                await projController.createProjectFromDatabase(projectsViewItem);
+
+                expect(quickpickStub.calledOnce, "quickpick should have been launched").to.be.true;
+                expect(
+                    quickpickStub.firstCall.args[0],
+                    "a projects view item carries no connection profile",
+                ).to.be.undefined;
+                expect(
+                    getDatabaseNameFromTreeNodeStub.notCalled,
+                    "database name should not be looked up for a projects view item",
+                ).to.be.true;
+            });
+        });
 
         test("Should create list of all files and folders correctly", async function (): Promise<void> {
             // dummy structure is 2 files (one .sql, one .txt) under parent folder + 2 directories with 5 .sql scripts each
