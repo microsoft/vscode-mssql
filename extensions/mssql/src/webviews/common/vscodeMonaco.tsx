@@ -16,6 +16,8 @@ import {
 } from "@monaco-editor/react";
 import * as monaco from "monaco-editor/esm/vs/editor/editor.api";
 import "monaco-editor/esm/vs/basic-languages/sql/sql.contribution";
+import "monaco-editor/esm/vs/base/browser/ui/codicons/codiconStyles";
+import "monaco-editor/esm/vs/editor/contrib/find/browser/findController";
 import { useCallback, useEffect, useRef } from "react";
 import { ColorThemeKind } from "../../sharedInterfaces/webview";
 
