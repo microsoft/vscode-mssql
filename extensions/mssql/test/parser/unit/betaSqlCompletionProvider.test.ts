@@ -482,6 +482,31 @@ select * from dbo.`;
         expect(client.sendRequest).to.not.have.been.called;
     });
 
+    /** Verifies the package surfaces first-class JSON and vector functions through the extension. */
+    test("suggests JSON and vector built-in functions", async () => {
+        const jsonDocument = await openSqlDocument("SELECT JSON_");
+        const jsonItems = await completionItems(provider, jsonDocument, endPosition(jsonDocument));
+        expect(jsonItems.map(labelOf)).to.include.members([
+            "json_value",
+            "json_query",
+            "json_object",
+            "json_array",
+        ]);
+
+        const vectorDocument = await openSqlDocument("SELECT VECTOR_");
+        const vectorItems = await completionItems(
+            provider,
+            vectorDocument,
+            endPosition(vectorDocument),
+        );
+        expect(vectorItems.map(labelOf)).to.include.members([
+            "vector_distance",
+            "vector_norm",
+            "vector_normalize",
+            "vector_search",
+        ]);
+    });
+
     for (const sql of [
         "select cast(6 as foo)",
         "select cast(6 as f",
@@ -583,6 +608,36 @@ select * from dbo.`;
         expect((nvarchar?.insertText as vscode.SnippetString | undefined)?.value).to.equal(
             "nvarchar(${1:50})",
         );
+    });
+
+    /** Verifies native JSON and vector types are offered with a useful vector dimension snippet. */
+    test("suggests JSON and vector data types", async () => {
+        const jsonDocument = await openSqlDocument("CREATE TABLE dbo.Documents (Payload js");
+        const jsonItems = await completionItems(provider, jsonDocument, endPosition(jsonDocument));
+        expect(jsonItems.find((item) => labelOf(item) === "json")?.kind).to.equal(
+            vscode.CompletionItemKind.TypeParameter,
+        );
+
+        const vectorDocument = await openSqlDocument("CREATE TABLE dbo.Documents (Embedding vec");
+        const vectorItems = await completionItems(
+            provider,
+            vectorDocument,
+            endPosition(vectorDocument),
+        );
+        const vector = vectorItems.find((item) => labelOf(item) === "vector");
+        expect((vector?.insertText as vscode.SnippetString | undefined)?.value).to.equal(
+            "vector(${1:1536})",
+        );
+
+        const dimensionDocument = await openSqlDocument(
+            "CREATE TABLE dbo.Documents (Embedding vector(",
+        );
+        const dimensions = await completionItems(
+            provider,
+            dimensionDocument,
+            endPosition(dimensionDocument),
+        );
+        expect(dimensions.map(labelOf)).to.include.members(["384", "768", "1536"]);
     });
 
     /** Verifies a type argument position offers useful SQL Server length choices. */

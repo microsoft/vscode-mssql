@@ -426,19 +426,50 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
                     documentation: completionDocumentation(item.label, kind, item.detail),
                 });
             });
+            if (context.kind === "type") {
+                for (const dataType of builtinDataTypes) {
+                    if (
+                        !dataType.startsWith(context.prefix.toLocaleLowerCase()) ||
+                        items.some((item) => foldName(item.label) === foldName(dataType))
+                    ) {
+                        continue;
+                    }
+                    items.push(
+                        Object.freeze({
+                            label: dataType,
+                            kind: "type" as const,
+                            detail: "T-SQL data type",
+                            documentation: `Built-in T-SQL data type \`${dataType}\`.`,
+                        }),
+                    );
+                }
+            }
             const qualified = qualifiedCompletionPrefix(this.text, boundedOffset);
             if (qualified) {
                 const columns = this.catalogColumnsForQualifier(qualified.qualifier, boundedOffset);
                 if (columns) {
                     for (const column of columns) {
-                        if (
-                            !matchesCompletionFilter(column.name, qualified.filter) ||
-                            items.some(
-                                (item) =>
-                                    item.kind === "column" &&
-                                    foldName(item.label) === foldName(column.name),
-                            )
-                        ) {
+                        if (!matchesCompletionFilter(column.name, qualified.filter)) {
+                            continue;
+                        }
+                        const existingIndex = items.findIndex(
+                            (item) =>
+                                item.kind === "column" &&
+                                foldName(item.label) === foldName(column.name),
+                        );
+                        if (existingIndex >= 0) {
+                            const existing = items[existingIndex];
+                            if (!existing.detail || existing.detail === "unknown") {
+                                items[existingIndex] = Object.freeze({
+                                    ...existing,
+                                    detail: column.type,
+                                    documentation: completionDocumentation(
+                                        column.name,
+                                        "column",
+                                        column.type,
+                                    ),
+                                });
+                            }
                             continue;
                         }
                         items.push(
@@ -845,9 +876,29 @@ class SaralSqlAnalysisSnapshot implements SqlAnalysisSnapshot {
             sourceName = symbol.name;
         }
         if (!sourceName) {
-            return undefined;
+            return symbol?.localColumns?.map((column) =>
+                Object.freeze({
+                    name: column.rawName,
+                    type: column.dataType ?? "unknown",
+                }),
+            );
         }
-        return catalogColumnsFor(catalog, identifierParts(sourceName).map(unquoteIdentifier));
+        const catalogColumns =
+            catalogColumnsFor(catalog, identifierParts(sourceName).map(unquoteIdentifier)) ?? [];
+        const localColumns =
+            symbol?.localColumns?.map((column) =>
+                Object.freeze({
+                    name: column.rawName,
+                    type: column.dataType ?? "unknown",
+                }),
+            ) ?? [];
+        const combined = [...catalogColumns];
+        for (const column of localColumns) {
+            if (!combined.some((candidate) => foldName(candidate.name) === foldName(column.name))) {
+                combined.push(column);
+            }
+        }
+        return combined.length ? Object.freeze(combined) : undefined;
     }
 
     private catalogColumnsVisibleAt(offset: number): readonly SqlCatalogColumn[] {
@@ -935,6 +986,40 @@ const builtinSignatures: Readonly<Record<string, readonly { readonly label: stri
         MAX: Object.freeze([{ label: "expression" }]),
         COALESCE: Object.freeze([{ label: "expression" }, { label: "expression" }]),
         ISNULL: Object.freeze([{ label: "check_expression" }, { label: "replacement_value" }]),
+        ISJSON: Object.freeze([{ label: "json_expression" }, { label: "json_type_constraint" }]),
+        JSON_VALUE: Object.freeze([{ label: "json_expression" }, { label: "path" }]),
+        JSON_QUERY: Object.freeze([{ label: "json_expression" }, { label: "path" }]),
+        JSON_MODIFY: Object.freeze([
+            { label: "json_expression" },
+            { label: "path" },
+            { label: "new_value" },
+        ]),
+        JSON_PATH_EXISTS: Object.freeze([{ label: "json_expression" }, { label: "path" }]),
+        JSON_CONTAINS: Object.freeze([
+            { label: "target" },
+            { label: "candidate" },
+            { label: "path" },
+            { label: "search_mode" },
+        ]),
+        JSON_ARRAY: Object.freeze([{ label: "value, ..." }]),
+        JSON_OBJECT: Object.freeze([{ label: "key: value, ..." }]),
+        JSON_ARRAYAGG: Object.freeze([{ label: "value" }]),
+        JSON_OBJECTAGG: Object.freeze([{ label: "key: value" }]),
+        OPENJSON: Object.freeze([{ label: "json_expression" }, { label: "path" }]),
+        VECTOR_DISTANCE: Object.freeze([
+            { label: "distance_metric" },
+            { label: "vector1" },
+            { label: "vector2" },
+        ]),
+        VECTOR_NORM: Object.freeze([{ label: "vector" }, { label: "norm_type" }]),
+        VECTOR_NORMALIZE: Object.freeze([{ label: "vector" }, { label: "norm_type" }]),
+        VECTOR_SEARCH: Object.freeze([
+            { label: "TABLE = source" },
+            { label: "COLUMN = vector_column" },
+            { label: "SIMILAR_TO = vector" },
+            { label: "METRIC = distance_metric" },
+            { label: "TOP_N = count" },
+        ]),
     });
 
 const builtinFunctionNames = Object.freeze([
@@ -949,16 +1034,69 @@ const builtinFunctionNames = Object.freeze([
     "datediff",
     "getdate",
     "isnull",
+    "isjson",
+    "json_array",
+    "json_arrayagg",
+    "json_contains",
+    "json_modify",
+    "json_object",
+    "json_objectagg",
+    "json_path_exists",
+    "json_query",
+    "json_value",
     "len",
     "lower",
     "max",
     "min",
     "newid",
+    "openjson",
     "replace",
     "row_number",
     "substring",
     "sum",
     "upper",
+    "vector_distance",
+    "vector_norm",
+    "vector_normalize",
+    "vector_search",
+]);
+
+const builtinDataTypes = Object.freeze([
+    "bigint",
+    "binary",
+    "bit",
+    "char",
+    "date",
+    "datetime",
+    "datetime2",
+    "datetimeoffset",
+    "decimal",
+    "float",
+    "geography",
+    "geometry",
+    "hierarchyid",
+    "image",
+    "int",
+    "json",
+    "money",
+    "nchar",
+    "ntext",
+    "numeric",
+    "nvarchar",
+    "real",
+    "smalldatetime",
+    "smallint",
+    "smallmoney",
+    "sql_variant",
+    "text",
+    "time",
+    "timestamp",
+    "tinyint",
+    "uniqueidentifier",
+    "varbinary",
+    "varchar",
+    "vector",
+    "xml",
 ]);
 
 function identifierPrefixAt(
@@ -1071,7 +1209,9 @@ function unquoteCompletionIdentifier(identifier: string): string {
 }
 
 function isFunctionCompletionPosition(text: string, prefixStart: number): boolean {
-    return /(?:^|[,(=+\-*/])\s*(?:SELECT\s+)?$/iu.test(text.slice(0, prefixStart));
+    return /(?:^|[,(=+\-*/]|\b(?:SELECT|FROM|JOIN|APPLY)\s+)\s*$/iu.test(
+        text.slice(0, prefixStart),
+    );
 }
 
 function isInsertTargetListPosition(text: string, offset: number): boolean {
@@ -1172,7 +1312,9 @@ function catalogObjectDiagnostics(
             reference.kind === "tempTable" ||
             /^[#@]/.test(reference.name) ||
             reference.kind === "function" ||
-            /^(?:OPENJSON|OPENXML|STRING_SPLIT|GENERATE_SERIES)$/iu.test(reference.name) ||
+            /^(?:OPENJSON|OPENXML|STRING_SPLIT|GENERATE_SERIES|VECTOR_SEARCH)$/iu.test(
+                reference.name,
+            ) ||
             syntaxDiagnostics.some((diagnostic) => spansOverlap(diagnostic.span, reference.span)) ||
             isDocumentLocalRelation(reference, analysis)
         ) {
@@ -1443,7 +1585,10 @@ function catalogColumnDiagnostics(
             token.text.startsWith("#") ||
             token.text.startsWith("$") ||
             /^\[\d+\]$/u.test(token.text) ||
-            namedWindows.has(foldName(unquoteIdentifier(token.text)))
+            namedWindows.has(foldName(unquoteIdentifier(token.text))) ||
+            isSpecialFunctionGrammarToken(text, token) ||
+            (["APPROX", "APPROXIMATE"].includes(token.text.toUpperCase()) &&
+                code[index - 1]?.text.toUpperCase() === "WITH")
         ) {
             continue;
         }
@@ -1562,6 +1707,41 @@ function catalogColumnDiagnostics(
         }
     }
     return deduplicateDiagnostics(diagnostics);
+}
+
+function isSpecialFunctionGrammarToken(text: string, token: SqlToken): boolean {
+    const call = callAt(text, token.span.start);
+    if (!call) return false;
+    const name = call.name.toUpperCase();
+    const word = token.text.toUpperCase();
+    if (name === "VECTOR_SEARCH") {
+        return [
+            "TABLE",
+            "COLUMN",
+            "SIMILAR_TO",
+            "METRIC",
+            "TOP_N",
+            "L",
+            "M",
+            "START_ID",
+            "FOR",
+            "INDEX",
+            "CREATE",
+        ].includes(word);
+    }
+    if (
+        [
+            "JSON_ARRAY",
+            "JSON_ARRAYAGG",
+            "JSON_OBJECT",
+            "JSON_OBJECTAGG",
+            "JSON_QUERY",
+            "JSON_VALUE",
+        ].includes(name)
+    ) {
+        return ["ABSENT", "NULL", "ON", "RETURNING", "WITH", "ARRAY", "WRAPPER"].includes(word);
+    }
+    return false;
 }
 
 function columnDiagnostic(
@@ -2203,7 +2383,7 @@ function mapSymbols(
     addCteProjectionDefinitions(symbols, text, statements, declarations);
     addDerivedProjectionDefinitions(symbols, text, statements);
     addGeneratedRowsetSymbols(symbols, text);
-    enrichBuiltinFunctionSymbols(symbols, statements);
+    enrichBuiltinFunctionSymbols(symbols, statements, text);
     return deduplicateSymbols(symbols).sort(
         (left, right) =>
             left.span.start - right.span.start || spanWidth(left.span) - spanWidth(right.span),
@@ -2772,6 +2952,7 @@ function matchingCloseParenthesis(text: string, open: number): number | undefine
 function enrichBuiltinFunctionSymbols(
     target: SqlSymbol[],
     statements: readonly SqlStatement[],
+    text: string,
 ): void {
     const symbolIndices = symbolIndicesByStatement(target, statements);
     for (let index = 0; index < target.length; index++) {
@@ -2797,11 +2978,16 @@ function enrichBuiltinFunctionSymbols(
         });
         const argument = argumentIndex === undefined ? undefined : target[argumentIndex];
         const type =
-            name === "COUNT"
+            builtinFunctionReturnType(
+                name,
+                argument?.type,
+                text.slice(symbol.span.start, symbol.span.end),
+            ) ??
+            (name === "COUNT"
                 ? typeFromText("int")
                 : aggregate && argument?.type?.kind === "scalar"
                   ? aggregateResultType(name, argument.type.display)
-                  : argument?.type;
+                  : argument?.type);
         target[index] = Object.freeze({
             ...symbol,
             modifiers: Object.freeze([
@@ -2810,6 +2996,43 @@ function enrichBuiltinFunctionSymbols(
             ]),
             type,
         });
+    }
+}
+
+function builtinFunctionReturnType(
+    name: string,
+    argumentType: SqlType | undefined,
+    callText: string,
+): SqlType | undefined {
+    switch (name) {
+        case "ISJSON":
+        case "JSON_PATH_EXISTS":
+        case "JSON_CONTAINS":
+            return typeFromText("int");
+        case "JSON_VALUE": {
+            const returning =
+                /\bRETURNING\s+([A-Za-z_]\w*(?:\s*\(\s*(?:max|\d+)(?:\s*,\s*\d+)?\s*\))?)/iu
+                    .exec(callText)?.[1]
+                    ?.replace(/\s+/gu, "")
+                    .trim();
+            return typeFromText(returning || "nvarchar(4000)");
+        }
+        case "JSON_QUERY":
+        case "JSON_MODIFY":
+        case "JSON_ARRAY":
+        case "JSON_OBJECT":
+        case "JSON_ARRAYAGG":
+        case "JSON_OBJECTAGG":
+            return typeFromText(/\bRETURNING\s+JSON\b/iu.test(callText) ? "json" : "nvarchar(max)");
+        case "VECTOR_DISTANCE":
+        case "VECTOR_NORM":
+            return typeFromText("float");
+        case "VECTOR_NORMALIZE":
+            return argumentType ?? typeFromText("vector");
+        case "VECTOR_SEARCH":
+            return unknownType;
+        default:
+            return undefined;
     }
 }
 

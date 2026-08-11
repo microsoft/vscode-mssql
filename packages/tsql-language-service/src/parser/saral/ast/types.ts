@@ -107,6 +107,31 @@ export interface FunctionCallNode extends NodeLocation, Recoverable {
     distinct?: boolean;
     withinGroup?: OrderByNode[];
     openJsonWith?: OpenJsonColumnDefinition[];
+    jsonClause?: JsonFunctionClause;
+    vectorSearch?: VectorSearchClause;
+}
+
+export interface JsonObjectEntry extends NodeLocation {
+    key: Expression;
+    value: Expression;
+}
+
+export interface JsonFunctionClause {
+    entries?: JsonObjectEntry[];
+    nullHandling?: "NULL ON NULL" | "ABSENT ON NULL";
+    returningType?: string;
+    arrayWrapper?: boolean;
+}
+
+export interface VectorSearchParameter extends NodeLocation {
+    name: string;
+    value: Expression | null;
+    tableAlias?: string;
+}
+
+export interface VectorSearchClause {
+    parameters: VectorSearchParameter[];
+    forIndexCreate?: boolean;
 }
 
 export interface PivotClause extends NodeLocation, Recoverable {
@@ -283,6 +308,7 @@ export interface SelectNode extends NodeLocation, Recoverable {
 
     offset?: Expression;
     fetch?: Expression;
+    fetchApproximate?: boolean;
     forClause?: ForClause;
     optionClause?: OptionClause;
 }
@@ -790,6 +816,7 @@ export interface IndexOptionNode extends NodeLocation {
 // Index creation statement
 export interface CreateIndexNode extends NodeLocation, Recoverable {
     type: "CreateIndexStatement";
+    indexKind: "BTREE" | "JSON" | "VECTOR";
     unique: boolean;
     clustered: "CLUSTERED" | "NONCLUSTERED" | null;
     name: string;
@@ -800,6 +827,7 @@ export interface CreateIndexNode extends NodeLocation, Recoverable {
     where?: Expression;
     options?: IndexOptionNode[];
     storage?: StorageTargetNode;
+    jsonPaths?: Expression[];
 }
 
 export interface TableIndexNode extends NodeLocation, Recoverable {
@@ -967,6 +995,7 @@ export interface TopClause extends NodeLocation, Recoverable {
     quantity: Expression | null;
     percent: boolean;
     withTies: boolean;
+    approximate?: boolean;
 }
 
 export type FrameUnit = "ROWS" | "RANGE";

@@ -711,6 +711,7 @@ export abstract class QueryParser extends TableSourceParser {
             }
 
             let withTies = false;
+            let approximate = false;
             if (this.peekKeyword("WITH")) {
                 const withToken = this.consume();
                 topEnd = withToken.offset + withToken.value.length;
@@ -718,6 +719,12 @@ export abstract class QueryParser extends TableSourceParser {
                     const tiesToken = this.consume();
                     withTies = true;
                     topEnd = tiesToken.offset + tiesToken.value.length;
+                } else if (
+                    ["APPROX", "APPROXIMATE"].includes(this.peek()?.value.toUpperCase() ?? "")
+                ) {
+                    const approximateToken = this.consume();
+                    approximate = true;
+                    topEnd = approximateToken.offset + approximateToken.value.length;
                 } else {
                     topIncomplete = true;
                     this.addRecoverableError(
@@ -735,6 +742,7 @@ export abstract class QueryParser extends TableSourceParser {
                 quantity,
                 percent,
                 withTies,
+                ...(approximate ? { approximate: true } : {}),
                 start: topToken.offset,
                 end: topEnd,
                 ...(topIncomplete ? { incomplete: true } : {}),
@@ -1086,12 +1094,18 @@ export abstract class QueryParser extends TableSourceParser {
 
         // 10. FETCH NEXT / FIRST
         let fetch: Expression | null = null;
+        let fetchApproximate = false;
 
         if (this.peekKeyword("FETCH")) {
             const fetchToken = this.consume();
             endOffset = fetchToken.offset + fetchToken.value.length;
 
             try {
+                if (["APPROX", "APPROXIMATE"].includes(this.peek()?.value.toUpperCase() ?? "")) {
+                    this.consume();
+                    fetchApproximate = true;
+                    endOffset = this.lastConsumedEnd();
+                }
                 const fetchMode = this.peek()?.value.toUpperCase();
 
                 if (fetchMode === "NEXT" || fetchMode === "FIRST") {
@@ -1190,6 +1204,16 @@ export abstract class QueryParser extends TableSourceParser {
                     const directive = this.consume().value.toUpperCase();
 
                     if (mode === "JSON") {
+                        if (directive !== "AUTO" && directive !== "PATH") {
+                            incomplete = true;
+                            this.addRecoverableError(
+                                errors,
+                                "PARSE_SELECT_FOR_JSON_DIRECTIVE",
+                                "Expected AUTO or PATH after FOR JSON",
+                                next.offset,
+                                next.offset + next.value.length,
+                            );
+                        }
                         const options: ForJsonOption[] = [];
 
                         while (this.peek()?.type === TokenType.Comma) {
@@ -1260,6 +1284,7 @@ export abstract class QueryParser extends TableSourceParser {
             ...(orderBy ? { orderBy } : {}),
             ...(offset ? { offset } : {}),
             ...(fetch ? { fetch } : {}),
+            ...(fetchApproximate ? { fetchApproximate: true } : {}),
             ...(forClause ? { forClause } : {}),
             ...(optionClause ? { optionClause } : {}),
             start: startToken.offset,

@@ -769,7 +769,17 @@ function collectReferencesFromExpression(
             if (expr.receiver) {
                 addIdentifierReference(expr.receiver, references, "column", "expression");
             }
+            const vectorTable = expr.vectorSearch?.parameters.find(
+                (parameter) => parameter.name === "TABLE",
+            );
+            if (vectorTable?.value?.type === "Identifier") {
+                addIdentifierReference(vectorTable.value, references, "table", "from");
+                addAliasReference(vectorTable.tableAlias, vectorTable, references, "from");
+            }
             for (const arg of expr.args) {
+                if (arg === vectorTable?.value) {
+                    continue;
+                }
                 collectReferencesFromExpression(arg, references, knownAliases);
             }
             return;

@@ -144,6 +144,7 @@ const tsqlDataTypes = [
     "hierarchyid",
     "image",
     "int",
+    "json",
     "money",
     "nchar",
     "ntext",
@@ -161,6 +162,7 @@ const tsqlDataTypes = [
     "uniqueidentifier",
     "varbinary",
     "varchar",
+    "vector",
     "xml",
 ] as const;
 const createTableDefinitionKeywords = [
@@ -2168,6 +2170,9 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
         if (type === "float") {
             return new vscode.SnippetString(`${type}(\${1:53})`);
         }
+        if (type === "vector") {
+            return new vscode.SnippetString(`${type}(\${1:1536})`);
+        }
         return type;
     }
 
@@ -2177,9 +2182,11 @@ export class BetaSqlCompletionProvider implements vscode.CompletionItemProvider 
                 ? ["0", "2", "4", "6"]
                 : typeName === "decimal" || typeName === "numeric"
                   ? ["18, 2", "10, 2", "19, 4"]
-                  : ["varchar", "nvarchar", "varbinary"].includes(typeName)
-                    ? ["MAX", "50", "100", "255"]
-                    : ["7", "6", "3", "0"];
+                  : typeName === "vector"
+                    ? ["3", "384", "768", "1536"]
+                    : ["varchar", "nvarchar", "varbinary"].includes(typeName)
+                      ? ["MAX", "50", "100", "255"]
+                      : ["7", "6", "3", "0"];
         return values
             .filter((value) => value.toLocaleLowerCase().startsWith(prefix.toLocaleLowerCase()))
             .map((value) => {

@@ -23,6 +23,8 @@ import {
     type ColumnNode,
     type IdentifierNode,
     type TableReference,
+    type FunctionCallNode,
+    type CreateIndexNode,
 } from "../ast/types.js";
 
 import { type ScopeBuilderResult } from "../semantic/scopeBuilder.js";
@@ -70,6 +72,12 @@ export enum DiagnosticCode {
     DuplicateVariable = "DUP001",
     DuplicateCte = "DUP002",
     DuplicateSelectAlias = "DUP003",
+    InvalidBuiltinArguments = "FUN001",
+    InvalidJsonFunctionArgument = "JSON001",
+    InvalidVectorFunctionArgument = "VEC001",
+    InvalidVectorSearch = "VEC002",
+    InvalidSpecializedIndex = "IDX001",
+    InvalidApproximateQuery = "VEC003",
 }
 
 // ─── Engine ───────────────────────────────────────────────────────────────────
@@ -366,6 +374,10 @@ export class DiagnosticEngine {
                 this.checkCreate(stmt);
                 break;
 
+            case "CreateIndexStatement":
+                this.checkSpecializedIndex(stmt);
+                break;
+
             case "AlterTableStatement":
                 this.checkAlterTable(stmt);
                 break;
@@ -574,6 +586,8 @@ export class DiagnosticEngine {
                 this.visitExpression(order.expression, insideView);
             }
         }
+
+        this.checkApproximateQuery(stmt);
 
         this.checkOptionClause(stmt.optionClause);
     }
@@ -932,6 +946,7 @@ export class DiagnosticEngine {
                 break;
 
             case "FunctionCall":
+                this.checkFunctionCall(expr);
                 this.visitExpression(expr.receiver, insideView);
                 for (const arg of expr.args) {
                     this.visitExpression(arg, insideView);
@@ -965,6 +980,317 @@ export class DiagnosticEngine {
             case "Identifier":
                 this.checkQualifiedIdentifierColumn(expr);
                 break;
+        }
+    }
+
+    private checkFunctionCall(expr: FunctionCallNode): void {
+        const name = expr.name.toUpperCase();
+        const arity = new Map<string, readonly [number, number]>([
+            ["JSON_VALUE", [2, 2]],
+            ["JSON_QUERY", [1, 2]],
+            ["ISJSON", [1, 2]],
+            ["JSON_MODIFY", [3, 3]],
+            ["JSON_PATH_EXISTS", [2, 2]],
+            ["JSON_CONTAINS", [2, 4]],
+            ["JSON_ARRAYAGG", [1, 1]],
+            ["JSON_OBJECTAGG", [2, 2]],
+            ["VECTOR_DISTANCE", [3, 3]],
+            ["VECTOR_NORM", [2, 2]],
+            ["VECTOR_NORMALIZE", [2, 2]],
+        ]);
+        const expected = arity.get(name);
+        if (expected && (expr.args.length < expected[0] || expr.args.length > expected[1])) {
+            const description =
+                expected[0] === expected[1] ? `${expected[0]}` : `${expected[0]} to ${expected[1]}`;
+            this.emit({
+                code:
+                    name.startsWith("JSON") || name === "ISJSON"
+                        ? DiagnosticCode.InvalidJsonFunctionArgument
+                        : DiagnosticCode.InvalidVectorFunctionArgument,
+                message: `${name} requires ${description} argument${expected[1] === 1 ? "" : "s"}.`,
+                severity: "error",
+                start: expr.start,
+                end: expr.start + expr.name.length,
+            });
+        }
+
+        if (name === "ISJSON" && expr.args[1]) {
+            const constraint =
+                expr.args[1].type === "Identifier" || expr.args[1].type === "BuiltInArgument"
+                    ? ("name" in expr.args[1]
+                          ? expr.args[1].name
+                          : expr.args[1].value
+                      ).toUpperCase()
+                    : "";
+            if (!["VALUE", "ARRAY", "OBJECT", "SCALAR"].includes(constraint)) {
+                this.emit({
+                    code: DiagnosticCode.InvalidJsonFunctionArgument,
+                    message: "The ISJSON type constraint must be VALUE, ARRAY, OBJECT, or SCALAR.",
+                    severity: "error",
+                    start: expr.args[1].start,
+                    end: expr.args[1].end,
+                });
+            }
+        }
+
+        if (name === "VECTOR_SEARCH") {
+            this.checkVectorSearch(expr);
+        }
+        if (name === "VECTOR_DISTANCE" && expr.args[0]) {
+            this.checkVectorOptionLiteral(
+                expr.args[0],
+                ["cosine", "euclidean", "dot"],
+                "VECTOR_DISTANCE metric",
+            );
+        }
+        if ((name === "VECTOR_NORM" || name === "VECTOR_NORMALIZE") && expr.args[1]) {
+            this.checkVectorOptionLiteral(
+                expr.args[1],
+                ["norm1", "norm2", "norminf"],
+                `${name} norm type`,
+            );
+        }
+    }
+
+    private checkVectorOptionLiteral(
+        expression: Expression,
+        allowed: readonly string[],
+        description: string,
+    ): void {
+        if (
+            expression.type === "Literal" &&
+            expression.variant === "string" &&
+            allowed.includes(String(expression.value).toLowerCase())
+        ) {
+            return;
+        }
+        this.emit({
+            code: DiagnosticCode.InvalidVectorFunctionArgument,
+            message: `${description} must be one of ${allowed.map((value) => `'${value}'`).join(", ")}.`,
+            severity: "error",
+            start: expression.start,
+            end: expression.end,
+        });
+    }
+
+    private checkVectorSearch(expr: FunctionCallNode): void {
+        const clause = expr.vectorSearch;
+        if (!clause) return;
+        const required = ["TABLE", "COLUMN", "SIMILAR_TO", "METRIC"];
+        const allowed = [...required, "TOP_N", "L", "M", "START_ID"];
+        const names = clause.parameters.map((parameter) => parameter.name);
+        for (const name of required) {
+            if (!names.includes(name)) {
+                this.emit({
+                    code: DiagnosticCode.InvalidVectorSearch,
+                    message: `VECTOR_SEARCH requires the ${name} parameter.`,
+                    severity: "error",
+                    start: expr.start,
+                    end: expr.start + expr.name.length,
+                });
+            }
+        }
+        for (const parameter of clause.parameters) {
+            if (!allowed.includes(parameter.name)) {
+                this.emit({
+                    code: DiagnosticCode.InvalidVectorSearch,
+                    message: `'${parameter.name}' is not a valid VECTOR_SEARCH parameter.`,
+                    severity: "error",
+                    start: parameter.start,
+                    end: parameter.end,
+                });
+            }
+            if (parameter.value?.type === "SubqueryExpression") {
+                this.emit({
+                    code: DiagnosticCode.InvalidVectorSearch,
+                    message: `A subquery is not allowed for the ${parameter.name} parameter.`,
+                    severity: "error",
+                    start: parameter.value.start,
+                    end: parameter.value.end,
+                });
+            }
+        }
+        const ordered = names.filter((name) => required.includes(name));
+        if (ordered.some((name, index) => name !== required[index])) {
+            this.emit({
+                code: DiagnosticCode.InvalidVectorSearch,
+                message:
+                    "VECTOR_SEARCH parameters TABLE, COLUMN, SIMILAR_TO, and METRIC must appear in that order.",
+                severity: "error",
+                start: expr.start,
+                end: expr.end,
+            });
+        }
+        const column = clause.parameters.find((parameter) => parameter.name === "COLUMN")?.value;
+        if (column?.type !== "Identifier" || column.parts.length !== 1) {
+            this.emit({
+                code: DiagnosticCode.InvalidVectorSearch,
+                message: "The VECTOR_SEARCH COLUMN parameter must be a one-part column name.",
+                severity: "error",
+                start: column?.start ?? expr.start,
+                end: column?.end ?? expr.start + expr.name.length,
+            });
+        }
+        const metric = clause.parameters.find((parameter) => parameter.name === "METRIC")?.value;
+        if (
+            metric &&
+            (metric.type !== "Literal" ||
+                metric.variant !== "string" ||
+                !["cosine", "euclidean", "dot"].includes(String(metric.value).toLowerCase()))
+        ) {
+            this.emit({
+                code: DiagnosticCode.InvalidVectorSearch,
+                message:
+                    "The VECTOR_SEARCH METRIC parameter must be 'cosine', 'euclidean', or 'dot'.",
+                severity: "error",
+                start: metric.start,
+                end: metric.end,
+            });
+        }
+        if (clause.forIndexCreate) {
+            this.emit({
+                code: DiagnosticCode.InvalidVectorSearch,
+                message: "FOR INDEX CREATE is reserved for internal use.",
+                severity: "error",
+                start: expr.start,
+                end: expr.end,
+            });
+        }
+    }
+
+    private checkSpecializedIndex(stmt: CreateIndexNode): void {
+        if (stmt.indexKind === "BTREE") return;
+        const options = stmt.options ?? [];
+        if (stmt.columns.length !== 1) {
+            this.emit({
+                code: DiagnosticCode.InvalidSpecializedIndex,
+                message: `CREATE ${stmt.indexKind} INDEX requires exactly one key column.`,
+                severity: "error",
+                start: stmt.columns[0]?.start ?? stmt.nameNode.start,
+                end: stmt.columns.at(-1)?.end ?? stmt.nameNode.end,
+            });
+        }
+        if (stmt.indexKind === "VECTOR") {
+            const allowed = new Set(["METRIC", "TYPE", "MAXDOP", "DROP_EXISTING", "R", "L", "M"]);
+            if (!options.some((option) => option.name === "METRIC")) {
+                this.emit({
+                    code: DiagnosticCode.InvalidSpecializedIndex,
+                    message: "CREATE VECTOR INDEX requires the METRIC option.",
+                    severity: "error",
+                    start: stmt.nameNode.start,
+                    end: stmt.nameNode.end,
+                });
+            }
+            for (const option of options.filter((option) => !allowed.has(option.name))) {
+                this.emit({
+                    code: DiagnosticCode.InvalidSpecializedIndex,
+                    message: `'${option.name}' is not a valid VECTOR index option.`,
+                    severity: "error",
+                    start: option.start,
+                    end: option.end,
+                });
+            }
+            const metric = options.find((option) => option.name === "METRIC");
+            if (
+                metric &&
+                !["'COSINE'", "'EUCLIDEAN'", "'DOT'"].includes(metric.value.toUpperCase())
+            ) {
+                this.emit({
+                    code: DiagnosticCode.InvalidSpecializedIndex,
+                    message: "VECTOR index METRIC must be 'cosine', 'euclidean', or 'dot'.",
+                    severity: "error",
+                    start: metric.start,
+                    end: metric.end,
+                });
+            }
+        } else {
+            const allowed = new Set([
+                "ALLOW_ROW_LOCKS",
+                "ALLOW_PAGE_LOCKS",
+                "ONLINE",
+                "OPTIMIZE_FOR_ARRAY_SEARCH",
+            ]);
+            for (const option of options.filter((option) => !allowed.has(option.name))) {
+                this.emit({
+                    code: DiagnosticCode.InvalidSpecializedIndex,
+                    message: `'${option.name}' is not a valid JSON index option.`,
+                    severity: "error",
+                    start: option.start,
+                    end: option.end,
+                });
+            }
+            for (const option of options.filter(
+                (option) => allowed.has(option.name) && !["ON", "OFF"].includes(option.value),
+            )) {
+                this.emit({
+                    code: DiagnosticCode.InvalidSpecializedIndex,
+                    message: `${option.name} must be ON or OFF for a JSON index.`,
+                    severity: "error",
+                    start: option.start,
+                    end: option.end,
+                });
+            }
+            for (const path of stmt.jsonPaths ?? []) {
+                if (path.type !== "Literal" || path.variant !== "string") {
+                    this.emit({
+                        code: DiagnosticCode.InvalidSpecializedIndex,
+                        message: "JSON index paths must be string literals.",
+                        severity: "error",
+                        start: path.start,
+                        end: path.end,
+                    });
+                }
+            }
+        }
+    }
+
+    private checkApproximateQuery(stmt: SelectNode): void {
+        if (!stmt.top?.approximate && !stmt.fetchApproximate) return;
+        const vectorSources = (stmt.from ?? [])
+            .flatMap((reference) => [reference, ...reference.joins])
+            .filter(
+                (source) =>
+                    source.table?.type === "FunctionCall" &&
+                    source.table.name.toUpperCase() === "VECTOR_SEARCH",
+            );
+        const label = stmt.fetchApproximate ? "FETCH APPROX" : "TOP WITH APPROX";
+        if (!vectorSources.length) {
+            this.emit({
+                code: DiagnosticCode.InvalidApproximateQuery,
+                message: `${label} requires VECTOR_SEARCH in the FROM clause.`,
+                severity: "error",
+                start: stmt.top?.start ?? stmt.fetch?.start ?? stmt.start,
+                end: stmt.top?.end ?? stmt.fetch?.end ?? stmt.start,
+            });
+        } else if (!stmt.orderBy?.length) {
+            this.emit({
+                code: DiagnosticCode.InvalidApproximateQuery,
+                message: `${label} requires ORDER BY on the VECTOR_SEARCH distance column.`,
+                severity: "error",
+                start: stmt.top?.start ?? stmt.fetch?.start ?? stmt.start,
+                end: stmt.top?.end ?? stmt.fetch?.end ?? stmt.start,
+            });
+        } else {
+            const aliases = vectorSources
+                .map((source) => source.alias?.replace(/^\[|\]$/gu, "").toUpperCase())
+                .filter((alias): alias is string => Boolean(alias));
+            const ordersByDistance = stmt.orderBy.some((order) => {
+                if (order.expression.type !== "Identifier") return false;
+                const parts = order.expression.parts.map((part) =>
+                    part.replace(/^\[|\]$/gu, "").toUpperCase(),
+                );
+                if (parts.at(-1) !== "DISTANCE") return false;
+                return parts.length === 1 || aliases.includes(parts.at(-2)!);
+            });
+            if (!ordersByDistance) {
+                this.emit({
+                    code: DiagnosticCode.InvalidApproximateQuery,
+                    message: `${label} ORDER BY must reference the VECTOR_SEARCH distance column.`,
+                    severity: "error",
+                    start: stmt.orderBy[0].start,
+                    end: stmt.orderBy.at(-1)!.end,
+                });
+            }
         }
     }
 

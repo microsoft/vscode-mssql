@@ -40,6 +40,7 @@ import {
     type SubqueryExpression,
     type OutputClauseNode,
     type IdentifierNode,
+    type FunctionCallNode,
 } from "../ast/types.js";
 
 import {
@@ -1037,16 +1038,21 @@ export class ScopeBuilder {
                 metadata:
                     table?.type === "Identifier"
                         ? { tableName: table.name, sourceKind: "table" }
-                        : {
-                              sourceKind:
-                                  table?.type === "SubqueryExpression"
-                                      ? "derived_subquery"
-                                      : table?.type === "FunctionCall"
-                                        ? "function"
+                        : table?.type === "FunctionCall"
+                          ? {
+                                sourceKind: "function",
+                                ...(this.getVectorSearchTableName(table)
+                                    ? { tableName: this.getVectorSearchTableName(table) }
+                                    : {}),
+                            }
+                          : {
+                                sourceKind:
+                                    table?.type === "SubqueryExpression"
+                                        ? "derived_subquery"
                                         : table?.type === "ValuesTableExpression"
                                           ? "derived_values"
                                           : "derived",
-                          },
+                            },
             });
         }
 
@@ -1086,10 +1092,18 @@ export class ScopeBuilder {
                 metadata:
                     join.table?.type === "Identifier"
                         ? { tableName: join.table.name, sourceKind: "table", joinType: join.type }
-                        : {
-                              sourceKind: isApply ? "derived_apply" : "derived",
-                              joinType: join.type,
-                          },
+                        : join.table?.type === "FunctionCall"
+                          ? {
+                                sourceKind: isApply ? "derived_apply" : "function",
+                                joinType: join.type,
+                                ...(this.getVectorSearchTableName(join.table)
+                                    ? { tableName: this.getVectorSearchTableName(join.table) }
+                                    : {}),
+                            }
+                          : {
+                                sourceKind: isApply ? "derived_apply" : "derived",
+                                joinType: join.type,
+                            },
             });
         }
 
@@ -1378,6 +1392,11 @@ export class ScopeBuilder {
             return this.getUnpivotOutputColumns(ref);
         }
 
+        if (ref.table?.type === "FunctionCall") {
+            const columns = this.getFunctionRowsetLocalColumns(ref.table);
+            return columns?.map((column) => column.rawName);
+        }
+
         return undefined;
     }
 
@@ -1609,12 +1628,55 @@ export class ScopeBuilder {
             }
         }
 
+        if (ref.table?.type === "FunctionCall") {
+            const columns = this.getFunctionRowsetLocalColumns(ref.table);
+            if (columns?.length) {
+                return columns;
+            }
+        }
+
         const derived = this.getTableReferenceAliasColumns(ref);
         if (derived?.length) {
             return derived.map((name) => this.makeSymbolColumn(name, undefined, ref));
         }
 
         return undefined;
+    }
+
+    private getFunctionRowsetLocalColumns(call: FunctionCallNode): SymbolColumn[] | undefined {
+        const name = call.name.toUpperCase();
+        if (name === "OPENJSON") {
+            if (call.openJsonWith?.length) {
+                return call.openJsonWith.map((column) =>
+                    this.makeSymbolColumn(column.name, column.dataType, column),
+                );
+            }
+            return [
+                this.makeSymbolColumn("key", "nvarchar(4000)", call),
+                this.makeSymbolColumn("value", "nvarchar(max)", call),
+                this.makeSymbolColumn("type", "int", call),
+            ];
+        }
+        if (name === "VECTOR_SEARCH") {
+            const tableName = this.getVectorSearchTableName(call);
+            const table = tableName ? this.current.resolve(tableName) : undefined;
+            const columns = table?.localColumns?.map((column) => ({ ...column })) ?? [];
+            if (!columns.some((column) => this.isSameColumnName(column.rawName, "distance"))) {
+                columns.push(this.makeSymbolColumn("distance", "float", call));
+            }
+            return columns;
+        }
+        return undefined;
+    }
+
+    private getVectorSearchTableName(call: FunctionCallNode): string | undefined {
+        if (call.name.toUpperCase() !== "VECTOR_SEARCH") {
+            return undefined;
+        }
+        const value = call.vectorSearch?.parameters.find(
+            (parameter) => parameter.name === "TABLE",
+        )?.value;
+        return value?.type === "Identifier" ? value.name : undefined;
     }
 
     private getJoinAliasLocalColumns(join: JoinNode): SymbolColumn[] | undefined {
@@ -1628,6 +1690,13 @@ export class ScopeBuilder {
                 return source.localColumns.map((col) => ({
                     ...col,
                 }));
+            }
+        }
+
+        if (join.table?.type === "FunctionCall") {
+            const columns = this.getFunctionRowsetLocalColumns(join.table);
+            if (columns?.length) {
+                return columns;
             }
         }
 

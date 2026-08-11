@@ -25,6 +25,9 @@ import {
     type BuiltInArgumentNode,
     type OrderByNode,
     type ExistsExpression,
+    type JsonFunctionClause,
+    type JsonObjectEntry,
+    type VectorSearchParameter,
 } from "../ast/types.js";
 
 import { PRECEDENCE_MAP, Precedence, RESYNC_KEYWORDS, STRUCTURAL_KEYWORDS } from "./grammar.js";
@@ -611,14 +614,25 @@ export abstract class ExpressionParser extends ParserBase {
                 // ---------------------------------------------
 
                 if (this.peek()?.type === TokenType.OpenParen) {
+                    if (idNode.type !== "Identifier") {
+                        throw new Error("Wildcards cannot be used as function names");
+                    }
+                    const specialName = idNode.name.toUpperCase();
+                    if (this.isJsonFunction(specialName)) {
+                        let result: Expression = this.parseJsonFunctionCall(idNode, specialName);
+                        if (this.peekKeyword("OVER")) {
+                            result = this.parseOverClause(result);
+                        }
+                        return result;
+                    }
+                    if (specialName === "VECTOR_SEARCH") {
+                        return this.parseVectorSearchFunction(idNode);
+                    }
+
                     this.consume(); // (
 
                     const args: Expression[] = [];
                     let distinct = false;
-
-                    if (idNode.type !== "Identifier") {
-                        throw new Error("Wildcards cannot be used as function names");
-                    }
 
                     if (this.peekKeyword("DISTINCT")) {
                         this.consume();
@@ -1542,6 +1556,9 @@ export abstract class ExpressionParser extends ParserBase {
     // above also needs it: keywords like LEFT/RIGHT followed by "(" are
     // parsed as function calls via this same path.
     protected parseTableValuedFunction(idNode: IdentifierNode): FunctionCallNode {
+        if (idNode.name.toUpperCase() === "VECTOR_SEARCH") {
+            return this.parseVectorSearchFunction(idNode);
+        }
         this.match(TokenType.OpenParen);
 
         const args: Expression[] = [];
@@ -1576,6 +1593,171 @@ export abstract class ExpressionParser extends ParserBase {
                 : closeParen.offset + closeParen.value.length,
             ...(distinct ? { distinct: true } : {}),
             ...(openJsonWith ? { openJsonWith } : {}),
+        };
+    }
+
+    private isJsonFunction(name: string): boolean {
+        return [
+            "JSON_ARRAY",
+            "JSON_ARRAYAGG",
+            "JSON_OBJECT",
+            "JSON_OBJECTAGG",
+            "JSON_QUERY",
+            "JSON_VALUE",
+        ].includes(name);
+    }
+
+    private parseJsonFunctionCall(idNode: IdentifierNode, name: string): FunctionCallNode {
+        this.match(TokenType.OpenParen);
+        const args: Expression[] = [];
+        const entries: JsonObjectEntry[] = [];
+        const isObject = name === "JSON_OBJECT" || name === "JSON_OBJECTAGG";
+
+        while (this.peek() && this.peek()?.type !== TokenType.CloseParen) {
+            const next = this.peek()!.value.toUpperCase();
+            if (["ABSENT", "RETURNING", "WITH"].includes(next)) {
+                break;
+            }
+            if (
+                next === "NULL" &&
+                this.peek(1)?.value.toUpperCase() === "ON" &&
+                this.peek(2)?.value.toUpperCase() === "NULL"
+            ) {
+                break;
+            }
+
+            if (isObject) {
+                const key = this.parseExpression(Precedence.LOWEST);
+                this.matchValue(":");
+                const value = this.parseExpression(Precedence.LOWEST);
+                entries.push({ key, value, start: key.start, end: value.end });
+                args.push(key, value);
+            } else {
+                args.push(this.parseExpression(Precedence.LOWEST));
+            }
+
+            if (this.peek()?.type !== TokenType.Comma) {
+                break;
+            }
+            this.consume();
+        }
+
+        const jsonClause: JsonFunctionClause = {};
+        const qualifier = this.peek()?.value.toUpperCase();
+        if (qualifier === "ABSENT") {
+            this.consume();
+            this.matchValue("ON");
+            this.matchValue("NULL");
+            jsonClause.nullHandling = "ABSENT ON NULL";
+        } else if (
+            qualifier === "NULL" &&
+            this.peek(1)?.value.toUpperCase() === "ON" &&
+            this.peek(2)?.value.toUpperCase() === "NULL"
+        ) {
+            this.consume();
+            this.consume();
+            this.consume();
+            jsonClause.nullHandling = "NULL ON NULL";
+        }
+
+        if (this.peek()?.value.toUpperCase() === "RETURNING") {
+            this.consume();
+            jsonClause.returningType = this.collectTypeTokens();
+        }
+
+        if (this.peek()?.value.toUpperCase() === "WITH") {
+            this.consume();
+            this.matchValue("ARRAY");
+            this.matchValue("WRAPPER");
+            jsonClause.arrayWrapper = true;
+        }
+
+        const closeParen = this.match(TokenType.CloseParen);
+        if (entries.length) {
+            jsonClause.entries = entries;
+        }
+        return {
+            type: "FunctionCall",
+            name: idNode.name,
+            args,
+            jsonClause,
+            start: idNode.start,
+            end: closeParen.offset + closeParen.value.length,
+        };
+    }
+
+    private parseVectorSearchFunction(idNode: IdentifierNode): FunctionCallNode {
+        this.match(TokenType.OpenParen);
+        const args: Expression[] = [];
+        const parameters: VectorSearchParameter[] = [];
+        let forIndexCreate = false;
+
+        while (this.peek() && this.peek()?.type !== TokenType.CloseParen) {
+            const start = this.peek()!.offset;
+            if (
+                this.peek()?.value.toUpperCase() === "FOR" &&
+                this.peek(1)?.value.toUpperCase() === "INDEX" &&
+                this.peek(2)?.value.toUpperCase() === "CREATE"
+            ) {
+                this.consume();
+                this.consume();
+                this.consume();
+                forIndexCreate = true;
+            } else {
+                const nameToken = this.consume();
+                const parameterName = nameToken.value.toUpperCase();
+                this.matchValue("=");
+                let value: Expression | null = null;
+                let tableAlias: string | undefined;
+                if (this.peekKeyword("SELECT") || this.peekKeyword("WITH")) {
+                    const query = this.parseQueryExpression() as QueryStatement;
+                    value = {
+                        type: "SubqueryExpression",
+                        query,
+                        start: query.start,
+                        end: query.end,
+                    };
+                } else if (this.peek()?.type === TokenType.OpenParen) {
+                    value = this.parseExpression(Precedence.LOWEST);
+                } else {
+                    value = this.parseExpression(Precedence.LOWEST);
+                }
+                if (parameterName === "TABLE" && this.peek()?.value.toUpperCase() === "AS") {
+                    this.consume();
+                    const alias = this.parseMultipartIdentifier(undefined, {
+                        allowStructuralFirstSegment: true,
+                    });
+                    if (alias.type === "Identifier") {
+                        tableAlias = alias.name;
+                    }
+                }
+                args.push(value);
+                parameters.push({
+                    name: parameterName,
+                    value,
+                    ...(tableAlias ? { tableAlias } : {}),
+                    start,
+                    end: this.lastConsumedEnd(),
+                });
+            }
+
+            if (this.peek()?.type !== TokenType.Comma) {
+                break;
+            }
+            this.consume();
+        }
+
+        const closeParen = this.match(TokenType.CloseParen);
+        return {
+            type: "FunctionCall",
+            name: idNode.name,
+            args,
+            vectorSearch: {
+                parameters,
+                ...(forIndexCreate ? { forIndexCreate: true } : {}),
+            },
+            start: idNode.start,
+            end: closeParen.offset + closeParen.value.length,
         };
     }
 

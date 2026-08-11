@@ -460,7 +460,12 @@ export abstract class TableSourceParser extends ExpressionParser {
         // 3. MODERN HINTS
         // ------------------------------------------------------------
         try {
-            if (source?.type === "Identifier" && this.peekKeyword("WITH")) {
+            if (
+                (source?.type === "Identifier" ||
+                    (source?.type === "FunctionCall" &&
+                        source.name.toUpperCase() === "VECTOR_SEARCH")) &&
+                this.peekKeyword("WITH")
+            ) {
                 const parsed = this.parseTableHints();
 
                 if (parsed.length) {

@@ -541,6 +541,7 @@ export abstract class CreateParser extends ControlFlowParser {
 
             const isIndex =
                 t0 === "INDEX" ||
+                ((t0 === "JSON" || t0 === "VECTOR") && t1 === "INDEX") ||
                 (t0 === "UNIQUE" &&
                     (t1 === "INDEX" || t1 === "CLUSTERED" || t1 === "NONCLUSTERED")) ||
                 ((t0 === "CLUSTERED" || t0 === "NONCLUSTERED") && t1 === "INDEX") ||
@@ -1808,6 +1809,12 @@ export abstract class CreateParser extends ControlFlowParser {
         let incomplete = false;
         const errors: string[] = [];
         let endOffset = startToken.offset + startToken.value.length;
+        let indexKind: CreateIndexNode["indexKind"] = "BTREE";
+
+        if (["JSON", "VECTOR"].includes(this.peek()?.value.toUpperCase() ?? "")) {
+            indexKind = this.consume().value.toUpperCase() as "JSON" | "VECTOR";
+            endOffset = this.lastConsumedEnd();
+        }
 
         // 1. UNIQUE (optional)
         // UNIQUE is a Keyword token — use value comparison for consistency
@@ -1986,6 +1993,27 @@ export abstract class CreateParser extends ControlFlowParser {
         // INCLUDE is not a keyword — comes through as Identifier token
         let include: IdentifierNode[] | undefined;
 
+        let jsonPaths: Expression[] | undefined;
+        if (indexKind === "JSON" && this.peek()?.value.toUpperCase() === "FOR") {
+            this.consume();
+            endOffset = this.lastConsumedEnd();
+            try {
+                this.match(TokenType.OpenParen);
+                jsonPaths = this.parseList(() => this.parseExpression());
+                const closeParen = this.match(TokenType.CloseParen);
+                endOffset = closeParen.offset + closeParen.value.length;
+            } catch (e) {
+                incomplete = true;
+                this.addRecoverableError(
+                    errors,
+                    "PARSE_CREATE_JSON_INDEX_PATHS",
+                    e instanceof Error ? e.message : String(e),
+                    endOffset,
+                    this.lastConsumedEnd(),
+                );
+            }
+        }
+
         if (this.peek()?.value?.toUpperCase() === "INCLUDE") {
             this.consume();
             endOffset = this.lastConsumedEnd();
@@ -2140,6 +2168,7 @@ export abstract class CreateParser extends ControlFlowParser {
 
         return {
             type: "CreateIndexStatement",
+            indexKind,
             unique,
             clustered,
             name,
@@ -2150,6 +2179,7 @@ export abstract class CreateParser extends ControlFlowParser {
             ...(where !== undefined ? { where } : {}),
             ...(options !== undefined ? { options } : {}),
             ...(storage ? { storage } : {}),
+            ...(jsonPaths !== undefined ? { jsonPaths } : {}),
             start: startToken.offset,
             end: endOffset,
             ...(incomplete ? { incomplete: true } : {}),
