@@ -714,14 +714,6 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                     targetId = model.getChildIds(id)[0];
                     break;
                 case "ArrowLeft":
-                    if (model.getChildIds(id).length > 0 && !collapsedNodeIds.has(id)) {
-                        setCollapsedNodeIds((current) => {
-                            const next = new Set(current);
-                            next.add(id);
-                            return next;
-                        });
-                        break;
-                    }
                     targetId = parentId;
                     break;
                 case "ArrowUp":
