@@ -211,7 +211,7 @@
                 {
                     "id": "queryResult",
                     "title": "%extension.queryResult%",
-                    "icon": "media/SignIn.svg"
+                    "icon": "media/revealQueryResult.svg"
                 }
             ]
         },
@@ -222,7 +222,7 @@
                     "id": "queryResult",
                     "name": "%extension.queryResult%",
                     "when": "!config.mssql.openQueryResultsInTabByDefault",
-                    "icon": "media/objectTypes/Table.svg"
+                    "icon": "media/revealQueryResult.svg"
                 }
             ],
             "objectExplorer": [
