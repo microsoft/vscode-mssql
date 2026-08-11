@@ -767,6 +767,9 @@ export let connectProgressNoticationTitle = l10n.t("Testing connection profile..
 export let msgMultipleSelectionModeNotSupported = l10n.t(
     "Running query is not supported when the editor is in multiple selection mode.",
 );
+export let msgNoQueryTextToExecute = l10n.t(
+    "There is no query text to execute. Enter a query or select non-empty query text.",
+);
 export let msgSelectNodeToScript = l10n.t("Please select a node from Object Explorer to script.");
 export let msgSelectSingleNodeToScript = l10n.t(
     "Please select only one node to script. Multiple node scripting is not supported.",
