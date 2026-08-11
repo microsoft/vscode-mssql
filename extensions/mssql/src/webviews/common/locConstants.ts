@@ -986,7 +986,12 @@ export class LocConstants {
             reactFlowRendererError: l10n.t(
                 "The React Flow execution plan preview could not render this plan.",
             ),
-            executionPlanGraph: l10n.t("Execution plan"),
+            executionPlanGraph: (planNumber: number) =>
+                l10n.t({
+                    message: "Execution plan {0}, use arrow keys to navigate between nodes",
+                    args: [planNumber],
+                    comment: ["{0} is the one-based execution plan number"],
+                }),
             executionPlanDetails: l10n.t("Execution plan details"),
             expandNode: (name: string) =>
                 l10n.t({
