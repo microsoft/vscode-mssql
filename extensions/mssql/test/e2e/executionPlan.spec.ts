@@ -77,7 +77,13 @@ test.describe("MSSQL Extension - Query Plan", async () => {
 
         const rootNode = iframe.locator('[role="treeitem"][tabindex="0"]').first();
         await expect(rootNode).toBeVisible();
+        await expect(
+            iframe.getByRole("tree", { name: /Execution plan 1, use arrow keys/ }),
+        ).toBeVisible();
         await rootNode.focus();
+        await expect(iframe.getByRole("status")).toHaveText(
+            "Execution plan 1, use arrow keys to navigate between nodes",
+        );
         const viewport = iframe.locator(".react-flow__viewport").first();
         const viewportStyle = await viewport.getAttribute("style");
         await rootNode.press("ArrowRight");

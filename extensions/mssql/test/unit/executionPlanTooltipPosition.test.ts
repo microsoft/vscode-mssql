@@ -11,48 +11,57 @@ import {
 } from "../../src/webviews/pages/ExecutionPlan/executionPlanTooltipPosition";
 
 suite("ExecutionPlanTooltipPosition", () => {
-    test("places a node tooltip to the right when space is available", () => {
-        const placement = getExecutionPlanTooltipPlacement(
+    test("places a node tooltip at the bottom right when space is available", () => {
+        const preferredPlacement = getExecutionPlanTooltipPlacement(
             {
                 x: 188,
-                y: 100,
+                y: 188,
                 sourceBounds: { left: 100, right: 180, top: 100, bottom: 180 },
             },
             { width: 1000, height: 700 },
         );
+        const placement = fitExecutionPlanTooltipPlacement(
+            preferredPlacement,
+            { width: 520, height: 200 },
+            { width: 1000, height: 700 },
+        );
 
         expect(placement.left).to.equal(188);
-        expect(placement.top).to.equal(100);
+        expect(placement.top).to.equal(188);
     });
 
-    test("places a node tooltip to the left without covering its source", () => {
+    test("moves a node tooltip left only when it would overflow the viewport", () => {
         const sourceBounds = { left: 574, right: 654, top: 168, bottom: 248 };
-        const placement = getExecutionPlanTooltipPlacement(
-            {
-                x: sourceBounds.right + 8,
-                y: sourceBounds.top,
-                sourceBounds,
-            },
+        const preferredPlacement = getExecutionPlanTooltipPlacement(
+            { x: sourceBounds.right + 8, y: sourceBounds.bottom + 8, sourceBounds },
+            { width: 1063, height: 505 },
+        );
+        const placement = fitExecutionPlanTooltipPlacement(
+            preferredPlacement,
+            { width: 520, height: 200 },
             { width: 1063, height: 505 },
         );
 
-        expect(placement.left).to.equal(46);
-        expect(placement.left + 520).to.be.at.most(sourceBounds.left);
+        expect(preferredPlacement.left).to.equal(sourceBounds.right + 8);
+        expect(placement.left).to.equal(535);
+        expect(placement.top).to.equal(sourceBounds.bottom + 8);
     });
 
-    test("places a node tooltip vertically when neither side is wide enough", () => {
+    test("moves a node tooltip up only when it would overflow the viewport", () => {
         const sourceBounds = { left: 200, right: 280, top: 100, bottom: 180 };
-        const placement = getExecutionPlanTooltipPlacement(
-            {
-                x: sourceBounds.right + 8,
-                y: sourceBounds.top,
-                sourceBounds,
-            },
-            { width: 480, height: 700 },
+        const preferredPlacement = getExecutionPlanTooltipPlacement(
+            { x: sourceBounds.right + 8, y: sourceBounds.bottom + 8, sourceBounds },
+            { width: 1000, height: 300 },
+        );
+        const placement = fitExecutionPlanTooltipPlacement(
+            preferredPlacement,
+            { width: 520, height: 200 },
+            { width: 1000, height: 300 },
         );
 
-        expect(placement.top).to.equal(sourceBounds.bottom + 8);
-        expect(placement.maxHeight).to.equal(420);
+        expect(preferredPlacement.top).to.equal(sourceBounds.bottom + 8);
+        expect(placement.top).to.equal(92);
+        expect(placement.left).to.equal(sourceBounds.right + 8);
     });
 
     test("keeps edge tooltips inside the viewport", () => {
