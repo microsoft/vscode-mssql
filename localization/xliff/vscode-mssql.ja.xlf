@@ -10197,6 +10197,10 @@ Query: {2}</source>
         <note>{0} is the extension name</note>
         <target state="translated">"{0}" 拡張機能は、MSSQL 拡張機能の廃止が予定されている接続共有機能を使用します。使用している能力の機能リクエストを提出してください。ネイティブでの追加を検討します。</target>
       </trans-unit>
+      <trans-unit id="++CODE++1a7dce1f7d58b78f71a31ac2a4451b08304b7426c9609ec2b348c9002e866c68">
+        <source xml:lang="en">There is no query text to execute. Enter a query or select non-empty query text.</source>
+        <target state="new">There is no query text to execute. Enter a query or select non-empty query text.</target>
+      </trans-unit>
       <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
         <source xml:lang="en">There was an error updating the project</source>
         <target state="translated">プロジェクトの更新中にエラーが発生しました</target>

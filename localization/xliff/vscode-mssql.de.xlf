@@ -10197,6 +10197,10 @@ Abfrage: {2}</target>
         <note>{0} is the extension name</note>
         <target state="translated">Die Erweiterung „{0}“ verwendet eine Funktion zur gemeinsamen Verbindungsnutzung, die von der MSSQL-Erweiterung eingestellt wird. Senden Sie eine Funktionsanforderung für die Funktion, die Sie verwenden, damit wir prüfen können, ob wir sie nativ hinzufügen.</target>
       </trans-unit>
+      <trans-unit id="++CODE++1a7dce1f7d58b78f71a31ac2a4451b08304b7426c9609ec2b348c9002e866c68">
+        <source xml:lang="en">There is no query text to execute. Enter a query or select non-empty query text.</source>
+        <target state="new">There is no query text to execute. Enter a query or select non-empty query text.</target>
+      </trans-unit>
       <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
         <source xml:lang="en">There was an error updating the project</source>
         <target state="translated">Bei der Aktualisieren des Projekts ist ein Fehler aufgetreten.</target>

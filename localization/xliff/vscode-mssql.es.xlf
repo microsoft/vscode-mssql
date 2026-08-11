@@ -10197,6 +10197,10 @@ Consulta: {2}</target>
         <note>{0} is the extension name</note>
         <target state="translated">La extensión "{0}" usa una funcionalidad de uso compartido de conexiones que la extensión MSSQL va a retirar. Envíe una solicitud de característica para la funcionalidad que usa, de modo que podamos considerar la posibilidad de agregarla de forma nativa.</target>
       </trans-unit>
+      <trans-unit id="++CODE++1a7dce1f7d58b78f71a31ac2a4451b08304b7426c9609ec2b348c9002e866c68">
+        <source xml:lang="en">There is no query text to execute. Enter a query or select non-empty query text.</source>
+        <target state="new">There is no query text to execute. Enter a query or select non-empty query text.</target>
+      </trans-unit>
       <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
         <source xml:lang="en">There was an error updating the project</source>
         <target state="translated">Error al actualizar el proyecto</target>

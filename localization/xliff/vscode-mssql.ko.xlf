@@ -10197,6 +10197,10 @@ Query: {2}</source>
         <note>{0} is the extension name</note>
         <target state="translated">"{0}" 확장은 MSSQL 확장이 사용 중지되는 연결 공유 기능을 사용합니다. 이 기능을 사용하는 용도에 대해 기능 요청을 제출해 주시면, 기본 제공 기능으로 추가할지 검토하겠습니다.</target>
       </trans-unit>
+      <trans-unit id="++CODE++1a7dce1f7d58b78f71a31ac2a4451b08304b7426c9609ec2b348c9002e866c68">
+        <source xml:lang="en">There is no query text to execute. Enter a query or select non-empty query text.</source>
+        <target state="new">There is no query text to execute. Enter a query or select non-empty query text.</target>
+      </trans-unit>
       <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
         <source xml:lang="en">There was an error updating the project</source>
         <target state="translated">프로젝트를 업데이트하는 동안 오류가 발생했습니다.</target>
