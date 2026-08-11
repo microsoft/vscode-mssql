@@ -280,6 +280,10 @@ export class SqlMoveToSchemaProvider implements vscode.CodeActionProvider {
      * and string literals so statement detection ignores non-executable text.
      */
     private tokenizeMoveToSchemaSql(text: string): MoveToSchemaSqlToken[] {
+        // Match only syntax that affects CREATE/ALTER object detection: whitespace and
+        // comments/strings to skip, quoted or bare identifiers to keep, and dots for
+        // schema-qualified names. The sticky flag keeps token positions exact while the
+        // loop below advances over punctuation this parser does not care about.
         const tokenPattern =
             /\s+|--[^\r\n]*|\/\*[\s\S]*?\*\/|'(?:''|[^'])*'|\[(?:[^\]]|\]\])+\]|"(?:""|[^"])*"|`(?:``|[^`])*`|[A-Za-z0-9_$#@]+|\./y;
         const tokens: MoveToSchemaSqlToken[] = [];
