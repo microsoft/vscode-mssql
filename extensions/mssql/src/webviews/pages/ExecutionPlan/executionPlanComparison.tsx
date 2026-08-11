@@ -7,10 +7,16 @@ import "./executionPlanComparison.css";
 
 import {
     Button,
+    createTableColumn,
+    DataGridHeader,
+    DataGridHeaderCell,
     Dropdown,
     Input,
     Option,
     Spinner,
+    TableColumnDefinition,
+    TableColumnSizingOptions,
+    TableRowData,
     Toolbar,
     ToolbarButton,
     ToolbarDivider,
@@ -18,6 +24,7 @@ import {
 } from "@fluentui/react-components";
 import {
     AddSquareRegular,
+    ArrowSortDownLines16Regular,
     ArrowSyncRegular,
     ChevronDown16Regular,
     ChevronLeft16Regular,
@@ -28,15 +35,24 @@ import {
     DocumentBulletListRegular,
     SplitHorizontalRegular,
     SplitVerticalRegular,
+    TextSortAscending16Regular,
+    TextSortDescending16Regular,
     ZoomFitRegular,
     ZoomInRegular,
     ZoomOutRegular,
 } from "@fluentui/react-icons";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import {
+    DataGrid,
+    DataGridBody,
+    DataGridCell,
+    DataGridRow,
+} from "@fluentui-contrib/react-data-grid-react-window";
 import { Viewport } from "@xyflow/react";
 import {
+    CSSProperties,
     KeyboardEvent as ReactKeyboardEvent,
     PointerEvent as ReactPointerEvent,
+    ReactNode,
     useCallback,
     useContext,
     useEffect,
@@ -52,6 +68,7 @@ import {
 } from "../../../sharedInterfaces/executionPlan";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import {
+    FilterIcon16Regular,
     SearchPlanIcon,
     TooltipIcon16Regular,
     TooltipOffIcon16Regular,
@@ -76,6 +93,17 @@ import { ReactFlowExecutionPlan } from "./reactFlowExecutionPlan";
 type ComparisonOrientation = "horizontal" | "vertical";
 type ComparisonSide = "primary" | "secondary";
 type PropertySort = "importance" | "alphabetical" | "reverseAlphabetical";
+type ComparisonPropertyGridItem =
+    | { kind: "section"; id: string; label: string }
+    | { kind: "property"; id: string; row: ExecutionPlanComparisonPropertyRow }
+    | { kind: "equivalent"; id: string };
+
+const comparisonPropertyColumnSizing: TableColumnSizingOptions = {
+    name: { minWidth: 140, defaultWidth: 180, idealWidth: 200 },
+    primary: { minWidth: 140, defaultWidth: 190, idealWidth: 220 },
+    comparison: { minWidth: 64, defaultWidth: 72, idealWidth: 72 },
+    secondary: { minWidth: 140, defaultWidth: 190, idealWidth: 220 },
+};
 
 function graphCostPercentage(source: ExecutionPlanComparisonSource, graph: ExecutionPlanGraph) {
     const total = source.graphs.reduce(
@@ -247,8 +275,9 @@ function ComparisonPropertyTable({
     const [filter, setFilter] = useState("");
     const [sort, setSort] = useState<PropertySort>("importance");
     const [equivalentOpen, setEquivalentOpen] = useState(false);
-    const [focusedRow, setFocusedRow] = useState(0);
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [gridHeight, setGridHeight] = useState(0);
+    const [propertiesWidth, setPropertiesWidth] = useState(560);
+    const gridContainerRef = useRef<HTMLDivElement>(null);
     const rows = useMemo(
         () =>
             flattenPropertyRows(
@@ -295,13 +324,7 @@ function ComparisonPropertyTable({
         orientation === "horizontal"
             ? locConstants.executionPlan.valueBottomPlan
             : locConstants.executionPlan.valueRightPlan;
-    const virtualRows = useMemo<
-        (
-            | { kind: "section"; id: string; label: string }
-            | { kind: "property"; id: string; row: ExecutionPlanComparisonPropertyRow }
-            | { kind: "equivalent"; id: string }
-        )[]
-    >(
+    const gridItems = useMemo<ComparisonPropertyGridItem[]>(
         () => [
             ...(different.length > 0
                 ? [
@@ -324,28 +347,185 @@ function ComparisonPropertyTable({
         ],
         [different, equivalent, equivalentOpen],
     );
-    const rowVirtualizer = useVirtualizer({
-        count: virtualRows.length,
-        getScrollElement: () => scrollContainerRef.current,
-        estimateSize: () => 27,
-        overscan: 8,
-    });
 
-    const focusVirtualRow = (index: number) => {
-        const nextIndex = Math.min(Math.max(index, 0), virtualRows.length - 1);
-        setFocusedRow(nextIndex);
-        rowVirtualizer.scrollToIndex(nextIndex);
-        requestAnimationFrame(() => {
-            scrollContainerRef.current
-                ?.querySelector<HTMLElement>(`[data-virtual-row="${nextIndex}"]`)
-                ?.focus();
-        });
+    useEffect(() => {
+        if (!gridContainerRef.current) {
+            return;
+        }
+        const observer = new ResizeObserver(([entry]) => setGridHeight(entry.contentRect.height));
+        observer.observe(gridContainerRef.current);
+        return () => observer.disconnect();
+    }, []);
+
+    const comparisonIcon = (row: ExecutionPlanComparisonPropertyRow) => {
+        const comparisonLabel =
+            row.comparison === "greater"
+                ? locConstants.executionPlan.greaterThan
+                : row.comparison === "less"
+                  ? locConstants.executionPlan.lessThan
+                  : row.comparison === "different"
+                    ? locConstants.executionPlan.notEqual
+                    : "";
+        return (
+            <span
+                className={`execution-plan-comparison-diff execution-plan-comparison-diff-${row.comparison}`}
+                title={comparisonLabel}
+                aria-label={comparisonLabel}>
+                {row.comparison === "greater" ? (
+                    <ChevronRight16Regular />
+                ) : row.comparison === "less" ? (
+                    <ChevronLeft16Regular />
+                ) : row.comparison === "different" ? (
+                    <Dismiss16Regular />
+                ) : undefined}
+            </span>
+        );
+    };
+    const columns = useMemo<TableColumnDefinition<ComparisonPropertyGridItem>[]>(
+        () => [
+            createTableColumn({
+                columnId: "name",
+                renderHeaderCell: () => locConstants.executionPlan.name,
+                renderCell: (item) => (
+                    <DataGridCell
+                        className={
+                            item.kind === "section"
+                                ? "execution-plan-comparison-grid-section-cell"
+                                : undefined
+                        }>
+                        {item.kind === "section" ? (
+                            item.label
+                        ) : item.kind === "equivalent" ? (
+                            <button
+                                className="execution-plan-comparison-equivalent-button"
+                                type="button"
+                                aria-expanded={equivalentOpen}
+                                onClick={() => setEquivalentOpen((open) => !open)}>
+                                {equivalentOpen ? (
+                                    <ChevronDown16Regular aria-hidden />
+                                ) : (
+                                    <ChevronRight16Regular aria-hidden />
+                                )}
+                                {locConstants.executionPlan.equivalentProperties} (
+                                {equivalent.length})
+                            </button>
+                        ) : (
+                            <span
+                                className="execution-plan-comparison-grid-text"
+                                title={item.row.name}
+                                style={{ paddingLeft: `${item.row.level * 14}px` }}>
+                                {item.row.name}
+                            </span>
+                        )}
+                    </DataGridCell>
+                ),
+            }),
+            createTableColumn({
+                columnId: "primary",
+                renderHeaderCell: () => primaryColumn,
+                renderCell: (item) => (
+                    <DataGridCell className="execution-plan-comparison-grid-value">
+                        {item.kind === "property" ? (
+                            <span
+                                className="execution-plan-comparison-grid-text"
+                                title={item.row.primaryValue}>
+                                {item.row.primaryValue}
+                            </span>
+                        ) : undefined}
+                    </DataGridCell>
+                ),
+            }),
+            createTableColumn({
+                columnId: "comparison",
+                renderHeaderCell: () => locConstants.executionPlan.comparison,
+                renderCell: (item) => (
+                    <DataGridCell className="execution-plan-comparison-grid-comparison">
+                        {item.kind === "property" ? comparisonIcon(item.row) : undefined}
+                    </DataGridCell>
+                ),
+            }),
+            createTableColumn({
+                columnId: "secondary",
+                renderHeaderCell: () => secondaryColumn,
+                renderCell: (item) => (
+                    <DataGridCell className="execution-plan-comparison-grid-value">
+                        {item.kind === "property" ? (
+                            <span
+                                className="execution-plan-comparison-grid-text"
+                                title={item.row.secondaryValue}>
+                                {item.row.secondaryValue}
+                            </span>
+                        ) : undefined}
+                    </DataGridCell>
+                ),
+            }),
+        ],
+        [equivalent.length, equivalentOpen, primaryColumn, secondaryColumn],
+    );
+
+    const renderRow = (
+        { item, rowId }: TableRowData<ComparisonPropertyGridItem>,
+        style: CSSProperties,
+    ): ReactNode => (
+        <DataGridRow<ComparisonPropertyGridItem>
+            key={rowId}
+            className={
+                item.kind === "section" || item.kind === "equivalent"
+                    ? "execution-plan-comparison-grid-group-row"
+                    : undefined
+            }
+            style={style}>
+            {({ renderCell }) => <>{renderCell(item)}</>}
+        </DataGridRow>
+    );
+
+    const startPropertiesResize = (event: ReactPointerEvent<HTMLDivElement>) => {
+        event.preventDefault();
+        const startX = event.clientX;
+        const startWidth = propertiesWidth;
+        const onPointerMove = (moveEvent: PointerEvent) => {
+            setPropertiesWidth(
+                Math.min(
+                    window.innerWidth * 0.8,
+                    Math.max(360, startWidth - moveEvent.clientX + startX),
+                ),
+            );
+        };
+        const onPointerUp = () => {
+            document.removeEventListener("pointermove", onPointerMove);
+            document.removeEventListener("pointerup", onPointerUp);
+        };
+        document.addEventListener("pointermove", onPointerMove);
+        document.addEventListener("pointerup", onPointerUp);
+    };
+
+    const resizePropertiesFromKeyboard = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+        const step = event.shiftKey ? 50 : 10;
+        if (event.key === "ArrowLeft") {
+            event.preventDefault();
+            setPropertiesWidth((width) => Math.min(window.innerWidth * 0.8, width + step));
+        } else if (event.key === "ArrowRight") {
+            event.preventDefault();
+            setPropertiesWidth((width) => Math.max(360, width - step));
+        }
     };
 
     return (
         <aside
             className="execution-plan-comparison-properties"
+            style={{ width: `${propertiesWidth}px` }}
             aria-label={locConstants.executionPlan.comparisonProperties}>
+            <div
+                className="execution-plan-comparison-properties-resizer"
+                role="separator"
+                aria-orientation="vertical"
+                aria-label={`${locConstants.queryResult.resize} ${locConstants.executionPlan.comparisonProperties}`}
+                aria-valuemin={360}
+                aria-valuenow={Math.round(propertiesWidth)}
+                tabIndex={0}
+                onPointerDown={startPropertiesResize}
+                onKeyDown={resizePropertiesFromKeyboard}
+            />
             <div className="execution-plan-comparison-properties-title">
                 <strong>{locConstants.executionPlan.comparisonProperties}</strong>
                 <Button
@@ -367,153 +547,63 @@ function ComparisonPropertyTable({
                     value={filter}
                     placeholder={locConstants.executionPlan.propertyFilter}
                     aria-label={locConstants.executionPlan.propertyFilter}
+                    contentBefore={<FilterIcon16Regular />}
                     onChange={(_, data) => setFilter(data.value)}
                 />
-                <Dropdown
-                    size="small"
-                    value={
-                        sort === "importance"
-                            ? locConstants.executionPlan.importance
-                            : sort === "alphabetical"
-                              ? locConstants.executionPlan.alphabetical
-                              : locConstants.executionPlan.reverseAlphabetical
-                    }
-                    selectedOptions={[sort]}
-                    onOptionSelect={(_, data) => setSort(data.optionValue as PropertySort)}
-                    aria-label={locConstants.executionPlan.importance}>
-                    <Option value="importance">{locConstants.executionPlan.importance}</Option>
-                    <Option value="alphabetical">{locConstants.executionPlan.alphabetical}</Option>
-                    <Option value="reverseAlphabetical">
-                        {locConstants.executionPlan.reverseAlphabetical}
-                    </Option>
-                </Dropdown>
+                <Toolbar size="small" aria-label={locConstants.executionPlan.importance}>
+                    <ToolbarButton
+                        icon={<ArrowSortDownLines16Regular />}
+                        onClick={() => setSort("importance")}
+                        title={locConstants.executionPlan.importance}
+                        aria-label={locConstants.executionPlan.importance}
+                        aria-pressed={sort === "importance"}
+                    />
+                    <ToolbarButton
+                        icon={<TextSortAscending16Regular />}
+                        onClick={() => setSort("alphabetical")}
+                        title={locConstants.executionPlan.alphabetical}
+                        aria-label={locConstants.executionPlan.alphabetical}
+                        aria-pressed={sort === "alphabetical"}
+                    />
+                    <ToolbarButton
+                        icon={<TextSortDescending16Regular />}
+                        onClick={() => setSort("reverseAlphabetical")}
+                        title={locConstants.executionPlan.reverseAlphabetical}
+                        aria-label={locConstants.executionPlan.reverseAlphabetical}
+                        aria-pressed={sort === "reverseAlphabetical"}
+                    />
+                </Toolbar>
             </div>
             <div
-                ref={scrollContainerRef}
-                className="execution-plan-comparison-property-table-container"
-                role="table"
-                aria-rowcount={virtualRows.length + 1}
-                aria-label={locConstants.executionPlan.comparisonProperties}>
-                <div role="rowgroup" className="execution-plan-comparison-property-header">
-                    <div role="row" className="execution-plan-comparison-property-row">
-                        <div role="columnheader">{locConstants.executionPlan.name}</div>
-                        <div role="columnheader">{primaryColumn}</div>
-                        <div role="columnheader">{locConstants.executionPlan.comparison}</div>
-                        <div role="columnheader">{secondaryColumn}</div>
-                    </div>
-                </div>
-                <div
-                    role="rowgroup"
-                    className="execution-plan-comparison-property-virtual-body"
-                    style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-                    {rowVirtualizer.getVirtualItems().map((virtualRow) => {
-                        const item = virtualRows[virtualRow.index];
-                        if (!item) {
-                            return undefined;
-                        }
-                        if (item.kind === "section") {
-                            return (
-                                <div
-                                    key={item.id}
-                                    role="row"
-                                    aria-rowindex={virtualRow.index + 2}
-                                    className="execution-plan-comparison-property-row execution-plan-comparison-section-row"
-                                    style={{
-                                        transform: `translateY(${virtualRow.start}px)`,
-                                    }}>
-                                    <div role="columnheader">{item.label}</div>
-                                </div>
-                            );
-                        }
-                        if (item.kind === "equivalent") {
-                            return (
-                                <div
-                                    key={item.id}
-                                    role="row"
-                                    aria-rowindex={virtualRow.index + 2}
-                                    className="execution-plan-comparison-property-row execution-plan-comparison-equivalent"
-                                    style={{
-                                        transform: `translateY(${virtualRow.start}px)`,
-                                    }}>
-                                    <div role="cell">
-                                        <button
-                                            type="button"
-                                            aria-expanded={equivalentOpen}
-                                            onClick={() => setEquivalentOpen((open) => !open)}>
-                                            {equivalentOpen ? (
-                                                <ChevronDown16Regular aria-hidden />
-                                            ) : (
-                                                <ChevronRight16Regular aria-hidden />
-                                            )}{" "}
-                                            {locConstants.executionPlan.equivalentProperties} (
-                                            {equivalent.length})
-                                        </button>
-                                    </div>
-                                </div>
-                            );
-                        }
-
-                        const row = item.row;
-                        const comparisonLabel =
-                            row.comparison === "greater"
-                                ? locConstants.executionPlan.greaterThan
-                                : row.comparison === "less"
-                                  ? locConstants.executionPlan.lessThan
-                                  : row.comparison === "different"
-                                    ? locConstants.executionPlan.notEqual
-                                    : "";
-                        return (
-                            <div
-                                key={item.id}
-                                role="row"
-                                aria-rowindex={virtualRow.index + 2}
-                                data-virtual-row={virtualRow.index}
-                                tabIndex={focusedRow === virtualRow.index ? 0 : -1}
-                                onFocus={() => setFocusedRow(virtualRow.index)}
-                                onKeyDown={(event) => {
-                                    if (event.key === "ArrowDown") {
-                                        event.preventDefault();
-                                        focusVirtualRow(virtualRow.index + 1);
-                                    } else if (event.key === "ArrowUp") {
-                                        event.preventDefault();
-                                        focusVirtualRow(virtualRow.index - 1);
-                                    }
-                                }}
-                                className="execution-plan-comparison-property-row"
-                                style={{
-                                    transform: `translateY(${virtualRow.start}px)`,
-                                }}>
-                                <div
-                                    role="rowheader"
-                                    title={row.name}
-                                    style={{
-                                        paddingLeft: `${8 + row.level * 14}px`,
-                                    }}>
-                                    {row.name}
-                                </div>
-                                <div role="cell" title={row.primaryValue}>
-                                    {row.primaryValue}
-                                </div>
-                                <div
-                                    role="cell"
-                                    className={`execution-plan-comparison-diff execution-plan-comparison-diff-${row.comparison}`}
-                                    title={comparisonLabel}
-                                    aria-label={comparisonLabel}>
-                                    {row.comparison === "greater" ? (
-                                        <ChevronRight16Regular />
-                                    ) : row.comparison === "less" ? (
-                                        <ChevronLeft16Regular />
-                                    ) : row.comparison === "different" ? (
-                                        <Dismiss16Regular />
-                                    ) : undefined}
-                                </div>
-                                <div role="cell" title={row.secondaryValue}>
-                                    {row.secondaryValue}
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                ref={gridContainerRef}
+                className="execution-plan-comparison-property-grid-container">
+                {gridHeight > 28 && (
+                    <DataGrid
+                        className="execution-plan-comparison-property-grid"
+                        items={gridItems}
+                        columns={columns}
+                        getRowId={(item) => item.id}
+                        size="small"
+                        focusMode="composite"
+                        resizableColumns
+                        resizableColumnsOptions={{ autoFitColumns: false }}
+                        columnSizingOptions={comparisonPropertyColumnSizing}
+                        aria-label={locConstants.executionPlan.comparisonProperties}>
+                        <DataGridHeader className="execution-plan-comparison-grid-header">
+                            <DataGridRow>
+                                {({ renderHeaderCell }) => (
+                                    <DataGridHeaderCell>{renderHeaderCell()}</DataGridHeaderCell>
+                                )}
+                            </DataGridRow>
+                        </DataGridHeader>
+                        <DataGridBody<ComparisonPropertyGridItem>
+                            itemSize={26}
+                            height={gridHeight - 28}
+                            width="100%">
+                            {renderRow}
+                        </DataGridBody>
+                    </DataGrid>
+                )}
             </div>
         </aside>
     );
@@ -537,7 +627,8 @@ export function ExecutionPlanComparison() {
     const [propertiesOpen, setPropertiesOpen] = useState(false);
     const [findSide, setFindSide] = useState<ComparisonSide>();
     const [tooltipsEnabled, setTooltipsEnabled] = useState(true);
-    const [sharedViewport, setSharedViewport] = useState<Viewport>();
+    const [primaryViewport, setPrimaryViewport] = useState<Viewport>();
+    const [secondaryViewport, setSecondaryViewport] = useState<Viewport>();
     const splitRef = useRef<HTMLDivElement>(null);
     const draggingRef = useRef(false);
     const comparisonMaps = useMemo(
@@ -545,14 +636,20 @@ export function ExecutionPlanComparison() {
         [comparisonState?.comparisonResult],
     );
 
-    const handleViewportChange = useCallback((viewport: Viewport) => {
-        setSharedViewport((current) =>
-            current &&
-            current.x === viewport.x &&
-            current.y === viewport.y &&
-            current.zoom === viewport.zoom
-                ? current
-                : viewport,
+    const handlePrimaryViewportChange = useCallback((viewport: Viewport) => {
+        setPrimaryViewport(viewport);
+        setSecondaryViewport((current) =>
+            current && current.zoom !== viewport.zoom
+                ? { ...current, zoom: viewport.zoom }
+                : current,
+        );
+    }, []);
+    const handleSecondaryViewportChange = useCallback((viewport: Viewport) => {
+        setSecondaryViewport(viewport);
+        setPrimaryViewport((current) =>
+            current && current.zoom !== viewport.zoom
+                ? { ...current, zoom: viewport.zoom }
+                : current,
         );
     }, []);
 
@@ -712,7 +809,10 @@ export function ExecutionPlanComparison() {
                 <ToolbarButton
                     icon={<ZoomOriginalSizeIcon16Regular />}
                     disabled={!activeController}
-                    onClick={() => setSharedViewport({ x: 0, y: 0, zoom: 1 })}
+                    onClick={() => {
+                        setPrimaryViewport({ x: 0, y: 0, zoom: 1 });
+                        setSecondaryViewport({ x: 0, y: 0, zoom: 1 });
+                    }}
                     title={locConstants.executionPlan.resetZoom}
                     aria-label={locConstants.executionPlan.resetZoom}
                 />
@@ -726,9 +826,11 @@ export function ExecutionPlanComparison() {
                         )
                     }
                     onClick={() =>
-                        setOrientation((current) =>
-                            current === "horizontal" ? "vertical" : "horizontal",
-                        )
+                        setOrientation((current) => {
+                            setPrimaryViewport(undefined);
+                            setSecondaryViewport(undefined);
+                            return current === "horizontal" ? "vertical" : "horizontal";
+                        })
                     }
                     title={orientationLabel}
                     aria-label={orientationLabel}
@@ -806,15 +908,15 @@ export function ExecutionPlanComparison() {
                             side="primary"
                             source={primarySource}
                             groupRoots={comparisonMaps.primaryGroupRoots}
-                            viewport={sharedViewport}
-                            onViewportChange={handleViewportChange}
+                            viewport={primaryViewport}
+                            onViewportChange={handlePrimaryViewportChange}
                             onReady={handlePrimaryReady}
                             onSelectionChange={handlePrimarySelection}
                             showFind={findSide === "primary"}
                             onCloseFind={() => setFindSide(undefined)}
                             onSelectGraph={(primaryGraphIndex) => {
                                 setPrimaryController(null);
-                                setSharedViewport(undefined);
+                                setPrimaryViewport(undefined);
                                 context.setComparisonGraphIndexes(primaryGraphIndex, undefined);
                             }}
                         />
@@ -841,15 +943,15 @@ export function ExecutionPlanComparison() {
                                 side="secondary"
                                 source={secondarySource}
                                 groupRoots={comparisonMaps.secondaryGroupRoots}
-                                viewport={sharedViewport}
-                                onViewportChange={handleViewportChange}
+                                viewport={secondaryViewport}
+                                onViewportChange={handleSecondaryViewportChange}
                                 onReady={handleSecondaryReady}
                                 onSelectionChange={handleSecondarySelection}
                                 showFind={findSide === "secondary"}
                                 onCloseFind={() => setFindSide(undefined)}
                                 onSelectGraph={(secondaryGraphIndex) => {
                                     setSecondaryController(null);
-                                    setSharedViewport(undefined);
+                                    setSecondaryViewport(undefined);
                                     context.setComparisonGraphIndexes(
                                         undefined,
                                         secondaryGraphIndex,

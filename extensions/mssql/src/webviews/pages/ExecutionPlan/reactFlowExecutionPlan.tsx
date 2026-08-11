@@ -80,6 +80,7 @@ const EXECUTION_PLAN_LABEL_TOP = 49;
 const EXECUTION_PLAN_LABEL_LINE_HEIGHT = 14;
 const EXECUTION_PLAN_SELECTION_VERTICAL_PADDING = 10;
 const EXECUTION_PLAN_SELECTION_TOP_OFFSET = -1;
+const EXECUTION_PLAN_COMPARISON_GROUP_PADDING = 10;
 
 interface TooltipState {
     targetId: string;
@@ -887,22 +888,43 @@ export const ReactFlowExecutionPlan: React.FC<ReactFlowExecutionPlanProps> = ({
                 model.getChildIds(id).forEach(visit);
             };
             visit(rootId);
-            const memberPositions = memberIds
-                .map((id) => positions.get(id))
-                .filter((position) => position !== undefined);
-            if (memberPositions.length === 0) {
+            const memberBounds = memberIds
+                .map((id) => {
+                    const position = positions.get(id);
+                    const node = model.getNode(id);
+                    if (!position || !node) {
+                        return undefined;
+                    }
+                    const width = getNodeSelectionWidth(node);
+                    return {
+                        left: position.x - (width - EXECUTION_PLAN_NODE_WIDTH) / 2,
+                        top: position.y + EXECUTION_PLAN_SELECTION_TOP_OFFSET,
+                        right:
+                            position.x +
+                            EXECUTION_PLAN_NODE_WIDTH +
+                            (width - EXECUTION_PLAN_NODE_WIDTH) / 2,
+                        bottom:
+                            position.y +
+                            EXECUTION_PLAN_SELECTION_TOP_OFFSET +
+                            getNodeSelectionHeight(node),
+                    };
+                })
+                .filter((bounds) => bounds !== undefined);
+            if (memberBounds.length === 0) {
                 continue;
             }
-            const left = Math.min(...memberPositions.map((position) => position.x)) - 10;
-            const top = Math.min(...memberPositions.map((position) => position.y)) - 10;
+            const left =
+                Math.min(...memberBounds.map((bounds) => bounds.left)) -
+                EXECUTION_PLAN_COMPARISON_GROUP_PADDING;
+            const top =
+                Math.min(...memberBounds.map((bounds) => bounds.top)) -
+                EXECUTION_PLAN_COMPARISON_GROUP_PADDING;
             const right =
-                Math.max(...memberPositions.map((position) => position.x)) +
-                EXECUTION_PLAN_NODE_WIDTH +
-                10;
+                Math.max(...memberBounds.map((bounds) => bounds.right)) +
+                EXECUTION_PLAN_COMPARISON_GROUP_PADDING;
             const bottom =
-                Math.max(...memberPositions.map((position) => position.y)) +
-                EXECUTION_PLAN_NODE_HEIGHT +
-                10;
+                Math.max(...memberBounds.map((bounds) => bounds.bottom)) +
+                EXECUTION_PLAN_COMPARISON_GROUP_PADDING;
             groups.push({
                 id: `${groupIndex}-${rootId}`,
                 groupIndex,

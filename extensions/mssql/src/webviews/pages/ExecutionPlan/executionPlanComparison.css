@@ -190,33 +190,80 @@
 }
 
 .execution-plan-comparison-properties {
+    position: relative;
     display: flex;
     box-sizing: border-box;
     width: min(46vw, 560px);
     min-width: 360px;
     min-height: 0;
-    border-left: 1px solid var(--vscode-panel-border);
-    background: var(--vscode-sideBar-background);
+    border-left: 1px solid
+        var(--vscode-sideBar-border, var(--vscode-editorGroup-border, transparent));
+    background: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
     flex: 0 0 auto;
     flex-direction: column;
+    font-family: var(--vscode-font-family);
+    font-size: 12px;
 }
 
-.execution-plan-comparison-properties-title,
-.execution-plan-comparison-operation-titles,
-.execution-plan-comparison-property-tools {
+.execution-plan-comparison-properties-resizer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -5px;
+    z-index: 4;
+    width: 11px;
+    outline: none;
+    cursor: ew-resize;
+    touch-action: none;
+}
+
+.execution-plan-comparison-properties-resizer::after {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 5px;
+    width: 1px;
+    background: transparent;
+    content: "";
+}
+
+.execution-plan-comparison-properties-resizer:hover::after,
+.execution-plan-comparison-properties-resizer:focus-visible::after {
+    left: 4px;
+    width: 2px;
+    background: var(--vscode-focusBorder);
+}
+
+.execution-plan-comparison-properties-title {
     display: flex;
-    padding: 6px 8px;
+    box-sizing: border-box;
+    width: 100%;
+    height: 32px;
+    padding: 0 6px 0 10px;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
-    border-bottom: 1px solid var(--vscode-panel-border);
+    border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+    font-size: 13px;
+    line-height: 20px;
+}
+
+.execution-plan-comparison-operation-titles {
+    display: flex;
+    box-sizing: border-box;
+    width: 100%;
+    height: 28px;
+    padding: 0 10px;
+    align-items: center;
+    color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-editor-font-family, Monaco, Menlo, Consolas, monospace);
 }
 
 .execution-plan-comparison-operation-titles > span {
     min-width: 0;
     overflow: hidden;
     flex: 1 1 50%;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -226,132 +273,166 @@
     text-align: right;
 }
 
+.execution-plan-comparison-property-tools {
+    display: flex;
+    box-sizing: border-box;
+    width: 100%;
+    height: 32px;
+    min-height: 32px;
+    padding: 0 4px;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+}
+
 .execution-plan-comparison-property-tools > :first-child {
-    min-width: 120px;
+    min-width: 50px;
     flex: 1 1 auto;
+    font-size: 12px;
 }
 
-.execution-plan-comparison-property-table-container {
-    position: relative;
+.execution-plan-comparison-property-grid-container {
     min-height: 0;
-    overflow: auto;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    background: var(--vscode-editor-background);
     flex: 1 1 auto;
-    font-size: 11px;
 }
 
-.execution-plan-comparison-property-header {
-    position: sticky;
-    top: 0;
-    z-index: 2;
-    background: var(--vscode-sideBarSectionHeader-background);
-}
-
-.execution-plan-comparison-property-virtual-body {
-    position: relative;
+.execution-plan-comparison-property-grid {
     width: 100%;
-}
-
-.execution-plan-comparison-property-row {
-    position: absolute;
-    top: 0;
-    left: 0;
-    display: grid;
-    box-sizing: border-box;
-    width: 100%;
-    height: 27px;
-    grid-template-columns: 28% 31% 10% 31%;
-    outline: none;
-}
-
-.execution-plan-comparison-property-header .execution-plan-comparison-property-row {
-    position: static;
-}
-
-.execution-plan-comparison-property-row > [role="columnheader"],
-.execution-plan-comparison-property-row > [role="rowheader"],
-.execution-plan-comparison-property-row > [role="cell"] {
-    box-sizing: border-box;
-    min-width: 0;
-    padding: 5px 6px;
+    height: 100%;
     overflow: hidden;
-    border-right: 1px solid var(--vscode-panel-border);
-    border-bottom: 1px solid var(--vscode-panel-border);
+    background: var(--vscode-editor-background);
+    color: var(--vscode-editor-foreground);
+    font-family: var(--vscode-font-family);
+    font-size: 12px;
+}
+
+.execution-plan-comparison-grid-header {
+    width: 100%;
+    height: 28px;
+    overflow: hidden;
+    border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+    background: var(--vscode-editor-background);
+    color: var(--vscode-sideBarSectionHeader-foreground, var(--vscode-foreground));
+    font-weight: 600;
+}
+
+.execution-plan-comparison-grid-header [role="row"] {
+    height: 28px;
+    min-height: 28px;
+}
+
+.execution-plan-comparison-grid-header [role="columnheader"] {
+    box-sizing: border-box;
+    height: 28px;
+    min-height: 28px;
+    min-width: 0;
+    padding: 0 8px;
+    overflow: hidden;
+    border: none;
+    border-right: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.execution-plan-comparison-property-row:focus-visible {
-    outline: 1px solid var(--vscode-focusBorder);
-    outline-offset: -1px;
+.execution-plan-comparison-grid-header [role="columnheader"]:last-child {
+    border-right: none;
 }
 
-.execution-plan-comparison-property-row.execution-plan-comparison-section-row,
-.execution-plan-comparison-property-row.execution-plan-comparison-equivalent {
-    grid-template-columns: 100%;
+.execution-plan-comparison-property-grid [role="row"] {
+    height: 26px;
+    min-height: 26px;
+    overflow: hidden;
+    border-bottom: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+    background: transparent;
 }
 
-.execution-plan-comparison-property-row.execution-plan-comparison-section-row
-    > [role="columnheader"] {
+.execution-plan-comparison-property-grid [role="row"]:hover {
+    background: var(--vscode-list-hoverBackground);
+}
+
+.execution-plan-comparison-property-grid [role="row"]:focus-within {
+    box-shadow: inset 0 0 0 1px var(--vscode-focusBorder);
+}
+
+.execution-plan-comparison-property-grid [role="gridcell"] {
+    box-sizing: border-box;
+    height: 26px;
+    min-height: 26px;
+    min-width: 0;
+    padding: 0 8px;
+    overflow: hidden;
+    border: none;
+    border-right: 1px solid var(--vscode-panel-border, var(--vscode-widget-border, transparent));
+}
+
+.execution-plan-comparison-property-grid [role="gridcell"]:last-child {
+    border-right: none;
+}
+
+.execution-plan-comparison-grid-group-row {
+    background: var(
+        --vscode-sideBarSectionHeader-background,
+        var(--vscode-list-inactiveSelectionBackground)
+    ) !important;
     font-weight: 600;
-    background: var(--vscode-sideBarSectionHeader-background);
 }
 
-.execution-plan-comparison-property-row.execution-plan-comparison-equivalent button {
+.execution-plan-comparison-grid-group-row > [role="gridcell"]:first-child {
+    grid-column: 1 / -1;
+    border-right: none;
+}
+
+.execution-plan-comparison-grid-group-row > [role="gridcell"]:not(:first-child) {
+    display: none;
+}
+
+.execution-plan-comparison-grid-value {
+    font-family: var(--vscode-editor-font-family, Monaco, Menlo, Consolas, monospace);
+}
+
+.execution-plan-comparison-grid-text {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    line-height: 26px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.execution-plan-comparison-grid-comparison {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.execution-plan-comparison-equivalent-button {
     display: inline-flex;
     width: 100%;
+    min-width: 0;
+    height: 26px;
     padding: 0;
-    border: 0;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
+    overflow: hidden;
+    border: none;
     background: transparent;
-    color: var(--vscode-foreground);
+    color: inherit;
     cursor: pointer;
     font: inherit;
     font-weight: 600;
     text-align: left;
-}
-
-.execution-plan-comparison-property-table,
-.execution-plan-comparison-equivalent table {
-    width: 100%;
-    border-spacing: 0;
-    table-layout: fixed;
-    font-size: 11px;
-}
-
-.execution-plan-comparison-property-table th,
-.execution-plan-comparison-property-table td,
-.execution-plan-comparison-equivalent table th,
-.execution-plan-comparison-equivalent table td {
-    box-sizing: border-box;
-    height: 26px;
-    padding: 4px 6px;
-    overflow: hidden;
-    border-right: 1px solid var(--vscode-panel-border);
-    border-bottom: 1px solid var(--vscode-panel-border);
-    text-align: left;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
-.execution-plan-comparison-property-table > thead th {
-    position: sticky;
-    top: 0;
-    z-index: 1;
-    background: var(--vscode-sideBarSectionHeader-background);
-}
-
-.execution-plan-comparison-property-table th:nth-child(1) {
-    width: 28%;
-}
-
-.execution-plan-comparison-property-table th:nth-child(2),
-.execution-plan-comparison-property-table th:nth-child(4) {
-    width: 31%;
-}
-
-.execution-plan-comparison-property-table th:nth-child(3) {
-    width: 10%;
+.execution-plan-comparison-equivalent-button svg {
+    flex: 0 0 auto;
 }
 
 .execution-plan-comparison-diff {
@@ -365,18 +446,4 @@
 .execution-plan-comparison-diff-greater,
 .execution-plan-comparison-diff-less {
     color: var(--vscode-textLink-foreground);
-}
-
-.execution-plan-comparison-section-row th {
-    background: var(--vscode-sideBarSectionHeader-background);
-}
-
-.execution-plan-comparison-equivalent {
-    padding: 0 !important;
-}
-
-.execution-plan-comparison-equivalent summary {
-    padding: 7px 8px;
-    cursor: pointer;
-    font-weight: 600;
 }
