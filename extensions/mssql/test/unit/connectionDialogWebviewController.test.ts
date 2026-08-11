@@ -1017,10 +1017,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
         test("does not load tenants for every VS Code account in the background", async () => {
             stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
-            sandbox.stub(AzureHelpers.VsCodeAzureHelper, "getAccounts").resolves([
-                mockAccounts.signedInAccount,
-                mockAccounts.notSignedInAccount,
-            ]);
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                .resolves([mockAccounts.signedInAccount, mockAccounts.notSignedInAccount]);
             const getTenantsForAccount = sandbox.stub(
                 AzureHelpers.VsCodeAzureHelper,
                 "getTenantsForAccount",
