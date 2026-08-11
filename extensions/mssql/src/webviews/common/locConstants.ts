@@ -443,7 +443,7 @@ export class LocConstants {
 
     public get shortcutsConfiguration() {
         return {
-            title: l10n.t("Shortcuts Configuration (Preview)"),
+            title: l10n.t("Shortcuts Configuration"),
             pageAriaLabel: l10n.t("Shortcuts configuration page"),
             configurationSections: l10n.t("Configuration sections"),
             subtitle: l10n.t("Configure Quick Query and Extension shortcuts."),
@@ -2550,7 +2550,7 @@ export class LocConstants {
     public get azureSqlDatabase() {
         return {
             loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),
-            azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database (Preview)"),
+            azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database"),
             azureSqlDatabaseDescription: l10n.t(
                 "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
             ),

@@ -15,7 +15,6 @@ export const changelogConfig: ChangelogWebviewState = {
             {
                 title: locConstants.Changelog.shortcutsConfigurationTitle,
                 description: locConstants.Changelog.shortcutsConfigurationDescription,
-                isPreview: true,
                 actions: [
                     {
                         label: locConstants.Changelog.tryIt,
@@ -32,7 +31,6 @@ export const changelogConfig: ChangelogWebviewState = {
             {
                 title: locConstants.Changelog.azureSqlProvisioningTitle,
                 description: locConstants.Changelog.azureSqlProvisioningDescription,
-                isPreview: true,
                 actions: [
                     {
                         label: locConstants.Changelog.tryIt,

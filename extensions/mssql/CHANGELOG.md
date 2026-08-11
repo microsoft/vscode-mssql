@@ -7,15 +7,16 @@
 
 ### What's new in 1.45.0
 
+- Released Azure SQL and Fabric provisioning as generally available (GA), with favorite resources and post-deployment actions to connect to the database, download deployment scripts, and discover next steps.
+- Released Shortcuts Configuration as generally available (GA), allowing you to create and manage keyboard shortcuts for Quick Queries, the Query Editor, and the Results Grid.
 - Introduced a new SQL formatter (Preview), enabled by default with `mssql.format.enablePreviewFormatter` and an option to temporarily use the existing formatter.
 - Added a new React Flow execution plan renderer (Preview). Enable it with `mssql.preview.betaExecutionPlan` in settings.
-- Enhanced Azure SQL and Fabric provisioning with favorite resources and post-deployment actions to connect to the database, download deployment scripts, and discover next steps.
-- Added selection aggregates (Average, Count, and Sum) to the SQL Notebooks results status bar.
-- Added a Restore command to the SQL Database Projects tree and support for custom code analysis rules from NuGet analyzer packages.
-- Improved SQL Database Projects schema operations so new objects use the selected folder's schema and moved objects relocate to the corresponding schema folder.
+- Fixed an issue that could cause Object Explorer filtering to hang.
+- Fixed an issue that could cancel queries unexpectedly.
 - Improved streaming performance in the Query Results Grid preview.
+- Added a Restore command and custom NuGet analyzer support to SQL Database Projects, and improved schema operations for new and moved objects.
+- Added selection aggregates (Average, Count, and Sum) to the SQL Notebooks results status bar.
 - Improved Table Designer validation for default values and vector columns.
-- Fixed reliability issues that could cancel queries unexpectedly or cause Object Explorer filtering to hang.
 
 Thank you to @cjohnsto-nz for contributing Microsoft Entra account and token resolution performance improvements!
 
