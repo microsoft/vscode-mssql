@@ -2799,8 +2799,11 @@ export default class MainController implements vscode.Disposable {
             let uri = Utils.getActiveTextEditorUri();
             let title = path.basename(editor.document.fileName);
 
-            // return early if the document does contain any text
+            // Return early if the document does not contain any query text.
             if (editor.document.getText(undefined).trim().length === 0) {
+                void vscode.window.showInformationMessage(
+                    LocalizedConstants.msgNoQueryTextToExecute,
+                );
                 return;
             }
 
@@ -2817,6 +2820,9 @@ export default class MainController implements vscode.Disposable {
             let shouldRunSelection = false;
             if (!editor.selection.isEmpty) {
                 if (editor.document.getText(editor.selection).trim().length === 0) {
+                    void vscode.window.showInformationMessage(
+                        LocalizedConstants.msgNoQueryTextToExecute,
+                    );
                     return;
                 }
 
@@ -2890,6 +2896,9 @@ export default class MainController implements vscode.Disposable {
             // Trim down the selection. If it is empty after selecting, then we don't execute
             let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
+                void vscode.window.showInformationMessage(
+                    LocalizedConstants.msgNoQueryTextToExecute,
+                );
                 return;
             }
 

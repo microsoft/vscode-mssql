@@ -7758,6 +7758,9 @@
       <source xml:lang="en">The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.</source>
       <note>{0} is the extension name</note>
     </trans-unit>
+    <trans-unit id="++CODE++1a7dce1f7d58b78f71a31ac2a4451b08304b7426c9609ec2b348c9002e866c68">
+      <source xml:lang="en">There is no query text to execute. Enter a query or select non-empty query text.</source>
+    </trans-unit>
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>
     </trans-unit>
