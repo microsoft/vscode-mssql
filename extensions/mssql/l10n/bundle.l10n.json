@@ -468,6 +468,7 @@
     "The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.": "The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.",
     "Testing connection profile...": "Testing connection profile...",
     "Running query is not supported when the editor is in multiple selection mode.": "Running query is not supported when the editor is in multiple selection mode.",
+    "There is no query text to execute. Enter a query or select non-empty query text.": "There is no query text to execute. Enter a query or select non-empty query text.",
     "Please select a node from Object Explorer to script.": "Please select a node from Object Explorer to script.",
     "Please select only one node to script. Multiple node scripting is not supported.": "Please select only one node to script. Multiple node scripting is not supported.",
     "Could not find scripting metadata for {0} '{1}'./{0} is the node type{1} is the node label": {
