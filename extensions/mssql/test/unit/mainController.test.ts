@@ -288,7 +288,7 @@ suite("MainController Tests", function () {
             expect(runQueryStub).to.not.have.been.called;
         });
 
-        test("does not execute when the selection contains only whitespace", async () => {
+        test("shows information and does not execute when the selection contains only whitespace", async () => {
             const selection = new vscode.Selection(0, 0, 0, 4);
             sandbox
                 .stub(vscode.window, "activeTextEditor")
@@ -296,6 +296,9 @@ suite("MainController Tests", function () {
 
             await mainController.onRunCurrentStatement();
 
+            expect(messageBoxes.showInformationMessage).to.have.been.calledWith(
+                LocalizedConstants.msgNoQueryTextToExecute,
+            );
             expect(runQueryStub).to.not.have.been.called;
             expect(runCurrentStatementStub).to.not.have.been.called;
         });
@@ -321,7 +324,7 @@ suite("MainController Tests", function () {
             expect(runCurrentStatementStub).to.not.have.been.called;
         });
 
-        test("does not execute when the document is empty", async () => {
+        test("shows information and does not execute when the document is empty", async () => {
             const selection = new vscode.Selection(0, 0, 0, 0);
             sandbox
                 .stub(vscode.window, "activeTextEditor")
@@ -329,6 +332,9 @@ suite("MainController Tests", function () {
 
             await mainController.onRunCurrentStatement();
 
+            expect(messageBoxes.showInformationMessage).to.have.been.calledWith(
+                LocalizedConstants.msgNoQueryTextToExecute,
+            );
             expect(runQueryStub).to.not.have.been.called;
             expect(runCurrentStatementStub).to.not.have.been.called;
         });
@@ -392,6 +398,34 @@ suite("MainController Tests", function () {
                 "query.sql",
                 undefined,
             );
+        });
+
+        test("shows information and does not execute when the document is empty", async () => {
+            const selection = new vscode.Selection(0, 0, 0, 0);
+            sandbox
+                .stub(vscode.window, "activeTextEditor")
+                .get(() => createQueryTextEditor(selection, ""));
+
+            await mainController.onRunQuery();
+
+            expect(messageBoxes.showInformationMessage).to.have.been.calledWith(
+                LocalizedConstants.msgNoQueryTextToExecute,
+            );
+            expect(runQueryStub).to.not.have.been.called;
+        });
+
+        test("shows information and does not execute when the selection contains only whitespace", async () => {
+            const selection = new vscode.Selection(0, 0, 0, 4);
+            sandbox
+                .stub(vscode.window, "activeTextEditor")
+                .get(() => createQueryTextEditor(selection, "    select 'a';", "    "));
+
+            await mainController.onRunQuery();
+
+            expect(messageBoxes.showInformationMessage).to.have.been.calledWith(
+                LocalizedConstants.msgNoQueryTextToExecute,
+            );
+            expect(runQueryStub).to.not.have.been.called;
         });
     });
 
