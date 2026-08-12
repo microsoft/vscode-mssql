@@ -5872,6 +5872,10 @@ Error:
         <source xml:lang="en">Loading databases in selected workspace...</source>
         <target state="translated">선택한 작업 영역에서 데이터베이스를 로드하는 중...</target>
       </trans-unit>
+      <trans-unit id="++CODE++9317b8d436ab0b46444508db90ea7c78235b63b678dfdcb8196216d0d9cecd18">
+        <source xml:lang="en">Loading databases...</source>
+        <target state="new">Loading databases...</target>
+      </trans-unit>
       <trans-unit id="++CODE++d1fdc252fab1c642cc1b487dbb6658fd77d5831e03b3d391b4c73b01226d75ff">
         <source xml:lang="en">Loading deployment</source>
         <target state="translated">배포를 로드하는 중</target>

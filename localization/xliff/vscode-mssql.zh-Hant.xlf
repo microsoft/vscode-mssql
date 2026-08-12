@@ -5872,6 +5872,10 @@ Error:
         <source xml:lang="en">Loading databases in selected workspace...</source>
         <target state="translated">正在載入所選工作區中的資料庫...</target>
       </trans-unit>
+      <trans-unit id="++CODE++9317b8d436ab0b46444508db90ea7c78235b63b678dfdcb8196216d0d9cecd18">
+        <source xml:lang="en">Loading databases...</source>
+        <target state="new">Loading databases...</target>
+      </trans-unit>
       <trans-unit id="++CODE++d1fdc252fab1c642cc1b487dbb6658fd77d5831e03b3d391b4c73b01226d75ff">
         <source xml:lang="en">Loading deployment</source>
         <target state="translated">載入部署</target>
