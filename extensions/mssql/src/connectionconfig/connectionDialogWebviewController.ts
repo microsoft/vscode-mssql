@@ -779,8 +779,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 newlyAddedAccountId &&
                 previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)
             ) {
-                this.clearEntraAccountCache();
-
                 const accountComponent = this.getFormComponent(state, "accountId");
 
                 if (accountComponent) {
@@ -2135,8 +2133,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                         return;
                     }
 
-                    // Invalidate account and tenant caches, then reload accounts
-                    this.clearEntraAccountCache();
                     accountsComponent.loadStatus = { status: ApiStatus.Loading };
                     this.updateState();
 
