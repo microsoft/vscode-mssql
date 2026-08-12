@@ -2858,6 +2858,7 @@ export class LocConstants {
                 "No connections available. Please create a connection first.",
             ),
             connectingToServer: l10n.t("Connecting to server..."),
+            loadingDatabases: l10n.t("Loading databases..."),
             connectionFailed: l10n.t("Failed to connect to server"),
             deployDacpac: l10n.t("Publish DACPAC"),
             extractDacpac: l10n.t("Extract DACPAC"),

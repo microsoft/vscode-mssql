@@ -3863,6 +3863,7 @@
     "Select an operation": "Select an operation",
     "No connections available. Please create a connection first.": "No connections available. Please create a connection first.",
     "Connecting to server...": "Connecting to server...",
+    "Loading databases...": "Loading databases...",
     "Publish DACPAC": "Publish DACPAC",
     "Extract DACPAC": "Extract DACPAC",
     "Import BACPAC": "Import BACPAC",
