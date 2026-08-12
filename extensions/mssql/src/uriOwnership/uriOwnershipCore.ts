@@ -75,6 +75,7 @@ function getExtensionDisplayName(
 }
 
 export class UriOwnershipCoordinator {
+    // TODO(api-retirement): Remove this public API after dependent extensions have migrated.
     public readonly uriOwnershipApi: UriOwnershipApi;
     public readonly onCoordinatingOwnershipChanged: vscode.Event<void>;
 

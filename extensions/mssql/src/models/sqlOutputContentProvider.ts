@@ -732,6 +732,7 @@ export class SqlOutputContentProvider {
 
                 resultWebviewState.isExecutionPlan = true;
                 resultWebviewState.executionPlanState = {
+                    ...resultWebviewState.executionPlanState,
                     errorMessage: planGraphs.errorMessage,
                     executionPlanGraphs: existingGraphs,
                     loadState: ApiStatus.Loaded,

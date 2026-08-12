@@ -97,6 +97,99 @@ export class LocConstants {
             filterSettings: l10n.t("Filter Settings"),
             clearAll: l10n.t("Clear All"),
             ok: l10n.t("OK"),
+            apply: l10n.t("Apply"),
+            enter: l10n.t("Enter"),
+            escape: l10n.t("Escape"),
+            applyTooltip: (shortcut: string) =>
+                l10n.t({
+                    message: "Apply ({0})",
+                    args: [shortcut],
+                    comment: ["{0} is the keyboard shortcut for applying the filter"],
+                }),
+            closeTooltip: (shortcut: string) =>
+                l10n.t({
+                    message: "Close ({0})",
+                    args: [shortcut],
+                    comment: ["{0} is the keyboard shortcut for closing the filter dialog"],
+                }),
+            reusableFilters: l10n.t("Reusable Filters"),
+            savedFilters: l10n.t("Saved"),
+            recentFilters: l10n.t("Recent"),
+            reusableFiltersDescription: l10n.t("Applies across compatible folders"),
+            noReusableFilters: l10n.t("Applied filters appear here so you can quickly reuse them."),
+            saveThisFilter: l10n.t("Save this filter for reuse"),
+            filterName: l10n.t("Filter name"),
+            filterNamePlaceholder: l10n.t("e.g. My tables"),
+            filterNameRequired: l10n.t("Enter a name to save this filter."),
+            filterValueRequiredToSave: l10n.t(
+                "Add at least one filter value before saving this filter.",
+            ),
+            pinFilter: l10n.t("Pin to Saved"),
+            unpinFilter: l10n.t("Move to Recent"),
+            deleteFilter: l10n.t("Delete filter"),
+            renameFilter: l10n.t("Rename filter"),
+            confirmDeleteFilterTitle: l10n.t("Delete reusable filter?"),
+            confirmDeleteFilterMessage: (filterName: string) =>
+                l10n.t({
+                    message: 'Are you sure you want to delete "{0}"? This action cannot be undone.',
+                    args: [filterName],
+                    comment: ["{0} is the name or summary of a reusable filter"],
+                }),
+            filterNameAlreadyExists: l10n.t("A saved filter with this name already exists."),
+            true: l10n.t("True"),
+            false: l10n.t("False"),
+            useFilter: (filterName: string) =>
+                l10n.t({
+                    message: "Use filter {0}",
+                    args: [filterName],
+                    comment: ["{0} is the name or summary of a reusable filter"],
+                }),
+            filterValueLabel: (property: string) =>
+                l10n.t({
+                    message: "{0} filter value",
+                    args: [property],
+                    comment: ["{0} is a filter property name"],
+                }),
+            filterByProperty: (property: string) =>
+                l10n.t({
+                    message: "Filter by {0}…",
+                    args: [property],
+                    comment: ["{0} is a filter property name"],
+                }),
+            secondFilterValueLabel: (property: string) =>
+                l10n.t({
+                    message: "Second {0} filter value",
+                    args: [property],
+                    comment: ["{0} is a filter property name"],
+                }),
+            filterOperatorLabel: (property: string) =>
+                l10n.t({
+                    message: "{0} filter operator",
+                    args: [property],
+                    comment: ["{0} is a filter property name"],
+                }),
+            clearPropertyFilter: (property: string) =>
+                l10n.t({
+                    message: "Clear {0} filter",
+                    args: [property],
+                    comment: ["{0} is a filter property name"],
+                }),
+            moreFilterActions: (filterName: string) =>
+                l10n.t({
+                    message: "More actions for {0}",
+                    args: [filterName],
+                    comment: ["{0} is the name or summary of a reusable filter"],
+                }),
+            filterClauseSummary: (property: string, operator: string, value: string) =>
+                l10n.t({
+                    message: "{0} {1} {2}",
+                    args: [property, operator, value],
+                    comment: [
+                        "{0} is a filter property name",
+                        "{1} is a filter operator",
+                        "{2} is the filter value",
+                    ],
+                }),
             and: l10n.t("And"),
             contains: l10n.t("Contains"),
             notContains: l10n.t("Not Contains"),
@@ -875,6 +968,7 @@ export class LocConstants {
             highlightExpensiveOperation: l10n.t("Highlight Expensive Operation"),
             toggleTooltips: l10n.t("Toggle Tooltips"),
             properties: l10n.t("Properties"),
+            executionPlanToolbar: l10n.t("Execution plan toolbar"),
             name: l10n.t("Name"),
             value: l10n.t("Value"),
             importance: l10n.t("Importance"),
@@ -889,6 +983,28 @@ export class LocConstants {
             collapse: l10n.t("Collapse"),
             subtreeCostLabel: l10n.t("Estimated Subtree Cost"),
             operatorCostLabel: l10n.t("Estimated Operator Cost"),
+            reactFlowRendererError: l10n.t(
+                "The React Flow execution plan preview could not render this plan.",
+            ),
+            executionPlanGraph: (planNumber: number) =>
+                l10n.t({
+                    message: "Execution plan {0}, use arrow keys to navigate between nodes",
+                    args: [planNumber],
+                    comment: ["{0} is the one-based execution plan number"],
+                }),
+            executionPlanDetails: l10n.t("Execution plan details"),
+            expandNode: (name: string) =>
+                l10n.t({
+                    message: "Expand {0}",
+                    args: [name],
+                    comment: ["{0} is the name of an execution plan operation"],
+                }),
+            collapseNode: (name: string) =>
+                l10n.t({
+                    message: "Collapse {0}",
+                    args: [name],
+                    comment: ["{0} is the name of an execution plan operation"],
+                }),
         };
     }
 
@@ -2382,6 +2498,23 @@ export class LocConstants {
         };
     }
 
+    public get deploymentScripts() {
+        return {
+            exportInfrastructureAsCode: l10n.t("Export Infrastructure as Code"),
+            downloadDeploymentScriptsTitle: l10n.t("Download deployment scripts"),
+            downloadDeploymentScriptsDescription: l10n.t(
+                "Save Infrastructure-as-Code templates to recreate this database later.",
+            ),
+            copy: l10n.t("Copy"),
+            copied: l10n.t("Copied"),
+            download: l10n.t("Download"),
+            addToWorkspace: l10n.t("Add to workspace"),
+            bicep: l10n.t("Bicep"),
+            armTemplate: l10n.t("ARM template"),
+            terraform: l10n.t("Terraform"),
+        };
+    }
+
     public get fabricProvisioning() {
         return {
             loadingFabricProvisioning: l10n.t("Loading Fabric provisioning..."),
@@ -2422,7 +2555,7 @@ export class LocConstants {
     public get azureSqlDatabase() {
         return {
             loadingAzureSqlDatabase: l10n.t("Loading Azure SQL Database..."),
-            azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database (Preview)"),
+            azureSqlDatabaseHeader: l10n.t("Create an Azure SQL Database"),
             azureSqlDatabaseDescription: l10n.t(
                 "Try Azure SQL Database at no cost with our free tier offer! Provision a fully managed cloud database directly from VS Code.",
             ),
@@ -2725,6 +2858,7 @@ export class LocConstants {
                 "No connections available. Please create a connection first.",
             ),
             connectingToServer: l10n.t("Connecting to server..."),
+            loadingDatabases: l10n.t("Loading databases..."),
             connectionFailed: l10n.t("Failed to connect to server"),
             deployDacpac: l10n.t("Publish DACPAC"),
             extractDacpac: l10n.t("Extract DACPAC"),

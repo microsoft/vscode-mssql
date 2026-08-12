@@ -5,7 +5,11 @@
 
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
-import { InstantiationServiceBuilder } from "extension-toolkit/base";
+import {
+    IInstantiationService,
+    InstantiationServiceBuilder,
+    ServiceDescriptor,
+} from "extension-toolkit/base";
 import {
     ExtensionContextService,
     IExtensionContextService,
@@ -36,6 +40,10 @@ import {
     initializeUriOwnershipCoordinator,
 } from "./uriOwnership/uriOwnershipInitialization";
 import { registerSqlToolsMcpServer } from "./sqlToolsMcp/registerSqlToolsMcpServer";
+import { CredentialStore, ICredentialStore } from "./credentialstore/credentialstore";
+import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
+import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
+import { IAccountStore, AccountStore } from "./azure/accountStore";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -49,6 +57,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<IExten
     const builder = new InstantiationServiceBuilder();
 
     builder.define(IExtensionContextService, new ExtensionContextService(context));
+    builder.define(ICredentialStore, new ServiceDescriptor(CredentialStore));
+    builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
+    builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
+    builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
 
     const instantiationService = builder.seal();
     context.subscriptions.push(instantiationService);
@@ -78,6 +90,7 @@ export async function getController(): Promise<MainController> {
 class MssqlActivation {
     constructor(
         @IExtensionContextService private readonly _contextService: IExtensionContextService,
+        @IInstantiationService private readonly _instantiationService: IInstantiationService,
     ) {}
 
     async activate(): Promise<IExtension> {
@@ -87,7 +100,7 @@ class MssqlActivation {
         // Create coordinator early so uriOwnershipApi is available for export
         uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
 
-        controller = new MainController(context);
+        controller = this._instantiationService.createInstance(MainController, context);
         context.subscriptions.push(controller);
         context.subscriptions.push(telemetryReporter);
 
@@ -146,6 +159,7 @@ class MssqlActivation {
 
         await ChangelogWebviewController.showChangelogOnExtensionUpdate(context);
 
+        // TODO(api-retirement): Remove this public API after dependent extensions have migrated.
         return {
             sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
             promptForConnection: async (ignoreFocusOut?: boolean) => {

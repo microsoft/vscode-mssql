@@ -45,7 +45,9 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
 import {
     initializeIconUtils,
+    observeWebviewReady,
     stubGetCapabilitiesRequest,
+    stubInstantiationService,
     stubMessageBoxes,
     stubPreviewService,
     stubTelemetry,
@@ -89,6 +91,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let mockObjectExplorerProvider: sinon.SinonStubbedInstance<ObjectExplorerProvider>;
     let azureAccountService: sinon.SinonStubbedInstance<AzureAccountService>;
     let serviceClientMock: sinon.SinonStubbedInstance<SqlToolsServerClient>;
+    let loadVscodeEntraDataAsyncStub: sinon.SinonStub;
 
     const testMruConnection = {
         profileSource: CredentialsQuickPickItemType.Mru,
@@ -160,13 +163,24 @@ suite("ConnectionDialogWebviewController Tests", () => {
             } as IAccount,
         ]);
 
-        mainController = new MainController(mockContext, connectionManager);
+        mainController = new MainController(
+            mockContext,
+            stubInstantiationService(sandbox),
+            connectionManager,
+        );
 
         sandbox.stub(vscode.commands, "registerCommand");
         sandbox.stub(vscode.window, "registerWebviewViewProvider");
 
         mainController.azureAccountService = azureAccountService;
         await mainController["initializeObjectExplorer"](mockObjectExplorerProvider);
+
+        // Neutralize the constructor's fire-and-forget background VS Code Entra data load so it
+        // does not call updateState after the controller is disposed.
+        // Tests that use the real method restore this stub first.
+        loadVscodeEntraDataAsyncStub = sandbox
+            .stub(ConnectionDialogWebviewController.prototype, "loadVscodeEntraDataAsync")
+            .resolves();
 
         controller = new ConnectionDialogWebviewController(
             mockContext,
@@ -175,6 +189,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             undefined /* connection to edit */,
         );
 
+        observeWebviewReady(controller);
         await controller.initialized;
     });
 
@@ -292,6 +307,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 undefined,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
@@ -327,6 +343,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 undefined,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
@@ -363,6 +380,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 undefined,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
@@ -399,6 +417,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 undefined,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
@@ -420,6 +439,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 editedConnection,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller["_connectionBeingEdited"]).to.deep.equal(
@@ -452,6 +472,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 editedConnection,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller["_connectionBeingEdited"]).to.deep.equal(
@@ -972,6 +993,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 .resolves([mockTenants[0], mockTenants[1]]);
 
             // Pre-populate the Entra account and tenant caches
+            loadVscodeEntraDataAsyncStub.restore();
             await controller["loadVscodeEntraDataAsync"]();
 
             const testConnection = {
@@ -991,6 +1013,21 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockAccounts.signedInAccount.id,
             );
             expect(controller.state.connectionProfile.tenantId).to.equal(mockTenants[0].tenantId);
+        });
+
+        test("does not load tenants for every VS Code account in the background", async () => {
+            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                .resolves([mockAccounts.signedInAccount, mockAccounts.notSignedInAccount]);
+            const getTenantsForAccount = sandbox.stub(
+                AzureHelpers.VsCodeAzureHelper,
+                "getTenantsForAccount",
+            );
+
+            await controller["loadVscodeEntraDataAsync"]();
+
+            expect(getTenantsForAccount).to.not.have.been.called;
         });
 
         suite("connect", () => {
@@ -1751,6 +1788,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
     });
 
     test("getAzureActionButtons uses VS Code sign-in when VS Code account mode is enabled", async () => {
+        loadVscodeEntraDataAsyncStub.restore();
         stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
 
         sandbox
@@ -1830,6 +1868,35 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             expect(connection.server).to.equal("localhost,1433");
             expect(connection.port).to.be.undefined;
+        });
+
+        test("does not append a comma when the port is blank", () => {
+            const connection = {
+                server: "localhost",
+            } as IConnectionDialogProfile;
+            Object.assign(connection, { port: "" });
+
+            controller["combineServerAndPort"](connection);
+
+            expect(connection.server).to.equal("localhost");
+            expect(connection.port).to.be.undefined;
+        });
+
+        test("accepts a blank port", () => {
+            const validation = controller.state.formComponents.port.validate(controller.state, "");
+
+            expect(validation.isValid).to.be.true;
+            expect(validation.validationMessage).to.equal("");
+        });
+
+        test("rejects a nonnumeric port", () => {
+            const validation = controller.state.formComponents.port.validate(
+                controller.state,
+                "not-a-port",
+            );
+
+            expect(validation.isValid).to.be.false;
+            expect(validation.validationMessage).to.not.equal("");
         });
 
         test("does not combine when the server already contains a port", () => {

@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Button, SearchBox, Text, makeStyles, mergeClasses } from "@fluentui/react-components";
+import { SearchBox, Text, makeStyles, mergeClasses } from "@fluentui/react-components";
 import * as FluentIcons from "@fluentui/react-icons";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { locConstants } from "./locConstants";
+import { VscodeFloatingWidget, VscodeFloatingWidgetAction } from "./vscodeFloatingWidget";
 
 // Generic interface for searchable items
 export interface SearchableItem {
@@ -61,35 +62,27 @@ const useStyles = makeStyles({
     floatingContainer: {
         position: "absolute",
         right: "16px",
-        top: "0px",
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "var(--vscode-editorWidget-background)",
-        boxShadow: "0 0 8px 2px var(--vscode-widget-shadow)",
-        borderBottomLeftRadius: "4px",
-        borderBottomRightRadius: "4px",
-        paddingLeft: "4px",
-        paddingRight: "4px",
-        paddingTop: "0px",
-        paddingBottom: "0px",
+        top: "4px",
+        maxWidth: "calc(100% - 32px)",
         zIndex: "35",
-        transform: "translateY(-10px)",
+        visibility: "hidden",
+        transform: "translateY(calc(-100% - 10px))",
         opacity: "0",
-        transition: "opacity 0.2s ease, transform 0.2s ease",
-        overflow: "hidden",
-        borderLeft: "3px solid var(--vscode-editorWidget-border)",
-        height: "33px",
-        gap: "3px",
+        transition: "opacity 200ms linear, transform 200ms linear, visibility 0s linear 200ms",
         pointerEvents: "none",
+        "@media (prefers-reduced-motion: reduce)": {
+            transitionDuration: "0ms",
+        },
     },
     visible: {
+        visibility: "visible",
         opacity: "1",
         transform: "translateY(0)",
+        transitionDelay: "0s",
         pointerEvents: "auto",
     },
     invisible: {
-        display: "none",
+        visibility: "hidden",
     },
     srOnly: {
         position: "absolute",
@@ -261,15 +254,11 @@ export function FindWidget<T extends SearchableItem>({
             }
         };
 
-        document.addEventListener("keydown", (event: any) => {
-            handleKeyDown(event);
-        });
+        document.addEventListener("keydown", handleKeyDown);
 
         // Clean up event listener
         return () => {
-            document.removeEventListener("keydown", (event: any) => {
-                handleKeyDown(event);
-            });
+            document.removeEventListener("keydown", handleKeyDown);
         };
     }, [disabled, isVisible, showSearchWidget, hideSearchWidget, parentRef]);
 
@@ -287,7 +276,7 @@ export function FindWidget<T extends SearchableItem>({
     }, [items, searchText]);
 
     return (
-        <div
+        <VscodeFloatingWidget
             ref={containerRef}
             role="search"
             aria-label={searchLabel}
@@ -304,7 +293,6 @@ export function FindWidget<T extends SearchableItem>({
                 style={{
                     width: width,
                     maxWidth: width,
-                    marginLeft: "17px",
                 }}
                 ref={searchBoxRef}
                 aria-label={searchLabel}
@@ -344,32 +332,29 @@ export function FindWidget<T extends SearchableItem>({
                 aria-live="polite"
                 className={styles.srOnly}
             />
-            <Button
-                size="small"
-                icon={<FluentIcons.ArrowDown16Regular />}
-                appearance="subtle"
-                disabled={filteredItems.length === 0}
-                onClick={handleNextItem}
-                title={nextLabel}
-                aria-label={nextLabel}
-            />
-            <Button
+            <VscodeFloatingWidgetAction
                 size="small"
                 icon={<FluentIcons.ArrowUp16Regular />}
-                appearance="subtle"
                 disabled={filteredItems.length === 0}
                 onClick={handlePreviousItem}
                 title={previousLabel}
                 aria-label={previousLabel}
             />
-            <Button
+            <VscodeFloatingWidgetAction
+                size="small"
+                icon={<FluentIcons.ArrowDown16Regular />}
+                disabled={filteredItems.length === 0}
+                onClick={handleNextItem}
+                title={nextLabel}
+                aria-label={nextLabel}
+            />
+            <VscodeFloatingWidgetAction
                 size="small"
                 icon={<FluentIcons.Dismiss16Regular />}
-                appearance="subtle"
                 onClick={hideSearchWidget}
                 title={locConstants.common.closeFind}
                 aria-label={locConstants.common.closeFind}
             />
-        </div>
+        </VscodeFloatingWidget>
     );
 }

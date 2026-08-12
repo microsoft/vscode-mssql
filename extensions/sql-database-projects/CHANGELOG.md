@@ -6,10 +6,14 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ## [Unreleased]
 
-## [1.6.3] - 2026-08-19
+## [1.7.0] - 2026-08-19
 
-- Fixed an issue where the **Rename Symbol** feature was incorrectly enabled on SQL alias identifiers (column aliases, table aliases, subquery aliases, and CTE names), which could generate an invalid `.refactorlog` entry.
+- Added support for using **Move to Schema** on sequences and DML triggers
+- Added a **Restore Packages** command to the SQL project context menu for restoring the project's NuGet packages.
+- Added support for **Move to Schema** now automatically moves the `.sql` file to the target schema folder.
 - Added support for creating SQL objects with the schema corresponding to the selected folder instead of defaulting to `dbo`.
+- Added support for custom code analysis rules. Rules contributed by referenced NuGet analyzer packages now appear in the **Code Analysis Settings** dialog alongside the built-in rules.
+- Fixed an issue where the **Rename Symbol** feature was incorrectly enabled on SQL alias identifiers (column aliases, table aliases, subquery aliases, and CTE names), which could generate an invalid `.refactorlog` entry.
 
 ## [1.6.2] - 2026-07-15
 

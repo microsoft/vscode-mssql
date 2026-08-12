@@ -18,15 +18,19 @@ import ConnectionManager from "../../src/controllers/connectionManager";
 import MainController from "../../src/controllers/mainController";
 import { languageId } from "../../src/constants/constants";
 import { ConnectionStore } from "../../src/models/connectionStore";
+import { Deferred } from "../../src/protocol";
+import { CredentialStore } from "../../src/credentialstore/credentialstore";
 import * as ConnectionContracts from "../../src/models/contracts/connection";
 import * as LanguageServiceContracts from "../../src/models/contracts/languageService";
 import * as Interfaces from "../../src/models/interfaces";
 import * as Utils from "../../src/models/utils";
 import { AuthenticationTypes } from "../../src/models/interfaces";
 import { ConnectionUI } from "../../src/views/connectionUI";
+import { AccountStore } from "../../src/azure/accountStore";
+import { AzureController } from "../../src/azure/azureController";
 import StatusView from "../../src/views/statusView";
 import { uuid } from "../../src/utils/utils";
-import { stubExtensionContext, stubPrompter } from "./utils";
+import { stubExtensionContext, stubInstantiationService, stubPrompter } from "./utils";
 
 const expect = chai.expect;
 
@@ -53,10 +57,11 @@ suite("Per File Connection Tests", () => {
     let manager: ConnectionManager;
     let prompterStub: sinon.SinonStubbedInstance<IPrompter>;
 
-    setup(() => {
+    setup(async () => {
         sandbox = sinon.createSandbox();
         extensionContext = stubExtensionContext(sandbox);
         manager = createTestConnectionManager();
+        await manager.initialized;
     });
 
     teardown(() => {
@@ -310,7 +315,11 @@ suite("Per File Connection Tests", () => {
         connectionManagerStub.isConnected.returns(false);
         connectionManagerStub.promptToConnect.resolves();
 
-        const controller = new MainController(extensionContext, connectionManagerStub);
+        const controller = new MainController(
+            extensionContext,
+            stubInstantiationService(sandbox),
+            connectionManagerStub,
+        );
 
         await controller.onRunQuery();
 
@@ -321,6 +330,7 @@ suite("Per File Connection Tests", () => {
         const testFile = "file:///my/test/file.sql";
 
         let connectionManager: ConnectionManager = createTestConnectionManager();
+        await connectionManager.initialized;
 
         const serviceClientStub = sandbox.createStubInstance(SqlToolsServiceClient);
         serviceClientStub.sendRequest
@@ -457,9 +467,11 @@ suite("Per File Connection Tests", () => {
             return;
         });
 
-        manager.client = serviceClientStub;
-        manager.statusView = statusViewStub;
-        manager.connectionStore = connectionStoreStub;
+        manager = createTestConnectionManager(
+            serviceClientStub,
+            statusViewStub,
+            connectionStoreStub,
+        );
 
         const result = await manager.connect(testFile, connectionCreds);
         expect(result).to.equal(true);
@@ -515,32 +527,48 @@ suite("Per File Connection Tests", () => {
     function createTestConnectionManager(
         serviceClient?: SqlToolsServiceClient,
         statusView?: StatusView,
-        connectionStore?: ConnectionStore,
+        connectionStore?: sinon.SinonStubbedInstance<ConnectionStore>,
         connectionUI?: ConnectionUI,
     ): ConnectionManager {
         prompterStub = stubPrompter(sandbox);
         const statusViewInstance = statusView ?? sandbox.createStubInstance(StatusView);
-
-        let connectionStoreInstance;
-
-        if (connectionStore) {
-            connectionStoreInstance = connectionStore;
-        } else {
-            const stubConnectionStore = sandbox.createStubInstance(ConnectionStore);
-            stubConnectionStore.addRecentlyUsed.resolves();
-            connectionStoreInstance = stubConnectionStore;
+        const connectionStoreInstance =
+            connectionStore ?? sandbox.createStubInstance(ConnectionStore);
+        if (!connectionStore) {
+            connectionStoreInstance.addRecentlyUsed.resolves();
         }
+        const initializedDeferred = new Deferred<void>();
+        initializedDeferred.resolve();
+        sandbox.stub(connectionStoreInstance, "initialized").get(() => initializedDeferred);
+        connectionStoreInstance.readAllConnections.resolves([]);
+        connectionStoreInstance.readAllConnectionGroups.resolves([]);
+        const serviceClientInstance =
+            serviceClient ?? sandbox.createStubInstance(SqlToolsServiceClient);
 
-        return new ConnectionManager(
+        let manager: ConnectionManager;
+        const connectionUIInstance =
+            connectionUI ??
+            new ConnectionUI(
+                sandbox.createStubInstance(AzureController),
+                prompterStub,
+                () => manager.onDisconnect(),
+                connectionStoreInstance,
+                sandbox.createStubInstance(AccountStore),
+            );
+
+        manager = new ConnectionManager(
             extensionContext,
             statusViewInstance,
             prompterStub,
-            undefined, // logger
-            serviceClient,
             connectionStoreInstance,
-            undefined, // credentialStore
-            connectionUI,
+            sandbox.createStubInstance(CredentialStore),
+            sandbox.createStubInstance(AccountStore),
+            stubInstantiationService(sandbox),
+            undefined, // logger
+            serviceClientInstance,
+            connectionUIInstance,
         );
+        return manager;
     }
 });
 

@@ -178,7 +178,7 @@ export namespace ValidateFilePathWebviewRequest {
  */
 export namespace ListDatabasesWebviewRequest {
     export const type = new RequestType<
-        { ownerUri: string },
+        { ownerUri: string; connectionDatabaseName?: string },
         { databases: string[]; errorMessage?: string },
         void
     >("dacpacDialog/listDatabases");

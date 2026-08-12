@@ -1,5 +1,5 @@
 {
-    "Unable to read proxy agent options.": "无法读取代理智能体选项。",
-    "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues./{0} is the proxy URL": "找到了代理设置，但没有协议(例如 http://): '{0}'。可能会遇到连接问题。",
-    "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues. Error: {1}/{0} is the proxy URL{1} is the error message": "找到代理设置，但在分析 URL 时遇到错误: '{0}'。可能会遇到连接问题。错误: {1}"
+    "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues. Error: {1}/{0} is the proxy URL{1} is the error message": "Proxy settings found, but encountered an error while parsing the URL: '{0}'. You may encounter connection issues. Error: {1}",
+    "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues./{0} is the proxy URL": "Proxy settings found, but without a protocol (e.g. http://): '{0}'. You may encounter connection issues.",
+    "Unable to read proxy agent options.": "Unable to read proxy agent options."
 }

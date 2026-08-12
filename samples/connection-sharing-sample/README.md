@@ -1,5 +1,8 @@
 # Connection Sharing Sample Extension
 
+> [!WARNING]
+> **Deprecated:** The MSSQL connection sharing API and commands demonstrated by this sample will be retired and will not be available in a future release. Existing integrations will continue to work until then, but extension authors should remove this dependency and avoid adopting it for new integrations.
+
 A VS Code extension that demonstrates how to use the **MSSQL Extension's Connection Sharing API** to interact with SQL Server databases from within your own extensions.
 
 ## 📋 Overview

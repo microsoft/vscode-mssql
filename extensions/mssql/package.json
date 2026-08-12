@@ -211,7 +211,7 @@
                 {
                     "id": "queryResult",
                     "title": "%extension.queryResult%",
-                    "icon": "media/SignIn.svg"
+                    "icon": "media/queryResultView.svg"
                 }
             ]
         },
@@ -221,7 +221,8 @@
                     "type": "webview",
                     "id": "queryResult",
                     "name": "%extension.queryResult%",
-                    "when": "!config.mssql.openQueryResultsInTabByDefault"
+                    "when": "!config.mssql.openQueryResultsInTabByDefault",
+                    "icon": "media/queryResultView.svg"
                 }
             ],
             "objectExplorer": [
@@ -331,8 +332,7 @@
                 "displayName": "SQL Server Execution Plan",
                 "selector": [
                     {
-                        "filenamePattern": "*.sqlplan",
-                        "language": "sqlplan"
+                        "filenamePattern": "*.sqlplan"
                     }
                 ],
                 "priority": "default"
@@ -1210,7 +1210,10 @@
                 "command": "mssql.revealQueryResult",
                 "title": "%mssql.revealQueryResult%",
                 "category": "MS SQL",
-                "icon": "$(table)"
+                "icon": {
+                    "dark": "media/queryResultView_dark.svg",
+                    "light": "media/queryResultView_light.svg"
+                }
             },
             {
                 "command": "mssql.toggleQueryResultPanel",
@@ -1808,6 +1811,18 @@
                     "type": "boolean",
                     "default": false,
                     "description": "%mssql.preview.betaResultsGrid.description%",
+                    "scope": "application"
+                },
+                "mssql.preview.betaObjectExplorerFilter": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.preview.betaObjectExplorerFilter.description%",
+                    "scope": "application"
+                },
+                "mssql.preview.betaExecutionPlan": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.preview.betaExecutionPlan.description%",
                     "scope": "application"
                 },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
@@ -2695,6 +2710,14 @@
                     "type": "boolean",
                     "default": true,
                     "description": "%mssql.intelliSense.enableIntelliSense%",
+                    "scope": "window"
+                },
+                "mssql.intelliSense.completionTimeoutMilliseconds": {
+                    "type": "integer",
+                    "default": 2000,
+                    "minimum": 500,
+                    "maximum": 30000,
+                    "description": "%mssql.intelliSense.completionTimeoutMilliseconds%",
                     "scope": "window"
                 },
                 "mssql.intelliSense.enableErrorChecking": {
