@@ -5,7 +5,7 @@
 
 import { Button, Link, makeStyles, MessageBar, MessageBarBody } from "@fluentui/react-components";
 import { DatabaseArrowRight20Regular, DatabaseArrowRight24Regular } from "@fluentui/react-icons";
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import * as dacpacDialog from "../../../sharedInterfaces/dacpacDialog";
 import { IConnectionDialogProfile } from "../../../sharedInterfaces/connectionDialog";
 import { dataTierApplicationsDocumentationUrl } from "../../common/constants";
@@ -26,6 +26,11 @@ import { TargetDatabaseSection } from "./TargetDatabaseSection";
 interface ValidationMessage {
     message: string;
     severity: "error" | "warning";
+}
+
+interface DatabaseListResult {
+    databases: string[];
+    errorMessage?: string;
 }
 
 /**
@@ -50,7 +55,8 @@ export const DacpacDialogForm = () => {
         initialOperationType || dacpacDialog.DacPacDialogOperationType.Deploy,
     );
     const [filePath, setFilePath] = useState("");
-    const [databaseName, setDatabaseName] = useState(initialDatabaseName || "");
+    const [newDatabaseName, setNewDatabaseName] = useState("");
+    const [existingDatabaseName, setExistingDatabaseName] = useState(initialDatabaseName || "");
     const [isNewDatabase, setIsNewDatabase] = useState(!initialDatabaseName);
     const [availableDatabases, setAvailableDatabases] = useState<string[]>(
         initialDatabaseName ? [initialDatabaseName] : [],
@@ -68,12 +74,15 @@ export const DacpacDialogForm = () => {
         initialSelectedProfileId || "",
     );
     const [ownerUri, setOwnerUri] = useState<string>(initialOwnerUri || "");
+    const [connectionDatabaseName, setConnectionDatabaseName] = useState(initialDatabaseName || "");
     const [isConnecting, setIsConnecting] = useState(false);
+    const [isLoadingDatabases, setIsLoadingDatabases] = useState(false);
     const [isFabric, setIsFabric] = useState(false);
     const [databaseListError, setDatabaseListError] = useState<{
         message: string;
         severity: "error" | "warning";
     } | null>(null);
+    const databaseListCache = useRef(new Map<string, DatabaseListResult>());
 
     // Load available connections when component mounts
     useEffect(() => {
@@ -87,18 +96,21 @@ export const DacpacDialogForm = () => {
         };
     }, []);
 
-    // Load available databases when server or operation changes
+    const databaseName =
+        operationType === dacpacDialog.DacPacDialogOperationType.Import ||
+        (operationType === dacpacDialog.DacPacDialogOperationType.Deploy && isNewDatabase)
+            ? newDatabaseName
+            : existingDatabaseName;
+    const newDatabaseNameExists = availableDatabases.some(
+        (database) => database.toLowerCase() === newDatabaseName.trim().toLowerCase(),
+    );
+
+    // Load available databases whenever a server is connected
     useEffect(() => {
-        if (
-            ownerUri &&
-            (operationType === dacpacDialog.DacPacDialogOperationType.Deploy ||
-                operationType === dacpacDialog.DacPacDialogOperationType.Extract ||
-                operationType === dacpacDialog.DacPacDialogOperationType.Export ||
-                (operationType === dacpacDialog.DacPacDialogOperationType.Import && isFabric))
-        ) {
+        if (ownerUri) {
             void loadDatabases();
         }
-    }, [operationType, ownerUri, isFabric]);
+    }, [ownerUri, connectionDatabaseName]);
 
     // Update file path suggestion when database or operation type changes for Export/Extract
     useEffect(() => {
@@ -142,6 +154,15 @@ export const DacpacDialogForm = () => {
                 // If a connection was selected/matched
                 if (result.selectedConnection) {
                     setSelectedProfileId(result.selectedConnection.id!);
+                    setConnectionDatabaseName(
+                        result.selectedConnection.database || initialDatabaseName || "",
+                    );
+                    if (result.selectedConnection.database || initialDatabaseName) {
+                        setExistingDatabaseName(
+                            result.selectedConnection.database || initialDatabaseName || "",
+                        );
+                        setIsNewDatabase(false);
+                    }
 
                     // If we have an ownerUri (either provided or from auto-connect)
                     if (result.ownerUri) {
@@ -182,7 +203,9 @@ export const DacpacDialogForm = () => {
 
     const handleServerChange = async (profileId: string) => {
         setSelectedProfileId(profileId);
-        setDatabaseName("");
+        setOwnerUri("");
+        setExistingDatabaseName("");
+        setConnectionDatabaseName("");
         setAvailableDatabases([]);
         setValidationMessages({});
         setDatabaseListError(null);
@@ -202,6 +225,13 @@ export const DacpacDialogForm = () => {
 
             if (result?.isConnected && result.ownerUri) {
                 setOwnerUri(result.ownerUri);
+                setConnectionDatabaseName(result.databaseName || "");
+                if (result.databaseName) {
+                    setExistingDatabaseName(result.databaseName);
+                    setIsNewDatabase(false);
+                } else {
+                    setIsNewDatabase(true);
+                }
                 // Check if this is a Fabric connection
                 if (result.isFabric) {
                     setIsFabric(true);
@@ -215,7 +245,8 @@ export const DacpacDialogForm = () => {
                 // Connection failed - clear state
                 setOwnerUri("");
                 setAvailableDatabases([]);
-                setDatabaseName("");
+                setExistingDatabaseName("");
+                setConnectionDatabaseName("");
                 setIsFabric(false);
                 // Show error message to user
                 const errorMsg = result?.errorMessage || locConstants.dacpacDialog.connectionFailed;
@@ -240,36 +271,23 @@ export const DacpacDialogForm = () => {
     };
 
     const loadDatabases = async () => {
-        try {
-            const result = await context?.listDatabases({ ownerUri: ownerUri || "" });
-            if (result?.databases) {
-                setAvailableDatabases(result.databases);
-                if (result.databases.length > 0) {
-                    setDatabaseName((currentDatabaseName) => {
-                        return currentDatabaseName || result.databases[0];
-                    });
-                }
-            }
+        const cacheKey = ownerUri;
+        const cachedResult = databaseListCache.current.get(cacheKey);
 
-            // If there was an error loading databases (e.g., permission issues)
-            // but we got fallback results from the connection's database, show a warning.
-            // If no databases at all, show an error about permissions.
-            if (result?.errorMessage) {
-                if (result.databases && result.databases.length > 0) {
-                    // We have a fallback database from the connection - show as warning
-                    setDatabaseListError({
-                        message: locConstants.dacpacDialog.databasesCannotBeLoadedDueToPermissions,
-                        severity: "warning",
-                    });
-                } else {
-                    // No databases at all - show error
-                    setDatabaseListError({
-                        message: locConstants.dacpacDialog.databasesCannotBeLoadedDueToPermissions,
-                        severity: "error",
-                    });
-                }
-            } else {
-                setDatabaseListError(null);
+        if (cachedResult) {
+            applyDatabaseListResult(cachedResult, connectionDatabaseName);
+            return;
+        }
+
+        setIsLoadingDatabases(true);
+        try {
+            const result = await context?.listDatabases({
+                ownerUri: ownerUri || "",
+                connectionDatabaseName,
+            });
+            if (result) {
+                databaseListCache.current.set(cacheKey, result);
+                applyDatabaseListResult(result, connectionDatabaseName);
             }
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
@@ -277,7 +295,37 @@ export const DacpacDialogForm = () => {
                 message: `${locConstants.dacpacDialog.failedToLoadDatabases}: ${errorMsg}`,
                 severity: "error",
             });
+        } finally {
+            setIsLoadingDatabases(false);
         }
+    };
+
+    const applyDatabaseListResult = (result: DatabaseListResult, preferredDatabaseName: string) => {
+        setAvailableDatabases(result.databases);
+        if (result.databases.length > 0) {
+            setExistingDatabaseName((currentDatabaseName) => {
+                const currentDatabase = result.databases.find(
+                    (database) => database.toLowerCase() === currentDatabaseName.toLowerCase(),
+                );
+                const preferredDatabase = result.databases.find(
+                    (database) => database.toLowerCase() === preferredDatabaseName.toLowerCase(),
+                );
+                return currentDatabase || preferredDatabase || result.databases[0];
+            });
+        }
+
+        if (result.errorMessage) {
+            setDatabaseListError({
+                message: locConstants.dacpacDialog.databasesCannotBeLoadedDueToPermissions,
+                severity: result.databases.length > 0 ? "warning" : "error",
+            });
+        } else {
+            setDatabaseListError(null);
+        }
+    };
+
+    const updateNewDatabaseName = (value: string) => {
+        setNewDatabaseName(value);
     };
 
     const validateFilePath = async (path: string, shouldExist: boolean): Promise<boolean> => {
@@ -408,7 +456,8 @@ export const DacpacDialogForm = () => {
 
     const clearForm = () => {
         setFilePath("");
-        setDatabaseName("");
+        setNewDatabaseName("");
+        setExistingDatabaseName("");
         setApplicationName("");
         setApplicationVersion(DEFAULT_APPLICATION_VERSION);
         setValidationMessages({});
@@ -624,7 +673,7 @@ export const DacpacDialogForm = () => {
                 });
 
                 if (nameResult?.databaseName) {
-                    setDatabaseName(nameResult.databaseName);
+                    updateNewDatabaseName(nameResult.databaseName);
                     // Clear any existing database name validation errors
                     const updatedMessages = { ...validationMessages };
                     delete updatedMessages.databaseName;
@@ -693,7 +742,12 @@ export const DacpacDialogForm = () => {
                         appearance="primary"
                         icon={<DatabaseArrowRight20Regular />}
                         onClick={() => void handleSubmit()}
-                        disabled={!isFormValid() || isOperationInProgress || isConnecting}
+                        disabled={
+                            !isFormValid() ||
+                            isOperationInProgress ||
+                            isConnecting ||
+                            isLoadingDatabases
+                        }
                         aria-label={locConstants.dacpacDialog.execute}>
                         {locConstants.dacpacDialog.execute}
                     </Button>
@@ -735,14 +789,15 @@ export const DacpacDialogForm = () => {
                 {/* For Extract/Export: Show database selection BEFORE file path */}
                 {showDatabaseSource && (
                     <SourceDatabaseSection
-                        databaseName={databaseName}
-                        setDatabaseName={setDatabaseName}
+                        databaseName={existingDatabaseName}
+                        setDatabaseName={setExistingDatabaseName}
                         availableDatabases={availableDatabases}
                         isOperationInProgress={isOperationInProgress}
                         ownerUri={ownerUri}
                         validationMessages={validationMessages}
                         showDatabaseSource={showDatabaseSource}
                         showNewDatabase={false}
+                        isLoadingDatabases={isLoadingDatabases}
                         isDatabaseListUnavailable={databaseListError !== null}
                     />
                 )}
@@ -760,8 +815,10 @@ export const DacpacDialogForm = () => {
                 {/* For Deploy: Show target database AFTER file path */}
                 {showDatabaseTarget && (
                     <TargetDatabaseSection
-                        databaseName={databaseName}
-                        setDatabaseName={setDatabaseName}
+                        newDatabaseName={newDatabaseName}
+                        setNewDatabaseName={updateNewDatabaseName}
+                        existingDatabaseName={existingDatabaseName}
+                        setExistingDatabaseName={setExistingDatabaseName}
                         isNewDatabase={isNewDatabase}
                         setIsNewDatabase={setIsNewDatabase}
                         availableDatabases={availableDatabases}
@@ -769,21 +826,25 @@ export const DacpacDialogForm = () => {
                         ownerUri={ownerUri}
                         validationMessages={validationMessages}
                         isFabric={isFabric}
+                        isLoadingDatabases={isLoadingDatabases}
+                        newDatabaseNameExists={newDatabaseNameExists}
                     />
                 )}
 
                 {/* For Import: Show new database name AFTER file path */}
                 {showNewDatabase && (
                     <SourceDatabaseSection
-                        databaseName={databaseName}
-                        setDatabaseName={setDatabaseName}
+                        databaseName={newDatabaseName}
+                        setDatabaseName={updateNewDatabaseName}
                         availableDatabases={availableDatabases}
                         isOperationInProgress={isOperationInProgress}
                         ownerUri={ownerUri}
                         validationMessages={validationMessages}
                         showDatabaseSource={false}
                         showNewDatabase={showNewDatabase}
+                        isLoadingDatabases={isLoadingDatabases}
                         isDatabaseListUnavailable={databaseListError !== null}
+                        newDatabaseNameExists={newDatabaseNameExists}
                     />
                 )}
 

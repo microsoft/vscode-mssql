@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Dropdown, Field, Input, makeStyles, Option } from "@fluentui/react-components";
+import { Dropdown, Field, Input, makeStyles, Option, Spinner } from "@fluentui/react-components";
 import { locConstants } from "../../common/locConstants";
 
 /**
@@ -23,7 +23,9 @@ interface SourceDatabaseSectionProps {
     validationMessages: Record<string, ValidationMessage>;
     showDatabaseSource: boolean;
     showNewDatabase: boolean;
+    isLoadingDatabases?: boolean;
     isDatabaseListUnavailable?: boolean;
+    newDatabaseNameExists?: boolean;
 }
 
 const useStyles = makeStyles({
@@ -31,6 +33,24 @@ const useStyles = makeStyles({
         display: "flex",
         flexDirection: "column",
         gap: "12px",
+    },
+    databaseControl: {
+        position: "relative",
+        width: "100%",
+    },
+    spinner: {
+        position: "absolute",
+        right: "calc(100% + 12px)",
+        top: "50%",
+        transform: "translateY(-50%)",
+    },
+    dropdown: {
+        width: "100%",
+    },
+    labelWithSpinner: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: "8px",
     },
 });
 
@@ -43,7 +63,9 @@ export const SourceDatabaseSection = ({
     validationMessages,
     showDatabaseSource,
     showNewDatabase,
+    isLoadingDatabases = false,
     isDatabaseListUnavailable = false,
+    newDatabaseNameExists = false,
 }: SourceDatabaseSectionProps) => {
     const classes = useStyles();
 
@@ -62,30 +84,71 @@ export const SourceDatabaseSection = ({
                         validationMessages.database?.severity === "error"
                             ? "error"
                             : "none"
-                    }>
-                    <Dropdown
-                        placeholder={locConstants.dacpacDialog.selectDatabase}
-                        value={databaseName}
-                        selectedOptions={[databaseName]}
-                        onOptionSelect={(_, data) => setDatabaseName(data.optionText || "")}
-                        disabled={isOperationInProgress || !ownerUri || isDatabaseListUnavailable}
-                        aria-label={locConstants.dacpacDialog.sourceDatabaseLabel}>
-                        {availableDatabases.map((db) => (
-                            <Option key={db} value={db}>
-                                {db}
-                            </Option>
-                        ))}
-                    </Dropdown>
+                    }
+                    orientation="horizontal">
+                    <div className={classes.databaseControl}>
+                        {isLoadingDatabases && (
+                            <Spinner
+                                className={classes.spinner}
+                                size="tiny"
+                                aria-label={locConstants.dacpacDialog.loadingDatabases}
+                            />
+                        )}
+                        <Dropdown
+                            className={classes.dropdown}
+                            placeholder={
+                                isLoadingDatabases
+                                    ? locConstants.dacpacDialog.loadingDatabases
+                                    : locConstants.dacpacDialog.selectDatabase
+                            }
+                            value={
+                                isLoadingDatabases
+                                    ? locConstants.dacpacDialog.loadingDatabases
+                                    : databaseName
+                            }
+                            selectedOptions={isLoadingDatabases ? [] : [databaseName]}
+                            onOptionSelect={(_, data) => setDatabaseName(data.optionText || "")}
+                            disabled={
+                                isLoadingDatabases ||
+                                isOperationInProgress ||
+                                !ownerUri ||
+                                isDatabaseListUnavailable
+                            }
+                            aria-label={locConstants.dacpacDialog.sourceDatabaseLabel}>
+                            {availableDatabases.map((db) => (
+                                <Option key={db} value={db}>
+                                    {db}
+                                </Option>
+                            ))}
+                        </Dropdown>
+                    </div>
                 </Field>
             ) : (
                 showNewDatabase && (
                     <Field
-                        label={locConstants.dacpacDialog.databaseNameLabel}
+                        label={
+                            <span className={classes.labelWithSpinner}>
+                                {locConstants.dacpacDialog.databaseNameLabel}
+                                {isLoadingDatabases && (
+                                    <Spinner
+                                        size="extra-tiny"
+                                        aria-label={locConstants.dacpacDialog.loadingDatabases}
+                                    />
+                                )}
+                            </span>
+                        }
                         required
-                        validationMessage={validationMessages.databaseName?.message}
+                        validationMessage={
+                            validationMessages.databaseName?.message ||
+                            (newDatabaseNameExists
+                                ? locConstants.dacpacDialog.databaseAlreadyExists
+                                : undefined)
+                        }
                         validationState={
-                            validationMessages.databaseName?.severity === "error" ? "error" : "none"
-                        }>
+                            validationMessages.databaseName?.severity ||
+                            (newDatabaseNameExists ? "warning" : "none")
+                        }
+                        orientation="horizontal">
                         <Input
                             value={databaseName}
                             onChange={(_, data) => setDatabaseName(data.value)}
