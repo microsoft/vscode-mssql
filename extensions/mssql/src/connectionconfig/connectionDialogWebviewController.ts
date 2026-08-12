@@ -750,6 +750,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             const newlyAddedAccountId = state.azureAccounts.find(
                 (a) => !existingAccountIds.includes(a.id),
             )?.id;
+
             if (newlyAddedAccountId && newlyAddedAccountId !== state.selectedAccountId) {
                 state.selectedAccountId = newlyAddedAccountId;
                 state.azureTenants = [];
@@ -770,6 +771,29 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                     state.selectedTenantId,
                 );
                 await provider.autoLoadContents(state);
+            }
+
+            // If they signed in with a new account and they're using VS Code accounts for EntraMFA auth,
+            // then add it to the MFA auth account list and select it.
+            if (
+                newlyAddedAccountId &&
+                previewService.isFeatureEnabled(PreviewFeature.UseVscodeAccountsForEntraMFA)
+            ) {
+                this.clearEntraAccountCache();
+
+                const accountComponent = this.getFormComponent(state, "accountId");
+
+                if (accountComponent) {
+                    accountComponent.loadStatus = { status: ApiStatus.Loading };
+                }
+
+                this.updateState(state);
+
+                await this.loadVscodeEntraDataAsync();
+
+                state.connectionProfile.accountId = newlyAddedAccountId;
+                this.updateState(state);
+                await this.handleAzureMFAEdits("accountId");
             }
 
             return state;
