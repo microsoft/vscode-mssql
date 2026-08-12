@@ -3,6 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export * from "@vscode-mssql/tsql-language-service/langium";
+export * from "@vscode-mssql/tsql-language-service/lsp";
 export * from "./vscodeAdapter";
 export * from "./vscodeFeatureProviders";

@@ -12,7 +12,7 @@ import {
 export type { TsqlSqlLanguageServices } from "@vscode-mssql/tsql-language-service";
 
 /**
- * Composes the package-owned incremental T-SQL engine into the Langium document container.
+ * Composes the package-owned incremental T-SQL engine with its document and LSP services.
  */
 export function createTsqlSqlLanguageServices(): TsqlSqlLanguageServices {
     return createPackageLanguageServices({ engine: new SaralSqlAnalysisEngine() });

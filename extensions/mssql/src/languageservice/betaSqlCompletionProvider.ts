@@ -26,12 +26,12 @@ import SqlToolsServiceClient from "./serviceclient";
 import { tsqlReservedKeywords } from "./tsqlKeywords";
 import {
     updateFromVsCodeDocument,
+    type TsqlDocument,
     type TsqlDocumentService,
-    type TsqlLangiumDocument,
     type TsqlSqlLanguageServices,
     TsqlVsCodeFeatureProviders,
-} from "./langium";
-import { createTsqlSqlLanguageServices } from "./langium/sqlLanguageServices";
+} from "./lsp";
+import { createTsqlSqlLanguageServices } from "./lsp/sqlLanguageServices";
 import {
     ScriptingDefinitionProvider,
     catalogObjectFromMultipart,
@@ -165,7 +165,7 @@ export interface SessionResult {
     session: SqlAnalysisSnapshot;
     schema: SchemaProvider;
     metadataComplete: boolean;
-    document: TsqlLangiumDocument;
+    document: TsqlDocument;
 }
 
 interface SessionCacheEntry {
@@ -177,11 +177,11 @@ interface SessionCacheEntry {
     /** Compatibility view for extension helpers that still consume local inferred columns. */
     featureSchema?: SchemaProvider;
     session: SqlAnalysisSnapshot;
-    document: TsqlLangiumDocument;
+    document: TsqlDocument;
     promise?: Promise<SessionResult | undefined>;
 }
 
-function requireAnalysisSnapshot(document: TsqlLangiumDocument): SqlAnalysisSnapshot {
+function requireAnalysisSnapshot(document: TsqlDocument): SqlAnalysisSnapshot {
     return document.analysis;
 }
 
@@ -1335,21 +1335,21 @@ ${orderBy}`,
 /** Reuses package parsing and catalog analysis across every provider and document edit. */
 export class BetaSqlSessionManager implements vscode.Disposable {
     private readonly _entries = new Map<string, SessionCacheEntry>();
-    private readonly _langium = createTsqlSqlLanguageServices();
+    private readonly _languageServices = createTsqlSqlLanguageServices();
 
     constructor(
         private readonly _connectionManager: ConnectionManager,
         private readonly _catalog: BetaSqlMetadataCatalog,
     ) {}
 
-    /** Langium's current immutable document snapshots, shared by every LSP feature. */
+    /** Current immutable document snapshots shared by every LSP feature. */
     public get documents(): TsqlDocumentService {
-        return this._langium.documents;
+        return this._languageServices.documents;
     }
 
-    /** Langium-composed protocol providers sharing this manager's document lifecycle. */
+    /** Protocol providers sharing this manager's document lifecycle. */
     public get languageServices(): TsqlSqlLanguageServices {
-        return this._langium;
+        return this._languageServices;
     }
 
     public getSession(
@@ -1403,7 +1403,7 @@ export class BetaSqlSessionManager implements vscode.Disposable {
         const canReuse = existing !== undefined && existing.connectionId === connectionId;
         const schema = canReuse ? existing.schema : new BetaSqlDocumentSchema();
         const text = getParseableEditorText(document.getText());
-        const langiumDocument = updateFromVsCodeDocument(this.documents, document, {
+        const serviceDocument = updateFromVsCodeDocument(this.documents, document, {
             catalog: {
                 provider: schema,
                 revision: `${generation}:pending`,
@@ -1417,8 +1417,8 @@ export class BetaSqlSessionManager implements vscode.Disposable {
             documentVersion: document.version,
             generation,
             schema,
-            session: requireAnalysisSnapshot(langiumDocument),
-            document: langiumDocument,
+            session: requireAnalysisSnapshot(serviceDocument),
+            document: serviceDocument,
         };
         this._entries.set(uri, entry);
         entry.promise = this.buildSession(document, entry);
@@ -4744,7 +4744,7 @@ export function registerBetaSqlLanguageService(
     const scriptingDefinitions = scriptingService
         ? new ScriptingDefinitionProvider(connectionManager, scriptingService)
         : undefined;
-    const langiumFeatureProviders = new TsqlVsCodeFeatureProviders(sessions);
+    const featureProviders = new TsqlVsCodeFeatureProviders(sessions);
     const codeLensProvider = new BetaSqlCodeLensProvider(connectionManager, catalog);
     const diagnostics = new BetaSqlDiagnostics(
         connectionManager,
@@ -4787,7 +4787,7 @@ export function registerBetaSqlLanguageService(
      * formatters and prompt for a default even when this service never returns edits.
      */
     const registerLanguageFeatures = (): vscode.Disposable[] => [
-        ...langiumFeatureProviders.register({ language: "sql" }),
+        ...featureProviders.register({ language: "sql" }),
         vscode.languages.registerCompletionItemProvider(
             { language: "sql" },
             new BetaSqlCompletionProvider(connectionManager, catalog, sessions),

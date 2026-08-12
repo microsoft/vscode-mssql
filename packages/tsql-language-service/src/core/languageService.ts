@@ -8,19 +8,15 @@ import type {
     SqlAnalysisInput,
     SqlAnalysisSnapshot,
 } from "../analysis/contracts.js";
-import { createTsqlLangiumServices } from "../langium/services.js";
-import type {
-    TsqlCatalogMetadata,
-    TsqlDocumentService,
-    TsqlLangiumModule,
-} from "../langium/types.js";
+import { createTsqlServices } from "../lsp/services.js";
+import type { TsqlCatalogMetadata, TsqlDocumentService, TsqlServiceModule } from "../lsp/types.js";
 
 export interface TsqlLanguageServiceOptions<T extends object = Record<never, never>> {
     readonly defaultCatalog?: TsqlCatalogMetadata;
-    readonly providerModule?: TsqlLangiumModule<T>;
+    readonly providerModule?: TsqlServiceModule<T>;
 }
 
-/** Facade over an analysis strategy and its generation-aware Langium document store. */
+/** Facade over an analysis strategy and its generation-aware document store. */
 export class TsqlLanguageService<T extends object = Record<never, never>> {
     public readonly documents: TsqlDocumentService;
     public readonly services: { readonly documents: TsqlDocumentService } & T;
@@ -29,7 +25,7 @@ export class TsqlLanguageService<T extends object = Record<never, never>> {
         public readonly engine: SqlAnalysisEngine,
         options: TsqlLanguageServiceOptions<T> = {},
     ) {
-        this.services = createTsqlLangiumServices(
+        this.services = createTsqlServices(
             { engine, defaultCatalog: options.defaultCatalog },
             options.providerModule,
         );

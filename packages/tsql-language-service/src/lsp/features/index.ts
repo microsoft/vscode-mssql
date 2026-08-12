@@ -10,7 +10,6 @@ export * from "./featureDocument.js";
 export * from "./featureServices.js";
 export * from "./foldingRangeProvider.js";
 export * from "./formattingProvider.js";
-export * from "./inlayHintProvider.js";
 export * from "./navigationProvider.js";
 export * from "./rangeUtils.js";
 export * from "./selectionRangeProvider.js";

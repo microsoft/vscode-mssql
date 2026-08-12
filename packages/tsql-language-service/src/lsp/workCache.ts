@@ -5,7 +5,7 @@
 
 import type { CancellationTokenLike } from "../core/cancellation.js";
 import { StaleTsqlDocumentError, TsqlOperationCancelledError } from "./errors.js";
-import type { TsqlDocumentWork, TsqlLangiumDocument, TsqlWorkContext } from "./types.js";
+import type { TsqlDocument, TsqlDocumentWork, TsqlWorkContext } from "./types.js";
 
 interface WorkEntry {
     readonly controller: AbortController;
@@ -14,12 +14,12 @@ interface WorkEntry {
 
 /** Deduplicates work per document generation and aborts it when that generation is replaced. */
 export class TsqlDocumentWorkCache {
-    private readonly entries = new WeakMap<TsqlLangiumDocument, Map<string | symbol, WorkEntry>>();
+    private readonly entries = new WeakMap<TsqlDocument, Map<string | symbol, WorkEntry>>();
 
-    public constructor(private readonly isCurrent: (document: TsqlLangiumDocument) => boolean) {}
+    public constructor(private readonly isCurrent: (document: TsqlDocument) => boolean) {}
 
     public compute<T>(
-        document: TsqlLangiumDocument,
+        document: TsqlDocument,
         key: string | symbol,
         work: TsqlDocumentWork<T>,
         callerToken?: CancellationTokenLike,
@@ -57,7 +57,7 @@ export class TsqlDocumentWorkCache {
         return waitForCaller(entry.promise as Promise<T>, callerToken);
     }
 
-    public invalidate(document: TsqlLangiumDocument): void {
+    public invalidate(document: TsqlDocument): void {
         const documentEntries = this.entries.get(document);
         if (!documentEntries) {
             return;
@@ -70,7 +70,7 @@ export class TsqlDocumentWorkCache {
     }
 
     private throwIfUnavailable(
-        document: TsqlLangiumDocument,
+        document: TsqlDocument,
         token?: CancellationTokenLike,
         signal?: AbortSignal,
     ): void {

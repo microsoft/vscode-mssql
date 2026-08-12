@@ -8,14 +8,10 @@ import {
     type SqlEditorFeatureServices,
     type SqlFeatureDocumentAccessor,
 } from "./features/index.js";
-import { createTsqlLangiumServices } from "./services.js";
-import type {
-    TsqlDocumentFactoryOptions,
-    TsqlLangiumModule,
-    TsqlLangiumServices,
-} from "./types.js";
+import { createTsqlServices } from "./services.js";
+import type { TsqlDocumentFactoryOptions, TsqlServiceModule, TsqlServices } from "./types.js";
 
-export interface TsqlSqlLanguageServices extends TsqlLangiumServices {
+export interface TsqlSqlLanguageServices extends TsqlServices {
     readonly lsp: SqlEditorFeatureServices;
 }
 
@@ -23,7 +19,7 @@ export interface TsqlSqlLanguageServices extends TsqlLangiumServices {
 export function createTsqlSqlLanguageServices(
     options: TsqlDocumentFactoryOptions,
 ): TsqlSqlLanguageServices {
-    const providerModule: TsqlLangiumModule<{ readonly lsp: SqlEditorFeatureServices }> = {
+    const providerModule: TsqlServiceModule<{ readonly lsp: SqlEditorFeatureServices }> = {
         lsp: (services) => {
             const documents: SqlFeatureDocumentAccessor = {
                 getDocument: (uri) => {
@@ -41,5 +37,5 @@ export function createTsqlSqlLanguageServices(
             return createSqlEditorFeatureServices(documents);
         },
     };
-    return createTsqlLangiumServices(options, providerModule);
+    return createTsqlServices(options, providerModule);
 }

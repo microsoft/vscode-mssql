@@ -9,7 +9,7 @@ import { TsqlLanguageService, type TsqlLanguageServiceOptions } from "./core/lan
 export * from "./adapters/index.js";
 export * from "./analysis/index.js";
 export * from "./core/index.js";
-export * from "./langium/index.js";
+export * from "./lsp/index.js";
 export * from "./metadata/index.js";
 export * from "./parser/index.js";
 export * from "./semantic/index.js";

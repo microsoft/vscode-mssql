@@ -5,7 +5,7 @@ only editor engine.
 
 The package vendors the essential SaralSQL parser source with MIT attribution, adds immutable
 `GO`-batch incremental parsing, and layers catalog-aware analysis over a parser-independent
-contract. This keeps parser, metadata, Langium lifecycle, and VS Code integration independently
+contract. This keeps parser, metadata, document lifecycle, and VS Code integration independently
 replaceable while avoiding two active semantic models.
 
 ## Acceptance evidence

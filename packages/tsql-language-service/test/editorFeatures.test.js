@@ -8,7 +8,6 @@ const { describe, it } = require("node:test");
 const { DocumentHighlightKind, FoldingRangeKind } = require("vscode-languageserver-types");
 const {
     SaralSqlAnalysisEngine,
-    URI,
     createTsqlSqlLanguageServices,
     sqlSemanticTokenTypes,
 } = require("../dist/index.js");
@@ -146,7 +145,7 @@ describe("parser-neutral SQL editor features", () => {
     function createFeatures(sql, parseText = sql) {
         const services = createTsqlSqlLanguageServices({ engine: new SaralSqlAnalysisEngine() });
         const document = services.documents.update(
-            { uri: URI.parse(uri), languageId: "sql", version: 1, getText: () => sql },
+            { uri, languageId: "sql", version: 1, getText: () => sql },
             { parseText },
         );
         return { document, services };

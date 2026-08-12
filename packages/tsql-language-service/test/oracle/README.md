@@ -1,6 +1,6 @@
 # Portable behavior oracle
 
-`oracleFixtures.mjs` is deliberately independent of parser implementations, Langium, VS Code, and LSP
+`oracleFixtures.mjs` is deliberately independent of parser implementations, VS Code, and LSP
 types. A language-service adapter can translate the synthetic catalog and the assertion records into
 its own snapshot API.
 

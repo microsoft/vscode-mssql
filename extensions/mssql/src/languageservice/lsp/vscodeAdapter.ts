@@ -4,18 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type * as vscode from "vscode";
-import {
-    URI,
-    type TsqlDocumentService,
-    type TsqlDocumentSource,
-    type TsqlDocumentUpdateOptions,
-    type TsqlLangiumDocument,
-} from "@vscode-mssql/tsql-language-service/langium";
+import type {
+    TsqlDocument,
+    TsqlDocumentService,
+    TsqlDocumentSource,
+    TsqlDocumentUpdateOptions,
+} from "@vscode-mssql/tsql-language-service/lsp";
 
 /** Converts a VS Code editor document directly into the core's host-neutral snapshot input. */
 export function asTsqlDocumentSource(document: vscode.TextDocument): TsqlDocumentSource {
     return {
-        uri: URI.parse(document.uri.toString()),
+        uri: document.uri.toString(),
         languageId: document.languageId,
         version: document.version,
         getText: () => document.getText(),
@@ -27,6 +26,6 @@ export function updateFromVsCodeDocument(
     service: TsqlDocumentService,
     document: vscode.TextDocument,
     options: TsqlDocumentUpdateOptions = {},
-): TsqlLangiumDocument {
+): TsqlDocument {
     return service.update(asTsqlDocumentSource(document), options);
 }

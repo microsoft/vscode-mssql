@@ -25,7 +25,7 @@ export interface TsqlSessionLoader {
     ): unknown | undefined;
 }
 
-/** Thin VS Code adapters over the protocol-shaped providers composed by Langium. */
+/** Thin VS Code adapters over the package's protocol-shaped providers. */
 export class TsqlVsCodeFeatureProviders
     implements
         vscode.ReferenceProvider,
@@ -35,7 +35,6 @@ export class TsqlVsCodeFeatureProviders
         vscode.DocumentRangeSemanticTokensProvider,
         vscode.FoldingRangeProvider,
         vscode.SelectionRangeProvider,
-        vscode.InlayHintsProvider,
         vscode.DocumentFormattingEditProvider,
         vscode.RenameProvider
 {
@@ -66,7 +65,6 @@ export class TsqlVsCodeFeatureProviders
             ),
             vscode.languages.registerFoldingRangeProvider(selector, this),
             vscode.languages.registerSelectionRangeProvider(selector, this),
-            vscode.languages.registerInlayHintsProvider(selector, this),
             vscode.languages.registerDocumentFormattingEditProvider(selector, this),
             vscode.languages.registerRenameProvider(
                 selector,
@@ -249,38 +247,6 @@ export class TsqlVsCodeFeatureProviders
         return this.isCurrent(document, token) ? ranges.map(asVsCodeSelectionRange) : [];
     }
 
-    public async provideInlayHints(
-        document: vscode.TextDocument,
-        range: vscode.Range,
-        token: vscode.CancellationToken,
-    ): Promise<vscode.InlayHint[]> {
-        if (!(await this.load(document, token))) {
-            return [];
-        }
-        const hints = await this._sessions.languageServices.lsp.InlayHintProvider.getInlayHints(
-            document.uri.toString(),
-            asProtocolRange(range),
-        );
-        if (!this.isCurrent(document, token)) {
-            return [];
-        }
-        return hints.map((hint) => {
-            const label =
-                typeof hint.label === "string"
-                    ? hint.label
-                    : hint.label.map((part) => new vscode.InlayHintLabelPart(part.value));
-            const result = new vscode.InlayHint(
-                new vscode.Position(hint.position.line, hint.position.character),
-                label,
-                hint.kind as vscode.InlayHintKind | undefined,
-            );
-            result.paddingLeft = hint.paddingLeft;
-            result.paddingRight = hint.paddingRight;
-            result.tooltip = typeof hint.tooltip === "string" ? hint.tooltip : undefined;
-            return result;
-        });
-    }
-
     public async provideDocumentFormattingEdits(
         document: vscode.TextDocument,
         options: vscode.FormattingOptions,
@@ -362,7 +328,7 @@ export class TsqlVsCodeFeatureProviders
     }
 }
 
-/** Routes project-wide schema refactors to STS and local query identities to Langium. */
+/** Routes project-wide schema refactors to STS and local query identities to the package engine. */
 class RoutedSqlRenameProvider implements vscode.RenameProvider {
     public constructor(
         private readonly _local: TsqlVsCodeFeatureProviders,

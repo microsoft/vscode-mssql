@@ -2,7 +2,7 @@
     "name": "@vscode-mssql/tsql-language-service",
     "version": "0.1.0",
     "private": true,
-    "description": "Parser-independent T-SQL analysis and Langium document services",
+    "description": "Host-neutral T-SQL parser, metadata, analysis, and LSP services",
     "license": "SEE LICENSE IN ../../LICENSE.txt",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
@@ -27,10 +27,10 @@
             "require": "./dist/core/index.js",
             "default": "./dist/core/index.js"
         },
-        "./langium": {
-            "types": "./dist/langium/index.d.ts",
-            "require": "./dist/langium/index.js",
-            "default": "./dist/langium/index.js"
+        "./lsp": {
+            "types": "./dist/lsp/index.d.ts",
+            "require": "./dist/lsp/index.js",
+            "default": "./dist/lsp/index.js"
         },
         "./metadata": {
             "types": "./dist/metadata/index.d.ts",
@@ -89,7 +89,7 @@
         "build": "tsc -p tsconfig.json && node scripts/build-workers.mjs",
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
-        "lint": "eslint --quiet --cache ./src/index.ts ./src/analysis ./src/adapters ./src/core ./src/langium ./src/metadata ./src/parser/index.ts ./src/parser/incremental ./src/worker ./scripts ./benchmarks/worker-comparison.mjs ./benchmarks/large-corpora.mjs ./test/*.test.js ./eslint.config.mjs",
+        "lint": "eslint --quiet --cache ./src/index.ts ./src/analysis ./src/adapters ./src/core ./src/lsp ./src/metadata ./src/parser/index.ts ./src/parser/incremental ./src/worker ./scripts ./benchmarks/worker-comparison.mjs ./benchmarks/large-corpora.mjs ./test/*.test.js ./eslint.config.mjs",
         "test": "npm run build && npm run test:facade && npm run test:parser && npm run test:oracle",
         "test:facade": "node --test test/*.test.js",
         "test:parser": "node --env-file-if-exists=.env ./node_modules/jest/bin/jest.js --runInBand --config jest.config.cjs",
@@ -102,7 +102,6 @@
         "benchmark:worker": "npm run build && node --max-old-space-size=16384 --expose-gc benchmarks/worker-comparison.mjs"
     },
     "dependencies": {
-        "langium": "^4.3.1",
         "vscode-languageserver-types": "~3.18.0"
     },
     "devDependencies": {

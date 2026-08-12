@@ -6,11 +6,9 @@
 const assert = require("node:assert/strict");
 const { describe, it } = require("node:test");
 const {
-    DocumentState,
     SaralSqlAnalysisEngine,
     StaleTsqlDocumentError,
     TsqlLanguageService,
-    URI,
     createTsqlLanguageService,
 } = require("../dist/index.js");
 
@@ -78,17 +76,16 @@ describe("T-SQL language service package", () => {
         assert.equal(first.externalReferences()[0].name, "dbo.Users");
     });
 
-    it("binds analysis to Langium generations and rejects stale work", async () => {
+    it("binds analysis to document generations and rejects stale work", async () => {
         const service = createTsqlLanguageService({
             defaultCatalog: { provider: catalog, revision: 1 },
         });
         const first = service.documents.update(source("SELECT Id FROM dbo.Users", 1));
         const second = service.documents.update(source("SELECT DisplayName FROM dbo.Users", 2));
 
-        assert.equal(first.state, DocumentState.Changed);
-        assert.equal(second.state, DocumentState.Parsed);
+        assert.equal(service.documents.isCurrent(first), false);
+        assert.equal(service.documents.isCurrent(second), true);
         assert.equal(second.analysis.version, first.analysis.version + 1);
-        assert.equal(second.parseResult.value.$document, second);
         await assert.rejects(
             service.documents.compute(first, "stale", () => 1),
             StaleTsqlDocumentError,
@@ -104,13 +101,13 @@ describe("T-SQL language service package", () => {
 
         assert.equal(document.textDocument.getText(), editorText);
         assert.equal(document.analysis.text, `${editorText}'`);
-        assert.equal(document.parseResult.value.length, editorText.length);
+        assert.equal(document.textDocument.getText().length, editorText.length);
     });
 });
 
 function source(text, version) {
     return {
-        uri: URI.parse("file:///package-test.sql"),
+        uri: "file:///package-test.sql",
         languageId: "sql",
         version,
         getText: () => text,

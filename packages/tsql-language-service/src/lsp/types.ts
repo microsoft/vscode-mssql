@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { AstNode, LangiumDocument, Module, TextDocument, URI } from "./langiumRuntime.mjs";
 import type {
     SqlAnalysisEngine,
     SqlAnalysisSnapshot,
@@ -11,9 +10,24 @@ import type {
 } from "../analysis/contracts.js";
 import type { CancellationTokenLike } from "../core/cancellation.js";
 
-export interface TsqlDocumentRoot extends AstNode {
-    readonly $type: "TsqlDocument";
-    readonly length: number;
+export interface TsqlTextPosition {
+    readonly line: number;
+    readonly character: number;
+}
+
+export interface TsqlTextRange {
+    readonly start: TsqlTextPosition;
+    readonly end: TsqlTextPosition;
+}
+
+export interface TsqlTextDocument {
+    readonly uri: string;
+    readonly languageId: string;
+    readonly version: number;
+    readonly lineCount: number;
+    getText(range?: TsqlTextRange): string;
+    positionAt(offset: number): TsqlTextPosition;
+    offsetAt(position: TsqlTextPosition): number;
 }
 
 export interface TsqlCatalogMetadata {
@@ -23,7 +37,10 @@ export interface TsqlCatalogMetadata {
     readonly database?: string;
 }
 
-export interface TsqlLangiumDocument extends LangiumDocument<TsqlDocumentRoot> {
+/** Immutable editor text and analysis bound to one document generation. */
+export interface TsqlDocument {
+    readonly uri: string;
+    readonly textDocument: TsqlTextDocument;
     readonly version: number;
     readonly generation: number;
     readonly analysis: SqlAnalysisSnapshot;
@@ -31,14 +48,14 @@ export interface TsqlLangiumDocument extends LangiumDocument<TsqlDocumentRoot> {
 }
 
 export interface TsqlDocumentSource {
-    readonly uri: URI;
+    readonly uri: string;
     readonly languageId: string;
     readonly version: number;
     getText(): string;
 }
 
 export interface TsqlWorkContext {
-    readonly document: TsqlLangiumDocument;
+    readonly document: TsqlDocument;
     readonly signal: AbortSignal;
     readonly cancellationToken: CancellationTokenLike;
     throwIfCancelled(): void;
@@ -59,25 +76,26 @@ export interface TsqlDocumentUpdateOptions {
     readonly cancellationToken?: CancellationTokenLike;
 }
 
-export interface TsqlLangiumServices {
+export interface TsqlServices {
     readonly documents: TsqlDocumentService;
 }
 
-export type TsqlLangiumModule<T extends object> = Module<TsqlLangiumServices & T, T>;
+/** Lazy service factories receive the complete service graph and are evaluated at most once. */
+export type TsqlServiceModule<T extends object> = {
+    readonly [K in keyof T]: (services: TsqlServices & T) => T[K];
+};
 
 export interface TsqlDocumentService {
-    readonly all: readonly TsqlLangiumDocument[];
-    get(uri: URI | string): TsqlLangiumDocument | undefined;
-    isCurrent(document: TsqlLangiumDocument): boolean;
-    update(source: TsqlDocumentSource, options?: TsqlDocumentUpdateOptions): TsqlLangiumDocument;
+    readonly all: readonly TsqlDocument[];
+    get(uri: string): TsqlDocument | undefined;
+    isCurrent(document: TsqlDocument): boolean;
+    update(source: TsqlDocumentSource, options?: TsqlDocumentUpdateOptions): TsqlDocument;
     compute<T>(
-        document: TsqlLangiumDocument,
+        document: TsqlDocument,
         key: string | symbol,
         work: TsqlDocumentWork<T>,
         cancellationToken?: CancellationTokenLike,
     ): Promise<T>;
-    delete(uri: URI | string): TsqlLangiumDocument | undefined;
+    delete(uri: string): TsqlDocument | undefined;
     clear(): void;
 }
-
-export type TsqlTextDocument = TextDocument;

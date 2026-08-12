@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DocumentState, type URI } from "./langiumRuntime.mjs";
 import type { CancellationTokenLike } from "../core/cancellation.js";
-import { TsqlLangiumDocumentFactory } from "./documentFactory.js";
+import { TsqlDocumentFactory } from "./documentFactory.js";
 import { StaleTsqlDocumentError } from "./errors.js";
 import type {
     TsqlDocumentFactoryOptions,
@@ -13,39 +12,39 @@ import type {
     TsqlDocumentSource,
     TsqlDocumentUpdateOptions,
     TsqlDocumentWork,
-    TsqlLangiumDocument,
+    TsqlDocument,
 } from "./types.js";
 import { TsqlDocumentWorkCache } from "./workCache.js";
 
-/** Owns the current immutable Langium document generation for every URI. */
+/** Owns the current immutable document generation for every URI. */
 export class DefaultTsqlDocumentService implements TsqlDocumentService {
-    private readonly documents = new Map<string, TsqlLangiumDocument>();
-    private readonly factory: TsqlLangiumDocumentFactory;
+    private readonly documents = new Map<string, TsqlDocument>();
+    private readonly factory: TsqlDocumentFactory;
     private readonly workCache: TsqlDocumentWorkCache;
     private nextGeneration = 1;
 
     public constructor(options: TsqlDocumentFactoryOptions) {
-        this.factory = new TsqlLangiumDocumentFactory(options);
+        this.factory = new TsqlDocumentFactory(options);
         this.workCache = new TsqlDocumentWorkCache((document) => this.isCurrent(document));
     }
 
-    public get all(): readonly TsqlLangiumDocument[] {
+    public get all(): readonly TsqlDocument[] {
         return [...this.documents.values()];
     }
 
-    public get(uri: URI | string): TsqlLangiumDocument | undefined {
-        return this.documents.get(uriKey(uri));
+    public get(uri: string): TsqlDocument | undefined {
+        return this.documents.get(uri);
     }
 
-    public isCurrent(document: TsqlLangiumDocument): boolean {
+    public isCurrent(document: TsqlDocument): boolean {
         return this.get(document.uri) === document;
     }
 
     public update(
         source: TsqlDocumentSource,
         options: TsqlDocumentUpdateOptions = {},
-    ): TsqlLangiumDocument {
-        const key = uriKey(source.uri);
+    ): TsqlDocument {
+        const key = source.uri;
         const previous = this.documents.get(key);
         if (previous && source.version < previous.version) {
             return previous;
@@ -71,14 +70,13 @@ export class DefaultTsqlDocumentService implements TsqlDocumentService {
         const document = this.factory.create(captured, options, this.nextGeneration++, previous);
         this.documents.set(key, document);
         if (previous) {
-            previous.state = DocumentState.Changed;
             this.workCache.invalidate(previous);
         }
         return document;
     }
 
     public compute<T>(
-        document: TsqlLangiumDocument,
+        document: TsqlDocument,
         key: string | symbol,
         work: TsqlDocumentWork<T>,
         cancellationToken?: CancellationTokenLike,
@@ -88,12 +86,10 @@ export class DefaultTsqlDocumentService implements TsqlDocumentService {
             : Promise.reject(new StaleTsqlDocumentError(document.uri.toString(), document.version));
     }
 
-    public delete(uri: URI | string): TsqlLangiumDocument | undefined {
-        const key = uriKey(uri);
-        const document = this.documents.get(key);
+    public delete(uri: string): TsqlDocument | undefined {
+        const document = this.documents.get(uri);
         if (document) {
-            this.documents.delete(key);
-            document.state = DocumentState.Changed;
+            this.documents.delete(uri);
             this.workCache.invalidate(document);
         }
         return document;
@@ -101,13 +97,8 @@ export class DefaultTsqlDocumentService implements TsqlDocumentService {
 
     public clear(): void {
         for (const document of this.documents.values()) {
-            document.state = DocumentState.Changed;
             this.workCache.invalidate(document);
         }
         this.documents.clear();
     }
-}
-
-function uriKey(uri: URI | string): string {
-    return typeof uri === "string" ? uri : uri.toString();
 }

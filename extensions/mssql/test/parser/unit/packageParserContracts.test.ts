@@ -9,8 +9,8 @@ import {
     SaralSqlAnalysisEngine,
 } from "@vscode-mssql/tsql-language-service";
 
-/** Parser-facing contracts below the Langium lifecycle adapter. */
-suite("Langium migration package parser contracts", () => {
+/** Parser-facing contracts below the document lifecycle adapter. */
+suite("Package parser contracts", () => {
     const catalog = new MappingCatalogProvider(
         {
             dbo: {
@@ -41,7 +41,7 @@ suite("Langium migration package parser contracts", () => {
             "SELECT DisplayName FROM dbo.Users;";
         const original = engine.createSnapshot({
             text: originalText,
-            uri: "file:///langium-incremental-contract.sql",
+            uri: "file:///incremental-contract.sql",
             catalog,
         });
         const edited = engine.updateSnapshot(original, {
@@ -73,7 +73,7 @@ suite("Langium migration package parser contracts", () => {
     test("keeps monotonically versioned snapshots for stale-result rejection", () => {
         const first = engine.createSnapshot({
             text: "SELECT UserId FROM dbo.Users",
-            uri: "file:///langium-version-contract.sql",
+            uri: "file:///version-contract.sql",
             catalog,
         });
         const second = engine.updateSnapshot(first, {
@@ -85,7 +85,7 @@ suite("Langium migration package parser contracts", () => {
 
         expect([first.version, second.version, third.version]).to.deep.equal([1, 2, 3]);
         expect(new Set([first.uri, second.uri, third.uri])).to.deep.equal(
-            new Set(["file:///langium-version-contract.sql"]),
+            new Set(["file:///version-contract.sql"]),
         );
     });
 

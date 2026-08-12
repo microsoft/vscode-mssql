@@ -9,14 +9,14 @@ the package's parser-independent contracts.
 ```text
 Tedious / extension queries -> immutable catalog provider
                                       |
-batch-incremental parser -> analysis snapshot -> Langium document -> VS Code providers
+batch-incremental parser -> analysis snapshot -> document store -> VS Code providers
 ```
 
 - Parser: attributed SaralSQL-derived grammar plus immutable `GO`-batch reuse.
 - Analysis: diagnostics, types, symbols, completion, references, signatures, lineage, and DML
   targets behind `SqlAnalysisSnapshot`.
 - Metadata: query-executor/repository strategies and synchronous catalog snapshots.
-- Langium: generation-aware documents, cancellation, and parser-neutral feature providers.
+- LSP: generation-aware documents, cancellation, and parser-neutral feature providers.
 - Extension: connection ownership, bounded metadata loading, snippets, LSP/VS Code conversion, and
   feature registration.
 

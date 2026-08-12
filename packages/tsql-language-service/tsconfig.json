@@ -5,10 +5,6 @@
         "outDir": "dist",
         "module": "CommonJS",
         "moduleResolution": "Node",
-        "baseUrl": ".",
-        "paths": {
-            "langium": ["node_modules/langium/lib/index.d.ts"]
-        },
         "declaration": true,
         "declarationMap": true,
         "noEmit": false,

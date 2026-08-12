@@ -10,10 +10,10 @@ import {
     sqlSemanticTokenTypes,
     type SqlFeatureDocument,
     type SqlFeatureDocumentAccessor,
-} from "@vscode-mssql/tsql-language-service/langium";
+} from "@vscode-mssql/tsql-language-service/lsp";
 import { DocumentHighlightKind, FoldingRangeKind } from "vscode-languageserver-protocol";
 
-suite("Langium SQL editor features", () => {
+suite("Package SQL editor features", () => {
     const uri = "file:///editor-features.sql";
 
     test("narrows CTE references and highlights to identifier ranges", async () => {

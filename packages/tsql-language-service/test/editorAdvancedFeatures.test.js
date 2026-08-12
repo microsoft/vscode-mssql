@@ -9,8 +9,6 @@ const {
     SaralSqlAnalysisEngine,
     SqlCompletionResolveProvider,
     SqlDiagnosticProvider,
-    SqlInlayHintProvider,
-    URI,
     createTsqlSqlLanguageServices,
 } = require("../dist/index.js");
 
@@ -117,7 +115,7 @@ describe("advanced parser-neutral editor features", () => {
         const first = createFeatures("SELECT 1 AS Value;");
         const full = await first.services.lsp.SemanticTokenProvider.getSemanticTokens(uri);
         first.services.documents.update({
-            uri: URI.parse(uri),
+            uri,
             languageId: "sql",
             version: 2,
             getText: () => "SELECT 20 AS Value;",
@@ -187,47 +185,6 @@ describe("advanced parser-neutral editor features", () => {
         assert.equal(stale.detail, undefined);
     });
 
-    it("emits conservative alias-target and inferred-output type hints", async () => {
-        const symbols = [
-            {
-                kind: "alias",
-                name: "u",
-                span: { start: 10, end: 11 },
-                frame: "0",
-                modifiers: ["declaration"],
-                source: { kind: "table", name: "dbo.Users", span: { start: 20, end: 29 } },
-            },
-            {
-                kind: "column",
-                name: "Total",
-                span: { start: 2, end: 7 },
-                frame: "0",
-                modifiers: ["output", "declaration"],
-                type: { kind: "scalar", name: "bigint", display: "bigint" },
-            },
-        ];
-        const provider = new SqlInlayHintProvider({
-            getDocument: () => ({
-                uri,
-                text: "  Total   u                   ",
-                version: 1,
-                analysis: {
-                    symbols: () => symbols,
-                    positionAt: (offset) => ({ line: 0, character: offset }),
-                },
-            }),
-        });
-        const hints = await provider.getInlayHints(uri, {
-            start: { line: 0, character: 0 },
-            end: { line: 0, character: 30 },
-        });
-
-        assert.deepEqual(
-            hints.map((hint) => hint.label),
-            [": bigint", " → dbo.Users"],
-        );
-    });
-
     function createFeatures(sql, catalog) {
         const services = createTsqlSqlLanguageServices({
             engine: new SaralSqlAnalysisEngine(),
@@ -236,7 +193,7 @@ describe("advanced parser-neutral editor features", () => {
                 : {}),
         });
         const document = services.documents.update({
-            uri: URI.parse(uri),
+            uri,
             languageId: "sql",
             version: 1,
             getText: () => sql,

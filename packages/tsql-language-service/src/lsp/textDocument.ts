@@ -3,20 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { TextDocument } from "./langiumRuntime.mjs";
+import type { TsqlTextDocument, TsqlTextPosition, TsqlTextRange } from "./types.js";
 
-interface TextPosition {
-    readonly line: number;
-    readonly character: number;
-}
-
-interface TextRange {
-    readonly start: TextPosition;
-    readonly end: TextPosition;
-}
-
-/** Dependency-free, immutable implementation of Langium's TextDocument contract. */
-export class TsqlTextDocumentSnapshot implements TextDocument {
+/** Dependency-free, immutable editor text snapshot. */
+export class TsqlTextDocumentSnapshot implements TsqlTextDocument {
     private readonly lineOffsets: number[];
     private readonly lineEndings: string[];
     public readonly lineCount: number;
@@ -33,7 +23,7 @@ export class TsqlTextDocumentSnapshot implements TextDocument {
         this.lineCount = this.lineOffsets.length;
     }
 
-    public getText(range?: TextRange): string {
+    public getText(range?: TsqlTextRange): string {
         if (!range) {
             return this.text;
         }
@@ -42,7 +32,7 @@ export class TsqlTextDocumentSnapshot implements TextDocument {
         return this.text.slice(Math.min(first, second), Math.max(first, second));
     }
 
-    public positionAt(offset: number): TextPosition {
+    public positionAt(offset: number): TsqlTextPosition {
         const target = Math.max(0, Math.min(offset, this.text.length));
         let low = 0;
         let high = this.lineOffsets.length;
@@ -61,7 +51,7 @@ export class TsqlTextDocumentSnapshot implements TextDocument {
         };
     }
 
-    public offsetAt(position: TextPosition): number {
+    public offsetAt(position: TsqlTextPosition): number {
         if (position.line < 0) {
             return 0;
         }
@@ -73,7 +63,7 @@ export class TsqlTextDocumentSnapshot implements TextDocument {
         return Math.max(lineStart, Math.min(lineStart + Math.max(0, position.character), lineEnd));
     }
 
-    public getLineRange(line: number): TextRange {
+    public getLineRange(line: number): TsqlTextRange {
         const normalized = Math.max(0, Math.min(line, this.lineOffsets.length - 1));
         return {
             start: { line: normalized, character: 0 },

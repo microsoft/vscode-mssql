@@ -1,8 +1,8 @@
 # T-SQL language service
 
 `@vscode-mssql/tsql-language-service` is the host-neutral T-SQL editor engine used by vscode-mssql.
-It owns parsing, normalized analysis, database metadata, and Langium document orchestration without
-coupling those layers to VS Code.
+It owns parsing, normalized analysis, database metadata, document orchestration, and protocol-shaped
+editor providers without coupling those layers to VS Code.
 
 The public layers are:
 
@@ -11,15 +11,15 @@ The public layers are:
 - `analysis`: parser-independent diagnostics, symbols, types, completion, navigation, and catalog
   contracts.
 - `adapters`: the catalog-aware adapter translating the package parser into analysis contracts.
-- `langium`: cancellable, generation-aware documents and parser-neutral LSP feature providers.
-- `core`: a facade and factories that compose an engine strategy with Langium lifecycle services.
+- `lsp`: cancellable, generation-aware documents and parser-neutral LSP feature providers.
+- `core`: a facade and factories that compose an engine strategy with document lifecycle services.
 - `worker`: asynchronous Node worker-thread and browser Web Worker transports that keep parser and
   analysis state off the UI or extension-host thread.
 
 ```text
 Tedious / host metadata -> MetadataRepository -> immutable catalog
                                                    |
-Saral incremental parser -> analysis adapter ------+-> Langium document -> LSP providers
+Saral incremental parser -> analysis adapter ------+-> document store -> LSP providers
 ```
 
 The design uses Strategy for parser and query execution, Adapter for native parser/catalog models,

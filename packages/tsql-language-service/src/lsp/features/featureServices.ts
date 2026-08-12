@@ -9,12 +9,11 @@ import { SqlDocumentSymbolProvider } from "./documentSymbolProvider.js";
 import type { SqlFeatureDocumentAccessor } from "./featureDocument.js";
 import { SqlFoldingRangeProvider } from "./foldingRangeProvider.js";
 import { SqlFormattingProvider } from "./formattingProvider.js";
-import { SqlInlayHintProvider } from "./inlayHintProvider.js";
 import { SqlNavigationProvider } from "./navigationProvider.js";
 import { SqlSelectionRangeProvider } from "./selectionRangeProvider.js";
 import { SqlSemanticTokenProvider } from "./semanticTokenProvider.js";
 
-/** Parser-neutral editor providers grouped by their Langium/LSP responsibilities. */
+/** Parser-neutral editor providers grouped by their LSP responsibilities. */
 export interface SqlEditorFeatureServices {
     readonly CompletionResolveProvider: SqlCompletionResolveProvider;
     readonly DiagnosticProvider: SqlDiagnosticProvider;
@@ -26,7 +25,6 @@ export interface SqlEditorFeatureServices {
     readonly SemanticTokenProvider: SqlSemanticTokenProvider;
     readonly FoldingRangeProvider: SqlFoldingRangeProvider;
     readonly SelectionRangeProvider: SqlSelectionRangeProvider;
-    readonly InlayHintProvider: SqlInlayHintProvider;
     readonly FormattingProvider: SqlFormattingProvider;
 }
 
@@ -45,7 +43,6 @@ export function createSqlEditorFeatureServices(
         SemanticTokenProvider: new SqlSemanticTokenProvider(documents),
         FoldingRangeProvider: new SqlFoldingRangeProvider(documents),
         SelectionRangeProvider: new SqlSelectionRangeProvider(documents),
-        InlayHintProvider: new SqlInlayHintProvider(documents),
         FormattingProvider: new SqlFormattingProvider(documents),
     };
 }

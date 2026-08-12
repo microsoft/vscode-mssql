@@ -7,7 +7,6 @@ export * from "./documentFactory.js";
 export * from "./documentService.js";
 export * from "./errors.js";
 export * from "./features/index.js";
-export { DocumentState, URI } from "./langiumRuntime.mjs";
 export * from "./services.js";
 export * from "./sqlLanguageServices.js";
 export * from "./textDocument.js";

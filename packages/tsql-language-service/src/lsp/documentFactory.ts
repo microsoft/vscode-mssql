@@ -3,20 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DocumentState } from "./langiumRuntime.mjs";
 import { TsqlOperationCancelledError } from "./errors.js";
 import { TsqlTextDocumentSnapshot } from "./textDocument.js";
 import type {
     TsqlCatalogMetadata,
     TsqlDocumentFactoryOptions,
-    TsqlDocumentRoot,
+    TsqlDocument,
     TsqlDocumentSource,
     TsqlDocumentUpdateOptions,
-    TsqlLangiumDocument,
 } from "./types.js";
 
-/** Factory that binds immutable parser snapshots to Langium document generations. */
-export class TsqlLangiumDocumentFactory {
+/** Factory that binds immutable parser snapshots to editor document generations. */
+export class TsqlDocumentFactory {
     private readonly defaultCatalog: Readonly<TsqlCatalogMetadata>;
 
     public constructor(private readonly options: TsqlDocumentFactoryOptions) {
@@ -34,8 +32,8 @@ export class TsqlLangiumDocumentFactory {
         source: TsqlDocumentSource,
         update: TsqlDocumentUpdateOptions,
         generation: number,
-        previous?: TsqlLangiumDocument,
-    ): TsqlLangiumDocument {
+        previous?: TsqlDocument,
+    ): TsqlDocument {
         throwIfCancelled(update.cancellationToken);
         const text = source.getText();
         const parseText = update.parseText ?? text;
@@ -49,12 +47,12 @@ export class TsqlLangiumDocumentFactory {
             (canIncrement
                 ? this.options.engine.updateSnapshot(previous.analysis, {
                       text: parseText,
-                      uri: source.uri.toString(),
+                      uri: source.uri,
                       catalog: catalog.provider ?? null,
                   })
                 : this.options.engine.createSnapshot({
                       text: parseText,
-                      uri: source.uri.toString(),
+                      uri: source.uri,
                       catalog: catalog.provider,
                   }));
         if (analysis.text !== parseText) {
@@ -62,25 +60,19 @@ export class TsqlLangiumDocumentFactory {
         }
         throwIfCancelled(update.cancellationToken);
 
-        const root: TsqlDocumentRoot = { $type: "TsqlDocument", length: text.length };
-        const document: TsqlLangiumDocument = {
+        return {
             uri: source.uri,
             textDocument: new TsqlTextDocumentSnapshot(
-                source.uri.toString(),
+                source.uri,
                 source.languageId,
                 source.version,
                 text,
             ),
-            state: DocumentState.Parsed,
-            parseResult: { value: root, lexerErrors: [], parserErrors: [] },
-            references: [],
             version: source.version,
             generation,
             analysis,
             catalog,
         };
-        Object.defineProperty(root, "$document", { value: document, enumerable: false });
-        return document;
     }
 }
 
