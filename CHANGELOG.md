@@ -7,10 +7,10 @@
 
 ### What's new in 1.45.0
 
-- Released Azure SQL and Fabric provisioning as generally available (GA), with favorite resources and post-deployment actions to connect to the database, download deployment scripts, and discover next steps.
+- Released Azure SQL Database provisioning as generally available (GA) for easily creating new free tier Azure SQL databases, with post-deployment actions to connect to the database, download deployment scripts (ARM template, Bicep, and Terraform), and discover next steps.
 - Released Shortcuts Configuration as generally available (GA), allowing you to create and manage keyboard shortcuts for Quick Queries, the Query Editor, and the Results Grid.
-- Introduced a new SQL formatter (Preview), enabled by default with `mssql.format.enablePreviewFormatter` and an option to temporarily use the existing formatter.
-- Added a new React Flow execution plan renderer (Preview). Enable it with `mssql.preview.betaExecutionPlan` in settings.
+- Introduced a new SQL formatter (Preview), enabled by default with `mssql.format.enablePreviewFormatter`, that produces more consistent T-SQL formatting with options for keyword casing, clause and column alignment, indentation, and comment preservation.
+- Added a new execution plan viewer (Preview) with improved performance. Enable it with `mssql.preview.betaExecutionPlan` in settings.
 - Fixed an issue that could cause Object Explorer filtering to hang.
 - Fixed an issue that could cancel queries unexpectedly.
 - Improved streaming performance in the Query Results Grid preview.
