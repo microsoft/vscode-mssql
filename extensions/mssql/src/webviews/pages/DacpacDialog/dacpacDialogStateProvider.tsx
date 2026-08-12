@@ -68,6 +68,7 @@ export interface DacpacDialogRpcMethods {
     >;
     listDatabases: (params: {
         ownerUri: string;
+        connectionDatabaseName?: string;
     }) => Promise<{ databases: string[]; errorMessage?: string } | undefined>;
 
     // File browsing methods
@@ -181,7 +182,7 @@ const DacpacDialogStateProvider: React.FC<DacpacDialogProviderProps> = ({ childr
         );
     };
 
-    const listDatabases = async (params: { ownerUri: string }) => {
+    const listDatabases = async (params: { ownerUri: string; connectionDatabaseName?: string }) => {
         return await extensionRpc?.sendRequest(
             dacpacDialog.ListDatabasesWebviewRequest.type,
             params,
