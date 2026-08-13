@@ -2390,6 +2390,33 @@ export class Connection {
     };
 }
 
+export class Dashboard {
+    public static panelTitle = (targetName: string) =>
+        l10n.t({
+            message: "Performance dashboard - {0}",
+            args: [targetName],
+            comment: ["{0} is a SQL resource display name"],
+        });
+    public static selectedResourceUnavailable = l10n.t(
+        "The selected dashboard resource is unavailable.",
+    );
+    public static refreshFailed = (errorMessage: string) =>
+        l10n.t({
+            message: "Unable to refresh dashboard data: {0}",
+            args: [errorMessage],
+            comment: ["{0} is an error message"],
+        });
+    public static openPerformanceDashboard = l10n.t("Open performance dashboard");
+    public static selectSqlResource = l10n.t("Select a SQL resource");
+    public static dashboardDisabled = l10n.t(
+        "The performance dashboard is disabled in MSSQL settings.",
+    );
+    public static dbAgentDisabled = l10n.t("Database Agent is disabled in MSSQL settings.");
+    public static azureSqlDatabase = l10n.t("Azure SQL Database");
+    public static fabricSqlEndpoint = l10n.t("Fabric SQL endpoint");
+    public static sqlServer = l10n.t("SQL Server");
+}
+
 export class MssqlChatAgent {
     public static noModelFound = l10n.t("No model found.");
     public static noToolsToProcess = l10n.t("No tools to process.");

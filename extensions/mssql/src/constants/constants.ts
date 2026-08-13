@@ -161,6 +161,8 @@ export const cmdOpenGithubChat = "workbench.action.chat.open";
 export const cmdBackupDatabase = "mssql.backupDatabase";
 export const cmdRestoreDatabase = "mssql.restoreDatabase";
 export const cmdLaunchProfiler = "mssql.profiler.launchFromObjectExplorer";
+export const cmdShowServerDashboard = "mssql.showServerDashboard";
+export const cmdShowServerDashboardDbAgent = "mssql.showServerDashboardDbAgent";
 export const cmdFlatFileImport = "mssql.flatFileImport";
 export const cmdNotebooksCreate = "mssql.notebooks.createNotebook";
 export const cmdNotebooksChangeDatabase = "mssql.notebooks.changeDatabase";
@@ -344,6 +346,8 @@ export const configCustomEnvironment = "mssql.customEnvironment";
 export const configShortcuts = "mssql.shortcuts";
 export const configQuickQueries = "mssql.quickQueries";
 export const configShowChangelogOnUpdate = "mssql.showChangelogOnUpdate";
+export const configDashboardEnabled = "mssql.dashboard.enabled";
+export const configDbAgentEnabled = "mssql.dbAgent.enabled";
 /** @deprecated Use configNewEditorConnectionBehavior instead. */
 export const configTransferActiveEditorConnections = "mssql.transferActiveEditorConnections";
 export const configNewEditorConnectionBehavior = "mssql.newEditorConnectionBehavior";

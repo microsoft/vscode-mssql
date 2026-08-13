@@ -1,0 +1,461 @@
+.dashboard-root {
+    box-sizing: border-box;
+    display: grid;
+    grid-template-rows: auto auto auto auto minmax(0, 1fr) auto;
+    height: 100%;
+    min-width: 720px;
+    background: var(--vscode-editor-background);
+}
+
+.dashboard-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 20px 28px 14px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.dashboard-title-row,
+.dashboard-heading-with-badge,
+.dashboard-section-heading,
+.dashboard-metric-heading,
+.dashboard-progress-label,
+.dashboard-detail-header,
+.dashboard-agent-header,
+.dashboard-issue-header,
+.dashboard-issue-badges {
+    display: flex;
+    align-items: center;
+}
+
+.dashboard-title-row {
+    gap: 12px;
+}
+
+.dashboard-title-icon {
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    color: var(--vscode-button-foreground);
+    background: var(--vscode-button-background);
+}
+
+.dashboard-heading-with-badge,
+.dashboard-metric-heading,
+.dashboard-issue-badges {
+    gap: 8px;
+}
+
+.dashboard-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.dashboard-resource-picker {
+    min-width: 280px;
+}
+
+.dashboard-option {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.dashboard-option small,
+.dashboard-secondary-text {
+    color: var(--vscode-descriptionForeground);
+}
+
+.dashboard-resource-strip {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px;
+    background: var(--vscode-panel-border);
+    border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.dashboard-resource-strip > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 10px 18px;
+    overflow: hidden;
+    background: var(--vscode-sideBar-background);
+}
+
+.dashboard-resource-strip span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-tabs {
+    padding: 8px 28px 0;
+    background: var(--vscode-editor-background);
+    border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.dashboard-tab-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dashboard-scroll-region {
+    overflow: auto;
+}
+
+.dashboard-tab-content {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    box-sizing: border-box;
+    width: min(1600px, 100%);
+    margin: 0 auto;
+    padding: 24px 28px 32px;
+}
+
+.dashboard-section-heading,
+.dashboard-agent-header,
+.dashboard-detail-header,
+.dashboard-progress-label {
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.dashboard-section-heading > div,
+.dashboard-agent-header > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dashboard-section-heading h2,
+.dashboard-section-heading h3,
+.dashboard-agent-header h2 {
+    margin: 0;
+}
+
+.dashboard-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.dashboard-metric-card {
+    min-height: 190px;
+}
+
+.dashboard-metric-heading {
+    justify-content: space-between;
+}
+
+.dashboard-sparkline {
+    display: block;
+    width: 100%;
+    min-height: 72px;
+    margin-top: auto;
+}
+
+.dashboard-two-column {
+    display: grid;
+    grid-template-columns: minmax(0, 3fr) minmax(300px, 2fr);
+    gap: 16px;
+}
+
+.dashboard-large-chart-value {
+    margin: 8px 0;
+}
+
+.dashboard-details-list,
+.dashboard-detail-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 18px;
+    margin: 8px 0 18px;
+}
+
+.dashboard-details-list > div,
+.dashboard-detail-stats > div {
+    min-width: 0;
+}
+
+.dashboard-details-list dt,
+.dashboard-detail-stats dt {
+    margin-bottom: 3px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.dashboard-details-list dd,
+.dashboard-detail-stats dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+    font-weight: 600;
+}
+
+.dashboard-storage-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+
+.dashboard-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.dashboard-summary-grid > div {
+    min-height: 84px;
+}
+
+.dashboard-search {
+    max-width: 420px;
+}
+
+.dashboard-table-card {
+    min-width: 0;
+    padding: 0;
+}
+
+.dashboard-table-scroll {
+    overflow: auto;
+}
+
+.dashboard-table-card table {
+    min-width: 900px;
+}
+
+.dashboard-table-card thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--vscode-keybindingTable-headerBackground);
+}
+
+.dashboard-query-link {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
+    max-width: 520px;
+    padding: 2px;
+    overflow: hidden;
+    color: var(--vscode-textLink-foreground);
+    text-align: left;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+}
+
+.dashboard-query-link:hover {
+    color: var(--vscode-textLink-activeForeground);
+    text-decoration: underline;
+}
+
+.dashboard-query-link:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 2px;
+}
+
+.dashboard-query-link span,
+.dashboard-query-preview {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-query-link small {
+    color: var(--vscode-descriptionForeground);
+}
+
+.dashboard-query-preview {
+    max-width: 360px;
+}
+
+.dashboard-split-view {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+    gap: 12px;
+    min-width: 0;
+}
+
+.dashboard-detail-panel {
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 18px;
+    overflow: auto;
+    background: var(--vscode-sideBar-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 6px;
+}
+
+.dashboard-detail-header h3 {
+    margin: 0;
+}
+
+.dashboard-code-block {
+    max-height: 260px;
+    padding: 12px;
+    overflow: auto;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    background: var(--vscode-textCodeBlock-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+}
+
+.dashboard-empty-state {
+    display: grid;
+    min-height: 120px;
+    place-items: center;
+}
+
+.dashboard-wait-share {
+    display: grid;
+    grid-template-columns: minmax(90px, 1fr) auto;
+    align-items: center;
+    gap: 8px;
+    min-width: 140px;
+}
+
+.dashboard-agent-onboarding {
+    max-width: 760px;
+}
+
+.dashboard-agent-onboarding > div {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 32px;
+}
+
+.dashboard-issue-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dashboard-issue-card {
+    gap: 0;
+}
+
+.dashboard-issue-header {
+    gap: 8px;
+}
+
+.dashboard-issue-title {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.dashboard-issue-badges {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.dashboard-issue-expanded {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin: 14px 8px 4px 40px;
+    padding-top: 14px;
+    border-top: 1px solid var(--vscode-panel-border);
+}
+
+.dashboard-recommendation {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 12px;
+    background: var(--vscode-textBlockQuote-background);
+    border-left: 3px solid var(--vscode-textBlockQuote-border);
+}
+
+.dashboard-investigation-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.dashboard-investigation-timeline li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 10px;
+    min-height: 54px;
+}
+
+.dashboard-investigation-timeline li:not(:last-child)::before {
+    position: absolute;
+    top: 18px;
+    bottom: 0;
+    left: 7px;
+    width: 1px;
+    content: "";
+    background: var(--vscode-panel-border);
+}
+
+.dashboard-timeline-dot {
+    position: relative;
+    z-index: 1;
+    width: 12px;
+    height: 12px;
+    margin-top: 3px;
+    background: var(--vscode-button-background);
+    border: 2px solid var(--vscode-editor-background);
+    border-radius: 50%;
+}
+
+.dashboard-investigation-timeline li > div {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.dashboard-footer {
+    padding: 7px 28px;
+    text-align: right;
+    background: var(--vscode-statusBar-background);
+    border-top: 1px solid var(--vscode-panel-border);
+}
+
+@media (max-width: 1050px) {
+    .dashboard-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .dashboard-toolbar {
+        justify-content: flex-start;
+        width: 100%;
+    }
+
+    .dashboard-two-column,
+    .dashboard-split-view {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-resource-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (forced-colors: active) {
+    .dashboard-title-icon,
+    .dashboard-timeline-dot {
+        border: 1px solid CanvasText;
+    }
+}

@@ -44,6 +44,7 @@ import { CredentialStore, ICredentialStore } from "./credentialstore/credentials
 import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
 import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
 import { IAccountStore, AccountStore } from "./azure/accountStore";
+import { DashboardCommandService } from "./dashboard/dashboardCommandService";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -120,6 +121,7 @@ class MssqlActivation {
         // Exposed for testing purposes
         vscode.commands.registerCommand("mssql.getControllerForTests", () => controller);
         await controller.activate();
+        context.subscriptions.push(new DashboardCommandService(context));
 
         initializeUriOwnershipCoordinator(uriOwnershipCoordinator, controller.connectionManager);
         registerSqlToolsMcpServer(

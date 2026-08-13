@@ -38,6 +38,7 @@ void run(
                 searchDatabase: "src/webviews/pages/SearchDatabase/index.tsx",
                 changelog: "src/webviews/pages/Changelog/index.tsx",
                 profiler: "src/webviews/pages/Profiler/index.tsx",
+                serverDashboard: "src/webviews/pages/ServerDashboard/index.tsx",
                 azureDataStudioMigration: "src/webviews/pages/AzureDataStudioMigration/index.tsx",
                 shortcutsConfiguration: "src/webviews/pages/ShortcutsConfiguration/index.tsx",
             },

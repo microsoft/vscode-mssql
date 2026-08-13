@@ -3593,6 +3593,317 @@ export class LocConstants {
         };
     }
 
+    public get serverDashboard() {
+        return {
+            performanceDashboard: l10n.t("Performance dashboard"),
+            mockData: l10n.t("Mock data"),
+            dashboardActions: l10n.t("Dashboard actions"),
+            sqlResource: l10n.t("SQL resource"),
+            timeRange: l10n.t("Time range"),
+            newQuery: l10n.t("New query"),
+            refreshing: l10n.t("Refreshing"),
+            refresh: l10n.t("Refresh"),
+            resourceSummary: l10n.t("Resource summary"),
+            platform: l10n.t("Platform"),
+            database: l10n.t("Database"),
+            serviceTier: l10n.t("Service tier"),
+            region: l10n.t("Region"),
+            overview: l10n.t("Overview"),
+            waits: l10n.t("Waits"),
+            queries: l10n.t("Queries"),
+            sessions: l10n.t("Sessions"),
+            databaseAgent: l10n.t("Database Agent"),
+            mockProviderLastUpdated: (timestamp: string) =>
+                l10n.t({
+                    message: "Mock provider - Last updated {0}",
+                    args: [timestamp],
+                    comment: ["{0} is the localized date and time of the last dashboard refresh"],
+                }),
+            lastHour: l10n.t("Last hour"),
+            lastSixHours: l10n.t("Last 6 hours"),
+            lastTwentyFourHours: l10n.t("Last 24 hours"),
+            lastMinutes: (minutes: number) =>
+                l10n.t({
+                    message: "Last {0} minutes",
+                    args: [minutes],
+                    comment: ["{0} is a number of minutes"],
+                }),
+            azureSqlDatabase: l10n.t("Azure SQL Database"),
+            fabricSqlEndpoint: l10n.t("Fabric SQL endpoint"),
+            sqlServer: l10n.t("SQL Server"),
+            cpuUtilization: l10n.t("CPU utilization"),
+            dataIo: l10n.t("Data IO"),
+            logIo: l10n.t("Log IO"),
+            storageUsed: l10n.t("Storage used"),
+            activeSessions: l10n.t("Active sessions"),
+            workerUtilization: l10n.t("Worker utilization"),
+            batchRequests: l10n.t("Batch requests"),
+            bufferCacheHitRatio: l10n.t("Buffer cache hit ratio"),
+            pageLifeExpectancy: l10n.t("Page life expectancy"),
+            capacityUtilization: l10n.t("Capacity utilization"),
+            averageQueryDuration: l10n.t("Average query duration"),
+            milliseconds: (value: string) =>
+                l10n.t({
+                    message: "{0} ms",
+                    args: [value],
+                    comment: ["{0} is a numeric duration in milliseconds"],
+                }),
+            seconds: (value: string) =>
+                l10n.t({
+                    message: "{0} sec",
+                    args: [value],
+                    comment: ["{0} is a numeric duration in seconds"],
+                }),
+            minutes: (value: string) =>
+                l10n.t({
+                    message: "{0} min",
+                    args: [value],
+                    comment: ["{0} is a numeric duration in minutes"],
+                }),
+            gigabytes: (value: string) =>
+                l10n.t({
+                    message: "{0} GB",
+                    args: [value],
+                    comment: ["{0} is a numeric storage size in gigabytes"],
+                }),
+            perSecond: (value: string) =>
+                l10n.t({
+                    message: "{0}/sec",
+                    args: [value],
+                    comment: ["{0} is a numeric rate per second"],
+                }),
+            healthy: l10n.t("Healthy"),
+            needsAttention: l10n.t("Needs attention"),
+            critical: l10n.t("Critical"),
+            improving: l10n.t("Improving"),
+            stable: l10n.t("Stable"),
+            regressing: l10n.t("Regressing"),
+            cpu: l10n.t("CPU"),
+            locking: l10n.t("Locking"),
+            transactionLog: l10n.t("Transaction log"),
+            network: l10n.t("Network"),
+            parallelism: l10n.t("Parallelism"),
+            running: l10n.t("Running"),
+            sleeping: l10n.t("Sleeping"),
+            suspended: l10n.t("Suspended"),
+            warning: l10n.t("Warning"),
+            watch: l10n.t("Watch"),
+            investigating: l10n.t("Investigating"),
+            actionReady: l10n.t("Action ready"),
+            monitoring: l10n.t("Monitoring"),
+            resolved: l10n.t("Resolved"),
+            longRunningBlockingChain: l10n.t("Long-running blocking chain"),
+            fabricCapacityPressure: l10n.t("Fabric capacity pressure"),
+            sustainedCpuPressure: l10n.t("Sustained CPU pressure"),
+            queryPerformanceRegression: l10n.t("Query performance regression"),
+            acceleratedStorageGrowth: l10n.t("Accelerated storage growth"),
+            blockingChainSummary: (databaseName: string) =>
+                l10n.t({
+                    message: "A blocking chain is delaying concurrent transactions in {0}.",
+                    args: [databaseName],
+                    comment: ["{0} is a database name"],
+                }),
+            capacityPressureSummary: (databaseName: string) =>
+                l10n.t({
+                    message:
+                        "Capacity utilization is affecting interactive query performance in {0}.",
+                    args: [databaseName],
+                    comment: ["{0} is a database name"],
+                }),
+            highCpuSummary: (databaseName: string) =>
+                l10n.t({
+                    message: "CPU has remained above the learned baseline for {0}.",
+                    args: [databaseName],
+                    comment: ["{0} is a database name"],
+                }),
+            queryRegressionSummary: (databaseName: string) =>
+                l10n.t({
+                    message:
+                        "A frequently executed query is slower than its recent baseline in {0}.",
+                    args: [databaseName],
+                    comment: ["{0} is a database name"],
+                }),
+            storageGrowthSummary: (databaseName: string) =>
+                l10n.t({
+                    message:
+                        "Current growth may exhaust available storage earlier than expected in {0}.",
+                    args: [databaseName],
+                    comment: ["{0} is a database name"],
+                }),
+            blockingChainRecommendation: l10n.t(
+                "Review the head blocker, commit or roll back the transaction, and verify lock ordering.",
+            ),
+            capacityPressureRecommendation: l10n.t(
+                "Move background workloads outside peak hours or increase Fabric capacity.",
+            ),
+            highCpuRecommendation: l10n.t(
+                "Review the regressed queries and consider scaling compute if the workload is expected.",
+            ),
+            queryRegressionRecommendation: l10n.t(
+                "Review the execution plan and recent statistics before applying the suggested index.",
+            ),
+            storageGrowthRecommendation: l10n.t(
+                "Review retention policies and increase the storage limit before the projected threshold.",
+            ),
+            anomalyDetected: l10n.t("Anomaly detected from the performance baseline"),
+            signalsCorrelated: l10n.t("Related metrics and sessions correlated"),
+            rootCauseIdentified: l10n.t("Likely root cause identified"),
+            actionPrepared: l10n.t("Recommended action prepared for review"),
+            recoveryMonitoring: l10n.t("Recovery is being monitored"),
+            upFromPreviousPeriod: (percent: number) =>
+                l10n.t({
+                    message: "Up {0}% from the previous period",
+                    args: [percent],
+                    comment: ["{0} is a percentage"],
+                }),
+            downFromPreviousPeriod: (percent: number) =>
+                l10n.t({
+                    message: "Down {0}% from the previous period",
+                    args: [percent],
+                    comment: ["{0} is a percentage"],
+                }),
+            metricTrend: (metric: string) =>
+                l10n.t({
+                    message: "{0} trend",
+                    args: [metric],
+                    comment: ["{0} is a dashboard metric name"],
+                }),
+            performanceSummary: l10n.t("Performance summary"),
+            currentHealthAndUtilization: l10n.t("Current health and resource utilization"),
+            activityOverview: l10n.t("Activity overview"),
+            metricOverSelectedRange: (metric: string) =>
+                l10n.t({
+                    message: "{0} over the selected time range",
+                    args: [metric],
+                    comment: ["{0} is a dashboard metric name"],
+                }),
+            metricActivityChart: (metric: string) =>
+                l10n.t({
+                    message: "{0} activity chart",
+                    args: [metric],
+                    comment: ["{0} is a dashboard metric name"],
+                }),
+            resourceDetails: l10n.t("Resource details"),
+            server: l10n.t("Server"),
+            engine: l10n.t("Engine"),
+            edition: l10n.t("Edition"),
+            compute: l10n.t("Compute"),
+            availability: l10n.t("Availability"),
+            storage: l10n.t("Storage"),
+            storageUsage: (used: number, maximum: number) =>
+                l10n.t({
+                    message: "{0} GB of {1} GB",
+                    args: [used, maximum],
+                    comment: [
+                        "{0} is the used storage in gigabytes",
+                        "{1} is the maximum storage in gigabytes",
+                    ],
+                }),
+            storageUtilization: l10n.t("Storage utilization"),
+            topQueries: l10n.t("Top queries"),
+            queriesRankedByExecutionTime: l10n.t("Queries ranked by total execution time"),
+            filterQueryTextOrDatabase: l10n.t("Filter query text or database"),
+            filterQueries: l10n.t("Filter queries"),
+            query: l10n.t("Query"),
+            executions: l10n.t("Executions"),
+            averageDuration: l10n.t("Average duration"),
+            logicalReads: l10n.t("Logical reads"),
+            trend: l10n.t("Trend"),
+            showQueryDetails: (queryId: string) =>
+                l10n.t({
+                    message: "Show details for query {0}",
+                    args: [queryId],
+                    comment: ["{0} is a query identifier"],
+                }),
+            noMatchingQueries: l10n.t("No queries match the current filter."),
+            queryDetails: l10n.t("Query details"),
+            closeQueryDetails: l10n.t("Close query details"),
+            totalDuration: l10n.t("Total duration"),
+            queryText: l10n.t("Query text"),
+            lastExecuted: (timestamp: string) =>
+                l10n.t({
+                    message: "Last executed {0}",
+                    args: [timestamp],
+                    comment: ["{0} is the localized date and time of the last execution"],
+                }),
+            waitStatistics: l10n.t("Wait statistics"),
+            waitStatisticsDescription: l10n.t("Where database requests are spending time"),
+            totalWaitTime: l10n.t("Total wait time"),
+            waitingTasks: l10n.t("Waiting tasks"),
+            topWaitType: l10n.t("Top wait type"),
+            waitType: l10n.t("Wait type"),
+            category: l10n.t("Category"),
+            waitTime: l10n.t("Wait time"),
+            share: l10n.t("Share"),
+            totalWaitShare: (percent: number) =>
+                l10n.t({
+                    message: "{0}% of total waits",
+                    args: [percent],
+                    comment: ["{0} is a percentage"],
+                }),
+            currentActivityAndBlocking: l10n.t("Current database activity and blocking"),
+            blocked: l10n.t("Blocked"),
+            currentSessions: l10n.t("Current sessions"),
+            session: l10n.t("Session"),
+            login: l10n.t("Login"),
+            application: l10n.t("Application"),
+            status: l10n.t("Status"),
+            elapsed: l10n.t("Elapsed"),
+            waitOrBlocker: l10n.t("Wait / blocker"),
+            currentQuery: l10n.t("Current query"),
+            blockedBy: (sessionId: number) =>
+                l10n.t({
+                    message: "Blocked by {0}",
+                    args: [sessionId],
+                    comment: ["{0} is a database session identifier"],
+                }),
+            none: l10n.t("None"),
+            sessionsShown: (count: string) =>
+                l10n.t({
+                    message: "{0} sessions shown",
+                    args: [count],
+                    comment: ["{0} is the localized number of displayed sessions"],
+                }),
+            databaseAgentDescription: l10n.t(
+                "Continuously correlate performance signals, investigate anomalies, and prepare reviewed actions for this SQL resource.",
+            ),
+            enableDatabaseAgent: l10n.t("Enable Database Agent"),
+            investigationInProgress: l10n.t("Investigation in progress"),
+            agentInvestigating: (issueTitle: string) =>
+                l10n.t({
+                    message: "Database Agent is investigating: {0}",
+                    args: [issueTitle],
+                    comment: ["{0} is the title of a database performance issue"],
+                }),
+            agentDescription: l10n.t("Autonomous diagnosis with approval-gated actions"),
+            enabled: l10n.t("Enabled"),
+            openIssues: l10n.t("Open issues"),
+            automationMode: l10n.t("Automation mode"),
+            approvalRequired: l10n.t("Approval required"),
+            recommendOnly: l10n.t("Recommend only"),
+            lastAnalysis: l10n.t("Last analysis"),
+            issues: l10n.t("Issues"),
+            issuesDescription: l10n.t("Prioritized findings and recommended actions"),
+            investigationTimeline: l10n.t("Investigation timeline"),
+            collapseIssue: (issueTitle: string) =>
+                l10n.t({
+                    message: "Collapse {0}",
+                    args: [issueTitle],
+                    comment: ["{0} is the title of a database performance issue"],
+                }),
+            expandIssue: (issueTitle: string) =>
+                l10n.t({
+                    message: "Expand {0}",
+                    args: [issueTitle],
+                    comment: ["{0} is the title of a database performance issue"],
+                }),
+            observedValue: l10n.t("Observed value"),
+            detected: l10n.t("Detected"),
+            recommendedAction: l10n.t("Recommended action"),
+            acknowledgeAndMonitor: l10n.t("Acknowledge and monitor"),
+        };
+    }
+
     public get restoreDatabase() {
         return {
             loadingRestoreDatabase: l10n.t("Loading restore database..."),

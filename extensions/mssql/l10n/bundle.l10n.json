@@ -1328,6 +1328,22 @@
         "message": "Failed to acquire token for account '{0}' and tenant '{1}'",
         "comment": ["{0} is the account ID", "{1} is the tenant ID"]
     },
+    "Performance dashboard - {0}/{0} is a SQL resource display name": {
+        "message": "Performance dashboard - {0}",
+        "comment": ["{0} is a SQL resource display name"]
+    },
+    "The selected dashboard resource is unavailable.": "The selected dashboard resource is unavailable.",
+    "Unable to refresh dashboard data: {0}/{0} is an error message": {
+        "message": "Unable to refresh dashboard data: {0}",
+        "comment": ["{0} is an error message"]
+    },
+    "Open performance dashboard": "Open performance dashboard",
+    "Select a SQL resource": "Select a SQL resource",
+    "The performance dashboard is disabled in MSSQL settings.": "The performance dashboard is disabled in MSSQL settings.",
+    "Database Agent is disabled in MSSQL settings.": "Database Agent is disabled in MSSQL settings.",
+    "Azure SQL Database": "Azure SQL Database",
+    "Fabric SQL endpoint": "Fabric SQL endpoint",
+    "SQL Server": "SQL Server",
     "No model found.": "No model found.",
     "No tools to process.": "No tools to process.",
     "You are not connected to any database.": "You are not connected to any database.",
@@ -4286,6 +4302,226 @@
     "Importing data...": "Importing data...",
     "File imported successfully": "File imported successfully",
     "Import New File": "Import New File",
+    "Performance dashboard": "Performance dashboard",
+    "Mock data": "Mock data",
+    "Dashboard actions": "Dashboard actions",
+    "SQL resource": "SQL resource",
+    "Time range": "Time range",
+    "New query": "New query",
+    "Refreshing": "Refreshing",
+    "Resource summary": "Resource summary",
+    "Platform": "Platform",
+    "Overview": "Overview",
+    "Waits": "Waits",
+    "Queries": "Queries",
+    "Sessions": "Sessions",
+    "Database Agent": "Database Agent",
+    "Mock provider - Last updated {0}/{0} is the localized date and time of the last dashboard refresh": {
+        "message": "Mock provider - Last updated {0}",
+        "comment": ["{0} is the localized date and time of the last dashboard refresh"]
+    },
+    "Last hour": "Last hour",
+    "Last 6 hours": "Last 6 hours",
+    "Last 24 hours": "Last 24 hours",
+    "Last {0} minutes/{0} is a number of minutes": {
+        "message": "Last {0} minutes",
+        "comment": ["{0} is a number of minutes"]
+    },
+    "CPU utilization": "CPU utilization",
+    "Data IO": "Data IO",
+    "Log IO": "Log IO",
+    "Storage used": "Storage used",
+    "Active sessions": "Active sessions",
+    "Worker utilization": "Worker utilization",
+    "Batch requests": "Batch requests",
+    "Buffer cache hit ratio": "Buffer cache hit ratio",
+    "Page life expectancy": "Page life expectancy",
+    "Capacity utilization": "Capacity utilization",
+    "Average query duration": "Average query duration",
+    "{0} ms/{0} is a numeric duration in milliseconds": {
+        "message": "{0} ms",
+        "comment": ["{0} is a numeric duration in milliseconds"]
+    },
+    "{0} sec/{0} is a numeric duration in seconds": {
+        "message": "{0} sec",
+        "comment": ["{0} is a numeric duration in seconds"]
+    },
+    "{0} min/{0} is a numeric duration in minutes": {
+        "message": "{0} min",
+        "comment": ["{0} is a numeric duration in minutes"]
+    },
+    "{0} GB/{0} is a numeric storage size in gigabytes": {
+        "message": "{0} GB",
+        "comment": ["{0} is a numeric storage size in gigabytes"]
+    },
+    "{0}/sec/{0} is a numeric rate per second": {
+        "message": "{0}/sec",
+        "comment": ["{0} is a numeric rate per second"]
+    },
+    "Healthy": "Healthy",
+    "Critical": "Critical",
+    "Improving": "Improving",
+    "Stable": "Stable",
+    "Regressing": "Regressing",
+    "CPU": "CPU",
+    "Locking": "Locking",
+    "Transaction log": "Transaction log",
+    "Network": "Network",
+    "Parallelism": "Parallelism",
+    "Sleeping": "Sleeping",
+    "Suspended": "Suspended",
+    "Watch": "Watch",
+    "Investigating": "Investigating",
+    "Action ready": "Action ready",
+    "Monitoring": "Monitoring",
+    "Resolved": "Resolved",
+    "Long-running blocking chain": "Long-running blocking chain",
+    "Fabric capacity pressure": "Fabric capacity pressure",
+    "Sustained CPU pressure": "Sustained CPU pressure",
+    "Query performance regression": "Query performance regression",
+    "Accelerated storage growth": "Accelerated storage growth",
+    "A blocking chain is delaying concurrent transactions in {0}./{0} is a database name": {
+        "message": "A blocking chain is delaying concurrent transactions in {0}.",
+        "comment": ["{0} is a database name"]
+    },
+    "Capacity utilization is affecting interactive query performance in {0}./{0} is a database name": {
+        "message": "Capacity utilization is affecting interactive query performance in {0}.",
+        "comment": ["{0} is a database name"]
+    },
+    "CPU has remained above the learned baseline for {0}./{0} is a database name": {
+        "message": "CPU has remained above the learned baseline for {0}.",
+        "comment": ["{0} is a database name"]
+    },
+    "A frequently executed query is slower than its recent baseline in {0}./{0} is a database name": {
+        "message": "A frequently executed query is slower than its recent baseline in {0}.",
+        "comment": ["{0} is a database name"]
+    },
+    "Current growth may exhaust available storage earlier than expected in {0}./{0} is a database name": {
+        "message": "Current growth may exhaust available storage earlier than expected in {0}.",
+        "comment": ["{0} is a database name"]
+    },
+    "Review the head blocker, commit or roll back the transaction, and verify lock ordering.": "Review the head blocker, commit or roll back the transaction, and verify lock ordering.",
+    "Move background workloads outside peak hours or increase Fabric capacity.": "Move background workloads outside peak hours or increase Fabric capacity.",
+    "Review the regressed queries and consider scaling compute if the workload is expected.": "Review the regressed queries and consider scaling compute if the workload is expected.",
+    "Review the execution plan and recent statistics before applying the suggested index.": "Review the execution plan and recent statistics before applying the suggested index.",
+    "Review retention policies and increase the storage limit before the projected threshold.": "Review retention policies and increase the storage limit before the projected threshold.",
+    "Anomaly detected from the performance baseline": "Anomaly detected from the performance baseline",
+    "Related metrics and sessions correlated": "Related metrics and sessions correlated",
+    "Likely root cause identified": "Likely root cause identified",
+    "Recommended action prepared for review": "Recommended action prepared for review",
+    "Recovery is being monitored": "Recovery is being monitored",
+    "Up {0}% from the previous period/{0} is a percentage": {
+        "message": "Up {0}% from the previous period",
+        "comment": ["{0} is a percentage"]
+    },
+    "Down {0}% from the previous period/{0} is a percentage": {
+        "message": "Down {0}% from the previous period",
+        "comment": ["{0} is a percentage"]
+    },
+    "{0} trend/{0} is a dashboard metric name": {
+        "message": "{0} trend",
+        "comment": ["{0} is a dashboard metric name"]
+    },
+    "Performance summary": "Performance summary",
+    "Current health and resource utilization": "Current health and resource utilization",
+    "Activity overview": "Activity overview",
+    "{0} over the selected time range/{0} is a dashboard metric name": {
+        "message": "{0} over the selected time range",
+        "comment": ["{0} is a dashboard metric name"]
+    },
+    "{0} activity chart/{0} is a dashboard metric name": {
+        "message": "{0} activity chart",
+        "comment": ["{0} is a dashboard metric name"]
+    },
+    "Resource details": "Resource details",
+    "Engine": "Engine",
+    "Edition": "Edition",
+    "Availability": "Availability",
+    "{0} GB of {1} GB/{0} is the used storage in gigabytes{1} is the maximum storage in gigabytes": {
+        "message": "{0} GB of {1} GB",
+        "comment": [
+            "{0} is the used storage in gigabytes",
+            "{1} is the maximum storage in gigabytes"
+        ]
+    },
+    "Storage utilization": "Storage utilization",
+    "Top queries": "Top queries",
+    "Queries ranked by total execution time": "Queries ranked by total execution time",
+    "Filter query text or database": "Filter query text or database",
+    "Filter queries": "Filter queries",
+    "Executions": "Executions",
+    "Average duration": "Average duration",
+    "Logical reads": "Logical reads",
+    "Trend": "Trend",
+    "Show details for query {0}/{0} is a query identifier": {
+        "message": "Show details for query {0}",
+        "comment": ["{0} is a query identifier"]
+    },
+    "No queries match the current filter.": "No queries match the current filter.",
+    "Query details": "Query details",
+    "Close query details": "Close query details",
+    "Total duration": "Total duration",
+    "Query text": "Query text",
+    "Last executed {0}/{0} is the localized date and time of the last execution": {
+        "message": "Last executed {0}",
+        "comment": ["{0} is the localized date and time of the last execution"]
+    },
+    "Wait statistics": "Wait statistics",
+    "Where database requests are spending time": "Where database requests are spending time",
+    "Total wait time": "Total wait time",
+    "Waiting tasks": "Waiting tasks",
+    "Top wait type": "Top wait type",
+    "Wait type": "Wait type",
+    "Wait time": "Wait time",
+    "Share": "Share",
+    "{0}% of total waits/{0} is a percentage": {
+        "message": "{0}% of total waits",
+        "comment": ["{0} is a percentage"]
+    },
+    "Current database activity and blocking": "Current database activity and blocking",
+    "Blocked": "Blocked",
+    "Current sessions": "Current sessions",
+    "Login": "Login",
+    "Application": "Application",
+    "Elapsed": "Elapsed",
+    "Wait / blocker": "Wait / blocker",
+    "Current query": "Current query",
+    "Blocked by {0}/{0} is a database session identifier": {
+        "message": "Blocked by {0}",
+        "comment": ["{0} is a database session identifier"]
+    },
+    "{0} sessions shown/{0} is the localized number of displayed sessions": {
+        "message": "{0} sessions shown",
+        "comment": ["{0} is the localized number of displayed sessions"]
+    },
+    "Continuously correlate performance signals, investigate anomalies, and prepare reviewed actions for this SQL resource.": "Continuously correlate performance signals, investigate anomalies, and prepare reviewed actions for this SQL resource.",
+    "Enable Database Agent": "Enable Database Agent",
+    "Investigation in progress": "Investigation in progress",
+    "Database Agent is investigating: {0}/{0} is the title of a database performance issue": {
+        "message": "Database Agent is investigating: {0}",
+        "comment": ["{0} is the title of a database performance issue"]
+    },
+    "Autonomous diagnosis with approval-gated actions": "Autonomous diagnosis with approval-gated actions",
+    "Open issues": "Open issues",
+    "Automation mode": "Automation mode",
+    "Approval required": "Approval required",
+    "Recommend only": "Recommend only",
+    "Last analysis": "Last analysis",
+    "Issues": "Issues",
+    "Prioritized findings and recommended actions": "Prioritized findings and recommended actions",
+    "Investigation timeline": "Investigation timeline",
+    "Collapse {0}/{0} is the title of a database performance issue": {
+        "message": "Collapse {0}",
+        "comment": ["{0} is the title of a database performance issue"]
+    },
+    "Expand {0}/{0} is the title of a database performance issue": {
+        "message": "Expand {0}",
+        "comment": ["{0} is the title of a database performance issue"]
+    },
+    "Observed value": "Observed value",
+    "Detected": "Detected",
+    "Recommended action": "Recommended action",
+    "Acknowledge and monitor": "Acknowledge and monitor",
     "Loading restore database...": "Loading restore database...",
     "Backup File": "Backup File",
     "URL": "URL",

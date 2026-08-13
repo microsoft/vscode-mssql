@@ -608,6 +608,16 @@
                     "group": "1_MSSQL_primary@1"
                 },
                 {
+                    "command": "mssql.showServerDashboard",
+                    "when": "config.mssql.dashboard.enabled && view == objectExplorer && (viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "4_MSSQL_discoverAndProfile@0"
+                },
+                {
+                    "command": "mssql.showServerDashboardDbAgent",
+                    "when": "config.mssql.dashboard.enabled && config.mssql.dbAgent.enabled && view == objectExplorer && (viewItem =~ /\\btype=(disconnectedServer|Server|Database)\\b/ || viewItem =~ /\\bsubType=(Database|DockerContainerDatabase)\\b/)",
+                    "group": "4_MSSQL_discoverAndProfile@1"
+                },
+                {
                     "command": "mssql.createDatabase",
                     "when": "view == objectExplorer && viewItem =~ /\\btype=(Folder)\\b.*\\bsubType=(Databases)\\b/",
                     "group": "3_MSSQL_instanceDatabaseActions@1"
@@ -940,6 +950,14 @@
                 },
                 {
                     "command": "mssql.shortcutsConfiguration.open"
+                },
+                {
+                    "command": "mssql.showServerDashboard",
+                    "when": "config.mssql.dashboard.enabled"
+                },
+                {
+                    "command": "mssql.showServerDashboardDbAgent",
+                    "when": "config.mssql.dashboard.enabled && config.mssql.dbAgent.enabled"
                 },
                 {
                     "command": "mssql.quickQueries.run1"
@@ -1708,6 +1726,20 @@
                 "command": "mssql.profiler.launchFromObjectExplorer",
                 "title": "%mssql.profiler.launchFromObjectExplorer%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.showServerDashboard",
+                "title": "%mssql.showServerDashboard%",
+                "category": "MS SQL",
+                "icon": "$(dashboard)",
+                "enablement": "config.mssql.dashboard.enabled"
+            },
+            {
+                "command": "mssql.showServerDashboardDbAgent",
+                "title": "%mssql.showServerDashboardDbAgent%",
+                "category": "MS SQL",
+                "icon": "$(sparkle)",
+                "enablement": "config.mssql.dashboard.enabled && config.mssql.dbAgent.enabled"
             },
             {
                 "command": "mssql.profiler.launchFromDatabase",
@@ -3019,6 +3051,16 @@
                     "default": 45,
                     "minimum": 1,
                     "description": "%mssql.objectExplorer.expandTimeout%"
+                },
+                "mssql.dashboard.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.dashboard.enabled.description%"
+                },
+                "mssql.dbAgent.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "%mssql.dbAgent.enabled.description%"
                 },
                 "mssql.statusBar.connectionInfoMaxLength": {
                     "type": "number",
