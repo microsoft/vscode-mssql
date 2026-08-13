@@ -140,6 +140,18 @@ const DeploymentStateProvider: React.FC<DeploymentProviderProps> = ({ children }
                     spec: spec,
                 });
             },
+            openFirewallRuleDialog: function (): void {
+                extensionRpc.action("openFirewallRuleDialog", {});
+            },
+            closeFirewallRuleDialog: function (): void {
+                extensionRpc.action("closeFirewallRuleDialog", {});
+            },
+            addFirewallRule: function (firewallRuleSpec): void {
+                extensionRpc.action("addAzureSqlFirewallRule", { firewallRuleSpec });
+            },
+            signIntoAzureForFirewallRule: function (): void {
+                extensionRpc.action("signIntoAzureForFirewallRule", {});
+            },
             //#endregion
         }),
         [extensionRpc, formAction],
