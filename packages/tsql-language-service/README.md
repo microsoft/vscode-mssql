@@ -86,7 +86,8 @@ src/
   syntax/           Lezer adapter and typed syntax facade
   semantics/        scopes, symbols, types, binding, dependency indexes
   metadata/         portable contracts and offline providers
-  features/         host-neutral editor features
+  coloring/         lexical and semantic classifications plus incremental token deltas
+  features/         remaining host-neutral editor features
   formatting/       document, range, and on-type formatting
   runtime/          document coordination and scheduling
   worker/           shared protocol plus Node and browser transports
@@ -247,6 +248,19 @@ The initial feature surface includes:
 - full-document, range, and on-type formatting.
 
 Inlay hints and CodeLens are not core language features in the initial implementation.
+
+## Coloring
+
+Coloring is a first-class host-neutral service rather than a VS Code-specific token encoder. Its
+single legend covers lexical classifications such as keywords, comments, strings, numbers, and
+operators, plus semantic classifications such as schemas, tables, views, columns, routines,
+variables, parameters, aliases, CTEs, temporary tables, and SQL types.
+
+The coloring strategy consumes the same immutable syntax and semantic snapshots as other features.
+It supports full-document, range, and incremental token-array results carrying document and
+metadata versions. Tokens use UTF-16 offsets; the VS Code/LSP adapter owns line/character encoding
+and semantic-token integer packing. The initial scaffold intentionally returns no classifications
+until the lossless lexer and semantic roles are implemented.
 
 ## Formatting
 

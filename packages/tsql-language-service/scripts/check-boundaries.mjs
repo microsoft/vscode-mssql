@@ -12,6 +12,7 @@ const forbidden = new Map([
     ["syntax", ["metadata", "semantics", "features", "runtime", "worker", "lsp", "adapters"]],
     ["semantics", ["adapters", "runtime", "worker", "lsp"]],
     ["features", ["adapters", "worker"]],
+    ["coloring", ["adapters", "features", "runtime", "worker", "lsp"]],
     ["metadata", ["syntax", "semantics", "features", "runtime", "worker", "lsp"]],
 ]);
 const hostImports = [/from\s+["']vscode["']/, /from\s+["']tedious["']/, /from\s+["']mssql["']/];

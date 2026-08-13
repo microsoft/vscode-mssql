@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 export * from "./adapters/index.js";
+export * from "./coloring/index.js";
 export * from "./features/index.js";
 export * from "./formatting/index.js";
 export * from "./lsp/index.js";

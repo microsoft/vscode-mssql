@@ -45,11 +45,6 @@ export interface DocumentSymbol {
     readonly children?: readonly DocumentSymbol[];
 }
 
-export interface SemanticToken extends TextRange {
-    readonly tokenType: string;
-    readonly modifiers: readonly string[];
-}
-
 export interface SignatureHelp {
     readonly signatures: readonly {
         readonly label: string;
@@ -78,6 +73,5 @@ export interface LanguageFeatureService {
     documentSymbols(uri: string, version: number): readonly DocumentSymbol[];
     foldingRanges(uri: string, version: number): readonly TextRange[];
     selectionRanges(uri: string, version: number, offsets: readonly number[]): readonly TextRange[];
-    semanticTokens(uri: string, version: number): readonly SemanticToken[];
     signatureHelp(uri: string, version: number, offset: number): SignatureHelp | undefined;
 }
