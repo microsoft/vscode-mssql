@@ -37,6 +37,7 @@ import {
     createFluentAutoResizeOptions,
     FluentSlickGrid,
 } from "../../common/FluentSlickGrid/FluentSlickGrid";
+import { hasPendingChangesForRow, isTableExplorerDataColumn } from "./tableDataGridUtils";
 
 export type { AppliedSortColumn };
 
@@ -357,8 +358,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         }
 
         // Inline action column (right of the checkbox selector) that shows an
-        // undo arrow on rows marked for delete. The icon is dimmed on rows that
-        // aren't deleted so the column has a consistent visual width.
+        // undo arrow on rows with pending changes.
         function createUndoColumn(): Column {
             return {
                 id: "undo",
@@ -375,13 +375,17 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     dataContext: any,
                 ) => {
                     const rowId = dataContext.id;
-                    const isDeleted = deletedRowsRef.current.has(rowId);
-                    const iconClass = isDeleted
+                    const canRevert = hasPendingChangesForRow(
+                        rowId,
+                        cellChangesRef.current.values(),
+                        deletedRowsRef.current,
+                    );
+                    const iconClass = canRevert
                         ? "fi fi-arrow-undo action-icon pointer"
                         : "fi fi-arrow-undo action-icon disabled";
                     return createDomElement("i", {
                         className: iconClass,
-                        title: isDeleted ? loc.tableExplorer.revertRow : "",
+                        title: canRevert ? loc.tableExplorer.revertRow : "",
                     });
                 },
                 minWidth: 30,
@@ -981,7 +985,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
             const rowId = metadata?.dataContext?.id;
-            if (rowId === undefined || !deletedRowsRef.current.has(rowId)) {
+            if (
+                rowId === undefined ||
+                !hasPendingChangesForRow(
+                    rowId,
+                    cellChangesRef.current.values(),
+                    deletedRowsRef.current,
+                )
+            ) {
                 return;
             }
 
@@ -1021,7 +1032,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
             const dataItem = grid.getDataItem(activeCell.row);
-            if (!dataItem || !deletedRowsRef.current.has(dataItem.id)) {
+            if (
+                !dataItem ||
+                !hasPendingChangesForRow(
+                    dataItem.id,
+                    cellChangesRef.current.values(),
+                    deletedRowsRef.current,
+                )
+            ) {
                 return;
             }
 
@@ -1081,9 +1099,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const cellIndex = args.cell;
                     // Get the actual column from the grid (accounts for hidden columns)
                     const gridColumns = reactGridRef.current?.slickGrid?.getVisibleColumns() || [];
-                    const column = gridColumns[cellIndex];
+                    const column = args.column ?? gridColumns[cellIndex];
+                    if (!isTableExplorerDataColumn(column)) {
+                        break;
+                    }
                     // Use the original column index stored in column metadata (handles hidden columns)
-                    const dataColumnIndex = (column as any)?.originalIndex ?? cellIndex;
+                    const dataColumnIndex = column.originalIndex;
                     const changeKey = `${rowId}-${dataColumnIndex}`;
 
                     if (onRevertCell) {
@@ -1097,6 +1118,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     if (onCellChangeCountChanged) {
                         onCellChangeCountChanged(cellChangesRef.current.size);
                     }
+                    reactGridRef.current?.slickGrid?.invalidate();
                     break;
 
                 case "revert-row":
@@ -1504,6 +1526,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         title: loc.tableExplorer.revertCell,
                         iconCssClass: "fi fi-arrow-undo",
                         positionOrder: 10,
+                        itemVisibilityOverride: (args: any) => {
+                            return isTableExplorerDataColumn(args.column);
+                        },
                     },
                     {
                         command: "revert-row",
