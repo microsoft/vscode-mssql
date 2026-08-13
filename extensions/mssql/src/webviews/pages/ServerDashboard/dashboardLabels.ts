@@ -11,10 +11,16 @@ import {
     DashboardQueryTrend,
     DashboardSessionStatus,
     DashboardWaitCategory,
+    DbAgentActionApprovalStatus,
+    DbAgentActionRisk,
+    DbAgentExecutionVenue,
     DbAgentInvestigationEventKind,
     DbAgentIssue,
+    DbAgentIssueCategory,
     DbAgentIssueSeverity,
     DbAgentIssueStatus,
+    DbAgentRegistrationMode,
+    DbAgentRole,
 } from "../../../sharedInterfaces/serverDashboard";
 import { LocConstants } from "../../common/locConstants";
 
@@ -176,20 +182,123 @@ export function getIssueStatusLabel(status: DbAgentIssueStatus): string {
     const dashboardLoc = getDashboardLoc();
     switch (status) {
         case "new":
+            return dashboardLoc.newIssue;
         case "investigating":
             return dashboardLoc.investigating;
         case "diagnosed":
+            return dashboardLoc.diagnosed;
         case "actionProposed":
-            return dashboardLoc.actionReady;
+            return dashboardLoc.actionProposed;
         case "executing":
+            return dashboardLoc.executing;
         case "verifying":
+            return dashboardLoc.verifying;
         case "monitoring":
             return dashboardLoc.monitoring;
         case "resolved":
-        case "closed":
             return dashboardLoc.resolved;
+        case "closed":
+            return dashboardLoc.closed;
         case "failed":
-            return dashboardLoc.warning;
+            return dashboardLoc.failed;
+    }
+}
+
+export function getIssueCategoryLabel(category: DbAgentIssueCategory): string {
+    const dashboardLoc = getDashboardLoc();
+    switch (category) {
+        case "performance":
+            return dashboardLoc.performance;
+        case "availability":
+            return dashboardLoc.availabilityCategory;
+        case "storage":
+            return dashboardLoc.storageCategory;
+        case "security":
+            return dashboardLoc.security;
+    }
+}
+
+export function getActionRiskLabel(risk: DbAgentActionRisk): string {
+    const dashboardLoc = getDashboardLoc();
+    switch (risk) {
+        case "low":
+            return dashboardLoc.lowRisk;
+        case "medium":
+            return dashboardLoc.mediumRisk;
+        case "high":
+            return dashboardLoc.highRisk;
+        case "critical":
+            return dashboardLoc.critical;
+    }
+}
+
+export function getActionApprovalLabel(status: DbAgentActionApprovalStatus): string {
+    const dashboardLoc = getDashboardLoc();
+    switch (status) {
+        case "pending":
+            return dashboardLoc.pending;
+        case "approved":
+            return dashboardLoc.approved;
+        case "rejected":
+            return dashboardLoc.rejected;
+        case "executed":
+            return dashboardLoc.executed;
+        case "manuallyApplied":
+            return dashboardLoc.manuallyApplied;
+    }
+}
+
+export function getExecutionVenueLabel(venue: DbAgentExecutionVenue): string {
+    const dashboardLoc = getDashboardLoc();
+    switch (venue) {
+        case "runner":
+            return dashboardLoc.runnerExecution;
+        case "client":
+            return dashboardLoc.clientExecution;
+        case "manual":
+            return dashboardLoc.manualExecution;
+    }
+}
+
+export function getRegistrationModeLabel(mode: DbAgentRegistrationMode): string {
+    const dashboardLoc = getDashboardLoc();
+    switch (mode) {
+        case "notEligible":
+            return dashboardLoc.registrationUnavailable;
+        case "notRegistered":
+            return dashboardLoc.notRegistered;
+        case "registering":
+            return dashboardLoc.registrationInProgress;
+        case "registered":
+            return dashboardLoc.registered;
+        case "degradedAuth":
+        case "degradedAuthz":
+        case "degradedApi":
+            return dashboardLoc.registrationDegraded;
+    }
+}
+
+export function getRoleLabel(role: DbAgentRole): string {
+    const dashboardLoc = getDashboardLoc();
+    switch (role) {
+        case "admin":
+            return dashboardLoc.administrator;
+        case "contributor":
+            return dashboardLoc.contributor;
+        case "reader":
+            return dashboardLoc.reader;
+    }
+}
+
+export function getRoleDescription(role: DbAgentRole): string {
+    const dashboardLoc = getDashboardLoc();
+    switch (role) {
+        case "admin":
+            return dashboardLoc.administratorCapabilities;
+        case "contributor":
+            return dashboardLoc.contributorCapabilities;
+        case "reader":
+            return dashboardLoc.readerCapabilities;
     }
 }
 

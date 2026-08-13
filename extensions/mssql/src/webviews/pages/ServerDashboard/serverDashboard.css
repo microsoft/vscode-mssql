@@ -337,6 +337,154 @@
     padding: 32px;
 }
 
+.dashboard-agent-registration-card {
+    align-items: flex-start;
+    min-height: 340px;
+    justify-content: center;
+}
+
+.dashboard-agent-registration-card > .fui-Spinner {
+    align-self: center;
+}
+
+.dashboard-agent-onboarding-title,
+.dashboard-agent-registration-step,
+.dashboard-agent-instruction-header,
+.dashboard-agent-action-header,
+.dashboard-investigation-summary {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.dashboard-agent-onboarding-title > div,
+.dashboard-agent-registration-step > div {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dashboard-agent-onboarding-icon {
+    width: 36px;
+    height: 36px;
+    color: var(--vscode-button-background);
+}
+
+.dashboard-agent-registration-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    margin: 12px 0;
+}
+
+.dashboard-agent-registration-step {
+    position: relative;
+    padding: 12px 18px 12px 0;
+}
+
+.dashboard-agent-registration-step:not(:last-child)::after {
+    position: absolute;
+    top: 25px;
+    right: 10px;
+    left: 40px;
+    z-index: 0;
+    height: 1px;
+    content: "";
+    background: var(--vscode-panel-border);
+}
+
+.dashboard-agent-registration-step > span {
+    z-index: 1;
+    display: grid;
+    flex: 0 0 28px;
+    width: 28px;
+    height: 28px;
+    color: var(--vscode-button-foreground);
+    font-weight: 600;
+    background: var(--vscode-button-background);
+    border-radius: 50%;
+    place-items: center;
+}
+
+.dashboard-agent-content {
+    gap: 16px;
+}
+
+.dashboard-agent-summary-item {
+    display: flex;
+    min-height: 76px;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px 16px;
+    background: var(--vscode-sideBar-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 6px;
+}
+
+.dashboard-agent-navigation {
+    padding: 2px 0 8px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.dashboard-agent-section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.dashboard-investigation-banner {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dashboard-investigation-issue-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.dashboard-investigation-details,
+.dashboard-investigation-history > div {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.dashboard-investigation-history {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 12px;
+}
+
+.dashboard-investigation-summary > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dashboard-agent-issue-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.dashboard-agent-filters {
+    display: flex;
+    gap: 8px;
+}
+
+.dashboard-agent-filters > div {
+    min-width: 160px;
+}
+
 .dashboard-issue-list {
     display: flex;
     flex-direction: column;
@@ -359,6 +507,36 @@
     min-width: 0;
 }
 
+.dashboard-issue-title-button {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+    padding: 5px 4px;
+    color: var(--vscode-foreground);
+    text-align: left;
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+}
+
+.dashboard-issue-title-button > span {
+    font-weight: 600;
+}
+
+.dashboard-issue-title-button > small {
+    overflow: hidden;
+    color: var(--vscode-descriptionForeground);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dashboard-issue-title-button:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 2px;
+}
+
 .dashboard-issue-badges {
     flex-wrap: wrap;
     justify-content: flex-end;
@@ -371,6 +549,258 @@
     margin: 14px 8px 4px 40px;
     padding-top: 14px;
     border-top: 1px solid var(--vscode-panel-border);
+}
+
+.dashboard-agent-issue-metadata {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.dashboard-agent-analysis-section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.dashboard-agent-analysis-section h4 {
+    margin: 0;
+}
+
+.dashboard-agent-copilot-note {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    background: var(--vscode-textBlockQuote-background);
+    border-left: 3px solid var(--vscode-textLink-foreground);
+}
+
+.dashboard-agent-metric-grid,
+.dashboard-agent-actions,
+.dashboard-agent-instructions,
+.dashboard-agent-settings-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dashboard-agent-metric-card {
+    min-width: 0;
+}
+
+.dashboard-agent-metric-card svg {
+    display: block;
+    width: 100%;
+    height: 160px;
+    margin-top: 10px;
+    overflow: visible;
+    background:
+        linear-gradient(var(--vscode-panel-border) 1px, transparent 1px) 0 0 / 100% 25%,
+        var(--vscode-editor-background);
+}
+
+.dashboard-agent-chart-observed,
+.dashboard-agent-chart-baseline {
+    fill: none;
+    vector-effect: non-scaling-stroke;
+}
+
+.dashboard-agent-chart-observed {
+    stroke: var(--vscode-charts-blue);
+    stroke-width: 2.5;
+}
+
+.dashboard-agent-chart-baseline {
+    stroke: var(--vscode-descriptionForeground);
+    stroke-width: 1.5;
+    stroke-dasharray: 6 4;
+}
+
+.dashboard-agent-chart-annotation {
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+    vector-effect: non-scaling-stroke;
+}
+
+.dashboard-agent-chart-annotation-detection {
+    stroke: var(--vscode-charts-orange);
+}
+
+.dashboard-agent-chart-annotation-action {
+    stroke: var(--vscode-charts-green);
+}
+
+.dashboard-agent-chart-annotation-resolution {
+    stroke: var(--vscode-charts-purple);
+}
+
+.dashboard-agent-chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 8px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.dashboard-agent-chart-legend span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dashboard-agent-chart-legend i {
+    width: 18px;
+    height: 2px;
+    background: var(--vscode-charts-blue);
+}
+
+.dashboard-agent-chart-legend i.baseline {
+    height: 1px;
+    background: var(--vscode-descriptionForeground);
+}
+
+.dashboard-agent-action-card {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-left: 3px solid var(--vscode-button-background);
+}
+
+.dashboard-agent-action-header > div:first-child {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.dashboard-agent-action-details {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin: 0;
+}
+
+.dashboard-agent-action-details div {
+    padding: 10px;
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+}
+
+.dashboard-agent-action-details dt,
+.dashboard-agent-relationships dt {
+    margin-bottom: 5px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.dashboard-agent-action-details dd,
+.dashboard-agent-relationships dd {
+    margin: 0;
+}
+
+.dashboard-agent-parameters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.dashboard-agent-parameters code {
+    padding: 3px 6px;
+    background: var(--vscode-textCodeBlock-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 3px;
+}
+
+.dashboard-agent-action-buttons,
+.dashboard-agent-primary-action {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.dashboard-agent-primary-action {
+    padding-top: 12px;
+    border-top: 1px solid var(--vscode-panel-border);
+}
+
+.dashboard-agent-history-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.dashboard-agent-history-grid > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dashboard-agent-relationships {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+}
+
+.dashboard-agent-instruction-composer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.dashboard-agent-instruction-composer textarea {
+    min-height: 86px;
+}
+
+.dashboard-agent-instruction-header > span {
+    flex: 1;
+}
+
+.dashboard-agent-settings-card h4 {
+    margin: 0 0 4px;
+}
+
+.dashboard-agent-permission-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(280px, 1fr));
+    gap: 10px;
+}
+
+.dashboard-agent-permission-grid > div {
+    display: grid;
+    grid-template-columns: minmax(180px, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-panel-border);
+    border-radius: 4px;
+}
+
+.dashboard-agent-permission-grid > div > div {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.dashboard-agent-access-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.dashboard-agent-access-grid > div {
+    display: flex;
+    min-height: 130px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
 }
 
 .dashboard-recommendation {
@@ -450,6 +880,30 @@
 
     .dashboard-resource-strip {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .dashboard-agent-registration-steps,
+    .dashboard-agent-access-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-agent-registration-step:not(:last-child)::after {
+        display: none;
+    }
+
+    .dashboard-agent-issue-controls,
+    .dashboard-agent-action-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .dashboard-agent-action-details,
+    .dashboard-agent-history-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-agent-permission-grid {
+        grid-template-columns: 1fr;
     }
 }
 

@@ -191,13 +191,17 @@ export function DashboardPage(): JSX.Element {
                     <Tab value="issues">
                         <span className="dashboard-tab-label">
                             {dashboardLoc.databaseAgent}
-                            <Badge appearance="filled" color="informative" size="small">
-                                {
-                                    snapshot.dbAgent.issues.filter(
-                                        (issue) => issue.status !== "resolved",
-                                    ).length
-                                }
-                            </Badge>
+                            {snapshot.dbAgent.registrationMode === "registered" ? (
+                                <Badge appearance="filled" color="informative" size="small">
+                                    {
+                                        snapshot.dbAgent.issues.filter(
+                                            (issue) =>
+                                                issue.status !== "resolved" &&
+                                                issue.status !== "closed",
+                                        ).length
+                                    }
+                                </Badge>
+                            ) : null}
                         </span>
                     </Tab>
                 ) : null}
@@ -219,8 +223,50 @@ export function DashboardPage(): JSX.Element {
                         onSetEnabled={(enabled) =>
                             extensionRpc.action("setDbAgentEnabled", { enabled })
                         }
+                        onRegister={() => extensionRpc.action("registerDbAgent", {})}
                         onAcknowledgeIssue={(issueId) =>
                             extensionRpc.action("acknowledgeIssue", { issueId })
+                        }
+                        onDecideAction={(issueId, actionId, decision) =>
+                            extensionRpc.action("decideDbAgentAction", {
+                                issueId,
+                                actionId,
+                                decision,
+                            })
+                        }
+                        onExecuteAction={(issueId, actionId) =>
+                            extensionRpc.action("executeDbAgentAction", {
+                                issueId,
+                                actionId,
+                            })
+                        }
+                        onMarkActionApplied={(issueId, actionId) =>
+                            extensionRpc.action("markDbAgentActionApplied", {
+                                issueId,
+                                actionId,
+                            })
+                        }
+                        onAnalyzeSection={(issueId, section) =>
+                            extensionRpc.action("analyzeDbAgentSection", {
+                                issueId,
+                                section,
+                            })
+                        }
+                        onForceResolve={(investigationId) =>
+                            extensionRpc.action("forceResolveInvestigation", {
+                                investigationId,
+                            })
+                        }
+                        onSaveSettings={(settings) =>
+                            extensionRpc.action("saveDbAgentSettings", { settings })
+                        }
+                        onCreateInstruction={(text) =>
+                            extensionRpc.action("createDbAgentInstruction", { text })
+                        }
+                        onRevokeInstruction={(instructionId) =>
+                            extensionRpc.action("revokeDbAgentInstruction", {
+                                instructionId,
+                            })
                         }
                     />
                 ) : null}
