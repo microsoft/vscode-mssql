@@ -16,7 +16,8 @@ import {
 import { ObjectExplorerFilterStore } from "../../src/objectExplorer/objectExplorerFilterStore";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { stubTelemetry } from "./utils";
-import { previewService } from "../../src/previews/previewService";
+import { getPreviewConfigKey, PreviewFeature } from "../../src/previews/previewService";
+import { createWorkspaceConfiguration } from "./stubs";
 
 chai.use(sinonChai);
 
@@ -28,7 +29,9 @@ suite("ObjectExplorerFilter tests", () => {
     setup(() => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
-        sandbox.stub(previewService, "isFeatureEnabled").returns(false);
+        sandbox
+            .stub(vscode.workspace, "getConfiguration")
+            .returns(createWorkspaceConfiguration({}));
         getPresetsStub = sandbox
             .stub(ObjectExplorerFilterStore.prototype, "getPresets")
             .resolves([]);
@@ -139,7 +142,11 @@ suite("ObjectExplorerFilter tests", () => {
     });
 
     test("loads reusable filters only when the preview is enabled", async () => {
-        (previewService.isFeatureEnabled as sinon.SinonStub).returns(true);
+        (vscode.workspace.getConfiguration as sinon.SinonStub).returns(
+            createWorkspaceConfiguration({
+                [getPreviewConfigKey(PreviewFeature.BetaObjectExplorerFilter)]: true,
+            }),
+        );
         getPresetsStub.resolves([
             {
                 id: "saved-filter",
@@ -164,6 +171,28 @@ suite("ObjectExplorerFilter tests", () => {
                     presets[0]?.id === "saved-filter" &&
                     presets[0]?.isPinned === true,
             ),
+        });
+
+        submitEmitter.fire([]);
+        await filtersPromise;
+    });
+
+    test("does not enable the preview from the global experimental setting", async () => {
+        (vscode.workspace.getConfiguration as sinon.SinonStub).returns(
+            createWorkspaceConfiguration({
+                enableExperimentalFeatures: true,
+            }),
+        );
+        const { stub, submitEmitter } = createControllerStub();
+        injectController(stub);
+
+        const filtersPromise = ObjectExplorerFilter.getFilters(extensionContext, createTreeNode());
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(getPresetsStub).not.to.have.been.called;
+        expect(stub.loadData).to.have.been.calledWithMatch({
+            isPreviewEnabled: false,
+            filterPresets: [],
         });
 
         submitEmitter.fire([]);
