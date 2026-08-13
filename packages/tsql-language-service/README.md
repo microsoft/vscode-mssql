@@ -197,7 +197,9 @@ When enabled, the extension currently:
   `vscode-mssql-preview` diagnostic collection;
 - uses the connected editor's existing `executeSimpleQuery` API to publish immutable metadata;
 - refreshes metadata asynchronously without delaying document parsing;
-- shows one concise status CodeLens that opens a live, read-only JSON statistics document; and
+- optionally shows one concise status CodeLens, when
+  `mssql.preview.languageServiceStatsCodeLens` is also enabled, that opens a live, read-only JSON
+  statistics document; and
 - provides **MSSQL: Refresh T-SQL Language Service Metadata (Preview)** for manual refresh.
 
 Completion, hover, definition, references, semantic tokens, and formatting remain routed to the
@@ -210,10 +212,12 @@ To test the integration during development:
 1. Build the `tsql-language-service` and `mssql` workspace targets.
 2. Start the extension-development host using the repository's **Launch Extension** configuration.
 3. Enable **MSSQL: Preview › Language Service** in the development host.
-4. Open a SQL editor and connect it normally.
-5. Click the `T-SQL preview` CodeLens to inspect parse, bind, metadata, and runtime state.
-6. Edit the document and confirm `syntax.mode` changes to `incremental` in the live stats document.
-7. Run the metadata-refresh preview command and confirm the metadata generation advances.
+4. To show the status CodeLens, also enable
+   **MSSQL: Preview › Language Service Stats Code Lens**.
+5. Open a SQL editor and connect it normally.
+6. Click the `T-SQL preview` CodeLens to inspect parse, bind, metadata, and runtime state.
+7. Edit the document and confirm `syntax.mode` changes to `incremental` in the live stats document.
+8. Run the metadata-refresh preview command and confirm the metadata generation advances.
 
 The initial preview runs in process so it can consume the host-owned immutable metadata view. The
 Node and browser worker transports remain in the package and are contract-tested; preview routing

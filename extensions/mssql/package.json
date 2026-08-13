@@ -1844,6 +1844,12 @@
                     "description": "%mssql.preview.languageService.description%",
                     "scope": "window"
                 },
+                "mssql.preview.languageServiceStatsCodeLens": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.preview.languageServiceStatsCodeLens.description%",
+                    "scope": "window"
+                },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
                     "type": [
                         "boolean",

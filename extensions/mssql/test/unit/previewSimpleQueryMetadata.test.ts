@@ -6,7 +6,10 @@
 import { expect } from "chai";
 import type { SimpleQueryExecutor, SimpleQueryResult } from "@vscode-mssql/tsql-language-service";
 import { VscodeMssqlSimpleQueryMetadataLoader } from "../../src/languageservice/preview/simpleQueryMetadata";
-import { computeSingleTextChange } from "../../src/languageservice/preview/previewLanguageService";
+import {
+    computeSingleTextChange,
+    isPreviewStatsCodeLensEnabled,
+} from "../../src/languageservice/preview/previewLanguageService";
 
 suite("Preview language service integration", () => {
     test("projects simple-query rows into one immutable catalog input", async () => {
@@ -75,6 +78,13 @@ suite("Preview language service integration", () => {
         );
         expect(change.start).to.equal(previous.lastIndexOf("1"));
         expect(change.end).to.equal(previous.lastIndexOf("1") + 1);
+    });
+
+    test("requires both preview flags before showing the stats CodeLens", () => {
+        expect(isPreviewStatsCodeLensEnabled(false, false)).to.equal(false);
+        expect(isPreviewStatsCodeLensEnabled(true, false)).to.equal(false);
+        expect(isPreviewStatsCodeLensEnabled(false, true)).to.equal(false);
+        expect(isPreviewStatsCodeLensEnabled(true, true)).to.equal(true);
     });
 });
 

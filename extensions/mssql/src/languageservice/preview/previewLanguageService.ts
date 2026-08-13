@@ -24,6 +24,7 @@ import {
 } from "./simpleQueryMetadata";
 
 const previewSetting = "mssql.preview.languageService";
+const statsCodeLensSetting = "mssql.preview.languageServiceStatsCodeLens";
 const showStatsCommand = "mssql.preview.showLanguageServiceStats";
 const refreshMetadataCommand = "mssql.preview.refreshLanguageServiceMetadata";
 const statsScheme = "mssql-language-service-stats";
@@ -58,6 +59,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
     private readonly _statsChanged = new vscode.EventEmitter<vscode.Uri>();
     private readonly _statsUris = new Map<string, vscode.Uri>();
     private _enabled = false;
+    private _statsCodeLensEnabled = false;
     private _disposed = false;
 
     public constructor(
@@ -65,7 +67,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         private readonly _controller: MainController,
     ) {
         const codeLensProvider = new PreviewStatusCodeLensProvider(
-            () => this._enabled,
+            () => isPreviewStatsCodeLensEnabled(this._enabled, this._statsCodeLensEnabled),
             (uri) => this._documents.get(uri.toString()),
             this._codeLensChanged.event,
         );
@@ -92,7 +94,12 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             ),
             vscode.workspace.onDidCloseTextDocument((document) => this.closeDocument(document.uri)),
             vscode.workspace.onDidChangeConfiguration((event) => {
-                if (event.affectsConfiguration(previewSetting)) this.applyConfiguration();
+                if (
+                    event.affectsConfiguration(previewSetting) ||
+                    event.affectsConfiguration(statsCodeLensSetting)
+                ) {
+                    this.applyConfiguration();
+                }
             }),
             this._controller.connectionManager.onConnectionsChanged(() =>
                 this.rebuildConnectedDocuments(),
@@ -110,13 +117,20 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
     }
 
     private applyConfiguration(): void {
-        const enabled = vscode.workspace.getConfiguration().get<boolean>(previewSetting, false);
-        if (enabled === this._enabled) return;
+        const configuration = vscode.workspace.getConfiguration();
+        const enabled = configuration.get<boolean>(previewSetting, false);
+        const statsCodeLensEnabled = configuration.get<boolean>(statsCodeLensSetting, false);
+        const previewChanged = enabled !== this._enabled;
+        const statsCodeLensChanged = statsCodeLensEnabled !== this._statsCodeLensEnabled;
+        if (!previewChanged && !statsCodeLensChanged) return;
         this._enabled = enabled;
-        if (enabled) {
-            for (const document of vscode.workspace.textDocuments) this.openDocument(document);
-        } else {
-            this.stop();
+        this._statsCodeLensEnabled = statsCodeLensEnabled;
+        if (previewChanged) {
+            if (enabled) {
+                for (const document of vscode.workspace.textDocuments) this.openDocument(document);
+            } else {
+                this.stop();
+            }
         }
         this._codeLensChanged.fire();
     }
@@ -463,6 +477,13 @@ export function computeSingleTextChange(previous: string, next: string): TextCha
         nextEnd--;
     }
     return { start, end: previousEnd, text: next.slice(start, nextEnd) };
+}
+
+export function isPreviewStatsCodeLensEnabled(
+    languageServiceEnabled: boolean,
+    statsCodeLensEnabled: boolean,
+): boolean {
+    return languageServiceEnabled && statsCodeLensEnabled;
 }
 
 function toVscodeDiagnostic(
