@@ -38,7 +38,7 @@ export interface SchemaCompareWebViewState {
     applySucceeded: boolean;
     applyFailed: boolean;
     isIncludeExcludeAllOperationInProgress: boolean;
-    activeServers: { [connectionUri: string]: { profileName: string; server: string } };
+    activeServers: { [connectionId: string]: { profileName: string; server: string } };
     databases: string[];
     defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
     auxiliaryEndpointInfo: SchemaCompareEndpointInfo;

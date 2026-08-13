@@ -52,6 +52,7 @@ import {
 import { getErrorMessage } from "../utils/utils";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
+import { getConnectionDisplayName } from "../models/connectionInfo";
 
 const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
 
@@ -62,6 +63,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     private static readonly SQL_DATABASE_PROJECTS_EXTENSION_ID =
         "ms-mssql.sql-database-projects-vscode";
     private operationId: string;
+    private readonly connectionUris = new Map<string, string>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -146,7 +148,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
         this.registerDisposable(
             this.connectionMgr.onConnectionsChanged(async () => {
-                const activeServers = this.getActiveServersList();
+                const activeServers = await this.getAvailableServersList();
 
                 // Check if we're waiting for a new connection and auto-select it
                 if (
@@ -524,13 +526,13 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             return state;
         });
 
-        this.registerReducer("listActiveServers", (state) => {
-            this.logger.debug(`Listing active SQL servers - OperationId: ${this.operationId}`);
-            const activeServers = this.getActiveServersList();
+        this.registerReducer("listActiveServers", async (state) => {
+            this.logger.debug(`Listing SQL connections - OperationId: ${this.operationId}`);
+            const activeServers = await this.getAvailableServersList();
 
             const serverCount = Object.keys(activeServers).length;
             this.logger.debug(
-                `Found ${serverCount} active SQL server connection(s) - OperationId: ${this.operationId}`,
+                `Found ${serverCount} SQL connection(s) - OperationId: ${this.operationId}`,
             );
             sendActionEvent(TelemetryViews.SchemaCompare, TelemetryActions.ListingActiveServers, {
                 operationId: this.operationId,
@@ -559,7 +561,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
             let databases: string[] = [];
             try {
-                databases = await this.connectionMgr.listDatabases(payload.connectionUri);
+                const connectionUri = await this.connectToServer(payload.connectionUri);
+                if (!connectionUri) {
+                    throw new Error("Failed to connect to server");
+                }
+
+                databases = await this.connectionMgr.listDatabases(connectionUri);
                 this.logger.debug(
                     `Found ${databases.length} database(s) on server - OperationId: ${this.operationId}`,
                 );
@@ -711,10 +718,19 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Confirming selected database for ${payload.endpointType} endpoint: ${payload.databaseName} - OperationId: ${this.operationId}`,
             );
 
-            const connection = this.connectionMgr.activeConnections[payload.serverConnectionUri];
+            const connectionUri =
+                this.connectionUris.get(payload.serverConnectionUri) ?? payload.serverConnectionUri;
+            const connection = this.connectionMgr.activeConnections[connectionUri];
             this.logger.debug(
-                `Using connection: ${payload.serverConnectionUri} - OperationId: ${this.operationId}`,
+                `Using connection: ${connectionUri} - OperationId: ${this.operationId}`,
             );
+
+            if (!connection) {
+                this.logger.error(
+                    `Connection not found: ${connectionUri} - OperationId: ${this.operationId}`,
+                );
+                return state;
+            }
 
             const connectionProfile = connection.credentials as IConnectionProfile;
 
@@ -731,7 +747,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 serverDisplayName: `${connectionProfile.server} (${user})`,
                 serverName: connectionProfile.server,
                 databaseName: payload.databaseName,
-                ownerUri: payload.serverConnectionUri,
+                ownerUri: connectionUri,
                 packageFilePath: "",
                 connectionDetails: {
                     options: {
@@ -2274,7 +2290,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             this.logger.debug(
                 `Retrieving databases for connection: ${connectionUri} - OperationId: ${this.operationId}`,
             );
-            const databases = await this.connectionMgr.listDatabases(connectionUri);
+            const activeConnectionUri = await this.connectToServer(connectionUri);
+            if (!activeConnectionUri) {
+                throw new Error("Failed to connect to server");
+            }
+
+            const databases = await this.connectionMgr.listDatabases(activeConnectionUri);
             this.logger.debug(
                 `Found ${databases.length} databases on server - OperationId: ${this.operationId}`,
             );
@@ -2287,7 +2308,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 );
 
                 // Create the endpoint info for the new connection
-                const connection = this.connectionMgr.activeConnections[connectionUri];
+                const connection = this.connectionMgr.activeConnections[activeConnectionUri];
                 const connectionProfile = connection?.credentials as IConnectionProfile;
 
                 if (connectionProfile) {
@@ -2307,7 +2328,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         serverDisplayName: `${connectionProfile.server} (${user})`,
                         serverName: connectionProfile.server,
                         databaseName: databaseName,
-                        ownerUri: connectionUri,
+                        ownerUri: activeConnectionUri,
                         packageFilePath: "",
                         connectionDetails: {
                             options: {
@@ -2359,23 +2380,93 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         }
     }
 
-    private getActiveServersList(): {
-        [connectionUri: string]: { profileName: string; server: string };
-    } {
-        const activeServers: { [connectionUri: string]: { profileName: string; server: string } } =
-            {};
+    /**
+     * Returns saved profiles and any active connections that are not saved.
+     * Saved profiles use their profile ID as the picker value.
+     */
+    private async getAvailableServersList(): Promise<{
+        [connectionId: string]: { profileName: string; server: string };
+    }> {
+        const activeServers: {
+            [connectionId: string]: {
+                profileName: string;
+                server: string;
+            };
+        } = {};
         const activeConnections = this.connectionMgr.activeConnections;
-        Object.keys(activeConnections).forEach((connectionUri) => {
-            let credentials = activeConnections[connectionUri]
-                .credentials as IConnectionDialogProfile;
+        const savedConnectionUris = new Set<string>();
+        this.connectionUris.clear();
 
+        try {
+            const savedConnections = await this.connectionMgr.connectionStore.readAllConnections();
+            for (const connection of savedConnections) {
+                const profile = connection as IConnectionProfile;
+                const connectionId = profile.id || `${profile.server}_${profile.database || ""}`;
+                const connectionUri = this.connectionMgr.getUriForConnection(profile);
+                const activeConnectionUri =
+                    connectionUri && this.connectionMgr.isConnected(connectionUri)
+                        ? connectionUri
+                        : undefined;
+
+                if (activeConnectionUri) {
+                    savedConnectionUris.add(activeConnectionUri);
+                    this.connectionUris.set(connectionId, activeConnectionUri);
+                }
+
+                activeServers[connectionId] = {
+                    profileName: profile.profileName || getConnectionDisplayName(profile),
+                    server: profile.server,
+                };
+            }
+        } catch (error) {
+            this.logger.error(
+                `Failed to list saved connections: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+            );
+        }
+
+        for (const connectionUri of Object.keys(activeConnections)) {
+            if (
+                savedConnectionUris.has(connectionUri) ||
+                !this.connectionMgr.isConnected(connectionUri)
+            ) {
+                continue;
+            }
+
+            const credentials = activeConnections[connectionUri]
+                .credentials as IConnectionDialogProfile;
             activeServers[connectionUri] = {
                 profileName: credentials.profileName ?? "",
                 server: credentials.server,
             };
-        });
+            this.connectionUris.set(connectionUri, connectionUri);
+        }
 
         return activeServers;
+    }
+
+    private async connectToServer(connectionId: string): Promise<string | undefined> {
+        const existingConnectionUri = this.connectionUris.get(connectionId) ?? connectionId;
+        if (this.connectionMgr.isConnected(existingConnectionUri)) {
+            return existingConnectionUri;
+        }
+
+        const savedConnections = await this.connectionMgr.connectionStore.readAllConnections();
+        const profile = savedConnections.find((connection) => {
+            const savedProfile = connection as IConnectionProfile;
+            const savedConnectionId =
+                savedProfile.id || `${savedProfile.server}_${savedProfile.database || ""}`;
+            return savedConnectionId === connectionId;
+        }) as IConnectionProfile | undefined;
+
+        if (!profile || !(await this.connectionMgr.connect("", profile))) {
+            return undefined;
+        }
+
+        const connectionUri = this.connectionMgr.getUriForConnection(profile);
+        if (connectionUri) {
+            this.connectionUris.set(connectionId, connectionUri);
+        }
+        return connectionUri;
     }
 
     private async schemaCompare(
