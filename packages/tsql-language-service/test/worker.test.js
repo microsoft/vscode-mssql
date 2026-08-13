@@ -19,6 +19,8 @@ it("keeps document state and stats inside a persistent Node worker", async () =>
         const stats = await client.stats("file:///worker.sql");
         assert.equal(stats.document.version, 2);
         assert.equal(stats.syntax.mode, "incremental");
+        const rebound = await client.rebind("file:///worker.sql");
+        assert.equal(rebound.version, 2);
     } finally {
         await client.dispose();
     }

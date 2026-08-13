@@ -68,6 +68,8 @@ export interface SemanticSnapshot {
 export interface BindInput {
     readonly syntax: SyntaxSnapshot;
     readonly metadata: MetadataView;
+    readonly previous?: SemanticSnapshot;
+    readonly changedRanges?: readonly TextRange[];
     readonly settings?: Readonly<Record<string, string | number | boolean>>;
 }
 

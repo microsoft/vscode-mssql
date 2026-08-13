@@ -33,23 +33,31 @@ export class LezerSyntaxService implements SyntaxService {
             throw new TypeError("LezerSyntaxService can update only snapshots that it created");
         }
 
-        // LSP edits are sequential. Until the coordinator composes arbitrary edit sequences,
-        // reuse fragments for the common one-edit path and safely fall back for multi-edit input.
-        if (changes.length !== 1) return this.parse(document);
-        const change = changes[0]!;
-        const changed = {
-            fromA: change.start,
-            toA: change.end,
-            fromB: change.start,
-            toB: change.start + change.text.length,
-        };
-        const reusable = TreeFragment.applyChanges(previous.fragments, [changed]);
+        if (changes.length === 0) {
+            return new LezerSyntaxSnapshot(
+                document,
+                previous.tree,
+                previous.fragments,
+                [],
+                "incremental",
+                previous.fragments.length,
+            );
+        }
+
+        // LSP changes are sequential: each range addresses the document produced by the prior
+        // change. Transform fragments through the same sequence, then parse the final text once.
+        let reusable = previous.fragments;
+        let changedRanges: readonly TextRange[] = [];
+        for (const change of changes) {
+            reusable = TreeFragment.applyChanges(reusable, [toChangedRange(change)]);
+            changedRanges = mapChangedRanges(changedRanges, change);
+        }
         const tree = this._parser.parse(document.text, reusable);
         return new LezerSyntaxSnapshot(
             document,
             tree,
             TreeFragment.addTree(tree, reusable),
-            [{ start: change.start, end: change.start + change.text.length }],
+            changedRanges,
             "incremental",
             reusable.length,
         );
@@ -157,6 +165,53 @@ function* leafNodes(node: LezerNode): Iterable<LezerNode> {
         yield* leafNodes(child);
         child = child.nextSibling;
     }
+}
+
+function toChangedRange(change: TextChange) {
+    return {
+        fromA: change.start,
+        toA: change.end,
+        fromB: change.start,
+        toB: change.start + change.text.length,
+    };
+}
+
+function mapChangedRanges(
+    previousRanges: readonly TextRange[],
+    change: TextChange,
+): readonly TextRange[] {
+    const delta = change.text.length - (change.end - change.start);
+    const mapped = previousRanges.map((range) => {
+        if (range.end <= change.start) return range;
+        if (range.start >= change.end) {
+            return { start: range.start + delta, end: range.end + delta };
+        }
+        return {
+            start: Math.min(range.start, change.start),
+            end: Math.max(change.start + change.text.length, range.end + delta),
+        };
+    });
+    mapped.push({ start: change.start, end: change.start + change.text.length });
+    return mergeRanges(mapped);
+}
+
+function mergeRanges(ranges: readonly TextRange[]): readonly TextRange[] {
+    const sorted = [...ranges].sort(
+        (left, right) => left.start - right.start || left.end - right.end,
+    );
+    const result: TextRange[] = [];
+    for (const range of sorted) {
+        const previous = result.at(-1);
+        if (!previous || range.start > previous.end) {
+            result.push({ ...range });
+        } else {
+            result[result.length - 1] = {
+                start: previous.start,
+                end: Math.max(previous.end, range.end),
+            };
+        }
+    }
+    return result;
 }
 
 function collectDiagnostics(tree: Tree): readonly SyntaxDiagnostic[] {

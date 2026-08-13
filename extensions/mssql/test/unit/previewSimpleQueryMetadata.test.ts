@@ -4,7 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import type { SimpleQueryExecutor, SimpleQueryResult } from "@vscode-mssql/tsql-language-service";
+import {
+    InMemoryMetadataProvider,
+    type SimpleQueryExecutor,
+    type SimpleQueryMetadataPublisher,
+    type SimpleQueryResult,
+} from "@vscode-mssql/tsql-language-service";
 import { VscodeMssqlSimpleQueryMetadataLoader } from "../../src/languageservice/preview/simpleQueryMetadata";
 import {
     computeSingleTextChange,
@@ -12,7 +17,7 @@ import {
 } from "../../src/languageservice/preview/previewLanguageService";
 
 suite("Preview language service integration", () => {
-    test("projects simple-query rows into one immutable catalog input", async () => {
+    test("publishes identities first and hydrates object details on demand", async () => {
         const queries: string[] = [];
         const executor: SimpleQueryExecutor = {
             execute: async (query) => {
@@ -20,41 +25,72 @@ suite("Preview language service integration", () => {
                 return resultFor(query);
             },
         };
-        const input = await new VscodeMssqlSimpleQueryMetadataLoader().load(executor);
+        const store = new InMemoryMetadataProvider();
+        const generations: number[] = [];
+        store.onDidChange(() => generations.push(store.pin().generation));
+        const publisher: SimpleQueryMetadataPublisher = {
+            replace: (input) => store.replace(input),
+            merge: (input) => store.merge(input),
+        };
+        const loader = new VscodeMssqlSimpleQueryMetadataLoader();
+        await loader.refresh(executor, publisher);
+        let view = store.pin();
 
-        expect(input.environment).to.deep.include({
+        expect(view.environment).to.deep.include({
             currentDatabase: "LargeDb",
             defaultSchema: "custom",
             caseSensitive: false,
             compatibilityLevel: 170,
         });
-        expect(input.databases).to.deep.equal([{ name: "LargeDb" }]);
-        expect(input.schemas).to.deep.equal([{ database: "LargeDb", name: "dbo" }]);
-        expect(input.objects).to.have.length(1);
-        expect(input.objects![0]).to.deep.include({
+        expect(view.databases()).to.deep.equal([{ name: "LargeDb" }]);
+        expect(view.schemas()).to.deep.equal([{ database: "LargeDb", name: "dbo" }]);
+        const resolution = view.resolveObject(["dbo", "Customers"]);
+        expect(resolution.kind).to.equal("resolved");
+        if (resolution.kind !== "resolved") throw new Error("Expected resolved object");
+        expect(resolution.object).to.deep.include({
             schema: "dbo",
             name: "Customers",
             kind: "table",
         });
-        expect(input.columns!.get("LargeDb:42")).to.deep.equal([
-            {
-                name: "Name",
-                typeDisplay: "nvarchar(100)",
-                nullable: true,
-                identity: undefined,
-                computed: undefined,
-            },
-        ]);
-        expect(input.parameters!.get("LargeDb:42")).to.deep.equal([
-            { ordinal: 1, name: "@id", typeDisplay: "int", output: false },
-        ]);
-        expect(input.completeness).to.deep.include({
+        expect(view.columnState(resolution.object.ref)).to.deep.equal({ kind: "notLoaded" });
+        expect(view.parameterState(resolution.object.ref)).to.deep.equal({ kind: "notLoaded" });
+        expect(view.completeness).to.deep.include({
             databases: "ready",
             schemas: "ready",
             objects: "ready",
-            columns: "ready",
-            parameters: "ready",
+            columns: "partial",
+            parameters: "partial",
             definitions: "unknown",
+        });
+        expect(generations).to.have.length(4);
+        expect(queries).to.have.length(4);
+
+        await loader.hydrate(
+            executor,
+            { section: "columns", object: resolution.object.ref, priority: "interactive" },
+            publisher,
+        );
+        await loader.hydrate(
+            executor,
+            { section: "parameters", object: resolution.object.ref, priority: "interactive" },
+            publisher,
+        );
+        view = store.pin();
+        expect(view.columnState(resolution.object.ref)).to.deep.equal({
+            kind: "loaded",
+            value: [
+                {
+                    name: "Name",
+                    typeDisplay: "nvarchar(100)",
+                    nullable: true,
+                    identity: undefined,
+                    computed: undefined,
+                },
+            ],
+        });
+        expect(view.parameterState(resolution.object.ref)).to.deep.equal({
+            kind: "loaded",
+            value: [{ ordinal: 1, name: "@id", typeDisplay: "int", output: false }],
         });
         expect(queries).to.have.length(6);
         for (const query of queries) {

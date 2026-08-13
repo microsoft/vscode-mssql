@@ -1,19 +1,10 @@
-@top Script { Item* }
+@top Script { (LineComment | BlockComment | Word | Number | String | Punctuation | Other)* }
 
-Item {
-  Whitespace |
-  LineComment |
-  BlockComment |
-  Word |
-  Number |
-  String |
-  Punctuation |
-  Other
-}
+@skip { whitespace }
 
 @tokens {
   @precedence { BlockComment, LineComment, String, Word, Number, Punctuation, Other }
-  Whitespace { $[\u0009\u000a\u000d\u0020]+ }
+  whitespace { $[\u0009\u000a\u000d\u0020]+ }
   LineComment { "--" ![\n\r]* }
   BlockComment { "/*" (![*] | "*" ![/])* "*/" }
   Word { $[A-Za-z_#@] $[A-Za-z0-9_#$@]* }

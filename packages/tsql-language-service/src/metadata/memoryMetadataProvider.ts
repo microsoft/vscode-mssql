@@ -10,6 +10,7 @@ import type {
     InMemoryMetadataInput,
     MetadataCompleteness,
     MetadataHydrationRequest,
+    MetadataLoadState,
     MetadataProvider,
     MetadataRefreshResult,
     MetadataView,
@@ -36,10 +37,12 @@ export class InMemoryMetadataProvider implements MetadataProvider {
     private readonly _listeners = new Set<() => void>();
     private _generation = 1;
     private _view: MetadataView;
+    private _input: InMemoryMetadataInput;
 
     public constructor(input: InMemoryMetadataInput = {}, id = "memory") {
         this.id = id;
-        this._view = createView(id, this._generation, input);
+        this._input = cloneInput(input);
+        this._view = createView(id, this._generation, this._input);
     }
 
     public pin(): MetadataView {
@@ -47,7 +50,17 @@ export class InMemoryMetadataProvider implements MetadataProvider {
     }
 
     public replace(input: InMemoryMetadataInput): void {
-        this._view = createView(this.id, ++this._generation, input);
+        this._input = cloneInput(input);
+        this.publish();
+    }
+
+    public merge(input: InMemoryMetadataInput): void {
+        this._input = mergeInput(this._input, input);
+        this.publish();
+    }
+
+    private publish(): void {
+        this._view = createView(this.id, ++this._generation, this._input);
         for (const listener of this._listeners) listener();
     }
 
@@ -81,6 +94,14 @@ class MemoryView implements MetadataView {
     private readonly _objects: readonly ObjectMetadata[];
     private readonly _columns: ReadonlyMap<string, readonly ColumnMetadata[]>;
     private readonly _parameters: ReadonlyMap<string, readonly ParameterMetadata[]>;
+    private readonly _columnStates: ReadonlyMap<
+        string,
+        MetadataLoadState<readonly ColumnMetadata[]>
+    >;
+    private readonly _parameterStates: ReadonlyMap<
+        string,
+        MetadataLoadState<readonly ParameterMetadata[]>
+    >;
     private readonly _schemas: readonly SchemaMetadata[];
     private readonly _databases: readonly DatabaseMetadata[];
 
@@ -97,14 +118,13 @@ class MemoryView implements MetadataView {
         this._objectsById = new Map(this._objects.map((object) => [object.ref.id, object]));
         this._columns = input.columns ?? new Map();
         this._parameters = input.parameters ?? new Map();
+        this._columnStates = input.columnStates ?? new Map();
+        this._parameterStates = input.parameterStates ?? new Map();
         this._schemas = Object.freeze([...(input.schemas ?? [])]);
         this._databases = Object.freeze([...(input.databases ?? [])]);
     }
 
     public resolveObject(parts: readonly string[]): ObjectResolution {
-        if (this.completeness.objects !== "ready") {
-            return { kind: "unknown", reason: stateReason(this.completeness.objects) };
-        }
         const name = parts.at(-1);
         if (!name) return { kind: "notFound" };
         const schema = parts.length >= 2 ? parts.at(-2) : this.environment.defaultSchema;
@@ -119,6 +139,9 @@ class MemoryView implements MetadataView {
         );
         if (matches.length === 1) return { kind: "resolved", object: matches[0]! };
         if (matches.length > 1) return { kind: "ambiguous", candidates: matches };
+        if (this.completeness.objects !== "ready") {
+            return { kind: "unknown", reason: stateReason(this.completeness.objects) };
+        }
         return { kind: "notFound" };
     }
 
@@ -126,12 +149,18 @@ class MemoryView implements MetadataView {
         return this._objectsById.get(ref.id);
     }
 
-    public columns(ref: ObjectRef): readonly ColumnMetadata[] | undefined {
-        return this._columns.get(ref.id);
+    public columnState(ref: ObjectRef): MetadataLoadState<readonly ColumnMetadata[]> {
+        return (
+            this._columnStates.get(ref.id) ??
+            stateFromLegacyMap(this._columns, ref.id, this.completeness.columns)
+        );
     }
 
-    public parameters(ref: ObjectRef): readonly ParameterMetadata[] | undefined {
-        return this._parameters.get(ref.id);
+    public parameterState(ref: ObjectRef): MetadataLoadState<readonly ParameterMetadata[]> {
+        return (
+            this._parameterStates.get(ref.id) ??
+            stateFromLegacyMap(this._parameters, ref.id, this.completeness.parameters)
+        );
     }
 
     public searchObjects(query: ObjectSearchQuery): readonly ObjectMetadata[] {
@@ -149,15 +178,59 @@ class MemoryView implements MetadataView {
     }
 
     public schemas(database?: string): readonly SchemaMetadata[] | undefined {
-        if (this.completeness.schemas !== "ready") return undefined;
+        if (["unknown", "failed"].includes(this.completeness.schemas)) return undefined;
         return database
             ? this._schemas.filter((schema) => !schema.database || schema.database === database)
             : this._schemas;
     }
 
     public databases(): readonly DatabaseMetadata[] | undefined {
-        return this.completeness.databases === "ready" ? this._databases : undefined;
+        return ["unknown", "failed"].includes(this.completeness.databases)
+            ? undefined
+            : this._databases;
     }
+}
+
+function stateFromLegacyMap<T>(
+    values: ReadonlyMap<string, readonly T[]>,
+    id: string,
+    completeness: MetadataCompleteness[keyof MetadataCompleteness],
+): MetadataLoadState<readonly T[]> {
+    const value = values.get(id);
+    if (value) return { kind: "loaded", value };
+    if (completeness === "ready") return { kind: "loaded", value: [] };
+    if (completeness === "loading") return { kind: "loading" };
+    if (completeness === "failed") return { kind: "failed" };
+    return { kind: "notLoaded" };
+}
+
+function cloneInput(input: InMemoryMetadataInput): InMemoryMetadataInput {
+    return mergeInput({}, input);
+}
+
+function mergeInput(
+    previous: InMemoryMetadataInput,
+    next: InMemoryMetadataInput,
+): InMemoryMetadataInput {
+    return {
+        environment: { ...previous.environment, ...next.environment },
+        completeness: { ...previous.completeness, ...next.completeness },
+        objects: next.objects ?? previous.objects,
+        schemas: next.schemas ?? previous.schemas,
+        databases: next.databases ?? previous.databases,
+        columns: mergeMap(previous.columns, next.columns),
+        parameters: mergeMap(previous.parameters, next.parameters),
+        columnStates: mergeMap(previous.columnStates, next.columnStates),
+        parameterStates: mergeMap(previous.parameterStates, next.parameterStates),
+    };
+}
+
+function mergeMap<K, V>(
+    previous: ReadonlyMap<K, V> | undefined,
+    next: ReadonlyMap<K, V> | undefined,
+): ReadonlyMap<K, V> | undefined {
+    if (!previous && !next) return undefined;
+    return new Map([...(previous ?? []), ...(next ?? [])]);
 }
 
 function equal(

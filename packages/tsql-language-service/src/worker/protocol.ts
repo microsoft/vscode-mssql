@@ -29,6 +29,11 @@ export type WorkerRequest =
       })
     | (RequestBase & { readonly type: "close"; readonly uri: string })
     | (RequestBase & {
+          readonly type: "rebind";
+          readonly uri: string;
+          readonly expectedVersion: number;
+      })
+    | (RequestBase & {
           readonly type: "stats";
           readonly uri: string;
           readonly expectedVersion: number;

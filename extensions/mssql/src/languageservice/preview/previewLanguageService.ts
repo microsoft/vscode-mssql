@@ -42,6 +42,7 @@ interface PreviewDocumentState {
     refreshing: boolean;
     lastRefreshMs?: number;
     lastRefreshError?: string;
+    rebindQueued: boolean;
     disposed: boolean;
 }
 
@@ -162,6 +163,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             syncedVersion: document.version,
             syncedText: document.getText(),
             refreshing: false,
+            rebindQueued: false,
             disposed: false,
         };
         state.disposables.push(
@@ -170,18 +172,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                     if (uri === key) this.fireStatusChanged(state);
                 }),
             ),
-            asVscodeDisposable(
-                metadata.onDidChange(() => {
-                    this.enqueue(state, async () => {
-                        const snapshot = await state.runtime.open(
-                            key,
-                            state.syncedVersion,
-                            state.syncedText,
-                        );
-                        this.publishDiagnostics(state, snapshot);
-                    });
-                }),
-            ),
+            asVscodeDisposable(metadata.onDidChange(() => this.scheduleRebind(state))),
         );
         this._documents.set(key, state);
 
@@ -284,6 +275,16 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                     this.fireStatusChanged(state);
                 }
             });
+    }
+
+    private scheduleRebind(state: PreviewDocumentState): void {
+        if (state.rebindQueued) return;
+        state.rebindQueued = true;
+        this.enqueue(state, async () => {
+            state.rebindQueued = false;
+            const snapshot = await state.runtime.rebind(state.connectionUri, state.syncedVersion);
+            this.publishDiagnostics(state, snapshot);
+        });
     }
 
     private publishDiagnostics(

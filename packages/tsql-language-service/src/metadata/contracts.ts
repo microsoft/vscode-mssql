@@ -80,6 +80,12 @@ export interface ObjectSearchQuery {
     readonly limit?: number;
 }
 
+export type MetadataLoadState<T> =
+    | { readonly kind: "loaded"; readonly value: T }
+    | { readonly kind: "notLoaded" }
+    | { readonly kind: "loading" }
+    | { readonly kind: "failed"; readonly previous?: T };
+
 export type ObjectResolution =
     | { readonly kind: "resolved"; readonly object: ObjectMetadata }
     | { readonly kind: "ambiguous"; readonly candidates: readonly ObjectMetadata[] }
@@ -98,8 +104,8 @@ export interface MetadataView {
 
     resolveObject(parts: readonly string[]): ObjectResolution;
     object(ref: ObjectRef): ObjectMetadata | undefined;
-    columns(ref: ObjectRef): readonly ColumnMetadata[] | undefined;
-    parameters(ref: ObjectRef): readonly ParameterMetadata[] | undefined;
+    columnState(ref: ObjectRef): MetadataLoadState<readonly ColumnMetadata[]>;
+    parameterState(ref: ObjectRef): MetadataLoadState<readonly ParameterMetadata[]>;
     searchObjects(query: ObjectSearchQuery): readonly ObjectMetadata[];
     schemas(database?: string): readonly SchemaMetadata[] | undefined;
     databases(): readonly DatabaseMetadata[] | undefined;
@@ -131,6 +137,8 @@ export interface InMemoryMetadataInput {
     readonly objects?: readonly ObjectMetadata[];
     readonly columns?: ReadonlyMap<string, readonly ColumnMetadata[]>;
     readonly parameters?: ReadonlyMap<string, readonly ParameterMetadata[]>;
+    readonly columnStates?: ReadonlyMap<string, MetadataLoadState<readonly ColumnMetadata[]>>;
+    readonly parameterStates?: ReadonlyMap<string, MetadataLoadState<readonly ParameterMetadata[]>>;
     readonly schemas?: readonly SchemaMetadata[];
     readonly databases?: readonly DatabaseMetadata[];
 }

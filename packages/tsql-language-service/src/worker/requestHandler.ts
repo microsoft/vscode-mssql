@@ -54,6 +54,18 @@ export class WorkerRequestHandler {
                 case "close":
                     await this._runtime.close(request.uri);
                     return success(request.id, true);
+                case "rebind": {
+                    const snapshot = await this._runtime.rebind(
+                        request.uri,
+                        request.expectedVersion,
+                    );
+                    this.throwIfCancelled(request.id);
+                    return success(
+                        request.id,
+                        summarize(snapshot, performance.now() - started),
+                        request.expectedVersion,
+                    );
+                }
                 case "stats": {
                     this._runtime.snapshot(request.uri, request.expectedVersion);
                     const stats = this._runtime.getStats(request.uri);

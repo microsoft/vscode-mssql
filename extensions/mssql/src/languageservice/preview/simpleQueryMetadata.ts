@@ -5,12 +5,12 @@
 
 import type {
     ColumnMetadata,
-    InMemoryMetadataInput,
+    MetadataHydrationRequest,
     ObjectMetadata,
     ParameterMetadata,
-    SchemaMetadata,
     SimpleQueryExecutor,
     SimpleQueryMetadataLoader,
+    SimpleQueryMetadataPublisher,
     SimpleQueryResult,
     SqlObjectKind,
 } from "@vscode-mssql/tsql-language-service";
@@ -44,105 +44,189 @@ export class ExtensionSimpleQueryExecutor implements SimpleQueryExecutor {
 
 /** Set-based fallback loader used while the dev/query metadata repository is unavailable. */
 export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadataLoader {
-    public async load(
+    public async refresh(
         executor: SimpleQueryExecutor,
+        publisher: SimpleQueryMetadataPublisher,
         signal?: AbortSignal,
-    ): Promise<InMemoryMetadataInput> {
+    ): Promise<void> {
         const environmentRows = rows(await executor.execute(environmentQuery, signal));
         const environment = environmentRows[0] ?? new Map<string, string | undefined>();
         const currentDatabase = environment.get("current_database");
 
-        const databaseRows = rows(await executor.execute(databasesQuery, signal));
-        const schemaRows = rows(await executor.execute(schemasQuery, signal));
-        const objectRows = rows(await executor.execute(objectsQuery, signal));
-        const columnRows = rows(await executor.execute(columnsQuery, signal));
-        const parameterRows = rows(await executor.execute(parametersQuery, signal));
-
-        const objects = objectRows.flatMap<ObjectMetadata>((row) => {
-            const objectId = row.get("object_id");
-            const schema = row.get("schema_name");
-            const name = row.get("object_name");
-            const kind = objectKind(row.get("object_type"));
-            if (!objectId || !schema || !name || !kind) return [];
-            return [
-                {
-                    ref: {
-                        id: metadataObjectId(currentDatabase, objectId),
-                        database: currentDatabase,
-                    },
-                    database: currentDatabase,
-                    schema,
-                    name,
-                    kind,
-                },
-            ];
+        const mappedEnvironment = mapEnvironment(environment);
+        publisher.merge({
+            environment: mappedEnvironment,
+            completeness: {
+                databases: "loading",
+                schemas: "loading",
+                objects: "loading",
+                columns: "partial",
+                parameters: "partial",
+                definitions: "unknown",
+            },
         });
 
-        const columns = new Map<string, ColumnMetadata[]>();
-        for (const row of columnRows) {
-            const objectId = row.get("object_id");
-            const name = row.get("column_name");
-            if (!objectId || !name) continue;
-            const key = metadataObjectId(currentDatabase, objectId);
-            const values = columns.get(key) ?? [];
-            values.push({
+        const databaseRows = rows(await executor.execute(databasesQuery, signal));
+        const databases = databaseRows.flatMap((row) => {
+            const name = row.get("database_name");
+            return name ? [{ name }] : [];
+        });
+        publisher.merge({
+            completeness: { databases: "ready" },
+            databases,
+        });
+
+        const schemaRows = rows(await executor.execute(schemasQuery, signal));
+        const schemas = schemaRows.flatMap((row) => {
+            const name = row.get("schema_name");
+            return name ? [{ database: currentDatabase, name }] : [];
+        });
+        publisher.merge({
+            completeness: { schemas: "ready" },
+            schemas,
+        });
+
+        const objects: ObjectMetadata[] = [];
+        let lastObjectId = 0;
+        while (true) {
+            const objectRows = rows(await executor.execute(objectsQuery(lastObjectId), signal));
+            objects.push(...mapObjects(objectRows, currentDatabase));
+            const complete = objectRows.length < objectPageSize;
+            if (complete) {
+                // Commit one coherent identity snapshot and invalidate details belonging to the
+                // prior generation. Consumers hydrate only the objects they subsequently need.
+                publisher.replace({
+                    environment: mappedEnvironment,
+                    completeness: {
+                        databases: "ready",
+                        schemas: "ready",
+                        objects: "ready",
+                        columns: "partial",
+                        parameters: "partial",
+                        definitions: "unknown",
+                    },
+                    databases,
+                    schemas,
+                    objects,
+                });
+                break;
+            }
+            publisher.merge({ completeness: { objects: "partial" }, objects });
+            const nextObjectId = numberValue(objectRows.at(-1)?.get("object_id"));
+            if (nextObjectId === undefined || nextObjectId <= lastObjectId) {
+                throw new Error("Object metadata page did not advance its object_id cursor");
+            }
+            lastObjectId = nextObjectId;
+        }
+    }
+
+    public async hydrate(
+        executor: SimpleQueryExecutor,
+        request: MetadataHydrationRequest,
+        publisher: SimpleQueryMetadataPublisher,
+        signal?: AbortSignal,
+    ): Promise<void> {
+        if (!request.object) return;
+        const objectId = numericObjectId(request.object.id);
+        if (request.section === "columns") {
+            const columnRows = rows(await executor.execute(columnsQuery(objectId), signal));
+            const columns = mapColumns(columnRows);
+            publisher.merge({
+                columns: new Map([[request.object.id, columns]]),
+                columnStates: new Map([[request.object.id, { kind: "loaded", value: columns }]]),
+            });
+            return;
+        }
+        if (request.section === "parameters") {
+            const parameterRows = rows(await executor.execute(parametersQuery(objectId), signal));
+            const parameters = mapParameters(parameterRows);
+            publisher.merge({
+                parameters: new Map([[request.object.id, parameters]]),
+                parameterStates: new Map([
+                    [request.object.id, { kind: "loaded", value: parameters }],
+                ]),
+            });
+        }
+    }
+}
+
+function mapObjects(
+    objectRows: readonly ReadonlyMap<string, string | undefined>[],
+    currentDatabase: string | undefined,
+): readonly ObjectMetadata[] {
+    return objectRows.flatMap((row) => {
+        const objectId = row.get("object_id");
+        const schema = row.get("schema_name");
+        const name = row.get("object_name");
+        const kind = objectKind(row.get("object_type"));
+        if (!objectId || !schema || !name || !kind) return [];
+        return [
+            {
+                ref: {
+                    id: metadataObjectId(currentDatabase, objectId),
+                    database: currentDatabase,
+                },
+                database: currentDatabase,
+                schema,
+                name,
+                kind,
+            },
+        ];
+    });
+}
+
+function mapEnvironment(environment: ReadonlyMap<string, string | undefined>) {
+    return {
+        currentDatabase: environment.get("current_database"),
+        defaultSchema: environment.get("default_schema") ?? "dbo",
+        caseSensitive: booleanValue(environment.get("case_sensitive")),
+        engineEdition: numberValue(environment.get("engine_edition")),
+        serverVersion: environment.get("server_version"),
+        compatibilityLevel: numberValue(environment.get("compatibility_level")),
+    };
+}
+
+function mapColumns(
+    columnRows: readonly ReadonlyMap<string, string | undefined>[],
+): readonly ColumnMetadata[] {
+    return columnRows.flatMap((row) => {
+        const name = row.get("column_name");
+        if (!name) return [];
+        return [
+            {
                 name,
                 typeDisplay: displayType(row),
                 nullable: booleanValue(row.get("is_nullable")),
                 identity: booleanValue(row.get("is_identity")) || undefined,
                 computed: booleanValue(row.get("is_computed")) || undefined,
-            });
-            columns.set(key, values);
-        }
+            },
+        ];
+    });
+}
 
-        const parameters = new Map<string, ParameterMetadata[]>();
-        for (const row of parameterRows) {
-            const objectId = row.get("object_id");
-            const ordinal = numberValue(row.get("parameter_id"));
-            if (!objectId || ordinal === undefined) continue;
-            const key = metadataObjectId(currentDatabase, objectId);
-            const values = parameters.get(key) ?? [];
-            values.push({
+function mapParameters(
+    parameterRows: readonly ReadonlyMap<string, string | undefined>[],
+): readonly ParameterMetadata[] {
+    return parameterRows.flatMap((row) => {
+        const ordinal = numberValue(row.get("parameter_id"));
+        if (ordinal === undefined) return [];
+        return [
+            {
                 ordinal,
                 name: row.get("parameter_name") ?? "",
                 typeDisplay: displayType(row),
                 output: booleanValue(row.get("is_output")),
-            });
-            parameters.set(key, values);
-        }
-
-        const schemas: SchemaMetadata[] = schemaRows.flatMap((row) => {
-            const name = row.get("schema_name");
-            return name ? [{ database: currentDatabase, name }] : [];
-        });
-
-        return {
-            environment: {
-                currentDatabase,
-                defaultSchema: environment.get("default_schema") ?? "dbo",
-                caseSensitive: booleanValue(environment.get("case_sensitive")),
-                engineEdition: numberValue(environment.get("engine_edition")),
-                serverVersion: environment.get("server_version"),
-                compatibilityLevel: numberValue(environment.get("compatibility_level")),
             },
-            completeness: {
-                databases: "ready",
-                schemas: "ready",
-                objects: "ready",
-                columns: "ready",
-                parameters: "ready",
-                definitions: "unknown",
-            },
-            databases: databaseRows.flatMap((row) => {
-                const name = row.get("database_name");
-                return name ? [{ name }] : [];
-            }),
-            schemas,
-            objects,
-            columns,
-            parameters,
-        };
+        ];
+    });
+}
+
+function numericObjectId(metadataId: string): number {
+    const objectId = metadataId.slice(metadataId.lastIndexOf(":") + 1);
+    if (!/^\d+$/.test(objectId)) {
+        throw new Error(`Invalid metadata object id: ${metadataId}`);
     }
+    return Number(objectId);
 }
 
 function rows(result: SimpleQueryResult): readonly ReadonlyMap<string, string | undefined>[] {
@@ -251,8 +335,9 @@ FROM sys.schemas WITH (NOLOCK)
 WHERE principal_id <> 16384
 ORDER BY name;`;
 
-const objectsQuery = `
-SELECT
+const objectPageSize = 5_000;
+const objectsQuery = (lastObjectId: number) => `
+SELECT TOP (${objectPageSize})
     o.object_id,
     s.name AS schema_name,
     o.name AS object_name,
@@ -260,12 +345,12 @@ SELECT
 FROM sys.objects AS o WITH (NOLOCK)
 JOIN sys.schemas AS s WITH (NOLOCK) ON s.schema_id = o.schema_id
 WHERE o.is_ms_shipped = 0
+  AND o.object_id > ${lastObjectId}
   AND o.type IN ('U', 'V', 'P', 'PC', 'FN', 'FS', 'IF', 'TF', 'FT', 'SN')
-ORDER BY s.name, o.name;`;
+ORDER BY o.object_id;`;
 
-const columnsQuery = `
+const columnsQuery = (objectId: number) => `
 SELECT
-    c.object_id,
     c.column_id,
     c.name AS column_name,
     ty.name AS type_name,
@@ -280,11 +365,11 @@ JOIN sys.objects AS o WITH (NOLOCK) ON o.object_id = c.object_id
 JOIN sys.types AS ty WITH (NOLOCK) ON ty.user_type_id = c.user_type_id
 WHERE o.is_ms_shipped = 0
   AND o.type IN ('U', 'V', 'IF', 'TF', 'FT')
-ORDER BY c.object_id, c.column_id;`;
+  AND c.object_id = ${objectId}
+ORDER BY c.column_id;`;
 
-const parametersQuery = `
+const parametersQuery = (objectId: number) => `
 SELECT
-    p.object_id,
     p.parameter_id,
     p.name AS parameter_name,
     ty.name AS type_name,
@@ -297,4 +382,5 @@ JOIN sys.objects AS o WITH (NOLOCK) ON o.object_id = p.object_id
 JOIN sys.types AS ty WITH (NOLOCK) ON ty.user_type_id = p.user_type_id
 WHERE o.is_ms_shipped = 0
   AND o.type IN ('P', 'PC', 'FN', 'FS', 'IF', 'TF', 'FT')
-ORDER BY p.object_id, p.parameter_id;`;
+  AND p.object_id = ${objectId}
+ORDER BY p.parameter_id;`;

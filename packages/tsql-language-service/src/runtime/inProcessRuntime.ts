@@ -58,6 +58,8 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
         const semantics = this._binder.update(previous.semantics, {
             syntax,
             metadata: this._metadata.pin(),
+            previous: previous.semantics,
+            changedRanges: syntax.changedRanges,
         });
         const bindElapsed = performance.now() - bindStarted;
         const snapshot = Object.freeze({ text: document, syntax, semantics });
@@ -69,6 +71,26 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
     public async close(uri: string): Promise<void> {
         this._documents.delete(uri);
         this._stats.remove(uri);
+    }
+
+    public async rebind(uri: string, expectedVersion: number): Promise<DocumentAnalysisSnapshot> {
+        const previous = this.snapshot(uri, expectedVersion);
+        const bindStarted = performance.now();
+        const semantics = this._binder.update(previous.semantics, {
+            syntax: previous.syntax,
+            metadata: this._metadata.pin(),
+            previous: previous.semantics,
+            changedRanges: [],
+        });
+        const bindElapsed = performance.now() - bindStarted;
+        const snapshot = Object.freeze({
+            text: previous.text,
+            syntax: previous.syntax,
+            semantics,
+        });
+        this._documents.set(uri, snapshot);
+        this.publishStats(snapshot, 0, bindElapsed);
+        return snapshot;
     }
 
     public snapshot(uri: string, expectedVersion: number): DocumentAnalysisSnapshot {

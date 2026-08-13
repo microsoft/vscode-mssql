@@ -121,7 +121,15 @@ All internal offsets and ranges are UTF-16. LSP position conversion occurs at th
 
 Lezer owns only the compact incremental concrete syntax tree. The language service retains the prior tree and applies changed ranges through reusable tree fragments. The public syntax layer exposes typed, lazy wrappers rather than node-name strings and child positions.
 
-The token path is lossless. It preserves whitespace, comments, exact offsets, line-start state, quoted and bracketed identifiers, SQLCMD constructs, and `GO` batch separators. Incremental tokenization and parsing must normalize to the same result as a fresh parse of the final text.
+Document text remains the single lossless source of truth. The Lezer tree is a compact structural
+index: ordinary whitespace is skipped, comments remain available as named nodes, and source slices
+recover exact punctuation and trivia from node ranges. A second retained token tape or custom
+incremental lexer is not part of the architecture unless a measured formatter or transformation
+requirement later justifies one.
+
+Lezer tree fragments provide incremental lexing and parsing. Sequential LSP edits transform the
+same fragment set in order and parse the final document once. Incremental and fresh results must
+normalize to the same node kinds, ranges, errors, and statement boundaries.
 
 Initial syntax scaffolding recognizes scripts, batches, generic statement boundaries, trivia, and recovery nodes. Grammar coverage then grows by coherent T-SQL feature areas.
 
@@ -169,13 +177,13 @@ The extension-side adapter projects the immutable, generation-stamped catalog fr
 
 The portable adapter consumes a small `SimpleQueryExecutor` interface supplied by the host. In vscode-mssql, that executor delegates to the existing `executeSimpleQuery(connectionUri, query)` API.
 
-Refresh is asynchronous and set-based:
+Refresh is asynchronous, staged, and set-based:
 
 1. load environment, databases, schemas, and object identities;
-2. load columns and routine parameters in bounded set-based queries;
-3. map and index into a new immutable generation;
-4. publish atomically;
-5. retain the prior generation when refresh fails.
+2. page object identities and publish immutable partial generations;
+3. hydrate columns and routine parameters only for requested objects;
+4. coalesce in-flight hydration by section and object;
+5. retain usable prior data and mark it stale when refresh fails.
 
 Concurrent refresh requests are coalesced. Cancellation detaches an individual caller without corrupting shared work. Query, mapping, indexing, and publication durations are recorded separately.
 
@@ -308,6 +316,8 @@ Highest-priority invariants are:
 - stale responses published equals zero;
 - database calls from parsing, binding, or pure feature logic equals zero;
 - metadata `unknown` never becomes a confirmed-invalid diagnostic;
+- metadata refresh invokes the binder but causes zero parser calls;
+- qualified per-object hydration never enumerates unrelated object details;
 - all metadata providers and runtimes satisfy shared contract suites.
 
 Test categories include focused grammar fixtures, incomplete typing prefixes, recovery and fuzzing, UTF-16 positions, scope and resolution, invalidation counters, marker-driven features, concurrency races, real SQL Server integration, and architecture import boundaries.
@@ -320,7 +330,10 @@ Corpora are deterministic and generated; giant SQL files are not committed.
 
 Standard source sizes are 5 KiB, 100 KiB, 1 MiB, and 10 MiB. A 100 MiB lane is manual soak work. Workloads cover valid query, DML, DDL, analytical and administrative SQL, plus incomplete and recovery-heavy text.
 
-Parser measurements include cold and warm full parse, incremental edits at the beginning/middle/end, grammar-state-changing edits, paste/delete operations, tree consumption checksums, event-loop delay, throughput, latency, peak memory, and retained memory.
+Parser measurements include cold and warm full parse, incremental edits at the beginning/middle/end,
+sequential multi-edit batches, grammar-state-changing edits, paste/delete operations, malformed-input
+scaling, visible nodes per KiB, tree consumption checksums, event-loop delay, throughput, latency,
+peak memory, and retained memory.
 
 Feature benchmarks include completion, hover, definition, diagnostics, references, semantic tokens, and formatting. Catalog scales include approximately:
 

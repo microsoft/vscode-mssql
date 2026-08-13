@@ -23,6 +23,8 @@ export interface LanguageServiceRuntime extends LanguageServiceStatsProvider {
         version: number,
         changes: readonly TextChange[],
     ): Promise<DocumentAnalysisSnapshot>;
+    /** Rebinds the existing parse against the latest metadata without invoking the parser. */
+    rebind(uri: string, expectedVersion: number): Promise<DocumentAnalysisSnapshot>;
     close(uri: string): Promise<void>;
     snapshot(uri: string, expectedVersion: number): DocumentAnalysisSnapshot;
 }

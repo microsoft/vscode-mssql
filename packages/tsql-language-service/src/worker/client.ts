@@ -76,6 +76,16 @@ export class LanguageServiceWorkerClient {
         });
     }
 
+    public rebind(uri: string): Promise<WorkerDocumentSummary> {
+        return this.send<WorkerDocumentSummary>({
+            protocolVersion: workerProtocolVersion,
+            type: "rebind",
+            id: this.nextId(),
+            uri,
+            expectedVersion: this.requireVersion(uri),
+        });
+    }
+
     public async close(uri: string): Promise<void> {
         await this.send<boolean>({
             protocolVersion: workerProtocolVersion,

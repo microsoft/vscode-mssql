@@ -8,6 +8,7 @@ import type {
     ColumnMetadata,
     DatabaseMetadata,
     MetadataHydrationRequest,
+    MetadataLoadState,
     MetadataProvider,
     MetadataRefreshResult,
     MetadataView,
@@ -89,12 +90,12 @@ class DevQueryPinnedView implements MetadataView {
         return this._inner.object(ref);
     }
 
-    public columns(ref: ObjectRef): readonly ColumnMetadata[] | undefined {
-        return this._inner.columns(ref);
+    public columnState(ref: ObjectRef): MetadataLoadState<readonly ColumnMetadata[]> {
+        return this._inner.columnState(ref);
     }
 
-    public parameters(ref: ObjectRef): readonly ParameterMetadata[] | undefined {
-        return this._inner.parameters(ref);
+    public parameterState(ref: ObjectRef): MetadataLoadState<readonly ParameterMetadata[]> {
+        return this._inner.parameterState(ref);
     }
 
     public searchObjects(query: ObjectSearchQuery): readonly ObjectMetadata[] {
