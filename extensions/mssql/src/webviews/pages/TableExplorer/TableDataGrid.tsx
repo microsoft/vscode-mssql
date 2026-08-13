@@ -27,6 +27,7 @@ import {
     AppliedSortColumn,
     stripTrailingOrderByAndSemicolon,
 } from "../../../tableExplorer/tableQueryComposer";
+import { removeCleanCellChanges } from "../../../tableExplorer/editDataUtils";
 import { EditSubsetResult, ExportData } from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
@@ -611,6 +612,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         useEffect(() => {
             if (!resultSet?.columnInfo || !resultSet?.subset) {
                 return;
+            }
+
+            const changeTrackingChanged = removeCleanCellChanges(
+                resultSet.subset,
+                cellChangesRef.current,
+            );
+            if (changeTrackingChanged && onCellChangeCountChanged) {
+                onCellChangeCountChanged(cellChangesRef.current.size);
             }
 
             const previousResultSet = previousResultSetRef.current;

@@ -509,6 +509,137 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 ),
             ).to.be.true;
             expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("Updated");
+            expect(controller.state.resultSet?.subset[0].isDirty).to.be.true;
+            expect(controller.state.resultSet?.subset[0].state).to.equal(EditRowState.dirtyUpdate);
+        });
+
+        test("should clear cell and row dirty state when restored to the original value", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            mockTableExplorerService.updateCell
+                .onFirstCall()
+                .resolves({
+                    cell: {
+                        displayValue: "Changed",
+                        isNull: false,
+                        invariantCultureDisplayValue: "Changed",
+                        isDirty: true,
+                    },
+                    isRowDirty: true,
+                })
+                .onSecondCall()
+                .resolves({
+                    cell: {
+                        displayValue: "John",
+                        isNull: false,
+                        invariantCultureDisplayValue: "John",
+                        isDirty: false,
+                    },
+                    isRowDirty: false,
+                });
+
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 0,
+                columnId: 1,
+                newValue: "Changed",
+            });
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 0,
+                columnId: 1,
+                newValue: "John",
+            });
+
+            const row = controller.state.resultSet?.subset[0];
+            expect(row?.cells[1]).to.deep.include({
+                displayValue: "John",
+                invariantCultureDisplayValue: "John",
+                isNull: false,
+                isDirty: false,
+            });
+            expect(row?.isDirty).to.be.false;
+            expect(row?.state).to.equal(EditRowState.clean);
+            expect(controller.state.originalCellValues).to.be.empty;
+        });
+
+        test("should preserve normalized null values returned by the service", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            mockTableExplorerService.updateCell.resolves({
+                cell: {
+                    displayValue: "NULL",
+                    isNull: true,
+                    invariantCultureDisplayValue: "NULL",
+                    isDirty: false,
+                },
+                isRowDirty: false,
+            });
+
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 0,
+                columnId: 1,
+                newValue: "",
+            });
+
+            expect(controller.state.resultSet?.subset[0].cells[1]).to.deep.include({
+                displayValue: "NULL",
+                invariantCultureDisplayValue: "NULL",
+                isNull: true,
+                isDirty: false,
+            });
+        });
+
+        test("should preserve other dirty cells when one cell is restored", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            mockTableExplorerService.updateCell
+                .onFirstCall()
+                .resolves({
+                    cell: {
+                        displayValue: "Changed first name",
+                        isNull: false,
+                        invariantCultureDisplayValue: "Changed first name",
+                        isDirty: true,
+                    },
+                    isRowDirty: true,
+                })
+                .onSecondCall()
+                .resolves({
+                    cell: {
+                        displayValue: "Changed last name",
+                        isNull: false,
+                        invariantCultureDisplayValue: "Changed last name",
+                        isDirty: true,
+                    },
+                    isRowDirty: true,
+                })
+                .onThirdCall()
+                .resolves({
+                    cell: {
+                        displayValue: "John",
+                        isNull: false,
+                        invariantCultureDisplayValue: "John",
+                        isDirty: false,
+                    },
+                    isRowDirty: true,
+                });
+
+            for (const edit of [
+                { columnId: 1, newValue: "Changed first name" },
+                { columnId: 2, newValue: "Changed last name" },
+                { columnId: 1, newValue: "John" },
+            ]) {
+                await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                    rowId: 0,
+                    ...edit,
+                });
+            }
+
+            const row = controller.state.resultSet?.subset[0];
+            expect((row?.cells[1] as { isDirty?: boolean }).isDirty).to.be.false;
+            expect((row?.cells[2] as { isDirty?: boolean }).isDirty).to.be.true;
+            expect(row?.isDirty).to.be.true;
+            expect(row?.state).to.equal(EditRowState.dirtyUpdate);
+            expect([...controller.state.originalCellValues!.keys()]).to.deep.equal(["0-2"]);
         });
 
         test("should regenerate script if script pane is visible", async () => {

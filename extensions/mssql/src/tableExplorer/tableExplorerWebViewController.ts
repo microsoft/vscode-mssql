@@ -12,6 +12,9 @@ import {
     EditSessionReadyParams,
     DbCellValue,
     SqlPaneMode,
+    EditRow,
+    EditRowState,
+    EditCell,
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
@@ -363,6 +366,30 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         state.failedCells = [];
         state.originalCellValues?.clear();
         state.updateScript = undefined;
+    }
+
+    private updateResultCell(
+        row: EditRow,
+        columnId: number,
+        cell: EditCell,
+        isRowDirty: boolean,
+    ): EditRow {
+        const cells = [...row.cells];
+        cells[columnId] = cell;
+
+        if (row.state === EditRowState.dirtyInsert) {
+            return {
+                ...row,
+                cells,
+            };
+        }
+
+        return {
+            ...row,
+            cells,
+            isDirty: isRowDirty,
+            state: isRowDirty ? EditRowState.dirtyUpdate : EditRowState.clean,
+        };
     }
 
     /**
@@ -806,8 +833,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     payload.newValue,
                 );
 
-                this.showRestorePromptAfterClose = true;
-
                 // Remove from failed cells tracking if it was previously failed
                 if (state.failedCells) {
                     const failedKey = `${payload.rowId}-${payload.columnId}`;
@@ -821,12 +846,24 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     );
 
                     if (rowIndex !== -1) {
-                        const updatedCell = {
-                            ...updateCellResult.cell,
-                            displayValue: payload.newValue,
+                        const updatedRow = this.updateResultCell(
+                            state.resultSet.subset[rowIndex],
+                            payload.columnId,
+                            updateCellResult.cell,
+                            updateCellResult.isRowDirty,
+                        );
+                        state.resultSet = {
+                            ...state.resultSet,
+                            subset: state.resultSet.subset.map((row, index) =>
+                                index === rowIndex ? updatedRow : row,
+                            ),
                         };
 
-                        state.resultSet.subset[rowIndex].cells[payload.columnId] = updatedCell;
+                        if (!updateCellResult.cell.isDirty) {
+                            state.originalCellValues?.delete(cacheKey);
+                        }
+
+                        this.showRestorePromptAfterClose = this.hasPendingChanges(state);
 
                         this.updateState();
 
@@ -969,26 +1006,23 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     );
 
                     if (rowIndex !== -1) {
-                        // Create a completely new subset array with new row objects
-                        const newSubset = state.resultSet.subset.map((row, idx) => {
-                            if (idx === rowIndex) {
-                                // Create new cells array with the reverted cell
-                                const newCells = [...row.cells];
-                                newCells[payload.columnId] = revertedCell;
-
-                                return {
-                                    ...row,
-                                    cells: newCells,
-                                };
-                            }
-                            return { ...row }; // Create new row objects to ensure change detection
-                        });
+                        const newSubset = state.resultSet.subset.map((row, idx) =>
+                            idx === rowIndex
+                                ? this.updateResultCell(
+                                      row,
+                                      payload.columnId,
+                                      revertedCell,
+                                      revertCellResult.isRowDirty,
+                                  )
+                                : row,
+                        );
 
                         // Create completely new resultSet object
                         state.resultSet = {
                             ...state.resultSet,
                             subset: newSubset,
                         };
+                        this.showRestorePromptAfterClose = this.hasPendingChanges(state);
 
                         this.logger.debug(
                             `Reverted cell in result set at row ${rowIndex}, column ${payload.columnId}`,
