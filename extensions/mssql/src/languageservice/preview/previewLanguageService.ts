@@ -22,9 +22,12 @@ import {
     ExtensionSimpleQueryExecutor,
     VscodeMssqlSimpleQueryMetadataLoader,
 } from "./simpleQueryMetadata";
+import {
+    previewLanguageServiceSetting,
+    previewLanguageServiceStatsCodeLensSetting,
+} from "./productionLanguageServiceIsolation";
+import SqlToolsServiceClient from "../serviceclient";
 
-const previewSetting = "mssql.preview.languageService";
-const statsCodeLensSetting = "mssql.preview.languageServiceStatsCodeLens";
 const showStatsCommand = "mssql.preview.showLanguageServiceStats";
 const refreshMetadataCommand = "mssql.preview.refreshLanguageServiceMetadata";
 const statsScheme = "mssql-language-service-stats";
@@ -49,8 +52,8 @@ interface PreviewDocumentState {
 /**
  * Opt-in bridge between VS Code and the host-neutral T-SQL language service.
  *
- * Preview activation is deliberately isolated from the production SQL Tools language client.
- * Turning the setting off disposes every preview document, diagnostic, and metadata snapshot.
+ * Preview activation exclusively owns editor language features. SQL Tools Service remains active
+ * for connections and query execution, but its language-feature results are suppressed.
  */
 export class PreviewLanguageServiceIntegration implements vscode.Disposable {
     private readonly _disposables: vscode.Disposable[] = [];
@@ -96,8 +99,8 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             vscode.workspace.onDidCloseTextDocument((document) => this.closeDocument(document.uri)),
             vscode.workspace.onDidChangeConfiguration((event) => {
                 if (
-                    event.affectsConfiguration(previewSetting) ||
-                    event.affectsConfiguration(statsCodeLensSetting)
+                    event.affectsConfiguration(previewLanguageServiceSetting) ||
+                    event.affectsConfiguration(previewLanguageServiceStatsCodeLensSetting)
                 ) {
                     this.applyConfiguration();
                 }
@@ -119,8 +122,11 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
 
     private applyConfiguration(): void {
         const configuration = vscode.workspace.getConfiguration();
-        const enabled = configuration.get<boolean>(previewSetting, false);
-        const statsCodeLensEnabled = configuration.get<boolean>(statsCodeLensSetting, false);
+        const enabled = configuration.get<boolean>(previewLanguageServiceSetting, false);
+        const statsCodeLensEnabled = configuration.get<boolean>(
+            previewLanguageServiceStatsCodeLensSetting,
+            false,
+        );
         const previewChanged = enabled !== this._enabled;
         const statsCodeLensChanged = statsCodeLensEnabled !== this._statsCodeLensEnabled;
         if (!previewChanged && !statsCodeLensChanged) return;
@@ -128,7 +134,14 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         this._statsCodeLensEnabled = statsCodeLensEnabled;
         if (previewChanged) {
             if (enabled) {
-                for (const document of vscode.workspace.textDocuments) this.openDocument(document);
+                for (const document of vscode.workspace.textDocuments) {
+                    if (isSqlDocument(document)) {
+                        SqlToolsServiceClient.instance.clearLanguageServiceDiagnostics(
+                            document.uri,
+                        );
+                    }
+                    this.openDocument(document);
+                }
             } else {
                 this.stop();
             }
@@ -403,11 +416,11 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                         syntaxDiagnostics: "preview",
                         semanticBinding: "preview-scaffold",
                         metadata: state?.metadata.id ?? "unavailable",
-                        completions: "production",
-                        hover: "production",
-                        definitions: "production",
-                        references: "production",
-                        formatting: "production",
+                        completions: "preview-not-implemented",
+                        hover: "preview-not-implemented",
+                        definitions: "preview-not-implemented",
+                        references: "preview-not-implemented",
+                        formatting: "preview-not-implemented",
                     },
                     metadataRefreshInProgress: state?.refreshing ?? false,
                     lastMetadataRefreshMs: state?.lastRefreshMs,

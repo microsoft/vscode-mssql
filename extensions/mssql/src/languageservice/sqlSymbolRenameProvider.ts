@@ -13,6 +13,7 @@ import {
     SqlSymbolRenameTextEdit,
 } from "../models/contracts/languageService";
 import { SqlSymbolRename as loc, msgYes } from "../constants/locConstants";
+import { isPreviewLanguageServiceEnabled } from "./preview/productionLanguageServiceIsolation";
 
 /** Escapes a string for safe use inside an XML attribute value (e.g. an Include path). */
 function escapeXmlAttribute(value: string): string {
@@ -82,6 +83,7 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
         document: vscode.TextDocument,
         position: vscode.Position,
     ): vscode.ProviderResult<vscode.Range | { range: vscode.Range; placeholder: string }> {
+        if (isPreviewLanguageServiceEnabled()) return undefined;
         return SqlSymbolRenameProvider.isInSqlProject(document.uri.fsPath).then((inProject) => {
             if (!inProject) {
                 return Promise.reject(new Error(loc.renameOnlyInProjectFiles));
@@ -112,6 +114,7 @@ export class SqlSymbolRenameProvider implements vscode.RenameProvider {
         newName: string,
         token: vscode.CancellationToken,
     ): Promise<vscode.WorkspaceEdit | null | undefined> {
+        if (isPreviewLanguageServiceEnabled()) return undefined;
         if (token.isCancellationRequested) {
             return undefined;
         }

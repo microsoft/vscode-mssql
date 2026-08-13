@@ -9335,7 +9335,7 @@
       <source xml:lang="en">Enables the preview Object Explorer filter experience with saved filter presets and recently applied filters. Disable this setting to use the existing Object Explorer filter experience.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.languageService.description">
-      <source xml:lang="en">Enables the preview TypeScript T-SQL language service and its local parsing, binding, metadata, worker, and request statistics. Existing language features remain active until each preview feature is ready.</source>
+      <source xml:lang="en">Enables the preview TypeScript T-SQL language service and its local parsing, binding, metadata, worker, and request statistics. Production editor language features are disabled while this preview is enabled.</source>
     </trans-unit>
     <trans-unit id="mssql.preview.betaExecutionPlan.description">
       <source xml:lang="en">Enables the preview query execution plan experience with improved layout, keyboard navigation, tooltips, SQL text display, and toolbar interactions. Disable this setting to use the existing execution plan experience.</source>

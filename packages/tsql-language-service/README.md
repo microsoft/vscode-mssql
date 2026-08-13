@@ -211,10 +211,12 @@ When enabled, the extension currently:
   statistics document; and
 - provides **MSSQL: Refresh T-SQL Language Service Metadata (Preview)** for manual refresh.
 
-Completion, hover, definition, references, semantic tokens, and formatting remain routed to the
-production service until each replacement has a real implementation and parity tests. This avoids
-allowing empty scaffold providers to suppress or contaminate working editor results. The live stats
-document reports the current route for each feature.
+The preview is an exclusive test mode. Completion, hover, definition, references, semantic tokens,
+formatting, and other production editor-language results are suppressed while the flag is enabled.
+Features that the preview has not implemented are deliberately unavailable rather than silently
+falling back to SQL Tools Service. Connections, query execution, and other non-language SQL Tools
+Service operations remain active. The live stats document reports the current route for each
+feature.
 
 To test the integration during development:
 
