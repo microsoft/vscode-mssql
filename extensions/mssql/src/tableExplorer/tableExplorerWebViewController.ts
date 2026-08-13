@@ -342,6 +342,20 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         );
     }
 
+    private shouldIgnoreMutationDuringSave(
+        state: TableExplorerWebViewState,
+        mutation: string,
+    ): boolean {
+        if (state.saveStatus !== ApiStatus.Loading) {
+            return false;
+        }
+
+        this.logger.debug(
+            `Ignoring ${mutation} while changes are being saved - OperationId: ${this.operationId}`,
+        );
+        return true;
+    }
+
     /**
      * Shows a modal warning that pending changes will be lost.
      * Returns true if the user chose to continue, false if they cancelled.
@@ -566,6 +580,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("createRow", async (state) => {
+            if (this.shouldIgnoreMutationDuringSave(state, "create row")) {
+                return state;
+            }
+
             this.logger.info(
                 `Creating new row for: ${state.tableName} - OperationId: ${this.operationId}`,
             );
@@ -643,6 +661,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("deleteRow", async (state, payload) => {
+            if (this.shouldIgnoreMutationDuringSave(state, "delete row")) {
+                return state;
+            }
+
             this.logger.debug(`Deleting row: ${payload.rowId} - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
@@ -763,6 +785,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("updateCell", async (state, payload) => {
+            if (this.shouldIgnoreMutationDuringSave(state, "update cell")) {
+                return state;
+            }
+
             this.logger.debug(
                 `Updating cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
             );
@@ -905,6 +931,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("revertCell", async (state, payload) => {
+            if (this.shouldIgnoreMutationDuringSave(state, "revert cell")) {
+                return state;
+            }
+
             this.logger.debug(
                 `Reverting cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
             );
@@ -1032,6 +1062,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("revertRow", async (state, payload) => {
+            if (this.shouldIgnoreMutationDuringSave(state, "revert row")) {
+                return state;
+            }
+
             this.logger.debug(`Reverting row: ${payload.rowId} - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();

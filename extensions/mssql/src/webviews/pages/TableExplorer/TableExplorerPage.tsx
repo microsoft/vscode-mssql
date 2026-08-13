@@ -171,6 +171,7 @@ export const TableExplorerPage: React.FC = () => {
     const gridRef = useRef<TableDataGridRef>(null);
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
     const [deletionCount, setDeletionCount] = React.useState(0);
+    const [saveRequestPending, setSaveRequestPending] = React.useState(false);
     const [selectedRowIds, setSelectedRowIds] = React.useState<number[]>([]);
     const [filtersOpen, setFiltersOpen] = React.useState(false);
     const [activeFilters, setActiveFilters] = React.useState<AppliedFilter[]>([]);
@@ -180,6 +181,7 @@ export const TableExplorerPage: React.FC = () => {
     // every change — the ORDER BY rides along the next time something else
     // (load subset, filter apply/clear) actually re-runs the query.
     const [sortColumns, setSortColumns] = useState<AppliedSortColumn[]>([]);
+    const isSaving = saveRequestPending || saveStatus === ApiStatus.Loading;
 
     // The SQL pane displays `tableQuery` rebased onto the current UI sort:
     //   - sort active   → strip any embedded ORDER BY and append the UI one
@@ -332,9 +334,21 @@ export const TableExplorerPage: React.FC = () => {
         setSortColumns([]);
     }, [tableQuery]);
 
+    const handleSave = useCallback(() => {
+        if (isSaving || !gridRef.current?.commitCurrentEdit()) {
+            return;
+        }
+
+        setSaveRequestPending(true);
+        context.commitChanges();
+    }, [context, isSaving]);
+
     useEffect(() => {
         if (saveStatus === ApiStatus.Loaded) {
             gridRef.current?.clearAllChangeTracking();
+        }
+        if (saveStatus !== ApiStatus.Loading) {
+            setSaveRequestPending(false);
         }
     }, [saveStatus]);
 
@@ -352,6 +366,8 @@ export const TableExplorerPage: React.FC = () => {
                 <Panel defaultSize={75}>
                     <div className={classes.contentArea}>
                         <TableExplorerToolbar
+                            isSaving={isSaving}
+                            onSave={handleSave}
                             cellChangeCount={cellChangeCount}
                             deletionCount={deletionCount}
                             currentRowCount={currentRowCount}
@@ -376,7 +392,7 @@ export const TableExplorerPage: React.FC = () => {
                                     columns={filterColumns}
                                     onApply={handleApplyFilters}
                                     onClear={handleClearFilters}
-                                    disabled={isLoading}
+                                    disabled={isLoading || isSaving}
                                     initialFilters={activeFilters}
                                     isOpen={filtersOpen}
                                 />
@@ -397,6 +413,7 @@ export const TableExplorerPage: React.FC = () => {
                                     resultSet={resultSet}
                                     themeKind={themeKind}
                                     currentRowCount={currentRowCount}
+                                    isMutationDisabled={isSaving}
                                     failedCells={failedCells}
                                     deletedRows={deletedRows}
                                     newRowIds={newRows?.map((r) => r.id)}

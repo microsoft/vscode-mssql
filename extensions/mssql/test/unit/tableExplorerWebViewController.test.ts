@@ -258,6 +258,50 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(controller.state.originalCellValues?.get("100-1")).to.equal(originalCell);
             expect(controller.state.updateScript).to.equal("INSERT INTO TestTable VALUES (...)");
         });
+
+        test("should reject data mutations while commit is in progress", async () => {
+            // Arrange
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [createMockRow(100, ["3", "New", "Row"])];
+            let resolveCommit: (value: EditCommitResult) => void;
+            mockTableExplorerService.commit.returns(
+                new Promise<EditCommitResult>((resolve) => {
+                    resolveCommit = resolve;
+                }),
+            );
+
+            // Act
+            const commitPromise = controller["_reducerHandlers"].get("commitChanges")(
+                controller.state,
+                {},
+            );
+            await controller["_reducerHandlers"].get("createRow")(controller.state, {});
+            await controller["_reducerHandlers"].get("deleteRow")(controller.state, { rowId: 0 });
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 100,
+                columnId: 1,
+                newValue: "Changed during save",
+            });
+            await controller["_reducerHandlers"].get("revertCell")(controller.state, {
+                rowId: 100,
+                columnId: 1,
+            });
+            await controller["_reducerHandlers"].get("revertRow")(controller.state, {
+                rowId: 100,
+            });
+
+            // Assert
+            expect(controller.state.saveStatus).to.equal(ApiStatus.Loading);
+            expect(mockTableExplorerService.createRow).not.to.have.been.called;
+            expect(mockTableExplorerService.deleteRow).not.to.have.been.called;
+            expect(mockTableExplorerService.updateCell).not.to.have.been.called;
+            expect(mockTableExplorerService.revertCell).not.to.have.been.called;
+            expect(mockTableExplorerService.revertRow).not.to.have.been.called;
+            expect(controller.state.newRows).to.have.length(1);
+
+            resolveCommit!({});
+            await commitPromise;
+        });
     });
 
     suite("loadSubset reducer", () => {

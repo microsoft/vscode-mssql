@@ -65,6 +65,7 @@ interface TableDataGridProps {
     themeKind?: ColorThemeKind;
     pageSize?: number;
     currentRowCount?: number;
+    isMutationDisabled?: boolean;
     failedCells?: string[];
     deletedRows?: number[];
     newRowIds?: number[];
@@ -89,6 +90,7 @@ export interface DataColumnVisibility {
 
 export interface TableDataGridRef {
     clearAllChangeTracking: () => void;
+    commitCurrentEdit: () => boolean;
     getCellChangeCount: () => number;
     goToLastPage: () => void;
     goToFirstPage: () => void;
@@ -107,6 +109,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             resultSet,
             themeKind,
             pageSize = 50,
+            isMutationDisabled = false,
             failedCells,
             deletedRows,
             newRowIds,
@@ -145,6 +148,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const columnDisplayNamesRef = useRef<Map<string | number, string>>(new Map());
         const [vectorTooltip, setVectorTooltip] = useState<{ x: number; y: number } | null>(null);
         const tooltipOpenCountRef = useRef(0);
+        const mutationDisabledRef = useRef(isMutationDisabled);
+        mutationDisabledRef.current = isMutationDisabled;
 
         // Create a custom pager component
         const BoundCustomPager = useMemo(
@@ -157,6 +162,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         function reactGridReady(reactGrid: SlickgridReactInstance) {
             reactGridRef.current = reactGrid;
+            reactGrid.slickGrid.setOptions({ editable: !mutationDisabledRef.current });
             isInitializedRef.current = true;
             tryAutoSelectFirstCell();
         }
@@ -222,6 +228,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // Expose methods to parent via ref
         useImperativeHandle(ref, () => ({
             clearAllChangeTracking,
+            commitCurrentEdit: () =>
+                reactGridRef.current?.slickGrid.getEditorLock().commitCurrentEdit() ?? true,
             getCellChangeCount: () => cellChangesRef.current.size,
             goToLastPage: () => {
                 if (reactGridRef.current?.paginationService && reactGridRef.current?.dataView) {
@@ -286,7 +294,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 grid.updateColumns();
             },
             deleteRows: (rowIds: number[]) => {
-                if (!onDeleteRow) {
+                if (!onDeleteRow || mutationDisabledRef.current) {
                     return;
                 }
                 if (reactGridRef.current?.paginationService) {
@@ -376,12 +384,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 ) => {
                     const rowId = dataContext.id;
                     const isDeleted = deletedRowsRef.current.has(rowId);
-                    const iconClass = isDeleted
+                    const isRevertEnabled = isDeleted && !mutationDisabledRef.current;
+                    const iconClass = isRevertEnabled
                         ? "fi fi-arrow-undo action-icon pointer"
                         : "fi fi-arrow-undo action-icon disabled";
                     return createDomElement("i", {
                         className: iconClass,
-                        title: isDeleted ? loc.tableExplorer.revertRow : "",
+                        title: isRevertEnabled ? loc.tableExplorer.revertRow : "",
                     });
                 },
                 minWidth: 30,
@@ -487,6 +496,12 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 void reactGridRef.current.paginationService.changeItemPerPage(pageSize);
             }
         }, [pageSize]);
+
+        useEffect(() => {
+            const grid = reactGridRef.current?.slickGrid;
+            grid?.setOptions({ editable: !isMutationDisabled });
+            grid?.invalidate();
+        }, [isMutationDisabled]);
 
         // Sync failed cells from props to ref (convert array to Set for fast lookups)
         useEffect(() => {
@@ -654,7 +669,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     setOptions({
                         autoEdit: false,
                         autoCommitEdit: true,
-                        editable: true,
+                        editable: !mutationDisabledRef.current,
                         autoResize: createFluentAutoResizeOptions("#grid-container", {
                             autoHeight: false,
                             bottomPadding: 10,
@@ -901,6 +916,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         }
 
         function handleCellChange(_e: CustomEvent, args: any) {
+            if (mutationDisabledRef.current) {
+                return;
+            }
+
             // Capture pagination state
             if (reactGridRef.current?.paginationService) {
                 lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
@@ -947,6 +966,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // local deletion / cell-change tracking for the row, and updates parent
         // counters.
         function revertRow(rowId: number) {
+            if (mutationDisabledRef.current) {
+                return;
+            }
+
             if (onRevertRow) {
                 onRevertRow(rowId);
             }
@@ -976,6 +999,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         }
 
         function handleCellClick(_e: Event, args: any) {
+            if (mutationDisabledRef.current) {
+                return;
+            }
+
             const metadata = reactGridRef.current?.gridService.getColumnFromEventArguments(args);
             if (metadata?.columnDef.id !== "undo") {
                 return;
@@ -994,6 +1021,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         }
 
         function handleCellKeyDown(e: KeyboardEvent, _args: any) {
+            if (mutationDisabledRef.current) {
+                return;
+            }
+
             if (e.key !== "Enter") {
                 return;
             }
@@ -1072,12 +1103,16 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     break;
 
                 case "delete-row":
-                    if (onDeleteRow) {
+                    if (onDeleteRow && !mutationDisabledRef.current) {
                         onDeleteRow(rowId);
                     }
                     break;
 
                 case "revert-cell":
+                    if (mutationDisabledRef.current) {
+                        break;
+                    }
+
                     const cellIndex = args.cell;
                     // Get the actual column from the grid (accounts for hidden columns)
                     const gridColumns = reactGridRef.current?.slickGrid?.getVisibleColumns() || [];
@@ -1496,7 +1531,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         itemVisibilityOverride: (args: any) => {
                             // Hide "Delete Row" if row is already deleted
                             const rowId = args.dataContext?.id;
-                            return !deletedRowsRef.current.has(rowId);
+                            return (
+                                !mutationDisabledRef.current && !deletedRowsRef.current.has(rowId)
+                            );
                         },
                     },
                     {
@@ -1504,12 +1541,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         title: loc.tableExplorer.revertCell,
                         iconCssClass: "fi fi-arrow-undo",
                         positionOrder: 10,
+                        itemVisibilityOverride: () => !mutationDisabledRef.current,
                     },
                     {
                         command: "revert-row",
                         title: loc.tableExplorer.revertRow,
                         iconCssClass: "fi fi-arrow-undo",
                         positionOrder: 11,
+                        itemVisibilityOverride: () => !mutationDisabledRef.current,
                     },
                     // Divider before navigation commands
                     { divider: true, command: "", positionOrder: 12 },
