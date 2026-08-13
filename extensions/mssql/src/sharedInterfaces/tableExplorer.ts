@@ -50,6 +50,11 @@ export interface EditCellResult {
     isRowDirty: boolean;
 }
 
+export interface CellUpdateAcknowledgement {
+    requestId: number;
+    isDirty: boolean;
+}
+
 export interface EditReferencedTableInfo {
     schemaName: string;
     tableName: string;
@@ -201,6 +206,7 @@ export interface TableExplorerWebViewState {
     currentPage?: number; // Track the current page number in the data grid
     failedCells?: string[]; // Track cells that failed to update (format: "rowId-columnId")
     originalCellValues?: Map<string, DbCellValue>; // Cache original cell values for reliable revert (key: "rowId-columnId")
+    cellUpdateAcknowledgements?: Record<string, CellUpdateAcknowledgement>; // Latest service response per cell
 }
 
 export interface TableExplorerContextProps extends CoreRPCs {
@@ -208,7 +214,7 @@ export interface TableExplorerContextProps extends CoreRPCs {
     loadSubset: (rowCount: number) => void;
     createRow: () => void;
     deleteRow: (rowId: number) => void;
-    updateCell: (rowId: number, columnId: number, newValue: string) => void;
+    updateCell: (rowId: number, columnId: number, newValue: string, requestId: number) => void;
     revertCell: (rowId: number, columnId: number) => void;
     revertRow: (rowId: number) => void;
     generateScript: () => void;
@@ -229,7 +235,7 @@ export interface TableExplorerReducers {
     loadSubset: { rowCount: number };
     createRow: {};
     deleteRow: { rowId: number };
-    updateCell: { rowId: number; columnId: number; newValue: string };
+    updateCell: { rowId: number; columnId: number; newValue: string; requestId: number };
     revertCell: { rowId: number; columnId: number };
     revertRow: { rowId: number };
     generateScript: {};

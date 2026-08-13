@@ -41,8 +41,13 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("deleteRow", { rowId });
             },
 
-            updateCell: function (rowId: number, columnId: number, newValue: string): void {
-                extensionRpc.action("updateCell", { rowId, columnId, newValue });
+            updateCell: function (
+                rowId: number,
+                columnId: number,
+                newValue: string,
+                requestId: number,
+            ): void {
+                extensionRpc.action("updateCell", { rowId, columnId, newValue, requestId });
             },
 
             revertCell: function (rowId: number, columnId: number): void {

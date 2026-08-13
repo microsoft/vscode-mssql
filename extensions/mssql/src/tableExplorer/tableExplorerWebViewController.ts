@@ -71,6 +71,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 currentPage: 1, // Start on page 1
                 failedCells: [], // Track cells that failed to update
                 originalCellValues: new Map<string, DbCellValue>(), // Cache original values for reliable revert
+                cellUpdateAcknowledgements: {},
             },
             {
                 title: qualifiedTableName,
@@ -365,6 +366,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         state.deletedRows = [];
         state.failedCells = [];
         state.originalCellValues?.clear();
+        state.cellUpdateAcknowledgements = {};
         state.updateScript = undefined;
     }
 
@@ -471,6 +473,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 state.deletedRows = [];
                 state.failedCells = [];
                 state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
+                state.cellUpdateAcknowledgements = {};
                 this.showRestorePromptAfterClose = false;
 
                 this.logger.debug(
@@ -862,6 +865,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         if (!updateCellResult.cell.isDirty) {
                             state.originalCellValues?.delete(cacheKey);
                         }
+                        state.cellUpdateAcknowledgements = {
+                            ...state.cellUpdateAcknowledgements,
+                            [cacheKey]: {
+                                requestId: payload.requestId,
+                                isDirty: updateCellResult.cell.isDirty,
+                            },
+                        };
 
                         this.showRestorePromptAfterClose = this.hasPendingChanges(state);
 
@@ -992,6 +1002,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         `Removed cached value for cell ${cacheKey} after successful revert`,
                     );
                 }
+                if (state.cellUpdateAcknowledgements) {
+                    delete state.cellUpdateAcknowledgements[cacheKey];
+                }
 
                 // Remove from failed cells tracking
                 if (state.failedCells) {
@@ -1104,6 +1117,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
                     this.logger.debug(
                         `Cleared ${keysToDelete.length} cached values for row ${payload.rowId}`,
+                    );
+                }
+                if (state.cellUpdateAcknowledgements) {
+                    state.cellUpdateAcknowledgements = Object.fromEntries(
+                        Object.entries(state.cellUpdateAcknowledgements).filter(
+                            ([key]) => !key.startsWith(`${payload.rowId}-`),
+                        ),
                     );
                 }
 

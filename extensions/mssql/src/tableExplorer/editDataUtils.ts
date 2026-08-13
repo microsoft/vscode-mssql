@@ -3,25 +3,24 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { EditCell, EditRow } from "../sharedInterfaces/tableExplorer";
+import { CellUpdateAcknowledgement } from "../sharedInterfaces/tableExplorer";
 
 /**
- * Removes locally tracked edits that the edit service reports as clean.
+ * Removes locally tracked edits whose matching request the edit service reports as clean.
  * The service performs the SQL-type-aware conversion and comparison, so its dirty state is
  * authoritative for values such as NULL, dates, and culture-specific numeric representations.
  */
-export function removeCleanCellChanges(
-    rows: EditRow[],
-    cellChanges: Map<string, unknown>,
+export function removeAcknowledgedCleanCellChanges<T extends { requestId: number }>(
+    acknowledgements: Record<string, CellUpdateAcknowledgement> | undefined,
+    cellChanges: Map<string, T>,
 ): boolean {
     let changed = false;
 
-    for (const row of rows) {
-        row.cells.forEach((cell, columnIndex) => {
-            if ((cell as EditCell).isDirty === false) {
-                changed = cellChanges.delete(`${row.id}-${columnIndex}`) || changed;
-            }
-        });
+    for (const [cellKey, acknowledgement] of Object.entries(acknowledgements ?? {})) {
+        const trackedChange = cellChanges.get(cellKey);
+        if (!acknowledgement.isDirty && trackedChange?.requestId === acknowledgement.requestId) {
+            changed = cellChanges.delete(cellKey) || changed;
+        }
     }
 
     return changed;

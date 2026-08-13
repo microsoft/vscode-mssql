@@ -124,6 +124,9 @@ export const TableExplorerPage: React.FC = () => {
     const loadStatus = useTableExplorerSelector((s) => s.loadStatus);
     const currentRowCount = useTableExplorerSelector((s) => s.currentRowCount);
     const failedCells = useTableExplorerSelector((s) => s.failedCells);
+    const cellUpdateAcknowledgements = useTableExplorerSelector(
+        (s) => s.cellUpdateAcknowledgements,
+    );
     const deletedRows = useTableExplorerSelector((s) => s.deletedRows);
     const newRows = useTableExplorerSelector((s) => s.newRows);
     const showScriptPane = useTableExplorerSelector((s) => s.showScriptPane);
@@ -394,6 +397,7 @@ export const TableExplorerPage: React.FC = () => {
                                 <TableDataGrid
                                     ref={gridRef}
                                     resultSet={resultSet}
+                                    cellUpdateAcknowledgements={cellUpdateAcknowledgements}
                                     themeKind={themeKind}
                                     currentRowCount={currentRowCount}
                                     failedCells={failedCells}

@@ -497,6 +497,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 rowId: 0,
                 columnId: 1,
                 newValue: "Updated",
+                requestId: 1,
             });
 
             // Assert
@@ -542,11 +543,13 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 rowId: 0,
                 columnId: 1,
                 newValue: "Changed",
+                requestId: 1,
             });
             await controller["_reducerHandlers"].get("updateCell")(controller.state, {
                 rowId: 0,
                 columnId: 1,
                 newValue: "John",
+                requestId: 2,
             });
 
             const row = controller.state.resultSet?.subset[0];
@@ -559,6 +562,10 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(row?.isDirty).to.be.false;
             expect(row?.state).to.equal(EditRowState.clean);
             expect(controller.state.originalCellValues).to.be.empty;
+            expect(controller.state.cellUpdateAcknowledgements?.["0-1"]).to.deep.equal({
+                requestId: 2,
+                isDirty: false,
+            });
         });
 
         test("should preserve normalized null values returned by the service", async () => {
@@ -578,6 +585,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 rowId: 0,
                 columnId: 1,
                 newValue: "",
+                requestId: 1,
             });
 
             expect(controller.state.resultSet?.subset[0].cells[1]).to.deep.include({
@@ -624,9 +632,9 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 });
 
             for (const edit of [
-                { columnId: 1, newValue: "Changed first name" },
-                { columnId: 2, newValue: "Changed last name" },
-                { columnId: 1, newValue: "John" },
+                { columnId: 1, newValue: "Changed first name", requestId: 1 },
+                { columnId: 2, newValue: "Changed last name", requestId: 2 },
+                { columnId: 1, newValue: "John", requestId: 3 },
             ]) {
                 await controller["_reducerHandlers"].get("updateCell")(controller.state, {
                     rowId: 0,
@@ -640,6 +648,10 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(row?.isDirty).to.be.true;
             expect(row?.state).to.equal(EditRowState.dirtyUpdate);
             expect([...controller.state.originalCellValues!.keys()]).to.deep.equal(["0-2"]);
+            expect(controller.state.cellUpdateAcknowledgements).to.deep.equal({
+                "0-1": { requestId: 3, isDirty: false },
+                "0-2": { requestId: 2, isDirty: true },
+            });
         });
 
         test("should regenerate script if script pane is visible", async () => {
@@ -666,6 +678,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 rowId: 0,
                 columnId: 1,
                 newValue: "Updated",
+                requestId: 1,
             });
 
             // Assert
@@ -683,6 +696,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 rowId: 0,
                 columnId: 1,
                 newValue: "Updated",
+                requestId: 1,
             });
 
             // Assert

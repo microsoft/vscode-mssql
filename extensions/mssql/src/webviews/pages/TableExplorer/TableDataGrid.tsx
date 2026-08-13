@@ -27,8 +27,12 @@ import {
     AppliedSortColumn,
     stripTrailingOrderByAndSemicolon,
 } from "../../../tableExplorer/tableQueryComposer";
-import { removeCleanCellChanges } from "../../../tableExplorer/editDataUtils";
-import { EditSubsetResult, ExportData } from "../../../sharedInterfaces/tableExplorer";
+import { removeAcknowledgedCleanCellChanges } from "../../../tableExplorer/editDataUtils";
+import {
+    CellUpdateAcknowledgement,
+    EditSubsetResult,
+    ExportData,
+} from "../../../sharedInterfaces/tableExplorer";
 import { ColorThemeKind } from "../../../sharedInterfaces/webview";
 import { locConstants as loc } from "../../common/locConstants";
 import TableExplorerCustomPager from "./TableExplorerCustomPager";
@@ -63,6 +67,7 @@ const isNumericSqlType = (dataTypeName?: string): boolean => {
 
 interface TableDataGridProps {
     resultSet: EditSubsetResult | undefined;
+    cellUpdateAcknowledgements?: Record<string, CellUpdateAcknowledgement>;
     themeKind?: ColorThemeKind;
     pageSize?: number;
     currentRowCount?: number;
@@ -71,7 +76,7 @@ interface TableDataGridProps {
     newRowIds?: number[];
     tableQuery?: string;
     onDeleteRow?: (rowId: number) => void;
-    onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
+    onUpdateCell?: (rowId: number, columnId: number, newValue: string, requestId: number) => void;
     onRevertCell?: (rowId: number, columnId: number) => void;
     onRevertRow?: (rowId: number) => void;
     onCellChangeCountChanged?: (count: number) => void;
@@ -106,6 +111,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
     (
         {
             resultSet,
+            cellUpdateAcknowledgements,
             themeKind,
             pageSize = 50,
             failedCells,
@@ -131,6 +137,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const [currentTheme, setCurrentTheme] = useState<ColorThemeKind | undefined>(themeKind);
         const reactGridRef = useRef<SlickgridReactInstance | null>(null);
         const cellChangesRef = useRef<Map<string, any>>(new Map());
+        const nextCellUpdateRequestIdRef = useRef(0);
         const deletedRowsRef = useRef<Set<number>>(new Set());
         const newRowIdsRef = useRef<Set<number>>(new Set());
         const failedCellsRef = useRef<Set<string>>(new Set());
@@ -614,14 +621,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
 
-            const changeTrackingChanged = removeCleanCellChanges(
-                resultSet.subset,
-                cellChangesRef.current,
-            );
-            if (changeTrackingChanged && onCellChangeCountChanged) {
-                onCellChangeCountChanged(cellChangesRef.current.size);
-            }
-
             const previousResultSet = previousResultSetRef.current;
             const isInitialLoad = !isInitializedRef.current || !previousResultSet;
             const columnCountChanged =
@@ -849,6 +848,17 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             previousResultSetRef.current = resultSet;
         }, [resultSet, options, themeKind, pageSize]);
 
+        useEffect(() => {
+            const changeTrackingChanged = removeAcknowledgedCleanCellChanges(
+                cellUpdateAcknowledgements,
+                cellChangesRef.current,
+            );
+            if (changeTrackingChanged) {
+                onCellChangeCountChanged?.(cellChangesRef.current.size);
+                reactGridRef.current?.slickGrid?.invalidate();
+            }
+        }, [cellUpdateAcknowledgements]);
+
         // Restore pagination after dataset changes
         useEffect(() => {
             if (
@@ -926,12 +936,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
             // Track the change using original data column index (not visible cell index)
             const changeKey = `${rowId}-${dataColumnIndex}`;
+            const requestId = ++nextCellUpdateRequestIdRef.current;
             cellChangesRef.current.set(changeKey, {
                 rowId,
                 columnIndex: dataColumnIndex,
                 columnId: column?.id,
                 field: column?.field,
                 newValue: args.item[column?.field],
+                requestId,
             });
 
             // Notify parent of change count update
@@ -942,7 +954,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Notify parent
             if (onUpdateCell) {
                 const newValue = args.item[column?.field];
-                onUpdateCell(rowId, dataColumnIndex, newValue);
+                onUpdateCell(rowId, dataColumnIndex, newValue, requestId);
             }
 
             // Update the display without full re-render
