@@ -1883,6 +1883,20 @@ export class LocalContainers {
             comment: ["{0} is the container name"],
         });
     };
+    public static containerUsedByOtherConnections = (
+        containerName: string,
+        connectionDisplayNames: string[],
+    ) => {
+        return l10n.t({
+            message:
+                "The container {0} is also used by other saved connections: {1}. Remove those connections before deleting the container.",
+            args: [containerName, connectionDisplayNames.join(", ")],
+            comment: [
+                "{0} is the container name",
+                "{1} is the comma-separated list of connection display names",
+            ],
+        });
+    };
     public static configureLinuxContainers = l10n.t("Configure Linux containers");
     public static configureRosetta = l10n.t("Configure Rosetta in Docker Desktop");
     public static switchToLinuxContainersConfirmation = l10n.t(

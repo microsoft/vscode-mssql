@@ -7652,6 +7652,11 @@
       <source xml:lang="en">The connection with ID &apos;{0}&apos; does not have the &apos;server&apos; property set and is being ignored.  Please set the &apos;server&apos; property on this connection in order to use it.</source>
       <note>{0} is the connection ID for the connection that has been ignored</note>
     </trans-unit>
+    <trans-unit id="++CODE++69695cf125835cd789041b7926584edecba49a8a2cf8d8584bb6be2055e4eef8">
+      <source xml:lang="en">The container {0} is also used by other saved connections: {1}. Remove those connections before deleting the container.</source>
+      <note>{0} is the container name
+{1} is the comma-separated list of connection display names</note>
+    </trans-unit>
     <trans-unit id="++CODE++90a4ba6d5483f640dbf83e90ca81103b564ff6be1e78dc9caf91eea1c299757e">
       <source xml:lang="en">The custom cloud choice is not configured. Please configure the setting `{0}`.</source>
     </trans-unit>

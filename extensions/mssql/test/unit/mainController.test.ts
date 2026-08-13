@@ -37,6 +37,10 @@ import { SchemaDesignerWebviewController } from "../../src/schemaDesigner/schema
 import { SchemaDesigner } from "../../src/sharedInterfaces/schemaDesigner";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import * as Utils from "../../src/models/utils";
+import { ConnectionStore } from "../../src/models/connectionStore";
+import { ConnectionConfig } from "../../src/connectionconfig/connectionconfig";
+import { ConnectionProfile } from "../../src/models/connectionProfile";
+import { ConnectionNode } from "../../src/objectExplorer/nodes/connectionNode";
 
 chai.use(sinonChai);
 
@@ -51,6 +55,8 @@ type MainControllerTestAccess = {
     findChatOpenAgentCommand(): Promise<string | undefined>;
     registerLanguageModelTools(): void;
     migrateTransferActiveEditorConnectionsSetting(): Promise<void>;
+    deleteContainerForNode(node: ConnectionNode): Promise<void>;
+    isContainerReadyForCommands(node: ConnectionNode): Promise<boolean>;
 };
 
 function accessMainController(controller: MainController): MainControllerTestAccess {
@@ -156,6 +162,87 @@ suite("MainController Tests", function () {
         await controller.onManageProfiles();
 
         expect(connectionManager.onManageProfiles).to.have.been.called;
+    });
+
+    suite("Delete Container", () => {
+        let controllerAccess: MainControllerTestAccess;
+        let connectionConfig: sinon.SinonStubbedInstance<ConnectionConfig>;
+
+        function createContainerConnection(
+            id: string,
+            profileName: string,
+            containerName: string,
+        ): ConnectionProfile {
+            const profile = new ConnectionProfile();
+            profile.id = id;
+            profile.profileName = profileName;
+            profile.containerName = containerName;
+            return profile;
+        }
+
+        function createContainerNode(profile: ConnectionProfile): ConnectionNode {
+            const node = sandbox.createStubInstance(ConnectionNode);
+            sandbox.stub(node, "connectionProfile").get(() => profile);
+            return node;
+        }
+
+        setup(() => {
+            controllerAccess = accessMainController(mainController);
+            const connectionStore = sandbox.createStubInstance(ConnectionStore);
+            connectionConfig = sandbox.createStubInstance(ConnectionConfig);
+            sandbox.stub(connectionStore, "connectionConfig").get(() => connectionConfig);
+            sandbox.stub(connectionManager, "connectionStore").get(() => connectionStore);
+        });
+
+        test("prevents deletion when another saved connection uses the container", async () => {
+            const selectedProfile = createContainerConnection(
+                "selected",
+                "Selected connection",
+                "shared-container",
+            );
+            const otherProfile = createContainerConnection(
+                "other",
+                "Other connection",
+                "shared-container",
+            );
+            connectionConfig.getConnections.resolves([selectedProfile, otherProfile]);
+            const isContainerReadyStub = sandbox
+                .stub(controllerAccess, "isContainerReadyForCommands")
+                .resolves(true);
+
+            await controllerAccess.deleteContainerForNode(createContainerNode(selectedProfile));
+
+            expect(messageBoxes.showWarningMessage).to.have.been.calledOnceWithExactly(
+                LocalizedConstants.LocalContainers.containerUsedByOtherConnections(
+                    "shared-container",
+                    ["Other connection"],
+                ),
+            );
+            expect(isContainerReadyStub).to.not.have.been.called;
+            expect(messageBoxes.showInformationMessage).to.not.have.been.called;
+        });
+
+        test("allows deletion flow when only the selected connection uses the container", async () => {
+            const selectedProfile = createContainerConnection(
+                "selected",
+                "Selected connection",
+                "selected-container",
+            );
+            const unrelatedProfile = createContainerConnection(
+                "other",
+                "Other connection",
+                "other-container",
+            );
+            connectionConfig.getConnections.resolves([selectedProfile, unrelatedProfile]);
+            const isContainerReadyStub = sandbox
+                .stub(controllerAccess, "isContainerReadyForCommands")
+                .resolves(false);
+
+            await controllerAccess.deleteContainerForNode(createContainerNode(selectedProfile));
+
+            expect(messageBoxes.showWarningMessage).to.not.have.been.called;
+            expect(isContainerReadyStub).to.have.been.calledOnce;
+        });
     });
 
     suite("onRunCurrentStatement Tests", () => {

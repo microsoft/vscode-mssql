@@ -1069,6 +1069,13 @@
         "message": "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.",
         "comment": ["{0} is the container name"]
     },
+    "The container {0} is also used by other saved connections: {1}. Remove those connections before deleting the container./{0} is the container name{1} is the comma-separated list of connection display names": {
+        "message": "The container {0} is also used by other saved connections: {1}. Remove those connections before deleting the container.",
+        "comment": [
+            "{0} is the container name",
+            "{1} is the comma-separated list of connection display names"
+        ]
+    },
     "Configure Linux containers": "Configure Linux containers",
     "Configure Rosetta in Docker Desktop": "Configure Rosetta in Docker Desktop",
     "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?": "Your Docker Engine currently runs Windows containers. SQL Server only supports Linux containers. Would you like to switch to Linux containers?",
