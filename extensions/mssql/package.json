@@ -1809,19 +1809,13 @@
                 },
                 "mssql.preview.betaResultsGrid": {
                     "type": "boolean",
-                    "default": false,
+                    "default": true,
                     "description": "%mssql.preview.betaResultsGrid.description%",
-                    "scope": "application"
-                },
-                "mssql.preview.betaObjectExplorerFilter": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "%mssql.preview.betaObjectExplorerFilter.description%",
                     "scope": "application"
                 },
                 "mssql.preview.betaExecutionPlan": {
                     "type": "boolean",
-                    "default": false,
+                    "default": true,
                     "description": "%mssql.preview.betaExecutionPlan.description%",
                     "scope": "application"
                 },
