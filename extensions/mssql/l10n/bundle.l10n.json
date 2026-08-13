@@ -849,6 +849,15 @@
         "comment": ["{0} is the number of invalid accounts that have been removed"]
     },
     "Entra token cache cleared successfully.": "Entra token cache cleared successfully.",
+    "Provision Azure SQL database": "Provision Azure SQL database",
+    "Provisioning Azure SQL database '{0}'/{0} is the Azure SQL database name": {
+        "message": "Provisioning Azure SQL database '{0}'",
+        "comment": ["{0} is the Azure SQL database name"]
+    },
+    "Azure SQL database '{0}' was provisioned successfully/{0} is the Azure SQL database name": {
+        "message": "Azure SQL database '{0}' was provisioned successfully",
+        "comment": ["{0} is the Azure SQL database name"]
+    },
     "Azure Account": "Azure Account",
     "Azure Account is required": "Azure Account is required",
     "Subscription": "Subscription",

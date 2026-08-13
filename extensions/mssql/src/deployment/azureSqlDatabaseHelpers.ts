@@ -12,7 +12,8 @@ import {
 } from "@azure/arm-sql";
 import { getDefaultTenantId, VsCodeAzureHelper } from "../connectionconfig/azureHelpers";
 import { getGroupIdFormItem } from "../connectionconfig/formComponentHelpers";
-import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
+import { AzureSqlDatabase, ConnectionDialog, mssqlProviderName } from "../constants/locConstants";
+import { BackgroundTaskState } from "../backgroundTasks/backgroundTasksService";
 import { ILogger } from "../sharedInterfaces/logger";
 import * as asd from "../sharedInterfaces/azureSqlDatabase";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
@@ -337,64 +338,10 @@ export function registerAzureSqlDatabaseReducers(
 
             updateAzureSqlDatabaseState(deploymentController, azureSqlState);
 
-            try {
-                const startTime = Date.now();
-                const subscription = getCachedSubscription(
-                    azureSqlState,
-                    azureSqlState.formState.subscriptionId,
-                );
-                if (!subscription) {
-                    throw new Error(AzureSqlDatabase.noSubscriptionsFound);
-                }
-
-                await VsCodeAzureHelper.createAzureSqlDatabase(
-                    subscription,
-                    azureSqlState.formState.resourceGroup,
-                    azureSqlState.formState.serverName,
-                    azureSqlState.formState.databaseName,
-                    {
-                        sampleName: azureSqlState.formState.dataSource || undefined,
-                        collation: azureSqlState.formState.collation || undefined,
-                        preferredEnclaveType: azureSqlState.formState.enableAlwaysEncrypted
-                            ? KnownAlwaysEncryptedEnclaveType.Default
-                            : undefined,
-                        maintenanceConfigurationId:
-                            azureSqlState.formState.maintenanceConfig || undefined,
-                        tags:
-                            payload.tags && Object.keys(payload.tags).length > 0
-                                ? payload.tags
-                                : undefined,
-                        freeLimitExhaustionBehavior: azureSqlState.formState.freeLimitBehavior,
-                        useFreeLimit: true,
-                        maxVcores: azureSqlState.formState.maxVcores,
-                    },
-                );
-
-                azureSqlState.provisionLoadState = ApiStatus.Loaded;
-                updateAzureSqlDatabaseState(deploymentController, azureSqlState);
-
-                sendActionEvent(
-                    TelemetryViews.AzureSqlDatabase,
-                    TelemetryActions.ProvisionAzureSqlDatabase,
-                    {},
-                    {
-                        provisionDatabaseLoadTimeInMs: Date.now() - startTime,
-                    },
-                );
-
+            if (
+                await provisionAzureSqlDatabase(deploymentController, azureSqlState, payload.tags)
+            ) {
                 void connectToAzureSqlDatabase(deploymentController);
-            } catch (error) {
-                azureSqlState.provisionLoadState = ApiStatus.Error;
-                azureSqlState.errorMessage = getErrorMessage(error);
-                cachedLogger?.error(
-                    `Azure SQL Database provisioning failed: ${azureSqlState.errorMessage}`,
-                );
-                sendErrorEvent(
-                    TelemetryViews.AzureSqlDatabase,
-                    TelemetryActions.ProvisionAzureSqlDatabase,
-                    error as Error,
-                    false,
-                );
             }
 
             state.deploymentTypeState = azureSqlState;
@@ -643,6 +590,80 @@ export function registerAzureSqlDatabaseReducers(
         state.deploymentTypeState = azureSqlState;
         return state;
     });
+}
+
+export async function provisionAzureSqlDatabase(
+    deploymentController: DeploymentWebviewController,
+    state: asd.AzureSqlDatabaseState,
+    tags: Record<string, string>,
+): Promise<boolean> {
+    const startTime = Date.now();
+    const { databaseName, resourceGroup, serverName, subscriptionId } = state.formState;
+    const backgroundTask = deploymentController.mainController.backgroundTasksService.registerTask({
+        displayText: AzureSqlDatabase.provisionDatabase,
+        description: databaseName,
+        details: `${serverName}/${databaseName}`,
+        target: `${resourceGroup}/${serverName}/${databaseName}`,
+        tooltip: AzureSqlDatabase.provisioningDatabase(databaseName),
+        source: mssqlProviderName,
+        message: AzureSqlDatabase.provisioningDatabase(databaseName),
+    });
+
+    try {
+        const subscription = getCachedSubscription(state, subscriptionId);
+        if (!subscription) {
+            throw new Error(AzureSqlDatabase.noSubscriptionsFound);
+        }
+
+        await VsCodeAzureHelper.createAzureSqlDatabase(
+            subscription,
+            resourceGroup,
+            serverName,
+            databaseName,
+            {
+                sampleName: state.formState.dataSource || undefined,
+                collation: state.formState.collation || undefined,
+                preferredEnclaveType: state.formState.enableAlwaysEncrypted
+                    ? KnownAlwaysEncryptedEnclaveType.Default
+                    : undefined,
+                maintenanceConfigurationId: state.formState.maintenanceConfig || undefined,
+                tags: Object.keys(tags).length > 0 ? tags : undefined,
+                freeLimitExhaustionBehavior: state.formState.freeLimitBehavior,
+                useFreeLimit: true,
+                maxVcores: state.formState.maxVcores,
+            },
+        );
+
+        state.provisionLoadState = ApiStatus.Loaded;
+        updateAzureSqlDatabaseState(deploymentController, state);
+        backgroundTask.complete(BackgroundTaskState.Succeeded, {
+            message: AzureSqlDatabase.databaseProvisioned(databaseName),
+        });
+
+        sendActionEvent(
+            TelemetryViews.AzureSqlDatabase,
+            TelemetryActions.ProvisionAzureSqlDatabase,
+            {},
+            {
+                provisionDatabaseLoadTimeInMs: Date.now() - startTime,
+            },
+        );
+        return true;
+    } catch (error) {
+        state.provisionLoadState = ApiStatus.Error;
+        state.errorMessage = getErrorMessage(error);
+        cachedLogger?.error(`Azure SQL Database provisioning failed: ${state.errorMessage}`);
+        backgroundTask.complete(BackgroundTaskState.Failed, {
+            message: state.errorMessage,
+        });
+        sendErrorEvent(
+            TelemetryViews.AzureSqlDatabase,
+            TelemetryActions.ProvisionAzureSqlDatabase,
+            error as Error,
+            false,
+        );
+        return false;
+    }
 }
 
 /**
@@ -1147,8 +1168,10 @@ function updateAzureSqlDatabaseState(
     deploymentController: DeploymentWebviewController,
     newState: asd.AzureSqlDatabaseState,
 ) {
-    deploymentController.state.deploymentTypeState = newState;
-    deploymentController.updateState(deploymentController.state);
+    if (!deploymentController.isDisposed) {
+        deploymentController.state.deploymentTypeState = newState;
+        deploymentController.updateState(deploymentController.state);
+    }
 }
 
 async function getAzureActionButton(

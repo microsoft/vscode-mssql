@@ -666,6 +666,10 @@
     <trans-unit id="++CODE++2827add936f31415e16e0670d8686084ec2e21fed7686c0aa91fffdfa09e4e38">
       <source xml:lang="en">Azure SQL Server</source>
     </trans-unit>
+    <trans-unit id="++CODE++59501ad1492a8cec90e9e03c81ba6e868dc917a2a9b8d1dda44a77f9f8a3fe43">
+      <source xml:lang="en">Azure SQL database &apos;{0}&apos; was provisioned successfully</source>
+      <note>{0} is the Azure SQL database name</note>
+    </trans-unit>
     <trans-unit id="++CODE++d58bf1f323a38f50b921c7d963ad40d4323ebb5085fc456c8afbcc6542b0eb7a">
       <source xml:lang="en">Azure SQL databases provisioning</source>
     </trans-unit>
@@ -5843,8 +5847,15 @@
       <source xml:lang="en">Provider &apos;{0}&apos; does not have a Microsoft resource endpoint defined.</source>
       <note>{0} is the provider</note>
     </trans-unit>
+    <trans-unit id="++CODE++d18d2cf2904204b40742c6733d983b9295ab3a8845311f913d2dc5c470adb43d">
+      <source xml:lang="en">Provision Azure SQL database</source>
+    </trans-unit>
     <trans-unit id="++CODE++c2b1b8e2e03928e24b07be3e3cbc597577096c8303d9aa621a147ca2456bdad7">
       <source xml:lang="en">Provisioning</source>
+    </trans-unit>
+    <trans-unit id="++CODE++35ac434ea8eb3b114945d2ef3a5ee33468a77ba22260de9b63a2aa0943c0fd9f">
+      <source xml:lang="en">Provisioning Azure SQL database &apos;{0}&apos;</source>
+      <note>{0} is the Azure SQL database name</note>
     </trans-unit>
     <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
       <source xml:lang="en">Public</source>

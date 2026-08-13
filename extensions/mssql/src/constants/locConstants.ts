@@ -1501,6 +1501,19 @@ export class Accounts {
 }
 
 export class AzureSqlDatabase {
+    public static provisionDatabase = l10n.t("Provision Azure SQL database");
+    public static provisioningDatabase = (databaseName: string) =>
+        l10n.t({
+            message: "Provisioning Azure SQL database '{0}'",
+            args: [databaseName],
+            comment: ["{0} is the Azure SQL database name"],
+        });
+    public static databaseProvisioned = (databaseName: string) =>
+        l10n.t({
+            message: "Azure SQL database '{0}' was provisioned successfully",
+            args: [databaseName],
+            comment: ["{0} is the Azure SQL database name"],
+        });
     public static azureAccount = l10n.t("Azure Account");
     public static azureAccountIsRequired = l10n.t("Azure Account is required");
     public static subscription = l10n.t("Subscription");
