@@ -14,6 +14,7 @@ import {
     getPlatformLabel,
 } from "../dashboardLabels";
 import { MetricCard } from "../components/metricCard";
+import { OperationalOverview } from "../components/operationalOverview";
 import { Sparkline } from "../components/sparkline";
 
 export interface OverviewTabProps {
@@ -146,6 +147,8 @@ export function OverviewTab({ snapshot }: OverviewTabProps): JSX.Element {
                     </div>
                 </Card>
             </div>
+
+            <OperationalOverview operations={snapshot.operations} />
         </div>
     );
 }

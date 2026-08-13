@@ -849,6 +849,9 @@
     <trans-unit id="++CODE++767e443808512901f6097797d8054570a7bbd053e7db6fc556679e2757ac4162">
       <source xml:lang="en">Backup Type</source>
     </trans-unit>
+    <trans-unit id="++CODE++32c46f7c19e763f762622fef5bc30e739ca71d330b1e4ac48fa424ccdde35dd1">
+      <source xml:lang="en">Backup and recovery</source>
+    </trans-unit>
     <trans-unit id="++CODE++55f5bbd2445f982b9d79752bd9a713b9a00708684504bdd581d4db0be4476091">
       <source xml:lang="en">Backup sets to restore</source>
     </trans-unit>
@@ -857,6 +860,9 @@
     </trans-unit>
     <trans-unit id="++CODE++9b58bb027ad8dd51cee6dfa3d8a10bc1a9cc66cd1bedbbbc4947d7071450614b">
       <source xml:lang="en">Backup to a new media set</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d69324ca4de9fcf63356d2deb247fa59ceaf28c86a7608a970400c3f5fa63d1e">
+      <source xml:lang="en">Backup type</source>
     </trans-unit>
     <trans-unit id="++CODE++785f39d515b5f700c4f9cfec99b46d49fdc412522e0e24a9316fc25e7bfd06a3">
       <source xml:lang="en">Batch execution time: {0}</source>
@@ -1561,6 +1567,9 @@
     <trans-unit id="++CODE++0891b63d1c799ce3a1d712cee42286cac8db64e6a57701839b06d7937855b14e">
       <source xml:lang="en">Compatibility Level</source>
     </trans-unit>
+    <trans-unit id="++CODE++22a970d2e5b1cc233e462be7c7b64e135a275bb09d83d87683bf4236c43113a1">
+      <source xml:lang="en">Completed</source>
+    </trans-unit>
     <trans-unit id="++CODE++9d9d46783dcefefd1551f73e73f02714e347e6e8e8f33052135e0d3fefd8e0d8">
       <source xml:lang="en">Compress backup</source>
     </trans-unit>
@@ -1579,6 +1588,9 @@
     <trans-unit id="++CODE++7ddbffc16744c2642445a4ec489967d4201fe93f5ec6af10738ba783cbd78680">
       <source xml:lang="en">Config copied to clipboard</source>
     </trans-unit>
+    <trans-unit id="++CODE++b332c3492d5eb10a118eb6d8b0dcd689bc2477ce2ae16b303753b942b54377bc">
+      <source xml:lang="en">Configuration</source>
+    </trans-unit>
     <trans-unit id="++CODE++6b5b3c69e02dd47e73c93615e2a00d870b2ced5f28f2b7698d30d77d82cc349b">
       <source xml:lang="en">Configuration saved.</source>
     </trans-unit>
@@ -1587,6 +1599,9 @@
     </trans-unit>
     <trans-unit id="++CODE++ba237bbd53a9872b830897ce0e80e224f9e09d331abb2001ef442eceba4ba58a">
       <source xml:lang="en">Configuration to Import</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f53a4981884b9ca1b70655c5f35a24a0fe10b79d5f8e4d11827a70a23f2cc805">
+      <source xml:lang="en">Configuration, health, and administrative events</source>
     </trans-unit>
     <trans-unit id="++CODE++b3841aead42fd5bf681d290d2fef9df816aa53c2b9a1da6c21f42b11ccc2c9dd">
       <source xml:lang="en">Configure Linux containers</source>
@@ -1817,6 +1832,9 @@
       <source xml:lang="en">Connection not found for uri &quot;{0}&quot;.</source>
       <note>{0} is the uri</note>
     </trans-unit>
+    <trans-unit id="++CODE++4606a288833ceb652cf0a735ad0368330a5daf036d6c0198a5181cf380c61e7a">
+      <source xml:lang="en">Connection policy</source>
+    </trans-unit>
     <trans-unit id="++CODE++392f78e8df5a591be501949632cd689e0fd59c4e0233c8b002a2dce8518ad4e4">
       <source xml:lang="en">Connection profile &apos;{0}&apos; not found.</source>
       <note>{0} is the profile ID</note>
@@ -1862,6 +1880,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1a801115b9a0d4c2fd181f8d8e7daaccd3defe421a8b586592134cf4c1c47c94">
       <source xml:lang="en">Connections to import</source>
+    </trans-unit>
+    <trans-unit id="++CODE++35c7c118ee76f3f5cc3dc6bf4bfa6fbfac5e7b277de7621442d29f92cd734755">
+      <source xml:lang="en">Connectivity, redundancy, and recovery checks</source>
     </trans-unit>
     <trans-unit id="++CODE++917801babf61b34ef1c1d96e3219bc6ba28693c81f2c5af5cc00a31d0793a317">
       <source xml:lang="en">Consider adding a name for this foreign key</source>
@@ -1922,6 +1943,9 @@
     </trans-unit>
     <trans-unit id="++CODE++36788a4bbad501fe2c69d37d0d7ce128868a41848663752a28c886a54df70752">
       <source xml:lang="en">Continue using for additional charges</source>
+    </trans-unit>
+    <trans-unit id="++CODE++04f13cecbc50590b68a8c4866c8e622c3bc69fb2f8caeeba894cf5c7819315f5">
+      <source xml:lang="en">Continuous</source>
     </trans-unit>
     <trans-unit id="++CODE++6b4e1641399f0f483fb03d50ab470af9c29e66a1e5259c96cb2f366c5ffe2d31">
       <source xml:lang="en">Continuously correlate performance signals, investigate anomalies, and prepare reviewed actions for this SQL resource.</source>
@@ -2423,6 +2447,9 @@
     <trans-unit id="++CODE++ec9c37392a809590dbb62879bd1b261c3675552b33d4d8936d539925d774f6a6">
       <source xml:lang="en">Database changed successfully</source>
     </trans-unit>
+    <trans-unit id="++CODE++cac90118d5a1c36d48ba2367e8f8aa7c9ab7c61659b0368d6ea76554e5b73bca">
+      <source xml:lang="en">Database endpoints, replicas, and dependent capacity</source>
+    </trans-unit>
     <trans-unit id="++CODE++9a3b60430561d2e64fd2ce48fdd216da6e79a93e147f7ec6a7702c5658d28f97">
       <source xml:lang="en">Database is required</source>
     </trans-unit>
@@ -2811,6 +2838,9 @@
     </trans-unit>
     <trans-unit id="++CODE++f37695a23c899c5215f84a9b8fd71359fc3dc3d1f33c363c3ac32deea88d4d8a">
       <source xml:lang="en">Edition</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4293118bedfd8d4d0b6d6bd2ff723b5aec123e648f2d85e71921a9743bdfdfa4">
+      <source xml:lang="en">Effective database and server settings</source>
     </trans-unit>
     <trans-unit id="++CODE++7df64a9f48aa848c4d73ffa6d0d63511e082d0b8a592b9d6880d3988fb4006a7">
       <source xml:lang="en">Either profileId or serverName must be provided.</source>
@@ -4038,6 +4068,9 @@
     <trans-unit id="++CODE++3a5a47667104807574cb0875e1ad13546429f3ed63efe6b4bddee62fe1f4cf5b">
       <source xml:lang="en">Firewall rule successfully created.</source>
     </trans-unit>
+    <trans-unit id="++CODE++2467fac10bae7f29529e03040292375dcf6ddac2b2cf6049832ddfe848877205">
+      <source xml:lang="en">Firewall rules</source>
+    </trans-unit>
     <trans-unit id="++CODE++50f82f3bd4638f41e11892aa681c016d9f858ac119041d52c52d5fb661c5936f">
       <source xml:lang="en">First Page</source>
     </trans-unit>
@@ -5194,6 +5227,9 @@
       <source xml:lang="en">Min: {0}</source>
       <note>{0} is the min</note>
     </trans-unit>
+    <trans-unit id="++CODE++3e41871335974518c4c3b86b4d1da16be667bde71a0b2262361a1fe99e0ef8d0">
+      <source xml:lang="en">Minimum TLS version</source>
+    </trans-unit>
     <trans-unit id="++CODE++c4cb38118e976f2ec6af215b6206c1aeadd0a3a1a95b4ab00681c97e9a276753">
       <source xml:lang="en">Missing connection reference. Please provide exactly one of connectionId or connectionName.</source>
     </trans-unit>
@@ -5349,6 +5385,9 @@
     </trans-unit>
     <trans-unit id="++CODE++1744b96470b51bf30935e2748b237a708d226a0430063f92accf90961cd28d86">
       <source xml:lang="en">Network</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7b6993489ae8a3f26755fab6a855784a72f06a9fed0dd17a0db68887e4486937">
+      <source xml:lang="en">Network configuration</source>
     </trans-unit>
     <trans-unit id="++CODE++18fdd549b2ed367ac0c74cbec1214644728515b30edbcb78e7d322757a7c8359">
       <source xml:lang="en">New</source>
@@ -6287,6 +6326,9 @@
     <trans-unit id="++CODE++c63eb6720c6e88493897548d3620d45e539d18574465f7b26fdddcbade044ee2">
       <source xml:lang="en">Private</source>
     </trans-unit>
+    <trans-unit id="++CODE++51b33a9a4970711b077ab42e9f6b97bd28d258f6aa92dd7e3b79307b7444c9e0">
+      <source xml:lang="en">Private endpoint</source>
+    </trans-unit>
     <trans-unit id="++CODE++5271d6ce4f647db55fc114096f1dbb3b2cc6287df8fd299c3635574761ea9fb7">
       <source xml:lang="en">Processing include or exclude all differences operation.</source>
     </trans-unit>
@@ -6347,6 +6389,9 @@
     </trans-unit>
     <trans-unit id="++CODE++591935b15b1c88e2d5f6be0a054604fcf36f0585a6f51098fa3803826fff278c">
       <source xml:lang="en">Public</source>
+    </trans-unit>
+    <trans-unit id="++CODE++f4afab9aae317146abf59caee6f49ffeb63af001e9f01008a0ab06d7b08c0c0d">
+      <source xml:lang="en">Public network access</source>
     </trans-unit>
     <trans-unit id="++CODE++859390eb495b2ead7f05f0f799546c71435b2db31dbe082adecc3426fffc3391">
       <source xml:lang="en">Publish</source>
@@ -6535,6 +6580,9 @@
     <trans-unit id="++CODE++705aa26f40f31a71c622836f9a913bf837817f54e45133215a5d222489e6a7c8">
       <source xml:lang="en">Recent Connections</source>
     </trans-unit>
+    <trans-unit id="++CODE++6cb44b56336af70b050861cb4617a0d729c872fe8206e1104c26edad0b79cb7a">
+      <source xml:lang="en">Recent activity</source>
+    </trans-unit>
     <trans-unit id="++CODE++703f1ae8b7cdb3525cdab9ea694ab27b1b9e4337f0b2ca32f152f7f9a6e2f9d5">
       <source xml:lang="en">Recent connections list cleared</source>
     </trans-unit>
@@ -6555,6 +6603,9 @@
     </trans-unit>
     <trans-unit id="++CODE++69762f2ef1c8cba117041b8880a33b5ac1862bbcbe41df7463dbc36d93666e06">
       <source xml:lang="en">Recording shortcut</source>
+    </trans-unit>
+    <trans-unit id="++CODE++d665a2dbda229173b3c24e79bc8ad82649e771d7066fd0f7ef670715057cddf9">
+      <source xml:lang="en">Recoverable through</source>
     </trans-unit>
     <trans-unit id="++CODE++85a3403bf7f8754b479e80917b7d779d63640b98e77450fe47ae7303ca7e9d03">
       <source xml:lang="en">Recovery Model</source>
@@ -6763,8 +6814,14 @@
     <trans-unit id="++CODE++575874d7f7e259d7f9b8c15418105d5f0bac4a56e628837e68b5513a504b6a93">
       <source xml:lang="en">Resource group name is required</source>
     </trans-unit>
+    <trans-unit id="++CODE++bbc66072c203be92929121af791329580e3ba07214f3e573f446a135577519fa">
+      <source xml:lang="en">Resource readiness</source>
+    </trans-unit>
     <trans-unit id="++CODE++aea05f2e263f6c3e66f9610527fadabc4d5d0b93e2e65787136e00d07a5da3f3">
       <source xml:lang="en">Resource summary</source>
+    </trans-unit>
+    <trans-unit id="++CODE++94fb6a33e79bc5e1f3f579147ebe9aaf8abf575d0d41acb4750a6731e6e232ac">
+      <source xml:lang="en">Resource topology</source>
     </trans-unit>
     <trans-unit id="++CODE++e89b30aa1dc30a6ad8c34610689bede83b3ef645a24c3a84a0990826687fb735">
       <source xml:lang="en">Resources</source>
@@ -6839,6 +6896,9 @@
     </trans-unit>
     <trans-unit id="++CODE++d647b9f6483baa818a4f660d92726b61fb1d08fe42e39ddf95c763fd2fb260c0">
       <source xml:lang="en">Resuming database</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3b1f58d94eacf04f8a8e3b342967f79889eb28ad2472bcd3692a09dd6a9e9062">
+      <source xml:lang="en">Retention</source>
     </trans-unit>
     <trans-unit id="++CODE++942087cc2d41e01304b7195558d093d10c72af8e838c7556d6a02d471ee71852">
       <source xml:lang="en">Retry</source>

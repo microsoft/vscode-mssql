@@ -6,6 +6,7 @@
 import {
     DashboardMetric,
     DashboardMetricPoint,
+    DashboardOperationalSummary,
     DashboardPlatform,
     DashboardQuery,
     DashboardServerDetails,
@@ -350,6 +351,7 @@ function buildSnapshot(
         generatedAt,
         windowMinutes,
         server: platformData.server,
+        operations: buildOperationalSummary(target.platform, target.databaseName, now),
         metrics: platformData.metrics.map((metric, index) => ({
             ...metric,
             value: round(metric.value + (index % 2 === 0 ? metricAdjustment : -metricAdjustment)),
@@ -384,6 +386,320 @@ function getPlatformData(
         case "sqlServer":
             return buildSqlServerData(databaseName, now, windowMinutes);
     }
+}
+
+function buildOperationalSummary(
+    platform: DashboardPlatform,
+    databaseName: string,
+    now: number,
+): DashboardOperationalSummary {
+    const commonActivity: DashboardOperationalSummary["activity"] = [
+        {
+            id: `${platform}-activity-plan`,
+            timestamp: new Date(now - 24 * 60_000).toISOString(),
+            title: "Query Store plan changed",
+            detail: "A new plan became active for a high-volume query.",
+            status: "warning",
+        },
+        {
+            id: `${platform}-activity-agent`,
+            timestamp: new Date(now - 51 * 60_000).toISOString(),
+            title: "Database Agent analysis completed",
+            detail: "Telemetry correlation completed with three prioritized findings.",
+            status: "healthy",
+        },
+        {
+            id: `${platform}-activity-login`,
+            timestamp: new Date(now - 86 * 60_000).toISOString(),
+            title: "Administrative connection",
+            detail: "A connection was opened from VS Code MSSQL.",
+            status: "healthy",
+        },
+    ];
+    const commonConfiguration: DashboardOperationalSummary["configuration"] = [
+        {
+            id: `${platform}-config-compatibility`,
+            name: "Compatibility level",
+            value: platform === "fabricSql" ? "Fabric managed" : "170",
+            source: "Database",
+        },
+        {
+            id: `${platform}-config-query-store`,
+            name: "Query Store",
+            value: "Read write",
+            source: "Database",
+        },
+        {
+            id: `${platform}-config-maxdop`,
+            name: "MAXDOP",
+            value: platform === "fabricSql" ? "Managed" : "8",
+            source: platform === "sqlServer" ? "Server" : "Database scoped",
+        },
+        {
+            id: `${platform}-config-auto-tuning`,
+            name: "Automatic tuning",
+            value: platform === "sqlServer" ? "Force last good plan" : "Microsoft managed",
+            source: "Database",
+        },
+    ];
+
+    switch (platform) {
+        case "azureSql":
+            return {
+                readiness: [
+                    readiness(
+                        "azure-connectivity",
+                        "Connectivity",
+                        "All connection probes passed.",
+                    ),
+                    readiness(
+                        "azure-redundancy",
+                        "Zone redundancy",
+                        "Synchronous replicas are healthy.",
+                    ),
+                    readiness(
+                        "azure-backup",
+                        "Point-in-time restore",
+                        "Recovery points are current.",
+                    ),
+                ],
+                topology: [
+                    topology(
+                        "azure-primary",
+                        databaseName,
+                        "Primary database",
+                        "East US 2 / zone 1",
+                        "Read-write endpoint",
+                    ),
+                    topology(
+                        "azure-zone-replica",
+                        "Zone replica",
+                        "Synchronous replica",
+                        "East US 2 / zone 2",
+                        "Microsoft managed",
+                    ),
+                    topology(
+                        "azure-geo-secondary",
+                        `${databaseName}-dr`,
+                        "Geo-secondary",
+                        "Central US",
+                        "Readable disaster recovery replica",
+                        "warning",
+                    ),
+                ],
+                network: {
+                    connectionPolicy: "Redirect",
+                    publicNetworkAccess: "Selected networks",
+                    privateEndpoint: "pe-contoso-prod-sql",
+                    minimumTlsVersion: "1.2",
+                    firewallRuleCount: 4,
+                },
+                configuration: commonConfiguration,
+                backups: [
+                    backup(
+                        "azure-pitr",
+                        "continuous",
+                        now - 4 * 60_000,
+                        "35 days",
+                        now - 3 * 60_000,
+                    ),
+                    backup(
+                        "azure-ltr",
+                        "full",
+                        now - 20 * 60 * 60_000,
+                        "12 months",
+                        now - 20 * 60 * 60_000,
+                    ),
+                ],
+                activity: commonActivity,
+            };
+        case "sqlServer":
+            return {
+                readiness: [
+                    readiness("sql-connectivity", "Connectivity", "Listener probes passed."),
+                    readiness(
+                        "sql-ag",
+                        "Availability group",
+                        "Primary and synchronous secondary are synchronized.",
+                    ),
+                    readiness(
+                        "sql-log-backup",
+                        "Log backup",
+                        "The latest log backup is approaching the 15-minute objective.",
+                        "warning",
+                    ),
+                ],
+                topology: [
+                    topology(
+                        "sql-primary",
+                        "sql2025-prod-01",
+                        "Primary replica",
+                        "Seattle datacenter",
+                        "Synchronous commit",
+                    ),
+                    topology(
+                        "sql-secondary",
+                        "sql2025-prod-02",
+                        "Secondary replica",
+                        "Seattle datacenter",
+                        "Synchronized / readable",
+                    ),
+                    topology(
+                        "sql-dr",
+                        "sql2025-dr-01",
+                        "Disaster recovery replica",
+                        "Quincy datacenter",
+                        "Asynchronous commit",
+                        "warning",
+                    ),
+                ],
+                network: {
+                    connectionPolicy: "Availability group listener",
+                    publicNetworkAccess: "Disabled",
+                    privateEndpoint: "10.40.8.24 / port 1433",
+                    minimumTlsVersion: "1.2",
+                    firewallRuleCount: 6,
+                },
+                configuration: commonConfiguration,
+                backups: [
+                    backup(
+                        "sql-full",
+                        "full",
+                        now - 8 * 60 * 60_000,
+                        "28 days",
+                        now - 8 * 60 * 60_000,
+                    ),
+                    backup(
+                        "sql-log",
+                        "log",
+                        now - 13 * 60_000,
+                        "7 days",
+                        now - 13 * 60_000,
+                        "warning",
+                    ),
+                ],
+                activity: [
+                    {
+                        id: "sql-activity-failover",
+                        timestamp: new Date(now - 3 * 60 * 60_000).toISOString(),
+                        title: "Availability replica validated",
+                        detail: "The automatic failover readiness check passed.",
+                        status: "healthy",
+                    },
+                    ...commonActivity,
+                ],
+            };
+        case "fabricSql":
+            return {
+                readiness: [
+                    readiness(
+                        "fabric-endpoint",
+                        "SQL endpoint",
+                        "The analytics endpoint is online.",
+                    ),
+                    readiness(
+                        "fabric-onelake",
+                        "OneLake synchronization",
+                        "The latest table changes are available.",
+                    ),
+                    readiness(
+                        "fabric-capacity",
+                        "Capacity headroom",
+                        "Current utilization is above the recommended interactive threshold.",
+                        "warning",
+                    ),
+                ],
+                topology: [
+                    topology(
+                        "fabric-endpoint",
+                        databaseName,
+                        "SQL analytics endpoint",
+                        "West Europe",
+                        "Read-only T-SQL surface",
+                    ),
+                    topology(
+                        "fabric-warehouse",
+                        "retail_warehouse",
+                        "Fabric Warehouse",
+                        "Contoso Retail Workspace",
+                        "OneLake-backed storage",
+                    ),
+                    topology(
+                        "fabric-capacity",
+                        "Contoso F64",
+                        "Fabric capacity",
+                        "West Europe",
+                        "78% current utilization",
+                        "warning",
+                    ),
+                ],
+                network: {
+                    connectionPolicy: "Fabric gateway",
+                    publicNetworkAccess: "Tenant policy",
+                    privateEndpoint: "Workspace managed private endpoint",
+                    minimumTlsVersion: "1.2",
+                    firewallRuleCount: 2,
+                },
+                configuration: commonConfiguration,
+                backups: [
+                    backup(
+                        "fabric-snapshot",
+                        "continuous",
+                        now - 7 * 60_000,
+                        "Microsoft managed",
+                        now - 5 * 60_000,
+                    ),
+                ],
+                activity: [
+                    {
+                        id: "fabric-activity-refresh",
+                        timestamp: new Date(now - 14 * 60_000).toISOString(),
+                        title: "OneLake table refresh completed",
+                        detail: "Retail sales partitions synchronized successfully.",
+                        status: "healthy",
+                    },
+                    ...commonActivity,
+                ],
+            };
+    }
+}
+
+function readiness(
+    id: string,
+    title: string,
+    detail: string,
+    status: DashboardOperationalSummary["readiness"][number]["status"] = "healthy",
+): DashboardOperationalSummary["readiness"][number] {
+    return { id, title, detail, status };
+}
+
+function topology(
+    id: string,
+    name: string,
+    role: string,
+    location: string,
+    detail: string,
+    status: DashboardOperationalSummary["topology"][number]["status"] = "healthy",
+): DashboardOperationalSummary["topology"][number] {
+    return { id, name, role, location, detail, status };
+}
+
+function backup(
+    id: string,
+    backupType: DashboardOperationalSummary["backups"][number]["backupType"],
+    completedAt: number,
+    retention: string,
+    recoverableThrough: number,
+    status: DashboardOperationalSummary["backups"][number]["status"] = "healthy",
+): DashboardOperationalSummary["backups"][number] {
+    return {
+        id,
+        backupType,
+        completedAt: new Date(completedAt).toISOString(),
+        retention,
+        recoverableThrough: new Date(recoverableThrough).toISOString(),
+        status,
+    };
 }
 
 function buildAzureSqlData(databaseName: string, now: number, windowMinutes: number): PlatformData {

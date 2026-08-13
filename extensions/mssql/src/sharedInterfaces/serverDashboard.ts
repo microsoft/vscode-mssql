@@ -79,6 +79,65 @@ export interface DashboardServerDetails {
     storageMaxGb: number;
 }
 
+export type DashboardOperationalStatus = "healthy" | "warning" | "critical";
+
+export interface DashboardReadinessCheck {
+    id: string;
+    title: string;
+    detail: string;
+    status: DashboardOperationalStatus;
+}
+
+export interface DashboardTopologyNode {
+    id: string;
+    name: string;
+    role: string;
+    location: string;
+    status: DashboardOperationalStatus;
+    detail: string;
+}
+
+export interface DashboardNetworkConfiguration {
+    connectionPolicy: string;
+    publicNetworkAccess: string;
+    privateEndpoint: string;
+    minimumTlsVersion: string;
+    firewallRuleCount: number;
+}
+
+export interface DashboardConfigurationItem {
+    id: string;
+    name: string;
+    value: string;
+    source: string;
+}
+
+export interface DashboardBackupStatus {
+    id: string;
+    backupType: "full" | "differential" | "log" | "continuous";
+    status: DashboardOperationalStatus;
+    completedAt: string;
+    retention: string;
+    recoverableThrough: string;
+}
+
+export interface DashboardActivityEvent {
+    id: string;
+    timestamp: string;
+    title: string;
+    detail: string;
+    status: DashboardOperationalStatus;
+}
+
+export interface DashboardOperationalSummary {
+    readiness: DashboardReadinessCheck[];
+    topology: DashboardTopologyNode[];
+    network: DashboardNetworkConfiguration;
+    configuration: DashboardConfigurationItem[];
+    backups: DashboardBackupStatus[];
+    activity: DashboardActivityEvent[];
+}
+
 export type DashboardQueryTrend = "improving" | "stable" | "regressing";
 
 export interface DashboardQuery {
@@ -336,6 +395,7 @@ export interface DashboardSnapshot {
     generatedAt: string;
     windowMinutes: number;
     server: DashboardServerDetails;
+    operations: DashboardOperationalSummary;
     metrics: DashboardMetric[];
     queries: DashboardQuery[];
     waits: DashboardWait[];

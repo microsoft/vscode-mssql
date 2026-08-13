@@ -35,6 +35,11 @@ suite("Server Dashboard", () => {
             expect(snapshot.queries.length).to.be.greaterThan(3);
             expect(snapshot.waits.length).to.be.greaterThan(3);
             expect(snapshot.sessions.length).to.be.greaterThan(3);
+            expect(snapshot.operations.readiness.length).to.be.greaterThan(2);
+            expect(snapshot.operations.topology.length).to.be.greaterThan(1);
+            expect(snapshot.operations.configuration.length).to.be.greaterThan(2);
+            expect(snapshot.operations.backups.length).to.be.greaterThan(0);
+            expect(snapshot.operations.activity.length).to.be.greaterThan(2);
             expect(snapshot.dbAgent.issues.length).to.be.greaterThan(1);
             expect(snapshot.dbAgent.issues.some((issue) => issue.status === "resolved")).to.equal(
                 true,
