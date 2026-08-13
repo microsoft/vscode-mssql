@@ -2609,7 +2609,7 @@ Select "{0}" to establish a connection.</source>
       </trans-unit>
       <trans-unit id="++CODE++2dda2d5e705c870b4711000d9e6e1a1552a6426ff2835af34a45eb0ea5f3182b">
         <source xml:lang="en">Create an Azure SQL Database</source>
-        <target state="new">Create an Azure SQL Database</target>
+        <target state="translated">Azure SQL Database 만들기</target>
       </trans-unit>
       <trans-unit id="++CODE++dfc42cab83fbac4fe6fa1922367034eb24905e5540deef714d06396fb60dbe31">
         <source xml:lang="en">Create and manage keyboard shortcuts for frequently used queries, as well as query editor and results grid actions, to discover available commands and execute them more efficiently.</source>
@@ -3927,7 +3927,7 @@ Error:
       <trans-unit id="++CODE++2755320f7f041c845a3a28a6143d1595e153faab71dbe4b039f618d209b12c7c">
         <source xml:lang="en">Execution plan {0}, use arrow keys to navigate between nodes</source>
         <note>{0} is the one-based execution plan number</note>
-        <target state="new">Execution plan {0}, use arrow keys to navigate between nodes</target>
+        <target state="translated">실행 계획 {0}, 화살표 키를 사용하여 노드 간 이동</target>
       </trans-unit>
       <trans-unit id="++CODE++9c1c3546bc3e94eb9cf8d7e8bef7d64b5f0213e752e4be0185a9ffc4d87f671c">
         <source xml:lang="en">Execution time unavailable</source>
@@ -5874,7 +5874,7 @@ Error:
       </trans-unit>
       <trans-unit id="++CODE++9317b8d436ab0b46444508db90ea7c78235b63b678dfdcb8196216d0d9cecd18">
         <source xml:lang="en">Loading databases...</source>
-        <target state="new">Loading databases...</target>
+        <target state="translated">데이터베이스를 로드하는 중...</target>
       </trans-unit>
       <trans-unit id="++CODE++d1fdc252fab1c642cc1b487dbb6658fd77d5831e03b3d391b4c73b01226d75ff">
         <source xml:lang="en">Loading deployment</source>
