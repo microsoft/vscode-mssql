@@ -7,8 +7,17 @@
     <trans-unit id="++CODE++fd3bd9305a1a7d5dfd79fa21b626163609a8f298aab892396554e74842a84f9b">
       <source xml:lang="en">$(check) Copied messages</source>
     </trans-unit>
+    <trans-unit id="++CODE++43113d9ff237492b32db8d15317609d93d2a10ef402ed0b5b16a94f0e0e98927">
+      <source xml:lang="en">$(loading~spin) T-SQL preview: initializing</source>
+    </trans-unit>
     <trans-unit id="++CODE++18b63db64aa0aff55a9f4784ad62abdc2b70cedb95b5e89d5551996cc9bd25ac">
       <source xml:lang="en">$(plug)  Connect to MSSQL</source>
+    </trans-unit>
+    <trans-unit id="++CODE++4921d5d7846637484b461b5fe64b8f70ec9cb243850f2efbdbd2bee8a256235f">
+      <source xml:lang="en">$(pulse) T-SQL preview: parse {0} ms | bind {1} ms | {2}</source>
+      <note>{0} is parse time in milliseconds
+{1} is semantic binding time in milliseconds
+{2} is localized metadata readiness status</note>
     </trans-unit>
     <trans-unit id="++CODE++7ab8e89a60b445298b22409ca4e3a36b6032cd1f4b770cd638e11e0ebf23fabd">
       <source xml:lang="en">&apos;mssql.newEditorConnectionBehavior&apos; is set to &apos;defaultConnection&apos;, but &apos;mssql.defaultConnectionId&apos; is not configured. New editors will fall back to transferring the active connection.</source>
@@ -1474,6 +1483,9 @@
     <trans-unit id="++CODE++ee4f8cf15984e2a10f54dd947303b40318e5503eb1116a815d634bd45dcc55da">
       <source xml:lang="en">Connect the active SQL document to a database</source>
     </trans-unit>
+    <trans-unit id="++CODE++e04750c52ee550c7b4e4f3692d98ecb8a1ff62edfe833daf43834981c46727dc">
+      <source xml:lang="en">Connect this SQL editor before refreshing metadata.</source>
+    </trans-unit>
     <trans-unit id="++CODE++150851f09acf7f6f4d53e35fb619389c38558ea5b98d3a13efaf84b3eda50422">
       <source xml:lang="en">Connect to Database</source>
     </trans-unit>
@@ -2592,6 +2604,9 @@
     </trans-unit>
     <trans-unit id="++CODE++fb0bb2387237028dc70c4153c6f199ba4dcf1d78c143ac148621a822e41d2f04">
       <source xml:lang="en">Enable or disable SQLCMD mode for the active SQL document</source>
+    </trans-unit>
+    <trans-unit id="++CODE++25bfb38c393d81e2ddc823579631570a4644aad4917c0cba1e03961d26b97fd7">
+      <source xml:lang="en">Enable the T-SQL Language Service preview setting first.</source>
     </trans-unit>
     <trans-unit id="++CODE++3fa5ae9b74f834209a906cfae8b88c904769f06a491fbefc81d5a19a01483ad5">
       <source xml:lang="en">Enable {0}</source>
@@ -5464,6 +5479,12 @@
     <trans-unit id="++CODE++458f7bdeed472d6583d8b0e14f2535e896f301136ee1ea3c63fdbf0845407225">
       <source xml:lang="en">Open XML</source>
     </trans-unit>
+    <trans-unit id="++CODE++fa2513e3c35affb70b1b41c29d0bb73031052c699e2fb5e4e3bdf4ecf7ff1d2d">
+      <source xml:lang="en">Open a SQL editor to inspect language service status.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++29b879e5e6da0e0c717e744eade1f13618b9635f0519b8644085f6164bd96463">
+      <source xml:lang="en">Open a SQL editor to refresh language service metadata.</source>
+    </trans-unit>
     <trans-unit id="++CODE++811c17ffde572f2a3f875d0066464c75847bbeca86303f13e4dac1c448d05b21">
       <source xml:lang="en">Open a new SQL query file</source>
     </trans-unit>
@@ -5472,6 +5493,9 @@
     </trans-unit>
     <trans-unit id="++CODE++0ff35606d4c615fdb3160459aad9f61192a9321945983e2559c2175dd96b3f8f">
       <source xml:lang="en">Open column menu</source>
+    </trans-unit>
+    <trans-unit id="++CODE++437ad3135cec38cdad6a80306cd184230bb06c733defa73f1796f5bbc3f9e556">
+      <source xml:lang="en">Open detailed T-SQL language service status</source>
     </trans-unit>
     <trans-unit id="++CODE++cef89448c86ea390bfb9f0953513fd8871c5595cd7e65fc9ef5fc306fe7bfd11">
       <source xml:lang="en">Open filter menu</source>
@@ -7485,6 +7509,14 @@
     <trans-unit id="++CODE++b27ba710997adaf6099374edb801d44bef36c92e6d37e0190c7c1d12d4b32209">
       <source xml:lang="en">T-SQL</source>
     </trans-unit>
+    <trans-unit id="++CODE++a218189cd4ccfa52fe95357014a0346d66ca6e860ce5378edd8d7864925e6753">
+      <source xml:lang="en">T-SQL language service metadata refresh failed: {0}</source>
+      <note>{0} is the metadata refresh error message</note>
+    </trans-unit>
+    <trans-unit id="++CODE++a2196fd80ce61b5f134e4f403e8a3028d6673f7148458d9cdf8cb7af943b04ca">
+      <source xml:lang="en">T-SQL language service metadata refreshed in {0} ms.</source>
+      <note>{0} is the metadata refresh duration in milliseconds</note>
+    </trans-unit>
     <trans-unit id="++CODE++16d1c9050a0b32e83764a81d801a880773abedfd7f8b0b08a1cd87ca0e404f12">
       <source xml:lang="en">Table</source>
     </trans-unit>
@@ -8475,6 +8507,21 @@
     <trans-unit id="++CODE++eb69f53f51eaef9887d5c3f3cbd0993b208e962fed51bdd572b0816eb75c1d10">
       <source xml:lang="en">macOS Sierra or newer is required to use this feature.</source>
     </trans-unit>
+    <trans-unit id="++CODE++3241441c0f217c906d0870d89ec73fc58a138769f59fb782c61c54b9cebf583c">
+      <source xml:lang="en">metadata failed</source>
+    </trans-unit>
+    <trans-unit id="++CODE++db17da8f9c0e574405945d07cd3b6688801dce38d74cf1a96cf29fe266107a3e">
+      <source xml:lang="en">metadata loading</source>
+    </trans-unit>
+    <trans-unit id="++CODE++3c8f4aec9db4d8bc675fb9b7d814c603744133f5e16029c326dc22a3b9514c82">
+      <source xml:lang="en">metadata offline</source>
+    </trans-unit>
+    <trans-unit id="++CODE++26a21d2c31a4517da99eb764dccc409e2553e5b8a0e91e880adc3137debff98c">
+      <source xml:lang="en">metadata pending</source>
+    </trans-unit>
+    <trans-unit id="++CODE++fe146095d1a440d572afe7526300148b72acfa044ad092510bad245b0e0fbb4a">
+      <source xml:lang="en">metadata ready</source>
+    </trans-unit>
     <trans-unit id="++CODE++d2a589f7f49acd96e560ee2773d4c45f1ab7aa3328f0cb94939d6d1f9cf49ae5">
       <source xml:lang="en">none selected</source>
     </trans-unit>
@@ -9287,6 +9334,9 @@
     <trans-unit id="mssql.preview.betaObjectExplorerFilter.description">
       <source xml:lang="en">Enables the preview Object Explorer filter experience with saved filter presets and recently applied filters. Disable this setting to use the existing Object Explorer filter experience.</source>
     </trans-unit>
+    <trans-unit id="mssql.preview.languageService.description">
+      <source xml:lang="en">Enables the preview TypeScript T-SQL language service and its local parsing, binding, metadata, worker, and request statistics. Existing language features remain active until each preview feature is ready.</source>
+    </trans-unit>
     <trans-unit id="mssql.preview.betaExecutionPlan.description">
       <source xml:lang="en">Enables the preview query execution plan experience with improved layout, keyboard navigation, tooltips, SQL text display, and toolbar interactions. Disable this setting to use the existing execution plan experience.</source>
     </trans-unit>
@@ -9476,6 +9526,9 @@
     <trans-unit id="mssql.rebuildIntelliSenseCache">
       <source xml:lang="en">Refresh IntelliSense Cache</source>
     </trans-unit>
+    <trans-unit id="mssql.preview.refreshLanguageServiceMetadata">
+      <source xml:lang="en">Refresh T-SQL Language Service Metadata (Preview)</source>
+    </trans-unit>
     <trans-unit id="mssql.removeObjectExplorerNode">
       <source xml:lang="en">Remove Connection</source>
     </trans-unit>
@@ -9610,6 +9663,9 @@
     </trans-unit>
     <trans-unit id="mssql.persistQueryResultTabs">
       <source xml:lang="en">Should query result selections and scroll positions be saved when switching tabs (may impact performance)</source>
+    </trans-unit>
+    <trans-unit id="mssql.preview.showLanguageServiceStats">
+      <source xml:lang="en">Show T-SQL Language Service Stats (Preview)</source>
     </trans-unit>
     <trans-unit id="mssql.format.showParseErrorNotification">
       <source xml:lang="en">Show a notification when Preview Formatter cannot fully parse the T-SQL being formatted.</source>

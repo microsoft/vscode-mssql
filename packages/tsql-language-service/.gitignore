@@ -1,0 +1,9 @@
+dist/
+node_modules/
+src/syntax/lezer/generated/
+benchmarks/generated/
+benchmarks/results/
+benchmarks/dotnet/bin/
+benchmarks/dotnet/obj/
+.eslintcache
+*.tsbuildinfo

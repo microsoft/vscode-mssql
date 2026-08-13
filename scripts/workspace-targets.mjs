@@ -1,5 +1,13 @@
 export const workspaceTargets = [
     {
+        target: "tsql-language-service",
+        kind: "package",
+        aliases: ["tsql-language-service", "tsql-ls"],
+        packageName: "@vscode-mssql/tsql-language-service",
+        directory: "packages/tsql-language-service",
+        scripts: ["build", "watch", "test", "lint"],
+    },
+    {
         target: "extension-toolkit",
         kind: "package",
         aliases: ["extension-toolkit", "toolkit"],
@@ -16,9 +24,9 @@ export const workspaceTargets = [
         scripts: ["build", "watch", "test", "smoketest", "lint", "package"],
         supportsProdBuild: true,
         dependencies: {
-            build: ["extension-toolkit"],
-            watch: ["extension-toolkit"],
-            lint: ["extension-toolkit"],
+            build: ["extension-toolkit", "tsql-language-service"],
+            watch: ["extension-toolkit", "tsql-language-service"],
+            lint: ["extension-toolkit", "tsql-language-service"],
         },
     },
     {

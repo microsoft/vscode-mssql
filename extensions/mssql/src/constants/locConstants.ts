@@ -36,6 +36,50 @@ export class SqlToolsMcp {
     public static serverLabel = l10n.t("SQL Tools (MSSQL)");
 }
 
+export class PreviewLanguageService {
+    public static enableSettingFirst = l10n.t(
+        "Enable the T-SQL Language Service preview setting first.",
+    );
+    public static openEditorToRefresh = l10n.t(
+        "Open a SQL editor to refresh language service metadata.",
+    );
+    public static connectBeforeRefresh = l10n.t(
+        "Connect this SQL editor before refreshing metadata.",
+    );
+    public static metadataRefreshed = (elapsedMs: string) =>
+        l10n.t({
+            message: "T-SQL language service metadata refreshed in {0} ms.",
+            args: [elapsedMs],
+            comment: ["{0} is the metadata refresh duration in milliseconds"],
+        });
+    public static metadataRefreshFailed = (error: string) =>
+        l10n.t({
+            message: "T-SQL language service metadata refresh failed: {0}",
+            args: [error],
+            comment: ["{0} is the metadata refresh error message"],
+        });
+    public static openEditorForStats = l10n.t(
+        "Open a SQL editor to inspect language service status.",
+    );
+    public static openDetailedStatus = l10n.t("Open detailed T-SQL language service status");
+    public static initializing = l10n.t("$(loading~spin) T-SQL preview: initializing");
+    public static metadataFailed = l10n.t("metadata failed");
+    public static metadataLoading = l10n.t("metadata loading");
+    public static metadataOffline = l10n.t("metadata offline");
+    public static metadataReady = l10n.t("metadata ready");
+    public static metadataPending = l10n.t("metadata pending");
+    public static status = (parseMs: string, bindMs: string, metadata: string) =>
+        l10n.t({
+            message: "$(pulse) T-SQL preview: parse {0} ms | bind {1} ms | {2}",
+            args: [parseMs, bindMs, metadata],
+            comment: [
+                "{0} is parse time in milliseconds",
+                "{1} is semantic binding time in milliseconds",
+                "{2} is localized metadata readiness status",
+            ],
+        });
+}
+
 export let createDatabaseDialogTitle = l10n.t("Create Database");
 export let dropDatabaseDialogTitle = l10n.t("Drop Database");
 export let renameDatabaseDialogTitle = l10n.t("Rename Database");

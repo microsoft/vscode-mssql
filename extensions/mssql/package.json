@@ -154,6 +154,7 @@
         "@azure/storage-blob": "^12.31.0",
         "@microsoft/vscode-azext-azureauth": "^5.1.1",
         "@microsoft/vscode-azureresources-api": "^3.1.1",
+        "@vscode-mssql/tsql-language-service": "file:../../packages/tsql-language-service",
         "@xmldom/xmldom": "^0.9.10",
         "dockerode": "^4.0.9",
         "dotenv": "^16.4.5",
@@ -1758,6 +1759,18 @@
                 "command": "mssql.openInMssqlExtensionFromAzureResources",
                 "title": "%mssql.openInMssqlExtensionFromAzureResources%",
                 "category": "MS SQL"
+            },
+            {
+                "command": "mssql.preview.showLanguageServiceStats",
+                "title": "%mssql.preview.showLanguageServiceStats%",
+                "category": "MS SQL",
+                "enablement": "config.mssql.preview.languageService"
+            },
+            {
+                "command": "mssql.preview.refreshLanguageServiceMetadata",
+                "title": "%mssql.preview.refreshLanguageServiceMetadata%",
+                "category": "MS SQL",
+                "enablement": "config.mssql.preview.languageService"
             }
         ],
         "keybindings": [
@@ -1824,6 +1837,12 @@
                     "default": false,
                     "description": "%mssql.preview.betaExecutionPlan.description%",
                     "scope": "application"
+                },
+                "mssql.preview.languageService": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "%mssql.preview.languageService.description%",
+                    "scope": "window"
                 },
                 "mssql.preview.useVscodeAccountsForEntraMFA": {
                     "type": [

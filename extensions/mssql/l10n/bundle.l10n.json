@@ -21,6 +21,33 @@
     "Remove": "Remove",
     "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
     "SQL Tools (MSSQL)": "SQL Tools (MSSQL)",
+    "Enable the T-SQL Language Service preview setting first.": "Enable the T-SQL Language Service preview setting first.",
+    "Open a SQL editor to refresh language service metadata.": "Open a SQL editor to refresh language service metadata.",
+    "Connect this SQL editor before refreshing metadata.": "Connect this SQL editor before refreshing metadata.",
+    "T-SQL language service metadata refreshed in {0} ms./{0} is the metadata refresh duration in milliseconds": {
+        "message": "T-SQL language service metadata refreshed in {0} ms.",
+        "comment": ["{0} is the metadata refresh duration in milliseconds"]
+    },
+    "T-SQL language service metadata refresh failed: {0}/{0} is the metadata refresh error message": {
+        "message": "T-SQL language service metadata refresh failed: {0}",
+        "comment": ["{0} is the metadata refresh error message"]
+    },
+    "Open a SQL editor to inspect language service status.": "Open a SQL editor to inspect language service status.",
+    "Open detailed T-SQL language service status": "Open detailed T-SQL language service status",
+    "$(loading~spin) T-SQL preview: initializing": "$(loading~spin) T-SQL preview: initializing",
+    "metadata failed": "metadata failed",
+    "metadata loading": "metadata loading",
+    "metadata offline": "metadata offline",
+    "metadata ready": "metadata ready",
+    "metadata pending": "metadata pending",
+    "$(pulse) T-SQL preview: parse {0} ms | bind {1} ms | {2}/{0} is parse time in milliseconds{1} is semantic binding time in milliseconds{2} is localized metadata readiness status": {
+        "message": "$(pulse) T-SQL preview: parse {0} ms | bind {1} ms | {2}",
+        "comment": [
+            "{0} is parse time in milliseconds",
+            "{1} is semantic binding time in milliseconds",
+            "{2} is localized metadata readiness status"
+        ]
+    },
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
     "Rename Database": "Rename Database",

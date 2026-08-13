@@ -1,0 +1,63 @@
+{
+    "name": "@vscode-mssql/tsql-language-service",
+    "version": "0.1.0",
+    "private": true,
+    "description": "Host-neutral incremental T-SQL syntax, semantics, and editor features",
+    "license": "SEE LICENSE IN ../../LICENSE.txt",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "require": "./dist/index.js",
+            "default": "./dist/index.js"
+        },
+        "./metadata": {
+            "types": "./dist/metadata/index.d.ts",
+            "require": "./dist/metadata/index.js",
+            "default": "./dist/metadata/index.js"
+        },
+        "./worker": {
+            "types": "./dist/worker/index.d.ts",
+            "require": "./dist/worker/index.js",
+            "default": "./dist/worker/index.js"
+        },
+        "./worker/node": {
+            "types": "./dist/worker/node/client.d.ts",
+            "require": "./dist/worker/node/client.js",
+            "default": "./dist/worker/node/client.js"
+        },
+        "./worker/browser": {
+            "types": "./dist/worker/browser/client.d.mts",
+            "import": "./dist/worker/browser/client.mjs",
+            "default": "./dist/worker/browser/client.mjs"
+        },
+        "./worker/browser-entry": "./dist/worker/browser/worker.mjs"
+    },
+    "files": [
+        "dist",
+        "README.md"
+    ],
+    "scripts": {
+        "build:grammar": "node scripts/build-grammar.mjs",
+        "build:typescript": "tsc -p tsconfig.json",
+        "build:workers": "node scripts/build-workers.mjs",
+        "build": "npm run build:grammar && npm run build:typescript && npm run build:workers",
+        "typecheck": "npm run build:grammar && tsc -p tsconfig.json --noEmit",
+        "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
+        "lint": "node scripts/check-boundaries.mjs",
+        "test": "npm run build && node --test test/*.test.js",
+        "benchmark": "npm run build && node --expose-gc benchmarks/run.mjs",
+        "benchmark:smoke": "npm run build && node benchmarks/run.mjs --smoke"
+    },
+    "dependencies": {
+        "@lezer/common": "^1.2.3",
+        "@lezer/lr": "^1.4.8"
+    },
+    "devDependencies": {
+        "@lezer/generator": "^1.8.0",
+        "@types/node": "^22.13.14",
+        "esbuild": "^0.25.8",
+        "typescript": "^5.8.3"
+    }
+}
