@@ -189,6 +189,7 @@ export interface TableExplorerWebViewState {
     schemaName?: string;
     connectionProfile?: any;
     loadStatus: ApiStatus;
+    saveStatus: ApiStatus;
     ownerUri: string;
     resultSet: EditSubsetResult | undefined;
     currentRowCount: number; // Track the user's selected row count for data loading

@@ -20,6 +20,7 @@ import {
     EditScriptResult,
     EditSessionReadyParams,
     EditInitializeResult,
+    EditCommitResult,
     DbCellValue,
     SqlPaneMode,
 } from "../../src/sharedInterfaces/tableExplorer";
@@ -190,28 +191,55 @@ suite("TableExplorerWebViewController - Reducers", () => {
     });
 
     suite("commitChanges reducer", () => {
-        test("should commit changes successfully and clear newRows", async () => {
+        test("should clear pending changes only after commit succeeds", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
             controller.state.newRows = [createMockRow(100, ["3", "New", "Row"])];
-            mockTableExplorerService.commit.resolves({});
+            controller.state.deletedRows = [0];
+            controller.state.failedCells = ["100-1"];
+            controller.state.originalCellValues?.set("100-1", createMockCell("Original"));
+            controller.state.updateScript = "INSERT INTO TestTable VALUES (...)";
+            let resolveCommit: (value: EditCommitResult) => void;
+            const commitPromise = new Promise<EditCommitResult>((resolve) => {
+                resolveCommit = resolve;
+            });
+            mockTableExplorerService.commit.returns(commitPromise);
 
             // Act
-            await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
+            const reducerPromise = controller["_reducerHandlers"].get("commitChanges")(
+                controller.state,
+                {},
+            );
 
             // Assert
-            expect(mockTableExplorerService.commit.calledOnceWith("test-owner-uri")).to.be.true;
-            expect(
-                showInformationMessageStub.calledOnceWith(
-                    LocConstants.TableExplorer.changesSavedSuccessfully,
-                ),
-            ).to.be.true;
-            expect(controller.state.newRows).to.have.length(0);
+            expect(controller.state.saveStatus).to.equal(ApiStatus.Loading);
+            expect(controller.state.newRows).to.have.length(1);
+
+            resolveCommit!({});
+            await reducerPromise;
+
+            expect(mockTableExplorerService.commit).to.have.been.calledWith("test-owner-uri");
+            expect(showInformationMessageStub).to.have.been.calledWith(
+                LocConstants.TableExplorer.changesSavedSuccessfully,
+            );
+            expect(controller.state.saveStatus).to.equal(ApiStatus.Loaded);
+            expect(controller.state.newRows).to.be.empty;
+            expect(controller.state.deletedRows).to.be.empty;
+            expect(controller.state.failedCells).to.be.empty;
+            expect(controller.state.originalCellValues).to.be.empty;
+            expect(controller.state.updateScript).to.be.undefined;
         });
 
-        test("should show error message when commit fails", async () => {
+        test("should preserve pending changes when commit fails", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
+            const newRow = createMockRow(100, ["3", "New", "Row"]);
+            const originalCell = createMockCell("Original");
+            controller.state.newRows = [newRow];
+            controller.state.deletedRows = [0];
+            controller.state.failedCells = ["100-1"];
+            controller.state.originalCellValues?.set("100-1", originalCell);
+            controller.state.updateScript = "INSERT INTO TestTable VALUES (...)";
             const error = new Error("Commit failed");
             mockTableExplorerService.commit.rejects(error);
 
@@ -219,9 +247,16 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
 
             // Assert
-            expect(mockTableExplorerService.commit.calledOnce).to.be.true;
-            expect(showErrorMessageStub.calledOnce).to.be.true;
-            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to save changes");
+            expect(mockTableExplorerService.commit).to.have.been.calledWith("test-owner-uri");
+            expect(showErrorMessageStub).to.have.been.calledWith(
+                LocConstants.TableExplorer.failedToSaveChanges(error.message),
+            );
+            expect(controller.state.saveStatus).to.equal(ApiStatus.Error);
+            expect(controller.state.newRows).to.deep.equal([newRow]);
+            expect(controller.state.deletedRows).to.deep.equal([0]);
+            expect(controller.state.failedCells).to.deep.equal(["100-1"]);
+            expect(controller.state.originalCellValues?.get("100-1")).to.equal(originalCell);
+            expect(controller.state.updateScript).to.equal("INSERT INTO TestTable VALUES (...)");
         });
     });
 

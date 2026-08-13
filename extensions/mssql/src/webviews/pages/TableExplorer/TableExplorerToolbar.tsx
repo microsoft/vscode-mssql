@@ -51,7 +51,6 @@ const useStyles = makeStyles({
 });
 
 interface TableExplorerToolbarProps {
-    onSaveComplete?: () => void;
     cellChangeCount: number;
     deletionCount: number;
     currentRowCount?: number;
@@ -124,7 +123,6 @@ const ColumnsMenu: React.FC<ColumnsMenuProps> = ({
 };
 
 export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
-    onSaveComplete,
     cellChangeCount,
     deletionCount,
     currentRowCount,
@@ -146,7 +144,9 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
 
     // Use selectors to access state
     const loadStatus = useTableExplorerSelector((s) => s.loadStatus);
+    const saveStatus = useTableExplorerSelector((s) => s.saveStatus);
     const isLoading = loadStatus === ApiStatus.Loading;
+    const isSaving = saveStatus === ApiStatus.Loading;
 
     const [loadRowCount, setLoadRowCount] = React.useState<string>(String(DEFAULT_ROW_COUNT));
 
@@ -154,10 +154,6 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
 
     const handleSave = () => {
         context.commitChanges();
-        // Call the callback to clear change tracking after save
-        if (onSaveComplete) {
-            onSaveComplete();
-        }
     };
 
     const handleAddRow = () => {
@@ -224,7 +220,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 title={saveButtonText}
                 icon={<SaveRegular />}
                 onClick={handleSave}
-                disabled={changeCount === 0 || isLoading}>
+                disabled={changeCount === 0 || isLoading || isSaving}>
                 {saveButtonText}
             </ToolbarButton>
             <ToolbarButton

@@ -56,6 +56,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 connectionProfile: _targetNode?.connectionProfile,
                 schemaName: schemaName,
                 loadStatus: ApiStatus.Loading,
+                saveStatus: ApiStatus.NotStarted,
                 ownerUri: "",
                 resultSet: undefined,
                 currentRowCount: 100, // Default row count for data loading
@@ -433,17 +434,17 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 },
             );
 
+            state.saveStatus = ApiStatus.Loading;
+            this.updateState();
+
             try {
                 await this._tableExplorerService.commit(state.ownerUri);
                 vscode.window.showInformationMessage(
                     LocConstants.TableExplorer.changesSavedSuccessfully,
                 );
 
-                // Clear tracking state after successful commit
-                state.newRows = [];
-                state.deletedRows = [];
-                state.failedCells = [];
-                state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
+                this.resetPendingChangesState(state);
+                state.saveStatus = ApiStatus.Loaded;
                 this.showRestorePromptAfterClose = false;
 
                 this.logger.debug(
@@ -455,6 +456,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     operationId: this.operationId,
                 });
             } catch (error) {
+                state.saveStatus = ApiStatus.Error;
                 this.logger.error(
                     `Error committing changes: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );

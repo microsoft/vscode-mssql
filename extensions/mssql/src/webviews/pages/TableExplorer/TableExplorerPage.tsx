@@ -122,6 +122,7 @@ export const TableExplorerPage: React.FC = () => {
     // Use selectors to access specific state properties
     const resultSet = useTableExplorerSelector((s) => s.resultSet);
     const loadStatus = useTableExplorerSelector((s) => s.loadStatus);
+    const saveStatus = useTableExplorerSelector((s) => s.saveStatus);
     const currentRowCount = useTableExplorerSelector((s) => s.currentRowCount);
     const failedCells = useTableExplorerSelector((s) => s.failedCells);
     const deletedRows = useTableExplorerSelector((s) => s.deletedRows);
@@ -331,10 +332,11 @@ export const TableExplorerPage: React.FC = () => {
         setSortColumns([]);
     }, [tableQuery]);
 
-    const handleSaveComplete = () => {
-        // Clear the change tracking in the grid after successful save
-        gridRef.current?.clearAllChangeTracking();
-    };
+    useEffect(() => {
+        if (saveStatus === ApiStatus.Loaded) {
+            gridRef.current?.clearAllChangeTracking();
+        }
+    }, [saveStatus]);
 
     const handleCellChangeCountChanged = (count: number) => {
         setCellChangeCount(count);
@@ -350,7 +352,6 @@ export const TableExplorerPage: React.FC = () => {
                 <Panel defaultSize={75}>
                     <div className={classes.contentArea}>
                         <TableExplorerToolbar
-                            onSaveComplete={handleSaveComplete}
                             cellChangeCount={cellChangeCount}
                             deletionCount={deletionCount}
                             currentRowCount={currentRowCount}
