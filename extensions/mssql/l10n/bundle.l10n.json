@@ -1189,7 +1189,18 @@
         "message": "Failed to generate script: '{0}'",
         "comment": ["{0} is the error message returned from the generate script operation"]
     },
-    "Are you sure you want to update the target?": "Are you sure you want to update the target?",
+    "Are you sure you want to apply changes to \"{0}\"?/{0} is the display name of the target database or project": {
+        "message": "Are you sure you want to apply changes to \"{0}\"?",
+        "comment": ["{0} is the display name of the target database or project"]
+    },
+    "Changes to apply:\nAdd: {0}\nChange: {1}\nDelete: {2}/{0} is the number of objects to add{1} is the number of objects to change{2} is the number of objects to delete": {
+        "message": "Changes to apply:\nAdd: {0}\nChange: {1}\nDelete: {2}",
+        "comment": [
+            "{0} is the number of objects to add",
+            "{1} is the number of objects to change",
+            "{2} is the number of objects to delete"
+        ]
+    },
     "Failed to apply changes: '{0}'/{0} is the error message returned from the publish changes operation": {
         "message": "Failed to apply changes: '{0}'",
         "comment": ["{0} is the error message returned from the publish changes operation"]
@@ -3629,6 +3640,7 @@
             "{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied."
         ]
     },
+    "Are you sure you want to update the target?": "Are you sure you want to update the target?",
     "There was an error updating the project": "There was an error updating the project",
     "Processing include or exclude all differences operation.": "Processing include or exclude all differences operation.",
     "Publish Project - {0}/{0} is the name of the project being published": {

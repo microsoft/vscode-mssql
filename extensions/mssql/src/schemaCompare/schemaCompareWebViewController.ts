@@ -1170,10 +1170,21 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             );
 
+            const actionCounts = this.getIncludedUpdateActionCounts(
+                state.schemaCompareResult?.differences,
+            );
+            const targetDisplayName = this.getEndpointDisplayName(state.targetEndpointInfo);
             const yes = locConstants.SchemaCompare.Yes;
             const result = await vscode.window.showWarningMessage(
-                locConstants.SchemaCompare.areYouSureYouWantToUpdateTheTarget,
-                { modal: true },
+                locConstants.SchemaCompare.applyChangesConfirmation(targetDisplayName),
+                {
+                    modal: true,
+                    detail: locConstants.SchemaCompare.applyChangesSummary(
+                        actionCounts[SchemaUpdateAction.Add],
+                        actionCounts[SchemaUpdateAction.Change],
+                        actionCounts[SchemaUpdateAction.Delete],
+                    ),
+                },
                 yes,
             );
 
@@ -1196,20 +1207,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 return state;
             }
 
-            if (state.schemaCompareResult && state.schemaCompareResult.differences) {
-                const includedDiffs = state.schemaCompareResult.differences.filter(
-                    (diff) => diff.included,
-                );
-                const actionCounts = {
-                    [SchemaUpdateAction.Delete]: 0,
-                    [SchemaUpdateAction.Add]: 0,
-                    [SchemaUpdateAction.Change]: 0,
-                };
-
-                includedDiffs.forEach((diff) => {
-                    actionCounts[diff.updateAction]++;
-                });
-
+            if (state.schemaCompareResult?.differences) {
                 const updateActionBreakdown = {
                     numDiffsDeleted: actionCounts[SchemaUpdateAction.Delete],
                     numDiffsAdded: actionCounts[SchemaUpdateAction.Add],
@@ -2800,6 +2798,33 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             `Found ${finalDifferences.length} object type differences out of ${differences.length} total differences - OperationId: ${this.operationId}`,
         );
         return finalDifferences;
+    }
+
+    private getEndpointDisplayName(endpoint: mssql.SchemaCompareEndpointInfo): string {
+        return (
+            (endpoint?.serverName && endpoint?.databaseName
+                ? `${endpoint.connectionName || endpoint.serverName}.${endpoint.databaseName}`
+                : "") ||
+            endpoint?.packageFilePath ||
+            endpoint?.projectFilePath ||
+            ""
+        );
+    }
+
+    private getIncludedUpdateActionCounts(
+        differences: DiffEntry[] | undefined,
+    ): Record<SchemaUpdateAction, number> {
+        const actionCounts = {
+            [SchemaUpdateAction.Delete]: 0,
+            [SchemaUpdateAction.Change]: 0,
+            [SchemaUpdateAction.Add]: 0,
+        };
+
+        differences
+            ?.filter((difference) => difference.included)
+            .forEach((difference) => actionCounts[difference.updateAction]++);
+
+        return actionCounts;
     }
 
     /**

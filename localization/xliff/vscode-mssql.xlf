@@ -485,6 +485,10 @@
     <trans-unit id="++CODE++6007acbe30b2cd98703e83350ea665c06009fcd51f26dd73b309294235f45f21">
       <source xml:lang="en">Approve</source>
     </trans-unit>
+    <trans-unit id="++CODE++ff2e7ea158050428b68c36c0d23f368456de2861ea1a864731580722d229e19c">
+      <source xml:lang="en">Are you sure you want to apply changes to &quot;{0}&quot;?</source>
+      <note>{0} is the display name of the target database or project</note>
+    </trans-unit>
     <trans-unit id="++CODE++5a0515f60bd3693347830f37a0e69fa8477aa11b9fb3b0fef1a52e898ce46a76">
       <source xml:lang="en">Are you sure you want to cancel this background task?</source>
     </trans-unit>
@@ -1016,6 +1020,12 @@
     </trans-unit>
     <trans-unit id="++CODE++35c09389e41adb1bb2bf8991c39e3927981a271ab80a41ec216995e909344c23">
       <source xml:lang="en">Changes saved successfully.</source>
+    </trans-unit>
+    <trans-unit id="++CODE++7105a1f793e3448308f416d3c25a972064941f37843a9c73db70da86e271cbe9">
+      <source xml:lang="en">Changes to apply:&#10;Add: {0}&#10;Change: {1}&#10;Delete: {2}</source>
+      <note>{0} is the number of objects to add
+{1} is the number of objects to change
+{2} is the number of objects to delete</note>
     </trans-unit>
     <trans-unit id="++CODE++a49c556a0c0853ed9f434360953ce0088ffa041d83bff7c0ba57f7ce9c668186">
       <source xml:lang="en">Changes view mode</source>

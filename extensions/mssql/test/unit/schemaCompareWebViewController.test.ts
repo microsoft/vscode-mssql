@@ -1925,4 +1925,61 @@ suite("SchemaCompareWebViewController Tests", () => {
             "schemaCompareResult should be unchanged when cancelled",
         ).to.deep.equal(mockInitialState.schemaCompareResult);
     });
+
+    test("publishChanges reducer - confirmation identifies database and summarizes included changes", async () => {
+        const showWarningMessageStub = sandbox
+            .stub(vscode.window, "showWarningMessage")
+            .resolves(undefined);
+        const state = {
+            ...mockInitialState,
+            targetEndpointInfo,
+            schemaCompareResult: {
+                ...mockInitialState.schemaCompareResult,
+                differences: [
+                    { ...differences[0], updateAction: SchemaUpdateAction.Add },
+                    { ...differences[1], updateAction: SchemaUpdateAction.Change },
+                    { ...differences[2], updateAction: SchemaUpdateAction.Delete },
+                    {
+                        ...differences[2],
+                        included: false,
+                        updateAction: SchemaUpdateAction.Delete,
+                    },
+                ],
+            },
+        };
+        const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
+
+        await controller["_reducerHandlers"].get("publishChanges")(state, payload);
+
+        expect(showWarningMessageStub).to.have.been.calledWith(
+            'Are you sure you want to apply changes to "localhost,1433.master"?',
+            {
+                modal: true,
+                detail: "Changes to apply:\nAdd: 1\nChange: 1\nDelete: 1",
+            },
+            "Yes",
+        );
+    });
+
+    test("publishChanges reducer - confirmation identifies project target", async () => {
+        const showWarningMessageStub = sandbox
+            .stub(vscode.window, "showWarningMessage")
+            .resolves(undefined);
+        const state = {
+            ...mockInitialState,
+            targetEndpointInfo: sourceEndpointInfo,
+        };
+        const payload = { targetServerName: "", targetDatabaseName: "" };
+
+        await controller["_reducerHandlers"].get("publishChanges")(state, payload);
+
+        expect(showWarningMessageStub).to.have.been.calledWith(
+            'Are you sure you want to apply changes to "/TestSqlProject/TestProject/TestProject.sqlproj"?',
+            {
+                modal: true,
+                detail: "Changes to apply:\nAdd: 3\nChange: 0\nDelete: 0",
+            },
+            "Yes",
+        );
+    });
 });

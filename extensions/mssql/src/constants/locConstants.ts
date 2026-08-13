@@ -2116,9 +2116,22 @@ export class SchemaCompare {
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the generate script operation"],
         });
-    public static areYouSureYouWantToUpdateTheTarget = l10n.t(
-        "Are you sure you want to update the target?",
-    );
+    public static applyChangesConfirmation = (targetName: string) =>
+        l10n.t({
+            message: 'Are you sure you want to apply changes to "{0}"?',
+            args: [targetName],
+            comment: ["{0} is the display name of the target database or project"],
+        });
+    public static applyChangesSummary = (additions: number, changes: number, deletions: number) =>
+        l10n.t({
+            message: "Changes to apply:\nAdd: {0}\nChange: {1}\nDelete: {2}",
+            args: [additions, changes, deletions],
+            comment: [
+                "{0} is the number of objects to add",
+                "{1} is the number of objects to change",
+                "{2} is the number of objects to delete",
+            ],
+        });
     public static schemaCompareApplyFailed = (errorMessage: string) =>
         l10n.t({
             message: "Failed to apply changes: '{0}'",
