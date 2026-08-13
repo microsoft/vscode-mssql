@@ -175,63 +175,34 @@ export function getIssueSeverityLabel(severity: DbAgentIssueSeverity): string {
 export function getIssueStatusLabel(status: DbAgentIssueStatus): string {
     const dashboardLoc = getDashboardLoc();
     switch (status) {
+        case "new":
         case "investigating":
             return dashboardLoc.investigating;
-        case "actionReady":
+        case "diagnosed":
+        case "actionProposed":
             return dashboardLoc.actionReady;
+        case "executing":
+        case "verifying":
         case "monitoring":
             return dashboardLoc.monitoring;
         case "resolved":
+        case "closed":
             return dashboardLoc.resolved;
+        case "failed":
+            return dashboardLoc.warning;
     }
 }
 
 export function getIssueTitle(issue: DbAgentIssue): string {
-    const dashboardLoc = getDashboardLoc();
-    switch (issue.kind) {
-        case "blockingChain":
-            return dashboardLoc.longRunningBlockingChain;
-        case "capacityPressure":
-            return dashboardLoc.fabricCapacityPressure;
-        case "highCpu":
-            return dashboardLoc.sustainedCpuPressure;
-        case "queryRegression":
-            return dashboardLoc.queryPerformanceRegression;
-        case "storageGrowth":
-            return dashboardLoc.acceleratedStorageGrowth;
-    }
+    return issue.title;
 }
 
 export function getIssueSummary(issue: DbAgentIssue): string {
-    const dashboardLoc = getDashboardLoc();
-    switch (issue.kind) {
-        case "blockingChain":
-            return dashboardLoc.blockingChainSummary(issue.affectedDatabase);
-        case "capacityPressure":
-            return dashboardLoc.capacityPressureSummary(issue.affectedDatabase);
-        case "highCpu":
-            return dashboardLoc.highCpuSummary(issue.affectedDatabase);
-        case "queryRegression":
-            return dashboardLoc.queryRegressionSummary(issue.affectedDatabase);
-        case "storageGrowth":
-            return dashboardLoc.storageGrowthSummary(issue.affectedDatabase);
-    }
+    return issue.summary;
 }
 
 export function getIssueRecommendation(issue: DbAgentIssue): string {
-    const dashboardLoc = getDashboardLoc();
-    switch (issue.kind) {
-        case "blockingChain":
-            return dashboardLoc.blockingChainRecommendation;
-        case "capacityPressure":
-            return dashboardLoc.capacityPressureRecommendation;
-        case "highCpu":
-            return dashboardLoc.highCpuRecommendation;
-        case "queryRegression":
-            return dashboardLoc.queryRegressionRecommendation;
-        case "storageGrowth":
-            return dashboardLoc.storageGrowthRecommendation;
-    }
+    return issue.recommendedActions[0]?.title ?? "";
 }
 
 export function getInvestigationEventLabel(kind: DbAgentInvestigationEventKind): string {
@@ -245,7 +216,11 @@ export function getInvestigationEventLabel(kind: DbAgentInvestigationEventKind):
             return dashboardLoc.rootCauseIdentified;
         case "recommended":
             return dashboardLoc.actionPrepared;
+        case "action":
+            return dashboardLoc.actionPrepared;
         case "monitoring":
             return dashboardLoc.recoveryMonitoring;
+        case "resolved":
+            return dashboardLoc.resolved;
     }
 }

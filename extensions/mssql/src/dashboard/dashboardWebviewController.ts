@@ -143,6 +143,82 @@ export class DashboardWebviewController extends WebviewPanelController<
             ),
         );
 
+        this.registerReducer("registerDbAgent", async (state) =>
+            this.loadSnapshot(() => this._dataService.registerDbAgent(state.snapshot.target)),
+        );
+
+        this.registerReducer("decideDbAgentAction", async (state, payload) =>
+            this.loadSnapshot(() =>
+                this._dataService.decideDbAgentAction(
+                    state.snapshot.target,
+                    payload.issueId,
+                    payload.actionId,
+                    payload.decision,
+                ),
+            ),
+        );
+
+        this.registerReducer("executeDbAgentAction", async (state, payload) =>
+            this.loadSnapshot(() =>
+                this._dataService.executeDbAgentAction(
+                    state.snapshot.target,
+                    payload.issueId,
+                    payload.actionId,
+                ),
+            ),
+        );
+
+        this.registerReducer("markDbAgentActionApplied", async (state, payload) =>
+            this.loadSnapshot(() =>
+                this._dataService.markDbAgentActionApplied(
+                    state.snapshot.target,
+                    payload.issueId,
+                    payload.actionId,
+                ),
+            ),
+        );
+
+        this.registerReducer("analyzeDbAgentSection", async (state, payload) =>
+            this.loadSnapshot(() =>
+                this._dataService.analyzeDbAgentSection(
+                    state.snapshot.target,
+                    payload.issueId,
+                    payload.section,
+                ),
+            ),
+        );
+
+        this.registerReducer("forceResolveInvestigation", async (state, payload) =>
+            this.loadSnapshot(() =>
+                this._dataService.forceResolveInvestigation(
+                    state.snapshot.target,
+                    payload.investigationId,
+                    payload.reason,
+                ),
+            ),
+        );
+
+        this.registerReducer("saveDbAgentSettings", async (state, payload) =>
+            this.loadSnapshot(() =>
+                this._dataService.saveDbAgentSettings(state.snapshot.target, payload.settings),
+            ),
+        );
+
+        this.registerReducer("createDbAgentInstruction", async (state, payload) =>
+            this.loadSnapshot(() =>
+                this._dataService.createDbAgentInstruction(state.snapshot.target, payload.text),
+            ),
+        );
+
+        this.registerReducer("revokeDbAgentInstruction", async (state, payload) =>
+            this.loadSnapshot(() =>
+                this._dataService.revokeDbAgentInstruction(
+                    state.snapshot.target,
+                    payload.instructionId,
+                ),
+            ),
+        );
+
         this.registerReducer("openNewQuery", (state) => {
             void vscode.commands.executeCommand(Constants.cmdNewQuery);
             return state;

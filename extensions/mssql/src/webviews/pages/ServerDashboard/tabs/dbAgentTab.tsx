@@ -65,7 +65,9 @@ export function DbAgentTab({
 
     const activeIssue =
         dbAgent.activeInvestigation?.status === "active"
-            ? dbAgent.issues.find((issue) => issue.issueId === dbAgent.activeInvestigation?.issueId)
+            ? dbAgent.issues.find((issue) =>
+                  dbAgent.activeInvestigation?.issueIds.includes(issue.issueId),
+              )
             : undefined;
 
     const toggleIssue = (issueId: string): void => {
@@ -118,7 +120,11 @@ export function DbAgentTab({
                 <Card>
                     <Text className="dashboard-secondary-text">{dashboardLoc.openIssues}</Text>
                     <Text size={700} weight="semibold">
-                        {dbAgent.issues.filter((issue) => issue.status !== "resolved").length}
+                        {
+                            dbAgent.issues.filter(
+                                (issue) => issue.status !== "resolved" && issue.status !== "closed",
+                            ).length
+                        }
                     </Text>
                 </Card>
                 <Card>

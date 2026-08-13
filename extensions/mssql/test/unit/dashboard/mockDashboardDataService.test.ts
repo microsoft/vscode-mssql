@@ -36,6 +36,21 @@ suite("Server Dashboard", () => {
             expect(snapshot.waits.length).to.be.greaterThan(3);
             expect(snapshot.sessions.length).to.be.greaterThan(3);
             expect(snapshot.dbAgent.issues.length).to.be.greaterThan(1);
+            expect(snapshot.dbAgent.issues.some((issue) => issue.status === "resolved")).to.equal(
+                true,
+            );
+            expect(snapshot.dbAgent.issues.some((issue) => issue.status === "closed")).to.equal(
+                true,
+            );
+            expect(
+                snapshot.dbAgent.issues.every(
+                    (issue) =>
+                        issue.metricCharts.length > 0 &&
+                        issue.events.length > 1 &&
+                        issue.recommendedActions.length > 0,
+                ),
+            ).to.equal(true);
+            expect(snapshot.dbAgent.investigations.length).to.be.greaterThan(0);
         }
     });
 
@@ -90,6 +105,105 @@ suite("Server Dashboard", () => {
             differentWindowSnapshot.dbAgent.issues.find((issue) => issue.issueId === issueId)
                 ?.status,
         ).to.equal("monitoring");
+    });
+
+    test("supports Database Agent approval and execution workflows", async () => {
+        const service = new MockDashboardDataService();
+        const target = service.getAvailableTargets()[0];
+        const initialSnapshot = await service.loadDashboard(target);
+        const issue = initialSnapshot.dbAgent.issues.find(
+            (candidate) => candidate.status === "actionProposed",
+        )!;
+        const action = issue.recommendedActions[0];
+
+        const approvedSnapshot = await service.decideDbAgentAction(
+            target,
+            issue.issueId,
+            action.actionId,
+            "approve",
+        );
+        expect(
+            approvedSnapshot.dbAgent.issues.find((candidate) => candidate.issueId === issue.issueId)
+                ?.recommendedActions[0].approvalStatus,
+        ).to.equal("approved");
+
+        const executedSnapshot = await service.executeDbAgentAction(
+            target,
+            issue.issueId,
+            action.actionId,
+        );
+        const executedIssue = executedSnapshot.dbAgent.issues.find(
+            (candidate) => candidate.issueId === issue.issueId,
+        )!;
+        expect(executedIssue.status).to.equal("verifying");
+        expect(executedIssue.recommendedActions[0].approvalStatus).to.equal("executed");
+        expect(executedIssue.actionsTaken).to.have.length(1);
+        expect(executedSnapshot.dbAgent.activeInvestigation?.status).to.equal("monitoring");
+    });
+
+    test("supports analysis, settings, instructions, and investigation resolution", async () => {
+        const service = new MockDashboardDataService();
+        const target = service.getAvailableTargets()[0];
+        const initialSnapshot = await service.loadDashboard(target);
+        const issue = initialSnapshot.dbAgent.issues[0];
+
+        const analyzedSnapshot = await service.analyzeDbAgentSection(
+            target,
+            issue.issueId,
+            "diagnosis",
+        );
+        expect(
+            analyzedSnapshot.dbAgent.issues.find((candidate) => candidate.issueId === issue.issueId)
+                ?.analysisNotes.diagnosis,
+        ).to.not.equal(undefined);
+
+        const settings = {
+            ...analyzedSnapshot.dbAgent.settings,
+            notifyOnResolve: false,
+        };
+        const settingsSnapshot = await service.saveDbAgentSettings(target, settings);
+        expect(settingsSnapshot.dbAgent.settings.notifyOnResolve).to.equal(false);
+
+        const instructionSnapshot = await service.createDbAgentInstruction(
+            target,
+            "Never scale compute during the retail close window.",
+        );
+        const instructionId = instructionSnapshot.dbAgent.instructions[0].instructionId;
+        expect(instructionSnapshot.dbAgent.instructions[0].text).to.contain("retail close");
+        const revokedSnapshot = await service.revokeDbAgentInstruction(target, instructionId);
+        expect(
+            revokedSnapshot.dbAgent.instructions.some(
+                (instruction) => instruction.instructionId === instructionId,
+            ),
+        ).to.equal(false);
+
+        const investigationId = revokedSnapshot.dbAgent.activeInvestigation!.investigationId;
+        const resolvedSnapshot = await service.forceResolveInvestigation(
+            target,
+            investigationId,
+            "Validated by the database owner.",
+        );
+        expect(resolvedSnapshot.dbAgent.activeInvestigation).to.equal(undefined);
+        expect(resolvedSnapshot.dbAgent.investigations[0].investigationId).to.equal(
+            investigationId,
+        );
+        expect(resolvedSnapshot.dbAgent.investigations[0].status).to.equal("resolved");
+    });
+
+    test("registers an eligible Fabric Database Agent target", async () => {
+        const service = new MockDashboardDataService();
+        const target = service
+            .getAvailableTargets()
+            .find((candidate) => candidate.platform === "fabricSql")!;
+        const initialSnapshot = await service.loadDashboard(target);
+
+        expect(initialSnapshot.dbAgent.registrationMode).to.equal("notRegistered");
+
+        const registeredSnapshot = await service.registerDbAgent(target);
+
+        expect(registeredSnapshot.dbAgent.registrationMode).to.equal("registered");
+        expect(registeredSnapshot.dbAgent.enabled).to.equal(true);
+        expect(registeredSnapshot.dbAgent.settings.enabled).to.equal(true);
     });
 
     test("detects dashboard platforms from SQL host names", () => {

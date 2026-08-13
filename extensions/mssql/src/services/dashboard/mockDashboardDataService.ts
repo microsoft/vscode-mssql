@@ -13,8 +13,12 @@ import {
     DashboardSnapshot,
     DashboardTarget,
     DashboardWait,
+    DbAgentAnalyzableSection,
     DbAgentDashboard,
     DbAgentIssue,
+    DbAgentIssueAction,
+    DbAgentIssueKind,
+    DbAgentSettings,
 } from "../../sharedInterfaces/serverDashboard";
 import { IDashboardDataService } from "./iDashboardDataService";
 
@@ -89,34 +93,28 @@ export class MockDashboardDataService implements IDashboardDataService {
         target: DashboardTarget,
         issueId: string,
     ): Promise<DashboardSnapshot> {
-        const snapshot =
-            clone(this._snapshots.get(target.id)) ?? (await this.loadDashboard(target));
-        const issue = snapshot.dbAgent.issues.find((candidate) => candidate.issueId === issueId);
-        if (!issue) {
-            throw new Error(
-                `Dashboard issue '${issueId}' was not found for target '${target.id}'.`,
-            );
-        }
-
+        const snapshot = await this.getMutableSnapshot(target);
+        const issue = findIssue(snapshot, issueId);
         const acknowledgedAt = new Date().toISOString();
-        snapshot.dbAgent.issues = snapshot.dbAgent.issues.map((issue) =>
-            issue.issueId === issueId
-                ? { ...issue, status: "monitoring", updatedAt: acknowledgedAt }
-                : issue,
-        );
+        issue.status = "monitoring";
+        issue.updatedAt = acknowledgedAt;
+        appendIssueEvent(issue, "acknowledged", "Issue acknowledged and moved to monitoring.");
         if (
-            snapshot.dbAgent.activeInvestigation?.issueId === issueId &&
+            snapshot.dbAgent.activeInvestigation?.issueIds.includes(issueId) &&
             snapshot.dbAgent.activeInvestigation.status !== "monitoring"
         ) {
             snapshot.dbAgent.activeInvestigation = {
                 ...snapshot.dbAgent.activeInvestigation,
                 status: "monitoring",
+                updatedAt: acknowledgedAt,
                 events: [
                     ...snapshot.dbAgent.activeInvestigation.events,
                     {
                         id: `event-monitoring-${issueId}`,
                         kind: "monitoring",
                         timestamp: acknowledgedAt,
+                        title: "Monitoring started",
+                        detail: "The issue was acknowledged. The agent is validating recovery.",
                     },
                 ],
             };
@@ -129,12 +127,200 @@ export class MockDashboardDataService implements IDashboardDataService {
         target: DashboardTarget,
         enabled: boolean,
     ): Promise<DashboardSnapshot> {
-        const snapshot =
-            clone(this._snapshots.get(target.id)) ?? (await this.loadDashboard(target));
+        const snapshot = await this.getMutableSnapshot(target);
         snapshot.dbAgent.enabled = enabled;
         snapshot.dbAgent.registrationMode = enabled ? "registered" : "notRegistered";
+        snapshot.dbAgent.settings.enabled = enabled;
         this._snapshots.set(target.id, snapshot);
         return clone(snapshot);
+    }
+
+    public async registerDbAgent(target: DashboardTarget): Promise<DashboardSnapshot> {
+        const snapshot = await this.getMutableSnapshot(target);
+        snapshot.dbAgent.enabled = true;
+        snapshot.dbAgent.settings.enabled = true;
+        snapshot.dbAgent.registrationMode = "registered";
+        snapshot.dbAgent.registrationStep = undefined;
+        snapshot.dbAgent.surfaceStatus = "ready";
+        snapshot.dbAgent.errorMessage = undefined;
+        this._snapshots.set(target.id, snapshot);
+        return clone(snapshot);
+    }
+
+    public async decideDbAgentAction(
+        target: DashboardTarget,
+        issueId: string,
+        actionId: string,
+        decision: "approve" | "reject",
+    ): Promise<DashboardSnapshot> {
+        const snapshot = await this.getMutableSnapshot(target);
+        const issue = findIssue(snapshot, issueId);
+        const action = findAction(issue, actionId);
+        action.approvalStatus = decision === "approve" ? "approved" : "rejected";
+        issue.status = decision === "approve" ? "actionProposed" : "diagnosed";
+        issue.updatedAt = new Date().toISOString();
+        appendIssueEvent(
+            issue,
+            decision === "approve" ? "actionApproved" : "actionRejected",
+            decision === "approve"
+                ? `Approved recommendation: ${action.title}.`
+                : `Rejected recommendation: ${action.title}.`,
+        );
+        this._snapshots.set(target.id, snapshot);
+        return clone(snapshot);
+    }
+
+    public async executeDbAgentAction(
+        target: DashboardTarget,
+        issueId: string,
+        actionId: string,
+    ): Promise<DashboardSnapshot> {
+        const snapshot = await this.getMutableSnapshot(target);
+        const issue = findIssue(snapshot, issueId);
+        const action = findAction(issue, actionId);
+        if (action.approvalStatus !== "approved") {
+            throw new Error(`Dashboard action '${actionId}' must be approved before execution.`);
+        }
+
+        applyAction(issue, action, "executed", "Database Agent", "Validation checks passed.");
+        issue.status = "verifying";
+        appendIssueEvent(issue, "actionExecuted", `Executed recommendation: ${action.title}.`);
+        appendInvestigationAction(snapshot, issueId, action.title);
+        this._snapshots.set(target.id, snapshot);
+        return clone(snapshot);
+    }
+
+    public async markDbAgentActionApplied(
+        target: DashboardTarget,
+        issueId: string,
+        actionId: string,
+    ): Promise<DashboardSnapshot> {
+        const snapshot = await this.getMutableSnapshot(target);
+        const issue = findIssue(snapshot, issueId);
+        const action = findAction(issue, actionId);
+        applyAction(
+            issue,
+            action,
+            "manuallyApplied",
+            "Current user",
+            "Manual application recorded; monitoring has started.",
+        );
+        issue.status = "monitoring";
+        appendIssueEvent(issue, "actionExecuted", `Recorded manual application: ${action.title}.`);
+        appendInvestigationAction(snapshot, issueId, action.title);
+        this._snapshots.set(target.id, snapshot);
+        return clone(snapshot);
+    }
+
+    public async analyzeDbAgentSection(
+        target: DashboardTarget,
+        issueId: string,
+        section: DbAgentAnalyzableSection,
+    ): Promise<DashboardSnapshot> {
+        const snapshot = await this.getMutableSnapshot(target);
+        const issue = findIssue(snapshot, issueId);
+        issue.analysisNotes[section] = getAnalysisNote(issue, section);
+        issue.updatedAt = new Date().toISOString();
+        this._snapshots.set(target.id, snapshot);
+        return clone(snapshot);
+    }
+
+    public async forceResolveInvestigation(
+        target: DashboardTarget,
+        investigationId: string,
+        reason?: string,
+    ): Promise<DashboardSnapshot> {
+        const snapshot = await this.getMutableSnapshot(target);
+        const investigation = snapshot.dbAgent.activeInvestigation;
+        if (!investigation || investigation.investigationId !== investigationId) {
+            throw new Error(`Dashboard investigation '${investigationId}' was not found.`);
+        }
+
+        const resolvedAt = new Date().toISOString();
+        investigation.status = "resolved";
+        investigation.updatedAt = resolvedAt;
+        investigation.resolvedAt = resolvedAt;
+        investigation.events.push({
+            id: `event-resolved-${investigationId}`,
+            kind: "resolved",
+            timestamp: resolvedAt,
+            title: "Investigation resolved",
+            detail: reason?.trim() || "Marked resolved after operator review.",
+        });
+        for (const issueId of investigation.issueIds) {
+            const issue = findIssue(snapshot, issueId);
+            issue.status = "resolved";
+            issue.updatedAt = resolvedAt;
+            appendIssueEvent(issue, "resolved", "Resolved with the active investigation.");
+        }
+        snapshot.dbAgent.investigations = [
+            clone(investigation),
+            ...snapshot.dbAgent.investigations.filter(
+                (candidate) => candidate.investigationId !== investigationId,
+            ),
+        ];
+        snapshot.dbAgent.activeInvestigation = undefined;
+        this._snapshots.set(target.id, snapshot);
+        return clone(snapshot);
+    }
+
+    public async saveDbAgentSettings(
+        target: DashboardTarget,
+        settings: DbAgentSettings,
+    ): Promise<DashboardSnapshot> {
+        const snapshot = await this.getMutableSnapshot(target);
+        snapshot.dbAgent.settings = clone(settings);
+        snapshot.dbAgent.enabled = settings.enabled;
+        this._snapshots.set(target.id, snapshot);
+        return clone(snapshot);
+    }
+
+    public async createDbAgentInstruction(
+        target: DashboardTarget,
+        text: string,
+    ): Promise<DashboardSnapshot> {
+        const normalizedText = text.trim();
+        if (!normalizedText) {
+            throw new Error("A custom instruction cannot be empty.");
+        }
+
+        const snapshot = await this.getMutableSnapshot(target);
+        const createdAt = new Date().toISOString();
+        snapshot.dbAgent.instructions = [
+            {
+                instructionId: `instruction-${createdAt}`,
+                text: normalizedText,
+                createdBy: "Current user",
+                createdAt,
+            },
+            ...snapshot.dbAgent.instructions,
+        ];
+        this._snapshots.set(target.id, snapshot);
+        return clone(snapshot);
+    }
+
+    public async revokeDbAgentInstruction(
+        target: DashboardTarget,
+        instructionId: string,
+    ): Promise<DashboardSnapshot> {
+        const snapshot = await this.getMutableSnapshot(target);
+        if (
+            !snapshot.dbAgent.instructions.some(
+                (instruction) => instruction.instructionId === instructionId,
+            )
+        ) {
+            throw new Error(`Dashboard instruction '${instructionId}' was not found.`);
+        }
+
+        snapshot.dbAgent.instructions = snapshot.dbAgent.instructions.filter(
+            (instruction) => instruction.instructionId !== instructionId,
+        );
+        this._snapshots.set(target.id, snapshot);
+        return clone(snapshot);
+    }
+
+    private async getMutableSnapshot(target: DashboardTarget): Promise<DashboardSnapshot> {
+        return clone(this._snapshots.get(target.id)) ?? (await this.loadDashboard(target));
     }
 }
 
@@ -146,21 +332,7 @@ function mergeDbAgentState(
         return;
     }
 
-    snapshot.dbAgent.enabled = previous.dbAgent.enabled;
-    snapshot.dbAgent.registrationMode = previous.dbAgent.registrationMode;
-    snapshot.dbAgent.issues = mergeIssueState(snapshot.dbAgent.issues, previous.dbAgent.issues);
-    snapshot.dbAgent.activeInvestigation = clone(previous.dbAgent.activeInvestigation);
-}
-
-function mergeIssueState(
-    nextIssues: DbAgentIssue[],
-    previousIssues: DbAgentIssue[],
-): DbAgentIssue[] {
-    const statusByIssueId = new Map(previousIssues.map((issue) => [issue.issueId, issue.status]));
-    return nextIssues.map((issue) => ({
-        ...issue,
-        status: statusByIssueId.get(issue.issueId) ?? issue.status,
-    }));
+    snapshot.dbAgent = clone(previous.dbAgent);
 }
 
 function buildSnapshot(
@@ -304,7 +476,7 @@ function buildAzureSqlData(databaseName: string, now: number, windowMinutes: num
         ],
         sessions: buildSessions(databaseName),
         dbAgent: buildDbAgent(databaseName, now, [
-            ["azure-high-cpu", "highCpu", "warning", "actionReady", "68.4%"],
+            ["azure-high-cpu", "highCpu", "warning", "actionProposed", "68.4%"],
             ["azure-blocking", "blockingChain", "critical", "investigating", "47 sec"],
             ["azure-storage", "storageGrowth", "watch", "monitoring", "12.8 GB/day"],
         ]),
@@ -405,7 +577,7 @@ function buildSqlServerData(
         ],
         sessions: buildSessions(databaseName, 70),
         dbAgent: buildDbAgent(databaseName, now, [
-            ["sql-query", "queryRegression", "warning", "actionReady", "+46% duration"],
+            ["sql-query", "queryRegression", "warning", "actionProposed", "+46% duration"],
             ["sql-blocking", "blockingChain", "critical", "investigating", "session 87"],
             ["sql-storage", "storageGrowth", "watch", "monitoring", "6.1 GB/day"],
         ]),
@@ -505,11 +677,16 @@ function buildFabricSqlData(
             wait("WRITELOG", "log", 63_200, 8, 390, "improving"),
         ],
         sessions: buildSessions(databaseName, 120),
-        dbAgent: buildDbAgent(databaseName, now, [
-            ["fabric-capacity", "capacityPressure", "critical", "investigating", "78.3% CU"],
-            ["fabric-query", "queryRegression", "warning", "actionReady", "+61% duration"],
-            ["fabric-storage", "storageGrowth", "watch", "monitoring", "41 GB/day"],
-        ]),
+        dbAgent: buildDbAgent(
+            databaseName,
+            now,
+            [
+                ["fabric-capacity", "capacityPressure", "critical", "investigating", "78.3% CU"],
+                ["fabric-query", "queryRegression", "warning", "actionProposed", "+61% duration"],
+                ["fabric-storage", "storageGrowth", "watch", "monitoring", "41 GB/day"],
+            ],
+            "notRegistered",
+        ),
     };
 }
 
@@ -739,54 +916,569 @@ function buildDbAgent(
     databaseName: string,
     now: number,
     issueSeeds: readonly IssueSeed[],
+    registrationMode: DbAgentDashboard["registrationMode"] = "registered",
 ): DbAgentDashboard {
-    const issues = issueSeeds.map(([issueId, kind, severity, status, metricValue], index) => ({
-        issueId,
-        kind,
-        severity,
-        status,
-        detectedAt: new Date(now - (index + 1) * 11 * 60_000).toISOString(),
-        updatedAt: new Date(now - index * 4 * 60_000).toISOString(),
-        metricValue,
-        affectedDatabase: databaseName,
-    }));
+    const targetPrefix = issueSeeds[0][0].split("-")[0];
+    const allSeeds: readonly IssueSeed[] = [
+        ...issueSeeds,
+        [`${targetPrefix}-resolved-workload`, "highCpu", "watch", "resolved", "34% peak CPU"],
+        [`${targetPrefix}-closed-maintenance`, "storageGrowth", "watch", "closed", "2.1 GB/day"],
+    ];
+    const issues = allSeeds.map((seed, index) =>
+        buildIssue(databaseName, now, seed, index, allSeeds),
+    );
+    const activeInvestigation = buildActiveInvestigation(now, issues);
+    const investigationHistory = buildInvestigationHistory(now, issues);
 
     return {
-        enabled: true,
-        registrationMode: "registered",
+        enabled: registrationMode === "registered",
+        surfaceStatus: "ready",
+        registrationMode,
         health: issues.some((issue) => issue.severity === "critical") ? "warning" : "healthy",
         automationLevel: "approvalRequired",
         lastAnalysisAt: new Date(now - 90_000).toISOString(),
+        lastSuccessfulRunAt: new Date(now - 2 * 60_000).toISOString(),
         issues,
-        activeInvestigation: {
-            investigationId: `investigation-${issueSeeds[0][0]}`,
-            issueId: issueSeeds[0][0],
-            status: "active",
-            startedAt: new Date(now - 14 * 60_000).toISOString(),
+        activeInvestigation,
+        investigations: investigationHistory,
+        settings: {
+            enabled: registrationMode === "registered",
+            notifyOnResolve: true,
+            notifyOnFailure: true,
+            currentRole: "admin",
+            approvingAdmin: "sql-platform-admins@contoso.com",
+            actionCategories: [
+                { category: "performance", enabled: true, approvalRequired: true },
+                { category: "availability", enabled: true, approvalRequired: true },
+                { category: "storage", enabled: true, approvalRequired: false },
+                { category: "security", enabled: false, approvalRequired: true },
+            ],
+        },
+        instructions: [
+            {
+                instructionId: `${targetPrefix}-instruction-business-hours`,
+                text: "Do not terminate sessions owned by the month-end reporting workload.",
+                createdBy: "Adele Vance",
+                createdAt: new Date(now - 9 * 24 * 60 * 60_000).toISOString(),
+            },
+            {
+                instructionId: `${targetPrefix}-instruction-capacity`,
+                text: "Prefer query tuning before recommending a compute scale-up.",
+                createdBy: "Diego Siciliani",
+                createdAt: new Date(now - 4 * 24 * 60 * 60_000).toISOString(),
+            },
+        ],
+    };
+}
+
+interface IssueProfile {
+    category: DbAgentIssue["category"];
+    title: string;
+    summary: string;
+    diagnosis: string;
+    actionTitle: string;
+    actionType: string;
+    executionVenue: DbAgentIssueAction["executionVenue"];
+    risk: DbAgentIssueAction["risk"];
+    reasoning: string;
+    expectedOutcome: string;
+    rollbackPlan: string;
+    parameters: DbAgentIssueAction["parameters"];
+}
+
+const issueProfiles: Record<DbAgentIssueKind, IssueProfile> = {
+    blockingChain: {
+        category: "performance",
+        title: "Long-running blocking chain",
+        summary:
+            "A write transaction is blocking order processing sessions and increasing request latency.",
+        diagnosis:
+            "Session 94 holds an exclusive lock after a warehouse aggregation exceeded its normal execution window.",
+        actionTitle: "Terminate the head blocker",
+        actionType: "terminateSession",
+        executionVenue: "client",
+        risk: "high",
+        reasoning:
+            "The head blocker is an idempotent reporting transaction and has no uncommitted business writes.",
+        expectedOutcome: "Release 18 blocked sessions and restore write latency below 250 ms.",
+        rollbackPlan: "The reporting job will retry automatically on its next scheduled interval.",
+        parameters: { sessionId: 94, includeDescendants: false },
+    },
+    capacityPressure: {
+        category: "availability",
+        title: "Fabric capacity pressure",
+        summary:
+            "Interactive SQL workloads are consuming sustained capacity and delaying scheduled ingestion.",
+        diagnosis:
+            "Three concurrent semantic model refreshes overlap with the retail aggregation workload.",
+        actionTitle: "Pause low-priority refresh",
+        actionType: "pauseFabricWorkload",
+        executionVenue: "runner",
+        risk: "medium",
+        reasoning:
+            "Deferring the development model refresh frees enough capacity without affecting production reports.",
+        expectedOutcome: "Reduce capacity utilization below 65% within five minutes.",
+        rollbackPlan: "Resume the paused refresh after the retail aggregation completes.",
+        parameters: { workload: "Retail Dev semantic model", durationMinutes: 20 },
+    },
+    highCpu: {
+        category: "performance",
+        title: "Sustained CPU saturation",
+        summary:
+            "CPU utilization is above the learned baseline during the highest-volume API interval.",
+        diagnosis:
+            "A recently changed product-ranking query is compiling an inefficient parallel plan.",
+        actionTitle: "Force the last known good plan",
+        actionType: "forceQueryStorePlan",
+        executionVenue: "client",
+        risk: "medium",
+        reasoning:
+            "The prior Query Store plan used 43% less CPU across the same parameter distribution.",
+        expectedOutcome: "Lower CPU below 50% and improve p95 query duration by approximately 35%.",
+        rollbackPlan:
+            "Unforce the plan in Query Store if validation detects a duration regression.",
+        parameters: { queryId: 1001, planId: 3814, validateMinutes: 10 },
+    },
+    queryRegression: {
+        category: "performance",
+        title: "Query performance regression",
+        summary: "A high-volume query is slower than its seven-day baseline after a plan change.",
+        diagnosis:
+            "The current plan scans the sales detail index instead of using the selective date predicate.",
+        actionTitle: "Apply Query Store plan correction",
+        actionType: "forceQueryStorePlan",
+        executionVenue: "client",
+        risk: "medium",
+        reasoning:
+            "The recommended plan is proven across 8,200 executions with consistent parameter shapes.",
+        expectedOutcome: "Return average duration to 540 ms without increasing logical reads.",
+        rollbackPlan: "Unforce the plan and restore automatic plan selection.",
+        parameters: { queryId: 1001, planId: 3802, validateMinutes: 15 },
+    },
+    storageGrowth: {
+        category: "storage",
+        title: "Unexpected storage growth",
+        summary:
+            "Database growth is above the forecast and will consume the configured storage threshold.",
+        diagnosis:
+            "Transient staging rows are retained for 30 days although downstream processing completes in 48 hours.",
+        actionTitle: "Reduce staging retention",
+        actionType: "updateRetentionPolicy",
+        executionVenue: "manual",
+        risk: "low",
+        reasoning:
+            "Rows older than seven days have no active references and are already represented in curated tables.",
+        expectedOutcome: "Recover 84 GB and reduce daily growth to less than 3 GB.",
+        rollbackPlan: "Restore the 30-day retention configuration before the next cleanup job.",
+        parameters: { table: "staging.ImportEvents", retentionDays: 7 },
+    },
+    availabilityRisk: {
+        category: "availability",
+        title: "Availability risk detected",
+        summary: "Replica health has moved outside the expected recovery objective.",
+        diagnosis: "Log send latency is accumulating on the synchronous secondary.",
+        actionTitle: "Suspend the affected replica",
+        actionType: "suspendReplica",
+        executionVenue: "manual",
+        risk: "critical",
+        reasoning:
+            "Isolating the unhealthy replica prevents commit latency from increasing further.",
+        expectedOutcome: "Restore primary transaction latency while the replica is repaired.",
+        rollbackPlan: "Resume data movement after network and storage validation completes.",
+        parameters: { replica: "sql2025-dr-01" },
+    },
+    securityRisk: {
+        category: "security",
+        title: "Security configuration risk",
+        summary:
+            "A privileged login is using an authentication path outside the approved baseline.",
+        diagnosis: "The login is not mapped to the managed identity policy used by this database.",
+        actionTitle: "Disable the legacy login",
+        actionType: "disableLogin",
+        executionVenue: "manual",
+        risk: "high",
+        reasoning: "No active application dependency has used this login during the last 30 days.",
+        expectedOutcome: "Remove the unapproved authentication path.",
+        rollbackPlan: "Re-enable the login while the dependent workload is migrated.",
+        parameters: { loginName: "legacy-reporting-admin" },
+    },
+};
+
+function buildIssue(
+    databaseName: string,
+    now: number,
+    [issueId, kind, severity, status, metricValue]: IssueSeed,
+    index: number,
+    allSeeds: readonly IssueSeed[],
+): DbAgentIssue {
+    const profile = issueProfiles[kind];
+    const detectedAt = new Date(now - (index + 1) * 11 * 60_000).toISOString();
+    const updatedAt = new Date(now - index * 4 * 60_000).toISOString();
+    const action = buildIssueAction(issueId, profile, status);
+    const actionCompleted = action.approvalStatus === "executed";
+    const events: DbAgentIssue["events"] = [
+        {
+            eventId: `${issueId}-detected`,
+            kind: "detected",
+            timestamp: detectedAt,
+            description: "Database Agent detected a statistically significant deviation.",
+        },
+        {
+            eventId: `${issueId}-diagnosed`,
+            kind: "diagnosed",
+            timestamp: new Date(Date.parse(detectedAt) + 3 * 60_000).toISOString(),
+            description: profile.diagnosis,
+        },
+        {
+            eventId: `${issueId}-recommended`,
+            kind: "actionProposed",
+            timestamp: new Date(Date.parse(detectedAt) + 7 * 60_000).toISOString(),
+            description: `Recommended action: ${profile.actionTitle}.`,
+        },
+    ];
+    if (actionCompleted) {
+        events.push(
+            {
+                eventId: `${issueId}-executed`,
+                kind: "actionExecuted",
+                timestamp: new Date(Date.parse(updatedAt) - 2 * 60_000).toISOString(),
+                description: `Executed action: ${profile.actionTitle}.`,
+            },
+            {
+                eventId: `${issueId}-resolved`,
+                kind: "resolved",
+                timestamp: updatedAt,
+                description: "Validation confirmed that the issue returned to its baseline.",
+            },
+        );
+    }
+
+    return {
+        issueId,
+        kind,
+        category: profile.category,
+        severity,
+        status,
+        title: profile.title,
+        summary: profile.summary,
+        diagnosis: profile.diagnosis,
+        detectedAt,
+        updatedAt,
+        metricValue,
+        affectedDatabase: databaseName,
+        metricCharts: [
+            {
+                id: `${issueId}-primary-metric`,
+                title: getMetricTitle(kind),
+                series: [
+                    {
+                        id: `${issueId}-observed`,
+                        label: "Observed",
+                        unit: getMetricUnit(kind),
+                        points: points(
+                            [32, 36, 39, 44, 52, 61, 74, 82, 77, 69, 63, 58].map(
+                                (value) => value + (index % 3) * 3,
+                            ),
+                            now,
+                            60,
+                        ),
+                    },
+                    {
+                        id: `${issueId}-baseline`,
+                        label: "Expected baseline",
+                        unit: getMetricUnit(kind),
+                        points: points([34, 35, 36, 35, 37, 38, 37, 38, 39, 38, 37, 38], now, 60),
+                    },
+                ],
+                annotations: [
+                    {
+                        timestamp: detectedAt,
+                        label: "Issue detected",
+                        kind: "detection",
+                    },
+                    ...(actionCompleted
+                        ? [
+                              {
+                                  timestamp: new Date(
+                                      Date.parse(updatedAt) - 2 * 60_000,
+                                  ).toISOString(),
+                                  label: "Action applied",
+                                  kind: "action" as const,
+                              },
+                          ]
+                        : []),
+                ],
+            },
+        ],
+        events,
+        severityHistory: [
+            {
+                timestamp: detectedAt,
+                severity: severity === "critical" ? "warning" : "watch",
+                reason: "Initial severity based on the first two anomalous intervals.",
+            },
+            {
+                timestamp: new Date(Date.parse(detectedAt) + 4 * 60_000).toISOString(),
+                severity,
+                reason: "Severity updated after workload and dependency correlation.",
+            },
+        ],
+        recommendedActions: [action],
+        actionsTaken: actionCompleted
+            ? [
+                  {
+                      actionId: action.actionId,
+                      title: action.title,
+                      executedAt: new Date(Date.parse(updatedAt) - 2 * 60_000).toISOString(),
+                      executedBy: "Database Agent",
+                      outcome: "succeeded",
+                      validationResult: "Primary metric remained within baseline for 10 minutes.",
+                  },
+              ]
+            : [],
+        blockedByIssueIds: index === 0 && allSeeds.length > 1 ? [allSeeds[1][0]] : [],
+        blockingIssueIds: index === 1 ? [allSeeds[0][0]] : [],
+        analysisNotes: {},
+    };
+}
+
+function buildIssueAction(
+    issueId: string,
+    profile: IssueProfile,
+    status: DbAgentIssue["status"],
+): DbAgentIssueAction {
+    return {
+        actionId: `${issueId}-action-1`,
+        stageNumber: 1,
+        title: profile.actionTitle,
+        actionType: profile.actionType,
+        executionVenue: profile.executionVenue,
+        approvalStatus:
+            status === "resolved" ? "executed" : status === "closed" ? "rejected" : "pending",
+        risk: profile.risk,
+        confidencePercent: status === "resolved" ? 96 : 88,
+        reasoning: profile.reasoning,
+        expectedOutcome: profile.expectedOutcome,
+        rollbackPlan: profile.rollbackPlan,
+        parameters: clone(profile.parameters),
+    };
+}
+
+function buildActiveInvestigation(
+    now: number,
+    issues: DbAgentIssue[],
+): DbAgentDashboard["activeInvestigation"] {
+    const issueIds = issues.slice(0, 2).map((issue) => issue.issueId);
+    const investigationId = `investigation-${issueIds[0]}`;
+    const startedAt = new Date(now - 14 * 60_000).toISOString();
+    return {
+        investigationId,
+        issueIds,
+        triggerSummary: "Concurrent workload regressions detected across the database.",
+        status: "active",
+        startedAt,
+        updatedAt: new Date(now - 3 * 60_000).toISOString(),
+        events: [
+            {
+                id: `${investigationId}-detected`,
+                kind: "detected",
+                timestamp: startedAt,
+                title: "Anomaly detected",
+                detail: "Multiple metrics moved outside their learned workload baselines.",
+            },
+            {
+                id: `${investigationId}-correlated`,
+                kind: "correlated",
+                timestamp: new Date(now - 11 * 60_000).toISOString(),
+                title: "Related issues correlated",
+                detail: "Query, wait, and session telemetry indicate a shared workload cause.",
+            },
+            {
+                id: `${investigationId}-diagnosed`,
+                kind: "diagnosed",
+                timestamp: new Date(now - 7 * 60_000).toISOString(),
+                title: "Root cause identified",
+                detail: issues[0].diagnosis,
+            },
+            {
+                id: `${investigationId}-recommended`,
+                kind: "recommended",
+                timestamp: new Date(now - 3 * 60_000).toISOString(),
+                title: "Mitigation ready",
+                detail: issues[0].recommendedActions[0].title,
+            },
+        ],
+    };
+}
+
+function buildInvestigationHistory(
+    now: number,
+    issues: DbAgentIssue[],
+): DbAgentDashboard["investigations"] {
+    const issue = issues.find((candidate) => candidate.status === "resolved");
+    if (!issue) {
+        return [];
+    }
+
+    const startedAt = new Date(now - 20 * 60 * 60_000).toISOString();
+    const resolvedAt = new Date(now - 19 * 60 * 60_000).toISOString();
+    return [
+        {
+            investigationId: `investigation-history-${issue.issueId}`,
+            issueIds: [issue.issueId],
+            triggerSummary: "Morning workload CPU exceeded its predicted range.",
+            status: "resolved",
+            startedAt,
+            updatedAt: resolvedAt,
+            resolvedAt,
             events: [
                 {
-                    id: "event-detected",
+                    id: `history-${issue.issueId}-detected`,
                     kind: "detected",
-                    timestamp: new Date(now - 14 * 60_000).toISOString(),
+                    timestamp: startedAt,
+                    title: "Workload regression detected",
+                    detail: issue.summary,
                 },
                 {
-                    id: "event-correlated",
-                    kind: "correlated",
-                    timestamp: new Date(now - 11 * 60_000).toISOString(),
+                    id: `history-${issue.issueId}-action`,
+                    kind: "action",
+                    timestamp: new Date(now - 19.5 * 60 * 60_000).toISOString(),
+                    title: issue.recommendedActions[0].title,
+                    detail: "The approved mitigation completed successfully.",
                 },
                 {
-                    id: "event-diagnosed",
-                    kind: "diagnosed",
-                    timestamp: new Date(now - 7 * 60_000).toISOString(),
-                },
-                {
-                    id: "event-recommended",
-                    kind: "recommended",
-                    timestamp: new Date(now - 3 * 60_000).toISOString(),
+                    id: `history-${issue.issueId}-resolved`,
+                    kind: "resolved",
+                    timestamp: resolvedAt,
+                    title: "Issue resolved",
+                    detail: "Observed metrics remained within baseline for the validation period.",
                 },
             ],
         },
-    };
+    ];
+}
+
+function getMetricTitle(kind: DbAgentIssueKind): string {
+    switch (kind) {
+        case "blockingChain":
+            return "Blocked session duration";
+        case "capacityPressure":
+            return "Capacity utilization";
+        case "highCpu":
+            return "CPU utilization";
+        case "queryRegression":
+            return "Query duration";
+        case "storageGrowth":
+            return "Daily storage growth";
+        case "availabilityRisk":
+            return "Replica send latency";
+        case "securityRisk":
+            return "Privileged login activity";
+    }
+}
+
+function getMetricUnit(kind: DbAgentIssueKind): string {
+    switch (kind) {
+        case "blockingChain":
+        case "queryRegression":
+        case "availabilityRisk":
+            return "ms";
+        case "storageGrowth":
+            return "GB/day";
+        case "securityRisk":
+            return "events";
+        default:
+            return "%";
+    }
+}
+
+function findIssue(snapshot: DashboardSnapshot, issueId: string): DbAgentIssue {
+    const issue = snapshot.dbAgent.issues.find((candidate) => candidate.issueId === issueId);
+    if (!issue) {
+        throw new Error(
+            `Dashboard issue '${issueId}' was not found for target '${snapshot.target.id}'.`,
+        );
+    }
+    return issue;
+}
+
+function findAction(issue: DbAgentIssue, actionId: string): DbAgentIssueAction {
+    const action = issue.recommendedActions.find((candidate) => candidate.actionId === actionId);
+    if (!action) {
+        throw new Error(
+            `Dashboard action '${actionId}' was not found for issue '${issue.issueId}'.`,
+        );
+    }
+    return action;
+}
+
+function appendIssueEvent(
+    issue: DbAgentIssue,
+    kind: DbAgentIssue["events"][number]["kind"],
+    description: string,
+): void {
+    const timestamp = new Date().toISOString();
+    issue.events.push({
+        eventId: `${issue.issueId}-${kind}-${timestamp}`,
+        kind,
+        timestamp,
+        description,
+    });
+}
+
+function applyAction(
+    issue: DbAgentIssue,
+    action: DbAgentIssueAction,
+    approvalStatus: "executed" | "manuallyApplied",
+    executedBy: string,
+    validationResult: string,
+): void {
+    const executedAt = new Date().toISOString();
+    action.approvalStatus = approvalStatus;
+    issue.updatedAt = executedAt;
+    issue.actionsTaken.push({
+        actionId: action.actionId,
+        title: action.title,
+        executedAt,
+        executedBy,
+        outcome: "succeeded",
+        validationResult,
+    });
+}
+
+function appendInvestigationAction(
+    snapshot: DashboardSnapshot,
+    issueId: string,
+    actionTitle: string,
+): void {
+    const investigation = snapshot.dbAgent.activeInvestigation;
+    if (!investigation?.issueIds.includes(issueId)) {
+        return;
+    }
+
+    const timestamp = new Date().toISOString();
+    investigation.updatedAt = timestamp;
+    investigation.status = "monitoring";
+    investigation.events.push({
+        id: `${investigation.investigationId}-action-${timestamp}`,
+        kind: "action",
+        timestamp,
+        title: "Mitigation applied",
+        detail: actionTitle,
+    });
+}
+
+function getAnalysisNote(issue: DbAgentIssue, section: DbAgentAnalyzableSection): string {
+    switch (section) {
+        case "summary":
+            return `Copilot correlated this issue with ${issue.events.length} telemetry events and found the deviation to be workload-specific rather than system-wide.`;
+        case "diagnosis":
+            return `The diagnosis has ${issue.recommendedActions[0]?.confidencePercent ?? 0}% confidence based on Query Store, wait, and session evidence.`;
+        case "metrics":
+            return "The observed series diverges from baseline at the detection marker and remains statistically significant across consecutive intervals.";
+        case "recommendedAction":
+            return `The recommended action is ${issue.recommendedActions[0]?.risk ?? "unknown"} risk and includes an explicit rollback path.`;
+    }
 }
 
 function round(value: number): number {
