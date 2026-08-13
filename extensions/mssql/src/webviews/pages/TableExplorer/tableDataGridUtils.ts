@@ -23,8 +23,9 @@ export function hasPendingChangesForRow(
     rowId: number,
     cellChanges: Iterable<TableExplorerCellChange>,
     deletedRows: ReadonlySet<number>,
+    newRowIds: ReadonlySet<number>,
 ): boolean {
-    if (deletedRows.has(rowId)) {
+    if (deletedRows.has(rowId) || newRowIds.has(rowId)) {
         return true;
     }
 

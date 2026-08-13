@@ -677,11 +677,18 @@ suite("TableExplorerWebViewController - Reducers", () => {
             mockTableExplorerService.revertRow.rejects(error);
 
             // Act
-            await controller["_reducerHandlers"].get("revertRow")(controller.state, { rowId: 0 });
+            let caughtError: unknown;
+            try {
+                await controller["_reducerHandlers"].get("revertRow")(controller.state, {
+                    rowId: 0,
+                });
+            } catch (revertError) {
+                caughtError = revertError;
+            }
 
             // Assert
-            expect(showErrorMessageStub.calledOnce).to.be.true;
-            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to revert row");
+            expect(caughtError).to.equal(error);
+            expect(showErrorMessageStub).to.have.been.calledWithMatch("Failed to revert row");
         });
 
         test("should remove newly created row from UI when revert returns null", async () => {

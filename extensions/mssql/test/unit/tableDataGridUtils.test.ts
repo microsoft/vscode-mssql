@@ -26,15 +26,21 @@ suite("tableDataGridUtils", () => {
         test("returns true for a row with a pending cell edit", () => {
             const cellChanges = [{ rowId: 3 }, { rowId: 5 }];
 
-            expect(hasPendingChangesForRow(5, cellChanges, new Set())).to.equal(true);
+            expect(hasPendingChangesForRow(5, cellChanges, new Set(), new Set())).to.equal(true);
         });
 
         test("returns true for a row pending deletion", () => {
-            expect(hasPendingChangesForRow(5, [], new Set([5]))).to.equal(true);
+            expect(hasPendingChangesForRow(5, [], new Set([5]), new Set())).to.equal(true);
+        });
+
+        test("returns true for a newly inserted row", () => {
+            expect(hasPendingChangesForRow(5, [], new Set(), new Set([5]))).to.equal(true);
         });
 
         test("returns false for a row without pending changes", () => {
-            expect(hasPendingChangesForRow(5, [{ rowId: 3 }], new Set([4]))).to.equal(false);
+            expect(hasPendingChangesForRow(5, [{ rowId: 3 }], new Set([4]), new Set([6]))).to.equal(
+                false,
+            );
         });
     });
 });

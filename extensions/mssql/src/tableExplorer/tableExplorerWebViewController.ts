@@ -1155,6 +1155,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToRevertRow(getErrorMessage(error)),
                 );
+                throw error;
             }
 
             return state;

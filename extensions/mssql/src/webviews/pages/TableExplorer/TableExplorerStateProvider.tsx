@@ -49,8 +49,8 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("revertCell", { rowId, columnId });
             },
 
-            revertRow: function (rowId: number): void {
-                extensionRpc.action("revertRow", { rowId });
+            revertRow: async function (rowId: number): Promise<void> {
+                await extensionRpc.actionAndWait("revertRow", { rowId });
             },
 
             generateScript: function (): void {

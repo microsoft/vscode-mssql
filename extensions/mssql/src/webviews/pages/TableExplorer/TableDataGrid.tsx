@@ -73,7 +73,7 @@ interface TableDataGridProps {
     onDeleteRow?: (rowId: number) => void;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
     onRevertCell?: (rowId: number, columnId: number) => void;
-    onRevertRow?: (rowId: number) => void;
+    onRevertRow?: (rowId: number) => Promise<void>;
     onCellChangeCountChanged?: (count: number) => void;
     onDeletionCountChanged?: (count: number) => void;
     onSelectedRowsChanged?: (selectedRowIds: number[]) => void;
@@ -379,6 +379,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         rowId,
                         cellChangesRef.current.values(),
                         deletedRowsRef.current,
+                        newRowIdsRef.current,
                     );
                     const iconClass = canRevert
                         ? "fi fi-arrow-undo action-icon pointer"
@@ -950,12 +951,19 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // context menu's "Revert Row" command. Notifies the backend, clears
         // local deletion / cell-change tracking for the row, and updates parent
         // counters.
-        function revertRow(rowId: number) {
-            if (onRevertRow) {
-                onRevertRow(rowId);
+        async function revertRow(rowId: number) {
+            if (!onRevertRow) {
+                return;
+            }
+
+            try {
+                await onRevertRow(rowId);
+            } catch {
+                return;
             }
 
             deletedRowsRef.current.delete(rowId);
+            newRowIdsRef.current.delete(rowId);
 
             const keysToDelete: string[] = [];
             cellChangesRef.current.forEach((_, key) => {
@@ -991,6 +999,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     rowId,
                     cellChangesRef.current.values(),
                     deletedRowsRef.current,
+                    newRowIdsRef.current,
                 )
             ) {
                 return;
@@ -1001,7 +1010,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
             }
 
-            revertRow(rowId);
+            void revertRow(rowId);
         }
 
         function handleCellKeyDown(e: KeyboardEvent, _args: any) {
@@ -1038,6 +1047,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     dataItem.id,
                     cellChangesRef.current.values(),
                     deletedRowsRef.current,
+                    newRowIdsRef.current,
                 )
             ) {
                 return;
@@ -1048,7 +1058,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 lastItemsPerPageRef.current = reactGridRef.current.paginationService.itemsPerPage;
             }
 
-            revertRow(dataItem.id);
+            void revertRow(dataItem.id);
             e.preventDefault();
             e.stopPropagation();
         }
@@ -1122,7 +1132,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     break;
 
                 case "revert-row":
-                    revertRow(rowId);
+                    void revertRow(rowId);
                     break;
 
                 case "modify-table":
