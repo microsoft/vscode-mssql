@@ -97,15 +97,28 @@ export function DbAgentPolicies({
 }
 
 export interface DbAgentSettingsPanelProps {
+    scopeKey: string;
     settings: DbAgentSettings;
     onSave: (settings: DbAgentSettings) => void;
 }
 
-export function DbAgentSettingsPanel({ settings, onSave }: DbAgentSettingsPanelProps): JSX.Element {
+export function DbAgentSettingsPanel({
+    scopeKey,
+    settings,
+    onSave,
+}: DbAgentSettingsPanelProps): JSX.Element {
     const dashboardLoc = getDashboardLoc();
     const [draft, setDraft] = useState(settings);
+    const [savedSettings, setSavedSettings] = useState(settings);
+    const [savedScopeKey, setSavedScopeKey] = useState(scopeKey);
 
-    useEffect(() => setDraft(settings), [settings]);
+    useEffect(() => {
+        if (savedScopeKey !== scopeKey || !areSettingsEqual(savedSettings, settings)) {
+            setDraft(settings);
+            setSavedSettings(settings);
+            setSavedScopeKey(scopeKey);
+        }
+    }, [savedScopeKey, savedSettings, scopeKey, settings]);
 
     const updateCategory = (
         category: DbAgentSettings["actionCategories"][number]["category"],
@@ -266,4 +279,8 @@ function formatDateTime(timestamp: string): string {
         dateStyle: "medium",
         timeStyle: "short",
     }).format(new Date(timestamp));
+}
+
+function areSettingsEqual(left: DbAgentSettings, right: DbAgentSettings): boolean {
+    return JSON.stringify(left) === JSON.stringify(right);
 }

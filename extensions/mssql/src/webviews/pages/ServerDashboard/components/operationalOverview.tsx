@@ -28,6 +28,7 @@ export function OperationalOverview({
     operations: DashboardOperationalSummary;
 }): JSX.Element {
     const dashboardLoc = getDashboardLoc();
+    const latestBackup = operations.backups[0];
     return (
         <>
             <section aria-labelledby="dashboard-readiness-heading">
@@ -192,14 +193,16 @@ export function OperationalOverview({
                             ))}
                         </TableBody>
                     </Table>
-                    <div className="dashboard-recovery-point">
-                        <Text className="dashboard-secondary-text">
-                            {dashboardLoc.recoverableThrough}
-                        </Text>
-                        <Text weight="semibold">
-                            {formatDateTime(operations.backups[0].recoverableThrough)}
-                        </Text>
-                    </div>
+                    {latestBackup ? (
+                        <div className="dashboard-recovery-point">
+                            <Text className="dashboard-secondary-text">
+                                {dashboardLoc.recoverableThrough}
+                            </Text>
+                            <Text weight="semibold">
+                                {formatDateTime(latestBackup.recoverableThrough)}
+                            </Text>
+                        </div>
+                    ) : null}
                 </Card>
             </div>
 

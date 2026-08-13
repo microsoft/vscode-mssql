@@ -103,7 +103,7 @@ suite("Server Dashboard", () => {
             "monitoring",
         );
         expect(disabledSnapshot.dbAgent.enabled).to.equal(false);
-        expect(disabledSnapshot.dbAgent.registrationMode).to.equal("notRegistered");
+        expect(disabledSnapshot.dbAgent.registrationMode).to.equal("registered");
         expect(disabledSnapshot.windowMinutes).to.equal(360);
         expect(differentWindowSnapshot.dbAgent.enabled).to.equal(false);
         expect(
@@ -140,7 +140,7 @@ suite("Server Dashboard", () => {
         const executedIssue = executedSnapshot.dbAgent.issues.find(
             (candidate) => candidate.issueId === issue.issueId,
         )!;
-        expect(executedIssue.status).to.equal("verifying");
+        expect(executedIssue.status).to.equal("monitoring");
         expect(executedIssue.recommendedActions[0].approvalStatus).to.equal("executed");
         expect(executedIssue.actionsTaken).to.have.length(1);
         expect(executedSnapshot.dbAgent.activeInvestigation?.status).to.equal("monitoring");

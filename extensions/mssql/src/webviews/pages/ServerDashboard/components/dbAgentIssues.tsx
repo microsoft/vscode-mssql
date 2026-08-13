@@ -43,13 +43,17 @@ import {
     getIssueStatusLabel,
 } from "../dashboardLabels";
 
-type IssueBucket = "active" | "resolved" | "closed";
+export type IssueBucket = "active" | "resolved" | "closed";
+export interface IssueFocusRequest {
+    issueId: string;
+    bucket: IssueBucket;
+}
 type SeverityFilter = DbAgentIssueSeverity | "all";
 type CategoryFilter = DbAgentIssueCategory | "all";
 
 export interface DbAgentIssuesProps {
     issues: DbAgentIssue[];
-    focusIssueId?: string;
+    focusRequest?: IssueFocusRequest;
     onAcknowledge: (issueId: string) => void;
     onDecideAction: (issueId: string, actionId: string, decision: "approve" | "reject") => void;
     onExecuteAction: (issueId: string, actionId: string) => void;
@@ -59,7 +63,7 @@ export interface DbAgentIssuesProps {
 
 export function DbAgentIssues({
     issues,
-    focusIssueId,
+    focusRequest,
     onAcknowledge,
     onDecideAction,
     onExecuteAction,
@@ -70,15 +74,17 @@ export function DbAgentIssues({
     const [bucket, setBucket] = useState<IssueBucket>("active");
     const [severity, setSeverity] = useState<SeverityFilter>("all");
     const [category, setCategory] = useState<CategoryFilter>("all");
-    const [expandedIssueId, setExpandedIssueId] = useState<string | undefined>(focusIssueId);
+    const [expandedIssueId, setExpandedIssueId] = useState<string | undefined>(
+        focusRequest?.issueId,
+    );
 
     useEffect(() => {
-        if (!focusIssueId) {
+        if (!focusRequest) {
             return;
         }
-        setBucket(getIssueBucket(issues.find((issue) => issue.issueId === focusIssueId)));
-        setExpandedIssueId(focusIssueId);
-    }, [focusIssueId, issues]);
+        setBucket(focusRequest.bucket);
+        setExpandedIssueId(focusRequest.issueId);
+    }, [focusRequest]);
 
     const bucketCounts = useMemo(
         () => ({
@@ -384,6 +390,14 @@ function IssueMetricChart({ chart }: { chart: DbAgentMetricChart }): JSX.Element
     const width = 700;
     const height = 150;
     const allPoints = chart.series.flatMap((series) => series.points);
+    if (allPoints.length === 0) {
+        return (
+            <Card className="dashboard-agent-metric-card">
+                <Text weight="semibold">{chart.title}</Text>
+                <Text className="dashboard-secondary-text">{dashboardLoc.noMetricData}</Text>
+            </Card>
+        );
+    }
     const values = allPoints.map((point) => point.value);
     const timestamps = allPoints.map((point) => Date.parse(point.timestamp));
     const minimumValue = Math.min(...values);

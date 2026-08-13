@@ -4001,6 +4001,7 @@ export class LocConstants {
             summary: l10n.t("Summary"),
             diagnosis: l10n.t("Diagnosis"),
             metricEvidence: l10n.t("Metric evidence"),
+            noMetricData: l10n.t("No metric data is available for this issue."),
             analyzeWithCopilot: l10n.t("Analyze with Copilot"),
             copilotAnalysis: l10n.t("Copilot analysis"),
             eventHistory: l10n.t("Event history"),

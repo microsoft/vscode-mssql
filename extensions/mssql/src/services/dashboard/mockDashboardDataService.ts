@@ -130,7 +130,9 @@ export class MockDashboardDataService implements IDashboardDataService {
     ): Promise<DashboardSnapshot> {
         const snapshot = await this.getMutableSnapshot(target);
         snapshot.dbAgent.enabled = enabled;
-        snapshot.dbAgent.registrationMode = enabled ? "registered" : "notRegistered";
+        if (enabled) {
+            snapshot.dbAgent.registrationMode = "registered";
+        }
         snapshot.dbAgent.settings.enabled = enabled;
         this._snapshots.set(target.id, snapshot);
         return clone(snapshot);
@@ -184,7 +186,7 @@ export class MockDashboardDataService implements IDashboardDataService {
         }
 
         applyAction(issue, action, "executed", "Database Agent", "Validation checks passed.");
-        issue.status = "verifying";
+        issue.status = "monitoring";
         appendIssueEvent(issue, "actionExecuted", `Executed recommendation: ${action.title}.`);
         appendInvestigationAction(snapshot, issueId, action.title);
         this._snapshots.set(target.id, snapshot);

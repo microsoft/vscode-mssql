@@ -5653,6 +5653,9 @@
     <trans-unit id="++CODE++95dd64aef10e1cc924061e71213731b1e58612d3d24e9b4f88fdd410c2d8687d">
       <source xml:lang="en">No matching shortcuts</source>
     </trans-unit>
+    <trans-unit id="++CODE++2e83754e190418ec6409121bcf668d566880e9fc157bcf6d5715338c20128376">
+      <source xml:lang="en">No metric data is available for this issue.</source>
+    </trans-unit>
     <trans-unit id="++CODE++1879af23a37978ff5873d50e56a20f354d53be9278d4075d63e9291b22924af8">
       <source xml:lang="en">No model found.</source>
     </trans-unit>

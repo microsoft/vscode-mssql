@@ -219,6 +219,7 @@ export function DashboardPage(): JSX.Element {
                 {selectedTab === "sessions" ? <SessionsTab sessions={snapshot.sessions} /> : null}
                 {dbAgentAvailable && selectedTab === "issues" ? (
                     <DbAgentTab
+                        targetId={snapshot.target.id}
                         dbAgent={snapshot.dbAgent}
                         onSetEnabled={(enabled) =>
                             extensionRpc.action("setDbAgentEnabled", { enabled })

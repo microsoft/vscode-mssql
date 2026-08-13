@@ -27,13 +27,14 @@ import {
     DbAgentSettingsPanel,
 } from "../components/dbAgentConfiguration";
 import { InvestigationBanner, InvestigationHistory } from "../components/dbAgentInvestigation";
-import { DbAgentIssues } from "../components/dbAgentIssues";
+import { DbAgentIssues, IssueBucket, IssueFocusRequest } from "../components/dbAgentIssues";
 import { DbAgentRegistration } from "../components/dbAgentRegistration";
 import { getDashboardLoc, getHealthLabel } from "../dashboardLabels";
 
 type DbAgentPage = "issues" | "history" | "policies" | "settings" | "access";
 
 export interface DbAgentTabProps {
+    targetId: string;
     dbAgent: DbAgentDashboard;
     onSetEnabled: (enabled: boolean) => void;
     onRegister: () => void;
@@ -49,6 +50,7 @@ export interface DbAgentTabProps {
 }
 
 export function DbAgentTab({
+    targetId,
     dbAgent,
     onSetEnabled,
     onRegister,
@@ -64,7 +66,7 @@ export function DbAgentTab({
 }: DbAgentTabProps): JSX.Element {
     const dashboardLoc = getDashboardLoc();
     const [selectedPage, setSelectedPage] = useState<DbAgentPage>("issues");
-    const [focusIssueId, setFocusIssueId] = useState<string>();
+    const [focusRequest, setFocusRequest] = useState<IssueFocusRequest>();
     const registeredOrDegraded =
         dbAgent.registrationMode === "registered" ||
         dbAgent.registrationMode === "degradedAuth" ||
@@ -180,7 +182,13 @@ export function DbAgentTab({
                             investigation={dbAgent.activeInvestigation}
                             issues={dbAgent.issues}
                             onFocusIssue={(issueId) => {
-                                setFocusIssueId(issueId);
+                                setFocusRequest({
+                                    issueId,
+                                    bucket: getIssueBucket(
+                                        dbAgent.issues.find((issue) => issue.issueId === issueId)
+                                            ?.status,
+                                    ),
+                                });
                                 setSelectedPage("issues");
                             }}
                             onForceResolve={onForceResolve}
@@ -188,7 +196,7 @@ export function DbAgentTab({
                     ) : null}
                     <DbAgentIssues
                         issues={dbAgent.issues}
-                        focusIssueId={focusIssueId}
+                        focusRequest={focusRequest}
                         onAcknowledge={onAcknowledgeIssue}
                         onDecideAction={onDecideAction}
                         onExecuteAction={onExecuteAction}
@@ -211,7 +219,11 @@ export function DbAgentTab({
                 />
             ) : null}
             {selectedPage === "settings" ? (
-                <DbAgentSettingsPanel settings={dbAgent.settings} onSave={onSaveSettings} />
+                <DbAgentSettingsPanel
+                    scopeKey={targetId}
+                    settings={dbAgent.settings}
+                    onSave={onSaveSettings}
+                />
             ) : null}
             {selectedPage === "access" ? (
                 <DbAgentAccess
@@ -221,6 +233,12 @@ export function DbAgentTab({
             ) : null}
         </div>
     );
+}
+
+function getIssueBucket(
+    status: DbAgentDashboard["issues"][number]["status"] | undefined,
+): IssueBucket {
+    return status === "resolved" ? "resolved" : status === "closed" ? "closed" : "active";
 }
 
 function getDegradedMessage(mode: DbAgentDashboard["registrationMode"]): string | undefined {

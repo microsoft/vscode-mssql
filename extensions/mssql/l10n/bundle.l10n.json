@@ -4589,6 +4589,7 @@
     "Updated": "Updated",
     "Diagnosis": "Diagnosis",
     "Metric evidence": "Metric evidence",
+    "No metric data is available for this issue.": "No metric data is available for this issue.",
     "Analyze with Copilot": "Analyze with Copilot",
     "Copilot analysis": "Copilot analysis",
     "Event history": "Event history",
