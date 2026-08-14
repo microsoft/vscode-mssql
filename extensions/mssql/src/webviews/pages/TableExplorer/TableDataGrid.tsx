@@ -37,7 +37,6 @@ import {
     createFluentAutoResizeOptions,
     FluentSlickGrid,
 } from "../../common/FluentSlickGrid/FluentSlickGrid";
-import { CellUpdateCoordinator } from "./cellUpdateCoordinator";
 
 export type { AppliedSortColumn };
 
@@ -72,7 +71,7 @@ interface TableDataGridProps {
     newRowIds?: number[];
     tableQuery?: string;
     onDeleteRow?: (rowId: number) => void;
-    onUpdateCell?: (rowId: number, columnId: number, newValue: string) => Promise<void>;
+    onUpdateCell?: (rowId: number, columnId: number, newValue: string) => void;
     onRevertCell?: (rowId: number, columnId: number) => void;
     onRevertRow?: (rowId: number) => void;
     onCellChangeCountChanged?: (count: number) => void;
@@ -91,7 +90,7 @@ export interface DataColumnVisibility {
 
 export interface TableDataGridRef {
     clearAllChangeTracking: () => void;
-    commitCurrentEditAndWait: () => Promise<boolean>;
+    commitCurrentEdit: () => boolean;
     getCellChangeCount: () => number;
     goToLastPage: () => void;
     goToFirstPage: () => void;
@@ -150,7 +149,6 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const [vectorTooltip, setVectorTooltip] = useState<{ x: number; y: number } | null>(null);
         const tooltipOpenCountRef = useRef(0);
         const mutationDisabledRef = useRef(isMutationDisabled);
-        const cellUpdateCoordinatorRef = useRef(new CellUpdateCoordinator());
         mutationDisabledRef.current = isMutationDisabled;
 
         // Create a custom pager component
@@ -230,11 +228,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // Expose methods to parent via ref
         useImperativeHandle(ref, () => ({
             clearAllChangeTracking,
-            commitCurrentEditAndWait: () =>
-                cellUpdateCoordinatorRef.current.commitCurrentEditAndWait(
-                    () =>
-                        reactGridRef.current?.slickGrid.getEditorLock().commitCurrentEdit() ?? true,
-                ),
+            commitCurrentEdit: () =>
+                reactGridRef.current?.slickGrid.getEditorLock().commitCurrentEdit() ?? true,
             getCellChangeCount: () => cellChangesRef.current.size,
             goToLastPage: () => {
                 if (reactGridRef.current?.paginationService && reactGridRef.current?.dataView) {
@@ -957,9 +952,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Notify parent
             if (onUpdateCell) {
                 const newValue = args.item[column?.field];
-                cellUpdateCoordinatorRef.current.track(
-                    onUpdateCell(rowId, dataColumnIndex, newValue),
-                );
+                onUpdateCell(rowId, dataColumnIndex, newValue);
             }
 
             // Update the display without full re-render

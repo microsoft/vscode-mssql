@@ -33,12 +33,12 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("loadSubset", { rowCount });
             },
 
-            createRow: function (): void {
-                extensionRpc.action("createRow", {});
+            createRow: async function (): Promise<void> {
+                await extensionRpc.actionAsync("createRow", {});
             },
 
-            deleteRow: function (rowId: number): void {
-                extensionRpc.action("deleteRow", { rowId });
+            deleteRow: async function (rowId: number): Promise<void> {
+                await extensionRpc.actionAsync("deleteRow", { rowId });
             },
 
             updateCell: async function (
@@ -49,12 +49,12 @@ export const TableExplorerStateProvider: React.FC<{
                 await extensionRpc.actionAsync("updateCell", { rowId, columnId, newValue });
             },
 
-            revertCell: function (rowId: number, columnId: number): void {
-                extensionRpc.action("revertCell", { rowId, columnId });
+            revertCell: async function (rowId: number, columnId: number): Promise<void> {
+                await extensionRpc.actionAsync("revertCell", { rowId, columnId });
             },
 
-            revertRow: function (rowId: number): void {
-                extensionRpc.action("revertRow", { rowId });
+            revertRow: async function (rowId: number): Promise<void> {
+                await extensionRpc.actionAsync("revertRow", { rowId });
             },
 
             generateScript: function (): void {

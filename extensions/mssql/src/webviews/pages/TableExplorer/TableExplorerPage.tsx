@@ -33,6 +33,7 @@ import {
     TableExplorerReducers,
 } from "../../../sharedInterfaces/tableExplorer";
 import { VscodeEditor } from "../../common/vscodeMonaco";
+import { MutationCoordinator } from "./mutationCoordinator";
 
 const useStyles = makeStyles({
     root: {
@@ -169,6 +170,7 @@ export const TableExplorerPage: React.FC = () => {
     );
 
     const gridRef = useRef<TableDataGridRef>(null);
+    const mutationCoordinatorRef = useRef(new MutationCoordinator());
     const [cellChangeCount, setCellChangeCount] = React.useState(0);
     const [deletionCount, setDeletionCount] = React.useState(0);
     const [saveRequestPending, setSaveRequestPending] = React.useState(false);
@@ -293,6 +295,38 @@ export const TableExplorerPage: React.FC = () => {
         }
     }, [context]);
 
+    const handleCreateRow = useCallback(() => {
+        mutationCoordinatorRef.current.track(context.createRow());
+    }, [context]);
+
+    const handleDeleteRow = useCallback(
+        (rowId: number) => {
+            mutationCoordinatorRef.current.track(context.deleteRow(rowId));
+        },
+        [context],
+    );
+
+    const handleUpdateCell = useCallback(
+        (rowId: number, columnId: number, newValue: string) => {
+            mutationCoordinatorRef.current.track(context.updateCell(rowId, columnId, newValue));
+        },
+        [context],
+    );
+
+    const handleRevertCell = useCallback(
+        (rowId: number, columnId: number) => {
+            mutationCoordinatorRef.current.track(context.revertCell(rowId, columnId));
+        },
+        [context],
+    );
+
+    const handleRevertRow = useCallback(
+        (rowId: number) => {
+            mutationCoordinatorRef.current.track(context.revertRow(rowId));
+        },
+        [context],
+    );
+
     // The edit session is bounded by the TOP N from the query that opened it,
     // so changing the toolbar row count requires re-initializing the session
     // with a freshly-built query. The default query shape is always
@@ -339,13 +373,13 @@ export const TableExplorerPage: React.FC = () => {
             return;
         }
 
-        const currentEditCommitted = gridRef.current.commitCurrentEditAndWait();
+        if (!gridRef.current.commitCurrentEdit()) {
+            return;
+        }
+
         setSaveRequestPending(true);
         try {
-            if (!(await currentEditCommitted)) {
-                setSaveRequestPending(false);
-                return;
-            }
+            await mutationCoordinatorRef.current.waitForPending();
             await context.commitChanges();
         } catch {
             setSaveRequestPending(false);
@@ -377,6 +411,7 @@ export const TableExplorerPage: React.FC = () => {
                         <TableExplorerToolbar
                             isSaving={isSaving}
                             onSave={handleSave}
+                            onAddRow={handleCreateRow}
                             cellChangeCount={cellChangeCount}
                             deletionCount={deletionCount}
                             currentRowCount={currentRowCount}
@@ -427,10 +462,10 @@ export const TableExplorerPage: React.FC = () => {
                                     deletedRows={deletedRows}
                                     newRowIds={newRows?.map((r) => r.id)}
                                     tableQuery={tableQuery}
-                                    onDeleteRow={context?.deleteRow}
-                                    onUpdateCell={context?.updateCell}
-                                    onRevertCell={context?.revertCell}
-                                    onRevertRow={context?.revertRow}
+                                    onDeleteRow={handleDeleteRow}
+                                    onUpdateCell={handleUpdateCell}
+                                    onRevertCell={handleRevertCell}
+                                    onRevertRow={handleRevertRow}
                                     onCellChangeCountChanged={handleCellChangeCountChanged}
                                     onDeletionCountChanged={handleDeletionCountChanged}
                                     onSelectedRowsChanged={setSelectedRowIds}
