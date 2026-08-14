@@ -5,6 +5,8 @@
 
 import {
     useCallback,
+    useEffect,
+    useRef,
     useState,
     type FocusEvent as ReactFocusEvent,
     type KeyboardEvent as ReactKeyboardEvent,
@@ -32,6 +34,20 @@ export interface FluentResultGridKeyboardController {
     handleGridKeyDownCapture: (event: ReactKeyboardEvent<HTMLDivElement>) => void;
     handleKeyDown: (eventData: SlickEventData, args: { grid: SlickGrid }) => void;
     isGridFocused: boolean;
+}
+
+const KEYBOARD_FOCUS_WINDOW_MS = 250;
+
+/**
+ * Only focus that immediately follows a Tab keydown should reveal the active grid cell. Native
+ * scrollbar interactions can focus the grid container without dispatching a pointer event.
+ */
+export function isFluentResultGridKeyboardInitiatedFocus(
+    tabKeyDownAt: number | undefined,
+    now: number,
+): boolean {
+    const elapsed = tabKeyDownAt === undefined ? Number.POSITIVE_INFINITY : now - tabKeyDownAt;
+    return elapsed >= 0 && elapsed < KEYBOARD_FOCUS_WINDOW_MS;
 }
 
 export function useFluentResultGridKeyboardController({
@@ -173,11 +189,32 @@ export function useFluentResultGridKeyboardController({
         grid.gotoCell(row, cell, false);
     }, [containerRef, reactGridRef]);
 
+    const tabKeyDownAtRef = useRef<number | undefined>(undefined);
+    useEffect(() => {
+        const handleWindowKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Tab") {
+                tabKeyDownAtRef.current = performance.now();
+            }
+        };
+
+        window.addEventListener("keydown", handleWindowKeyDown, true);
+        return () => window.removeEventListener("keydown", handleWindowKeyDown, true);
+    }, []);
+
     const handleGridContainerFocus = useCallback(
         (event: ReactFocusEvent<HTMLDivElement>) => {
             setIsGridFocused(true);
 
-            if (event.target === event.currentTarget) {
+            if (event.target !== event.currentTarget) {
+                return;
+            }
+
+            const shouldRevealActiveCell = isFluentResultGridKeyboardInitiatedFocus(
+                tabKeyDownAtRef.current,
+                performance.now(),
+            );
+            tabKeyDownAtRef.current = undefined;
+            if (shouldRevealActiveCell) {
                 focusGrid();
             }
         },

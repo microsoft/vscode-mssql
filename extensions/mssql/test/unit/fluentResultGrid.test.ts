@@ -22,6 +22,7 @@ import {
     stabilizeFluentResultGridColumnInfo,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridState";
 import { isFluentResultGridHostCommand } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCommandUtils";
+import { isFluentResultGridKeyboardInitiatedFocus } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridKeyboardController";
 import {
     getFluentResultGridKeyboardAction,
     type FluentResultGridKeyboardShortcutEvent,
@@ -218,6 +219,14 @@ suite("Fluent Result Grid", () => {
                     {},
                 ),
             ).to.deep.equal({ kind: "moveFocus", forward: false });
+        });
+
+        test("only keyboard-initiated container focus reveals the active cell", () => {
+            expect(isFluentResultGridKeyboardInitiatedFocus(1000, 1005)).to.equal(true);
+            expect(isFluentResultGridKeyboardInitiatedFocus(1000, 1249)).to.equal(true);
+            expect(isFluentResultGridKeyboardInitiatedFocus(undefined, 1005)).to.equal(false);
+            expect(isFluentResultGridKeyboardInitiatedFocus(1000, 1250)).to.equal(false);
+            expect(isFluentResultGridKeyboardInitiatedFocus(1000, 999)).to.equal(false);
         });
     });
 });
