@@ -17,6 +17,16 @@ npm run benchmark:smoke
 npm run benchmark -- --sizes 5k,100k,1m,10m
 ```
 
+Catalog/editor-feature performance is measured separately from parser throughput. The generated
+catalog matches the reported customer shape (57,885 objects, including 36,119 `dbo` tables) and
+measures catalog indexing, parse-and-bind, schema/object/column completion, cross-schema lookup,
+`SELECT *` expansion, and smart `INSERT` expansion. Column details remain lazy, as they are in the
+Simple Query and dev/query metadata adapters.
+
+```powershell
+npm run benchmark:features
+```
+
 The 100 MiB workload is an explicit manual soak lane:
 
 ```powershell

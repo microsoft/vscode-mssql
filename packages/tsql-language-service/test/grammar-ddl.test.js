@@ -54,7 +54,7 @@ CREATE TABLE dbo.ModernData (
 `);
         assert.deepEqual(snapshot.diagnostics, []);
         const tree = snapshot.tree.toString();
-        assert.match(tree, /DataType\(MultipartIdentifier.+OpenParen,ArgumentList/);
+        assert.match(tree, /DataType\(DataTypeName\(MultipartIdentifier.+OpenParen,ArgumentList/);
         assert.equal((tree.match(/ColumnDefinition\(/g) ?? []).length, 2);
     });
 

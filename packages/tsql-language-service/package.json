@@ -50,6 +50,7 @@
         "lint": "node scripts/check-boundaries.mjs",
         "test": "npm run build && node --test test/*.test.js",
         "benchmark": "npm run build && node --expose-gc benchmarks/run.mjs",
+        "benchmark:features": "npm run build:typescript && node --expose-gc benchmarks/catalog-features.mjs",
         "benchmark:sqlparser": "npm run build && node --expose-gc benchmarks/compare-sqlparser.mjs",
         "benchmark:smoke": "npm run build && node benchmarks/run.mjs --smoke"
     },

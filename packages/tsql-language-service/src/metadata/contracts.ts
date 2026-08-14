@@ -46,6 +46,8 @@ export interface ObjectMetadata {
     readonly schema: string;
     readonly name: string;
     readonly kind: SqlObjectKind;
+    /** True for SQL Server-shipped catalog objects; retained so hosts can rank rather than hide them. */
+    readonly system?: boolean;
 }
 
 export interface ColumnMetadata {

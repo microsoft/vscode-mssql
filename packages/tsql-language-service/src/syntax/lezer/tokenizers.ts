@@ -10,6 +10,9 @@ import {
     Go,
     Label,
     Match,
+    MoneyLiteral,
+    UpdatePredicateKeyword,
+    ViewCheckWith,
     lineContentStart,
     horizontalWhitespace,
     lineBreak,
@@ -32,7 +35,20 @@ const upperG = "G".charCodeAt(0);
 const upperM = "M".charCodeAt(0);
 const upperO = "O".charCodeAt(0);
 const upperA = "A".charCodeAt(0);
+const lowerU = "u".charCodeAt(0);
+const upperU = "U".charCodeAt(0);
+const lowerW = "w".charCodeAt(0);
+const upperW = "W".charCodeAt(0);
 const colon = ":".charCodeAt(0);
+const openParen = "(".charCodeAt(0);
+const plus = "+".charCodeAt(0);
+const period = ".".charCodeAt(0);
+const lowerE = "e".charCodeAt(0);
+const upperE = "E".charCodeAt(0);
+const moneySigns = new Set([
+    0x0024, 0x00a3, 0x00a4, 0x00a5, 0x09f2, 0x09f3, 0x0e3f, 0x20ac, 0x20a1, 0x20a2, 0x20a3, 0x20a4,
+    0x20a6, 0x20a7, 0x20a8, 0x20a9, 0x20aa, 0x20ab,
+]);
 
 export const sqlServerTokens = new ExternalTokenizer((input, stack) => {
     if (isHorizontalSpace(input.next)) {
@@ -47,12 +63,31 @@ export const sqlServerTokens = new ExternalTokenizer((input, stack) => {
         readNestedBlockComment(input);
         return;
     }
-    if (isIdentifierStart(input.next) && readLabel(input)) return;
+    if (moneySigns.has(input.next) && stack.canShift(MoneyLiteral) && readMoneyLiteral(input))
+        return;
+    // Labels are statement-leading constructs. Checking the lexical line state avoids both
+    // misclassifying identifier/colon pairs inside expressions and an expensive LR canShift call
+    // for every identifier in the document.
+    if (isLineLeading(stack) && isIdentifierStart(input.next) && readLabel(input)) return;
     if ((input.next === lowerA || input.next === upperA) && readAtTimeZone(input)) return;
     if (
-        stack.canShift(Match) &&
         (input.next === lowerM || input.next === upperM) &&
+        stack.canShift(Match) &&
         readContextualWord(input, "match", Match)
+    ) {
+        return;
+    }
+    if (
+        (input.next === lowerU || input.next === upperU) &&
+        stack.canShift(UpdatePredicateKeyword) &&
+        readUpdatePredicateKeyword(input)
+    ) {
+        return;
+    }
+    if (
+        (input.next === lowerW || input.next === upperW) &&
+        stack.canShift(ViewCheckWith) &&
+        readViewCheckWith(input)
     ) {
         return;
     }
@@ -61,6 +96,31 @@ export const sqlServerTokens = new ExternalTokenizer((input, stack) => {
     }
     if (isLineLeading(stack)) input.acceptToken(lineContentStart);
 });
+
+function readMoneyLiteral(input: InputStream): boolean {
+    if (!moneySigns.has(input.next)) return false;
+    let offset = 1;
+    while (input.peek(offset) === space) offset++;
+    if (input.peek(offset) === plus || input.peek(offset) === hyphen) offset++;
+    const digitStart = offset;
+    while (isDigit(input.peek(offset))) offset++;
+    if (offset === digitStart) return false;
+    if (input.peek(offset) === period) {
+        offset++;
+        while (isDigit(input.peek(offset))) offset++;
+    }
+    if (input.peek(offset) === lowerE || input.peek(offset) === upperE) {
+        const exponentStart = offset;
+        offset++;
+        if (input.peek(offset) === plus || input.peek(offset) === hyphen) offset++;
+        const exponentDigits = offset;
+        while (isDigit(input.peek(offset))) offset++;
+        if (offset === exponentDigits) offset = exponentStart;
+    }
+    input.advance(offset);
+    input.acceptToken(MoneyLiteral);
+    return true;
+}
 
 function readContextualWord(input: InputStream, expected: string, term: number): boolean {
     for (let offset = 0; offset < expected.length; offset++) {
@@ -72,6 +132,42 @@ function readContextualWord(input: InputStream, expected: string, term: number):
     input.advance(expected.length);
     input.acceptToken(term);
     return true;
+}
+
+function readUpdatePredicateKeyword(input: InputStream): boolean {
+    const expected = "update";
+    for (let offset = 0; offset < expected.length; offset++) {
+        const code = input.peek(offset);
+        const lower = code >= 65 && code <= 90 ? code + 32 : code;
+        if (lower !== expected.charCodeAt(offset)) return false;
+    }
+    if (isIdentifierCode(input.peek(expected.length))) return false;
+    let follower = expected.length;
+    while (isSqlWhitespace(input.peek(follower))) follower++;
+    if (input.peek(follower) !== openParen) return false;
+    input.advance(expected.length);
+    input.acceptToken(UpdatePredicateKeyword);
+    return true;
+}
+
+function readViewCheckWith(input: InputStream): boolean {
+    if (!matchesWord(input, 0, "with")) return false;
+    let offset = "with".length;
+    if (!isSqlWhitespace(input.peek(offset))) return false;
+    while (isSqlWhitespace(input.peek(offset))) offset++;
+    if (!matchesWord(input, offset, "check")) return false;
+    input.advance("with".length);
+    input.acceptToken(ViewCheckWith);
+    return true;
+}
+
+function matchesWord(input: InputStream, start: number, expected: string): boolean {
+    for (let offset = 0; offset < expected.length; offset++) {
+        const code = input.peek(start + offset);
+        const lower = code >= 65 && code <= 90 ? code + 32 : code;
+        if (lower !== expected.charCodeAt(offset)) return false;
+    }
+    return !isIdentifierCode(input.peek(start + expected.length));
 }
 
 function readLabel(input: InputStream): boolean {
@@ -170,7 +266,22 @@ function isDigit(code: number): boolean {
 }
 
 function isHorizontalSpace(code: number): boolean {
-    return code === space || code === tab;
+    return (
+        (code >= 0x0000 && code <= 0x0008) ||
+        code === tab ||
+        code === 0x000b ||
+        code === 0x000c ||
+        (code >= 0x000e && code <= space) ||
+        code === 0x0085 ||
+        code === 0x00a0 ||
+        code === 0x1680 ||
+        (code >= 0x2000 && code <= 0x200b) ||
+        code === 0x2028 ||
+        code === 0x2029 ||
+        code === 0x202f ||
+        code === 0x205f ||
+        code === 0x3000
+    );
 }
 
 function isLineEnd(code: number): boolean {
@@ -178,7 +289,7 @@ function isLineEnd(code: number): boolean {
 }
 
 function isSqlWhitespace(code: number): boolean {
-    return code === space || code === tab || code === carriageReturn || code === lineFeed;
+    return isHorizontalSpace(code) || code === carriageReturn || code === lineFeed;
 }
 
 function isIdentifierCode(code: number): boolean {

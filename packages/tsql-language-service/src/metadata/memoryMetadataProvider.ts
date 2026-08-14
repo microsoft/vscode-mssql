@@ -91,7 +91,9 @@ function createView(id: string, generation: number, input: InMemoryMetadataInput
 
 class MemoryView implements MetadataView {
     private readonly _objectsById: ReadonlyMap<string, ObjectMetadata>;
+    private readonly _objectsByQualifiedName: ReadonlyMap<string, readonly ObjectMetadata[]>;
     private readonly _objects: readonly ObjectMetadata[];
+    private readonly _objectsByScope: ReadonlyMap<string, readonly ObjectMetadata[]>;
     private readonly _columns: ReadonlyMap<string, readonly ColumnMetadata[]>;
     private readonly _parameters: ReadonlyMap<string, readonly ParameterMetadata[]>;
     private readonly _columnStates: ReadonlyMap<
@@ -114,8 +116,17 @@ class MemoryView implements MetadataView {
         public readonly completeness: MetadataCompleteness,
         input: InMemoryMetadataInput,
     ) {
-        this._objects = Object.freeze([...(input.objects ?? [])]);
+        this._objects = Object.freeze(
+            [...(input.objects ?? [])].sort((left, right) =>
+                compareObjects(left, right, environment),
+            ),
+        );
         this._objectsById = new Map(this._objects.map((object) => [object.ref.id, object]));
+        this._objectsByQualifiedName = indexObjectsByQualifiedName(
+            this._objects,
+            environment.caseSensitive,
+        );
+        this._objectsByScope = indexObjectsByScope(this._objects, environment.caseSensitive);
         this._columns = input.columns ?? new Map();
         this._parameters = input.parameters ?? new Map();
         this._columnStates = input.columnStates ?? new Map();
@@ -129,14 +140,20 @@ class MemoryView implements MetadataView {
         if (!name) return { kind: "notFound" };
         const schema = parts.length >= 2 ? parts.at(-2) : this.environment.defaultSchema;
         const database = parts.length >= 3 ? parts.at(-3) : this.environment.currentDatabase;
-        const matches = this._objects.filter(
-            (object) =>
-                equal(object.name, name, this.environment.caseSensitive) &&
-                equal(object.schema, schema, this.environment.caseSensitive) &&
-                (!database ||
-                    !object.database ||
-                    equal(object.database, database, this.environment.caseSensitive)),
-        );
+        const matches = database
+            ? uniqueObjects([
+                  ...(this._objectsByQualifiedName.get(
+                      qualifiedNameKey(database, schema!, name, this.environment.caseSensitive),
+                  ) ?? []),
+                  ...(this._objectsByQualifiedName.get(
+                      qualifiedNameKey(undefined, schema!, name, this.environment.caseSensitive),
+                  ) ?? []),
+              ])
+            : this._objects.filter(
+                  (object) =>
+                      equal(object.name, name, this.environment.caseSensitive) &&
+                      equal(object.schema, schema, this.environment.caseSensitive),
+              );
         if (matches.length === 1) return { kind: "resolved", object: matches[0]! };
         if (matches.length > 1) return { kind: "ambiguous", candidates: matches };
         if (this.completeness.objects !== "ready") {
@@ -166,15 +183,25 @@ class MemoryView implements MetadataView {
     public searchObjects(query: ObjectSearchQuery): readonly ObjectMetadata[] {
         const prefix = query.prefix ?? "";
         const limit = query.limit ?? 100;
-        return this._objects
-            .filter(
-                (object) =>
-                    (!query.database || object.database === query.database) &&
-                    (!query.schema || object.schema === query.schema) &&
-                    (!query.kinds || query.kinds.includes(object.kind)) &&
-                    startsWith(object.name, prefix, this.environment.caseSensitive),
-            )
-            .slice(0, limit);
+        const scoped = query.schema
+            ? (this._objectsByScope.get(
+                  scopeKey(query.database, query.schema, this.environment.caseSensitive),
+              ) ?? [])
+            : this._objects;
+        const matches = (object: ObjectMetadata) =>
+            (!query.database ||
+                equal(object.database, query.database, this.environment.caseSensitive)) &&
+            (!query.schema || equal(object.schema, query.schema, this.environment.caseSensitive)) &&
+            (!query.kinds || query.kinds.includes(object.kind));
+        return query.schema
+            ? prefixSearch(scoped, prefix, this.environment.caseSensitive, matches, limit)
+            : scoped
+                  .filter(
+                      (object) =>
+                          matches(object) &&
+                          startsWith(object.name, prefix, this.environment.caseSensitive),
+                  )
+                  .slice(0, limit);
     }
 
     public schemas(database?: string): readonly SchemaMetadata[] | undefined {
@@ -246,6 +273,111 @@ function startsWith(value: string, prefix: string, caseSensitive: boolean): bool
     return caseSensitive
         ? value.startsWith(prefix)
         : value.toLocaleLowerCase().startsWith(prefix.toLocaleLowerCase());
+}
+
+function indexObjectsByScope(
+    objects: readonly ObjectMetadata[],
+    caseSensitive: boolean,
+): ReadonlyMap<string, readonly ObjectMetadata[]> {
+    const mutable = new Map<string, ObjectMetadata[]>();
+    for (const object of objects) {
+        const key = scopeKey(object.database, object.schema, caseSensitive);
+        const values = mutable.get(key) ?? [];
+        values.push(object);
+        mutable.set(key, values);
+    }
+    return new Map(
+        [...mutable].map(([key, values]) => [
+            key,
+            Object.freeze(
+                values.sort((left, right) =>
+                    normalizedName(left.name, caseSensitive).localeCompare(
+                        normalizedName(right.name, caseSensitive),
+                    ),
+                ),
+            ),
+        ]),
+    );
+}
+
+function indexObjectsByQualifiedName(
+    objects: readonly ObjectMetadata[],
+    caseSensitive: boolean,
+): ReadonlyMap<string, readonly ObjectMetadata[]> {
+    const mutable = new Map<string, ObjectMetadata[]>();
+    for (const object of objects) {
+        const key = qualifiedNameKey(object.database, object.schema, object.name, caseSensitive);
+        const values = mutable.get(key) ?? [];
+        values.push(object);
+        mutable.set(key, values);
+    }
+    return mutable;
+}
+
+function qualifiedNameKey(
+    database: string | undefined,
+    schema: string,
+    name: string,
+    caseSensitive: boolean,
+): string {
+    return normalizedName(`${database ?? ""}\u0000${schema}\u0000${name}`, caseSensitive);
+}
+
+function uniqueObjects(objects: readonly ObjectMetadata[]): readonly ObjectMetadata[] {
+    return [...new Map(objects.map((object) => [object.ref.id, object])).values()];
+}
+
+function prefixSearch(
+    objects: readonly ObjectMetadata[],
+    prefix: string,
+    caseSensitive: boolean,
+    matches: (object: ObjectMetadata) => boolean,
+    limit: number,
+): readonly ObjectMetadata[] {
+    const normalizedPrefix = normalizedName(prefix, caseSensitive);
+    let low = 0;
+    let high = objects.length;
+    while (low < high) {
+        const middle = (low + high) >>> 1;
+        if (normalizedName(objects[middle]!.name, caseSensitive) < normalizedPrefix)
+            low = middle + 1;
+        else high = middle;
+    }
+    const result: ObjectMetadata[] = [];
+    for (let index = low; index < objects.length && result.length < limit; index++) {
+        const object = objects[index]!;
+        if (!normalizedName(object.name, caseSensitive).startsWith(normalizedPrefix)) break;
+        if (matches(object)) result.push(object);
+    }
+    return result;
+}
+
+function normalizedName(value: string, caseSensitive: boolean): string {
+    return caseSensitive ? value : value.toLocaleLowerCase();
+}
+
+function scopeKey(database: string | undefined, schema: string, caseSensitive: boolean): string {
+    const value = `${database ?? ""}\u0000${schema}`;
+    return caseSensitive ? value : value.toLocaleLowerCase();
+}
+
+function compareObjects(
+    left: ObjectMetadata,
+    right: ObjectMetadata,
+    environment: SqlEnvironment,
+): number {
+    return (
+        objectRank(left, environment) - objectRank(right, environment) ||
+        left.schema.localeCompare(right.schema) ||
+        left.name.localeCompare(right.name)
+    );
+}
+
+function objectRank(object: ObjectMetadata, environment: SqlEnvironment): number {
+    if (object.system) return 3;
+    if (equal(object.schema, environment.defaultSchema, environment.caseSensitive)) return 0;
+    if (equal(object.schema, "dbo", environment.caseSensitive)) return 1;
+    return 2;
 }
 
 function stateReason(state: MetadataCompleteness["objects"]) {

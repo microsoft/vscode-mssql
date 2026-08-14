@@ -8,7 +8,7 @@ import type { MetadataProvider } from "../metadata/index.js";
 import { NullMetadataProvider } from "../metadata/index.js";
 import type { LanguageServiceStats } from "../observability/index.js";
 import { LanguageServiceStatsStore } from "../observability/index.js";
-import { ScaffoldSemanticBinder, type SemanticBinder } from "../semantics/index.js";
+import { CatalogSemanticBinder, type SemanticBinder } from "../semantics/index.js";
 import { LezerSyntaxService, type SyntaxService } from "../syntax/index.js";
 import { applyTextChanges, ImmutableTextSnapshot, type TextChange } from "../text/index.js";
 import type { DocumentAnalysisSnapshot, LanguageServiceRuntime } from "./contracts.js";
@@ -20,7 +20,7 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
 
     public constructor(
         private readonly _syntax: SyntaxService = new LezerSyntaxService(),
-        private readonly _binder: SemanticBinder = new ScaffoldSemanticBinder(),
+        private readonly _binder: SemanticBinder = new CatalogSemanticBinder(),
         private readonly _metadata: MetadataProvider = new NullMetadataProvider(),
     ) {}
 

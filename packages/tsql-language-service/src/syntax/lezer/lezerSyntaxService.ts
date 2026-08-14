@@ -779,8 +779,50 @@ function featureProfileRule(
             return { keyword: "WINDOW", minimumServer: 16, minimumCompatibility: 160 };
         case "CreateJsonIndexStatement":
             return { keyword: "JSON", minimumServer: 17, minimumCompatibility: 170 };
+        case "JsonConstructorExpression": {
+            const value = text.slice(node.from, node.to).trimStart().toUpperCase();
+            return {
+                keyword: value.startsWith("JSON_OBJECT") ? "JSON_OBJECT" : "JSON_ARRAY",
+                minimumServer: 16,
+                minimumCompatibility: 160,
+            };
+        }
+        case "JsonAggregateExpression": {
+            const value = text.slice(node.from, node.to).trimStart().toUpperCase();
+            return {
+                keyword: value.startsWith("JSON_OBJECTAGG") ? "JSON_OBJECTAGG" : "JSON_ARRAYAGG",
+                minimumServer: 17,
+                minimumCompatibility: 170,
+            };
+        }
+        case "JsonArrayWrapperClause":
+            return { keyword: "ARRAY", minimumServer: 17, minimumCompatibility: 170 };
+        case "JsonReturningClause":
+        case "JsonValueReturningClause":
+            return { keyword: "RETURNING", minimumServer: 17, minimumCompatibility: 170 };
         case "CreateVectorIndexStatement":
             return { keyword: "VECTOR", minimumServer: 17, minimumCompatibility: 170 };
+        case "VectorSearchTableSource":
+            return { keyword: "VECTOR_SEARCH", minimumServer: 17, minimumCompatibility: 170 };
+        case "ApproximateKeyword": {
+            const value = text.slice(node.from, node.to).trimStart().toUpperCase();
+            return {
+                keyword: value.startsWith("APPROXIMATE") ? "APPROXIMATE" : "APPROX",
+                minimumServer: 17,
+                minimumCompatibility: 170,
+            };
+        }
+        case "AiGenerateEmbeddingsExpression":
+            return {
+                keyword: "AI_GENERATE_EMBEDDINGS",
+                minimumServer: 17,
+                minimumCompatibility: 170,
+            };
+        case "CreateMaterializedViewStatement":
+        case "AlterMaterializedViewStatement":
+            return { keyword: "MATERIALIZED", engineFlavors: ["azure-synapse", "fabric"] };
+        case "ExternalFunctionBody":
+            return { keyword: "EXTERNAL", engineFlavors: ["fabric"] };
         case "AvailabilityGroupStatement":
             return { keyword: "AVAILABILITY", engineFlavors: ["sql-server"] };
         case "BackupStatement":

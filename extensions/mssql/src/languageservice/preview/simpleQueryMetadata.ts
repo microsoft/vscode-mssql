@@ -170,6 +170,7 @@ function mapObjects(
                 schema,
                 name,
                 kind,
+                system: booleanValue(row.get("is_ms_shipped")) || undefined,
             },
         ];
     });
@@ -341,11 +342,11 @@ SELECT TOP (${objectPageSize})
     o.object_id,
     s.name AS schema_name,
     o.name AS object_name,
-    o.type AS object_type
+    o.type AS object_type,
+    o.is_ms_shipped
 FROM sys.objects AS o WITH (NOLOCK)
 JOIN sys.schemas AS s WITH (NOLOCK) ON s.schema_id = o.schema_id
-WHERE o.is_ms_shipped = 0
-  AND o.object_id > ${lastObjectId}
+WHERE o.object_id > ${lastObjectId}
   AND o.type IN ('U', 'V', 'P', 'PC', 'FN', 'FS', 'IF', 'TF', 'FT', 'SN')
 ORDER BY o.object_id;`;
 
@@ -363,8 +364,7 @@ SELECT
 FROM sys.columns AS c WITH (NOLOCK)
 JOIN sys.objects AS o WITH (NOLOCK) ON o.object_id = c.object_id
 JOIN sys.types AS ty WITH (NOLOCK) ON ty.user_type_id = c.user_type_id
-WHERE o.is_ms_shipped = 0
-  AND o.type IN ('U', 'V', 'IF', 'TF', 'FT')
+WHERE o.type IN ('U', 'V', 'IF', 'TF', 'FT')
   AND c.object_id = ${objectId}
 ORDER BY c.column_id;`;
 
@@ -380,7 +380,6 @@ SELECT
 FROM sys.parameters AS p WITH (NOLOCK)
 JOIN sys.objects AS o WITH (NOLOCK) ON o.object_id = p.object_id
 JOIN sys.types AS ty WITH (NOLOCK) ON ty.user_type_id = p.user_type_id
-WHERE o.is_ms_shipped = 0
-  AND o.type IN ('P', 'PC', 'FN', 'FS', 'IF', 'TF', 'FT')
+WHERE o.type IN ('P', 'PC', 'FN', 'FS', 'IF', 'TF', 'FT')
   AND p.object_id = ${objectId}
 ORDER BY p.parameter_id;`;

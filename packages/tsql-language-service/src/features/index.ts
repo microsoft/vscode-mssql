@@ -4,3 +4,4 @@
  *--------------------------------------------------------------------------------------------*/
 
 export * from "./contracts.js";
+export * from "./tsqlLanguageFeatureService.js";

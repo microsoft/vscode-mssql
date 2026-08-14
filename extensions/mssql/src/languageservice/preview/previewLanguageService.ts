@@ -4,11 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    CatalogSemanticBinder,
     InProcessLanguageServiceRuntime,
     LezerSyntaxService,
     NullMetadataProvider,
-    ScaffoldSemanticBinder,
     SimpleQueryMetadataAdapter,
+    TsqlLanguageFeatureService,
+    type CompletionItem as ServiceCompletionItem,
     type DocumentAnalysisSnapshot,
     type LanguageServiceRuntime,
     type LanguageServiceStats,
@@ -38,6 +40,7 @@ interface PreviewDocumentState {
     readonly connectionUri: string;
     readonly metadata: MetadataProvider;
     readonly runtime: LanguageServiceRuntime;
+    readonly features: TsqlLanguageFeatureService;
     readonly disposables: vscode.Disposable[];
     queue: Promise<void>;
     syncedVersion: number;
@@ -79,12 +82,27 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             (uri) => this.statsDocument(uri),
             this._statsChanged.event,
         );
+        const completionProvider = new PreviewCompletionProvider(
+            () => this._enabled,
+            (uri) => this._documents.get(uri.toString()),
+        );
+        const hoverProvider = new PreviewHoverProvider(
+            () => this._enabled,
+            (uri) => this._documents.get(uri.toString()),
+        );
 
         this._disposables.push(
             this._diagnostics,
             this._codeLensChanged,
             this._statsChanged,
             vscode.languages.registerCodeLensProvider({ language: "sql" }, codeLensProvider),
+            vscode.languages.registerCompletionItemProvider(
+                { language: "sql" },
+                completionProvider,
+                ".",
+                "*",
+            ),
+            vscode.languages.registerHoverProvider({ language: "sql" }, hoverProvider),
             vscode.workspace.registerTextDocumentContentProvider(statsScheme, statsProvider),
             vscode.commands.registerCommand(showStatsCommand, (uri?: vscode.Uri) =>
                 this.showStats(uri),
@@ -163,14 +181,16 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         const metadata = this.createMetadataProvider(key);
         const runtime = new InProcessLanguageServiceRuntime(
             new LezerSyntaxService(),
-            new ScaffoldSemanticBinder(),
+            new CatalogSemanticBinder(),
             metadata,
         );
+        const features = new TsqlLanguageFeatureService(runtime, metadata);
         const state: PreviewDocumentState = {
             documentUri: document.uri,
             connectionUri: key,
             metadata,
             runtime,
+            features,
             disposables: [],
             queue: Promise.resolve(),
             syncedVersion: document.version,
@@ -414,10 +434,10 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                     featureRouting: {
                         documentSynchronization: "preview",
                         syntaxDiagnostics: "preview",
-                        semanticBinding: "preview-scaffold",
+                        semanticBinding: "preview-catalog",
                         metadata: state?.metadata.id ?? "unavailable",
-                        completions: "preview-not-implemented",
-                        hover: "preview-not-implemented",
+                        completions: "preview-catalog",
+                        hover: "preview-catalog",
                         definitions: "preview-not-implemented",
                         references: "preview-not-implemented",
                         formatting: "preview-not-implemented",
@@ -437,6 +457,88 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         this._codeLensChanged.fire();
         const statsUri = this._statsUris.get(state.connectionUri);
         if (statsUri) this._statsChanged.fire(statsUri);
+    }
+}
+
+class PreviewCompletionProvider implements vscode.CompletionItemProvider {
+    public constructor(
+        private readonly _enabled: () => boolean,
+        private readonly _state: (uri: vscode.Uri) => PreviewDocumentState | undefined,
+    ) {}
+
+    public async provideCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        token: vscode.CancellationToken,
+    ): Promise<vscode.CompletionList | undefined> {
+        if (!this._enabled()) return undefined;
+        const state = this._state(document.uri);
+        if (!state) return undefined;
+        await state.queue;
+        if (
+            token.isCancellationRequested ||
+            state.disposed ||
+            document.version !== state.syncedVersion
+        ) {
+            return undefined;
+        }
+        try {
+            const result = state.features.completion(
+                state.connectionUri,
+                document.version,
+                document.offsetAt(position),
+            );
+            return new vscode.CompletionList(
+                result.items.map((item) => toVscodeCompletionItem(document, item)),
+                result.incomplete,
+            );
+        } catch {
+            return undefined;
+        }
+    }
+}
+
+class PreviewHoverProvider implements vscode.HoverProvider {
+    public constructor(
+        private readonly _enabled: () => boolean,
+        private readonly _state: (uri: vscode.Uri) => PreviewDocumentState | undefined,
+    ) {}
+
+    public async provideHover(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        token: vscode.CancellationToken,
+    ): Promise<vscode.Hover | undefined> {
+        if (!this._enabled()) return undefined;
+        const state = this._state(document.uri);
+        if (!state) return undefined;
+        await state.queue;
+        if (
+            token.isCancellationRequested ||
+            state.disposed ||
+            document.version !== state.syncedVersion
+        ) {
+            return undefined;
+        }
+        try {
+            const result = state.features.hover(
+                state.connectionUri,
+                document.version,
+                document.offsetAt(position),
+            );
+            return result
+                ? new vscode.Hover(
+                      new vscode.MarkdownString(result.markdown),
+                      result.range &&
+                          new vscode.Range(
+                              document.positionAt(result.range.start),
+                              document.positionAt(result.range.end),
+                          ),
+                  )
+                : undefined;
+        } catch {
+            return undefined;
+        }
     }
 }
 
@@ -533,6 +635,47 @@ function severity(value: "error" | "warning" | "information" | "hint"): vscode.D
             return vscode.DiagnosticSeverity.Information;
         case "hint":
             return vscode.DiagnosticSeverity.Hint;
+    }
+}
+
+function toVscodeCompletionItem(
+    document: vscode.TextDocument,
+    item: ServiceCompletionItem,
+): vscode.CompletionItem {
+    const result = new vscode.CompletionItem(item.label, completionKind(item.kind));
+    result.detail = item.detail;
+    result.documentation = item.documentation
+        ? new vscode.MarkdownString(item.documentation)
+        : undefined;
+    result.sortText = item.sortText;
+    result.filterText = item.filterText;
+    result.insertText = item.edit?.newText ?? item.label;
+    if (item.edit) {
+        result.range = new vscode.Range(
+            document.positionAt(item.edit.start),
+            document.positionAt(item.edit.end),
+        );
+    }
+    return result;
+}
+
+function completionKind(kind: string): vscode.CompletionItemKind {
+    switch (kind) {
+        case "schema":
+        case "table":
+        case "view":
+        case "synonym":
+            return vscode.CompletionItemKind.Struct;
+        case "column":
+            return vscode.CompletionItemKind.Field;
+        case "procedure":
+        case "scalarFunction":
+        case "tableFunction":
+            return vscode.CompletionItemKind.Function;
+        case "snippet":
+            return vscode.CompletionItemKind.Snippet;
+        default:
+            return vscode.CompletionItemKind.Text;
     }
 }
 
