@@ -51,7 +51,7 @@ const useStyles = makeStyles({
 });
 
 interface TableExplorerToolbarProps {
-    onSaveComplete?: () => void;
+    onSave: () => Promise<void>;
     cellChangeCount: number;
     deletionCount: number;
     currentRowCount?: number;
@@ -124,7 +124,7 @@ const ColumnsMenu: React.FC<ColumnsMenuProps> = ({
 };
 
 export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
-    onSaveComplete,
+    onSave,
     cellChangeCount,
     deletionCount,
     currentRowCount,
@@ -149,14 +149,19 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     const isLoading = loadStatus === ApiStatus.Loading;
 
     const [loadRowCount, setLoadRowCount] = React.useState<string>(String(DEFAULT_ROW_COUNT));
+    const [isSaving, setIsSaving] = React.useState(false);
 
     const lastSubmittedRowCountRef = React.useRef<number>(DEFAULT_ROW_COUNT);
 
-    const handleSave = () => {
-        context.commitChanges();
-        // Call the callback to clear change tracking after save
-        if (onSaveComplete) {
-            onSaveComplete();
+    const handleSave = async () => {
+        if (isSaving) {
+            return;
+        }
+        setIsSaving(true);
+        try {
+            await onSave();
+        } finally {
+            setIsSaving(false);
         }
     };
 
@@ -224,7 +229,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 title={saveButtonText}
                 icon={<SaveRegular />}
                 onClick={handleSave}
-                disabled={changeCount === 0 || isLoading}>
+                disabled={changeCount === 0 || isLoading || isSaving}>
                 {saveButtonText}
             </ToolbarButton>
             <ToolbarButton
@@ -232,7 +237,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
                 title={loc.tableExplorer.addRow}
                 icon={<AddRegular />}
                 onClick={handleAddRow}
-                disabled={isLoading}>
+                disabled={isLoading || isSaving}>
                 {loc.tableExplorer.addRow}
             </ToolbarButton>
             <Menu>

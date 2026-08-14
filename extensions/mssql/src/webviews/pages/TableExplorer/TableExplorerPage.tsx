@@ -132,6 +132,7 @@ export const TableExplorerPage: React.FC = () => {
     const tableQuery = useTableExplorerSelector((s) => s.tableQuery);
     const schemaName = useTableExplorerSelector((s) => s.schemaName);
     const tableName = useTableExplorerSelector((s) => s.tableName);
+    const ownerUri = useTableExplorerSelector((s) => s.ownerUri);
 
     const isLoading = loadStatus === ApiStatus.Loading;
 
@@ -331,9 +332,14 @@ export const TableExplorerPage: React.FC = () => {
         setSortColumns([]);
     }, [tableQuery]);
 
-    const handleSaveComplete = () => {
-        // Clear the change tracking in the grid after successful save
-        gridRef.current?.clearAllChangeTracking();
+    const handleSave = async () => {
+        const grid = gridRef.current;
+        const saved = grid
+            ? await grid.runAfterPendingMutations(() => context.commitChanges())
+            : (await context.commitChanges(), true);
+        if (saved) {
+            grid?.clearAllChangeTracking();
+        }
     };
 
     const handleCellChangeCountChanged = (count: number) => {
@@ -350,7 +356,7 @@ export const TableExplorerPage: React.FC = () => {
                 <Panel defaultSize={75}>
                     <div className={classes.contentArea}>
                         <TableExplorerToolbar
-                            onSaveComplete={handleSaveComplete}
+                            onSave={handleSave}
                             cellChangeCount={cellChangeCount}
                             deletionCount={deletionCount}
                             currentRowCount={currentRowCount}
@@ -400,6 +406,7 @@ export const TableExplorerPage: React.FC = () => {
                                     deletedRows={deletedRows}
                                     newRowIds={newRows?.map((r) => r.id)}
                                     tableQuery={tableQuery}
+                                    sessionKey={ownerUri}
                                     onDeleteRow={context?.deleteRow}
                                     onUpdateCell={context?.updateCell}
                                     onRevertCell={context?.revertCell}

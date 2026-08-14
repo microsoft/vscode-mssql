@@ -143,5 +143,51 @@ suite("tableDataGridUtils", () => {
             expect(caughtError).to.equal(expectedError);
             expect(secondMutationStarted).to.equal(true);
         });
+
+        test("drains pending mutations before continuing", async () => {
+            const queue = new TableExplorerRowMutationQueue();
+            let completeMutation: () => void;
+            void queue.enqueue(
+                5,
+                () =>
+                    new Promise<void>((resolve) => {
+                        completeMutation = resolve;
+                    }),
+            );
+            let drainCompleted = false;
+            const drain = queue.drain().then(() => {
+                drainCompleted = true;
+            });
+
+            await Promise.resolve();
+            expect(drainCompleted).to.equal(false);
+
+            completeMutation!();
+            await drain;
+            expect(drainCompleted).to.equal(true);
+        });
+
+        test("invalidates queued mutations from an earlier session", async () => {
+            const queue = new TableExplorerRowMutationQueue();
+            let completeFirstMutation: () => void;
+            const firstMutation = queue.enqueue(
+                5,
+                () =>
+                    new Promise<void>((resolve) => {
+                        completeFirstMutation = resolve;
+                    }),
+            );
+            let staleMutationStarted = false;
+            const staleMutation = queue.enqueue(5, async () => {
+                staleMutationStarted = true;
+            });
+
+            queue.invalidate();
+            completeFirstMutation!();
+            await firstMutation;
+            await staleMutation;
+
+            expect(staleMutationStarted).to.equal(false);
+        });
     });
 });

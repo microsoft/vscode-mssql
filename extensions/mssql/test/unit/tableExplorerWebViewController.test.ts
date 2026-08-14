@@ -620,16 +620,26 @@ suite("TableExplorerWebViewController - Reducers", () => {
             controller.state.ownerUri = "test-owner-uri";
             const error = new Error("Revert cell failed");
             mockTableExplorerService.revertCell.rejects(error);
+            controller.state.failedCells = ["0-1"];
+            const originalValue = createMockCell("Original");
+            controller.state.originalCellValues = new Map([["0-1", originalValue]]);
 
             // Act
-            await controller["_reducerHandlers"].get("revertCell")(controller.state, {
-                rowId: 0,
-                columnId: 1,
-            });
+            let caughtError: unknown;
+            try {
+                await controller["_reducerHandlers"].get("revertCell")(controller.state, {
+                    rowId: 0,
+                    columnId: 1,
+                });
+            } catch (revertError) {
+                caughtError = revertError;
+            }
 
             // Assert
-            expect(showErrorMessageStub.calledOnce).to.be.true;
-            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to revert cell");
+            expect(caughtError).to.equal(error);
+            expect(controller.state.failedCells).to.deep.equal(["0-1"]);
+            expect(controller.state.originalCellValues?.get("0-1")).to.equal(originalValue);
+            expect(showErrorMessageStub).to.have.been.calledWithMatch("Failed to revert cell");
         });
     });
 

@@ -25,8 +25,8 @@ export const TableExplorerStateProvider: React.FC<{
     const commands = useMemo<TableExplorerContextProps>(
         () => ({
             ...getCoreRPCs(extensionRpc),
-            commitChanges: function (): void {
-                extensionRpc.action("commitChanges", {});
+            commitChanges: async function (): Promise<void> {
+                await extensionRpc.actionAndWait("commitChanges", {});
             },
 
             loadSubset: function (rowCount: number): void {

@@ -6,6 +6,7 @@
 import React, {
     useState,
     useEffect,
+    useLayoutEffect,
     useRef,
     useImperativeHandle,
     forwardRef,
@@ -77,6 +78,7 @@ interface TableDataGridProps {
     deletedRows?: number[];
     newRowIds?: number[];
     tableQuery?: string;
+    sessionKey: string;
     onDeleteRow?: (rowId: number) => Promise<void>;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => Promise<void>;
     onRevertCell?: (rowId: number, columnId: number) => Promise<void>;
@@ -107,6 +109,7 @@ export interface TableDataGridRef {
     setDataColumnVisibility: (id: string, visible: boolean) => void;
     deleteRows: (rowIds: number[]) => void;
     getSqlForCurrentView: () => string;
+    runAfterPendingMutations: (operation: () => Promise<void>) => Promise<boolean>;
 }
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
@@ -119,6 +122,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             deletedRows,
             newRowIds,
             tableQuery,
+            sessionKey,
             onDeleteRow,
             onUpdateCell,
             onRevertCell,
@@ -143,6 +147,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const failedCellsRef = useRef<Set<string>>(new Set());
         const revertingRowsRef = useRef<Set<number>>(new Set());
         const rowMutationQueueRef = useRef(new TableExplorerRowMutationQueue());
+        const mutationsBlockedRef = useRef(false);
         const lastPageRef = useRef<number>(1);
         const lastItemsPerPageRef = useRef<number>(pageSize);
         const previousResultSetRef = useRef<EditSubsetResult | undefined>(undefined);
@@ -298,7 +303,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 grid.updateColumns();
             },
             deleteRows: (rowIds: number[]) => {
-                if (!onDeleteRow) {
+                if (!onDeleteRow || mutationsBlockedRef.current) {
                     return;
                 }
                 if (reactGridRef.current?.paginationService) {
@@ -347,6 +352,23 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 // produces two ORDER BY clauses.
                 const stripped = stripTrailingOrderByAndSemicolon(base);
                 return `${stripped}\nORDER BY ${orderParts.join(", ")}`;
+            },
+            runAfterPendingMutations: async (operation: () => Promise<void>) => {
+                const grid = reactGridRef.current?.slickGrid;
+                if (grid && !grid.getEditorLock().commitCurrentEdit()) {
+                    return false;
+                }
+
+                mutationsBlockedRef.current = true;
+                grid?.invalidate();
+                try {
+                    await rowMutationQueueRef.current.drain();
+                    await operation();
+                    return true;
+                } finally {
+                    mutationsBlockedRef.current = false;
+                    reactGridRef.current?.slickGrid?.invalidate();
+                }
             },
         }));
 
@@ -623,9 +645,18 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // because the backend assigns position-based row IDs (0, 1, 2, ...), so
         // incremental ID-based comparison would incorrectly keep stale data for
         // overlapping IDs.
-        useEffect(() => {
+        useLayoutEffect(() => {
             previousResultSetRef.current = undefined;
-        }, [tableQuery]);
+            rowMutationQueueRef.current.invalidate();
+            revertingRowsRef.current.clear();
+        }, [sessionKey, tableQuery]);
+
+        useEffect(
+            () => () => {
+                rowMutationQueueRef.current.invalidate();
+            },
+            [],
+        );
 
         // Main effect: Handle resultSet changes
         useEffect(() => {
@@ -965,7 +996,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         }
 
         function handleBeforeEditCell(_e: any, args: any): boolean {
-            return !revertingRowsRef.current.has(args.item.id);
+            return !mutationsBlockedRef.current && !revertingRowsRef.current.has(args.item.id);
         }
 
         // Shared revert-row logic used by both the inline undo button and the
@@ -973,7 +1004,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // local deletion / cell-change tracking for the row, and updates parent
         // counters.
         async function revertRow(rowId: number) {
-            if (!onRevertRow) {
+            if (!onRevertRow || mutationsBlockedRef.current) {
                 return;
             }
 
@@ -1014,7 +1045,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         }
 
         async function revertCell(rowId: number, dataColumnIndex: number): Promise<void> {
-            if (!onRevertCell || revertingRowsRef.current.has(rowId)) {
+            if (
+                !onRevertCell ||
+                mutationsBlockedRef.current ||
+                revertingRowsRef.current.has(rowId)
+            ) {
                 return;
             }
 
@@ -1153,7 +1188,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     break;
 
                 case "delete-row":
-                    if (onDeleteRow && !revertingRowsRef.current.has(rowId)) {
+                    if (
+                        onDeleteRow &&
+                        !mutationsBlockedRef.current &&
+                        !revertingRowsRef.current.has(rowId)
+                    ) {
                         void rowMutationQueueRef.current.enqueue(rowId, () => onDeleteRow(rowId));
                     }
                     break;

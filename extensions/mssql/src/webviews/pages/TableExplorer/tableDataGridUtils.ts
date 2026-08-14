@@ -74,11 +74,15 @@ export function tryLockTableExplorerRow(rowId: number, lockedRows: Set<number>):
 
 export class TableExplorerRowMutationQueue {
     private readonly pendingMutations = new Map<number, Promise<void>>();
+    private generation = 0;
 
     public enqueue(rowId: number, mutation: () => Promise<void>): Promise<void> {
+        const generation = this.generation;
         const previousMutation =
             this.pendingMutations.get(rowId)?.catch(() => undefined) ?? Promise.resolve();
-        const currentMutation = previousMutation.then(mutation);
+        const currentMutation = previousMutation.then(() =>
+            generation === this.generation ? mutation() : undefined,
+        );
         this.pendingMutations.set(rowId, currentMutation);
 
         void currentMutation.then(
@@ -86,6 +90,17 @@ export class TableExplorerRowMutationQueue {
             () => this.removeCompletedMutation(rowId, currentMutation),
         );
         return currentMutation;
+    }
+
+    public async drain(): Promise<void> {
+        while (this.pendingMutations.size > 0) {
+            await Promise.allSettled(this.pendingMutations.values());
+        }
+    }
+
+    public invalidate(): void {
+        this.generation++;
+        this.pendingMutations.clear();
     }
 
     private removeCompletedMutation(rowId: number, mutation: Promise<void>): void {
