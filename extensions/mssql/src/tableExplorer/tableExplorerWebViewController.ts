@@ -141,6 +141,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.state.loadStatus = ApiStatus.Error;
             this.state.resultSet = undefined;
             this._preserveTableQuery = false;
+            this._cellOperationsEnabled = false;
+            this._sessionReplacementPending = false;
             this.updateState();
 
             sendErrorEvent(
@@ -584,6 +586,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 `Failed to restore original session: ${getErrorMessage(restoreError)}`,
             );
             state.loadStatus = ApiStatus.Error;
+            this._sessionReplacementPending = false;
             return false;
         }
     }

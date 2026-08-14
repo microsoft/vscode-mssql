@@ -2261,6 +2261,50 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(controller.state.tableQuery).to.equal("SELECT * FROM dbo.FirstQuery");
         });
 
+        test("should recover query and mutation handling after failed session readiness", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.resolves();
+            mockTableExplorerService.commit.resolves({});
+
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "SELECT * FROM dbo.FailingQuery",
+            });
+            controller["onEditSessionReady"]({
+                ownerUri: "test-owner-uri",
+                success: false,
+                message: "Query failed",
+            });
+
+            expect(controller["_sessionReplacementPending"]).to.be.false;
+            expect(controller.state.loadStatus).to.equal(ApiStatus.Error);
+            const blockedCommit = Promise.resolve(
+                controller["_reducerHandlers"].get("commitChanges")(controller.state, {}),
+            ).then(
+                () => false,
+                () => true,
+            );
+            expect(await blockedCommit).to.be.true;
+            expect(mockTableExplorerService.commit.called).to.be.false;
+
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "SELECT * FROM dbo.RetryQuery",
+            });
+            controller["onEditSessionReady"]({
+                ownerUri: "test-owner-uri",
+                success: true,
+                message: "",
+            });
+            await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
+
+            expect(mockTableExplorerService.dispose.callCount).to.equal(2);
+            expect(mockTableExplorerService.initialize.callCount).to.equal(2);
+            expect(mockTableExplorerService.commit.calledOnce).to.be.true;
+        });
+
         test("should clear pending changes after successful re-initialization", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
@@ -2503,6 +2547,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
 
             // Assert
             expect(controller.state.loadStatus).to.equal(ApiStatus.Error);
+            expect(controller["_sessionReplacementPending"]).to.be.false;
             expect(showErrorMessageStub.calledWithMatch(sinon.match.string)).to.be.true;
         });
 
