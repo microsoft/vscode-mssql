@@ -75,9 +75,14 @@ export function tryLockTableExplorerRow(rowId: number, lockedRows: Set<number>):
 export class TableExplorerRowMutationQueue {
     private readonly pendingMutations = new Map<number, Promise<void>>();
     private readonly pendingFailures: unknown[] = [];
+    private readonly persistentFailures = new Map<string, unknown>();
     private generation = 0;
 
-    public enqueue(rowId: number, mutation: () => Promise<void>): Promise<void> {
+    public enqueue(
+        rowId: number,
+        mutation: () => Promise<void>,
+        persistentFailureKey?: string,
+    ): Promise<void> {
         const generation = this.generation;
         const previousMutation =
             this.pendingMutations.get(rowId)?.catch(() => undefined) ?? Promise.resolve();
@@ -87,10 +92,19 @@ export class TableExplorerRowMutationQueue {
         this.pendingMutations.set(rowId, currentMutation);
 
         void currentMutation.then(
-            () => this.removeCompletedMutation(rowId, currentMutation),
+            () => {
+                if (generation === this.generation && persistentFailureKey) {
+                    this.persistentFailures.delete(persistentFailureKey);
+                }
+                this.removeCompletedMutation(rowId, currentMutation);
+            },
             (error) => {
                 if (generation === this.generation) {
-                    this.pendingFailures.push(error);
+                    if (persistentFailureKey) {
+                        this.persistentFailures.set(persistentFailureKey, error);
+                    } else {
+                        this.pendingFailures.push(error);
+                    }
                 }
                 this.removeCompletedMutation(rowId, currentMutation);
             },
@@ -108,12 +122,27 @@ export class TableExplorerRowMutationQueue {
             this.pendingFailures.length = 0;
             throw firstError;
         }
+
+        const persistentFailure = this.persistentFailures.values().next();
+        if (!persistentFailure.done) {
+            throw persistentFailure.value;
+        }
     }
 
     public invalidate(): void {
         this.generation++;
         this.pendingMutations.clear();
         this.pendingFailures.length = 0;
+        this.persistentFailures.clear();
+    }
+
+    public clearPersistentFailuresForRow(rowId: number): void {
+        const rowPrefix = `${rowId}-`;
+        for (const key of this.persistentFailures.keys()) {
+            if (key.startsWith(rowPrefix)) {
+                this.persistentFailures.delete(key);
+            }
+        }
     }
 
     private removeCompletedMutation(rowId: number, mutation: Promise<void>): void {

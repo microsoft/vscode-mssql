@@ -1015,8 +1015,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Notify parent
             if (onUpdateCell) {
                 const newValue = args.item[column?.field];
-                void rowMutationQueueRef.current.enqueue(rowId, () =>
-                    onUpdateCell(rowId, dataColumnIndex, newValue),
+                void rowMutationQueueRef.current.enqueue(
+                    rowId,
+                    () => onUpdateCell(rowId, dataColumnIndex, newValue),
+                    changeKey,
                 );
             }
 
@@ -1051,6 +1053,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             const revertedCellChanges = snapshotCellChangesForRow(rowId, cellChangesRef.current);
             try {
                 await rowMutationQueueRef.current.enqueue(rowId, () => onRevertRow(rowId));
+                rowMutationQueueRef.current.clearPersistentFailuresForRow(rowId);
 
                 deletedRowsRef.current.delete(rowId);
                 newRowIdsRef.current.delete(rowId);
@@ -1090,8 +1093,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 revertedCellChanges.set(changeKey, cellChangesRef.current.get(changeKey));
             }
             try {
-                await rowMutationQueueRef.current.enqueue(rowId, () =>
-                    onRevertCell(rowId, dataColumnIndex),
+                await rowMutationQueueRef.current.enqueue(
+                    rowId,
+                    () => onRevertCell(rowId, dataColumnIndex),
+                    changeKey,
                 );
             } catch {
                 return;

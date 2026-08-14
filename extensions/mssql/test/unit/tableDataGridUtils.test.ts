@@ -239,6 +239,32 @@ suite("tableDataGridUtils", () => {
             await queue.drain();
         });
 
+        test("preserves a failed cell update through repeated drains until corrected", async () => {
+            const queue = new TableExplorerRowMutationQueue();
+            const expectedError = new Error("update failed");
+            const failedMutation = queue.enqueue(
+                5,
+                async () => {
+                    throw expectedError;
+                },
+                "5-1",
+            );
+            await failedMutation.catch(() => undefined);
+
+            for (let attempt = 0; attempt < 2; attempt++) {
+                let caughtError: unknown;
+                try {
+                    await queue.drain();
+                } catch (error) {
+                    caughtError = error;
+                }
+                expect(caughtError).to.equal(expectedError);
+            }
+
+            await queue.enqueue(5, async () => undefined, "5-1");
+            await queue.drain();
+        });
+
         test("invalidates queued mutations from an earlier session", async () => {
             const queue = new TableExplorerRowMutationQueue();
             let completeFirstMutation: () => void;
