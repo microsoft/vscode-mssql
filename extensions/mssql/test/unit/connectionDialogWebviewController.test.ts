@@ -92,6 +92,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let azureAccountService: sinon.SinonStubbedInstance<AzureAccountService>;
     let serviceClientMock: sinon.SinonStubbedInstance<SqlToolsServerClient>;
     let loadVscodeEntraDataAsyncStub: sinon.SinonStub;
+    const connectionDialogRequestId = "schema-compare-request";
 
     const testMruConnection = {
         profileSource: CredentialsQuickPickItemType.Mru,
@@ -187,6 +188,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
             mainController,
             mockObjectExplorerProvider,
             undefined /* connection to edit */,
+            undefined /* initial connection group */,
+            undefined /* open as new draft */,
+            connectionDialogRequestId,
         );
 
         observeWebviewReady(controller);
@@ -1245,9 +1249,16 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(connectionManager.connect.calledOnce).to.be.true;
                 expect(connectionStore.saveProfile.calledOnce).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.calledOnce).to.be.true;
+                expect(mockObjectExplorerProvider.createSession).to.have.been.calledWith(
+                    sinon.match.any,
+                    connectionDialogRequestId,
+                );
                 expect(
                     connectionManager.notifyConnectionDialogCompleted,
-                ).to.have.been.calledOnceWithExactly({ connected: true });
+                ).to.have.been.calledOnceWithExactly({
+                    connected: true,
+                    connectionRequestId: connectionDialogRequestId,
+                });
             });
 
             test("testConnection only validates connectivity without saving or creating session", async () => {
@@ -1257,6 +1268,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 await controller["_reducerHandlers"].get("testConnection")(controller.state, {});
 
                 expect(connectionManager.connect.calledOnce).to.be.true;
+                expect(connectionManager.connect.firstCall.args[2]).to.include({
+                    connectionRequestId: connectionDialogRequestId,
+                });
                 expect(connectionStore.saveProfile.notCalled).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
                 expect(controller.state.connectionStatus).to.equal(ApiStatus.Loaded);
@@ -1277,7 +1291,10 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(controller.state.testConnectionSucceeded).to.be.false;
                 expect(
                     connectionManager.notifyConnectionDialogCompleted,
-                ).to.have.been.calledOnceWithExactly({ connected: false });
+                ).to.have.been.calledOnceWithExactly({
+                    connected: false,
+                    connectionRequestId: connectionDialogRequestId,
+                });
             });
 
             test("closing the dialog signals completion without a connection", () => {
@@ -1285,7 +1302,10 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
                 expect(
                     connectionManager.notifyConnectionDialogCompleted,
-                ).to.have.been.calledOnceWithExactly({ connected: false });
+                ).to.have.been.calledOnceWithExactly({
+                    connected: false,
+                    connectionRequestId: connectionDialogRequestId,
+                });
             });
 
             test("retryLastSubmitAction replays test connection action for trust cert flow", async () => {

@@ -165,6 +165,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connectionToEdit?: IConnectionInfo,
         initialConnectionGroup?: IConnectionGroup,
         private _openAsNewDraft?: boolean,
+        private readonly _connectionRequestId?: string,
     ) {
         super(
             context,
@@ -1499,7 +1500,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         }
 
         this._completionNotified = true;
-        this._mainController.connectionManager.notifyConnectionDialogCompleted({ connected });
+        this._mainController.connectionManager.notifyConnectionDialogCompleted({
+            connected,
+            connectionRequestId: this._connectionRequestId,
+        });
     }
 
     public override dispose(): void {
@@ -1520,6 +1524,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 {
                     shouldHandleErrors: false, // Connect should not handle errors, as we want to handle them here
                     connectionSource: connectionDialogViewId,
+                    connectionRequestId: this._connectionRequestId,
                 },
             );
 
@@ -1662,6 +1667,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 {
                     shouldHandleErrors: false,
                     connectionSource: connectionDialogViewId,
+                    connectionRequestId: this._connectionRequestId,
                 },
             );
 
@@ -1777,7 +1783,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connection: IConnectionDialogProfile,
         state: ConnectionDialogWebviewState,
     ): Promise<void> {
-        let node = await this._mainController.createObjectExplorerSession(connection);
+        let node = await this._mainController.createObjectExplorerSession(
+            connection,
+            this._connectionRequestId,
+        );
 
         try {
             await this._mainController.objectExplorerTree.reveal(node, {
@@ -1788,7 +1797,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         } catch {
             // If revealing the node fails, we've hit an event-based race condition; re-saving and creating the profile should fix it.
             await this.saveProfileStep(connection, state);
-            node = await this._mainController.createObjectExplorerSession(connection);
+            node = await this._mainController.createObjectExplorerSession(
+                connection,
+                this._connectionRequestId,
+            );
             await this._mainController.objectExplorerTree.reveal(node, {
                 focus: true,
                 select: true,

@@ -1213,14 +1213,17 @@ export default class MainController implements vscode.Disposable {
      */
     public async createObjectExplorerSession(
         connectionCredentials?: IConnectionInfo,
+        connectionRequestId?: string,
     ): Promise<TreeNodeInfo> {
         let retry = true;
         // There can be many reasons for the session creation to fail, so we will retry until we get a successful result or the user cancels the operation.
         let sessionCreationResult: CreateSessionResult = undefined;
         while (retry) {
             retry = false;
-            sessionCreationResult =
-                await this._objectExplorerProvider.createSession(connectionCredentials);
+            sessionCreationResult = await this._objectExplorerProvider.createSession(
+                connectionCredentials,
+                connectionRequestId,
+            );
             if (sessionCreationResult?.shouldRetryOnFailure) {
                 retry = true;
             }
@@ -1291,6 +1294,10 @@ export default class MainController implements vscode.Disposable {
         this._event.on(Constants.cmdAddObjectExplorer, async (args: any) => {
             let connectionInfo: IConnectionInfo | undefined = undefined;
             let connectionGroup: IConnectionGroup | undefined = undefined;
+            const connectionDialogRequestId =
+                typeof args?.connectionDialogRequestId === "string"
+                    ? args.connectionDialogRequestId
+                    : undefined;
             if (args) {
                 // validate that `args` is an IConnectionInfo before assigning
                 if (isIConnectionInfo(args)) {
@@ -1308,6 +1315,8 @@ export default class MainController implements vscode.Disposable {
                 this._objectExplorerProvider,
                 connectionInfo,
                 connectionGroup,
+                undefined,
+                connectionDialogRequestId,
             );
             connDialog.revealToForeground();
         });

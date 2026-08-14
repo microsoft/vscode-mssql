@@ -794,6 +794,7 @@ export class ObjectExplorerService {
      */
     public async createSession(
         connectionInfo?: IConnectionInfo,
+        connectionRequestId?: string,
     ): Promise<CreateSessionResult | undefined> {
         await this.initialized;
         if (!this._rootTreeNodeArray) {
@@ -884,6 +885,7 @@ export class ObjectExplorerService {
                 const successResponse = await this.handleSessionCreationSuccess(
                     sessionCreationResult,
                     connectionProfile,
+                    connectionRequestId,
                 );
                 createSessionActivity.end(ActivityStatus.Succeeded, {
                     connectionType: connectionProfile.authenticationType,
@@ -1050,11 +1052,13 @@ export class ObjectExplorerService {
      * Handles the success of session creation.
      * @param successResponse The response from the session creation request.
      * @param connectionProfile The connection profile used to create the session.
+     * @param connectionRequestId identifier used to correlate the connection request
      * @returns The session ID and corresponding connection node. If undefined, the session was not created.
      */
     private async handleSessionCreationSuccess(
         successResponse: SessionCreatedParameters,
         connectionProfile: IConnectionProfile,
+        connectionRequestId?: string,
     ) {
         if (!successResponse.success) {
             return;
@@ -1084,7 +1088,9 @@ export class ObjectExplorerService {
             !this._connectionManager.isConnected(nodeUri) &&
             !this._connectionManager.isConnecting(nodeUri)
         ) {
-            await this._connectionManager.connect(nodeUri, connectionNode.connectionProfile);
+            await this._connectionManager.connect(nodeUri, connectionNode.connectionProfile, {
+                connectionRequestId,
+            });
         }
         const dockerConnectionContainerName =
             await this._connectionManager.checkForDockerConnection(connectionProfile);

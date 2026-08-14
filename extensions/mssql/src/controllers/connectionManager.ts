@@ -132,10 +132,12 @@ export interface ConnectionSuccessfulEvent {
     connection: ConnectionInfo;
     fileUri: string;
     connectionSource?: string;
+    connectionRequestId?: string;
 }
 
 export interface ConnectionDialogCompletedEvent {
     connected: boolean;
+    connectionRequestId?: string;
 }
 
 // ConnectionManager class is the main controller for connection management
@@ -1446,6 +1448,7 @@ export default class ConnectionManager {
         options: {
             shouldHandleErrors?: boolean;
             connectionSource?: string;
+            connectionRequestId?: string;
             serverlessWakeFailedAttempts?: number;
         } = {},
     ): Promise<boolean> {
@@ -1454,6 +1457,7 @@ export default class ConnectionManager {
         const {
             shouldHandleErrors = true,
             connectionSource = "",
+            connectionRequestId,
             serverlessWakeFailedAttempts = 0,
         } = options;
 
@@ -1587,7 +1591,13 @@ export default class ConnectionManager {
              * Connection was successful
              */
 
-            await this.handleConnectionSuccess(fileUri, connectionInfo, result, connectionSource);
+            await this.handleConnectionSuccess(
+                fileUri,
+                connectionInfo,
+                result,
+                connectionSource,
+                connectionRequestId,
+            );
             connectionActivity.end(
                 ActivityStatus.Succeeded,
                 undefined,
@@ -1615,6 +1625,7 @@ export default class ConnectionManager {
                     return await this.connect(fileUri, connectionInfo.credentials, {
                         shouldHandleErrors,
                         connectionSource,
+                        connectionRequestId,
                         serverlessWakeFailedAttempts: failedAttempts,
                     });
                 }
@@ -1634,6 +1645,7 @@ export default class ConnectionManager {
                     connectionActivity.end(ActivityStatus.Retrying);
                     return await this.connect(fileUri, errorHandlingResult.updatedCredentials, {
                         connectionSource: connectionSource,
+                        connectionRequestId,
                     });
                 }
             }
@@ -1826,6 +1838,7 @@ export default class ConnectionManager {
      * @param connectionInfo the connection info object to update
      * @param result the result of the connection
      * @param connectionSource source of the connection request
+     * @param connectionRequestId identifier used to correlate the connection request
      * @returns A promise that resolves when all steps are complete
      */
     private async handleConnectionSuccess(
@@ -1833,6 +1846,7 @@ export default class ConnectionManager {
         connectionInfo: ConnectionInfo,
         result: ConnectionContracts.ConnectionCompleteParams,
         connectionSource?: string,
+        connectionRequestId?: string,
     ): Promise<void> {
         /**
          * Connection was successful
@@ -1877,6 +1891,7 @@ export default class ConnectionManager {
             connection: connectionInfo,
             fileUri: fileUri,
             connectionSource,
+            connectionRequestId,
         });
 
         this._logger.info(

@@ -1101,7 +1101,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("connection events - save-only profile refreshes picker without later auto-selection", async () => {
-        sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
+        const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
         const connectionChangedSpy = sandbox.spy();
         connectionManagerStub.onConnectionsChanged(connectionChangedSpy);
         connectionManagerStub.isConnected.callsFake(
@@ -1112,6 +1112,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
             endpointType: "source",
         });
+        const connectionRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
 
         const savedConnection = {
             id: "saved-connection-id",
@@ -1120,7 +1121,10 @@ suite("SchemaCompareWebViewController Tests", () => {
             profileSource: CredentialsQuickPickItemType.Profile,
         } as IConnectionProfileWithSource;
         connectionStoreStub.readAllConnections.resolves([savedConnection]);
-        connectionDialogCompletedEmitter.fire({ connected: false });
+        connectionDialogCompletedEmitter.fire({
+            connected: false,
+            connectionRequestId,
+        });
         await new Promise<void>((resolve) => setImmediate(resolve));
 
         expect(connectionChangedSpy).not.to.have.been.called;
@@ -1154,7 +1158,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     });
 
     test("connection events - transient validation URI is ignored before persistent connection", async () => {
-        sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
+        const executeCommandStub = sandbox.stub(vscode.commands, "executeCommand").resolves();
         let transientConnectionIsConnected = false;
         let persistentConnectionIsConnected = false;
         connectionManagerStub.isConnected.callsFake(
@@ -1173,6 +1177,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
             endpointType: "source",
         });
+        const connectionRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
 
         const newConnectionCredentials = {
             id: "",
@@ -1193,6 +1198,7 @@ suite("SchemaCompareWebViewController Tests", () => {
             connection: transientConnection,
             fileUri: "transient-connection-uri",
             connectionSource: connectionDialogViewId,
+            connectionRequestId,
         });
         await new Promise<void>((resolve) => setImmediate(resolve));
 
@@ -1218,6 +1224,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         successfulConnectionEmitter.fire({
             connection: persistentConnection,
             fileUri: "persistent-connection-uri",
+            connectionRequestId,
         });
         await new Promise<void>((resolve) => setImmediate(resolve));
 
@@ -1226,6 +1233,102 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(connectionManagerStub.listDatabases).to.have.been.calledWith(
             "persistent-connection-uri",
         );
+    });
+
+    test("connection events - stale dialog completion does not cancel a newer request", async () => {
+        const executeCommandStub = sandbox
+            .stub(vscode.commands, "executeCommand")
+            .resolves(undefined);
+        controller.state = structuredClone(mockInitialState);
+
+        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
+            endpointType: "source",
+        });
+        const firstRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
+
+        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
+            endpointType: "target",
+        });
+        const secondRequestId = executeCommandStub.secondCall.args[1].connectionDialogRequestId;
+
+        expect(firstRequestId).not.to.equal(secondRequestId);
+
+        connectionDialogCompletedEmitter.fire({
+            connected: false,
+            connectionRequestId: firstRequestId,
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(controller.state.waitingForNewConnection).to.be.true;
+        expect(controller.state.pendingConnectionEndpointType).to.equal("target");
+
+        connectionDialogCompletedEmitter.fire({
+            connected: false,
+            connectionRequestId: secondRequestId,
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(controller.state.waitingForNewConnection).to.be.false;
+        expect(controller.state.pendingConnectionEndpointType).to.be.null;
+    });
+
+    test("connection events - concurrent controllers only select their own request", async () => {
+        const executeCommandStub = sandbox
+            .stub(vscode.commands, "executeCommand")
+            .resolves(undefined);
+        const secondController = new SchemaCompareWebViewController(
+            mockContext,
+            treeNode,
+            undefined,
+            false,
+            schemaCompareService,
+            connectionManagerStub,
+            deploymentOptionsResultMock,
+            schemaCompareWebViewTitle,
+        );
+        controller.state = structuredClone(mockInitialState);
+        secondController.state = structuredClone(mockInitialState);
+
+        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
+            endpointType: "source",
+        });
+        const firstRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
+
+        await secondController["_reducerHandlers"].get("openAddNewConnectionDialog")(
+            secondController.state,
+            { endpointType: "target" },
+        );
+        const secondRequestId = executeCommandStub.secondCall.args[1].connectionDialogRequestId;
+
+        const firstConnection = new ConnectionInfo();
+        firstConnection.credentials = {
+            id: "",
+            profileName: "First dialog connection",
+            server: "first-server",
+        } as IConnectionProfile;
+        activeConnections["first-persistent-uri"] = firstConnection;
+        connectionManagerStub.isConnected.withArgs("first-persistent-uri").returns(true);
+
+        successfulConnectionEmitter.fire({
+            connection: firstConnection,
+            fileUri: "first-persistent-uri",
+            connectionRequestId: firstRequestId,
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(controller.state.waitingForNewConnection).to.be.false;
+        expect(controller.state.sourceEndpointInfo.ownerUri).to.equal("first-persistent-uri");
+        expect(secondController.state.waitingForNewConnection).to.be.true;
+        expect(secondController.state.targetEndpointInfo).to.be.undefined;
+
+        connectionDialogCompletedEmitter.fire({
+            connected: false,
+            connectionRequestId: secondRequestId,
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(secondController.state.waitingForNewConnection).to.be.false;
+        expect(controller.state.sourceEndpointInfo.ownerUri).to.equal("first-persistent-uri");
     });
 
     test("listActiveServers reducer - deduplicates multiple active URIs for a saved profile", async () => {
