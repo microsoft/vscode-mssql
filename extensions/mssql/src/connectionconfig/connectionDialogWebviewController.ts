@@ -1817,6 +1817,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             await this._mainController.connectionManager.connectionStore.saveProfile(
                 connection as IConnectionProfile,
             );
+            if (editedConnection && !connection.savePassword) {
+                await this._mainController.connectionManager.connectionStore.deleteCredential(
+                    connection as IConnectionProfile,
+                );
+            }
             if (!this.isSubmissionActive(submissionGeneration)) {
                 await this.restoreEditedConnection(editedConnection, editedNodeRemoved);
                 return;

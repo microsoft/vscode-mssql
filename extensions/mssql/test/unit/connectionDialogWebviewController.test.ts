@@ -1300,6 +1300,36 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 });
             });
 
+            test("editing a profile to disable password saving deletes its credential", async () => {
+                const originalConnection = {
+                    ...testFormState,
+                    id: "saved-profile-id",
+                    password: "saved-password",
+                    savePassword: true,
+                    configSource: undefined,
+                } as IConnectionProfile;
+                const editedConnection = {
+                    ...originalConnection,
+                    password: "",
+                    savePassword: false,
+                };
+                controller["_connectionBeingEdited"] = originalConnection;
+                controller.state.connectionProfile = editedConnection;
+                controller.state.formState = editedConnection;
+
+                await controller["_reducerHandlers"].get("saveWithoutConnecting")(
+                    controller.state,
+                    {},
+                );
+
+                expect(connectionStore.saveProfile).to.have.been.calledWithExactly(
+                    editedConnection,
+                );
+                expect(connectionStore.deleteCredential).to.have.been.calledWithExactly(
+                    editedConnection,
+                );
+            });
+
             test("closing the dialog signals completion without a connection", () => {
                 controller.dispose();
 
