@@ -9,6 +9,7 @@ import {
     hasPendingChangesForRow,
     isTableExplorerDataColumn,
     snapshotCellChangesForRow,
+    tryLockTableExplorerRow,
 } from "../../src/webviews/pages/TableExplorer/tableDataGridUtils";
 
 suite("tableDataGridUtils", () => {
@@ -79,6 +80,18 @@ suite("tableDataGridUtils", () => {
             expect(cellChanges.has("5-1")).to.equal(false);
             expect(cellChanges.get("5-2")).to.equal(laterThirdCellChange);
             expect([...failedCells]).to.deep.equal(["5-0", "5-2"]);
+        });
+    });
+
+    suite("row mutation lock", () => {
+        test("prevents concurrent mutations until the row is unlocked", () => {
+            const lockedRows = new Set<number>();
+
+            expect(tryLockTableExplorerRow(5, lockedRows)).to.equal(true);
+            expect(tryLockTableExplorerRow(5, lockedRows)).to.equal(false);
+
+            lockedRows.delete(5);
+            expect(tryLockTableExplorerRow(5, lockedRows)).to.equal(true);
         });
     });
 });

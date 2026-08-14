@@ -63,3 +63,11 @@ export function clearRevertedCellChanges<T>(
         }
     }
 }
+
+export function tryLockTableExplorerRow(rowId: number, lockedRows: Set<number>): boolean {
+    if (lockedRows.has(rowId)) {
+        return false;
+    }
+    lockedRows.add(rowId);
+    return true;
+}

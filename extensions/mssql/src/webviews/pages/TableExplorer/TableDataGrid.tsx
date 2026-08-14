@@ -42,6 +42,7 @@ import {
     hasPendingChangesForRow,
     isTableExplorerDataColumn,
     snapshotCellChangesForRow,
+    tryLockTableExplorerRow,
 } from "./tableDataGridUtils";
 
 export type { AppliedSortColumn };
@@ -139,6 +140,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const deletedRowsRef = useRef<Set<number>>(new Set());
         const newRowIdsRef = useRef<Set<number>>(new Set());
         const failedCellsRef = useRef<Set<string>>(new Set());
+        const revertingRowsRef = useRef<Set<number>>(new Set());
         const lastPageRef = useRef<number>(1);
         const lastItemsPerPageRef = useRef<number>(pageSize);
         const previousResultSetRef = useRef<EditSubsetResult | undefined>(undefined);
@@ -163,6 +165,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
 
         function reactGridReady(reactGrid: SlickgridReactInstance) {
             reactGridRef.current = reactGrid;
+            // SlickGrid consumes the handler's false return to veto editor creation.
+            reactGrid.slickGrid.onBeforeEditCell.subscribe(handleBeforeEditCell);
             isInitializedRef.current = true;
             tryAutoSelectFirstCell();
         }
@@ -380,12 +384,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     dataContext: any,
                 ) => {
                     const rowId = dataContext.id;
-                    const canRevert = hasPendingChangesForRow(
-                        rowId,
-                        cellChangesRef.current.values(),
-                        deletedRowsRef.current,
-                        newRowIdsRef.current,
-                    );
+                    const canRevert =
+                        hasPendingChangesForRow(
+                            rowId,
+                            cellChangesRef.current.values(),
+                            deletedRowsRef.current,
+                            newRowIdsRef.current,
+                        ) && !revertingRowsRef.current.has(rowId);
                     const iconClass = canRevert
                         ? "fi fi-arrow-undo action-icon pointer"
                         : "fi fi-arrow-undo action-icon disabled";
@@ -952,6 +957,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }
 
+        function handleBeforeEditCell(_e: any, args: any): boolean {
+            return !revertingRowsRef.current.has(args.item.id);
+        }
+
         // Shared revert-row logic used by both the inline undo button and the
         // context menu's "Revert Row" command. Notifies the backend, clears
         // local deletion / cell-change tracking for the row, and updates parent
@@ -961,31 +970,40 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
 
+            const grid = reactGridRef.current?.slickGrid;
+            if (grid && !grid.getEditorLock().commitCurrentEdit()) {
+                return;
+            }
+            if (!tryLockTableExplorerRow(rowId, revertingRowsRef.current)) {
+                return;
+            }
+            grid?.invalidate();
+
             const revertedCellChanges = snapshotCellChangesForRow(rowId, cellChangesRef.current);
             try {
                 await onRevertRow(rowId);
+
+                deletedRowsRef.current.delete(rowId);
+                newRowIdsRef.current.delete(rowId);
+
+                clearRevertedCellChanges(
+                    cellChangesRef.current,
+                    revertedCellChanges,
+                    failedCellsRef.current,
+                );
+
+                if (onCellChangeCountChanged) {
+                    onCellChangeCountChanged(cellChangesRef.current.size);
+                }
+                if (onDeletionCountChanged) {
+                    onDeletionCountChanged(deletedRowsRef.current.size);
+                }
             } catch {
                 return;
+            } finally {
+                revertingRowsRef.current.delete(rowId);
+                reactGridRef.current?.slickGrid?.invalidate();
             }
-
-            deletedRowsRef.current.delete(rowId);
-            newRowIdsRef.current.delete(rowId);
-
-            clearRevertedCellChanges(
-                cellChangesRef.current,
-                revertedCellChanges,
-                failedCellsRef.current,
-            );
-
-            if (onCellChangeCountChanged) {
-                onCellChangeCountChanged(cellChangesRef.current.size);
-            }
-            if (onDeletionCountChanged) {
-                onDeletionCountChanged(deletedRowsRef.current.size);
-            }
-
-            // Invalidate the grid to refresh UI immediately after revert
-            reactGridRef.current?.slickGrid?.invalidate();
         }
 
         function handleCellClick(_e: Event, args: any) {
