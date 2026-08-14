@@ -2979,14 +2979,15 @@
     <trans-unit id="++CODE++f93991ad07957c41dfc5212f2709590b0a723ccb5f5c397fb7c681b218de236d">
       <source xml:lang="en">Execution cancelled</source>
     </trans-unit>
-    <trans-unit id="++CODE++5b273fdcb747a01d31053e82b95e940110b6fe3d05d9bffc057856d6f21d127b">
-      <source xml:lang="en">Execution plan</source>
-    </trans-unit>
     <trans-unit id="++CODE++a49223aa30fb671e98c03012a63a1c68e98b7cf3c612f59d98ba0057c54da0c9">
       <source xml:lang="en">Execution plan details</source>
     </trans-unit>
     <trans-unit id="++CODE++88a9a5f2694fe0574b7aedb637b626756bd9b763fe1f9853852480a5952e6c1d">
       <source xml:lang="en">Execution plan toolbar</source>
+    </trans-unit>
+    <trans-unit id="++CODE++2755320f7f041c845a3a28a6143d1595e153faab71dbe4b039f618d209b12c7c">
+      <source xml:lang="en">Execution plan {0}, use arrow keys to navigate between nodes</source>
+      <note>{0} is the one-based execution plan number</note>
     </trans-unit>
     <trans-unit id="++CODE++9c1c3546bc3e94eb9cf8d7e8bef7d64b5f0213e752e4be0185a9ffc4d87f671c">
       <source xml:lang="en">Execution time unavailable</source>
@@ -4481,6 +4482,9 @@
     </trans-unit>
     <trans-unit id="++CODE++a67a8cf028d055264cd779f840ad3290cb70557277e6fe38ecf976fce921f030">
       <source xml:lang="en">Loading databases in selected workspace...</source>
+    </trans-unit>
+    <trans-unit id="++CODE++9317b8d436ab0b46444508db90ea7c78235b63b678dfdcb8196216d0d9cecd18">
+      <source xml:lang="en">Loading databases...</source>
     </trans-unit>
     <trans-unit id="++CODE++d1fdc252fab1c642cc1b487dbb6658fd77d5831e03b3d391b4c73b01226d75ff">
       <source xml:lang="en">Loading deployment</source>
@@ -7760,6 +7764,9 @@
     <trans-unit id="++CODE++2500e74ebfdd53040c8458b3b5e89e97caf167df8686a8882b9e628ba5cb5447">
       <source xml:lang="en">The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.</source>
       <note>{0} is the extension name</note>
+    </trans-unit>
+    <trans-unit id="++CODE++1a7dce1f7d58b78f71a31ac2a4451b08304b7426c9609ec2b348c9002e866c68">
+      <source xml:lang="en">There is no query text to execute. Enter a query or select non-empty query text.</source>
     </trans-unit>
     <trans-unit id="++CODE++fe68202651f2e6c4af304386d80e491e5c52755db829443bb2cefbf2b25df757">
       <source xml:lang="en">There was an error updating the project</source>

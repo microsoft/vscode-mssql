@@ -19,6 +19,7 @@
     "Public": "Public",
     "Private": "Private",
     "Remove": "Remove",
+    "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
     "SQL Tools (MSSQL)": "SQL Tools (MSSQL)",
     "Create Database": "Create Database",
     "Drop Database": "Drop Database",
@@ -467,6 +468,7 @@
     "The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.": "The recent connections list has been cleared but there were errors while deleting some associated credentials. View the errors in the MSSQL output channel.",
     "Testing connection profile...": "Testing connection profile...",
     "Running query is not supported when the editor is in multiple selection mode.": "Running query is not supported when the editor is in multiple selection mode.",
+    "There is no query text to execute. Enter a query or select non-empty query text.": "There is no query text to execute. Enter a query or select non-empty query text.",
     "Please select a node from Object Explorer to script.": "Please select a node from Object Explorer to script.",
     "Please select only one node to script. Multiple node scripting is not supported.": "Please select only one node to script. Multiple node scripting is not supported.",
     "Could not find scripting metadata for {0} '{1}'./{0} is the node type{1} is the node label": {
@@ -1149,7 +1151,6 @@
     "Select Connection": "Select Connection",
     "Checking Docker prerequisites...": "Checking Docker prerequisites...",
     "Creating SQL Server container...": "Creating SQL Server container...",
-    "Port must be a number between 1 and 65535": "Port must be a number between 1 and 65535",
     "Port {0} is already in use. Please choose a different port./{0} is the port number": {
         "message": "Port {0} is already in use. Please choose a different port.",
         "comment": ["{0} is the port number"]
@@ -2841,7 +2842,10 @@
     "Estimated Subtree Cost": "Estimated Subtree Cost",
     "Estimated Operator Cost": "Estimated Operator Cost",
     "The React Flow execution plan preview could not render this plan.": "The React Flow execution plan preview could not render this plan.",
-    "Execution plan": "Execution plan",
+    "Execution plan {0}, use arrow keys to navigate between nodes/{0} is the one-based execution plan number": {
+        "message": "Execution plan {0}, use arrow keys to navigate between nodes",
+        "comment": ["{0} is the one-based execution plan number"]
+    },
     "Execution plan details": "Execution plan details",
     "Expand {0}/{0} is the name of an execution plan operation": {
         "message": "Expand {0}",
@@ -3860,6 +3864,7 @@
     "Select an operation": "Select an operation",
     "No connections available. Please create a connection first.": "No connections available. Please create a connection first.",
     "Connecting to server...": "Connecting to server...",
+    "Loading databases...": "Loading databases...",
     "Publish DACPAC": "Publish DACPAC",
     "Extract DACPAC": "Extract DACPAC",
     "Import BACPAC": "Import BACPAC",

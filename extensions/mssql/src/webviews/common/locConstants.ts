@@ -986,7 +986,12 @@ export class LocConstants {
             reactFlowRendererError: l10n.t(
                 "The React Flow execution plan preview could not render this plan.",
             ),
-            executionPlanGraph: l10n.t("Execution plan"),
+            executionPlanGraph: (planNumber: number) =>
+                l10n.t({
+                    message: "Execution plan {0}, use arrow keys to navigate between nodes",
+                    args: [planNumber],
+                    comment: ["{0} is the one-based execution plan number"],
+                }),
             executionPlanDetails: l10n.t("Execution plan details"),
             expandNode: (name: string) =>
                 l10n.t({
@@ -2853,6 +2858,7 @@ export class LocConstants {
                 "No connections available. Please create a connection first.",
             ),
             connectingToServer: l10n.t("Connecting to server..."),
+            loadingDatabases: l10n.t("Loading databases..."),
             connectionFailed: l10n.t("Failed to connect to server"),
             deployDacpac: l10n.t("Publish DACPAC"),
             extractDacpac: l10n.t("Extract DACPAC"),

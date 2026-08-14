@@ -427,6 +427,7 @@ export const ExecutionPlanGraph: React.FC<ExecutionPlanGraphProps> = ({ graphInd
                                 <ReactFlowExecutionPlan
                                     root={graph.root}
                                     themeKind={themeKind}
+                                    planNumber={graphIndex + 1}
                                     onReady={handleRendererReady}
                                 />
                             </Suspense>

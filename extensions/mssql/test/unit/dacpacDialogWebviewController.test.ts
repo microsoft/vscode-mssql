@@ -811,14 +811,17 @@ suite("DacpacDialogWebviewController", () => {
             expect(response.databases).to.be.an("array").that.is.empty;
             expect(response.errorMessage).to.equal("Connection failed");
         });
-        test("returns fallback database from state when list returns only system databases", async () => {
+        test("returns connection database when list returns only system databases", async () => {
             connectionManagerStub.listDatabases.resolves(["master", "tempdb", "model", "msdb"]);
             createControllerWithState({
                 ...initialState,
-                databaseName: "MyDatabase",
+                databaseName: "OldDatabase",
             });
             const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
-            const response = await requestHandler!({ ownerUri: ownerUri });
+            const response = await requestHandler!({
+                ownerUri: ownerUri,
+                connectionDatabaseName: "MyDatabase",
+            });
             expect(response.databases).to.deep.equal(["MyDatabase"]);
             expect(response.errorMessage).to.be.a("string").that.is.not.empty;
         });
@@ -830,16 +833,32 @@ suite("DacpacDialogWebviewController", () => {
             expect(response.databases).to.be.an("array").that.is.empty;
             expect(response.errorMessage).to.be.a("string").that.is.not.empty;
         });
-        test("returns fallback database from state when list databases throws", async () => {
+        test("returns connection database when list databases throws", async () => {
             connectionManagerStub.listDatabases.rejects(new Error("Permission denied"));
             createControllerWithState({
                 ...initialState,
-                databaseName: "MyDatabase",
+                databaseName: "OldDatabase",
             });
             const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
-            const response = await requestHandler!({ ownerUri: ownerUri });
+            const response = await requestHandler!({
+                ownerUri: ownerUri,
+                connectionDatabaseName: "MyDatabase",
+            });
             expect(response.databases).to.deep.equal(["MyDatabase"]);
             expect(response.errorMessage).to.equal("Permission denied");
+        });
+        test("does not include the initial database after switching connections", async () => {
+            connectionManagerStub.listDatabases.resolves(["NewDatabase"]);
+            createControllerWithState({
+                ...initialState,
+                databaseName: "OldDatabase",
+            });
+            const requestHandler = requestHandlers.get(ListDatabasesWebviewRequest.type.method);
+            const response = await requestHandler!({
+                ownerUri: ownerUri,
+                connectionDatabaseName: "NewDatabase",
+            });
+            expect(response.databases).to.deep.equal(["NewDatabase"]);
         });
     });
     suite("Database Name Validation", () => {

@@ -29,6 +29,7 @@ export class Common {
     public static publicString = l10n.t("Public");
     public static privateString = l10n.t("Private");
     public static remove = l10n.t("Remove");
+    public static invalidPort = l10n.t("Port must be a number between 1 and 65535");
 }
 
 export class SqlToolsMcp {
@@ -765,6 +766,9 @@ export let msgClearedRecentConnectionsWithErrors = l10n.t(
 export let connectProgressNoticationTitle = l10n.t("Testing connection profile...");
 export let msgMultipleSelectionModeNotSupported = l10n.t(
     "Running query is not supported when the editor is in multiple selection mode.",
+);
+export let msgNoQueryTextToExecute = l10n.t(
+    "There is no query text to execute. Enter a query or select non-empty query text.",
 );
 export let msgSelectNodeToScript = l10n.t("Please select a node from Object Explorer to script.");
 export let msgSelectSingleNodeToScript = l10n.t(
@@ -2031,7 +2035,6 @@ export class PublishProject {
     public static CheckingDockerPrerequisites = l10n.t("Checking Docker prerequisites...");
     public static CreatingSqlServerContainer = l10n.t("Creating SQL Server container...");
     // Validation messages
-    public static InvalidPortMessage = l10n.t("Port must be a number between 1 and 65535");
     public static PortAlreadyInUse = (port: number) =>
         l10n.t({
             message: "Port {0} is already in use. Please choose a different port.",
