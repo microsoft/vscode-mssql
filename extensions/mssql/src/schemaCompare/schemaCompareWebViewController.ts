@@ -54,6 +54,7 @@ import { getErrorMessage, uuid } from "../utils/utils";
 import { ConnectionNode } from "../objectExplorer/nodes/connectionNode";
 import { UserSurvey } from "../nps/userSurvey";
 import { getConnectionDisplayName } from "../models/connectionInfo";
+import { ConnectionCredentials } from "../models/connectionCredentials";
 
 const SCHEMA_COMPARE_VIEW_ID = "schemaCompare";
 
@@ -2490,11 +2491,35 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         return new Set(Object.keys(this.connectionMgr.activeConnections));
     }
 
+    private connectionMatchesProfile(
+        connection: IConnectionDialogProfile,
+        profile: IConnectionProfile,
+    ): boolean {
+        if ((connection.id || profile.id) && connection.id !== profile.id) {
+            return false;
+        }
+
+        const ignoredOptions = new Set([
+            "id",
+            "database",
+            "databaseDisplayName",
+            "password",
+            "azureAccountToken",
+            "expiresOn",
+        ]);
+        const connectionOptions = ConnectionCredentials.createConnectionDetails(connection).options;
+        const profileOptions = ConnectionCredentials.createConnectionDetails(profile).options;
+
+        return Object.keys(profileOptions)
+            .filter((key) => !ignoredOptions.has(key))
+            .every((key) => connectionOptions[key] === profileOptions[key]);
+    }
+
     private getConnectedUriForProfile(profile: IConnectionProfile): string | undefined {
         return Object.keys(this.connectionMgr.activeConnections).find(
             (connectionUri) =>
                 this.connectionMgr.isConnected(connectionUri) &&
-                utils.isSameScmpConnection(
+                this.connectionMatchesProfile(
                     this.connectionMgr.activeConnections[connectionUri].credentials,
                     profile,
                 ),
@@ -2586,7 +2611,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         if (
             existingConnection &&
             this.connectionMgr.isConnected(existingConnectionUri) &&
-            utils.isSameScmpConnection(existingConnection.credentials, profile)
+            this.connectionMatchesProfile(existingConnection.credentials, profile)
         ) {
             return existingConnectionUri;
         }
@@ -2602,7 +2627,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 (uri) =>
                     !existingConnectionUris.has(uri) &&
                     this.connectionMgr.isConnected(uri) &&
-                    utils.isSameConnectionInfo(
+                    this.connectionMatchesProfile(
                         this.connectionMgr.activeConnections[uri].credentials,
                         profile,
                     ),

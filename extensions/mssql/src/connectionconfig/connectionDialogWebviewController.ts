@@ -34,6 +34,7 @@ import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureau
 import { ConnectionDetails, IConnectionInfo } from "vscode-mssql";
 import MainController from "../controllers/mainController";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
+import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import { UserSurvey } from "../nps/userSurvey";
 import {
     getConnectionDisplayName,
@@ -1829,8 +1830,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             if (editedConnection) {
                 this._mainController.connectionManager.getUriForConnection(editedConnection);
-                editedNodeRemoved = true;
                 await this._objectExplorerProvider.removeConnectionNodes([editedConnection], false);
+                editedNodeRemoved = true;
                 if (!this.isSubmissionActive(submissionGeneration)) {
                     await this.restoreEditedConnection(editedConnection, editedNodeRemoved);
                     return;
@@ -1865,6 +1866,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         await this._mainController.connectionManager.connectionStore.saveProfile(
             editedConnection as IConnectionProfile,
         );
+        if (editedConnection.savePassword || Utils.isEmpty(editedConnection.password)) {
+            this._mainController.connectionManager.connectionStore.deleteSessionPassword(
+                editedConnection,
+            );
+        }
         if (!editedConnection.savePassword || Utils.isEmpty(editedConnection.password)) {
             await this._mainController.connectionManager.connectionStore.deleteCredential(
                 editedConnection as IConnectionProfile,
@@ -1887,6 +1893,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this._connectionRequestId,
         );
         if (!this.isSubmissionActive(submissionGeneration)) {
+            await this.cleanupObjectExplorerSession(node);
             return undefined;
         }
 
@@ -1898,11 +1905,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             });
         } catch {
             if (!this.isSubmissionActive(submissionGeneration)) {
+                await this.cleanupObjectExplorerSession(node);
                 return undefined;
             }
             // If revealing the node fails, we've hit an event-based race condition; re-saving and creating the profile should fix it.
             await this.saveProfileStep(connection, state, submissionGeneration);
             if (!this.isSubmissionActive(submissionGeneration)) {
+                await this.cleanupObjectExplorerSession(node);
                 return undefined;
             }
             node = await this._mainController.createObjectExplorerSession(
@@ -1910,6 +1919,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 this._connectionRequestId,
             );
             if (!this.isSubmissionActive(submissionGeneration)) {
+                await this.cleanupObjectExplorerSession(node);
                 return undefined;
             }
             await this._mainController.objectExplorerTree.reveal(node, {
@@ -1918,7 +1928,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 expand: true,
             });
         }
+        if (!this.isSubmissionActive(submissionGeneration)) {
+            await this.cleanupObjectExplorerSession(node);
+            return undefined;
+        }
         return node?.sessionId;
+    }
+
+    private async cleanupObjectExplorerSession(node: TreeNodeInfo | undefined): Promise<void> {
+        if (node?.connectionProfile) {
+            await this._objectExplorerProvider.removeConnectionNodes(
+                [node.connectionProfile],
+                false,
+            );
+        }
     }
 
     private async handleConnectionErrorCodes(

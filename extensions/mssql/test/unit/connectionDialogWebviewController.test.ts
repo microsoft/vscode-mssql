@@ -1371,6 +1371,57 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 });
             });
 
+            test("disposing while creating a session removes the new Object Explorer connection", async () => {
+                const createdNode = new TreeNodeInfo(
+                    "testNode",
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    "Database",
+                    "testSessionId",
+                    testFormState as IConnectionProfile,
+                    undefined,
+                    undefined,
+                    undefined,
+                );
+                let resolveCreateSession!: (response: CreateSessionResponse) => void;
+                mockObjectExplorerProvider.createSession.returns(
+                    new Promise<CreateSessionResponse>((resolve) => {
+                        resolveCreateSession = resolve;
+                    }),
+                );
+                connectionManager.connect.resolves(true);
+                controller.state.formState = testFormState;
+
+                const submission = controller["_reducerHandlers"].get("connect")(
+                    controller.state,
+                    {},
+                );
+                await new Promise<void>((resolve) => setImmediate(resolve));
+                expect(mockObjectExplorerProvider.createSession).to.have.been.called;
+
+                controller.dispose();
+                resolveCreateSession({
+                    sessionId: "testSessionId",
+                    rootNode: createdNode,
+                    connectionNode: createdNode,
+                    success: true,
+                } as CreateSessionResponse);
+                await submission;
+
+                expect(mockObjectExplorerProvider.removeConnectionNodes).to.have.been.calledWith(
+                    [testFormState],
+                    false,
+                );
+                expect(
+                    connectionManager.notifyConnectionDialogCompleted,
+                ).to.have.been.calledOnceWithExactly({
+                    connected: false,
+                    connectionRequestId: connectionDialogRequestId,
+                });
+            });
+
             test("disposing while saving an edited profile restores unsaved credential state", async () => {
                 const originalConnection = {
                     id: "saved-profile-id",
@@ -1396,7 +1447,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     profileName: "Replacement profile",
                     server: "replacement-server",
                     password: "replacement-password",
-                    savePassword: true,
+                    savePassword: false,
                 };
                 controller.state.formState = controller.state.connectionProfile;
 
@@ -1415,6 +1466,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     originalConnection,
                 );
                 expect(connectionStore.deleteCredential).to.have.been.calledWithExactly(
+                    originalConnection,
+                );
+                expect(connectionStore.deleteSessionPassword).to.have.been.calledWithExactly(
                     originalConnection,
                 );
                 expect(mockObjectExplorerProvider.removeConnectionNodes).not.to.have.been.called;
@@ -1475,6 +1529,47 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     mockObjectExplorerProvider.addDisconnectedNode,
                 ).to.have.been.calledWithExactly(originalConnection);
                 expect(mockObjectExplorerProvider.createSession).not.to.have.been.called;
+            });
+
+            test("failed edited-node removal does not restore a node that was never removed", async () => {
+                const originalConnection = {
+                    id: "saved-profile-id",
+                    profileName: "Original profile",
+                    server: "original-server",
+                    authenticationType: AuthenticationType.SqlLogin,
+                    password: "original-password",
+                    savePassword: true,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    configSource: vscode.ConfigurationTarget.Global,
+                } as IConnectionProfile;
+                connectionStore.saveProfile.callsFake(
+                    async (profile: IConnectionProfile) => profile,
+                );
+                mockObjectExplorerProvider.removeConnectionNodes.rejects(
+                    new Error("Removal failed"),
+                );
+                controller["_connectionBeingEdited"] = originalConnection;
+                controller.state.connectionProfile = {
+                    ...originalConnection,
+                    server: "replacement-server",
+                };
+
+                let error: Error | undefined;
+                try {
+                    await controller["saveProfileStep"](
+                        controller.state.connectionProfile,
+                        controller.state,
+                        controller["_submissionGeneration"],
+                    );
+                } catch (err) {
+                    error = err as Error;
+                }
+
+                expect(error?.message).to.equal("Removal failed");
+                expect(connectionStore.saveProfile).to.have.been.calledWithExactly(
+                    originalConnection,
+                );
+                expect(mockObjectExplorerProvider.addDisconnectedNode).not.to.have.been.called;
             });
 
             test("retryLastSubmitAction replays test connection action for trust cert flow", async () => {

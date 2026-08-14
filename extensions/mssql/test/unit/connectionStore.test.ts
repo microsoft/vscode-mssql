@@ -111,6 +111,30 @@ suite("ConnectionStore Tests", () => {
         expect(credentialId).to.equal("Microsoft.SqlTools|itemtype:Profile|server:localhost");
     });
 
+    test("deleteSessionPassword clears the cached password", async () => {
+        sandbox.stub(ConnectionStore, "shouldSavePasswordUntilRestart").get(() => true);
+        connectionStore = new ConnectionStore(
+            mockContextService,
+            mockCredentialStore,
+            mockConnectionConfig,
+            mockLogger,
+        );
+        const profile = {
+            id: "saved-profile-id",
+            server: "localhost",
+            authenticationType: Constants.sqlAuthentication,
+            user: "testUser",
+            savePassword: false,
+        } as IConnectionProfile;
+
+        connectionStore.storeSessionPassword(profile, "session-password");
+        expect(await connectionStore.lookupPassword(profile)).to.equal("session-password");
+
+        connectionStore.deleteSessionPassword(profile);
+
+        expect(await connectionStore.lookupPassword(profile)).to.be.undefined;
+    });
+
     test("findMatchingProfile", async () => {
         connectionStore = new ConnectionStore(
             mockContextService,

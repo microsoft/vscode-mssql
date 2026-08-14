@@ -1526,6 +1526,71 @@ suite("SchemaCompareWebViewController Tests", () => {
         });
     });
 
+    test("listActiveServers reducer - does not share a URI between saved profile IDs", async () => {
+        const firstSavedConnection = {
+            id: "first-saved-id",
+            profileName: "First saved connection",
+            server: "shared-server",
+            authenticationType: "SqlLogin",
+            user: "shared-user",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const secondSavedConnection = {
+            ...firstSavedConnection,
+            id: "second-saved-id",
+            profileName: "Second saved connection",
+        };
+        const activeConnection = new ConnectionInfo();
+        activeConnection.credentials = { ...firstSavedConnection };
+        activeConnections = {
+            "first-saved-uri": activeConnection,
+        };
+        connectionStoreStub.readAllConnections.resolves([
+            firstSavedConnection,
+            secondSavedConnection,
+        ]);
+        connectionManagerStub.isConnected.callsFake(
+            (connectionUri) => connectionUri in activeConnections,
+        );
+
+        await controller["_reducerHandlers"].get("listActiveServers")(mockInitialState, {});
+
+        expect(controller["connectionUris"].get(firstSavedConnection.id)).to.equal(
+            "first-saved-uri",
+        );
+        expect(controller["connectionUris"].has(secondSavedConnection.id)).to.be.false;
+    });
+
+    test("listActiveServers reducer - compares connection options when IDs are unavailable", async () => {
+        const savedConnection = {
+            id: "",
+            profileName: "Saved connection",
+            server: "shared-server",
+            database: "saved-database",
+            authenticationType: "SqlLogin",
+            user: "shared-user",
+            trustServerCertificate: false,
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const activeConnection = new ConnectionInfo();
+        activeConnection.credentials = {
+            ...savedConnection,
+            trustServerCertificate: true,
+        };
+        activeConnections = {
+            "active-uri": activeConnection,
+        };
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        connectionManagerStub.isConnected.callsFake(
+            (connectionUri) => connectionUri in activeConnections,
+        );
+
+        await controller["_reducerHandlers"].get("listActiveServers")(mockInitialState, {});
+
+        expect(controller["connectionUris"].has("shared-server_saved-database")).to.be.false;
+        expect(controller["connectionUris"].get("active-uri")).to.equal("active-uri");
+    });
+
     test("listDatabasesForActiveServer reducer - when called - returns: ['db1', 'db2']", async () => {
         const payload = { connectionUri: "conn_uri" };
 
