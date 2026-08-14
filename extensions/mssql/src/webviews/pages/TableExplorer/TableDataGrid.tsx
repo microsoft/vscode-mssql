@@ -37,7 +37,12 @@ import {
     createFluentAutoResizeOptions,
     FluentSlickGrid,
 } from "../../common/FluentSlickGrid/FluentSlickGrid";
-import { hasPendingChangesForRow, isTableExplorerDataColumn } from "./tableDataGridUtils";
+import {
+    clearRevertedCellChanges,
+    hasPendingChangesForRow,
+    isTableExplorerDataColumn,
+    snapshotCellChangesForRow,
+} from "./tableDataGridUtils";
 
 export type { AppliedSortColumn };
 
@@ -956,6 +961,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 return;
             }
 
+            const revertedCellChanges = snapshotCellChangesForRow(rowId, cellChangesRef.current);
             try {
                 await onRevertRow(rowId);
             } catch {
@@ -965,16 +971,11 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             deletedRowsRef.current.delete(rowId);
             newRowIdsRef.current.delete(rowId);
 
-            const keysToDelete: string[] = [];
-            cellChangesRef.current.forEach((_, key) => {
-                if (key.startsWith(`${rowId}-`)) {
-                    keysToDelete.push(key);
-                }
-            });
-            keysToDelete.forEach((key) => {
-                cellChangesRef.current.delete(key);
-                failedCellsRef.current.delete(key);
-            });
+            clearRevertedCellChanges(
+                cellChangesRef.current,
+                revertedCellChanges,
+                failedCellsRef.current,
+            );
 
             if (onCellChangeCountChanged) {
                 onCellChangeCountChanged(cellChangesRef.current.size);

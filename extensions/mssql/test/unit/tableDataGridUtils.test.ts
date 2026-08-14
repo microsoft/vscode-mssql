@@ -5,8 +5,10 @@
 
 import { expect } from "chai";
 import {
+    clearRevertedCellChanges,
     hasPendingChangesForRow,
     isTableExplorerDataColumn,
+    snapshotCellChangesForRow,
 } from "../../src/webviews/pages/TableExplorer/tableDataGridUtils";
 
 suite("tableDataGridUtils", () => {
@@ -41,6 +43,42 @@ suite("tableDataGridUtils", () => {
             expect(hasPendingChangesForRow(5, [{ rowId: 3 }], new Set([4]), new Set([6]))).to.equal(
                 false,
             );
+        });
+    });
+
+    suite("reverted cell change cleanup", () => {
+        test("snapshots only changes for the reverted row", () => {
+            const rowFiveChange = { rowId: 5 };
+            const cellChanges = new Map([
+                ["5-0", rowFiveChange],
+                ["6-0", { rowId: 6 }],
+            ]);
+
+            expect([...snapshotCellChangesForRow(5, cellChanges)]).to.deep.equal([
+                ["5-0", rowFiveChange],
+            ]);
+        });
+
+        test("preserves changes made while the row revert is pending", () => {
+            const originalFirstCellChange = { rowId: 5, newValue: "before" };
+            const originalSecondCellChange = { rowId: 5, newValue: "unchanged" };
+            const cellChanges = new Map([
+                ["5-0", originalFirstCellChange],
+                ["5-1", originalSecondCellChange],
+            ]);
+            const revertedCellChanges = snapshotCellChangesForRow(5, cellChanges);
+            const laterFirstCellChange = { rowId: 5, newValue: "after" };
+            const laterThirdCellChange = { rowId: 5, newValue: "new" };
+            cellChanges.set("5-0", laterFirstCellChange);
+            cellChanges.set("5-2", laterThirdCellChange);
+            const failedCells = new Set(["5-0", "5-1", "5-2"]);
+
+            clearRevertedCellChanges(cellChanges, revertedCellChanges, failedCells);
+
+            expect(cellChanges.get("5-0")).to.equal(laterFirstCellChange);
+            expect(cellChanges.has("5-1")).to.equal(false);
+            expect(cellChanges.get("5-2")).to.equal(laterThirdCellChange);
+            expect([...failedCells]).to.deep.equal(["5-0", "5-2"]);
         });
     });
 });

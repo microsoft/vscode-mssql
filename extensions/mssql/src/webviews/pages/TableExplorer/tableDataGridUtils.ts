@@ -37,3 +37,29 @@ export function hasPendingChangesForRow(
 
     return false;
 }
+
+export function snapshotCellChangesForRow<T extends TableExplorerCellChange>(
+    rowId: number,
+    cellChanges: ReadonlyMap<string, T>,
+): Map<string, T> {
+    const snapshot = new Map<string, T>();
+    for (const [key, change] of cellChanges) {
+        if (change.rowId === rowId) {
+            snapshot.set(key, change);
+        }
+    }
+    return snapshot;
+}
+
+export function clearRevertedCellChanges<T>(
+    cellChanges: Map<string, T>,
+    revertedCellChanges: ReadonlyMap<string, T>,
+    failedCells: Set<string>,
+): void {
+    for (const [key, revertedChange] of revertedCellChanges) {
+        if (cellChanges.get(key) === revertedChange) {
+            cellChanges.delete(key);
+            failedCells.delete(key);
+        }
+    }
+}
