@@ -1341,6 +1341,53 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 });
             });
 
+            test("disposing while removing an edited profile restores the original", async () => {
+                const originalConnection = {
+                    id: "saved-profile-id",
+                    profileName: "Original profile",
+                    server: "original-server",
+                    authenticationType: AuthenticationType.SqlLogin,
+                    user: "original-user",
+                    password: "original-password",
+                    savePassword: true,
+                    groupId: ConnectionConfig.ROOT_GROUP_ID,
+                    configSource: vscode.ConfigurationTarget.Global,
+                } as IConnectionProfile;
+                let resolveRemoveConnectionNodes!: () => void;
+                mockObjectExplorerProvider.removeConnectionNodes.returns(
+                    new Promise<void>((resolve) => {
+                        resolveRemoveConnectionNodes = resolve;
+                    }),
+                );
+                connectionStore.saveProfile.resolves(originalConnection);
+                controller["_connectionBeingEdited"] = originalConnection;
+                controller.state.connectionProfile = {
+                    ...originalConnection,
+                    profileName: "Replacement profile",
+                    server: "replacement-server",
+                };
+                controller.state.formState = controller.state.connectionProfile;
+
+                const submission = controller["_reducerHandlers"].get("saveWithoutConnecting")(
+                    controller.state,
+                    {},
+                );
+                await new Promise<void>((resolve) => setImmediate(resolve));
+                expect(mockObjectExplorerProvider.removeConnectionNodes).to.have.been.calledWith([
+                    originalConnection,
+                ]);
+
+                controller.dispose();
+                resolveRemoveConnectionNodes();
+                await submission;
+
+                expect(connectionStore.saveProfile).to.have.been.calledOnceWithExactly(
+                    originalConnection,
+                );
+                expect(connectionStore.removeProfile).not.to.have.been.called;
+                expect(mockObjectExplorerProvider.createSession).not.to.have.been.called;
+            });
+
             test("retryLastSubmitAction replays test connection action for trust cert flow", async () => {
                 const trustCertErrorMessage = "Trust server certificate required";
                 connectionManager.connect.onFirstCall().resolves(false);

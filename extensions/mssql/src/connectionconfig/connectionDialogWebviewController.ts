@@ -1818,16 +1818,22 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             return;
         }
 
-        this._mainController.connectionManager.getUriForConnection(this._connectionBeingEdited);
-        await this._objectExplorerProvider.removeConnectionNodes([this._connectionBeingEdited]);
-        if (!this.isSubmissionActive(submissionGeneration)) {
-            return;
+        const editedConnection = this._connectionBeingEdited;
+        this._mainController.connectionManager.getUriForConnection(editedConnection);
+        await this._objectExplorerProvider.removeConnectionNodes([editedConnection]);
+        if (this.isSubmissionActive(submissionGeneration)) {
+            await this._mainController.connectionManager.connectionStore.removeProfile(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                editedConnection as any,
+            );
         }
 
-        await this._mainController.connectionManager.connectionStore.removeProfile(
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            this._connectionBeingEdited as any,
-        );
+        if (!this.isSubmissionActive(submissionGeneration)) {
+            await this._mainController.connectionManager.connectionStore.saveProfile(
+                editedConnection as IConnectionProfile,
+            );
+            return;
+        }
 
         this._connectionBeingEdited = undefined;
     }
