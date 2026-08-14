@@ -59,6 +59,7 @@ Statement {
   | CreateDatabaseStatement
   | AlterDatabaseStatement
   | DropDatabaseStatement
+  | RenameObjectStatement
   | CreateSchemaStatement
   | AlterSchemaStatement
   | DropSchemaStatement
@@ -74,6 +75,9 @@ Statement {
   | DropExternalDataSourceStatement
   | CreateExternalFileFormatStatement
   | DropExternalFileFormatStatement
+  | CreateExternalModelStatement
+  | AlterExternalModelStatement
+  | DropExternalModelStatement
   | ExternalLibraryStatement
   | ExternalLanguageStatement
   | CreatePartitionFunctionStatement
@@ -106,6 +110,11 @@ Statement {
   | EndpointStatement
   | AvailabilityGroupStatement
   | AuditStatement
+  | CreateEventSessionStatement
+  | AlterEventSessionStatement
+  | DropEventSessionStatement
+  | CreateEventNotificationStatement
+  | DropEventNotificationStatement
   | ServerConfigurationStatement
   | DatabaseScopedConfigurationStatement
   | ResourceGovernorStatement
@@ -164,6 +173,9 @@ CreateDatabaseTail {
 }
 AlterDatabaseStatement { Alter Database IdentifierName AlterDatabaseAction }
 DropDatabaseStatement { Drop Database IfExistsClause? IdentifierName (Comma IdentifierName)* }
+
+// Dedicated-pool RENAME OBJECT changes a table name and permits the documented optional :: marker.
+RenameObjectStatement { Rename Object DoubleColon? MultipartIdentifier To IdentifierName }
 DatabaseFileClause { On DatabaseFileItem (Comma DatabaseFileItem)* }
 DatabaseFileItem {
   (Primary | Filegroup IdentifierName DatabaseFilegroupModifier*)? FileDefinition
@@ -319,6 +331,32 @@ CreateExternalFileFormatStatement {
 
 // DROP EXTERNAL FILE FORMAT removes one named format.
 DropExternalFileFormatStatement { Drop External File Format IdentifierName }
+
+// SQL Server 2025 external models bind an embedding model endpoint or local runtime definition.
+CreateExternalModelStatement {
+  Create External Model IdentifierName (Authorization IdentifierName)?
+  With OpenParen ExternalModelOption (Comma ExternalModelOption)* CloseParen
+}
+
+// ALTER EXTERNAL MODEL replaces one or more endpoint/model settings in one SET list.
+AlterExternalModelStatement {
+  Alter External Model IdentifierName
+  Set OpenParen ExternalModelOption (Comma ExternalModelOption)* CloseParen
+}
+
+// DROP EXTERNAL MODEL removes one model definition.
+DropExternalModelStatement { Drop External Model IdentifierName }
+
+// External-model options retain their documented value domains for useful malformed-input recovery.
+ExternalModelOption {
+  Location Equal StringLiteral
+  | ApiFormat Equal StringLiteral
+  | ModelType Equal Embeddings
+  | Model Equal StringLiteral
+  | Parameters Equal StringLiteral
+  | LocalRuntimePath Equal StringLiteral
+  | Credential Equal IdentifierName
+}
 
 // External libraries install one or more binary/string payloads for a named runtime language.
 ExternalLibraryStatement {
@@ -732,6 +770,89 @@ AuditSpecificationActionTail {
 AuditActionItemList { AuditActionItem (Comma AuditActionItem)* }
 AuditActionItem { (Add | Drop) OpenParen AuditAction CloseParen }
 AuditAction { IdentifierName | PermissionList On MultipartIdentifier By PrincipalList }
+
+// Extended Events sessions declare scoped event producers, targets, predicates, and runtime options.
+CreateEventSessionStatement {
+  Create Event Session IdentifierName On EventSessionScope
+  EventSessionAddAction (Comma? EventSessionAddAction)* optionalDdlTail<EventSessionWithClause>
+}
+
+// ALTER EVENT SESSION changes event/target membership, options, or the running state.
+AlterEventSessionStatement {
+  Alter Event Session IdentifierName On EventSessionScope (
+    EventSessionAlterAction (Comma EventSessionAlterAction)* optionalDdlTail<EventSessionWithClause>
+    | EventSessionWithClause
+    | State Equal (Start | Stop)
+  )
+}
+
+// DROP EVENT SESSION removes one server- or database-scoped session.
+DropEventSessionStatement { Drop Event Session IdentifierName On EventSessionScope }
+
+// Extended Events sessions are scoped to either the SQL Server instance or current database.
+EventSessionScope { Server | Database }
+
+// CREATE accepts event producers and event consumers; adjacent ADD clauses may omit commas.
+EventSessionAddAction {
+  Add Event MultipartIdentifier EventSessionEventDeclaration?
+  | Add Target MultipartIdentifier EventSessionTargetDeclaration?
+}
+
+// ALTER additionally permits removing an existing event or target.
+EventSessionAlterAction {
+  EventSessionAddAction
+  | Drop (Event | Target) MultipartIdentifier
+}
+
+// An event declaration orders SET values, captured ACTION fields, and one filtering predicate.
+EventSessionEventDeclaration {
+  OpenParen EventSessionSetClause? EventSessionActionClause? EventSessionWhereClause? CloseParen
+}
+
+// A target declaration has only target-specific SET assignments.
+EventSessionTargetDeclaration { OpenParen EventSessionSetClause? CloseParen }
+
+// Event and target SET clauses accept one or more named scalar assignments.
+EventSessionSetClause { Set EventSessionAssignment (Comma EventSessionAssignment)* }
+EventSessionAssignment { IdentifierName Equal Expression }
+
+// ACTION captures one or more package-qualified Extended Events fields.
+EventSessionActionClause { Action OpenParen MultipartIdentifier (Comma MultipartIdentifier)* CloseParen }
+
+// WHERE uses the regular Boolean expression grammar, including NOT LIKE and package predicates.
+EventSessionWhereClause { Where Expression }
+
+// WITH configures bounded, named session options without accepting arbitrary statement tails.
+EventSessionWithClause {
+  With OpenParen EventSessionOption (Comma EventSessionOption)* CloseParen
+}
+EventSessionOption { IdentifierName Equal EventSessionOptionValue }
+EventSessionOptionValue {
+  (Plus | Minus)? Literal IdentifierName?
+  | On
+  | Off
+  | None
+  | IdentifierName
+}
+
+// Event notifications route selected DDL and trace events to one Service Broker service.
+CreateEventNotificationStatement {
+  Create Event Notification IdentifierName
+  On EventNotificationScope EventNotificationFanInClause?
+  For IdentifierName (Comma IdentifierName)*
+  To Service StringLiteral Comma StringLiteral
+}
+
+// DROP EVENT NOTIFICATION removes one or more notifications from an explicit scope.
+DropEventNotificationStatement {
+  Drop Event Notification IdentifierName (Comma IdentifierName)* On EventNotificationScope
+}
+
+// Server and database scopes are global; queue scope names one multipart Service Broker queue.
+EventNotificationScope { Server | Database | Queue MultipartIdentifier }
+
+// FAN_IN coalesces notifications from all databases for a database-scoped definition.
+EventNotificationFanInClause { With FanIn }
 
 // ALTER SERVER CONFIGURATION enumerates multiword paths to bound recovery work.
 ServerConfigurationStatement { Alter Server Configuration Set ServerConfigurationSetting }
@@ -1236,10 +1357,13 @@ ColumnOption {
   | Not Null
   | Collate IdentifierName
   | Sparse
+  | Hidden
+  | FileStream
+  | ColumnSet For AllSparseColumns
   | Rowguidcol
   | IdentityOption
   | Default DefaultExpression optionalDdlTail<DefaultWithValues>
-  | Generated Always As GeneratedColumnKind Hidden?
+  | Generated Always As GeneratedColumnKind
   | Masked With OpenParen Function Equal StringLiteral CloseParen
   | Encrypted With OpenParen GenericOptionList CloseParen
   | ColumnInlineIndexDefinition
@@ -1425,9 +1549,13 @@ AlterTableAction {
   | (With Check)? (Check | Nocheck) Constraint (All | IdentifierName (Comma IdentifierName)*)
   | (Enable | Disable) Trigger (All | IdentifierName (Comma IdentifierName)*)
   | Switch (Partition Expression)? To MultipartIdentifier (Partition Expression)?
+    optionalDdlTail<AlterTableSwitchWithClause>
   | Set OpenParen GenericOptionList CloseParen
   | Rebuild (Partition Equal (All | Expression))? optionalDdlTail<IndexWithClause>
 }
+
+// SWITCH supports SQL Server's bounded WAIT_AT_LOW_PRIORITY lock-wait option list.
+AlterTableSwitchWithClause { With OpenParen GenericOptionList CloseParen }
 
 // ALTER COLUMN ADD/DROP toggles metadata attributes without requiring a replacement type.
 AlterColumnAttributeAction {
@@ -2241,8 +2369,8 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   AnsiWarnings, Apply, ArithAbort, ArithIgnore, At, Auto, Base64, Binary, Called, Caller, Catch, Changes, ChangeTable, ChunkUsing, Copy,
   CheckExpiration, CheckPolicy, Columnstore, Committed, ConcatNullYieldsNull, Connect, Contained, Contains, Content, Cookie, Cube, CursorCloseOnCommit, DateFirst,
   DateFormat, DeadlockPriority, Delay, DelayedDurability, Disable, Durability, Dynamic, Edge,
-  DropExisting, Enable, Encrypted, ExternalModel, FastForward, FileStreamOn, FileTable, First, FmtOnly, Following, ForcePlan, FullTextStopList,
-  ForwardOnly, Function, Generated, Global, Graph, Grouping, Groups, Hidden, High, IdentityInsert,
+  DropExisting, Enable, Embeddings, Encrypted, ExternalModel, ApiFormat, Location, Model, ModelType, LocalRuntimePath, FastForward, FileStreamOn, FileTable, First, FmtOnly, Following, ForcePlan, FullTextStopList,
+  ForwardOnly, Function, Generated, Global, Graph, Grouping, Groups, Hidden, High, IdentityInsert, FileStream, ColumnSet, AllSparseColumns,
   ImplicitTransactions, Include, Increment, Io, Isolation, Json, Keyset, Language, Level, Local,
   LastNode, LockTimeout, Login, Low, Masked, Matched, MaxDop, MaxValue, MinValue, Name, Next, No, NoCount, NoExec,
   Node, Normal, NumericRoundAbort, Off, Offset,
@@ -2253,14 +2381,14 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   SearchType, Semantic, Snapshot, Source, Sparse, Start, Static, Statistics, Switch, SystemTime, Target, TextImageOn,
   Throw, Ties, Time, Timeout, TransactionId, Try, TryCast, TypeWarning, Unbounded, Uncommitted,
   Synonym, Type, Using, Value, Vector, VectorIndex, Version, Window, Within, XactAbort, Xml, Cache, Cycle,
-  Active, After, Absolute, Affinity, Aggregate, Algorithm, Any, Assembly, Asymmetric, Attested, Audit, Authentication, Availability, BeginDialog, Buffer, BulkLogged, Catalog, Extract, Fn,
+  Active, After, Absolute, Affinity, Aggregate, Algorithm, Any, Assembly, Asymmetric, Attested, Audit, Authentication, Availability, BeginDialog, Buffer, BulkLogged, Catalog, Event, Session, Notification, FanIn, Extract, Fn,
   Clear, Close, Cluster, Collection, Configuration, Connection, Containment, Context, Contract, Control, Cpu, Credential, Cryptographic, Data, Deallocate, Definition, Diagnostics,
   Decryption, Dependents, Disk, Elements, Empty, Endpoint, EnvironmentVariables, Executable, Explicit,
   DefaultDatabase, DefaultLanguage, DefaultSchema, Encryption, Extension, File, Filegroup, FileGrowth, FileListOnly, FileName,
   Failover, Force, ForceFailoverAllowDataLoss, Format, FullScan, FullText, Hadr, Hashed, HeaderOnly, Holdlock, Incremental, Initiator,
   Instead, LabelOnly, Last, Library, Log, Master, MaxLength, MaxSize, Member, Message, Mirror, MustChange, NativeCompilation,
   Impersonate, IncludeNullValues, Kill, None, NoRecompute, Nowait, ObjectId, Offline, OldPassword, Online, Open, Owner, Override, Page, Parameters, Path, PermissionSet, Platform, Population, Property, Partial, Password, Private,
-  NumaNode, Object, Prior, Process, Provider, Queue, Recompile, Regenerate, Remove, Relative, Modify, Replica, Scheduler, Self, Server, SoftNuma,
+  NumaNode, Object, Prior, Process, Provider, Queue, Recompile, Regenerate, Rename, Remove, Relative, Modify, Replica, Scheduler, Self, Server, SoftNuma,
   Heap, Policy, Pool, Privileges, Raw, ReadText, Reconfigure, Reset, Resample, Resource, Root, Rule, Returns, Role, Sample, Scoped, Secondary, Secret, Security, Selective, Sent, Service, Shutdown, Sid, Singleton, Spatial, Specification, Sql, State,
   StatisticalSemantics, Stop, StopList, Symmetric, System, Timestamp, UpdateText, WriteText, XmlData, XmlSchema,
   SchemaBinding, Scheme, Simple, Size, Split, Take, Tape, Ownership, Transfer, Url, Used, Governor, Workload,
