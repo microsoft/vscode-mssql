@@ -1341,15 +1341,15 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 });
             });
 
-            test("disposing while saving an edited profile restores the original", async () => {
+            test("disposing while saving an edited profile restores unsaved credential state", async () => {
                 const originalConnection = {
                     id: "saved-profile-id",
                     profileName: "Original profile",
                     server: "original-server",
                     authenticationType: AuthenticationType.SqlLogin,
                     user: "original-user",
-                    password: "original-password",
-                    savePassword: true,
+                    password: "",
+                    savePassword: false,
                     groupId: ConnectionConfig.ROOT_GROUP_ID,
                     configSource: vscode.ConfigurationTarget.Global,
                 } as IConnectionProfile;
@@ -1365,6 +1365,8 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     ...originalConnection,
                     profileName: "Replacement profile",
                     server: "replacement-server",
+                    password: "replacement-password",
+                    savePassword: true,
                 };
                 controller.state.formState = controller.state.connectionProfile;
 
@@ -1380,6 +1382,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 await submission;
 
                 expect(connectionStore.saveProfile).to.have.been.calledWithExactly(
+                    originalConnection,
+                );
+                expect(connectionStore.deleteCredential).to.have.been.calledWithExactly(
                     originalConnection,
                 );
                 expect(mockObjectExplorerProvider.removeConnectionNodes).not.to.have.been.called;

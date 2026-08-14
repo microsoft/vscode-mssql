@@ -1860,6 +1860,11 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         await this._mainController.connectionManager.connectionStore.saveProfile(
             editedConnection as IConnectionProfile,
         );
+        if (!editedConnection.savePassword || Utils.isEmpty(editedConnection.password)) {
+            await this._mainController.connectionManager.connectionStore.deleteCredential(
+                editedConnection as IConnectionProfile,
+            );
+        }
         if (restoreObjectExplorerNode) {
             this._objectExplorerProvider.addDisconnectedNode(
                 editedConnection as IConnectionProfile,

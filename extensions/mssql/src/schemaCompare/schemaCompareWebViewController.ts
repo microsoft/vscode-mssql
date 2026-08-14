@@ -2494,7 +2494,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         return Object.keys(this.connectionMgr.activeConnections).find(
             (connectionUri) =>
                 this.connectionMgr.isConnected(connectionUri) &&
-                utils.isSameConnectionInfo(
+                utils.isSameScmpConnection(
                     this.connectionMgr.activeConnections[connectionUri].credentials,
                     profile,
                 ),
@@ -2568,10 +2568,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
     private async connectToServer(connectionId: string): Promise<string | undefined> {
         const existingConnectionUri = this.connectionUris.get(connectionId) ?? connectionId;
-        if (this.connectionMgr.isConnected(existingConnectionUri)) {
-            return existingConnectionUri;
-        }
-
         const savedConnections = await this.connectionMgr.connectionStore.readAllConnections();
         const profile = savedConnections.find((connection) => {
             const savedProfile = connection as IConnectionProfile;
@@ -2581,8 +2577,20 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         }) as IConnectionProfile | undefined;
 
         if (!profile) {
-            return undefined;
+            return this.connectionMgr.isConnected(existingConnectionUri)
+                ? existingConnectionUri
+                : undefined;
         }
+
+        const existingConnection = this.connectionMgr.activeConnections[existingConnectionUri];
+        if (
+            existingConnection &&
+            this.connectionMgr.isConnected(existingConnectionUri) &&
+            utils.isSameScmpConnection(existingConnection.credentials, profile)
+        ) {
+            return existingConnectionUri;
+        }
+        this.connectionUris.delete(connectionId);
 
         const existingConnectionUris = this.getCurrentConnectionUris();
         if (!(await this.connectionMgr.connect("", profile))) {
