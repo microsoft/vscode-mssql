@@ -2103,6 +2103,40 @@ suite("TableExplorerWebViewController - Reducers", () => {
     });
 
     suite("runTableQuery reducer", () => {
+        const queueReplacementBehindCellUpdate = async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const update = createDeferred<EditCellResult>();
+            mockTableExplorerService.updateCell.returns(update.promise);
+
+            const updateRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Updated",
+                    requestId: 1,
+                },
+            );
+            await waitForPromises();
+            const queryRequest = controller["_reducerHandlers"].get("runTableQuery")(
+                controller.state,
+                {
+                    queryString: "SELECT * FROM dbo.TestTable",
+                },
+            );
+            await waitForPromises();
+
+            return { queryRequest, update, updateRequest };
+        };
+
+        const finishPendingUpdate = async (
+            pending: Awaited<ReturnType<typeof queueReplacementBehindCellUpdate>>,
+        ) => {
+            pending.update.resolve(createEditCellResult("Updated", true));
+            await Promise.all([pending.updateRequest, pending.queryRequest]);
+        };
+
         setup(async () => {
             // Flush any microtasks from the constructor's void this.initialize() and
             // void loadResultSet() so their async operations complete and call counts
@@ -2257,6 +2291,51 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(mockTableExplorerService.initialize.called).to.be.false;
             // State should be unchanged
             expect(controller.state.newRows).to.have.lengthOf(1);
+        });
+
+        test("should cancel a delete queued after session replacement", async () => {
+            const pending = await queueReplacementBehindCellUpdate();
+
+            const deleteRequest = controller["_reducerHandlers"].get("deleteRow")(
+                controller.state,
+                { rowId: 0 },
+            );
+            await finishPendingUpdate(pending);
+            await deleteRequest;
+
+            expect(mockTableExplorerService.deleteRow.called).to.be.false;
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+            expect(mockTableExplorerService.initialize.called).to.be.false;
+        });
+
+        test("should cancel a row revert queued after session replacement", async () => {
+            const pending = await queueReplacementBehindCellUpdate();
+
+            const revertRequest = controller["_reducerHandlers"].get("revertRow")(
+                controller.state,
+                { rowId: 0 },
+            );
+            await finishPendingUpdate(pending);
+            await revertRequest;
+
+            expect(mockTableExplorerService.revertRow.called).to.be.false;
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+            expect(mockTableExplorerService.initialize.called).to.be.false;
+        });
+
+        test("should cancel a commit queued after session replacement", async () => {
+            const pending = await queueReplacementBehindCellUpdate();
+
+            const commitRequest = controller["_reducerHandlers"].get("commitChanges")(
+                controller.state,
+                {},
+            );
+            await finishPendingUpdate(pending);
+            await commitRequest;
+
+            expect(mockTableExplorerService.commit.called).to.be.false;
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+            expect(mockTableExplorerService.initialize.called).to.be.false;
         });
 
         test("should proceed when user confirms pending changes warning", async () => {

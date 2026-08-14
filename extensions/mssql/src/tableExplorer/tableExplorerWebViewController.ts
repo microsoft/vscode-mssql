@@ -43,6 +43,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private _lifecycleOperationCount = 0;
     private _cellOperationsEnabled = true;
     private _commitInProgress = false;
+    private _sessionReplacementPending = false;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -118,6 +119,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         if (result.success) {
             this._cellOperationsEnabled = true;
             this._commitInProgress = false;
+            this._sessionReplacementPending = false;
             this.state.ownerUri = result.ownerUri;
             this.state.loadStatus = ApiStatus.Loading;
             this.updateState();
@@ -501,7 +503,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     private areEditMutationsBlocked(): boolean {
-        return !this._cellOperationsEnabled || this._commitInProgress;
+        return (
+            !this._cellOperationsEnabled ||
+            this._commitInProgress ||
+            this._sessionReplacementPending
+        );
     }
 
     /**
@@ -513,30 +519,37 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         state: TableExplorerWebViewState,
         confirmDiscardPendingChanges = false,
     ): Promise<boolean> {
-        return await this.enqueueLifecycleOperation(async () => {
-            if (
-                confirmDiscardPendingChanges &&
-                this.hasPendingChanges(state) &&
-                !(await this.promptDiscardPendingChanges())
-            ) {
-                return false;
-            }
+        this._sessionReplacementPending = true;
+        try {
+            return await this.enqueueLifecycleOperation(async () => {
+                if (
+                    confirmDiscardPendingChanges &&
+                    this.hasPendingChanges(state) &&
+                    !(await this.promptDiscardPendingChanges())
+                ) {
+                    this._sessionReplacementPending = false;
+                    return false;
+                }
 
-            this._cellOperationsEnabled = false;
-            state.loadStatus = ApiStatus.Loading;
+                this._cellOperationsEnabled = false;
+                state.loadStatus = ApiStatus.Loading;
 
-            state.resultSet = undefined;
-            this.updateState();
+                state.resultSet = undefined;
+                this.updateState();
 
-            try {
-                await this._tableExplorerService.dispose(state.ownerUri);
-            } catch {}
+                try {
+                    await this._tableExplorerService.dispose(state.ownerUri);
+                } catch {}
 
-            this.resetPendingChangesState(state);
-            this.showRestorePromptAfterClose = false;
-            this.updateState();
-            return true;
-        });
+                this.resetPendingChangesState(state);
+                this.showRestorePromptAfterClose = false;
+                this.updateState();
+                return true;
+            });
+        } catch (error) {
+            this._sessionReplacementPending = false;
+            throw error;
+        }
     }
 
     /**
@@ -573,6 +586,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         this.registerReducer("commitChanges", async (state) => {
             if (this._commitInProgress) {
                 throw new Error("A commit is already in progress");
+            }
+            if (this.areEditMutationsBlocked()) {
+                return state;
             }
             this._commitInProgress = true;
 
