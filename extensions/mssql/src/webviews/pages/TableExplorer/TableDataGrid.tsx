@@ -334,7 +334,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     ) {
                         void rowMutationQueueRef.current.enqueue(rowId, async () => {
                             await onDeleteRow(rowId);
-                            rowMutationQueueRef.current.clearPersistentFailuresForRow(rowId);
+                            rowMutationQueueRef.current.clearFailuresForRow(rowId);
                         });
                     }
                 }
@@ -1056,7 +1056,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             const revertedCellChanges = snapshotCellChangesForRow(rowId, cellChangesRef.current);
             try {
                 await rowMutationQueueRef.current.enqueue(rowId, () => onRevertRow(rowId));
-                rowMutationQueueRef.current.clearPersistentFailuresForRow(rowId);
+                rowMutationQueueRef.current.clearFailuresForRow(rowId);
 
                 deletedRowsRef.current.delete(rowId);
                 newRowIdsRef.current.delete(rowId);
@@ -1236,7 +1236,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     ) {
                         void rowMutationQueueRef.current.enqueue(rowId, async () => {
                             await onDeleteRow(rowId);
-                            rowMutationQueueRef.current.clearPersistentFailuresForRow(rowId);
+                            rowMutationQueueRef.current.clearFailuresForRow(rowId);
                         });
                     }
                     break;

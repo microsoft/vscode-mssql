@@ -36,8 +36,8 @@ interface ColumnOption {
 
 interface TableExplorerFilterBarProps {
     columns: ColumnOption[];
-    onApply: (filters: AppliedFilter[]) => void;
-    onClear: () => void;
+    onApply: (filters: AppliedFilter[]) => Promise<void>;
+    onClear: () => Promise<void>;
     disabled?: boolean;
     initialFilters?: AppliedFilter[];
     isOpen?: boolean;
@@ -259,12 +259,11 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
                 value,
                 conjunction,
             }));
-        onApply(applied);
+        void onApply(applied).catch(() => undefined);
     };
 
     const handleClear = () => {
-        setRows([]);
-        onClear();
+        void onClear().catch(() => undefined);
     };
 
     // Check if current filters differ from the initialFilters (last applied)

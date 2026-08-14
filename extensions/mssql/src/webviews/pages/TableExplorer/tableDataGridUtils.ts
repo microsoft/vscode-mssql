@@ -74,7 +74,7 @@ export function tryLockTableExplorerRow(rowId: number, lockedRows: Set<number>):
 
 export class TableExplorerRowMutationQueue {
     private readonly pendingMutations = new Map<number, Promise<void>>();
-    private readonly pendingFailures: unknown[] = [];
+    private readonly pendingFailures: { rowId: number; error: unknown }[] = [];
     private readonly persistentFailures = new Map<string, unknown>();
     private generation = 0;
 
@@ -103,7 +103,7 @@ export class TableExplorerRowMutationQueue {
                     if (persistentFailureKey) {
                         this.persistentFailures.set(persistentFailureKey, error);
                     } else {
-                        this.pendingFailures.push(error);
+                        this.pendingFailures.push({ rowId, error });
                     }
                 }
                 this.removeCompletedMutation(rowId, currentMutation);
@@ -118,7 +118,7 @@ export class TableExplorerRowMutationQueue {
         }
 
         if (this.pendingFailures.length > 0) {
-            const [firstError] = this.pendingFailures;
+            const [{ error: firstError }] = this.pendingFailures;
             this.pendingFailures.length = 0;
             throw firstError;
         }
@@ -136,17 +136,22 @@ export class TableExplorerRowMutationQueue {
         this.persistentFailures.clear();
     }
 
-    public clearPersistentFailuresForRow(rowId: number): void {
+    public clearFailuresForRow(rowId: number): void {
         const rowPrefix = `${rowId}-`;
         for (const key of this.persistentFailures.keys()) {
             if (key.startsWith(rowPrefix)) {
                 this.persistentFailures.delete(key);
             }
         }
+        for (let index = this.pendingFailures.length - 1; index >= 0; index--) {
+            if (this.pendingFailures[index].rowId === rowId) {
+                this.pendingFailures.splice(index, 1);
+            }
+        }
     }
 
     public acknowledgeFailure(error: unknown): void {
-        const failureIndex = this.pendingFailures.indexOf(error);
+        const failureIndex = this.pendingFailures.findIndex((failure) => failure.error === error);
         if (failureIndex !== -1) {
             this.pendingFailures.splice(failureIndex, 1);
         }
@@ -156,6 +161,36 @@ export class TableExplorerRowMutationQueue {
         if (this.pendingMutations.get(rowId) === mutation) {
             this.pendingMutations.delete(rowId);
         }
+    }
+}
+
+export async function runSessionReplacementAndUpdate<T>(
+    nextValue: T,
+    setValue: (value: T) => void,
+    replaceSession: () => Promise<void>,
+): Promise<void> {
+    await replaceSession();
+    setValue(nextValue);
+}
+
+export async function submitTableExplorerRowCountReload(
+    rowCount: number,
+    lastSubmittedRowCount: { current: number },
+    loadSubset: (rowCount: number) => Promise<void>,
+): Promise<void> {
+    if (lastSubmittedRowCount.current === rowCount) {
+        return;
+    }
+
+    const previousRowCount = lastSubmittedRowCount.current;
+    lastSubmittedRowCount.current = rowCount;
+    try {
+        await loadSubset(rowCount);
+    } catch (error) {
+        if (lastSubmittedRowCount.current === rowCount) {
+            lastSubmittedRowCount.current = previousRowCount;
+        }
+        throw error;
     }
 }
 

@@ -10,7 +10,9 @@ import {
     hasPendingChangesForRow,
     isTableExplorerDataColumn,
     runBeforeTableExplorerSessionReplacement,
+    runSessionReplacementAndUpdate,
     snapshotCellChangesForRow,
+    submitTableExplorerRowCountReload,
     TableExplorerLifecycleMutex,
     TableExplorerRowMutationQueue,
     tryLockTableExplorerRow,
@@ -265,21 +267,27 @@ suite("tableDataGridUtils", () => {
             await queue.drain();
         });
 
-        test("clears persistent cell failures after deleting the row", async () => {
+        test("clears persistent and pending failures after a successful delete retry", async () => {
             const queue = new TableExplorerRowMutationQueue();
-            const expectedError = new Error("update failed");
+            const updateError = new Error("update failed");
             await queue
                 .enqueue(
                     5,
                     async () => {
-                        throw expectedError;
+                        throw updateError;
                     },
                     "5-1",
                 )
                 .catch(() => undefined);
+            const deleteError = new Error("delete failed");
+            await queue
+                .enqueue(5, async () => {
+                    throw deleteError;
+                })
+                .catch(() => undefined);
 
             await queue.enqueue(5, async () => undefined);
-            queue.clearPersistentFailuresForRow(5);
+            queue.clearFailuresForRow(5);
 
             await queue.drain();
         });
@@ -387,6 +395,54 @@ suite("tableDataGridUtils", () => {
             await replacement;
 
             expect(events).to.deep.equal(["save:start", "save:end", "replacement"]);
+        });
+    });
+
+    suite("session replacement state", () => {
+        test("does not update state when session replacement fails", async () => {
+            const nextFilters = ["next"];
+            const stateUpdates: string[][] = [];
+            const expectedError = new Error("replacement failed");
+            let caughtError: unknown;
+
+            try {
+                await runSessionReplacementAndUpdate(
+                    nextFilters,
+                    (filters) => stateUpdates.push(filters),
+                    async () => {
+                        throw expectedError;
+                    },
+                );
+            } catch (error) {
+                caughtError = error;
+            }
+
+            expect(caughtError).to.equal(expectedError);
+            expect(stateUpdates).to.deep.equal([]);
+        });
+    });
+
+    suite("row count reload", () => {
+        test("resets the submitted count after failure so the same count can retry", async () => {
+            const lastSubmittedRowCount = { current: 100 };
+            const expectedError = new Error("replacement failed");
+            let attempts = 0;
+            const loadSubset = async () => {
+                attempts++;
+                if (attempts === 1) {
+                    throw expectedError;
+                }
+            };
+
+            await submitTableExplorerRowCountReload(200, lastSubmittedRowCount, loadSubset).catch(
+                () => undefined,
+            );
+            expect(lastSubmittedRowCount.current).to.equal(100);
+
+            await submitTableExplorerRowCountReload(200, lastSubmittedRowCount, loadSubset);
+
+            expect(attempts).to.equal(2);
+            expect(lastSubmittedRowCount.current).to.equal(200);
         });
     });
 });

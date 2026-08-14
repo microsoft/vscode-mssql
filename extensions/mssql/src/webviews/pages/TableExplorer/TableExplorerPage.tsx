@@ -33,6 +33,7 @@ import {
     TableExplorerReducers,
 } from "../../../sharedInterfaces/tableExplorer";
 import { VscodeEditor } from "../../common/vscodeMonaco";
+import { runSessionReplacementAndUpdate } from "./tableDataGridUtils";
 
 const useStyles = makeStyles({
     root: {
@@ -233,7 +234,6 @@ export const TableExplorerPage: React.FC = () => {
             if (!base) {
                 return;
             }
-            setActiveFilters(filters);
             const composed = composeFilteredQuery(base, filters);
             // Pass only operator names (never column names or values) for telemetry.
             const runQuery = () =>
@@ -242,7 +242,15 @@ export const TableExplorerPage: React.FC = () => {
                     undefined,
                     filters.map((f) => f.operator),
                 );
-            await (gridRef.current?.runBeforeSessionReplacement(runQuery) ?? runQuery());
+            try {
+                await runSessionReplacementAndUpdate(
+                    filters,
+                    setActiveFilters,
+                    () => gridRef.current?.runBeforeSessionReplacement(runQuery) ?? runQuery(),
+                );
+            } finally {
+                baseQueryRef.current = base;
+            }
         },
         [tableQuery, context, sortColumns],
     );
@@ -252,11 +260,20 @@ export const TableExplorerPage: React.FC = () => {
             return;
         }
         const base = baseQueryRef.current;
-        setActiveFilters([]);
-        if (base) {
-            const runQuery = () =>
-                context.runTableQuery(composeSortedQuery(base, sortColumns), undefined, []);
-            await (gridRef.current?.runBeforeSessionReplacement(runQuery) ?? runQuery());
+        const runQuery = () =>
+            base
+                ? context.runTableQuery(composeSortedQuery(base, sortColumns), undefined, [])
+                : Promise.resolve();
+        try {
+            await runSessionReplacementAndUpdate(
+                [],
+                setActiveFilters,
+                () => gridRef.current?.runBeforeSessionReplacement(runQuery) ?? runQuery(),
+            );
+        } finally {
+            if (base) {
+                baseQueryRef.current = base;
+            }
         }
     }, [activeFilters.length, context, sortColumns]);
 

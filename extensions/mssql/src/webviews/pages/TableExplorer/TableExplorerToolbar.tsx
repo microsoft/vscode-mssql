@@ -36,6 +36,7 @@ import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
 import type { DataColumnVisibility } from "./TableDataGrid";
+import { submitTableExplorerRowCountReload } from "./tableDataGridUtils";
 
 const useStyles = makeStyles({
     filterButtonActive: {
@@ -56,7 +57,7 @@ interface TableExplorerToolbarProps {
     cellChangeCount: number;
     deletionCount: number;
     currentRowCount?: number;
-    onLoadSubset?: (rowCount: number) => void;
+    onLoadSubset?: (rowCount: number) => Promise<void>;
     onExport?: (format: "csv" | "excel" | "json") => void;
     getDataColumns?: () => DataColumnVisibility[];
     onSetColumnVisibility?: (id: string, visible: boolean) => void;
@@ -181,8 +182,11 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
         if (lastSubmittedRowCountRef.current === rowCountNumber) {
             return;
         }
-        lastSubmittedRowCountRef.current = rowCountNumber;
-        onLoadSubset(rowCountNumber);
+        void submitTableExplorerRowCountReload(
+            rowCountNumber,
+            lastSubmittedRowCountRef,
+            onLoadSubset,
+        ).catch(() => undefined);
     };
 
     const onRowCountChange = (event: React.ChangeEvent<HTMLInputElement>) => {
