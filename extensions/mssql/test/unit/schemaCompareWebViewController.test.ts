@@ -15,6 +15,7 @@ chai.use(sinonChai);
 import { SchemaCompareWebViewController } from "../../src/schemaCompare/schemaCompareWebViewController";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager, {
+    ConnectionDialogCompletedEvent,
     ConnectionInfo,
     ConnectionSuccessfulEvent,
 } from "../../src/controllers/connectionManager";
@@ -36,6 +37,7 @@ import {
 import { AzureAuthType } from "../../src/models/contracts/azure";
 import { SchemaCompareService } from "../../src/services/schemaCompareService";
 import { ConnectionStore } from "../../src/models/connectionStore";
+import { connectionDialogViewId } from "../../src/constants/constants";
 
 suite("SchemaCompareWebViewController Tests", () => {
     let controller: SchemaCompareWebViewController;
@@ -51,6 +53,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionChangedEmitter: vscode.EventEmitter<void>;
     let successfulConnectionEmitter: vscode.EventEmitter<ConnectionSuccessfulEvent>;
+    let connectionDialogCompletedEmitter: vscode.EventEmitter<ConnectionDialogCompletedEvent>;
     const schemaCompareWebViewTitle = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
     let generateOperationIdStub: sinon.SinonStub<[], string>;
@@ -329,6 +332,11 @@ suite("SchemaCompareWebViewController Tests", () => {
         Object.defineProperty(connectionManagerStub, "onSuccessfulConnection", {
             value: successfulConnectionEmitter.event,
         });
+        connectionDialogCompletedEmitter =
+            new vscode.EventEmitter<ConnectionDialogCompletedEvent>();
+        Object.defineProperty(connectionManagerStub, "onConnectionDialogCompleted", {
+            value: connectionDialogCompletedEmitter.event,
+        });
         connectionManagerStub.getUriForConnection.returns("localhost,1433_undefined_sa_undefined");
 
         mockServerConnInfo = {
@@ -367,6 +375,7 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         connectionChangedEmitter?.dispose();
         successfulConnectionEmitter?.dispose();
+        connectionDialogCompletedEmitter?.dispose();
         sandbox.restore();
     });
 
@@ -1093,6 +1102,8 @@ suite("SchemaCompareWebViewController Tests", () => {
 
     test("connection events - save-only profile refreshes picker without later auto-selection", async () => {
         sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
+        const connectionChangedSpy = sandbox.spy();
+        connectionManagerStub.onConnectionsChanged(connectionChangedSpy);
         connectionManagerStub.isConnected.callsFake(
             (connectionUri) => connectionUri in activeConnections,
         );
@@ -1109,9 +1120,10 @@ suite("SchemaCompareWebViewController Tests", () => {
             profileSource: CredentialsQuickPickItemType.Profile,
         } as IConnectionProfileWithSource;
         connectionStoreStub.readAllConnections.resolves([savedConnection]);
-        connectionChangedEmitter.fire();
+        connectionDialogCompletedEmitter.fire({ connected: false });
         await new Promise<void>((resolve) => setImmediate(resolve));
 
+        expect(connectionChangedSpy).not.to.have.been.called;
         expect(controller.state.activeServers["saved-connection-id"]).to.deep.equal({
             profileName: "Saved connection",
             server: "saved-server",
@@ -1141,16 +1153,20 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
     });
 
-    test("connection events - newly connected URI is auto-selected", async () => {
+    test("connection events - transient validation URI is ignored before persistent connection", async () => {
         sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
-        let newConnectionIsConnected = false;
+        let transientConnectionIsConnected = false;
+        let persistentConnectionIsConnected = false;
         connectionManagerStub.isConnected.callsFake(
             (connectionUri) =>
                 connectionUri === "conn_uri" ||
-                (connectionUri === "new-connection-uri" && newConnectionIsConnected),
+                (connectionUri === "transient-connection-uri" && transientConnectionIsConnected) ||
+                (connectionUri === "persistent-connection-uri" && persistentConnectionIsConnected),
         );
         connectionManagerStub.isConnecting.callsFake(
-            (connectionUri) => connectionUri === "new-connection-uri" && !newConnectionIsConnected,
+            (connectionUri) =>
+                (connectionUri === "transient-connection-uri" && !transientConnectionIsConnected) ||
+                (connectionUri === "persistent-connection-uri" && !persistentConnectionIsConnected),
         );
         controller.state = structuredClone(mockInitialState);
         await controller["_reducerHandlers"].get("listActiveServers")(controller.state, {});
@@ -1158,29 +1174,58 @@ suite("SchemaCompareWebViewController Tests", () => {
             endpointType: "source",
         });
 
-        const newConnection = new ConnectionInfo();
-        newConnection.credentials = {
+        const newConnectionCredentials = {
             id: "",
             profileName: "New connection",
             server: "new-server",
             user: "new-user",
         } as IConnectionProfile;
-        activeConnections["new-connection-uri"] = newConnection;
+        const transientConnection = new ConnectionInfo();
+        transientConnection.credentials = newConnectionCredentials;
+        activeConnections["transient-connection-uri"] = transientConnection;
         connectionChangedEmitter.fire();
         await new Promise<void>((resolve) => setImmediate(resolve));
 
         expect(controller.state.waitingForNewConnection).to.be.true;
 
-        newConnectionIsConnected = true;
+        transientConnectionIsConnected = true;
         successfulConnectionEmitter.fire({
-            connection: newConnection,
-            fileUri: "new-connection-uri",
+            connection: transientConnection,
+            fileUri: "transient-connection-uri",
+            connectionSource: connectionDialogViewId,
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(controller.state.waitingForNewConnection).to.be.true;
+        expect(connectionManagerStub.listDatabases).not.to.have.been.calledWith(
+            "transient-connection-uri",
+        );
+
+        delete activeConnections["transient-connection-uri"];
+        transientConnectionIsConnected = false;
+        connectionChangedEmitter.fire();
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(controller.state.waitingForNewConnection).to.be.true;
+
+        const persistentConnection = new ConnectionInfo();
+        persistentConnection.credentials = newConnectionCredentials;
+        activeConnections["persistent-connection-uri"] = persistentConnection;
+        connectionChangedEmitter.fire();
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        persistentConnectionIsConnected = true;
+        successfulConnectionEmitter.fire({
+            connection: persistentConnection,
+            fileUri: "persistent-connection-uri",
         });
         await new Promise<void>((resolve) => setImmediate(resolve));
 
         expect(controller.state.waitingForNewConnection).to.be.false;
-        expect(controller.state.sourceEndpointInfo.ownerUri).to.equal("new-connection-uri");
-        expect(connectionManagerStub.listDatabases).to.have.been.calledWith("new-connection-uri");
+        expect(controller.state.sourceEndpointInfo.ownerUri).to.equal("persistent-connection-uri");
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(
+            "persistent-connection-uri",
+        );
     });
 
     test("listActiveServers reducer - deduplicates multiple active URIs for a saved profile", async () => {

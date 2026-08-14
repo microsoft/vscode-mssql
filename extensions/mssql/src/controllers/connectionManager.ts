@@ -131,6 +131,11 @@ export interface IReconnectAction {
 export interface ConnectionSuccessfulEvent {
     connection: ConnectionInfo;
     fileUri: string;
+    connectionSource?: string;
+}
+
+export interface ConnectionDialogCompletedEvent {
+    connected: boolean;
 }
 
 // ConnectionManager class is the main controller for connection management
@@ -157,6 +162,15 @@ export default class ConnectionManager {
         new vscode.EventEmitter<ConnectionSuccessfulEvent>();
     public readonly onSuccessfulConnection: vscode.Event<ConnectionSuccessfulEvent> =
         this._onSuccessfulConnectionEmitter.event;
+
+    private _onConnectionDialogCompletedEmitter: vscode.EventEmitter<ConnectionDialogCompletedEvent> =
+        new vscode.EventEmitter<ConnectionDialogCompletedEvent>();
+    public readonly onConnectionDialogCompleted: vscode.Event<ConnectionDialogCompletedEvent> =
+        this._onConnectionDialogCompletedEmitter.event;
+
+    public notifyConnectionDialogCompleted(event: ConnectionDialogCompletedEvent): void {
+        this._onConnectionDialogCompletedEmitter.fire(event);
+    }
 
     public initialized: Deferred<void> = new Deferred<void>();
 
@@ -1573,7 +1587,7 @@ export default class ConnectionManager {
              * Connection was successful
              */
 
-            await this.handleConnectionSuccess(fileUri, connectionInfo, result);
+            await this.handleConnectionSuccess(fileUri, connectionInfo, result, connectionSource);
             connectionActivity.end(
                 ActivityStatus.Succeeded,
                 undefined,
@@ -1811,12 +1825,14 @@ export default class ConnectionManager {
      * @param fileUri uri of the file the connection is for
      * @param connectionInfo the connection info object to update
      * @param result the result of the connection
+     * @param connectionSource source of the connection request
      * @returns A promise that resolves when all steps are complete
      */
     private async handleConnectionSuccess(
         fileUri: string,
         connectionInfo: ConnectionInfo,
         result: ConnectionContracts.ConnectionCompleteParams,
+        connectionSource?: string,
     ): Promise<void> {
         /**
          * Connection was successful
@@ -1860,6 +1876,7 @@ export default class ConnectionManager {
         this._onSuccessfulConnectionEmitter.fire({
             connection: connectionInfo,
             fileUri: fileUri,
+            connectionSource,
         });
 
         this._logger.info(

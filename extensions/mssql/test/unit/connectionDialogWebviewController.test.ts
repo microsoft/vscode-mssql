@@ -1245,6 +1245,9 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(connectionManager.connect.calledOnce).to.be.true;
                 expect(connectionStore.saveProfile.calledOnce).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.calledOnce).to.be.true;
+                expect(
+                    connectionManager.notifyConnectionDialogCompleted,
+                ).to.have.been.calledOnceWithExactly({ connected: true });
             });
 
             test("testConnection only validates connectivity without saving or creating session", async () => {
@@ -1272,6 +1275,17 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 expect(connectionStore.saveProfile.calledOnce).to.be.true;
                 expect(mockObjectExplorerProvider.createSession.notCalled).to.be.true;
                 expect(controller.state.testConnectionSucceeded).to.be.false;
+                expect(
+                    connectionManager.notifyConnectionDialogCompleted,
+                ).to.have.been.calledOnceWithExactly({ connected: false });
+            });
+
+            test("closing the dialog signals completion without a connection", () => {
+                controller.dispose();
+
+                expect(
+                    connectionManager.notifyConnectionDialogCompleted,
+                ).to.have.been.calledOnceWithExactly({ connected: false });
             });
 
             test("retryLastSubmitAction replays test connection action for trust cert flow", async () => {

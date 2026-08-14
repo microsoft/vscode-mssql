@@ -53,6 +53,7 @@ import { ConnectionCredentials } from "../models/connectionCredentials";
 import { Deferred } from "../protocol";
 import {
     cmdOpenAzureDataStudioMigration,
+    connectionDialogViewId,
     defaultDatabase,
     systemDatabases,
 } from "../constants/constants";
@@ -92,8 +93,6 @@ import {
 
 export const CLEAR_TOKEN_CACHE = "clearTokenCache";
 export const SIGN_IN_TO_AZURE = "signInToAzure";
-const CONNECTION_DIALOG_VIEW_ID = "connectionDialog";
-
 export class ConnectionDialogWebviewController extends FormWebviewController<
     IConnectionDialogProfile,
     ConnectionDialogWebviewState,
@@ -133,6 +132,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private readonly _azureBrowseProvider: AzureBrowseProvider;
     private readonly _fabricBrowseProvider: FabricBrowseProvider;
     private _lastSubmittedAction: ConnectionSubmitAction = ConnectionSubmitAction.Connect;
+    private _completionNotified = false;
 
     /** Cached VS Code Entra account options, invalidated on sign-in */
     private _cachedEntraAccounts: FormItemOptions[] | undefined;
@@ -168,8 +168,8 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     ) {
         super(
             context,
-            CONNECTION_DIALOG_VIEW_ID,
-            CONNECTION_DIALOG_VIEW_ID,
+            connectionDialogViewId,
+            connectionDialogViewId,
             new ConnectionDialogWebviewState(),
             {
                 title: LocalizedConstants.ConnectionDialog.connectionDialog,
@@ -1401,6 +1401,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 const preparedConnection = await this.prepareConnectionForSave(cleanedConnection);
                 await this.removeEditedConnectionIfNeeded();
                 await this.saveProfileStep(preparedConnection, state);
+                this.notifyConnectionDialogCompleted(false);
                 this.state.connectionStatus = ApiStatus.Loaded;
                 this.updateState();
                 await this.panel.dispose();
@@ -1417,6 +1418,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             await this.removeEditedConnectionIfNeeded();
             await this.saveProfileStep(preparedConnection, state);
             await this.connectAndRevealStep(preparedConnection, state);
+            this.notifyConnectionDialogCompleted(true);
 
             this.state.connectionStatus = ApiStatus.Loaded;
             this.updateState();
@@ -1433,7 +1435,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             await this.panel.dispose();
             this.dispose();
-            UserSurvey.getInstance().promptUserForNPSFeedback(CONNECTION_DIALOG_VIEW_ID);
+            UserSurvey.getInstance().promptUserForNPSFeedback(connectionDialogViewId);
         } catch (error) {
             this.state.connectionStatus = ApiStatus.Error;
             this.state.formMessage = { message: getErrorMessage(error) };
@@ -1491,6 +1493,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connection.port = undefined;
     }
 
+    private notifyConnectionDialogCompleted(connected: boolean): void {
+        if (this._completionNotified) {
+            return;
+        }
+
+        this._completionNotified = true;
+        this._mainController.connectionManager.notifyConnectionDialogCompleted({ connected });
+    }
+
+    public override dispose(): void {
+        this.notifyConnectionDialogCompleted(false);
+        super.dispose();
+    }
+
     private async testConnectionStep(
         connection: IConnectionDialogProfile,
         state: ConnectionDialogWebviewState,
@@ -1503,7 +1519,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 connection,
                 {
                     shouldHandleErrors: false, // Connect should not handle errors, as we want to handle them here
-                    connectionSource: CONNECTION_DIALOG_VIEW_ID,
+                    connectionSource: connectionDialogViewId,
                 },
             );
 
@@ -1645,7 +1661,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 profile,
                 {
                     shouldHandleErrors: false,
-                    connectionSource: CONNECTION_DIALOG_VIEW_ID,
+                    connectionSource: connectionDialogViewId,
                 },
             );
 

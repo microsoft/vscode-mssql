@@ -46,6 +46,7 @@ import { IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
 import {
     cmdAddObjectExplorer,
     azureMfa,
+    connectionDialogViewId,
     triggerSchemaCompareAutomatic,
     triggerSchemaCompareManual,
 } from "../constants/constants";
@@ -186,15 +187,19 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         );
 
         this.registerDisposable(
-            this.connectionMgr.onSuccessfulConnection(async ({ fileUri }) => {
+            this.connectionMgr.onSuccessfulConnection(async ({ fileUri, connectionSource }) => {
                 const endpointType = this.state.pendingConnectionEndpointType;
+                const isTransientConnection = connectionSource === connectionDialogViewId;
                 const shouldAutoSelect =
                     this.state.waitingForNewConnection &&
                     endpointType &&
+                    !isTransientConnection &&
                     this.pendingConnectionUris.has(fileUri) &&
                     this.connectionMgr.isConnected(fileUri);
 
-                this.pendingConnectionUris.delete(fileUri);
+                if (!isTransientConnection) {
+                    this.pendingConnectionUris.delete(fileUri);
+                }
                 this.knownConnectionUris.add(fileUri);
                 this.state.activeServers = await this.getAvailableServersList();
 
@@ -202,6 +207,18 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     await this.autoSelectNewConnection(fileUri, endpointType);
                 }
 
+                this.updateState();
+            }),
+        );
+
+        this.registerDisposable(
+            this.connectionMgr.onConnectionDialogCompleted(async ({ connected }) => {
+                if (connected) {
+                    return;
+                }
+
+                this.state.activeServers = await this.getAvailableServersList();
+                this.resetPendingConnectionSelection();
                 this.updateState();
             }),
         );
