@@ -20,6 +20,7 @@ import {
     EditScriptResult,
     EditSessionReadyParams,
     EditInitializeResult,
+    EditCommitResult,
     DbCellValue,
     SqlPaneMode,
 } from "../../src/sharedInterfaces/tableExplorer";
@@ -278,6 +279,42 @@ suite("TableExplorerWebViewController - Reducers", () => {
             ).to.be.true;
             expect(controller.state.originalCellValues).to.be.empty;
             expect(controller.state.cellUpdateAcknowledgements).to.be.empty;
+        });
+
+        test("should not commit after a queued cell update fails", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const update = createDeferred<EditCellResult>();
+            mockTableExplorerService.updateCell.returns(update.promise);
+            mockTableExplorerService.commit.resolves({});
+
+            const updateRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Invalid",
+                    requestId: 1,
+                },
+            );
+            await waitForPromises();
+            const commitRequest = controller["_reducerHandlers"].get("commitChanges")(
+                controller.state,
+                {},
+            );
+
+            update.reject(new Error("Update failed"));
+            await updateRequest;
+            await commitRequest;
+
+            expect(mockTableExplorerService.commit.called).to.be.false;
+            expect(controller.state.failedCells).to.deep.equal(["0-1"]);
+            expect(controller.state.originalCellValues?.has("0-1")).to.be.true;
+            expect(
+                showInformationMessageStub.calledWith(
+                    LocConstants.TableExplorer.changesSavedSuccessfully,
+                ),
+            ).to.be.false;
         });
     });
 
@@ -574,6 +611,46 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 ),
             ).to.be.true;
             expect(controller.state.deletedRows).to.deep.equal([0]);
+        });
+
+        test("should classify a new row after a preceding commit completes", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            const newRow = createMockRow(100, ["3", "New", "Row"]);
+            controller.state.newRows = [newRow];
+            controller.state.resultSet = {
+                ...createMockSubsetResult(2),
+                subset: [...createMockSubsetResult(2).subset, newRow],
+                rowCount: 3,
+            };
+            const commit = createDeferred<EditCommitResult>();
+            mockTableExplorerService.commit.returns(commit.promise);
+            mockTableExplorerService.deleteRow.resolves({});
+
+            const commitRequest = controller["_reducerHandlers"].get("commitChanges")(
+                controller.state,
+                {},
+            );
+            await waitForPromises();
+            const deleteRequest = controller["_reducerHandlers"].get("deleteRow")(
+                controller.state,
+                { rowId: 100 },
+            );
+            await waitForPromises();
+
+            expect(mockTableExplorerService.deleteRow.called).to.be.false;
+
+            commit.resolve({});
+            await commitRequest;
+            await deleteRequest;
+
+            expect(controller.state.newRows).to.be.empty;
+            expect(controller.state.deletedRows).to.deep.equal([100]);
+            expect(controller.state.resultSet?.subset.some((row) => row.id === 100)).to.be.true;
+            expect(
+                showInformationMessageStub.calledWith(
+                    LocConstants.TableExplorer.rowMarkedForRemoval,
+                ),
+            ).to.be.true;
         });
     });
 
@@ -2248,6 +2325,40 @@ suite("TableExplorerWebViewController - Reducers", () => {
 
             // Assert
             expect(resultState.tableName).to.equal("TestTable");
+        });
+    });
+
+    suite("close lifecycle", () => {
+        test("should not save on close after a queued cell revert fails", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const revert = createDeferred<EditCellResult>();
+            mockTableExplorerService.revertCell.returns(revert.promise);
+            mockTableExplorerService.commit.resolves({});
+            showWarningMessageStub.resolves(LocConstants.TableExplorer.Save);
+            showInformationMessageStub.resetHistory();
+
+            const revertRequest = controller["_reducerHandlers"].get("revertCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                },
+            );
+            await waitForPromises();
+            const saveRequest = controller["showRestorePrompt"]();
+
+            revert.reject(new Error("Revert failed"));
+            await revertRequest;
+            await saveRequest;
+
+            expect(mockTableExplorerService.commit.called).to.be.false;
+            expect(
+                showInformationMessageStub.calledWith(
+                    LocConstants.TableExplorer.changesSavedSuccessfully,
+                ),
+            ).to.be.false;
+            expect(showErrorMessageStub.called).to.be.true;
         });
     });
 

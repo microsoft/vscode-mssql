@@ -38,6 +38,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private _latestCellUpdateRequestIds = new Map<string, number>();
     private _cellOperationQueues = new Map<string, Promise<void>>();
     private _pendingCellOperations = new Set<Promise<void>>();
+    private _failedCellOperations = new Set<string>();
     private _lifecycleOperationQueue = Promise.resolve();
     private _lifecycleOperationCount = 0;
     private _cellOperationsEnabled = true;
@@ -375,6 +376,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         state.originalCellValues?.clear();
         state.cellUpdateAcknowledgements = {};
         this._latestCellUpdateRequestIds.clear();
+        this._failedCellOperations.clear();
         state.updateScript = undefined;
     }
 
@@ -463,6 +465,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         }
     }
 
+    private throwIfCellOperationsFailed(): void {
+        if (this._failedCellOperations.size > 0) {
+            throw new Error("One or more cell operations failed");
+        }
+    }
+
     /**
      * Tears down the active edit session in preparation for re-initializing with a new query:
      * marks state as loading, clears the stale result set so the webview re-initializes the grid,
@@ -536,6 +544,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             return await this.enqueueLifecycleOperation(async () => {
                 try {
+                    this.throwIfCellOperationsFailed();
                     await this._tableExplorerService.commit(state.ownerUri);
                     vscode.window.showInformationMessage(
                         LocConstants.TableExplorer.changesSavedSuccessfully,
@@ -548,6 +557,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
                     state.cellUpdateAcknowledgements = {};
                     this._latestCellUpdateRequestIds.clear();
+                    this._failedCellOperations.clear();
                     this.showRestorePromptAfterClose = false;
 
                     this.logger.debug(
@@ -759,12 +769,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 },
             );
 
-            // Check if this is a newly created row BEFORE calling the service
-            // The backend completely removes new rows (including decrementing NextRowId),
-            // so they cannot be reverted and should be removed from the UI immediately
-            const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
-
             return await this.enqueueLifecycleOperation(async () => {
+                // A preceding commit can move the row from new to persisted while this operation waits.
+                const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
+
                 try {
                     await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
 
@@ -773,6 +781,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         state.failedCells = state.failedCells.filter(
                             (key) => !key.startsWith(`${payload.rowId}-`),
                         );
+                    }
+                    for (const key of this._failedCellOperations) {
+                        if (key.startsWith(`${payload.rowId}-`)) {
+                            this._failedCellOperations.delete(key);
+                        }
                     }
 
                     // Clear all cached original values for this row
@@ -951,6 +964,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     }
 
                     // Remove from failed cells tracking if it was previously failed
+                    this._failedCellOperations.delete(cacheKey);
                     if (state.failedCells) {
                         const failedKey = `${payload.rowId}-${payload.columnId}`;
                         state.failedCells = state.failedCells.filter((key) => key !== failedKey);
@@ -1031,6 +1045,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                     // Track failed cell for UI highlighting
                     const failedKey = `${payload.rowId}-${payload.columnId}`;
+                    this._failedCellOperations.add(cacheKey);
                     if (!state.failedCells) {
                         state.failedCells = [failedKey];
                     } else if (!state.failedCells.includes(failedKey)) {
@@ -1163,6 +1178,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         delete state.cellUpdateAcknowledgements[cacheKey];
                     }
                     this._latestCellUpdateRequestIds.delete(cacheKey);
+                    this._failedCellOperations.delete(cacheKey);
 
                     // Remove from failed cells tracking
                     if (state.failedCells) {
@@ -1224,6 +1240,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     this.logger.error(
                         `Error reverting cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                     );
+                    this._failedCellOperations.add(cacheKey);
 
                     endActivity.endFailed(
                         new Error("Failed to revert cell"),
@@ -1299,6 +1316,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     for (const key of this._latestCellUpdateRequestIds.keys()) {
                         if (key.startsWith(`${payload.rowId}-`)) {
                             this._latestCellUpdateRequestIds.delete(key);
+                        }
+                    }
+                    for (const key of this._failedCellOperations) {
+                        if (key.startsWith(`${payload.rowId}-`)) {
+                            this._failedCellOperations.delete(key);
                         }
                     }
 
@@ -1963,9 +1985,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.info("User chose to save changes before closing");
 
             try {
-                await this.enqueueLifecycleOperation(() =>
-                    this._tableExplorerService.commit(this.state.ownerUri),
-                );
+                await this.enqueueLifecycleOperation(() => {
+                    this.throwIfCellOperationsFailed();
+                    return this._tableExplorerService.commit(this.state.ownerUri);
+                });
                 vscode.window.showInformationMessage(
                     LocConstants.TableExplorer.changesSavedSuccessfully,
                 );
