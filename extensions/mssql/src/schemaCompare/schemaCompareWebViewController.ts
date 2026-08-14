@@ -64,6 +64,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         "ms-mssql.sql-database-projects-vscode";
     private operationId: string;
     private readonly connectionUris = new Map<string, string>();
+    private knownConnectionUris = new Set<string>();
+    private readonly pendingConnectionUris = new Set<string>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -145,34 +147,59 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
         void this.start(sourceNode, targetNode, runComparison);
         this.registerRpcHandlers();
+        this.knownConnectionUris = this.getCurrentConnectionUris();
 
         this.registerDisposable(
             this.connectionMgr.onConnectionsChanged(async () => {
-                const activeServers = await this.getAvailableServersList();
+                const currentConnectionUris = this.getCurrentConnectionUris();
+                const newConnectionUris = [...currentConnectionUris].filter(
+                    (connectionUri) => !this.knownConnectionUris.has(connectionUri),
+                );
+                this.knownConnectionUris = currentConnectionUris;
 
-                // Check if we're waiting for a new connection and auto-select it
+                const hadPendingConnection = this.pendingConnectionUris.size > 0;
+                if (this.state.waitingForNewConnection) {
+                    for (const connectionUri of newConnectionUris) {
+                        this.pendingConnectionUris.add(connectionUri);
+                    }
+                    for (const connectionUri of this.pendingConnectionUris) {
+                        if (
+                            !this.connectionMgr.isConnected(connectionUri) &&
+                            !this.connectionMgr.isConnecting(connectionUri)
+                        ) {
+                            this.pendingConnectionUris.delete(connectionUri);
+                        }
+                    }
+                }
+                const activeServers = await this.getAvailableServersList();
                 if (
                     this.state.waitingForNewConnection &&
-                    this.state.pendingConnectionEndpointType
+                    newConnectionUris.length === 0 &&
+                    !hadPendingConnection &&
+                    this.pendingConnectionUris.size === 0
                 ) {
-                    const newConnections = this.findNewConnections(
-                        this.state.activeServers,
-                        activeServers,
-                    );
-                    if (newConnections.length > 0) {
-                        // Update active servers first so the UI has the latest list
-                        this.state.activeServers = activeServers;
+                    this.resetPendingConnectionSelection();
+                }
+                this.state.activeServers = activeServers;
+                this.updateState();
+            }),
+        );
 
-                        // Auto-select the first new connection
-                        const newConnectionUri = newConnections[0];
-                        await this.autoSelectNewConnection(
-                            newConnectionUri,
-                            this.state.pendingConnectionEndpointType,
-                        );
-                    }
-                } else {
-                    // Update active servers if we're not waiting for a new connection
-                    this.state.activeServers = activeServers;
+        this.registerDisposable(
+            this.connectionMgr.onSuccessfulConnection(async ({ fileUri }) => {
+                const endpointType = this.state.pendingConnectionEndpointType;
+                const shouldAutoSelect =
+                    this.state.waitingForNewConnection &&
+                    endpointType &&
+                    this.pendingConnectionUris.has(fileUri) &&
+                    this.connectionMgr.isConnected(fileUri);
+
+                this.pendingConnectionUris.delete(fileUri);
+                this.knownConnectionUris.add(fileUri);
+                this.state.activeServers = await this.getAvailableServersList();
+
+                if (shouldAutoSelect) {
+                    await this.autoSelectNewConnection(fileUri, endpointType);
                 }
 
                 this.updateState();
@@ -540,6 +567,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             });
 
             state.activeServers = activeServers;
+            this.knownConnectionUris = this.getCurrentConnectionUris();
             this.updateState(state);
 
             return state;
@@ -614,6 +642,8 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
             state.waitingForNewConnection = true;
             state.pendingConnectionEndpointType = payload.endpointType;
+            this.knownConnectionUris = this.getCurrentConnectionUris();
+            this.pendingConnectionUris.clear();
 
             this.logger.debug(
                 `Executing command: ${cmdAddObjectExplorer} - OperationId: ${this.operationId}`,
@@ -2262,21 +2292,6 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         }
     }
 
-    private findNewConnections(
-        oldActiveServers: { [connectionUri: string]: { profileName: string; server: string } },
-        newActiveServers: { [connectionUri: string]: { profileName: string; server: string } },
-    ): string[] {
-        const newConnections: string[] = [];
-
-        for (const connectionUri in newActiveServers) {
-            if (!(connectionUri in oldActiveServers)) {
-                newConnections.push(connectionUri);
-            }
-        }
-
-        return newConnections;
-    }
-
     private async autoSelectNewConnection(
         connectionUri: string,
         endpointType: "source" | "target",
@@ -2373,11 +2388,30 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Error auto-selecting new connection: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
             );
         } finally {
-            // Reset the waiting state
             this.logger.debug(`Resetting waiting state - OperationId: ${this.operationId}`);
-            this.state.waitingForNewConnection = false;
-            this.state.pendingConnectionEndpointType = null;
+            this.resetPendingConnectionSelection();
         }
+    }
+
+    private resetPendingConnectionSelection(): void {
+        this.state.waitingForNewConnection = false;
+        this.state.pendingConnectionEndpointType = null;
+        this.pendingConnectionUris.clear();
+    }
+
+    private getCurrentConnectionUris(): Set<string> {
+        return new Set(Object.keys(this.connectionMgr.activeConnections));
+    }
+
+    private getConnectedUriForProfile(profile: IConnectionProfile): string | undefined {
+        return Object.keys(this.connectionMgr.activeConnections).find(
+            (connectionUri) =>
+                this.connectionMgr.isConnected(connectionUri) &&
+                utils.isSameConnectionInfo(
+                    this.connectionMgr.activeConnections[connectionUri].credentials,
+                    profile,
+                ),
+        );
     }
 
     /**
@@ -2406,11 +2440,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 if (profile.id) {
                     savedConnectionIds.add(profile.id);
                 }
-                const connectionUri = this.connectionMgr.getUriForConnection(profile);
-                const activeConnectionUri =
-                    connectionUri && this.connectionMgr.isConnected(connectionUri)
-                        ? connectionUri
-                        : undefined;
+                const activeConnectionUri = this.getConnectedUriForProfile(profile);
 
                 if (activeConnectionUri) {
                     savedConnectionUris.add(activeConnectionUri);
@@ -2463,11 +2493,25 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             return savedConnectionId === connectionId;
         }) as IConnectionProfile | undefined;
 
-        if (!profile || !(await this.connectionMgr.connect("", profile))) {
+        if (!profile) {
             return undefined;
         }
 
-        const connectionUri = this.connectionMgr.getUriForConnection(profile);
+        const existingConnectionUris = this.getCurrentConnectionUris();
+        if (!(await this.connectionMgr.connect("", profile))) {
+            return undefined;
+        }
+
+        const connectionUri =
+            Object.keys(this.connectionMgr.activeConnections).find(
+                (uri) =>
+                    !existingConnectionUris.has(uri) &&
+                    this.connectionMgr.isConnected(uri) &&
+                    utils.isSameConnectionInfo(
+                        this.connectionMgr.activeConnections[uri].credentials,
+                        profile,
+                    ),
+            ) ?? this.getConnectedUriForProfile(profile);
         if (connectionUri) {
             this.connectionUris.set(connectionId, connectionUri);
         }

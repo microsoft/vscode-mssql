@@ -14,7 +14,10 @@ chai.use(sinonChai);
 
 import { SchemaCompareWebViewController } from "../../src/schemaCompare/schemaCompareWebViewController";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
-import ConnectionManager, { ConnectionInfo } from "../../src/controllers/connectionManager";
+import ConnectionManager, {
+    ConnectionInfo,
+    ConnectionSuccessfulEvent,
+} from "../../src/controllers/connectionManager";
 import {
     ExtractTarget,
     SchemaDifferenceType,
@@ -47,6 +50,7 @@ suite("SchemaCompareWebViewController Tests", () => {
     let connectionManagerStub: sinon.SinonStubbedInstance<ConnectionManager>;
     let connectionStoreStub: sinon.SinonStubbedInstance<ConnectionStore>;
     let connectionChangedEmitter: vscode.EventEmitter<void>;
+    let successfulConnectionEmitter: vscode.EventEmitter<ConnectionSuccessfulEvent>;
     const schemaCompareWebViewTitle = "Schema Compare";
     const operationId = "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE";
     let generateOperationIdStub: sinon.SinonStub<[], string>;
@@ -321,6 +325,10 @@ suite("SchemaCompareWebViewController Tests", () => {
         Object.defineProperty(connectionManagerStub, "onConnectionsChanged", {
             value: connectionChangedEmitter.event,
         });
+        successfulConnectionEmitter = new vscode.EventEmitter<ConnectionSuccessfulEvent>();
+        Object.defineProperty(connectionManagerStub, "onSuccessfulConnection", {
+            value: successfulConnectionEmitter.event,
+        });
         connectionManagerStub.getUriForConnection.returns("localhost,1433_undefined_sa_undefined");
 
         mockServerConnInfo = {
@@ -358,6 +366,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         generateOperationIdStub?.restore();
 
         connectionChangedEmitter?.dispose();
+        successfulConnectionEmitter?.dispose();
         sandbox.restore();
     });
 
@@ -1082,6 +1091,98 @@ suite("SchemaCompareWebViewController Tests", () => {
         });
     });
 
+    test("connection events - save-only profile refreshes picker without later auto-selection", async () => {
+        sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
+        connectionManagerStub.isConnected.callsFake(
+            (connectionUri) => connectionUri in activeConnections,
+        );
+        controller.state = structuredClone(mockInitialState);
+        await controller["_reducerHandlers"].get("listActiveServers")(controller.state, {});
+        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
+            endpointType: "source",
+        });
+
+        const savedConnection = {
+            id: "saved-connection-id",
+            profileName: "Saved connection",
+            server: "saved-server",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        connectionChangedEmitter.fire();
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(controller.state.activeServers["saved-connection-id"]).to.deep.equal({
+            profileName: "Saved connection",
+            server: "saved-server",
+        });
+        expect(controller.state.waitingForNewConnection).to.be.false;
+        expect(controller.state.pendingConnectionEndpointType).to.be.null;
+
+        const unrelatedConnection = new ConnectionInfo();
+        unrelatedConnection.credentials = {
+            id: "",
+            profileName: "Unrelated connection",
+            server: "unrelated-server",
+        } as IConnectionProfile;
+        activeConnections["unrelated-uri"] = unrelatedConnection;
+        const sourceEndpointBeforeUnrelatedConnection = structuredClone(
+            controller.state.sourceEndpointInfo,
+        );
+        successfulConnectionEmitter.fire({
+            connection: unrelatedConnection,
+            fileUri: "unrelated-uri",
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(connectionManagerStub.connect).not.to.have.been.called;
+        expect(controller.state.sourceEndpointInfo).to.deep.equal(
+            sourceEndpointBeforeUnrelatedConnection,
+        );
+    });
+
+    test("connection events - newly connected URI is auto-selected", async () => {
+        sandbox.stub(vscode.commands, "executeCommand").resolves(undefined);
+        let newConnectionIsConnected = false;
+        connectionManagerStub.isConnected.callsFake(
+            (connectionUri) =>
+                connectionUri === "conn_uri" ||
+                (connectionUri === "new-connection-uri" && newConnectionIsConnected),
+        );
+        connectionManagerStub.isConnecting.callsFake(
+            (connectionUri) => connectionUri === "new-connection-uri" && !newConnectionIsConnected,
+        );
+        controller.state = structuredClone(mockInitialState);
+        await controller["_reducerHandlers"].get("listActiveServers")(controller.state, {});
+        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
+            endpointType: "source",
+        });
+
+        const newConnection = new ConnectionInfo();
+        newConnection.credentials = {
+            id: "",
+            profileName: "New connection",
+            server: "new-server",
+            user: "new-user",
+        } as IConnectionProfile;
+        activeConnections["new-connection-uri"] = newConnection;
+        connectionChangedEmitter.fire();
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(controller.state.waitingForNewConnection).to.be.true;
+
+        newConnectionIsConnected = true;
+        successfulConnectionEmitter.fire({
+            connection: newConnection,
+            fileUri: "new-connection-uri",
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(controller.state.waitingForNewConnection).to.be.false;
+        expect(controller.state.sourceEndpointInfo.ownerUri).to.equal("new-connection-uri");
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith("new-connection-uri");
+    });
+
     test("listActiveServers reducer - deduplicates multiple active URIs for a saved profile", async () => {
         const savedConnection = {
             id: "saved-connection-id",
@@ -1160,13 +1261,16 @@ suite("SchemaCompareWebViewController Tests", () => {
             profileSource: CredentialsQuickPickItemType.Profile,
         } as IConnectionProfileWithSource;
         connectionStoreStub.readAllConnections.resolves([savedConnection]);
-        connectionManagerStub.connect.resolves(true);
-        connectionManagerStub.getUriForConnection.callsFake((connection) =>
-            (connection as IConnectionProfile).id === savedConnection.id
-                ? "saved-connection-uri"
-                : "localhost,1433_undefined_sa_undefined",
+        const savedConnectionInfo = new ConnectionInfo();
+        savedConnectionInfo.credentials = savedConnection;
+        connectionManagerStub.connect.callsFake(async () => {
+            activeConnections["saved-connection-uri"] = savedConnectionInfo;
+            return true;
+        });
+        connectionManagerStub.isConnected.callsFake(
+            (connectionUri) =>
+                connectionUri === "conn_uri" || connectionUri === "saved-connection-uri",
         );
-        activeConnections["saved-connection-uri"] = mockConnectionInfo;
         const state = structuredClone(mockInitialState);
         state.activeServers = {
             "saved-connection-id": {
@@ -1193,6 +1297,51 @@ suite("SchemaCompareWebViewController Tests", () => {
 
         expect(confirmedResult.sourceEndpointInfo.ownerUri).to.equal("saved-connection-uri");
         expect(confirmedResult.sourceEndpointInfo.databaseName).to.equal("db1");
+    });
+
+    test("listDatabasesForActiveServer reducer - retry uses new connected URI instead of stale failed URI", async () => {
+        const savedConnection = {
+            id: "saved-connection-id",
+            profileName: "Saved connection",
+            server: "saved-server",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const failedConnection = new ConnectionInfo();
+        failedConnection.credentials = savedConnection;
+        failedConnection.errorMessage = "Login failed";
+        activeConnections = {
+            "failed-connection-uri": failedConnection,
+        };
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        connectionManagerStub.getUriForConnection.returns("failed-connection-uri");
+        connectionManagerStub.isConnected.callsFake(
+            (connectionUri) => connectionUri === "successful-connection-uri",
+        );
+        connectionManagerStub.connect.callsFake(async () => {
+            const successfulConnection = new ConnectionInfo();
+            successfulConnection.credentials = { ...savedConnection };
+            activeConnections["successful-connection-uri"] = successfulConnection;
+            return true;
+        });
+        const state = structuredClone(mockInitialState);
+        state.activeServers = {
+            "saved-connection-id": {
+                profileName: "Saved connection",
+                server: "saved-server",
+            },
+        };
+
+        const actualResult = await controller["_reducerHandlers"].get(
+            "listDatabasesForActiveServer",
+        )(state, { connectionUri: "saved-connection-id" });
+
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(
+            "successful-connection-uri",
+        );
+        expect(connectionManagerStub.listDatabases).not.to.have.been.calledWith(
+            "failed-connection-uri",
+        );
+        expect(actualResult.databases).to.deep.equal(["db1", "db2"]);
     });
 
     test("selectFile reducer - when called - returns correct auxiliary endpoint info", async () => {
