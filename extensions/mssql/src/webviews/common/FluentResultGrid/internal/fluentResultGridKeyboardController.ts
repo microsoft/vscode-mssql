@@ -34,6 +34,18 @@ export interface FluentResultGridKeyboardController {
     isGridFocused: boolean;
 }
 
+/**
+ * Only keyboard-visible focus should reveal the active grid cell. The browser preserves this
+ * signal when focus enters the webview from its host, while native scrollbar interactions do not
+ * make the container focus-visible.
+ */
+export function shouldRevealFluentResultGridActiveCell(
+    isDirectContainerFocus: boolean,
+    isFocusVisible: boolean,
+): boolean {
+    return isDirectContainerFocus && isFocusVisible;
+}
+
 export function useFluentResultGridKeyboardController({
     commandContext,
     containerRef,
@@ -177,7 +189,11 @@ export function useFluentResultGridKeyboardController({
         (event: ReactFocusEvent<HTMLDivElement>) => {
             setIsGridFocused(true);
 
-            if (event.target === event.currentTarget) {
+            const shouldRevealActiveCell = shouldRevealFluentResultGridActiveCell(
+                event.target === event.currentTarget,
+                event.currentTarget.matches(":focus-visible"),
+            );
+            if (shouldRevealActiveCell) {
                 focusGrid();
             }
         },
