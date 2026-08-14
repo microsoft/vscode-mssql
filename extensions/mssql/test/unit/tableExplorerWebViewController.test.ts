@@ -1586,10 +1586,11 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(controller.state.tableQuery).to.equal(customQuery);
         });
 
-        test("should report a failed replacement and retain submitted state", async () => {
+        test("should restore the previous session after replacement readiness fails", async () => {
             controller.state.ownerUri = "test-owner-uri";
             controller.state.currentRowCount = 100;
-            controller.state.tableQuery = "SELECT TOP 100 * FROM dbo.TestTable";
+            const previousQuery = "SELECT TOP 100 * FROM dbo.TestTable";
+            controller.state.tableQuery = previousQuery;
             mockTableExplorerService.dispose.resolves();
             mockTableExplorerService.initialize.resolves();
 
@@ -1597,21 +1598,42 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 queryString: "SELECT TOP 200 * FROM dbo.TestTable",
                 rowCount: 200,
             });
+            const replacementResult = controller["waitForEditSessionReady"]();
             controller["onEditSessionReady"]({
                 ownerUri: "test-owner-uri",
                 success: false,
                 message: "Query failed",
             });
+            await new Promise<void>((resolve) => setImmediate(resolve));
 
-            expect(await controller["waitForEditSessionReady"]()).to.equal(false);
+            expect(
+                mockTableExplorerService.initialize.calledWithMatch(
+                    "test-owner-uri",
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    previousQuery,
+                ),
+            ).to.be.true;
+
+            controller["onEditSessionReady"]({
+                ownerUri: "test-owner-uri",
+                success: true,
+                message: "",
+            });
+
+            expect(await replacementResult).to.equal(false);
+            expect(controller.state.loadStatus).to.equal(ApiStatus.Loaded);
             expect(controller.state.currentRowCount).to.equal(100);
-            expect(controller.state.tableQuery).to.equal("SELECT TOP 100 * FROM dbo.TestTable");
+            expect(controller.state.tableQuery).to.equal(previousQuery);
+            expect(mockTableExplorerService.subset.calledWith("test-owner-uri", 0, 100)).to.be.true;
         });
 
-        test("should report failure when the replacement result set cannot be loaded", async () => {
+        test("should restore the previous session after replacement result loading fails", async () => {
             controller.state.ownerUri = "test-owner-uri";
             controller.state.currentRowCount = 100;
-            controller.state.tableQuery = "SELECT TOP 100 * FROM dbo.TestTable";
+            const previousQuery = "SELECT TOP 100 * FROM dbo.TestTable";
+            controller.state.tableQuery = previousQuery;
             mockTableExplorerService.dispose.resolves();
             mockTableExplorerService.initialize.resolves();
             mockTableExplorerService.subset.rejects(new Error("Subset failed"));
@@ -1620,15 +1642,36 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 queryString: "SELECT TOP 200 * FROM dbo.TestTable",
                 rowCount: 200,
             });
+            const replacementResult = controller["waitForEditSessionReady"]();
+            controller["onEditSessionReady"]({
+                ownerUri: "test-owner-uri",
+                success: true,
+                message: "",
+            });
+            await new Promise<void>((resolve) => setImmediate(resolve));
+
+            expect(
+                mockTableExplorerService.initialize.calledWithMatch(
+                    "test-owner-uri",
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    previousQuery,
+                ),
+            ).to.be.true;
+
+            mockTableExplorerService.subset.resolves(createMockSubsetResult());
             controller["onEditSessionReady"]({
                 ownerUri: "test-owner-uri",
                 success: true,
                 message: "",
             });
 
-            expect(await controller["waitForEditSessionReady"]()).to.equal(false);
+            expect(await replacementResult).to.equal(false);
+            expect(controller.state.loadStatus).to.equal(ApiStatus.Loaded);
             expect(controller.state.currentRowCount).to.equal(100);
-            expect(controller.state.tableQuery).to.equal("SELECT TOP 100 * FROM dbo.TestTable");
+            expect(controller.state.tableQuery).to.equal(previousQuery);
+            expect(mockTableExplorerService.subset.calledWith("test-owner-uri", 0, 100)).to.be.true;
         });
 
         test("should preserve custom query through loadResultSet after re-initialization", async () => {

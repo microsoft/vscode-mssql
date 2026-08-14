@@ -119,34 +119,44 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             void this.loadResultSet();
         } else {
-            const serverMessage = result.message?.trim() ?? "";
-            const toastMessage =
-                serverMessage.length > 0
-                    ? LocConstants.TableExplorer.failedToRunTableQuery(serverMessage)
-                    : LocConstants.TableExplorer.failedToRunTableQueryUnknown;
-            this.logger.error(
-                `Edit session failed to initialize: ${toastMessage} - OperationId: ${this.operationId}`,
-            );
+            void this.handleEditSessionReadyFailure(result);
+        }
+    }
+
+    private async handleEditSessionReadyFailure(result: EditSessionReadyParams): Promise<void> {
+        const serverMessage = result.message?.trim() ?? "";
+        const toastMessage =
+            serverMessage.length > 0
+                ? LocConstants.TableExplorer.failedToRunTableQuery(serverMessage)
+                : LocConstants.TableExplorer.failedToRunTableQueryUnknown;
+        this.logger.error(
+            `Edit session failed to initialize: ${toastMessage} - OperationId: ${this.operationId}`,
+        );
+
+        const shouldRestorePreviousSession = this.shouldRestorePreviousSession();
+        const restored =
+            shouldRestorePreviousSession && (await this.restorePreviousSessionAfterFailure());
+        if (!restored) {
             this.state.loadStatus = ApiStatus.Error;
             this.state.resultSet = undefined;
             this.clearPendingSessionState();
             this.updateState();
-
-            sendErrorEvent(
-                TelemetryViews.TableExplorer,
-                TelemetryActions.EditSessionReady,
-                new Error("Edit session failed to initialize"),
-                true /* includeErrorMessage */,
-                undefined /* errorCode */,
-                undefined /* errorType */,
-                {
-                    operationId: this.operationId,
-                },
-            );
-
-            void vscode.window.showErrorMessage(toastMessage);
             this.completeSessionLoad(false);
         }
+
+        sendErrorEvent(
+            TelemetryViews.TableExplorer,
+            TelemetryActions.EditSessionReady,
+            new Error("Edit session failed to initialize"),
+            true /* includeErrorMessage */,
+            undefined /* errorCode */,
+            undefined /* errorType */,
+            {
+                operationId: this.operationId,
+            },
+        );
+
+        void vscode.window.showErrorMessage(toastMessage);
     }
 
     /**
@@ -248,6 +258,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
     private async loadResultSet(): Promise<void> {
         let succeeded = false;
+        let recoveryStarted = false;
         try {
             const rowCount = this._pendingRowCount ?? this.state.currentRowCount;
             const subsetResult = await this._tableExplorerService.subset(
@@ -275,16 +286,23 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.error(
                 `Error loading result set: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
             );
-            this.state.loadStatus = ApiStatus.Error;
-            this.state.resultSet = undefined;
-            this.updateState();
+            if (this.shouldRestorePreviousSession()) {
+                recoveryStarted = await this.restorePreviousSessionAfterFailure();
+            }
+            if (!recoveryStarted) {
+                this.state.loadStatus = ApiStatus.Error;
+                this.state.resultSet = undefined;
+                this.updateState();
+            }
 
             void vscode.window.showErrorMessage(
                 LocConstants.TableExplorer.failedToLoadData(getErrorMessage(error)),
             );
         } finally {
-            this.clearPendingSessionState();
-            this.completeSessionLoad(succeeded);
+            if (!recoveryStarted) {
+                this.clearPendingSessionState();
+                this.completeSessionLoad(succeeded);
+            }
         }
     }
 
@@ -426,28 +444,33 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * Used as a recovery step when a replacement query fails. Sets state.loadStatus to Error
      * if the recovery init itself fails. Returns true on success, false on failure.
      */
-    private async tryRestorePreviousSession(
-        state: TableExplorerWebViewState,
-        objectName: string,
-        schemaName: string | undefined,
-        objectType: string,
-    ): Promise<boolean> {
-        const previousQuery = state.tableQuery?.trim() ? state.tableQuery : undefined;
+    private shouldRestorePreviousSession(): boolean {
+        return (
+            this._sessionLoadCompletion !== undefined &&
+            !this._sessionLoadCompletion.isCompleted &&
+            this._sessionLoadCanSucceed
+        );
+    }
+
+    private async restorePreviousSessionAfterFailure(): Promise<boolean> {
+        this._sessionLoadCanSucceed = false;
+        this.clearPendingSessionState();
+        const previousQuery = this.state.tableQuery?.trim() ? this.state.tableQuery : undefined;
         try {
             await this._tableExplorerService.initialize(
-                state.ownerUri,
-                objectName,
-                schemaName ?? "",
-                objectType,
+                this.state.ownerUri,
+                this.state.tableName,
+                this.state.schemaName ?? "",
+                this._targetNode.metadata.metadataTypeName.toUpperCase(),
                 previousQuery,
             );
             this.logger.debug("Restored previous session after replacement query failure");
             return true;
         } catch (restoreError) {
             this.logger.error(
-                `Failed to restore original session: ${getErrorMessage(restoreError)}`,
+                `Failed to restore previous session: ${getErrorMessage(restoreError)}`,
             );
-            state.loadStatus = ApiStatus.Error;
+            this.state.loadStatus = ApiStatus.Error;
             return false;
         }
     }
@@ -1587,14 +1610,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     `Error running custom table query: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
 
-                this._sessionLoadCanSucceed = false;
-                this.clearPendingSessionState();
-                const restored = await this.tryRestorePreviousSession(
-                    state,
-                    objectName,
-                    schemaName,
-                    objectType,
-                );
+                const restored = await this.restorePreviousSessionAfterFailure();
                 if (!restored) {
                     this.completeSessionLoad(false);
                 }
