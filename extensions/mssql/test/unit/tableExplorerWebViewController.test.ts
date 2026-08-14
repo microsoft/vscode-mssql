@@ -83,6 +83,16 @@ suite("TableExplorerWebViewController - Reducers", () => {
         ],
     });
 
+    const createEditCellResult = (displayValue: string, isDirty: boolean): EditCellResult => ({
+        cell: {
+            displayValue,
+            isNull: false,
+            invariantCultureDisplayValue: displayValue,
+            isDirty,
+        },
+        isRowDirty: isDirty,
+    });
+
     const createDeferred = <T>() => {
         let resolve!: (value: T) => void;
         let reject!: (reason?: unknown) => void;
@@ -1360,6 +1370,75 @@ suite("TableExplorerWebViewController - Reducers", () => {
             ).to.be.true;
             expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("John");
             expect(controller.state.originalCellValues).to.be.empty;
+        });
+
+        test("should preserve an update queued after a cell revert", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const firstUpdate = createDeferred<EditCellResult>();
+            const revert = createDeferred<EditCellResult>();
+            const secondUpdate = createDeferred<EditCellResult>();
+            mockTableExplorerService.updateCell
+                .onFirstCall()
+                .returns(firstUpdate.promise)
+                .onSecondCall()
+                .returns(secondUpdate.promise);
+            mockTableExplorerService.revertCell.returns(revert.promise);
+
+            const firstUpdateRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "First update",
+                    requestId: 1,
+                },
+            );
+            await waitForPromises();
+            const revertRequest = controller["_reducerHandlers"].get("revertCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                },
+            );
+            const secondUpdateRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Second update",
+                    requestId: 2,
+                },
+            );
+
+            firstUpdate.resolve(createEditCellResult("First update", true));
+            await firstUpdateRequest;
+            await waitForPromises();
+
+            expect(mockTableExplorerService.revertCell.called).to.be.true;
+            expect(mockTableExplorerService.updateCell.callCount).to.equal(1);
+
+            revert.resolve(createEditCellResult("John", false));
+            await revertRequest;
+            await waitForPromises();
+
+            expect(mockTableExplorerService.updateCell.callCount).to.equal(2);
+            expect(mockTableExplorerService.updateCell.secondCall.args[3]).to.equal(
+                "Second update",
+            );
+
+            secondUpdate.resolve(createEditCellResult("Second update", true));
+            await secondUpdateRequest;
+
+            expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal(
+                "Second update",
+            );
+            expect(controller.state.resultSet?.subset[0].isDirty).to.be.true;
+            expect(controller.state.cellUpdateAcknowledgements?.["0-1"]).to.deep.equal({
+                requestId: 2,
+                isDirty: true,
+            });
         });
     });
 

@@ -1166,6 +1166,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             );
 
             const cacheKey = `${payload.rowId}-${payload.columnId}`;
+            const latestUpdateRequestIdAtRevert = this._latestCellUpdateRequestIds.get(cacheKey);
 
             return await this.enqueueCellOperation(cacheKey, async () => {
                 if (!this._cellOperationsEnabled) {
@@ -1218,7 +1219,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     if (state.cellUpdateAcknowledgements) {
                         delete state.cellUpdateAcknowledgements[cacheKey];
                     }
-                    this._latestCellUpdateRequestIds.delete(cacheKey);
+                    if (
+                        this._latestCellUpdateRequestIds.get(cacheKey) ===
+                        latestUpdateRequestIdAtRevert
+                    ) {
+                        this._latestCellUpdateRequestIds.delete(cacheKey);
+                    }
                     this._failedCellOperations.delete(cacheKey);
 
                     // Remove from failed cells tracking
