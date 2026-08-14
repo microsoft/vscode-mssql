@@ -5,8 +5,6 @@
 
 import {
     useCallback,
-    useEffect,
-    useRef,
     useState,
     type FocusEvent as ReactFocusEvent,
     type KeyboardEvent as ReactKeyboardEvent,
@@ -36,18 +34,16 @@ export interface FluentResultGridKeyboardController {
     isGridFocused: boolean;
 }
 
-const KEYBOARD_FOCUS_WINDOW_MS = 250;
-
 /**
- * Only focus that immediately follows a Tab keydown should reveal the active grid cell. Native
- * scrollbar interactions can focus the grid container without dispatching a pointer event.
+ * Only keyboard-visible focus should reveal the active grid cell. The browser preserves this
+ * signal when focus enters the webview from its host, while native scrollbar interactions do not
+ * make the container focus-visible.
  */
-export function isFluentResultGridKeyboardInitiatedFocus(
-    tabKeyDownAt: number | undefined,
-    now: number,
+export function shouldRevealFluentResultGridActiveCell(
+    isDirectContainerFocus: boolean,
+    isFocusVisible: boolean,
 ): boolean {
-    const elapsed = tabKeyDownAt === undefined ? Number.POSITIVE_INFINITY : now - tabKeyDownAt;
-    return elapsed >= 0 && elapsed < KEYBOARD_FOCUS_WINDOW_MS;
+    return isDirectContainerFocus && isFocusVisible;
 }
 
 export function useFluentResultGridKeyboardController({
@@ -189,31 +185,14 @@ export function useFluentResultGridKeyboardController({
         grid.gotoCell(row, cell, false);
     }, [containerRef, reactGridRef]);
 
-    const tabKeyDownAtRef = useRef<number | undefined>(undefined);
-    useEffect(() => {
-        const handleWindowKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Tab") {
-                tabKeyDownAtRef.current = performance.now();
-            }
-        };
-
-        window.addEventListener("keydown", handleWindowKeyDown, true);
-        return () => window.removeEventListener("keydown", handleWindowKeyDown, true);
-    }, []);
-
     const handleGridContainerFocus = useCallback(
         (event: ReactFocusEvent<HTMLDivElement>) => {
             setIsGridFocused(true);
 
-            if (event.target !== event.currentTarget) {
-                return;
-            }
-
-            const shouldRevealActiveCell = isFluentResultGridKeyboardInitiatedFocus(
-                tabKeyDownAtRef.current,
-                performance.now(),
+            const shouldRevealActiveCell = shouldRevealFluentResultGridActiveCell(
+                event.target === event.currentTarget,
+                event.currentTarget.matches(":focus-visible"),
             );
-            tabKeyDownAtRef.current = undefined;
             if (shouldRevealActiveCell) {
                 focusGrid();
             }
