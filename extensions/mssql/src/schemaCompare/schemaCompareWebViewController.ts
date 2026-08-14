@@ -2394,6 +2394,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             };
         } = {};
         const activeConnections = this.connectionMgr.activeConnections;
+        const savedConnectionIds = new Set<string>();
         const savedConnectionUris = new Set<string>();
         this.connectionUris.clear();
 
@@ -2402,6 +2403,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             for (const connection of savedConnections) {
                 const profile = connection as IConnectionProfile;
                 const connectionId = profile.id || `${profile.server}_${profile.database || ""}`;
+                if (profile.id) {
+                    savedConnectionIds.add(profile.id);
+                }
                 const connectionUri = this.connectionMgr.getUriForConnection(profile);
                 const activeConnectionUri =
                     connectionUri && this.connectionMgr.isConnected(connectionUri)
@@ -2425,15 +2429,16 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         }
 
         for (const connectionUri of Object.keys(activeConnections)) {
+            const credentials = activeConnections[connectionUri]
+                .credentials as IConnectionDialogProfile;
             if (
+                (credentials.id && savedConnectionIds.has(credentials.id)) ||
                 savedConnectionUris.has(connectionUri) ||
                 !this.connectionMgr.isConnected(connectionUri)
             ) {
                 continue;
             }
 
-            const credentials = activeConnections[connectionUri]
-                .credentials as IConnectionDialogProfile;
             activeServers[connectionUri] = {
                 profileName: credentials.profileName ?? "",
                 server: credentials.server,

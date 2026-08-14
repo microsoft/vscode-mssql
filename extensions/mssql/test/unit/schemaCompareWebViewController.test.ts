@@ -1082,6 +1082,61 @@ suite("SchemaCompareWebViewController Tests", () => {
         });
     });
 
+    test("listActiveServers reducer - deduplicates multiple active URIs for a saved profile", async () => {
+        const savedConnection = {
+            id: "saved-connection-id",
+            profileName: "Saved connection",
+            server: "saved-server",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const savedCredentials = {
+            id: savedConnection.id,
+            profileName: savedConnection.profileName,
+            server: savedConnection.server,
+        } as IConnectionProfile;
+        const unsavedCredentials = {
+            id: "",
+            profileName: "Unsaved connection",
+            server: "unsaved-server",
+        } as IConnectionProfile;
+        const savedConnectionOne = new ConnectionInfo();
+        savedConnectionOne.credentials = savedCredentials;
+        const savedConnectionTwo = new ConnectionInfo();
+        savedConnectionTwo.credentials = { ...savedCredentials };
+        const unsavedConnection = new ConnectionInfo();
+        unsavedConnection.credentials = unsavedCredentials;
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        activeConnections = {
+            "saved-uri-1": savedConnectionOne,
+            "saved-uri-2": savedConnectionTwo,
+            "unsaved-uri": unsavedConnection,
+        };
+        connectionManagerStub.isConnected.callsFake(
+            (connectionUri) => connectionUri in activeConnections,
+        );
+        connectionManagerStub.getUriForConnection.callsFake((connection) =>
+            (connection as IConnectionProfile).id === savedConnection.id
+                ? "saved-uri-1"
+                : undefined,
+        );
+
+        const actualResult = await controller["_reducerHandlers"].get("listActiveServers")(
+            mockInitialState,
+            {},
+        );
+
+        expect(actualResult.activeServers).to.deep.equal({
+            "saved-connection-id": {
+                profileName: "Saved connection",
+                server: "saved-server",
+            },
+            "unsaved-uri": {
+                profileName: "Unsaved connection",
+                server: "unsaved-server",
+            },
+        });
+    });
+
     test("listDatabasesForActiveServer reducer - when called - returns: ['db1', 'db2']", async () => {
         const payload = { connectionUri: "conn_uri" };
 
