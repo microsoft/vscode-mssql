@@ -40,6 +40,8 @@
     ],
     "scripts": {
         "build:grammar": "node scripts/build-grammar.mjs",
+        "build:corpus-manifest": "node scripts/build-tsql-corpus-manifest.mjs",
+        "report:corpus": "node scripts/report-tsql-corpus.mjs",
         "build:typescript": "tsc -p tsconfig.json",
         "build:workers": "node scripts/build-workers.mjs",
         "build": "npm run build:grammar && npm run build:typescript && npm run build:workers",
@@ -48,6 +50,7 @@
         "lint": "node scripts/check-boundaries.mjs",
         "test": "npm run build && node --test test/*.test.js",
         "benchmark": "npm run build && node --expose-gc benchmarks/run.mjs",
+        "benchmark:sqlparser": "npm run build && node --expose-gc benchmarks/compare-sqlparser.mjs",
         "benchmark:smoke": "npm run build && node benchmarks/run.mjs --smoke"
     },
     "dependencies": {

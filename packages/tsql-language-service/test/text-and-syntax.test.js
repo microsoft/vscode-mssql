@@ -41,7 +41,8 @@ describe("text and syntax scaffolding", () => {
         const tree = snapshot.tree.toString();
         assert.equal(tree.includes("Item("), false);
         assert.equal(tree.includes("Whitespace"), false);
-        assert.match(tree, /^Script\(Word,Number,Punctuation,LineComment\)$/);
+        assert.match(tree, /^Script\(Batch\(Statement\(SelectStatement/);
+        assert.match(tree, /LineComment/);
     });
 
     it("transforms reusable fragments through sequential edit batches", () => {

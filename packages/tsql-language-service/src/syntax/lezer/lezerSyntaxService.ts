@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeFragment, type SyntaxNode as LezerNode, type Tree } from "@lezer/common";
+import { Tree, TreeFragment, parseMixed, type SyntaxNode as LezerNode } from "@lezer/common";
 import type { LRParser } from "@lezer/lr";
 import type { TextChange, TextRange, TextSnapshot } from "../../text/index.js";
 import type {
@@ -13,15 +13,73 @@ import type {
     SyntaxService,
     SyntaxSnapshot,
     SyntaxToken,
+    TsqlFeatureProfile,
 } from "../contracts.js";
+import { defaultTsqlFeatureProfile } from "../contracts.js";
+import { keywordMetadata } from "../keywords.generated.js";
+import { partitionSqlBatches } from "./batchChunking.js";
 import { parser as generatedParser } from "./generated/tsqlParser.js";
 
+interface ParsedChunk extends TextRange {
+    readonly tree: Tree;
+    readonly fragments: readonly TreeFragment[];
+    readonly diagnostics: readonly SyntaxDiagnostic[];
+    readonly rawErrorNodeCount: number;
+    readonly batchCount: number;
+    readonly mixed: boolean;
+}
+
+interface ChunkCandidate {
+    readonly chunk: ParsedChunk;
+    start: number;
+    end: number;
+    dirty: boolean;
+    compatible: boolean;
+    readonly localChanges: TextChange[];
+}
+
 export class LezerSyntaxService implements SyntaxService {
-    public constructor(private readonly _parser: LRParser = generatedParser as LRParser) {}
+    private readonly _plainParser: LRParser;
+    private readonly _mixedParser: LRParser;
+    private readonly _expressionParser: LRParser;
+
+    public constructor(
+        parser: LRParser = generatedParser as LRParser,
+        public readonly profile: TsqlFeatureProfile = defaultTsqlFeatureProfile,
+    ) {
+        this._plainParser = parser;
+        this._expressionParser = parser.configure({ top: "ExpressionRoot" });
+        this._mixedParser = parser.configure({
+            wrap: parseMixed((node) => {
+                if (node.name === "ProceduralCondition") {
+                    return { parser: this._expressionParser };
+                }
+                if (node.name === "BlockChunk" || node.name === "StatementChunk") {
+                    return { parser };
+                }
+                return null;
+            }),
+        });
+    }
 
     public parse(document: TextSnapshot): SyntaxSnapshot {
-        const tree = this._parser.parse(document.text);
-        return new LezerSyntaxSnapshot(document, tree, TreeFragment.addTree(tree), [], "full", 0);
+        const chunks = partitionSqlBatches(document.text).map((range) =>
+            this.parseChunk(document.text, range),
+        );
+        return new LezerSyntaxSnapshot(
+            document,
+            chunks,
+            [],
+            "full",
+            {
+                reusableFragmentCount: 0,
+                reusedChunkCount: 0,
+                reparsedChunkCount: chunks.length,
+                parsedCharacterCount: document.length,
+            },
+            this.profile,
+            () => this.parseCompleteDocument(document.text),
+        );
     }
 
     public update(
@@ -36,61 +94,167 @@ export class LezerSyntaxService implements SyntaxService {
         if (changes.length === 0) {
             return new LezerSyntaxSnapshot(
                 document,
-                previous.tree,
-                previous.fragments,
+                previous.chunks,
                 [],
                 "incremental",
-                previous.fragments.length,
+                {
+                    reusableFragmentCount: 0,
+                    reusedChunkCount: previous.chunks.length,
+                    reparsedChunkCount: 0,
+                    parsedCharacterCount: 0,
+                },
+                this.profile,
+                () => this.parseCompleteDocument(document.text),
             );
         }
 
-        // LSP changes are sequential: each range addresses the document produced by the prior
-        // change. Transform fragments through the same sequence, then parse the final text once.
-        let reusable = previous.fragments;
+        const candidates = transformChunkCandidates(previous.chunks, changes);
+        const preferredBoundaries = new Set<number>();
+        for (const candidate of candidates) {
+            if (candidate.end <= candidate.start) continue;
+            preferredBoundaries.add(candidate.start);
+            preferredBoundaries.add(candidate.end);
+        }
+        const ranges = partitionSqlBatches(document.text, preferredBoundaries);
+        const candidatesByRange = new Map(
+            candidates.map((candidate) => [`${candidate.start}:${candidate.end}`, candidate]),
+        );
+        const chunks: ParsedChunk[] = [];
+        let reusableFragmentCount = 0;
+        let reusedChunkCount = 0;
+        let reparsedChunkCount = 0;
+        let parsedCharacterCount = 0;
+        for (const range of ranges) {
+            const candidate = candidatesByRange.get(`${range.start}:${range.end}`);
+            if (candidate?.compatible && !candidate.dirty) {
+                chunks.push({ ...candidate.chunk, start: range.start, end: range.end });
+                reusedChunkCount++;
+                continue;
+            }
+            if (candidate?.compatible && candidate.localChanges.length > 0) {
+                let reusable = candidate.chunk.fragments;
+                for (const change of candidate.localChanges) {
+                    reusable = TreeFragment.applyChanges(reusable, [toChangedRange(change)]);
+                }
+                chunks.push(this.parseChunk(document.text, range, reusable));
+                reusableFragmentCount += reusable.length;
+            } else {
+                chunks.push(this.parseChunk(document.text, range));
+            }
+            reparsedChunkCount++;
+            parsedCharacterCount += range.end - range.start;
+        }
+
         let changedRanges: readonly TextRange[] = [];
         for (const change of changes) {
-            reusable = TreeFragment.applyChanges(reusable, [toChangedRange(change)]);
             changedRanges = mapChangedRanges(changedRanges, change);
         }
-        const tree = this._parser.parse(document.text, reusable);
         return new LezerSyntaxSnapshot(
             document,
-            tree,
-            TreeFragment.addTree(tree, reusable),
+            chunks,
             changedRanges,
             "incremental",
-            reusable.length,
+            {
+                reusableFragmentCount,
+                reusedChunkCount,
+                reparsedChunkCount,
+                parsedCharacterCount,
+            },
+            this.profile,
+            () => this.parseCompleteDocument(document.text),
         );
+    }
+
+    private parseChunk(
+        documentText: string,
+        range: TextRange,
+        reusable: readonly TreeFragment[] = [],
+    ): ParsedChunk {
+        const text = documentText.slice(range.start, range.end);
+        const candidate = reusable[0]?.tree;
+        let mixed = candidate ? treeContainsMixedRegions(candidate) : false;
+        let tree = (mixed ? this._mixedParser : this._plainParser).parse(text, reusable);
+        let facts = collectSyntaxFacts(tree, text, this.profile);
+        if (!mixed && facts.hasMixedRegions) {
+            mixed = true;
+            tree = this._mixedParser.parse(text, reusable);
+            facts = collectSyntaxFacts(tree, text, this.profile);
+        }
+        return Object.freeze({
+            ...range,
+            tree,
+            fragments: TreeFragment.addTree(tree, reusable),
+            diagnostics: Object.freeze(facts.diagnostics),
+            rawErrorNodeCount: facts.rawErrorNodeCount,
+            batchCount: countTopLevelBatches(tree),
+            mixed,
+        });
+    }
+
+    private parseCompleteDocument(text: string): Tree {
+        const tree = this._plainParser.parse(text);
+        return treeContainsMixedRegions(tree) ? this._mixedParser.parse(text) : tree;
     }
 }
 
 class LezerSyntaxSnapshot implements SyntaxSnapshot {
     public readonly diagnostics: readonly SyntaxDiagnostic[];
     public readonly statistics;
+    private _materializedTree: Tree | undefined;
+    private readonly _root: DocumentSyntaxNode;
 
     public constructor(
         public readonly document: TextSnapshot,
-        public readonly tree: Tree,
-        public readonly fragments: readonly TreeFragment[],
+        public readonly chunks: readonly ParsedChunk[],
         public readonly changedRanges: readonly TextRange[],
         mode: "full" | "incremental",
-        reusableFragmentCount: number,
+        reuse: {
+            readonly reusableFragmentCount: number;
+            readonly reusedChunkCount: number;
+            readonly reparsedChunkCount: number;
+            readonly parsedCharacterCount: number;
+        },
+        profile: TsqlFeatureProfile,
+        private readonly _materializeTree: () => Tree,
     ) {
-        this.diagnostics = collectDiagnostics(tree);
+        void profile;
+        this._root = new DocumentSyntaxNode(document.length, chunks);
+        this.diagnostics = Object.freeze(
+            chunks.flatMap((chunk) =>
+                chunk.diagnostics.map((diagnostic) => shiftDiagnostic(diagnostic, chunk.start)),
+            ),
+        );
         this.statistics = Object.freeze({
             mode,
             changedRangeCount: changedRanges.length,
-            reusableFragmentCount,
+            ...reuse,
+            chunkCount: chunks.length,
+            rawErrorNodeCount: chunks.reduce((total, chunk) => total + chunk.rawErrorNodeCount, 0),
+            batchCount: Math.max(
+                1,
+                chunks.reduce((total, chunk) => total + chunk.batchCount, 0) -
+                    Math.max(0, chunks.length - 1),
+            ),
         });
     }
 
+    /** Compatibility/debug view. Production features use the chunk-aware snapshot methods. */
+    public get tree(): Tree {
+        return (this._materializedTree ??= this._materializeTree());
+    }
+
     public root(): SyntaxNode {
-        return new LezerSyntaxNode(this.tree.topNode);
+        return this._root;
     }
 
     public nodeAt(offset: number): SyntaxNode {
         const safeOffset = Math.max(0, Math.min(offset, this.document.length));
-        return new LezerSyntaxNode(this.tree.resolveInner(safeOffset, -1));
+        const chunk = chunkAt(this.chunks, safeOffset);
+        if (!chunk) return this._root;
+        const node = chunk.tree.resolveInner(safeOffset - chunk.start, -1);
+        return node === chunk.tree.topNode
+            ? this._root
+            : new OffsetLezerSyntaxNode(node, chunk.start, chunk.tree.topNode, this._root);
     }
 
     public contextAt(offset: number): SyntaxContext {
@@ -107,35 +271,127 @@ class LezerSyntaxSnapshot implements SyntaxSnapshot {
     public *tokens(
         range: TextRange = { start: 0, end: this.document.length },
     ): Iterable<SyntaxToken> {
-        for (const node of leafNodes(this.tree.topNode)) {
-            if (node.from < range.start || node.to > range.end || node.type.isAnonymous) continue;
-            const text = this.document.text.slice(node.from, node.to);
-            const previous = node.from === 0 ? "\n" : this.document.text[node.from - 1];
-            yield {
-                kind: node.name,
-                start: node.from,
-                end: node.to,
-                text,
-                trivia: node.name === "Whitespace" || node.name.endsWith("Comment"),
-                lineStart: previous === "\n" || previous === "\r",
-            };
+        let consumed = range.start;
+        for (const chunk of chunksInRange(this.chunks, range)) {
+            for (const node of leafNodes(chunk.tree.topNode)) {
+                const start = chunk.start + node.from;
+                const end = chunk.start + node.to;
+                if (
+                    start < range.start ||
+                    end > range.end ||
+                    start === end ||
+                    node.type.isAnonymous
+                ) {
+                    continue;
+                }
+                if (start > consumed) {
+                    yield* triviaTokens(this.document.text, consumed, start);
+                }
+                const text = this.document.text.slice(start, end);
+                if (node.name === "AtTimeZone") {
+                    yield* compoundAtTimeZoneTokens(text, start, this.document.text);
+                    consumed = Math.max(consumed, end);
+                    continue;
+                }
+                const metadata =
+                    keywordMetadata(text) ?? parserLocalKeywordMetadata(node.name, text);
+                yield {
+                    kind: metadata ? "Keyword" : node.name,
+                    start,
+                    end,
+                    text,
+                    trivia: node.name === "Whitespace" || node.name.endsWith("Comment"),
+                    lineStart: isAtLineStart(this.document.text, start),
+                    keyword: metadata?.category,
+                };
+                consumed = Math.max(consumed, end);
+            }
+        }
+        if (consumed < range.end) yield* triviaTokens(this.document.text, consumed, range.end);
+    }
+}
+
+function parserLocalKeywordMetadata(
+    nodeName: string,
+    text: string,
+): { readonly category: "contextual" } | undefined {
+    return nodeName !== "Identifier" && /^[\p{L}_][\p{L}\p{N}_$#@]*$/u.test(text)
+        ? { category: "contextual" }
+        : undefined;
+}
+
+function* compoundAtTimeZoneTokens(
+    text: string,
+    start: number,
+    documentText: string,
+): Iterable<SyntaxToken> {
+    const matcher = /(?:at|time|zone)|\s+/giu;
+    for (const match of text.matchAll(matcher)) {
+        const tokenStart = start + match.index;
+        const value = match[0];
+        const trivia = /^\s+$/u.test(value);
+        yield {
+            kind: trivia ? "Whitespace" : "Keyword",
+            start: tokenStart,
+            end: tokenStart + value.length,
+            text: value,
+            trivia,
+            lineStart: isAtLineStart(documentText, tokenStart),
+            keyword: trivia ? undefined : "contextual",
+        };
+    }
+}
+
+class DocumentSyntaxNode implements SyntaxNode {
+    public readonly kind = "Script";
+    public readonly start = 0;
+    public readonly error = false;
+
+    public constructor(
+        public readonly end: number,
+        private readonly _chunks: readonly ParsedChunk[],
+    ) {}
+
+    public parent(): undefined {
+        return undefined;
+    }
+
+    public *children(): Iterable<SyntaxNode> {
+        for (let index = 0; index < this._chunks.length; index++) {
+            const chunk = this._chunks[index]!;
+            for (let child = chunk.tree.topNode.firstChild; child; child = child.nextSibling) {
+                if (
+                    index < this._chunks.length - 1 &&
+                    child.name === "Batch" &&
+                    child.from === child.to &&
+                    child.to === chunk.end - chunk.start
+                ) {
+                    continue;
+                }
+                yield new OffsetLezerSyntaxNode(child, chunk.start, chunk.tree.topNode, this);
+            }
         }
     }
 }
 
-class LezerSyntaxNode implements SyntaxNode {
-    public constructor(private readonly _node: LezerNode) {}
+class OffsetLezerSyntaxNode implements SyntaxNode {
+    public constructor(
+        private readonly _node: LezerNode,
+        private readonly _offset: number,
+        private readonly _chunkRoot: LezerNode,
+        private readonly _documentRoot: DocumentSyntaxNode,
+    ) {}
 
     public get kind(): string {
         return this._node.name;
     }
 
     public get start(): number {
-        return this._node.from;
+        return this._offset + this._node.from;
     }
 
     public get end(): number {
-        return this._node.to;
+        return this._offset + this._node.to;
     }
 
     public get error(): boolean {
@@ -143,16 +399,128 @@ class LezerSyntaxNode implements SyntaxNode {
     }
 
     public parent(): SyntaxNode | undefined {
-        return this._node.parent ? new LezerSyntaxNode(this._node.parent) : undefined;
+        const parent = this._node.parent;
+        return !parent || parent === this._chunkRoot
+            ? this._documentRoot
+            : new OffsetLezerSyntaxNode(parent, this._offset, this._chunkRoot, this._documentRoot);
     }
 
     public *children(): Iterable<SyntaxNode> {
         let child = this._node.firstChild;
         while (child) {
-            yield new LezerSyntaxNode(child);
+            yield new OffsetLezerSyntaxNode(
+                child,
+                this._offset,
+                this._chunkRoot,
+                this._documentRoot,
+            );
             child = child.nextSibling;
         }
     }
+}
+
+function transformChunkCandidates(
+    chunks: readonly ParsedChunk[],
+    changes: readonly TextChange[],
+): readonly ChunkCandidate[] {
+    const candidates: ChunkCandidate[] = chunks.map((chunk) => ({
+        chunk,
+        start: chunk.start,
+        end: chunk.end,
+        dirty: false,
+        compatible: true,
+        localChanges: [],
+    }));
+    for (const change of changes) {
+        const insertion = change.start === change.end;
+        const delta = change.text.length - (change.end - change.start);
+        for (let index = 0; index < candidates.length; index++) {
+            const candidate = candidates[index]!;
+            const oldStart = candidate.start;
+            const oldEnd = candidate.end;
+            if (insertion) {
+                if (change.start < oldStart) {
+                    candidate.start += delta;
+                    candidate.end += delta;
+                } else if (
+                    change.start < oldEnd ||
+                    (change.start === oldEnd && index === candidates.length - 1)
+                ) {
+                    candidate.localChanges.push({
+                        start: change.start - oldStart,
+                        end: change.end - oldStart,
+                        text: change.text,
+                    });
+                    candidate.dirty = true;
+                    candidate.end += delta;
+                }
+                continue;
+            }
+            if (change.end <= oldStart) {
+                candidate.start += delta;
+                candidate.end += delta;
+            } else if (change.start >= oldEnd) {
+                continue;
+            } else if (change.start >= oldStart && change.end <= oldEnd) {
+                candidate.localChanges.push({
+                    start: change.start - oldStart,
+                    end: change.end - oldStart,
+                    text: change.text,
+                });
+                candidate.dirty = true;
+                candidate.end += delta;
+            } else {
+                candidate.dirty = true;
+                candidate.compatible = false;
+                candidate.start = mapBoundaryStart(oldStart, change, delta);
+                candidate.end = mapBoundaryEnd(oldEnd, change, delta);
+            }
+        }
+    }
+    return candidates;
+}
+
+function mapBoundaryStart(position: number, change: TextChange, delta: number): number {
+    if (position <= change.start) return position;
+    if (position >= change.end) return position + delta;
+    return change.start;
+}
+
+function mapBoundaryEnd(position: number, change: TextChange, delta: number): number {
+    if (position <= change.start) return position;
+    if (position >= change.end) return position + delta;
+    return change.start + change.text.length;
+}
+
+function chunkAt(chunks: readonly ParsedChunk[], offset: number): ParsedChunk | undefined {
+    let low = 0;
+    let high = chunks.length;
+    while (low < high) {
+        const middle = Math.floor((low + high) / 2);
+        if (chunks[middle]!.end <= offset && middle < chunks.length - 1) low = middle + 1;
+        else high = middle;
+    }
+    return chunks[low];
+}
+
+function* chunksInRange(chunks: readonly ParsedChunk[], range: TextRange): Iterable<ParsedChunk> {
+    for (const chunk of chunks) {
+        if (chunk.end <= range.start && chunk.end !== chunk.start) continue;
+        if (chunk.start >= range.end && range.start !== range.end) break;
+        yield chunk;
+    }
+}
+
+function shiftDiagnostic(diagnostic: SyntaxDiagnostic, offset: number): SyntaxDiagnostic {
+    return offset === 0
+        ? diagnostic
+        : {
+              ...diagnostic,
+              range: {
+                  start: diagnostic.range.start + offset,
+                  end: diagnostic.range.end + offset,
+              },
+          };
 }
 
 function* leafNodes(node: LezerNode): Iterable<LezerNode> {
@@ -165,6 +533,61 @@ function* leafNodes(node: LezerNode): Iterable<LezerNode> {
         yield* leafNodes(child);
         child = child.nextSibling;
     }
+}
+
+function countTopLevelBatches(tree: Tree): number {
+    let count = 0;
+    for (let child = tree.topNode.firstChild; child; child = child.nextSibling) {
+        if (child.name === "Batch") count++;
+    }
+    return count;
+}
+
+function* triviaTokens(text: string, start: number, end: number): Iterable<SyntaxToken> {
+    let offset = start;
+    while (offset < end) {
+        const lineComment = text.startsWith("--", offset);
+        const blockComment = text.startsWith("/*", offset);
+        let tokenEnd = offset;
+        let kind = "Whitespace";
+        if (lineComment) {
+            kind = "LineComment";
+            tokenEnd = text.indexOf("\n", offset + 2);
+            if (tokenEnd < 0 || tokenEnd > end) tokenEnd = end;
+        } else if (blockComment) {
+            kind = "BlockComment";
+            tokenEnd = nestedCommentEnd(text, offset, end);
+        } else {
+            while (tokenEnd < end && /[\s]/u.test(text[tokenEnd]!)) tokenEnd++;
+            if (tokenEnd === offset) return;
+        }
+        yield {
+            kind,
+            start: offset,
+            end: tokenEnd,
+            text: text.slice(offset, tokenEnd),
+            trivia: true,
+            lineStart: isAtLineStart(text, offset),
+        };
+        offset = tokenEnd;
+    }
+}
+
+function nestedCommentEnd(text: string, start: number, limit: number): number {
+    let offset = start + 2;
+    let depth = 1;
+    while (offset < limit && depth > 0) {
+        if (text.startsWith("/*", offset)) {
+            depth++;
+            offset += 2;
+        } else if (text.startsWith("*/", offset)) {
+            depth--;
+            offset += 2;
+        } else {
+            offset++;
+        }
+    }
+    return offset;
 }
 
 function toChangedRange(change: TextChange) {
@@ -214,18 +637,257 @@ function mergeRanges(ranges: readonly TextRange[]): readonly TextRange[] {
     return result;
 }
 
-function collectDiagnostics(tree: Tree): readonly SyntaxDiagnostic[] {
+function collectSyntaxFacts(
+    tree: Tree,
+    text: string,
+    profile: TsqlFeatureProfile,
+): {
+    readonly diagnostics: readonly SyntaxDiagnostic[];
+    readonly rawErrorNodeCount: number;
+    readonly hasMixedRegions: boolean;
+} {
     const diagnostics: SyntaxDiagnostic[] = [];
+    const reportedFeatures = new Set<string>();
+    let rawErrorNodeCount = 0;
+    let hasMixedRegions = false;
     tree.iterate({
         enter(node) {
-            if (!node.type.isError) return;
+            if (
+                node.name === "ProceduralCondition" ||
+                node.name === "BlockChunk" ||
+                node.name === "StatementChunk"
+            ) {
+                hasMixedRegions = true;
+            }
+            if (node.type.isError) {
+                rawErrorNodeCount++;
+                const merge = ancestorNamed(node.node, "MergeStatement");
+                if (
+                    merge &&
+                    node.node.parent === merge &&
+                    node.from === node.to &&
+                    missingMergeTerminator(merge, text, node.from)
+                ) {
+                    diagnostics.push({
+                        code: "syntax",
+                        message: "A MERGE statement must be terminated by a semi-colon (;).",
+                        severity: "error",
+                        range: { start: node.from, end: node.from },
+                    });
+                } else {
+                    const nearRange = diagnosticNearRange(node.from, node.to, text);
+                    const near =
+                        nearRange.start === text.length
+                            ? "End Of File"
+                            : text.slice(nearRange.start, nearRange.end);
+                    const expectation = expectedSuffix(node.node, text, nearRange);
+                    diagnostics.push({
+                        code: "syntax",
+                        message: `Incorrect syntax near '${near}'.${expectation}`,
+                        severity: "error",
+                        range: nearRange,
+                    });
+                }
+            }
+            const rule = featureProfileRule(node.node, text, profile);
+            if (!rule || supportsFeature(profile, rule)) return;
+            const start = findWord(text, node.from, node.to, rule.keyword);
+            const key = `${start}:${rule.keyword}`;
+            if (start < 0 || reportedFeatures.has(key)) return;
+            reportedFeatures.add(key);
             diagnostics.push({
-                code: "syntax-error",
-                message: "Incomplete or unrecognized T-SQL syntax.",
+                code: "syntax",
+                message: `Incorrect syntax near '${rule.keyword}'.`,
                 severity: "error",
-                range: { start: node.from, end: node.to },
+                range: { start, end: start + rule.keyword.length },
             });
         },
     });
-    return diagnostics;
+    const unterminatedComment = unterminatedBlockCommentRange(text);
+    if (unterminatedComment) {
+        diagnostics.push({
+            code: "syntax",
+            message: "Unclosed comment was found at the end of the batch.",
+            severity: "error",
+            range: unterminatedComment,
+        });
+    }
+    return { diagnostics, rawErrorNodeCount, hasMixedRegions };
+}
+
+function treeContainsMixedRegions(tree: Tree): boolean {
+    const cursor = tree.cursor();
+    do {
+        if (
+            cursor.name === "ProceduralCondition" ||
+            cursor.name === "BlockChunk" ||
+            cursor.name === "StatementChunk"
+        ) {
+            return true;
+        }
+    } while (cursor.next());
+    return false;
+}
+
+function unterminatedBlockCommentRange(text: string): TextRange | undefined {
+    const stack: number[] = [];
+    let quote: "string" | "quoted" | "bracket" | undefined;
+    for (let index = 0; index < text.length; index++) {
+        const current = text[index];
+        const next = text[index + 1];
+        if (stack.length > 0) {
+            if (current === "/" && next === "*") {
+                stack.push(index++);
+            } else if (current === "*" && next === "/") {
+                stack.pop();
+                index++;
+            }
+            continue;
+        }
+        if (quote) {
+            const close = quote === "string" ? "'" : quote === "quoted" ? '"' : "]";
+            if (current === close && next === close) index++;
+            else if (current === close) quote = undefined;
+        } else if (current === "-" && next === "-") {
+            const newline = text.indexOf("\n", index + 2);
+            if (newline < 0) break;
+            index = newline;
+        } else if (current === "/" && next === "*") {
+            stack.push(index++);
+        } else if (current === "'") quote = "string";
+        else if (current === '"') quote = "quoted";
+        else if (current === "[") quote = "bracket";
+    }
+    const start = stack[0];
+    return start === undefined ? undefined : { start, end: text.length };
+}
+
+interface FeatureProfileRule {
+    readonly keyword: string;
+    readonly minimumServer?: 15 | 16 | 17;
+    readonly minimumCompatibility?: 150 | 160 | 170;
+    readonly engineFlavors?: readonly TsqlFeatureProfile["engineFlavor"][];
+}
+
+function featureProfileRule(
+    node: LezerNode,
+    text: string,
+    profile: TsqlFeatureProfile,
+): FeatureProfileRule | undefined {
+    switch (node.name) {
+        case "WindowClause":
+            return { keyword: "WINDOW", minimumServer: 16, minimumCompatibility: 160 };
+        case "CreateJsonIndexStatement":
+            return { keyword: "JSON", minimumServer: 17, minimumCompatibility: 170 };
+        case "CreateVectorIndexStatement":
+            return { keyword: "VECTOR", minimumServer: 17, minimumCompatibility: 170 };
+        case "AvailabilityGroupStatement":
+            return { keyword: "AVAILABILITY", engineFlavors: ["sql-server"] };
+        case "BackupStatement":
+            return { keyword: "BACKUP", engineFlavors: ["sql-server"] };
+        case "RestoreStatement":
+            return { keyword: "RESTORE", engineFlavors: ["sql-server"] };
+        case "DataType": {
+            const value = text.slice(node.from, node.to).trimStart().toLowerCase();
+            if (/^(json|vector)\b/u.test(value)) {
+                return {
+                    keyword: value.startsWith("json") ? "JSON" : "VECTOR",
+                    minimumServer: 17,
+                    minimumCompatibility: 170,
+                };
+            }
+            return undefined;
+        }
+        default:
+            return profile.previewFeatures ? undefined : previewFeatureRule(node.name);
+    }
+}
+
+function previewFeatureRule(nodeName: string): FeatureProfileRule | undefined {
+    // Keep preview-only gates explicit here as SQL Server adds grammar ahead of a final release.
+    // The current 150/160/170 structural set contains no preview-only statement node.
+    void nodeName;
+    return undefined;
+}
+
+function supportsFeature(profile: TsqlFeatureProfile, rule: FeatureProfileRule): boolean {
+    return (
+        (rule.minimumServer === undefined || profile.serverMajorVersion >= rule.minimumServer) &&
+        (rule.minimumCompatibility === undefined ||
+            profile.compatibilityLevel >= rule.minimumCompatibility) &&
+        (rule.engineFlavors === undefined || rule.engineFlavors.includes(profile.engineFlavor))
+    );
+}
+
+function findWord(text: string, start: number, end: number, word: string): number {
+    const lowerWord = word.toLowerCase();
+    for (let index = start; index + word.length <= end; index++) {
+        if (text.slice(index, index + word.length).toLowerCase() !== lowerWord) continue;
+        if (
+            (index === start || !isIdentifierCharacter(text.charCodeAt(index - 1))) &&
+            (index + word.length === end ||
+                !isIdentifierCharacter(text.charCodeAt(index + word.length)))
+        ) {
+            return index;
+        }
+    }
+    return -1;
+}
+
+function expectedSuffix(node: LezerNode, text: string, range: TextRange): string {
+    if (range.start !== text.length) return "";
+    const parent = node.parent;
+    if (
+        parent?.name === "MultipartIdentifier" &&
+        text.slice(parent.from, node.from).endsWith(".")
+    ) {
+        return "  Expecting '.', ID, or QUOTED_ID.";
+    }
+    return "";
+}
+
+function diagnosticNearRange(start: number, end: number, text: string): TextRange {
+    if (start !== end || start === text.length) return { start, end };
+    let tokenEnd = start;
+    if (isIdentifierCharacter(text.charCodeAt(start))) {
+        while (tokenEnd < text.length && isIdentifierCharacter(text.charCodeAt(tokenEnd))) {
+            tokenEnd++;
+        }
+    } else {
+        tokenEnd++;
+    }
+    return { start, end: tokenEnd };
+}
+
+function isIdentifierCharacter(code: number): boolean {
+    return (
+        (code >= 48 && code <= 57) ||
+        (code >= 65 && code <= 90) ||
+        (code >= 97 && code <= 122) ||
+        code === 35 ||
+        code === 64 ||
+        code === 95 ||
+        code >= 128
+    );
+}
+
+function ancestorNamed(node: LezerNode, name: string): LezerNode | undefined {
+    for (let current: LezerNode | null = node.parent; current; current = current.parent) {
+        if (current.name === name) return current;
+    }
+    return undefined;
+}
+
+function missingMergeTerminator(merge: LezerNode, text: string, errorOffset: number): boolean {
+    if (errorOffset < merge.from || errorOffset > merge.to) return false;
+    return text.slice(merge.from, errorOffset).trimEnd().toLowerCase().startsWith("merge");
+}
+
+function isAtLineStart(text: string, offset: number): boolean {
+    for (let index = offset - 1; index >= 0; index--) {
+        const character = text[index];
+        if (character === "\n" || character === "\r") return true;
+        if (character !== " " && character !== "\t") return false;
+    }
+    return true;
 }

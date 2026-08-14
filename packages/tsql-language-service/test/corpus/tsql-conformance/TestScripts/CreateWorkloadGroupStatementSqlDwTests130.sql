@@ -1,0 +1,72 @@
+CREATE WORKLOAD GROUP wgWithAllRequiredAndOptionalParameters
+    WITH  (
+            MIN_PERCENTAGE_RESOURCE = 32,
+            REQUEST_MIN_RESOURCE_GRANT_PERCENT = 4,
+            CAP_PERCENTAGE_RESOURCE = 100,
+			REQUEST_MAX_RESOURCE_GRANT_PERCENT = 4,
+            IMPORTANCE = LOW,
+			QUERY_EXECUTION_TIMEOUT_SEC=1
+          );
+
+CREATE WORKLOAD GROUP wgOrderParamsNotGuaranteed
+WITH  (
+			IMPORTANCE = NORMAL,
+			CAP_PERCENTAGE_RESOURCE = 100,
+			MIN_PERCENTAGE_RESOURCE = 32,
+			REQUEST_MIN_RESOURCE_GRANT_PERCENT = 4
+       );
+
+CREATE WORKLOAD GROUP wgMinResGrantPercentFactorOfMinPercentRes
+    WITH  (
+            MIN_PERCENTAGE_RESOURCE = 32,
+            REQUEST_MIN_RESOURCE_GRANT_PERCENT = 4,
+            CAP_PERCENTAGE_RESOURCE = 100,
+            IMPORTANCE = NORMAL
+          );
+
+CREATE WORKLOAD GROUP wgCapGreaterThanMinPercentageResource
+    WITH  (
+            MIN_PERCENTAGE_RESOURCE = 40,
+            CAP_PERCENTAGE_RESOURCE = 100,
+            REQUEST_MIN_RESOURCE_GRANT_PERCENT = 10,
+            IMPORTANCE = HIGH
+          );
+
+CREATE WORKLOAD GROUP wgMaxGrantPercentGreaterThanMinGrantPercent
+    WITH  (
+            MIN_PERCENTAGE_RESOURCE = 40,
+            CAP_PERCENTAGE_RESOURCE = 100,
+            REQUEST_MIN_RESOURCE_GRANT_PERCENT = 10,
+            REQUEST_MAX_RESOURCE_GRANT_PERCENT = 50
+          );
+
+CREATE WORKLOAD GROUP wgAdHoc
+    WITH  (
+            MIN_PERCENTAGE_RESOURCE = 0,
+            CAP_PERCENTAGE_RESOURCE = 20,
+            REQUEST_MIN_RESOURCE_GRANT_PERCENT = 10
+          );
+
+CREATE WORKLOAD GROUP wgWithImportanceAboveNormal
+    WITH  (
+            MIN_PERCENTAGE_RESOURCE = 0,
+            CAP_PERCENTAGE_RESOURCE = 20,
+            REQUEST_MIN_RESOURCE_GRANT_PERCENT = 10,
+            IMPORTANCE = ABOVE_NORMAL
+          );
+
+CREATE WORKLOAD GROUP wgWithImportanceBelowNormal
+    WITH  (
+            MIN_PERCENTAGE_RESOURCE = 0,
+            CAP_PERCENTAGE_RESOURCE = 20,
+            REQUEST_MIN_RESOURCE_GRANT_PERCENT = 10,
+            IMPORTANCE = BELOW_NORMAL
+          );
+
+CREATE WORKLOAD GROUP wgWithQueryTimeOut
+    WITH  (
+            MIN_PERCENTAGE_RESOURCE = 0,
+            CAP_PERCENTAGE_RESOURCE = 15,
+            REQUEST_MIN_RESOURCE_GRANT_PERCENT = 3,
+            QUERY_EXECUTION_TIMEOUT_SEC = 3600
+          );

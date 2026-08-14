@@ -1,0 +1,9 @@
+-- Test cases for AUTOMATIC_INDEX_COMPACTION database option
+
+-- Simple ON state
+ALTER DATABASE db
+    SET AUTOMATIC_INDEX_COMPACTION = ON;
+
+-- Simple OFF state
+ALTER DATABASE db
+    SET AUTOMATIC_INDEX_COMPACTION = OFF;

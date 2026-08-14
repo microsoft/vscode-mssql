@@ -1,0 +1,4418 @@
+{
+    "schemaVersion": 1,
+    "source": {
+        "name": "Microsoft SQL Script DOM",
+        "repository": "https://msdata.visualstudio.com/SQLToolsAndLibraries/_git/ScriptDOM",
+        "commit": "9aec6298a36d6e27ca0f2ad574bb3fd80aea30f5",
+        "path": "Test/SqlDom/TestScripts",
+        "license": "MIT"
+    },
+    "inventory": {
+        "files": 489,
+        "bytes": 494560,
+        "sha256": "58ba635e6e95e8e83cfc08b3a9eebf15cb6fe67288cdb179e99af70a36b04b09"
+    },
+    "files": [
+        {
+            "path": "TestScripts/AcceleratedDatabaseRecoveryTests150.sql",
+            "bytes": 124,
+            "sha256": "ecf21e0f5d39b114c72d3d3b3affd939bc397bd1731ee42c400d5eb888a01e20",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AddDropSignatureStatementTests.sql",
+            "bytes": 480,
+            "sha256": "00656eba3b962f0bf49fb28883e15cf0d39841d1339699721995d5c35533c2b1",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AiAnalyzeSentimentTestsFabricDW.sql",
+            "bytes": 518,
+            "sha256": "d46f5258fc2d4d299ce44dce218e23861bc00827abee5dffbd1bc5e1cb5044f2",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AiClassifyTestsFabricDW.sql",
+            "bytes": 702,
+            "sha256": "d21a356088b704f49f7646ac6c72ac1be5cf275864affe4b4c4b3bc0550ae0a1",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AiExtractTestsFabricDW.sql",
+            "bytes": 695,
+            "sha256": "71eaaa4a842c418dbafcafff44d6b8ec02f3ca647fbc6c8da5ab1c8362b8c473",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AiFixGrammarTestsFabricDW.sql",
+            "bytes": 470,
+            "sha256": "86b408969ac34fb46582e62d6b2ec8ef706efe06b26aa8463215696e644ed7ea",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AiGenerateChunksTests170.sql",
+            "bytes": 2638,
+            "sha256": "258451af32fc1646c19da7f0de844b4642e4369326899f27dafd37f1a53c7530",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AiGenerateEmbeddingsTests170.sql",
+            "bytes": 1644,
+            "sha256": "8985eed2ec4b843284b11e29f9e07c0e4b14ae85712fb863f8623b84a42e654f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AiGenerateResponseTestsFabricDW.sql",
+            "bytes": 523,
+            "sha256": "8cae65054c8fcf0cf4f5dfcd086f117a81dbdc45e6ddd63715ba9800c6e6b99a",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AiSummarizeTestsFabricDW.sql",
+            "bytes": 454,
+            "sha256": "144ea82905f8ac05e9f6cfbebe3453e1286b6ad80ff47206ec5100f2588bba69",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AiTranslateTestsFabricDW.sql",
+            "bytes": 609,
+            "sha256": "d75f5a948c3a8669e3c31d546b446d3b2c21ce47ac60495a7d5ce9998a8222a7",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterAssemblyStatementTests.sql",
+            "bytes": 494,
+            "sha256": "e1dbba24a3230f133de14e0ad7553ffbb18c620bccb0ea671b36a47867178585",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterAvailabilityGroupStatementTests.sql",
+            "bytes": 1644,
+            "sha256": "957ae471c2ddba8c34302fa56a6927d9e40476959f876700dad2a1e2c59e56c7",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterCertificateStatementTests.sql",
+            "bytes": 316,
+            "sha256": "a300d524f6f074128c95a574c4e58e43a70fd0918774612cf1d4fac48477e11c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterCreateCredentialStatementTests.sql",
+            "bytes": 210,
+            "sha256": "53c42601bee1628a709d6f201ab69b6f4ebb3e8f72c57acd9f35a19c383adb0f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterCreateDatabaseFilePath150.sql",
+            "bytes": 422,
+            "sha256": "e675864ffd9d32d95756768a72000db2945cdc463699d408d009e6fb45e0fc59",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterCreateDatabaseStatementTests100.sql",
+            "bytes": 809,
+            "sha256": "70ffa5cf07230f8811201620964ec2a088e5b403c640f33055fa037aa57f4133",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterCreateDatabaseStatementTests120.sql",
+            "bytes": 446,
+            "sha256": "0d6eb31cad30603c3be47fd9c8bd994d18aabf0b2cc34d713670838d9d408eeb",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterCreateDatabaseStatementTests90.sql",
+            "bytes": 1171,
+            "sha256": "d0ca30822afb7ef712c1bef46d8fe5eb850a7bac1a5159a49460b7181946f1ef",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterCreateResourcePoolStatement120.sql",
+            "bytes": 1071,
+            "sha256": "d456b566c1c1dd494b62a0c172a90de532fc061a12b056d2d0f5b154f392e115",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterCreateServiceStatementTests.sql",
+            "bytes": 379,
+            "sha256": "adceaf2d8bcffdbd302680e37f6d6d882f1bc9a1b88bb8e19457accd0047dd07",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseManualCutoverTests170.sql",
+            "bytes": 301,
+            "sha256": "7c471fa548b01574375a272d2f95ff4a48de819328ed1ee587fd46024fa074fd",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseOptionsTests.sql",
+            "bytes": 1112,
+            "sha256": "6540dc130b723551455bfe40fdc46bf2f6e68d14908b97ed3a02291db2ad8f29",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseOptionsTests100.sql",
+            "bytes": 775,
+            "sha256": "87437e839a3c46d17009a306b3ef91038f45a5aceb9b2d653767fbfa63ec9a90",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseOptionsTests120.sql",
+            "bytes": 249,
+            "sha256": "afa14d71dc9914354278deae527f7a61291ce1ffcd5493975584311701f42782",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseOptionsTests130.sql",
+            "bytes": 1839,
+            "sha256": "cf89593048c7cbe309184648744e90e8c00351dee5508bf9bae24c5eb484aaf0",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseOptionsTests140.sql",
+            "bytes": 1805,
+            "sha256": "04bdead888ef32f717f0950c90aa00ca0ea25dd12515328029b0aed7dad9fb69",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseOptionsTests140_Azure.sql",
+            "bytes": 115,
+            "sha256": "61077182c440ae2d6f796003110d4dea5a891e737ef6451bd85aa01f0afa4598",
+            "encoding": "utf8",
+            "flavorHint": "azure-sql",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseOptionsTests90.sql",
+            "bytes": 1216,
+            "sha256": "acbfdda4095478ee5b527b2b9b53dc8c744b3e72584d7155152f6d601033800a",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseScopedConfigClearProcCacheTests150.sql",
+            "bytes": 218,
+            "sha256": "2da78b55cffb222b980c6a4acfda59e08553e4dca9db903962ac7ce17f31fd4d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseScopedConfigForSecondaryClearProcCacheTests150.sql",
+            "bytes": 244,
+            "sha256": "a049ff4b8db3f422d8d03edee793336a1e801bd8e4ca41b7a9c07c66499915a8",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseScopedConfigTxnPriorityTests180.sql",
+            "bytes": 845,
+            "sha256": "0cb168ded08fd1fb4935ed0265c2c5076a1992c64035ff256153a03c016e54a6",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 180,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseScopedConfigurationTests130.sql",
+            "bytes": 1975,
+            "sha256": "e4cdb000059e2ebab59f3cf15bc49fce45c29ed57c77a9fb97d60af0ff6a8de9",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseScopedCredentialStatementTests130.sql",
+            "bytes": 134,
+            "sha256": "c91c047ac8263f777d64f871f105621681f2959411e4f16d5778535c09b708ba",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseScopedGenericConfigurationTests140.sql",
+            "bytes": 2549,
+            "sha256": "0b1cbcac23bedb8a012edd4e0145b116d4e7cdfd032a1251c800a0d250bf0113",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseStatementTests.sql",
+            "bytes": 1147,
+            "sha256": "c13189819d7e20b248ca7d716f89e2e39b9c3196c94b022c0a1cf88a94a88b0f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterDatabaseStatementTests130.sql",
+            "bytes": 284,
+            "sha256": "34b003561c07d1760690329cdd9e63d847cf633469e033558ddce51f70925c72",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterEndpointStatementTests.sql",
+            "bytes": 403,
+            "sha256": "87872e2500d2b034f052003f6ccd911b72b64047ccc9bc39400b1bce8994ebbf",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterExternalDataSourceStatementTests130.sql",
+            "bytes": 2123,
+            "sha256": "3f47e7f96219fc92a0ab2c6569af00c882b2d204aad04e47340f55e2d36f6c6a",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterExternalLanguage150.sql",
+            "bytes": 804,
+            "sha256": "195ccb1ef7db6c038273aee4bda0418b8855173e0ad821c7e8dd15fe0db900c5",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterExternalLibrary140.sql",
+            "bytes": 334,
+            "sha256": "f1855282d6ae2bf0b74754e5d1c9fb8b9356b1db352af5913d0cc151e13aec13",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterExternalLibrary150.sql",
+            "bytes": 510,
+            "sha256": "23a3c43e55e4187c02d649423c8b577248dfa496996aeb126a76686401f8ede8",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterExternalModelStatementTests170.sql",
+            "bytes": 540,
+            "sha256": "d3b8d9543093b71150ecb8be80b039a692342fb7e5e5a27b46ad0ebd07f02185",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterExternalResourcePoolStatementTests130.sql",
+            "bytes": 1116,
+            "sha256": "32ec398842ad56add7313025cd8358b21ed01ee0d45cd073d10f5ae779742056",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterFulltextCatalogStatementTests.sql",
+            "bytes": 235,
+            "sha256": "d3d8e6a0d9c0f76e67ea2f6297a3dc2f5e5d4823501a826e3d22518643a846af",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterFulltextIndexStatementTests.sql",
+            "bytes": 828,
+            "sha256": "beaaad6835efa15065b4eb0efce1e87f102c51c3920ece0e15121e46d2c780d3",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterFunctionJsonObjectTests160.sql",
+            "bytes": 387,
+            "sha256": "bea31341b87fedc18c363e2aba26eb307eb0d14c79e86a9e79e4c366b8afcbc2",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterIndexStatementTests.sql",
+            "bytes": 712,
+            "sha256": "6dff8c2c8b2dda15d1bbbe60f2440fa7f23128a603fdcc4bb25471503735b921",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterIndexStatementTests100.sql",
+            "bytes": 143,
+            "sha256": "58e271ffa881d79e3c90fcaebb03dce544b78019ee51f66f9c324b43915f2b3e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterIndexStatementTests120.sql",
+            "bytes": 1929,
+            "sha256": "c5769c589437424ee2c7d7b62d04ac79e6e6cf43f8489b6c807fab1fe1b32c4c",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterIndexStatementTests130.sql",
+            "bytes": 637,
+            "sha256": "c370b42df815f787ba7d2011363706cc5f626871beb3a1dca6edbcc3c82e725b",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterIndexStatementTests140.sql",
+            "bytes": 1934,
+            "sha256": "3151002f44d2609058ce0da0a3aaec38b259e7c9761e772ca48ad96b6bf1f4a3",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterIndexStatementTests150.sql",
+            "bytes": 364,
+            "sha256": "7392467c0886db009dd564f9cfd76568e2b405d0d471a9702deaa9d1e5da0838",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterMasterKeyStatementTests.sql",
+            "bytes": 347,
+            "sha256": "cd4a74c08d2719eeb751114830af221a48f2dce2de34b6a6a6c728ea2c402fa9",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterMessageTypeStatementTests.sql",
+            "bytes": 112,
+            "sha256": "64d4ef176d165b7ab2d9739289aa626fd6bcc928432ebd4528801cce591b72af",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterPartitionStatementsTests.sql",
+            "bytes": 339,
+            "sha256": "5405208c15c3e6a60bc2650a76f397e984c35057bf413309688fa118fb14d3ba",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterProcedureStatementTests.sql",
+            "bytes": 678,
+            "sha256": "a2edbe3ca7f68b52850dbf70fcd52fc30fd82ca4ba28fe89cd0bcb3f0c945de4",
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterProcedureStatementTests120.sql",
+            "bytes": 1205,
+            "sha256": "ab8ca3c7c146b322ed96b5a4d78a64fc319ac820be849358b2065b3d9001b334",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterRemoteServiceBindingStatementTests.sql",
+            "bytes": 162,
+            "sha256": "dfbad7aaed70662af93355901d5341378a4787e348b8f156ed3c2c4b87dec773",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterResourceGovernorStatementTests.sql",
+            "bytes": 233,
+            "sha256": "1abf1739a1fa07c40587d103c1bf436a2dcb4b3c952cecbd79b941ef327956a2",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterSchemaStatementTests.sql",
+            "bytes": 158,
+            "sha256": "910859634d56e6b57f6ed6aef5255b687036fcdd8d3c623504f04f71b4f0b057",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterSearchPropertyListStatementTests.sql",
+            "bytes": 492,
+            "sha256": "36044128359bd2c731d4e02494d30655ec73df5d7449bab618769892f6aa56c2",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterSelectiveXmlIndexStatementTests.sql",
+            "bytes": 713,
+            "sha256": "4541030066d23432be833b739bb8bb36a4ab2185e867f744c2545454c1c57b08",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterSequenceStatementTests.sql",
+            "bytes": 317,
+            "sha256": "05f76238b6e85681c50876f12e01b0264e2b8e217475ce5ffeace38551aacadc",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterServerConfigurationExternalAuthenticationTests150.sql",
+            "bytes": 225,
+            "sha256": "111a02e089dd4e033efb182bdcc8cb64ccfd822a93661f7647ebe7b5dc27aacf",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterServerConfigurationSoftNumaTests130.sql",
+            "bytes": 90,
+            "sha256": "5914a47236d5e663194d7204298bc677a2328b8ee21c98d105eca8b56b6cf16d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterServerConfigurationStatementTests.sql",
+            "bytes": 194,
+            "sha256": "f9c706d89b36b2e3d80d81ece563fc9ceb08a4a075a7e7eb0d095becab8f3a7c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterServerConfigurationStatementTests110.sql",
+            "bytes": 1990,
+            "sha256": "070b2a42bc1b365ce81ca68f27572df6404fcc55688b7fd61059b1ba3e380874",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterServiceMasterKeyStatementTests.sql",
+            "bytes": 265,
+            "sha256": "2c98551ef9f18a4e9744cdf48843e92a3d66d6db84f225ccefd60e9632de338d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableAddIndexTests.sql",
+            "bytes": 81,
+            "sha256": "863d93a75addd24ed606cd5883de07b09358b6a8b5c921754c75b82eb5cf25e5",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableAddTableElementStatementTests.sql",
+            "bytes": 1359,
+            "sha256": "076a7b376c41bd82df231da81724235f77b6c2dd2cd8dff8173b42afd2239500",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableAlterColumnStatementTests.sql",
+            "bytes": 824,
+            "sha256": "85f2f38bca7d0066bd1f5302dd6b0e2632e69407293561f52242e690e4113745",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableAlterColumnStatementTests130.sql",
+            "bytes": 5532,
+            "sha256": "7a11afb7d16d225bad86014d53f720558cc10071ade53eaeb1bf51b47edda41f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableAlterColumnStatementTests140.sql",
+            "bytes": 1159,
+            "sha256": "8fcd07e14ebc8c37e9b1f2580035e55de63c9ba837b188de93b01215a99f7fd0",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableAlterIndex130.sql",
+            "bytes": 59,
+            "sha256": "420bb3b3c0708f164009ce2a44576403e88546f17cdf21bc6d7e93e32219a346",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableConstraintModificationStatementTests.sql",
+            "bytes": 292,
+            "sha256": "51f15e27b7d4b002c7fc429ba6806fb901b9c2a3f487a7d6f99f1e8bd262f37e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableDropTableElementStatementTests.sql",
+            "bytes": 220,
+            "sha256": "d78f11d6e6f10f94693c94ba2e59b5c7e14c82913e6ab3486ce1fcc04c847ea3",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableDropTableElementStatementTests130.sql",
+            "bytes": 28,
+            "sha256": "e2af0acd32b817121310b0243b38087ddc5e7ad5a2ff823a16c48a9a3b25ff50",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableDropTableElementStatementTests140.sql",
+            "bytes": 941,
+            "sha256": "14530022c2255a551fc175427be73df1ce715c73bb59a1e8cba6375bf0ee6aef",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableDropTableElementStatementTests90.sql",
+            "bytes": 272,
+            "sha256": "fd8b138709e89b5e7ae2dcd4ef181341f3994015d2de2ed3b28de978eaaf5102",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableResumableTests160.sql",
+            "bytes": 514,
+            "sha256": "c1f2b24b418fac8fca0acd8732739cd6f325a256192e7a3cb4cc5b67efa7bb66",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableStatementTests100.sql",
+            "bytes": 1085,
+            "sha256": "bd01a61260abf839e38f97ba8625c3d0bd4d5b7ac95be572b22e5cd44e720364",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableStatementTests120.sql",
+            "bytes": 2123,
+            "sha256": "a3b4be68b9edfcbeef1cf9f880da73da93b2dc8d8f66811e1abf5c5268d34346",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableStatementTests130.sql",
+            "bytes": 4560,
+            "sha256": "3ca539bdecb777f4f7f99e773c9b103ded7a93281221537ac420931a58425913",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableStatementTests140_Azure.sql",
+            "bytes": 236,
+            "sha256": "f9e8070964c1515412eed9e584c870e201e52bac7b6ebfe6bcf7043dce286467",
+            "encoding": "utf8-bom",
+            "flavorHint": "azure-sql",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableStatementTests160.sql",
+            "bytes": 161,
+            "sha256": "a2eff0f0af792476ea300e880086df74fe86f1e503f2b3c6b13837a7f2c3becf",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableSwitchStatementTests.sql",
+            "bytes": 383,
+            "sha256": "28cf1c2e5158dedd51d4d127466290f8f7d04efdc738eb58d4fe8c5972bbfd7f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableSwitchStatementTests120.sql",
+            "bytes": 756,
+            "sha256": "f6e1a5da16b9cf2d8606b676000d3085a13a63cdcecf0a4ab5e44389787c6a1d",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableSwitchStatementTests130.sql",
+            "bytes": 147,
+            "sha256": "472ef0ec8e75d810e871e77bd9f78de68eafb818bffef6abf7640e03342847ca",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTableTriggerModificationStatementTests.sql",
+            "bytes": 269,
+            "sha256": "0aed0a587992f734e467c644ff87f05fa83f2ad3925e3fabb04ba95ece73b588",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterTriggerStatementTests.sql",
+            "bytes": 143,
+            "sha256": "412c8081d0cea3a51b39bde1bb35d5bec4eb76cf1d1ebedcac71562cd8edea7b",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterWorkloadGroupStatementSqlDwTests.sql",
+            "bytes": 1445,
+            "sha256": "4f0c2924ed1304b68269399eae5d43a09c655b41ac195fa4d5ef25cc8b2fac6e",
+            "encoding": "utf8",
+            "flavorHint": "synapse-dw",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterWorkloadGroupStatementTests130.sql",
+            "bytes": 821,
+            "sha256": "74bd6235ab49a5ed8c2c60e5dddc6503f02fb6adc05ca737d2e82232c4889958",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlterXmlSchemaCollectionStatementTests.sql",
+            "bytes": 202,
+            "sha256": "89e43ecc238e71e30b2aa557b7927bb38a7bf7b73da23cba00dad21716bfa28d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlwaysEncryptedTests130.sql",
+            "bytes": 7162,
+            "sha256": "5adaf520b8556df403f751bb0beb716922a3ec3623b3f1f86939fa6b85168741",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AlwaysEncryptedTests150.sql",
+            "bytes": 448,
+            "sha256": "f8d97fb8e2e948118e927b01709aa85066215973bac1bfc14783a1002d8e2149",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ApplicationRoleStatementTests.sql",
+            "bytes": 426,
+            "sha256": "246eae79196e0658238d4efc79aa95c7ae257e5c12859e35e56b28ed3c754800",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AssignmentWithOperationTests.sql",
+            "bytes": 892,
+            "sha256": "63cc3bb67d1d5d7a0027fee0147a4cd26941db8968581f21e60029bb908f4234",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AsymmetricKeyStatementTests.sql",
+            "bytes": 1263,
+            "sha256": "664811835b60819beb30d0ed7659baa85c094723716400b733683b7389b18da3",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AsymmetricKeyStatementTests100.sql",
+            "bytes": 339,
+            "sha256": "ce2b52cac5e7332b2d6c076e76e6b97a2d727154cb700e468fb23369dcc2aac9",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AtTimeZoneTests130.sql",
+            "bytes": 914,
+            "sha256": "1a7d8eae2b89a3be77366ed0a6b38721458b9d61ef787666f6c20b9e3db492fa",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AuditSpecificationStatementTests110.sql",
+            "bytes": 1072,
+            "sha256": "66113e0ca49c58cfa9f11a28721f8a4a80eaba0e33c2ce9e1e6914218b0e3716",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/AutomaticIndexCompactionTests180.sql",
+            "bytes": 221,
+            "sha256": "b679f55e6859af38e86b4c78fc96bcb478b557ea11984a7b1855a5972d577ed9",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 180,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BackupCertificateStatementTests.sql",
+            "bytes": 231,
+            "sha256": "55e2e5b9d2e557f923544eef293d5b8af7d66e5cca7866cd40b6ab3d4de56e87",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BackupRestoreServiceMasterKeyStatementTests.sql",
+            "bytes": 495,
+            "sha256": "6ff8f0bd422a94817d41f94f57c331754d1449c77e100750c157f8536a6bc008",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BackupStatementTests.sql",
+            "bytes": 1581,
+            "sha256": "616765db7410de6cf106758f30590efcec49205e86afe988c7d7679b50345249",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BackupStatementTests100.sql",
+            "bytes": 180,
+            "sha256": "b577cbe3923ad153be8d2230bb25c89762fe2b7cf5f31bd2034fbad291ce7ac4",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BackupStatementTests120.sql",
+            "bytes": 1168,
+            "sha256": "e24c4f095d6d5779aedd408263b71a8241d9beb393f92ad76ef32d86d3c85bf6",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BaseTableNameTests.sql",
+            "bytes": 277,
+            "sha256": "5eaea3a762fe0ea501c612e4509a312584179ec79dfb3a6e4c54846dc60bd961",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BeginConversationStatementTests.sql",
+            "bytes": 624,
+            "sha256": "c01fd49e5d2cdcc96b7174e23276cc0390f2961ab770fb501594ef93321b7bf4",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BeginEndBlockStatementTests.sql",
+            "bytes": 540,
+            "sha256": "34c2f7653213140cc52e43f461e0a8ecfe5ae96e9c4ff6bcb09e2742c136250b",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BeginEndStatementErrorTests.sql",
+            "bytes": 353,
+            "sha256": "c5aeee0f7da27c8d621f79bc1ad219d0fa6609ac59028644c41ff1c6267d5ff6",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "recovery"
+        },
+        {
+            "path": "TestScripts/BeginTransactionStatementTests.sql",
+            "bytes": 584,
+            "sha256": "9a127b1618829370cac0d4deee5dcf2eecb0c32e72863778d4040a0eadbc9dba",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BigIntRowCountPageCountTests.sql",
+            "bytes": 224,
+            "sha256": "4c9ec203fcbca0cb98d318ccb1338733ab2590b63a9235f300eea9fecedef002",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BitManipulationFunctionTests160.sql",
+            "bytes": 384,
+            "sha256": "5a8f679fb6f341539e975a5725b8e1260c7c458273f823f3a31cf83282235c63",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BooleanExpressionTests.sql",
+            "bytes": 4962,
+            "sha256": "c6d0bddedd6d8f1e56e9acd236022d2319504a1d654b32fabd4d7eb0c7817d62",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BuiltInFunctionTests160.sql",
+            "bytes": 1966,
+            "sha256": "38ea05577ec5336a3d72dd6a52afd07d1f088cfaf33913a1e19cd28587d575c0",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BulkInsertStatementTests.sql",
+            "bytes": 1733,
+            "sha256": "3353f8b673cf05e36217cfd05e289a4cef8f8d53de686128a6662f3a8c91d218",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BulkInsertStatementTests140.sql",
+            "bytes": 1203,
+            "sha256": "e4dd08052ae9c5ba3ab6efebceb31a7fcc517299395470cfe9ec5e40d6e6e295",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/BulkInsertStatementTests150.sql",
+            "bytes": 726,
+            "sha256": "c59d41a53b5bea78de061744604dedb776ad9c6eed6b09756136c667fc13fdc1",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CTEStatementTests.sql",
+            "bytes": 898,
+            "sha256": "fdcf8fc4c91342fd5d2b4bc2b460e6ec6ff44b2d076e488a78e83cb321e8364a",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CTEStatementTests100.sql",
+            "bytes": 546,
+            "sha256": "c935ebc659d247b651bd9e50019be73dab2b9460a65f18cc498fcf22663d275d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CloneTableTestsFabricDW.sql",
+            "bytes": 278,
+            "sha256": "503d63443475358873f053af0a3cd3605a73de1a1619af2284ccb3ee966a142c",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ColumnDefinitionTests.sql",
+            "bytes": 2035,
+            "sha256": "af7fcd592c3b848a76de7caa4bd750e99bf288d8bc23a742446d28af91c125ed",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ColumnDefinitionTests100.sql",
+            "bytes": 658,
+            "sha256": "ae04ca723ac35488605c08d43a049eb75e1c3cbbf16ab181b5f8135ec2ced707",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ColumnDefinitionTests120.sql",
+            "bytes": 1256,
+            "sha256": "81eaa03d2f71affb314b25791da1de061d5fea812d13bc90bf1dec158e185d35",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ColumnStoreInlineIndex130.sql",
+            "bytes": 975,
+            "sha256": "37617b901c9db4c281a38b5b7235a720481e35513ca270c40d878001c04fab7f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CommitTransactionStatementTests.sql",
+            "bytes": 181,
+            "sha256": "5cc0a66246e7627cedf962759267979380ed83f36c4dbad39d3855d4d8865fe7",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CommitTransactionStatementTests120.sql",
+            "bytes": 564,
+            "sha256": "997642bfa7868caff7ec0d92930780e5fcd13028250c46ac1bf1fb5a418693a8",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ComplexJsonObjectFunctionTests160.sql",
+            "bytes": 610,
+            "sha256": "a6026417e95e4004d01464d6f34c3a9b265547a198eb831a4985266cc491464a",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ComplexJsonObjectFunctionTests170.sql",
+            "bytes": 610,
+            "sha256": "a6026417e95e4004d01464d6f34c3a9b265547a198eb831a4985266cc491464a",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ComplexQueryTests170.sql",
+            "bytes": 3076,
+            "sha256": "49b8f5ca0ef24085d3b720363be59c08dca24be9141db51dea4c1bb91ece15ba",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CopyCommandTestsDw.sql",
+            "bytes": 4147,
+            "sha256": "058d0403aee4db2c6527a8249205708e43969682b45c4433dd0cbf93175ad069",
+            "encoding": "utf8",
+            "flavorHint": "synapse-dw",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAggregateStatementTests.sql",
+            "bytes": 298,
+            "sha256": "caa9dd8b47327f657d1d9581bbfa06a5fe3e0af9e77fcd5194cf6332f1f3f72a",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAggregateStatementTests100.sql",
+            "bytes": 107,
+            "sha256": "0aabf6fca4a569ddc0e24b11920384ff85c579dacd86ef3aaf032469d3d7d24e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAggregateStatementTests120.sql",
+            "bytes": 438,
+            "sha256": "d3b7bf9d606ad83cc1f642be1f31aa73addbd22fad8d9eb16f4887cb83f74fc8",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterDatabaseStatementTests110.sql",
+            "bytes": 1637,
+            "sha256": "0ddfb85c7f5ee87f3ed6d5a010b6b8f8ddae7d8235043ae07373e0d1e54cb450",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterDatabaseStatementTestsAzure110.sql",
+            "bytes": 338,
+            "sha256": "0d27f6720870391d9d834410e5352cd74e42e1ddae7b3b88cd638204174c7017",
+            "encoding": "utf8",
+            "flavorHint": "azure-sql",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterDatabaseStatementTestsAzure120.sql",
+            "bytes": 1181,
+            "sha256": "aeac8aa5babc2fad1bf93f1bcc260d79f4860e3b4139210ea6b0847ab401934d",
+            "encoding": "utf8",
+            "flavorHint": "azure-sql",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterDropBrokerPriorityStatementTests.sql",
+            "bytes": 913,
+            "sha256": "9814095506464bc11b8be095332e3621e0033ba23dec8d321c3ee654d70cef4d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterDropFulltextStoplistStatementTests.sql",
+            "bytes": 892,
+            "sha256": "f9829847d13f6ab877763244fc82ce2d2742aa1618449f40944862831a3d8f41",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterDropResourcePoolStatementTests.sql",
+            "bytes": 1090,
+            "sha256": "e167ca68dd88ae310aec92abf7122f2fc1f6eedbc081bf2628cba0939189cbc3",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterDropWorkloadGroupStatementTests.sql",
+            "bytes": 1127,
+            "sha256": "a4b0d20cc06514c397d5ef08323fe99bbfff6050231b71c1f52dd0b11278b234",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterExternalDataSourceTestsFabricDW.sql",
+            "bytes": 317,
+            "sha256": "7d3b21eab3e5bc483779ddfeaf1f10d2298fb049f3b0496ddce2da1d39497042",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterFederationStatementTestsAzure110.sql",
+            "bytes": 181,
+            "sha256": "0530a246ce3d7049897235d99fce7f6dd0d2e9a06ad12b5b8fb2c698eaa13395",
+            "encoding": "utf8-bom",
+            "flavorHint": "azure-sql",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterResourcePoolStatementTests110.sql",
+            "bytes": 863,
+            "sha256": "9e1c892e9cc9950acd62779469617747143a0466039130561a9e8ffd103c658d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterSecurityPolicyStatementTests130.sql",
+            "bytes": 3436,
+            "sha256": "a0849f0235af18cede4f3d38bce14973ca0601de6cf68cea14e73ef6ce2451a9",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterTableClusterByTestsFabricDW.sql",
+            "bytes": 646,
+            "sha256": "f8b68b252d5d28f41ea0b081909a4733421aea782d67c9df8e1685f7fb46ecb3",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterTableStatementTests110.sql",
+            "bytes": 788,
+            "sha256": "390443ea8c765e9d00b9aa21207f530be10b34506273500261f512ca470af8ab",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterUserStatementTests110.sql",
+            "bytes": 430,
+            "sha256": "10e1ca088af592679b051b8341c9a4ccb4c1b14047c1cf4f6e30e50d375a2fac",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAlterWorkloadGroupStatementTests110.sql",
+            "bytes": 277,
+            "sha256": "c0ff50ac37091b59aca9e2ea262305f9b55ce02edcdefa29942038a986b721d8",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAssemblyStatementTests.sql",
+            "bytes": 552,
+            "sha256": "85007cf59bc2559acf4b5a5399389e11cf76e3845f55a318f907199312e5e16d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateAvailabilityGroupStatementTests.sql",
+            "bytes": 1145,
+            "sha256": "49542deeb0dc5145c4aefd4204f5bc70bb5399d038f0919bb38e089a1b6d1d46",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateCertificateStatementTests.sql",
+            "bytes": 628,
+            "sha256": "83b6187f7d788581e8746fe65d734c5034c7ecd2c9acb3f0694d0a331f2ab855",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateColumnStoreIndexTests130.sql",
+            "bytes": 421,
+            "sha256": "35775d8c035057181caa26fabd248fa260fa6d151bc9a5e57b52b3541692addb",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateColumnStoreIndexTests170.sql",
+            "bytes": 198,
+            "sha256": "94576efec6d7f62dc7b0cbca0477bfd20abcc190f83fde61b6bee355c53f7d1d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateColumnStoreIndexTestsDw.sql",
+            "bytes": 128,
+            "sha256": "f1c70e7c348d2b8ba249c4ee6b8b0993b3cd49a08598acea11c6452967c78282",
+            "encoding": "utf8",
+            "flavorHint": "synapse-dw",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateContractStatementTests.sql",
+            "bytes": 125,
+            "sha256": "17560ac18f167c6fc2550b206039a0b7ca5039ebd4ff179c386341fffa60aae8",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateCredentialStatementTests.sql",
+            "bytes": 125,
+            "sha256": "355120b0fbc77aad98a84865d5e7885020780622a103f09ed802e8fb3f571355",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateCredentialStatementTests100.sql",
+            "bytes": 189,
+            "sha256": "d6500cdaf1b924baff1fb3e37a5766ce83dddb390de0e180c7de2ba4b140e20f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateDatabaseCollateBeforeEditionTests120.sql",
+            "bytes": 347,
+            "sha256": "54877c6c1e24a8d10e7cf8e0b8494ea4b73198609803a21cbfb138188922b265",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateDatabaseCollateBeforeEditionTestsFabricDW.sql",
+            "bytes": 347,
+            "sha256": "54877c6c1e24a8d10e7cf8e0b8494ea4b73198609803a21cbfb138188922b265",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateDatabaseScopedCredentialStatementTests130.sql",
+            "bytes": 172,
+            "sha256": "650927db231d92b65992a339bc7d4cce9bb560303b881f8227802b71f16b63b4",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateDatabaseStatementTests.sql",
+            "bytes": 950,
+            "sha256": "0071245089f07acc137dece0fa9c7924338370d905c19178e534089935d983d6",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateDatabaseTests140.sql",
+            "bytes": 386,
+            "sha256": "dfa860791c89b1fc753553017dbc20645d05e670ef38b3c7dfe9210507ff6b49",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateDatabaseTests160.sql",
+            "bytes": 271,
+            "sha256": "ed91b1c6f7dee828e511bd2ba6362a5b5bce3418111012657af3c7a423d27186",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateDefaultStatementTests.sql",
+            "bytes": 136,
+            "sha256": "bad508f7bf89c31a9df9dab2b1d9f68dcd44b1199f021cbdf4b832354fc2f8a2",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateEndpointStatementTests.sql",
+            "bytes": 3883,
+            "sha256": "98d03dff3efe6de8e2997f1f2d24636eca861d3054e952005223eb0412a9db2e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateEventNotificationStatementTests.sql",
+            "bytes": 6035,
+            "sha256": "75e41b41f30bf416385e775c4290170ca8bc175bff1ed4d21431c76944622555",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateEventSessionNotLikePredicate.sql",
+            "bytes": 580,
+            "sha256": "f09e412af908b5b9dfcdb3a0b599bfb5e3a3a2cc5f0feaf13baa92bc40a91988",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateExternalDataSource140.sql",
+            "bytes": 520,
+            "sha256": "342c2725f0f2d95d9b803b77cac55d0f0d7aebedf570fcc2254af3174b83389c",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateExternalDataSourceStatementTests130.sql",
+            "bytes": 2480,
+            "sha256": "48fb33cfd52c3f2ed38b674dde8acb8109a25031444b15e1fa0904eae1568547",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateExternalDataSourceStatementTests160.sql",
+            "bytes": 223,
+            "sha256": "a153ea1070ff8568a77ae448eaf010f9f366a67a2c4156a7f7ecabc478b3f794",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateExternalFileFormatStatementTests130.sql",
+            "bytes": 3983,
+            "sha256": "54cabfcc5e18036247969046f4a8685d04134289afbc69d825527ee3248979a6",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateExternalFileFormatStatementTests160.sql",
+            "bytes": 183,
+            "sha256": "15e3e12c1b3a04a9666302e2c0e114eec8d9d4d0094e9e9d67e3b2e993086336",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateExternalLanguage150.sql",
+            "bytes": 979,
+            "sha256": "e02864d4bb876778d54b32b08603f06c12731ecbdf63ab02cca3c0758898dec1",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateExternalLibrary140.sql",
+            "bytes": 340,
+            "sha256": "58bb93af9935d9397865a39d7a38b439a830d119b7c1a96851dac0d2043e6bf1",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateExternalLibrary150.sql",
+            "bytes": 536,
+            "sha256": "36212e307b9d29130f0916d06f487fdf935c3a4432e26201f5d7f48095d540f1",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateExternalModelStatementTests170.sql",
+            "bytes": 812,
+            "sha256": "4b308ab8b1212dc79ffa32a797473d024cf118fb9474cd1b38e2561d35d504b3",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateExternalResourcePoolStatementTests130.sql",
+            "bytes": 1296,
+            "sha256": "3c9edb4dd1d98ff8e6419d752bd8cae9c5619d61da9e31a9ee728f6b1db04e38",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateExternalTableStatementTests130.sql",
+            "bytes": 5074,
+            "sha256": "bb80b1ecd15fcb89c3e1c8c603cf1135112a15bfc4d5684e2f5d24d70baccecc",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateExternalTableStatementTests160.sql",
+            "bytes": 692,
+            "sha256": "00c5a6650dcf62ed414bc531209b3999d2bd49b5e5a694db2607837c303396b2",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateExternalTableStatementTestsFabricDW.sql",
+            "bytes": 1191,
+            "sha256": "08d973256a61f92c9269a8445c10322df91f91003fc12cd62146c485c8affaa1",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateFulltextCatalogStatementTests.sql",
+            "bytes": 586,
+            "sha256": "27d7b62398313ba29d8900dfac3b1941b4b19063ef5e9a1f67ce411d0516bfd2",
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateFunctionStatementTests100.sql",
+            "bytes": 482,
+            "sha256": "786510c5cea515e5b305e4eb46cd815c2a22b6a912befc1faeab13a10d1b00f1",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateFunctionStatementTests160.sql",
+            "bytes": 399,
+            "sha256": "0635a4ebfc35977c79bf5dcd16c90ef6a105fc2df3c1cebab3866e8c1a0c5c20",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateFunctionStatementTests90.sql",
+            "bytes": 965,
+            "sha256": "232a2be561bbcdc8c160e31a68b8999ee669ed1e47885239c6d3fe65fc30e52f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateHekatonTriggerStatementTest.sql",
+            "bytes": 302,
+            "sha256": "1a99fdd796a795b81683791796669c37348dcda257c4a6afdab6dcbbe07cf50c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateIndexStatementTests.sql",
+            "bytes": 933,
+            "sha256": "1e33dfb86a9080c7941172265ee6c7356ab1ef9900a418a19f122bccd5c7a725",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateIndexStatementTests100.sql",
+            "bytes": 1031,
+            "sha256": "e1675f0d676bee7f99d37dcdfe3e3ddcba8957d8fc76e710aaaf5552c8c0c43f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateIndexStatementTests110.sql",
+            "bytes": 594,
+            "sha256": "98d5fd78dda1da09538f60c4838f23a24f1bf51ba37289408437d01e36e54b80",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateIndexStatementTests120.sql",
+            "bytes": 1520,
+            "sha256": "aaeb2ae246af7f5c877e457200e94b277f48b7175396abf3010243e843693a2e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateIndexStatementTests130.sql",
+            "bytes": 580,
+            "sha256": "5d3267a6a6486419895c5d7d3f1d0ce631837a9a955b8dfb6a66e591c6735ef6",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateIndexStatementTests140.sql",
+            "bytes": 1887,
+            "sha256": "9aa39c918b6d385c27fd9ba1cda81243b2fc676733b3c3848c934022b549b1ba",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateIndexStatementTests150.sql",
+            "bytes": 801,
+            "sha256": "46201faec1417fbdc75edf1c1ffcdbea7c9b1a072ad6885d22b67ff6c4f30560",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateIndexStatementTests160.sql",
+            "bytes": 1928,
+            "sha256": "118ecef8d368a138e0e5885f603a2c9b8321b5465635370278ca95993e52c761",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateIndexStatementTests90.sql",
+            "bytes": 601,
+            "sha256": "6d47ed32a1bb2e83766816f1c2a9dfacbce487497d4bc106144e1c8922167e85",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateLedgerTableTests160.sql",
+            "bytes": 10746,
+            "sha256": "f236960df8e08362aaf79c7fdfba76c4c5ce03b38bc78f8d54706213d4097d30",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateMasterKeyStatementTests.sql",
+            "bytes": 172,
+            "sha256": "afe014505019a86f660e3d8c7ca1bb5bc8c97b382f2eaa49e0e843d28fce90cc",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateMasterKeyStatementTests130.sql",
+            "bytes": 79,
+            "sha256": "c5549457dc291af10b3eea4e46588004dee55fb7514e5cb4de7b85f431ad38cc",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateMessageTypeStatementTests.sql",
+            "bytes": 550,
+            "sha256": "9640a74290d46e45c0034a7d2a71b3140e50d564a297cdbe808a0aeeb24680f3",
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateOrAlterStatementTests130.sql",
+            "bytes": 1129,
+            "sha256": "dfa7126d0c685201112691265dcdfeb297d18f78005ab02be47449ad4cf18ee7",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreatePartitionFunctionStatementTests.sql",
+            "bytes": 185,
+            "sha256": "57cb8c3e52776050fcf612ddc54a9a23c6dcdadf4090e43213c489abbd0bd5fe",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreatePartitionSchemeStatementTests.sql",
+            "bytes": 114,
+            "sha256": "bb1fc600964e149f28e16b058c2e381abe4f7dd970b73ec34818523a7221c501",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateProcedureCloneTableTestsFabricDW.sql",
+            "bytes": 469,
+            "sha256": "eb9fab58781d35a53f0060612d3b2c6ebc3b6cef8a79be53e1f36d47665f5677",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateProcedureStatementTests.sql",
+            "bytes": 6822,
+            "sha256": "a0573d25d406564d7af6ba58c572d58e909d80b3405a78f512504a00fe7c95a5",
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateProcedureStatementTests120.sql",
+            "bytes": 3174,
+            "sha256": "6bdc62156d11870552a79f31f011d43ffb2f36a14e6472c5d65c6e5bdd38b39c",
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateProcedureStatementTests160.sql",
+            "bytes": 920,
+            "sha256": "a0ba34bb891bd1c04f1728406e6d9705683b41ebd039fb7ae33ebafe16a90ea7",
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateProcedureStatementTests90.sql",
+            "bytes": 986,
+            "sha256": "9395f10bb917185338b952bbfeab8b554562532f07378e609cf59dee9a47eecc",
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateRemoteServiceBindingStatementTests.sql",
+            "bytes": 422,
+            "sha256": "92405b9b3f26898daf3cf8edc4a454037478ab7b9787ebdbba26c36b4156fa58",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateRuleStatementTests.sql",
+            "bytes": 154,
+            "sha256": "cf57f1f74ba06d1698acf8ed132c399f39d9694bb1edc1c6ae0213382e811526",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateSchemaStatementErrorTests.sql",
+            "bytes": 129,
+            "sha256": "c2ca268f1746424e7d94376a3ac9bcefbe4b801659269dae35d388fdb58435fe",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "recovery"
+        },
+        {
+            "path": "TestScripts/CreateSchemaStatementTests.sql",
+            "bytes": 624,
+            "sha256": "0d89408d2361832429fd98627942898ad7fe17c584aa3143a26dd72ddc8d4340",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateSchemaStatementTests90.sql",
+            "bytes": 540,
+            "sha256": "7149c003496cef8c058d83f009d6d200adfa842d058ce616fe5ddc6c44174055",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateSearchPropertyListStatementTests.sql",
+            "bytes": 175,
+            "sha256": "718f02c9383e233462439bb976560fb9f6ffc16f9f2bc3327b300fee730e596b",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateSelectiveXmlIndexStatementTests.sql",
+            "bytes": 1810,
+            "sha256": "87663b2f7f75cd465a817dff83df3ae57718de0c015bca7f85d4fff56f194ed3",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateSemanticIndexTests180.sql",
+            "bytes": 3514,
+            "sha256": "901c743024dd72504b32c12673cf142d1c879e2ff2015573d1dd1b66fc80468f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 180,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateSequenceStatementTests.sql",
+            "bytes": 345,
+            "sha256": "50ee417f5f2b1238c35924d0f7d2d2604d915c6cd412f44004e26b0daab652f3",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateSpatialIndexStatementTests.sql",
+            "bytes": 1047,
+            "sha256": "7d4c753b287dbdc990ee4611f091f82f26580bd0bde0f86163ed2ae5d6c7e780",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateSpatialIndexStatementTests110.sql",
+            "bytes": 250,
+            "sha256": "0e94e26228d0ba9b455eea1df487eef9658d6f2889d11be845e73e32a72d57ee",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateStatisticsStatementTests.sql",
+            "bytes": 391,
+            "sha256": "c5369328ea31d7b9bff873403b105ae64177a9e4cde3b48c7002c9750fdd20ad",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateStatisticsStatementTests100.sql",
+            "bytes": 445,
+            "sha256": "8909eb4844f4e538e09216e018e7dfc999abadda14c481f40472b4cf02a58a15",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateStatisticsStatementTests160.sql",
+            "bytes": 547,
+            "sha256": "3b0f6081d37cdce26a7fa80e608f9e50355103b528405f32e62cd737419c4274",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateSynonymStatementTests.sql",
+            "bytes": 219,
+            "sha256": "fd25b437e92c4aff548ef7e08a852bd642faacfc5034f7557f73c6e3ecf530a2",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateTableTests100.sql",
+            "bytes": 514,
+            "sha256": "a54a17bc67fa40b526a36eaaa02d3eb324e5a123e47a9b1d6fb8a0eae57884ef",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateTableTests120.sql",
+            "bytes": 1495,
+            "sha256": "dca2f65b57c818c8b0390aa7766a44a80279972c63529f993c859d55eaae0ffa",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateTableTests130.sql",
+            "bytes": 19295,
+            "sha256": "a6a5808128b022ccf2fcf7cde1b13e8212845448fa841f9af377f4105f4d716b",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateTableTests140.sql",
+            "bytes": 5587,
+            "sha256": "f1219bc0bdead0353a8dc1039e6baf626d7665a4bf3bb5a5d43bc58305460d2f",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateTableTests140_Azure.sql",
+            "bytes": 5680,
+            "sha256": "6ade37ab0d31aa48cf2888c1291b67773afc88f6fa21d6f382a3b43175a00dfb",
+            "encoding": "utf8",
+            "flavorHint": "azure-sql",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateTableTests150.sql",
+            "bytes": 2068,
+            "sha256": "ef069ccbc23b964b93f9ab0570287c94234a56196d173904df1619b6ef066bfa",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateTableTests160.sql",
+            "bytes": 1634,
+            "sha256": "3ea396194e38ac064041d35d138183d0c2cabf18010d2fba78722803cc9f7dd6",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateTableTests90.sql",
+            "bytes": 895,
+            "sha256": "fe89735f612ac9ed0524546fcaa246907aecc74abb8840561fdf424486cf874a",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateTriggerStatementErrorTests.sql",
+            "bytes": 168,
+            "sha256": "65d36175d7cee28794fa18bd6afb421849d620d6be10142dbff9dc20d2990322",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "recovery"
+        },
+        {
+            "path": "TestScripts/CreateTriggerStatementTests.sql",
+            "bytes": 1098,
+            "sha256": "17f9a68b3206222b61ed11672278b30f6f92dab157d794b29ba7a4daa17813f3",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateTriggerStatementTests130.sql",
+            "bytes": 125,
+            "sha256": "6b2085ed4c5e591c50e7b398b858cdf15a70326c8abc825617da58c104e1587d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateTriggerStatementTests90.sql",
+            "bytes": 923,
+            "sha256": "47fd1b7158a2a0b8bde2acccd8dcf786c74ce06ac0c618e2de3551c0393507c3",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateTypeStatementTests.sql",
+            "bytes": 306,
+            "sha256": "06df19367743af9e0270e873c67e07c499714f4205537a06ed9a30302e685af9",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateUserFromExternalProvider130.sql",
+            "bytes": 108,
+            "sha256": "50547a27ad6c7d463156957b148804c3aa4b6114437fb27eeffb579185db80d2",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateUserFromExternalProvider160.sql",
+            "bytes": 67,
+            "sha256": "ac9ea698e276d8b81a32aea32600d82da20460ac7ea6a2d1a2363baf1b66b3bb",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateWorkloadClassifierStatementSqlDwTests.sql",
+            "bytes": 243,
+            "sha256": "82e863e455073006728bf8376dcaefb9cb9187c130d5a06e7d872a58c6bccb9a",
+            "encoding": "utf8",
+            "flavorHint": "synapse-dw",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateWorkloadGroupStatementSqlDwTests130.sql",
+            "bytes": 2264,
+            "sha256": "4bcc2b55d48228113f307c933959276089481086cc3d674544bd42542d7c01ea",
+            "encoding": "utf8",
+            "flavorHint": "synapse-dw",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateWorkloadGroupStatementTests130.sql",
+            "bytes": 827,
+            "sha256": "1201e585eb4cd4796aa2d7dadde8e2240f3077c67fa99bb8390f2a059755752f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateXmlIndexStatementTests.sql",
+            "bytes": 793,
+            "sha256": "52c8a8123965ccce26b6e2db2569b541dbb4b6c4decc9998b2bdad8b9c89b190",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CreateXmlSchemaCollectionStatementTests.sql",
+            "bytes": 202,
+            "sha256": "4d73cd01fc6a3e5584aa58ee92f60494e40950577784c09c0627abe67a2cab26",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CryptographicProviderStatementTests.sql",
+            "bytes": 242,
+            "sha256": "0de74ff829d2e1fc7dfad4e1f9498144b3bb34e764dc7ef929508cf8363dbb3f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CtasStatementTests.sql",
+            "bytes": 1982,
+            "sha256": "336efcdea60f87cf76642916b1c665bb407c4635583e004985768e5278b44acc",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/CursorStatementsTests.sql",
+            "bytes": 293,
+            "sha256": "89315f5c7327b3dd75d934ded1e808ff5977ed765dbc42cba7505efdbf34f17c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DataClassificationTests130.sql",
+            "bytes": 522,
+            "sha256": "2621f097bf61dc4c59eb0ec2091fbc0de2095723f49fbb07e6251ac667a3ccd1",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DataClassificationTests140.sql",
+            "bytes": 522,
+            "sha256": "2621f097bf61dc4c59eb0ec2091fbc0de2095723f49fbb07e6251ac667a3ccd1",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DataClassificationTests150.sql",
+            "bytes": 522,
+            "sha256": "2621f097bf61dc4c59eb0ec2091fbc0de2095723f49fbb07e6251ac667a3ccd1",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DatabaseAuditSpecificationStatementTests.sql",
+            "bytes": 1493,
+            "sha256": "070fa3562f756063f492957a8fb850aaf5c1896dcb4e25c3e734fe26ae1508a9",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DatabaseAuditSpecificationStatementTests150.sql",
+            "bytes": 1650,
+            "sha256": "a772363cfbc3c68350e6d76752ca1c1f84e8093cbde108cfba5fd1f3a5045a71",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DatabaseEncryptionKeyStatementTests.sql",
+            "bytes": 510,
+            "sha256": "51c66105b0d0b319252e454c13a0b1f30e8aeab2efaee281f78ced6aed6be6dc",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DatePartFunctionTests160.sql",
+            "bytes": 2756,
+            "sha256": "0befb6295d57f1996cfbdc476ccbeacd2c169d04e8510d4963dc188f9f48e9db",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DbccStatementsTests.sql",
+            "bytes": 599,
+            "sha256": "f2c0df6c8a1f8efa9aac3582e5641f3855063969982d4904672c992b42fbb2a9",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DeclareCursorStatementTests.sql",
+            "bytes": 438,
+            "sha256": "7464cc5168a6c4c9ead3538e0d08d319476da2c0e09ba807324ce7709f81e74b",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DeclareTableStatementTests.sql",
+            "bytes": 225,
+            "sha256": "80e472b2928bc3aa92eb420cf831d616fcdb59c4b4a342e3a6acba857ed28501",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DeclareTableVariableTests150.sql",
+            "bytes": 213,
+            "sha256": "2591dd84c93dd290a22004fd440d19f7e95721938e0d16b05818881f4ba21af4",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DeclareVariableElementTest.sql",
+            "bytes": 149,
+            "sha256": "a9380789d659a22fc5cd290d672c8f4a58d6b7214106fa6471687128aa9cd7b5",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DeclareVariableStatementTests.sql",
+            "bytes": 168,
+            "sha256": "bf0756a0bc494b67b055ff8cae3535044c4863adf17f7fba3a010011cf678e21",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DeclareVariableWithAssignmentTests.sql",
+            "bytes": 158,
+            "sha256": "660b2a6a99f6c394073cf2e29460e68577c8810050f27a9dc7080c10d0e918b3",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DeleteStatementTests.sql",
+            "bytes": 598,
+            "sha256": "eb466cb569dfbf1b76ccb824c679606b90d3c143aa87ac39e9a9b50e867f147e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DeleteStatementTests90.sql",
+            "bytes": 622,
+            "sha256": "a4c6cc95992dff89b207197689e05f04e7f9e841dda2342ea48db47dd5140c4e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DeprecatedKeywordsIn90Tests.sql",
+            "bytes": 109,
+            "sha256": "8de7ea7e7293b53e3c779442fafa6865a097c034d61df1ad411f2bd6b9eda503",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DropDatabaseScopedCredentialStatementTests130.sql",
+            "bytes": 34,
+            "sha256": "582ad603d83131ddf22ab7a5be9fe7689dd388479888cd3bc31b299e87c12cc7",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DropExternalLanguage150.sql",
+            "bytes": 94,
+            "sha256": "2f75cf272931cb4ca6553f0e3e6658c3705d62f94045b097623c494906dbdbf2",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DropExternalLibrary140.sql",
+            "bytes": 82,
+            "sha256": "cfdbe42b5f2a36cfc469e644755d27d72034013e3c942bf9901ffbc30acb99dc",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DropExternalModelStatementTests170.sql",
+            "bytes": 33,
+            "sha256": "a9a8dc39d800abee0af7e5cef99f32203949320ca45fa8ae9ff2fd0393e36116",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DropIfExistsTests130.sql",
+            "bytes": 3856,
+            "sha256": "3082f5a5d5090adda456a259b1abffb73882e0ff14444030e4ca31d2a07df192",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DropIndexStatementTests100.sql",
+            "bytes": 454,
+            "sha256": "b5426d73956475336fb14e7ed5e95b5e9f41f2fb39d140497541f38e2a6ad812",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DropIndexStatementTests140.sql",
+            "bytes": 683,
+            "sha256": "1d08194386c01ede73a8e0ff93e3d5e662639be66b559e17d62ca52314a15bd4",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DropStatementsTests.sql",
+            "bytes": 576,
+            "sha256": "f4c0030fbf21ca1cc116b03b69b03c696d8044d6509a8b7276e98fe253d20f25",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DropStatementsTests110.sql",
+            "bytes": 174,
+            "sha256": "f29ea2df78916048f5bc70b188310723bee1236996e304bba8459dd29e44c2ed",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DropStatementsTests130.sql",
+            "bytes": 334,
+            "sha256": "dcdeecd01ab99239ca25765cc63f376f2d4554d78a114825596d88fe052a38c3",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DropStatementsTests2.sql",
+            "bytes": 1533,
+            "sha256": "7f54efc1124b32e766220d49a1c5d4f3f21ea3be64f06d1f7e0d7f6924173a45",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DumpLoadStatement90Tests.sql",
+            "bytes": 290,
+            "sha256": "c9e8b942b6041ba5d3788643c8997e1900198e757a61128c6fb968ead16a3c5d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/DumpLoadStatementTests.sql",
+            "bytes": 438,
+            "sha256": "9a329cd5b699469f0dfffa9e66f8d3a30b00e6bde70dac602ab6ef6ed69ed841",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/EnableDisableTriggerStatementTests.sql",
+            "bytes": 328,
+            "sha256": "77263e98c3aa258c5b66be91612bff3ce350cf8d098f7821c316991f837520c5",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/EndConversationStatementTests.sql",
+            "bytes": 594,
+            "sha256": "dc947a28c04025333f80f0c53f7fd4291eac5760090003134915d5a41168efd4",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/EventNotificationStatementTests100.sql",
+            "bytes": 308,
+            "sha256": "334ffe7d6477061d6d68411e08a51867569858650aaeee7cd91ccb2240947785",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/EventSessionDbScopeStatementTests.sql",
+            "bytes": 7402,
+            "sha256": "16d8dd7bd29205133f21d0dd8ba0436e5605772b28faae22cb6c7f67bd4f140c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/EventSessionStatementTests.sql",
+            "bytes": 3668,
+            "sha256": "58917143953cb31aa040da746553c6c0500dc696c4228f7e700d6960a2b70a11",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ExecuteAsStatementTests.sql",
+            "bytes": 197,
+            "sha256": "b549f22264a42809a9b6cb1f20f48f810ad0d57e097eefe32f85c90ba3734ba2",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ExecuteStatementTests.sql",
+            "bytes": 877,
+            "sha256": "902e79191a53d36f4d3ea080873de741892d06bcc2b7f0cd456bcb387093b3bd",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ExecuteStatementTests110.sql",
+            "bytes": 410,
+            "sha256": "e2cbab1f75be06dde64a02a2627182186f893ca76fd958577d708fabc1a07a3b",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ExecuteStatementTests90.sql",
+            "bytes": 298,
+            "sha256": "1cb8084df46b755224d14c3d2d6fa0e20daf342fca4629958595e2a2bd4930c4",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ExpressionTests.sql",
+            "bytes": 4594,
+            "sha256": "c6d5ce47955a7684cd6602cc45de2fc01e473efdfe3398da6816ea64e5a58389",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ExpressionTests100.sql",
+            "bytes": 442,
+            "sha256": "abfe0a3595d54ce90615fb6be174f32a7febfe76093ac9800c1ad9c186d321c5",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ExpressionTests110.sql",
+            "bytes": 1064,
+            "sha256": "828c30ee738987a4a0db255bf77b12d854f78313be6b9c242d58efa12fe04e6f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ExpressionTests160.sql",
+            "bytes": 2426,
+            "sha256": "7f832c721ba149b3a7b38323b61737a2e2cf451bcbea9c4d8b751445866a17c7",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ExpressionTests90.sql",
+            "bytes": 983,
+            "sha256": "da43f2cbd83d07c0dcb6ccf6acd293a0850846800d2eafba5832ff425244d02b",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ExternalFunctionTestsFabricDW.sql",
+            "bytes": 1737,
+            "sha256": "b42331a0db8529d1abe55669298d96487650d37029dda93dfa66d34f6330a998",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ExternalTableCtasStatementTests.sql",
+            "bytes": 1072,
+            "sha256": "c94c6d94b67e7576829aab526f0919482eb6963f3c943bf241991f906654d8f9",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/FetchApproximateTests170.sql",
+            "bytes": 921,
+            "sha256": "1ec2267e96c5961db7a1d813f60eeca9762f16bde9f3eac9615936c13f2447be",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ForClauseTests.sql",
+            "bytes": 695,
+            "sha256": "2e0015294439e12daad5df891813eea89334b51ee637cf6e5fafd7898ab290d5",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ForeignKeyConstraintTests.sql",
+            "bytes": 1278,
+            "sha256": "54fc358357557308a52f33ce4927194368a4ef07d826b6ee922f7ec0240c530c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/FromClauseTests.sql",
+            "bytes": 5214,
+            "sha256": "f9379452d2e3ca8656fabe307be8644a51d04e4c53a95fce7959efbc5e467255",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/FromClauseTests100.sql",
+            "bytes": 1779,
+            "sha256": "03db821eac03f3087a108ed46a5034cabe3aba00adcd5873600100b00a0deeaa",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/FromClauseTests110.sql",
+            "bytes": 832,
+            "sha256": "e3ef81d9df576203cac12e4febd3383cb9d691528723de4d4b0ab766f962d684",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/FromClauseTests120.sql",
+            "bytes": 395,
+            "sha256": "41ae35726ad33b35850afb65f97858d9e84d30fd8ee9684a630d46df7af9fb1c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/FromClauseTests130.sql",
+            "bytes": 2394,
+            "sha256": "a9688623ae28d1156f5798bde3d903601202c647c50ec7fc2a6fc0e0a7aedb29",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/FromClauseTests150.sql",
+            "bytes": 1539,
+            "sha256": "fa036eba93af414d149057fdf5a4dbb46b44076de779aabd1889608ce9dd47dc",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/FromClauseTests90.sql",
+            "bytes": 2180,
+            "sha256": "1d0fa3b2d12f6f15e114532a248875fd4a267aa26b92cda7525b54128f44986c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/FulltextIndexStatementTests.sql",
+            "bytes": 4394,
+            "sha256": "4f21fc752d69602de26babbb1f7abb8181b6fcf0acbb5e4f34f247757d50f943",
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/FulltextIndexStatementTests100.sql",
+            "bytes": 2014,
+            "sha256": "2f293f8076e4cfcbc1bcbc184b22f559a4c4dd8c84c6f9e5d3d239fb9e1d24c0",
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/FulltextIndexStatementTests110.sql",
+            "bytes": 2732,
+            "sha256": "2971a4fc5af15db76c3dc984f9610b186e133954eac920c47f6e1f15bc874f54",
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/FunctionStatementTests.sql",
+            "bytes": 1431,
+            "sha256": "e55d70abc7dfc88b6c205ea333c9aaf3bf6ba2965cb1cd01f8981ced159be64b",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/FuzzyStringMatchingTests160.sql",
+            "bytes": 334,
+            "sha256": "93c550e3c3fa917f96d83bc70d5735593e0f984647596c2771cdcf35c9c9bbf0",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/GetConversationGroupStatementTests.sql",
+            "bytes": 136,
+            "sha256": "7c87ebab132cddef15fcf7a4da93bbc89246b49f826b5d1edb2f4c2e12ed2b93",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/GetTokenTypesFailureTests.sql",
+            "bytes": 105,
+            "sha256": "fb7b4651099f4bbee780075f776d6fad8c5ee6d558f45420efc79dfbec92f939",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/GetTokenTypesTests.sql",
+            "bytes": 133,
+            "sha256": "9b7bb6985e481f328995b3d44d29c0e081f118f5053d5cd7701f576763b94675",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/GotoStatementTests.sql",
+            "bytes": 192,
+            "sha256": "d3c03b7d7c2de1a1c353950e17479efd36dc942bb0683a096e6dbe90c84fcbd1",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/GraphDbEdgeConstraintsSyntaxTests150.sql",
+            "bytes": 5483,
+            "sha256": "5a557ed1180e8e77bcd06bf69dca4652a32529525e408e2fa3e5f9947e67c19e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/GraphDbShortestPathSyntaxTests150.sql",
+            "bytes": 7178,
+            "sha256": "c069dc43929bcceeae4e8e3219779f34aae5151a6b2ddc74355452b90da1255a",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/GraphDbSyntaxTests140.sql",
+            "bytes": 3154,
+            "sha256": "00f0b2032b71b4a09e7a1eac36bbbbd52fad444fc7383603673166421791f3fb",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/GraphDbSyntaxTests150.sql",
+            "bytes": 697,
+            "sha256": "702015c1c6772f570d5284634d17b6dbbd76380e91ffccb381babe8b2a3c9ba0",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/GroupByClauseTests100.sql",
+            "bytes": 1027,
+            "sha256": "a8c4394e4260c10c47dd658fe608e30b45a64744718a9e289378e3eed944ffdc",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/GroupByClauseTests130.sql",
+            "bytes": 788,
+            "sha256": "c6affdbde615bd4898cbc54e441e445b73e6487542ff5fa6251898c772b1c982",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/GroupByClauseTests140.sql",
+            "bytes": 788,
+            "sha256": "c6affdbde615bd4898cbc54e441e445b73e6487542ff5fa6251898c772b1c982",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/GroupByClauseTests150.sql",
+            "bytes": 788,
+            "sha256": "c6affdbde615bd4898cbc54e441e445b73e6487542ff5fa6251898c772b1c982",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/IPv4AddressTests.sql",
+            "bytes": 3007,
+            "sha256": "0602684d1e5d00c219f42118c606cf7e9d77b30d694209b78200e3979bafbda9",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/IdentifierTests.sql",
+            "bytes": 1164,
+            "sha256": "b98f669a21a9dd55a4800461340c13536dbce01685fc52968500977a0f727132",
+            "encoding": "utf16le",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/IdentityColumnTestsFabricDW.sql",
+            "bytes": 456,
+            "sha256": "7acab0efcbbe255da6b640d6683de497d05f80f369b2516eff3d9f6483ebc667",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/IfStatementTests.sql",
+            "bytes": 470,
+            "sha256": "f0be5885806455a273da947d95f9d842e2c35732219d90d5f0d2cfb08f396c16",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/IgnoreRespectNullsSyntaxTests160.sql",
+            "bytes": 515,
+            "sha256": "8099042663f788b34d82efea7aa260767c951a16317cdc8d369d48afccc26b2f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/IifParenthesesTests160.sql",
+            "bytes": 2382,
+            "sha256": "58ffc69b6a449117070116289db573e5cb06a599118e1dde54613e9ff9d1937c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/IncrementalStatsTests.sql",
+            "bytes": 702,
+            "sha256": "afb6b4b176b536b60a6066b68747d5908f3e03fbcec76ac25abab9499d9015a2",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/InlineIndexColumnWithINCLUDEtest.sql",
+            "bytes": 623,
+            "sha256": "c7ddf8c32e90d48b1937bc21c69233f1c436b9b6bf7a8b9d2ad203622bdc9147",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/InsertStatementTests.sql",
+            "bytes": 1108,
+            "sha256": "63271934b59c2df914bda6601c0618d1c557ef61a24cac33d3d7553ef9a826d6",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/InsertStatementTests100.sql",
+            "bytes": 697,
+            "sha256": "b7c83e901475a19f713aaccdf02527ad1272214c65789db96340ec392488ddaa",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/InsertStatementTests90.sql",
+            "bytes": 352,
+            "sha256": "3e8847389b3f2ad13e4ba8ec8a6518cb7b8c82cae654c90b459e7137902efd54",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/IntegerTests.sql",
+            "bytes": 95,
+            "sha256": "122f26a7e1233159205f44167c7cc78bcf706993be4c692c8fec85ed45c04fd0",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/InvokeExternalApiTestsFabricDW.sql",
+            "bytes": 708,
+            "sha256": "0d43d74f280281f20eccc830a420739c5066f7e1c3198d1fd4ddac76f24e1255",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/JsonArrayAggOrderBy170.sql",
+            "bytes": 1254,
+            "sha256": "445997337ab0bd5a28243d96c2960e5f1fba55d31b7400d1847f0813ec7f3d04",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/JsonForClauseTests130.sql",
+            "bytes": 755,
+            "sha256": "7fd7b4e39891a7e94d4b1fd301dfdcd461d6092fc4f666aaab14182ca2bc1673",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/JsonFunctionTests160.sql",
+            "bytes": 1707,
+            "sha256": "a47a8400d9abdbd06ba20c92f74e415961c6c4ba662ef9b779944971379ac3e1",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/JsonFunctionTests170.sql",
+            "bytes": 5139,
+            "sha256": "cf3eb9a2d95e1bc02bd6a8b0a6e90d933816e173745b62e356bfb44a7b1bfc40",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/JsonIndexTests170.sql",
+            "bytes": 1428,
+            "sha256": "e0bf1b2c2f59c34b20ee57d8bb8cc9d8b33ade1926cbc60b019c6059bc723a31",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/JsonObjectAggOverClause170.sql",
+            "bytes": 651,
+            "sha256": "7ce729747765a0858b74453e18db747af795d8f5b27c32bd5edbde4866028fe8",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/LoginStatementTests.sql",
+            "bytes": 1470,
+            "sha256": "d3b6940bf08d8dd492b7b04239b6477bc5691339411e690fa941135782b90c2c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/LoginStatementTests100.sql",
+            "bytes": 68,
+            "sha256": "99085e4b63003199d26d916b113823afab9d11cf3da532794d4520634d7060eb",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/LoginStatementTests150.sql",
+            "bytes": 889,
+            "sha256": "d5452732b0226e47079e6b48bcfe43b66c755c8a7d083106107a6a4c7a3e9d6c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MaterializedViewTests130.sql",
+            "bytes": 1901,
+            "sha256": "c2a241e1710d929ef7ef98d34f28ea5af6d73fdab3c9a347192878385a45bf5f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MaterializedViewTests140.sql",
+            "bytes": 566,
+            "sha256": "70bdc3636d2eb6ed65dde5a9d49f8cff222895f2799637b08c655f74742b66e7",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MaterializedViewTests150.sql",
+            "bytes": 566,
+            "sha256": "70bdc3636d2eb6ed65dde5a9d49f8cff222895f2799637b08c655f74742b66e7",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MaterializedViewTests160.sql",
+            "bytes": 566,
+            "sha256": "70bdc3636d2eb6ed65dde5a9d49f8cff222895f2799637b08c655f74742b66e7",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MergeStatementTests.sql",
+            "bytes": 2041,
+            "sha256": "1613e5bd2e72a9e6ac5e6d85b256ab213cb97ec0ab3a3e6dfee18650da8bd36f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MergeStatementTests160.sql",
+            "bytes": 953,
+            "sha256": "48067636c27e34c38df8639877a2e77480056f392324163002d6c34e4f3dee54",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MiscDeprecatedIn100Tests.sql",
+            "bytes": 98,
+            "sha256": "e2380215bcd9581fafe8c229d4460a9fcda9c5872fd247d0062711bc66055a37",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MiscDeprecatedIn110Tests.sql",
+            "bytes": 1017,
+            "sha256": "21bb1fd9ba59bb8164599b7cd9825fc49f43ae7de5b8f30f1c67c0c9cf388837",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MiscTests100.sql",
+            "bytes": 257,
+            "sha256": "f8041916dbeb23754b0a2395120202f2fab37ac86e2330414380201b216e2797",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MiscTests110.sql",
+            "bytes": 68,
+            "sha256": "596e093f947d751528cb9e22d6ff28dfe4e4085b5d513332af94152c66ade4d6",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MiscTests80.sql",
+            "bytes": 586,
+            "sha256": "7a42e1308f5cbe9dadb251d9e4abc5f8560f4521b6122cd640bafc070c06835a",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 80,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MiscTests90.sql",
+            "bytes": 920,
+            "sha256": "17837ab3393d28a65865e2b2f0830d28ef3b949f4954024c89107a81456f4b7a",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ModernGroupByAllTestsFabricDW.sql",
+            "bytes": 1116,
+            "sha256": "d78a0ffd78029b5314f8e2744a64e338ab152639b1ce4a03773afb89ccbb5671",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MoveConversationStatementTests.sql",
+            "bytes": 64,
+            "sha256": "1dd42aa4acf7fe46fa56c81a73b47985478c1b6f6a0772aa2667590ce4a044df",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MultiLineCommentTests170.sql",
+            "bytes": 242,
+            "sha256": "779ff1f0f15805e51d7030fe0c5e2db4b492bc63c95052a88cc118d6e9303316",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/MultipleErrorTests.sql",
+            "bytes": 423,
+            "sha256": "e04605cfac0c44952978bd81e281067859386256140705a46fe6b5453f47c40c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "recovery"
+        },
+        {
+            "path": "TestScripts/NativelyCompiledScalarUDFTests130.sql",
+            "bytes": 963,
+            "sha256": "4b64c8d4ba91e9c2f598d69e4e2aee681af025693db9e271d3de63cf41640743",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/NestedCTETestsFabricDW.sql",
+            "bytes": 1385,
+            "sha256": "53b2ddb9f24b691c2df93a76433ecfdd2680af804bcd48466f9137203303ca0d",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/NotEnforcedConstraintTests160.sql",
+            "bytes": 467,
+            "sha256": "360ae3a9128e3974094e786966bc0b0037f93dad83f71be7d21546bf184cdf65",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/NullableConstraintTests.sql",
+            "bytes": 129,
+            "sha256": "17fdde918d970e8f62789eb934dd628841a2cbcbff83d8d9964f22ed510836f7",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OffsetClause.sql",
+            "bytes": 784,
+            "sha256": "6c3dda466af678074f9c89ff6a729827dd13db50271465cc28cbe6e12bfed96e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OpenRowsetBulkStatementTests140.sql",
+            "bytes": 1086,
+            "sha256": "26eb9561e73b72a0cebb4da67f93a1a5920224a1c296e8ca7b55dbc1cbf55fd7",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OpenRowsetBulkStatementTests150.sql",
+            "bytes": 2405,
+            "sha256": "425017b1d464b9b462cecbd901dda976884d525871eadb3a22b1958cfdb64b50",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OpenRowsetBulkStatementTests160.sql",
+            "bytes": 1472,
+            "sha256": "db80b539a392d80200172cf81bbe0d1c9f5bdd41cf866c39cea5ccf8d6391216",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OpenRowsetStatementTests160.sql",
+            "bytes": 2416,
+            "sha256": "3792970b2dff2b4b3f18c4013b2b5bb6a47225f5e92aaed6c381445073791897",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OpenSymmetricKeyStatementTests.sql",
+            "bytes": 426,
+            "sha256": "3be5beb2addf26f82771e53eb9759216f70806f795048119454f6236a35a156f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OptimizedLockingTests170.sql",
+            "bytes": 103,
+            "sha256": "541168fbea405eacfe29388598885546b50bc12834839a7b567eb7bcca5bded2",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OptimizerHintsTests.sql",
+            "bytes": 477,
+            "sha256": "5776b0d68ded1be19d0e575eef928329b331dfbb9ae99791cbe09fe3068c3d05",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OptimizerHintsTests110.sql",
+            "bytes": 64,
+            "sha256": "b4a4b58a447ff3c4f7702f9e530f955870d4c333596541b840fa3913cd220c9a",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OptimizerHintsTests130.sql",
+            "bytes": 374,
+            "sha256": "9c43a43ce6b4265be7f6771b76c7fab35e330f35a7887fb4759e6ef0d96ba4ec",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OptimizerHintsTests140.sql",
+            "bytes": 412,
+            "sha256": "c164aa3f8dcf02b2afe514b7bd93d8173666c0e7a18ba0bf3bd4dcdb3dcf02f9",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OptimizerHintsTests150.sql",
+            "bytes": 47,
+            "sha256": "200f53a207e7c305e96b395eb133797ef2c6fb52b7c7c8e295c9f9a2cb2f8969",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OptimizerHintsTests90.sql",
+            "bytes": 290,
+            "sha256": "9263a5b8126be1758faea7bc922dd411295218e11fc0a7e4b803fb8d6d2f5ce3",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OrderByAllTestsFabricDW.sql",
+            "bytes": 1094,
+            "sha256": "e025892fef37d587e49629601451d878e7170a9dc748e8b46bab176dcc06f954",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/OverClauseTests110.sql",
+            "bytes": 1766,
+            "sha256": "a62b302ffd47c18f1a2c6f64442c59e578a53380be26f57d1004a78a05575d29",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ParserModeTests.sql",
+            "bytes": 689,
+            "sha256": "a017d772dcb48894ef4f4e91247bca2fedd97548470890eb32fc92bfdfb4f9c7",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/PersistSamplePercentStatisticsTests130.sql",
+            "bytes": 519,
+            "sha256": "2b97020cfb39b24c87d001eef48b95c9e4067f1385bb8bc3d3adb7576ac2d109",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/PredicateSetTests.sql",
+            "bytes": 620,
+            "sha256": "b55651015473fcce564dc568a06a02d315f02c037b2245dd54fb633df0976fef",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/PredictSqlDwTests.sql",
+            "bytes": 546,
+            "sha256": "15b58a9e3813b30d19942284b7b8599fb4ec7f771e2008a22d0c592cbe39beee",
+            "encoding": "utf8",
+            "flavorHint": "synapse-dw",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/PrintStatementTests.sql",
+            "bytes": 47,
+            "sha256": "4f3e7253b946cda901981c8711857039f7b1c159e9d8c06cc86e57463bd13d59",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/QueryExpressionTests.sql",
+            "bytes": 1100,
+            "sha256": "3c105f8a47f7733b72e00c15cbc927d8a7db4ddaceb0d77745a685ab623b896d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/QueueStatementTests.sql",
+            "bytes": 819,
+            "sha256": "413001408f8ad26d8a128edfb4136e5a3fe74b4eb63bf152d39b84c402910ae1",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/QueueStatementTests100.sql",
+            "bytes": 244,
+            "sha256": "de16f16e7566ba6ffa8f0b6aad1527541e51401ef8dedb086b939dec671c3c0b",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RaiseErrorStatementTests.sql",
+            "bytes": 274,
+            "sha256": "9c28a9507024803e916b6c9a901885e77879ec89b3f62f003e6471b35a3ed3d1",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ReadTextStatementTests.sql",
+            "bytes": 171,
+            "sha256": "acc8ac6352eec57dde86494db8b2b21a2a23a5146a95b6f4a8b4c5c0d5a0c6dd",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ReceiveStatementTests.sql",
+            "bytes": 430,
+            "sha256": "2c2910ca2a83879ed3ab523a428964a562b0501eb8d06f54e521fb076c25f0a2",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RegexpLikeTests170.sql",
+            "bytes": 1232,
+            "sha256": "724ad9c668875c00900d606a985f0a86d44f7058537cb762409d2e7cd91527a1",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RegexpTVFTests170.sql",
+            "bytes": 546,
+            "sha256": "cb87a08ebcbec782a30956c6ba882bd95f7519944d4e140b45754df07fd788b7",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RegexpTests170.sql",
+            "bytes": 1259,
+            "sha256": "9061775e90de7cb0e5fa5012a81530022945dc5f32345207dbe8b811a20fba29",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RemoteDataArchiveDatabaseTests130.sql",
+            "bytes": 780,
+            "sha256": "31f4864e33685cc0f155dae6439cb7db6c3ad7a98a148bb85f423ca201d97995",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RemoteDataArchiveTableTests130.sql",
+            "bytes": 1191,
+            "sha256": "ac1b5530acc05cbf03ffc814688c8584f3ab9d689b3ab84c814543ba90070d5d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RenameStatementTests.sql",
+            "bytes": 245,
+            "sha256": "daec33a090a8854cfcf5122680ce4b0167ef9a5d10fbfb32431006b56cadbca3",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RestoreStatementTests.sql",
+            "bytes": 1407,
+            "sha256": "ba0c0c66f1a1128f71d55580beaf2e05fe6fe2a494e04a7a7b1445d00ab6bb84",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RestoreStatementTests140_Azure.sql",
+            "bytes": 493,
+            "sha256": "ba3bf3ab0558497650d5be01638061c0a28b10dd9c5be8c0a65da7ce61eabeaa",
+            "encoding": "utf8",
+            "flavorHint": "azure-sql",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ReturnStatementTests.sql",
+            "bytes": 455,
+            "sha256": "8f08034675e504fc779edfb8e935a9791c7a85d9076a4e3c7bc9cff0ef7bd153",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RevertStatementTests.sql",
+            "bytes": 56,
+            "sha256": "734e1ab3be8845365490cdcee6771ea9d8115d0a39e5d7fa207ec8dbcf8f060f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RoleStatementTests.sql",
+            "bytes": 204,
+            "sha256": "aa6e4051fd42b129c9f05b59acfad1d90fa02be9b3d604c78f80a9eb97f82cdb",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RoleStatementTests110.sql",
+            "bytes": 100,
+            "sha256": "805264812db609002a3bf8bb2c7421a0662bb39fb6b7d34689802dfcb346978c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RollbackTransactionStatementTests.sql",
+            "bytes": 193,
+            "sha256": "c6b6b822464d6f459ba8ac6bf427bb8e0d364de5d751bc669335f72e14a27216",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RouteStatementTests.sql",
+            "bytes": 550,
+            "sha256": "91b5d9521dbb31714fc7a812db86548a68b58bbffdf608515a639799cd9e4f2e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RowsetsInSelectTests.sql",
+            "bytes": 2343,
+            "sha256": "4c6a9589ed76aaf113f100e6deb69345e15b6ba10e36ce2c8755c557d3fed4e3",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RowsetsInSelectTests100.sql",
+            "bytes": 208,
+            "sha256": "ccd865c23fce7f1a6c4bbd1bb0acdf169b5e3546de88c57e60f45856541f8462",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/RowsetsInSelectTests90.sql",
+            "bytes": 240,
+            "sha256": "a481cc2e0c4e6153d64b72c29118f8a8bfdc7c5fb46900f66e7bf64f2fc102a4",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SaveTransactionStatementTests.sql",
+            "bytes": 247,
+            "sha256": "41f3931951099c063a99aaafffb7147fd94e05c35bf2118d531203a2319e2480",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ScalarDataTypeTests.sql",
+            "bytes": 2016,
+            "sha256": "636c5e0a213f4990ad13088a114716f47ca0ff734eae474ea6c62f9ec5cdf92c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ScalarDataTypeTests90.sql",
+            "bytes": 683,
+            "sha256": "dc8be691399208c9997e37a733038316df725614d457325a24f1e4be34c0c9f5",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ScalarFunctionTestsFabricDW.sql",
+            "bytes": 1043,
+            "sha256": "ed7e463c654d46d714e20d737236ab13163dbbaee1cef37213dfd6dd250200d5",
+            "encoding": "utf8",
+            "flavorHint": "fabric",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ScalarUDFInlineTests150.sql",
+            "bytes": 477,
+            "sha256": "99b7e8465c9499581e1ff22d261c85557a742a9540be7a7d0e88eef355b4973c",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SecurityStatement130Tests.sql",
+            "bytes": 286,
+            "sha256": "3d7fa0be754470f0c09988fab1cba42ab5af9046278171ffda7d6a328e649097",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SecurityStatement80Tests.sql",
+            "bytes": 1229,
+            "sha256": "354fd8a484dde9841776a83128a89396ae67da63125b6a1c92ce214bd85a6961",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 80,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SecurityStatement90Tests.sql",
+            "bytes": 3558,
+            "sha256": "7b19b212ae716ff9679aded9825f10538861e699004fbf9e9de09148306cc02f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SecurityStatementExternalModelTests170.sql",
+            "bytes": 1583,
+            "sha256": "6ac60d72484616eeac3a0fe8219ee3db6fdb9b22630ce5b4e4a8d43d441b3bf2",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SelectExpressionTests.sql",
+            "bytes": 971,
+            "sha256": "03e2145961b20332d9d2d7eff653fe28e0cb697895219063ab58e36c735797e4",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SelectStatementDeprecatedIn110Tests.sql",
+            "bytes": 954,
+            "sha256": "96b7d8e43db868e92b6f0f84df401aade08347ca9e08cbe5a903ba824932a566",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SelectStatementTests.sql",
+            "bytes": 1882,
+            "sha256": "971361552e6e1ea76b1a5f8c2fb47bb83a84760b54fe3d12051512dafb0d5219",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SelectStatementTests140.sql",
+            "bytes": 352,
+            "sha256": "d9cce50ecb0207d8c88738c86c945f50f837b98c21e17d6feb10e1398939c516",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SelectStatementTests160.sql",
+            "bytes": 1150,
+            "sha256": "d0df31d487c1db03e3f05c473485801093cbf571cb15bd8a68ca701e89c9a872",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SelectWithCollation.sql",
+            "bytes": 596,
+            "sha256": "5437662c61125a5669c2cc8215e9be5ad74069b6dbb6630c71a1406b0dfb1896",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SemicolonsBeforeStatementTests1.sql",
+            "bytes": 221,
+            "sha256": "4578b3a34914332a7a3231a340b185b039238ce076d0b1982a82f1c62c0a32a8",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SemicolonsBeforeStatementTests2.sql",
+            "bytes": 369,
+            "sha256": "eef91d0bd7a6b7b06f834da116480a34fae6a787f3aa691cbf97bebf308bbfad",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SendStatementTests.sql",
+            "bytes": 271,
+            "sha256": "5884a28bc16d676f421d8216a166ea76684e9daf2b5f20921f91f1812e412a44",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SendStatementTests110.sql",
+            "bytes": 308,
+            "sha256": "a622d70bd790e7f2ea53bf41e7af6cc02bf0741b72a074c1782eed6e03fba857",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ServerAuditSpecificationStatementTests.sql",
+            "bytes": 2102,
+            "sha256": "9211b54842e7580b349001f93dcfe014f18e2dcc0c601decfca3f2361bda3f75",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ServerAuditSpecificationStatementTests150.sql",
+            "bytes": 2170,
+            "sha256": "bd8abcf609d67875042ee4cbf518d7c673ce20bdefa8a586fb5f13b295db9c77",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ServerAuditStatementTests.sql",
+            "bytes": 751,
+            "sha256": "d32e30ec1c22c7d462ff41ce2c85c9d2579d02cfd6b3fe41a2727a1265064962",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ServerAuditStatementTests110.sql",
+            "bytes": 315,
+            "sha256": "97829c61f382bf3a8d3dfc9c71f49c9aba68a0fbfb5cce5cac1dda9f9362cedb",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ServerAuditStatementTests150.sql",
+            "bytes": 1194,
+            "sha256": "a13053dcbd0cfd46dc292fcd0f27177364a3e80926bdb475e3fba43e716b1bed",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ServerRoleStatementTests.sql",
+            "bytes": 393,
+            "sha256": "666113b8f00cbe4842fb3aa2a4048b1939539a81e548831f1e28586e403d78c1",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SetCommandsAndMiscTests.sql",
+            "bytes": 858,
+            "sha256": "fd8e19008b397eb49bcc34831bce059ec38af2c2d6a1d9285645adbd89dbafb0",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SetOffsetsAndOnOffSetTests.sql",
+            "bytes": 423,
+            "sha256": "19914caab34b65262628a27ca63ee757cb6563f29dd76d40a19180c334cbcd3b",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SetVariableStatementTests.sql",
+            "bytes": 443,
+            "sha256": "1526ad88a74fd88d2715bc190270832bfb1f544432c0b57b82cdb92e05b89a59",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SetVariableStatementTests90.sql",
+            "bytes": 332,
+            "sha256": "6fd254b4d508c745b73d419f0b6dd898854fd22b7a90c2cbeaa1c8ce87fcc1ef",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ShiftOperatorTests160.sql",
+            "bytes": 134,
+            "sha256": "b6c0c814c2300b599c114cdef197f11630d40b8df98899c4f65f28987814db26",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SimpleJsonObjectReturn160.sql",
+            "bytes": 135,
+            "sha256": "83a3bc392353858fdb6021127f6d3ce69e9fe599e77aa6bc3e0923a32cbea0a5",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SingleLineCommentTests170.sql",
+            "bytes": 297,
+            "sha256": "97e709417ff14eadd81e7b44b9f958e266409468b0ce3cd07286f0cbda331fe1",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/StringConcatOperatorTests160.sql",
+            "bytes": 340,
+            "sha256": "1f469dd93373f6d3945e95c1d0180a5e5ba7a3526dde96fb3f335a0e14f2f935",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SymmetricKeyStatementTests.sql",
+            "bytes": 503,
+            "sha256": "1eddec33bdd7e12a25e27d219f98e1e5a74300267061f235bfef40dd69b6c354",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/SymmetricKeyStatementTests100.sql",
+            "bytes": 427,
+            "sha256": "f1544ba0887388a32febacf2006ab0c46da7f9d61a7d33a3efe463dee293cc37",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 100,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TSqlParserTestScript1.sql",
+            "bytes": 455,
+            "sha256": "f7a601801b2ce867434df8b900e481700a0e97d38dc7a01bada15ef384754e93",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TSqlParserTestScript2.sql",
+            "bytes": 308,
+            "sha256": "f6c79c188494fcacb55a185c139481a3fffee3ff6946dd01bab8c7d3e210e5b1",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TSqlParserTestScript3.sql",
+            "bytes": 538,
+            "sha256": "26f6c0db8dbf833ac2306cacdb660c4aec4233c2fbc84f416b9f8f8ad8078088",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TSqlParserTestScript5.sql",
+            "bytes": 2502,
+            "sha256": "29bf6a4f92430698eb80ddc103990121735ef9d38caa36cf4f1213053186c841",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TableParametersTests.sql",
+            "bytes": 382,
+            "sha256": "78ae005924230d877ecfde940d2357c8e113f90070f5281e4936dc9d8ebf963f",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TableTypeTests120.sql",
+            "bytes": 484,
+            "sha256": "66fa912f187cbf7fca18aeaaf5146ff5b8001fb17d33aa1d73b4469c45339251",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TemporalSelectTest130.sql",
+            "bytes": 2345,
+            "sha256": "fe4b7a15803a9d308e6d91f7e6ae6cd9b42bf211e9351dfb45b2b58bafcd2559",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TestJsonArrayReturn160.sql",
+            "bytes": 154,
+            "sha256": "624faa01f950f313c97eea8d29a1ff3cc2aae50fd323152ab52817e91f822878",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TestTrimReturn160.sql",
+            "bytes": 164,
+            "sha256": "1458ef1985386a522ffb9ee90e0b3dc3626d2eecae0e3134ccd35422b43ea001",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ThrowStatementTests.sql",
+            "bytes": 40,
+            "sha256": "e800315d83fe135c79eab131f6f91ffeb4fb6685c4a3c9941dab9df981734ff5",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TopWithApproximateTests170.sql",
+            "bytes": 722,
+            "sha256": "acd35baa9b404087f495d02ba1ff18d6af9127fa91187f531f4d0493cf80281e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TrimBuiltInTest140.sql",
+            "bytes": 877,
+            "sha256": "bab54f0b450627fbb4d564b8903997f18da639a294fa21050e344d11f439b8b3",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TrimFromReturnTests140.sql",
+            "bytes": 120,
+            "sha256": "a470dded0ecce24ce047d71491ccd69acc3f3a8f336e39d6755f60fd0a8388ac",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TrimFromReturnTests160.sql",
+            "bytes": 532,
+            "sha256": "e52dea775f72330f97869b6c84e4ebdab7ccc302b79727d66d6a27a9cda22b22",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TrimFunctionTests160.sql",
+            "bytes": 1327,
+            "sha256": "80545b12da72bbd615874aa5fa4cc2bcec42bcbbfaa1fecd92f1537d752ea142",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TrivialStatementTests.sql",
+            "bytes": 481,
+            "sha256": "52847d7c86b39935b92ecfc40254359ba4f86ef1cf71650703d56922fb175dbf",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TrivialStatementTests90.sql",
+            "bytes": 425,
+            "sha256": "f92c685284bd9c743b95afd04a707df12643b032d502ba59d0f991445806bc43",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TruncatePartitions120.sql",
+            "bytes": 163,
+            "sha256": "495397919da6e6932a12c93f5d17e03b2d8b4e02c64471ea65d0c0fac520f835",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/TryCatchStatementTests.sql",
+            "bytes": 1678,
+            "sha256": "c18d2705268aeebb513a6ada3df0b8b77a232115e0e4e418175da4ad4ea46efa",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/UniqueConstraintTests.sql",
+            "bytes": 1653,
+            "sha256": "f0561dc01981d37fc9e298bf09a6c23af1ed293d975f985a8c15f60a7fe634fc",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/UniqueConstraintTests120.sql",
+            "bytes": 602,
+            "sha256": "f25528bbaa786e50e96332b54cafb4e0e5760365461dd667932089e838b1203e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 120,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/UniqueConstraintTests150.sql",
+            "bytes": 792,
+            "sha256": "5a8e634a2fe14b9756c609db10ae9588d3d89a6708be0803147d5e361bad463d",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 150,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/UniqueConstraintTests90.sql",
+            "bytes": 587,
+            "sha256": "fda55c502dd311cdb0fb81497be7df7ba50eec778e7e746db7519c991e7504c6",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/UniqueInlineIndex130.sql",
+            "bytes": 1345,
+            "sha256": "0ccddcee7ab676cb5501a94e908126e26f51ca7b5930a0a6ab3212a7c20b1d51",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/UpdateStatementTests.sql",
+            "bytes": 797,
+            "sha256": "484952e74f6088ba67e5984d540ea83cb89caf5ae6c1d77162576254e8ade67e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/UpdateStatementTests90.sql",
+            "bytes": 571,
+            "sha256": "6d44783410378fa0239accaae712078ecde2bf02d6e888f49c18b061e03a6ee0",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/UpdateStatisticsStatementTests.sql",
+            "bytes": 595,
+            "sha256": "e5d5ea1baa3abdeace9ad5710b29d1de67deeb9d231b4a282a16dd657a902821",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/UpdateTextStatementTests.sql",
+            "bytes": 568,
+            "sha256": "121503235a2ed47bdb647023f84d8fdd80f2f7263b60bef3e1ebcb5946502ed0",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/UseFederationTests110.sql",
+            "bytes": 235,
+            "sha256": "5c346b44bd51be7a922852ef375d5c5f4ccab2964b6c1c3803d7d52a186ea32c",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 110,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/UserStatementTests.sql",
+            "bytes": 672,
+            "sha256": "b877428f2682bb66d0b5156c5978b5ef5f2d1e3441bbbb6d88b667b6ece719fd",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/VariableTests.sql",
+            "bytes": 120,
+            "sha256": "fd551f9d05f769626755fee44da7bb29c8d492089d606046002627b0f3b7bc07",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/VectorFunctionTests160.sql",
+            "bytes": 738,
+            "sha256": "6b68638dae4bea4ac537d85e5f9919528d676fcb319fc7010662dd867a0f4f9f",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/VectorFunctionTests170.sql",
+            "bytes": 1231,
+            "sha256": "bc16459b31186eb0dbdac88d3be661e9cb9a1e063742ac2097b79e6d14354595",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/VectorIndexTests170.sql",
+            "bytes": 1565,
+            "sha256": "ceadce53620a84c842cbe82731d38c9db993ee0c2969e1ece794f69b6da64e0e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/VectorSearchApproximateTests170.sql",
+            "bytes": 1521,
+            "sha256": "3305a7f07ee2516c0f5eb6d78b588e70a44dd9b97c365beec04e647d532abfd9",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/VectorSearchCrossApplyTests170.sql",
+            "bytes": 292,
+            "sha256": "b934d1a83fcde727bf5f880164b79f4773c21a7eb9669c9e54e4b0f0c6a79e33",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/VectorSearchOptionalTopNTests170.sql",
+            "bytes": 939,
+            "sha256": "e3178f00af0c0ae7f66da06acd58f0e3c952887c9fe4a680e5f0e0ab9c18cbec",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/VectorTypeSecondParameterTests170.sql",
+            "bytes": 247,
+            "sha256": "0ce8dba7b578bef6ed47e3760785ea98822e9060d2ada7e941dab4fde45b865e",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 170,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ViewStatementTests.sql",
+            "bytes": 1130,
+            "sha256": "eb81fe0a4aa4ec29d5b6456d989999d8f03aa4af1117e38077463fa44e2b0ceb",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/WaitForStatementTests.sql",
+            "bytes": 187,
+            "sha256": "4454a16ea15922544c39acd3d199e14d32b16bfcc9637c3babf2d10798f517e6",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/WaitForStatementTests90.sql",
+            "bytes": 163,
+            "sha256": "2e8274c79a66c9a6f15c26b2026486552d8d86ab84110024e0f5a1fbdf3c4fd4",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 90,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/WhileStatementTests.sql",
+            "bytes": 218,
+            "sha256": "b6177824f3048a8031ecc6b3d95ae604cb46e5c2697321a4a6da907e9842a2fc",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/WhitespaceTests.sql",
+            "bytes": 280,
+            "sha256": "3e43059143f5474b3351de28ebcfcca1623186510a2fbd0fb6c9f2c0f784a93e",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/WindowClauseTests160.sql",
+            "bytes": 2077,
+            "sha256": "982dc0994107177ee59996d7790dfe8a14ef6478de5344abf15fc9917a62efc0",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/WithinGroupTests130.sql",
+            "bytes": 677,
+            "sha256": "d63ca5986e97ae9aea49c9d7ab2b54216e89986d30a4ee7246e863b45b786272",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 130,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/WithinGroupTests140.sql",
+            "bytes": 580,
+            "sha256": "0c20778379438f3d54ccd8bf1a6576f2421583e5f1cd6b4b3a36cae27b8d9ea4",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 140,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/WithinGroupTests160.sql",
+            "bytes": 429,
+            "sha256": "41328a307943f74433562245434f540afb46d42fa8cbab799eb63f1a1c1a6b84",
+            "encoding": "utf8-bom",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": 160,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/WriteTextStatementTests.sql",
+            "bytes": 236,
+            "sha256": "b673bc34789344e25af91042a11b1fe6a4b4f9a6830ea10709a4334c10a1ffaa",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        },
+        {
+            "path": "TestScripts/ZeroLengthFile.sql",
+            "bytes": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+            "encoding": "utf8",
+            "flavorHint": "sql-server-or-common",
+            "versionHint": null,
+            "expectation": "parseable"
+        }
+    ]
+}

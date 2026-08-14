@@ -322,9 +322,9 @@ Highest-priority invariants are:
 - qualified per-object hydration never enumerates unrelated object details;
 - all metadata providers and runtimes satisfy shared contract suites.
 
-Test categories include focused grammar fixtures, incomplete typing prefixes, recovery and fuzzing, UTF-16 positions, scope and resolution, invalidation counters, marker-driven features, concurrency races, real SQL Server integration, and architecture import boundaries.
+Test categories include focused grammar fixtures, incomplete typing prefixes, recovery and fuzzing, UTF-16 positions, scope and resolution, invalidation counters, marker-driven features, concurrency races, real SQL Server integration, architecture import boundaries, and the package-owned `test/corpus/tsql-conformance` broad corpus. Run `npm run report:corpus` after compiling to see clean-file, raw-recovery-node, engine-flavor, version-hint, and timing totals without another repository checkout.
 
-ScriptDOM's open-source grammar and tests may inform conformance work under its MIT license. Microsoft.SqlServer.Management.SqlParser is used only as an external behavioral and performance reference unless explicit component-owner and legal approval permits broader reuse.
+The T-SQL conformance corpus initially vendors ScriptDOM fixtures byte-for-byte under its MIT license; its manifest pins source provenance and integrity. ScriptDOM's open-source grammar and tests may also inform conformance work under that license. Microsoft.SqlServer.Management.SqlParser is used only as an external behavioral and performance reference unless explicit component-owner and legal approval permits broader reuse.
 
 ## Benchmark plan
 

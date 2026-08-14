@@ -17,7 +17,26 @@ export interface SyntaxToken extends TextRange {
     readonly text: string;
     readonly trivia: boolean;
     readonly lineStart: boolean;
+    readonly keyword?: "reserved" | "contextual";
 }
+
+export type SqlServerMajorVersion = 15 | 16 | 17;
+export type SqlCompatibilityLevel = 150 | 160 | 170;
+export type SqlEngineFlavor = "sql-server" | "azure-sql" | "azure-synapse" | "fabric";
+
+export interface TsqlFeatureProfile {
+    readonly serverMajorVersion: SqlServerMajorVersion;
+    readonly compatibilityLevel: SqlCompatibilityLevel;
+    readonly engineFlavor: SqlEngineFlavor;
+    readonly previewFeatures: boolean;
+}
+
+export const defaultTsqlFeatureProfile: TsqlFeatureProfile = Object.freeze({
+    serverMajorVersion: 17,
+    compatibilityLevel: 170,
+    engineFlavor: "sql-server",
+    previewFeatures: false,
+});
 
 export interface SyntaxNode extends TextRange {
     readonly kind: string;
@@ -37,7 +56,20 @@ export interface SyntaxContext {
 export interface SyntaxReuseStatistics {
     readonly mode: "full" | "incremental";
     readonly changedRangeCount: number;
+    /** Fragments offered to Lezer for native subtree reuse, not a claim that every fragment shifted. */
     readonly reusableFragmentCount: number;
+    /** Complete safe batch groups reused without invoking the parser. */
+    readonly reusedChunkCount: number;
+    /** Safe batch groups reparsed for this snapshot. */
+    readonly reparsedChunkCount: number;
+    /** Source characters presented to Lezer for this snapshot. */
+    readonly parsedCharacterCount: number;
+    /** Number of independently cached safe batch groups. */
+    readonly chunkCount: number;
+    /** Raw Lezer recovery nodes before diagnostic conversion or compatibility filtering. */
+    readonly rawErrorNodeCount: number;
+    /** Top-level grammar-defined SQL batches in the canonical Script tree. */
+    readonly batchCount: number;
 }
 
 export interface SyntaxSnapshot {

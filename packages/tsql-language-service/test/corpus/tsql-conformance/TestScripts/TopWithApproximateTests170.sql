@@ -1,0 +1,30 @@
+-- Test 1: TOP WITH APPROXIMATE (full keyword)
+SELECT TOP 10 WITH APPROXIMATE *
+FROM Orders
+ORDER BY OrderDate;
+
+-- Test 2: TOP WITH APPROX (abbreviated form)
+SELECT TOP 10 WITH APPROX *
+FROM Orders
+ORDER BY OrderDate;
+
+-- Test 3: TOP(expression) WITH APPROXIMATE
+SELECT TOP(10) WITH APPROXIMATE *
+FROM Orders
+ORDER BY OrderDate;
+
+-- Test 4: TOP(function) WITH APPROX
+SELECT TOP(LEN(DB_NAME())) WITH APPROX *
+FROM Orders
+ORDER BY OrderDate;
+
+-- Test 5: TOP WITH APPROXIMATE and column list
+SELECT TOP 5 WITH APPROXIMATE OrderID, CustomerName, OrderDate
+FROM Orders
+ORDER BY OrderDate DESC;
+
+-- Test 6: TOP(variable) WITH APPROXIMATE
+DECLARE @top INT = 20;
+SELECT TOP(@top) WITH APPROXIMATE *
+FROM Products
+ORDER BY Price;

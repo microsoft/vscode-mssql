@@ -10,9 +10,15 @@ export function generateSqlCorpus(targetLength) {
         "CREATE TABLE #Work (Id int NOT NULL, Payload nvarchar(max) NULL);\nGO\n",
         "WITH cte AS (SELECT Id FROM dbo.Users) SELECT Id FROM cte ORDER BY Id;\nGO\n",
     ];
-    let text = "";
-    for (let index = 0; text.length < targetLength; index++) {
-        text += statements[index % statements.length];
+    if (!Number.isSafeInteger(targetLength) || targetLength < statements[0].length) {
+        throw new RangeError("targetLength must fit at least one complete benchmark statement");
     }
-    return text.slice(0, targetLength);
+    let text = "";
+    for (let index = 0; ; index++) {
+        const statement = statements[index % statements.length];
+        if (text.length + statement.length > targetLength) break;
+        text += statement;
+    }
+    // ASCII whitespace makes the UTF-8 byte count exact without introducing an incomplete statement.
+    return text.padEnd(targetLength, " ");
 }

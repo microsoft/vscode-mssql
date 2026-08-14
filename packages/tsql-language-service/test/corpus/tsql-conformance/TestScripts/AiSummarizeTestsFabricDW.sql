@@ -1,0 +1,27 @@
+SELECT AI_SUMMARIZE('text');
+
+SELECT AI_SUMMARIZE(t.text_col)
+FROM dbo.Texts AS t;
+
+SELECT AI_SUMMARIZE(text_col)
+FROM Texts;
+
+DECLARE @s0 AS NVARCHAR (MAX) = N'Hello world';
+
+SELECT AI_SUMMARIZE(@s0 + 'a');
+
+SELECT AI_SUMMARIZE('b' + 'a');
+
+SELECT *
+FROM AI_SUMMARIZE((SELECT t.text_col
+                   FROM dbo.Texts AS t));
+
+
+GO
+CREATE OR ALTER FUNCTION dbo.fx
+(@s NVARCHAR (MAX))
+RETURNS NVARCHAR (MAX)
+AS
+BEGIN
+    RETURN (AI_SUMMARIZE(@s));
+END

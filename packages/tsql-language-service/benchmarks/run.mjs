@@ -19,46 +19,74 @@ for (const size of sizes) {
     const text = generateSqlCorpus(size);
     const service = new LezerSyntaxService();
     const initialText = new ImmutableTextSnapshot("file:///bench.sql", 1, text);
-    const full = measure(() => service.parse(initialText));
-    const offset = Math.floor(text.length / 2);
-    const change = { start: offset, end: offset + 1, text: text[offset] === "X" ? "Y" : "X" };
-    const editedText = applyTextChanges(initialText, 2, [change]);
-    const incremental = measure(() => service.update(full.value, editedText, [change]));
-    const fresh = service.parse(editedText);
-    if (checksum(incremental.value) !== checksum(fresh)) {
-        throw new Error(`Incremental/full syntax mismatch at ${size} bytes`);
+    const coldFull = measure(() => service.parse(initialText));
+    const warmFull = measure(() => service.parse(initialText));
+    const editLocations = [
+        ["start", Math.max(1, Math.floor(text.length * 0.01))],
+        ["middle", Math.floor(text.length / 2)],
+        ["end", Math.max(1, Math.floor(text.length * 0.99))],
+    ];
+    for (const [editLocation, rawOffset] of editLocations) {
+        const offset = Math.min(Number(rawOffset), text.length - 1);
+        const change = {
+            start: offset,
+            end: offset + 1,
+            text: text[offset] === "X" ? "Y" : "X",
+        };
+        const editedText = applyTextChanges(initialText, 2, [change]);
+        const incremental = measure(() => service.update(coldFull.value, editedText, [change]));
+        const fullReparse = measure(() => service.parse(editedText));
+        if (checksum(incremental.value) !== checksum(fullReparse.value)) {
+            throw new Error(`Incremental/full syntax mismatch at ${size} bytes (${editLocation})`);
+        }
+
+        let workerInitial;
+        let workerEdit;
+        if (editLocation === "middle") {
+            const worker = createNodeWorkerClient();
+            try {
+                workerInitial = await measureAsync(() => worker.open("file:///bench.sql", 1, text));
+                workerEdit = await measureAsync(() =>
+                    worker.change("file:///bench.sql", 2, [change]),
+                );
+            } finally {
+                await worker.dispose();
+            }
+        }
+        rows.push({
+            bytes: text.length,
+            editLocation,
+            coldFullMs: round(coldFull.elapsedMs),
+            warmFullMs: round(warmFull.elapsedMs),
+            fullReparseMs: round(fullReparse.elapsedMs),
+            incrementalMs: round(incremental.elapsedMs),
+            speedup: round(fullReparse.elapsedMs / incremental.elapsedMs),
+            throughputMiBPerSecond: round(text.length / 1024 / 1024 / (warmFull.elapsedMs / 1000)),
+            diagnostics: coldFull.value.diagnostics.length,
+            reusedBatchChunks: incremental.value.statistics.reusedChunkCount,
+            reparsedBatchChunks: incremental.value.statistics.reparsedChunkCount,
+            parsedCharacters: incremental.value.statistics.parsedCharacterCount,
+            workerInitialWallMs: optionalRound(workerInitial?.elapsedMs),
+            workerEditWallMs: optionalRound(workerEdit?.elapsedMs),
+            workerInitialInternalMs: optionalRound(workerInitial?.value.workerElapsedMs),
+            workerEditInternalMs: optionalRound(workerEdit?.value.workerElapsedMs),
+        });
     }
-    const worker = createNodeWorkerClient();
-    let workerInitial;
-    let workerEdit;
-    try {
-        workerInitial = await measureAsync(() => worker.open("file:///bench.sql", 1, text));
-        workerEdit = await measureAsync(() => worker.change("file:///bench.sql", 2, [change]));
-    } finally {
-        await worker.dispose();
-    }
-    rows.push({
-        bytes: size,
-        fullParseMs: full.elapsedMs,
-        incrementalParseMs: incremental.elapsedMs,
-        reusableFragments: incremental.value.statistics.reusableFragmentCount,
-        workerInitialWallMs: workerInitial.elapsedMs,
-        workerEditWallMs: workerEdit.elapsedMs,
-        workerInitialInternalMs: workerInitial.value.workerElapsedMs,
-        workerEditInternalMs: workerEdit.value.workerElapsedMs,
-    });
 }
 
 console.table(rows);
 
 function checksum(snapshot) {
     let value = 2166136261;
-    const cursor = snapshot.tree.cursor();
-    do {
-        for (const character of `${cursor.name}:${cursor.from}:${cursor.to};`) {
+    const pending = [snapshot.root()];
+    while (pending.length > 0) {
+        const node = pending.pop();
+        for (const character of `${node.kind}:${node.start}:${node.end};`) {
             value = Math.imul(value ^ character.charCodeAt(0), 16777619);
         }
-    } while (cursor.next());
+        const children = [...node.children()];
+        for (let index = children.length - 1; index >= 0; index--) pending.push(children[index]);
+    }
     return value >>> 0;
 }
 
@@ -72,6 +100,14 @@ async function measureAsync(action) {
     const started = performance.now();
     const value = await action();
     return { elapsedMs: performance.now() - started, value };
+}
+
+function round(value) {
+    return Math.round(value * 100) / 100;
+}
+
+function optionalRound(value) {
+    return value === undefined ? undefined : round(value);
 }
 
 function parseArgs(args) {
