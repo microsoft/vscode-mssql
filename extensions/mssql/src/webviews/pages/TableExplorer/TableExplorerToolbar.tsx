@@ -35,6 +35,7 @@ import { locConstants as loc } from "../../common/locConstants";
 import { useTableExplorerContext } from "./TableExplorerStateProvider";
 import { useTableExplorerSelector } from "./tableExplorerSelector";
 import { ApiStatus } from "../../../sharedInterfaces/webview";
+import { commitChangesAndClearTracking } from "../../../tableExplorer/editDataUtils";
 import type { DataColumnVisibility } from "./TableDataGrid";
 
 const useStyles = makeStyles({
@@ -152,12 +153,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
 
     const lastSubmittedRowCountRef = React.useRef<number>(DEFAULT_ROW_COUNT);
 
-    const handleSave = () => {
-        context.commitChanges();
-        // Call the callback to clear change tracking after save
-        if (onSaveComplete) {
-            onSaveComplete();
-        }
+    const handleSave = async () => {
+        await commitChangesAndClearTracking(context.commitChanges, onSaveComplete);
     };
 
     const handleAddRow = () => {

@@ -587,6 +587,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     vscode.window.showErrorMessage(
                         LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
                     );
+                    throw error;
                 }
 
                 return state;
@@ -679,9 +680,14 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("createRow", async (state) => {
+            if (!this._cellOperationsEnabled) {
+                return state;
+            }
+
             this.logger.info(
                 `Creating new row for: ${state.tableName} - OperationId: ${this.operationId}`,
             );
+            this.showRestorePromptAfterClose = true;
 
             const startTime = Date.now();
             const endActivity = startActivity(
@@ -694,65 +700,71 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 },
             );
 
-            try {
-                const result = await this._tableExplorerService.createRow(state.ownerUri);
-                vscode.window.showInformationMessage(
-                    LocConstants.TableExplorer.rowCreatedSuccessfully,
-                );
-                this.logger.debug(
-                    `Created row with ID: ${result.newRowId} - OperationId: ${this.operationId}`,
-                );
-
-                // Track new row and mark unsaved changes
-                state.newRows = [...state.newRows, result.row];
-                this.showRestorePromptAfterClose = true;
-
-                // Update result set with new row
-                if (state.resultSet) {
-                    // Create a completely new resultSet object to ensure React detects the change
-                    state.resultSet = {
-                        ...state.resultSet,
-                        subset: [...state.resultSet.subset, result.row],
-                        rowCount: state.resultSet.rowCount + 1,
-                    };
-
-                    this.logger.debug(
-                        `Added new row to result set, now has ${state.resultSet.rowCount} rows (${state.newRows.length} new)`,
-                    );
-
-                    this.updateState();
-                } else {
-                    this.logger.warn("Cannot add row: result set is undefined");
+            return await this.enqueueLifecycleOperation(async () => {
+                if (!this._cellOperationsEnabled) {
+                    return state;
                 }
 
-                await this.regenerateScriptIfVisible(state);
+                try {
+                    const result = await this._tableExplorerService.createRow(state.ownerUri);
+                    vscode.window.showInformationMessage(
+                        LocConstants.TableExplorer.rowCreatedSuccessfully,
+                    );
+                    this.logger.debug(
+                        `Created row with ID: ${result.newRowId} - OperationId: ${this.operationId}`,
+                    );
 
-                endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                });
-            } catch (error) {
-                this.logger.error(
-                    `Error creating row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
+                    // Track new row and mark unsaved changes
+                    state.newRows = [...state.newRows, result.row];
 
-                endActivity.endFailed(
-                    new Error("Failed to create row"),
-                    true /* includeErrorMessage */,
-                    undefined /* errorCode */,
-                    undefined /* errorType */,
-                    {
+                    // Update result set with new row
+                    if (state.resultSet) {
+                        // Create a completely new resultSet object to ensure React detects the change
+                        state.resultSet = {
+                            ...state.resultSet,
+                            subset: [...state.resultSet.subset, result.row],
+                            rowCount: state.resultSet.rowCount + 1,
+                        };
+
+                        this.logger.debug(
+                            `Added new row to result set, now has ${state.resultSet.rowCount} rows (${state.newRows.length} new)`,
+                        );
+
+                        this.updateState();
+                    } else {
+                        this.logger.warn("Cannot add row: result set is undefined");
+                    }
+
+                    await this.regenerateScriptIfVisible(state);
+
+                    endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
-                    },
-                );
+                    });
+                } catch (error) {
+                    this.showRestorePromptAfterClose = this.hasPendingChanges(state);
+                    this.logger.error(
+                        `Error creating row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    );
 
-                vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToCreateNewRow(getErrorMessage(error)),
-                );
-            }
+                    endActivity.endFailed(
+                        new Error("Failed to create row"),
+                        true /* includeErrorMessage */,
+                        undefined /* errorCode */,
+                        undefined /* errorType */,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
+                    );
 
-            return state;
+                    vscode.window.showErrorMessage(
+                        LocConstants.TableExplorer.failedToCreateNewRow(getErrorMessage(error)),
+                    );
+                }
+
+                return state;
+            });
         });
 
         this.registerReducer("deleteRow", async (state, payload) => {
@@ -881,6 +893,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("updateCell", async (state, payload) => {
+            if (!this._cellOperationsEnabled) {
+                return state;
+            }
+
             this.logger.debug(
                 `Updating cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
             );
@@ -903,6 +919,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             if (registeredBeforeQueue) {
                 this._latestCellUpdateRequestIds.set(cacheKey, payload.requestId);
             }
+            this.showRestorePromptAfterClose = true;
 
             const ownerUri = state.ownerUri;
             return await this.enqueueCellOperation(cacheKey, async () => {
@@ -916,6 +933,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 if (!registeredBeforeQueue) {
                     this._latestCellUpdateRequestIds.set(cacheKey, payload.requestId);
                 }
+                this.showRestorePromptAfterClose = true;
                 if (state.resultSet && !state.originalCellValues?.has(cacheKey)) {
                     const rowIndex = state.resultSet.subset.findIndex(
                         (row) => row.id === payload.rowId,

@@ -4,7 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { removeAcknowledgedCleanCellChanges } from "../../src/tableExplorer/editDataUtils";
+import {
+    commitChangesAndClearTracking,
+    removeAcknowledgedCleanCellChanges,
+} from "../../src/tableExplorer/editDataUtils";
 
 suite("editDataUtils", () => {
     test("removes a locally tracked cell when the service reports it clean", () => {
@@ -56,5 +59,35 @@ suite("editDataUtils", () => {
 
         expect(changed).to.be.false;
         expect([...changes.keys()]).to.deep.equal(["7-0"]);
+    });
+
+    test("clears local tracking after a successful commit", async () => {
+        let trackingCleared = false;
+
+        const committed = await commitChangesAndClearTracking(
+            async () => {},
+            () => {
+                trackingCleared = true;
+            },
+        );
+
+        expect(committed).to.be.true;
+        expect(trackingCleared).to.be.true;
+    });
+
+    test("preserves local tracking after a failed commit", async () => {
+        let trackingCleared = false;
+
+        const committed = await commitChangesAndClearTracking(
+            async () => {
+                throw new Error("Commit failed");
+            },
+            () => {
+                trackingCleared = true;
+            },
+        );
+
+        expect(committed).to.be.false;
+        expect(trackingCleared).to.be.false;
     });
 });

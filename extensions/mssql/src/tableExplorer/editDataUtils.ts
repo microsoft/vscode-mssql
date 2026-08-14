@@ -25,3 +25,16 @@ export function removeAcknowledgedCleanCellChanges<T extends { requestId: number
 
     return changed;
 }
+
+export async function commitChangesAndClearTracking(
+    commitChanges: () => Promise<void>,
+    clearTracking?: () => void,
+): Promise<boolean> {
+    try {
+        await commitChanges();
+        clearTracking?.();
+        return true;
+    } catch {
+        return false;
+    }
+}

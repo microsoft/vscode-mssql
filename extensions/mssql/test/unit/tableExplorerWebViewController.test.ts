@@ -229,9 +229,15 @@ suite("TableExplorerWebViewController - Reducers", () => {
             mockTableExplorerService.commit.rejects(error);
 
             // Act
-            await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
+            let commitRejected = false;
+            try {
+                await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
+            } catch {
+                commitRejected = true;
+            }
 
             // Assert
+            expect(commitRejected).to.be.true;
             expect(mockTableExplorerService.commit.calledOnce).to.be.true;
             expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to save changes");
@@ -305,8 +311,14 @@ suite("TableExplorerWebViewController - Reducers", () => {
 
             update.reject(new Error("Update failed"));
             await updateRequest;
-            await commitRequest;
+            let commitRejected = false;
+            try {
+                await commitRequest;
+            } catch {
+                commitRejected = true;
+            }
 
+            expect(commitRejected).to.be.true;
             expect(mockTableExplorerService.commit.called).to.be.false;
             expect(controller.state.failedCells).to.deep.equal(["0-1"]);
             expect(controller.state.originalCellValues?.has("0-1")).to.be.true;
@@ -467,6 +479,44 @@ suite("TableExplorerWebViewController - Reducers", () => {
             // Assert
             expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to create a new row");
+        });
+
+        test("should finish a pending row creation before replacing the session", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const create = createDeferred<EditCreateRowResult>();
+            mockTableExplorerService.createRow.returns(create.promise);
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.resolves();
+
+            const createRequest = controller["_reducerHandlers"].get("createRow")(
+                controller.state,
+                {},
+            );
+            await waitForPromises();
+            const queryRequest = controller["_reducerHandlers"].get("runTableQuery")(
+                controller.state,
+                {
+                    queryString: "SELECT * FROM dbo.TestTable",
+                },
+            );
+            await waitForPromises();
+
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+
+            create.resolve({
+                newRowId: 100,
+                row: createMockRow(100, ["", "", ""]),
+                defaultValues: ["", "", ""],
+            });
+            await createRequest;
+            await queryRequest;
+
+            expect(
+                mockTableExplorerService.createRow.calledBefore(mockTableExplorerService.dispose),
+            ).to.be.true;
+            expect(controller.state.newRows).to.be.empty;
+            expect(controller.state.resultSet).to.be.undefined;
         });
     });
 
@@ -655,6 +705,37 @@ suite("TableExplorerWebViewController - Reducers", () => {
     });
 
     suite("updateCell reducer", () => {
+        test("should enable the close prompt while a cell update is pending", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const update = createDeferred<EditCellResult>();
+            mockTableExplorerService.updateCell.returns(update.promise);
+
+            const updateRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Updated",
+                    requestId: 1,
+                },
+            );
+            await waitForPromises();
+
+            expect(controller["_options"].showRestorePromptAfterClose).to.be.true;
+
+            update.resolve({
+                cell: {
+                    displayValue: "Updated",
+                    isNull: false,
+                    invariantCultureDisplayValue: "Updated",
+                    isDirty: true,
+                },
+                isRowDirty: true,
+            });
+            await updateRequest;
+        });
+
         test("should update cell value in resultSet", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
