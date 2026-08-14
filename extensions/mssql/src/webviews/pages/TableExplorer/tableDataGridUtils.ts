@@ -145,6 +145,13 @@ export class TableExplorerRowMutationQueue {
         }
     }
 
+    public acknowledgeFailure(error: unknown): void {
+        const failureIndex = this.pendingFailures.indexOf(error);
+        if (failureIndex !== -1) {
+            this.pendingFailures.splice(failureIndex, 1);
+        }
+    }
+
     private removeCompletedMutation(rowId: number, mutation: Promise<void>): void {
         if (this.pendingMutations.get(rowId) === mutation) {
             this.pendingMutations.delete(rowId);

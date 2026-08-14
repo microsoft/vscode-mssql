@@ -332,7 +332,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         !deletedRowsRef.current.has(rowId) &&
                         !revertingRowsRef.current.has(rowId)
                     ) {
-                        void rowMutationQueueRef.current.enqueue(rowId, () => onDeleteRow(rowId));
+                        void rowMutationQueueRef.current.enqueue(rowId, async () => {
+                            await onDeleteRow(rowId);
+                            rowMutationQueueRef.current.clearPersistentFailuresForRow(rowId);
+                        });
                     }
                 }
                 if (reactGridRef.current?.slickGrid) {
@@ -1070,7 +1073,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 if (onDeletionCountChanged) {
                     onDeletionCountChanged(deletedRowsRef.current.size);
                 }
-            } catch {
+            } catch (error) {
+                rowMutationQueueRef.current.acknowledgeFailure(error);
                 return;
             } finally {
                 revertingRowsRef.current.delete(rowId);
@@ -1098,7 +1102,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     () => onRevertCell(rowId, dataColumnIndex),
                     changeKey,
                 );
-            } catch {
+            } catch (error) {
+                rowMutationQueueRef.current.acknowledgeFailure(error);
                 return;
             }
 
@@ -1229,7 +1234,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         !mutationsBlockedRef.current &&
                         !revertingRowsRef.current.has(rowId)
                     ) {
-                        void rowMutationQueueRef.current.enqueue(rowId, () => onDeleteRow(rowId));
+                        void rowMutationQueueRef.current.enqueue(rowId, async () => {
+                            await onDeleteRow(rowId);
+                            rowMutationQueueRef.current.clearPersistentFailuresForRow(rowId);
+                        });
                     }
                     break;
 

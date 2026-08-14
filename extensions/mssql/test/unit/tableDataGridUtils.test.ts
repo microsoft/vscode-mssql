@@ -265,6 +265,43 @@ suite("tableDataGridUtils", () => {
             await queue.drain();
         });
 
+        test("clears persistent cell failures after deleting the row", async () => {
+            const queue = new TableExplorerRowMutationQueue();
+            const expectedError = new Error("update failed");
+            await queue
+                .enqueue(
+                    5,
+                    async () => {
+                        throw expectedError;
+                    },
+                    "5-1",
+                )
+                .catch(() => undefined);
+
+            await queue.enqueue(5, async () => undefined);
+            queue.clearPersistentFailuresForRow(5);
+
+            await queue.drain();
+        });
+
+        test("acknowledges an awaited revert failure without affecting the next drain", async () => {
+            const queue = new TableExplorerRowMutationQueue();
+            const expectedError = new Error("revert failed");
+            let caughtError: unknown;
+            try {
+                await queue.enqueue(5, async () => {
+                    throw expectedError;
+                });
+            } catch (error) {
+                caughtError = error;
+                queue.acknowledgeFailure(error);
+            }
+
+            expect(caughtError).to.equal(expectedError);
+            await queue.enqueue(5, async () => undefined);
+            await queue.drain();
+        });
+
         test("invalidates queued mutations from an earlier session", async () => {
             const queue = new TableExplorerRowMutationQueue();
             let completeFirstMutation: () => void;

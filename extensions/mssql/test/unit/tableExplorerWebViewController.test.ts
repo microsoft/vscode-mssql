@@ -483,9 +483,17 @@ suite("TableExplorerWebViewController - Reducers", () => {
             mockTableExplorerService.deleteRow.rejects(error);
 
             // Act
-            await controller["_reducerHandlers"].get("deleteRow")(controller.state, { rowId: 0 });
+            let caughtError: unknown;
+            try {
+                await controller["_reducerHandlers"].get("deleteRow")(controller.state, {
+                    rowId: 0,
+                });
+            } catch (error) {
+                caughtError = error;
+            }
 
             // Assert
+            expect(caughtError).to.equal(error);
             expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to remove row");
         });

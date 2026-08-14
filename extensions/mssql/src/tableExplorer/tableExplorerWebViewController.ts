@@ -767,6 +767,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToRemoveRow(getErrorMessage(error)),
                 );
+                throw error;
             }
 
             return state;
