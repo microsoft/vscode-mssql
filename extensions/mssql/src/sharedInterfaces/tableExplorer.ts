@@ -205,7 +205,7 @@ export interface TableExplorerWebViewState {
 
 export interface TableExplorerContextProps extends CoreRPCs {
     commitChanges: () => Promise<void>;
-    loadSubset: (rowCount: number) => void;
+    loadSubset: (rowCount: number) => Promise<void>;
     createRow: () => void;
     deleteRow: (rowId: number) => Promise<void>;
     updateCell: (rowId: number, columnId: number, newValue: string) => Promise<void>;
@@ -218,7 +218,11 @@ export interface TableExplorerContextProps extends CoreRPCs {
     setCurrentPage: (pageNumber: number) => void;
     saveResults: (format: SupportedSaveFormats, data: ExportData) => void;
     showTableQuery: () => void;
-    runTableQuery: (queryString: string, rowCount?: number, filterOperators?: string[]) => void;
+    runTableQuery: (
+        queryString: string,
+        rowCount?: number,
+        filterOperators?: string[],
+    ) => Promise<void>;
     modifyTable: () => void;
     viewTableDiagram: () => void;
     showSql: (sqlScript: string) => void;

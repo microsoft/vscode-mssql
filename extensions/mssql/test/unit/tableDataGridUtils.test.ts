@@ -8,6 +8,7 @@ import {
     clearRevertedCellChanges,
     hasPendingChangesForRow,
     isTableExplorerDataColumn,
+    runBeforeTableExplorerSessionReplacement,
     snapshotCellChangesForRow,
     TableExplorerRowMutationQueue,
     tryLockTableExplorerRow,
@@ -167,6 +168,28 @@ suite("tableDataGridUtils", () => {
             expect(drainCompleted).to.equal(true);
         });
 
+        test("drains all mutations before propagating a failure", async () => {
+            const queue = new TableExplorerRowMutationQueue();
+            const expectedError = new Error("update failed");
+            void queue.enqueue(5, async () => {
+                throw expectedError;
+            });
+            let secondMutationCompleted = false;
+            void queue.enqueue(6, async () => {
+                secondMutationCompleted = true;
+            });
+
+            let caughtError: unknown;
+            try {
+                await queue.drain();
+            } catch (error) {
+                caughtError = error;
+            }
+
+            expect(caughtError).to.equal(expectedError);
+            expect(secondMutationCompleted).to.equal(true);
+        });
+
         test("invalidates queued mutations from an earlier session", async () => {
             const queue = new TableExplorerRowMutationQueue();
             let completeFirstMutation: () => void;
@@ -182,12 +205,48 @@ suite("tableDataGridUtils", () => {
                 staleMutationStarted = true;
             });
 
+            await Promise.resolve();
             queue.invalidate();
             completeFirstMutation!();
             await firstMutation;
             await staleMutation;
 
             expect(staleMutationStarted).to.equal(false);
+        });
+
+        test("blocks and drains mutations before replacing the session", async () => {
+            const queue = new TableExplorerRowMutationQueue();
+            const events: string[] = [];
+            let completeMutation: () => void;
+            void queue.enqueue(
+                5,
+                () =>
+                    new Promise<void>((resolve) => {
+                        events.push("mutation");
+                        completeMutation = resolve;
+                    }),
+            );
+
+            const replacement = runBeforeTableExplorerSessionReplacement(
+                queue,
+                (blocked) => events.push(`blocked:${blocked}`),
+                async () => {
+                    events.push("replacement");
+                },
+            );
+
+            await Promise.resolve();
+            expect(events).to.deep.equal(["blocked:true", "mutation"]);
+
+            completeMutation!();
+            await replacement;
+
+            expect(events).to.deep.equal([
+                "blocked:true",
+                "mutation",
+                "replacement",
+                "blocked:false",
+            ]);
         });
     });
 });

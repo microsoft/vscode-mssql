@@ -42,6 +42,7 @@ import {
     clearRevertedCellChanges,
     hasPendingChangesForRow,
     isTableExplorerDataColumn,
+    runBeforeTableExplorerSessionReplacement,
     snapshotCellChangesForRow,
     TableExplorerRowMutationQueue,
     tryLockTableExplorerRow,
@@ -110,6 +111,7 @@ export interface TableDataGridRef {
     deleteRows: (rowIds: number[]) => void;
     getSqlForCurrentView: () => string;
     runAfterPendingMutations: (operation: () => Promise<void>) => Promise<boolean>;
+    runBeforeSessionReplacement: (operation: () => Promise<void>) => Promise<void>;
 }
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
@@ -369,6 +371,19 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     mutationsBlockedRef.current = false;
                     reactGridRef.current?.slickGrid?.invalidate();
                 }
+            },
+            runBeforeSessionReplacement: async (operation: () => Promise<void>) => {
+                await runBeforeTableExplorerSessionReplacement(
+                    rowMutationQueueRef.current,
+                    (blocked) => {
+                        mutationsBlockedRef.current = blocked;
+                        reactGridRef.current?.slickGrid?.invalidate();
+                    },
+                    async () => {
+                        revertingRowsRef.current.clear();
+                        await operation();
+                    },
+                );
             },
         }));
 

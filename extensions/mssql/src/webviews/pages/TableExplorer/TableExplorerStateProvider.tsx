@@ -29,8 +29,8 @@ export const TableExplorerStateProvider: React.FC<{
                 await extensionRpc.actionAndWait("commitChanges", {});
             },
 
-            loadSubset: function (rowCount: number): void {
-                extensionRpc.action("loadSubset", { rowCount });
+            loadSubset: async function (rowCount: number): Promise<void> {
+                await extensionRpc.actionAndWait("loadSubset", { rowCount });
             },
 
             createRow: function (): void {
@@ -85,12 +85,16 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("showTableQuery", {});
             },
 
-            runTableQuery: function (
+            runTableQuery: async function (
                 queryString: string,
                 rowCount?: number,
                 filterOperators?: string[],
-            ): void {
-                extensionRpc.action("runTableQuery", { queryString, rowCount, filterOperators });
+            ): Promise<void> {
+                await extensionRpc.actionAndWait("runTableQuery", {
+                    queryString,
+                    rowCount,
+                    filterOperators,
+                });
             },
 
             modifyTable: function (): void {

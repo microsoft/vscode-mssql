@@ -473,6 +473,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
                 );
+                throw error;
             }
 
             return state;

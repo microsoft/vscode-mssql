@@ -212,16 +212,31 @@ suite("TableExplorerWebViewController - Reducers", () => {
         test("should show error message when commit fails", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
+            const newRow = createMockRow(100, ["3", "New", "Row"]);
+            const originalValue = createMockCell("Original");
+            controller.state.newRows = [newRow];
+            controller.state.deletedRows = [0];
+            controller.state.failedCells = ["0-1"];
+            controller.state.originalCellValues = new Map([["0-1", originalValue]]);
             const error = new Error("Commit failed");
             mockTableExplorerService.commit.rejects(error);
 
             // Act
-            await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
+            let caughtError: unknown;
+            try {
+                await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
+            } catch (commitError) {
+                caughtError = commitError;
+            }
 
             // Assert
-            expect(mockTableExplorerService.commit.calledOnce).to.be.true;
-            expect(showErrorMessageStub.calledOnce).to.be.true;
-            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to save changes");
+            expect(caughtError).to.equal(error);
+            expect(mockTableExplorerService.commit).to.have.been.calledWith("test-owner-uri");
+            expect(showErrorMessageStub).to.have.been.calledWithMatch("Failed to save changes");
+            expect(controller.state.newRows).to.deep.equal([newRow]);
+            expect(controller.state.deletedRows).to.deep.equal([0]);
+            expect(controller.state.failedCells).to.deep.equal(["0-1"]);
+            expect(controller.state.originalCellValues?.get("0-1")).to.equal(originalValue);
         });
     });
 

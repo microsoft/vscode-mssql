@@ -160,6 +160,8 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
         setIsSaving(true);
         try {
             await onSave();
+        } catch {
+            // The controller displays the save error; keep this event handler from rejecting.
         } finally {
             setIsSaving(false);
         }

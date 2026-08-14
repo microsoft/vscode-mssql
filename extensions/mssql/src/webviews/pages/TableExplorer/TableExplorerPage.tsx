@@ -228,7 +228,7 @@ export const TableExplorerPage: React.FC = () => {
     }, [tableQuery, activeFilters.length]);
 
     const handleApplyFilters = useCallback(
-        (filters: AppliedFilter[]) => {
+        async (filters: AppliedFilter[]) => {
             const base = baseQueryRef.current ?? tableQuery;
             if (!base) {
                 return;
@@ -236,23 +236,27 @@ export const TableExplorerPage: React.FC = () => {
             setActiveFilters(filters);
             const composed = composeFilteredQuery(base, filters);
             // Pass only operator names (never column names or values) for telemetry.
-            context.runTableQuery(
-                composeSortedQuery(composed, sortColumns),
-                undefined,
-                filters.map((f) => f.operator),
-            );
+            const runQuery = () =>
+                context.runTableQuery(
+                    composeSortedQuery(composed, sortColumns),
+                    undefined,
+                    filters.map((f) => f.operator),
+                );
+            await (gridRef.current?.runBeforeSessionReplacement(runQuery) ?? runQuery());
         },
         [tableQuery, context, sortColumns],
     );
 
-    const handleClearFilters = useCallback(() => {
+    const handleClearFilters = useCallback(async () => {
         if (activeFilters.length === 0) {
             return;
         }
         const base = baseQueryRef.current;
         setActiveFilters([]);
         if (base) {
-            context.runTableQuery(composeSortedQuery(base, sortColumns), undefined, []);
+            const runQuery = () =>
+                context.runTableQuery(composeSortedQuery(base, sortColumns), undefined, []);
+            await (gridRef.current?.runBeforeSessionReplacement(runQuery) ?? runQuery());
         }
     }, [activeFilters.length, context, sortColumns]);
 
@@ -297,10 +301,11 @@ export const TableExplorerPage: React.FC = () => {
     // `SELECT TOP N <cols> FROM [schema].[table]`, so we can regenerate it
     // from state instead of trying to surgically rewrite the TOP operand.
     const handleLoadSubset = useCallback(
-        (rowCount: number) => {
+        async (rowCount: number) => {
             const columnNames = resultSet?.columnInfo?.map((c) => c.name) ?? [];
             if (!tableName || columnNames.length === 0) {
-                context.loadSubset(rowCount);
+                const loadSubset = () => context.loadSubset(rowCount);
+                await (gridRef.current?.runBeforeSessionReplacement(loadSubset) ?? loadSubset());
                 return;
             }
             const newQuery = buildDefaultSelectQuery(schemaName, tableName, columnNames, rowCount);
@@ -314,11 +319,13 @@ export const TableExplorerPage: React.FC = () => {
                 queryToRun = composeFilteredQuery(queryToRun, activeFilters);
             }
 
-            context.runTableQuery(
-                queryToRun,
-                rowCount,
-                activeFilters.map((f) => f.operator),
-            );
+            const runQuery = () =>
+                context.runTableQuery(
+                    queryToRun,
+                    rowCount,
+                    activeFilters.map((f) => f.operator),
+                );
+            await (gridRef.current?.runBeforeSessionReplacement(runQuery) ?? runQuery());
         },
         [resultSet, schemaName, tableName, context, sortColumns, activeFilters],
     );

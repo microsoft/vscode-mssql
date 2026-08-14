@@ -93,8 +93,21 @@ export class TableExplorerRowMutationQueue {
     }
 
     public async drain(): Promise<void> {
+        let firstError: unknown;
+        let hasError = false;
         while (this.pendingMutations.size > 0) {
-            await Promise.allSettled(this.pendingMutations.values());
+            const results = await Promise.allSettled(this.pendingMutations.values());
+            const rejection = results.find(
+                (result): result is PromiseRejectedResult => result.status === "rejected",
+            );
+            if (!hasError && rejection) {
+                hasError = true;
+                firstError = rejection.reason;
+            }
+        }
+
+        if (hasError) {
+            throw firstError;
         }
     }
 
@@ -107,5 +120,20 @@ export class TableExplorerRowMutationQueue {
         if (this.pendingMutations.get(rowId) === mutation) {
             this.pendingMutations.delete(rowId);
         }
+    }
+}
+
+export async function runBeforeTableExplorerSessionReplacement(
+    mutationQueue: TableExplorerRowMutationQueue,
+    setMutationsBlocked: (blocked: boolean) => void,
+    operation: () => Promise<void>,
+): Promise<void> {
+    setMutationsBlocked(true);
+    try {
+        await mutationQueue.drain();
+        mutationQueue.invalidate();
+        await operation();
+    } finally {
+        setMutationsBlocked(false);
     }
 }
