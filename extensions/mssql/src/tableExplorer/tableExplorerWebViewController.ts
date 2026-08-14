@@ -36,6 +36,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private operationId: string;
     private _preserveTableQuery = false;
     private _latestCellUpdateRequestIds = new Map<string, number>();
+    private _cellUpdateQueues = new Map<string, Promise<void>>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -404,6 +405,25 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             isDirty: isRowDirty,
             state: isRowDirty ? EditRowState.dirtyUpdate : EditRowState.clean,
         };
+    }
+
+    private async enqueueCellUpdate<T>(cellKey: string, update: () => Promise<T>): Promise<T> {
+        const previousUpdate = this._cellUpdateQueues.get(cellKey) ?? Promise.resolve();
+        let completeUpdate!: () => void;
+        const currentUpdate = new Promise<void>((resolve) => {
+            completeUpdate = resolve;
+        });
+        this._cellUpdateQueues.set(cellKey, currentUpdate);
+
+        await previousUpdate;
+        try {
+            return await update();
+        } finally {
+            completeUpdate();
+            if (this._cellUpdateQueues.get(cellKey) === currentUpdate) {
+                this._cellUpdateQueues.delete(cellKey);
+            }
+        }
     }
 
     /**
@@ -843,11 +863,14 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             }
 
             try {
-                const updateCellResult = await this._tableExplorerService.updateCell(
-                    state.ownerUri,
-                    payload.rowId,
-                    payload.columnId,
-                    payload.newValue,
+                const ownerUri = state.ownerUri;
+                const updateCellResult = await this.enqueueCellUpdate(cacheKey, () =>
+                    this._tableExplorerService.updateCell(
+                        ownerUri,
+                        payload.rowId,
+                        payload.columnId,
+                        payload.newValue,
+                    ),
                 );
 
                 if (this._latestCellUpdateRequestIds.get(cacheKey) !== payload.requestId) {

@@ -664,23 +664,16 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
         });
 
-        test("should ignore an older same-cell response that completes last", async () => {
+        test("should serialize same-cell updates in request order", async () => {
             controller.state.ownerUri = "test-owner-uri";
             controller.state.resultSet = createMockSubsetResult(2);
             const olderUpdate = createDeferred<EditCellResult>();
+            const newerUpdate = createDeferred<EditCellResult>();
             mockTableExplorerService.updateCell
                 .onFirstCall()
                 .returns(olderUpdate.promise)
                 .onSecondCall()
-                .resolves({
-                    cell: {
-                        displayValue: "Newest",
-                        isNull: false,
-                        invariantCultureDisplayValue: "Newest",
-                        isDirty: true,
-                    },
-                    isRowDirty: true,
-                });
+                .returns(newerUpdate.promise);
 
             const olderRequest = controller["_reducerHandlers"].get("updateCell")(
                 controller.state,
@@ -691,12 +684,20 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     requestId: 1,
                 },
             );
-            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
-                rowId: 0,
-                columnId: 1,
-                newValue: "Newest",
-                requestId: 2,
-            });
+            const newerRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Newest",
+                    requestId: 2,
+                },
+            );
+            await Promise.resolve();
+
+            expect(mockTableExplorerService.updateCell.callCount).to.equal(1);
+            expect(mockTableExplorerService.updateCell.firstCall.args[3]).to.equal("Older");
+
             olderUpdate.resolve({
                 cell: {
                     displayValue: "Older",
@@ -707,6 +708,21 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 isRowDirty: true,
             });
             await olderRequest;
+            await Promise.resolve();
+
+            expect(mockTableExplorerService.updateCell.callCount).to.equal(2);
+            expect(mockTableExplorerService.updateCell.secondCall.args[3]).to.equal("Newest");
+
+            newerUpdate.resolve({
+                cell: {
+                    displayValue: "Newest",
+                    isNull: false,
+                    invariantCultureDisplayValue: "Newest",
+                    isDirty: true,
+                },
+                isRowDirty: true,
+            });
+            await newerRequest;
 
             expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("Newest");
             expect(controller.state.cellUpdateAcknowledgements?.["0-1"]).to.deep.equal({
@@ -715,7 +731,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
         });
 
-        test("should ignore an older same-cell failure that completes last", async () => {
+        test("should continue serialized same-cell updates after an older failure", async () => {
             controller.state.ownerUri = "test-owner-uri";
             controller.state.resultSet = createMockSubsetResult(2);
             const olderUpdate = createDeferred<EditCellResult>();
@@ -743,18 +759,80 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     requestId: 1,
                 },
             );
-            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
-                rowId: 0,
-                columnId: 1,
-                newValue: "Newest",
-                requestId: 2,
-            });
+            const newerRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Newest",
+                    requestId: 2,
+                },
+            );
+            await Promise.resolve();
+
+            expect(mockTableExplorerService.updateCell.callCount).to.equal(1);
+
             olderUpdate.reject(new Error("Older update failed"));
             await olderRequest;
+            await newerRequest;
 
+            expect(mockTableExplorerService.updateCell.callCount).to.equal(2);
             expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("Newest");
             expect(controller.state.failedCells).to.be.empty;
             expect(showErrorMessageStub.called).to.be.false;
+        });
+
+        test("should process a newer same-cell failure after an older success", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const olderUpdate = createDeferred<EditCellResult>();
+            mockTableExplorerService.updateCell
+                .onFirstCall()
+                .returns(olderUpdate.promise)
+                .onSecondCall()
+                .rejects(new Error("Newest update failed"));
+            showErrorMessageStub.resetHistory();
+
+            const olderRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Older",
+                    requestId: 1,
+                },
+            );
+            const newerRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Newest",
+                    requestId: 2,
+                },
+            );
+            await Promise.resolve();
+
+            expect(mockTableExplorerService.updateCell.callCount).to.equal(1);
+
+            olderUpdate.resolve({
+                cell: {
+                    displayValue: "Older",
+                    isNull: false,
+                    invariantCultureDisplayValue: "Older",
+                    isDirty: true,
+                },
+                isRowDirty: true,
+            });
+            await olderRequest;
+            await newerRequest;
+
+            expect(mockTableExplorerService.updateCell.callCount).to.equal(2);
+            expect(mockTableExplorerService.updateCell.firstCall.args[3]).to.equal("Older");
+            expect(mockTableExplorerService.updateCell.secondCall.args[3]).to.equal("Newest");
+            expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("Newest");
+            expect(controller.state.failedCells).to.deep.equal(["0-1"]);
+            expect(showErrorMessageStub.calledOnce).to.be.true;
         });
 
         test("should derive row dirty state from current cells when responses complete out of order", async () => {
