@@ -92,6 +92,9 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
     );
     const provisionLoadState = useAzureSqlDatabaseDeploymentSelector((s) => s.provisionLoadState);
     const connectionLoadState = useAzureSqlDatabaseDeploymentSelector((s) => s.connectionLoadState);
+    const firewallErrorMessage = useAzureSqlDatabaseDeploymentSelector(
+        (s) => s.firewallErrorMessage,
+    );
     const serverCreatedWithAuth = useAzureSqlDatabaseDeploymentSelector(
         (s) => s.serverCreatedWithAuth,
     );
@@ -113,7 +116,9 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
     );
 
     const hasProvisioningError =
-        provisionLoadState === ApiStatus.Error || connectionLoadState === ApiStatus.Error;
+        provisionLoadState === ApiStatus.Error ||
+        connectionLoadState === ApiStatus.Error ||
+        !!firewallErrorMessage;
     const isStateReady = !!formState && !!formComponents && "accountId" in formComponents;
     const isFormValid = isAzureSqlFormValid(
         loadState,
@@ -168,7 +173,7 @@ export const AzureSqlDatabaseDeploymentWizard: React.FC<AzureSqlDatabaseDeployme
             title: locConstants.azureSqlDatabase.provisioning,
             render: () => <AzureSqlDatabaseProvisioningPage />,
             canGoBack: () => hasProvisioningError,
-            canGoNext: () => connectionLoadState === ApiStatus.Loaded,
+            canGoNext: () => connectionLoadState === ApiStatus.Loaded && !firewallErrorMessage,
             showCancel: () => hasProvisioningError,
             onPrevious: () => {
                 // Reset validation so the user can re-submit
