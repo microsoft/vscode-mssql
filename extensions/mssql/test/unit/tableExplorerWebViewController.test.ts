@@ -82,6 +82,16 @@ suite("TableExplorerWebViewController - Reducers", () => {
         ],
     });
 
+    const createDeferred = <T>() => {
+        let resolve!: (value: T) => void;
+        let reject!: (reason?: unknown) => void;
+        const promise = new Promise<T>((resolvePromise, rejectPromise) => {
+            resolve = resolvePromise;
+            reject = rejectPromise;
+        });
+        return { promise, resolve, reject };
+    };
+
     setup(() => {
         sandbox = sinon.createSandbox();
 
@@ -652,6 +662,150 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 "0-1": { requestId: 3, isDirty: false },
                 "0-2": { requestId: 2, isDirty: true },
             });
+        });
+
+        test("should ignore an older same-cell response that completes last", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const olderUpdate = createDeferred<EditCellResult>();
+            mockTableExplorerService.updateCell
+                .onFirstCall()
+                .returns(olderUpdate.promise)
+                .onSecondCall()
+                .resolves({
+                    cell: {
+                        displayValue: "Newest",
+                        isNull: false,
+                        invariantCultureDisplayValue: "Newest",
+                        isDirty: true,
+                    },
+                    isRowDirty: true,
+                });
+
+            const olderRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Older",
+                    requestId: 1,
+                },
+            );
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 0,
+                columnId: 1,
+                newValue: "Newest",
+                requestId: 2,
+            });
+            olderUpdate.resolve({
+                cell: {
+                    displayValue: "Older",
+                    isNull: false,
+                    invariantCultureDisplayValue: "Older",
+                    isDirty: true,
+                },
+                isRowDirty: true,
+            });
+            await olderRequest;
+
+            expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("Newest");
+            expect(controller.state.cellUpdateAcknowledgements?.["0-1"]).to.deep.equal({
+                requestId: 2,
+                isDirty: true,
+            });
+        });
+
+        test("should ignore an older same-cell failure that completes last", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const olderUpdate = createDeferred<EditCellResult>();
+            mockTableExplorerService.updateCell
+                .onFirstCall()
+                .returns(olderUpdate.promise)
+                .onSecondCall()
+                .resolves({
+                    cell: {
+                        displayValue: "Newest",
+                        isNull: false,
+                        invariantCultureDisplayValue: "Newest",
+                        isDirty: true,
+                    },
+                    isRowDirty: true,
+                });
+            showErrorMessageStub.resetHistory();
+
+            const olderRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Older",
+                    requestId: 1,
+                },
+            );
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 0,
+                columnId: 1,
+                newValue: "Newest",
+                requestId: 2,
+            });
+            olderUpdate.reject(new Error("Older update failed"));
+            await olderRequest;
+
+            expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("Newest");
+            expect(controller.state.failedCells).to.be.empty;
+            expect(showErrorMessageStub).not.to.have.been.called;
+        });
+
+        test("should derive row dirty state from current cells when responses complete out of order", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const cleanFirstName = createDeferred<EditCellResult>();
+            mockTableExplorerService.updateCell
+                .onFirstCall()
+                .returns(cleanFirstName.promise)
+                .onSecondCall()
+                .resolves({
+                    cell: {
+                        displayValue: "Changed last name",
+                        isNull: false,
+                        invariantCultureDisplayValue: "Changed last name",
+                        isDirty: true,
+                    },
+                    isRowDirty: true,
+                });
+
+            const cleanRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "John",
+                    requestId: 1,
+                },
+            );
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 0,
+                columnId: 2,
+                newValue: "Changed last name",
+                requestId: 2,
+            });
+            cleanFirstName.resolve({
+                cell: {
+                    displayValue: "John",
+                    isNull: false,
+                    invariantCultureDisplayValue: "John",
+                    isDirty: false,
+                },
+                isRowDirty: false,
+            });
+            await cleanRequest;
+
+            expect(controller.state.resultSet?.subset[0].isDirty).to.be.true;
+            expect(controller.state.resultSet?.subset[0].state).to.equal(EditRowState.dirtyUpdate);
+            expect(
+                (controller.state.resultSet?.subset[0].cells[2] as { isDirty?: boolean }).isDirty,
+            ).to.be.true;
         });
 
         test("should regenerate script if script pane is visible", async () => {

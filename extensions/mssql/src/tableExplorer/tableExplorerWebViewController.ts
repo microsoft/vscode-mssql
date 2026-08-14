@@ -35,6 +35,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 > {
     private operationId: string;
     private _preserveTableQuery = false;
+    private _latestCellUpdateRequestIds = new Map<string, number>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -367,14 +368,15 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         state.failedCells = [];
         state.originalCellValues?.clear();
         state.cellUpdateAcknowledgements = {};
+        this._latestCellUpdateRequestIds.clear();
         state.updateScript = undefined;
     }
 
     private updateResultCell(
+        state: TableExplorerWebViewState,
         row: EditRow,
         columnId: number,
         cell: EditCell,
-        isRowDirty: boolean,
     ): EditRow {
         const cells = [...row.cells];
         cells[columnId] = cell;
@@ -385,6 +387,16 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 cells,
             };
         }
+
+        const rowKeyPrefix = `${row.id}-`;
+        const hasPendingCellUpdate = [...this._latestCellUpdateRequestIds].some(
+            ([key, requestId]) =>
+                key.startsWith(rowKeyPrefix) &&
+                state.cellUpdateAcknowledgements?.[key]?.requestId !== requestId,
+        );
+        const isRowDirty =
+            hasPendingCellUpdate ||
+            cells.some((resultCell) => (resultCell as EditCell).isDirty === true);
 
         return {
             ...row,
@@ -474,6 +486,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 state.failedCells = [];
                 state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
                 state.cellUpdateAcknowledgements = {};
+                this._latestCellUpdateRequestIds.clear();
                 this.showRestorePromptAfterClose = false;
 
                 this.logger.debug(
@@ -809,6 +822,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             // Cache the original cell value BEFORE attempting the update
             // This ensures we can revert even if the update fails
             const cacheKey = `${payload.rowId}-${payload.columnId}`;
+            this._latestCellUpdateRequestIds.set(cacheKey, payload.requestId);
             if (state.resultSet && !state.originalCellValues?.has(cacheKey)) {
                 const rowIndex = state.resultSet.subset.findIndex(
                     (row) => row.id === payload.rowId,
@@ -836,6 +850,17 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     payload.newValue,
                 );
 
+                if (this._latestCellUpdateRequestIds.get(cacheKey) !== payload.requestId) {
+                    this.logger.trace(
+                        `Ignoring stale update response for cell ${cacheKey}, request ${payload.requestId}`,
+                    );
+                    endActivity.end(ActivityStatus.Succeeded, {
+                        elapsedTime: (Date.now() - startTime).toString(),
+                        operationId: this.operationId,
+                    });
+                    return state;
+                }
+
                 // Remove from failed cells tracking if it was previously failed
                 if (state.failedCells) {
                     const failedKey = `${payload.rowId}-${payload.columnId}`;
@@ -849,19 +874,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     );
 
                     if (rowIndex !== -1) {
-                        const updatedRow = this.updateResultCell(
-                            state.resultSet.subset[rowIndex],
-                            payload.columnId,
-                            updateCellResult.cell,
-                            updateCellResult.isRowDirty,
-                        );
-                        state.resultSet = {
-                            ...state.resultSet,
-                            subset: state.resultSet.subset.map((row, index) =>
-                                index === rowIndex ? updatedRow : row,
-                            ),
-                        };
-
                         if (!updateCellResult.cell.isDirty) {
                             state.originalCellValues?.delete(cacheKey);
                         }
@@ -871,6 +883,18 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                                 requestId: payload.requestId,
                                 isDirty: updateCellResult.cell.isDirty,
                             },
+                        };
+                        const updatedRow = this.updateResultCell(
+                            state,
+                            state.resultSet.subset[rowIndex],
+                            payload.columnId,
+                            updateCellResult.cell,
+                        );
+                        state.resultSet = {
+                            ...state.resultSet,
+                            subset: state.resultSet.subset.map((row, index) =>
+                                index === rowIndex ? updatedRow : row,
+                            ),
                         };
 
                         this.showRestorePromptAfterClose = this.hasPendingChanges(state);
@@ -892,6 +916,17 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     operationId: this.operationId,
                 });
             } catch (error) {
+                if (this._latestCellUpdateRequestIds.get(cacheKey) !== payload.requestId) {
+                    this.logger.trace(
+                        `Ignoring stale update failure for cell ${cacheKey}, request ${payload.requestId}`,
+                    );
+                    endActivity.endFailed(
+                        new Error("Stale cell update failed"),
+                        false /* includeErrorMessage */,
+                    );
+                    return state;
+                }
+
                 this.logger.error(
                     `Error updating cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
@@ -912,15 +947,25 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     );
 
                     if (rowIndex !== -1) {
-                        const currentCell =
-                            state.resultSet.subset[rowIndex].cells[payload.columnId];
+                        const currentRow = state.resultSet.subset[rowIndex];
+                        const currentCell = currentRow.cells[payload.columnId];
                         const failedCell = {
                             ...currentCell,
                             displayValue: payload.newValue,
                             isDirty: true,
                         };
-
-                        state.resultSet.subset[rowIndex].cells[payload.columnId] = failedCell;
+                        const updatedRow = this.updateResultCell(
+                            state,
+                            currentRow,
+                            payload.columnId,
+                            failedCell,
+                        );
+                        state.resultSet = {
+                            ...state.resultSet,
+                            subset: state.resultSet.subset.map((row, index) =>
+                                index === rowIndex ? updatedRow : row,
+                            ),
+                        };
 
                         this.logger.debug(
                             `Updated cell in result set to show failed edit at row ${rowIndex}, column ${payload.columnId}`,
@@ -1005,6 +1050,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 if (state.cellUpdateAcknowledgements) {
                     delete state.cellUpdateAcknowledgements[cacheKey];
                 }
+                this._latestCellUpdateRequestIds.delete(cacheKey);
 
                 // Remove from failed cells tracking
                 if (state.failedCells) {
@@ -1021,12 +1067,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     if (rowIndex !== -1) {
                         const newSubset = state.resultSet.subset.map((row, idx) =>
                             idx === rowIndex
-                                ? this.updateResultCell(
-                                      row,
-                                      payload.columnId,
-                                      revertedCell,
-                                      revertCellResult.isRowDirty,
-                                  )
+                                ? this.updateResultCell(state, row, payload.columnId, revertedCell)
                                 : row,
                         );
 
@@ -1125,6 +1166,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                             ([key]) => !key.startsWith(`${payload.rowId}-`),
                         ),
                     );
+                }
+                for (const key of this._latestCellUpdateRequestIds.keys()) {
+                    if (key.startsWith(`${payload.rowId}-`)) {
+                        this._latestCellUpdateRequestIds.delete(key);
+                    }
                 }
 
                 // Check if this was a newly created row (row will be null after revert)
