@@ -33,7 +33,11 @@ import {
     TableExplorerReducers,
 } from "../../../sharedInterfaces/tableExplorer";
 import { VscodeEditor } from "../../common/vscodeMonaco";
-import { runSessionReplacementAndUpdate } from "./tableDataGridUtils";
+import {
+    getTableExplorerFilterColumns,
+    runSessionReplacementAndUpdate,
+    TableExplorerFilterColumn,
+} from "./tableDataGridUtils";
 
 const useStyles = makeStyles({
     root: {
@@ -277,14 +281,12 @@ export const TableExplorerPage: React.FC = () => {
         }
     }, [activeFilters.length, context, sortColumns]);
 
-    const filterColumns = React.useMemo(
-        () =>
-            (resultSet?.columnInfo ?? []).map((c, i) => ({
-                id: `col${i}`,
-                name: c.name,
-            })),
-        [resultSet],
-    );
+    const [filterColumns, setFilterColumns] = useState<TableExplorerFilterColumn[]>([]);
+    useEffect(() => {
+        setFilterColumns((previousColumns) =>
+            getTableExplorerFilterColumns(resultSet?.columnInfo, previousColumns),
+        );
+    }, [resultSet?.columnInfo]);
 
     const handleExport = useCallback((format: "csv" | "excel" | "json") => {
         gridRef.current?.exportData(format);

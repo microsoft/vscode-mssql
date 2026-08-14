@@ -213,6 +213,25 @@ export async function clearTableExplorerFilters(
     }
 }
 
+export interface TableExplorerFilterColumn {
+    id: string;
+    name: string;
+}
+
+export function getTableExplorerFilterColumns(
+    columnInfo: readonly { name: string }[] | undefined,
+    previousColumns: TableExplorerFilterColumn[],
+): TableExplorerFilterColumn[] {
+    if (columnInfo === undefined) {
+        return previousColumns;
+    }
+
+    return columnInfo.map((column, index) => ({
+        id: `col${index}`,
+        name: column.name,
+    }));
+}
+
 export class TableExplorerLifecycleMutex {
     private pendingOperation = Promise.resolve();
 

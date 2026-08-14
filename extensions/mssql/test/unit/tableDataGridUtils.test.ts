@@ -8,6 +8,7 @@ import {
     clearTableExplorerFilters,
     clearRevertedCellChanges,
     enqueueTableExplorerCreateRow,
+    getTableExplorerFilterColumns,
     hasPendingChangesForRow,
     isTableExplorerDataColumn,
     runBeforeTableExplorerSessionReplacement,
@@ -509,6 +510,28 @@ suite("tableDataGridUtils", () => {
             );
 
             expect(localFiltersCleared).to.equal(false);
+        });
+    });
+
+    suite("filter columns", () => {
+        test("preserves filter editor columns while the result set is temporarily unavailable", () => {
+            const previousColumns = [{ id: "col0", name: "Name" }];
+
+            expect(getTableExplorerFilterColumns(undefined, previousColumns)).to.equal(
+                previousColumns,
+            );
+        });
+
+        test("updates filter editor columns when a result set is available", () => {
+            expect(
+                getTableExplorerFilterColumns(
+                    [{ name: "Id" }, { name: "Name" }],
+                    [{ id: "col0", name: "Previous" }],
+                ),
+            ).to.deep.equal([
+                { id: "col0", name: "Id" },
+                { id: "col1", name: "Name" },
+            ]);
         });
     });
 });

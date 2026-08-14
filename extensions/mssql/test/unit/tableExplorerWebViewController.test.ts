@@ -1493,12 +1493,14 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(mockTableExplorerService.dispose.calledWith("test-owner-uri")).to.be.true;
         });
 
-        test("should attempt to restore original session when custom query fails", async () => {
+        test("should restore the previous query when a replacement query fails", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
             controller.state.newRows = [];
             controller.state.deletedRows = [];
             controller.state.originalCellValues = new Map();
+            const previousQuery = "SELECT TOP 100 * FROM dbo.TestTable WHERE [Status] = 'Active'";
+            controller.state.tableQuery = previousQuery;
             mockTableExplorerService.dispose.resolves();
             mockTableExplorerService.initialize.callsFake((...args: unknown[]) => {
                 const queryString = args[4] as string | undefined;
@@ -1524,14 +1526,14 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     "INVALID SQL",
                 ),
             ).to.be.true;
-            // Another call should restore original session (no custom query)
+            // Another call should restore the previously loaded filtered session.
             expect(
                 mockTableExplorerService.initialize.calledWithMatch(
                     sinon.match.any,
                     sinon.match.any,
                     sinon.match.any,
                     sinon.match.any,
-                    undefined,
+                    previousQuery,
                 ),
             ).to.be.true;
             expect(showErrorMessageStub.called).to.be.true;

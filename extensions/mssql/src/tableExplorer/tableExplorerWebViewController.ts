@@ -422,25 +422,26 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     /**
-     * Re-initializes the edit session without a custom query, restoring the table's default view.
-     * Used as a recovery step when a custom query fails. Sets state.loadStatus to Error
+     * Re-initializes the edit session with the last successfully loaded query.
+     * Used as a recovery step when a replacement query fails. Sets state.loadStatus to Error
      * if the recovery init itself fails. Returns true on success, false on failure.
      */
-    private async tryRestoreOriginalSession(
+    private async tryRestorePreviousSession(
         state: TableExplorerWebViewState,
         objectName: string,
         schemaName: string | undefined,
         objectType: string,
     ): Promise<boolean> {
+        const previousQuery = state.tableQuery?.trim() ? state.tableQuery : undefined;
         try {
             await this._tableExplorerService.initialize(
                 state.ownerUri,
                 objectName,
                 schemaName ?? "",
                 objectType,
-                undefined,
+                previousQuery,
             );
-            this.logger.debug("Restored original session after custom query failure");
+            this.logger.debug("Restored previous session after replacement query failure");
             return true;
         } catch (restoreError) {
             this.logger.error(
@@ -1588,7 +1589,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                 this._sessionLoadCanSucceed = false;
                 this.clearPendingSessionState();
-                const restored = await this.tryRestoreOriginalSession(
+                const restored = await this.tryRestorePreviousSession(
                     state,
                     objectName,
                     schemaName,
