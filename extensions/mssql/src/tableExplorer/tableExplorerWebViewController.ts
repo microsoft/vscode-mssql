@@ -1878,6 +1878,17 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 return state;
             }
 
+            if (this._sessionReplacementPending) {
+                this.logger.debug("Rejecting custom query while session replacement is pending");
+                endActivity.end(ActivityStatus.Succeeded, {
+                    elapsedTime: (Date.now() - startTime).toString(),
+                    operationId: this.operationId,
+                    cancelled: "true",
+                    ...filterTelemetry,
+                });
+                return state;
+            }
+
             if (!(await this.tearDownEditSession(state, true))) {
                 this.logger.debug("User cancelled custom query due to pending changes");
                 endActivity.end(ActivityStatus.Succeeded, {

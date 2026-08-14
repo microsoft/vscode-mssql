@@ -2219,6 +2219,48 @@ suite("TableExplorerWebViewController - Reducers", () => {
             ).to.be.true;
         });
 
+        test("should reject a second query while session replacement is pending", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.newRows = [];
+            controller.state.deletedRows = [];
+            controller.state.originalCellValues = new Map();
+            mockTableExplorerService.dispose.resolves();
+            const initialize = createDeferred<EditInitializeResult>();
+            mockTableExplorerService.initialize.returns(initialize.promise);
+
+            const firstRequest = controller["_reducerHandlers"].get("runTableQuery")(
+                controller.state,
+                {
+                    queryString: "SELECT * FROM dbo.FirstQuery",
+                },
+            );
+            await waitForPromises();
+            const secondRequest = controller["_reducerHandlers"].get("runTableQuery")(
+                controller.state,
+                {
+                    queryString: "SELECT * FROM dbo.SecondQuery",
+                },
+            );
+            await Promise.resolve(secondRequest);
+
+            expect(mockTableExplorerService.dispose.callCount).to.equal(1);
+            expect(mockTableExplorerService.initialize.callCount).to.equal(1);
+            expect(
+                mockTableExplorerService.initialize.calledWithMatch(
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    sinon.match.any,
+                    "SELECT * FROM dbo.FirstQuery",
+                ),
+            ).to.be.true;
+
+            initialize.resolve({} as EditInitializeResult);
+            await firstRequest;
+
+            expect(controller.state.tableQuery).to.equal("SELECT * FROM dbo.FirstQuery");
+        });
+
         test("should clear pending changes after successful re-initialization", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
