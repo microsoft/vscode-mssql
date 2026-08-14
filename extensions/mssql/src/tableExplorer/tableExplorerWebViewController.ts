@@ -509,9 +509,20 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * marks state as loading, clears the stale result set so the webview re-initializes the grid,
      * disposes the backend session (best-effort), and clears any pending-edit bookkeeping.
      */
-    private async tearDownEditSession(state: TableExplorerWebViewState): Promise<void> {
-        this._cellOperationsEnabled = false;
-        await this.enqueueLifecycleOperation(async () => {
+    private async tearDownEditSession(
+        state: TableExplorerWebViewState,
+        confirmDiscardPendingChanges = false,
+    ): Promise<boolean> {
+        return await this.enqueueLifecycleOperation(async () => {
+            if (
+                confirmDiscardPendingChanges &&
+                this.hasPendingChanges(state) &&
+                !(await this.promptDiscardPendingChanges())
+            ) {
+                return false;
+            }
+
+            this._cellOperationsEnabled = false;
             state.loadStatus = ApiStatus.Loading;
 
             state.resultSet = undefined;
@@ -524,6 +535,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.resetPendingChangesState(state);
             this.showRestorePromptAfterClose = false;
             this.updateState();
+            return true;
         });
     }
 
@@ -1141,6 +1153,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                             const failedCell = {
                                 ...currentCell,
                                 displayValue: payload.newValue,
+                                invariantCultureDisplayValue: payload.newValue,
+                                isNull: false,
                                 isDirty: true,
                             };
                             const updatedRow = this.updateResultCell(
@@ -1846,7 +1860,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 return state;
             }
 
-            if (this.hasPendingChanges(state) && !(await this.promptDiscardPendingChanges())) {
+            if (!(await this.tearDownEditSession(state, true))) {
                 this.logger.debug("User cancelled custom query due to pending changes");
                 endActivity.end(ActivityStatus.Succeeded, {
                     elapsedTime: (Date.now() - startTime).toString(),
@@ -1856,8 +1870,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 });
                 return state;
             }
-
-            await this.tearDownEditSession(state);
 
             const objectName = state.tableName;
             const schemaName = state.schemaName;

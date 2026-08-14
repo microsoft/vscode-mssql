@@ -521,7 +521,9 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to create a new row");
         });
 
-        test("should finish a pending row creation before replacing the session", async () => {
+        test("should prompt after a pending row creation before replacing the session", async () => {
+            await waitForPromises();
+            mockTableExplorerService.initialize.resetHistory();
             controller.state.ownerUri = "test-owner-uri";
             controller.state.resultSet = createMockSubsetResult(2);
             const create = createDeferred<EditCreateRowResult>();
@@ -553,10 +555,14 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await queryRequest;
 
             expect(
-                mockTableExplorerService.createRow.calledBefore(mockTableExplorerService.dispose),
+                showWarningMessageStub.calledWithMatch(
+                    LocConstants.TableExplorer.pendingChangesWillBeLost,
+                ),
             ).to.be.true;
-            expect(controller.state.newRows).to.be.empty;
-            expect(controller.state.resultSet).to.be.undefined;
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+            expect(mockTableExplorerService.initialize.called).to.be.false;
+            expect(controller.state.newRows).to.have.lengthOf(1);
+            expect(controller.state.resultSet?.subset.some((row) => row.id === 100)).to.be.true;
         });
     });
 
@@ -1291,6 +1297,27 @@ suite("TableExplorerWebViewController - Reducers", () => {
             // Assert
             expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to update cell");
+        });
+
+        test("should show a failed attempted value when the original cell is null", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            controller.state.resultSet.subset[0].cells[1] = createMockCell("NULL", true);
+            mockTableExplorerService.updateCell.rejects(new Error("Update cell failed"));
+
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 0,
+                columnId: 1,
+                newValue: "Attempted value",
+                requestId: 1,
+            });
+
+            expect(controller.state.resultSet.subset[0].cells[1]).to.deep.include({
+                displayValue: "Attempted value",
+                invariantCultureDisplayValue: "Attempted value",
+                isNull: false,
+                isDirty: true,
+            });
         });
     });
 
