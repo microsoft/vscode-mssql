@@ -1165,10 +1165,12 @@ export class ObjectExplorerService {
      * Removes a node from the OE tree. It will also disconnect the node from the server before removing it.
      * @param node The connection node to remove.
      * @param showUserConfirmationPrompt Whether to show a confirmation prompt to the user before removing the node.
+     * @param removeProfile Whether to remove the saved connection profile.
      */
     public async removeNode(
         node: ConnectionNode,
         showUserConfirmationPrompt: boolean = true,
+        removeProfile: boolean = true,
     ): Promise<void> {
         if (showUserConfirmationPrompt) {
             const response = await vscode.window.showInformationMessage(
@@ -1195,7 +1197,12 @@ export class ObjectExplorerService {
         }
 
         this._refreshCallback(undefined); // Refresh tree root.
-        await this._connectionManager.connectionStore.removeProfile(node.connectionProfile, false);
+        if (removeProfile) {
+            await this._connectionManager.connectionStore.removeProfile(
+                node.connectionProfile,
+                false,
+            );
+        }
     }
 
     /**
@@ -1214,15 +1221,19 @@ export class ObjectExplorerService {
     /**
      * Remove multiple connection nodes from the OE tree.
      * @param connections Connection info of the nodes to remove.
+     * @param removeProfiles Whether to remove the saved connection profiles.
      * @returns True if ALL provided connections were removed successfully, false otherwise.
      */
-    public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<boolean> {
+    public async removeConnectionNodes(
+        connections: IConnectionInfo[],
+        removeProfiles: boolean = true,
+    ): Promise<boolean> {
         const notFound: string[] = [];
 
         for (let conn of connections) {
             const node = this.getConnectionNodeFromProfile(conn as IConnectionProfile);
             if (node) {
-                await this.removeNode(node as ConnectionNode, false);
+                await this.removeNode(node as ConnectionNode, false, removeProfiles);
             } else {
                 notFound.push((conn as IConnectionProfile).id);
             }

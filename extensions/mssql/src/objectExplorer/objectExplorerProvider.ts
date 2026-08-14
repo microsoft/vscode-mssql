@@ -109,12 +109,19 @@ export class ObjectExplorerProvider implements vscode.TreeDataProvider<any> {
         this._onDidChangeTreeData.fire(node);
     }
 
-    public async removeConnectionNodes(connections: IConnectionInfo[]): Promise<void> {
+    public async removeConnectionNodes(
+        connections: IConnectionInfo[],
+        removeProfiles?: boolean,
+    ): Promise<void> {
         if (connections.length === 0) {
             return;
         }
 
-        await this._objectExplorerService.removeConnectionNodes(connections);
+        if (removeProfiles === undefined) {
+            await this._objectExplorerService.removeConnectionNodes(connections);
+        } else {
+            await this._objectExplorerService.removeConnectionNodes(connections, removeProfiles);
+        }
         this.refresh(undefined);
     }
 

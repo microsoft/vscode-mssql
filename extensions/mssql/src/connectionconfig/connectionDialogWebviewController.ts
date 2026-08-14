@@ -1413,10 +1413,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 if (!this.isSubmissionActive(submissionGeneration)) {
                     return state;
                 }
-                await this.removeEditedConnectionIfNeeded(submissionGeneration);
-                if (!this.isSubmissionActive(submissionGeneration)) {
-                    return state;
-                }
                 await this.saveProfileStep(preparedConnection, state, submissionGeneration);
                 if (!this.isSubmissionActive(submissionGeneration)) {
                     return state;
@@ -1439,10 +1435,6 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             }
 
             const preparedConnection = await this.prepareConnectionForSave(cleanedConnection);
-            if (!this.isSubmissionActive(submissionGeneration)) {
-                return state;
-            }
-            await this.removeEditedConnectionIfNeeded(submissionGeneration);
             if (!this.isSubmissionActive(submissionGeneration)) {
                 return state;
             }
@@ -1813,47 +1805,66 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         return preparedConnection;
     }
 
-    private async removeEditedConnectionIfNeeded(submissionGeneration: number): Promise<void> {
-        if (!this._connectionBeingEdited) {
-            return;
-        }
-
-        const editedConnection = this._connectionBeingEdited;
-        this._mainController.connectionManager.getUriForConnection(editedConnection);
-        await this._objectExplorerProvider.removeConnectionNodes([editedConnection]);
-        if (this.isSubmissionActive(submissionGeneration)) {
-            await this._mainController.connectionManager.connectionStore.removeProfile(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                editedConnection as any,
-            );
-        }
-
-        if (!this.isSubmissionActive(submissionGeneration)) {
-            await this._mainController.connectionManager.connectionStore.saveProfile(
-                editedConnection as IConnectionProfile,
-            );
-            return;
-        }
-
-        this._connectionBeingEdited = undefined;
-    }
-
     private async saveProfileStep(
         connection: IConnectionDialogProfile,
         state: ConnectionDialogWebviewState,
         submissionGeneration: number,
     ): Promise<void> {
+        const editedConnection = this._connectionBeingEdited;
+        let editedNodeRemoved = false;
+
+        try {
+            await this._mainController.connectionManager.connectionStore.saveProfile(
+                connection as IConnectionProfile,
+            );
+            if (!this.isSubmissionActive(submissionGeneration)) {
+                await this.restoreEditedConnection(editedConnection, editedNodeRemoved);
+                return;
+            }
+
+            if (editedConnection) {
+                this._mainController.connectionManager.getUriForConnection(editedConnection);
+                editedNodeRemoved = true;
+                await this._objectExplorerProvider.removeConnectionNodes([editedConnection], false);
+                if (!this.isSubmissionActive(submissionGeneration)) {
+                    await this.restoreEditedConnection(editedConnection, editedNodeRemoved);
+                    return;
+                }
+            }
+
+            await this.updateLoadedConnections(state);
+            if (!this.isSubmissionActive(submissionGeneration)) {
+                await this.restoreEditedConnection(editedConnection, editedNodeRemoved);
+                return;
+            }
+
+            if (editedConnection) {
+                this._objectExplorerProvider.addDisconnectedNode(connection as IConnectionProfile);
+                this._connectionBeingEdited = undefined;
+            }
+            this.updateState(state);
+        } catch (error) {
+            await this.restoreEditedConnection(editedConnection, editedNodeRemoved);
+            throw error;
+        }
+    }
+
+    private async restoreEditedConnection(
+        editedConnection: IConnectionDialogProfile | undefined,
+        restoreObjectExplorerNode: boolean,
+    ): Promise<void> {
+        if (!editedConnection) {
+            return;
+        }
+
         await this._mainController.connectionManager.connectionStore.saveProfile(
-            connection as IConnectionProfile,
+            editedConnection as IConnectionProfile,
         );
-        if (!this.isSubmissionActive(submissionGeneration)) {
-            return;
+        if (restoreObjectExplorerNode) {
+            this._objectExplorerProvider.addDisconnectedNode(
+                editedConnection as IConnectionProfile,
+            );
         }
-        await this.updateLoadedConnections(state);
-        if (!this.isSubmissionActive(submissionGeneration)) {
-            return;
-        }
-        this.updateState(state);
     }
 
     private async connectAndRevealStep(
