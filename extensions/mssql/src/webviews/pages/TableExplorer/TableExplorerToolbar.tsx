@@ -52,6 +52,7 @@ const useStyles = makeStyles({
 
 interface TableExplorerToolbarProps {
     onSave: () => Promise<void>;
+    onAddRow?: () => Promise<void>;
     cellChangeCount: number;
     deletionCount: number;
     currentRowCount?: number;
@@ -125,6 +126,7 @@ const ColumnsMenu: React.FC<ColumnsMenuProps> = ({
 
 export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     onSave,
+    onAddRow,
     cellChangeCount,
     deletionCount,
     currentRowCount,
@@ -168,7 +170,7 @@ export const TableExplorerToolbar: React.FC<TableExplorerToolbarProps> = ({
     };
 
     const handleAddRow = () => {
-        context.createRow();
+        void onAddRow?.().catch(() => undefined);
     };
 
     const fetchRowsForValue = (rawValue: string) => {

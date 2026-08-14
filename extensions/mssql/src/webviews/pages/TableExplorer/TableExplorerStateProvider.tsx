@@ -33,8 +33,8 @@ export const TableExplorerStateProvider: React.FC<{
                 await extensionRpc.actionAndWait("loadSubset", { rowCount });
             },
 
-            createRow: function (): void {
-                extensionRpc.action("createRow", {});
+            createRow: async function (): Promise<void> {
+                await extensionRpc.actionAndWait("createRow", {});
             },
 
             deleteRow: async function (rowId: number): Promise<void> {

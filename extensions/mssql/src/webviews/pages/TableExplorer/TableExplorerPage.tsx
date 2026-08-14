@@ -288,6 +288,8 @@ export const TableExplorerPage: React.FC = () => {
         }
     }, [selectedRowIds]);
 
+    const handleAddRow = useCallback(() => gridRef.current?.createRow() ?? Promise.resolve(), []);
+
     const handleShowSql = useCallback(() => {
         const sql = gridRef.current?.getSqlForCurrentView();
         if (sql) {
@@ -364,6 +366,7 @@ export const TableExplorerPage: React.FC = () => {
                     <div className={classes.contentArea}>
                         <TableExplorerToolbar
                             onSave={handleSave}
+                            onAddRow={handleAddRow}
                             cellChangeCount={cellChangeCount}
                             deletionCount={deletionCount}
                             currentRowCount={currentRowCount}
@@ -414,6 +417,7 @@ export const TableExplorerPage: React.FC = () => {
                                     newRowIds={newRows?.map((r) => r.id)}
                                     tableQuery={tableQuery}
                                     sessionKey={ownerUri}
+                                    onCreateRow={context?.createRow}
                                     onDeleteRow={context?.deleteRow}
                                     onUpdateCell={context?.updateCell}
                                     onRevertCell={context?.revertCell}

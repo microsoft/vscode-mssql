@@ -909,6 +909,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToUpdateCell(getErrorMessage(error)),
                 );
+                throw error;
             }
 
             return state;

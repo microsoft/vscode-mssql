@@ -136,6 +136,18 @@ export class TableExplorerLifecycleMutex {
     }
 }
 
+const CREATE_ROW_MUTATION_QUEUE_ID = Number.MIN_SAFE_INTEGER;
+
+export function enqueueTableExplorerCreateRow(
+    mutationQueue: TableExplorerRowMutationQueue,
+    mutationsBlocked: boolean,
+    createRow: () => Promise<void>,
+): Promise<void> {
+    return mutationsBlocked
+        ? Promise.resolve()
+        : mutationQueue.enqueue(CREATE_ROW_MUTATION_QUEUE_ID, createRow);
+}
+
 export async function runBeforeTableExplorerSessionReplacement(
     mutationQueue: TableExplorerRowMutationQueue,
     setMutationsBlocked: (blocked: boolean) => void,

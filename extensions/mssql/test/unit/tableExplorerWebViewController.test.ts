@@ -556,22 +556,32 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(mockTableExplorerService.generateScripts.calledOnce).to.be.true;
         });
 
-        test("should show error message when updateCell fails", async () => {
+        test("should propagate errors when updateCell fails", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
             const error = new Error("Update cell failed");
             mockTableExplorerService.updateCell.rejects(error);
 
             // Act
-            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
-                rowId: 0,
-                columnId: 1,
-                newValue: "Updated",
-            });
+            let caughtError: unknown;
+            try {
+                await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Updated",
+                });
+            } catch (updateError) {
+                caughtError = updateError;
+            }
 
             // Assert
+            expect(caughtError).to.equal(error);
             expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to update cell");
+            expect(controller.state.failedCells).to.include("0-1");
+            expect(controller.state.resultSet.subset[0].cells[1].displayValue).to.equal("Updated");
+            expect((controller.state.resultSet.subset[0].cells[1] as any).isDirty).to.equal(true);
         });
     });
 

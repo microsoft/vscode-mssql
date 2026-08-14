@@ -40,6 +40,7 @@ import {
 } from "../../common/FluentSlickGrid/FluentSlickGrid";
 import {
     clearRevertedCellChanges,
+    enqueueTableExplorerCreateRow,
     hasPendingChangesForRow,
     isTableExplorerDataColumn,
     runBeforeTableExplorerSessionReplacement,
@@ -81,6 +82,7 @@ interface TableDataGridProps {
     newRowIds?: number[];
     tableQuery?: string;
     sessionKey: string;
+    onCreateRow?: () => Promise<void>;
     onDeleteRow?: (rowId: number) => Promise<void>;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string) => Promise<void>;
     onRevertCell?: (rowId: number, columnId: number) => Promise<void>;
@@ -109,6 +111,7 @@ export interface TableDataGridRef {
     exportData: (format: "csv" | "excel" | "json") => void;
     getDataColumns: () => DataColumnVisibility[];
     setDataColumnVisibility: (id: string, visible: boolean) => void;
+    createRow: () => Promise<void>;
     deleteRows: (rowIds: number[]) => void;
     getSqlForCurrentView: () => string;
     runAfterPendingMutations: (operation: () => Promise<void>) => Promise<boolean>;
@@ -126,6 +129,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             newRowIds,
             tableQuery,
             sessionKey,
+            onCreateRow,
             onDeleteRow,
             onUpdateCell,
             onRevertCell,
@@ -306,6 +310,14 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 grid.updateColumnById(id, { hidden: !visible });
                 grid.updateColumns();
             },
+            createRow: () =>
+                onCreateRow
+                    ? enqueueTableExplorerCreateRow(
+                          rowMutationQueueRef.current,
+                          mutationsBlockedRef.current,
+                          onCreateRow,
+                      )
+                    : Promise.resolve(),
             deleteRows: (rowIds: number[]) => {
                 if (!onDeleteRow || mutationsBlockedRef.current) {
                     return;

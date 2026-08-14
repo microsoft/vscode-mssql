@@ -6,6 +6,7 @@
 import { expect } from "chai";
 import {
     clearRevertedCellChanges,
+    enqueueTableExplorerCreateRow,
     hasPendingChangesForRow,
     isTableExplorerDataColumn,
     runBeforeTableExplorerSessionReplacement,
@@ -165,6 +166,31 @@ suite("tableDataGridUtils", () => {
             expect(drainCompleted).to.equal(false);
 
             completeMutation!();
+            await drain;
+            expect(drainCompleted).to.equal(true);
+        });
+
+        test("includes create-row operations in mutation drains", async () => {
+            const queue = new TableExplorerRowMutationQueue();
+            let completeCreateRow: () => void;
+            const createRow = enqueueTableExplorerCreateRow(
+                queue,
+                false,
+                () =>
+                    new Promise<void>((resolve) => {
+                        completeCreateRow = resolve;
+                    }),
+            );
+            let drainCompleted = false;
+            const drain = queue.drain().then(() => {
+                drainCompleted = true;
+            });
+
+            await Promise.resolve();
+            expect(drainCompleted).to.equal(false);
+
+            completeCreateRow!();
+            await createRow;
             await drain;
             expect(drainCompleted).to.equal(true);
         });
