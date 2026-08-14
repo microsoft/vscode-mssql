@@ -2315,10 +2315,15 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 controller.state,
                 { rowId: 0 },
             );
+            const revertRejected = Promise.resolve(revertRequest).then(
+                () => false,
+                () => true,
+            );
             await finishPendingUpdate(pending);
-            await revertRequest;
 
+            expect(await revertRejected).to.be.true;
             expect(mockTableExplorerService.revertRow.called).to.be.false;
+            expect(controller.state.originalCellValues?.has("0-1")).to.be.true;
             expect(mockTableExplorerService.dispose.called).to.be.false;
             expect(mockTableExplorerService.initialize.called).to.be.false;
         });
@@ -2330,10 +2335,15 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 controller.state,
                 {},
             );
+            const commitRejected = Promise.resolve(commitRequest).then(
+                () => false,
+                () => true,
+            );
             await finishPendingUpdate(pending);
-            await commitRequest;
 
+            expect(await commitRejected).to.be.true;
             expect(mockTableExplorerService.commit.called).to.be.false;
+            expect(controller.state.originalCellValues?.has("0-1")).to.be.true;
             expect(mockTableExplorerService.dispose.called).to.be.false;
             expect(mockTableExplorerService.initialize.called).to.be.false;
         });

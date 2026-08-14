@@ -510,6 +510,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         );
     }
 
+    private throwIfEditMutationBlocked(): void {
+        if (this.areEditMutationsBlocked()) {
+            throw new Error("Edit operation was not applied because the session is unavailable");
+        }
+    }
+
     /**
      * Tears down the active edit session in preparation for re-initializing with a new query:
      * marks state as loading, clears the stale result set so the webview re-initializes the grid,
@@ -587,9 +593,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             if (this._commitInProgress) {
                 throw new Error("A commit is already in progress");
             }
-            if (this.areEditMutationsBlocked()) {
-                return state;
-            }
+            this.throwIfEditMutationBlocked();
             this._commitInProgress = true;
 
             this.logger.info(
@@ -1379,9 +1383,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("revertRow", async (state, payload) => {
-            if (this.areEditMutationsBlocked()) {
-                return state;
-            }
+            this.throwIfEditMutationBlocked();
 
             this.logger.debug(`Reverting row: ${payload.rowId} - OperationId: ${this.operationId}`);
 
