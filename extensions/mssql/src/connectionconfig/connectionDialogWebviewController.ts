@@ -133,6 +133,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private readonly _fabricBrowseProvider: FabricBrowseProvider;
     private _lastSubmittedAction: ConnectionSubmitAction = ConnectionSubmitAction.Connect;
     private _completionNotified = false;
+    private _submissionGeneration = 0;
 
     /** Cached VS Code Entra account options, invalidated on sign-in */
     private _cachedEntraAccounts: FormItemOptions[] | undefined;
@@ -1377,18 +1378,26 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         state: ConnectionDialogWebviewState,
         action: ConnectionSubmitAction,
     ): Promise<ConnectionDialogWebviewState> {
+        const submissionGeneration = ++this._submissionGeneration;
         this._lastSubmittedAction = action;
         this.state.connectionAction = action;
 
-        const cleanedConnection = await this.prepareConnectionForSubmit(state);
-        if (!cleanedConnection) {
+        const cleanedConnection = await this.prepareConnectionForSubmit(
+            state,
+            submissionGeneration,
+        );
+        if (!cleanedConnection || !this.isSubmissionActive(submissionGeneration)) {
             return state;
         }
 
         try {
             if (action === ConnectionSubmitAction.TestConnection) {
-                const testSucceeded = await this.testConnectionStep(cleanedConnection, state);
-                if (!testSucceeded) {
+                const testSucceeded = await this.testConnectionStep(
+                    cleanedConnection,
+                    state,
+                    submissionGeneration,
+                );
+                if (!testSucceeded || !this.isSubmissionActive(submissionGeneration)) {
                     return state;
                 }
 
@@ -1400,8 +1409,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             if (action === ConnectionSubmitAction.SaveWithoutConnecting) {
                 const preparedConnection = await this.prepareConnectionForSave(cleanedConnection);
-                await this.removeEditedConnectionIfNeeded();
-                await this.saveProfileStep(preparedConnection, state);
+                if (!this.isSubmissionActive(submissionGeneration)) {
+                    return state;
+                }
+                await this.removeEditedConnectionIfNeeded(submissionGeneration);
+                if (!this.isSubmissionActive(submissionGeneration)) {
+                    return state;
+                }
+                await this.saveProfileStep(preparedConnection, state, submissionGeneration);
+                if (!this.isSubmissionActive(submissionGeneration)) {
+                    return state;
+                }
                 this.notifyConnectionDialogCompleted(false);
                 this.state.connectionStatus = ApiStatus.Loaded;
                 this.updateState();
@@ -1410,15 +1428,31 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 return state;
             }
 
-            const testSucceeded = await this.testConnectionStep(cleanedConnection, state);
-            if (!testSucceeded) {
+            const testSucceeded = await this.testConnectionStep(
+                cleanedConnection,
+                state,
+                submissionGeneration,
+            );
+            if (!testSucceeded || !this.isSubmissionActive(submissionGeneration)) {
                 return state;
             }
 
             const preparedConnection = await this.prepareConnectionForSave(cleanedConnection);
-            await this.removeEditedConnectionIfNeeded();
-            await this.saveProfileStep(preparedConnection, state);
-            await this.connectAndRevealStep(preparedConnection, state);
+            if (!this.isSubmissionActive(submissionGeneration)) {
+                return state;
+            }
+            await this.removeEditedConnectionIfNeeded(submissionGeneration);
+            if (!this.isSubmissionActive(submissionGeneration)) {
+                return state;
+            }
+            await this.saveProfileStep(preparedConnection, state, submissionGeneration);
+            if (!this.isSubmissionActive(submissionGeneration)) {
+                return state;
+            }
+            await this.connectAndRevealStep(preparedConnection, state, submissionGeneration);
+            if (!this.isSubmissionActive(submissionGeneration)) {
+                return state;
+            }
             this.notifyConnectionDialogCompleted(true);
 
             this.state.connectionStatus = ApiStatus.Loaded;
@@ -1438,6 +1472,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             this.dispose();
             UserSurvey.getInstance().promptUserForNPSFeedback(connectionDialogViewId);
         } catch (error) {
+            if (!this.isSubmissionActive(submissionGeneration)) {
+                return state;
+            }
             this.state.connectionStatus = ApiStatus.Error;
             this.state.formMessage = { message: getErrorMessage(error) };
             this.updateState();
@@ -1459,11 +1496,17 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             return state;
         }
+
         return state;
+    }
+
+    private isSubmissionActive(submissionGeneration: number): boolean {
+        return !this.isDisposed && submissionGeneration === this._submissionGeneration;
     }
 
     private async prepareConnectionForSubmit(
         state: ConnectionDialogWebviewState,
+        submissionGeneration: number,
     ): Promise<IConnectionDialogProfile | undefined> {
         this.clearFormError();
         this.state.connectionStatus = ApiStatus.Loading;
@@ -1471,6 +1514,9 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
         const cleanedConnection = this.cleanConnection(this.state.connectionProfile);
         const erroredInputs = await this.validateProfile(cleanedConnection);
+        if (!this.isSubmissionActive(submissionGeneration)) {
+            return undefined;
+        }
 
         if (erroredInputs.length > 0) {
             this.state.connectionStatus = ApiStatus.Error;
@@ -1507,6 +1553,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     }
 
     public override dispose(): void {
+        this._submissionGeneration++;
         this.notifyConnectionDialogCompleted(false);
         super.dispose();
     }
@@ -1514,6 +1561,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async testConnectionStep(
         connection: IConnectionDialogProfile,
         state: ConnectionDialogWebviewState,
+        submissionGeneration: number,
     ): Promise<boolean> {
         const tempConnectionUri = uuid();
 
@@ -1530,6 +1578,10 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
 
             const connectionInfo =
                 this._mainController.connectionManager?.getConnectionInfo(tempConnectionUri);
+
+            if (!this.isSubmissionActive(submissionGeneration)) {
+                return false;
+            }
 
             if (!result) {
                 await this.handleConnectionErrorCodes(connectionInfo, state);
@@ -1752,13 +1804,16 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         return preparedConnection;
     }
 
-    private async removeEditedConnectionIfNeeded(): Promise<void> {
+    private async removeEditedConnectionIfNeeded(submissionGeneration: number): Promise<void> {
         if (!this._connectionBeingEdited) {
             return;
         }
 
         this._mainController.connectionManager.getUriForConnection(this._connectionBeingEdited);
         await this._objectExplorerProvider.removeConnectionNodes([this._connectionBeingEdited]);
+        if (!this.isSubmissionActive(submissionGeneration)) {
+            return;
+        }
 
         await this._mainController.connectionManager.connectionStore.removeProfile(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1771,22 +1826,33 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
     private async saveProfileStep(
         connection: IConnectionDialogProfile,
         state: ConnectionDialogWebviewState,
+        submissionGeneration: number,
     ): Promise<void> {
         await this._mainController.connectionManager.connectionStore.saveProfile(
             connection as IConnectionProfile,
         );
+        if (!this.isSubmissionActive(submissionGeneration)) {
+            return;
+        }
         await this.updateLoadedConnections(state);
+        if (!this.isSubmissionActive(submissionGeneration)) {
+            return;
+        }
         this.updateState(state);
     }
 
     private async connectAndRevealStep(
         connection: IConnectionDialogProfile,
         state: ConnectionDialogWebviewState,
+        submissionGeneration: number,
     ): Promise<void> {
         let node = await this._mainController.createObjectExplorerSession(
             connection,
             this._connectionRequestId,
         );
+        if (!this.isSubmissionActive(submissionGeneration)) {
+            return;
+        }
 
         try {
             await this._mainController.objectExplorerTree.reveal(node, {
@@ -1795,12 +1861,21 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 expand: true,
             });
         } catch {
+            if (!this.isSubmissionActive(submissionGeneration)) {
+                return;
+            }
             // If revealing the node fails, we've hit an event-based race condition; re-saving and creating the profile should fix it.
-            await this.saveProfileStep(connection, state);
+            await this.saveProfileStep(connection, state, submissionGeneration);
+            if (!this.isSubmissionActive(submissionGeneration)) {
+                return;
+            }
             node = await this._mainController.createObjectExplorerSession(
                 connection,
                 this._connectionRequestId,
             );
+            if (!this.isSubmissionActive(submissionGeneration)) {
+                return;
+            }
             await this._mainController.objectExplorerTree.reveal(node, {
                 focus: true,
                 select: true,

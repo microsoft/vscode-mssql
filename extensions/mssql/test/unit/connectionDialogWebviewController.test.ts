@@ -37,6 +37,7 @@ import { ConnectionUI } from "../../src/views/connectionUI";
 import {
     CredentialsQuickPickItemType,
     IConnectionGroup,
+    IConnectionProfile,
     IConnectionProfileWithSource,
 } from "../../src/models/interfaces";
 import { AzureAccountService } from "../../src/services/azureAccountService";
@@ -1300,6 +1301,36 @@ suite("ConnectionDialogWebviewController Tests", () => {
             test("closing the dialog signals completion without a connection", () => {
                 controller.dispose();
 
+                expect(
+                    connectionManager.notifyConnectionDialogCompleted,
+                ).to.have.been.calledOnceWithExactly({
+                    connected: false,
+                    connectionRequestId: connectionDialogRequestId,
+                });
+            });
+
+            test("disposing while saving prevents the persistent connection", async () => {
+                let resolveSaveProfile!: (profile: IConnectionProfile) => void;
+                connectionManager.connect.resolves(true);
+                connectionStore.saveProfile.returns(
+                    new Promise<IConnectionProfile>((resolve) => {
+                        resolveSaveProfile = resolve;
+                    }),
+                );
+                controller.state.formState = testFormState;
+
+                const submission = controller["_reducerHandlers"].get("connect")(
+                    controller.state,
+                    {},
+                );
+                await new Promise<void>((resolve) => setImmediate(resolve));
+                expect(connectionStore.saveProfile).to.have.been.calledOnce;
+
+                controller.dispose();
+                resolveSaveProfile(testFormState as IConnectionProfile);
+                await submission;
+
+                expect(mockObjectExplorerProvider.createSession).not.to.have.been.called;
                 expect(
                     connectionManager.notifyConnectionDialogCompleted,
                 ).to.have.been.calledOnceWithExactly({
