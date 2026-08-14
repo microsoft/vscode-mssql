@@ -41,13 +41,18 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("deleteRow", { rowId });
             },
 
-            updateCell: function (
+            updateCell: async function (
                 rowId: number,
                 columnId: number,
                 newValue: string,
                 requestId: number,
-            ): void {
-                extensionRpc.action("updateCell", { rowId, columnId, newValue, requestId });
+            ): Promise<void> {
+                await extensionRpc.actionAsync("updateCell", {
+                    rowId,
+                    columnId,
+                    newValue,
+                    requestId,
+                });
             },
 
             revertCell: async function (rowId: number, columnId: number): Promise<void> {

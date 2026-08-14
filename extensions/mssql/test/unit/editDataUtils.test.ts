@@ -8,6 +8,7 @@ import {
     commitChangesAndClearTracking,
     removeAcknowledgedCleanCellChanges,
     revertCellAndClearTracking,
+    updateCellAndTrackFailure,
 } from "../../src/tableExplorer/editDataUtils";
 
 suite("editDataUtils", () => {
@@ -90,6 +91,38 @@ suite("editDataUtils", () => {
 
         expect(committed).to.be.false;
         expect(trackingCleared).to.be.false;
+    });
+
+    test("does not mark a successful cell update as failed", async () => {
+        let failureTracked = false;
+
+        const updated = await updateCellAndTrackFailure(
+            async () => {},
+            () => {
+                failureTracked = true;
+            },
+        );
+
+        expect(updated).to.be.true;
+        expect(failureTracked).to.be.false;
+    });
+
+    test("preserves tracking and marks a rejected cell update as failed", async () => {
+        const trackedChanges = new Map([["7-0", "pending"]]);
+        let failureTracked = false;
+
+        const updated = await updateCellAndTrackFailure(
+            async () => {
+                throw new Error("Update was not applied");
+            },
+            () => {
+                failureTracked = true;
+            },
+        );
+
+        expect(updated).to.be.false;
+        expect(failureTracked).to.be.true;
+        expect(trackedChanges.has("7-0")).to.be.true;
     });
 
     test("clears cell tracking after a successful revert", async () => {

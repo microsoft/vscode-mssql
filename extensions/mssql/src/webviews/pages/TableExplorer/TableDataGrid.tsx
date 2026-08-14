@@ -30,6 +30,7 @@ import {
 import {
     removeAcknowledgedCleanCellChanges,
     revertCellAndClearTracking,
+    updateCellAndTrackFailure,
 } from "../../../tableExplorer/editDataUtils";
 import {
     CellUpdateAcknowledgement,
@@ -80,7 +81,12 @@ interface TableDataGridProps {
     tableQuery?: string;
     mutationsBlocked?: boolean;
     onDeleteRow?: (rowId: number) => void;
-    onUpdateCell?: (rowId: number, columnId: number, newValue: string, requestId: number) => void;
+    onUpdateCell?: (
+        rowId: number,
+        columnId: number,
+        newValue: string,
+        requestId: number,
+    ) => Promise<void>;
     onRevertCell?: (rowId: number, columnId: number) => Promise<void>;
     onRevertRow?: (rowId: number) => Promise<void>;
     onCellChangeCountChanged?: (count: number) => void;
@@ -982,7 +988,13 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             // Notify parent
             if (onUpdateCell) {
                 const newValue = args.item[column?.field];
-                onUpdateCell(rowId, dataColumnIndex, newValue, requestId);
+                void updateCellAndTrackFailure(
+                    () => onUpdateCell(rowId, dataColumnIndex, newValue, requestId),
+                    () => {
+                        failedCellsRef.current.add(changeKey);
+                        reactGridRef.current?.slickGrid?.invalidate();
+                    },
+                );
             }
 
             // Update the display without full re-render

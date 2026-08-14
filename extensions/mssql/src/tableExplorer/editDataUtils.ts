@@ -39,6 +39,19 @@ export async function commitChangesAndClearTracking(
     }
 }
 
+export async function updateCellAndTrackFailure(
+    updateCell: () => Promise<void>,
+    trackFailure: () => void,
+): Promise<boolean> {
+    try {
+        await updateCell();
+        return true;
+    } catch {
+        trackFailure();
+        return false;
+    }
+}
+
 export async function revertCellAndClearTracking(
     revertCell: () => Promise<void>,
     clearTracking: () => void,

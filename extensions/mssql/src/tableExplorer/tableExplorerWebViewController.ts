@@ -518,6 +518,15 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         }
     }
 
+    private trackUnappliedCellUpdate(state: TableExplorerWebViewState, cacheKey: string): void {
+        this._failedEditOperations.add(cacheKey);
+        if (!state.failedCells?.includes(cacheKey)) {
+            state.failedCells = [...(state.failedCells ?? []), cacheKey];
+        }
+        this.showRestorePromptAfterClose = true;
+        this.updateState();
+    }
+
     /**
      * Tears down the active edit session in preparation for re-initializing with a new query:
      * marks state as loading, clears the stale result set so the webview re-initializes the grid,
@@ -992,8 +1001,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("updateCell", async (state, payload) => {
+            const cacheKey = `${payload.rowId}-${payload.columnId}`;
             if (this.areEditMutationsBlocked()) {
-                return state;
+                this.trackUnappliedCellUpdate(state, cacheKey);
+                throw new Error("Cell update was not applied because the session is unavailable");
             }
 
             this.logger.debug(
@@ -1013,7 +1024,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             // Cache the original cell value BEFORE attempting the update
             // This ensures we can revert even if the update fails
-            const cacheKey = `${payload.rowId}-${payload.columnId}`;
             const registeredBeforeQueue = this._lifecycleOperationCount === 0;
             if (registeredBeforeQueue) {
                 this._latestCellUpdateRequestIds.set(cacheKey, payload.requestId);
@@ -1026,7 +1036,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     if (this._latestCellUpdateRequestIds.get(cacheKey) === payload.requestId) {
                         this._latestCellUpdateRequestIds.delete(cacheKey);
                     }
-                    return state;
+                    this.trackUnappliedCellUpdate(state, cacheKey);
+                    throw new Error(
+                        "Cell update was not applied because the session is unavailable",
+                    );
                 }
 
                 if (!registeredBeforeQueue) {
@@ -1062,11 +1075,14 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     );
 
                     if (!this._cellOperationsEnabled) {
-                        endActivity.end(ActivityStatus.Succeeded, {
-                            elapsedTime: (Date.now() - startTime).toString(),
-                            operationId: this.operationId,
-                        });
-                        return state;
+                        if (this.isDisposed) {
+                            endActivity.end(ActivityStatus.Succeeded, {
+                                elapsedTime: (Date.now() - startTime).toString(),
+                                operationId: this.operationId,
+                            });
+                            return state;
+                        }
+                        throw new Error("Cell update stopped during session disposal");
                     }
 
                     if (this._latestCellUpdateRequestIds.get(cacheKey) !== payload.requestId) {
@@ -1142,7 +1158,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                             new Error("Cell update stopped during session disposal"),
                             false /* includeErrorMessage */,
                         );
-                        return state;
+                        if (this.isDisposed) {
+                            return state;
+                        }
+                        this.trackUnappliedCellUpdate(state, cacheKey);
+                        throw error;
                     }
 
                     if (this._latestCellUpdateRequestIds.get(cacheKey) !== payload.requestId) {

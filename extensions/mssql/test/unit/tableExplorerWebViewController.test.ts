@@ -760,6 +760,10 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     requestId: 1,
                 },
             );
+            const updateRejected = Promise.resolve(updateRequest).then(
+                () => false,
+                () => true,
+            );
             await waitForPromises();
 
             expect(mockTableExplorerService.deleteRow.called).to.be.false;
@@ -767,13 +771,14 @@ suite("TableExplorerWebViewController - Reducers", () => {
 
             commit.resolve({});
             await commitRequest;
-            await Promise.all([deleteRequest, updateRequest]);
+            await deleteRequest;
 
             expect(controller.state.newRows).to.be.empty;
             expect(controller.state.deletedRows).to.be.empty;
             expect(controller.state.resultSet?.subset.some((row) => row.id === 100)).to.be.true;
             expect(mockTableExplorerService.deleteRow.called).to.be.false;
             expect(mockTableExplorerService.updateCell.called).to.be.false;
+            expect(await updateRejected).to.be.true;
         });
     });
 
@@ -2417,6 +2422,70 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 requestId: 1,
             });
             expect(mockTableExplorerService.updateCell.calledOnce).to.be.true;
+        });
+
+        test("should reject a replacement-race update and block save after cancellation", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.loadStatus = ApiStatus.Loaded;
+            controller.state.resultSet = createMockSubsetResult(2);
+            controller.state.newRows = [createMockRow(100, ["3", "New", "Row"])];
+            const warning = createDeferred<string | undefined>();
+            showWarningMessageStub.returns(warning.promise);
+            mockTableExplorerService.updateCell.resolves(
+                createEditCellResult("Replacement race edit", true),
+            );
+            mockTableExplorerService.commit.resolves({});
+
+            const queryRequest = controller["_reducerHandlers"].get("runTableQuery")(
+                controller.state,
+                {
+                    queryString: "SELECT * FROM dbo.TestTable",
+                },
+            );
+            await waitForPromises();
+
+            const updateRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Replacement race edit",
+                    requestId: 1,
+                },
+            );
+            const updateRejected = Promise.resolve(updateRequest).then(
+                () => false,
+                () => true,
+            );
+
+            warning.resolve(undefined);
+            await queryRequest;
+
+            const commitRequest = controller["_reducerHandlers"].get("commitChanges")(
+                controller.state,
+                {},
+            );
+            const commitRejected = Promise.resolve(commitRequest).then(
+                () => false,
+                () => true,
+            );
+
+            expect(await updateRejected).to.be.true;
+            expect(await commitRejected).to.be.true;
+            expect(controller.state.failedCells).to.deep.equal(["0-1"]);
+            expect(mockTableExplorerService.updateCell.called).to.be.false;
+            expect(mockTableExplorerService.commit.called).to.be.false;
+
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 0,
+                columnId: 1,
+                newValue: "Replacement race edit",
+                requestId: 2,
+            });
+            await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
+
+            expect(mockTableExplorerService.updateCell.calledOnce).to.be.true;
+            expect(mockTableExplorerService.commit.calledOnce).to.be.true;
         });
 
         test("should reject a cell revert blocked by session replacement", async () => {
