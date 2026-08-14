@@ -3502,6 +3502,10 @@ export class Changelog {
     public static sqlProjCodeAnalysisDescription = l10n.t(
         "Analyze static code with customizable rulesets in SQL Database Projects.",
     );
+    public static sqlFormatterTitle = l10n.t("SQL Formatter");
+    public static sqlFormatterDescription = l10n.t(
+        "Format T-SQL with expanded configuration options and greater control over query style and layout using the new SQL Formatter.",
+    );
 
     // Sidebar content
     public static resourcesTitle = l10n.t("Resources");

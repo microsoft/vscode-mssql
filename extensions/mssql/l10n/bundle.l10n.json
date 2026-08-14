@@ -1891,6 +1891,8 @@
     "Browse Fabric workspaces and provision SQL databases in Fabric without leaving VS Code.": "Browse Fabric workspaces and provision SQL databases in Fabric without leaving VS Code.",
     "SQL Database Projects — Code Analysis": "SQL Database Projects — Code Analysis",
     "Analyze static code with customizable rulesets in SQL Database Projects.": "Analyze static code with customizable rulesets in SQL Database Projects.",
+    "SQL Formatter": "SQL Formatter",
+    "Format T-SQL with expanded configuration options and greater control over query style and layout using the new SQL Formatter.": "Format T-SQL with expanded configuration options and greater control over query style and layout using the new SQL Formatter.",
     "Resources": "Resources",
     "Explore tutorials, docs, and what's coming next.": "Explore tutorials, docs, and what's coming next.",
     "Feedback": "Feedback",

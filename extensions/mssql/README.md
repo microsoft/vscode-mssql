@@ -61,8 +61,7 @@ The MSSQL extension provides a rich set of capabilities for SQL development. Eac
 | Capability                                                                                                                                                                      | Description                                                                      |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
 | [New Query Results Grid](https://learn.microsoft.com/sql/tools/visual-studio-code-extensions/mssql/mssql-extension-visual-studio-code?view=sql-server-ver17#query-results-pane) | New results grid experience with more column customizations (freeze, show, hide) |
-| New SQL formatter (`mssql.format.enablePreviewFormatter`)                                                                                                                       | New T-SQL formatter, enabled by default, with more formatting options            |
-| New execution plan viewer (`mssql.preview.betaExecutionPlan`)                                                                                                                   | New execution plan viewer with improved performance                              |
+| [New SQL Formatter](https://aka.ms/vscode-mssql-formatter)                                                                                                                      | New T-SQL formatter, enabled by default, with more formatting options            |
 
 ## Using the MSSQL Extension
 
