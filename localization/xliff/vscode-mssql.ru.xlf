@@ -4979,6 +4979,10 @@ Error:
         <source xml:lang="en">Foreign keys</source>
         <target state="translated">Внешние ключи</target>
       </trans-unit>
+      <trans-unit id="++CODE++6ac3a5dde58a68f029c5950c2516f4cd048d4c110da072784bce3d4665681431">
+        <source xml:lang="en">Format T-SQL with expanded configuration options and greater control over query style and layout using the new SQL Formatter.</source>
+        <target state="new">Format T-SQL with expanded configuration options and greater control over query style and layout using the new SQL Formatter.</target>
+      </trans-unit>
       <trans-unit id="++CODE++d00bd4ec32e4e1cc45ddae0ad3fd34af28cefb4f236b0f8cc19ff7bfe70dda17">
         <source xml:lang="en">Formula</source>
         <target state="translated">Формула</target>
@@ -8413,6 +8417,10 @@ Query: {2}</source>
         <source xml:lang="en">SQL Database Projects — Code Analysis</source>
         <target state="translated">Проекты SQL Database — Code Analysis</target>
       </trans-unit>
+      <trans-unit id="++CODE++e74a95e3a6af01ffd48fa366bdcc8b0d75763b2dc1e2dc9a6db717eb0c4c920d">
+        <source xml:lang="en">SQL Formatter</source>
+        <target state="new">SQL Formatter</target>
+      </trans-unit>
       <trans-unit id="++CODE++bcb563c464628dce28a629cdda03742239a5b0f9e25da0a87aea6e68ad25933a">
         <source xml:lang="en">SQL Login</source>
         <target state="translated">Вход SQL</target>
@@ -9301,10 +9309,6 @@ Query: {2}</source>
       <trans-unit id="++CODE++222422dd74a5bec73da386f3e436f2ab2f949669b387d61a3a442868c3c908fc">
         <source xml:lang="en">Shortcuts Configuration</source>
         <target state="translated">Настройка сочетания клавиш</target>
-      </trans-unit>
-      <trans-unit id="++CODE++0f1b94abd66e64f81ea87f920176dbbbd52464f63ca0c67e770a12a2dfb4d4ba">
-        <source xml:lang="en">Shortcuts Configuration (Preview)</source>
-        <target state="translated">Конфигурация сочетания клавиш (предварительная версия)</target>
       </trans-unit>
       <trans-unit id="++CODE++bf913efbcc381cf124165f3786831debf4e1caf3e8b775f07ba3b65e58534ac6">
         <source xml:lang="en">Shortcuts configuration page</source>
