@@ -338,6 +338,36 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 ),
             ).to.be.false;
         });
+
+        test("should normalize dirty metadata before a clean-row revert fails", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const dirtyRow = controller.state.resultSet.subset[0];
+            dirtyRow.isDirty = true;
+            dirtyRow.state = EditRowState.dirtyUpdate;
+            (dirtyRow.cells[1] as (typeof dirtyRow.cells)[number] & { isDirty: boolean }).isDirty =
+                true;
+            controller.state.originalCellValues?.set("0-1", createMockCell("John"));
+            controller.state.cellUpdateAcknowledgements = {
+                "0-1": { requestId: 1, isDirty: true },
+            };
+            mockTableExplorerService.commit.resolves({});
+            mockTableExplorerService.revertRow.rejects(new Error("Revert row failed"));
+
+            await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
+            try {
+                await controller["_reducerHandlers"].get("revertRow")(controller.state, {
+                    rowId: 0,
+                });
+            } catch {}
+            await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
+
+            const committedRow = controller.state.resultSet.subset[0];
+            expect(committedRow.isDirty).to.be.false;
+            expect(committedRow.state).to.equal(EditRowState.clean);
+            expect((committedRow.cells[1] as { isDirty?: boolean }).isDirty).to.be.false;
+            expect(mockTableExplorerService.commit.callCount).to.equal(2);
+        });
     });
 
     suite("loadSubset reducer", () => {

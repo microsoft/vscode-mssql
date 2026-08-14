@@ -589,6 +589,21 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                             LocConstants.TableExplorer.changesSavedSuccessfully,
                         );
 
+                        if (state.resultSet) {
+                            state.resultSet = {
+                                ...state.resultSet,
+                                subset: state.resultSet.subset.map((row) => ({
+                                    ...row,
+                                    isDirty: false,
+                                    state: EditRowState.clean,
+                                    cells: row.cells.map((cell) => ({
+                                        ...cell,
+                                        isDirty: false,
+                                    })),
+                                })),
+                            };
+                        }
+
                         // Clear tracking state after successful commit
                         state.newRows = [];
                         state.deletedRows = [];
