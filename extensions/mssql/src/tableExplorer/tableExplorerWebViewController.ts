@@ -477,6 +477,29 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         return `row:${rowId}`;
     }
 
+    private hasTrackedPendingChangesForRow(
+        state: TableExplorerWebViewState,
+        rowId: number,
+    ): boolean {
+        const rowKeyPrefix = `${rowId}-`;
+        const row = state.resultSet?.subset.find((resultRow) => resultRow.id === rowId);
+        return (
+            state.newRows.some((newRow) => newRow.id === rowId) ||
+            state.deletedRows.includes(rowId) ||
+            [...(state.originalCellValues?.keys() ?? [])].some((key) =>
+                key.startsWith(rowKeyPrefix),
+            ) ||
+            (state.failedCells?.some((key) => key.startsWith(rowKeyPrefix)) ?? false) ||
+            Object.entries(state.cellUpdateAcknowledgements ?? {}).some(
+                ([key, acknowledgement]) => key.startsWith(rowKeyPrefix) && acknowledgement.isDirty,
+            ) ||
+            row?.isDirty === true ||
+            row?.state === EditRowState.dirtyInsert ||
+            row?.state === EditRowState.dirtyDelete ||
+            row?.state === EditRowState.dirtyUpdate
+        );
+    }
+
     private areEditMutationsBlocked(): boolean {
         return !this._cellOperationsEnabled || this._commitInProgress;
     }
@@ -804,6 +827,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 },
             );
 
+            this.showRestorePromptAfterClose = true;
             return await this.enqueueLifecycleOperation(async () => {
                 // A preceding commit can move the row from new to persisted while this operation waits.
                 const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
@@ -860,11 +884,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         this.logger.debug(
                             `Removed newly created row ${payload.rowId} from UI (${state.newRows.length} new rows remaining)`,
                         );
-
-                        // Check if we still have unsaved changes
-                        if (state.newRows.length === 0 && state.deletedRows.length === 0) {
-                            this.showRestorePromptAfterClose = false;
-                        }
                     } else {
                         // For existing rows, mark for deletion (keep visible but styled as deleted)
                         if (!state.deletedRows.includes(payload.rowId)) {
@@ -875,12 +894,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                             LocConstants.TableExplorer.rowMarkedForRemoval,
                         );
 
-                        this.showRestorePromptAfterClose = true;
-
                         this.logger.debug(
                             `Marked row ${payload.rowId} for deletion (${state.deletedRows.length} total deleted)`,
                         );
                     }
+                    this.showRestorePromptAfterClose = this.hasPendingChanges(state);
 
                     // Update state to trigger re-render
                     this.updateState();
@@ -910,6 +928,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     vscode.window.showErrorMessage(
                         LocConstants.TableExplorer.failedToRemoveRow(getErrorMessage(error)),
                     );
+                    this.showRestorePromptAfterClose = this.hasPendingChanges(state);
                 }
 
                 return state;
@@ -1333,6 +1352,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             );
 
             return await this.enqueueLifecycleOperation(async () => {
+                const hadTrackedPendingChanges = this.hasTrackedPendingChangesForRow(
+                    state,
+                    payload.rowId,
+                );
                 try {
                     const revertRowResult = await this._tableExplorerService.revertRow(
                         state.ownerUri,
@@ -1465,7 +1488,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     vscode.window.showErrorMessage(
                         LocConstants.TableExplorer.failedToRevertRow(getErrorMessage(error)),
                     );
-                    this._failedEditOperations.add(this.getRowRevertFailureKey(payload.rowId));
+                    const failureKey = this.getRowRevertFailureKey(payload.rowId);
+                    if (hadTrackedPendingChanges) {
+                        this._failedEditOperations.add(failureKey);
+                    } else {
+                        this._failedEditOperations.delete(failureKey);
+                    }
                     throw error;
                 }
 

@@ -628,6 +628,27 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to remove row");
         });
 
+        test("should enable the close prompt while an existing-row delete is pending", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const deleteRow = createDeferred<Record<string, never>>();
+            mockTableExplorerService.deleteRow.returns(deleteRow.promise);
+
+            const deleteRequest = controller["_reducerHandlers"].get("deleteRow")(
+                controller.state,
+                { rowId: 0 },
+            );
+            await waitForPromises();
+
+            expect(controller["_options"].showRestorePromptAfterClose).to.be.true;
+            expect(controller.state.deletedRows).to.be.empty;
+
+            deleteRow.resolve({});
+            await deleteRequest;
+
+            expect(controller.state.deletedRows).to.deep.equal([0]);
+        });
+
         test("should wait for queued cell updates before deleting a row", async () => {
             controller.state.ownerUri = "test-owner-uri";
             controller.state.resultSet = createMockSubsetResult(2);
@@ -1510,6 +1531,22 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 .true;
             expect(controller.state.deletedRows).to.deep.equal([0]);
             expect(mockTableExplorerService.commit.called).to.be.false;
+        });
+
+        test("should not block commit when a clean-row revert fails", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            mockTableExplorerService.revertRow.rejects(new Error("Revert row failed"));
+            mockTableExplorerService.commit.resolves({});
+
+            try {
+                await controller["_reducerHandlers"].get("revertRow")(controller.state, {
+                    rowId: 0,
+                });
+            } catch {}
+            await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
+
+            expect(mockTableExplorerService.commit.calledOnceWith("test-owner-uri")).to.be.true;
         });
 
         test("should remove newly created row from UI when revert returns null", async () => {
