@@ -67,6 +67,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     private readonly connectionUris = new Map<string, string>();
     private pendingConnectionRequestId: string | undefined;
     private handlingConnectionRequestId: string | undefined;
+    private databaseListRequestGeneration = 0;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -188,37 +189,35 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         return;
                     }
 
-                    if (connected) {
-                        const endpointType = this.state.pendingConnectionEndpointType;
-                        if (
-                            !connectionUri ||
-                            !endpointType ||
-                            !this.connectionMgr.isConnected(connectionUri) ||
-                            !this.claimPendingConnectionRequest(connectionRequestId)
-                        ) {
+                    if (!connected) {
+                        this.resetPendingConnectionSelection();
+                        this.updateState();
+
+                        const activeServers = await this.getAvailableServersList();
+                        if (this.state.waitingForNewConnection) {
                             return;
                         }
 
-                        await this.selectCompletedConnection(
-                            connectionUri,
-                            endpointType,
-                            connectionRequestId,
-                        );
+                        this.state.activeServers = activeServers;
+                        this.updateState();
                         return;
                     }
 
-                    if (!this.claimPendingConnectionRequest(connectionRequestId)) {
+                    const endpointType = this.state.pendingConnectionEndpointType;
+                    if (
+                        !connectionUri ||
+                        !endpointType ||
+                        !this.connectionMgr.isConnected(connectionUri) ||
+                        !this.claimPendingConnectionRequest(connectionRequestId)
+                    ) {
                         return;
                     }
 
-                    const activeServers = await this.getAvailableServersList();
-                    if (!this.isPendingConnectionRequest(connectionRequestId)) {
-                        return;
-                    }
-
-                    this.state.activeServers = activeServers;
-                    this.resetPendingConnectionSelection();
-                    this.updateState();
+                    await this.selectCompletedConnection(
+                        connectionUri,
+                        endpointType,
+                        connectionRequestId,
+                    );
                 },
             ),
         );
@@ -590,6 +589,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("listDatabasesForActiveServer", async (state, payload) => {
+            const requestGeneration = ++this.databaseListRequestGeneration;
             this.logger.debug(
                 `Listing databases for server connection: ${payload.connectionUri} - OperationId: ${this.operationId}`,
             );
@@ -606,11 +606,19 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             let databases: string[] = [];
             try {
                 const connectionUri = await this.connectToServer(payload.connectionUri);
+                if (requestGeneration !== this.databaseListRequestGeneration) {
+                    endActivity.end(ActivityStatus.Canceled);
+                    return state;
+                }
                 if (!connectionUri) {
                     throw new Error("Failed to connect to server");
                 }
 
                 databases = await this.connectionMgr.listDatabases(connectionUri);
+                if (requestGeneration !== this.databaseListRequestGeneration) {
+                    endActivity.end(ActivityStatus.Canceled);
+                    return state;
+                }
                 this.logger.debug(
                     `Found ${databases.length} database(s) on server - OperationId: ${this.operationId}`,
                 );
@@ -620,6 +628,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     databaseCount: databases.length.toString(),
                 });
             } catch (error) {
+                if (requestGeneration !== this.databaseListRequestGeneration) {
+                    endActivity.end(ActivityStatus.Canceled);
+                    return state;
+                }
                 this.logger.error(
                     `Error listing databases: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );

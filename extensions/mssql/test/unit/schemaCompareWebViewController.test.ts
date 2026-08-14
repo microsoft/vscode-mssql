@@ -1420,6 +1420,57 @@ suite("SchemaCompareWebViewController Tests", () => {
         await new Promise<void>((resolve) => setImmediate(resolve));
     });
 
+    test("connection events - cancellation invalidates an already claimed success", async () => {
+        const executeCommandStub = sandbox
+            .stub(vscode.commands, "executeCommand")
+            .resolves(undefined);
+        let resolveSavedConnections!: (connections: IConnectionProfileWithSource[]) => void;
+        connectionStoreStub.readAllConnections.returns(
+            new Promise<IConnectionProfileWithSource[]>((resolve) => {
+                resolveSavedConnections = resolve;
+            }),
+        );
+        controller.state = structuredClone(mockInitialState);
+        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
+            endpointType: "source",
+        });
+        const connectionRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
+
+        const canceledConnection = new ConnectionInfo();
+        canceledConnection.credentials = {
+            id: "",
+            profileName: "Canceled connection",
+            server: "canceled-server",
+        } as IConnectionProfile;
+        activeConnections["canceled-connection-uri"] = canceledConnection;
+        connectionManagerStub.isConnected.withArgs("canceled-connection-uri").returns(true);
+
+        successfulConnectionEmitter.fire({
+            connection: canceledConnection,
+            fileUri: "canceled-connection-uri",
+            connectionRequestId,
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        connectionDialogCompletedEmitter.fire({
+            connected: false,
+            connectionRequestId,
+        });
+
+        expect(controller.state.waitingForNewConnection).to.be.false;
+        expect(controller.state.pendingConnectionEndpointType).to.be.null;
+
+        resolveSavedConnections([]);
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(controller.state.sourceEndpointInfo.ownerUri).to.equal(
+            mockInitialState.sourceEndpointInfo.ownerUri,
+        );
+        expect(connectionManagerStub.listDatabases).not.to.have.been.calledWith(
+            "canceled-connection-uri",
+        );
+    });
+
     test("listActiveServers reducer - deduplicates multiple active URIs for a saved profile", async () => {
         const savedConnection = {
             id: "saved-connection-id",
@@ -1488,6 +1539,33 @@ suite("SchemaCompareWebViewController Tests", () => {
             actualResult.databases,
             "listActiveServers should return ['db1', 'db2']",
         ).to.deep.equal(expectedResult);
+    });
+
+    test("listDatabasesForActiveServer reducer - stale request cannot overwrite newer databases", async () => {
+        let resolveFirstDatabases!: (databases: string[]) => void;
+        connectionManagerStub.isConnected.withArgs("server-a-uri").returns(true);
+        connectionManagerStub.isConnected.withArgs("server-b-uri").returns(true);
+        connectionManagerStub.listDatabases.withArgs("server-a-uri").returns(
+            new Promise<string[]>((resolve) => {
+                resolveFirstDatabases = resolve;
+            }),
+        );
+        connectionManagerStub.listDatabases.withArgs("server-b-uri").resolves(["b-database"]);
+        const state = structuredClone(mockInitialState);
+        const listDatabases = controller["_reducerHandlers"].get("listDatabasesForActiveServer");
+
+        const firstRequest = listDatabases(state, { connectionUri: "server-a-uri" });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        const secondResult = await listDatabases(state, {
+            connectionUri: "server-b-uri",
+        });
+        expect(secondResult.databases).to.deep.equal(["b-database"]);
+
+        resolveFirstDatabases(["a-database"]);
+        await firstRequest;
+
+        expect(state.databases).to.deep.equal(["b-database"]);
     });
 
     test("listDatabasesForActiveServer reducer - connects an inactive saved connection", async () => {
