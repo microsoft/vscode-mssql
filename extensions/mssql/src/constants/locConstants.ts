@@ -42,7 +42,7 @@ export let renameDatabaseDialogTitle = l10n.t("Rename Database");
 export let createDatabaseWebviewTitle = l10n.t("Create Database");
 export let dropDatabaseWebviewTitle = l10n.t("Drop Database");
 export let renameDatabaseWebviewTitle = l10n.t("Rename Database");
-export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration (Preview)");
+export let shortcutsConfigurationTitle = l10n.t("Shortcuts Configuration");
 export let shortcutsConfigurationSaved = l10n.t("Configuration saved.");
 export let quickQuerySlotOutOfRange = (maxSlot: number) =>
     l10n.t({
@@ -3504,6 +3504,10 @@ export class Changelog {
     public static sqlProjCodeAnalysisTitle = l10n.t("SQL Database Projects — Code Analysis");
     public static sqlProjCodeAnalysisDescription = l10n.t(
         "Analyze static code with customizable rulesets in SQL Database Projects.",
+    );
+    public static sqlFormatterTitle = l10n.t("SQL Formatter");
+    public static sqlFormatterDescription = l10n.t(
+        "Format T-SQL with expanded configuration options and greater control over query style and layout using the new SQL Formatter.",
     );
 
     // Sidebar content
