@@ -244,6 +244,7 @@ export interface TableExplorerReducers {
     saveResults: { format: SupportedSaveFormats; data: ExportData };
     showTableQuery: {};
     runTableQuery: { queryString: string; rowCount?: number; filterOperators?: string[] };
+    waitForEditSessionReady: {};
     modifyTable: {};
     viewTableDiagram: {};
     showSql: { sqlScript: string };

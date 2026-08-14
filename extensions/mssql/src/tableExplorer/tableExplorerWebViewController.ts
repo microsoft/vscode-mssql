@@ -25,6 +25,7 @@ import * as Constants from "../constants/constants";
 import { sendActionEvent, sendErrorEvent, startActivity } from "extension-toolkit/vscode";
 import { ActivityStatus, TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { ApiStatus } from "../sharedInterfaces/webview";
+import { Deferred } from "../protocol";
 
 export class TableExplorerWebViewController extends WebviewPanelController<
     TableExplorerWebViewState,
@@ -32,6 +33,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 > {
     private operationId: string;
     private _preserveTableQuery = false;
+    private _sessionLoadCompletion: Deferred<void> | undefined;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -140,6 +142,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             );
 
             void vscode.window.showErrorMessage(toastMessage);
+            this.completeSessionLoad();
         }
     }
 
@@ -273,6 +276,14 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             void vscode.window.showErrorMessage(
                 LocConstants.TableExplorer.failedToLoadData(getErrorMessage(error)),
             );
+        } finally {
+            this.completeSessionLoad();
+        }
+    }
+
+    private completeSessionLoad(): void {
+        if (this._sessionLoadCompletion && !this._sessionLoadCompletion.isCompleted) {
+            this._sessionLoadCompletion.resolve();
         }
     }
 
@@ -1504,6 +1515,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 return state;
             }
 
+            this._sessionLoadCompletion = new Deferred<void>();
             await this.tearDownEditSession(state);
 
             const objectName = state.tableName;
@@ -1548,7 +1560,15 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     `Error running custom table query: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
 
-                await this.tryRestoreOriginalSession(state, objectName, schemaName, objectType);
+                const restored = await this.tryRestoreOriginalSession(
+                    state,
+                    objectName,
+                    schemaName,
+                    objectType,
+                );
+                if (!restored) {
+                    this.completeSessionLoad();
+                }
                 this.updateState();
 
                 endActivity.endFailed(
@@ -1568,6 +1588,17 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
             }
 
+            return state;
+        });
+
+        this.registerReducer("waitForEditSessionReady", async (state) => {
+            const completion = this._sessionLoadCompletion;
+            if (completion) {
+                await completion.promise;
+                if (this._sessionLoadCompletion === completion) {
+                    this._sessionLoadCompletion = undefined;
+                }
+            }
             return state;
         });
 

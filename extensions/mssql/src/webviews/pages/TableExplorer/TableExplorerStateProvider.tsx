@@ -95,6 +95,7 @@ export const TableExplorerStateProvider: React.FC<{
                     rowCount,
                     filterOperators,
                 });
+                await extensionRpc.actionAndWait("waitForEditSessionReady", {});
             },
 
             modifyTable: function (): void {
