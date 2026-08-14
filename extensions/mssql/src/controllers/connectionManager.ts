@@ -138,6 +138,7 @@ export interface ConnectionSuccessfulEvent {
 export interface ConnectionDialogCompletedEvent {
     connected: boolean;
     connectionRequestId?: string;
+    connectionUri?: string;
 }
 
 // ConnectionManager class is the main controller for connection management

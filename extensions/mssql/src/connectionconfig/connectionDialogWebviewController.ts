@@ -67,6 +67,7 @@ import {
 import { populateAzureAccountInfo } from "../controllers/addFirewallRuleWebviewController";
 import { FabricHelper } from "../fabric/fabricHelper";
 import {
+    ConnectionDialogCompletedEvent,
     ConnectionInfo,
     getSqlConnectionErrorType,
     SqlConnectionErrorType,
@@ -1449,11 +1450,15 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             if (!this.isSubmissionActive(submissionGeneration)) {
                 return state;
             }
-            await this.connectAndRevealStep(preparedConnection, state, submissionGeneration);
+            const connectionUri = await this.connectAndRevealStep(
+                preparedConnection,
+                state,
+                submissionGeneration,
+            );
             if (!this.isSubmissionActive(submissionGeneration)) {
                 return state;
             }
-            this.notifyConnectionDialogCompleted(true);
+            this.notifyConnectionDialogCompleted(true, connectionUri);
 
             this.state.connectionStatus = ApiStatus.Loaded;
             this.updateState();
@@ -1540,16 +1545,20 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connection.port = undefined;
     }
 
-    private notifyConnectionDialogCompleted(connected: boolean): void {
+    private notifyConnectionDialogCompleted(connected: boolean, connectionUri?: string): void {
         if (this._completionNotified) {
             return;
         }
 
         this._completionNotified = true;
-        this._mainController.connectionManager.notifyConnectionDialogCompleted({
+        const completionEvent: ConnectionDialogCompletedEvent = {
             connected,
             connectionRequestId: this._connectionRequestId,
-        });
+        };
+        if (connectionUri) {
+            completionEvent.connectionUri = connectionUri;
+        }
+        this._mainController.connectionManager.notifyConnectionDialogCompleted(completionEvent);
     }
 
     public override dispose(): void {
@@ -1845,13 +1854,13 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
         connection: IConnectionDialogProfile,
         state: ConnectionDialogWebviewState,
         submissionGeneration: number,
-    ): Promise<void> {
+    ): Promise<string | undefined> {
         let node = await this._mainController.createObjectExplorerSession(
             connection,
             this._connectionRequestId,
         );
         if (!this.isSubmissionActive(submissionGeneration)) {
-            return;
+            return undefined;
         }
 
         try {
@@ -1862,19 +1871,19 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
             });
         } catch {
             if (!this.isSubmissionActive(submissionGeneration)) {
-                return;
+                return undefined;
             }
             // If revealing the node fails, we've hit an event-based race condition; re-saving and creating the profile should fix it.
             await this.saveProfileStep(connection, state, submissionGeneration);
             if (!this.isSubmissionActive(submissionGeneration)) {
-                return;
+                return undefined;
             }
             node = await this._mainController.createObjectExplorerSession(
                 connection,
                 this._connectionRequestId,
             );
             if (!this.isSubmissionActive(submissionGeneration)) {
-                return;
+                return undefined;
             }
             await this._mainController.objectExplorerTree.reveal(node, {
                 focus: true,
@@ -1882,6 +1891,7 @@ export class ConnectionDialogWebviewController extends FormWebviewController<
                 expand: true,
             });
         }
+        return node?.sessionId;
     }
 
     private async handleConnectionErrorCodes(

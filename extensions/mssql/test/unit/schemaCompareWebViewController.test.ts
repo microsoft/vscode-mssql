@@ -1331,6 +1331,95 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(controller.state.sourceEndpointInfo.ownerUri).to.equal("first-persistent-uri");
     });
 
+    test("connection events - connected completion selects a reused URI without a success event", async () => {
+        const executeCommandStub = sandbox
+            .stub(vscode.commands, "executeCommand")
+            .resolves(undefined);
+        controller.state = structuredClone(mockInitialState);
+        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
+            endpointType: "target",
+        });
+        const connectionRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
+
+        const reusedConnection = new ConnectionInfo();
+        reusedConnection.credentials = {
+            id: "",
+            profileName: "Reused connection",
+            server: "reused-server",
+        } as IConnectionProfile;
+        activeConnections["reused-connection-uri"] = reusedConnection;
+        connectionManagerStub.isConnected.withArgs("reused-connection-uri").returns(true);
+
+        connectionDialogCompletedEmitter.fire({
+            connected: true,
+            connectionRequestId,
+            connectionUri: "reused-connection-uri",
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(controller.state.waitingForNewConnection).to.be.false;
+        expect(controller.state.targetEndpointInfo.ownerUri).to.equal("reused-connection-uri");
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(
+            "reused-connection-uri",
+        );
+    });
+
+    test("connection events - stale refresh cannot select or clear a newer request", async () => {
+        const executeCommandStub = sandbox
+            .stub(vscode.commands, "executeCommand")
+            .resolves(undefined);
+        let resolveSavedConnections!: (connections: IConnectionProfileWithSource[]) => void;
+        connectionStoreStub.readAllConnections.returns(
+            new Promise<IConnectionProfileWithSource[]>((resolve) => {
+                resolveSavedConnections = resolve;
+            }),
+        );
+        controller.state = structuredClone(mockInitialState);
+        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
+            endpointType: "source",
+        });
+        const firstRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
+
+        const staleConnection = new ConnectionInfo();
+        staleConnection.credentials = {
+            id: "",
+            profileName: "Stale connection",
+            server: "stale-server",
+        } as IConnectionProfile;
+        activeConnections["stale-connection-uri"] = staleConnection;
+        connectionManagerStub.isConnected.withArgs("stale-connection-uri").returns(true);
+
+        successfulConnectionEmitter.fire({
+            connection: staleConnection,
+            fileUri: "stale-connection-uri",
+            connectionRequestId: firstRequestId,
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
+            endpointType: "target",
+        });
+        const secondRequestId = executeCommandStub.secondCall.args[1].connectionDialogRequestId;
+
+        resolveSavedConnections([]);
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(controller.state.waitingForNewConnection).to.be.true;
+        expect(controller.state.pendingConnectionEndpointType).to.equal("target");
+        expect(controller.state.sourceEndpointInfo.ownerUri).to.equal(
+            mockInitialState.sourceEndpointInfo.ownerUri,
+        );
+        expect(connectionManagerStub.listDatabases).not.to.have.been.calledWith(
+            "stale-connection-uri",
+        );
+
+        connectionDialogCompletedEmitter.fire({
+            connected: false,
+            connectionRequestId: secondRequestId,
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+    });
+
     test("listActiveServers reducer - deduplicates multiple active URIs for a saved profile", async () => {
         const savedConnection = {
             id: "saved-connection-id",

@@ -66,6 +66,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     private operationId: string;
     private readonly connectionUris = new Map<string, string>();
     private pendingConnectionRequestId: string | undefined;
+    private handlingConnectionRequestId: string | undefined;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -159,46 +160,63 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             this.connectionMgr.onSuccessfulConnection(
                 async ({ fileUri, connectionSource, connectionRequestId }) => {
                     if (
-                        !this.state.waitingForNewConnection ||
-                        connectionRequestId !== this.pendingConnectionRequestId
+                        !this.isPendingConnectionRequest(connectionRequestId) ||
+                        connectionSource === connectionDialogViewId ||
+                        !this.connectionMgr.isConnected(fileUri)
                     ) {
                         return;
                     }
 
                     const endpointType = this.state.pendingConnectionEndpointType;
-                    const isTransientConnection = connectionSource === connectionDialogViewId;
-                    const shouldAutoSelect =
-                        endpointType &&
-                        !isTransientConnection &&
-                        this.connectionMgr.isConnected(fileUri);
-
-                    if (isTransientConnection) {
+                    if (!endpointType || !this.claimPendingConnectionRequest(connectionRequestId)) {
                         return;
                     }
 
-                    this.state.activeServers = await this.getAvailableServersList();
-
-                    if (shouldAutoSelect) {
-                        await this.autoSelectNewConnection(fileUri, endpointType);
-                    }
-
-                    this.updateState();
+                    await this.selectCompletedConnection(
+                        fileUri,
+                        endpointType,
+                        connectionRequestId,
+                    );
                 },
             ),
         );
 
         this.registerDisposable(
             this.connectionMgr.onConnectionDialogCompleted(
-                async ({ connected, connectionRequestId }) => {
-                    if (
-                        connectionRequestId !== this.pendingConnectionRequestId ||
-                        !this.state.waitingForNewConnection ||
-                        connected
-                    ) {
+                async ({ connected, connectionRequestId, connectionUri }) => {
+                    if (!this.isPendingConnectionRequest(connectionRequestId)) {
                         return;
                     }
 
-                    this.state.activeServers = await this.getAvailableServersList();
+                    if (connected) {
+                        const endpointType = this.state.pendingConnectionEndpointType;
+                        if (
+                            !connectionUri ||
+                            !endpointType ||
+                            !this.connectionMgr.isConnected(connectionUri) ||
+                            !this.claimPendingConnectionRequest(connectionRequestId)
+                        ) {
+                            return;
+                        }
+
+                        await this.selectCompletedConnection(
+                            connectionUri,
+                            endpointType,
+                            connectionRequestId,
+                        );
+                        return;
+                    }
+
+                    if (!this.claimPendingConnectionRequest(connectionRequestId)) {
+                        return;
+                    }
+
+                    const activeServers = await this.getAvailableServersList();
+                    if (!this.isPendingConnectionRequest(connectionRequestId)) {
+                        return;
+                    }
+
+                    this.state.activeServers = activeServers;
                     this.resetPendingConnectionSelection();
                     this.updateState();
                 },
@@ -641,6 +659,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             state.waitingForNewConnection = true;
             state.pendingConnectionEndpointType = payload.endpointType;
             this.pendingConnectionRequestId = uuid();
+            this.handlingConnectionRequestId = undefined;
 
             this.logger.debug(
                 `Executing command: ${cmdAddObjectExplorer} - OperationId: ${this.operationId}`,
@@ -2294,6 +2313,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     private async autoSelectNewConnection(
         connectionUri: string,
         endpointType: "source" | "target",
+        connectionRequestId: string,
     ): Promise<void> {
         this.logger.debug(
             `Auto-selecting new connection for ${endpointType} endpoint: ${connectionUri} - OperationId: ${this.operationId}`,
@@ -2305,11 +2325,17 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Retrieving databases for connection: ${connectionUri} - OperationId: ${this.operationId}`,
             );
             const activeConnectionUri = await this.connectToServer(connectionUri);
+            if (!this.isPendingConnectionRequest(connectionRequestId)) {
+                return;
+            }
             if (!activeConnectionUri) {
                 throw new Error("Failed to connect to server");
             }
 
             const databases = await this.connectionMgr.listDatabases(activeConnectionUri);
+            if (!this.isPendingConnectionRequest(connectionRequestId)) {
+                return;
+            }
             this.logger.debug(
                 `Found ${databases.length} databases on server - OperationId: ${this.operationId}`,
             );
@@ -2383,19 +2409,59 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 );
             }
         } catch (error) {
-            this.logger.error(
-                `Error auto-selecting new connection: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-            );
+            if (this.isPendingConnectionRequest(connectionRequestId)) {
+                this.logger.error(
+                    `Error auto-selecting new connection: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                );
+            }
         } finally {
-            this.logger.debug(`Resetting waiting state - OperationId: ${this.operationId}`);
-            this.resetPendingConnectionSelection();
+            if (this.isPendingConnectionRequest(connectionRequestId)) {
+                this.logger.debug(`Resetting waiting state - OperationId: ${this.operationId}`);
+                this.resetPendingConnectionSelection();
+                this.updateState();
+            }
         }
+    }
+
+    private async selectCompletedConnection(
+        connectionUri: string,
+        endpointType: "source" | "target",
+        connectionRequestId: string,
+    ): Promise<void> {
+        const activeServers = await this.getAvailableServersList();
+        if (!this.isPendingConnectionRequest(connectionRequestId)) {
+            return;
+        }
+
+        this.state.activeServers = activeServers;
+        await this.autoSelectNewConnection(connectionUri, endpointType, connectionRequestId);
+    }
+
+    private isPendingConnectionRequest(connectionRequestId: string | undefined): boolean {
+        return (
+            this.state.waitingForNewConnection &&
+            connectionRequestId !== undefined &&
+            connectionRequestId === this.pendingConnectionRequestId
+        );
+    }
+
+    private claimPendingConnectionRequest(connectionRequestId: string): boolean {
+        if (
+            !this.isPendingConnectionRequest(connectionRequestId) ||
+            this.handlingConnectionRequestId === connectionRequestId
+        ) {
+            return false;
+        }
+
+        this.handlingConnectionRequestId = connectionRequestId;
+        return true;
     }
 
     private resetPendingConnectionSelection(): void {
         this.state.waitingForNewConnection = false;
         this.state.pendingConnectionEndpointType = null;
         this.pendingConnectionRequestId = undefined;
+        this.handlingConnectionRequestId = undefined;
     }
 
     private getCurrentConnectionUris(): Set<string> {

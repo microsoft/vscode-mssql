@@ -1211,7 +1211,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                     undefined,
                     undefined,
                     "Database",
-                    undefined,
+                    "testSessionId",
                     undefined,
                     undefined,
                     undefined,
@@ -1231,6 +1231,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider.createSession.resolves({
                     sessionId: "testSessionId",
                     rootNode: mockConnectionNode,
+                    connectionNode: mockConnectionNode,
                     success: true,
                 } as CreateSessionResponse);
 
@@ -1259,6 +1260,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 ).to.have.been.calledOnceWithExactly({
                     connected: true,
                     connectionRequestId: connectionDialogRequestId,
+                    connectionUri: "testSessionId",
                 });
             });
 
