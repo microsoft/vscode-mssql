@@ -115,12 +115,14 @@ const SchemaSelectorDrawer = (props: Props) => {
 
     const currentEndpoint =
         props.endpointType === "source" ? sourceEndpointInfo : targetEndpointInfo;
+    const currentServerConnectionId =
+        currentEndpoint?.connectionId || currentEndpoint?.ownerUri || "";
 
     const [schemaType, setSchemaType] = useState(
         endpointTypeToString(currentEndpoint?.endpointType || SchemaCompareEndpointType.Database),
     );
     const [disableOkButton, setDisableOkButton] = useState(true);
-    const [serverConnectionUri, setServerConnectionUri] = useState(currentEndpoint?.ownerUri || "");
+    const [serverConnectionUri, setServerConnectionUri] = useState(currentServerConnectionId);
     const [serverName, setServerName] = useState(
         currentEndpoint?.connectionName || currentEndpoint?.serverName || "",
     );
@@ -146,8 +148,8 @@ const SchemaSelectorDrawer = (props: Props) => {
     useEffect(() => {
         context.listActiveServers();
 
-        if (currentEndpoint?.ownerUri) {
-            context.listDatabasesForActiveServer(currentEndpoint?.ownerUri);
+        if (currentServerConnectionId) {
+            context.listDatabasesForActiveServer(currentServerConnectionId);
         }
     }, []);
 
@@ -157,10 +159,10 @@ const SchemaSelectorDrawer = (props: Props) => {
 
     // Handle auto-selection of newly created connections
     useEffect(() => {
-        if (currentEndpoint?.ownerUri && currentEndpoint?.databaseName) {
+        if (currentServerConnectionId && currentEndpoint?.databaseName) {
             // Update local state when endpoint info changes (e.g., from auto-selection)
-            if (serverConnectionUri !== currentEndpoint.ownerUri) {
-                setServerConnectionUri(currentEndpoint.ownerUri);
+            if (serverConnectionUri !== currentServerConnectionId) {
+                setServerConnectionUri(currentServerConnectionId);
                 setServerName(currentEndpoint.connectionName || currentEndpoint.serverName || "");
             }
             if (databaseName !== currentEndpoint.databaseName) {
@@ -168,6 +170,7 @@ const SchemaSelectorDrawer = (props: Props) => {
             }
         }
     }, [
+        currentEndpoint?.connectionId,
         currentEndpoint?.ownerUri,
         currentEndpoint?.databaseName,
         currentEndpoint?.connectionName,

@@ -1573,6 +1573,7 @@ declare module "vscode-mssql" {
         serverName: string;
         databaseName: string;
         ownerUri: string;
+        connectionId?: string;
         connectionDetails: SchemaCompareConnectionInfo;
         connectionName?: string;
         projectFilePath: string;

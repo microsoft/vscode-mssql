@@ -357,6 +357,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             serverName: connectionProfile.server,
             databaseName: ObjectExplorerUtils.getDatabaseName(sourceContext),
             ownerUri: ownerUri,
+            connectionId: connectionProfile.id || ownerUri,
             packageFilePath: "",
             connectionDetails: {
                 options: {
@@ -808,6 +809,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 serverName: connectionProfile.server,
                 databaseName: payload.databaseName,
                 ownerUri: connectionUri,
+                connectionId: connectionProfile.id || payload.serverConnectionUri,
                 packageFilePath: "",
                 connectionDetails: {
                     options: {
@@ -2327,6 +2329,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         endpointType: "source" | "target",
         connectionRequestId: string,
     ): Promise<void> {
+        const databaseListRequestGeneration = ++this.databaseListRequestGeneration;
         this.logger.debug(
             `Auto-selecting new connection for ${endpointType} endpoint: ${connectionUri} - OperationId: ${this.operationId}`,
         );
@@ -2337,7 +2340,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 `Retrieving databases for connection: ${connectionUri} - OperationId: ${this.operationId}`,
             );
             const activeConnectionUri = await this.connectToServer(connectionUri);
-            if (!this.isPendingConnectionRequest(connectionRequestId)) {
+            if (
+                !this.isPendingConnectionRequest(connectionRequestId) ||
+                databaseListRequestGeneration !== this.databaseListRequestGeneration
+            ) {
                 return;
             }
             if (!activeConnectionUri) {
@@ -2345,7 +2351,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             }
 
             const databases = await this.connectionMgr.listDatabases(activeConnectionUri);
-            if (!this.isPendingConnectionRequest(connectionRequestId)) {
+            if (
+                !this.isPendingConnectionRequest(connectionRequestId) ||
+                databaseListRequestGeneration !== this.databaseListRequestGeneration
+            ) {
                 return;
             }
             this.logger.debug(
@@ -2381,6 +2390,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         serverName: connectionProfile.server,
                         databaseName: databaseName,
                         ownerUri: activeConnectionUri,
+                        connectionId: connectionProfile.id || connectionUri,
                         packageFilePath: "",
                         connectionDetails: {
                             options: {
@@ -2875,6 +2885,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     serverName: connInfo.server,
                     databaseName: connInfo.database,
                     ownerUri: ownerUri,
+                    connectionId: connectionProfile.id || ownerUri,
                     packageFilePath: "",
                     connectionDetails: {
                         options: {

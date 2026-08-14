@@ -1568,6 +1568,72 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(state.databases).to.deep.equal(["b-database"]);
     });
 
+    test("connection events - auto-selection invalidates an older saved-profile database load", async () => {
+        const executeCommandStub = sandbox
+            .stub(vscode.commands, "executeCommand")
+            .resolves(undefined);
+        const savedConnection = {
+            id: "saved-connection-id",
+            profileName: "Saved connection",
+            server: "saved-server",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const savedConnectionInfo = new ConnectionInfo();
+        savedConnectionInfo.credentials = savedConnection;
+        let resolveSavedDatabases!: (databases: string[]) => void;
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        connectionManagerStub.connect.callsFake(async () => {
+            activeConnections["saved-connection-uri"] = savedConnectionInfo;
+            return true;
+        });
+        connectionManagerStub.isConnected.callsFake(
+            (connectionUri) => connectionUri === "conn_uri" || connectionUri in activeConnections,
+        );
+        connectionManagerStub.listDatabases.withArgs("saved-connection-uri").returns(
+            new Promise<string[]>((resolve) => {
+                resolveSavedDatabases = resolve;
+            }),
+        );
+        connectionManagerStub.listDatabases
+            .withArgs("new-connection-uri")
+            .resolves(["new-database"]);
+        controller.state = structuredClone(mockInitialState);
+        await controller["_reducerHandlers"].get("listActiveServers")(controller.state, {});
+
+        const savedDatabaseLoad = controller["_reducerHandlers"].get(
+            "listDatabasesForActiveServer",
+        )(controller.state, { connectionUri: savedConnection.id });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        await controller["_reducerHandlers"].get("openAddNewConnectionDialog")(controller.state, {
+            endpointType: "source",
+        });
+        const connectionRequestId = executeCommandStub.firstCall.args[1].connectionDialogRequestId;
+        const newConnection = new ConnectionInfo();
+        newConnection.credentials = {
+            id: "",
+            profileName: "New connection",
+            server: "new-server",
+        } as IConnectionProfile;
+        activeConnections["new-connection-uri"] = newConnection;
+
+        successfulConnectionEmitter.fire({
+            connection: newConnection,
+            fileUri: "new-connection-uri",
+            connectionRequestId,
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(controller.state.databases).to.deep.equal(["new-database"]);
+        expect(controller.state.sourceEndpointInfo.databaseName).to.equal("new-database");
+
+        resolveSavedDatabases(["saved-database"]);
+        await savedDatabaseLoad;
+
+        expect(controller.state.databases).to.deep.equal(["new-database"]);
+        expect(controller.state.sourceEndpointInfo.databaseName).to.equal("new-database");
+    });
+
     test("listDatabasesForActiveServer reducer - connects an inactive saved connection", async () => {
         const savedConnection = {
             id: "saved-connection-id",
@@ -1611,7 +1677,63 @@ suite("SchemaCompareWebViewController Tests", () => {
         );
 
         expect(confirmedResult.sourceEndpointInfo.ownerUri).to.equal("saved-connection-uri");
+        expect(confirmedResult.sourceEndpointInfo.connectionId).to.equal("saved-connection-id");
         expect(confirmedResult.sourceEndpointInfo.databaseName).to.equal("db1");
+    });
+
+    test("listDatabasesForActiveServer reducer - reconnects saved endpoint after URI refresh", async () => {
+        const savedConnection = {
+            id: "saved-connection-id",
+            profileName: "Saved connection",
+            server: "saved-server",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        const savedConnectionInfo = new ConnectionInfo();
+        savedConnectionInfo.credentials = savedConnection;
+        let nextConnectionUri = "first-connection-uri";
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        connectionManagerStub.connect.callsFake(async () => {
+            activeConnections[nextConnectionUri] = savedConnectionInfo;
+            return true;
+        });
+        connectionManagerStub.isConnected.callsFake(
+            (connectionUri) => connectionUri in activeConnections,
+        );
+        const state = structuredClone(mockInitialState);
+        controller.state = state;
+        await controller["_reducerHandlers"].get("listActiveServers")(state, {});
+
+        await controller["_reducerHandlers"].get("listDatabasesForActiveServer")(state, {
+            connectionUri: savedConnection.id,
+        });
+        const confirmedResult = await controller["_reducerHandlers"].get("confirmSelectedDatabase")(
+            state,
+            {
+                endpointType: "source",
+                serverConnectionUri: savedConnection.id,
+                databaseName: "db1",
+            },
+        );
+
+        expect(confirmedResult.sourceEndpointInfo.ownerUri).to.equal("first-connection-uri");
+        expect(confirmedResult.sourceEndpointInfo.connectionId).to.equal(savedConnection.id);
+
+        delete activeConnections["first-connection-uri"];
+        connectionChangedEmitter.fire();
+        await new Promise<void>((resolve) => setImmediate(resolve));
+        nextConnectionUri = "second-connection-uri";
+
+        const reopenedResult = await controller["_reducerHandlers"].get(
+            "listDatabasesForActiveServer",
+        )(state, {
+            connectionUri: confirmedResult.sourceEndpointInfo.connectionId,
+        });
+
+        expect(connectionManagerStub.connect).to.have.been.calledWith("", savedConnection);
+        expect(connectionManagerStub.listDatabases).to.have.been.calledWith(
+            "second-connection-uri",
+        );
+        expect(reopenedResult.databases).to.deep.equal(["db1", "db2"]);
     });
 
     test("listDatabasesForActiveServer reducer - retry uses new connected URI instead of stale failed URI", async () => {
