@@ -1,12 +1,11 @@
-# Changelog
+# Change Log
 
-All notable changes to the SQL Database Projects extension will be documented in this file.
+## Version 1.7.0
 
-_The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html)._
+- Release date: August 19, 2026
+- Release status: GA
 
-## [Unreleased]
-
-## [1.7.0] - 2026-08-19
+### What's new in 1.7.0
 
 - Added support for using **Move to Schema** on sequences and DML triggers
 - Added a **Restore Packages** command to the SQL project context menu for restoring the project's NuGet packages.
@@ -15,7 +14,12 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Added support for custom code analysis rules. Rules contributed by referenced NuGet analyzer packages now appear in the **Code Analysis Settings** dialog alongside the built-in rules.
 - Fixed an issue where the **Rename Symbol** feature was incorrectly enabled on SQL alias identifiers (column aliases, table aliases, subquery aliases, and CTE names), which could generate an invalid `.refactorlog` entry.
 
-## [1.6.2] - 2026-07-15
+## Version 1.6.2
+
+- Release date: July 15, 2026
+- Release status: GA
+
+### What's new in 1.6.2
 
 - Added **Rename Symbol** refactoring support for SQL project files.
 - Added **Move to Schema** refactoring support for SQL project files.
@@ -23,11 +27,21 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Removed the preview feature **"Generate SQL Projects from OpenAPI/Swagger spec"**.
 - Fixed an issue where database projects created objects with wrong path delimiter on Linux/macOS.
 
-## [1.6.1] - 2026-06-03
+## Version 1.6.1
+
+- Release date: June 3, 2026
+- Release status: GA
+
+### What's new in 1.6.1
 
 - Fixed an issue where SQL Database projects would fail when being built into a dacpac
 
-## [1.6.0] - 2026-06-02
+## Version 1.6.0
+
+- Release date: June 2, 2026
+- Release status: GA
+
+### What's new in 1.6.0
 
 - Improved Publish Project dialog performance for faster initial loading, and improved port number validation in Publish Project dialog to correctly show available port.
 - Improved SQL project loading performance.
@@ -38,20 +52,35 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
     - Diagnostics (red squiggles) for SQL errors and warnings
     - Cross-file duplicate naming detection
 
-## [1.5.9] - 2026-04-22
+## Version 1.5.9
+
+- Release date: April 22, 2026
+- Release status: GA
+
+### What's new in 1.5.9
 
 - Added automatic folder creation (e.g. `dbo/Tables/`) when adding SQL objects to a project. Can be disabled via the `sqlDatabaseProjects.autoCreateFolders` setting.
 - Added quick access to the [SQL Database Projects documentation](https://aka.ms/sqlprojects) from the project context menu and panel toolbar.
 - Fixed an issue where SQL object templates (table, view, stored procedure) did not reflect the schema specified in the object name.
 - Fixed an issue where SQL projects with a missing `ProjectGuid` were silently modified on load with an invalid all-zeros GUID, causing unexpected git dirty state. The extension now prompts the user and generates a valid unique GUID only upon acceptance.
 
-## [1.5.8] - 2026-03-18
+## Version 1.5.8
+
+- Release date: March 18, 2026
+- Release status: GA
+
+### What's new in 1.5.8
 
 - Adds support for Microsoft.Build.Sql 2.1.0
 - Code Analysis settings dialog is now generally available (GA).
 - Added HTTP(S) proxy support for downloading build DLLs, enabling the extension to work in environments behind a corporate proxy
 
-## [1.5.7] - 2026-02-27
+## Version 1.5.7
+
+- Release date: February 27, 2026
+- Release status: GA
+
+### What's new in 1.5.7
 
 - Publish dialog is now generally available (GA).
 - Added five new SQL object templates: Schema, Table-Valued Function, Trigger, Database Trigger, and Sequence.
@@ -60,7 +89,12 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Fixed an issue where adding a DbFabric/FabricDw NuGet package reference through the database reference incorrectly displayed the master system database as msdb.
 - Fixed an issue where deleting DbFabric/FabricDw master NuGet package references from the SQL project database references failed.
 
-## [1.5.6] - 2026-01-28
+## Version 1.5.6
+
+- Release date: January 28, 2026
+- Release status: GA
+
+### What's new in 1.5.6
 
 - Added a new 'Target platform' selector when creating an Azure SQL database project.
 - Added an icon and 'Publish Project' header to the Publish (preview) dialog.
@@ -70,31 +104,61 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Fixed a problem where selecting 'View changes in schema compare' from 'Update project from database' did not automatically launch Schema Compare.
 - Resolved a build failure that occurred when the Windows terminal default profile was set to Git Bash.
 
-## [1.5.5] - 2025-11-18
+## Version 1.5.5
+
+- Release date: November 18, 2025
+- Release status: GA
+
+### What's new in 1.5.5
 
 - Adds support for targeting SQL Server 2025 in SQL projects.
 - Adds support for Microsoft.Build.Sql 2.0.0
 - Adds preview support for publishing SQL projects in VS Code with an enhanced publish dialog.
 - Fixed excessive build output by removing the verbosity parameter from the dotnet build command, preventing output from exceeding terminal scroll limits.
 
-## [1.5.4] - 2025-09-11
+## Version 1.5.4
+
+- Release date: September 11, 2025
+- Release status: GA
+
+### What's new in 1.5.4
 
 - Adds support for updating a SQL project from an existing database with 'Update project from database' option.
 
-## [1.5.3] - 2025-06-18
+## Version 1.5.3
+
+- Release date: June 18, 2025
+- Release status: GA
+
+### What's new in 1.5.3
 
 - Adds support for SQL project build as a VS Code task.
 
-## [1.5.2] - 2025-05-19
+## Version 1.5.2
+
+- Release date: May 19, 2025
+- Release status: GA
+
+### What's new in 1.5.2
 
 - Fixed an issue where the menu item for creating a project from an OpenAPI definition was appearing in multiple places.
 
-## [1.5.1] - 2025-04-30
+## Version 1.5.1
+
+- Release date: April 30, 2025
+- Release status: GA
+
+### What's new in 1.5.1
 
 - Fixed an issue where the license for the extension was not being displayed correctly in the marketplace.
 - Fixed an issue where projects created from SQL database in Fabric had the target platform incorrectly configured.
 
-## [1.5.0] - 2025-03-31
+## Version 1.5.0
+
+- Release date: March 31, 2025
+- Release status: GA
+
+### What's new in 1.5.0
 
 - Bumped the minimum required version of the .NET SDK to 8.0.0.
 - Bumped the axios and @babel/runtime dependencies.
@@ -104,11 +168,21 @@ _The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Updated the label on the `SqlDbFabric` target platform to match the product name "SQL database in Fabric".
 - Updated the default Microsoft.Build.Sql version to 1.0.0 for new projects and building original-style projects.
 
-## [1.4.6] - 2025-02-21
+## Version 1.4.6
+
+- Release date: February 21, 2025
+- Release status: GA
+
+### What's new in 1.4.6
 
 - Fixed an issue where the SQL Database Projects extension was not correctly uninstalling in VS Code. [#26215](https://github.com/microsoft/vscode-mssql/issues/18822)
 
-## [1.4.5] - 2024-12-18
+## Version 1.4.5
+
+- Release date: December 18, 2024
+- Release status: GA
+
+### What's new in 1.4.5
 
 - Fixed an issue where the extension in VS Code was not correctly setting the target platform for SQL projects created from existing databases and defaulted to SQL Server 2022 for all projects.
 - Updated the default Microsoft.Build.Sql version to 0.2.5-preview for new projects and building original-style projects.
