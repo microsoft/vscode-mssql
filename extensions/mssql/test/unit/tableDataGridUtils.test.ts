@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import {
+    clearTableExplorerFilters,
     clearRevertedCellChanges,
     enqueueTableExplorerCreateRow,
     hasPendingChangesForRow,
@@ -420,6 +421,19 @@ suite("tableDataGridUtils", () => {
             expect(caughtError).to.equal(expectedError);
             expect(stateUpdates).to.deep.equal([]);
         });
+
+        test("does not update state when session replacement reports failure", async () => {
+            const stateUpdates: string[][] = [];
+
+            const succeeded = await runSessionReplacementAndUpdate(
+                ["next"],
+                (filters) => stateUpdates.push(filters),
+                async () => false,
+            );
+
+            expect(succeeded).to.equal(false);
+            expect(stateUpdates).to.deep.equal([]);
+        });
     });
 
     suite("row count reload", () => {
@@ -432,6 +446,7 @@ suite("tableDataGridUtils", () => {
                 if (attempts === 1) {
                     throw expectedError;
                 }
+                return true;
             };
 
             await submitTableExplorerRowCountReload(200, lastSubmittedRowCount, loadSubset).catch(
@@ -443,6 +458,57 @@ suite("tableDataGridUtils", () => {
 
             expect(attempts).to.equal(2);
             expect(lastSubmittedRowCount.current).to.equal(200);
+        });
+
+        test("resets the submitted count when replacement reports failure", async () => {
+            const lastSubmittedRowCount = { current: 100 };
+            let attempts = 0;
+            const loadSubset = async () => ++attempts > 1;
+
+            expect(
+                await submitTableExplorerRowCountReload(200, lastSubmittedRowCount, loadSubset),
+            ).to.equal(false);
+            expect(lastSubmittedRowCount.current).to.equal(100);
+
+            expect(
+                await submitTableExplorerRowCountReload(200, lastSubmittedRowCount, loadSubset),
+            ).to.equal(true);
+            expect(attempts).to.equal(2);
+            expect(lastSubmittedRowCount.current).to.equal(200);
+        });
+    });
+
+    suite("filter clearing", () => {
+        test("clears draft filters without replacing the session", async () => {
+            let localFiltersCleared = false;
+            let replacementAttempts = 0;
+
+            await clearTableExplorerFilters(
+                false,
+                () => {
+                    localFiltersCleared = true;
+                },
+                async () => {
+                    replacementAttempts++;
+                },
+            );
+
+            expect(localFiltersCleared).to.equal(true);
+            expect(replacementAttempts).to.equal(0);
+        });
+
+        test("leaves local filters until an active-filter replacement succeeds", async () => {
+            let localFiltersCleared = false;
+
+            await clearTableExplorerFilters(
+                true,
+                () => {
+                    localFiltersCleared = true;
+                },
+                async () => undefined,
+            );
+
+            expect(localFiltersCleared).to.equal(false);
         });
     });
 });

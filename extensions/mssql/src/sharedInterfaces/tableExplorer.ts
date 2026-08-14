@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { RequestType } from "vscode-jsonrpc";
 import { ApiStatus, CoreRPCs } from "./webview";
 
 export enum SqlPaneMode {
@@ -222,7 +223,7 @@ export interface TableExplorerContextProps extends CoreRPCs {
         queryString: string,
         rowCount?: number,
         filterOperators?: string[],
-    ) => Promise<void>;
+    ) => Promise<boolean>;
     modifyTable: () => void;
     viewTableDiagram: () => void;
     showSql: (sqlScript: string) => void;
@@ -244,10 +245,15 @@ export interface TableExplorerReducers {
     saveResults: { format: SupportedSaveFormats; data: ExportData };
     showTableQuery: {};
     runTableQuery: { queryString: string; rowCount?: number; filterOperators?: string[] };
-    waitForEditSessionReady: {};
     modifyTable: {};
     viewTableDiagram: {};
     showSql: { sqlScript: string };
+}
+
+export namespace WaitForEditSessionReadyRequest {
+    export const type = new RequestType<void, boolean, void>(
+        "tableExplorer/waitForEditSessionReady",
+    );
 }
 
 export interface ExportData {

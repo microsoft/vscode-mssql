@@ -12,6 +12,7 @@ import {
     EditSessionReadyParams,
     DbCellValue,
     SqlPaneMode,
+    WaitForEditSessionReadyRequest,
 } from "../sharedInterfaces/tableExplorer";
 import { TreeNodeInfo } from "../objectExplorer/nodes/treeNodeInfo";
 import ConnectionManager from "../controllers/connectionManager";
@@ -32,8 +33,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     TableExplorerReducers
 > {
     private operationId: string;
-    private _preserveTableQuery = false;
-    private _sessionLoadCompletion: Deferred<void> | undefined;
+    private _sessionLoadCompletion: Deferred<boolean> | undefined;
+    private _sessionLoadCanSucceed = true;
+    private _pendingTableQuery: string | undefined;
+    private _pendingRowCount: number | undefined;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -126,7 +129,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             );
             this.state.loadStatus = ApiStatus.Error;
             this.state.resultSet = undefined;
-            this._preserveTableQuery = false;
+            this.clearPendingSessionState();
             this.updateState();
 
             sendErrorEvent(
@@ -142,7 +145,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             );
 
             void vscode.window.showErrorMessage(toastMessage);
-            this.completeSessionLoad();
+            this.completeSessionLoad(false);
         }
     }
 
@@ -244,22 +247,26 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     private async loadResultSet(): Promise<void> {
+        let succeeded = false;
         try {
+            const rowCount = this._pendingRowCount ?? this.state.currentRowCount;
             const subsetResult = await this._tableExplorerService.subset(
                 this.state.ownerUri,
                 0,
-                this.state.currentRowCount,
+                rowCount,
             );
             this.state.resultSet = subsetResult;
             this.state.loadStatus = ApiStatus.Loaded;
 
-            if (this._preserveTableQuery) {
-                this._preserveTableQuery = false;
-            } else {
+            if (this._pendingTableQuery !== undefined) {
+                this.state.tableQuery = this._pendingTableQuery;
+            } else if (!this._sessionLoadCompletion || this._sessionLoadCanSucceed) {
                 this.state.tableQuery = this.buildDefaultSelectQuery();
             }
+            this.state.currentRowCount = rowCount;
 
             this.updateState();
+            succeeded = true;
         } catch (error) {
             // subset() is invoked fire-and-forget from onEditSessionReady, so an
             // unhandled rejection here would leave the grid stuck in the Loading
@@ -270,21 +277,39 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             );
             this.state.loadStatus = ApiStatus.Error;
             this.state.resultSet = undefined;
-            this._preserveTableQuery = false;
             this.updateState();
 
             void vscode.window.showErrorMessage(
                 LocConstants.TableExplorer.failedToLoadData(getErrorMessage(error)),
             );
         } finally {
-            this.completeSessionLoad();
+            this.clearPendingSessionState();
+            this.completeSessionLoad(succeeded);
         }
     }
 
-    private completeSessionLoad(): void {
+    private clearPendingSessionState(): void {
+        this._pendingTableQuery = undefined;
+        this._pendingRowCount = undefined;
+    }
+
+    private completeSessionLoad(succeeded: boolean): void {
         if (this._sessionLoadCompletion && !this._sessionLoadCompletion.isCompleted) {
-            this._sessionLoadCompletion.resolve();
+            this._sessionLoadCompletion.resolve(succeeded && this._sessionLoadCanSucceed);
         }
+    }
+
+    private async waitForEditSessionReady(): Promise<boolean> {
+        const completion = this._sessionLoadCompletion;
+        if (!completion) {
+            return false;
+        }
+
+        const succeeded = await completion.promise;
+        if (this._sessionLoadCompletion === completion) {
+            this._sessionLoadCompletion = undefined;
+        }
+        return succeeded;
     }
 
     /**
@@ -427,6 +452,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     }
 
     private registerRpcHandlers(): void {
+        this.onRequest(WaitForEditSessionReadyRequest.type, () => this.waitForEditSessionReady());
+
         this.registerReducer("commitChanges", async (state) => {
             this.logger.info(
                 `Committing changes for: ${state.tableName} - OperationId: ${this.operationId}`,
@@ -570,6 +597,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToLoadData(getErrorMessage(error)),
                 );
+                throw error;
             }
 
             return state;
@@ -1457,6 +1485,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         this.registerReducer("runTableQuery", async (state, payload) => {
             this.logger.info(`Running custom table query - OperationId: ${this.operationId}`);
 
+            this._sessionLoadCompletion = new Deferred<boolean>();
+            this._sessionLoadCanSucceed = true;
+            this.clearPendingSessionState();
+
             const startTime = Date.now();
             // Only operator type names (e.g. "equals", "lessThan") flow through this
             // payload — column names and user-entered values stay in the webview.
@@ -1485,6 +1517,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     cancelled: "true",
                     ...filterTelemetry,
                 });
+                this.completeSessionLoad(false);
                 return state;
             }
 
@@ -1503,6 +1536,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         ...filterTelemetry,
                     },
                 );
+                this.completeSessionLoad(false);
                 return state;
             }
 
@@ -1514,10 +1548,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     cancelled: "true",
                     ...filterTelemetry,
                 });
+                this.completeSessionLoad(false);
                 return state;
             }
 
-            this._sessionLoadCompletion = new Deferred<void>();
+            this._pendingTableQuery = payload.queryString;
+            this._pendingRowCount = payload.rowCount;
             await this.tearDownEditSession(state);
 
             const objectName = state.tableName;
@@ -1536,18 +1572,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     payload.queryString,
                 );
 
-                // Persist the custom query so loadResultSet won't overwrite it with the default
-                state.tableQuery = payload.queryString;
-                this._preserveTableQuery = true;
-
-                // Callers that change the row count (e.g. the toolbar selector)
-                // pass the new count alongside the query so the toolbar stays in
-                // sync. Filter apply/clear paths leave it undefined since they
-                // don't change the count.
-                if (payload.rowCount !== undefined) {
-                    state.currentRowCount = payload.rowCount;
-                }
-
                 this.logger.debug(
                     `Custom query session re-initialized successfully - OperationId: ${this.operationId}`,
                 );
@@ -1562,6 +1586,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     `Error running custom table query: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                 );
 
+                this._sessionLoadCanSucceed = false;
+                this.clearPendingSessionState();
                 const restored = await this.tryRestoreOriginalSession(
                     state,
                     objectName,
@@ -1569,7 +1595,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     objectType,
                 );
                 if (!restored) {
-                    this.completeSessionLoad();
+                    this.completeSessionLoad(false);
                 }
                 this.updateState();
 
@@ -1590,17 +1616,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 );
             }
 
-            return state;
-        });
-
-        this.registerReducer("waitForEditSessionReady", async (state) => {
-            const completion = this._sessionLoadCompletion;
-            if (completion) {
-                await completion.promise;
-                if (this._sessionLoadCompletion === completion) {
-                    this._sessionLoadCompletion = undefined;
-                }
-            }
             return state;
         });
 

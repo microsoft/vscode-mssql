@@ -260,10 +260,10 @@ export const TableExplorerPage: React.FC = () => {
             return;
         }
         const base = baseQueryRef.current;
-        const runQuery = () =>
+        const runQuery = async () =>
             base
                 ? context.runTableQuery(composeSortedQuery(base, sortColumns), undefined, [])
-                : Promise.resolve();
+                : true;
         try {
             await runSessionReplacementAndUpdate(
                 [],
@@ -323,15 +323,15 @@ export const TableExplorerPage: React.FC = () => {
         async (rowCount: number) => {
             const columnNames = resultSet?.columnInfo?.map((c) => c.name) ?? [];
             if (!tableName || columnNames.length === 0) {
-                const loadSubset = () => context.loadSubset(rowCount);
-                await (gridRef.current?.runBeforeSessionReplacement(loadSubset) ?? loadSubset());
-                return;
+                const loadSubset = async () => {
+                    await context.loadSubset(rowCount);
+                    return true;
+                };
+                return gridRef.current?.runBeforeSessionReplacement(loadSubset) ?? loadSubset();
             }
             const newQuery = buildDefaultSelectQuery(schemaName, tableName, columnNames, rowCount);
-            let queryToRun = composeSortedQuery(newQuery, sortColumns);
-
-            // Update baseQueryRef with the new unfiltered query before applying filters
-            baseQueryRef.current = queryToRun;
+            const newBaseQuery = composeSortedQuery(newQuery, sortColumns);
+            let queryToRun = newBaseQuery;
 
             // Reapply active filters to the new query
             if (activeFilters.length > 0) {
@@ -344,7 +344,13 @@ export const TableExplorerPage: React.FC = () => {
                     rowCount,
                     activeFilters.map((f) => f.operator),
                 );
-            await (gridRef.current?.runBeforeSessionReplacement(runQuery) ?? runQuery());
+            const succeeded =
+                (await gridRef.current?.runBeforeSessionReplacement(runQuery)) ??
+                (await runQuery());
+            if (succeeded) {
+                baseQueryRef.current = newBaseQuery;
+            }
+            return succeeded;
         },
         [resultSet, schemaName, tableName, context, sortColumns, activeFilters],
     );

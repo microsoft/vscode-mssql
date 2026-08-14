@@ -21,6 +21,7 @@ import {
     FilterOperator,
     operatorTakesValue,
 } from "../../../tableExplorer/tableQueryComposer";
+import { clearTableExplorerFilters } from "./tableDataGridUtils";
 
 export type { AppliedFilter, FilterConjunction, FilterOperator };
 
@@ -263,7 +264,9 @@ export const TableExplorerFilterBar: React.FC<TableExplorerFilterBarProps> = ({
     };
 
     const handleClear = () => {
-        void onClear().catch(() => undefined);
+        void clearTableExplorerFilters(initialFilters.length > 0, () => setRows([]), onClear).catch(
+            () => undefined,
+        );
     };
 
     // Check if current filters differ from the initialFilters (last applied)

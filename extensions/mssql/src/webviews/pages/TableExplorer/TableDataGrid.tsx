@@ -115,7 +115,7 @@ export interface TableDataGridRef {
     deleteRows: (rowIds: number[]) => void;
     getSqlForCurrentView: () => string;
     runAfterPendingMutations: (operation: () => Promise<void>) => Promise<boolean>;
-    runBeforeSessionReplacement: (operation: () => Promise<void>) => Promise<void>;
+    runBeforeSessionReplacement: <T>(operation: () => Promise<T>) => Promise<T>;
 }
 
 export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
@@ -390,9 +390,9 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         reactGridRef.current?.slickGrid?.invalidate();
                     }
                 }),
-            runBeforeSessionReplacement: (operation: () => Promise<void>) =>
-                lifecycleMutexRef.current.runExclusive(async () => {
-                    await runBeforeTableExplorerSessionReplacement(
+            runBeforeSessionReplacement: <T,>(operation: () => Promise<T>) =>
+                lifecycleMutexRef.current.runExclusive(() =>
+                    runBeforeTableExplorerSessionReplacement(
                         rowMutationQueueRef.current,
                         (blocked) => {
                             mutationsBlockedRef.current = blocked;
@@ -400,10 +400,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                         },
                         async () => {
                             revertingRowsRef.current.clear();
-                            await operation();
+                            return operation();
                         },
-                    );
-                }),
+                    ),
+                ),
         }));
 
         // Convert a single row to grid format

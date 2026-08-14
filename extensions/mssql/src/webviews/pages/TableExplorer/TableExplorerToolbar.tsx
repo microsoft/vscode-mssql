@@ -57,7 +57,7 @@ interface TableExplorerToolbarProps {
     cellChangeCount: number;
     deletionCount: number;
     currentRowCount?: number;
-    onLoadSubset?: (rowCount: number) => Promise<void>;
+    onLoadSubset?: (rowCount: number) => Promise<boolean>;
     onExport?: (format: "csv" | "excel" | "json") => void;
     getDataColumns?: () => DataColumnVisibility[];
     onSetColumnVisibility?: (id: string, visible: boolean) => void;

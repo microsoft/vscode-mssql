@@ -9,6 +9,7 @@ import {
     TableExplorerReducers,
     TableExplorerContextProps,
     ExportData,
+    WaitForEditSessionReadyRequest,
 } from "../../../sharedInterfaces/tableExplorer";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { getCoreRPCs } from "../../common/utils";
@@ -89,13 +90,13 @@ export const TableExplorerStateProvider: React.FC<{
                 queryString: string,
                 rowCount?: number,
                 filterOperators?: string[],
-            ): Promise<void> {
+            ): Promise<boolean> {
                 await extensionRpc.actionAndWait("runTableQuery", {
                     queryString,
                     rowCount,
                     filterOperators,
                 });
-                await extensionRpc.actionAndWait("waitForEditSessionReady", {});
+                return extensionRpc.sendRequest(WaitForEditSessionReadyRequest.type);
             },
 
             modifyTable: function (): void {

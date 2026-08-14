@@ -313,13 +313,19 @@ suite("TableExplorerWebViewController - Reducers", () => {
             mockTableExplorerService.subset.rejects(error);
 
             // Act
-            await controller["_reducerHandlers"].get("loadSubset")(controller.state, {
-                rowCount: 100,
-            });
+            let caughtError: unknown;
+            try {
+                await controller["_reducerHandlers"].get("loadSubset")(controller.state, {
+                    rowCount: 100,
+                });
+            } catch (loadError) {
+                caughtError = loadError;
+            }
 
             // Assert
-            expect(showErrorMessageStub.calledOnce).to.be.true;
-            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to load data");
+            expect(caughtError).to.equal(error);
+            expect(showErrorMessageStub.calledWithMatch(sinon.match("Failed to load data"))).to.be
+                .true;
             expect(controller.state.loadStatus).to.equal(ApiStatus.Error);
         });
     });
@@ -1249,10 +1255,12 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
                 queryString: "",
             });
+            const succeeded = await controller["waitForEditSessionReady"]();
 
             // Assert
             expect(mockTableExplorerService.dispose.called).to.be.false;
             expect(mockTableExplorerService.initialize.called).to.be.false;
+            expect(succeeded).to.equal(false);
         });
 
         test("should return early without disposing when queryString is whitespace", async () => {
@@ -1280,10 +1288,12 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
                 queryString: "SELECT * FROM dbo.TestTable",
             });
+            const succeeded = await controller["waitForEditSessionReady"]();
 
             // Assert
             expect(mockTableExplorerService.dispose.called).to.be.false;
             expect(mockTableExplorerService.initialize.called).to.be.false;
+            expect(succeeded).to.equal(false);
         });
 
         test("should dispose current session and re-initialize with custom query", async () => {
@@ -1333,9 +1343,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             });
 
             let waitCompleted = false;
-            const waitForReady = Promise.resolve(
-                controller["_reducerHandlers"].get("waitForEditSessionReady")(controller.state, {}),
-            ).then(() => {
+            const waitForReady = controller["waitForEditSessionReady"]().then(() => {
                 waitCompleted = true;
             });
             await Promise.resolve();
@@ -1417,6 +1425,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
                 queryString: "SELECT * FROM dbo.TestTable",
             });
+            const succeeded = await controller["waitForEditSessionReady"]();
 
             // Assert
             expect(
@@ -1428,6 +1437,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(mockTableExplorerService.initialize.called).to.be.false;
             // State should be unchanged
             expect(controller.state.newRows).to.have.lengthOf(1);
+            expect(succeeded).to.equal(false);
         });
 
         test("should proceed when user confirms pending changes warning", async () => {
@@ -1563,9 +1573,60 @@ suite("TableExplorerWebViewController - Reducers", () => {
             await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
                 queryString: customQuery,
             });
+            controller["onEditSessionReady"]({
+                ownerUri: "test-owner-uri",
+                success: true,
+                message: "",
+            });
+            expect(await controller["waitForEditSessionReady"]()).to.equal(true);
 
             // Assert
             expect(controller.state.tableQuery).to.equal(customQuery);
+        });
+
+        test("should report a failed replacement and retain submitted state", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.currentRowCount = 100;
+            controller.state.tableQuery = "SELECT TOP 100 * FROM dbo.TestTable";
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.resolves();
+
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "SELECT TOP 200 * FROM dbo.TestTable",
+                rowCount: 200,
+            });
+            controller["onEditSessionReady"]({
+                ownerUri: "test-owner-uri",
+                success: false,
+                message: "Query failed",
+            });
+
+            expect(await controller["waitForEditSessionReady"]()).to.equal(false);
+            expect(controller.state.currentRowCount).to.equal(100);
+            expect(controller.state.tableQuery).to.equal("SELECT TOP 100 * FROM dbo.TestTable");
+        });
+
+        test("should report failure when the replacement result set cannot be loaded", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.currentRowCount = 100;
+            controller.state.tableQuery = "SELECT TOP 100 * FROM dbo.TestTable";
+            mockTableExplorerService.dispose.resolves();
+            mockTableExplorerService.initialize.resolves();
+            mockTableExplorerService.subset.rejects(new Error("Subset failed"));
+
+            await controller["_reducerHandlers"].get("runTableQuery")(controller.state, {
+                queryString: "SELECT TOP 200 * FROM dbo.TestTable",
+                rowCount: 200,
+            });
+            controller["onEditSessionReady"]({
+                ownerUri: "test-owner-uri",
+                success: true,
+                message: "",
+            });
+
+            expect(await controller["waitForEditSessionReady"]()).to.equal(false);
+            expect(controller.state.currentRowCount).to.equal(100);
+            expect(controller.state.tableQuery).to.equal("SELECT TOP 100 * FROM dbo.TestTable");
         });
 
         test("should preserve custom query through loadResultSet after re-initialization", async () => {

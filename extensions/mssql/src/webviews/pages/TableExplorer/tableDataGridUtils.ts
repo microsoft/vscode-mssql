@@ -167,30 +167,49 @@ export class TableExplorerRowMutationQueue {
 export async function runSessionReplacementAndUpdate<T>(
     nextValue: T,
     setValue: (value: T) => void,
-    replaceSession: () => Promise<void>,
-): Promise<void> {
-    await replaceSession();
-    setValue(nextValue);
+    replaceSession: () => Promise<boolean>,
+): Promise<boolean> {
+    const succeeded = await replaceSession();
+    if (succeeded) {
+        setValue(nextValue);
+    }
+    return succeeded;
 }
 
 export async function submitTableExplorerRowCountReload(
     rowCount: number,
     lastSubmittedRowCount: { current: number },
-    loadSubset: (rowCount: number) => Promise<void>,
-): Promise<void> {
+    loadSubset: (rowCount: number) => Promise<boolean>,
+): Promise<boolean> {
     if (lastSubmittedRowCount.current === rowCount) {
-        return;
+        return false;
     }
 
     const previousRowCount = lastSubmittedRowCount.current;
     lastSubmittedRowCount.current = rowCount;
     try {
-        await loadSubset(rowCount);
+        const succeeded = await loadSubset(rowCount);
+        if (!succeeded && lastSubmittedRowCount.current === rowCount) {
+            lastSubmittedRowCount.current = previousRowCount;
+        }
+        return succeeded;
     } catch (error) {
         if (lastSubmittedRowCount.current === rowCount) {
             lastSubmittedRowCount.current = previousRowCount;
         }
         throw error;
+    }
+}
+
+export async function clearTableExplorerFilters(
+    hasActiveFilters: boolean,
+    clearLocalFilters: () => void,
+    clearActiveFilters: () => Promise<void>,
+): Promise<void> {
+    if (hasActiveFilters) {
+        await clearActiveFilters();
+    } else {
+        clearLocalFilters();
     }
 }
 
@@ -219,16 +238,16 @@ export function enqueueTableExplorerCreateRow(
         : mutationQueue.enqueue(CREATE_ROW_MUTATION_QUEUE_ID, createRow);
 }
 
-export async function runBeforeTableExplorerSessionReplacement(
+export async function runBeforeTableExplorerSessionReplacement<T>(
     mutationQueue: TableExplorerRowMutationQueue,
     setMutationsBlocked: (blocked: boolean) => void,
-    operation: () => Promise<void>,
-): Promise<void> {
+    operation: () => Promise<T>,
+): Promise<T> {
     setMutationsBlocked(true);
     try {
         await mutationQueue.drain();
         mutationQueue.invalidate();
-        await operation();
+        return await operation();
     } finally {
         setMutationsBlocked(false);
     }
