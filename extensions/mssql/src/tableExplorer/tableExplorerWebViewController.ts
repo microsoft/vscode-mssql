@@ -36,7 +36,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private operationId: string;
     private _preserveTableQuery = false;
     private _latestCellUpdateRequestIds = new Map<string, number>();
-    private _cellUpdateQueues = new Map<string, Promise<void>>();
+    private _cellOperationQueues = new Map<string, Promise<void>>();
+    private _pendingCellOperations = new Set<Promise<void>>();
+    private _lifecycleOperationQueue = Promise.resolve();
+    private _lifecycleOperationCount = 0;
+    private _cellOperationsEnabled = true;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -110,6 +114,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
     private onEditSessionReady(result: EditSessionReadyParams): void {
         if (result.success) {
+            this._cellOperationsEnabled = true;
             this.state.ownerUri = result.ownerUri;
             this.state.loadStatus = ApiStatus.Loading;
             this.updateState();
@@ -407,21 +412,53 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         };
     }
 
-    private async enqueueCellUpdate<T>(cellKey: string, update: () => Promise<T>): Promise<T> {
-        const previousUpdate = this._cellUpdateQueues.get(cellKey) ?? Promise.resolve();
-        let completeUpdate!: () => void;
-        const currentUpdate = new Promise<void>((resolve) => {
-            completeUpdate = resolve;
+    private async enqueueCellOperation<T>(
+        cellKey: string,
+        operation: () => Promise<T>,
+    ): Promise<T> {
+        const lifecycleOperations = this._lifecycleOperationQueue;
+        const previousOperation = this._cellOperationQueues.get(cellKey) ?? Promise.resolve();
+        let completeOperation!: () => void;
+        const currentOperation = new Promise<void>((resolve) => {
+            completeOperation = resolve;
         });
-        this._cellUpdateQueues.set(cellKey, currentUpdate);
+        this._cellOperationQueues.set(cellKey, currentOperation);
+        this._pendingCellOperations.add(currentOperation);
 
-        await previousUpdate;
+        await Promise.all([lifecycleOperations, previousOperation]);
         try {
-            return await update();
+            return await operation();
         } finally {
-            completeUpdate();
-            if (this._cellUpdateQueues.get(cellKey) === currentUpdate) {
-                this._cellUpdateQueues.delete(cellKey);
+            completeOperation();
+            this._pendingCellOperations.delete(currentOperation);
+            if (this._cellOperationQueues.get(cellKey) === currentOperation) {
+                this._cellOperationQueues.delete(cellKey);
+            }
+        }
+    }
+
+    private async enqueueLifecycleOperation<T>(operation: () => Promise<T>): Promise<T> {
+        this._lifecycleOperationCount++;
+        const previousLifecycleOperations = this._lifecycleOperationQueue;
+        const pendingCellOperations = [...this._pendingCellOperations];
+        let completeLifecycleOperation!: () => void;
+        const currentLifecycleOperation = new Promise<void>((resolve) => {
+            completeLifecycleOperation = resolve;
+        });
+        const lifecycleOperations = previousLifecycleOperations.then(
+            () => currentLifecycleOperation,
+        );
+        this._lifecycleOperationQueue = lifecycleOperations;
+
+        await previousLifecycleOperations;
+        await Promise.all(pendingCellOperations);
+        try {
+            return await operation();
+        } finally {
+            this._lifecycleOperationCount--;
+            completeLifecycleOperation();
+            if (this._lifecycleOperationQueue === lifecycleOperations) {
+                this._lifecycleOperationQueue = Promise.resolve();
             }
         }
     }
@@ -432,18 +469,21 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * disposes the backend session (best-effort), and clears any pending-edit bookkeeping.
      */
     private async tearDownEditSession(state: TableExplorerWebViewState): Promise<void> {
-        state.loadStatus = ApiStatus.Loading;
+        this._cellOperationsEnabled = false;
+        await this.enqueueLifecycleOperation(async () => {
+            state.loadStatus = ApiStatus.Loading;
 
-        state.resultSet = undefined;
-        this.updateState();
+            state.resultSet = undefined;
+            this.updateState();
 
-        try {
-            await this._tableExplorerService.dispose(state.ownerUri);
-        } catch {}
+            try {
+                await this._tableExplorerService.dispose(state.ownerUri);
+            } catch {}
 
-        this.resetPendingChangesState(state);
-        this.showRestorePromptAfterClose = false;
-        this.updateState();
+            this.resetPendingChangesState(state);
+            this.showRestorePromptAfterClose = false;
+            this.updateState();
+        });
     }
 
     /**
@@ -494,51 +534,53 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 },
             );
 
-            try {
-                await this._tableExplorerService.commit(state.ownerUri);
-                vscode.window.showInformationMessage(
-                    LocConstants.TableExplorer.changesSavedSuccessfully,
-                );
+            return await this.enqueueLifecycleOperation(async () => {
+                try {
+                    await this._tableExplorerService.commit(state.ownerUri);
+                    vscode.window.showInformationMessage(
+                        LocConstants.TableExplorer.changesSavedSuccessfully,
+                    );
 
-                // Clear tracking state after successful commit
-                state.newRows = [];
-                state.deletedRows = [];
-                state.failedCells = [];
-                state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
-                state.cellUpdateAcknowledgements = {};
-                this._latestCellUpdateRequestIds.clear();
-                this.showRestorePromptAfterClose = false;
+                    // Clear tracking state after successful commit
+                    state.newRows = [];
+                    state.deletedRows = [];
+                    state.failedCells = [];
+                    state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
+                    state.cellUpdateAcknowledgements = {};
+                    this._latestCellUpdateRequestIds.clear();
+                    this.showRestorePromptAfterClose = false;
 
-                this.logger.debug(
-                    `Cleared new rows, deleted rows, failed cells, and original cell values cache after successful commit - OperationId: ${this.operationId}`,
-                );
+                    this.logger.debug(
+                        `Cleared new rows, deleted rows, failed cells, and original cell values cache after successful commit - OperationId: ${this.operationId}`,
+                    );
 
-                endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                });
-            } catch (error) {
-                this.logger.error(
-                    `Error committing changes: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
-
-                endActivity.endFailed(
-                    new Error("Failed to commit changes"),
-                    true /* includeErrorMessage */,
-                    undefined /* errorCode */,
-                    undefined /* errorType */,
-                    {
+                    endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
-                    },
-                );
+                    });
+                } catch (error) {
+                    this.logger.error(
+                        `Error committing changes: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    );
 
-                vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
-                );
-            }
+                    endActivity.endFailed(
+                        new Error("Failed to commit changes"),
+                        true /* includeErrorMessage */,
+                        undefined /* errorCode */,
+                        undefined /* errorType */,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
+                    );
 
-            return state;
+                    vscode.window.showErrorMessage(
+                        LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
+                    );
+                }
+
+                return state;
+            });
         });
 
         this.registerReducer("loadSubset", async (state, payload) => {
@@ -722,105 +764,107 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             // so they cannot be reverted and should be removed from the UI immediately
             const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
 
-            try {
-                await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
+            return await this.enqueueLifecycleOperation(async () => {
+                try {
+                    await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
 
-                // Remove all failed cells for this row
-                if (state.failedCells) {
-                    state.failedCells = state.failedCells.filter(
-                        (key) => !key.startsWith(`${payload.rowId}-`),
-                    );
-                }
+                    // Remove all failed cells for this row
+                    if (state.failedCells) {
+                        state.failedCells = state.failedCells.filter(
+                            (key) => !key.startsWith(`${payload.rowId}-`),
+                        );
+                    }
 
-                // Clear all cached original values for this row
-                if (state.originalCellValues) {
-                    const keysToDelete: string[] = [];
-                    state.originalCellValues.forEach((_, key) => {
-                        if (key.startsWith(`${payload.rowId}-`)) {
-                            keysToDelete.push(key);
+                    // Clear all cached original values for this row
+                    if (state.originalCellValues) {
+                        const keysToDelete: string[] = [];
+                        state.originalCellValues.forEach((_, key) => {
+                            if (key.startsWith(`${payload.rowId}-`)) {
+                                keysToDelete.push(key);
+                            }
+                        });
+                        keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
+                        this.logger.debug(
+                            `Cleared ${keysToDelete.length} cached values for deleted row ${payload.rowId}`,
+                        );
+                    }
+
+                    if (isNewRow) {
+                        // For newly created rows, the backend completely removes them
+                        // Remove from newRows tracking and from resultSet immediately
+                        state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
+
+                        if (state.resultSet) {
+                            state.resultSet = {
+                                ...state.resultSet,
+                                subset: state.resultSet.subset.filter(
+                                    (row) => row.id !== payload.rowId,
+                                ),
+                                rowCount: state.resultSet.rowCount - 1,
+                            };
                         }
-                    });
-                    keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
-                    this.logger.debug(
-                        `Cleared ${keysToDelete.length} cached values for deleted row ${payload.rowId}`,
-                    );
-                }
 
-                if (isNewRow) {
-                    // For newly created rows, the backend completely removes them
-                    // Remove from newRows tracking and from resultSet immediately
-                    state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
+                        vscode.window.showInformationMessage(
+                            LocConstants.TableExplorer.rowDeletedSuccessfully,
+                        );
 
-                    if (state.resultSet) {
-                        state.resultSet = {
-                            ...state.resultSet,
-                            subset: state.resultSet.subset.filter(
-                                (row) => row.id !== payload.rowId,
-                            ),
-                            rowCount: state.resultSet.rowCount - 1,
-                        };
+                        this.logger.debug(
+                            `Removed newly created row ${payload.rowId} from UI (${state.newRows.length} new rows remaining)`,
+                        );
+
+                        // Check if we still have unsaved changes
+                        if (state.newRows.length === 0 && state.deletedRows.length === 0) {
+                            this.showRestorePromptAfterClose = false;
+                        }
+                    } else {
+                        // For existing rows, mark for deletion (keep visible but styled as deleted)
+                        if (!state.deletedRows.includes(payload.rowId)) {
+                            state.deletedRows = [...state.deletedRows, payload.rowId];
+                        }
+
+                        vscode.window.showInformationMessage(
+                            LocConstants.TableExplorer.rowMarkedForRemoval,
+                        );
+
+                        this.showRestorePromptAfterClose = true;
+
+                        this.logger.debug(
+                            `Marked row ${payload.rowId} for deletion (${state.deletedRows.length} total deleted)`,
+                        );
                     }
 
-                    vscode.window.showInformationMessage(
-                        LocConstants.TableExplorer.rowDeletedSuccessfully,
-                    );
+                    // Update state to trigger re-render
+                    this.updateState();
 
-                    this.logger.debug(
-                        `Removed newly created row ${payload.rowId} from UI (${state.newRows.length} new rows remaining)`,
-                    );
+                    await this.regenerateScriptIfVisible(state);
 
-                    // Check if we still have unsaved changes
-                    if (state.newRows.length === 0 && state.deletedRows.length === 0) {
-                        this.showRestorePromptAfterClose = false;
-                    }
-                } else {
-                    // For existing rows, mark for deletion (keep visible but styled as deleted)
-                    if (!state.deletedRows.includes(payload.rowId)) {
-                        state.deletedRows = [...state.deletedRows, payload.rowId];
-                    }
-
-                    vscode.window.showInformationMessage(
-                        LocConstants.TableExplorer.rowMarkedForRemoval,
-                    );
-
-                    this.showRestorePromptAfterClose = true;
-
-                    this.logger.debug(
-                        `Marked row ${payload.rowId} for deletion (${state.deletedRows.length} total deleted)`,
-                    );
-                }
-
-                // Update state to trigger re-render
-                this.updateState();
-
-                await this.regenerateScriptIfVisible(state);
-
-                endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                });
-            } catch (error) {
-                this.logger.error(
-                    `Error deleting row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
-
-                endActivity.endFailed(
-                    new Error("Failed to delete row"),
-                    true /* includeErrorMessage */,
-                    undefined /* errorCode */,
-                    undefined /* errorType */,
-                    {
+                    endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
-                    },
-                );
+                    });
+                } catch (error) {
+                    this.logger.error(
+                        `Error deleting row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    );
 
-                vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToRemoveRow(getErrorMessage(error)),
-                );
-            }
+                    endActivity.endFailed(
+                        new Error("Failed to delete row"),
+                        true /* includeErrorMessage */,
+                        undefined /* errorCode */,
+                        undefined /* errorType */,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
+                    );
 
-            return state;
+                    vscode.window.showErrorMessage(
+                        LocConstants.TableExplorer.failedToRemoveRow(getErrorMessage(error)),
+                    );
+                }
+
+                return state;
+            });
         });
 
         this.registerReducer("updateCell", async (state, payload) => {
@@ -842,178 +886,211 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             // Cache the original cell value BEFORE attempting the update
             // This ensures we can revert even if the update fails
             const cacheKey = `${payload.rowId}-${payload.columnId}`;
-            this._latestCellUpdateRequestIds.set(cacheKey, payload.requestId);
-            if (state.resultSet && !state.originalCellValues?.has(cacheKey)) {
-                const rowIndex = state.resultSet.subset.findIndex(
-                    (row) => row.id === payload.rowId,
-                );
-                if (rowIndex !== -1) {
-                    const originalCell = state.resultSet.subset[rowIndex].cells[payload.columnId];
-                    if (!state.originalCellValues) {
-                        state.originalCellValues = new Map<string, DbCellValue>();
-                    }
-                    // Deep copy to ensure we have all properties
-                    state.originalCellValues.set(cacheKey, {
-                        displayValue: originalCell.displayValue,
-                        isNull: originalCell.isNull,
-                        invariantCultureDisplayValue: originalCell.invariantCultureDisplayValue,
-                    });
-                    this.logger.trace(`Cached original value for cell ${cacheKey}`);
-                }
+            const registeredBeforeQueue = this._lifecycleOperationCount === 0;
+            if (registeredBeforeQueue) {
+                this._latestCellUpdateRequestIds.set(cacheKey, payload.requestId);
             }
 
-            try {
-                const ownerUri = state.ownerUri;
-                const updateCellResult = await this.enqueueCellUpdate(cacheKey, () =>
-                    this._tableExplorerService.updateCell(
+            const ownerUri = state.ownerUri;
+            return await this.enqueueCellOperation(cacheKey, async () => {
+                if (!this._cellOperationsEnabled) {
+                    if (this._latestCellUpdateRequestIds.get(cacheKey) === payload.requestId) {
+                        this._latestCellUpdateRequestIds.delete(cacheKey);
+                    }
+                    return state;
+                }
+
+                if (!registeredBeforeQueue) {
+                    this._latestCellUpdateRequestIds.set(cacheKey, payload.requestId);
+                }
+                if (state.resultSet && !state.originalCellValues?.has(cacheKey)) {
+                    const rowIndex = state.resultSet.subset.findIndex(
+                        (row) => row.id === payload.rowId,
+                    );
+                    if (rowIndex !== -1) {
+                        const originalCell =
+                            state.resultSet.subset[rowIndex].cells[payload.columnId];
+                        if (!state.originalCellValues) {
+                            state.originalCellValues = new Map<string, DbCellValue>();
+                        }
+                        // Deep copy to ensure we have all properties
+                        state.originalCellValues.set(cacheKey, {
+                            displayValue: originalCell.displayValue,
+                            isNull: originalCell.isNull,
+                            invariantCultureDisplayValue: originalCell.invariantCultureDisplayValue,
+                        });
+                        this.logger.trace(`Cached original value for cell ${cacheKey}`);
+                    }
+                }
+
+                try {
+                    const updateCellResult = await this._tableExplorerService.updateCell(
                         ownerUri,
                         payload.rowId,
                         payload.columnId,
                         payload.newValue,
-                    ),
-                );
-
-                if (this._latestCellUpdateRequestIds.get(cacheKey) !== payload.requestId) {
-                    this.logger.trace(
-                        `Ignoring stale update response for cell ${cacheKey}, request ${payload.requestId}`,
                     );
+
+                    if (!this._cellOperationsEnabled) {
+                        endActivity.end(ActivityStatus.Succeeded, {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        });
+                        return state;
+                    }
+
+                    if (this._latestCellUpdateRequestIds.get(cacheKey) !== payload.requestId) {
+                        this.logger.trace(
+                            `Ignoring stale update response for cell ${cacheKey}, request ${payload.requestId}`,
+                        );
+                        endActivity.end(ActivityStatus.Succeeded, {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        });
+                        return state;
+                    }
+
+                    // Remove from failed cells tracking if it was previously failed
+                    if (state.failedCells) {
+                        const failedKey = `${payload.rowId}-${payload.columnId}`;
+                        state.failedCells = state.failedCells.filter((key) => key !== failedKey);
+                    }
+
+                    if (!updateCellResult.cell.isDirty) {
+                        state.originalCellValues?.delete(cacheKey);
+                    }
+                    state.cellUpdateAcknowledgements = {
+                        ...state.cellUpdateAcknowledgements,
+                        [cacheKey]: {
+                            requestId: payload.requestId,
+                            isDirty: updateCellResult.cell.isDirty,
+                        },
+                    };
+
+                    // Update the cell value in the result set if the row is still loaded
+                    if (state.resultSet) {
+                        const rowIndex = state.resultSet.subset.findIndex(
+                            (row) => row.id === payload.rowId,
+                        );
+
+                        if (rowIndex !== -1) {
+                            const updatedRow = this.updateResultCell(
+                                state,
+                                state.resultSet.subset[rowIndex],
+                                payload.columnId,
+                                updateCellResult.cell,
+                            );
+                            state.resultSet = {
+                                ...state.resultSet,
+                                subset: state.resultSet.subset.map((row, index) =>
+                                    index === rowIndex ? updatedRow : row,
+                                ),
+                            };
+
+                            this.logger.debug(
+                                `Updated cell in result set at row ${rowIndex}, column ${payload.columnId}`,
+                            );
+                        }
+                    }
+                    this.showRestorePromptAfterClose = this.hasPendingChanges(state);
+                    this.updateState();
+
+                    this.logger.debug(
+                        `Cell updated successfully - OperationId: ${this.operationId}`,
+                    );
+
+                    await this.regenerateScriptIfVisible(state);
+
                     endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
                     });
-                    return state;
-                }
+                } catch (error) {
+                    if (!this._cellOperationsEnabled) {
+                        endActivity.endFailed(
+                            new Error("Cell update stopped during session disposal"),
+                            false /* includeErrorMessage */,
+                        );
+                        return state;
+                    }
 
-                // Remove from failed cells tracking if it was previously failed
-                if (state.failedCells) {
+                    if (this._latestCellUpdateRequestIds.get(cacheKey) !== payload.requestId) {
+                        this.logger.trace(
+                            `Ignoring stale update failure for cell ${cacheKey}, request ${payload.requestId}`,
+                        );
+                        endActivity.endFailed(
+                            new Error("Stale cell update failed"),
+                            false /* includeErrorMessage */,
+                        );
+                        return state;
+                    }
+
+                    this.logger.error(
+                        `Error updating cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    );
+
+                    // Track failed cell for UI highlighting
                     const failedKey = `${payload.rowId}-${payload.columnId}`;
-                    state.failedCells = state.failedCells.filter((key) => key !== failedKey);
-                }
-
-                if (!updateCellResult.cell.isDirty) {
-                    state.originalCellValues?.delete(cacheKey);
-                }
-                state.cellUpdateAcknowledgements = {
-                    ...state.cellUpdateAcknowledgements,
-                    [cacheKey]: {
-                        requestId: payload.requestId,
-                        isDirty: updateCellResult.cell.isDirty,
-                    },
-                };
-
-                // Update the cell value in the result set if the row is still loaded
-                if (state.resultSet) {
-                    const rowIndex = state.resultSet.subset.findIndex(
-                        (row) => row.id === payload.rowId,
-                    );
-
-                    if (rowIndex !== -1) {
-                        const updatedRow = this.updateResultCell(
-                            state,
-                            state.resultSet.subset[rowIndex],
-                            payload.columnId,
-                            updateCellResult.cell,
-                        );
-                        state.resultSet = {
-                            ...state.resultSet,
-                            subset: state.resultSet.subset.map((row, index) =>
-                                index === rowIndex ? updatedRow : row,
-                            ),
-                        };
-
-                        this.logger.debug(
-                            `Updated cell in result set at row ${rowIndex}, column ${payload.columnId}`,
-                        );
+                    if (!state.failedCells) {
+                        state.failedCells = [failedKey];
+                    } else if (!state.failedCells.includes(failedKey)) {
+                        state.failedCells = [...state.failedCells, failedKey];
                     }
-                }
-                this.showRestorePromptAfterClose = this.hasPendingChanges(state);
-                this.updateState();
 
-                this.logger.debug(`Cell updated successfully - OperationId: ${this.operationId}`);
+                    // Update the cell in the result set to show the attempted value with isDirty flag
+                    // This ensures the UI shows what the user typed even though the update failed
+                    if (state.resultSet) {
+                        const rowIndex = state.resultSet.subset.findIndex(
+                            (row) => row.id === payload.rowId,
+                        );
 
-                await this.regenerateScriptIfVisible(state);
+                        if (rowIndex !== -1) {
+                            const currentRow = state.resultSet.subset[rowIndex];
+                            const currentCell = currentRow.cells[payload.columnId];
+                            const failedCell = {
+                                ...currentCell,
+                                displayValue: payload.newValue,
+                                isDirty: true,
+                            };
+                            const updatedRow = this.updateResultCell(
+                                state,
+                                currentRow,
+                                payload.columnId,
+                                failedCell,
+                            );
+                            state.resultSet = {
+                                ...state.resultSet,
+                                subset: state.resultSet.subset.map((row, index) =>
+                                    index === rowIndex ? updatedRow : row,
+                                ),
+                            };
 
-                endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                });
-            } catch (error) {
-                if (this._latestCellUpdateRequestIds.get(cacheKey) !== payload.requestId) {
-                    this.logger.trace(
-                        `Ignoring stale update failure for cell ${cacheKey}, request ${payload.requestId}`,
-                    );
+                            this.logger.debug(
+                                `Updated cell in result set to show failed edit at row ${rowIndex}, column ${payload.columnId}`,
+                            );
+                        }
+                    }
+
+                    this.updateState();
+
                     endActivity.endFailed(
-                        new Error("Stale cell update failed"),
-                        false /* includeErrorMessage */,
-                    );
-                    return state;
-                }
-
-                this.logger.error(
-                    `Error updating cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
-
-                // Track failed cell for UI highlighting
-                const failedKey = `${payload.rowId}-${payload.columnId}`;
-                if (!state.failedCells) {
-                    state.failedCells = [failedKey];
-                } else if (!state.failedCells.includes(failedKey)) {
-                    state.failedCells = [...state.failedCells, failedKey];
-                }
-
-                // Update the cell in the result set to show the attempted value with isDirty flag
-                // This ensures the UI shows what the user typed even though the update failed
-                if (state.resultSet) {
-                    const rowIndex = state.resultSet.subset.findIndex(
-                        (row) => row.id === payload.rowId,
+                        new Error("Failed to update cell"),
+                        true /* includeErrorMessage */,
+                        undefined /* errorCode */,
+                        undefined /* errorType */,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
                     );
 
-                    if (rowIndex !== -1) {
-                        const currentRow = state.resultSet.subset[rowIndex];
-                        const currentCell = currentRow.cells[payload.columnId];
-                        const failedCell = {
-                            ...currentCell,
-                            displayValue: payload.newValue,
-                            isDirty: true,
-                        };
-                        const updatedRow = this.updateResultCell(
-                            state,
-                            currentRow,
-                            payload.columnId,
-                            failedCell,
-                        );
-                        state.resultSet = {
-                            ...state.resultSet,
-                            subset: state.resultSet.subset.map((row, index) =>
-                                index === rowIndex ? updatedRow : row,
-                            ),
-                        };
-
-                        this.logger.debug(
-                            `Updated cell in result set to show failed edit at row ${rowIndex}, column ${payload.columnId}`,
-                        );
-                    }
+                    vscode.window.showErrorMessage(
+                        LocConstants.TableExplorer.failedToUpdateCell(getErrorMessage(error)),
+                    );
                 }
 
-                this.updateState();
-
-                endActivity.endFailed(
-                    new Error("Failed to update cell"),
-                    true /* includeErrorMessage */,
-                    undefined /* errorCode */,
-                    undefined /* errorType */,
-                    {
-                        elapsedTime: (Date.now() - startTime).toString(),
-                        operationId: this.operationId,
-                    },
-                );
-
-                vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToUpdateCell(getErrorMessage(error)),
-                );
-            }
-
-            return state;
+                return state;
+            });
         });
 
         this.registerReducer("revertCell", async (state, payload) => {
@@ -1034,109 +1111,138 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             const cacheKey = `${payload.rowId}-${payload.columnId}`;
 
-            try {
-                // Always call the service to revert to ensure backend state is properly cleaned up
-                this.logger.trace(`Calling service to revert cell ${cacheKey}`);
-                const revertCellResult = await this._tableExplorerService.revertCell(
-                    state.ownerUri,
-                    payload.rowId,
-                    payload.columnId,
-                );
-
-                // Check if we have a cached original value
-                const cachedOriginalValue = state.originalCellValues?.get(cacheKey);
-
-                // Use cached value if available to ensure correct display, otherwise use service result
-                // Creating a new object ensures React detects the change
-                const revertedCell = cachedOriginalValue
-                    ? {
-                          ...cachedOriginalValue,
-                          isDirty: false,
-                      }
-                    : {
-                          ...revertCellResult.cell,
-                          isDirty: false,
-                      };
-
-                if (cachedOriginalValue) {
-                    this.logger.trace(`Using cached original value for cell ${cacheKey}`);
+            return await this.enqueueCellOperation(cacheKey, async () => {
+                if (!this._cellOperationsEnabled) {
+                    return state;
                 }
 
-                // Remove from cache after successful revert
-                if (state.originalCellValues?.has(cacheKey)) {
-                    state.originalCellValues.delete(cacheKey);
-                    this.logger.trace(
-                        `Removed cached value for cell ${cacheKey} after successful revert`,
-                    );
-                }
-                if (state.cellUpdateAcknowledgements) {
-                    delete state.cellUpdateAcknowledgements[cacheKey];
-                }
-                this._latestCellUpdateRequestIds.delete(cacheKey);
-
-                // Remove from failed cells tracking
-                if (state.failedCells) {
-                    const failedKey = `${payload.rowId}-${payload.columnId}`;
-                    state.failedCells = state.failedCells.filter((key) => key !== failedKey);
-                }
-
-                // Update the cell value in the result set
-                if (state.resultSet && revertedCell) {
-                    const rowIndex = state.resultSet.subset.findIndex(
-                        (row) => row.id === payload.rowId,
+                try {
+                    // Always call the service to revert to ensure backend state is properly cleaned up
+                    this.logger.trace(`Calling service to revert cell ${cacheKey}`);
+                    const revertCellResult = await this._tableExplorerService.revertCell(
+                        state.ownerUri,
+                        payload.rowId,
+                        payload.columnId,
                     );
 
-                    if (rowIndex !== -1) {
-                        const newSubset = state.resultSet.subset.map((row, idx) =>
-                            idx === rowIndex
-                                ? this.updateResultCell(state, row, payload.columnId, revertedCell)
-                                : row,
-                        );
-
-                        // Create completely new resultSet object
-                        state.resultSet = {
-                            ...state.resultSet,
-                            subset: newSubset,
-                        };
-                        this.showRestorePromptAfterClose = this.hasPendingChanges(state);
-
-                        this.logger.debug(
-                            `Reverted cell in result set at row ${rowIndex}, column ${payload.columnId}`,
-                        );
-
-                        this.updateState();
+                    if (!this._cellOperationsEnabled) {
+                        endActivity.end(ActivityStatus.Succeeded, {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        });
+                        return state;
                     }
-                }
-                this.logger.debug(`Cell reverted successfully - OperationId: ${this.operationId}`);
 
-                await this.regenerateScriptIfVisible(state);
+                    // Check if we have a cached original value
+                    const cachedOriginalValue = state.originalCellValues?.get(cacheKey);
 
-                endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                });
-            } catch (error) {
-                this.logger.error(
-                    `Error reverting cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
+                    // Use cached value if available to ensure correct display, otherwise use service result
+                    // Creating a new object ensures React detects the change
+                    const revertedCell = cachedOriginalValue
+                        ? {
+                              ...cachedOriginalValue,
+                              isDirty: false,
+                          }
+                        : {
+                              ...revertCellResult.cell,
+                              isDirty: false,
+                          };
 
-                endActivity.endFailed(
-                    new Error("Failed to revert cell"),
-                    true /* includeErrorMessage */,
-                    undefined /* errorCode */,
-                    undefined /* errorType */,
-                    {
+                    if (cachedOriginalValue) {
+                        this.logger.trace(`Using cached original value for cell ${cacheKey}`);
+                    }
+
+                    // Remove from cache after successful revert
+                    if (state.originalCellValues?.has(cacheKey)) {
+                        state.originalCellValues.delete(cacheKey);
+                        this.logger.trace(
+                            `Removed cached value for cell ${cacheKey} after successful revert`,
+                        );
+                    }
+                    if (state.cellUpdateAcknowledgements) {
+                        delete state.cellUpdateAcknowledgements[cacheKey];
+                    }
+                    this._latestCellUpdateRequestIds.delete(cacheKey);
+
+                    // Remove from failed cells tracking
+                    if (state.failedCells) {
+                        const failedKey = `${payload.rowId}-${payload.columnId}`;
+                        state.failedCells = state.failedCells.filter((key) => key !== failedKey);
+                    }
+
+                    // Update the cell value in the result set
+                    if (state.resultSet && revertedCell) {
+                        const rowIndex = state.resultSet.subset.findIndex(
+                            (row) => row.id === payload.rowId,
+                        );
+
+                        if (rowIndex !== -1) {
+                            const newSubset = state.resultSet.subset.map((row, idx) =>
+                                idx === rowIndex
+                                    ? this.updateResultCell(
+                                          state,
+                                          row,
+                                          payload.columnId,
+                                          revertedCell,
+                                      )
+                                    : row,
+                            );
+
+                            // Create completely new resultSet object
+                            state.resultSet = {
+                                ...state.resultSet,
+                                subset: newSubset,
+                            };
+                            this.showRestorePromptAfterClose = this.hasPendingChanges(state);
+
+                            this.logger.debug(
+                                `Reverted cell in result set at row ${rowIndex}, column ${payload.columnId}`,
+                            );
+
+                            this.updateState();
+                        }
+                    }
+                    this.logger.debug(
+                        `Cell reverted successfully - OperationId: ${this.operationId}`,
+                    );
+
+                    await this.regenerateScriptIfVisible(state);
+
+                    endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
-                    },
-                );
+                    });
+                } catch (error) {
+                    if (!this._cellOperationsEnabled) {
+                        endActivity.endFailed(
+                            new Error("Cell revert stopped during session disposal"),
+                            false /* includeErrorMessage */,
+                        );
+                        return state;
+                    }
 
-                vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToRevertCell(getErrorMessage(error)),
-                );
-            }
+                    this.logger.error(
+                        `Error reverting cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    );
 
-            return state;
+                    endActivity.endFailed(
+                        new Error("Failed to revert cell"),
+                        true /* includeErrorMessage */,
+                        undefined /* errorCode */,
+                        undefined /* errorType */,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
+                    );
+
+                    vscode.window.showErrorMessage(
+                        LocConstants.TableExplorer.failedToRevertCell(getErrorMessage(error)),
+                    );
+                }
+
+                return state;
+            });
         });
 
         this.registerReducer("revertRow", async (state, payload) => {
@@ -1153,133 +1259,137 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 },
             );
 
-            try {
-                const revertRowResult = await this._tableExplorerService.revertRow(
-                    state.ownerUri,
-                    payload.rowId,
-                );
-
-                // Remove from deletedRows if it was marked for deletion
-                state.deletedRows = state.deletedRows.filter((id) => id !== payload.rowId);
-
-                // Remove all failed cells for this row
-                if (state.failedCells) {
-                    state.failedCells = state.failedCells.filter(
-                        (key) => !key.startsWith(`${payload.rowId}-`),
+            return await this.enqueueLifecycleOperation(async () => {
+                try {
+                    const revertRowResult = await this._tableExplorerService.revertRow(
+                        state.ownerUri,
+                        payload.rowId,
                     );
-                }
 
-                // Clear all cached original values for this row
-                if (state.originalCellValues) {
-                    const keysToDelete: string[] = [];
-                    state.originalCellValues.forEach((_, key) => {
-                        if (key.startsWith(`${payload.rowId}-`)) {
-                            keysToDelete.push(key);
-                        }
-                    });
-                    keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
-                    this.logger.debug(
-                        `Cleared ${keysToDelete.length} cached values for row ${payload.rowId}`,
-                    );
-                }
-                if (state.cellUpdateAcknowledgements) {
-                    state.cellUpdateAcknowledgements = Object.fromEntries(
-                        Object.entries(state.cellUpdateAcknowledgements).filter(
-                            ([key]) => !key.startsWith(`${payload.rowId}-`),
-                        ),
-                    );
-                }
-                for (const key of this._latestCellUpdateRequestIds.keys()) {
-                    if (key.startsWith(`${payload.rowId}-`)) {
-                        this._latestCellUpdateRequestIds.delete(key);
-                    }
-                }
+                    // Remove from deletedRows if it was marked for deletion
+                    state.deletedRows = state.deletedRows.filter((id) => id !== payload.rowId);
 
-                // Check if this was a newly created row (row will be null after revert)
-                const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
-
-                if (revertRowResult.row) {
-                    // Update the row in the result set (for existing rows that were modified)
-                    if (state.resultSet) {
-                        const rowIndex = state.resultSet.subset.findIndex(
-                            (row) => row.id === payload.rowId,
+                    // Remove all failed cells for this row
+                    if (state.failedCells) {
+                        state.failedCells = state.failedCells.filter(
+                            (key) => !key.startsWith(`${payload.rowId}-`),
                         );
+                    }
 
-                        if (rowIndex !== -1) {
+                    // Clear all cached original values for this row
+                    if (state.originalCellValues) {
+                        const keysToDelete: string[] = [];
+                        state.originalCellValues.forEach((_, key) => {
+                            if (key.startsWith(`${payload.rowId}-`)) {
+                                keysToDelete.push(key);
+                            }
+                        });
+                        keysToDelete.forEach((key) => state.originalCellValues?.delete(key));
+                        this.logger.debug(
+                            `Cleared ${keysToDelete.length} cached values for row ${payload.rowId}`,
+                        );
+                    }
+                    if (state.cellUpdateAcknowledgements) {
+                        state.cellUpdateAcknowledgements = Object.fromEntries(
+                            Object.entries(state.cellUpdateAcknowledgements).filter(
+                                ([key]) => !key.startsWith(`${payload.rowId}-`),
+                            ),
+                        );
+                    }
+                    for (const key of this._latestCellUpdateRequestIds.keys()) {
+                        if (key.startsWith(`${payload.rowId}-`)) {
+                            this._latestCellUpdateRequestIds.delete(key);
+                        }
+                    }
+
+                    // Check if this was a newly created row (row will be null after revert)
+                    const isNewRow = state.newRows.some((row) => row.id === payload.rowId);
+
+                    if (revertRowResult.row) {
+                        // Update the row in the result set (for existing rows that were modified)
+                        if (state.resultSet) {
+                            const rowIndex = state.resultSet.subset.findIndex(
+                                (row) => row.id === payload.rowId,
+                            );
+
+                            if (rowIndex !== -1) {
+                                state.resultSet = {
+                                    ...state.resultSet,
+                                    subset: state.resultSet.subset.map((row, idx) => {
+                                        if (idx === rowIndex) {
+                                            return revertRowResult.row;
+                                        }
+
+                                        return row;
+                                    }),
+                                };
+
+                                this.updateState();
+
+                                this.logger.debug(
+                                    `Reverted row at index ${rowIndex} with ${revertRowResult.row.cells.length} cells`,
+                                );
+                            }
+                        }
+                    } else if (isNewRow) {
+                        // Row was a newly created row that was reverted - remove it from the UI
+                        state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
+
+                        if (state.resultSet) {
                             state.resultSet = {
                                 ...state.resultSet,
-                                subset: state.resultSet.subset.map((row, idx) => {
-                                    if (idx === rowIndex) {
-                                        return revertRowResult.row;
-                                    }
-
-                                    return row;
-                                }),
+                                subset: state.resultSet.subset.filter(
+                                    (row) => row.id !== payload.rowId,
+                                ),
+                                rowCount: state.resultSet.rowCount - 1,
                             };
+                        }
 
-                            this.updateState();
+                        this.updateState();
 
-                            this.logger.debug(
-                                `Reverted row at index ${rowIndex} with ${revertRowResult.row.cells.length} cells`,
-                            );
+                        this.logger.debug(
+                            `Removed newly created row ${payload.rowId} from UI after revert`,
+                        );
+
+                        // Check if we still have unsaved changes
+                        if (state.newRows.length === 0 && state.deletedRows.length === 0) {
+                            this.showRestorePromptAfterClose = false;
                         }
                     }
-                } else if (isNewRow) {
-                    // Row was a newly created row that was reverted - remove it from the UI
-                    state.newRows = state.newRows.filter((row) => row.id !== payload.rowId);
-
-                    if (state.resultSet) {
-                        state.resultSet = {
-                            ...state.resultSet,
-                            subset: state.resultSet.subset.filter(
-                                (row) => row.id !== payload.rowId,
-                            ),
-                            rowCount: state.resultSet.rowCount - 1,
-                        };
-                    }
-
-                    this.updateState();
 
                     this.logger.debug(
-                        `Removed newly created row ${payload.rowId} from UI after revert`,
+                        `Row reverted successfully - OperationId: ${this.operationId}`,
                     );
 
-                    // Check if we still have unsaved changes
-                    if (state.newRows.length === 0 && state.deletedRows.length === 0) {
-                        this.showRestorePromptAfterClose = false;
-                    }
-                }
+                    await this.regenerateScriptIfVisible(state);
 
-                this.logger.debug(`Row reverted successfully - OperationId: ${this.operationId}`);
-
-                await this.regenerateScriptIfVisible(state);
-
-                endActivity.end(ActivityStatus.Succeeded, {
-                    elapsedTime: (Date.now() - startTime).toString(),
-                    operationId: this.operationId,
-                });
-            } catch (error) {
-                this.logger.error(
-                    `Error reverting row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                );
-
-                endActivity.endFailed(
-                    new Error("Failed to revert row"),
-                    true /* includeErrorMessage */,
-                    undefined /* errorCode */,
-                    undefined /* errorType */,
-                    {
+                    endActivity.end(ActivityStatus.Succeeded, {
                         elapsedTime: (Date.now() - startTime).toString(),
                         operationId: this.operationId,
-                    },
-                );
+                    });
+                } catch (error) {
+                    this.logger.error(
+                        `Error reverting row: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                    );
 
-                vscode.window.showErrorMessage(
-                    LocConstants.TableExplorer.failedToRevertRow(getErrorMessage(error)),
-                );
-            }
+                    endActivity.endFailed(
+                        new Error("Failed to revert row"),
+                        true /* includeErrorMessage */,
+                        undefined /* errorCode */,
+                        undefined /* errorType */,
+                        {
+                            elapsedTime: (Date.now() - startTime).toString(),
+                            operationId: this.operationId,
+                        },
+                    );
 
-            return state;
+                    vscode.window.showErrorMessage(
+                        LocConstants.TableExplorer.failedToRevertRow(getErrorMessage(error)),
+                    );
+                }
+
+                return state;
+            });
         });
 
         this.registerReducer("generateScript", async (state) => {
@@ -1853,7 +1963,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.info("User chose to save changes before closing");
 
             try {
-                await this._tableExplorerService.commit(this.state.ownerUri);
+                await this.enqueueLifecycleOperation(() =>
+                    this._tableExplorerService.commit(this.state.ownerUri),
+                );
                 vscode.window.showInformationMessage(
                     LocConstants.TableExplorer.changesSavedSuccessfully,
                 );
@@ -1880,12 +1992,14 @@ export class TableExplorerWebViewController extends WebviewPanelController<
      * This is called when the webview tab is closed (after any prompts are handled).
      */
     public override dispose(): void {
+        this._cellOperationsEnabled = false;
         if (this.state.ownerUri) {
-            this.logger.info(
-                `Disposing Table Explorer resources for ownerUri: ${this.state.ownerUri}`,
-            );
+            const ownerUri = this.state.ownerUri;
+            this.logger.info(`Disposing Table Explorer resources for ownerUri: ${ownerUri}`);
 
-            void this._tableExplorerService.dispose(this.state.ownerUri).catch((error) => {
+            void this.enqueueLifecycleOperation(() =>
+                this._tableExplorerService.dispose(ownerUri),
+            ).catch((error) => {
                 this.logger.error(
                     `Error disposing table explorer service: ${getErrorMessage(error)}`,
                 );

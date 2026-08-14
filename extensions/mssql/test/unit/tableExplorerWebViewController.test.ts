@@ -92,6 +92,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
         return { promise, resolve, reject };
     };
 
+    const waitForPromises = () => new Promise<void>((resolve) => setImmediate(resolve));
+
     setup(() => {
         sandbox = sinon.createSandbox();
 
@@ -116,7 +118,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
         mockWebview = {
             postMessage: sandbox.stub(),
             asWebviewUri: sandbox.stub().returns(vscode.Uri.parse("file:///webview")),
-            onDidReceiveMessage: sandbox.stub(),
+            onDidReceiveMessage: sandbox.stub().returns({ dispose: sandbox.stub() }),
         } as any;
 
         mockPanel = {
@@ -126,8 +128,8 @@ suite("TableExplorerWebViewController - Reducers", () => {
             options: {},
             reveal: sandbox.stub(),
             dispose: sandbox.stub(),
-            onDidDispose: sandbox.stub(),
-            onDidChangeViewState: sandbox.stub(),
+            onDidDispose: sandbox.stub().returns({ dispose: sandbox.stub() }),
+            onDidChangeViewState: sandbox.stub().returns({ dispose: sandbox.stub() }),
             iconPath: undefined,
         } as any;
 
@@ -232,6 +234,50 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(mockTableExplorerService.commit.calledOnce).to.be.true;
             expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to save changes");
+        });
+
+        test("should wait for queued cell updates before committing", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const update = createDeferred<EditCellResult>();
+            mockTableExplorerService.updateCell.returns(update.promise);
+            mockTableExplorerService.commit.resolves({});
+
+            const updateRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Updated",
+                    requestId: 1,
+                },
+            );
+            await waitForPromises();
+            const commitRequest = controller["_reducerHandlers"].get("commitChanges")(
+                controller.state,
+                {},
+            );
+            await waitForPromises();
+
+            expect(mockTableExplorerService.commit.called).to.be.false;
+
+            update.resolve({
+                cell: {
+                    displayValue: "Updated",
+                    isNull: false,
+                    invariantCultureDisplayValue: "Updated",
+                    isDirty: true,
+                },
+                isRowDirty: true,
+            });
+            await updateRequest;
+            await commitRequest;
+
+            expect(
+                mockTableExplorerService.updateCell.calledBefore(mockTableExplorerService.commit),
+            ).to.be.true;
+            expect(controller.state.originalCellValues).to.be.empty;
+            expect(controller.state.cellUpdateAcknowledgements).to.be.empty;
         });
     });
 
@@ -484,6 +530,51 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to remove row");
         });
+
+        test("should wait for queued cell updates before deleting a row", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const update = createDeferred<EditCellResult>();
+            mockTableExplorerService.updateCell.returns(update.promise);
+            mockTableExplorerService.deleteRow.resolves({});
+
+            const updateRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Updated",
+                    requestId: 1,
+                },
+            );
+            await waitForPromises();
+            const deleteRequest = controller["_reducerHandlers"].get("deleteRow")(
+                controller.state,
+                { rowId: 0 },
+            );
+            await waitForPromises();
+
+            expect(mockTableExplorerService.deleteRow.called).to.be.false;
+
+            update.resolve({
+                cell: {
+                    displayValue: "Updated",
+                    isNull: false,
+                    invariantCultureDisplayValue: "Updated",
+                    isDirty: true,
+                },
+                isRowDirty: true,
+            });
+            await updateRequest;
+            await deleteRequest;
+
+            expect(
+                mockTableExplorerService.updateCell.calledBefore(
+                    mockTableExplorerService.deleteRow,
+                ),
+            ).to.be.true;
+            expect(controller.state.deletedRows).to.deep.equal([0]);
+        });
     });
 
     suite("updateCell reducer", () => {
@@ -693,7 +784,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     requestId: 2,
                 },
             );
-            await Promise.resolve();
+            await waitForPromises();
 
             expect(mockTableExplorerService.updateCell.callCount).to.equal(1);
             expect(mockTableExplorerService.updateCell.firstCall.args[3]).to.equal("Older");
@@ -708,7 +799,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 isRowDirty: true,
             });
             await olderRequest;
-            await Promise.resolve();
+            await waitForPromises();
 
             expect(mockTableExplorerService.updateCell.callCount).to.equal(2);
             expect(mockTableExplorerService.updateCell.secondCall.args[3]).to.equal("Newest");
@@ -768,7 +859,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     requestId: 2,
                 },
             );
-            await Promise.resolve();
+            await waitForPromises();
 
             expect(mockTableExplorerService.updateCell.callCount).to.equal(1);
 
@@ -811,7 +902,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     requestId: 2,
                 },
             );
-            await Promise.resolve();
+            await waitForPromises();
 
             expect(mockTableExplorerService.updateCell.callCount).to.equal(1);
 
@@ -1048,6 +1139,63 @@ suite("TableExplorerWebViewController - Reducers", () => {
             // Assert
             expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to revert cell");
+        });
+
+        test("should wait for a queued cell update before reverting the cell", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const update = createDeferred<EditCellResult>();
+            mockTableExplorerService.updateCell.returns(update.promise);
+            mockTableExplorerService.revertCell.resolves({
+                cell: {
+                    displayValue: "John",
+                    isNull: false,
+                    invariantCultureDisplayValue: "John",
+                    isDirty: false,
+                },
+                isRowDirty: false,
+            });
+
+            const updateRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Updated",
+                    requestId: 1,
+                },
+            );
+            await waitForPromises();
+            const revertRequest = controller["_reducerHandlers"].get("revertCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                },
+            );
+            await waitForPromises();
+
+            expect(mockTableExplorerService.revertCell.called).to.be.false;
+
+            update.resolve({
+                cell: {
+                    displayValue: "Updated",
+                    isNull: false,
+                    invariantCultureDisplayValue: "Updated",
+                    isDirty: true,
+                },
+                isRowDirty: true,
+            });
+            await updateRequest;
+            await revertRequest;
+
+            expect(
+                mockTableExplorerService.updateCell.calledBefore(
+                    mockTableExplorerService.revertCell,
+                ),
+            ).to.be.true;
+            expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("John");
+            expect(controller.state.originalCellValues).to.be.empty;
         });
     });
 
@@ -2100,6 +2248,48 @@ suite("TableExplorerWebViewController - Reducers", () => {
 
             // Assert
             expect(resultState.tableName).to.equal("TestTable");
+        });
+    });
+
+    suite("dispose", () => {
+        test("should wait for queued cell updates before disposing the session", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const update = createDeferred<EditCellResult>();
+            mockTableExplorerService.updateCell.returns(update.promise);
+            mockTableExplorerService.dispose.resolves();
+
+            const updateRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Updated",
+                    requestId: 1,
+                },
+            );
+            await waitForPromises();
+            controller.dispose();
+            await waitForPromises();
+
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+
+            update.resolve({
+                cell: {
+                    displayValue: "Updated",
+                    isNull: false,
+                    invariantCultureDisplayValue: "Updated",
+                    isDirty: true,
+                },
+                isRowDirty: true,
+            });
+            await updateRequest;
+            await controller["_lifecycleOperationQueue"];
+
+            expect(
+                mockTableExplorerService.updateCell.calledBefore(mockTableExplorerService.dispose),
+            ).to.be.true;
+            expect(mockTableExplorerService.dispose.calledOnceWith("test-owner-uri")).to.be.true;
         });
     });
 });
