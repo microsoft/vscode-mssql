@@ -13,6 +13,7 @@
  */
 
 import * as vscode from "vscode";
+import { IInstantiationService } from "extension-toolkit/base";
 import { diag } from "../../diagnostics/diagnosticsCore";
 import { Perf } from "../../perf/perfTelemetry";
 import { MetadataStoreService } from "../../services/metadata/metadataStoreService";
@@ -46,6 +47,7 @@ import { OeV2Node } from "./tree/oeV2Node";
 import { OeV2TreeController } from "./tree/oeV2TreeController";
 
 export interface OeV2ActivationDeps {
+    readonly instantiationService: IInstantiationService;
     readonly profiles: ConnectionProfileSource & ProfileSecretSource;
     readonly tokens: ProfileTokenSource;
     /** Classic connection seam for the EXPLICIT legacy handoff door (B20). */
@@ -318,7 +320,7 @@ export function activateObjectExplorerV2(
 
     context.subscriptions.push(
         registerOeV2GroupCommands({
-            context,
+            instantiationService: deps.instantiationService,
             groupConfig: deps.groupConfig ?? (() => undefined),
         }),
         // B26: view-title New Connection — the SHARED classic dialog; the

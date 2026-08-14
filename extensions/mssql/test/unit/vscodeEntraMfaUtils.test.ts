@@ -4,9 +4,103 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { areCompatibleEntraAccountIds } from "../../src/azure/vscodeEntraMfaUtils";
+import * as vscode from "vscode";
+import {
+    areCompatibleEntraAccountIds,
+    getVscodeEntraAccountOptions,
+    acquireTokenFromVscodeAccountForResource,
+} from "../../src/azure/vscodeEntraMfaUtils";
+import * as sinon from "sinon";
+import * as AzureHelpers from "../../src/connectionconfig/azureHelpers";
+import { mockAccounts, mockTenants } from "./azureHelperStubs";
 
 suite("vscodeEntraMfaUtils", () => {
+    let sandbox: sinon.SinonSandbox;
+
+    setup(() => {
+        sandbox = sinon.createSandbox();
+    });
+
+    teardown(() => {
+        sandbox.restore();
+    });
+
+    test("gets account options without enumerating tenants", async () => {
+        const getAccounts = sandbox
+            .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+            .resolves([mockAccounts.signedInAccount]);
+        const getTenantsForAccount = sandbox.stub(
+            AzureHelpers.VsCodeAzureHelper,
+            "getTenantsForAccount",
+        );
+
+        const options = await getVscodeEntraAccountOptions();
+
+        expect(options).to.deep.equal([
+            {
+                displayName: mockAccounts.signedInAccount.label,
+                value: mockAccounts.signedInAccount.id,
+            },
+        ]);
+        expect(getAccounts).to.have.been.calledWith(false);
+        expect(getTenantsForAccount).to.not.have.been.called;
+    });
+
+    test("uses the selected tenant when tenant enumeration is unavailable", async () => {
+        const selectedTenantId = "22222222-2222-2222-2222-222222222222";
+        const tenantIdWithWhitespace = ` ${selectedTenantId} `;
+        sandbox
+            .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+            .resolves([mockAccounts.signedInAccount]);
+        const getTenantsForAccount = sandbox
+            .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
+            .resolves([]);
+        const getSession = sandbox.stub(vscode.authentication, "getSession").resolves({
+            id: "session-id",
+            accessToken: "access-token",
+            account: mockAccounts.signedInAccount,
+            scopes: [],
+        });
+
+        const result = await acquireTokenFromVscodeAccountForResource(
+            "https://database.windows.net/",
+            mockAccounts.signedInAccount.id,
+            tenantIdWithWhitespace,
+        );
+
+        expect(result.tenantId).to.equal(selectedTenantId);
+        expect(getTenantsForAccount).to.not.have.been.called;
+        expect(getSession).to.have.been.called;
+    });
+
+    test("resolves the default tenant when the selected tenant is whitespace", async () => {
+        const expectedTenantId = AzureHelpers.getDefaultTenantId(
+            mockAccounts.signedInAccount.id,
+            mockTenants,
+        );
+        sandbox
+            .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+            .resolves([mockAccounts.signedInAccount]);
+        const getTenantsForAccount = sandbox
+            .stub(AzureHelpers.VsCodeAzureHelper, "getTenantsForAccount")
+            .resolves(mockTenants);
+        sandbox.stub(vscode.authentication, "getSession").resolves({
+            id: "session-id",
+            accessToken: "access-token",
+            account: mockAccounts.signedInAccount,
+            scopes: [],
+        });
+
+        const result = await acquireTokenFromVscodeAccountForResource(
+            "https://database.windows.net/",
+            mockAccounts.signedInAccount.id,
+            "   ",
+        );
+
+        expect(result.tenantId).to.equal(expectedTenantId);
+        expect(getTenantsForAccount).to.have.been.calledOnceWith(mockAccounts.signedInAccount);
+    });
+
     suite("areCompatibleEntraAccountIds", () => {
         test("returns true for exact match", () => {
             expect(areCompatibleEntraAccountIds("user@example.com", "user@example.com")).to.be.true;

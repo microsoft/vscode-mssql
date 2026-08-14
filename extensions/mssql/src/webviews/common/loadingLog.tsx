@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { makeStyles, Spinner, Text } from "@fluentui/react-components";
+import { makeStyles, mergeClasses, Spinner, Text } from "@fluentui/react-components";
 import {
     Checkmark12Regular,
     ChevronRight12Regular,
@@ -102,13 +102,14 @@ export function LoadingLog({ messages, minHeight }: LoadingLogProps) {
                     return (
                         <div className={classes.logRow} key={`${entry.message}-${index}`}>
                             <span
-                                className={`${classes.icon} ${
+                                className={mergeClasses(
+                                    classes.icon,
                                     isError
                                         ? classes.errorRow
                                         : isActive
                                           ? classes.activeIcon
-                                          : classes.doneIcon
-                                }`}>
+                                          : classes.doneIcon,
+                                )}>
                                 {isError ? (
                                     <ErrorCircle12Regular />
                                 ) : isActive ? (
@@ -118,9 +119,14 @@ export function LoadingLog({ messages, minHeight }: LoadingLogProps) {
                                 )}
                             </span>
                             <Text
-                                className={`${classes.text} ${
-                                    isError ? classes.errorRow : isActive ? classes.activeText : ""
-                                }`}>
+                                className={mergeClasses(
+                                    classes.text,
+                                    isError
+                                        ? classes.errorRow
+                                        : isActive
+                                          ? classes.activeText
+                                          : undefined,
+                                )}>
                                 {entry.message}
                             </Text>
                         </div>

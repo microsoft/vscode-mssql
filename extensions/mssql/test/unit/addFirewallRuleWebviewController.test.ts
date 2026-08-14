@@ -12,6 +12,7 @@ import { FirewallService } from "../../src/firewall/firewallService";
 import { AddFirewallRuleState } from "../../src/sharedInterfaces/addFirewallRule";
 import { ApiStatus } from "../../src/sharedInterfaces/webview";
 import * as azureHelperStubs from "./azureHelperStubs";
+import { observeWebviewReady } from "./utils";
 
 suite("AddFirewallRuleWebviewController Tests", () => {
     let sandbox: sinon.SinonSandbox;
@@ -45,8 +46,8 @@ suite("AddFirewallRuleWebviewController Tests", () => {
         test("uses the lowercase bundle name for webview resources", async () => {
             await finishSetup(false);
 
-            expect(controller.panel.webview.html).to.contain('href="addFirewallRule.css"');
-            expect(controller.panel.webview.html).to.contain('src="addFirewallRule.js"');
+            expect(controller.panel.webview.html).to.match(/href="addFirewallRule\.css\?v=[^"]+"/);
+            expect(controller.panel.webview.html).to.match(/src="addFirewallRule\.js\?v=[^"]+"/);
         });
 
         test("Should initialize correctly for not signed into Azure", async () => {
@@ -135,6 +136,7 @@ suite("AddFirewallRuleWebviewController Tests", () => {
             },
             mockFirewallService,
         );
+        observeWebviewReady(controller);
 
         return await controller.initialized;
     }

@@ -85,7 +85,12 @@ function staticClosure(outputs: Record<string, MetafileOutput>): string[] {
         }
     };
     walk(ENTRY);
-    return [...seen];
+    return [...seen].filter((name) => {
+        const inputs = Object.keys(outputs[name].inputs);
+        // esbuild can emit source-map-only JS stubs for shared CSS. They add no
+        // executable code and the entry stylesheet has its own explicit budget.
+        return inputs.length === 0 || inputs.some((input) => !input.endsWith(".css"));
+    });
 }
 
 function packageOf(rawInput: string): string {

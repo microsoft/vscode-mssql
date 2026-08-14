@@ -4,10 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { expect } from "chai";
-import { filterRules } from "../../../../src/webviews/pages/CodeAnalysis/codeAnalysisUtils";
+import {
+    filterRules,
+    groupRulesByCategory,
+} from "../../../../src/webviews/pages/CodeAnalysis/codeAnalysisUtils";
 import { allSeverities } from "../../../../src/webviews/common/constants";
 import {
     CodeAnalysisRuleSeverity,
+    customRulesCategory,
     SqlCodeAnalysisRule,
 } from "../../../../src/sharedInterfaces/codeAnalysis";
 
@@ -19,6 +23,7 @@ function makeRule(base: {
     severity: string;
     description?: string;
     ruleId?: string;
+    isBuiltIn?: boolean;
 }): SqlCodeAnalysisRule {
     return {
         ruleId: base.ruleId ?? `${base.category}.${base.shortRuleId}`,
@@ -28,6 +33,7 @@ function makeRule(base: {
         category: base.category,
         severity: base.severity,
         enabled: true,
+        isBuiltIn: base.isBuiltIn ?? true,
         helpLink: "",
     } as SqlCodeAnalysisRule;
 }
@@ -146,5 +152,110 @@ suite("codeAnalysis - filterRules", () => {
     test("combined: matching search but wrong severity returns empty", () => {
         const result = filterRules(RULES, "SR1004", CodeAnalysisRuleSeverity.Error);
         expect(result).to.deep.equal([]);
+    });
+});
+
+suite("codeAnalysis - groupRulesByCategory", () => {
+    const builtInDesign = makeRule({
+        shortRuleId: "SR0001",
+        displayName: "Zebra rule",
+        category: "Design",
+        severity: CodeAnalysisRuleSeverity.Warning,
+    });
+    const builtInDesignSecond = makeRule({
+        shortRuleId: "SR0002",
+        displayName: "Alpha rule",
+        category: "Design",
+        severity: CodeAnalysisRuleSeverity.Warning,
+    });
+    const builtInNaming = makeRule({
+        shortRuleId: "SR0003",
+        displayName: "Naming rule",
+        category: "Naming",
+        severity: CodeAnalysisRuleSeverity.Warning,
+    });
+    const customPerformance = makeRule({
+        shortRuleId: "ER0001",
+        displayName: "Avoid WAITFOR DELAY",
+        category: "Performance",
+        severity: CodeAnalysisRuleSeverity.Warning,
+        isBuiltIn: false,
+    });
+    const uncategorizedCustom = makeRule({
+        shortRuleId: "ER0002",
+        displayName: "Smell check",
+        category: customRulesCategory,
+        severity: CodeAnalysisRuleSeverity.Warning,
+        isBuiltIn: false,
+    });
+
+    test("empty input returns no groups", () => {
+        expect(groupRulesByCategory([])).to.deep.equal([]);
+    });
+
+    test("buckets rules under their category", () => {
+        const result = groupRulesByCategory([builtInDesign, builtInDesignSecond, builtInNaming]);
+
+        expect(result.map(([category]) => category)).to.deep.equal(["Design", "Naming"]);
+        expect(result[0][1].map((rule) => rule.shortRuleId)).to.have.members(["SR0001", "SR0002"]);
+    });
+
+    test("orders built-in categories before custom categories", () => {
+        // "Performance" sorts before "Naming" alphabetically, so ordering must be driven by
+        // isBuiltIn rather than the category name.
+        const result = groupRulesByCategory([customPerformance, builtInNaming]);
+
+        expect(result.map(([category]) => category)).to.deep.equal(["Naming", "Performance"]);
+    });
+
+    test("orders the custom-rules catch-all group last", () => {
+        const result = groupRulesByCategory([
+            uncategorizedCustom,
+            customPerformance,
+            builtInNaming,
+        ]);
+
+        expect(result.map(([category]) => category)).to.deep.equal([
+            "Naming",
+            "Performance",
+            customRulesCategory,
+        ]);
+    });
+
+    test("sorts categories of equal rank alphabetically", () => {
+        const result = groupRulesByCategory([builtInNaming, builtInDesign]);
+
+        expect(result.map(([category]) => category)).to.deep.equal(["Design", "Naming"]);
+    });
+
+    test("sorts rules within a category by display name", () => {
+        const result = groupRulesByCategory([builtInDesign, builtInDesignSecond]);
+
+        expect(result[0][1].map((rule) => rule.displayName)).to.deep.equal([
+            "Alpha rule",
+            "Zebra rule",
+        ]);
+    });
+
+    test("keeps a custom rule that reuses a built-in category in that built-in group", () => {
+        const customInBuiltInCategory = makeRule({
+            shortRuleId: "ER0003",
+            displayName: "Custom design rule",
+            category: "Design",
+            severity: CodeAnalysisRuleSeverity.Warning,
+            isBuiltIn: false,
+        });
+
+        const result = groupRulesByCategory([
+            customInBuiltInCategory,
+            builtInDesign,
+            customPerformance,
+        ]);
+
+        expect(
+            result.map(([category]) => category),
+            "Design stays with the built-in categories even though it also holds a custom rule",
+        ).to.deep.equal(["Design", "Performance"]);
+        expect(result[0][1]).to.have.length(2);
     });
 });

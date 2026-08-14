@@ -7,9 +7,16 @@ const defaultJunitFile = "test-reports/test-results-ext.xml";
 const sourceMapSupportHook = fileURLToPath(
     new URL("./source-map-support-register.js", import.meta.url),
 );
+const quietReporter = fileURLToPath(new URL("./quiet-mocha-reporter.cjs", import.meta.url));
 
 export const defaultCoverageConfig = {
-    reporter: ["text-summary", "html", "lcov", "cobertura"],
+    // The HTML reporter turns source-map HTTPS URLs into directory names. A
+    // colon in that remapped path is invalid on Windows, so retain the CI
+    // formats there and generate the browsable report on other platforms.
+    reporter:
+        process.platform === "win32"
+            ? ["text-summary", "lcovonly", "cobertura"]
+            : ["text-summary", "html", "lcov", "cobertura"],
     output: "coverage",
 };
 
@@ -44,7 +51,7 @@ export function createMochaConfig(base = {}, options = {}) {
         ...withSourceMaps,
         reporter: "mocha-multi-reporters",
         reporterOptions: {
-            reporterEnabled: "spec, mocha-junit-reporter",
+            reporterEnabled: `${quietReporter}, mocha-junit-reporter`,
             mochaJunitReporterReporterOptions: {
                 mochaFile: junitFile,
             },

@@ -8,6 +8,7 @@ import {
     SortProperties,
     type ColumnFilterMap,
     type DbCellValue,
+    type IDbColumn,
 } from "../../src/sharedInterfaces/queryResult";
 import { FluentResultGridCommand } from "../../src/webviews/common/FluentResultGrid/types/fluentResultGridCommandIds";
 import type { FluentResultGridKeyBindingMap } from "../../src/webviews/common/FluentResultGrid/types/fluentResultGridCommands";
@@ -20,6 +21,7 @@ import {
     FLUENT_RESULT_GRID_DEFAULT_FROZEN_COLUMN_INDEX,
     normalizeFluentResultGridFrozenColumnIndex,
     shouldApplyFluentResultGridFrozenOptions,
+    stabilizeFluentResultGridColumnInfo,
 } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridState";
 import { isFluentResultGridHostCommand } from "../../src/webviews/common/FluentResultGrid/internal/fluentResultGridCommandUtils";
 import {
@@ -47,6 +49,20 @@ function cell(value: string | null): DbCellValue {
     return {
         displayValue: value ?? "",
         isNull: value === null,
+    };
+}
+
+function column(columnName: string): IDbColumn {
+    return {
+        baseCatalogName: "database",
+        baseColumnName: columnName,
+        baseSchemaName: "dbo",
+        baseServerName: "server",
+        baseTableName: "table",
+        columnName,
+        dataType: "varchar",
+        dataTypeName: "varchar",
+        udtAssemblyQualifiedName: "",
     };
 }
 
@@ -404,6 +420,19 @@ suite("Fluent Result Grid", () => {
 
             expect([...filterClasses]).to.deep.equal(["filtered"]);
             expect([...sortClasses]).to.deep.equal(["sorted-asc"]);
+        });
+    });
+
+    suite("columns", () => {
+        test("retains column definitions when a result update contains the same schema", () => {
+            const first = stabilizeFluentResultGridColumnInfo(undefined, [column("name")]);
+            const repeatedSchema = stabilizeFluentResultGridColumnInfo(first, [column("name")]);
+            const changedSchema = stabilizeFluentResultGridColumnInfo(first, [column("new_name")]);
+
+            expect(repeatedSchema).to.equal(first);
+            expect(repeatedSchema.value).to.equal(first.value);
+            expect(changedSchema).to.not.equal(first);
+            expect(changedSchema.value).to.not.equal(first.value);
         });
     });
 

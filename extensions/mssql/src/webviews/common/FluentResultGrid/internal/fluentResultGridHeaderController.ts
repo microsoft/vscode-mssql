@@ -307,7 +307,6 @@ export function useFluentResultGridHeaderController({
         },
         [],
     );
-
     const openHeaderContextMenuForColumn = useCallback(
         (grid: SlickGrid, column: Column<FluentResultGridDataRow>, x: number, y: number) => {
             const columnId = column.id?.toString();

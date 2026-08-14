@@ -26,17 +26,20 @@ export function areCompatibleEntraAccountIds(
     currentAccountId?: string,
     expectedAccountId?: string,
 ): boolean {
+    const normalizedCurrentAccountId = currentAccountId?.toLowerCase();
+    const normalizedExpectedAccountId = expectedAccountId?.toLowerCase();
+
     return (
-        !!currentAccountId &&
-        !!expectedAccountId &&
-        (currentAccountId === expectedAccountId ||
-            currentAccountId.startsWith(expectedAccountId) ||
-            expectedAccountId.startsWith(currentAccountId))
+        !!normalizedCurrentAccountId &&
+        !!normalizedExpectedAccountId &&
+        (normalizedCurrentAccountId === normalizedExpectedAccountId ||
+            normalizedCurrentAccountId.startsWith(normalizedExpectedAccountId) ||
+            normalizedExpectedAccountId.startsWith(normalizedCurrentAccountId))
     );
 }
 
 export async function getVscodeEntraAccountOptions(): Promise<FormItemOptions[]> {
-    const accounts = await VsCodeAzureHelper.getAccounts();
+    const accounts = await VsCodeAzureHelper.getAccounts(false);
     return accounts.map((account) => ({
         displayName: account.label,
         value: account.id,
@@ -47,7 +50,7 @@ export async function resolveVscodeEntraAccount(
     accountId?: string,
     accountLabel?: string,
 ): Promise<vscode.AuthenticationSessionAccountInformation | undefined> {
-    const accounts = await VsCodeAzureHelper.getAccounts();
+    const accounts = await VsCodeAzureHelper.getAccounts(false);
 
     if (accountId) {
         const exactMatch = accounts.find((account) => account.id === accountId);
@@ -64,7 +67,10 @@ export async function resolveVscodeEntraAccount(
     }
 
     if (accountLabel) {
-        return accounts.find((account) => account.label === accountLabel);
+        const normalizedAccountLabel = accountLabel.trim().toLowerCase();
+        return accounts.find(
+            (account) => account.label.trim().toLowerCase() === normalizedAccountLabel,
+        );
     }
 
     return undefined;
@@ -111,11 +117,11 @@ export async function acquireTokenFromVscodeAccountForResource(
         );
     }
 
-    const tenants = await VsCodeAzureHelper.getTenantsForAccount(account);
-    const resolvedTenantId =
-        tenantId && tenants.some((tenant) => tenant.tenantId === tenantId)
-            ? tenantId
-            : getDefaultTenantId(account.id, tenants);
+    let resolvedTenantId = tenantId?.trim() || undefined;
+    if (!resolvedTenantId) {
+        const tenants = await VsCodeAzureHelper.getTenantsForAccount(account);
+        resolvedTenantId = getDefaultTenantId(account.id, tenants);
+    }
 
     if (!resolvedTenantId) {
         throw new MissingEntraAuthAccountError(

@@ -3,21 +3,46 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// This code is originally from https://github.com/microsoft/vsts-vscode
+// License: https://github.com/Microsoft/vsts-vscode/blob/master/LICENSE.txt
+
 import * as vscode from "vscode";
-import { ICredentialStore, Credential } from "./icredentialstore";
+import { createServiceIdentifier } from "extension-toolkit/base";
+import { IExtensionContextService } from "extension-toolkit/vscode";
 import { ILogger } from "../sharedInterfaces/logger";
 import { logger } from "../models/logger";
+
+export interface Credential {
+    credentialId: string;
+    password: string;
+}
+
+export const ICredentialStore = createServiceIdentifier<ICredentialStore>("credentialStore");
+
+/**
+ * A credential store that securely stores sensitive information in a platform-specific manner
+ *
+ * @exports
+ */
+export interface ICredentialStore {
+    readonly _serviceBrand: undefined;
+    readCredential(credentialId: string): Promise<Credential>;
+    saveCredential(credentialId: string, password: string): Promise<boolean>;
+    deleteCredential(credentialId: string): Promise<void>;
+}
 
 /**
  * Implements a credential storage for Windows, Mac (darwin), or Linux.
  * Allows a single credential to be stored per service (that is, one username per service);
  */
 export class CredentialStore implements ICredentialStore {
+    declare readonly _serviceBrand: undefined;
+
     private _secretStorage: vscode.SecretStorage;
     private _logger: ILogger;
 
-    constructor(private _context: vscode.ExtensionContext) {
-        this._secretStorage = this._context.secrets;
+    constructor(@IExtensionContextService contextService: IExtensionContextService) {
+        this._secretStorage = contextService.context.secrets;
         this._logger = logger.withPrefix("CredentialStore");
     }
 

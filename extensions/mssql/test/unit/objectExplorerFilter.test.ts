@@ -13,21 +13,35 @@ import {
     ObjectExplorerFilter,
     ObjectExplorerFilterWebviewController,
 } from "../../src/objectExplorer/objectExplorerFilter";
+import { ObjectExplorerFilterStore } from "../../src/objectExplorer/objectExplorerFilterStore";
 import { TreeNodeInfo } from "../../src/objectExplorer/nodes/treeNodeInfo";
 import { stubTelemetry } from "./utils";
+import { getPreviewConfigKey, PreviewFeature } from "../../src/previews/previewService";
+import { createWorkspaceConfiguration } from "./stubs";
 
 chai.use(sinonChai);
 
 suite("ObjectExplorerFilter tests", () => {
     let sandbox: sinon.SinonSandbox;
     let extensionContext: vscode.ExtensionContext;
+    let getPresetsStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         stubTelemetry(sandbox);
+        sandbox
+            .stub(vscode.workspace, "getConfiguration")
+            .returns(createWorkspaceConfiguration({}));
+        getPresetsStub = sandbox
+            .stub(ObjectExplorerFilterStore.prototype, "getPresets")
+            .resolves([]);
         extensionContext = {
             extensionUri: vscode.Uri.file("/tmp/test"),
             extensionPath: "/tmp/test",
+            globalState: {
+                get: sandbox.stub().returns([]),
+                update: sandbox.stub().resolves(),
+            },
         } as unknown as vscode.ExtensionContext;
 
         // Reset the static controller between tests
@@ -119,6 +133,66 @@ suite("ObjectExplorerFilter tests", () => {
 
         expect(stub.loadData).to.have.been.calledWithMatch({
             nodePath: "server/db/Views",
+            isPreviewEnabled: false,
+            filterPresets: [],
+        });
+
+        submitEmitter.fire([]);
+        await filtersPromise;
+    });
+
+    test("loads reusable filters only when the preview is enabled", async () => {
+        (vscode.workspace.getConfiguration as sinon.SinonStub).returns(
+            createWorkspaceConfiguration({
+                [getPreviewConfigKey(PreviewFeature.BetaObjectExplorerFilter)]: true,
+            }),
+        );
+        getPresetsStub.resolves([
+            {
+                id: "saved-filter",
+                name: "Customer tables",
+                filters: [{ name: "Name", operator: 8, value: "customer" }],
+                isPinned: true,
+                lastUsed: 1,
+            },
+        ]);
+        const { stub, submitEmitter } = createControllerStub();
+        injectController(stub);
+
+        const filtersPromise = ObjectExplorerFilter.getFilters(extensionContext, createTreeNode());
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(getPresetsStub).to.have.been.called;
+        expect(stub.loadData).to.have.been.calledWithMatch({
+            isPreviewEnabled: true,
+            filterPresets: sinon.match(
+                (presets: unknown) =>
+                    Array.isArray(presets) &&
+                    presets[0]?.id === "saved-filter" &&
+                    presets[0]?.isPinned === true,
+            ),
+        });
+
+        submitEmitter.fire([]);
+        await filtersPromise;
+    });
+
+    test("does not enable the preview from the global experimental setting", async () => {
+        (vscode.workspace.getConfiguration as sinon.SinonStub).returns(
+            createWorkspaceConfiguration({
+                enableExperimentalFeatures: true,
+            }),
+        );
+        const { stub, submitEmitter } = createControllerStub();
+        injectController(stub);
+
+        const filtersPromise = ObjectExplorerFilter.getFilters(extensionContext, createTreeNode());
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        expect(getPresetsStub).not.to.have.been.called;
+        expect(stub.loadData).to.have.been.calledWithMatch({
+            isPreviewEnabled: false,
+            filterPresets: [],
         });
 
         submitEmitter.fire([]);

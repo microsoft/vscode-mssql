@@ -5,7 +5,11 @@
 
 import * as vscode from "vscode";
 import * as vscodeMssql from "vscode-mssql";
-import { InstantiationServiceBuilder } from "extension-toolkit/base";
+import {
+    IInstantiationService,
+    InstantiationServiceBuilder,
+    ServiceDescriptor,
+} from "extension-toolkit/base";
 import {
     ExtensionContextService,
     IExtensionContextService,
@@ -45,6 +49,10 @@ import { registerQueryParticipant } from "./queryResults/queryParticipant";
 import { registerSqlDataPlane } from "./services/sqlDataPlane/sqlDataPlaneService";
 import { registerSdkLanguageModelProviders } from "./copilot/sdkLanguageModels";
 import { startStsDiagListener } from "./diagnostics/stsDiagListener";
+import { CredentialStore, ICredentialStore } from "./credentialstore/credentialstore";
+import { ConnectionConfig, IConnectionConfig } from "./connectionconfig/connectionconfig";
+import { IConnectionStore, ConnectionStore } from "./models/connectionStore";
+import { IAccountStore, AccountStore } from "./azure/accountStore";
 
 /** exported for testing purposes only */
 export let controller: MainController = undefined;
@@ -76,6 +84,10 @@ async function activateInternal(context: vscode.ExtensionContext): Promise<IExte
     const builder = new InstantiationServiceBuilder();
 
     builder.define(IExtensionContextService, new ExtensionContextService(context));
+    builder.define(ICredentialStore, new ServiceDescriptor(CredentialStore));
+    builder.define(IConnectionConfig, new ServiceDescriptor(ConnectionConfig));
+    builder.define(IConnectionStore, new ServiceDescriptor(ConnectionStore));
+    builder.define(IAccountStore, new ServiceDescriptor(AccountStore));
 
     const instantiationService = builder.seal();
     context.subscriptions.push(instantiationService);
@@ -105,6 +117,7 @@ export async function getController(): Promise<MainController> {
 class MssqlActivation {
     constructor(
         @IExtensionContextService private readonly _contextService: IExtensionContextService,
+        @IInstantiationService private readonly _instantiationService: IInstantiationService,
     ) {}
 
     async activate(): Promise<IExtension> {
@@ -131,7 +144,7 @@ class MssqlActivation {
         // Create coordinator early so uriOwnershipApi is available for export
         uriOwnershipCoordinator = createUriOwnershipCoordinator(context);
 
-        controller = new MainController(context);
+        controller = this._instantiationService.createInstance(MainController, context);
         context.subscriptions.push(controller);
         context.subscriptions.push(telemetryReporter);
 
@@ -214,6 +227,7 @@ class MssqlActivation {
         Perf.marker("mssql.activate.end", "end");
         Perf.flush();
 
+        // TODO(api-retirement): Remove this public API after dependent extensions have migrated.
         return {
             sqlToolsServicePath: SqlToolsServerClient.instance.sqlToolsServicePath,
             promptForConnection: async (ignoreFocusOut?: boolean) => {

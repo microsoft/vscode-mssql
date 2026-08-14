@@ -29,6 +29,7 @@ export class Common {
     public static publicString = l10n.t("Public");
     public static privateString = l10n.t("Private");
     public static remove = l10n.t("Remove");
+    public static invalidPort = l10n.t("Port must be a number between 1 and 65535");
 }
 
 export class SqlToolsMcp {
@@ -767,6 +768,9 @@ export let connectProgressNoticationTitle = l10n.t("Testing connection profile..
 export let msgMultipleSelectionModeNotSupported = l10n.t(
     "Running query is not supported when the editor is in multiple selection mode.",
 );
+export let msgNoQueryTextToExecute = l10n.t(
+    "There is no query text to execute. Enter a query or select non-empty query text.",
+);
 export let msgSelectNodeToScript = l10n.t("Please select a node from Object Explorer to script.");
 export let msgSelectSingleNodeToScript = l10n.t(
     "Please select only one node to script. Multiple node scripting is not supported.",
@@ -847,6 +851,16 @@ export let inMemoryDataProcessingThresholdExceeded = l10n.t(
 );
 
 export let newDeployment = l10n.t("New Deployment");
+export let noWorkspaceOpenForDeploymentScript = l10n.t(
+    "No workspace folder is open. Open a folder to add the deployment script.",
+);
+export let deploymentScriptAlreadyExists = (fileName: string) =>
+    l10n.t({
+        message: "A file named '{0}' already exists in the workspace root.",
+        args: [fileName],
+        comment: ["{0} is the deployment script file name"],
+    });
+export let overwriteDeploymentScript = l10n.t("Overwrite");
 
 export class Notebooks {
     // Status bar
@@ -1253,6 +1267,14 @@ export class Azure {
                 "{0} is the rule info in format 'name (startIp - endIp)'",
                 "{1} is the error message",
             ],
+        });
+    };
+
+    public static unableToLocateSqlServer = (serverName: string) => {
+        return l10n.t({
+            message: "Unable to locate Azure SQL server '{0}' in the selected Azure account.",
+            args: [serverName],
+            comment: ["{0} is the server name"],
         });
     };
 
@@ -2014,7 +2036,6 @@ export class PublishProject {
     public static CheckingDockerPrerequisites = l10n.t("Checking Docker prerequisites...");
     public static CreatingSqlServerContainer = l10n.t("Creating SQL Server container...");
     // Validation messages
-    public static InvalidPortMessage = l10n.t("Port must be a number between 1 and 65535");
     public static PortAlreadyInUse = (port: number) =>
         l10n.t({
             message: "Port {0} is already in use. Please choose a different port.",
@@ -3001,6 +3022,16 @@ export class QueryEditor {
 }
 
 export class ConnectionSharing {
+    public static retirementWarning(extensionName: string) {
+        return l10n.t({
+            message:
+                "The “{0}” extension uses a connection-sharing capability that the MSSQL extension is retiring. File a feature request for the capability you use so we can consider adding it natively.",
+            args: [extensionName],
+            comment: ["{0} is the extension name"],
+        });
+    }
+    public static FileFeatureRequest = l10n.t("File a feature request");
+    public static DoNotShowAgainForExtension = l10n.t("Don’t show again for this extension");
     public static connectionSharingRequestNotification(extensionName: string) {
         return l10n.t({
             message:
@@ -4188,9 +4219,11 @@ export class SqlMoveToSchema {
         l10n.t("Failed to resolve the refactor log for this file: {0}", message);
     public static previewLabel = (targetSchema: string): string =>
         l10n.t("Move to schema '{0}'", targetSchema);
-    public static applyEditFailed = l10n.t(
-        "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
-    );
+    public static moveFileFailed = (message: string): string =>
+        l10n.t("Failed to move file to the new schema folder: {0}", message);
+    public static moveFileRejected = l10n.t("The move was rejected or could not be completed.");
+    public static sqlprojUpdateFailed = (message: string): string =>
+        l10n.t("Failed to update the .sqlproj after moving the file: {0}", message);
 }
 export let copilotEnableGuardMessage = l10n.t(
     "MSSQL inline SQL completions are active. For best results, disable GitHub Copilot's default completions for SQL files.",

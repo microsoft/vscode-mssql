@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from "vscode";
+import * as path from "node:path";
 import {
     createConnectionGroup,
     getDefaultConnectionGroupDialogProps,
@@ -26,14 +27,23 @@ import { classicContainerConnectAdapter, ContainerConnectAdapter } from "./conta
 import { LocalContainersState } from "../sharedInterfaces/localContainers";
 import * as fabricProvisioning from "./fabricProvisioningHelpers";
 import * as azureSqlDatabase from "./azureSqlDatabaseHelpers";
-import { newDeployment } from "../constants/locConstants";
+import {
+    deploymentScriptAlreadyExists,
+    newDeployment,
+    noWorkspaceOpenForDeploymentScript,
+    overwriteDeploymentScript,
+} from "../constants/locConstants";
 import { FabricProvisioningState } from "../sharedInterfaces/fabricProvisioning";
 import {
     AzureSqlDatabaseState,
     AZURE_SQL_DB_COMPONENT_ORDER,
 } from "../sharedInterfaces/azureSqlDatabase";
+import { findFirstFavoriteOption } from "../sharedInterfaces/form";
 
 export const DEPLOYMENT_VIEW_ID = "deployment";
+const DEPLOYMENT_FAVORITES_STATE_KEY = "mssql.deploymentResourceFavorites";
+
+type DeploymentFavorites = Record<string, string[]>;
 
 /**
  * Overarching controller for the deployment webview.
@@ -115,6 +125,10 @@ export class DeploymentWebviewController extends FormWebviewController<
             state.dialog = newDeploymentTypeState.dialog;
             state.formState = newDeploymentTypeState.formState;
             state.formComponents = newDeploymentTypeState.formComponents as any;
+            this.applyFavoritesToFormComponents(state);
+            if (payload.deploymentType === DeploymentType.FabricProvisioning) {
+                void fabricProvisioning.getWorkspaces(this);
+            }
             return state;
         });
 
@@ -135,6 +149,33 @@ export class DeploymentWebviewController extends FormWebviewController<
                 state.deploymentTypeState.formComponents = state.formComponents as any;
             }
 
+            return state;
+        });
+
+        this.registerReducer("toggleFormOptionFavorite", async (state, payload) => {
+            const component = state.formComponents[payload.propertyName];
+            if (component?.favoriteOptionIds === undefined) {
+                return state;
+            }
+
+            const favoriteKey = this.getFavoriteKey(state.deploymentType, payload.propertyName);
+            const favorites =
+                this._context.globalState.get<DeploymentFavorites>(
+                    DEPLOYMENT_FAVORITES_STATE_KEY,
+                ) ?? {};
+            const currentFavorites = favorites[favoriteKey] ?? [];
+            const nextFavorites = currentFavorites.includes(payload.favoriteId)
+                ? currentFavorites.filter((id) => id !== payload.favoriteId)
+                : [...currentFavorites, payload.favoriteId];
+
+            await this._context.globalState.update(DEPLOYMENT_FAVORITES_STATE_KEY, {
+                ...favorites,
+                [favoriteKey]: nextFavorites,
+            });
+
+            component.favoriteOptionIds = nextFavorites;
+            state.deploymentTypeState.formComponents[payload.propertyName].favoriteOptionIds =
+                nextFavorites;
             return state;
         });
 
@@ -192,9 +233,86 @@ export class DeploymentWebviewController extends FormWebviewController<
             return state;
         });
 
+        this.registerReducer("downloadDeploymentScript", async (state, payload) => {
+            const extension = payload.fileName.includes(".")
+                ? payload.fileName.slice(payload.fileName.lastIndexOf(".") + 1)
+                : undefined;
+            const targetUri = await vscode.window.showSaveDialog({
+                defaultUri: vscode.Uri.file(payload.fileName),
+                filters: extension ? { [extension.toUpperCase()]: [extension] } : undefined,
+            });
+            if (targetUri) {
+                await vscode.workspace.fs.writeFile(
+                    targetUri,
+                    Buffer.from(payload.content, "utf8"),
+                );
+                await vscode.window.showTextDocument(targetUri, { preview: false });
+            }
+            return state;
+        });
+
+        this.registerReducer("addDeploymentScriptToWorkspace", async (state, payload) => {
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+            if (!workspaceFolder) {
+                void vscode.window.showErrorMessage(noWorkspaceOpenForDeploymentScript);
+                return state;
+            }
+
+            const fileName = path.basename(payload.fileName);
+            const targetUri = vscode.Uri.joinPath(workspaceFolder.uri, fileName);
+
+            try {
+                await vscode.workspace.fs.stat(targetUri);
+                const overwrite = await vscode.window.showWarningMessage(
+                    deploymentScriptAlreadyExists(fileName),
+                    { modal: true },
+                    overwriteDeploymentScript,
+                );
+                if (overwrite !== overwriteDeploymentScript) {
+                    return state;
+                }
+            } catch (error) {
+                if (!(error instanceof vscode.FileSystemError && error.code === "FileNotFound")) {
+                    throw error;
+                }
+            }
+
+            await vscode.workspace.fs.writeFile(targetUri, Buffer.from(payload.content, "utf8"));
+            await vscode.window.showTextDocument(targetUri, { preview: false });
+            return state;
+        });
+
         localContainers.registerLocalContainersReducers(this);
         fabricProvisioning.registerFabricProvisioningReducers(this);
         azureSqlDatabase.registerAzureSqlDatabaseReducers(this);
+    }
+
+    private applyFavoritesToFormComponents(state: DeploymentWebviewState): void {
+        const favorites =
+            this._context.globalState.get<DeploymentFavorites>(DEPLOYMENT_FAVORITES_STATE_KEY) ??
+            {};
+
+        for (const [propertyName, component] of Object.entries(state.formComponents)) {
+            if (component.favoriteOptionIds === undefined) {
+                continue;
+            }
+
+            component.favoriteOptionIds =
+                favorites[this.getFavoriteKey(state.deploymentType, propertyName)] ?? [];
+            const favoriteOption = findFirstFavoriteOption(
+                component.options ?? [],
+                component.favoriteOptionIds,
+            );
+            if (favoriteOption) {
+                state.formState[propertyName] = favoriteOption.value;
+            }
+        }
+
+        state.deploymentTypeState.formComponents = state.formComponents as any;
+    }
+
+    private getFavoriteKey(deploymentType: DeploymentType, propertyName: string): string {
+        return `${DeploymentType[deploymentType]}.${propertyName}`;
     }
 
     async updateItemVisibility() {}

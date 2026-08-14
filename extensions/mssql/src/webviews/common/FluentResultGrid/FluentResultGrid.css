@@ -238,7 +238,14 @@
 .fluent-result-grid .slick-header-column .slick-header-sortbutton,
 .fluent-result-grid .slick-header-column .slick-header-filterbutton {
     align-items: center;
+    appearance: none;
+    background-color: transparent;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: 14px;
+    border: 0;
     box-sizing: border-box;
+    cursor: pointer;
     display: inline-flex;
     flex: 0 0 16px;
     float: none;
@@ -247,6 +254,7 @@
     line-height: 16px;
     margin-bottom: 0;
     min-width: 16px;
+    padding: 0;
     position: static;
     transform: none;
     vertical-align: middle;
@@ -255,11 +263,81 @@
 }
 
 .fluent-result-grid .slick-header-column .slick-header-sortbutton {
+    background-image: url("../../media/sort.svg");
     margin: 0 1px 0 0;
 }
 
 .fluent-result-grid .slick-header-column .slick-header-filterbutton {
+    background-image: url("../../media/filter.svg");
     margin: 0;
+}
+
+.vscode-dark .fluent-result-grid .slick-header-column .slick-header-sortbutton,
+.vscode-high-contrast .fluent-result-grid .slick-header-column .slick-header-sortbutton {
+    background-image: url("../../media/sort_inverse.svg");
+}
+
+.vscode-light .fluent-result-grid .slick-header-column .slick-header-sortbutton,
+.vscode-high-contrast.vscode-high-contrast-light
+    .fluent-result-grid
+    .slick-header-column
+    .slick-header-sortbutton {
+    background-image: url("../../media/sort.svg");
+}
+
+.vscode-dark .fluent-result-grid .slick-header-column .slick-header-sortbutton.sorted-asc,
+.vscode-high-contrast .fluent-result-grid .slick-header-column .slick-header-sortbutton.sorted-asc {
+    background-image: url("../../media/sort_asc_inverse.svg");
+}
+
+.vscode-light .fluent-result-grid .slick-header-column .slick-header-sortbutton.sorted-asc,
+.vscode-high-contrast.vscode-high-contrast-light
+    .fluent-result-grid
+    .slick-header-column
+    .slick-header-sortbutton.sorted-asc {
+    background-image: url("../../media/sort_asc.svg");
+}
+
+.vscode-dark .fluent-result-grid .slick-header-column .slick-header-sortbutton.sorted-desc,
+.vscode-high-contrast
+    .fluent-result-grid
+    .slick-header-column
+    .slick-header-sortbutton.sorted-desc {
+    background-image: url("../../media/sort_desc_inverse.svg");
+}
+
+.vscode-light .fluent-result-grid .slick-header-column .slick-header-sortbutton.sorted-desc,
+.vscode-high-contrast.vscode-high-contrast-light
+    .fluent-result-grid
+    .slick-header-column
+    .slick-header-sortbutton.sorted-desc {
+    background-image: url("../../media/sort_desc.svg");
+}
+
+.vscode-dark .fluent-result-grid .slick-header-column .slick-header-filterbutton,
+.vscode-high-contrast .fluent-result-grid .slick-header-column .slick-header-filterbutton {
+    background-image: url("../../media/filter_inverse.svg");
+}
+
+.vscode-light .fluent-result-grid .slick-header-column .slick-header-filterbutton,
+.vscode-high-contrast.vscode-high-contrast-light
+    .fluent-result-grid
+    .slick-header-column
+    .slick-header-filterbutton {
+    background-image: url("../../media/filter.svg");
+}
+
+.vscode-dark .fluent-result-grid .slick-header-column .slick-header-filterbutton.filtered,
+.vscode-high-contrast .fluent-result-grid .slick-header-column .slick-header-filterbutton.filtered {
+    background-image: url("../../media/filterFilled_inverse.svg");
+}
+
+.vscode-light .fluent-result-grid .slick-header-column .slick-header-filterbutton.filtered,
+.vscode-high-contrast.vscode-high-contrast-light
+    .fluent-result-grid
+    .slick-header-column
+    .slick-header-filterbutton.filtered {
+    background-image: url("../../media/filterFilled.svg");
 }
 
 .fluent-result-grid .slick-header-column .slick-sort-indicator,

@@ -6,8 +6,8 @@
 import { makeStyles } from "@fluentui/react-components";
 import {
     createRef,
-    ForwardRefExoticComponent,
-    RefAttributes,
+    type ForwardRefExoticComponent,
+    type RefAttributes,
     useCallback,
     useContext,
     useEffect,
@@ -19,7 +19,7 @@ import { QueryResultCommandsContext } from "./queryResultStateProvider";
 import { useQueryResultSelector } from "./queryResultSelector";
 import * as qr from "../../../sharedInterfaces/queryResult";
 import CommandBar from "./commandBar";
-import ResultGrid, { ResultGridHandle, ResultGridProps } from "./resultGrid";
+import type { ResultGridHandle, ResultGridProps } from "./resultGrid";
 import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
 import { perfMark, perfMarkAfterNextPaint } from "../../common/perfMarks";
 import { eventMatchesShortcut } from "../../common/keyboardUtils";
@@ -57,7 +57,7 @@ type ResultGridComponent = ForwardRefExoticComponent<
 >;
 
 export interface QueryResultsGridViewProps {
-    GridComponent?: ResultGridComponent;
+    GridComponent: ResultGridComponent;
     showExternalCommandBar?: boolean;
 }
 
@@ -70,7 +70,7 @@ const DEFAULT_FONT_SIZE = 12;
 const BASE_ROW_PADDING = 12;
 
 export const QueryResultsGridView = ({
-    GridComponent = ResultGrid,
+    GridComponent,
     showExternalCommandBar = true,
 }: QueryResultsGridViewProps) => {
     const classes = useStyles();

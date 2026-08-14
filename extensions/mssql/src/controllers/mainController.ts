@@ -70,6 +70,7 @@ import { ObjectManagementService } from "../services/objectManagementService";
 import StatusView from "../views/statusView";
 import { IConnectionGroup, IConnectionProfile, ISelectionData } from "../models/interfaces";
 import ConnectionManager from "./connectionManager";
+import { IInstantiationService } from "extension-toolkit/base";
 import SqlDocumentService, { ConnectionStrategy } from "./sqlDocumentService";
 import { sendActionEvent, sendErrorEvent, VscodeHttpClient } from "extension-toolkit/vscode";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
@@ -243,7 +244,11 @@ export default class MainController implements vscode.Disposable {
      * The main controller constructor
      * @constructor
      */
-    constructor(context: vscode.ExtensionContext, connectionManager?: ConnectionManager) {
+    constructor(
+        context: vscode.ExtensionContext,
+        @IInstantiationService private readonly _instantiationService: IInstantiationService,
+        connectionManager?: ConnectionManager,
+    ) {
         this._context = context;
         if (connectionManager) {
             this._connectionMgr = connectionManager;
@@ -483,10 +488,8 @@ export default class MainController implements vscode.Disposable {
             });
             this.registerCommand(Constants.cmdOpenAzureDataStudioMigration);
             this._event.on(Constants.cmdOpenAzureDataStudioMigration, async () => {
-                const migrationController = new AzureDataStudioMigrationWebviewController(
-                    this._context,
-                    this.connectionManager.connectionStore,
-                    this.connectionManager.connectionStore.connectionConfig,
+                const migrationController = this._instantiationService.createInstance(
+                    AzureDataStudioMigrationWebviewController,
                     this.azureAccountService,
                 );
 
@@ -1268,11 +1271,14 @@ export default class MainController implements vscode.Disposable {
         );
 
         // Init connection manager and connection MRU
-        this._connectionMgr = new ConnectionManager(
-            this._context,
-            this._statusview,
-            this._prompter,
-        );
+        if (!this._connectionMgr) {
+            this._connectionMgr = this._instantiationService.createInstance(
+                ConnectionManager,
+                this._context,
+                this._statusview,
+                this._prompter,
+            );
+        }
 
         this._sqlDocumentService = new SqlDocumentService(this);
         this.configureQuickQueryService();
@@ -1454,6 +1460,7 @@ export default class MainController implements vscode.Disposable {
         // Registers only when mssql.objectExplorer.viewMode == "v2Preview";
         // shares saved profiles/groups READ-ONLY. Classic OE is untouched.
         activateObjectExplorerV2(this._context, {
+            instantiationService: this._instantiationService,
             profiles: this._connectionMgr.connectionStore,
             tokens: vscodeSqlTokenSource,
             // Classic connections are reachable ONLY through the explicit
@@ -2237,18 +2244,17 @@ export default class MainController implements vscode.Disposable {
 
         this.registerCommand(Constants.cmdConnectionGroupCreate);
         this._event.on(Constants.cmdConnectionGroupCreate, () => {
-            const connGroupDialog = new ConnectionGroupWebviewController(
-                this._context,
-                this.connectionManager.connectionStore.connectionConfig,
+            const connGroupDialog = this._instantiationService.createInstance(
+                ConnectionGroupWebviewController,
+                undefined,
             );
             connGroupDialog.revealToForeground();
         });
 
         this.registerCommandWithArgs(Constants.cmdConnectionGroupEdit);
         this._event.on(Constants.cmdConnectionGroupEdit, (node: ConnectionGroupNode) => {
-            const connGroupDialog = new ConnectionGroupWebviewController(
-                this._context,
-                this.connectionManager.connectionStore.connectionConfig,
+            const connGroupDialog = this._instantiationService.createInstance(
+                ConnectionGroupWebviewController,
                 node.connectionGroup,
             );
             connGroupDialog.revealToForeground();
@@ -3340,8 +3346,11 @@ export default class MainController implements vscode.Disposable {
             let uri = Utils.getActiveTextEditorUri();
             let title = path.basename(editor.document.fileName);
 
-            // return early if the document does contain any text
+            // Return early if the document does not contain any query text.
             if (editor.document.getText(undefined).trim().length === 0) {
+                void vscode.window.showInformationMessage(
+                    LocalizedConstants.msgNoQueryTextToExecute,
+                );
                 return;
             }
 
@@ -3358,6 +3367,9 @@ export default class MainController implements vscode.Disposable {
             let shouldRunSelection = false;
             if (!editor.selection.isEmpty) {
                 if (editor.document.getText(editor.selection).trim().length === 0) {
+                    void vscode.window.showInformationMessage(
+                        LocalizedConstants.msgNoQueryTextToExecute,
+                    );
                     return;
                 }
 
@@ -3431,6 +3443,9 @@ export default class MainController implements vscode.Disposable {
             // Trim down the selection. If it is empty after selecting, then we don't execute
             let selectionToTrim = editor.selection.isEmpty ? undefined : editor.selection;
             if (editor.document.getText(selectionToTrim).trim().length === 0) {
+                void vscode.window.showInformationMessage(
+                    LocalizedConstants.msgNoQueryTextToExecute,
+                );
                 return;
             }
 

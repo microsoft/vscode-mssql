@@ -33,6 +33,7 @@ export enum TelemetryActions {
     projectSchemaCompareCommandInvoked = "projectSchemaCompareCommandInvoked",
     publishProject = "publishProject",
     build = "build",
+    restore = "restore",
     updateProjectForRoundtrip = "updateProjectForRoundtrip",
     changePlatformType = "changePlatformType",
     createProjectFromDatabase = "createProjectFromDatabase",

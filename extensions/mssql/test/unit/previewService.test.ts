@@ -8,6 +8,7 @@ import { expect } from "chai";
 import * as vscode from "vscode";
 import {
     CONFIG_PREVIEW_PREFIX,
+    isBetaExecutionPlanEnabled,
     PreviewFeature,
     PreviewFeaturesService,
 } from "../../src/previews/previewService";
@@ -91,6 +92,22 @@ suite("PreviewFeaturesService", () => {
         test("both global and override disabled", () => {
             stubMssqlConfig(false, { [TestFeature]: false });
             expect(service.isFeatureEnabled(TestFeature)).to.be.false;
+        });
+    });
+
+    suite("Beta execution plan", () => {
+        test("defaults to false independently of the global experimental flag", () => {
+            stubMssqlConfig(true);
+
+            expect(isBetaExecutionPlanEnabled()).to.be.false;
+        });
+
+        test("reads only the dedicated preview setting", () => {
+            stubMssqlConfig(false, {
+                [PreviewFeature.BetaExecutionPlan]: true,
+            });
+
+            expect(isBetaExecutionPlanEnabled()).to.be.true;
         });
     });
 

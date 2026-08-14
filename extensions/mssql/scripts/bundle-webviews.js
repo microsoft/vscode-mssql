@@ -1,5 +1,6 @@
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
 const fs = require("fs").promises;
@@ -109,6 +110,7 @@ function createConfigs({ isProd, isWatch }) {
             tableDesigner: "src/webviews/pages/TableDesigner/index.tsx",
             objectExplorerFilter: "src/webviews/pages/ObjectExplorerFilter/index.tsx",
             queryResult: "src/webviews/pages/QueryResult/index.tsx",
+            queryResultPreview: "src/webviews/pages/QueryResult/queryResultPreviewIndex.tsx",
             queryStudio: "src/webviews/pages/QueryStudio/index.tsx",
             queryStudioReplay: "src/webviews/pages/QueryStudioReplay/index.tsx",
             queryResultsSnapshot: "src/webviews/pages/QueryResultsSnapshot/index.tsx",

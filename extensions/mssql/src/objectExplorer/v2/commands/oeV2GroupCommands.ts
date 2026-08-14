@@ -14,6 +14,7 @@
  */
 
 import * as vscode from "vscode";
+import { IInstantiationService } from "extension-toolkit/base";
 import { ConnectionConfig } from "../../../connectionconfig/connectionconfig";
 import { ConnectionGroupWebviewController } from "../../../controllers/connectionGroupWebviewController";
 import * as LocalizedConstants from "../../../constants/locConstants";
@@ -23,7 +24,7 @@ import { stableProfileId } from "../../../services/metadata/profileAuthAdapter";
 import { OeV2Node } from "../tree/oeV2Node";
 
 export interface OeV2GroupCommandDeps {
-    readonly context: vscode.ExtensionContext;
+    readonly instantiationService: IInstantiationService;
     /** The shared classic config — undefined when not injected (tests). */
     readonly groupConfig: () => ConnectionConfig | undefined;
 }
@@ -73,7 +74,7 @@ export function wouldCreateCycle(
 }
 
 export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Disposable {
-    const { context, groupConfig } = deps;
+    const { instantiationService, groupConfig } = deps;
 
     const create = vscode.commands.registerCommand(
         "mssql.objectExplorerV2.connectionGroups.create",
@@ -84,7 +85,10 @@ export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Di
             }
             // Creating from a group node's context menu nests under it.
             const parentId = groupIdOf(node);
-            const dialog = new ConnectionGroupWebviewController(context, config);
+            const dialog = instantiationService.createInstance(
+                ConnectionGroupWebviewController,
+                undefined,
+            );
             dialog.revealToForeground();
             emitGroupMutation("create", "ok");
             void parentId; // dialog assigns root parent; nesting via move/DnD
@@ -106,7 +110,9 @@ export function registerOeV2GroupCommands(deps: OeV2GroupCommandDeps): vscode.Di
                 );
                 return;
             }
-            new ConnectionGroupWebviewController(context, config, group).revealToForeground();
+            instantiationService
+                .createInstance(ConnectionGroupWebviewController, group)
+                .revealToForeground();
             emitGroupMutation("edit", "ok");
         },
     );

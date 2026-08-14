@@ -16,7 +16,12 @@ import { AzureSqlDatabase, ConnectionDialog } from "../constants/locConstants";
 import { ILogger } from "../sharedInterfaces/logger";
 import * as asd from "../sharedInterfaces/azureSqlDatabase";
 import { AuthenticationType, IConnectionDialogProfile } from "../sharedInterfaces/connectionDialog";
-import { FormItemActionButton, FormItemOptions, FormItemType } from "../sharedInterfaces/form";
+import {
+    findFirstFavoriteOption,
+    FormItemActionButton,
+    FormItemOptions,
+    FormItemType,
+} from "../sharedInterfaces/form";
 import { ApiStatus } from "../sharedInterfaces/webview";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 import { sendActionEvent, sendErrorEvent } from "extension-toolkit/vscode";
@@ -859,6 +864,20 @@ export async function connectToAzureSqlDatabase(
         await deploymentController.mainController.createObjectExplorerSession(profile);
         state.connectionLoadState = ApiStatus.Loaded;
 
+        // Capture the connection string (without the password) so the webview can
+        // surface it in the "Connect to Database" card.
+        try {
+            state.connectionString = await connManager.getConnectionString(
+                connManager.createConnectionDetails(connectionProfile),
+                false /* includePassword */,
+                false /* includeApplicationName */,
+            );
+        } catch (connectionStringError) {
+            cachedLogger?.error(
+                `Failed to build connection string: ${getErrorMessage(connectionStringError)}`,
+            );
+        }
+
         sendActionEvent(
             TelemetryViews.AzureSqlDatabase,
             TelemetryActions.ConnectToAzureSqlDatabase,
@@ -933,10 +952,9 @@ async function loadTenantComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
             ? ConnectionDialog.selectATenant
             : AzureSqlDatabase.noTenantsFound;
 
-    azureSqlState.formState.tenantId = getDefaultTenantId(
-        azureSqlState.formState.accountId,
-        azureSqlState.tenants,
-    );
+    azureSqlState.formState.tenantId =
+        findFirstFavoriteOption(tenantComponent.options, tenantComponent.favoriteOptionIds)
+            ?.value ?? getDefaultTenantId(azureSqlState.formState.accountId, azureSqlState.tenants);
 }
 
 async function loadSubscriptionComponent(azureSqlState: asd.AzureSqlDatabaseState): Promise<void> {
@@ -962,6 +980,7 @@ async function loadSubscriptionComponent(azureSqlState: asd.AzureSqlDatabaseStat
     subscriptionComponent.options = azureSqlState.subscriptions.map((sub) => ({
         displayName: `${sub.name} (${sub.subscriptionId})`,
         value: sub.subscriptionId,
+        favoriteId: sub.subscriptionId,
     }));
     subscriptionComponent.placeholder =
         azureSqlState.subscriptions.length > 0
@@ -969,7 +988,12 @@ async function loadSubscriptionComponent(azureSqlState: asd.AzureSqlDatabaseStat
             : AzureSqlDatabase.noSubscriptionsFound;
 
     azureSqlState.formState.subscriptionId =
-        azureSqlState.subscriptions.length > 0 ? azureSqlState.subscriptions[0].subscriptionId : "";
+        findFirstFavoriteOption(
+            subscriptionComponent.options,
+            subscriptionComponent.favoriteOptionIds,
+        )?.value ??
+        azureSqlState.subscriptions[0]?.subscriptionId ??
+        "";
 
     // Load maintenance configurations for the selected subscription
     void loadMaintenanceConfigs(azureSqlState);
@@ -1037,6 +1061,7 @@ async function loadResourceGroupComponent(azureSqlState: asd.AzureSqlDatabaseSta
     resourceGroupComponent.options = azureSqlState.resourceGroups.map((name) => ({
         displayName: name,
         value: name,
+        favoriteId: `${azureSqlState.formState.subscriptionId}/${name}`,
     }));
     resourceGroupComponent.placeholder =
         azureSqlState.resourceGroups.length > 0
@@ -1049,7 +1074,12 @@ async function loadResourceGroupComponent(azureSqlState: asd.AzureSqlDatabaseSta
         azureSqlState.formState.resourceGroup = currentRg;
     } else {
         azureSqlState.formState.resourceGroup =
-            azureSqlState.resourceGroups.length > 0 ? azureSqlState.resourceGroups[0] : "";
+            findFirstFavoriteOption(
+                resourceGroupComponent.options,
+                resourceGroupComponent.favoriteOptionIds,
+            )?.value ??
+            azureSqlState.resourceGroups[0] ??
+            "";
     }
 }
 
@@ -1085,6 +1115,7 @@ async function loadServerComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
     serverComponent.options = azureSqlState.servers.map((s) => ({
         displayName: s.name ?? "",
         value: s.name ?? "",
+        favoriteId: `${azureSqlState.formState.subscriptionId}/${azureSqlState.formState.resourceGroup}/${s.name ?? ""}`,
     }));
     serverComponent.placeholder =
         azureSqlState.servers.length > 0
@@ -1100,7 +1131,10 @@ async function loadServerComponent(azureSqlState: asd.AzureSqlDatabaseState): Pr
         azureSqlState.formState.serverName = currentServer;
     } else {
         azureSqlState.formState.serverName =
-            azureSqlState.servers.length > 0 ? (azureSqlState.servers[0].name ?? "") : "";
+            findFirstFavoriteOption(serverComponent.options, serverComponent.favoriteOptionIds)
+                ?.value ??
+            azureSqlState.servers[0]?.name ??
+            "";
     }
 
     // Auto-detect auth type based on the selected server's properties
@@ -1196,6 +1230,7 @@ function setAzureSqlDatabaseFormComponents(
             required: true,
             type: FormItemType.Dropdown,
             options: tenantOptions,
+            favoriteOptionIds: [],
             placeholder: ConnectionDialog.selectATenant,
             validate: (_state: asd.AzureSqlDatabaseState, value: string) => ({
                 isValid: !!value,
@@ -1208,6 +1243,7 @@ function setAzureSqlDatabaseFormComponents(
             required: true,
             type: FormItemType.SearchableDropdown,
             options: subscriptionOptions,
+            favoriteOptionIds: [],
             placeholder: AzureSqlDatabase.selectASubscription,
             validate: (_state: asd.AzureSqlDatabaseState, value: string) => ({
                 isValid: !!value,
@@ -1220,6 +1256,7 @@ function setAzureSqlDatabaseFormComponents(
             required: true,
             type: FormItemType.SearchableDropdown,
             options: [],
+            favoriteOptionIds: [],
             placeholder: AzureSqlDatabase.selectAResourceGroup,
             validate: (_state: asd.AzureSqlDatabaseState, value: string) => ({
                 isValid: !!value,
@@ -1232,6 +1269,7 @@ function setAzureSqlDatabaseFormComponents(
             required: true,
             type: FormItemType.SearchableDropdown,
             options: [],
+            favoriteOptionIds: [],
             placeholder: AzureSqlDatabase.selectAServer,
             validate: (_state: asd.AzureSqlDatabaseState, value: string) => ({
                 isValid: !!value,

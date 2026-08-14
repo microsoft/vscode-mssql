@@ -45,7 +45,9 @@ import SqlToolsServerClient from "../../src/languageservice/serviceclient";
 import { VSCodeAzureSubscriptionProvider } from "@microsoft/vscode-azext-azureauth";
 import {
     initializeIconUtils,
+    observeWebviewReady,
     stubGetCapabilitiesRequest,
+    stubInstantiationService,
     stubMessageBoxes,
     stubPreviewService,
     stubTelemetry,
@@ -89,6 +91,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
     let mockObjectExplorerProvider: sinon.SinonStubbedInstance<ObjectExplorerProvider>;
     let azureAccountService: sinon.SinonStubbedInstance<AzureAccountService>;
     let serviceClientMock: sinon.SinonStubbedInstance<SqlToolsServerClient>;
+    let loadVscodeEntraDataAsyncStub: sinon.SinonStub;
 
     const testMruConnection = {
         profileSource: CredentialsQuickPickItemType.Mru,
@@ -160,13 +163,24 @@ suite("ConnectionDialogWebviewController Tests", () => {
             } as IAccount,
         ]);
 
-        mainController = new MainController(mockContext, connectionManager);
+        mainController = new MainController(
+            mockContext,
+            stubInstantiationService(sandbox),
+            connectionManager,
+        );
 
         sandbox.stub(vscode.commands, "registerCommand");
         sandbox.stub(vscode.window, "registerWebviewViewProvider");
 
         mainController.azureAccountService = azureAccountService;
         await mainController["initializeObjectExplorer"](mockObjectExplorerProvider);
+
+        // Neutralize the constructor's fire-and-forget background VS Code Entra data load so it
+        // does not call updateState after the controller is disposed.
+        // Tests that use the real method restore this stub first.
+        loadVscodeEntraDataAsyncStub = sandbox
+            .stub(ConnectionDialogWebviewController.prototype, "loadVscodeEntraDataAsync")
+            .resolves();
 
         controller = new ConnectionDialogWebviewController(
             mockContext,
@@ -175,6 +189,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
             undefined /* connection to edit */,
         );
 
+        observeWebviewReady(controller);
         await controller.initialized;
     });
 
@@ -292,6 +307,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 undefined,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
@@ -327,6 +343,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 undefined,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
@@ -363,6 +380,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 undefined,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
@@ -399,6 +417,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 undefined,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller.state.recentConnections).to.have.lengthOf(1);
@@ -420,6 +439,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 editedConnection,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller["_connectionBeingEdited"]).to.deep.equal(
@@ -452,6 +472,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockObjectExplorerProvider,
                 editedConnection,
             );
+            observeWebviewReady(controller);
             await controller.initialized;
 
             expect(controller["_connectionBeingEdited"]).to.deep.equal(
@@ -789,6 +810,167 @@ suite("ConnectionDialogWebviewController Tests", () => {
             });
         });
 
+        suite("signIntoAzureForBrowse", () => {
+            setup(() => {
+                sandbox.stub(controller["_azureBrowseProvider"], "loadCollections").resolves();
+                sandbox.stub(controller["_azureBrowseProvider"], "autoLoadContents").resolves();
+                sandbox.stub(controller["_fabricBrowseProvider"], "loadCollections").resolves();
+                sandbox.stub(controller["_fabricBrowseProvider"], "autoLoadContents").resolves();
+            });
+
+            test("refreshes auth account options and selects the newly added account when the VS Code Entra MFA preview is enabled", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
+                stubVscodeAzureSignIn(sandbox);
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                    .resolves([mockAccounts.signedInAccount]);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                // Restore the constructor-time stub so the reducer's call to the real
+                // implementation refreshes the auth form's account/tenant options.
+                loadVscodeEntraDataAsyncStub.restore();
+
+                controller.state.azureAccounts = [];
+                controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
+
+                await controller["_reducerHandlers"].get("signIntoAzureForBrowse")(
+                    controller.state,
+                    { browseTarget: ConnectionInputMode.AzureBrowse },
+                );
+
+                const accountComponent = controller.state.formComponents["accountId"];
+                expect(
+                    accountComponent.options.some(
+                        (o) => o.value === mockAccounts.signedInAccount.id,
+                    ),
+                    "auth account options should include the newly added account",
+                ).to.be.true;
+                expect(controller.state.connectionProfile.accountId).to.equal(
+                    mockAccounts.signedInAccount.id,
+                );
+
+                const tenantComponent = controller.state.formComponents["tenantId"];
+                expect(
+                    tenantComponent.options.length,
+                    "tenant options should be populated for the newly selected account",
+                ).to.be.greaterThan(0);
+                expect(controller.state.connectionProfile.tenantId).to.equal(
+                    mockTenants[0].tenantId,
+                );
+            });
+
+            test("does not alter auth form account options or connectionProfile.accountId when the VS Code Entra MFA preview is disabled", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: false,
+                });
+                stubVscodeAzureSignIn(sandbox);
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                    .resolves([mockAccounts.signedInAccount]);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                const accountComponent = controller.state.formComponents["accountId"];
+                const originalOptions = [{ displayName: "existing", value: "existing-account-id" }];
+                accountComponent.options = originalOptions;
+                controller.state.connectionProfile.accountId = "existing-account-id";
+
+                // Reset any calls made during controller construction so we only observe
+                // calls triggered by this reducer invocation.
+                loadVscodeEntraDataAsyncStub.resetHistory();
+
+                await controller["_reducerHandlers"].get("signIntoAzureForBrowse")(
+                    controller.state,
+                    { browseTarget: ConnectionInputMode.AzureBrowse },
+                );
+
+                // Browse sign-in still succeeds and selects the browsed account...
+                expect(controller.state.selectedAccountId).to.equal(
+                    mockAccounts.signedInAccount.id,
+                );
+                // ...but the auth form's account selection/options are untouched.
+                expect(controller.state.connectionProfile.accountId).to.equal(
+                    "existing-account-id",
+                );
+                expect(accountComponent.options).to.deep.equal(originalOptions);
+                expect(loadVscodeEntraDataAsyncStub.called).to.be.false;
+            });
+
+            test("leaves the existing auth selection unchanged when no new account was added", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
+                stubVscodeAzureSignIn(sandbox);
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                    .resolves([mockAccounts.signedInAccount]);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                // The account is already known before sign-in, so re-authenticating it should
+                // not be treated as a newly added account.
+                controller.state.azureAccounts = [
+                    {
+                        id: mockAccounts.signedInAccount.id,
+                        name: mockAccounts.signedInAccount.label,
+                    },
+                ];
+
+                const accountComponent = controller.state.formComponents["accountId"];
+                const originalOptions = [{ displayName: "existing", value: "existing-account-id" }];
+                accountComponent.options = originalOptions;
+                controller.state.connectionProfile.accountId = "existing-account-id";
+
+                loadVscodeEntraDataAsyncStub.resetHistory();
+
+                await controller["_reducerHandlers"].get("signIntoAzureForBrowse")(
+                    controller.state,
+                    { browseTarget: ConnectionInputMode.AzureBrowse },
+                );
+
+                expect(loadVscodeEntraDataAsyncStub.called).to.be.false;
+                expect(controller.state.connectionProfile.accountId).to.equal(
+                    "existing-account-id",
+                );
+                expect(accountComponent.options).to.deep.equal(originalOptions);
+            });
+
+            test("applies the same event-scoped auth synchronization for FabricBrowse", async () => {
+                stubPreviewService(sandbox, {
+                    [PreviewFeature.UseVscodeAccountsForEntraMFA]: true,
+                });
+                stubVscodeAzureSignIn(sandbox);
+                sandbox
+                    .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                    .resolves([mockAccounts.signedInAccount]);
+                stubVscodeAzureTenantsForAccount(sandbox);
+
+                loadVscodeEntraDataAsyncStub.restore();
+
+                controller.state.azureAccounts = [];
+                controller.state.connectionProfile.authenticationType = AuthenticationType.AzureMFA;
+
+                await controller["_reducerHandlers"].get("signIntoAzureForBrowse")(
+                    controller.state,
+                    { browseTarget: ConnectionInputMode.FabricBrowse },
+                );
+
+                // The event-scoped auth synchronization added by this reducer applies
+                // regardless of browseTarget, so FabricBrowse sign-in refreshes the same
+                // auth form account options as AzureBrowse sign-in.
+                const accountComponent = controller.state.formComponents["accountId"];
+                expect(
+                    accountComponent.options.some(
+                        (o) => o.value === mockAccounts.signedInAccount.id,
+                    ),
+                    "auth account options should refresh for FabricBrowse sign-in too",
+                ).to.be.true;
+                expect(controller.state.connectionProfile.accountId).to.equal(
+                    mockAccounts.signedInAccount.id,
+                );
+            });
+        });
+
         suite("toggleFavoriteCollection", () => {
             test("delegates to the Azure provider for AzureBrowse", async () => {
                 const azureToggle = sandbox
@@ -972,6 +1154,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 .resolves([mockTenants[0], mockTenants[1]]);
 
             // Pre-populate the Entra account and tenant caches
+            loadVscodeEntraDataAsyncStub.restore();
             await controller["loadVscodeEntraDataAsync"]();
 
             const testConnection = {
@@ -991,6 +1174,21 @@ suite("ConnectionDialogWebviewController Tests", () => {
                 mockAccounts.signedInAccount.id,
             );
             expect(controller.state.connectionProfile.tenantId).to.equal(mockTenants[0].tenantId);
+        });
+
+        test("does not load tenants for every VS Code account in the background", async () => {
+            stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
+            sandbox
+                .stub(AzureHelpers.VsCodeAzureHelper, "getAccounts")
+                .resolves([mockAccounts.signedInAccount, mockAccounts.notSignedInAccount]);
+            const getTenantsForAccount = sandbox.stub(
+                AzureHelpers.VsCodeAzureHelper,
+                "getTenantsForAccount",
+            );
+
+            await controller["loadVscodeEntraDataAsync"]();
+
+            expect(getTenantsForAccount).to.not.have.been.called;
         });
 
         suite("connect", () => {
@@ -1751,6 +1949,7 @@ suite("ConnectionDialogWebviewController Tests", () => {
     });
 
     test("getAzureActionButtons uses VS Code sign-in when VS Code account mode is enabled", async () => {
+        loadVscodeEntraDataAsyncStub.restore();
         stubPreviewService(sandbox, { [PreviewFeature.UseVscodeAccountsForEntraMFA]: true });
 
         sandbox
@@ -1830,6 +2029,35 @@ suite("ConnectionDialogWebviewController Tests", () => {
 
             expect(connection.server).to.equal("localhost,1433");
             expect(connection.port).to.be.undefined;
+        });
+
+        test("does not append a comma when the port is blank", () => {
+            const connection = {
+                server: "localhost",
+            } as IConnectionDialogProfile;
+            Object.assign(connection, { port: "" });
+
+            controller["combineServerAndPort"](connection);
+
+            expect(connection.server).to.equal("localhost");
+            expect(connection.port).to.be.undefined;
+        });
+
+        test("accepts a blank port", () => {
+            const validation = controller.state.formComponents.port.validate(controller.state, "");
+
+            expect(validation.isValid).to.be.true;
+            expect(validation.validationMessage).to.equal("");
+        });
+
+        test("rejects a nonnumeric port", () => {
+            const validation = controller.state.formComponents.port.validate(
+                controller.state,
+                "not-a-port",
+            );
+
+            expect(validation.isValid).to.be.false;
+            expect(validation.validationMessage).to.not.equal("");
         });
 
         test("does not combine when the server already contains a port", () => {

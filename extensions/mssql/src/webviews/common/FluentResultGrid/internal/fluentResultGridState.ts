@@ -98,6 +98,19 @@ export function createFluentResultGridColumnSignature(columnInfo: readonly IDbCo
         .join("|");
 }
 
+export interface FluentResultGridColumnInfoSnapshot {
+    signature: string;
+    value: IDbColumn[];
+}
+
+export function stabilizeFluentResultGridColumnInfo(
+    current: FluentResultGridColumnInfoSnapshot | undefined,
+    columnInfo: IDbColumn[],
+): FluentResultGridColumnInfoSnapshot {
+    const signature = createFluentResultGridColumnSignature(columnInfo);
+    return current?.signature === signature ? current : { signature, value: columnInfo };
+}
+
 export function createFluentResultGridIdentitySignature({
     gridId,
     resultSetSummary,

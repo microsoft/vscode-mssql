@@ -13,8 +13,9 @@ export interface IVscodeHttpClientOptions {
 }
 
 /**
- * An HTTP client configured from VS Code's `http.proxy` and `http.proxyStrictSSL` settings.
- * Invalid proxy settings are reported through VS Code notifications and the optional logger.
+ * An HTTP client configured from VS Code's `http.proxy`, `http.noProxy`, and
+ * `http.proxyStrictSSL` settings. Invalid proxy settings are reported through VS Code
+ * notifications and the optional logger.
  */
 export class VscodeHttpClient extends HttpClient {
     /**
@@ -26,6 +27,8 @@ export class VscodeHttpClient extends HttpClient {
         const dependencies: IHttpClientDependencies = {
             getProxyConfig: () =>
                 vscode.workspace.getConfiguration("http")["proxy"] as string | undefined,
+            getNoProxyConfig: () =>
+                vscode.workspace.getConfiguration("http")["noProxy"] as string[] | undefined,
             getProxyStrictSSL: () =>
                 vscode.workspace.getConfiguration("http")["proxyStrictSSL"] as boolean | undefined,
             parseUriScheme: (value: string) => vscode.Uri.parse(value).scheme,
