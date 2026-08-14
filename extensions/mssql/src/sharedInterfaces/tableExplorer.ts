@@ -205,11 +205,11 @@ export interface TableExplorerWebViewState {
 }
 
 export interface TableExplorerContextProps extends CoreRPCs {
-    commitChanges: () => void;
+    commitChanges: () => Promise<void>;
     loadSubset: (rowCount: number) => void;
     createRow: () => void;
     deleteRow: (rowId: number) => void;
-    updateCell: (rowId: number, columnId: number, newValue: string) => void;
+    updateCell: (rowId: number, columnId: number, newValue: string) => Promise<void>;
     revertCell: (rowId: number, columnId: number) => void;
     revertRow: (rowId: number) => void;
     generateScript: () => void;

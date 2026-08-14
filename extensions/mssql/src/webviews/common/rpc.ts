@@ -182,8 +182,15 @@ export class WebviewRpc<Reducers> {
     public action<MethodName extends keyof Reducers>(
         method: MethodName,
         payload?: Reducers[MethodName],
-    ) {
-        void this.sendRequest(ReducerRequest.type<Reducers>(), {
+    ): void {
+        void this.actionAsync(method, payload);
+    }
+
+    public actionAsync<MethodName extends keyof Reducers>(
+        method: MethodName,
+        payload?: Reducers[MethodName],
+    ): Promise<unknown> {
+        return this.sendRequest(ReducerRequest.type<Reducers>(), {
             type: method,
             payload: payload,
         });

@@ -334,13 +334,22 @@ export const TableExplorerPage: React.FC = () => {
         setSortColumns([]);
     }, [tableQuery]);
 
-    const handleSave = useCallback(() => {
-        if (isSaving || !gridRef.current?.commitCurrentEdit()) {
+    const handleSave = useCallback(async () => {
+        if (isSaving || !gridRef.current) {
             return;
         }
 
+        const currentEditCommitted = gridRef.current.commitCurrentEditAndWait();
         setSaveRequestPending(true);
-        context.commitChanges();
+        try {
+            if (!(await currentEditCommitted)) {
+                setSaveRequestPending(false);
+                return;
+            }
+            await context.commitChanges();
+        } catch {
+            setSaveRequestPending(false);
+        }
     }, [context, isSaving]);
 
     useEffect(() => {
