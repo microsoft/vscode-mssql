@@ -42,6 +42,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private _lifecycleOperationQueue = Promise.resolve();
     private _lifecycleOperationCount = 0;
     private _cellOperationsEnabled = true;
+    private _commitInProgress = false;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -116,6 +117,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private onEditSessionReady(result: EditSessionReadyParams): void {
         if (result.success) {
             this._cellOperationsEnabled = true;
+            this._commitInProgress = false;
             this.state.ownerUri = result.ownerUri;
             this.state.loadStatus = ApiStatus.Loading;
             this.updateState();
@@ -471,6 +473,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         }
     }
 
+    private areEditMutationsBlocked(): boolean {
+        return !this._cellOperationsEnabled || this._commitInProgress;
+    }
+
     /**
      * Tears down the active edit session in preparation for re-initializing with a new query:
      * marks state as loading, clears the stale result set so the webview re-initializes the grid,
@@ -526,6 +532,11 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
     private registerRpcHandlers(): void {
         this.registerReducer("commitChanges", async (state) => {
+            if (this._commitInProgress) {
+                throw new Error("A commit is already in progress");
+            }
+            this._commitInProgress = true;
+
             this.logger.info(
                 `Committing changes for: ${state.tableName} - OperationId: ${this.operationId}`,
             );
@@ -542,56 +553,60 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 },
             );
 
-            return await this.enqueueLifecycleOperation(async () => {
-                try {
-                    this.throwIfCellOperationsFailed();
-                    await this._tableExplorerService.commit(state.ownerUri);
-                    vscode.window.showInformationMessage(
-                        LocConstants.TableExplorer.changesSavedSuccessfully,
-                    );
+            try {
+                return await this.enqueueLifecycleOperation(async () => {
+                    try {
+                        this.throwIfCellOperationsFailed();
+                        await this._tableExplorerService.commit(state.ownerUri);
+                        vscode.window.showInformationMessage(
+                            LocConstants.TableExplorer.changesSavedSuccessfully,
+                        );
 
-                    // Clear tracking state after successful commit
-                    state.newRows = [];
-                    state.deletedRows = [];
-                    state.failedCells = [];
-                    state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
-                    state.cellUpdateAcknowledgements = {};
-                    this._latestCellUpdateRequestIds.clear();
-                    this._failedCellOperations.clear();
-                    this.showRestorePromptAfterClose = false;
+                        // Clear tracking state after successful commit
+                        state.newRows = [];
+                        state.deletedRows = [];
+                        state.failedCells = [];
+                        state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
+                        state.cellUpdateAcknowledgements = {};
+                        this._latestCellUpdateRequestIds.clear();
+                        this._failedCellOperations.clear();
+                        this.showRestorePromptAfterClose = false;
 
-                    this.logger.debug(
-                        `Cleared new rows, deleted rows, failed cells, and original cell values cache after successful commit - OperationId: ${this.operationId}`,
-                    );
+                        this.logger.debug(
+                            `Cleared new rows, deleted rows, failed cells, and original cell values cache after successful commit - OperationId: ${this.operationId}`,
+                        );
 
-                    endActivity.end(ActivityStatus.Succeeded, {
-                        elapsedTime: (Date.now() - startTime).toString(),
-                        operationId: this.operationId,
-                    });
-                } catch (error) {
-                    this.logger.error(
-                        `Error committing changes: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
-                    );
-
-                    endActivity.endFailed(
-                        new Error("Failed to commit changes"),
-                        true /* includeErrorMessage */,
-                        undefined /* errorCode */,
-                        undefined /* errorType */,
-                        {
+                        endActivity.end(ActivityStatus.Succeeded, {
                             elapsedTime: (Date.now() - startTime).toString(),
                             operationId: this.operationId,
-                        },
-                    );
+                        });
+                    } catch (error) {
+                        this.logger.error(
+                            `Error committing changes: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
+                        );
 
-                    vscode.window.showErrorMessage(
-                        LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
-                    );
-                    throw error;
-                }
+                        endActivity.endFailed(
+                            new Error("Failed to commit changes"),
+                            true /* includeErrorMessage */,
+                            undefined /* errorCode */,
+                            undefined /* errorType */,
+                            {
+                                elapsedTime: (Date.now() - startTime).toString(),
+                                operationId: this.operationId,
+                            },
+                        );
 
-                return state;
-            });
+                        vscode.window.showErrorMessage(
+                            LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
+                        );
+                        throw error;
+                    }
+
+                    return state;
+                });
+            } finally {
+                this._commitInProgress = false;
+            }
         });
 
         this.registerReducer("loadSubset", async (state, payload) => {
@@ -680,7 +695,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("createRow", async (state) => {
-            if (!this._cellOperationsEnabled) {
+            if (this.areEditMutationsBlocked()) {
                 return state;
             }
 
@@ -768,6 +783,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("deleteRow", async (state, payload) => {
+            if (this.areEditMutationsBlocked()) {
+                return state;
+            }
+
             this.logger.debug(`Deleting row: ${payload.rowId} - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();
@@ -893,7 +912,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("updateCell", async (state, payload) => {
-            if (!this._cellOperationsEnabled) {
+            if (this.areEditMutationsBlocked()) {
                 return state;
             }
 
@@ -1127,6 +1146,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("revertCell", async (state, payload) => {
+            if (this.areEditMutationsBlocked()) {
+                return state;
+            }
+
             this.logger.debug(
                 `Reverting cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
             );
@@ -1281,6 +1304,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("revertRow", async (state, payload) => {
+            if (this.areEditMutationsBlocked()) {
+                return state;
+            }
+
             this.logger.debug(`Reverting row: ${payload.rowId} - OperationId: ${this.operationId}`);
 
             const startTime = Date.now();

@@ -663,7 +663,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(controller.state.deletedRows).to.deep.equal([0]);
         });
 
-        test("should classify a new row after a preceding commit completes", async () => {
+        test("should block cell and row mutations while commit is pending", async () => {
             controller.state.ownerUri = "test-owner-uri";
             const newRow = createMockRow(100, ["3", "New", "Row"]);
             controller.state.newRows = [newRow];
@@ -674,7 +674,6 @@ suite("TableExplorerWebViewController - Reducers", () => {
             };
             const commit = createDeferred<EditCommitResult>();
             mockTableExplorerService.commit.returns(commit.promise);
-            mockTableExplorerService.deleteRow.resolves({});
 
             const commitRequest = controller["_reducerHandlers"].get("commitChanges")(
                 controller.state,
@@ -685,22 +684,29 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 controller.state,
                 { rowId: 100 },
             );
+            const updateRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Updated during commit",
+                    requestId: 1,
+                },
+            );
             await waitForPromises();
 
             expect(mockTableExplorerService.deleteRow.called).to.be.false;
+            expect(mockTableExplorerService.updateCell.called).to.be.false;
 
             commit.resolve({});
             await commitRequest;
-            await deleteRequest;
+            await Promise.all([deleteRequest, updateRequest]);
 
             expect(controller.state.newRows).to.be.empty;
-            expect(controller.state.deletedRows).to.deep.equal([100]);
+            expect(controller.state.deletedRows).to.be.empty;
             expect(controller.state.resultSet?.subset.some((row) => row.id === 100)).to.be.true;
-            expect(
-                showInformationMessageStub.calledWith(
-                    LocConstants.TableExplorer.rowMarkedForRemoval,
-                ),
-            ).to.be.true;
+            expect(mockTableExplorerService.deleteRow.called).to.be.false;
+            expect(mockTableExplorerService.updateCell.called).to.be.false;
         });
     });
 

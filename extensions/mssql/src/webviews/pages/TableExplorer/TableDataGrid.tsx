@@ -75,6 +75,7 @@ interface TableDataGridProps {
     deletedRows?: number[];
     newRowIds?: number[];
     tableQuery?: string;
+    mutationsBlocked?: boolean;
     onDeleteRow?: (rowId: number) => void;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string, requestId: number) => void;
     onRevertCell?: (rowId: number, columnId: number) => void;
@@ -118,6 +119,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             deletedRows,
             newRowIds,
             tableQuery,
+            mutationsBlocked = false,
             onDeleteRow,
             onUpdateCell,
             onRevertCell,
@@ -141,6 +143,8 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const deletedRowsRef = useRef<Set<number>>(new Set());
         const newRowIdsRef = useRef<Set<number>>(new Set());
         const failedCellsRef = useRef<Set<string>>(new Set());
+        const mutationsBlockedRef = useRef(mutationsBlocked);
+        mutationsBlockedRef.current = mutationsBlocked;
         const lastPageRef = useRef<number>(1);
         const lastItemsPerPageRef = useRef<number>(pageSize);
         const previousResultSetRef = useRef<EditSubsetResult | undefined>(undefined);
@@ -294,7 +298,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 grid.updateColumns();
             },
             deleteRows: (rowIds: number[]) => {
-                if (!onDeleteRow) {
+                if (!onDeleteRow || mutationsBlockedRef.current) {
                     return;
                 }
                 if (reactGridRef.current?.paginationService) {
@@ -605,6 +609,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             }
         }, [themeKind, currentTheme]);
 
+        useEffect(() => {
+            reactGridRef.current?.slickGrid?.setOptions({ editable: !mutationsBlocked });
+        }, [mutationsBlocked]);
+
         // When the table query changes (custom query run), reset the previous result set
         // reference so the next resultSet update triggers a full grid re-initialization
         // (Scenario 1) instead of an incremental update (Scenario 2). This is necessary
@@ -662,7 +670,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     setOptions({
                         autoEdit: false,
                         autoCommitEdit: true,
-                        editable: true,
+                        editable: !mutationsBlocked,
                         autoResize: createFluentAutoResizeOptions("#grid-container", {
                             autoHeight: false,
                             bottomPadding: 10,
@@ -920,6 +928,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         }
 
         function handleCellChange(_e: CustomEvent, args: any) {
+            if (mutationsBlockedRef.current) {
+                return;
+            }
+
             // Capture pagination state
             if (reactGridRef.current?.paginationService) {
                 lastPageRef.current = reactGridRef.current.paginationService.pageNumber;
@@ -968,6 +980,10 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         // local deletion / cell-change tracking for the row, and updates parent
         // counters.
         function revertRow(rowId: number) {
+            if (mutationsBlockedRef.current) {
+                return;
+            }
+
             if (onRevertRow) {
                 onRevertRow(rowId);
             }
@@ -1093,12 +1109,15 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     break;
 
                 case "delete-row":
-                    if (onDeleteRow) {
+                    if (onDeleteRow && !mutationsBlockedRef.current) {
                         onDeleteRow(rowId);
                     }
                     break;
 
                 case "revert-cell":
+                    if (mutationsBlockedRef.current) {
+                        break;
+                    }
                     const cellIndex = args.cell;
                     // Get the actual column from the grid (accounts for hidden columns)
                     const gridColumns = reactGridRef.current?.slickGrid?.getVisibleColumns() || [];
