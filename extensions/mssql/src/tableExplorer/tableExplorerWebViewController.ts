@@ -38,7 +38,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     private _latestCellUpdateRequestIds = new Map<string, number>();
     private _cellOperationQueues = new Map<string, Promise<void>>();
     private _pendingCellOperations = new Set<Promise<void>>();
-    private _failedCellOperations = new Set<string>();
+    private _failedEditOperations = new Set<string>();
     private _lifecycleOperationQueue = Promise.resolve();
     private _lifecycleOperationCount = 0;
     private _cellOperationsEnabled = true;
@@ -378,7 +378,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         state.originalCellValues?.clear();
         state.cellUpdateAcknowledgements = {};
         this._latestCellUpdateRequestIds.clear();
-        this._failedCellOperations.clear();
+        this._failedEditOperations.clear();
         state.updateScript = undefined;
     }
 
@@ -467,10 +467,14 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         }
     }
 
-    private throwIfCellOperationsFailed(): void {
-        if (this._failedCellOperations.size > 0) {
-            throw new Error("One or more cell operations failed");
+    private throwIfEditOperationsFailed(): void {
+        if (this._failedEditOperations.size > 0) {
+            throw new Error("One or more edit operations failed");
         }
+    }
+
+    private getRowRevertFailureKey(rowId: number): string {
+        return `row:${rowId}`;
     }
 
     private areEditMutationsBlocked(): boolean {
@@ -556,7 +560,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             try {
                 return await this.enqueueLifecycleOperation(async () => {
                     try {
-                        this.throwIfCellOperationsFailed();
+                        this.throwIfEditOperationsFailed();
                         await this._tableExplorerService.commit(state.ownerUri);
                         vscode.window.showInformationMessage(
                             LocConstants.TableExplorer.changesSavedSuccessfully,
@@ -569,7 +573,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         state.originalCellValues?.clear(); // Clear cached original values since they're now outdated
                         state.cellUpdateAcknowledgements = {};
                         this._latestCellUpdateRequestIds.clear();
-                        this._failedCellOperations.clear();
+                        this._failedEditOperations.clear();
                         this.showRestorePromptAfterClose = false;
 
                         this.logger.debug(
@@ -806,6 +810,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                 try {
                     await this._tableExplorerService.deleteRow(state.ownerUri, payload.rowId);
+                    this._failedEditOperations.delete(this.getRowRevertFailureKey(payload.rowId));
 
                     // Remove all failed cells for this row
                     if (state.failedCells) {
@@ -813,9 +818,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                             (key) => !key.startsWith(`${payload.rowId}-`),
                         );
                     }
-                    for (const key of this._failedCellOperations) {
+                    for (const key of this._failedEditOperations) {
                         if (key.startsWith(`${payload.rowId}-`)) {
-                            this._failedCellOperations.delete(key);
+                            this._failedEditOperations.delete(key);
                         }
                     }
 
@@ -1001,7 +1006,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     }
 
                     // Remove from failed cells tracking if it was previously failed
-                    this._failedCellOperations.delete(cacheKey);
+                    this._failedEditOperations.delete(cacheKey);
                     if (state.failedCells) {
                         const failedKey = `${payload.rowId}-${payload.columnId}`;
                         state.failedCells = state.failedCells.filter((key) => key !== failedKey);
@@ -1082,7 +1087,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
                     // Track failed cell for UI highlighting
                     const failedKey = `${payload.rowId}-${payload.columnId}`;
-                    this._failedCellOperations.add(cacheKey);
+                    this._failedEditOperations.add(cacheKey);
                     if (!state.failedCells) {
                         state.failedCells = [failedKey];
                     } else if (!state.failedCells.includes(failedKey)) {
@@ -1225,7 +1230,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     ) {
                         this._latestCellUpdateRequestIds.delete(cacheKey);
                     }
-                    this._failedCellOperations.delete(cacheKey);
+                    this._failedEditOperations.delete(cacheKey);
 
                     // Remove from failed cells tracking
                     if (state.failedCells) {
@@ -1287,7 +1292,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     this.logger.error(
                         `Error reverting cell: ${getErrorMessage(error)} - OperationId: ${this.operationId}`,
                     );
-                    this._failedCellOperations.add(cacheKey);
+                    this._failedEditOperations.add(cacheKey);
 
                     endActivity.endFailed(
                         new Error("Failed to revert cell"),
@@ -1333,6 +1338,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                         state.ownerUri,
                         payload.rowId,
                     );
+                    this._failedEditOperations.delete(this.getRowRevertFailureKey(payload.rowId));
 
                     // Remove from deletedRows if it was marked for deletion
                     state.deletedRows = state.deletedRows.filter((id) => id !== payload.rowId);
@@ -1369,9 +1375,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                             this._latestCellUpdateRequestIds.delete(key);
                         }
                     }
-                    for (const key of this._failedCellOperations) {
+                    for (const key of this._failedEditOperations) {
                         if (key.startsWith(`${payload.rowId}-`)) {
-                            this._failedCellOperations.delete(key);
+                            this._failedEditOperations.delete(key);
                         }
                     }
 
@@ -1459,6 +1465,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     vscode.window.showErrorMessage(
                         LocConstants.TableExplorer.failedToRevertRow(getErrorMessage(error)),
                     );
+                    this._failedEditOperations.add(this.getRowRevertFailureKey(payload.rowId));
+                    throw error;
                 }
 
                 return state;
@@ -2012,8 +2020,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
     /**
      * Override the base class's showRestorePrompt to handle unsaved changes.
      * This is called from the onDidDispose handler in the base class.
-     * Prompts the user to save or discard changes, then allows disposal to continue.
-     * Always returns undefined to allow the close to proceed after handling the user's choice.
+     * Prompts the user to save or discard changes. If saving fails, restores the webview
+     * without disposing the edit session so the user can retry.
      */
     protected override async showRestorePrompt(): Promise<
         | {
@@ -2037,7 +2045,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             try {
                 await this.enqueueLifecycleOperation(() => {
-                    this.throwIfCellOperationsFailed();
+                    this.throwIfEditOperationsFailed();
                     return this._tableExplorerService.commit(this.state.ownerUri);
                 });
                 vscode.window.showInformationMessage(
@@ -2050,6 +2058,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                 vscode.window.showErrorMessage(
                     LocConstants.TableExplorer.failedToSaveChanges(getErrorMessage(error)),
                 );
+                return {
+                    title: LocConstants.TableExplorer.Save,
+                    run: async () => {
+                        await this.createWebviewPanel();
+                        this.panel.reveal();
+                    },
+                };
             }
         } else if (result === LocConstants.TableExplorer.Discard) {
             this.logger.info("User chose to discard changes");
@@ -2057,7 +2072,6 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             this.logger.info("User dismissed the prompt - treating as discard");
         }
 
-        // Always return undefined to allow disposal to continue
         return undefined;
     }
 

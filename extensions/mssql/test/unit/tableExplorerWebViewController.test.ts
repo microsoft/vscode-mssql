@@ -1479,18 +1479,37 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(mockTableExplorerService.generateScripts.calledOnce).to.be.true;
         });
 
-        test("should show error message when revertRow fails", async () => {
+        test("should preserve tracking and block commit when revertRow fails", async () => {
             // Arrange
             controller.state.ownerUri = "test-owner-uri";
+            controller.state.deletedRows = [0];
             const error = new Error("Revert row failed");
             mockTableExplorerService.revertRow.rejects(error);
+            mockTableExplorerService.commit.resolves({});
 
             // Act
-            await controller["_reducerHandlers"].get("revertRow")(controller.state, { rowId: 0 });
+            let revertRejected = false;
+            try {
+                await controller["_reducerHandlers"].get("revertRow")(controller.state, {
+                    rowId: 0,
+                });
+            } catch {
+                revertRejected = true;
+            }
+            let commitRejected = false;
+            try {
+                await controller["_reducerHandlers"].get("commitChanges")(controller.state, {});
+            } catch {
+                commitRejected = true;
+            }
 
             // Assert
-            expect(showErrorMessageStub.calledOnce).to.be.true;
-            expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to revert row");
+            expect(revertRejected).to.be.true;
+            expect(commitRejected).to.be.true;
+            expect(showErrorMessageStub.calledWithMatch(sinon.match("Failed to revert row"))).to.be
+                .true;
+            expect(controller.state.deletedRows).to.deep.equal([0]);
+            expect(mockTableExplorerService.commit.called).to.be.false;
         });
 
         test("should remove newly created row from UI when revert returns null", async () => {
@@ -2516,7 +2535,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
 
             revert.reject(new Error("Revert failed"));
             await revertRequest;
-            await saveRequest;
+            const restoreAction = await saveRequest;
 
             expect(mockTableExplorerService.commit.called).to.be.false;
             expect(
@@ -2525,6 +2544,45 @@ suite("TableExplorerWebViewController - Reducers", () => {
                 ),
             ).to.be.false;
             expect(showErrorMessageStub.called).to.be.true;
+            expect(restoreAction).not.to.be.undefined;
+        });
+
+        test("should restore the session when a queued save-on-close commit fails", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const update = createDeferred<EditCellResult>();
+            const commit = createDeferred<EditCommitResult>();
+            mockTableExplorerService.updateCell.returns(update.promise);
+            mockTableExplorerService.commit.returns(commit.promise);
+            showWarningMessageStub.resolves(LocConstants.TableExplorer.Save);
+            const createWebviewPanelStub = vscode.window.createWebviewPanel as sinon.SinonStub;
+            createWebviewPanelStub.resetHistory();
+
+            const updateRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "Updated",
+                    requestId: 1,
+                },
+            );
+            await waitForPromises();
+            const saveRequest = controller["showRestorePrompt"]();
+            update.resolve(createEditCellResult("Updated", true));
+            await updateRequest;
+            await waitForPromises();
+
+            expect(mockTableExplorerService.commit.called).to.be.true;
+            commit.reject(new Error("Commit failed"));
+            const restoreAction = await saveRequest;
+
+            expect(restoreAction).not.to.be.undefined;
+            await restoreAction?.run();
+            expect(createWebviewPanelStub.calledOnce).to.be.true;
+            expect((mockPanel.reveal as sinon.SinonStub).called).to.be.true;
+            expect(mockTableExplorerService.dispose.called).to.be.false;
+            expect(controller.state.originalCellValues?.has("0-1")).to.be.true;
         });
     });
 
