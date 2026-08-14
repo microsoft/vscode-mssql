@@ -867,23 +867,24 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     state.failedCells = state.failedCells.filter((key) => key !== failedKey);
                 }
 
-                // Update the cell value in the result set
-                if (state.resultSet && updateCellResult.cell) {
+                if (!updateCellResult.cell.isDirty) {
+                    state.originalCellValues?.delete(cacheKey);
+                }
+                state.cellUpdateAcknowledgements = {
+                    ...state.cellUpdateAcknowledgements,
+                    [cacheKey]: {
+                        requestId: payload.requestId,
+                        isDirty: updateCellResult.cell.isDirty,
+                    },
+                };
+
+                // Update the cell value in the result set if the row is still loaded
+                if (state.resultSet) {
                     const rowIndex = state.resultSet.subset.findIndex(
                         (row) => row.id === payload.rowId,
                     );
 
                     if (rowIndex !== -1) {
-                        if (!updateCellResult.cell.isDirty) {
-                            state.originalCellValues?.delete(cacheKey);
-                        }
-                        state.cellUpdateAcknowledgements = {
-                            ...state.cellUpdateAcknowledgements,
-                            [cacheKey]: {
-                                requestId: payload.requestId,
-                                isDirty: updateCellResult.cell.isDirty,
-                            },
-                        };
                         const updatedRow = this.updateResultCell(
                             state,
                             state.resultSet.subset[rowIndex],
@@ -897,15 +898,13 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                             ),
                         };
 
-                        this.showRestorePromptAfterClose = this.hasPendingChanges(state);
-
-                        this.updateState();
-
                         this.logger.debug(
                             `Updated cell in result set at row ${rowIndex}, column ${payload.columnId}`,
                         );
                     }
                 }
+                this.showRestorePromptAfterClose = this.hasPendingChanges(state);
+                this.updateState();
 
                 this.logger.debug(`Cell updated successfully - OperationId: ${this.operationId}`);
 

@@ -754,7 +754,7 @@ suite("TableExplorerWebViewController - Reducers", () => {
 
             expect(controller.state.resultSet?.subset[0].cells[1].displayValue).to.equal("Newest");
             expect(controller.state.failedCells).to.be.empty;
-            expect(showErrorMessageStub).not.to.have.been.called;
+            expect(showErrorMessageStub.called).to.be.false;
         });
 
         test("should derive row dirty state from current cells when responses complete out of order", async () => {
@@ -806,6 +806,47 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(
                 (controller.state.resultSet?.subset[0].cells[2] as { isDirty?: boolean }).isDirty,
             ).to.be.true;
+        });
+
+        test("should acknowledge a clean update after loadSubset removes its row", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.resultSet = createMockSubsetResult(2);
+            const cleanUpdate = createDeferred<EditCellResult>();
+            mockTableExplorerService.updateCell.returns(cleanUpdate.promise);
+            mockTableExplorerService.subset.resolves({
+                ...createMockSubsetResult(1),
+                subset: [createMockRow(1, ["2", "Jane", "Smith"])],
+            });
+
+            const updateRequest = controller["_reducerHandlers"].get("updateCell")(
+                controller.state,
+                {
+                    rowId: 0,
+                    columnId: 1,
+                    newValue: "John",
+                    requestId: 1,
+                },
+            );
+            await controller["_reducerHandlers"].get("loadSubset")(controller.state, {
+                rowCount: 1,
+            });
+            cleanUpdate.resolve({
+                cell: {
+                    displayValue: "John",
+                    isNull: false,
+                    invariantCultureDisplayValue: "John",
+                    isDirty: false,
+                },
+                isRowDirty: false,
+            });
+            await updateRequest;
+
+            expect(controller.state.resultSet?.subset.some((row) => row.id === 0)).to.be.false;
+            expect(controller.state.originalCellValues).to.be.empty;
+            expect(controller.state.cellUpdateAcknowledgements?.["0-1"]).to.deep.equal({
+                requestId: 1,
+                isDirty: false,
+            });
         });
 
         test("should regenerate script if script pane is visible", async () => {
