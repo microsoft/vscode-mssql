@@ -1383,12 +1383,18 @@ suite("TableExplorerWebViewController - Reducers", () => {
             mockTableExplorerService.revertCell.rejects(error);
 
             // Act
-            await controller["_reducerHandlers"].get("revertCell")(controller.state, {
-                rowId: 0,
-                columnId: 1,
-            });
+            let revertRejected = false;
+            try {
+                await controller["_reducerHandlers"].get("revertCell")(controller.state, {
+                    rowId: 0,
+                    columnId: 1,
+                });
+            } catch {
+                revertRejected = true;
+            }
 
             // Assert
+            expect(revertRejected).to.be.true;
             expect(showErrorMessageStub.calledOnce).to.be.true;
             expect(showErrorMessageStub.firstCall.args[0]).to.include("Failed to revert cell");
         });
@@ -2379,6 +2385,58 @@ suite("TableExplorerWebViewController - Reducers", () => {
             expect(controller.state.newRows).to.have.lengthOf(1);
         });
 
+        test("should block grid mutations until replacement cancellation completes", async () => {
+            controller.state.ownerUri = "test-owner-uri";
+            controller.state.loadStatus = ApiStatus.Loaded;
+            controller.state.resultSet = createMockSubsetResult(2);
+            controller.state.newRows = [createMockRow(100, ["3", "New", "Row"])];
+            const warning = createDeferred<string | undefined>();
+            showWarningMessageStub.returns(warning.promise);
+            mockTableExplorerService.updateCell.resolves(createEditCellResult("Updated", true));
+
+            const queryRequest = controller["_reducerHandlers"].get("runTableQuery")(
+                controller.state,
+                {
+                    queryString: "SELECT * FROM dbo.TestTable",
+                },
+            );
+            await waitForPromises();
+
+            expect(controller.state.loadStatus).to.equal(ApiStatus.Loading);
+            expect(controller["_sessionReplacementPending"]).to.be.true;
+
+            warning.resolve(undefined);
+            await queryRequest;
+
+            expect(controller.state.loadStatus).to.equal(ApiStatus.Loaded);
+            expect(controller["_sessionReplacementPending"]).to.be.false;
+            await controller["_reducerHandlers"].get("updateCell")(controller.state, {
+                rowId: 0,
+                columnId: 1,
+                newValue: "Updated",
+                requestId: 1,
+            });
+            expect(mockTableExplorerService.updateCell.calledOnce).to.be.true;
+        });
+
+        test("should reject a cell revert blocked by session replacement", async () => {
+            const pending = await queueReplacementBehindCellUpdate();
+
+            const revertRequest = controller["_reducerHandlers"].get("revertCell")(
+                controller.state,
+                { rowId: 0, columnId: 1 },
+            );
+            const revertRejected = Promise.resolve(revertRequest).then(
+                () => false,
+                () => true,
+            );
+            await finishPendingUpdate(pending);
+
+            expect(await revertRejected).to.be.true;
+            expect(mockTableExplorerService.revertCell.called).to.be.false;
+            expect(controller.state.originalCellValues?.has("0-1")).to.be.true;
+        });
+
         test("should cancel a delete queued after session replacement", async () => {
             const pending = await queueReplacementBehindCellUpdate();
 
@@ -2800,11 +2858,15 @@ suite("TableExplorerWebViewController - Reducers", () => {
                     columnId: 1,
                 },
             );
+            const revertRejected = Promise.resolve(revertRequest).then(
+                () => false,
+                () => true,
+            );
             await waitForPromises();
             const saveRequest = controller["showRestorePrompt"]();
 
             revert.reject(new Error("Revert failed"));
-            await revertRequest;
+            expect(await revertRejected).to.be.true;
             const restoreAction = await saveRequest;
 
             expect(mockTableExplorerService.commit.called).to.be.false;

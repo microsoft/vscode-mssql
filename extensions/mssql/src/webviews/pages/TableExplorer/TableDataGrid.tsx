@@ -27,7 +27,10 @@ import {
     AppliedSortColumn,
     stripTrailingOrderByAndSemicolon,
 } from "../../../tableExplorer/tableQueryComposer";
-import { removeAcknowledgedCleanCellChanges } from "../../../tableExplorer/editDataUtils";
+import {
+    removeAcknowledgedCleanCellChanges,
+    revertCellAndClearTracking,
+} from "../../../tableExplorer/editDataUtils";
 import {
     CellUpdateAcknowledgement,
     EditSubsetResult,
@@ -78,7 +81,7 @@ interface TableDataGridProps {
     mutationsBlocked?: boolean;
     onDeleteRow?: (rowId: number) => void;
     onUpdateCell?: (rowId: number, columnId: number, newValue: string, requestId: number) => void;
-    onRevertCell?: (rowId: number, columnId: number) => void;
+    onRevertCell?: (rowId: number, columnId: number) => Promise<void>;
     onRevertRow?: (rowId: number) => Promise<void>;
     onCellChangeCountChanged?: (count: number) => void;
     onDeletionCountChanged?: (count: number) => void;
@@ -1027,6 +1030,23 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
             reactGridRef.current?.slickGrid?.invalidate();
         }
 
+        async function revertCell(rowId: number, columnId: number) {
+            if (mutationsBlockedRef.current || !onRevertCell) {
+                return;
+            }
+
+            const changeKey = `${rowId}-${columnId}`;
+            await revertCellAndClearTracking(
+                () => onRevertCell(rowId, columnId),
+                () => {
+                    cellChangesRef.current.delete(changeKey);
+                    failedCellsRef.current.delete(changeKey);
+                    onCellChangeCountChanged?.(cellChangesRef.current.size);
+                    reactGridRef.current?.slickGrid?.invalidate();
+                },
+            );
+        }
+
         function handleCellClick(_e: Event, args: any) {
             const metadata = reactGridRef.current?.gridService.getColumnFromEventArguments(args);
             if (metadata?.columnDef.id !== "undo") {
@@ -1139,19 +1159,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                     const column = gridColumns[cellIndex];
                     // Use the original column index stored in column metadata (handles hidden columns)
                     const dataColumnIndex = (column as any)?.originalIndex ?? cellIndex;
-                    const changeKey = `${rowId}-${dataColumnIndex}`;
-
-                    if (onRevertCell) {
-                        onRevertCell(rowId, dataColumnIndex);
-                    }
-
-                    cellChangesRef.current.delete(changeKey);
-                    failedCellsRef.current.delete(changeKey);
-
-                    // Notify parent of change count update
-                    if (onCellChangeCountChanged) {
-                        onCellChangeCountChanged(cellChangesRef.current.size);
-                    }
+                    void revertCell(rowId, dataColumnIndex);
                     break;
 
                 case "revert-row":

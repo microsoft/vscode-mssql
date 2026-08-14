@@ -7,6 +7,7 @@ import { expect } from "chai";
 import {
     commitChangesAndClearTracking,
     removeAcknowledgedCleanCellChanges,
+    revertCellAndClearTracking,
 } from "../../src/tableExplorer/editDataUtils";
 
 suite("editDataUtils", () => {
@@ -88,6 +89,36 @@ suite("editDataUtils", () => {
         );
 
         expect(committed).to.be.false;
+        expect(trackingCleared).to.be.false;
+    });
+
+    test("clears cell tracking after a successful revert", async () => {
+        let trackingCleared = false;
+
+        const reverted = await revertCellAndClearTracking(
+            async () => {},
+            () => {
+                trackingCleared = true;
+            },
+        );
+
+        expect(reverted).to.be.true;
+        expect(trackingCleared).to.be.true;
+    });
+
+    test("preserves cell tracking after a failed revert", async () => {
+        let trackingCleared = false;
+
+        const reverted = await revertCellAndClearTracking(
+            async () => {
+                throw new Error("Revert failed");
+            },
+            () => {
+                trackingCleared = true;
+            },
+        );
+
+        expect(reverted).to.be.false;
         expect(trackingCleared).to.be.false;
     });
 });

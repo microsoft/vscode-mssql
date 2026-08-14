@@ -38,3 +38,16 @@ export async function commitChangesAndClearTracking(
         return false;
     }
 }
+
+export async function revertCellAndClearTracking(
+    revertCell: () => Promise<void>,
+    clearTracking: () => void,
+): Promise<boolean> {
+    try {
+        await revertCell();
+        clearTracking();
+        return true;
+    } catch {
+        return false;
+    }
+}

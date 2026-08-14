@@ -50,8 +50,8 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("updateCell", { rowId, columnId, newValue, requestId });
             },
 
-            revertCell: function (rowId: number, columnId: number): void {
-                extensionRpc.action("revertCell", { rowId, columnId });
+            revertCell: async function (rowId: number, columnId: number): Promise<void> {
+                await extensionRpc.actionAsync("revertCell", { rowId, columnId });
             },
 
             revertRow: async function (rowId: number): Promise<void> {

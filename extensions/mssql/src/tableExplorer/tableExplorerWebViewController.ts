@@ -527,7 +527,10 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         state: TableExplorerWebViewState,
         confirmDiscardPendingChanges = false,
     ): Promise<boolean> {
+        const previousLoadStatus = state.loadStatus;
         this._sessionReplacementPending = true;
+        state.loadStatus = ApiStatus.Loading;
+        this.updateState();
         try {
             return await this.enqueueLifecycleOperation(async () => {
                 if (
@@ -536,11 +539,12 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     !(await this.promptDiscardPendingChanges())
                 ) {
                     this._sessionReplacementPending = false;
+                    state.loadStatus = previousLoadStatus;
+                    this.updateState();
                     return false;
                 }
 
                 this._cellOperationsEnabled = false;
-                state.loadStatus = ApiStatus.Loading;
 
                 state.resultSet = undefined;
                 this.updateState();
@@ -556,6 +560,8 @@ export class TableExplorerWebViewController extends WebviewPanelController<
             });
         } catch (error) {
             this._sessionReplacementPending = false;
+            state.loadStatus = previousLoadStatus;
+            this.updateState();
             throw error;
         }
     }
@@ -1222,9 +1228,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
         });
 
         this.registerReducer("revertCell", async (state, payload) => {
-            if (this.areEditMutationsBlocked()) {
-                return state;
-            }
+            this.throwIfEditMutationBlocked();
 
             this.logger.debug(
                 `Reverting cell: row ${payload.rowId}, column ${payload.columnId} - OperationId: ${this.operationId}`,
@@ -1246,7 +1250,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
 
             return await this.enqueueCellOperation(cacheKey, async () => {
                 if (!this._cellOperationsEnabled) {
-                    return state;
+                    throw new Error(
+                        "Cell revert was not applied because the session is unavailable",
+                    );
                 }
 
                 try {
@@ -1259,11 +1265,9 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     );
 
                     if (!this._cellOperationsEnabled) {
-                        endActivity.end(ActivityStatus.Succeeded, {
-                            elapsedTime: (Date.now() - startTime).toString(),
-                            operationId: this.operationId,
-                        });
-                        return state;
+                        throw new Error(
+                            "Cell revert was not applied because the session is unavailable",
+                        );
                     }
 
                     // Check if we have a cached original value
@@ -1357,7 +1361,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                             new Error("Cell revert stopped during session disposal"),
                             false /* includeErrorMessage */,
                         );
-                        return state;
+                        throw error;
                     }
 
                     this.logger.error(
@@ -1379,6 +1383,7 @@ export class TableExplorerWebViewController extends WebviewPanelController<
                     vscode.window.showErrorMessage(
                         LocConstants.TableExplorer.failedToRevertCell(getErrorMessage(error)),
                     );
+                    throw error;
                 }
 
                 return state;

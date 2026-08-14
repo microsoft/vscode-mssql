@@ -407,7 +407,7 @@ export const TableExplorerPage: React.FC = () => {
                                     deletedRows={deletedRows}
                                     newRowIds={newRows?.map((r) => r.id)}
                                     tableQuery={tableQuery}
-                                    mutationsBlocked={isSaving}
+                                    mutationsBlocked={isSaving || isLoading}
                                     onDeleteRow={context?.deleteRow}
                                     onUpdateCell={context?.updateCell}
                                     onRevertCell={context?.revertCell}
