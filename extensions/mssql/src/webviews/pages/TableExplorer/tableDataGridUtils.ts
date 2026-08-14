@@ -74,6 +74,7 @@ export function tryLockTableExplorerRow(rowId: number, lockedRows: Set<number>):
 
 export class TableExplorerRowMutationQueue {
     private readonly pendingMutations = new Map<number, Promise<void>>();
+    private readonly pendingFailures: unknown[] = [];
     private generation = 0;
 
     public enqueue(rowId: number, mutation: () => Promise<void>): Promise<void> {
@@ -87,26 +88,24 @@ export class TableExplorerRowMutationQueue {
 
         void currentMutation.then(
             () => this.removeCompletedMutation(rowId, currentMutation),
-            () => this.removeCompletedMutation(rowId, currentMutation),
+            (error) => {
+                if (generation === this.generation) {
+                    this.pendingFailures.push(error);
+                }
+                this.removeCompletedMutation(rowId, currentMutation);
+            },
         );
         return currentMutation;
     }
 
     public async drain(): Promise<void> {
-        let firstError: unknown;
-        let hasError = false;
         while (this.pendingMutations.size > 0) {
-            const results = await Promise.allSettled(this.pendingMutations.values());
-            const rejection = results.find(
-                (result): result is PromiseRejectedResult => result.status === "rejected",
-            );
-            if (!hasError && rejection) {
-                hasError = true;
-                firstError = rejection.reason;
-            }
+            await Promise.allSettled(this.pendingMutations.values());
         }
 
-        if (hasError) {
+        if (this.pendingFailures.length > 0) {
+            const [firstError] = this.pendingFailures;
+            this.pendingFailures.length = 0;
             throw firstError;
         }
     }
@@ -114,12 +113,26 @@ export class TableExplorerRowMutationQueue {
     public invalidate(): void {
         this.generation++;
         this.pendingMutations.clear();
+        this.pendingFailures.length = 0;
     }
 
     private removeCompletedMutation(rowId: number, mutation: Promise<void>): void {
         if (this.pendingMutations.get(rowId) === mutation) {
             this.pendingMutations.delete(rowId);
         }
+    }
+}
+
+export class TableExplorerLifecycleMutex {
+    private pendingOperation = Promise.resolve();
+
+    public runExclusive<T>(operation: () => Promise<T>): Promise<T> {
+        const result = this.pendingOperation.then(operation);
+        this.pendingOperation = result.then(
+            () => undefined,
+            () => undefined,
+        );
+        return result;
     }
 }
 

@@ -10,6 +10,7 @@ import {
     isTableExplorerDataColumn,
     runBeforeTableExplorerSessionReplacement,
     snapshotCellChangesForRow,
+    TableExplorerLifecycleMutex,
     TableExplorerRowMutationQueue,
     tryLockTableExplorerRow,
 } from "../../src/webviews/pages/TableExplorer/tableDataGridUtils";
@@ -190,6 +191,28 @@ suite("tableDataGridUtils", () => {
             expect(secondMutationCompleted).to.equal(true);
         });
 
+        test("does not mask a same-row failure with a successful tail mutation", async () => {
+            const queue = new TableExplorerRowMutationQueue();
+            const expectedError = new Error("update failed");
+            const failedMutation = queue.enqueue(5, async () => {
+                throw expectedError;
+            });
+            const successfulMutation = queue.enqueue(5, async () => undefined);
+
+            await failedMutation.catch(() => undefined);
+            await successfulMutation;
+
+            let caughtError: unknown;
+            try {
+                await queue.drain();
+            } catch (error) {
+                caughtError = error;
+            }
+
+            expect(caughtError).to.equal(expectedError);
+            await queue.drain();
+        });
+
         test("invalidates queued mutations from an earlier session", async () => {
             const queue = new TableExplorerRowMutationQueue();
             let completeFirstMutation: () => void;
@@ -247,6 +270,34 @@ suite("tableDataGridUtils", () => {
                 "replacement",
                 "blocked:false",
             ]);
+        });
+    });
+
+    suite("TableExplorerLifecycleMutex", () => {
+        test("serializes save and session replacement operations", async () => {
+            const mutex = new TableExplorerLifecycleMutex();
+            const events: string[] = [];
+            let completeSave: () => void;
+            const save = mutex.runExclusive(() =>
+                new Promise<void>((resolve) => {
+                    events.push("save:start");
+                    completeSave = resolve;
+                }).then(() => {
+                    events.push("save:end");
+                }),
+            );
+            const replacement = mutex.runExclusive(async () => {
+                events.push("replacement");
+            });
+
+            await Promise.resolve();
+            expect(events).to.deep.equal(["save:start"]);
+
+            completeSave!();
+            await save;
+            await replacement;
+
+            expect(events).to.deep.equal(["save:start", "save:end", "replacement"]);
         });
     });
 });

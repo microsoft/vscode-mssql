@@ -44,6 +44,7 @@ import {
     isTableExplorerDataColumn,
     runBeforeTableExplorerSessionReplacement,
     snapshotCellChangesForRow,
+    TableExplorerLifecycleMutex,
     TableExplorerRowMutationQueue,
     tryLockTableExplorerRow,
 } from "./tableDataGridUtils";
@@ -149,6 +150,7 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
         const failedCellsRef = useRef<Set<string>>(new Set());
         const revertingRowsRef = useRef<Set<number>>(new Set());
         const rowMutationQueueRef = useRef(new TableExplorerRowMutationQueue());
+        const lifecycleMutexRef = useRef(new TableExplorerLifecycleMutex());
         const mutationsBlockedRef = useRef(false);
         const lastPageRef = useRef<number>(1);
         const lastItemsPerPageRef = useRef<number>(pageSize);
@@ -355,36 +357,38 @@ export const TableDataGrid = forwardRef<TableDataGridRef, TableDataGridProps>(
                 const stripped = stripTrailingOrderByAndSemicolon(base);
                 return `${stripped}\nORDER BY ${orderParts.join(", ")}`;
             },
-            runAfterPendingMutations: async (operation: () => Promise<void>) => {
-                const grid = reactGridRef.current?.slickGrid;
-                if (grid && !grid.getEditorLock().commitCurrentEdit()) {
-                    return false;
-                }
+            runAfterPendingMutations: (operation: () => Promise<void>) =>
+                lifecycleMutexRef.current.runExclusive(async () => {
+                    const grid = reactGridRef.current?.slickGrid;
+                    if (grid && !grid.getEditorLock().commitCurrentEdit()) {
+                        return false;
+                    }
 
-                mutationsBlockedRef.current = true;
-                grid?.invalidate();
-                try {
-                    await rowMutationQueueRef.current.drain();
-                    await operation();
-                    return true;
-                } finally {
-                    mutationsBlockedRef.current = false;
-                    reactGridRef.current?.slickGrid?.invalidate();
-                }
-            },
-            runBeforeSessionReplacement: async (operation: () => Promise<void>) => {
-                await runBeforeTableExplorerSessionReplacement(
-                    rowMutationQueueRef.current,
-                    (blocked) => {
-                        mutationsBlockedRef.current = blocked;
-                        reactGridRef.current?.slickGrid?.invalidate();
-                    },
-                    async () => {
-                        revertingRowsRef.current.clear();
+                    mutationsBlockedRef.current = true;
+                    grid?.invalidate();
+                    try {
+                        await rowMutationQueueRef.current.drain();
                         await operation();
-                    },
-                );
-            },
+                        return true;
+                    } finally {
+                        mutationsBlockedRef.current = false;
+                        reactGridRef.current?.slickGrid?.invalidate();
+                    }
+                }),
+            runBeforeSessionReplacement: (operation: () => Promise<void>) =>
+                lifecycleMutexRef.current.runExclusive(async () => {
+                    await runBeforeTableExplorerSessionReplacement(
+                        rowMutationQueueRef.current,
+                        (blocked) => {
+                            mutationsBlockedRef.current = blocked;
+                            reactGridRef.current?.slickGrid?.invalidate();
+                        },
+                        async () => {
+                            revertingRowsRef.current.clear();
+                            await operation();
+                        },
+                    );
+                }),
         }));
 
         // Convert a single row to grid format
