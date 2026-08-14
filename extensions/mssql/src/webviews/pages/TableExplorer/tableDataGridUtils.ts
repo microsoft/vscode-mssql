@@ -71,3 +71,26 @@ export function tryLockTableExplorerRow(rowId: number, lockedRows: Set<number>):
     lockedRows.add(rowId);
     return true;
 }
+
+export class TableExplorerRowMutationQueue {
+    private readonly pendingMutations = new Map<number, Promise<void>>();
+
+    public enqueue(rowId: number, mutation: () => Promise<void>): Promise<void> {
+        const previousMutation =
+            this.pendingMutations.get(rowId)?.catch(() => undefined) ?? Promise.resolve();
+        const currentMutation = previousMutation.then(mutation);
+        this.pendingMutations.set(rowId, currentMutation);
+
+        void currentMutation.then(
+            () => this.removeCompletedMutation(rowId, currentMutation),
+            () => this.removeCompletedMutation(rowId, currentMutation),
+        );
+        return currentMutation;
+    }
+
+    private removeCompletedMutation(rowId: number, mutation: Promise<void>): void {
+        if (this.pendingMutations.get(rowId) === mutation) {
+            this.pendingMutations.delete(rowId);
+        }
+    }
+}

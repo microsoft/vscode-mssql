@@ -207,9 +207,9 @@ export interface TableExplorerContextProps extends CoreRPCs {
     commitChanges: () => void;
     loadSubset: (rowCount: number) => void;
     createRow: () => void;
-    deleteRow: (rowId: number) => void;
-    updateCell: (rowId: number, columnId: number, newValue: string) => void;
-    revertCell: (rowId: number, columnId: number) => void;
+    deleteRow: (rowId: number) => Promise<void>;
+    updateCell: (rowId: number, columnId: number, newValue: string) => Promise<void>;
+    revertCell: (rowId: number, columnId: number) => Promise<void>;
     revertRow: (rowId: number) => Promise<void>;
     generateScript: () => void;
     openScriptInEditor: () => void;

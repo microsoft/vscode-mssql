@@ -37,16 +37,20 @@ export const TableExplorerStateProvider: React.FC<{
                 extensionRpc.action("createRow", {});
             },
 
-            deleteRow: function (rowId: number): void {
-                extensionRpc.action("deleteRow", { rowId });
+            deleteRow: async function (rowId: number): Promise<void> {
+                await extensionRpc.actionAndWait("deleteRow", { rowId });
             },
 
-            updateCell: function (rowId: number, columnId: number, newValue: string): void {
-                extensionRpc.action("updateCell", { rowId, columnId, newValue });
+            updateCell: async function (
+                rowId: number,
+                columnId: number,
+                newValue: string,
+            ): Promise<void> {
+                await extensionRpc.actionAndWait("updateCell", { rowId, columnId, newValue });
             },
 
-            revertCell: function (rowId: number, columnId: number): void {
-                extensionRpc.action("revertCell", { rowId, columnId });
+            revertCell: async function (rowId: number, columnId: number): Promise<void> {
+                await extensionRpc.actionAndWait("revertCell", { rowId, columnId });
             },
 
             revertRow: async function (rowId: number): Promise<void> {

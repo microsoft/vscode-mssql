@@ -9,6 +9,7 @@ import {
     hasPendingChangesForRow,
     isTableExplorerDataColumn,
     snapshotCellChangesForRow,
+    TableExplorerRowMutationQueue,
     tryLockTableExplorerRow,
 } from "../../src/webviews/pages/TableExplorer/tableDataGridUtils";
 
@@ -92,6 +93,55 @@ suite("tableDataGridUtils", () => {
 
             lockedRows.delete(5);
             expect(tryLockTableExplorerRow(5, lockedRows)).to.equal(true);
+        });
+    });
+
+    suite("TableExplorerRowMutationQueue", () => {
+        test("serializes mutations for the same row", async () => {
+            const queue = new TableExplorerRowMutationQueue();
+            let completeFirstMutation: () => void;
+            let secondMutationStarted = false;
+            const firstMutation = queue.enqueue(
+                5,
+                () =>
+                    new Promise<void>((resolve) => {
+                        completeFirstMutation = resolve;
+                    }),
+            );
+            const secondMutation = queue.enqueue(5, async () => {
+                secondMutationStarted = true;
+            });
+
+            await Promise.resolve();
+            expect(secondMutationStarted).to.equal(false);
+
+            completeFirstMutation!();
+            await firstMutation;
+            await secondMutation;
+            expect(secondMutationStarted).to.equal(true);
+        });
+
+        test("continues the row queue after a failed mutation", async () => {
+            const queue = new TableExplorerRowMutationQueue();
+            const expectedError = new Error("update failed");
+            const firstMutation = queue.enqueue(5, async () => {
+                throw expectedError;
+            });
+            let secondMutationStarted = false;
+            const secondMutation = queue.enqueue(5, async () => {
+                secondMutationStarted = true;
+            });
+
+            let caughtError: unknown;
+            try {
+                await firstMutation;
+            } catch (error) {
+                caughtError = error;
+            }
+            await secondMutation;
+
+            expect(caughtError).to.equal(expectedError);
+            expect(secondMutationStarted).to.equal(true);
         });
     });
 });
