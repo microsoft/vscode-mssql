@@ -110,6 +110,8 @@ Statement {
   | MessageTypeStatement
   | ContractStatement
   | BrokerPriorityStatement
+  | EndConversationStatement
+  | ReceiveStatement
   | QueueStatement
   | ServiceStatement
   | EndpointStatement
@@ -312,7 +314,8 @@ DatabaseTermination {
 // Schema lifecycle statements support ownership and object transfer.
 CreateSchemaStatement { Create Schema IdentifierName (Authorization IdentifierName)? }
 AlterSchemaStatement { Alter Schema IdentifierName Transfer MultipartIdentifier }
-DropSchemaStatement { Drop Schema IfExistsClause? IdentifierName }
+// DROP SCHEMA retains legacy CASCADE/RESTRICT and multipart error-recovery shapes structurally.
+DropSchemaStatement { Drop Schema IfExistsClause? MultipartIdentifier (Cascade | Restrict)? }
 
 // Principal DDL dispatches to syntax specific to logins, database users, and roles.
 CreatePrincipalStatement {
@@ -789,6 +792,19 @@ BrokerPriorityOption {
   | RemoteServiceName Equal (StringLiteral | Any)
   | LocalServiceName Equal (IdentifierName | Any)
 }
+
+// END CONVERSATION closes one Service Broker conversation with optional cleanup/error details.
+EndConversationStatement {
+  End Conversation Expression optionalDdlTail<EndConversationWithClause>
+}
+EndConversationWithClause { With (Cleanup | Error Equal Expression Description Equal Expression) }
+
+// RECEIVE reads one or more projected values from a Service Broker queue.
+ReceiveStatement {
+  Receive TopClause? ReceiveElement (Comma ReceiveElement)* From MultipartIdentifier
+  (Into Variable)? WhereClause?
+}
+ReceiveElement { SelectElement }
 
 // Queue statements retain activation/status options and optional filegroup placement.
 QueueStatement {
@@ -1329,7 +1345,7 @@ DeclareStatement {
 
 // A variable declaration supplies a scalar type/value or table definition.
 VariableDeclaration {
-  Variable As? (DataType | Cursor) (Equal Expression)?
+  Variable As? (DataType | Cursor) (Null | Not Null)? (Equal Expression)?
   | Variable As? Table TableDefinition
 }
 
@@ -1871,8 +1887,11 @@ CreateIndexKind { Unique? (Clustered | Nonclustered)? Columnstore? }
 // A regular index tail orders keys, included columns, filter, options, and storage.
 CreateIndexTail {
   IndexColumnList? IncludeClause? WhereClause? optionalDdlTail<IndexWithClause>
-  IndexStorageClause?
+  IndexStorageClause? IndexFileStreamClause?
 }
+
+// FILESTREAM_ON places FILESTREAM data independently of the relational index filegroup.
+IndexFileStreamClause { FileStreamOn (IdentifierName | StringLiteral | Null) }
 
 // CREATE JSON INDEX indexes one JSON column and optional path list on SQL Server 2025.
 CreateJsonIndexStatement {
@@ -1964,8 +1983,8 @@ AlterIndexOptionalTail {
 }
 
 // DROP INDEX removes modern table-qualified indexes or legacy owner-qualified names.
-DropIndexStatement {
-  Drop Index IfExistsClause?
+DropIndexStatement { Drop Index IfExistsClause? DropIndexItem (Comma DropIndexItem)* }
+DropIndexItem {
   (IdentifierName On MultipartIdentifier | MultipartIdentifier)
   optionalDdlTail<IndexWithClause>
 }
@@ -2102,7 +2121,11 @@ MergeInsertSource { Default Values | Values RowValue }
 DmlTarget {
   (MultipartIdentifier (!call OpenParen ArgumentList? CloseParen)? | Variable)
   ~sourceSuffix TableHintClause?
+  | OpenRowsetDmlTarget
 }
+
+// OPENROWSET can be the target of INSERT as well as a source in the FROM clause.
+OpenRowsetDmlTarget { OpenRowset OpenParen OpenRowsetArguments CloseParen }
 
 // OUTPUT projects affected rows and can route the result into another table.
 OutputClause { Output OutputElement (Comma OutputElement)* OutputIntoClause? }
@@ -2514,18 +2537,30 @@ UnpivotJoin {
 WhereClause { Where Expression }
 
 // GROUP BY supports ordinary expressions, rollups, cubes, and grouping sets.
-GroupByClause { Group By GroupingElement (Comma GroupingElement)* }
+GroupByClause {
+  Group By (GroupByAllClause | GroupingElement (Comma GroupingElement)*)
+}
+
+// Legacy GROUP BY ALL retains its optional grouping list; ORDER BY ALL is gated separately.
+GroupByAllClause { All (GroupingElement (Comma GroupingElement)*)? }
 
 // A grouping element selects one expression or a composite grouping operator.
 GroupingElement {
-  Expression
+  Expression optionalDdlTail<GroupingDistributionClause>
   | Rollup OpenParen GroupingList? CloseParen
   | Cube OpenParen GroupingList? CloseParen
   | Grouping Sets OpenParen GroupingSet (Comma GroupingSet)* CloseParen
 }
 
-// A grouping list contains one or more expressions.
-GroupingList { Expression (Comma Expression)* }
+// Distributed aggregation is attached to one ordinary grouping expression.
+GroupingDistributionClause { With OpenParen IdentifierName CloseParen }
+
+// ROLLUP/CUBE lists may contain nested composite expression groups.
+GroupingList { GroupingListItem (Comma GroupingListItem)* }
+GroupingListItem {
+  Expression
+  | OpenParen Expression (Comma Expression)+ CloseParen
+}
 
 // A grouping set is either an expression or a parenthesized expression list, including ().
 GroupingSet {
@@ -2545,8 +2580,11 @@ WindowDefinition { IdentifierName As WindowSpecification }
 
 // ORDER BY sorts a query and owns ordinary OFFSET/FETCH or standalone approximate FETCH.
 OrderByClause {
-  Order By OrderExpression (Comma OrderExpression)* orderByPagination
+  Order By (OrderByAllClause | OrderExpression (Comma OrderExpression)*) orderByPagination
 }
+
+// ORDER BY ALL optionally carries a direction and remains linked to OFFSET/FETCH.
+OrderByAllClause { All (Asc | Desc)? }
 
 orderByPagination {
   ~orderByPagination ()
@@ -2606,7 +2644,10 @@ JsonForOption {
 OptionClause { Option OpenParen QueryHint (Comma QueryHint)* CloseParen }
 
 // A query hint is a name followed by optional values or an assignment.
-QueryHint { IdentifierName (Equal? Expression)? }
+QueryHint {
+  Table Hint OpenParen MultipartIdentifier (Comma TableHint)* CloseParen
+  | IdentifierName (Equal? Expression)?
+}
 
 // An expression is a precedence-ordered scalar or Boolean T-SQL expression.
 Expression { orExpression }
@@ -2687,7 +2728,7 @@ comparisonOperator {
 // Addition, subtraction, concatenation, and bitwise operators share one precedence level.
 additiveExpression {
   multiplicativeExpression
-  ((Plus | Minus | Ampersand | Pipe | Caret | AtTimeZone) multiplicativeExpression)*
+  ((Plus | Minus | Ampersand | Pipe | Caret | ShiftLeft | ShiftRight | AtTimeZone) multiplicativeExpression)*
 }
 
 // Multiplication, division, and modulo bind above additive operators.
@@ -2707,6 +2748,7 @@ primaryExpression {
 // A primary expression is a literal, reference, call, CASE, cast, subquery, or parenthesized value.
 primaryAtom {
   Literal
+  | VariableMemberExpression
   | Variable
   | GlobalVariable
   | StarExpression
@@ -2719,6 +2761,7 @@ primaryAtom {
   | JsonAggregateExpression
   | JsonQueryExpression
   | JsonValueExpression
+  | TrimExpression
   | NextValueExpression
   | FunctionCall
   | KeywordFunctionCall
@@ -2728,6 +2771,17 @@ primaryAtom {
   | ColumnReference
   | ParenthesizedQuery
   | OpenParen Expression CloseParen
+}
+
+// XML and CLR values stored in variables expose instance methods through dotted calls.
+VariableMemberExpression { Variable FunctionMemberCall+ }
+
+// TRIM accepts ordinary, character-set, and SQL Server 2022 positional forms.
+TrimExpression {
+  Trim OpenParen (
+    (Leading | Trailing | Both)? Expression From Expression
+    | Expression
+  ) CloseParen
 }
 
 // SQL Server 2025 embedding generation names the model inside the function argument grammar.
@@ -2956,11 +3010,12 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   Preceding, Profile, QueryGovernorCostLimit, QuotedIdentifier, Range, ReadOnly, Rebuild,
   RemoteProcTransactions, Reorganize, Repeatable, Restart, Result, Resume, Rollup, Row, Rows,
   Scroll, ScrollLocks, Sequence, SequenceNumber, Serializable, Sets, ShortestPath, ShowPlanAll, ShowPlanText, ShowPlanXml,
-  Search, SearchType, Semantic, Snapshot, Source, Sparse, Start, Static, Statistics, Switch, SystemTime, Target, TextImageOn,
+  Receive, Search, SearchType, Semantic, Snapshot, Source, Sparse, Start, Static, Statistics, Switch, SystemTime, Target, TextImageOn,
   Throw, Ties, Time, Timeout, TransactionId, Try, TryCast, TypeWarning, Unbounded, Uncommitted,
   Synonym, Type, Using, Value, Vector, VectorIndex, VectorSearch, Version, Window, Within, Work, XactAbort, Xml, Cache, Cycle,
   Active, After, Absolute, Affinity, Aggregate, Algorithm, Any, Application, Assembly, Asymmetric, Attested, Audit, Authentication, Availability, BeginDialog, Binding, Buffer, BulkLogged, Catalog, Event, Session, Notification, FanIn, Extract, Fn,
   Broker, Priority, Conversation, PriorityLevel, ContractName, RemoteServiceName, LocalServiceName,
+  Cleanup, Description, Error,
   Clear, Close, Cluster, Collection, Configuration, Connection, Containment, Context, Contract, Control, Cpu, Credential, Cryptographic, Data, Deallocate, Definition, Diagnostics,
   Decryption, Dependents, Disk, Elements, Empty, Endpoint, EnvironmentVariables, Executable, Explicit,
   DefaultDatabase, DefaultLanguage, DefaultSchema, Encryption, Extension, File, Filegroup, FileGrowth, FileListOnly, FileName,
@@ -2972,6 +3027,7 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   StatisticalSemantics, Stop, StopList, Symmetric, System, Timestamp, UpdateText, WriteText, XmlData, XmlSchema,
   SchemaBinding, Scheme, SimilarTo, Simple, Size, Split, StartId, Take, Tape, TopN, Ownership, Transfer, Url, Used, Governor, Workload,
   Char, Character, Double, FillFactor, National, Precision, SortedData, SortedDataReorg, Varchar,
+  Both, Hint, Leading, Restrict, Trailing, Trim,
   Input, Unchecked, Undefined, Unlock, Validation, ValidXml, Varying, VerifyOnly, Visibility, WellFormedXml, Windows, Without, WithoutArrayWrapper, Wrapper, XmlNamespaces, XQuery, Xsinil
 }
 
@@ -2997,7 +3053,8 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
     byteOrderMark, LineComment, StringLiteral, BinaryLiteral, FloatLiteral, DecimalLiteral, IntegerLiteral,
     GlobalVariable, Variable, TempIdentifier, BracketedIdentifier, DoubleQuotedIdentifier, Identifier,
     Dot, PlusEqual, MinusEqual, StarEqual, EqualStar, SlashEqual, PercentEqual, AmpersandEqual, PipeEqual,
-    CaretEqual, Plus, Minus, Star, Slash, PercentSign, Ampersand, Pipe, Caret, Equal
+    CaretEqual, ShiftLeft, ShiftRight, Plus, Minus, Star, Slash, PercentSign, Ampersand, Pipe, Caret,
+    LessThanOrEqual, GreaterThanOrEqual, LessThan, GreaterThan, Equal
   }
 
   // A line comment runs from two hyphens to, but not including, the line break.
@@ -3013,7 +3070,8 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   BinaryLiteral { "0" $[xX] $[0-9a-fA-F]* }
 
   // A floating-point literal contains an exponent and optional fractional part.
-  FloatLiteral { ($[0-9]+ ("." $[0-9]*)? | "." $[0-9]+) $[eE] $[+-]? $[0-9]+ }
+  // Retain an incomplete exponent as one token so syntax validation can report the exponent marker.
+  FloatLiteral { ($[0-9]+ ("." $[0-9]*)? | "." $[0-9]+) $[eE] $[+-]? $[0-9]* }
 
   // A decimal literal contains a decimal point but no exponent.
   DecimalLiteral { $[0-9]+ "." $[0-9]* | "." $[0-9]+ }
@@ -3069,6 +3127,9 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   AmpersandEqual { "&=" }
   PipeEqual { "|=" }
   CaretEqual { "^=" }
+  // Shift operators are single longest-match tokens so `>>` is not reduced as a comparison.
+  ShiftLeft { "<<" }
+  ShiftRight { ">>" }
 
   // A double colon qualifies a securable class in permission statements.
   DoubleColon { "::" }

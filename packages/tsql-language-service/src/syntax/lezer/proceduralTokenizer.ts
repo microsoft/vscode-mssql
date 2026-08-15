@@ -58,6 +58,7 @@ const nonBlockBeginFollowers = new Set([
     "tran",
     "transaction",
 ]);
+const nonBlockEndFollowers = new Set(["conversation"]);
 
 /** Keeps each mounted region in its own token group so unrelated LR states never invoke it. */
 export const computeToken = new ExternalTokenizer((input) => {
@@ -224,6 +225,13 @@ function findBoundary(input: InputStream, mode: "condition" | "block" | "stateme
                     const following = nextWordAfterTrivia(input, word.end)?.text;
                     if (!following || !nonBlockBeginFollowers.has(following)) nestedBegins++;
                 } else if (word.text === "end") {
+                    const following = nextWordAfterTrivia(input, word.end)?.text;
+                    // END CONVERSATION is a Service Broker statement, not the terminator for the
+                    // surrounding BEGIN, TRY, or CATCH region mounted by this tokenizer.
+                    if (following && nonBlockEndFollowers.has(following)) {
+                        offset = word.end;
+                        continue;
+                    }
                     if (cases > 0) cases--;
                     else if (nestedBegins > 0) nestedBegins--;
                     else return trimEnd(input, offset);

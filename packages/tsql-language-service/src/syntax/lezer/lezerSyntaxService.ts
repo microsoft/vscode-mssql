@@ -764,6 +764,18 @@ function collectSyntaxFacts(
                         range: { start: node.from, end: node.to },
                     });
                 }
+            } else if (node.name === "FloatLiteral") {
+                const value = text.slice(node.from, node.to);
+                const incompleteExponent = /[eE][+-]?$/u.exec(value);
+                if (incompleteExponent) {
+                    const start = node.from + incompleteExponent.index;
+                    diagnostics.push({
+                        code: "syntax",
+                        message: `Incorrect syntax near '${value[incompleteExponent.index]}'.`,
+                        severity: "error",
+                        range: { start, end: start + 1 },
+                    });
+                }
             } else if (node.name === "OdbcEscapeExpression") {
                 const option = /^\{\s*([\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(
                     text.slice(node.from, node.to),
@@ -1075,6 +1087,8 @@ function featureProfileRule(
     switch (node.name) {
         case "WindowClause":
             return { keyword: "WINDOW", minimumServer: 16, minimumCompatibility: 160 };
+        case "OrderByAllClause":
+            return { keyword: "ALL", engineFlavors: ["fabric"] };
         case "CreateJsonIndexStatement":
             return { keyword: "JSON", minimumServer: 17, minimumCompatibility: 170 };
         case "JsonConstructorExpression": {

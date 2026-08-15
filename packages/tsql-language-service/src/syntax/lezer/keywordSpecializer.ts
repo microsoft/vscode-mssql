@@ -25,7 +25,7 @@ const parserLocalContextWords = new Set(
      language lastnode level local locktimeout login low masked matched materialized maxvalue minvalue name next no nocount noexec node normal
      maxdop nobrowsetable numericroundabort notification off offset only optimistic out output parameters parseonly partition partitions pause
      period persisted preceding profile querygovernorcostlimit quotedidentifier range readonly rebuild
-     remote remoteproctransactions reorganize repeatable restart result resume rollup roundrobin route row rows scroll scrolllocks
+     receive remote remoteproctransactions reorganize repeatable restart result resume rollup roundrobin route row rows scroll scrolllocks
      sequence sequencenumber serializable sets shortestpath showplanall showplantext showplanxml snapshot source sparse start
      searchtype semantic static statistics switch synonym systemtime target textimageon throw ties time timeout transactionid try
      trycast type typewarning unbounded uncommitted using value vector vectorindex version window within xactabort xml xmldata xmlschema
@@ -38,7 +38,8 @@ const parserLocalContextWords = new Set(
      input owner override partial password private prior provider pushdown queue raw reconfigure recompile regenerate relative remove modify replica resample root returns role sample scoped self server shutdown sid
      policy pool privileges performcutover raw readtext reconfigure reset rename resource returning role rule scheduler security secret secondary selective sent service session singleton softnuma spatial specification sql state statisticalsemantics stop stoplist symmetric system schemabinding timestamp updatetext writetext
      scheme simple size split take tape target ownership transfer unchecked undefined unlock url used validation validxml varying verifyonly visibility wellformedxml governor reset resource workload
-     char character double fillfactor national precision sorteddata sorteddatareorg varchar webmethod windows work without withoutarraywrapper wrapper xmlnamespaces xquery xsinil`
+     char character double fillfactor national precision sorteddata sorteddatareorg varchar webmethod windows work without withoutarraywrapper wrapper xmlnamespaces xquery xsinil
+     both cleanup description error hint leading restrict trailing trim`
         .split(/\s+/u)
         .filter(Boolean),
 );
