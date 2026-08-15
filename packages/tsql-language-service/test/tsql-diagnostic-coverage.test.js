@@ -64,6 +64,7 @@ const supported = new Set([
     "DbNameIsNotAllowedForDropSynonym",
     "DuplicateCteName",
     "DuplicateColumnNamesInIndex",
+    "DuplicateTriggerActionType",
     "ElementsError",
     "FunctionRequiresAtLeastNumberOfArguments",
     "FunctionRequiresAtLeastOneArgument",
@@ -211,8 +212,11 @@ suite("T-SQL diagnostic coverage inventory", () => {
     // Keeps the headline gap reproducible and rejects unsupported names accidentally marked done.
     test("tracks validators with focused regression coverage", () => {
         const targetNames = new Set(target.map(({ name }) => name));
-        assert.deepEqual([...supported].filter((name) => !targetNames.has(name)), []);
-        assert.equal(supported.size, 181);
-        assert.equal(target.length - supported.size, 84);
+        assert.deepEqual(
+            [...supported].filter((name) => !targetNames.has(name)),
+            [],
+        );
+        assert.equal(supported.size, 182);
+        assert.equal(target.length - supported.size, 83);
     });
 });

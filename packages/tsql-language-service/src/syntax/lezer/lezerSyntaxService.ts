@@ -695,6 +695,9 @@ function collectSyntaxFacts(
             ) {
                 hasMixedRegions = true;
             }
+            if (node.name === "TriggerEventList" && !hasRawErrorNode(node.node)) {
+                diagnostics.push(...duplicateTriggerActionDiagnostics(node.node, text));
+            }
             if (node.type.isError) {
                 rawErrorNodeCount++;
                 if (
@@ -750,7 +753,10 @@ function collectSyntaxFacts(
                         severity: "error",
                         range: { start: node.from, end: node.to },
                     });
-                } else if (node.name === "DecimalLiteral" && requiresIntegerLiteral(node.node, text)) {
+                } else if (
+                    node.name === "DecimalLiteral" &&
+                    requiresIntegerLiteral(node.node, text)
+                ) {
                     diagnostics.push({
                         code: "IntegerValueOutOfRange",
                         message: `The integer value ${value} is out of range.`,
@@ -823,10 +829,45 @@ function collectSyntaxFacts(
     return { diagnostics, rawErrorNodeCount, hasMixedRegions };
 }
 
-function invalidLoginOptionValue(
-    node: LezerNode,
+/** Reports repeated INSERT, UPDATE, or DELETE actions in one DML trigger declaration. */
+function duplicateTriggerActionDiagnostics(
+    list: LezerNode,
     text: string,
-): SyntaxDiagnostic | undefined {
+): readonly SyntaxDiagnostic[] {
+    const diagnostics: SyntaxDiagnostic[] = [];
+    const seen = new Set<string>();
+    for (let event = list.firstChild; event; event = event.nextSibling) {
+        if (event.name !== "TriggerEvent") continue;
+        const action = canonicalTriggerAction(text.slice(event.from, event.to));
+        if (!action) continue;
+        if (seen.has(action)) {
+            diagnostics.push({
+                code: "DuplicateTriggerActionType",
+                message: `Duplicate specification of the action "${action}" in the trigger declaration.`,
+                severity: "error",
+                range: { start: event.from, end: event.to },
+            });
+        } else {
+            seen.add(action);
+        }
+    }
+    return diagnostics;
+}
+
+function hasRawErrorNode(node: LezerNode): boolean {
+    if (node.type.isError) return true;
+    for (let child = node.firstChild; child; child = child.nextSibling) {
+        if (hasRawErrorNode(child)) return true;
+    }
+    return false;
+}
+
+function canonicalTriggerAction(value: string): string | undefined {
+    const action = value.trim().toUpperCase();
+    return action === "INSERT" || action === "UPDATE" || action === "DELETE" ? action : undefined;
+}
+
+function invalidLoginOptionValue(node: LezerNode, text: string): SyntaxDiagnostic | undefined {
     const option = ancestorNamed(node, "PrincipalNonPasswordOption");
     if (!option) return undefined;
     const source = text.slice(option.from, option.to);
@@ -1011,7 +1052,8 @@ function unterminatedStringRange(text: string): TextRange | undefined {
 function statementPhrase(node: LezerNode, text: string, fallback: string): string {
     const source = text.slice(node.from, node.to);
     return (
-        /^\s*((?:CREATE|ALTER|DROP)\s+[\p{L}_]+(?:\s+[\p{L}_]+)?)/iu.exec(source)?.[1]
+        /^\s*((?:CREATE|ALTER|DROP)\s+[\p{L}_]+(?:\s+[\p{L}_]+)?)/iu
+            .exec(source)?.[1]
             ?.replace(/\s+/gu, " ")
             .toLocaleUpperCase() ?? fallback
     );
@@ -1195,13 +1237,16 @@ function requiresIntegerLiteral(node: LezerNode, text: string): boolean {
     }
     const option = ancestorNamed(node, "GenericOption");
     if (!option) return false;
-    const name = /^\s*([\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(
-        text.slice(option.from, option.to),
-    )?.[1];
+    const name = /^\s*([\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(text.slice(option.from, option.to))?.[1];
     return Boolean(name && integerOptionNames.has(name.toLocaleUpperCase()));
 }
 
-const integerSetOptionNames = new Set(["DEADLOCK_PRIORITY", "LOCK_TIMEOUT", "QUERY_GOVERNOR_COST_LIMIT", "TEXTSIZE"]);
+const integerSetOptionNames = new Set([
+    "DEADLOCK_PRIORITY",
+    "LOCK_TIMEOUT",
+    "QUERY_GOVERNOR_COST_LIMIT",
+    "TEXTSIZE",
+]);
 
 const integerOptionNames = new Set([
     "BUCKET_COUNT",

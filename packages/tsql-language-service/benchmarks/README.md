@@ -27,6 +27,14 @@ Simple Query and dev/query metadata adapters.
 npm run benchmark:features
 ```
 
+Semantic-diagnostic work has a direct binder lane. It parses each generated document and pins its
+in-memory catalog before timing, then measures only `SemanticBinder.bind()` wall time and the
+binder's internal elapsed time. Use the same arguments before and after each semantic batch.
+
+```powershell
+node benchmarks/semantic-diagnostics.mjs --statements 100 --warmups 10 --samples 40
+```
+
 The 100 MiB workload is an explicit manual soak lane:
 
 ```powershell
