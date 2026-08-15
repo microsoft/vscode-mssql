@@ -138,7 +138,8 @@ Public documentation must not depend on private source locations or implementati
   p95 14.82 ms; missing-object p50 10.69 ms p95 11.24 ms.
 - Parser benchmark: 100 KiB cold 178.85 ms warm 130.82 ms, incremental start/middle/end
   17.41/11.90/8.54 ms; 1 MiB cold 1,261.08 ms warm 1,217.96 ms, incremental
-  23.78/30.35/27.00 ms. Against the previous clean measurements (100 KiB cold 170.45 ms, warm
+  23.78/30.35/27.00 ms; 10 MiB cold 12,762.21 ms warm 12,383.24 ms, incremental
+  161.97/162.98/160.09 ms. Against the previous clean measurements (100 KiB cold 170.45 ms, warm
   125.99 ms; 1 MiB cold 1,231.36 ms, warm 1,247.28 ms), the results remain within normal run noise
   while incremental updates are equal or faster.
 

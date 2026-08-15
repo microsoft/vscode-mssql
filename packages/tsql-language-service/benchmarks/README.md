@@ -52,10 +52,11 @@ samples after one warmup, generated exact-size valid SQL with `GO` boundaries, a
 benchmark concurrently. Every incremental result matched a fresh tree checksum and produced zero
 diagnostics.
 
-|    Size |   Cold full |   Warm full |     Full reparse start/middle/end | Incremental start/middle/end | Speedup start/middle/end | Reused chunks |
-| ------: | ----------: | ----------: | --------------------------------: | ---------------------------: | -----------------------: | ------------: |
-| 100 KiB |   178.85 ms |   130.82 ms |       125.00 / 137.11 / 132.52 ms |      17.41 / 11.90 / 8.54 ms |  7.18× / 11.53× / 15.52× |            12 |
-|   1 MiB | 1,261.08 ms | 1,217.96 ms | 1,228.61 / 1,231.07 / 1,226.79 ms |     23.78 / 30.35 / 27.00 ms | 51.68× / 40.56× / 45.44× |           127 |
+|    Size |    Cold full |    Warm full |        Full reparse start/middle/end | Incremental start/middle/end | Speedup start/middle/end | Reused chunks |
+| ------: | -----------: | -----------: | -----------------------------------: | ---------------------------: | -----------------------: | ------------: |
+| 100 KiB |    178.85 ms |    130.82 ms |          125.00 / 137.11 / 132.52 ms |      17.41 / 11.90 / 8.54 ms |  7.18× / 11.53× / 15.52× |            12 |
+|   1 MiB |  1,261.08 ms |  1,217.96 ms |    1,228.61 / 1,231.07 / 1,226.79 ms |     23.78 / 30.35 / 27.00 ms | 51.68× / 40.56× / 45.44× |           127 |
+|  10 MiB | 12,762.21 ms | 12,383.24 ms | 12,496.37 / 12,472.30 / 12,221.99 ms |  161.97 / 162.98 / 160.09 ms | 77.15× / 76.53× / 76.35× |         1,276 |
 
 The same checkpoint measured direct semantic binding over 100-statement documents with ten warmups
 and forty samples:
@@ -68,7 +69,8 @@ and forty samples:
 
 The parser remains within the normal run-to-run range of the previous clean checkpoint. Incremental
 edits reparse one batch chunk and retain the large-file latency advantage without weakening the
-fresh-tree equivalence guard.
+fresh-tree equivalence guard. The 10 MiB middle worker lane measured 33,374.25 ms initial wall time
+and 6,450.95 ms edit wall time; its internal update reused 159,551 semantic units and rebound one.
 
 ## Grammar milestone baseline (2026-08-13)
 
