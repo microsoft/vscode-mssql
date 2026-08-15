@@ -22,14 +22,14 @@ const parserLocalContextWords = new Set(
      approx approximate vectorsearch similarto metric topn startid forceannonly
      filestreamon filetable fanin first fmtonly following forceplan forappend forwardonly freetext function generated global graph hash
      fulltextstoplist grouping groups hidden high identityinsert filestream columnset allsparsecolumns implicittransactions include increment io isolation json jsonarray jsonarrayagg jsonobject jsonobjectagg jsonquery jsonvalue keyset
-     language lastnode level local locktimeout login low masked matched materialized maxvalue minvalue name next no nocount noexec node normal
-     maxdop nobrowsetable numericroundabort notification off offset only optimistic out output parameters parseonly partition partitions pause
+     language lastnode level local locktimeout loop login low masked matched materialized maxvalue minvalue name next no nocount noexec node normal
+     maxdop nobrowsetable numericroundabort notification off offset oj only optimistic out output parameters parseonly partition partitions pause
      period persisted preceding profile querygovernorcostlimit quotedidentifier range readonly rebuild
      receive remote remoteproctransactions reorganize repeatable restart result resume rollup roundrobin route row rows scroll scrolllocks
-     sequence sequencenumber serializable sets shortestpath showplanall showplantext showplanxml snapshot source sparse start
+     send sequence sequencenumber serializable sets shortestpath showplanall showplantext showplanxml snapshot source sparse start
      searchtype semantic static statistics switch synonym systemtime target textimageon throw ties time timeout transactionid try
      trycast type typewarning unbounded uncommitted using value vector vectorindex version window within xactabort xml xmldata xmlschema
-     cache cycle absent active after absolute affinity aggregate algorithm any array assembly asymmetric atomic attested audit authentication auto availability base64 begindialog binding binary broker priority conversation prioritylevel contractname remoteservicename localservicename buffer bulklogged called catalog checkexpiration checkpolicy clear clone close cluster collection configuration connect contained contains content context cpu diagnostics
+     cache cycle absent active after absolute affinity aggregate algorithm any array assembly asymmetric atomic attested audit authentication auto availability base64 before begindialog binding binary block broker priority conversation prioritylevel contractname remoteservicename localservicename buffer bulklogged called catalog checkexpiration checkpolicy clear clone close cluster collection configuration connect contained contains content context cpu diagnostics filter predicate
      containment contract control credential cryptographic data datasource deallocate decryption defaultdatabase defaultlanguage dependents disk elements empty environmentvariables event explicit
      endpoint executable extract extension fn connection definition
      defaultschema distribution encryption file fileformat filegroup filegrowth filelistonly filename format formatoptions

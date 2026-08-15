@@ -45,6 +45,31 @@ Correctness checks accompany timings: every start/middle/end incremental result 
 normalized tree checksum as a fresh parse. The external ScriptDOM and SqlParser comparison lanes are
 kept separate because ScriptDOM is always labeled full reparse and SqlParser is the diagnostic oracle.
 
+## Diagnostic milestone checkpoint (2026-08-15)
+
+This isolated Windows/Node 24 run followed the diagnostic and corpus-recovery work. It used three
+samples after one warmup, generated exact-size valid SQL with `GO` boundaries, and ran no other
+benchmark concurrently. Every incremental result matched a fresh tree checksum and produced zero
+diagnostics.
+
+|    Size |   Cold full |   Warm full |     Full reparse start/middle/end | Incremental start/middle/end | Speedup start/middle/end | Reused chunks |
+| ------: | ----------: | ----------: | --------------------------------: | ---------------------------: | -----------------------: | ------------: |
+| 100 KiB |   178.85 ms |   130.82 ms |       125.00 / 137.11 / 132.52 ms |      17.41 / 11.90 / 8.54 ms |  7.18× / 11.53× / 15.52× |            12 |
+|   1 MiB | 1,261.08 ms | 1,217.96 ms | 1,228.61 / 1,231.07 / 1,226.79 ms |     23.78 / 30.35 / 27.00 ms | 51.68× / 40.56× / 45.44× |           127 |
+
+The same checkpoint measured direct semantic binding over 100-statement documents with ten warmups
+and forty samples:
+
+| Lane                       | Binder p50 | Binder p95 | Diagnostics |
+| -------------------------- | ---------: | ---------: | ----------: |
+| Local scalar statements    |    7.51 ms |    9.66 ms |           0 |
+| Resolved catalog selects   |   12.37 ms |   14.82 ms |           0 |
+| Missing-object diagnostics |   10.69 ms |   11.24 ms |         100 |
+
+The parser remains within the normal run-to-run range of the previous clean checkpoint. Incremental
+edits reparse one batch chunk and retain the large-file latency advantage without weakening the
+fresh-tree equivalence guard.
+
 ## Grammar milestone baseline (2026-08-13)
 
 This local Windows/Node 24 run measures the accepted query, DML, table/index DDL, view, synonym,

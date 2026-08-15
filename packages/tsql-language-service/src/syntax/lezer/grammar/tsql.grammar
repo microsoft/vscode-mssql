@@ -111,6 +111,7 @@ Statement {
   | ContractStatement
   | BrokerPriorityStatement
   | EndConversationStatement
+  | SendStatement
   | ReceiveStatement
   | QueueStatement
   | ServiceStatement
@@ -312,7 +313,9 @@ DatabaseTermination {
 }
 
 // Schema lifecycle statements support ownership and object transfer.
-CreateSchemaStatement { Create Schema IdentifierName (Authorization IdentifierName)? }
+// CREATE SCHEMA carries a name, an AUTHORIZATION owner, or both; requiring at least one of them is
+// a validation rule so the empty header keeps a schema statement instead of becoming recovery.
+CreateSchemaStatement { Create Schema IdentifierName? (Authorization IdentifierName)? }
 AlterSchemaStatement { Alter Schema IdentifierName Transfer MultipartIdentifier }
 // DROP SCHEMA retains legacy CASCADE/RESTRICT and multipart error-recovery shapes structurally.
 DropSchemaStatement { Drop Schema IfExistsClause? MultipartIdentifier (Cascade | Restrict)? }
@@ -550,13 +553,40 @@ RestoreStatement {
 
 // Legacy RULE/DEFAULT objects retain DROP IF EXISTS compatibility through SQL Server 2025.
 RuleDefaultStatement {
-  Drop (Rule | Default) IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)*
+  Drop (Rule | Default) IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope?
 }
 
-// Security policies are schema objects and participate in DROP IF EXISTS.
+// Security policies bind filter/block predicate functions to tables and expose lifecycle options.
 SecurityPolicyStatement {
-  Drop Security Policy IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)*
+  Create Security Policy MultipartIdentifier SecurityPolicyCreateTail
+  | Alter Security Policy MultipartIdentifier SecurityPolicyAlterTail
+  | Drop Security Policy IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope?
 }
+
+SecurityPolicyCreateTail {
+  SecurityPolicyPredicateAdd (Comma SecurityPolicyPredicateAdd)*
+    optionalDdlTail<SecurityPolicyWithClause> SecurityPolicyReplicationClause?
+  | SecurityPolicyWithClause SecurityPolicyReplicationClause?
+  | SecurityPolicyReplicationClause
+}
+
+SecurityPolicyAlterTail {
+  SecurityPolicyAlterAction (Comma SecurityPolicyAlterAction)* optionalDdlTail<SecurityPolicyWithClause>
+  | SecurityPolicyWithClause
+  | (Add | Drop) SecurityPolicyReplicationClause
+}
+
+SecurityPolicyPredicateAdd { Add SecurityPolicyPredicateDefinition }
+SecurityPolicyAlterAction {
+  (Add | Alter) SecurityPolicyPredicateDefinition
+  | Drop (Filter | Block) Predicate On MultipartIdentifier SecurityPolicyPredicateTiming?
+}
+SecurityPolicyPredicateDefinition {
+  (Filter | Block) Predicate Expression On MultipartIdentifier SecurityPolicyPredicateTiming?
+}
+SecurityPolicyPredicateTiming { (After | Before) (Insert | Update | Delete) }
+SecurityPolicyWithClause { With OpenParen GenericOptionList CloseParen }
+SecurityPolicyReplicationClause { Not For Replication }
 
 // BACKUP and RESTORE file selections identify files, filegroups, or pages.
 BackupFileSelection {
@@ -741,7 +771,7 @@ AssemblyDropClause { With No Dependents }
 AggregateStatement {
   Create Aggregate MultipartIdentifier OpenParen AggregateParameter (Comma AggregateParameter)* CloseParen
     Returns DataType External Name AssemblyEntryPoint
-  | Drop Aggregate IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)*
+  | Drop Aggregate IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope?
 }
 AggregateParameter { Variable As? DataType (Null | Not Null)? }
 AssemblyEntryPoint { IdentifierName (Dot IdentifierName)? }
@@ -798,6 +828,18 @@ EndConversationStatement {
   End Conversation Expression optionalDdlTail<EndConversationWithClause>
 }
 EndConversationWithClause { With (Cleanup | Error Equal Expression Description Equal Expression) }
+
+// SEND posts one Service Broker message on one dialog handle, or on a parenthesized list of two or
+// more handles, with an optional message type and an optional message body.
+SendStatement {
+  Send On Conversation SendConversationList SendMessageType? SendMessageBody?
+}
+SendConversationList {
+  OpenParen Expression (Comma Expression)+ CloseParen
+  | Expression
+}
+SendMessageType { Message Type (MultipartIdentifier | Variable) }
+SendMessageBody { OpenParen Expression CloseParen }
 
 // RECEIVE reads one or more projected values from a Service Broker queue.
 ReceiveStatement {
@@ -1222,7 +1264,7 @@ AlterProcedureStatement {
 }
 
 // DROP PROCEDURE removes one or more stored procedures.
-DropProcedureStatement { Drop (Proc | Procedure) IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* }
+DropProcedureStatement { Drop (Proc | Procedure) IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope? }
 ProcedureNumberClause { Semicolon IntegerLiteral }
 
 // SQL Server accepts both the conventional bare parameter list and a parenthesized list.
@@ -1238,9 +1280,10 @@ ProcedureParameter {
   (Equal Expression)? (Out | Output | ReadOnly)?
 }
 
-// Procedure options are a bounded list of SQL Server's module attributes.
+// A module WITH clause holds named attributes; which names a statement accepts is a validation
+// rule, so the option name stays an identifier and never turns a misplaced option into recovery.
 ProcedureWithClause { With ProcedureOption (Comma ProcedureOption)* }
-ProcedureOption { Encryption | Recompile | NativeCompilation | SchemaBinding | Execute As ModulePrincipal }
+ProcedureOption { IdentifierName | Execute As ModulePrincipal }
 
 // Module execution principals are contextual words or a quoted database principal name.
 ModulePrincipal { Caller | Self | Owner | StringLiteral }
@@ -1260,7 +1303,7 @@ AlterFunctionStatement {
 }
 
 // DROP FUNCTION removes one or more scalar or table-valued functions.
-DropFunctionStatement { Drop Function IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* }
+DropFunctionStatement { Drop Function IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope? }
 
 FunctionParameterList { OpenParen (ProcedureParameter (Comma ProcedureParameter)*)? CloseParen }
 FunctionDefinition {
@@ -1311,11 +1354,14 @@ TriggerTarget { MultipartIdentifier | Database | All Server }
 
 // DROP TRIGGER optionally identifies the database/server scope used by DDL and LOGON triggers.
 DropTriggerStatement {
-  Drop Trigger IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)*
-  (On (Database | All Server))?
+  Drop Trigger IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope?
 }
+
+// SQL Server parses this scope tail after any DROP object list and rejects it on every kind except
+// DROP TRIGGER, so the shape stays structural and the restriction is a validation rule.
+DropTriggerScope { On (Database | All Server) }
 TriggerWithClause { With TriggerOption (Comma TriggerOption)* }
-TriggerOption { Encryption | NativeCompilation | SchemaBinding | Execute As ModulePrincipal }
+TriggerOption { IdentifierName | Execute As ModulePrincipal }
 
 // DML events use reserved terminals; DDL event groups and LOGON remain contextual identifiers.
 TriggerEventList { TriggerEvent (Comma TriggerEvent)* }
@@ -1349,14 +1395,15 @@ VariableDeclaration {
   | Variable As? Table TableDefinition
 }
 
-// A cursor declaration binds one local cursor name to a SELECT statement.
-CursorDeclaration { IdentifierName Cursor CursorOption* For SelectStatement }
+// A cursor declaration binds one local cursor name to a SELECT statement. SQL Server parses one
+// ISO option list before CURSOR and one T-SQL extended list after it, so both lists are structural
+// and which names each list accepts is a validation rule.
+CursorDeclaration { IdentifierName CursorIsoOption* Cursor CursorOption* For SelectStatement }
 
-// Cursor options describe scope, scrolling, concurrency, and update behavior.
-CursorOption {
-  Local | Global | ForwardOnly | Scroll | Static | Keyset | Dynamic | FastForward |
-  ReadOnly | ScrollLocks | Optimistic | TypeWarning
-}
+// The ISO list carries INSENSITIVE and SCROLL; the extended list carries scope, scrolling,
+// concurrency, and update behavior.
+CursorIsoOption { IdentifierName }
+CursorOption { IdentifierName }
 
 // SET assigns a variable or applies one validated SQL Server session-option family.
 SetStatement {
@@ -1556,13 +1603,13 @@ ViewOptionClause { With IdentifierName (Comma IdentifierName)* }
 ViewCheckOptionClause { ViewCheckWith Check Option }
 
 // DROP VIEW removes one or more views and supports SQL Server's IF EXISTS guard.
-DropViewStatement { Drop View IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* }
+DropViewStatement { Drop View IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope? }
 
 // CREATE SYNONYM assigns a local schema object name to a one- through four-part target.
 CreateSynonymStatement { Create Synonym MultipartIdentifier For MultipartIdentifier }
 
 // DROP SYNONYM removes one or more synonyms and supports IF EXISTS.
-DropSynonymStatement { Drop Synonym IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* }
+DropSynonymStatement { Drop Synonym IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope? }
 
 // CREATE TYPE defines an alias type, CLR type, or table type.
 CreateTypeStatement {
@@ -1596,23 +1643,23 @@ SequenceAlterOption { SequenceOption | Restart optionalDdlTail<SequenceRestartVa
 SequenceRestartValue { With Expression }
 
 // DROP SEQUENCE removes one or more generators and supports IF EXISTS.
-DropSequenceStatement { Drop Sequence IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* }
+DropSequenceStatement { Drop Sequence IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope? }
 
 // CREATE TABLE defines ordinary, temporary, graph, temporal, ledger, or CTAS tables.
 CreateTableStatement {
   Create Table MultipartIdentifier (
     CtasColumnNameList TableOptionClause As SelectStatement
     | TableOptionClause As SelectStatement
-    | CreateTableBody CreateTableStorageClause* optionalDdlTail<TableOptionClause>
+    | As? SelectStatement
+    | CreateTableDefinitionBody CreateTableStorageClause* optionalDdlTail<TableOptionClause>
   )
 }
 
-// A table body is a column/constraint definition, CTAS query, or FILETABLE/graph declaration.
-CreateTableBody {
+// A definition body is distinct from CTAS so SELECT INTO's ON filegroup remains unambiguous.
+CreateTableDefinitionBody {
   TableDefinition (As (Node | Edge))?
   | As (FileTable | Node | Edge)
   | As Clone Of MultipartIdentifier (At StringLiteral)?
-  | As? SelectStatement
 }
 
 // A table definition contains columns, constraints, periods, and inline indexes.
@@ -1871,7 +1918,7 @@ AlterTableDropElement {
 }
 
 // DROP TABLE removes one or more tables and supports SQL Server's IF EXISTS guard.
-DropTableStatement { Drop Table IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* }
+DropTableStatement { Drop Table IfExistsClause? MultipartIdentifier (Comma MultipartIdentifier)* DropTriggerScope? }
 
 // IF EXISTS guards supported DDL drops against absent objects.
 IfExistsClause { If Exists }
@@ -2192,11 +2239,15 @@ ExecuteArgument { NamedExecuteArgument | PositionalExecuteArgument }
 
 // A named EXECUTE argument binds a variable-shaped parameter name before its value.
 NamedExecuteArgument[@dynamicPrecedence=1] {
-  Variable ~executeArgument Equal Expression (Output | Out)?
+  Variable ~executeArgument Equal Expression ExecuteArgumentOption?
 }
 
-// A positional EXECUTE argument is one expression with an optional OUTPUT marker.
-PositionalExecuteArgument { Expression ~executeArgument (Output | Out)? }
+// A positional EXECUTE argument is one expression with an optional argument option.
+PositionalExecuteArgument { Expression ~executeArgument ExecuteArgumentOption? }
+
+// SQL Server parses one parameter option after an EXECUTE argument; READONLY is parsed here and
+// rejected by validation, because only a routine declaration may carry it.
+ExecuteArgumentOption { Output | Out | ReadOnly }
 
 // EXECUTE AS selects LOGIN, USER, or CALLER security context for a module invocation.
 ExecuteContextClause { As ((Login | User) (Equal StringLiteral)? | Caller) }
@@ -2241,11 +2292,12 @@ CommonTableExpression {
   IdentifierName ColumnNameList? As OpenParen QueryExpression OrderByClause? CloseParen
 }
 
-// A query expression combines query specifications with SQL set operators.
-QueryExpression { QueryTerm ((Union All? | Except) QueryTerm)* }
+// A query expression combines query specifications with SQL set operators. ALL is parsed on every
+// set operator so an unsupported ALL form is diagnosed instead of recovered.
+QueryExpression { QueryTerm ((Union All? | Except All?) QueryTerm)* }
 
 // An INTERSECT term binds more tightly than UNION and EXCEPT.
-QueryTerm { QueryPrimary (Intersect QueryPrimary)* }
+QueryTerm { QueryPrimary (Intersect All? QueryPrimary)* }
 
 // A query primary is either one SELECT block or a parenthesized query expression.
 QueryPrimary { QuerySpecification }
@@ -2281,8 +2333,9 @@ SelectElement {
   Star | Expression ((As? IdentifierName) | (As StringLiteral) | LegacyStringAlias)?
 }
 
-// INTO names the destination created by a SELECT statement.
-IntoClause { Into MultipartIdentifier }
+// INTO names the destination created by a SELECT statement and may place it on a filegroup.
+IntoClause { Into MultipartIdentifier IntoStorageClause? }
+IntoStorageClause { On (IdentifierName | Default) }
 
 // FROM introduces one or more joined rowset sources.
 FromClause { From TableSource (Comma TableSource)* }
@@ -2294,6 +2347,7 @@ TableSource { TableSourcePrimary JoinPart* }
 TableSourcePrimary {
   DerivedTable
   | ParenthesizedTableSource
+  | OdbcOuterJoinTableSource
   | TableValueConstructor
   | ChangeTableSource
   | OpenRowsetSource
@@ -2307,6 +2361,9 @@ TableSourcePrimary {
   | VariableTableSource
   | NamedTableSource
 }
+
+// The ODBC outer-join escape wraps one complete table source and can nest recursively.
+OdbcOuterJoinTableSource { OpenBrace Oj TableSource CloseBrace }
 
 // Parentheses can group a joined table source and expose the complete group through one alias.
 ParenthesizedTableSource { OpenParen TableSource CloseParen TableAlias? }
@@ -2512,8 +2569,14 @@ JoinPart { QualifiedJoin | CrossJoin | ApplyJoin | PivotJoin | UnpivotJoin }
 
 // A qualified join optionally specifies its kind and requires an ON search condition.
 QualifiedJoin {
-  (Inner | Left Outer? | Right Outer? | Full Outer?)? Join TableSourcePrimary On Expression
+  (Inner | Left Outer? | Right Outer? | Full Outer?) JoinHint? Join TableSourcePrimary On Expression
+  | Join TableSourcePrimary On Expression
 }
+
+// A join hint chooses the physical join operator; LOCAL is an undocumented prefix SQL Server keeps.
+// A hint only follows an explicit join type, because a bare table source followed by MERGE is the
+// start of the next statement.
+JoinHint { Local? (Loop | Hash | Merge | Remote) }
 
 // CROSS JOIN produces the Cartesian product and deliberately has no ON predicate.
 CrossJoin { Cross Join TableSourcePrimary }
@@ -2523,13 +2586,19 @@ ApplyJoin { (Cross | Outer) Apply TableSourcePrimary }
 
 // PIVOT rotates aggregate values into named columns.
 PivotJoin {
-  Pivot OpenParen Expression For MultipartIdentifier In ColumnNameList CloseParen
+  Pivot OpenParen Expression For MultipartIdentifier In PivotColumnList CloseParen
   TableAlias?
 }
 
+// A PIVOT column list parses multipart names so a qualified column is diagnosed rather than
+// recovered; only an unqualified name is legal there.
+PivotColumnList { OpenParen MultipartIdentifier (Comma MultipartIdentifier)* CloseParen }
+
 // UNPIVOT rotates named columns into row values.
+// The value and pivoted columns parse as multipart names so a qualified name is diagnosed; the
+// unpivoted column list itself only ever names source columns without a prefix.
 UnpivotJoin {
-  Unpivot OpenParen IdentifierName For IdentifierName In ColumnNameList CloseParen
+  Unpivot OpenParen MultipartIdentifier For MultipartIdentifier In ColumnNameList CloseParen
   TableAlias?
 }
 
@@ -2544,9 +2613,11 @@ GroupByClause {
 // Legacy GROUP BY ALL retains its optional grouping list; ORDER BY ALL is gated separately.
 GroupByAllClause { All (GroupingElement (Comma GroupingElement)*)? }
 
-// A grouping element selects one expression or a composite grouping operator.
+// A grouping element selects one expression or a composite grouping operator. A trailing WITH
+// belongs to the element it follows: a parenthesized distribution hint may appear mid-list, and the
+// legacy CUBE/ROLLUP option closes the clause.
 GroupingElement {
-  Expression optionalDdlTail<GroupingDistributionClause>
+  Expression optionalDdlTail<(GroupingDistributionClause | GroupByOption)>
   | Rollup OpenParen GroupingList? CloseParen
   | Cube OpenParen GroupingList? CloseParen
   | Grouping Sets OpenParen GroupingSet (Comma GroupingSet)* CloseParen
@@ -2554,6 +2625,9 @@ GroupingElement {
 
 // Distributed aggregation is attached to one ordinary grouping expression.
 GroupingDistributionClause { With OpenParen IdentifierName CloseParen }
+
+// The legacy tail is WITH CUBE or WITH ROLLUP; any other word is reported, not recovered.
+GroupByOption { With IdentifierName }
 
 // ROLLUP/CUBE lists may contain nested composite expression groups.
 GroupingList { GroupingListItem (Comma GroupingListItem)* }
@@ -2983,7 +3057,7 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   Cross, Current, Cursor, Declare, Default, Delete, Desc, Distinct, Distributed, Drop, Else, End,
   Dbcc, Escape, Except, Exec, Execute, Exists, Fetch, For, Foreign, From, Full, Goto, Group, Having,
   FreeTextTable, Identity, If, In, Index, Inner, Insert, Intersect, Into, Is, Join, Key, Left, Like, Merge,
-  Nocheck, Nonclustered, Not, Null, On, OpenDataSource, OpenQuery, OpenRowset, OpenXml, Option, Or, Order, Outer, Over, Percent,
+  Nocheck, Nonclustered, Not, Null, Oj, On, OpenDataSource, OpenQuery, OpenRowset, OpenXml, Option, Or, Order, Outer, Over, Percent,
   Pivot, Primary, Print, Raiserror, Read, References, Replication, Restore, Return, Revert, Revoke, Right,
   Rollback, RowCount, Rowguidcol, Save, Select, Set, Table, TableSample, TextSize, Then, To, Top,
   Tran, Transaction, Trigger, Truncate, TryConvert, Union, Unique, Unpivot, Update, Use, User,
@@ -3014,16 +3088,16 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   Throw, Ties, Time, Timeout, TransactionId, Try, TryCast, TypeWarning, Unbounded, Uncommitted,
   Synonym, Type, Using, Value, Vector, VectorIndex, VectorSearch, Version, Window, Within, Work, XactAbort, Xml, Cache, Cycle,
   Active, After, Absolute, Affinity, Aggregate, Algorithm, Any, Application, Assembly, Asymmetric, Attested, Audit, Authentication, Availability, BeginDialog, Binding, Buffer, BulkLogged, Catalog, Event, Session, Notification, FanIn, Extract, Fn,
-  Broker, Priority, Conversation, PriorityLevel, ContractName, RemoteServiceName, LocalServiceName,
+  Broker, Priority, Conversation, PriorityLevel, ContractName, RemoteServiceName, LocalServiceName, Before, Block, Filter, Predicate,
   Cleanup, Description, Error,
   Clear, Close, Cluster, Collection, Configuration, Connection, Containment, Context, Contract, Control, Cpu, Credential, Cryptographic, Data, Deallocate, Definition, Diagnostics,
   Decryption, Dependents, Disk, Elements, Empty, Endpoint, EnvironmentVariables, Executable, Explicit,
   DefaultDatabase, DefaultLanguage, DefaultSchema, Encryption, Extension, File, Filegroup, FileGrowth, FileListOnly, FileName,
   Failover, Force, ForceFailoverAllowDataLoss, Format, FullScan, FullText, Hadr, Hashed, HeaderOnly, Holdlock, Incremental, Initiator,
-  Immediate, Instead, LabelOnly, Last, Library, List, Log, Master, Materialized, Distribution, Hash, ForAppend, ForceAnnOnly, RoundRobin, MaxLength, MaxSize, Member, Message, Metric, Mirror, MustChange, NativeCompilation,
+  Immediate, Instead, LabelOnly, Last, Library, List, Log, Loop, Master, Materialized, Distribution, Hash, ForAppend, ForceAnnOnly, RoundRobin, MaxLength, MaxSize, Member, Message, Metric, Mirror, MustChange, NativeCompilation,
   Impersonate, IncludeNullValues, Kill, None, NoRecompute, Nowait, ObjectId, Offline, OldPassword, Online, Open, Owner, Override, Page, Parameters, Path, PermissionSet, Platform, Population, Property, Partial, Password, Private, WebMethod,
   NumaNode, Object, PageCount, Prior, Process, Provider, Queue, Recompile, Regenerate, Rename, Remove, Relative, Remote, Route, Modify, Replica, Scheduler, Self, Server, SoftNuma,
-  Heap, Policy, Pool, Privileges, PerformCutover, Raw, ReadText, Reconfigure, Reset, Resample, Resource, Returning, Root, Rule, Returns, Role, Sample, Scoped, Secondary, Secret, Security, Selective, Sent, Service, Shutdown, Sid, Singleton, Spatial, Specification, Sql, State,
+  Heap, Policy, Pool, Privileges, PerformCutover, Raw, ReadText, Reconfigure, Reset, Resample, Resource, Returning, Root, Rule, Returns, Role, Sample, Scoped, Secondary, Secret, Security, Selective, Send, Sent, Service, Shutdown, Sid, Singleton, Spatial, Specification, Sql, State,
   StatisticalSemantics, Stop, StopList, Symmetric, System, Timestamp, UpdateText, WriteText, XmlData, XmlSchema,
   SchemaBinding, Scheme, SimilarTo, Simple, Size, Split, StartId, Take, Tape, TopN, Ownership, Transfer, Url, Used, Governor, Workload,
   Char, Character, Double, FillFactor, National, Precision, SortedData, SortedDataReorg, Varchar,

@@ -7,13 +7,140 @@ it without heuristics. A family is complete only with exact code/message/range t
 malformed false-positive guards, incremental/full equivalence where syntax-owned, and no new corpus
 or direct-binder benchmark regression.
 
-Current mechanical count: **265 catalog entries, 182 marked supported, 83 entries below**. Six of
-the 83 are confirmed internal messages or message fragments, so the remaining product-diagnostic
-work is at most 77 families; the denominator must be corrected only after the cleanup items land.
+Current mechanical count: **265 catalog entries, 259 product diagnostics, 201 marked supported, 58
+product families remaining**. The six non-diagnostic entries now carry an explicit `role` in the
+catalog fixture and are excluded from the denominator by
+`test/tsql-diagnostic-coverage.test.js`.
+
+## Diagnostic evidence requirements
+
+Exact codes, message templates, report ranges, and supported input shapes must be backed by reviewed
+T-SQL behavior and checked-in tests, not recollection. Every new family needs an exact-output fixture,
+positive and malformed-input guards, and a short explanation of the observable behavior it preserves.
+Public documentation must not depend on private source locations or implementation names.
 
 ## Completed in the current batch
 
 - [x] `DuplicateTriggerActionType` — syntax validation scans each undamaged DML trigger action list once, reports every repeated `INSERT`/`UPDATE`/`DELETE` token, and covers CREATE, CREATE OR ALTER, ALTER, incremental updates, DDL-event exclusions, and exact ranges.
+
+## Progress record
+
+### 2026-08-15 — catalog cleanup
+
+- Status: complete
+- Layer: inventory
+- Evidence: focused 4/4; full 434/434; corpus regressions 0
+- Coverage: supported 182/259 product diagnostics; product families remaining 77
+- Performance: not applicable, no product code changed
+- Notes: the six non-diagnostic entries carry `role: "api-precondition"` or `role: "message-fragment"`
+  in the catalog fixture, and three inventory tests pin which names are excluded and why.
+  `ParseResultsShouldNotContainNullElement` has no API boundary in this package to unit-test.
+
+### 2026-08-15 — InvalidOptionInCreateProcedure, InvalidOptionInCreateTrigger, InvalidTriggerEventTypes
+
+- Status: complete
+- Layer: syntax (grammar + syntax diagnostics) and binder (option classification)
+- Evidence: focused 25/25; full 449/449; corpus regressions 0
+- Coverage: supported 185/259 product diagnostics; product families remaining 74
+- Performance: binder p50 7.88/12.75/11.46 ms, p95 12.13/15.97/12.48 ms across the three lanes, with
+  no procedure or trigger `WITH` clause in the benchmark corpus. Parser, two runs per side:
+  100 KiB cold 205.0/173.7 → 171.1/209.5 ms, warm 169.4/123.7 → 123.3/181.2 ms;
+  1 MiB cold 1245.3/1236.8 → 1434.4/1258.2 ms, warm 1274.9/1226.4 → 1334.1/1266.6 ms.
+  The two sides overlap run to run and the generated parser shrank from 389,581 to 389,567 bytes,
+  so the widened option rules added no parser state.
+- Notes: an option list mixing DML actions with DDL event names, and an unknown option name in an
+  EXECUTE `WITH` clause, remain syntax errors rather than being reclassified semantically.
+
+### 2026-08-15 — NameOrAuthorizationKeywordRequired, InvalidOnClause, ReadonlyCannotBeUsed
+
+- Status: complete
+- Layer: syntax (grammar + syntax diagnostics) and binder (EXECUTE argument option)
+- Evidence: focused 14/14; full 472/480 with only the not-yet-generated cursor batch red; corpus
+  regressions 0
+- Coverage: counted with the data-type batch below
+- Performance: measured once for the shared grammar generation covering both grammar batches
+- Notes: `CREATE SCHEMA AUTHORIZATION owner` now parses, which the previous grammar rejected
+  outright. The DROP scope tail is a shared `DropTriggerScope` rule so every kind reports the same
+  statement-wide range.
+
+### 2026-08-15 — MaximumSizeErrorForAnyType, TypeNameMaxPrefixError, XmlSchemaCollectionMaxPrefixError
+
+- Status: complete
+- Layer: binder (data-type specification)
+- Evidence: focused 9/9; full 472/480 with only the not-yet-generated cursor batch red; corpus
+  regressions 0
+- Coverage: supported 191/259 product diagnostics; product families remaining 68
+- Performance: no grammar change; binder lanes unchanged because the benchmark corpus declares no
+  over-sized or over-prefixed type
+- Notes: one existing assertion moved from `MaximumSizeError` to `MaximumSizeErrorForAnyType` for
+  `varchar(9001)`. The generic any-type message applies above 8000; the per-type message keeps its
+  own range below the ceiling.
+
+### 2026-08-15 — UnrecognizedCursorOption, InvalidUsageOfCursorOption, MixingOldAndNewSyntaxForCursorOptionsNotAllowed
+
+- Status: complete
+- Layer: syntax (grammar) and binder (option classification)
+- Evidence: focused 8/8; corpus regressions handled with the grammar-conformance work below
+- Coverage: counted with the batches below
+- Performance: measured with the shared grammar generation
+- Notes: `ConflictingCursorOption` now runs on the extended list only, which is where
+  `CursorDefinitionInfo` checks it.
+
+### 2026-08-15 — OperatorNotSupported, InvalidGroupByOption
+
+- Status: complete
+- Layer: syntax (grammar) and binder (query shape)
+- Evidence: focused 6/6
+- Notes: `GROUP BY … WITH CUBE`/`WITH ROLLUP` had no grammar at all, so a legacy form present in the
+  vendored corpus was a syntax error. The tail attaches to the grouping element it follows because
+  the corpus also uses the per-element `WITH (DISTRIBUTED_AGG)` hint mid-list, and a clause-level
+  tail collides with it in LR(1).
+
+### 2026-08-15 — PrefixedColumnsNotAllowedInPivot, PrefixedColumnsNotAllowedInUnpivot
+
+- Status: complete
+- Layer: syntax (grammar) and binder (pivot columns)
+- Evidence: focused 5/5
+- Notes: only PIVOT's `IN` list and UNPIVOT's value and pivoted columns parse multipart names.
+  UNPIVOT's unpivoted column list stays an unqualified list because prefixes are invalid there.
+
+### 2026-08-15 — InvalidUseOfSideEffectingOperatorWithinFunction, UnrecognizedOption, ComputedColumnsConstraintCheckError
+
+- Status: complete
+- Layer: binder
+- Evidence: focused 7/7 function body, 5/5 constraint options, 5/5 computed columns
+- Coverage: supported 201/259 product diagnostics; product families remaining 58
+- Performance: no grammar change in this batch
+- Notes: the side-effect phrase is keyed on statement kind, because SQL Server names a statement by
+  its kind rather than its spelling, so `CREATE UNIQUE CLUSTERED INDEX` is still "CREATE INDEX".
+  `ComputedColumnsConstraintCheckError` follows the documented engine rule: UNIQUE and PRIMARY KEY
+  are accepted directly, while CHECK, FOREIGN KEY, and NOT NULL require PERSISTED.
+
+### 2026-08-15 — corpus conformance repairs required by the grammar work
+
+- Status: complete
+- Layer: syntax (grammar plus bounded recovery recognition)
+- Evidence: full 516/516; zero per-file regressions; aggregate recovery nodes 2,364 → 1,969
+- Notes: the corpus guard is per-file monotonic, and recovery-node counts inside fixtures that never
+  parsed move whenever the automaton changes. The unsupported syntax behind each moved fixture was
+  modelled instead of rebaselining: `SEND ON CONVERSATION` and physical join hints including the
+  undocumented `LOCAL` prefix. `SELECT INTO … ON <filegroup>` is separated from CTAS storage so the
+  two `ON` clauses cannot compete. ODBC outer joins and security-policy lifecycle statements now
+  have structural grammar. Line-leading parenthesized SELECT wrappers use bounded recovery
+  recognition because making `(` a general statement starter caused a measured pathological parse
+  regression. The baseline was not changed.
+
+### 2026-08-15 — closing measurements for the session
+
+- Tests: 516/516.
+- Coverage: supported 201/259 product diagnostics; product families remaining 58.
+- Binder benchmark: local scalar p50 7.51 ms p95 9.66 ms; resolved catalog selects p50 12.37 ms
+  p95 14.82 ms; missing-object p50 10.69 ms p95 11.24 ms.
+- Parser benchmark: 100 KiB cold 178.85 ms warm 130.82 ms, incremental start/middle/end
+  17.41/11.90/8.54 ms; 1 MiB cold 1,261.08 ms warm 1,217.96 ms, incremental
+  23.78/30.35/27.00 ms. Against the previous clean measurements (100 KiB cold 170.45 ms, warm
+  125.99 ms; 1 MiB cold 1,231.36 ms, warm 1,247.28 ms), the results remain within normal run noise
+  while incremental updates are equal or faster.
 
 ## Cross-cutting foundations
 
@@ -27,12 +154,12 @@ work is at most 77 families; the denominator must be corrected only after the cl
 
 ## Catalog cleanup: not standalone user diagnostics
 
-- [ ] `ParseResultsShouldNotContainNullElement` — remove from the product-diagnostic target because it is an API argument precondition, retaining an ordinary unit test at its API boundary if that API exists here.
-- [ ] `CommaOr` — reclassify as a syntax-message fragment and remove it from the standalone coverage denominator.
-- [ ] `Expecting` — reclassify as a syntax-message fragment assembled into expectation text and remove it from the standalone denominator.
-- [ ] `EndOfFile` — reclassify as the display text for an EOF syntax location, not an independently emitted diagnostic family.
-- [ ] `Comma` — reclassify as punctuation used while composing expectation lists and remove it from the standalone denominator.
-- [ ] `Period` — reclassify as punctuation used while composing messages and remove it from the standalone denominator.
+- [x] `ParseResultsShouldNotContainNullElement` — carries `role: "api-precondition"`; this package exposes no API taking a parse-results collection, so there is no unit-test boundary to retain.
+- [x] `CommaOr` — carries `role: "message-fragment"` (", or " joining an expectation tail) and is out of the denominator.
+- [x] `Expecting` — carries `role: "message-fragment"` (expectation lead-in text) and is out of the denominator.
+- [x] `EndOfFile` — carries `role: "message-fragment"` (EOF location display text) and is out of the denominator.
+- [x] `Comma` — carries `role: "message-fragment"` (expectation-list punctuation) and is out of the denominator.
+- [x] `Period` — carries `role: "message-fragment"` (multipart-name punctuation) and is out of the denominator.
 
 ## Build/deployment-mode validation
 
@@ -53,24 +180,24 @@ work is at most 77 families; the denominator must be corrected only after the cl
 
 ## Structural option and statement validation
 
-- [ ] `UnrecognizedOption` — let the relevant unique/index constraint option grammar preserve unknown option nodes, then validate names contextually and range the unknown option.
-- [ ] `InvalidExecuteOption` — classify every parsed EXECUTE module option by execution form and reject options illegal for that form at the option node.
+- [x] `UnrecognizedOption` — key constraints reject `DROP_EXISTING` and `STATISTICS_ONLY` in every form, and reject `MAXDOP`, `ONLINE`, and `SORT_IN_TEMPDB` inside CREATE TABLE; existing `GenericOptionName` nodes provide exact ranges.
+- [ ] `InvalidExecuteOption` — **blocked: not reachable through the accepted EXECUTE grammar.** The `WITH` tail admits only `RECOMPILE` and `RESULT SETS`, so an unexpected option remains a syntax error. Reclassifying this entry as non-reachable needs the same explicit review the six catalog-cleanup entries received.
 - [ ] `InvalidUsageOfIndexOption` — define the allowed index-option matrix by statement/index kind and validate each structured option without widening the grammar to arbitrary tails.
 - [ ] `InvalidUsageOfScopedConfiguration` — validate primary/secondary and value combinations on structured database-scoped configuration nodes with engine/version gates.
-- [ ] `UnrecognizedCursorOption` — extend `CursorOption` with a recoverable identifier alternative, then reject unknown names while preserving exact token ranges.
-- [ ] `InvalidUsageOfCursorOption` — classify recognized cursor options by declaration/API context and diagnose options not allowed in that specific context.
-- [ ] `MixingOldAndNewSyntaxForCursorOptionsNotAllowed` — add `INSENSITIVE` and legacy option nodes, then reject a declaration that combines legacy and ISO cursor-option families.
-- [ ] `OperatorNotSupported` — validate parsed set/query operator kinds against the supported feature profile and report the operator token, not a later recovery node.
-- [ ] `NameOrAuthorizationKeywordRequired` — add a CREATE SCHEMA structural validator requiring either a schema name or `AUTHORIZATION`, with malformed-prefix range tests.
-- [ ] `InvalidOnClause` — classify DROP statement kinds that permit `ON DATABASE`/`ON ALL SERVER` and report an illegal structured ON clause.
-- [ ] `ReadonlyCannotBeUsed` — validate READONLY on structured EXECUTE arguments and report it where the argument form does not permit the modifier.
-- [ ] `InvalidOptionInCreateProcedure` — validate procedure options against the procedure option matrix and range only the unsupported option.
-- [ ] `InvalidOptionInCreateTrigger` — validate trigger options against the trigger option matrix for CREATE, CREATE OR ALTER, and ALTER forms.
-- [ ] `InvalidTriggerEventTypes` — compare structured trigger target scope with DML versus DDL event nodes and report incompatible event kinds without catalog access.
-- [ ] `MaximumSizeErrorForAnyType` — centralize built-in type size bounds and validate numeric/MAX arguments on the parsed data-type specification.
-- [ ] `TypeNameMaxPrefixError` — validate the maximum multipart prefix count for each type/index context using identifier components, including quoted dots.
-- [ ] `XmlSchemaCollectionMaxPrefixError` — validate XML schema collection multipart depth on its structured type argument and range the full invalid collection name.
-- [ ] `InvalidGroupByOption` — validate GROUP BY option combinations from grouping nodes and compatibility profile, reporting the invalid option token.
+- [x] `UnrecognizedCursorOption` — both cursor option lists accept identifier-shaped options so an unmapped spelling can be reported precisely.
+- [x] `InvalidUsageOfCursorOption` — the ISO list before CURSOR accepts only INSENSITIVE and SCROLL, and the extended list after CURSOR rejects INSENSITIVE.
+- [x] `MixingOldAndNewSyntaxForCursorOptionsNotAllowed` — the grammar models both option lists, and a declaration using both is reported across the declaration.
+- [x] `OperatorNotSupported` — ALL is accepted only on UNION; EXCEPT ALL and INTERSECT ALL parse far enough to range the unsupported operator instead of becoming recovery noise.
+- [x] `NameOrAuthorizationKeywordRequired` — the grammar models an optional schema name and reports across the statement when neither a name nor `AUTHORIZATION` is present. This also closed a real gap: `CREATE SCHEMA AUTHORIZATION owner` previously failed to parse.
+- [x] `InvalidOnClause` — a shared `DropTriggerScope` tail is parsed for DROP forms and rejected for every object kind except triggers.
+- [x] `ReadonlyCannotBeUsed` — EXECUTE argument options are structural nodes, so READONLY can be reported at the option without text scanning.
+- [x] `InvalidOptionInCreateProcedure` — module options are classified as unrecognized, invalid for the statement kind, or repeated, with the option node providing the range.
+- [x] `InvalidOptionInCreateTrigger` — the same structured classification covers CREATE, CREATE OR ALTER, and ALTER trigger forms.
+- [x] `InvalidTriggerEventTypes` — syntax validation compares the trigger target scope with the event-list kind and reports at the trigger name. Mixed DML actions and DDL event names remain syntax errors.
+- [x] `MaximumSizeErrorForAnyType` — a single length argument is compared with the flat 8000-byte ceiling and reported at the argument literal. Below the ceiling the existing per-type diagnostic applies instead.
+- [x] `TypeNameMaxPrefixError` — a three-part type name is rejected and invalidates the specification so no follow-on type diagnostic is emitted. Quoted dots are counted as identifier parts.
+- [x] `XmlSchemaCollectionMaxPrefixError` — the same prefix limit is applied to the full XML schema collection name.
+- [x] `InvalidGroupByOption` — a legacy `WITH <option>` tail is parsed so only CUBE and ROLLUP are accepted and ranged semantically.
 - [ ] `NestedDmlMustHaveOutputClause` — detect DML used as a table source and require its structured OUTPUT clause before semantic binding.
 - [ ] `FunctionNotAllowedInOutput` — walk OUTPUT expressions and reject the prohibited function categories at their call name while allowing permitted scalar expressions.
 - [ ] `RequiredParam` — complete external-stream option grammar, define the required parameter set per statement/engine profile, and report the enclosing option list when one is absent.
@@ -82,13 +209,13 @@ work is at most 77 families; the denominator must be corrected only after the cl
 - [ ] `StoredProceduresAlwaysReturnInt` — type bound stored-procedure execution results as `int` and diagnose incompatible result assignment through the expression type system.
 - [ ] `MultiPartIdentifierBindingError` — complete scope-aware multipart scalar binding and emit this fallback only after alias, column, variable, UDT-member, and catalog resolution all fail authoritatively.
 - [ ] `OperandTypeClash` — use the SQL conversion/assignment matrix to compare bound source and destination types, preserving both declared and inferred nullability.
-- [ ] `InvalidUseOfSideEffectingOperatorWithinFunction` — walk each function body, classify side-effecting statements/operators, and report them while excluding nested module definitions and permitted table-variable work.
+- [x] `InvalidUseOfSideEffectingOperatorWithinFunction` — `ValidateModuleBodyVisitor` names each reported statement by its statement phrase, allows table-variable INSERT/DELETE/MERGE without output rows, never checks UPDATE, and routes SELECT INTO here rather than to the data-returning rule.
 - [ ] `NotRecognizedFunctionName` — resolve built-ins by feature profile and user functions through complete metadata/local declarations, emitting only when the relevant catalog is authoritative.
-- [ ] `RemoteFunctionRefIsNotAllowed` — detect four-part user-function calls after multipart binding and report the remote server/database prefix at the function reference.
+- [ ] `RemoteFunctionRefIsNotAllowed` — **blocked: needs column-candidate binding.** The diagnostic needs both the four-part function name and the identifier considered as a column candidate, and it must stay silent when a non-UDT column binds. Both require complete multipart scalar binding.
 
 ## Index, view, and constraint semantics
 
-- [ ] `ColumnIsInvalidForUseAsOrderColumnInIndex` — bind each index order column to the target shape and reject unsupported data types or column attributes using the shared index type policy.
+- [ ] `ColumnIsInvalidForUseAsOrderColumnInIndex` — **blocked: no ORDER clause in the grammar.** Validating a non-clustered index order column against the key columns requires the columnstore `ORDER (…)` clause first.
 - [ ] `IndexOrStatisticsExists` — query authoritative index/statistics metadata on CREATE and report a conflicting name scoped to the target object.
 - [ ] `ClusteredIndexExists` — use target index metadata to reject creation of a second clustered index, accounting for DROP_EXISTING replacement semantics.
 - [ ] `CouldNotFindIndex` — resolve ALTER/DROP/rebuild index names against a complete target index set and remain silent while that section is partial or loading.
@@ -99,8 +226,8 @@ work is at most 77 families; the denominator must be corrected only after the cl
 - [ ] `CannotCreateNonuniqueClusteredIndexOnView` — validate that a view's first clustered index is unique using structured UNIQUE/CLUSTERED flags.
 - [ ] `CannotCreateIndexOnViewContainsInvalidColumns` — bind the view projection and reject indexed-view keys containing columns whose expression/type metadata makes them ineligible.
 - [ ] `OnlineOperationCannotBePerformedOnIndexInvalidColumns` — inspect the resolved index column types and reject ONLINE operations when any participating column is unsupported.
-- [ ] `ComputedColumnsConstraintCheckError` — bind computed-column expressions and reject constraints that are illegal on computed columns at the constraint node.
-- [ ] `NoPrimaryKeysInReferencedTable` — when a foreign key omits referenced columns, require authoritative primary-key ordinals on the referenced table and report the referenced table if absent.
+- [x] `ComputedColumnsConstraintCheckError` — a computed column always accepts UNIQUE and PRIMARY KEY; CHECK, FOREIGN KEY, and NOT NULL require PERSISTED.
+- [ ] `NoPrimaryKeysInReferencedTable` — **blocked: candidate-key metadata missing.** An explicit referenced column list must match primary and unique keys, but column metadata currently models only `primaryKeyOrdinal`. Reporting without unique-key metadata would falsely flag foreign keys that reference a UNIQUE constraint. The implicit-list case is already covered by `ForeignKeyReferencesImplicitlyTableWithoutPrimaryKey`.
 
 ## Trigger catalog semantics
 
@@ -113,8 +240,8 @@ work is at most 77 families; the denominator must be corrected only after the cl
 
 ## Pivot, UDT, and XML member semantics
 
-- [ ] `PrefixedColumnsNotAllowedInPivot` — inspect PIVOT value/grouping references and report qualified column nodes where the construct requires an unqualified name.
-- [ ] `PrefixedColumnsNotAllowedInUnpivot` — inspect UNPIVOT source-column references and report qualified column nodes where only unqualified names are legal.
+- [x] `PrefixedColumnsNotAllowedInPivot` — the PIVOT column list parses multipart names, and a qualified name replaces less useful conflict and duplicate reports.
+- [x] `PrefixedColumnsNotAllowedInUnpivot` — only the value and pivoted columns accept the checked shape, so the unpivoted column list stays unqualified.
 - [ ] `CannotCallMethodsOnType` — bind the receiver SQL type and reject member-call syntax for types that expose no callable instance members.
 - [ ] `UdtMemberIsNotStatic` — resolve a CLR/UDT member invoked through a type and report when metadata marks it instance-only.
 - [ ] `UdtMemberIsStatic` — resolve a CLR/UDT member invoked through an instance and report when metadata marks it static-only.

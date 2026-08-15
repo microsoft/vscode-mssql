@@ -121,6 +121,116 @@ CREATE TRIGGER t2 ON dbo.c AFTER INSERT AS BEGIN RETURN; END;`).diagnostics,
         );
     });
 
+    // A table or view target admits only INSERT/UPDATE/DELETE actions; a DDL event list there is
+    // reported once at the trigger name, which is the object the mismatch belongs to.
+    test("reports DDL events on a DML trigger target with exact output", () => {
+        const sql = "CREATE TRIGGER dbo.t ON dbo.c AFTER CREATE_TABLE AS BEGIN RETURN; END;";
+        const diagnostics = parse(sql).diagnostics;
+
+        assert.deepEqual(
+            diagnostics.map(({ code, message, severity, range }) => ({
+                code,
+                message,
+                severity,
+                text: sql.slice(range.start, range.end),
+            })),
+            [
+                {
+                    code: "InvalidTriggerEventTypes",
+                    message:
+                        "The specified event types are not valid on the specified target object.",
+                    severity: "error",
+                    text: "dbo.t",
+                },
+            ],
+        );
+    });
+
+    // DATABASE and ALL SERVER targets carry DDL events, so DML actions are invalid on them.
+    test("reports DML actions on a DDL trigger target", () => {
+        for (const target of ["DATABASE", "ALL SERVER"]) {
+            const diagnostics = parse(
+                `CREATE TRIGGER t ON ${target} AFTER INSERT AS BEGIN RETURN; END;`,
+            ).diagnostics;
+            assert.deepEqual(
+                diagnostics.map(({ code }) => code),
+                ["InvalidTriggerEventTypes"],
+                target,
+            );
+        }
+    });
+
+    // Both matching combinations, and every activation spelling, stay silent.
+    test("accepts each target paired with its own event kind", () => {
+        for (const sql of [
+            "CREATE TRIGGER t ON dbo.c AFTER INSERT, UPDATE AS BEGIN RETURN; END;",
+            "CREATE TRIGGER t ON dbo.c FOR DELETE AS BEGIN RETURN; END;",
+            "CREATE TRIGGER t ON dbo.c INSTEAD OF INSERT AS BEGIN RETURN; END;",
+            "CREATE TRIGGER t ON DATABASE FOR CREATE_TABLE, DROP_TABLE AS BEGIN RETURN; END;",
+            "CREATE TRIGGER t ON ALL SERVER AFTER DDL_LOGIN_EVENTS AS BEGIN RETURN; END;",
+            "CREATE TRIGGER t ON ALL SERVER FOR LOGON AS BEGIN RETURN; END;",
+        ]) {
+            assert.deepEqual(parse(sql).diagnostics, [], sql);
+        }
+    });
+
+    // Applies to every statement spelling that builds a trigger definition.
+    test("applies the event/target rule to CREATE, CREATE OR ALTER, and ALTER TRIGGER", () => {
+        for (const prefix of ["CREATE", "CREATE OR ALTER", "ALTER"]) {
+            assert.deepEqual(
+                parse(
+                    `${prefix} TRIGGER t ON DATABASE AFTER UPDATE AS BEGIN RETURN; END;`,
+                ).diagnostics.map(({ code }) => code),
+                ["InvalidTriggerEventTypes"],
+                prefix,
+            );
+        }
+    });
+
+    // A quoted multipart trigger name is ranged whole, exactly as the parser reports it.
+    test("ranges a quoted multipart trigger name", () => {
+        const sql =
+            "CREATE TRIGGER [dbo].[my trigger] ON DATABASE AFTER DELETE AS BEGIN RETURN; END;";
+        const diagnostics = parse(sql).diagnostics;
+
+        assert.deepEqual(
+            diagnostics.map(({ code, range }) => [code, sql.slice(range.start, range.end)]),
+            [["InvalidTriggerEventTypes", "[dbo].[my trigger]"]],
+        );
+    });
+
+    // A damaged declaration is owned by syntax recovery, not by the event/target rule.
+    test("does not diagnose a syntax-damaged trigger declaration", () => {
+        const diagnostics = parse(
+            "CREATE TRIGGER t ON DATABASE AFTER INSERT, , INSERT AS",
+        ).diagnostics;
+
+        assert.ok(diagnostics.some(({ code }) => code === "syntax"));
+        assert.ok(diagnostics.every(({ code }) => code !== "InvalidTriggerEventTypes"));
+    });
+
+    // Keeps incrementally recomputed diagnostics identical to a fresh parse after a target edit.
+    test("keeps incremental and full event/target diagnostics equivalent", () => {
+        const service = new LezerSyntaxService();
+        const beforeText = "CREATE TRIGGER t ON dbo.c AFTER INSERT AS BEGIN RETURN; END;";
+        const before = service.parse(
+            new ImmutableTextSnapshot("file:///trigger-target.sql", 1, beforeText),
+        );
+        const targetStart = beforeText.indexOf("dbo.c");
+        const afterText = `${beforeText.slice(0, targetStart)}DATABASE${beforeText.slice(targetStart + 5)}`;
+        const afterDocument = new ImmutableTextSnapshot("file:///trigger-target.sql", 2, afterText);
+        const incremental = service.update(before, afterDocument, [
+            { start: targetStart, end: targetStart + 5, text: "DATABASE" },
+        ]);
+        const fresh = service.parse(afterDocument);
+
+        assert.deepEqual(incremental.diagnostics, fresh.diagnostics);
+        assert.deepEqual(
+            incremental.diagnostics.map(({ code }) => code),
+            ["InvalidTriggerEventTypes"],
+        );
+    });
+
     // Keeps incrementally recomputed diagnostics identical to a fresh parse after an action edit.
     test("keeps incremental and full diagnostics equivalent", () => {
         const service = new LezerSyntaxService();

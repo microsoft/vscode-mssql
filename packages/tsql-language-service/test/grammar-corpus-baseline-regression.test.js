@@ -75,6 +75,24 @@ FROM ExpenseQueue INTO @messages WHERE conversation_group_id = @group;
 `);
     });
 
+    // SELECT INTO retains its filegroup before FROM, including delimited filegroup names.
+    test("parses SELECT INTO filegroup placement", () => {
+        assertValid(`
+SELECT Id INTO dbo.Copy ON data_files FROM dbo.Source;
+SELECT Id INTO dbo.Copy ON [default] FROM dbo.Source;
+(SELECT Id INTO dbo.Copy ON [data files] FROM dbo.Source)
+UNION ALL SELECT Id FROM dbo.Other;
+`);
+    });
+
+    // ODBC outer-join escapes remain table sources and can nest or join ordinary sources.
+    test("parses ODBC outer join table sources", () => {
+        assertValid(`
+SELECT * FROM {oj {oj t1 INNER JOIN t2 ON t1.Id = t2.Id}};
+SELECT * FROM t1 INNER JOIN {oj t2 CROSS JOIN t3} ON t1.Id = t2.Id;
+`);
+    });
+
     // Legacy GROUP BY ALL remains valid on SQL Server; Fabric additionally supports ORDER BY ALL.
     test("parses and gates ALL clauses", () => {
         const sql = `

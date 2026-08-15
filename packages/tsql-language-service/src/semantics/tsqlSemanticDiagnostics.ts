@@ -49,6 +49,8 @@ export function collectTsqlSemanticDiagnostics(
     context.validateModuleDefinitions();
     context.validateDdlObjects();
     context.validateIndexes();
+    context.validateConstraintIndexOptions();
+    context.validateComputedColumnConstraints();
     context.validateBatchContracts();
     context.validateBuiltInFunctions();
     context.validateCatalogFunctionArguments();
@@ -83,14 +85,8 @@ class ValidationContext {
             collectLocalProcedureEvents(_syntax, _index),
             _metadata,
         );
-        this._localLogins = indexLoginEvents(
-            collectLocalLoginEvents(_syntax, _index),
-            _metadata,
-        );
-        this._localTypes = indexObjectEvents(
-            collectLocalTypeEvents(_syntax, _index),
-            _metadata,
-        );
+        this._localLogins = indexLoginEvents(collectLocalLoginEvents(_syntax, _index), _metadata);
+        this._localTypes = indexObjectEvents(collectLocalTypeEvents(_syntax, _index), _metadata);
         this._variableDeclarations = collectVariableDeclarations(_syntax, _index);
     }
 
@@ -212,11 +208,7 @@ class ValidationContext {
             const verb = operation[1]!.toLocaleUpperCase();
             const kind = operation[2]!.toLocaleUpperCase();
             const name = normalizeIdentifier(this.source(nameNode));
-            const existing = this.principalExistsAt(
-                name,
-                principalKinds(kind),
-                nameNode.start,
-            );
+            const existing = this.principalExistsAt(name, principalKinds(kind), nameNode.start);
             if (verb === "CREATE" && existing) {
                 if (kind === "LOGIN") {
                     this.add(
@@ -330,15 +322,44 @@ class ValidationContext {
                 if (isFunctionOptionArgument(this._syntax, column)) continue;
                 const parts = multipartIdentifierParts(this.source(column));
                 if (parts.length === 0) continue;
-                if (
-                    ancestor(column, "OrderByClause") &&
-                    aliases.has(this.fold(parts.at(-1)!))
-                ) {
+                if (ancestor(column, "OrderByClause") && aliases.has(this.fold(parts.at(-1)!))) {
                     continue;
                 }
                 this.validateColumn(column, parts, visibleSources);
                 this.validateXmlNodeColumnUse(column, parts, visibleSources);
             }
+        }
+
+        // Only UNION has an ALL form; EXCEPT ALL and INTERSECT ALL parse so the unsupported
+        // operator can be named instead of recovered.
+        for (const kind of ["QueryExpression", "QueryTerm"] as const) {
+            for (const node of this.nodes(kind)) {
+                let operator: SyntaxNode | undefined;
+                for (const child of node.children()) {
+                    if (child.kind === "Except" || child.kind === "Intersect") {
+                        operator = child;
+                        continue;
+                    }
+                    if (child.kind === "All" && operator) {
+                        this.add(
+                            "OperatorNotSupported",
+                            `The 'ALL' version of the ${operator.kind} operator is not supported.`,
+                            { start: operator.start, end: child.end },
+                        );
+                    }
+                    operator = undefined;
+                }
+            }
+        }
+
+        for (const option of this.nodes("GroupByOption")) {
+            const spelling = this.source(option).trim().replace(/\s+/gu, " ");
+            if (/^WITH\s+(?:CUBE|ROLLUP)$/iu.test(spelling)) continue;
+            this.add(
+                "InvalidGroupByOption",
+                ` '${spelling}' is not a recognized GROUP BY option.`,
+                option,
+            );
         }
 
         for (const expression of this.nodes("QueryExpression")) {
@@ -426,11 +447,11 @@ class ValidationContext {
                 );
                 const hasSelfReference = references.some((items) => items.length > 0);
                 if (!hasSelfReference) continue;
-                const hasUnionAll = terms.slice(1).some((term, index) =>
-                    /\bUNION\s+ALL\b/iu.test(
-                        this._text.slice(terms[index]!.end, term.start),
-                    ),
-                );
+                const hasUnionAll = terms
+                    .slice(1)
+                    .some((term, index) =>
+                        /\bUNION\s+ALL\b/iu.test(this._text.slice(terms[index]!.end, term.start)),
+                    );
                 if (references[0]!.length > 0) {
                     const reference = references[0]![0]!;
                     if (hasUnionAll) {
@@ -474,11 +495,7 @@ class ValidationContext {
         for (const cte of this.nodes("CommonTableExpression")) {
             const name = directChildren(cte, "IdentifierName")[0];
             if (!name) continue;
-            this.validateProjectedRelation(
-                name,
-                directChildren(cte, "ColumnNameList")[0],
-                cte,
-            );
+            this.validateProjectedRelation(name, directChildren(cte, "ColumnNameList")[0], cte);
         }
         for (const derived of this.nodes("DerivedTable")) {
             const alias = directChildren(derived, "TableAlias")[0];
@@ -496,11 +513,7 @@ class ValidationContext {
         ]) {
             const name = firstDescendant(view, "MultipartIdentifier");
             if (!name) continue;
-            this.validateProjectedRelation(
-                name,
-                directChildren(view, "ColumnNameList")[0],
-                view,
-            );
+            this.validateProjectedRelation(name, directChildren(view, "ColumnNameList")[0], view);
         }
     }
 
@@ -508,12 +521,23 @@ class ValidationContext {
         for (const pivot of this.nodes("PivotJoin")) {
             this.validatePivotAggregate(pivot);
             const sourceColumns = this.joinInputColumns(pivot);
-            const list = directChildren(pivot, "ColumnNameList")[0];
+            const list = directChildren(pivot, "PivotColumnList")[0];
             if (!list) continue;
             const seen = new Set<string>();
             const alias = tableOperatorAlias(this._syntax, pivot, "PIVOT");
-            for (const column of descendants(list, "IdentifierName")) {
-                const name = normalizeIdentifier(this.source(column));
+            for (const column of directChildren(list, "MultipartIdentifier")) {
+                const parts = multipartIdentifierParts(this.source(column));
+                // A qualified name replaces the conflict and duplicate checks, as it names no
+                // column the PIVOT output could hold.
+                if (parts.length > 1) {
+                    this.add(
+                        "PrefixedColumnsNotAllowedInPivot",
+                        "Prefixed columns are not allowed in the column list of a PIVOT operator.",
+                        column,
+                    );
+                    continue;
+                }
+                const name = parts[0] ?? "";
                 const key = this.fold(name);
                 if (seen.has(key)) {
                     this.add(
@@ -552,11 +576,21 @@ class ValidationContext {
                 }
             }
 
-            const outputColumns = directChildren(unpivot, "IdentifierName").slice(0, 2);
+            const outputColumns = directChildren(unpivot, "MultipartIdentifier").slice(0, 2);
             const outputSeen = new Set<string>();
             const alias = tableOperatorAlias(this._syntax, unpivot, "UNPIVOT");
             for (const column of outputColumns) {
-                const name = normalizeIdentifier(this.source(column));
+                const parts = multipartIdentifierParts(this.source(column));
+                // The value and pivoted columns name new output columns, so a prefix names nothing.
+                if (parts.length > 1) {
+                    this.add(
+                        "PrefixedColumnsNotAllowedInUnpivot",
+                        "Prefixes are not allowed in value or pivot columns of an UNPIVOT operator.",
+                        column,
+                    );
+                    continue;
+                }
+                const name = parts[0] ?? "";
                 const key = this.fold(name);
                 if (outputSeen.has(key)) {
                     this.add(
@@ -648,7 +682,10 @@ class ValidationContext {
             const tableSource = ancestor(variable, "VariableTableSource");
             if (tableSource) continue;
             const namedArgument = ancestor(variable, "NamedExecuteArgument");
-            if (namedArgument && variable.start === firstDescendant(namedArgument, "Variable")?.start) {
+            if (
+                namedArgument &&
+                variable.start === firstDescendant(namedArgument, "Variable")?.start
+            ) {
                 continue;
             }
             if (!this.variableAt(name, variable.start, false)) {
@@ -700,11 +737,10 @@ class ValidationContext {
                     }
                 }
 
-                const generated = /\bGENERATED\s+ALWAYS\s+AS\s+ROW\s+(START|END)\b/iu.exec(
-                    source,
-                );
+                const generated = /\bGENERATED\s+ALWAYS\s+AS\s+ROW\s+(START|END)\b/iu.exec(source);
                 if (generated) {
-                    const target = generated[1]!.toLocaleUpperCase() === "START" ? rowStarts : rowEnds;
+                    const target =
+                        generated[1]!.toLocaleUpperCase() === "START" ? rowStarts : rowEnds;
                     target.push({ name, node: column });
                     const type = firstDescendant(column, "DataType");
                     if (!type || !/^\s*DATETIME2\b/iu.test(this.source(type))) {
@@ -824,7 +860,8 @@ class ValidationContext {
             const ownerParts = multipartIdentifierParts(ownerName);
             const ownerDisplay = ownerParts.at(-1) ?? ownerName;
             const tableConstraint = ancestor(reference, "TableConstraint");
-            const constraintBody = tableConstraint && firstDescendant(tableConstraint, "TableConstraintBody");
+            const constraintBody =
+                tableConstraint && firstDescendant(tableConstraint, "TableConstraintBody");
             if (
                 tableConstraint &&
                 constraintBody &&
@@ -870,9 +907,10 @@ class ValidationContext {
                 : localEvent?.create
                   ? localEvent
                   : undefined;
-            const resolution = localReference || localEvent
-                ? undefined
-                : this._metadata.resolveObject(referencedParts);
+            const resolution =
+                localReference || localEvent
+                    ? undefined
+                    : this._metadata.resolveObject(referencedParts);
             if (
                 !localReference &&
                 ((localEvent !== undefined && !localEvent.create) ||
@@ -921,10 +959,7 @@ class ValidationContext {
             } else {
                 const primaryKey = referencedColumns
                     .filter((column) => column.primaryKeyOrdinal !== undefined)
-                    .sort(
-                        (left, right) =>
-                            left.primaryKeyOrdinal! - right.primaryKeyOrdinal!,
-                    );
+                    .sort((left, right) => left.primaryKeyOrdinal! - right.primaryKeyOrdinal!);
                 if (primaryKey.length === 0) {
                     this.add(
                         "ForeignKeyReferencesImplicitlyTableWithoutPrimaryKey",
@@ -1035,6 +1070,17 @@ class ValidationContext {
     public validateExecutions(): void {
         for (const execute of this.nodes("ExecuteStatement")) {
             for (const argument of descendantsOwnedBy(execute, "ExecuteArgument", execute)) {
+                // READONLY belongs to a routine declaration; SQL Server parses it after an EXECUTE
+                // argument only to reject it there.
+                const option = firstDescendant(argument, "ExecuteArgumentOption");
+                if (option && /^READONLY$/iu.test(this.source(option).trim())) {
+                    this.add(
+                        "ReadonlyCannotBeUsed",
+                        "The READONLY option cannot be used in an EXECUTE or CREATE AGGREGATE statement.",
+                        option,
+                    );
+                    continue;
+                }
                 const source = this.source(argument);
                 if (!/\b(?:OUT|OUTPUT)\s*$/iu.test(source)) continue;
                 const expression = firstDescendant(argument, "Expression");
@@ -1118,13 +1164,15 @@ class ValidationContext {
                 this.add(
                     "NumberOfColumnsMustBeTheSame",
                     "The number of columns for each row in a table value constructor must be the same.",
-                    rows.find((_, index) => index > 0 && rowCounts[index] !== rowCounts[0]) ?? insert,
+                    rows.find((_, index) => index > 0 && rowCounts[index] !== rowCounts[0]) ??
+                        insert,
                 );
             }
             const expected =
                 insertColumns.length > 0
                     ? insertColumns.length
-                    : targetColumns?.filter((column) => !column.computed && !column.identity).length;
+                    : targetColumns?.filter((column) => !column.computed && !column.identity)
+                          .length;
             if (expected !== undefined && rowCounts.some((count) => count !== expected)) {
                 this.add(
                     "NumberOfValuesDoesNotMatchTableDef",
@@ -1133,7 +1181,10 @@ class ValidationContext {
                 );
             }
 
-            const sourceSelect = firstDescendant(firstDescendant(insert, "InsertSource") ?? insert, "SelectList");
+            const sourceSelect = firstDescendant(
+                firstDescendant(insert, "InsertSource") ?? insert,
+                "SelectList",
+            );
             if (sourceSelect && insertColumns.length > 0) {
                 const selected = directOwnedDescendants(sourceSelect, "SelectElement").length;
                 if (selected < insertColumns.length) {
@@ -1164,8 +1215,7 @@ class ValidationContext {
             const seen = new Set<string>();
             for (const clause of descendantsOwnedBy(update, "SetClause", update)) {
                 const columnNode = firstDescendant(clause, "MultipartIdentifier");
-                const name =
-                    columnNode && multipartIdentifierParts(this.source(columnNode)).at(-1);
+                const name = columnNode && multipartIdentifierParts(this.source(columnNode)).at(-1);
                 if (!columnNode || !name) continue;
                 const key = this.fold(name);
                 if (seen.has(key)) {
@@ -1288,7 +1338,9 @@ class ValidationContext {
             const selected = directOwnedDescendants(selectList, "SelectElement");
             const expressions = directOwnedDescendants(order, "OrderExpression");
             for (const [index, expression] of expressions.entries()) {
-                const source = this.source(expression).trim().replace(/\s+(?:ASC|DESC)\s*$/iu, "");
+                const source = this.source(expression)
+                    .trim()
+                    .replace(/\s+(?:ASC|DESC)\s*$/iu, "");
                 if (/^[0-9]+$/u.test(source)) {
                     const position = Number(source);
                     if (position < 1 || position > selected.length) {
@@ -1320,10 +1372,12 @@ class ValidationContext {
             const parsed = parseDataType(this.source(dataType));
             if (!parsed) continue;
             const parts = dataTypeParts(this._syntax, dataType);
+            // A type name may carry at most a schema prefix, and an XML schema collection name the
+            // same. An over-prefixed name makes the whole specification invalid, so nothing else
+            // about this type is worth reporting.
+            if (this.reportOverPrefixedTypeNames(dataType, parts, parsed.name)) continue;
             const systemType = isSystemDataType(parts, parsed.name, this.source(dataType));
-            const typeResolution = systemType
-                ? undefined
-                : this.userTypeAt(parts, dataType.start);
+            const typeResolution = systemType ? undefined : this.userTypeAt(parts, dataType.start);
             if (
                 ["CastExpression", "TryCastExpression", "ConvertExpression"].some((kind) =>
                     ancestor(dataType, kind),
@@ -1410,7 +1464,10 @@ class ValidationContext {
                         "COLLATE clause cannot be used on user-defined data types.",
                         collation,
                     );
-                } else if (systemType && !isCollatableSystemDataType(parsed.name, this.source(dataType))) {
+                } else if (
+                    systemType &&
+                    !isCollatableSystemDataType(parsed.name, this.source(dataType))
+                ) {
                     this.add(
                         "ExpressionTypeInvalidForCollate",
                         `Expression type ${parsed.name} is invalid for COLLATE clause.`,
@@ -1438,15 +1495,33 @@ class ValidationContext {
                     );
                 }
             }
+            // A single length argument may never exceed the 8000-byte ceiling that applies to every
+            // data type; only below that ceiling does a type's own maximum decide.
+            const lengthArgument = firstArgumentNode(dataType) ?? dataType;
             const maximum = typeLengthMaximum[parsed.name];
-            if (maximum && first !== undefined && first > maximum) {
+            if (
+                parsed.arguments.length === 1 &&
+                first !== undefined &&
+                first > maximumSizeForAnyType &&
+                !scaleArgumentTypes.has(parsed.name)
+            ) {
+                this.add(
+                    "MaximumSizeErrorForAnyType",
+                    `The size (${first}) given to the type '${parsed.name}' exceeds the maximum allowed for any data type (${maximumSizeForAnyType}).`,
+                    lengthArgument,
+                );
+            } else if (maximum && first !== undefined && first > maximum) {
                 this.add(
                     "MaximumSizeError",
                     `The size (${first}) given to the type '${parsed.name}' exceeds the maximum allowed (${maximum}).`,
                     dataType,
                 );
             }
-            if (["time", "datetime2", "datetimeoffset"].includes(parsed.name) && first !== undefined && (first < 0 || first > 7)) {
+            if (
+                ["time", "datetime2", "datetimeoffset"].includes(parsed.name) &&
+                first !== undefined &&
+                (first < 0 || first > 7)
+            ) {
                 this.add("InvalidScale", `Specified scale ${first} is invalid.`, dataType);
             }
             if (parsed.name === "float" && first !== undefined && (first < 1 || first > 53)) {
@@ -1463,10 +1538,14 @@ class ValidationContext {
             const typeNode = firstDescendant(column, "DataType");
             if (!nameNode) continue;
             const name = normalizeIdentifier(this.source(nameNode));
-            const owner = tableDefinitionOwner(this._syntax, ancestor(column, "TableDefinition") ?? column);
+            const owner = tableDefinitionOwner(
+                this._syntax,
+                ancestor(column, "TableDefinition") ?? column,
+            );
             const source = this.source(column);
             const identity = /\bIDENTITY\b/iu.test(source);
-            const explicitlyNullable = /\bNULL\b/iu.test(source) && !/\bNOT\s+NULL\b/iu.test(source);
+            const explicitlyNullable =
+                /\bNULL\b/iu.test(source) && !/\bNOT\s+NULL\b/iu.test(source);
             if (!typeNode) {
                 this.add(
                     "DataTypeMissing",
@@ -1564,10 +1643,30 @@ class ValidationContext {
 
     public validateDdlObjects(): void {
         const rules: readonly DdlRule[] = [
-            { create: "CreateTableStatement", alter: "AlterTableStatement", drop: "DropTableStatement", kind: "table" },
-            { create: "CreateViewStatement", alter: "AlterViewStatement", drop: "DropViewStatement", kind: "view" },
-            { create: "CreateProcedureStatement", alter: "AlterProcedureStatement", drop: "DropProcedureStatement", kind: "procedure" },
-            { create: "CreateFunctionStatement", alter: "AlterFunctionStatement", drop: "DropFunctionStatement", kind: "function" },
+            {
+                create: "CreateTableStatement",
+                alter: "AlterTableStatement",
+                drop: "DropTableStatement",
+                kind: "table",
+            },
+            {
+                create: "CreateViewStatement",
+                alter: "AlterViewStatement",
+                drop: "DropViewStatement",
+                kind: "view",
+            },
+            {
+                create: "CreateProcedureStatement",
+                alter: "AlterProcedureStatement",
+                drop: "DropProcedureStatement",
+                kind: "procedure",
+            },
+            {
+                create: "CreateFunctionStatement",
+                alter: "AlterFunctionStatement",
+                drop: "DropFunctionStatement",
+                kind: "function",
+            },
         ];
         for (const rule of rules) {
             for (const node of this.nodes(rule.create)) this.validateCreateObject(node);
@@ -1641,9 +1740,13 @@ class ValidationContext {
                 }
                 const definition = firstDescendant(module, "FunctionDefinition");
                 if (!definition) continue;
-                const tableValued = firstDescendant(definition, "FunctionTableReturnType") !== undefined;
+                const tableValued =
+                    firstDescendant(definition, "FunctionTableReturnType") !== undefined;
                 const external = firstDescendant(definition, "ExternalModuleBody") !== undefined;
-                const inlineTable = tableValued && !external && firstDescendant(definition, "ModuleBody") === undefined;
+                const inlineTable =
+                    tableValued &&
+                    !external &&
+                    firstDescendant(definition, "ModuleBody") === undefined;
                 const allowed = external
                     ? tableValued
                         ? externalTableFunctionOptions
@@ -1698,7 +1801,36 @@ class ValidationContext {
             );
         }
 
+        // Every statement in the body, at any block depth, is checked for side effects.
+        for (const statement of descendants(module, "Statement")) {
+            for (const child of statement.children()) {
+                // Recovery nodes are not reliable enough to classify as side-effecting statements.
+                if (containsErrorNode(child)) continue;
+                const phrase = this.sideEffectingPhrase(child);
+                if (!phrase) continue;
+                this.add(
+                    "InvalidUseOfSideEffectingOperatorWithinFunction",
+                    `Invalid use of a side-effecting operator '${phrase}' within a function.`,
+                    child,
+                );
+            }
+        }
+
         for (const statement of statementsInModule(module)) {
+            const intoSelect = directChildren(statement, "SelectStatement")[0];
+            if (
+                intoSelect &&
+                !containsErrorNode(intoSelect) &&
+                firstDescendant(intoSelect, "IntoClause")
+            ) {
+                this.add(
+                    "InvalidUseOfSideEffectingOperatorWithinFunction",
+                    "Invalid use of a side-effecting operator 'SELECT' within a function.",
+                    intoSelect,
+                );
+                continue;
+            }
+
             const returnStatement = directChildren(statement, "ReturnStatement")[0];
             if (returnStatement) {
                 const expression = directChildren(returnStatement, "Expression")[0];
@@ -1725,6 +1857,103 @@ class ValidationContext {
                 "Select statements included within a function cannot return data to a client.",
                 select,
             );
+        }
+    }
+
+    /**
+     * Names the statement phrase when this statement is side-effecting inside a function body.
+     * The phrase is the longest leading keyword sequence SQL Server names for a statement, which
+     * also decides whether the statement is one of the reported kinds at all.
+     */
+    private sideEffectingPhrase(statement: SyntaxNode): string | undefined {
+        let phrase = sideEffectingStatementPhrases.get(statement.kind);
+        if (phrase === undefined) {
+            if (!derivedStatementPhraseKinds.has(statement.kind)) return undefined;
+            // These node kinds cover several statements whose phrase is their own leading words.
+            const words = (
+                this.source(statement).match(/^(?:[\p{L}_]+\s+){0,3}[\p{L}_]+/u)?.[0] ?? ""
+            )
+                .toLocaleUpperCase()
+                .split(/\s+/u);
+            for (let length = words.length; length > 0; length--) {
+                const candidate = words.slice(0, length).join(" ");
+                if (knownStatementPhrases.has(candidate)) {
+                    phrase = candidate;
+                    break;
+                }
+            }
+            if (phrase === undefined) return undefined;
+        }
+        // SET assigns a variable as often as it changes session state; only the latter is reported.
+        if (phrase === "SET" && directChildren(statement, "Variable").length > 0) return undefined;
+        // INSERT, DELETE, and MERGE are allowed against a table variable that produces no output.
+        // SQL Server deliberately does not apply this check to UPDATE.
+        if (dmlStatementPhrases.has(phrase) && this.isFunctionSafeDml(statement)) return undefined;
+        return phrase;
+    }
+
+    /** A function body may modify a table variable, and only when it produces no output rows. */
+    private isFunctionSafeDml(statement: SyntaxNode): boolean {
+        const target = firstDescendant(statement, "DmlTarget");
+        if (!target) return true;
+        if (!firstDescendant(target, "Variable")) return false;
+        const output = firstDescendant(statement, "OutputClause");
+        if (!output) return true;
+        const into = firstDescendant(output, "OutputIntoClause");
+        const intoTarget = into && firstDescendant(into, "DmlTarget");
+        return intoTarget !== undefined && firstDescendant(intoTarget, "Variable") !== undefined;
+    }
+
+    /**
+     * A computed column always accepts UNIQUE and PRIMARY KEY. CHECK, FOREIGN KEY, and NOT NULL
+     * describe stored data, so they require the column to be persisted.
+     */
+    public validateComputedColumnConstraints(): void {
+        for (const column of this.nodes("ColumnDefinition")) {
+            if (containsErrorNode(column)) continue;
+            // A computed column has an expression where an ordinary column has its data type.
+            if (directChildren(column, "DataType").length > 0) continue;
+            const persisted = directChildren(column, "Persisted").length > 0;
+            if (persisted) continue;
+            for (const constraint of directChildren(column, "ColumnConstraint")) {
+                const source = this.source(constraint);
+                if (
+                    !/^\s*(?:CONSTRAINT\s+\S+\s+)?(?:CHECK|FOREIGN\s+KEY|REFERENCES|NOT\s+NULL)\b/iu.test(
+                        source,
+                    )
+                ) {
+                    continue;
+                }
+                this.add(
+                    "ComputedColumnsConstraintCheckError",
+                    "Only UNIQUE or PRIMARY KEY constraints can be created on computed columns, while CHECK, FOREIGN KEY, and NOT NULL constraints require that computed columns be persisted.",
+                    constraint,
+                );
+            }
+        }
+    }
+
+    /**
+     * A PRIMARY KEY or UNIQUE constraint accepts index options, but not the ones that only make
+     * sense while building an index. DROP_EXISTING and STATISTICS_ONLY are never accepted, and
+     * MAXDOP, SORT_IN_TEMPDB, and ONLINE are accepted only by ALTER TABLE.
+     */
+    public validateConstraintIndexOptions(): void {
+        for (const clause of this.nodes("ConstraintIndexWithClause")) {
+            if (containsErrorNode(clause)) continue;
+            const constraint =
+                ancestor(clause, "TableConstraintBody") ?? ancestor(clause, "ColumnConstraint");
+            if (!constraint) continue;
+            if (!/^\s*(?:PRIMARY\s+KEY|UNIQUE)\b/iu.test(this.source(constraint))) continue;
+            const inCreate = ancestor(clause, "CreateTableStatement") !== undefined;
+            for (const option of descendantsOwnedBy(clause, "GenericOptionName", clause)) {
+                const name = normalizeIdentifier(this.source(option).trim()).toLocaleUpperCase();
+                const rejected =
+                    constraintForbiddenIndexOptions.has(name) ||
+                    (inCreate && constraintBuildOnlyIndexOptions.has(name));
+                if (!rejected) continue;
+                this.add("UnrecognizedOption", `'${name}' is not a recognized option.`, option);
+            }
         }
     }
 
@@ -1871,11 +2100,7 @@ class ValidationContext {
             const argumentList = firstDescendant(call, "ArgumentList");
             const arguments_ = argumentList ? directChildren(argumentList, "Expression") : [];
             if (arity && (arguments_.length < arity.minimum || arguments_.length > arity.maximum)) {
-                this.add(
-                    arityCode(arity),
-                    arityMessage(name, arity),
-                    nameNode,
-                );
+                this.add(arityCode(arity), arityMessage(name, arity), nameNode);
             }
             if (datePartFunctions.has(name) && arguments_.length > 0) {
                 const argument = arguments_[0]!;
@@ -1910,10 +2135,7 @@ class ValidationContext {
     }
 
     public validateCatalogFunctionArguments(): void {
-        for (const call of [
-            ...this.nodes("FunctionCall"),
-            ...this.nodes("FunctionTableSource"),
-        ]) {
+        for (const call of [...this.nodes("FunctionCall"), ...this.nodes("FunctionTableSource")]) {
             const nameNode = firstDescendant(call, "MultipartIdentifier");
             if (!nameNode) continue;
             const parts = multipartIdentifierParts(this.source(nameNode));
@@ -1933,7 +2155,9 @@ class ValidationContext {
                 : firstDescendant(call, "Star")
                   ? 1
                   : 0;
-            const required = state.value.filter((parameter) => parameter.hasDefault !== true).length;
+            const required = state.value.filter(
+                (parameter) => parameter.hasDefault !== true,
+            ).length;
             const displayName = compactMultipartName(this.source(nameNode));
             if (actual < required) {
                 this.add(
@@ -1964,18 +2188,43 @@ class ValidationContext {
             );
         }
 
+        // A procedure or trigger WITH clause classifies each option exactly once: an unknown name
+        // is unrecognized, a known module option outside the statement's option set is invalid for
+        // that statement, and only an allowed option can also be reported as a repeat.
+        for (const module of moduleOptionStatements) {
+            for (const clause of this.nodes(module.clause)) {
+                if (containsErrorNode(clause)) continue;
+                const seen = new Set<string>();
+                for (const option of directChildren(clause, module.option)) {
+                    const name = moduleOptionDisplayName(this.source(option));
+                    if (name !== "EXECUTE AS" && !recognizedModuleOptions.has(name)) {
+                        this.add(
+                            "OptionNotRecognized",
+                            `'${name}' is not a recognized option.`,
+                            option,
+                        );
+                    } else if (!module.allowed.has(name)) {
+                        this.add(module.code, module.message, option);
+                    } else if (seen.has(name)) {
+                        this.add(
+                            "OptionSpecifiedMultipleTimes",
+                            `Option '${name}' is specified more than once.`,
+                            option,
+                        );
+                    }
+                    seen.add(name);
+                }
+            }
+        }
+
         const groups: SyntaxNode[][] = [];
         for (const clause of [
-            ...this.nodes("ProcedureWithClause"),
             ...this.nodes("FunctionWithClause"),
             ...this.nodes("ExecuteWithClause"),
-            ...this.nodes("TriggerWithClause"),
         ]) {
             groups.push(
                 [...clause.children()].filter((child) =>
-                    ["ProcedureOption", "FunctionOption", "ExecuteOption", "TriggerOption"].includes(
-                        child.kind,
-                    ),
+                    ["FunctionOption", "ExecuteOption"].includes(child.kind),
                 ),
             );
         }
@@ -2005,7 +2254,9 @@ class ValidationContext {
         for (const clause of this.nodes("LoginCreationClause")) {
             const modifiers = directChildren(clause, "LoginPasswordModifier");
             this.validateDuplicateOptions(modifiers);
-            const hashed = modifiers.find((modifier) => /^\s*HASHED\b/iu.test(this.source(modifier)));
+            const hashed = modifiers.find((modifier) =>
+                /^\s*HASHED\b/iu.test(this.source(modifier)),
+            );
             if (hashed && modifiers.some((modifier) => modifier.start < hashed.start)) {
                 this.add(
                     "IncorrectOptionOrder",
@@ -2029,7 +2280,40 @@ class ValidationContext {
             ["READ_ONLY", "SCROLL_LOCKS", "OPTIMISTIC"],
         ] as const;
         for (const cursor of this.nodes("CursorDeclaration")) {
+            if (containsErrorNode(cursor)) continue;
+            // The ISO list precedes CURSOR and the extended list follows it. SQL Server rejects a
+            // declaration that uses both, and each list accepts a different set of option names.
+            const isoOptions = directChildren(cursor, "CursorIsoOption");
             const options = directChildren(cursor, "CursorOption");
+            if (isoOptions.length > 0 && options.length > 0) {
+                this.add(
+                    "MixingOldAndNewSyntaxForCursorOptionsNotAllowed",
+                    "Mixing old and new syntax to specify cursor options is not allowed.",
+                    cursor,
+                );
+            }
+            for (const option of [...isoOptions, ...options]) {
+                const spelling = this.source(option).trim();
+                const name = spelling.toLocaleUpperCase();
+                if (!cursorOptionNames.has(name)) {
+                    this.add(
+                        "UnrecognizedCursorOption",
+                        `'${spelling}' is not a recognized CURSOR option.`,
+                        option,
+                    );
+                    continue;
+                }
+                const allowed = isoOptions.includes(option)
+                    ? isoCursorOptionNames.has(name)
+                    : name !== "INSENSITIVE";
+                if (!allowed) {
+                    this.add(
+                        "InvalidUsageOfCursorOption",
+                        `Invalid usage of the option '${spelling}' in the DECLARE CURSOR statement.`,
+                        option,
+                    );
+                }
+            }
             for (const group of conflictingGroups) {
                 let first: { readonly name: string; readonly node: SyntaxNode } | undefined;
                 for (const option of options) {
@@ -2071,18 +2355,10 @@ class ValidationContext {
         }
     }
 
-    private validateSynonymDatabasePrefix(
-        name: SyntaxNode,
-        code: string,
-        message: string,
-    ): void {
+    private validateSynonymDatabasePrefix(name: SyntaxNode, code: string, message: string): void {
         const parts = multipartIdentifierParts(this.source(name));
         if (parts.length < 3) return;
-        this.add(
-            code,
-            message,
-            identifierPartRange(name, this.source(name), parts.length - 3),
-        );
+        this.add(code, message, identifierPartRange(name, this.source(name), parts.length - 3));
     }
 
     private validateProjectedRelation(
@@ -2146,6 +2422,39 @@ class ValidationContext {
             .at(-1)?.columns;
     }
 
+    /**
+     * Reports a data type name, or an XML schema collection name, that carries more prefixes than
+     * SQL Server allows. Returns true when the specification is invalid and must not be validated
+     * further.
+     */
+    private reportOverPrefixedTypeNames(
+        dataType: SyntaxNode,
+        parts: readonly string[],
+        typeName: string,
+    ): boolean {
+        const nameNode = firstDescendant(dataType, "MultipartIdentifier");
+        if (nameNode && parts.length > 2) {
+            this.add(
+                "TypeNameMaxPrefixError",
+                `The type name '${compactMultipartName(this.source(nameNode))}' contains more than the maximum number of prefixes. The maximum is 1.`,
+                nameNode,
+            );
+            return true;
+        }
+        if (typeName !== "xml") return false;
+        const argumentList = firstDescendant(dataType, "ArgumentList");
+        const collection = argumentList && firstDescendant(argumentList, "MultipartIdentifier");
+        if (!collection) return false;
+        const collectionName = compactMultipartName(this.source(collection));
+        if (multipartIdentifierParts(collectionName).length <= 2) return false;
+        this.add(
+            "XmlSchemaCollectionMaxPrefixError",
+            `The xml schema collection name '${collectionName}' contains more than the maximum number of prefixes. The maximum is 1.`,
+            collection,
+        );
+        return true;
+    }
+
     private validateDuplicateOptions(options: readonly SyntaxNode[]): void {
         const seen = new Set<string>();
         for (const option of options) {
@@ -2165,7 +2474,8 @@ class ValidationContext {
     public result(): readonly SemanticDiagnostic[] {
         return Object.freeze(
             [...this._diagnostics].sort(
-                (left, right) => left.range.start - right.range.start || left.code.localeCompare(right.code),
+                (left, right) =>
+                    left.range.start - right.range.start || left.code.localeCompare(right.code),
             ),
         );
     }
@@ -2215,10 +2525,7 @@ class ValidationContext {
             write &&
             !["table", "view"].includes(resolution.object.kind)
         ) {
-            if (
-                resolution.object.kind === "tableFunction" &&
-                /\(\s*\)/u.test(this.source(node))
-            ) {
+            if (resolution.object.kind === "tableFunction" && /\(\s*\)/u.test(this.source(node))) {
                 this.add(
                     "FunctionCannotBeUsedToMatchTarget",
                     `Function call cannot be used to match a target table in the FROM clause of a DELETE or UPDATE statement. Use function name '${source}' without parameters instead.`,
@@ -2262,7 +2569,9 @@ class ValidationContext {
         const columnName = parts.at(-1)!;
         if (parts.length > 1) {
             const qualifier = parts.at(-2)!;
-            const source = sources.find((candidate) => this.equal(candidate.exposedName, qualifier));
+            const source = sources.find((candidate) =>
+                this.equal(candidate.exposedName, qualifier),
+            );
             if (!source) {
                 this.add(
                     "ColumnPrefixMismatch",
@@ -2521,9 +2830,7 @@ class ValidationContext {
         if (parts.length >= 2) {
             const schemaName = parts.at(-2)!;
             const database =
-                parts.length >= 3
-                    ? parts.at(-3)
-                    : this._metadata.environment.currentDatabase;
+                parts.length >= 3 ? parts.at(-3) : this._metadata.environment.currentDatabase;
             const schemas = this._metadata.schemas(database);
             if (
                 schemas &&
@@ -2564,8 +2871,7 @@ class ValidationContext {
         const local = this.localRelationEventAt(parts, nameNode.start);
         const resolution = this._metadata.resolveObject(parts);
         if (
-            (local &&
-                (!local.create || !localRelationMatchesDdlKind(local, expectedKind))) ||
+            (local && (!local.create || !localRelationMatchesDdlKind(local, expectedKind))) ||
             (!local &&
                 (resolution.kind === "notFound" ||
                     (resolution.kind === "resolved" &&
@@ -2597,7 +2903,8 @@ class ValidationContext {
                     resolution.kind === "resolved" &&
                     !objectMatchesDdlKind(resolution.object, expectedKind))
             ) {
-                const actualKind = local?.kind ??
+                const actualKind =
+                    local?.kind ??
                     (resolution.kind === "resolved" ? resolution.object.kind : "object");
                 this.add(
                     "CannotUseDrop",
@@ -2621,14 +2928,12 @@ class ValidationContext {
             const aliasNode = firstDescendant(node, "TableAlias");
             const aliasName = aliasNode && lastDescendant(aliasNode, "IdentifierName");
             const variable =
-                node.kind === "VariableTableSource"
-                    ? firstDescendant(node, "Variable")
-                    : undefined;
+                node.kind === "VariableTableSource" ? firstDescendant(node, "Variable") : undefined;
             const nameNode = firstDescendant(node, "MultipartIdentifier");
             const parts = nameNode ? multipartIdentifierParts(this.source(nameNode)) : [];
             const baseName = variable
                 ? this.source(variable)
-                : parts.at(-1) ?? `derived@${node.start}`;
+                : (parts.at(-1) ?? `derived@${node.start}`);
             const exposedName = aliasName
                 ? normalizeIdentifier(this.source(aliasName))
                 : normalizeIdentifier(baseName);
@@ -2640,7 +2945,11 @@ class ValidationContext {
                 alias: aliasName !== undefined,
                 objectName: normalizeIdentifier(baseName),
                 scopeDepth,
-                columns: this.sourceColumns(node, parts, variable ? this.source(variable) : undefined),
+                columns: this.sourceColumns(
+                    node,
+                    parts,
+                    variable ? this.source(variable) : undefined,
+                ),
             });
         }
         return result.sort((left, right) => left.node.start - right.node.start);
@@ -2668,10 +2977,9 @@ class ValidationContext {
         }
         if (source.kind === "VectorSearchTableSource") {
             const tableArgument = firstDescendant(source, "VectorSearchTableArgument");
-            const tableName = tableArgument && firstDescendant(tableArgument, "MultipartIdentifier");
-            const tableParts = tableName
-                ? multipartIdentifierParts(this.source(tableName))
-                : [];
+            const tableName =
+                tableArgument && firstDescendant(tableArgument, "MultipartIdentifier");
+            const tableParts = tableName ? multipartIdentifierParts(this.source(tableName)) : [];
             const resolution = this._metadata.resolveObject(tableParts);
             const state =
                 resolution.kind === "resolved"
@@ -2726,10 +3034,7 @@ class ValidationContext {
         parts: readonly string[],
         offset: number,
     ): LocalRelationEvent | undefined {
-        return lastEventAt(
-            this._localRelations.get(objectNameKey(parts, this._metadata)),
-            offset,
-        );
+        return lastEventAt(this._localRelations.get(objectNameKey(parts, this._metadata)), offset);
     }
 
     private localProcedureAt(
@@ -2802,9 +3107,7 @@ class ValidationContext {
     private isCteReference(node: SyntaxNode, parts: readonly string[]): boolean {
         if (parts.length !== 1) return false;
         const statement = ancestor(node, "Statement");
-        return Boolean(
-            statement && findCte(this._syntax, statement, parts[0]!, this._metadata),
-        );
+        return Boolean(statement && findCte(this._syntax, statement, parts[0]!, this._metadata));
     }
 
     private source(node: TextRange): string {
@@ -2857,7 +3160,8 @@ class ValidationContext {
 
     private hasSyntaxError(range: TextRange): boolean {
         return this._syntax.diagnostics.some(
-            (diagnostic) => diagnostic.range.start < range.end && range.start < diagnostic.range.end,
+            (diagnostic) =>
+                diagnostic.range.start < range.end && range.start < diagnostic.range.end,
         );
     }
 
@@ -2873,8 +3177,7 @@ class ValidationContext {
         return (
             !this._validationRanges ||
             this._validationRanges.some(
-                (candidate) =>
-                    candidate.start <= range.start && range.end <= candidate.end,
+                (candidate) => candidate.start <= range.start && range.end <= candidate.end,
             )
         );
     }
@@ -2956,10 +3259,9 @@ interface FunctionArity {
     readonly maximum: number;
 }
 
-function indexObjectEvents<T extends { readonly offset: number; readonly parts: readonly string[] }>(
-    events: readonly T[],
-    metadata: MetadataView,
-): ReadonlyMap<string, readonly T[]> {
+function indexObjectEvents<
+    T extends { readonly offset: number; readonly parts: readonly string[] },
+>(events: readonly T[], metadata: MetadataView): ReadonlyMap<string, readonly T[]> {
     const result = new Map<string, T[]>();
     for (const event of events) {
         const key = objectNameKey(event.parts, metadata);
@@ -3021,10 +3323,7 @@ function collectLocalRelationEvents(
                   : {}),
         });
     }
-    for (const kind of [
-        "CreateViewStatement",
-        "CreateMaterializedViewStatement",
-    ] as const) {
+    for (const kind of ["CreateViewStatement", "CreateMaterializedViewStatement"] as const) {
         for (const node of index.get(kind) ?? []) {
             const name = firstDescendant(node, "MultipartIdentifier");
             if (!name) continue;
@@ -3033,9 +3332,7 @@ function collectLocalRelationEvents(
                 offset: node.end,
                 create: true,
                 kind: "view",
-                parts: multipartIdentifierParts(
-                    syntax.document.text.slice(name.start, name.end),
-                ),
+                parts: multipartIdentifierParts(syntax.document.text.slice(name.start, name.end)),
                 ...(columns.length > 0 ? { columns } : {}),
             });
         }
@@ -3051,9 +3348,7 @@ function collectLocalRelationEvents(
                 offset: node.end,
                 create: true,
                 kind: "tableFunction",
-                parts: multipartIdentifierParts(
-                    syntax.document.text.slice(name.start, name.end),
-                ),
+                parts: multipartIdentifierParts(syntax.document.text.slice(name.start, name.end)),
                 ...(definition
                     ? { columns: definitionColumns(syntax, definition) }
                     : projected && projected.length > 0
@@ -3125,19 +3420,14 @@ function collectLocalRelationEvents(
     return Object.freeze(events.sort((left, right) => left.offset - right.offset));
 }
 
-function dropRelationKind(
-    syntaxKind: string,
-): LocalRelationEvent["kind"] {
+function dropRelationKind(syntaxKind: string): LocalRelationEvent["kind"] {
     if (syntaxKind === "DropViewStatement") return "view";
     if (syntaxKind === "DropFunctionStatement") return "tableFunction";
     if (syntaxKind === "DropSynonymStatement") return "synonym";
     return "table";
 }
 
-function localRelationMatchesDdlKind(
-    event: LocalRelationEvent,
-    expected: DdlObjectKind,
-): boolean {
+function localRelationMatchesDdlKind(event: LocalRelationEvent, expected: DdlObjectKind): boolean {
     if (expected === "function") return event.kind === "tableFunction";
     return event.kind === expected;
 }
@@ -3210,9 +3500,7 @@ function collectLocalLoginEvents(
             events.push({
                 offset: node.end,
                 create: operation.toLocaleUpperCase() === "CREATE",
-                name: normalizeIdentifier(
-                    syntax.document.text.slice(nameNode.start, nameNode.end),
-                ),
+                name: normalizeIdentifier(syntax.document.text.slice(nameNode.start, nameNode.end)),
             });
         }
     }
@@ -3244,9 +3532,7 @@ function collectLocalTypeEvents(
             events.push({
                 offset: node.end,
                 create: false,
-                parts: multipartIdentifierParts(
-                    syntax.document.text.slice(name.start, name.end),
-                ),
+                parts: multipartIdentifierParts(syntax.document.text.slice(name.start, name.end)),
                 typeCategory: "alias",
             });
         }
@@ -3293,9 +3579,7 @@ function collectVariableDeclarations(
             });
         }
     }
-    return Object.freeze(
-        declarations.sort((left, right) => left.node.start - right.node.start),
-    );
+    return Object.freeze(declarations.sort((left, right) => left.node.start - right.node.start));
 }
 
 function indexSyntax(root: SyntaxNode): ReadonlyMap<string, readonly SyntaxNode[]> {
@@ -3321,9 +3605,7 @@ function definitionColumns(syntax: SyntaxSnapshot, root: SyntaxNode): readonly C
         return [
             {
                 name: normalizeIdentifier(syntax.document.text.slice(name.start, name.end)),
-                ...(type
-                    ? { typeDisplay: syntax.document.text.slice(type.start, type.end) }
-                    : {}),
+                ...(type ? { typeDisplay: syntax.document.text.slice(type.start, type.end) } : {}),
                 nullable: !/\bNOT\s+NULL\b/iu.test(source),
                 identity: /\bIDENTITY\b/iu.test(source),
                 computed: type === undefined && /\bAS\b/iu.test(source),
@@ -3343,7 +3625,11 @@ function definitionColumns(syntax: SyntaxSnapshot, root: SyntaxNode): readonly C
         }
     }
     for (const constraint of directOwnedDescendants(root, "TableConstraint")) {
-        if (!/\bPRIMARY\s+KEY\b/iu.test(syntax.document.text.slice(constraint.start, constraint.end))) {
+        if (
+            !/\bPRIMARY\s+KEY\b/iu.test(
+                syntax.document.text.slice(constraint.start, constraint.end),
+            )
+        ) {
             continue;
         }
         const list = firstDescendant(constraint, "ColumnNameList");
@@ -3407,9 +3693,7 @@ function tableOperatorAlias(
 ): string {
     const alias = directChildren(operator, "TableAlias")[0];
     const name = alias && lastDescendant(alias, "IdentifierName");
-    return name
-        ? normalizeIdentifier(syntax.document.text.slice(name.start, name.end))
-        : fallback;
+    return name ? normalizeIdentifier(syntax.document.text.slice(name.start, name.end)) : fallback;
 }
 
 function selectAliases(syntax: SyntaxSnapshot, query: SyntaxNode): ReadonlySet<string> {
@@ -3418,7 +3702,9 @@ function selectAliases(syntax: SyntaxSnapshot, query: SyntaxNode): ReadonlySet<s
     if (!selectList) return aliases;
     for (const element of directOwnedDescendants(selectList, "SelectElement")) {
         const text = syntax.document.text.slice(element.start, element.end);
-        const match = /\bAS\s+(\[[^\]]+\]|"(?:[^"]|"")+"|[\p{L}_][\p{L}\p{N}_$#@]*)\s*$/iu.exec(text);
+        const match = /\bAS\s+(\[[^\]]+\]|"(?:[^"]|"")+"|[\p{L}_][\p{L}\p{N}_$#@]*)\s*$/iu.exec(
+            text,
+        );
         if (match) aliases.add(normalizeIdentifier(match[1]!).toLocaleLowerCase());
     }
     return aliases;
@@ -3441,9 +3727,10 @@ function foreignKeyConstraintName(
 ): string {
     if (!constraint) return "";
     const source = syntax.document.text.slice(constraint.start, constraint.end);
-    const match = /\bCONSTRAINT\s+(\[(?:[^\]]|\]\])*\]|"(?:[^"]|"")*"|[\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(
-        source,
-    );
+    const match =
+        /\bCONSTRAINT\s+(\[(?:[^\]]|\]\])*\]|"(?:[^"]|"")*"|[\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(
+            source,
+        );
     return normalizeIdentifier(match?.[1] ?? "");
 }
 
@@ -3523,13 +3810,11 @@ function objectNameKey(parts: readonly string[], metadata: MetadataView): string
     const name = normalizeIdentifier(parts.at(-1) ?? "");
     if (name.startsWith("#")) return foldName(name, metadata);
     const schema =
-        parts.length >= 2
-            ? normalizeIdentifier(parts.at(-2)!)
-            : metadata.environment.defaultSchema;
+        parts.length >= 2 ? normalizeIdentifier(parts.at(-2)!) : metadata.environment.defaultSchema;
     const database =
         parts.length >= 3
             ? normalizeIdentifier(parts.at(-3)!)
-            : metadata.environment.currentDatabase ?? "";
+            : (metadata.environment.currentDatabase ?? "");
     return [database, schema, name].map((part) => foldName(part, metadata)).join("\0");
 }
 
@@ -3641,6 +3926,21 @@ function compactMultipartName(value: string): string {
     return value.replace(/\s*\.\s*/gu, ".").trim();
 }
 
+/** Canonical display name for one module option, matching how SQL Server names it in messages. */
+function moduleOptionDisplayName(source: string): string {
+    const value = source.trim();
+    if (/^EXECUTE\s+AS\b/iu.test(value)) return "EXECUTE AS";
+    return normalizeIdentifier(value).toLocaleUpperCase();
+}
+
+function containsErrorNode(node: SyntaxNode): boolean {
+    if (node.error) return true;
+    for (const child of node.children()) {
+        if (containsErrorNode(child)) return true;
+    }
+    return false;
+}
+
 function moduleOptionKey(value: string): string {
     const normalized = value.trim().replace(/\s+/gu, " ").toLocaleUpperCase();
     if (normalized.startsWith("EXECUTE AS ")) return "EXECUTE AS";
@@ -3715,9 +4015,10 @@ function freezeRange(range: TextRange): TextRange {
 function parseDataType(
     source: string,
 ): { readonly name: string; readonly arguments: readonly number[] } | undefined {
-    const match = /^\s*(?:\[[^\]]+\]|"[^"]+"|[\p{L}_][\p{L}\p{N}_$#@]*)(?:\s*\.\s*(?:\[[^\]]+\]|"[^"]+"|[\p{L}_][\p{L}\p{N}_$#@]*))*\s*(?:\(([^)]*)\))?/iu.exec(
-        source,
-    );
+    const match =
+        /^\s*(?:\[[^\]]+\]|"[^"]+"|[\p{L}_][\p{L}\p{N}_$#@]*)(?:\s*\.\s*(?:\[[^\]]+\]|"[^"]+"|[\p{L}_][\p{L}\p{N}_$#@]*))*\s*(?:\(([^)]*)\))?/iu.exec(
+            source,
+        );
     if (!match) return undefined;
     const name = multipartIdentifierParts(match[0]!.split("(", 1)[0]!).at(-1)?.toLocaleLowerCase();
     if (!name) return undefined;
@@ -3729,25 +4030,24 @@ function parseDataType(
     return { name, arguments: arguments_ };
 }
 
-function dataTypeParts(syntax: SyntaxSnapshot, dataType: SyntaxNode): readonly string[] {
-    const name = firstDescendant(dataType, "MultipartIdentifier");
-    return name
-        ? multipartIdentifierParts(syntax.document.text.slice(name.start, name.end))
-        : [];
+/** The first parenthesized data-type argument, used to range a length diagnostic exactly. */
+function firstArgumentNode(dataType: SyntaxNode): SyntaxNode | undefined {
+    const argumentList = firstDescendant(dataType, "ArgumentList");
+    return argumentList ? directChildren(argumentList, "Expression")[0] : undefined;
 }
 
-function isSystemDataType(
-    parts: readonly string[],
-    parsedName: string,
-    source: string,
-): boolean {
+function dataTypeParts(syntax: SyntaxSnapshot, dataType: SyntaxNode): readonly string[] {
+    const name = firstDescendant(dataType, "MultipartIdentifier");
+    return name ? multipartIdentifierParts(syntax.document.text.slice(name.start, name.end)) : [];
+}
+
+function isSystemDataType(parts: readonly string[], parsedName: string, source: string): boolean {
     const normalizedSource = source
         .replace(/\([^)]*\)/gu, "")
         .trim()
         .replace(/\s+/gu, " ")
         .toLocaleLowerCase();
-    const known =
-        systemDataTypes.has(parsedName) || systemDataTypeSynonyms.has(normalizedSource);
+    const known = systemDataTypes.has(parsedName) || systemDataTypeSynonyms.has(normalizedSource);
     if (!known) return false;
     return parts.length <= 1 || (parts.length === 2 && parts[0]!.toLocaleLowerCase() === "sys");
 }
@@ -3763,10 +4063,11 @@ function isCollatableSystemDataType(name: string, source: string): boolean {
 }
 
 function isNumericIdentityValue(source: string): boolean {
-    const normalized = source.trim().replace(/^\((.*)\)$/u, "$1").trim();
-    return /^[+-]?(?:[$£¥€]\s*)?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/u.test(
-        normalized,
-    );
+    const normalized = source
+        .trim()
+        .replace(/^\((.*)\)$/u, "$1")
+        .trim();
+    return /^[+-]?(?:[$£¥€]\s*)?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?$/u.test(normalized);
 }
 
 function isConstantExpression(source: string): boolean {
@@ -3850,9 +4151,8 @@ function countMatches(value: string, pattern: RegExp): number {
 
 function moduleStatementPhrase(source: string): string {
     return (
-        /^\s*((?:CREATE|ALTER)(?:\s+OR\s+ALTER)?\s+(?:PROC(?:EDURE)?|FUNCTION|TRIGGER|VIEW))\b/iu.exec(
-            source,
-        )?.[1]
+        /^\s*((?:CREATE|ALTER)(?:\s+OR\s+ALTER)?\s+(?:PROC(?:EDURE)?|FUNCTION|TRIGGER|VIEW))\b/iu
+            .exec(source)?.[1]
             ?.replace(/\s+/gu, " ")
             .toLocaleUpperCase() ?? "CREATE/ALTER MODULE"
     );
@@ -3888,6 +4188,95 @@ const builtInTableFunctions = new Set([
     "STRING_SPLIT",
     "VECTOR_SEARCH",
 ]);
+
+// SQL Server names each side-effecting statement by its statement phrase. The phrase depends on the
+// statement kind, not on how it is spelled, so CREATE UNIQUE CLUSTERED INDEX is still "CREATE INDEX".
+const sideEffectingStatementPhrases = new Map([
+    ["AlterFunctionStatement", "ALTER FUNCTION"],
+    ["AlterProcedureStatement", "ALTER PROCEDURE"],
+    ["AlterTriggerStatement", "ALTER TRIGGER"],
+    ["AlterViewStatement", "ALTER VIEW"],
+    ["CreateFunctionStatement", "CREATE FUNCTION"],
+    ["CreateIndexStatement", "CREATE INDEX"],
+    ["CreateProcedureStatement", "CREATE PROCEDURE"],
+    ["CreateSchemaStatement", "CREATE SCHEMA"],
+    ["CreateSynonymStatement", "CREATE SYNONYM"],
+    ["CreateTableStatement", "CREATE TABLE"],
+    ["CreateTriggerStatement", "CREATE TRIGGER"],
+    ["CreateTypeStatement", "CREATE TYPE"],
+    ["CreateViewStatement", "CREATE VIEW"],
+    ["DbccStatement", "DBCC"],
+    ["DeleteStatement", "DELETE"],
+    ["DropDatabaseStatement", "DROP DATABASE"],
+    ["DropFunctionStatement", "DROP FUNCTION"],
+    ["DropProcedureStatement", "DROP PROCEDURE"],
+    ["DropSchemaStatement", "DROP SCHEMA"],
+    ["DropSequenceStatement", "DROP SEQUENCE"],
+    ["DropSynonymStatement", "DROP SYNONYM"],
+    ["DropTableStatement", "DROP TABLE"],
+    ["DropTriggerStatement", "DROP TRIGGER"],
+    ["DropTypeStatement", "DROP TYPE"],
+    ["DropViewStatement", "DROP VIEW"],
+    ["InsertStatement", "INSERT"],
+    ["MergeStatement", "MERGE"],
+    ["SetStatement", "SET"],
+]);
+
+// These node kinds each cover several statements, so their phrase comes from their leading words.
+const derivedStatementPhraseKinds = new Set([
+    "AggregateStatement",
+    "AlterPrincipalStatement",
+    "BackupStatement",
+    "CreatePrincipalStatement",
+    "DropPrincipalStatement",
+    "PermissionStatement",
+    "RestoreStatement",
+    "RuleDefaultStatement",
+    "SecurityPolicyStatement",
+]);
+
+// The phrases those multi-form kinds may produce. A leading-word sequence outside this list names a
+// statement SQL Server does not report, such as CREATE AGGREGATE or ALTER USER.
+const knownStatementPhrases = new Set([
+    "ALTER LOGIN",
+    "BACKUP CERTIFICATE",
+    "BACKUP DATABASE",
+    "BACKUP LOG",
+    "BACKUP MASTER KEY",
+    "BACKUP SERVICE MASTER KEY",
+    "BACKUP TABLE",
+    "CREATE LOGIN",
+    "CREATE ROLE",
+    "CREATE USER",
+    "DENY",
+    "DROP AGGREGATE",
+    "DROP DEFAULT",
+    "DROP LOGIN",
+    "DROP ROLE",
+    "DROP RULE",
+    "DROP SECURITY POLICY",
+    "DROP USER",
+    "GRANT",
+    "RESTORE DATABASE",
+    "RESTORE INFORMATION",
+    "RESTORE LOG",
+    "RESTORE MASTER KEY",
+    "RESTORE SERVICE MASTER KEY",
+    "RESTORE TABLE",
+    "REVOKE",
+]);
+
+const dmlStatementPhrases = new Set(["DELETE", "INSERT", "MERGE"]);
+
+// Index options a key constraint never accepts, and those it accepts only through ALTER TABLE.
+const constraintForbiddenIndexOptions = new Set(["DROP_EXISTING", "STATISTICS_ONLY"]);
+const constraintBuildOnlyIndexOptions = new Set(["MAXDOP", "ONLINE", "SORT_IN_TEMPDB"]);
+
+// No data type may be given a length above this ceiling, whatever its own maximum is.
+const maximumSizeForAnyType = 8000;
+
+// Types whose single argument is a fractional-seconds scale rather than a length.
+const scaleArgumentTypes = new Set(["datetime2", "datetimeoffset", "time"]);
 
 const typeLengthMaximum: Readonly<Record<string, number>> = Object.freeze({
     binary: 8000,
@@ -4015,6 +4404,58 @@ const collatableSystemTypeSynonyms = new Set([
 ]);
 
 const viewOptions = new Set(["ENCRYPTION", "SCHEMABINDING", "VIEW_METADATA"]);
+
+// SQL Server maps exactly these spellings to a cursor option; anything else in either cursor option
+// list is unrecognized. Only INSENSITIVE and SCROLL may appear in the ISO list before CURSOR.
+const cursorOptionNames = new Set([
+    "DYNAMIC",
+    "FAST_FORWARD",
+    "FORWARD_ONLY",
+    "GLOBAL",
+    "INSENSITIVE",
+    "KEYSET",
+    "LOCAL",
+    "OPTIMISTIC",
+    "READ_ONLY",
+    "SCROLL",
+    "SCROLL_LOCKS",
+    "STATIC",
+    "TYPE_WARNING",
+]);
+const isoCursorOptionNames = new Set(["INSENSITIVE", "SCROLL"]);
+
+// SQL Server recognizes exactly these single-word module options inside a module WITH clause; any
+// other name there is unrecognized rather than misplaced. EXECUTE AS has its own option syntax.
+const recognizedModuleOptions = new Set([
+    "ENCRYPTION",
+    "NATIVE_COMPILATION",
+    "RECOMPILE",
+    "SCHEMABINDING",
+    "VIEW_METADATA",
+]);
+
+const moduleOptionStatements = [
+    {
+        clause: "ProcedureWithClause",
+        option: "ProcedureOption",
+        allowed: new Set([
+            "ENCRYPTION",
+            "EXECUTE AS",
+            "NATIVE_COMPILATION",
+            "RECOMPILE",
+            "SCHEMABINDING",
+        ]),
+        code: "InvalidOptionInCreateProcedure",
+        message: 'An invalid option was specified for the statement "CREATE/ALTER PROCEDURE".',
+    },
+    {
+        clause: "TriggerWithClause",
+        option: "TriggerOption",
+        allowed: new Set(["ENCRYPTION", "EXECUTE AS", "NATIVE_COMPILATION", "SCHEMABINDING"]),
+        code: "InvalidOptionInCreateTrigger",
+        message: 'An invalid option was specified for the statement "CREATE/ALTER TRIGGER".',
+    },
+] as const;
 
 const moduleOptionNames = new Set([
     "CALLED ON NULL INPUT",

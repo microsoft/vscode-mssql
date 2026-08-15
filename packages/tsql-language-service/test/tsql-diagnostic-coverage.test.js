@@ -7,6 +7,25 @@ const assert = require("node:assert/strict");
 const { suite, test } = require("node:test");
 const target = require("./fixtures/tsql-diagnostic-catalog.cjs");
 
+// Catalog names that never reach a user as a standalone diagnostic. Each is either an API argument
+// precondition or text spliced into another message, so none of them can have a validator and none
+// belong in the coverage denominator.
+const nonDiagnosticRoles = new Map([
+    // An argument check on a parse-results collection, not an analysis result. This package exposes
+    // no API that takes such a collection, so it has no unit-test boundary here either.
+    ["ParseResultsShouldNotContainNullElement", "api-precondition"],
+    // ", or " joining the tail of an expectation list.
+    ["CommaOr", "message-fragment"],
+    // The "Expecting <list>" lead-in assembled into syntax expectation text.
+    ["Expecting", "message-fragment"],
+    // Display text for the end-of-file location inside a syntax message.
+    ["EndOfFile", "message-fragment"],
+    // Punctuation used while composing expectation lists.
+    ["Comma", "message-fragment"],
+    // Punctuation used while composing multipart-name messages.
+    ["Period", "message-fragment"],
+]);
+
 // A name enters this set only after a production validator and a focused behavior test exist.
 const supported = new Set([
     "AmbiguousColumnName",
@@ -97,6 +116,25 @@ const supported = new Set([
     "InvalidOdbcDatetimeExtensionOption",
     "InvalidOptionInCreateView",
     "InvalidOptionInCreateFunction",
+    "InvalidOptionInCreateProcedure",
+    "InvalidOptionInCreateTrigger",
+    "InvalidTriggerEventTypes",
+    "InvalidOnClause",
+    "NameOrAuthorizationKeywordRequired",
+    "ReadonlyCannotBeUsed",
+    "MaximumSizeErrorForAnyType",
+    "TypeNameMaxPrefixError",
+    "XmlSchemaCollectionMaxPrefixError",
+    "UnrecognizedCursorOption",
+    "InvalidUsageOfCursorOption",
+    "MixingOldAndNewSyntaxForCursorOptionsNotAllowed",
+    "OperatorNotSupported",
+    "InvalidGroupByOption",
+    "PrefixedColumnsNotAllowedInPivot",
+    "PrefixedColumnsNotAllowedInUnpivot",
+    "InvalidUseOfSideEffectingOperatorWithinFunction",
+    "UnrecognizedOption",
+    "ComputedColumnsConstraintCheckError",
     "InvalidColumnName",
     "InvalidColumnXmlNodeUse",
     "InvalidBaseTypeForAlias",
@@ -209,6 +247,29 @@ suite("T-SQL diagnostic coverage inventory", () => {
         assert.equal(new Set(target.map(({ name }) => name)).size, target.length);
     });
 
+    // Pins exactly which catalog names are excluded from the denominator, and why, so the coverage
+    // ratio cannot be improved by quietly reclassifying a real diagnostic as message text.
+    test("excludes only the six reviewed non-diagnostic catalog entries", () => {
+        const roleEntries = target.filter((entry) => entry.role !== undefined);
+        assert.deepEqual(
+            roleEntries.map(({ name, role }) => [name, role]).sort(),
+            [...nonDiagnosticRoles].sort(),
+        );
+        assert.deepEqual([...new Set(roleEntries.map(({ role }) => role))].sort(), [
+            "api-precondition",
+            "message-fragment",
+        ]);
+        assert.equal(roleEntries.length, 6);
+    });
+
+    // No excluded entry may be claimed as supported: they have no validator to test.
+    test("keeps non-diagnostic entries out of the supported set", () => {
+        assert.deepEqual(
+            [...nonDiagnosticRoles.keys()].filter((name) => supported.has(name)),
+            [],
+        );
+    });
+
     // Keeps the headline gap reproducible and rejects unsupported names accidentally marked done.
     test("tracks validators with focused regression coverage", () => {
         const targetNames = new Set(target.map(({ name }) => name));
@@ -216,7 +277,9 @@ suite("T-SQL diagnostic coverage inventory", () => {
             [...supported].filter((name) => !targetNames.has(name)),
             [],
         );
-        assert.equal(supported.size, 182);
-        assert.equal(target.length - supported.size, 83);
+        const productDiagnostics = target.filter((entry) => entry.role === undefined);
+        assert.equal(productDiagnostics.length, 259);
+        assert.equal(supported.size, 201);
+        assert.equal(productDiagnostics.length - supported.size, 58);
     });
 });

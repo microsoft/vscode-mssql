@@ -4,6 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 // Reviewed T-SQL diagnostic families used to make coverage progress executable and auditable.
+//
+// Every entry without a "role" is a product diagnostic: a family the language service is expected
+// to emit on its own. The few entries carrying a "role" are message-catalog names that never reach
+// a user as an independent diagnostic, so they are excluded from the coverage denominator:
+//   - "api-precondition": an argument check on an API boundary, not an analysis result.
+//   - "message-fragment": punctuation or clause text assembled into another diagnostic's message.
 
 module.exports = Object.freeze([
     {
@@ -60,7 +66,8 @@ module.exports = Object.freeze([
     },
     {
         "name": "ParseResultsShouldNotContainNullElement",
-        "category": "binder"
+        "category": "binder",
+        "role": "api-precondition"
     },
     {
         "name": "SchemaNotExist",
@@ -760,23 +767,28 @@ module.exports = Object.freeze([
     },
     {
         "name": "CommaOr",
-        "category": "binder"
+        "category": "binder",
+        "role": "message-fragment"
     },
     {
         "name": "Expecting",
-        "category": "binder"
+        "category": "binder",
+        "role": "message-fragment"
     },
     {
         "name": "EndOfFile",
-        "category": "binder"
+        "category": "binder",
+        "role": "message-fragment"
     },
     {
         "name": "Comma",
-        "category": "binder"
+        "category": "binder",
+        "role": "message-fragment"
     },
     {
         "name": "Period",
-        "category": "binder"
+        "category": "binder",
+        "role": "message-fragment"
     },
     {
         "name": "CannotDropObject",

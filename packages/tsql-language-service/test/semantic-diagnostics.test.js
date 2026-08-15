@@ -46,7 +46,10 @@ SELECT * FROM dbo.Work;`;
             diagnostics.filter(({ code }) => code === "MSSQL208").map(({ message }) => message),
             ["Invalid object name 'dbo.Work'.", "Invalid object name 'dbo.Work'."],
         );
-        assert.equal(diagnostics.some(({ message }) => message.includes("Invalid column")), false);
+        assert.equal(
+            diagnostics.some(({ message }) => message.includes("Invalid column")),
+            false,
+        );
     });
 
     // Views and table-valued functions participate in the same ordered local relation timeline,
@@ -55,9 +58,7 @@ SELECT * FROM dbo.Work;`;
         const provider = metadata({
             schemas: [{ database: "db", name: "dbo" }],
             objects: [table("catalog-work", "dbo", "CatalogWork")],
-            columns: new Map([
-                ["catalog-work", [{ name: "Id", typeDisplay: "int" }]],
-            ]),
+            columns: new Map([["catalog-work", [{ name: "Id", typeDisplay: "int" }]]]),
         });
         const diagnostics = await analyze(
             `CREATE OR ALTER VIEW dbo.LocalView (ViewId) AS SELECT 1 AS Id;
@@ -77,12 +78,12 @@ SELECT * FROM dbo.CatalogWork;`,
 
         assert.deepEqual(
             diagnostics.filter(({ code }) => code === "MSSQL208").map(({ message }) => message),
-            [
-                "Invalid object name 'dbo.LocalView'.",
-                "Invalid object name 'dbo.CatalogWork'.",
-            ],
+            ["Invalid object name 'dbo.LocalView'.", "Invalid object name 'dbo.CatalogWork'."],
         );
-        assert.equal(diagnostics.some(({ code }) => code === "MSSQL207"), false);
+        assert.equal(
+            diagnostics.some(({ code }) => code === "MSSQL207"),
+            false,
+        );
     });
 
     // Other relation-producing statements become visible only after their statement, while an
@@ -222,21 +223,23 @@ SELECT UnknownRemoteColumn FROM dbo.LocalSynonym;`,
             ),
         );
         assert.ok(
-            messages(diagnostics).includes("Column names in each table must be unique. Column name 'Id' in table 'dbo.Bad' is specified more than once."),
+            messages(diagnostics).includes(
+                "Column names in each table must be unique. Column name 'Id' in table 'dbo.Bad' is specified more than once.",
+            ),
         );
     });
 
     // A recovered column declaration still owns enough structure for the binder to provide the
     // specific missing-type diagnostic in addition to the parser's local recovery diagnostic.
     test("reports a missing column data type from a recovered table definition", async () => {
-        const diagnostics = await analyze(
-            "CREATE TABLE dbo.Bad (MissingType);",
-            metadata(),
-            { allowSyntaxDiagnostics: true },
-        );
+        const diagnostics = await analyze("CREATE TABLE dbo.Bad (MissingType);", metadata(), {
+            allowSyntaxDiagnostics: true,
+        });
 
         assert.deepEqual(
-            diagnostics.filter(({ code }) => code === "DataTypeMissing").map(({ message }) => message),
+            diagnostics
+                .filter(({ code }) => code === "DataTypeMissing")
+                .map(({ message }) => message),
             ["The definition for column 'MissingType' must include a data type."],
         );
     });
@@ -281,10 +284,24 @@ SELECT UnknownRemoteColumn FROM dbo.LocalSynonym;`,
         );
         const output = messages(diagnostics);
         assert.ok(output.includes("Duplicate common table expression name 'd' was specified."));
-        assert.ok(output.includes("Recursive common table expression 'no_union' does not contain a top-level UNION ALL operator."));
-        assert.ok(output.includes('No anchor member was specified for recursive query "no_anchor".'));
-        assert.ok(output.includes("Recursive member of a common table expression 'multiple_refs' has multiple recursive references."));
-        assert.ok(output.includes('An anchor member was found in the recursive part of recursive query "late_anchor".'));
+        assert.ok(
+            output.includes(
+                "Recursive common table expression 'no_union' does not contain a top-level UNION ALL operator.",
+            ),
+        );
+        assert.ok(
+            output.includes('No anchor member was specified for recursive query "no_anchor".'),
+        );
+        assert.ok(
+            output.includes(
+                "Recursive member of a common table expression 'multiple_refs' has multiple recursive references.",
+            ),
+        );
+        assert.ok(
+            output.includes(
+                'An anchor member was found in the recursive part of recursive query "late_anchor".',
+            ),
+        );
     });
 
     // Projected rowsets must match explicit column-list cardinality and name unnamed expressions.
@@ -301,7 +318,9 @@ CREATE VIEW dbo.v_missing AS SELECT 1;`,
 
         assert.deepEqual(
             diagnostics
-                .filter(({ code }) => ["MoreColumns", "FewerColumns", "MissingColumn"].includes(code))
+                .filter(({ code }) =>
+                    ["MoreColumns", "FewerColumns", "MissingColumn"].includes(code),
+                )
                 .map(({ code, message }) => ({ code, message })),
             [
                 {
@@ -386,10 +405,7 @@ UNPIVOT (Value FOR Month IN (Q1, Q1, Q2)) AS u;`,
         const provider = metadata({
             objects: [table("metrics", "dbo", "Metrics")],
             columns: new Map([
-                [
-                    "metrics",
-                    ["Amount", "Category"].map((name) => ({ name, typeDisplay: "int" })),
-                ],
+                ["metrics", ["Amount", "Category"].map((name) => ({ name, typeDisplay: "int" }))],
             ]),
         });
         const diagnostics = await analyze(
@@ -492,7 +508,11 @@ SELECT * FROM dbo.Metrics PIVOT (SUM() FOR Category IN (Q1)) AS p;`,
             "EXEC dbo.SaveCustomer @Bad = 1, @Id = 2, @Id = 3, @Name = N'x' OUTPUT, 9;",
             provider,
         );
-        assert.ok(messages(diagnostics).includes("@Bad is not a parameter for procedure dbo.SaveCustomer."));
+        assert.ok(
+            messages(diagnostics).includes(
+                "@Bad is not a parameter for procedure dbo.SaveCustomer.",
+            ),
+        );
         assert.ok(messages(diagnostics).includes("Parameter '@Id' was supplied multiple times."));
         assert.ok(
             messages(diagnostics).includes(
@@ -615,9 +635,17 @@ EXEC dbo.LocalProcedure @optional = 1;`,
             provider,
         );
         const output = messages(diagnostics);
-        assert.ok(output.includes("The column 'Id' was specified multiple times for 'dbo.Target'."));
-        assert.ok(output.includes("Column name 'Missing' does not exist in the target table or view."));
-        assert.ok(output.includes("The number of columns for each row in a table value constructor must be the same."));
+        assert.ok(
+            output.includes("The column 'Id' was specified multiple times for 'dbo.Target'."),
+        );
+        assert.ok(
+            output.includes("Column name 'Missing' does not exist in the target table or view."),
+        );
+        assert.ok(
+            output.includes(
+                "The number of columns for each row in a table value constructor must be the same.",
+            ),
+        );
         assert.ok(
             output.includes(
                 "The column name 'Name' is specified more than once in the SET clause. A column cannot be assigned more than one value in the same SET clause. Modify the SET clause to make sure that a column is updated only once. If the SET clause updates columns of a view, then the column name 'Name' may appear twice in the view definition.",
@@ -760,7 +788,11 @@ EXEC dbo.LocalProcedure @optional = 1;`,
         );
         const output = messages(diagnostics);
         assert.ok(output.includes("Parameters were not supplied for the function 'dbo.Rows'."));
-        assert.ok(output.some((message) => message.startsWith("Function call cannot be used to match a target table")));
+        assert.ok(
+            output.some((message) =>
+                message.startsWith("Function call cannot be used to match a target table"),
+            ),
+        );
         assert.ok(output.includes("Object 'dbo.ScalarFn' cannot be modified."));
     });
 
@@ -780,8 +812,16 @@ EXEC dbo.LocalProcedure @optional = 1;`,
                 "The SELECT item identified by the ORDER BY number 1 contains a variable as part of the expression identifying a column position. Variables are only allowed when ordering by an expression referencing a column name.",
             ),
         );
-        assert.ok(output.includes("The ORDER BY position number 3 is out of range of the number of items in the select list."));
-        assert.ok(output.includes("A constant expression was encountered in the ORDER BY list, position 3."));
+        assert.ok(
+            output.includes(
+                "The ORDER BY position number 3 is out of range of the number of items in the select list.",
+            ),
+        );
+        assert.ok(
+            output.includes(
+                "A constant expression was encountered in the ORDER BY list, position 3.",
+            ),
+        );
     });
 
     // Type and column-option validation preserves SQL Server precision and IDENTITY diagnostics.
@@ -792,10 +832,27 @@ EXEC dbo.LocalProcedure @optional = 1;`,
         );
         const output = messages(diagnostics);
         assert.ok(output.includes("The scale must be less than or equal to the precision."));
-        assert.ok(output.includes("The size (9001) given to the type 'varchar' exceeds the maximum allowed (8000)."));
-        assert.ok(output.includes("The size (5000) given to the type 'nvarchar' exceeds the maximum allowed (4000)."));
-        assert.ok(output.includes("Could not create IDENTITY attribute on nullable column 'D', table 'dbo.Bad'."));
-        assert.ok(output.includes("Defaults cannot be created on columns with an IDENTITY attribute. Table 'dbo.Bad', column 'D'."));
+        // Above the 8000-byte ceiling SQL Server reports the any-type message, not the per-type one.
+        assert.ok(
+            output.includes(
+                "The size (9001) given to the type 'varchar' exceeds the maximum allowed for any data type (8000).",
+            ),
+        );
+        assert.ok(
+            output.includes(
+                "The size (5000) given to the type 'nvarchar' exceeds the maximum allowed (4000).",
+            ),
+        );
+        assert.ok(
+            output.includes(
+                "Could not create IDENTITY attribute on nullable column 'D', table 'dbo.Bad'.",
+            ),
+        );
+        assert.ok(
+            output.includes(
+                "Defaults cannot be created on columns with an IDENTITY attribute. Table 'dbo.Bad', column 'D'.",
+            ),
+        );
     });
 
     // Type binding distinguishes system, alias, CLR, and table-valued types and applies parameter
@@ -851,7 +908,10 @@ EXEC dbo.LocalProcedure @optional = 1;`,
         assert.equal(codes.filter((code) => code === "ColumnHasUserDefinedTableType").length, 1);
         assert.equal(codes.filter((code) => code === "ParamVarHasInvalidDataType").length, 1);
         assert.equal(codes.filter((code) => code === "ParameterCannotBeReadOnly").length, 2);
-        assert.equal(codes.filter((code) => code === "TableValuedParameterMustBeReadOnly").length, 2);
+        assert.equal(
+            codes.filter((code) => code === "TableValuedParameterMustBeReadOnly").length,
+            2,
+        );
         assert.equal(codes.filter((code) => code === "InvalidSeed").length, 1);
         assert.equal(codes.filter((code) => code === "InvalidIncrement").length, 1);
         assert.equal(codes.filter((code) => code === "UserDefinedTypeExist").length, 1);
@@ -946,16 +1006,56 @@ CREATE TABLE dbo.Temporal (
             metadata(),
         );
         const output = messages(diagnostics);
-        assert.ok(output.includes("Multiple NULL constraints were specified for column 'A', table 'dbo.Constraints'."));
-        assert.ok(output.includes("Both a PRIMARY KEY and UNIQUE constraint have been defined for column 'B', table 'dbo.Constraints'. Only one is allowed."));
-        assert.ok(output.includes("Cannot add multiple PRIMARY KEY constraints to table 'dbo.Constraints'."));
-        assert.ok(output.some((message) => message.startsWith("Cannot create the sparse column 'D'")));
-        assert.ok(output.some((message) => message.startsWith("A DEFAULT constraint cannot be created on the column 'E'")));
-        assert.ok(output.some((message) => message.startsWith("Column 'F' in table 'dbo.Constraints' is of a type that is invalid for use as a key column")));
-        assert.ok(output.some((message) => message.startsWith("Cannot create the sparse column set 'S2'")));
-        assert.ok(output.some((message) => message.startsWith("Temporal generated always column 'Started'")));
-        assert.ok(output.includes("Table cannot have more than one 'GENERATED ALWAYS AS ROW START' column."));
-        assert.ok(output.some((message) => message.startsWith("Table SYSTEM_TIME period definition start column name")));
+        assert.ok(
+            output.includes(
+                "Multiple NULL constraints were specified for column 'A', table 'dbo.Constraints'.",
+            ),
+        );
+        assert.ok(
+            output.includes(
+                "Both a PRIMARY KEY and UNIQUE constraint have been defined for column 'B', table 'dbo.Constraints'. Only one is allowed.",
+            ),
+        );
+        assert.ok(
+            output.includes(
+                "Cannot add multiple PRIMARY KEY constraints to table 'dbo.Constraints'.",
+            ),
+        );
+        assert.ok(
+            output.some((message) => message.startsWith("Cannot create the sparse column 'D'")),
+        );
+        assert.ok(
+            output.some((message) =>
+                message.startsWith("A DEFAULT constraint cannot be created on the column 'E'"),
+            ),
+        );
+        assert.ok(
+            output.some((message) =>
+                message.startsWith(
+                    "Column 'F' in table 'dbo.Constraints' is of a type that is invalid for use as a key column",
+                ),
+            ),
+        );
+        assert.ok(
+            output.some((message) =>
+                message.startsWith("Cannot create the sparse column set 'S2'"),
+            ),
+        );
+        assert.ok(
+            output.some((message) =>
+                message.startsWith("Temporal generated always column 'Started'"),
+            ),
+        );
+        assert.ok(
+            output.includes(
+                "Table cannot have more than one 'GENERATED ALWAYS AS ROW START' column.",
+            ),
+        );
+        assert.ok(
+            output.some((message) =>
+                message.startsWith("Table SYSTEM_TIME period definition start column name"),
+            ),
+        );
     });
 
     // Foreign keys bind both sides, infer primary keys, and compare cardinality and base types.
@@ -1024,9 +1124,7 @@ CREATE TABLE dbo.Temporal (
             ),
         );
         assert.ok(
-            output.includes(
-                "Foreign key 'FK_View' references invalid table 'dbo.ParentView'.",
-            ),
+            output.includes("Foreign key 'FK_View' references invalid table 'dbo.ParentView'."),
         );
         assert.ok(
             output.includes(
@@ -1105,14 +1203,40 @@ CREATE TABLE dbo.Child (
             provider,
         );
         const output = messages(diagnostics);
-        assert.ok(output.includes("Cannot use duplicate column names in index. Column name 'Payload' listed more than once."));
-        assert.ok(output.includes("Column name 'Missing' does not exist in the target table or view."));
-        assert.ok(output.includes("Column 'Payload' in table 'dbo.Indexed' is of a type that is invalid for use as a key column in an index."));
-        assert.ok(output.includes(" Column 'Legacy' in table 'dbo.Indexed' is of a type that is invalid for use as included column in an index."));
+        assert.ok(
+            output.includes(
+                "Cannot use duplicate column names in index. Column name 'Payload' listed more than once.",
+            ),
+        );
+        assert.ok(
+            output.includes("Column name 'Missing' does not exist in the target table or view."),
+        );
+        assert.ok(
+            output.includes(
+                "Column 'Payload' in table 'dbo.Indexed' is of a type that is invalid for use as a key column in an index.",
+            ),
+        );
+        assert.ok(
+            output.includes(
+                " Column 'Legacy' in table 'dbo.Indexed' is of a type that is invalid for use as included column in an index.",
+            ),
+        );
         assert.ok(output.includes("Cannot specify included columns for a clustered index."));
-        assert.ok(output.includes("Fillfactor 101 is not a valid percentage; fillfactor must be between 1 and 100."));
-        assert.ok(output.some((message) => message.startsWith("'65' is out of range for index option 'maxdop'")));
-        assert.ok(output.includes("Incorrect WHERE clause for filtered index 'ix_bad' on table 'dbo.Indexed'."));
+        assert.ok(
+            output.includes(
+                "Fillfactor 101 is not a valid percentage; fillfactor must be between 1 and 100.",
+            ),
+        );
+        assert.ok(
+            output.some((message) =>
+                message.startsWith("'65' is out of range for index option 'maxdop'"),
+            ),
+        );
+        assert.ok(
+            output.includes(
+                "Incorrect WHERE clause for filtered index 'ix_bad' on table 'dbo.Indexed'.",
+            ),
+        );
     });
 
     // A semantic index cannot infer its embedding model from unrelated physical options.
@@ -1149,13 +1273,35 @@ CREATE TABLE dbo.Duplicates (
             metadata(),
         );
         const output = messages(diagnostics);
-        assert.ok(output.includes("Temporal 'GENERATED ALWAYS AS ROW START' column definition missing."));
-        assert.ok(output.includes("Temporal 'GENERATED ALWAYS AS ROW END' column definition missing."));
-        assert.ok(output.includes("Cannot create generated always column when SYSTEM_TIME period is not defined."));
-        assert.ok(output.includes("Period column 'Started' in a system-versioned temporal table cannot be nullable."));
-        assert.ok(output.includes("Table cannot have more than one 'GENERATED ALWAYS AS ROW END' column."));
-        assert.ok(output.includes("Table cannot have more than one SYSTEM_TIME period definition."));
-        assert.ok(output.some((message) => message.startsWith("Table SYSTEM_TIME period definition end column name")));
+        assert.ok(
+            output.includes("Temporal 'GENERATED ALWAYS AS ROW START' column definition missing."),
+        );
+        assert.ok(
+            output.includes("Temporal 'GENERATED ALWAYS AS ROW END' column definition missing."),
+        );
+        assert.ok(
+            output.includes(
+                "Cannot create generated always column when SYSTEM_TIME period is not defined.",
+            ),
+        );
+        assert.ok(
+            output.includes(
+                "Period column 'Started' in a system-versioned temporal table cannot be nullable.",
+            ),
+        );
+        assert.ok(
+            output.includes(
+                "Table cannot have more than one 'GENERATED ALWAYS AS ROW END' column.",
+            ),
+        );
+        assert.ok(
+            output.includes("Table cannot have more than one SYSTEM_TIME period definition."),
+        );
+        assert.ok(
+            output.some((message) =>
+                message.startsWith("Table SYSTEM_TIME period definition end column name"),
+            ),
+        );
     });
 
     // CREATE/ALTER/DROP use the pinned catalog and schema list while local DDL stays ordered.
@@ -1174,10 +1320,24 @@ GO
             provider,
         );
         const output = messages(diagnostics);
-        assert.ok(output.includes("There is already an object named 'dbo.Existing' in the database."));
-        assert.ok(output.includes(' The specified schema name "missing" either does not exist or you do not have permission to use it.'));
-        assert.ok(output.includes("Cannot perform alter on 'dbo.Unknown' because it is an incompatible object type."));
-        assert.ok(output.includes("Cannot drop the table 'dbo.Unknown', because it does not exist or you do not have permission."));
+        assert.ok(
+            output.includes("There is already an object named 'dbo.Existing' in the database."),
+        );
+        assert.ok(
+            output.includes(
+                ' The specified schema name "missing" either does not exist or you do not have permission to use it.',
+            ),
+        );
+        assert.ok(
+            output.includes(
+                "Cannot perform alter on 'dbo.Unknown' because it is an incompatible object type.",
+            ),
+        );
+        assert.ok(
+            output.includes(
+                "Cannot drop the table 'dbo.Unknown', because it does not exist or you do not have permission.",
+            ),
+        );
     });
 
     // CREATE OR ALTER reuses an existing module instead of reporting the duplicate-object error
@@ -1285,7 +1445,10 @@ CREATE VIEW db.dbo.BadView WITH RECOMPILE AS SELECT 1 AS Id;`,
                 'An invalid option was specified for the statement "CREATE/ALTER VIEW".',
             ),
         );
-        assert.equal(output.some((message) => message.includes("Database 'db' does not exist")), false);
+        assert.equal(
+            output.some((message) => message.includes("Database 'db' does not exist")),
+            false,
+        );
     });
 
     // Function options depend on whether the body is scalar, inline-table, multi-statement table,
@@ -1343,15 +1506,18 @@ CREATE FUNCTION dbo.TableValue() RETURNS @t TABLE(Id int) AS BEGIN RETURN 1; END
                 },
                 {
                     code: "ReturnStatementInScalarValuedFunctionMustIncludeArg",
-                    message: "RETURN statements in scalar valued functions must include an argument.",
+                    message:
+                        "RETURN statements in scalar valued functions must include an argument.",
                 },
                 {
                     code: "LastStatementWithinFunctionMustBeReturn",
-                    message: "The last statement included within a function must be a return statement.",
+                    message:
+                        "The last statement included within a function must be a return statement.",
                 },
                 {
                     code: "UseReturnStatementWithValueCannotBeUsed",
-                    message: " A RETURN statement with a return value cannot be used in this context.",
+                    message:
+                        " A RETURN statement with a return value cannot be used in this context.",
                 },
             ],
         );

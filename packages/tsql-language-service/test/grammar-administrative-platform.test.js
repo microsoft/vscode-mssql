@@ -8,6 +8,28 @@ const { suite, test } = require("node:test");
 const { ImmutableTextSnapshot, LezerSyntaxService } = require("../dist/index.js");
 
 suite("T-SQL administrative platform grammar", () => {
+    // Security policies retain predicate actions, policy options, and replication state changes.
+    test("parses security policy lifecycle statements", () => {
+        const snapshot = parse(`
+CREATE SECURITY POLICY dbo.TenantPolicy
+    ADD FILTER PREDICATE dbo.FilterTenant(TenantId) ON sales.Orders,
+    ADD BLOCK PREDICATE dbo.FilterTenant(TenantId) ON sales.Orders BEFORE UPDATE
+    WITH (STATE = ON, SCHEMABINDING = OFF)
+    NOT FOR REPLICATION;
+ALTER SECURITY POLICY dbo.TenantPolicy
+    DROP FILTER PREDICATE ON sales.Orders,
+    ALTER BLOCK PREDICATE dbo.FilterTenant(TenantId) ON sales.Orders AFTER INSERT;
+ALTER SECURITY POLICY dbo.TenantPolicy DROP NOT FOR REPLICATION;
+DROP SECURITY POLICY IF EXISTS dbo.TenantPolicy;
+`);
+
+        assertValid(snapshot);
+        assert.equal(
+            (snapshot.tree.toString().match(/SecurityPolicyStatement\(/g) ?? []).length,
+            4,
+        );
+    });
+
     // ScriptDOM audit fixtures cover file destinations, state changes, and audit renames.
     test("parses server audit lifecycle statements", () => {
         const snapshot = parse(`

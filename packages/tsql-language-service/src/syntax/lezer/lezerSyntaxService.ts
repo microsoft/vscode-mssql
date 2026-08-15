@@ -17,7 +17,7 @@ import type {
 } from "../contracts.js";
 import { defaultTsqlFeatureProfile } from "../contracts.js";
 import { keywordMetadata } from "../keywords.generated.js";
-import { partitionSqlBatches } from "./batchChunking.js";
+import { findGroupedSelectWrapperOffsets, partitionSqlBatches } from "./batchChunking.js";
 import { parser as generatedParser } from "./generated/tsqlParser.js";
 
 interface ParsedChunk extends TextRange {
@@ -684,6 +684,7 @@ function collectSyntaxFacts(
     const diagnostics: SyntaxDiagnostic[] = [];
     const reportedFeatures = new Set<string>();
     const unterminatedString = unterminatedStringRange(text);
+    const groupedSelectWrappers = findGroupedSelectWrapperOffsets(text);
     let rawErrorNodeCount = 0;
     let hasMixedRegions = false;
     tree.iterate({
@@ -698,7 +699,40 @@ function collectSyntaxFacts(
             if (node.name === "TriggerEventList" && !hasRawErrorNode(node.node)) {
                 diagnostics.push(...duplicateTriggerActionDiagnostics(node.node, text));
             }
+            if (node.name === "CreateTriggerStatement" || node.name === "AlterTriggerStatement") {
+                const mismatch = invalidTriggerEventTypes(node.node, text);
+                if (mismatch) diagnostics.push(mismatch);
+            }
+            if (node.name === "CreateSchemaStatement" && !hasRawErrorNode(node.node)) {
+                if (!childNamed(node.node, "IdentifierName")) {
+                    diagnostics.push({
+                        code: "NameOrAuthorizationKeywordRequired",
+                        message:
+                            "The CREATE SCHEMA statement should be followed by a name or authorization keyword.",
+                        severity: "error",
+                        range: { start: node.from, end: node.to },
+                    });
+                }
+            }
+            if (node.name === "DropTriggerScope" && !hasRawErrorNode(node.node)) {
+                const statement = node.node.parent;
+                if (statement && statement.name !== "DropTriggerStatement") {
+                    diagnostics.push({
+                        code: "InvalidOnClause",
+                        message: "The ON clause is not valid for this statement.",
+                        severity: "error",
+                        range: { start: node.from, end: node.to },
+                    });
+                }
+            }
             if (node.type.isError) {
+                if (
+                    node.to === node.from + 1 &&
+                    groupedSelectWrappers.has(node.from) &&
+                    (text[node.from] === "(" || text[node.from] === ")")
+                ) {
+                    return;
+                }
                 rawErrorNodeCount++;
                 if (
                     unterminatedString &&
@@ -864,6 +898,48 @@ function duplicateTriggerActionDiagnostics(
         }
     }
     return diagnostics;
+}
+
+/**
+ * Reports a trigger declaration whose event kinds do not belong to its target scope: a table or
+ * view carries only DML actions, while DATABASE and ALL SERVER carry only DDL event names.
+ */
+function invalidTriggerEventTypes(
+    statement: LezerNode,
+    text: string,
+): SyntaxDiagnostic | undefined {
+    const name = childNamed(statement, "MultipartIdentifier");
+    const target = childNamed(statement, "TriggerTarget");
+    const events = childNamed(statement, "TriggerEventList");
+    if (!name || !target || !events) return undefined;
+    if (hasRawErrorNode(target) || hasRawErrorNode(events)) return undefined;
+    for (let child = statement.firstChild; child; child = child.nextSibling) {
+        if (child.type.isError && child.from <= events.to) return undefined;
+    }
+    let dmlEvents = false;
+    let ddlEvents = false;
+    for (let event = events.firstChild; event; event = event.nextSibling) {
+        if (event.name !== "TriggerEvent") continue;
+        if (canonicalTriggerAction(text.slice(event.from, event.to))) dmlEvents = true;
+        else ddlEvents = true;
+    }
+    // A list mixing both kinds is not a well-formed activation, so recovery owns it.
+    if (dmlEvents === ddlEvents) return undefined;
+    const ddlTarget = childNamed(target, "MultipartIdentifier") === undefined;
+    if (ddlTarget === ddlEvents) return undefined;
+    return {
+        code: "InvalidTriggerEventTypes",
+        message: "The specified event types are not valid on the specified target object.",
+        severity: "error",
+        range: { start: name.from, end: name.to },
+    };
+}
+
+function childNamed(node: LezerNode, name: string): LezerNode | undefined {
+    for (let child = node.firstChild; child; child = child.nextSibling) {
+        if (child.name === name) return child;
+    }
+    return undefined;
 }
 
 function hasRawErrorNode(node: LezerNode): boolean {
