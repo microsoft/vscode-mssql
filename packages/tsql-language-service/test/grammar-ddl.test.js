@@ -58,6 +58,27 @@ CREATE TABLE dbo.ModernData (
         assert.equal((tree.match(/ColumnDefinition\(/g) ?? []).length, 2);
     });
 
+    // Verifies Fabric table cloning retains both current and point-in-time source forms.
+    test("parses cloned table sources", () => {
+        const snapshot = parse(`
+CREATE TABLE dbo.EmployeeCopy AS CLONE OF hr.Employee;
+CREATE TABLE dbo.EmployeeHistory AS CLONE OF hr.Employee AT '2026-08-14T12:00:00';
+`);
+        assert.deepEqual(snapshot.diagnostics, []);
+        assert.equal((snapshot.tree.toString().match(/CreateTableStatement\(/g) ?? []).length, 2);
+    });
+
+    // Verifies CTAS can assign output column names before the physical table options.
+    test("parses CTAS with an output column list", () => {
+        const snapshot = parse(`
+CREATE TABLE dbo.OrderSummary (OrderId, Total)
+WITH (DISTRIBUTION = HASH(OrderId))
+AS SELECT OrderId, Total FROM sales.Orders;
+`);
+        assert.deepEqual(snapshot.diagnostics, []);
+        assert.match(snapshot.tree.toString(), /CtasColumnNameList/);
+    });
+
     // Verifies regular filtered index syntax and SQL Server 2025 JSON/vector index statements.
     test("parses rowstore, JSON, and vector indexes", () => {
         const snapshot = parse(`

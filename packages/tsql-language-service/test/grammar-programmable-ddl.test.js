@@ -108,6 +108,18 @@ AS EXTERNAL NAME UtilityAssembly.Functions.TableValue;
         assert.equal((tree.match(/ExternalModuleBody\(/g) ?? []).length, 2);
     });
 
+    // Verifies an inline table-valued function accepts the optional AS and a namespace-led query.
+    test("parses an inline table-valued function without AS", () => {
+        const snapshot = parse(`
+CREATE FUNCTION dbo.xml_rows()
+RETURNS TABLE
+RETURN (WITH XMLNAMESPACES (DEFAULT 'urn:products') SELECT ProductId FROM dbo.Products);
+`);
+
+        assert.deepEqual(snapshot.diagnostics, []);
+        assert.match(snapshot.tree.toString(), /ReturnedQuery\(/);
+    });
+
     // Verifies DDL and LOGON trigger scopes/events are structural rather than recovery fragments.
     test("parses database and all-server trigger forms", () => {
         const snapshot = parse(`

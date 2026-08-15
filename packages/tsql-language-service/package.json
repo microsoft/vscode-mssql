@@ -49,6 +49,7 @@
         "watch": "tsc -watch -p tsconfig.json --preserveWatchOutput",
         "lint": "node scripts/check-boundaries.mjs",
         "test": "npm run build && node --test test/*.test.js",
+        "test:integration": "npm run build:typescript && node --test --test-concurrency=1 test/integration/*.test.js",
         "benchmark": "npm run build && node --expose-gc benchmarks/run.mjs",
         "benchmark:features": "npm run build:typescript && node --expose-gc benchmarks/catalog-features.mjs",
         "benchmark:sqlparser": "npm run build && node --expose-gc benchmarks/compare-sqlparser.mjs",
@@ -62,6 +63,7 @@
         "@lezer/generator": "^1.8.0",
         "@types/node": "^22.13.14",
         "esbuild": "^0.25.8",
+        "tedious": "^20.0.0",
         "typescript": "^5.8.3"
     }
 }

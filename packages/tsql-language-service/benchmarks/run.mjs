@@ -27,7 +27,7 @@ for (const size of sizes) {
         ["end", Math.max(1, Math.floor(text.length * 0.99))],
     ];
     for (const [editLocation, rawOffset] of editLocations) {
-        const offset = Math.min(Number(rawOffset), text.length - 1);
+        const offset = stableIdentifierEditOffset(text, Number(rawOffset));
         const change = {
             start: offset,
             end: offset + 1,
@@ -42,6 +42,7 @@ for (const size of sizes) {
 
         let workerInitial;
         let workerEdit;
+        let workerEditStats;
         if (editLocation === "middle") {
             const worker = createNodeWorkerClient();
             try {
@@ -49,6 +50,7 @@ for (const size of sizes) {
                 workerEdit = await measureAsync(() =>
                     worker.change("file:///bench.sql", 2, [change]),
                 );
+                workerEditStats = await worker.stats("file:///bench.sql");
             } finally {
                 await worker.dispose();
             }
@@ -70,11 +72,24 @@ for (const size of sizes) {
             workerEditWallMs: optionalRound(workerEdit?.elapsedMs),
             workerInitialInternalMs: optionalRound(workerInitial?.value.workerElapsedMs),
             workerEditInternalMs: optionalRound(workerEdit?.value.workerElapsedMs),
+            workerEditParseMs: optionalRound(workerEditStats?.syntax.elapsedMs),
+            workerEditBindMs: optionalRound(workerEditStats?.semantics.elapsedMs),
+            workerReusedSemanticUnits: workerEditStats?.semantics.unitsReused,
+            workerReboundSemanticUnits: workerEditStats?.semantics.unitsRebound,
         });
     }
 }
 
 console.table(rows);
+
+/** Keeps positional edits inside an identifier instead of accidentally mutating a GO boundary. */
+function stableIdentifierEditOffset(text, preferredOffset) {
+    const marker = "u.Name";
+    const after = text.indexOf(marker, Math.max(0, preferredOffset));
+    const occurrence = after >= 0 ? after : text.lastIndexOf(marker, preferredOffset);
+    if (occurrence < 0) throw new Error("Benchmark corpus has no stable identifier edit marker");
+    return occurrence + 3;
+}
 
 function checksum(snapshot) {
     let value = 2166136261;

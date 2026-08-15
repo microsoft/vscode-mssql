@@ -49,6 +49,49 @@ describe("metadata provider contracts", () => {
         assert.equal(view.parameterState({ id: "1" }).kind, "notLoaded");
     });
 
+    it("tracks lazy catalog readiness independently for each database", () => {
+        const provider = new InMemoryMetadataProvider({
+            environment: { currentDatabase: "PrimaryDb" },
+            completeness: { schemas: "ready", objects: "ready" },
+            databases: [{ name: "PrimaryDb" }, { name: "ArchiveDb" }],
+            schemas: [{ database: "PrimaryDb", name: "dbo" }],
+            databaseCatalogCompleteness: new Map([
+                ["PrimaryDb", { schemas: "ready", objects: "ready" }],
+                ["ArchiveDb", { schemas: "unknown", objects: "unknown" }],
+            ]),
+        });
+
+        assert.equal(provider.pin().schemas("ArchiveDb"), undefined);
+        assert.equal(
+            provider.pin().databaseCatalogCompleteness("ArchiveDb").objects,
+            "unknown",
+        );
+        provider.merge({
+            schemas: [{ database: "ArchiveDb", name: "history" }],
+            objects: [
+                {
+                    ref: { id: "archive:1", database: "ArchiveDb" },
+                    database: "ArchiveDb",
+                    schema: "history",
+                    name: "Orders",
+                    kind: "table",
+                },
+            ],
+            databaseCatalogCompleteness: new Map([
+                ["ArchiveDb", { schemas: "ready", objects: "ready" }],
+            ]),
+        });
+
+        assert.deepEqual(provider.pin().schemas("ArchiveDb").map((schema) => schema.name), [
+            "history",
+        ]);
+        assert.equal(
+            provider.pin().resolveObject(["ArchiveDb", "history", "Orders"]).kind,
+            "resolved",
+        );
+        assert.equal(provider.pin().schemas("PrimaryDb").length, 1);
+    });
+
     it("adapts dev/query without importing its implementation", () => {
         const inner = new NullMetadataProvider();
         const adapter = new DevQueryMetadataAdapter({
@@ -108,13 +151,55 @@ describe("metadata provider contracts", () => {
         adapter.requestHydration(request);
         adapter.requestHydration(request);
         assert.equal(adapter.pin().columnState({ id: "7" }).kind, "loading");
+        const settled = adapter.waitForHydration();
         release();
-        await new Promise((resolve) => setImmediate(resolve));
+        await settled;
         assert.equal(hydrateCalls, 1);
         assert.deepEqual(adapter.pin().columnState({ id: "7" }), {
             kind: "loaded",
             value: [{ name: "Id", typeDisplay: "int" }],
         });
+    });
+
+    it("coalesces lazy cross-database schema hydration", async () => {
+        let hydrateCalls = 0;
+        const adapter = new SimpleQueryMetadataAdapter(
+            { execute: async () => ({ columns: [], rows: [] }) },
+            {
+                refresh: async (_executor, publisher) =>
+                    publisher.replace({
+                        environment: { currentDatabase: "PrimaryDb" },
+                        databases: [{ name: "PrimaryDb" }, { name: "ArchiveDb" }],
+                        databaseCatalogCompleteness: new Map([
+                            ["PrimaryDb", { schemas: "ready", objects: "ready" }],
+                            ["ArchiveDb", { schemas: "unknown", objects: "unknown" }],
+                        ]),
+                    }),
+                hydrate: async (_executor, request, publisher) => {
+                    hydrateCalls++;
+                    publisher.merge({
+                        schemas: [{ database: request.database, name: "history" }],
+                        databaseCatalogCompleteness: new Map([
+                            [request.database, { schemas: "ready" }],
+                        ]),
+                    });
+                },
+            },
+        );
+        await adapter.refresh();
+        const request = {
+            section: "schemas",
+            database: "archivedb",
+            priority: "interactive",
+        };
+        adapter.requestHydration(request);
+        adapter.requestHydration(request);
+        await new Promise((resolve) => setImmediate(resolve));
+
+        assert.equal(hydrateCalls, 1);
+        assert.deepEqual(adapter.pin().schemas("ArchiveDb").map((schema) => schema.name), [
+            "history",
+        ]);
     });
 
     it("keeps the prior catalog usable when a refresh fails", async () => {
@@ -142,5 +227,49 @@ describe("metadata provider contracts", () => {
         assert.equal(view.completeness.objects, "stale");
         assert.equal(view.resolveObject(["dbo", "Orders"]).kind, "resolved");
         assert.equal(view.resolveObject(["dbo", "Missing"]).kind, "unknown");
+    });
+
+    it("forces and coalesces an authoritative principal-only refresh", async () => {
+        let hydrateCalls = 0;
+        let release;
+        const gate = new Promise((resolve) => (release = resolve));
+        const adapter = new SimpleQueryMetadataAdapter(
+            { execute: async () => ({ columns: [], rows: [] }) },
+            {
+                refresh: async (_executor, publisher) =>
+                    publisher.replace({
+                        completeness: { objects: "ready", principals: "ready" },
+                        objects: [
+                            { ref: { id: "7" }, schema: "dbo", name: "Users", kind: "table" },
+                        ],
+                        principals: [{ id: "old", name: "OldLogin", kind: "login" }],
+                    }),
+                hydrate: async (_executor, request, publisher) => {
+                    assert.equal(request.section, "principals");
+                    hydrateCalls++;
+                    await gate;
+                    publisher.replaceSection("principals", {
+                        completeness: { principals: "ready" },
+                        principals: [{ id: "new", name: "NewLogin", kind: "login" }],
+                    });
+                },
+            },
+        );
+        await adapter.refresh();
+
+        const first = adapter.refreshSections(["principals"]);
+        const second = adapter.refreshSections(["principals"]);
+        await new Promise((resolve) => setImmediate(resolve));
+        assert.equal(adapter.pin().completeness.principals, "loading");
+        release();
+        const [firstResult, secondResult] = await Promise.all([first, second]);
+
+        assert.equal(hydrateCalls, 1);
+        assert.equal(firstResult.generation, secondResult.generation);
+        assert.deepEqual(
+            adapter.pin().searchPrincipals({ prefix: "" }).map((principal) => principal.name),
+            ["NewLogin"],
+        );
+        assert.equal(adapter.pin().resolveObject(["dbo", "Users"]).kind, "resolved");
     });
 });

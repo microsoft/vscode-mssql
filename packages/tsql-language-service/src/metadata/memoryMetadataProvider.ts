@@ -6,6 +6,7 @@
 import type { Disposable } from "../common/disposable.js";
 import type {
     ColumnMetadata,
+    DatabaseCatalogCompleteness,
     DatabaseMetadata,
     InMemoryMetadataInput,
     MetadataCompleteness,
@@ -13,12 +14,15 @@ import type {
     MetadataLoadState,
     MetadataProvider,
     MetadataRefreshResult,
+    MetadataSection,
     MetadataView,
     ObjectMetadata,
     ObjectRef,
     ObjectResolution,
     ObjectSearchQuery,
     ParameterMetadata,
+    PrincipalMetadata,
+    PrincipalSearchQuery,
     SchemaMetadata,
     SqlEnvironment,
 } from "./contracts.js";
@@ -29,6 +33,7 @@ const ready: MetadataCompleteness = Object.freeze({
     objects: "ready",
     columns: "ready",
     parameters: "ready",
+    principals: "ready",
     definitions: "unknown",
 });
 
@@ -56,6 +61,12 @@ export class InMemoryMetadataProvider implements MetadataProvider {
 
     public merge(input: InMemoryMetadataInput): void {
         this._input = mergeInput(this._input, input);
+        this.publish();
+    }
+
+    /** Replaces one authoritative section without discarding unrelated catalog generations. */
+    public replaceSection(section: MetadataSection, input: InMemoryMetadataInput): void {
+        this._input = replaceSectionInput(this._input, section, input);
         this.publish();
     }
 
@@ -106,6 +117,11 @@ class MemoryView implements MetadataView {
     >;
     private readonly _schemas: readonly SchemaMetadata[];
     private readonly _databases: readonly DatabaseMetadata[];
+    private readonly _principals: readonly PrincipalMetadata[];
+    private readonly _databaseCatalogCompleteness: ReadonlyMap<
+        string,
+        DatabaseCatalogCompleteness
+    >;
 
     public readonly publishedAt = Date.now();
 
@@ -133,6 +149,22 @@ class MemoryView implements MetadataView {
         this._parameterStates = input.parameterStates ?? new Map();
         this._schemas = Object.freeze([...(input.schemas ?? [])]);
         this._databases = Object.freeze([...(input.databases ?? [])]);
+        this._principals = Object.freeze(
+            [...(input.principals ?? [])].sort((left, right) =>
+                normalizedName(left.name, environment.caseSensitive).localeCompare(
+                    normalizedName(right.name, environment.caseSensitive),
+                ),
+            ),
+        );
+        this._databaseCatalogCompleteness = new Map(
+            [...(input.databaseCatalogCompleteness ?? [])].map(([database, state]) => [
+                normalizedName(database, environment.caseSensitive),
+                Object.freeze({
+                    schemas: state.schemas ?? "unknown",
+                    objects: state.objects ?? "unknown",
+                }),
+            ]),
+        );
     }
 
     public resolveObject(parts: readonly string[]): ObjectResolution {
@@ -156,8 +188,11 @@ class MemoryView implements MetadataView {
               );
         if (matches.length === 1) return { kind: "resolved", object: matches[0]! };
         if (matches.length > 1) return { kind: "ambiguous", candidates: matches };
-        if (this.completeness.objects !== "ready") {
-            return { kind: "unknown", reason: stateReason(this.completeness.objects) };
+        const objectState = database
+            ? this.databaseCatalogCompleteness(database).objects
+            : this.completeness.objects;
+        if (objectState !== "ready") {
+            return { kind: "unknown", reason: stateReason(objectState) };
         }
         return { kind: "notFound" };
     }
@@ -204,8 +239,52 @@ class MemoryView implements MetadataView {
                   .slice(0, limit);
     }
 
+    public databaseCatalogCompleteness(database: string): DatabaseCatalogCompleteness {
+        const explicit = this._databaseCatalogCompleteness.get(
+            normalizedName(database, this.environment.caseSensitive),
+        );
+        if (explicit) return explicit;
+        if (
+            equal(database, this.environment.currentDatabase, this.environment.caseSensitive) ||
+            this._databaseCatalogCompleteness.size === 0
+        ) {
+            return {
+                schemas: this.completeness.schemas,
+                objects: this.completeness.objects,
+            };
+        }
+        return { schemas: "unknown", objects: "unknown" };
+    }
+
+    public searchPrincipals(query: PrincipalSearchQuery): readonly PrincipalMetadata[] {
+        const prefix = query.prefix ?? "";
+        const limit = query.limit ?? 100;
+        return this._principals
+            .filter(
+                (principal) =>
+                    (!query.database ||
+                        !principal.database ||
+                        equal(
+                            principal.database,
+                            query.database,
+                            this.environment.caseSensitive,
+                        )) &&
+                    (!query.kinds || query.kinds.includes(principal.kind)) &&
+                    startsWith(principal.name, prefix, this.environment.caseSensitive),
+            )
+            .slice(0, limit);
+    }
+
     public schemas(database?: string): readonly SchemaMetadata[] | undefined {
         if (["unknown", "failed"].includes(this.completeness.schemas)) return undefined;
+        if (
+            database &&
+            ["unknown", "loading", "failed"].includes(
+                this.databaseCatalogCompleteness(database).schemas,
+            )
+        ) {
+            return undefined;
+        }
         return database
             ? this._schemas.filter((schema) => !schema.database || schema.database === database)
             : this._schemas;
@@ -242,14 +321,88 @@ function mergeInput(
     return {
         environment: { ...previous.environment, ...next.environment },
         completeness: { ...previous.completeness, ...next.completeness },
-        objects: next.objects ?? previous.objects,
-        schemas: next.schemas ?? previous.schemas,
-        databases: next.databases ?? previous.databases,
+        objects: mergeArray(previous.objects, next.objects, (object) => object.ref.id),
+        schemas: mergeArray(
+            previous.schemas,
+            next.schemas,
+            (schema) => `${schema.database ?? ""}\u0000${schema.name}`.toLocaleLowerCase(),
+        ),
+        databases: mergeArray(
+            previous.databases,
+            next.databases,
+            (database) => database.name.toLocaleLowerCase(),
+        ),
+        databaseCatalogCompleteness: mergeNestedMap(
+            previous.databaseCatalogCompleteness,
+            next.databaseCatalogCompleteness,
+        ),
         columns: mergeMap(previous.columns, next.columns),
         parameters: mergeMap(previous.parameters, next.parameters),
+        principals: mergeArray(previous.principals, next.principals, (principal) => principal.id),
         columnStates: mergeMap(previous.columnStates, next.columnStates),
         parameterStates: mergeMap(previous.parameterStates, next.parameterStates),
     };
+}
+
+function replaceSectionInput(
+    previous: InMemoryMetadataInput,
+    section: MetadataSection,
+    replacement: InMemoryMetadataInput,
+): InMemoryMetadataInput {
+    const completeness = {
+        ...previous.completeness,
+        ...(replacement.completeness?.[section] === undefined
+            ? {}
+            : { [section]: replacement.completeness[section] }),
+    };
+    switch (section) {
+        case "databases":
+            return cloneInput({ ...previous, completeness, databases: replacement.databases });
+        case "schemas":
+            return cloneInput({ ...previous, completeness, schemas: replacement.schemas });
+        case "objects":
+            return cloneInput({ ...previous, completeness, objects: replacement.objects });
+        case "columns":
+            return cloneInput({
+                ...previous,
+                completeness,
+                columns: replacement.columns,
+                columnStates: replacement.columnStates,
+            });
+        case "parameters":
+            return cloneInput({
+                ...previous,
+                completeness,
+                parameters: replacement.parameters,
+                parameterStates: replacement.parameterStates,
+            });
+        case "principals":
+            return cloneInput({ ...previous, completeness, principals: replacement.principals });
+        case "definitions":
+            return cloneInput({ ...previous, completeness });
+    }
+}
+
+function mergeArray<T>(
+    previous: readonly T[] | undefined,
+    next: readonly T[] | undefined,
+    key: (value: T) => string,
+): readonly T[] | undefined {
+    if (!previous && !next) return undefined;
+    if (!next) return previous;
+    return [...new Map([...(previous ?? []), ...next].map((value) => [key(value), value])).values()];
+}
+
+function mergeNestedMap(
+    previous: ReadonlyMap<string, Partial<DatabaseCatalogCompleteness>> | undefined,
+    next: ReadonlyMap<string, Partial<DatabaseCatalogCompleteness>> | undefined,
+): ReadonlyMap<string, Partial<DatabaseCatalogCompleteness>> | undefined {
+    if (!previous && !next) return undefined;
+    const result = new Map(previous ?? []);
+    for (const [database, state] of next ?? []) {
+        result.set(database, { ...result.get(database), ...state });
+    }
+    return result;
 }
 
 function mergeMap<K, V>(

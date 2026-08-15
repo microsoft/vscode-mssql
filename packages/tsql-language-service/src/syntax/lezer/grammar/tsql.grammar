@@ -109,6 +109,7 @@ Statement {
   | XmlSchemaCollectionStatement
   | MessageTypeStatement
   | ContractStatement
+  | BrokerPriorityStatement
   | QueueStatement
   | ServiceStatement
   | EndpointStatement
@@ -773,12 +774,29 @@ ContractStatement {
 }
 ContractMessage { IdentifierName Sent By (Initiator | Target | Any) }
 
+// Broker priorities rank matching Service Broker conversations by a bounded option list.
+BrokerPriorityStatement {
+  (Create | Alter) Broker Priority IdentifierName For Conversation
+    (BrokerPrioritySet | BrokerPriorityEnd)
+  | Drop Broker Priority IdentifierName
+}
+BrokerPrioritySet {
+  Set OpenParen BrokerPriorityOption (Comma BrokerPriorityOption)* CloseParen
+}
+BrokerPriorityOption {
+  PriorityLevel Equal (IntegerLiteral | Default)
+  | ContractName Equal (IdentifierName | Any)
+  | RemoteServiceName Equal (StringLiteral | Any)
+  | LocalServiceName Equal (IdentifierName | Any)
+}
+
 // Queue statements retain activation/status options and optional filegroup placement.
 QueueStatement {
-  Create Queue MultipartIdentifier QueueTail
-  | Alter Queue MultipartIdentifier QueueTail
-  | Drop Queue MultipartIdentifier
+  Create Queue QueueObjectName QueueTail
+  | Alter Queue QueueObjectName QueueTail
+  | Drop Queue QueueObjectName
 }
+QueueObjectName { MultipartIdentifier | Dot IdentifierName Dot IdentifierName }
 QueueTail { optionalDdlTail<QueueWithClause> (On FilegroupTarget)? }
 QueueWithClause { With GenericOptionList }
 
@@ -1233,7 +1251,12 @@ FunctionDefinition {
   FunctionParameterList? As ExternalFunctionBody
   | FunctionParameterList? Returns DataType FunctionScalarBody
   | FunctionParameterList? Returns FunctionTableReturnType FunctionOrderClause?
-    FunctionWithClause? As FunctionBody
+    FunctionWithClause? FunctionTableBody
+}
+// Inline table functions may omit AS; multi-statement and CLR bodies retain the AS introducer.
+FunctionTableBody {
+  As FunctionBody
+  | Return (SelectStatement | ReturnedQuery)
 }
 // Fabric external functions bind the SQL signature to a one- or multipart remote function name.
 ExternalFunctionBody { External Function MultipartIdentifier }
@@ -1562,7 +1585,8 @@ DropSequenceStatement { Drop Sequence IfExistsClause? MultipartIdentifier (Comma
 // CREATE TABLE defines ordinary, temporary, graph, temporal, ledger, or CTAS tables.
 CreateTableStatement {
   Create Table MultipartIdentifier (
-    TableOptionClause As SelectStatement
+    CtasColumnNameList TableOptionClause As SelectStatement
+    | TableOptionClause As SelectStatement
     | CreateTableBody CreateTableStorageClause* optionalDdlTail<TableOptionClause>
   )
 }
@@ -1571,6 +1595,7 @@ CreateTableStatement {
 CreateTableBody {
   TableDefinition (As (Node | Edge))?
   | As (FileTable | Node | Edge)
+  | As Clone Of MultipartIdentifier (At StringLiteral)?
   | As? SelectStatement
 }
 
@@ -1973,6 +1998,8 @@ StatisticsWithClause { With StatisticsDdlOption (Comma StatisticsDdlOption)* }
 StatisticsDdlOption {
   FullScan | Resample | NoRecompute
   | Sample Expression (Percent | Rows)
+  // ROWCOUNT and PAGECOUNT accept bigint-sized persisted cardinality estimates.
+  | (RowCount | PageCount) Equal IntegerLiteral
   | IdentifierName (Equal OptionValue)?
 }
 
@@ -2884,14 +2911,16 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   MoneyLiteral
 }
 
-@external tokens proceduralTokens from "../proceduralTokenizer" {
-  // Conditions, block interiors, and single bodies are recursively mounted parser regions.
-  ConditionChunk,
-  BlockChunk,
-  StatementChunk,
-  // Legacy COMPUTE is one bounded suffix so it cannot widen the main expression automaton.
-  ComputeChunk
-}
+// Separate token groups keep the hot query path from invoking every recovery scanner per token.
+@external tokens conditionToken from "../proceduralTokenizer" { ConditionChunk }
+@external tokens blockToken from "../proceduralTokenizer" { BlockChunk }
+@external tokens statementToken from "../proceduralTokenizer" { StatementChunk }
+// Legacy COMPUTE is one bounded suffix so it cannot widen the main expression automaton.
+@external tokens computeToken from "../proceduralTokenizer" { ComputeChunk }
+// A contextual zero-width terminator avoids confusing an optional broker SET clause with SET statements.
+@external tokens brokerPriorityEndToken from "../brokerPriorityTokenizer" { BrokerPriorityEnd }
+// CTAS output names are recognized only when a simple name list is followed by WITH.
+@external tokens ctasColumnNameListToken from "../ctasTokenizer" { CtasColumnNameList }
 
 @external specialize { Identifier } reservedKeyword from "../keywordSpecializer" {
   Add, All, Alter, And, As, Asc, Authorization, Backup, Begin, Between, Break, Browse, Bulk, By,
@@ -2915,7 +2944,7 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
 
 @external extend { Identifier } contextualKeyword from "../keywordSpecializer" {
   Abort, Absent, Action, Always, AnsiDefaults, AnsiNullDfltOff, AnsiNullDfltOn, AnsiNulls, AnsiPadding, Approx, Approximate, Array,
-  AnsiWarnings, Apply, ArithAbort, ArithIgnore, At, Atomic, Auto, Base64, Binary, Called, Caller, Catch, Changes, ChangeTable, ChunkUsing, Copy,
+  AnsiWarnings, Apply, ArithAbort, ArithIgnore, At, Atomic, Auto, Base64, Binary, Called, Caller, Catch, Changes, ChangeTable, ChunkUsing, Clone, Copy,
   CheckExpiration, CheckPolicy, Columnstore, Committed, ConcatNullYieldsNull, Connect, Contained, Contains, Content, Cookie, Cube, CursorCloseOnCommit, DateFirst,
   DateFormat, DeadlockPriority, Delay, DelayedDurability, Disable, Durability, Dynamic, Edge,
   DropExisting, Enable, Embeddings, Encrypted, ExternalModel, ApiFormat, Location, Model, ModelType, LocalRuntimePath, FastForward, FileStreamOn, FileTable, First, FmtOnly, Following, ForcePlan, FullTextStopList,
@@ -2931,13 +2960,14 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   Throw, Ties, Time, Timeout, TransactionId, Try, TryCast, TypeWarning, Unbounded, Uncommitted,
   Synonym, Type, Using, Value, Vector, VectorIndex, VectorSearch, Version, Window, Within, Work, XactAbort, Xml, Cache, Cycle,
   Active, After, Absolute, Affinity, Aggregate, Algorithm, Any, Application, Assembly, Asymmetric, Attested, Audit, Authentication, Availability, BeginDialog, Binding, Buffer, BulkLogged, Catalog, Event, Session, Notification, FanIn, Extract, Fn,
+  Broker, Priority, Conversation, PriorityLevel, ContractName, RemoteServiceName, LocalServiceName,
   Clear, Close, Cluster, Collection, Configuration, Connection, Containment, Context, Contract, Control, Cpu, Credential, Cryptographic, Data, Deallocate, Definition, Diagnostics,
   Decryption, Dependents, Disk, Elements, Empty, Endpoint, EnvironmentVariables, Executable, Explicit,
   DefaultDatabase, DefaultLanguage, DefaultSchema, Encryption, Extension, File, Filegroup, FileGrowth, FileListOnly, FileName,
   Failover, Force, ForceFailoverAllowDataLoss, Format, FullScan, FullText, Hadr, Hashed, HeaderOnly, Holdlock, Incremental, Initiator,
   Immediate, Instead, LabelOnly, Last, Library, List, Log, Master, Materialized, Distribution, Hash, ForAppend, ForceAnnOnly, RoundRobin, MaxLength, MaxSize, Member, Message, Metric, Mirror, MustChange, NativeCompilation,
   Impersonate, IncludeNullValues, Kill, None, NoRecompute, Nowait, ObjectId, Offline, OldPassword, Online, Open, Owner, Override, Page, Parameters, Path, PermissionSet, Platform, Population, Property, Partial, Password, Private, WebMethod,
-  NumaNode, Object, Prior, Process, Provider, Queue, Recompile, Regenerate, Rename, Remove, Relative, Remote, Route, Modify, Replica, Scheduler, Self, Server, SoftNuma,
+  NumaNode, Object, PageCount, Prior, Process, Provider, Queue, Recompile, Regenerate, Rename, Remove, Relative, Remote, Route, Modify, Replica, Scheduler, Self, Server, SoftNuma,
   Heap, Policy, Pool, Privileges, PerformCutover, Raw, ReadText, Reconfigure, Reset, Resample, Resource, Returning, Root, Rule, Returns, Role, Sample, Scoped, Secondary, Secret, Security, Selective, Sent, Service, Shutdown, Sid, Singleton, Spatial, Specification, Sql, State,
   StatisticalSemantics, Stop, StopList, Symmetric, System, Timestamp, UpdateText, WriteText, XmlData, XmlSchema,
   SchemaBinding, Scheme, SimilarTo, Simple, Size, Split, StartId, Take, Tape, TopN, Ownership, Transfer, Url, Used, Governor, Workload,

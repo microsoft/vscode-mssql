@@ -12,6 +12,7 @@ import {
     type MetadataLoadState,
     type MetadataProvider,
     type MetadataRefreshResult,
+    type MetadataSection,
     type MetadataView,
     type ParameterMetadata,
 } from "../metadata/index.js";
@@ -55,6 +56,8 @@ export interface SimpleQueryMetadataPublisher {
     replace(input: InMemoryMetadataInput): void;
     /** Publishes a partial stage while retaining usable data from the prior generation. */
     merge(input: InMemoryMetadataInput): void;
+    /** Replaces one authoritative section while retaining every unrelated section. */
+    replaceSection(section: MetadataSection, input: InMemoryMetadataInput): void;
 }
 
 export class SimpleQueryMetadataAdapter implements MetadataProvider {
@@ -67,6 +70,7 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
                 objects: "unknown",
                 columns: "unknown",
                 parameters: "unknown",
+                principals: "unknown",
                 definitions: "unknown",
             },
         },
@@ -74,6 +78,7 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
     );
     private _inFlight: Promise<MetadataRefreshResult> | undefined;
     private readonly _hydrations = new Map<string, Promise<void>>();
+    private readonly _sectionRefreshes = new Map<string, Promise<MetadataRefreshResult>>();
     private _hasPublishedIdentity = false;
     private readonly _publisher: SimpleQueryMetadataPublisher = {
         replace: (input) => {
@@ -81,6 +86,7 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
             this._hasPublishedIdentity = true;
         },
         merge: (input) => this._store.merge(input),
+        replaceSection: (section, input) => this._store.replaceSection(section, input),
     };
 
     public constructor(
@@ -93,6 +99,10 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
     }
 
     public requestHydration(request: MetadataHydrationRequest): void {
+        if (request.database && ["schemas", "objects"].includes(request.section)) {
+            this.requestDatabaseHydration(request);
+            return;
+        }
         if (!request.object || !["columns", "parameters"].includes(request.section)) {
             void this.refresh().catch(() => undefined);
             return;
@@ -119,11 +129,79 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
         void hydration.catch(() => undefined);
     }
 
+    public waitForHydration(signal?: AbortSignal): Promise<void> {
+        const operations: Promise<unknown>[] = [
+            ...this._hydrations.values(),
+            ...this._sectionRefreshes.values(),
+        ];
+        if (this._inFlight) operations.push(this._inFlight);
+        const pending = Promise.all(operations).then(() => undefined);
+        return signal ? detachOnAbort(pending, signal) : pending;
+    }
+
+    private requestDatabaseHydration(request: MetadataHydrationRequest): void {
+        const view = this.pin();
+        const database = canonicalDatabase(view, request.database!);
+        if (!database) {
+            void this.refresh().catch(() => undefined);
+            return;
+        }
+        if (
+            this._inFlight &&
+            equalName(database, view.environment.currentDatabase, view.environment.caseSensitive)
+        ) {
+            return;
+        }
+        const state = view.databaseCatalogCompleteness(database)[request.section as "schemas" | "objects"];
+        if (state === "ready") return;
+        const normalizedRequest = { ...request, database };
+        const key = `${request.section}:database:${database.toLocaleLowerCase()}`;
+        if (this._hydrations.has(key)) return;
+        this._store.merge(databaseLoadStatePatch(database, request.section, "loading"));
+        const hydration = this._loader
+            .hydrate(this._executor, normalizedRequest, this._publisher)
+            .catch((error: unknown) => {
+                this._store.merge(databaseLoadStatePatch(database, request.section, "failed"));
+                throw error;
+            })
+            .finally(() => this._hydrations.delete(key));
+        this._hydrations.set(key, hydration);
+        void hydration.catch(() => undefined);
+    }
+
     public refresh(signal?: AbortSignal): Promise<MetadataRefreshResult> {
         this._inFlight ??= this.loadAndPublish().finally(() => {
             this._inFlight = undefined;
         });
         return signal ? detachOnAbort(this._inFlight, signal) : this._inFlight;
+    }
+
+    public refreshSections(
+        sections: readonly MetadataSection[],
+        signal?: AbortSignal,
+    ): Promise<MetadataRefreshResult> {
+        const normalized = [...new Set(sections)].sort();
+        if (normalized.length === 0) {
+            return Promise.resolve({
+                generation: this.pin().generation,
+                published: false,
+                elapsedMs: 0,
+            });
+        }
+        // The simple-query loader currently has an isolated authoritative query for principals.
+        // Other invalidations retain correctness by using the complete catalog refresh path.
+        if (normalized.some((section) => section !== "principals")) {
+            return this.refresh(signal);
+        }
+        const key = normalized.join(",");
+        let operation = this._sectionRefreshes.get(key);
+        if (!operation) {
+            operation = this.loadAndPublishSections(normalized).finally(() => {
+                this._sectionRefreshes.delete(key);
+            });
+            this._sectionRefreshes.set(key, operation);
+        }
+        return signal ? detachOnAbort(operation, signal) : operation;
     }
 
     public onDidChange(listener: () => void): Disposable {
@@ -138,7 +216,12 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
         } catch (error) {
             const state = hadPublishedIdentity ? "stale" : "failed";
             this._store.merge({
-                completeness: { databases: state, schemas: state, objects: state },
+                completeness: {
+                    databases: state,
+                    schemas: state,
+                    objects: state,
+                    principals: state,
+                },
             });
             throw error;
         }
@@ -148,6 +231,49 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
             elapsedMs: performance.now() - started,
         };
     }
+
+    private async loadAndPublishSections(
+        sections: readonly MetadataSection[],
+    ): Promise<MetadataRefreshResult> {
+        const started = performance.now();
+        // A refresh that began before the DDL completed cannot prove the post-DDL state. Let it
+        // finish, then issue the small authoritative section query.
+        if (this._inFlight) await this._inFlight;
+        const prior = this.pin();
+        this._store.merge({
+            completeness: Object.fromEntries(
+                sections.map((section) => [section, "loading"]),
+            ) as Partial<MetadataView["completeness"]>,
+        });
+        try {
+            for (const section of sections) {
+                await this._loader.hydrate(
+                    this._executor,
+                    { section, priority: "background" },
+                    this._publisher,
+                );
+            }
+        } catch (error) {
+            this._store.merge({
+                completeness: Object.fromEntries(
+                    sections.map((section) => [
+                        section,
+                        usableSectionState(prior.completeness[section]) ? "stale" : "failed",
+                    ]),
+                ) as Partial<MetadataView["completeness"]>,
+            });
+            throw error;
+        }
+        return {
+            generation: this.pin().generation,
+            published: true,
+            elapsedMs: performance.now() - started,
+        };
+    }
+}
+
+function usableSectionState(state: MetadataView["completeness"][MetadataSection]): boolean {
+    return state === "ready" || state === "partial" || state === "stale";
 }
 
 function loadState(view: MetadataView, request: MetadataHydrationRequest) {
@@ -172,6 +298,33 @@ function loadStatePatch(
             [request.object!.id, state as MetadataLoadState<readonly ParameterMetadata[]>],
         ]),
     };
+}
+
+function databaseLoadStatePatch(
+    database: string,
+    section: MetadataHydrationRequest["section"],
+    state: "loading" | "failed",
+): InMemoryMetadataInput {
+    return {
+        databaseCatalogCompleteness: new Map([
+            [database, section === "schemas" ? { schemas: state } : { objects: state }],
+        ]),
+    };
+}
+
+function canonicalDatabase(view: MetadataView, requested: string): string | undefined {
+    return (view.databases() ?? []).find((database) =>
+        equalName(database.name, requested, view.environment.caseSensitive),
+    )?.name;
+}
+
+function equalName(
+    left: string | undefined,
+    right: string | undefined,
+    caseSensitive: boolean,
+): boolean {
+    if (left === undefined || right === undefined) return left === right;
+    return caseSensitive ? left === right : left.toLocaleLowerCase() === right.toLocaleLowerCase();
 }
 
 function detachOnAbort<T>(shared: Promise<T>, signal: AbortSignal): Promise<T> {

@@ -18,6 +18,12 @@ export interface CompletionItem {
     readonly documentation?: string;
     readonly sortText?: string;
     readonly filterText?: string;
+    readonly insertTextFormat?: "plain" | "snippet";
+    readonly preselect?: boolean;
+    readonly command?: {
+        readonly command: string;
+        readonly title: string;
+    };
     readonly edit?: TextEdit;
     readonly data?: unknown;
 }

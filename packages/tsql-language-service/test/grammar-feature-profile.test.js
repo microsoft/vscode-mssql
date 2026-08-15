@@ -54,7 +54,7 @@ DROP AVAILABILITY GROUP ag;`;
             [
                 "Incorrect syntax near 'BACKUP'.",
                 "Incorrect syntax near 'RESTORE'.",
-                "Incorrect syntax near 'AVAILABILITY'.",
+                "Statement 'DROP AVAILABILITY GROUP' is not supported in this version of SQL Server.",
             ],
         );
         assert.deepEqual(server.diagnostics, []);

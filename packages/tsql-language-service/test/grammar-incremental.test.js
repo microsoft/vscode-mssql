@@ -116,7 +116,7 @@ SELECT 2;`;
         assert.deepEqual(parse(sql).diagnostics, [
             {
                 code: "syntax",
-                message: "Incorrect syntax near 'FROM'.",
+                message: "Incorrect syntax near the keyword 'FROM'.",
                 severity: "error",
                 range: { start: from, end: from + 4 },
             },

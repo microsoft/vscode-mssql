@@ -72,6 +72,7 @@ export const sqlServerTokens = new ExternalTokenizer((input, stack) => {
     if ((input.next === lowerA || input.next === upperA) && readAtTimeZone(input)) return;
     if (
         (input.next === lowerM || input.next === upperM) &&
+        matchesWord(input, 0, "match") &&
         stack.canShift(Match) &&
         readContextualWord(input, "match", Match)
     ) {
@@ -79,6 +80,7 @@ export const sqlServerTokens = new ExternalTokenizer((input, stack) => {
     }
     if (
         (input.next === lowerU || input.next === upperU) &&
+        looksLikeUpdatePredicate(input) &&
         stack.canShift(UpdatePredicateKeyword) &&
         readUpdatePredicateKeyword(input)
     ) {
@@ -86,6 +88,7 @@ export const sqlServerTokens = new ExternalTokenizer((input, stack) => {
     }
     if (
         (input.next === lowerW || input.next === upperW) &&
+        looksLikeViewCheckWith(input) &&
         stack.canShift(ViewCheckWith) &&
         readViewCheckWith(input)
     ) {
@@ -150,6 +153,13 @@ function readUpdatePredicateKeyword(input: InputStream): boolean {
     return true;
 }
 
+function looksLikeUpdatePredicate(input: InputStream): boolean {
+    if (!matchesWord(input, 0, "update")) return false;
+    let follower = "update".length;
+    while (isSqlWhitespace(input.peek(follower))) follower++;
+    return input.peek(follower) === openParen;
+}
+
 function readViewCheckWith(input: InputStream): boolean {
     if (!matchesWord(input, 0, "with")) return false;
     let offset = "with".length;
@@ -159,6 +169,14 @@ function readViewCheckWith(input: InputStream): boolean {
     input.advance("with".length);
     input.acceptToken(ViewCheckWith);
     return true;
+}
+
+function looksLikeViewCheckWith(input: InputStream): boolean {
+    if (!matchesWord(input, 0, "with")) return false;
+    let offset = "with".length;
+    if (!isSqlWhitespace(input.peek(offset))) return false;
+    while (isSqlWhitespace(input.peek(offset))) offset++;
+    return matchesWord(input, offset, "check");
 }
 
 function matchesWord(input: InputStream, start: number, expected: string): boolean {

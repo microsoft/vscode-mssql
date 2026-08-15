@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import type { ObjectMetadata } from "../metadata/index.js";
+import type { ColumnMetadata, ObjectMetadata, ObjectRef } from "../metadata/index.js";
 import type { SyntaxNode } from "../syntax/index.js";
 import type { TextRange } from "../text/index.js";
 import type {
@@ -16,6 +16,7 @@ import type {
     SemanticSymbol,
     SymbolId,
 } from "./contracts.js";
+import { collectTsqlSemanticDiagnostics } from "./tsqlSemanticDiagnostics.js";
 import { vectorSemanticDiagnostics } from "./vectorSemanticDiagnostics.js";
 
 /**
@@ -24,6 +25,10 @@ import { vectorSemanticDiagnostics } from "./vectorSemanticDiagnostics.js";
  */
 export class CatalogSemanticBinder implements SemanticBinder {
     public bind(input: BindInput): SemanticSnapshot {
+        return this.bindCore(input);
+    }
+
+    private bindCore(input: BindInput, previous?: SemanticSnapshot): SemanticSnapshot {
         const started = performance.now();
         const symbols = new Map<SymbolId, SemanticSymbol>();
         const referencesBySymbol = new Map<SymbolId, BoundReference[]>();
@@ -32,15 +37,62 @@ export class CatalogSemanticBinder implements SemanticBinder {
         const units: BoundUnit[] = [];
         const diagnostics: SemanticDiagnostic[] = [];
         const batches = [...input.syntax.root().children()].filter((node) => node.kind === "Batch");
+        const reusePlan = planReusableUnits(input, batches, previous);
+        const reboundRanges = batches
+            .filter((_batch, index) => !reusePlan.units[index])
+            .map((batch) => ({ start: batch.start, end: batch.end }));
+        const tsqlDiagnostics =
+            reboundRanges.length === 0
+                ? []
+                : collectTsqlSemanticDiagnostics(
+                      input.syntax,
+                      input.metadata,
+                      reboundRanges.length === batches.length ? undefined : reboundRanges,
+                  );
+        let unitsReused = 0;
 
-        for (const batch of batches) {
+        const appendReusedUnit = (unit: BoundUnit): void => {
+            units.push(unit);
+            diagnostics.push(...unit.diagnostics);
+            for (const symbol of unit.symbols) {
+                symbols.set(symbol.id, symbol);
+                if (symbol.declaration) {
+                    declarationSymbols.push({ range: symbol.declaration, symbol: symbol.id });
+                }
+            }
+            for (const reference of unit.references) {
+                if (!reference.symbol) continue;
+                const references = referencesBySymbol.get(reference.symbol) ?? [];
+                references.push(reference);
+                referencesBySymbol.set(reference.symbol, references);
+                referenceSymbols.push({ range: reference, symbol: reference.symbol });
+            }
+        };
+
+        for (const [batchIndex, batch] of batches.entries()) {
+            const reused = reusePlan.units[batchIndex];
+            if (reused) {
+                appendReusedUnit(reused);
+                unitsReused++;
+                continue;
+            }
             const unitReferences: BoundReference[] = [];
             const unitSymbols = new Map<SymbolId, SemanticSymbol>();
             const dependencies = new Set<string>();
             const declarationRanges = new Set<string>();
             const columnsBySource = new Map<SymbolId, Map<string, SymbolId>>();
-            const sourceByQualifier = new Map<string, SymbolId>();
-            const unitDiagnostics = vectorSemanticDiagnostics(input.syntax, batch);
+            const sourcesByQuery = new Map<string, Map<string, QuerySourceBinding>>();
+            const fold = (value: string): string =>
+                input.metadata.environment.caseSensitive
+                    ? normalizeIdentifier(value)
+                    : normalizeIdentifier(value).toLocaleLowerCase();
+            const unitDiagnostics = [
+                ...vectorSemanticDiagnostics(input.syntax, batch),
+                ...tsqlDiagnostics.filter(
+                    (diagnostic) =>
+                        batch.start <= diagnostic.range.start && diagnostic.range.end <= batch.end,
+                ),
+            ];
             diagnostics.push(...unitDiagnostics);
             const registerSymbol = (symbol: SemanticSymbol): void => {
                 symbols.set(symbol.id, symbol);
@@ -57,6 +109,40 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 references.push(reference);
                 referencesBySymbol.set(reference.symbol, references);
                 referenceSymbols.push({ range: reference, symbol: reference.symbol });
+            };
+            const registerQuerySource = (
+                node: SyntaxNode,
+                qualifier: string,
+                source: SymbolId,
+                qualifierSymbol = source,
+            ): void => {
+                const query = ancestorNode(node, "QuerySpecification");
+                if (!query) return;
+                const key = rangeKey(query);
+                const bindings = sourcesByQuery.get(key) ?? new Map<string, QuerySourceBinding>();
+                bindings.set(fold(qualifier), { source, qualifierSymbol });
+                sourcesByQuery.set(key, bindings);
+            };
+            const visibleSource = (
+                node: SyntaxNode,
+                qualifier: string,
+            ): QuerySourceBinding | undefined => {
+                let query = ancestorNode(node, "QuerySpecification");
+                while (query) {
+                    const binding = sourcesByQuery.get(rangeKey(query))?.get(fold(qualifier));
+                    if (binding) return binding;
+                    query = correlatableOuterQuery(query);
+                }
+                return undefined;
+            };
+            const visibleSourceScopes = (node: SyntaxNode): readonly QuerySourceBinding[][] => {
+                const result: QuerySourceBinding[][] = [];
+                let query = ancestorNode(node, "QuerySpecification");
+                while (query) {
+                    result.push([...new Set(sourcesByQuery.get(rangeKey(query))?.values() ?? [])]);
+                    query = correlatableOuterQuery(query);
+                }
+                return result;
             };
             const registerColumns = (owner: SemanticSymbol, root: SyntaxNode): void => {
                 const members = new Map<string, SymbolId>();
@@ -91,7 +177,8 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 columnsBySource.set(owner.id, members);
             };
             const registerProjectedColumns = (owner: SemanticSymbol, root: SyntaxNode): void => {
-                const explicit = directChild(root, "ColumnNameList");
+                const explicit =
+                    root.kind === "ColumnNameList" ? root : directChild(root, "ColumnNameList");
                 const names = explicit
                     ? descendants(explicit, "IdentifierName")
                     : descendants(firstDescendant(root, "SelectList") ?? root, "SelectElement")
@@ -115,6 +202,60 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     members.set(name.toLocaleLowerCase(), symbol.id);
                 }
                 columnsBySource.set(owner.id, members);
+            };
+            const registerMetadataColumns = (
+                owner: SemanticSymbol,
+                object: ObjectMetadata,
+                columns: readonly ColumnMetadata[],
+            ): void => {
+                const members = new Map<string, SymbolId>();
+                for (const column of columns) {
+                    const columnSymbol: SemanticSymbol = {
+                        id: `${owner.id}:column:${fold(column.name)}`,
+                        name: column.name,
+                        kind: "column",
+                        object: object.ref,
+                        type: {
+                            displayName: column.typeDisplay ?? "column",
+                            nullable: column.nullable ?? true,
+                        },
+                    };
+                    registerSymbol(columnSymbol);
+                    members.set(fold(column.name), columnSymbol.id);
+                }
+                columnsBySource.set(owner.id, members);
+            };
+            const registerSyntheticColumn = (
+                owner: SemanticSymbol,
+                name: string,
+                type: string,
+            ): void => {
+                const symbol: SemanticSymbol = {
+                    id: `${owner.id}:column:${fold(name)}`,
+                    name,
+                    kind: "column",
+                    type: { displayName: type, nullable: true },
+                };
+                registerSymbol(symbol);
+                const members = columnsBySource.get(owner.id) ?? new Map<string, SymbolId>();
+                members.set(fold(name), symbol.id);
+                columnsBySource.set(owner.id, members);
+            };
+            const registerBuiltInRowsetColumns = (
+                owner: SemanticSymbol,
+                node: SyntaxNode,
+            ): void => {
+                const name = firstDescendant(node, "MultipartIdentifier");
+                const parts = name
+                    ? multipartIdentifierParts(
+                          input.syntax.document.text.slice(name.start, name.end),
+                      )
+                    : [];
+                if (parts.at(-1)?.toLocaleUpperCase() === "OPENJSON") {
+                    registerSyntheticColumn(owner, "key", "nvarchar(4000)");
+                    registerSyntheticColumn(owner, "value", "nvarchar(max)");
+                    registerSyntheticColumn(owner, "type", "int");
+                }
             };
 
             // Local declarations are indexed before references so aliases, variables, CTEs, and
@@ -205,10 +346,6 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     unitSymbols.set(symbol.id, symbol);
                     dependencies.add(resolution.object.ref.id);
                 }
-                sourceByQualifier.set(
-                    normalizeIdentifier(parts.at(-1)!).toLocaleLowerCase(),
-                    symbol.id,
-                );
                 if (resolution.kind === "resolved") {
                     const columnState = input.metadata.columnState(resolution.object.ref);
                     if (columnState.kind === "loaded") {
@@ -256,8 +393,102 @@ export class CatalogSemanticBinder implements SemanticBinder {
                                 : {}),
                         };
                         registerSymbol(aliasSymbol);
-                        sourceByQualifier.set(aliasSymbol.name.toLocaleLowerCase(), symbol.id);
+                        registerQuerySource(node, aliasSymbol.name, symbol.id, aliasSymbol.id);
+                    } else {
+                        registerQuerySource(node, parts.at(-1)!, symbol.id);
                     }
+                }
+            });
+
+            // Rowset aliases have real scope and projected members even when they do not resolve
+            // to a persisted catalog object (derived tables, OPENJSON, XML nodes, and variables).
+            visit(batch, (node) => {
+                if (
+                    node.kind !== "DerivedTable" &&
+                    node.kind !== "FunctionTableSource" &&
+                    node.kind !== "VariableTableSource" &&
+                    node.kind !== "VectorSearchTableSource"
+                ) {
+                    return;
+                }
+                const alias = directChild(node, "TableAlias") ?? firstDescendant(node, "TableAlias");
+                const aliasName = alias && lastDescendant(alias, "IdentifierName");
+                const variable =
+                    node.kind === "VariableTableSource"
+                        ? firstDescendant(node, "Variable")
+                        : undefined;
+                const nameNode = firstDescendant(node, "MultipartIdentifier");
+                const parts = nameNode
+                    ? multipartIdentifierParts(
+                          input.syntax.document.text.slice(nameNode.start, nameNode.end),
+                      )
+                    : [];
+                const qualifier = aliasName
+                    ? normalizeIdentifier(
+                          input.syntax.document.text.slice(aliasName.start, aliasName.end),
+                      )
+                    : variable
+                      ? input.syntax.document.text.slice(variable.start, variable.end)
+                      : parts.at(-1);
+                if (!qualifier) return;
+
+                if (node.kind === "VariableTableSource" && variable) {
+                    const variableName = input.syntax.document.text.slice(variable.start, variable.end);
+                    const owner = [...unitSymbols.values()].find(
+                        (candidate) =>
+                            candidate.kind === "variable" &&
+                            fold(candidate.name) === fold(variableName),
+                    );
+                    if (!owner) return;
+                    if (aliasName) {
+                        const aliasSymbol = rowsetAliasSymbol(aliasName, qualifier);
+                        registerSymbol(aliasSymbol);
+                        registerQuerySource(node, qualifier, owner.id, aliasSymbol.id);
+                    } else {
+                        registerQuerySource(node, qualifier, owner.id);
+                    }
+                    return;
+                }
+
+                let owner: SemanticSymbol | undefined;
+                if (node.kind === "FunctionTableSource" && parts.length > 0) {
+                    const resolution = input.metadata.resolveObject(parts);
+                    if (resolution.kind === "resolved") {
+                        owner = catalogSymbol(resolution.object);
+                        symbols.set(owner.id, owner);
+                        unitSymbols.set(owner.id, owner);
+                        dependencies.add(resolution.object.ref.id);
+                        const state = input.metadata.columnState(resolution.object.ref);
+                        if (state.kind === "loaded") {
+                            registerMetadataColumns(owner, resolution.object, state.value);
+                        }
+                    }
+                }
+                if (!owner) {
+                    const declaration = aliasName ?? nameNode ?? node;
+                    owner = {
+                        id: `rowset:${declaration.start}:${fold(qualifier)}`,
+                        name: qualifier,
+                        kind: "rowset",
+                        declaration: { start: declaration.start, end: declaration.end },
+                    };
+                    registerSymbol(owner);
+                    const explicit = firstDescendant(node, "ColumnNameList");
+                    if (explicit) registerProjectedColumns(owner, explicit);
+                    else if (node.kind === "DerivedTable") registerProjectedColumns(owner, node);
+                    else if (node.kind === "FunctionTableSource") {
+                        registerBuiltInRowsetColumns(owner, node);
+                    } else if (node.kind === "VectorSearchTableSource") {
+                        registerSyntheticColumn(owner, "distance", "float");
+                    }
+                }
+
+                if (aliasName && owner.kind !== "rowset") {
+                    const aliasSymbol = rowsetAliasSymbol(aliasName, qualifier, owner.object);
+                    registerSymbol(aliasSymbol);
+                    registerQuerySource(node, qualifier, owner.id, aliasSymbol.id);
+                } else {
+                    registerQuerySource(node, qualifier, owner.id);
                 }
             });
 
@@ -279,33 +510,51 @@ export class CatalogSemanticBinder implements SemanticBinder {
                         });
                     }
                 } else if (node.kind === "ColumnReference") {
+                    if (ancestorNode(node, "DataType")) return;
                     const text = input.syntax.document.text.slice(node.start, node.end);
-                    const dot = text.indexOf(".");
-                    if (dot <= 0) return;
-                    const qualifier = normalizeIdentifier(text.slice(0, dot).trim());
-                    const symbol = [...unitSymbols.values()].find(
-                        (candidate) =>
-                            candidate.kind === "alias" &&
-                            candidate.name.toLocaleLowerCase() === qualifier.toLocaleLowerCase(),
-                    );
-                    if (symbol) {
+                    const parts = multipartIdentifierParts(text);
+                    const columnName = parts.at(-1)?.toLocaleLowerCase();
+                    if (!columnName) return;
+                    if (parts.length === 1) {
+                        for (const scope of visibleSourceScopes(node)) {
+                            const candidates = uniqueSymbolIds(
+                                scope.flatMap(({ source }) => {
+                                    const candidate = columnsBySource.get(source)?.get(columnName);
+                                    return candidate ? [candidate] : [];
+                                }),
+                            );
+                            if (candidates.length === 1) {
+                                registerReference({
+                                    start: node.start,
+                                    end: node.end,
+                                    symbol: candidates[0],
+                                    write: false,
+                                });
+                                return;
+                            }
+                            if (candidates.length > 1) return;
+                        }
+                        return;
+                    }
+                    const qualifier = parts.at(-2)!;
+                    const binding = visibleSource(node, qualifier);
+                    if (!binding) return;
+                    const ranges = identifierPartRanges(node, text);
+                    const qualifierRange = ranges.at(-2);
+                    if (qualifierRange) {
                         registerReference({
-                            start: node.start,
-                            end: node.start + dot,
-                            symbol: symbol.id,
+                            start: qualifierRange.start,
+                            end: qualifierRange.end,
+                            symbol: binding.qualifierSymbol,
                             write: false,
                         });
                     }
-                    const parts = multipartIdentifierParts(text);
-                    const columnName = parts.at(-1)?.toLocaleLowerCase();
-                    const sourceId = sourceByQualifier.get(qualifier.toLocaleLowerCase());
-                    const columnId =
-                        sourceId && columnName && columnsBySource.get(sourceId)?.get(columnName);
+                    const columnId = columnsBySource.get(binding.source)?.get(columnName);
                     if (columnId) {
-                        const columnStart = lastIdentifierStart(node, text);
+                        const columnRange = ranges.at(-1)!;
                         registerReference({
-                            start: columnStart,
-                            end: node.end,
+                            start: columnRange.start,
+                            end: columnRange.end,
                             symbol: columnId,
                             write: false,
                         });
@@ -318,8 +567,8 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 syntaxFingerprint: `${batch.start}:${batch.end}:${hashText(
                     input.syntax.document.text.slice(batch.start, batch.end),
                 )}`,
-                incomingEnvironmentVersion: `${input.metadata.generation}`,
-                exportedEnvironmentVersion: `${input.metadata.generation}`,
+                incomingEnvironmentVersion: reusePlan.incomingVersions[batchIndex]!,
+                exportedEnvironmentVersion: reusePlan.exportedVersions[batchIndex]!,
                 metadataDependencies: Object.freeze([...dependencies]),
                 symbols: Object.freeze([...unitSymbols.values()]),
                 references: Object.freeze(unitReferences),
@@ -337,12 +586,170 @@ export class CatalogSemanticBinder implements SemanticBinder {
             declarationSymbols,
             Object.freeze(diagnostics),
             performance.now() - started,
+            unitsReused,
         );
     }
 
-    public update(_previous: SemanticSnapshot, input: BindInput): SemanticSnapshot {
-        return this.bind(input);
+    public update(previous: SemanticSnapshot, input: BindInput): SemanticSnapshot {
+        return this.bindCore(input, previous);
     }
+}
+
+interface SemanticReusePlan {
+    readonly units: readonly (BoundUnit | undefined)[];
+    readonly incomingVersions: readonly string[];
+    readonly exportedVersions: readonly string[];
+}
+
+function planReusableUnits(
+    input: BindInput,
+    batches: readonly SyntaxNode[],
+    previous?: SemanticSnapshot,
+): SemanticReusePlan {
+    const versions = semanticEnvironmentVersions(input, batches);
+    const units: (BoundUnit | undefined)[] = Array.from({ length: batches.length });
+    if (!previous || previous.metadataGeneration !== input.metadata.generation) {
+        return { units, ...versions };
+    }
+
+    const candidates = new Map<string, BoundUnit[]>();
+    for (const prior of previous.units) {
+        const key = reusableUnitKey(
+            prior.range.end - prior.range.start,
+            fingerprintHash(prior.syntaxFingerprint),
+            prior.incomingEnvironmentVersion,
+            prior.exportedEnvironmentVersion,
+        );
+        const queue = candidates.get(key) ?? [];
+        queue.push(prior);
+        candidates.set(key, queue);
+    }
+    for (const [index, batch] of batches.entries()) {
+        const contentHash = hashText(input.syntax.document.text.slice(batch.start, batch.end));
+        const key = reusableUnitKey(
+            batch.end - batch.start,
+            contentHash,
+            versions.incomingVersions[index]!,
+            versions.exportedVersions[index]!,
+        );
+        const prior = candidates.get(key)?.shift();
+        if (!prior) continue;
+        units[index] = shiftBoundUnit(
+            prior,
+            batch,
+            contentHash,
+            versions.incomingVersions[index]!,
+            versions.exportedVersions[index]!,
+        );
+    }
+    return { units, ...versions };
+}
+
+function reusableUnitKey(
+    length: number,
+    contentHash: string,
+    incomingEnvironmentVersion: string,
+    exportedEnvironmentVersion: string,
+): string {
+    return `${length}:${contentHash}:${incomingEnvironmentVersion}:${exportedEnvironmentVersion}`;
+}
+
+function semanticEnvironmentVersions(
+    input: BindInput,
+    batches: readonly SyntaxNode[],
+): {
+    readonly incomingVersions: readonly string[];
+    readonly exportedVersions: readonly string[];
+} {
+    const incomingVersions: string[] = [];
+    const exportedVersions: string[] = [];
+    let environment = `semantic:${input.metadata.generation}`;
+    for (const batch of batches) {
+        incomingVersions.push(environment);
+        const exported = semanticExportFingerprint(input.syntax, batch);
+        if (exported) environment = `semantic:${input.metadata.generation}:${hashText(`${environment}\0${exported}`)}`;
+        exportedVersions.push(environment);
+    }
+    return { incomingVersions, exportedVersions };
+}
+
+function semanticExportFingerprint(syntax: BindInput["syntax"], batch: SyntaxNode): string {
+    const exports: string[] = [];
+    visit(batch, (node) => {
+        if (
+            node.kind === "UseStatement" ||
+            /^(?:Create|Alter|Drop).+Statement$/u.test(node.kind)
+        ) {
+            exports.push(
+                `${node.kind}:${node.start - batch.start}:${hashText(
+                    syntax.document.text.slice(node.start, node.end),
+                )}`,
+            );
+        }
+    });
+    return exports.length === 0 ? "" : hashText(exports.join("\0"));
+}
+
+function fingerprintHash(fingerprint: string): string {
+    return fingerprint.slice(fingerprint.lastIndexOf(":") + 1);
+}
+
+function shiftBoundUnit(
+    unit: BoundUnit,
+    batch: SyntaxNode,
+    contentHash: string,
+    incomingEnvironmentVersion: string,
+    exportedEnvironmentVersion: string,
+): BoundUnit {
+    const delta = batch.start - unit.range.start;
+    const shiftId = (id: SymbolId): SymbolId => shiftSymbolId(id, unit.range.start, delta);
+    const symbols = unit.symbols.map((symbol) =>
+        Object.freeze({
+            ...symbol,
+            id: shiftId(symbol.id),
+            ...(symbol.declaration ? { declaration: shiftRange(symbol.declaration, delta) } : {}),
+        }),
+    );
+    const references = unit.references.map((reference) =>
+        Object.freeze({
+            ...reference,
+            start: reference.start + delta,
+            end: reference.end + delta,
+            ...(reference.symbol ? { symbol: shiftId(reference.symbol) } : {}),
+        }),
+    );
+    const diagnostics = unit.diagnostics.map((diagnostic) =>
+        Object.freeze({
+            ...diagnostic,
+            range: shiftRange(diagnostic.range, delta),
+        }),
+    );
+    return Object.freeze({
+        ...unit,
+        range: Object.freeze({ start: batch.start, end: batch.end }),
+        syntaxFingerprint: `${batch.start}:${batch.end}:${contentHash}`,
+        incomingEnvironmentVersion,
+        exportedEnvironmentVersion,
+        symbols: Object.freeze(symbols),
+        references: Object.freeze(references),
+        diagnostics: Object.freeze(diagnostics),
+    });
+}
+
+function shiftSymbolId(id: SymbolId, oldBatchStart: number, delta: number): SymbolId {
+    const batchScoped = /^(variable|cte|local-table):(\d+):/u.exec(id);
+    if (batchScoped && Number(batchScoped[2]) === oldBatchStart) {
+        return `${batchScoped[1]}:${oldBatchStart + delta}:${id.slice(batchScoped[0].length)}`;
+    }
+    const positionScoped = /^(alias|rowset):(\d+):/u.exec(id);
+    if (positionScoped) {
+        return `${positionScoped[1]}:${Number(positionScoped[2]) + delta}:${id.slice(positionScoped[0].length)}`;
+    }
+    return id;
+}
+
+function shiftRange(range: TextRange, delta: number): TextRange {
+    return Object.freeze({ start: range.start + delta, end: range.end + delta });
 }
 
 class CatalogSemanticSnapshot implements SemanticSnapshot {
@@ -364,11 +771,12 @@ class CatalogSemanticSnapshot implements SemanticSnapshot {
         }[],
         public readonly diagnostics: readonly SemanticDiagnostic[],
         elapsedMs: number,
+        unitsReused = 0,
     ) {
         this.statistics = Object.freeze({
             unitsExamined: units.length,
-            unitsReused: 0,
-            unitsRebound: units.length,
+            unitsReused,
+            unitsRebound: units.length - unitsReused,
             elapsedMs,
         });
     }
@@ -397,6 +805,42 @@ class CatalogSemanticSnapshot implements SemanticSnapshot {
             ) ?? []
         );
     }
+}
+
+interface QuerySourceBinding {
+    readonly source: SymbolId;
+    readonly qualifierSymbol: SymbolId;
+}
+
+function rowsetAliasSymbol(
+    aliasName: SyntaxNode,
+    name: string,
+    object?: ObjectRef,
+): SemanticSymbol {
+    return {
+        id: `alias:${aliasName.start}:${normalizeIdentifier(name).toLocaleLowerCase()}`,
+        name,
+        kind: "alias",
+        declaration: { start: aliasName.start, end: aliasName.end },
+        ...(object ? { object } : {}),
+    };
+}
+
+function ancestorNode(node: SyntaxNode, kind: string): SyntaxNode | undefined {
+    for (let current = node.parent(); current; current = current.parent()) {
+        if (current.kind === kind) return current;
+    }
+    return undefined;
+}
+
+function correlatableOuterQuery(query: SyntaxNode): SyntaxNode | undefined {
+    for (let current = query.parent(); current; current = current.parent()) {
+        if (current.kind === "CommonTableExpression" || current.kind === "DerivedTable") {
+            return undefined;
+        }
+        if (current.kind === "QuerySpecification") return current;
+    }
+    return undefined;
 }
 
 function catalogSymbol(object: ObjectMetadata): SemanticSymbol {
@@ -442,11 +886,17 @@ function directChild(node: SyntaxNode, kind: string): SyntaxNode | undefined {
     return [...node.children()].find((child) => child.kind === kind);
 }
 
-function lastIdentifierStart(node: SyntaxNode, text: string): number {
-    const match = /(?:\[(?:[^\]]|\]\])*\]|"(?:[^"]|"")*"|[\p{L}_#][\p{L}\p{N}_$#@]*)\s*$/u.exec(
-        text,
-    );
-    return match?.index === undefined ? node.start : node.start + match.index;
+function identifierPartRanges(node: SyntaxNode, text: string): readonly TextRange[] {
+    const result: TextRange[] = [];
+    const matcher = /\[(?:[^\]]|\]\])*\]|"(?:[^"]|"")*"|[^.\s]+/gu;
+    for (const match of text.matchAll(matcher)) {
+        if (match.index === undefined) continue;
+        result.push({
+            start: node.start + match.index,
+            end: node.start + match.index + match[0].length,
+        });
+    }
+    return result;
 }
 
 export function multipartIdentifierParts(text: string): readonly string[] {
@@ -477,4 +927,8 @@ function hashText(text: string): string {
 
 function rangeKey(range: TextRange): string {
     return `${range.start}:${range.end}`;
+}
+
+function uniqueSymbolIds(symbols: readonly SymbolId[]): readonly SymbolId[] {
+    return [...new Set(symbols)];
 }

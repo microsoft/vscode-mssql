@@ -11,11 +11,18 @@ export type MetadataSection =
     | "objects"
     | "columns"
     | "parameters"
+    | "principals"
     | "definitions";
 
 export type MetadataSectionState = "unknown" | "loading" | "ready" | "partial" | "stale" | "failed";
 
 export type MetadataCompleteness = Readonly<Record<MetadataSection, MetadataSectionState>>;
+
+/** Per-database identity readiness used by lazy cross-database catalog loading. */
+export interface DatabaseCatalogCompleteness {
+    readonly schemas: MetadataSectionState;
+    readonly objects: MetadataSectionState;
+}
 
 export interface SqlEnvironment {
     readonly currentDatabase?: string;
@@ -46,6 +53,8 @@ export interface ObjectMetadata {
     readonly schema: string;
     readonly name: string;
     readonly kind: SqlObjectKind;
+    /** Distinguishes alias, CLR, and table-valued user types when kind is `type`. */
+    readonly typeCategory?: "alias" | "clr" | "table";
     /** True for SQL Server-shipped catalog objects; retained so hosts can rank rather than hide them. */
     readonly system?: boolean;
 }
@@ -56,6 +65,8 @@ export interface ColumnMetadata {
     readonly nullable?: boolean;
     readonly identity?: boolean;
     readonly computed?: boolean;
+    /** One-based position in the owning table's primary key, when catalog metadata provides it. */
+    readonly primaryKeyOrdinal?: number;
 }
 
 export interface ParameterMetadata {
@@ -63,6 +74,8 @@ export interface ParameterMetadata {
     readonly name: string;
     readonly typeDisplay?: string;
     readonly output?: boolean;
+    /** Undefined when the metadata backend cannot authoritatively determine optionality. */
+    readonly hasDefault?: boolean;
 }
 
 export interface SchemaMetadata {
@@ -72,6 +85,28 @@ export interface SchemaMetadata {
 
 export interface DatabaseMetadata {
     readonly name: string;
+}
+
+export type SqlPrincipalKind =
+    | "login"
+    | "user"
+    | "databaseRole"
+    | "serverRole"
+    | "applicationRole";
+
+export interface PrincipalMetadata {
+    readonly id: string;
+    readonly database?: string;
+    readonly name: string;
+    readonly kind: SqlPrincipalKind;
+    readonly system?: boolean;
+}
+
+export interface PrincipalSearchQuery {
+    readonly database?: string;
+    readonly prefix?: string;
+    readonly kinds?: readonly SqlPrincipalKind[];
+    readonly limit?: number;
 }
 
 export interface ObjectSearchQuery {
@@ -109,6 +144,8 @@ export interface MetadataView {
     columnState(ref: ObjectRef): MetadataLoadState<readonly ColumnMetadata[]>;
     parameterState(ref: ObjectRef): MetadataLoadState<readonly ParameterMetadata[]>;
     searchObjects(query: ObjectSearchQuery): readonly ObjectMetadata[];
+    searchPrincipals(query: PrincipalSearchQuery): readonly PrincipalMetadata[];
+    databaseCatalogCompleteness(database: string): DatabaseCatalogCompleteness;
     schemas(database?: string): readonly SchemaMetadata[] | undefined;
     databases(): readonly DatabaseMetadata[] | undefined;
 }
@@ -116,6 +153,8 @@ export interface MetadataView {
 export interface MetadataHydrationRequest {
     readonly section: MetadataSection;
     readonly object?: ObjectRef;
+    /** Requests a lazily loaded catalog section for a database already advertised by databases(). */
+    readonly database?: string;
     readonly priority: "interactive" | "background";
 }
 
@@ -129,6 +168,18 @@ export interface MetadataProvider {
     readonly id: string;
     pin(): MetadataView;
     requestHydration(request: MetadataHydrationRequest): void;
+    /** Waits for interactive lazy loads already requested by editor features, when supported. */
+    waitForHydration?(signal?: AbortSignal): Promise<void>;
+    /**
+     * Forces authoritative reloads for catalog sections invalidated by successful DDL.
+     *
+     * Unlike requestHydration, this must reload a section even when its current generation is
+     * marked ready. Providers may fall back to a full refresh when they cannot isolate a section.
+     */
+    refreshSections?(
+        sections: readonly MetadataSection[],
+        signal?: AbortSignal,
+    ): Promise<MetadataRefreshResult>;
     refresh(signal?: AbortSignal): Promise<MetadataRefreshResult>;
     onDidChange(listener: () => void): Disposable;
 }
@@ -139,6 +190,11 @@ export interface InMemoryMetadataInput {
     readonly objects?: readonly ObjectMetadata[];
     readonly columns?: ReadonlyMap<string, readonly ColumnMetadata[]>;
     readonly parameters?: ReadonlyMap<string, readonly ParameterMetadata[]>;
+    readonly principals?: readonly PrincipalMetadata[];
+    readonly databaseCatalogCompleteness?: ReadonlyMap<
+        string,
+        Partial<DatabaseCatalogCompleteness>
+    >;
     readonly columnStates?: ReadonlyMap<string, MetadataLoadState<readonly ColumnMetadata[]>>;
     readonly parameterStates?: ReadonlyMap<string, MetadataLoadState<readonly ParameterMetadata[]>>;
     readonly schemas?: readonly SchemaMetadata[];

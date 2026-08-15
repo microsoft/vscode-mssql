@@ -7,16 +7,20 @@ import type { Disposable } from "../common/disposable.js";
 import type {
     ColumnMetadata,
     DatabaseMetadata,
+    DatabaseCatalogCompleteness,
     MetadataHydrationRequest,
     MetadataLoadState,
     MetadataProvider,
     MetadataRefreshResult,
+    MetadataSection,
     MetadataView,
     ObjectMetadata,
     ObjectRef,
     ObjectResolution,
     ObjectSearchQuery,
     ParameterMetadata,
+    PrincipalMetadata,
+    PrincipalSearchQuery,
     SchemaMetadata,
 } from "../metadata/index.js";
 
@@ -27,6 +31,11 @@ import type {
 export interface DevQueryMetadataBridge {
     pin(): MetadataView;
     requestHydration(request: MetadataHydrationRequest): void;
+    waitForHydration?(signal?: AbortSignal): Promise<void>;
+    refreshSections?(
+        sections: readonly MetadataSection[],
+        signal?: AbortSignal,
+    ): Promise<MetadataRefreshResult>;
     refresh(signal?: AbortSignal): Promise<MetadataRefreshResult>;
     subscribe(listener: () => void): Disposable;
 }
@@ -51,8 +60,19 @@ export class DevQueryMetadataAdapter implements MetadataProvider {
         this._bridge.requestHydration(request);
     }
 
+    public waitForHydration(signal?: AbortSignal): Promise<void> {
+        return this._bridge.waitForHydration?.(signal) ?? Promise.resolve();
+    }
+
     public refresh(signal?: AbortSignal): Promise<MetadataRefreshResult> {
         return this._bridge.refresh(signal);
+    }
+
+    public refreshSections(
+        sections: readonly MetadataSection[],
+        signal?: AbortSignal,
+    ): Promise<MetadataRefreshResult> {
+        return this._bridge.refreshSections?.(sections, signal) ?? this._bridge.refresh(signal);
     }
 
     public onDidChange(listener: () => void): Disposable {
@@ -100,6 +120,14 @@ class DevQueryPinnedView implements MetadataView {
 
     public searchObjects(query: ObjectSearchQuery): readonly ObjectMetadata[] {
         return this._inner.searchObjects(query);
+    }
+
+    public databaseCatalogCompleteness(database: string): DatabaseCatalogCompleteness {
+        return this._inner.databaseCatalogCompleteness(database);
+    }
+
+    public searchPrincipals(query: PrincipalSearchQuery): readonly PrincipalMetadata[] {
+        return this._inner.searchPrincipals(query);
     }
 
     public schemas(database?: string): readonly SchemaMetadata[] | undefined {

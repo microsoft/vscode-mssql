@@ -23,6 +23,23 @@ suite("local and grammar completion", () => {
         assert.ok(
             variable.some((item) => item.kind === "variable" && item.label === "@CustomerId"),
         );
+
+        const broadKeyword = await complete("CHECKP");
+        assert.ok(
+            broadKeyword.some((item) => item.kind === "keyword" && item.label === "CHECKPOINT"),
+        );
+    });
+
+    // Verifies expression and declaration contexts expose built-ins and modern SQL Server types.
+    test("completes built-in functions and data types", async () => {
+        const functions = await complete("SELECT JSON_");
+        assert.ok(functions.some((item) => item.kind === "function" && item.label === "JSON_VALUE"));
+        assert.ok(functions.some((item) => item.label === "JSON_OBJECT"));
+
+        const types = await complete("DECLARE @payload JS");
+        assert.ok(types.some((item) => item.kind === "type" && item.label === "JSON"));
+        const vector = await complete("DECLARE @embedding VEC");
+        assert.ok(vector.some((item) => item.kind === "type" && item.label === "VECTOR"));
     });
 
     // Verifies CREATE TABLE temp shapes remain available to later alias-qualified projections.
@@ -102,6 +119,68 @@ suite("local and grammar completion", () => {
             "type",
             "value",
         ]);
+    });
+
+    // Correlated scalar subqueries see aliases from their enclosing query scope.
+    test("completes and hovers correlated outer-query columns", async () => {
+        const sql = `CREATE TABLE dbo.EmployeeData (ID int, Department nvarchar(20));
+GO
+SELECT (
+    SELECT emp.ID
+    FROM dbo.EmployeeData AS emp
+    WHERE emp.Department = dept.Dep
+)
+FROM (SELECT DISTINCT Department FROM dbo.EmployeeData) AS dept;`;
+        const offset = sql.indexOf("dept.Dep") + "dept.Dep".length;
+        assert.deepEqual(columnLabels(await complete(sql, offset)), ["Department"]);
+
+        const valid = sql.replace("dept.Dep", "dept.Department");
+        const { features } = await services(valid);
+        const hover = features.hover(
+            "file:///local-completion.sql",
+            1,
+            valid.indexOf("dept.Department") + "dept.".length + 2,
+        );
+        assert.match(hover.markdown, /\*\*column\*\* `Department`/u);
+        const declaration = valid.lastIndexOf("Department FROM");
+        assert.deepEqual(
+            features.definition(
+                "file:///local-completion.sql",
+                1,
+                valid.indexOf("dept.Department") + "dept.".length + 2,
+            ),
+            [
+                {
+                    uri: "file:///local-completion.sql",
+                    range: { start: declaration, end: declaration + "Department".length },
+                },
+            ],
+        );
+    });
+
+    // XML nodes() and generic rowset column-alias lists expose their declared output shape.
+    test("completes XML nodes rowset columns", async () => {
+        const sql =
+            "CREATE TABLE #docs (Payload xml); SELECT T.Sp FROM #docs CROSS APPLY Payload.nodes('/') AS T(Spec);";
+        const offset = sql.indexOf("T.Sp") + "T.Sp".length;
+        assert.deepEqual(columnLabels(await complete(sql, offset)), ["Spec"]);
+
+        const valid = sql.replace("T.Sp", "T.Spec");
+        const { features } = await services(valid);
+        const declaration = valid.lastIndexOf("Spec)");
+        assert.deepEqual(
+            features.definition(
+                "file:///local-completion.sql",
+                1,
+                valid.indexOf("T.Spec") + "T.".length + 2,
+            ),
+            [
+                {
+                    uri: "file:///local-completion.sql",
+                    range: { start: declaration, end: declaration + "Spec".length },
+                },
+            ],
+        );
     });
 
     // Verifies incomplete VECTOR_SEARCH calls offer the documented named-parameter contract.

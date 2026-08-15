@@ -59,12 +59,21 @@ const nonBlockBeginFollowers = new Set([
     "transaction",
 ]);
 
-/** Produces bounded regions that are recursively mounted with the main SQL/expression parser. */
-export const proceduralTokens = new ExternalTokenizer((input, stack) => {
-    if (stack.canShift(ComputeChunk) && readCompute(input)) return;
-    if (stack.canShift(ConditionChunk) && readCondition(input)) return;
-    if (stack.canShift(BlockChunk) && readBlock(input, stack)) return;
-    if (stack.canShift(StatementChunk)) readStatement(input);
+/** Keeps each mounted region in its own token group so unrelated LR states never invoke it. */
+export const computeToken = new ExternalTokenizer((input) => {
+    readCompute(input);
+});
+
+export const conditionToken = new ExternalTokenizer((input) => {
+    readCondition(input);
+});
+
+export const blockToken = new ExternalTokenizer((input, stack) => {
+    readBlock(input, stack);
+});
+
+export const statementToken = new ExternalTokenizer((input) => {
+    readStatement(input);
 });
 
 function readCompute(input: InputStream): boolean {
@@ -185,7 +194,9 @@ function findBoundary(input: InputStream, mode: "condition" | "block" | "stateme
             offset++;
             continue;
         }
-        if (parentheses === 0 && current === 59 && mode === "statement") return offset;
+        // Keep the terminator inside the mounted controlled statement. Otherwise the outer IF
+        // grammar sees a stray semicolon between the true branch and its ELSE clause.
+        if (parentheses === 0 && current === 59 && mode === "statement") return offset + 1;
         if (parentheses === 0 && isWordStart(current)) {
             const word = wordAt(input, offset)!;
             // Mounted procedural regions must never consume a SQL client batch separator.

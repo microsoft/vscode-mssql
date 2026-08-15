@@ -15,6 +15,7 @@ export class NullMetadataProvider extends InMemoryMetadataProvider {
                     objects: "unknown",
                     columns: "unknown",
                     parameters: "unknown",
+                    principals: "unknown",
                     definitions: "unknown",
                 },
             },

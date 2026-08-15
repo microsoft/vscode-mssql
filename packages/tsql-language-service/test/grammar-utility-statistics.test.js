@@ -14,6 +14,7 @@ suite("T-SQL statistics, bulk, and server utility grammar", () => {
 CREATE STATISTICS st_orders ON sales.Orders (CustomerId, OrderDate DESC)
 WHERE IsActive = 1 WITH SAMPLE 25 PERCENT, NORECOMPUTE;
 UPDATE STATISTICS sales.Orders (st_orders, st_other) WITH FULLSCAN;
+UPDATE STATISTICS sales.Orders WITH ROWCOUNT = 9223372036854775807, PAGECOUNT = 9223372036854775807;
 DROP STATISTICS sales.Orders.st_orders, sales.Orders.st_other;
 `);
 

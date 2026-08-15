@@ -154,7 +154,7 @@ SELECT 1;
         assert.deepEqual(snapshot.diagnostics, [
             {
                 code: "syntax",
-                message: "Incorrect syntax near 'FROM'.",
+                message: "Incorrect syntax near the keyword 'FROM'.",
                 severity: "error",
                 range: { start: 22, end: 26 },
             },

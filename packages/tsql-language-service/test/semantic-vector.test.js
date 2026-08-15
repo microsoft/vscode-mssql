@@ -16,6 +16,7 @@ suite("SQL Server vector semantic validation", () => {
     // Verifies a complete VECTOR_SEARCH and approximate distance order produce no semantic errors.
     test("accepts a valid approximate vector query", async () => {
         const diagnostics = await analyze(`
+DECLARE @query VECTOR(3);
 SELECT TOP 10 WITH APPROX ann.distance
 FROM VECTOR_SEARCH(
   TABLE = dbo.Products,

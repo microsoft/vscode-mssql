@@ -54,8 +54,15 @@ export class LezerSyntaxService implements SyntaxService {
                 if (node.name === "ProceduralCondition") {
                     return { parser: this._expressionParser };
                 }
-                if (node.name === "BlockChunk" || node.name === "StatementChunk") {
-                    return { parser };
+                if (
+                    (node.name === "BlockChunk" || node.name === "StatementChunk") &&
+                    isBoundedMixedRegion(node.node)
+                ) {
+                    // Mounted SQL can itself contain BEGIN/END or controlled statements. Reuse
+                    // the mixed parser so every bounded nested region remains structurally
+                    // visible. The structural guard prevents recovery-created chunks from
+                    // recursively mounting the same unsupported statement forever.
+                    return { parser: this._mixedParser };
                 }
                 return null;
             }),
@@ -195,6 +202,34 @@ export class LezerSyntaxService implements SyntaxService {
         const tree = this._plainParser.parse(text);
         return treeContainsMixedRegions(tree) ? this._mixedParser.parse(text) : tree;
     }
+}
+
+function isBoundedMixedRegion(node: LezerNode): boolean {
+    const parent = node.parent;
+    if (!parent) return false;
+    if (node.name === "BlockChunk") {
+        if (parent.name === "ModuleBody") return true;
+        if (parent.name !== "BeginControlStatement") return false;
+        let hasBegin = false;
+        let hasEnd = false;
+        for (let child = parent.firstChild; child; child = child.nextSibling) {
+            if (child.name === "Begin") hasBegin = true;
+            else if (child.name === "End") hasEnd = true;
+        }
+        return hasBegin && hasEnd;
+    }
+    if (parent.name !== "OpaqueSqlStatement") return false;
+    for (let ancestor = parent.parent; ancestor; ancestor = ancestor.parent) {
+        if (
+            ancestor.name === "IfStatement" ||
+            ancestor.name === "WhileStatement" ||
+            ancestor.name === "WaitForStatement"
+        ) {
+            return true;
+        }
+        if (ancestor.name === "Statement" || ancestor.name === "Batch") return false;
+    }
+    return false;
 }
 
 class LezerSyntaxSnapshot implements SyntaxSnapshot {
@@ -648,6 +683,7 @@ function collectSyntaxFacts(
 } {
     const diagnostics: SyntaxDiagnostic[] = [];
     const reportedFeatures = new Set<string>();
+    const unterminatedString = unterminatedStringRange(text);
     let rawErrorNodeCount = 0;
     let hasMixedRegions = false;
     tree.iterate({
@@ -661,6 +697,13 @@ function collectSyntaxFacts(
             }
             if (node.type.isError) {
                 rawErrorNodeCount++;
+                if (
+                    unterminatedString &&
+                    node.from < unterminatedString.end &&
+                    unterminatedString.start <= node.to
+                ) {
+                    return;
+                }
                 const merge = ancestorNamed(node.node, "MergeStatement");
                 if (
                     merge &&
@@ -675,17 +718,57 @@ function collectSyntaxFacts(
                         range: { start: node.from, end: node.from },
                     });
                 } else {
+                    const optionDiagnostic = invalidLoginOptionValue(node.node, text);
+                    if (optionDiagnostic) {
+                        diagnostics.push(optionDiagnostic);
+                        return;
+                    }
                     const nearRange = diagnosticNearRange(node.from, node.to, text);
                     const near =
                         nearRange.start === text.length
                             ? "End Of File"
                             : text.slice(nearRange.start, nearRange.end);
                     const expectation = expectedSuffix(node.node, text, nearRange);
+                    const keyword = keywordMetadata(near);
                     diagnostics.push({
                         code: "syntax",
-                        message: `Incorrect syntax near '${near}'.${expectation}`,
+                        message:
+                            keyword?.category === "reserved"
+                                ? `Incorrect syntax near the keyword '${near}'.${expectation}`
+                                : `Incorrect syntax near '${near}'.${expectation}`,
                         severity: "error",
                         range: nearRange,
+                    });
+                }
+            }
+            if (node.name === "IntegerLiteral" || node.name === "DecimalLiteral") {
+                const value = text.slice(node.from, node.to);
+                if ((value.match(/[0-9]/gu)?.length ?? 0) > 38) {
+                    diagnostics.push({
+                        code: "MaximumPrecisionOutOfRange",
+                        message: `The number '${value}' is out of the range for numeric representation (maximum precision 38).`,
+                        severity: "error",
+                        range: { start: node.from, end: node.to },
+                    });
+                } else if (node.name === "DecimalLiteral" && requiresIntegerLiteral(node.node, text)) {
+                    diagnostics.push({
+                        code: "IntegerValueOutOfRange",
+                        message: `The integer value ${value} is out of range.`,
+                        severity: "error",
+                        range: { start: node.from, end: node.to },
+                    });
+                }
+            } else if (node.name === "OdbcEscapeExpression") {
+                const option = /^\{\s*([\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(
+                    text.slice(node.from, node.to),
+                )?.[1];
+                if (option && !/^(?:CALL|D|ESCAPE|FN|OJ|T|TS)$/iu.test(option)) {
+                    const start = findWord(text, node.from, node.to, option);
+                    diagnostics.push({
+                        code: "InvalidOdbcDatetimeExtensionOption",
+                        message: `'${option}' is not a recognized ODBC date/time extension option.`,
+                        severity: "error",
+                        range: { start, end: start + option.length },
                     });
                 }
             }
@@ -697,12 +780,37 @@ function collectSyntaxFacts(
             reportedFeatures.add(key);
             diagnostics.push({
                 code: "syntax",
-                message: `Incorrect syntax near '${rule.keyword}'.`,
+                message: rule.statementUnavailable
+                    ? `Statement '${statementPhrase(node.node, text, rule.keyword)}' is not supported in this version of SQL Server.`
+                    : `Incorrect syntax near '${rule.keyword}'.`,
                 severity: "error",
                 range: { start, end: start + rule.keyword.length },
             });
         },
     });
+    const clauseDiagnostics = forClauseDiagnostics(tree, text);
+    for (const diagnostic of clauseDiagnostics) {
+        for (let index = diagnostics.length - 1; index >= 0; index--) {
+            const existing = diagnostics[index]!;
+            if (
+                existing.code === "syntax" &&
+                existing.range.start < diagnostic.range.end &&
+                diagnostic.range.start < existing.range.end
+            ) {
+                diagnostics.splice(index, 1);
+            }
+        }
+        diagnostics.push(diagnostic);
+    }
+    if (unterminatedString) {
+        const value = text.slice(unterminatedString.start + 1).replaceAll("''", "'");
+        diagnostics.push({
+            code: "UnclosedQuotationMark",
+            message: `Unclosed quotation mark after the character string '${value}'.`,
+            severity: "error",
+            range: unterminatedString,
+        });
+    }
     const unterminatedComment = unterminatedBlockCommentRange(text);
     if (unterminatedComment) {
         diagnostics.push({
@@ -713,6 +821,98 @@ function collectSyntaxFacts(
         });
     }
     return { diagnostics, rawErrorNodeCount, hasMixedRegions };
+}
+
+function invalidLoginOptionValue(
+    node: LezerNode,
+    text: string,
+): SyntaxDiagnostic | undefined {
+    const option = ancestorNamed(node, "PrincipalNonPasswordOption");
+    if (!option) return undefined;
+    const source = text.slice(option.from, option.to);
+    const match = /\b(CHECK_POLICY|CHECK_EXPIRATION)\s*=\s*(\S+)/iu.exec(source);
+    if (!match || /^(?:ON|OFF)$/iu.test(match[2]!)) return undefined;
+    const value = match[2]!.replace(/[;,]$/u, "");
+    const start = option.from + match.index + match[0].lastIndexOf(match[2]!);
+    return {
+        code: "IncorrectOptionValue",
+        message: `'${value}' in not a correct value for option '${match[1]!.toLocaleUpperCase()}'.`,
+        severity: "error",
+        range: { start, end: start + value.length },
+    };
+}
+
+function forClauseDiagnostics(tree: Tree, text: string): readonly SyntaxDiagnostic[] {
+    const diagnostics: SyntaxDiagnostic[] = [];
+    tree.iterate({
+        enter(node) {
+            if (node.name !== "ForClause") return;
+            const statement = ancestorNamed(node.node, "SelectStatement");
+            const sourceEnd = statement?.to ?? node.to;
+            const source = text.slice(node.from, sourceEnd);
+            const mode = /^\s*FOR\s+(XML|JSON)\s+([\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(source);
+            if (!mode) return;
+            const kind = mode[1]!.toLocaleUpperCase();
+            const format = mode[2]!.toLocaleUpperCase();
+            const add = (code: string, message: string, pattern: RegExp): void => {
+                const match = pattern.exec(source);
+                if (!match) return;
+                const start = node.from + match.index;
+                diagnostics.push({
+                    code,
+                    message,
+                    severity: "error",
+                    range: { start, end: start + match[0].length },
+                });
+            };
+            if (kind === "XML") {
+                if (!/^(?:RAW|PATH)$/u.test(format)) {
+                    add(
+                        "RowTagOnlyInRawAndPath",
+                        "Row tag name is only allowed with RAW or PATH mode of FOR XML.",
+                        /\([^)]*\)/u,
+                    );
+                }
+                if (format === "PATH") {
+                    add(
+                        "XmlSchemaError",
+                        "Inline schema is not supported with FOR XML PATH.",
+                        /\bXMLSCHEMA\b/iu,
+                    );
+                }
+                if (format === "EXPLICIT") {
+                    add(
+                        "ElementsError",
+                        "ELEMENTS option is only allowed in RAW, AUTO, and PATH modes of FOR XML.",
+                        /\bELEMENTS\b/iu,
+                    );
+                }
+                add(
+                    "IncludeNullValuesError",
+                    "INCLUDE_NULL_VALUES is only allowed in FOR JSON.",
+                    /\bINCLUDE_NULL_VALUES\b/iu,
+                );
+                add(
+                    "WithoutArrayWrapperError",
+                    "WITHOUT_ARRAY_WRAPPER is only allowed in FOR JSON.",
+                    /\bWITHOUT_ARRAY_WRAPPER\b/iu,
+                );
+            } else {
+                add(
+                    "Base64Error",
+                    "BINARY BASE64 option is not allowed in FOR JSON.",
+                    /\bBINARY\s+BASE64\b/iu,
+                );
+                add("TypeError", "TYPE option is not allowed in FOR JSON.", /\bTYPE\b/iu);
+                add(
+                    "ElementsError",
+                    "ELEMENTS option is only allowed in RAW, AUTO, and PATH modes of FOR XML.",
+                    /\bELEMENTS\b/iu,
+                );
+            }
+        },
+    });
+    return diagnostics;
 }
 
 function treeContainsMixedRegions(tree: Tree): boolean {
@@ -762,11 +962,67 @@ function unterminatedBlockCommentRange(text: string): TextRange | undefined {
     return start === undefined ? undefined : { start, end: text.length };
 }
 
+function unterminatedStringRange(text: string): TextRange | undefined {
+    let stringStart: number | undefined;
+    let quote: "quoted" | "bracket" | undefined;
+    let blockDepth = 0;
+    for (let index = 0; index < text.length; index++) {
+        const current = text[index];
+        const next = text[index + 1];
+        if (blockDepth > 0) {
+            if (current === "/" && next === "*") {
+                blockDepth++;
+                index++;
+            } else if (current === "*" && next === "/") {
+                blockDepth--;
+                index++;
+            }
+            continue;
+        }
+        if (stringStart !== undefined) {
+            if (current === "'" && next === "'") index++;
+            else if (current === "'") stringStart = undefined;
+            continue;
+        }
+        if (quote) {
+            const close = quote === "quoted" ? '"' : "]";
+            if (current === close && next === close) index++;
+            else if (current === close) quote = undefined;
+            continue;
+        }
+        if (current === "-" && next === "-") {
+            const newline = text.indexOf("\n", index + 2);
+            if (newline < 0) break;
+            index = newline;
+        } else if (current === "/" && next === "*") {
+            blockDepth++;
+            index++;
+        } else if (current === "'") {
+            stringStart = index;
+        } else if (current === '"') {
+            quote = "quoted";
+        } else if (current === "[") {
+            quote = "bracket";
+        }
+    }
+    return stringStart === undefined ? undefined : { start: stringStart, end: text.length };
+}
+
+function statementPhrase(node: LezerNode, text: string, fallback: string): string {
+    const source = text.slice(node.from, node.to);
+    return (
+        /^\s*((?:CREATE|ALTER|DROP)\s+[\p{L}_]+(?:\s+[\p{L}_]+)?)/iu.exec(source)?.[1]
+            ?.replace(/\s+/gu, " ")
+            .toLocaleUpperCase() ?? fallback
+    );
+}
+
 interface FeatureProfileRule {
     readonly keyword: string;
     readonly minimumServer?: 15 | 16 | 17;
     readonly minimumCompatibility?: 150 | 160 | 170;
     readonly engineFlavors?: readonly TsqlFeatureProfile["engineFlavor"][];
+    readonly statementUnavailable?: boolean;
 }
 
 function featureProfileRule(
@@ -824,7 +1080,11 @@ function featureProfileRule(
         case "ExternalFunctionBody":
             return { keyword: "EXTERNAL", engineFlavors: ["fabric"] };
         case "AvailabilityGroupStatement":
-            return { keyword: "AVAILABILITY", engineFlavors: ["sql-server"] };
+            return {
+                keyword: "AVAILABILITY",
+                engineFlavors: ["sql-server"],
+                statementUnavailable: true,
+            };
         case "BackupStatement":
             return { keyword: "BACKUP", engineFlavors: ["sql-server"] };
         case "RestoreStatement":
@@ -924,6 +1184,35 @@ function missingMergeTerminator(merge: LezerNode, text: string, errorOffset: num
     if (errorOffset < merge.from || errorOffset > merge.to) return false;
     return text.slice(merge.from, errorOffset).trimEnd().toLowerCase().startsWith("merge");
 }
+
+function requiresIntegerLiteral(node: LezerNode, text: string): boolean {
+    const setStatement = ancestorNamed(node, "SetStatement");
+    if (setStatement) {
+        const option = /^\s*SET\s+([\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(
+            text.slice(setStatement.from, setStatement.to),
+        )?.[1];
+        if (option && integerSetOptionNames.has(option.toLocaleUpperCase())) return true;
+    }
+    const option = ancestorNamed(node, "GenericOption");
+    if (!option) return false;
+    const name = /^\s*([\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(
+        text.slice(option.from, option.to),
+    )?.[1];
+    return Boolean(name && integerOptionNames.has(name.toLocaleUpperCase()));
+}
+
+const integerSetOptionNames = new Set(["DEADLOCK_PRIORITY", "LOCK_TIMEOUT", "QUERY_GOVERNOR_COST_LIMIT", "TEXTSIZE"]);
+
+const integerOptionNames = new Set([
+    "BUCKET_COUNT",
+    "COMPRESSION_DELAY",
+    "FILLFACTOR",
+    "MAXDOP",
+    "MAX_DURATION",
+    "R",
+    "L",
+    "M",
+]);
 
 function isAtLineStart(text: string, offset: number): boolean {
     for (let index = offset - 1; index >= 0; index--) {
