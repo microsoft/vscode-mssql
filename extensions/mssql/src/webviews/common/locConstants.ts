@@ -3549,6 +3549,132 @@ export class LocConstants {
         };
     }
 
+    public get sqlDashboard() {
+        return {
+            /** Provider values may be SQL identifiers, measurements, or provider-authored evidence. */
+            content: (value: string) => value,
+            title: l10n.t("SQL Dashboard"),
+            keyPerformanceIndicators: l10n.t("Key performance indicators"),
+            needsAttention: l10n.t("Needs attention"),
+            openDetails: l10n.t("Open details"),
+            query: l10n.t("Query"),
+            executions: l10n.t("Executions"),
+            average: l10n.t("Average"),
+            current: l10n.t("Current"),
+            change: l10n.t("Change"),
+            plans: l10n.t("Plans"),
+            unknown: l10n.t("Unknown"),
+            showingTopQueries: (shown: number, total: number) =>
+                l10n.t({
+                    message: "Showing the top {0} of {1} queries",
+                    args: [shown, total],
+                    comment: ["{0} is the rendered query count", "{1} is the total query count"],
+                }),
+            database: l10n.t("Database"),
+            state: l10n.t("State"),
+            size: l10n.t("Size"),
+            logUsed: l10n.t("Log used"),
+            recovery: l10n.t("Recovery"),
+            compatibility: l10n.t("Compatibility"),
+            lastBackup: l10n.t("Last backup"),
+            dataProvenanceAndFreshness: l10n.t("Data provenance and freshness"),
+            unavailable: l10n.t("Unavailable"),
+            sampledAt: (time: string) =>
+                l10n.t({
+                    message: "Sampled {0}",
+                    args: [time],
+                    comment: ["{0} is the local time at which data was sampled"],
+                }),
+            liveAt: (time: string) =>
+                l10n.t({
+                    message: "Live {0}",
+                    args: [time],
+                    comment: ["{0} is the local time at which live data was observed"],
+                }),
+            stateAsOf: (state: string, time: string) =>
+                l10n.t({
+                    message: "{0} as of {1}",
+                    args: [state, time],
+                    comment: ["{0} is a freshness state", "{1} is the local observation time"],
+                }),
+            serverDetails: l10n.t("Server details"),
+            databases: l10n.t("Databases"),
+            databaseDetails: l10n.t("Database details"),
+            queryStore: l10n.t("Query Store"),
+            queryStoreDisabled: l10n.t("Query Store is disabled"),
+            queryStoreUnknown: l10n.t("Query Store state is unknown"),
+            queryStoreUsage: (usedMb: number, maxMb: number) =>
+                l10n.t({
+                    message: "{0} MB of {1} MB used",
+                    args: [usedMb, maxMb],
+                    comment: ["{0} is used storage in MB", "{1} is maximum storage in MB"],
+                }),
+            topQueries: l10n.t("Top queries"),
+            topQueriesWindow: (windowLabel: string) =>
+                l10n.t({
+                    message: "Top queries · {0}",
+                    args: [windowLabel],
+                    comment: ["{0} is the query performance time window"],
+                }),
+            openQueryStudio: l10n.t("Open Query Studio"),
+            waitCategories: l10n.t("Wait categories"),
+            waitStatisticsUnavailable: l10n.t("Wait statistics are unavailable for this query."),
+            planHistory: l10n.t("Plan history"),
+            plan: (planId: string) =>
+                l10n.t({
+                    message: "Plan {0}",
+                    args: [planId],
+                    comment: ["{0} is a SQL Query Store plan identifier"],
+                }),
+            planSummary: (averageDurationMs: number, executions: string) =>
+                l10n.t({
+                    message: "{0} ms average · {1} executions",
+                    args: [averageDurationMs, executions],
+                    comment: ["{0} is average duration in milliseconds", "{1} is execution count"],
+                }),
+            serverOverview: l10n.t("Server overview"),
+            databaseOverview: l10n.t("Database overview"),
+            performance: l10n.t("Performance"),
+            liveActivity: l10n.t("Live activity"),
+            sqlAgent: l10n.t("SQL Agent"),
+            loadingSubtitle: l10n.t("Loading server health and performance data"),
+            deterministicData: (scenario: string) =>
+                l10n.t({
+                    message: "Deterministic data · {0}",
+                    args: [scenario],
+                    comment: ["{0} is a deterministic dashboard scenario identifier"],
+                }),
+            live: l10n.t("Live"),
+            refresh: l10n.t("Refresh"),
+            navigation: l10n.t("SQL Dashboard navigation"),
+            expandNavigation: l10n.t("Expand navigation"),
+            collapseNavigation: l10n.t("Collapse navigation"),
+            collapse: l10n.t("Collapse"),
+            routeLoadFailed: l10n.t("The dashboard route could not be loaded."),
+            diagnosticsSubtitle: l10n.t("Route, collector, render, and failure diagnostics"),
+            loadingDiagnostics: l10n.t("Loading dashboard diagnostics…"),
+            readingDiagnostics: l10n.t(
+                "Reading bounded events from the selected diagnostic source.",
+            ),
+            events: l10n.t("Events"),
+            failures: l10n.t("Failures"),
+            renderedRoutes: l10n.t("Rendered routes"),
+            latestRoute: l10n.t("Latest route"),
+            notObserved: l10n.t("Not observed"),
+            noDiagnosticEvents: l10n.t("No SQL Dashboard events in this source"),
+            noDiagnosticEventsBody: l10n.t(
+                "Open SQL Dashboard or run a dashboard performance scenario, then return here.",
+            ),
+            time: l10n.t("Time"),
+            process: l10n.t("Process"),
+            event: l10n.t("Event"),
+            route: l10n.t("Route"),
+            duration: l10n.t("Duration"),
+            status: l10n.t("Status"),
+            trace: l10n.t("Trace"),
+        };
+    }
+
     public get restoreDatabase() {
         return {
             loadingRestoreDatabase: l10n.t("Loading restore database..."),

@@ -1,0 +1,23 @@
+{
+    "schemaVersion": 1,
+    "feature": "sql-dashboard",
+    "createdUtc": "2026-08-15T00:00:00.000Z",
+    "repositories": {
+        "vscode-mssql": {
+            "branch": "dev/query",
+            "commit": "d94bb3badeed76973e18796f10a04da0d96b2d80"
+        },
+        "sqltoolsservice": {
+            "branch": "dev/karlb/sts2_integration",
+            "commit": "9caf7c68eed1b40f61327c3a7e1691fa14616a68"
+        },
+        "perftest": {
+            "branch": "main",
+            "commit": "fe917f799f8d46d6ae70f95e9c5bd3715ff0cef4"
+        },
+        "runbookReference": {
+            "branch": "upstream/dev/runbook",
+            "commit": "f26a326"
+        }
+    }
+}

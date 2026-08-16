@@ -146,6 +146,15 @@ export interface V2QueryExecuteParams {
         pageBytes?: number;
         maxCellBytes?: number;
         queryTimeoutMs?: number;
+        /** Privacy-safe workload classification used only for diagnostics attribution. */
+        commandKind?:
+            | "user"
+            | "metadata"
+            | "dashboard"
+            | "plan"
+            | "parse"
+            | "replay"
+            | "centralUpload";
         /** QO-5: switch v2/query.rows to the compact shape for this query. */
         compactRows?: boolean;
         vectorEncoding?: "binary-v1";

@@ -1,4 +1,7 @@
 {
+    "mssql.sqlDashboard.open": "Open SQL Dashboard (Preview)",
+    "mssql.sqlDashboard.openDemo": "Open SQL Dashboard Demo (Preview)",
+    "mssql.sqlDashboard.enabled": "Enable the SQL Dashboard preview. Live dashboard routes use bounded, dedicated SQL Data Plane sessions; deterministic demo and performance-test routes never connect. Requires `mssql.sqlDataPlane.enabled` for live data.",
     "mssql.queryStudio.spatial.enabled": "Enable the Spatial results tab (preview): queries with native geometry or geography columns transport complete typed WKB and gain the offline spatial analysis pane. Applies to the next query execution.",
     "mssql.queryStudio.spatial.basemap.enabled": "Enable the Spatial tab's Layers selector (preview): an offline world outline and, when configured and consented, host-proxied online map tile sources. The default layer is always None; no map network requests happen without an explicit per-source confirmation.",
     "mssql.queryStudio.spatial.basemap.sources": "Online map tile sources for the Spatial tab (user settings only — workspace values are ignored). Each source is a host-proxied HTTPS XYZ raster endpoint; the Query Studio webview never contacts the provider directly. Selecting a source requires a one-time confirmation because tile requests reveal the approximate viewed area to the provider.",

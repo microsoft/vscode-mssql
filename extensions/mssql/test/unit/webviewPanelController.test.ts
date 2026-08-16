@@ -117,6 +117,27 @@ suite("WebviewPanelController", () => {
         expect(mockPanel.iconPath).to.equal(options.iconPath);
     });
 
+    test("should honor a dedicated view type and hidden-context policy", () => {
+        createController({
+            viewType: "mssql.sqlDashboard",
+            retainContextWhenHidden: false,
+        });
+
+        expect(createWebviewPanelStub).to.have.been.calledWith(
+            "mssql.sqlDashboard",
+            "Test Panel",
+            {
+                viewColumn: vscode.ViewColumn.One,
+                preserveFocus: true,
+            },
+            {
+                enableScripts: true,
+                retainContextWhenHidden: false,
+                localResourceRoots: [vscode.Uri.file(mockContext.extensionPath)],
+            },
+        );
+    });
+
     test("should register onDidDispose handler that disposes the controller", async () => {
         createController();
         const disposeSpy = mockPanel.onDidDispose as sinon.SinonSpy;

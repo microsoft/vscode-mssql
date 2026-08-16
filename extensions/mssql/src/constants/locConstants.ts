@@ -4192,6 +4192,18 @@ export class SqlMoveToSchema {
         "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
     );
 }
+
+export class SqlDashboard {
+    public static title = l10n.t("SQL Dashboard");
+    public static noSavedProfile = l10n.t(
+        "Save a SQL connection profile before opening SQL Dashboard.",
+    );
+    public static selectConnection = l10n.t("SQL Dashboard: select a connection");
+    public static featureDisabled = l10n.t(
+        "Enable mssql.sqlDashboard.enabled and mssql.sqlDataPlane.enabled to use SQL Dashboard.",
+    );
+}
+
 export let copilotEnableGuardMessage = l10n.t(
     "MSSQL inline SQL completions are active. For best results, disable GitHub Copilot's default completions for SQL files.",
 );

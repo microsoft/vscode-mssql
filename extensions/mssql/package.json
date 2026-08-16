@@ -724,6 +724,11 @@
                     "group": "2a_MSSQL_databaseDesign@3"
                 },
                 {
+                    "command": "mssql.sqlDashboard.open",
+                    "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:kind=(connectedServer|database)\\b/ && config.mssql.sqlDashboard.enabled && config.mssql.sqlDataPlane.enabled",
+                    "group": "1_MSSQL_primary@4"
+                },
+                {
                     "command": "mssql.objectExplorerV2.selectTop",
                     "when": "view == mssql.objectExplorerV2 && viewItem =~ /\\boe2:canSelectTop\\b/",
                     "group": "1_MSSQL_primary@2"
@@ -1318,6 +1323,14 @@
                 {
                     "command": "mssql.sqlDataPlane.pickDocumentBackend",
                     "when": "config.mssql.sqlDataPlane.enabled && config.mssql.queryStudio.enabled"
+                },
+                {
+                    "command": "mssql.sqlDashboard.open",
+                    "when": "config.mssql.sqlDashboard.enabled && config.mssql.sqlDataPlane.enabled"
+                },
+                {
+                    "command": "mssql.sqlDashboard.openDemo",
+                    "when": "config.mssql.sqlDashboard.enabled"
                 },
                 {
                     "command": "mssql.objectExplorerV2.showStatus",
@@ -2543,6 +2556,16 @@
             {
                 "command": "mssql.schemaVisualizer.open",
                 "title": "Visualize Schema (Preview)",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sqlDashboard.open",
+                "title": "%mssql.sqlDashboard.open%",
+                "category": "MS SQL"
+            },
+            {
+                "command": "mssql.sqlDashboard.openDemo",
+                "title": "%mssql.sqlDashboard.openDemo%",
                 "category": "MS SQL"
             },
             {
@@ -4608,6 +4631,12 @@
                     "type": "boolean",
                     "default": false,
                     "markdownDescription": "Enable the Schema Visualizer preview: a read-only schema diagram served entirely by the SQL Data Plane and MetadataStore (no SQL Tools Service v1 traffic on the read path). Requires `mssql.sqlDataPlane.enabled`.",
+                    "scope": "application"
+                },
+                "mssql.sqlDashboard.enabled": {
+                    "type": "boolean",
+                    "default": true,
+                    "markdownDescription": "%mssql.sqlDashboard.enabled%",
                     "scope": "application"
                 },
                 "mssql.objectExplorer.viewMode": {

@@ -780,7 +780,7 @@ suite("STS2 binding conformance (scripted wire)", () => {
         await handle2.completion;
     });
 
-    test("page limits and timeout ride the execute params inside options (QO-3)", async () => {
+    test("page limits, timeout, and workload class ride inside execute options", async () => {
         const rpc = standardRpc();
         const sink = new RecordingSink();
         const { session, handle } = await openAndExecute(rpc, sink);
@@ -793,7 +793,13 @@ suite("STS2 binding conformance (scripted wire)", () => {
         rpc.responders.set(STS2_METHODS.queryExecute, () => ({ queryId: "q-2" }));
         const handle2 = session.execute(
             "select 2",
-            { pageRows: 512, pageBytes: 131_072, maxCellBytes: 65_536, timeoutMs: 30_000 },
+            {
+                pageRows: 512,
+                pageBytes: 131_072,
+                maxCellBytes: 65_536,
+                timeoutMs: 30_000,
+                commandKind: "dashboard",
+            },
             new RecordingSink(),
         );
         await new Promise((r) => setTimeout(r, 5));
@@ -804,6 +810,7 @@ suite("STS2 binding conformance (scripted wire)", () => {
             pageBytes: 131_072,
             maxCellBytes: 65_536,
             queryTimeoutMs: 30_000,
+            commandKind: "dashboard",
         });
         // pageRows no longer rides top-level (the service only honors options.*).
         expect(executes[1].params).to.not.have.property("pageRows");

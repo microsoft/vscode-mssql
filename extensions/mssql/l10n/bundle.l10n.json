@@ -2235,6 +2235,10 @@
     "Failed to resolve the refactor log for this file: {0}": "Failed to resolve the refactor log for this file: {0}",
     "Move to schema '{0}'": "Move to schema '{0}'",
     "Failed to apply the Move to Schema changes. Check that the files are writable and try again.": "Failed to apply the Move to Schema changes. Check that the files are writable and try again.",
+    "SQL Dashboard": "SQL Dashboard",
+    "Save a SQL connection profile before opening SQL Dashboard.": "Save a SQL connection profile before opening SQL Dashboard.",
+    "SQL Dashboard: select a connection": "SQL Dashboard: select a connection",
+    "Enable mssql.sqlDashboard.enabled and mssql.sqlDataPlane.enabled to use SQL Dashboard.": "Enable mssql.sqlDashboard.enabled and mssql.sqlDataPlane.enabled to use SQL Dashboard.",
     "MSSQL inline SQL completions are active. For best results, disable GitHub Copilot's default completions for SQL files.": "MSSQL inline SQL completions are active. For best results, disable GitHub Copilot's default completions for SQL files.",
     "Disable for SQL": "Disable for SQL",
     "Keep as-is": "Keep as-is",
@@ -4283,6 +4287,92 @@
     "Importing data...": "Importing data...",
     "File imported successfully": "File imported successfully",
     "Import New File": "Import New File",
+    "Key performance indicators": "Key performance indicators",
+    "Open details": "Open details",
+    "Executions": "Executions",
+    "Average": "Average",
+    "Current": "Current",
+    "Plans": "Plans",
+    "Showing the top {0} of {1} queries/{0} is the rendered query count{1} is the total query count": {
+        "message": "Showing the top {0} of {1} queries",
+        "comment": ["{0} is the rendered query count", "{1} is the total query count"]
+    },
+    "State": "State",
+    "Size": "Size",
+    "Log used": "Log used",
+    "Recovery": "Recovery",
+    "Compatibility": "Compatibility",
+    "Last backup": "Last backup",
+    "Data provenance and freshness": "Data provenance and freshness",
+    "Unavailable": "Unavailable",
+    "Sampled {0}/{0} is the local time at which data was sampled": {
+        "message": "Sampled {0}",
+        "comment": ["{0} is the local time at which data was sampled"]
+    },
+    "Live {0}/{0} is the local time at which live data was observed": {
+        "message": "Live {0}",
+        "comment": ["{0} is the local time at which live data was observed"]
+    },
+    "{0} as of {1}/{0} is a freshness state{1} is the local observation time": {
+        "message": "{0} as of {1}",
+        "comment": ["{0} is a freshness state", "{1} is the local observation time"]
+    },
+    "Server details": "Server details",
+    "Databases": "Databases",
+    "Database details": "Database details",
+    "Query Store": "Query Store",
+    "Query Store is disabled": "Query Store is disabled",
+    "Query Store state is unknown": "Query Store state is unknown",
+    "{0} MB of {1} MB used/{0} is used storage in MB{1} is maximum storage in MB": {
+        "message": "{0} MB of {1} MB used",
+        "comment": ["{0} is used storage in MB", "{1} is maximum storage in MB"]
+    },
+    "Top queries": "Top queries",
+    "Top queries · {0}/{0} is the query performance time window": {
+        "message": "Top queries · {0}",
+        "comment": ["{0} is the query performance time window"]
+    },
+    "Open Query Studio": "Open Query Studio",
+    "Wait categories": "Wait categories",
+    "Wait statistics are unavailable for this query.": "Wait statistics are unavailable for this query.",
+    "Plan history": "Plan history",
+    "Plan {0}/{0} is a SQL Query Store plan identifier": {
+        "message": "Plan {0}",
+        "comment": ["{0} is a SQL Query Store plan identifier"]
+    },
+    "{0} ms average · {1} executions/{0} is average duration in milliseconds{1} is execution count": {
+        "message": "{0} ms average · {1} executions",
+        "comment": ["{0} is average duration in milliseconds", "{1} is execution count"]
+    },
+    "Server overview": "Server overview",
+    "Database overview": "Database overview",
+    "Performance": "Performance",
+    "Live activity": "Live activity",
+    "SQL Agent": "SQL Agent",
+    "Loading server health and performance data": "Loading server health and performance data",
+    "Deterministic data · {0}/{0} is a deterministic dashboard scenario identifier": {
+        "message": "Deterministic data · {0}",
+        "comment": ["{0} is a deterministic dashboard scenario identifier"]
+    },
+    "Live": "Live",
+    "SQL Dashboard navigation": "SQL Dashboard navigation",
+    "Expand navigation": "Expand navigation",
+    "Collapse navigation": "Collapse navigation",
+    "The dashboard route could not be loaded.": "The dashboard route could not be loaded.",
+    "Route, collector, render, and failure diagnostics": "Route, collector, render, and failure diagnostics",
+    "Loading dashboard diagnostics…": "Loading dashboard diagnostics…",
+    "Reading bounded events from the selected diagnostic source.": "Reading bounded events from the selected diagnostic source.",
+    "Events": "Events",
+    "Failures": "Failures",
+    "Rendered routes": "Rendered routes",
+    "Latest route": "Latest route",
+    "Not observed": "Not observed",
+    "No SQL Dashboard events in this source": "No SQL Dashboard events in this source",
+    "Open SQL Dashboard or run a dashboard performance scenario, then return here.": "Open SQL Dashboard or run a dashboard performance scenario, then return here.",
+    "Process": "Process",
+    "Event": "Event",
+    "Route": "Route",
+    "Trace": "Trace",
     "Loading restore database...": "Loading restore database...",
     "Backup File": "Backup File",
     "URL": "URL",

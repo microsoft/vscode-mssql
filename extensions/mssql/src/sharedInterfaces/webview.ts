@@ -124,6 +124,11 @@ export interface WebviewTelemetryErrorEvent {
  */
 export interface MssqlWebviewPanelOptions {
     /**
+     * Stable VS Code identity for the panel. Existing callers keep the
+     * historical shared identity when omitted.
+     */
+    viewType?: string;
+    /**
      * The title of the webview panel.
      */
     title: string;
@@ -152,6 +157,12 @@ export interface MssqlWebviewPanelOptions {
      * As it can be frustrating for users to see the restore prompt for every webview panel.
      */
     showRestorePromptAfterClose?: boolean;
+    /**
+     * Preserve the webview document while hidden. Defaults to true for
+     * compatibility. Long-lived, refreshable surfaces should prefer false
+     * and rebuild from extension-host state when revealed.
+     */
+    retainContextWhenHidden?: boolean;
 }
 
 export enum ColorThemeKind {

@@ -339,6 +339,7 @@ export type DcPageId =
     | "replay"
     | "sql"
     | "sqlDataPlane"
+    | "dashboard"
     | "connections"
     | "query"
     | "oe"

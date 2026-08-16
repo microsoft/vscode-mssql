@@ -811,6 +811,10 @@ export class Sts2Query {
             type: "sqlDataPlane.execute",
             fields: {
                 clientQueryId: { raw: this.clientQueryId, cls: "diagnostic.metadata" },
+                commandKind: {
+                    raw: this.opts.commandKind ?? "other",
+                    cls: "diagnostic.metadata",
+                },
             },
         });
         void completion.then((summary) => {
@@ -862,6 +866,9 @@ export class Sts2Query {
             }
             if (this.opts.timeoutMs) {
                 options.queryTimeoutMs = this.opts.timeoutMs;
+            }
+            if (this.opts.commandKind) {
+                options.commandKind = this.opts.commandKind;
             }
             // Compact rows (QO-5): opt in whenever the service negotiated it —
             // the service computes bitmap/type hints/bytes once and this

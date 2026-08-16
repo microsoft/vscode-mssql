@@ -51,7 +51,7 @@ export class WebviewPanelController<State, Reducers, Result = void> extends Webv
 
     protected createWebviewPanel() {
         this._panel = vscode.window.createWebviewPanel(
-            "mssql-react-webview",
+            this._options.viewType ?? "mssql-react-webview",
             this._options.title,
             {
                 viewColumn: this._options.viewColumn,
@@ -59,7 +59,7 @@ export class WebviewPanelController<State, Reducers, Result = void> extends Webv
             },
             {
                 enableScripts: true,
-                retainContextWhenHidden: true,
+                retainContextWhenHidden: this._options.retainContextWhenHidden ?? true,
                 localResourceRoots: [vscode.Uri.file(this._context.extensionPath)],
             },
         );

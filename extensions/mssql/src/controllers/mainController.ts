@@ -28,6 +28,7 @@ import { ConnectTreeNode } from "../objectExplorer/nodes/connectTreeNode";
 import { ObjectExplorerProvider } from "../objectExplorer/objectExplorerProvider";
 import { activateObjectExplorerV2 } from "../objectExplorer/v2/activation";
 import { activateSchemaVisualizer } from "../schemaVisualizer/schemaVisualizerActivation";
+import { activateSqlDashboard } from "../dashboard/sqlDashboardActivation";
 import { initializeSpatialBasemapHost } from "../queryResults/spatialBasemap/spatialBasemapHost";
 import { MetadataStoreService } from "../services/metadata/metadataStoreService";
 import { readMetadataCacheSettings } from "../services/metadata/cache/metadataCacheSettings";
@@ -1479,6 +1480,14 @@ export default class MainController implements vscode.Disposable {
                 service: this.schemaDesignerService,
                 connections: this._connectionMgr,
             },
+        });
+
+        // SQL Dashboard (preview): host-owned routes and bounded collector
+        // lanes over the SQL Data Plane. The webview is presentation-only;
+        // deterministic PERF_MODE fixtures use the same state machine.
+        activateSqlDashboard(this._context, {
+            profiles: this._connectionMgr.connectionStore,
+            tokens: vscodeSqlTokenSource,
         });
 
         // H-3 poll governance host facts (CACHE-5): window focus gates the

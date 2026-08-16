@@ -22,6 +22,7 @@ import { ReplayLabPage } from "./replayLabPage";
 import { SqlDataPlanePage } from "./pagesSqlDataPlane";
 import { HistoryPage } from "./pagesPerf";
 import { PerfHistoryPage } from "./pagesPerfHistory";
+import { DashboardDiagnosticsPage } from "./dashboardDiagnosticsPage";
 
 const NAV: Array<{ group: string; items: Array<{ id: DcPage; label: string; icon: string }> }> = [
     {
@@ -41,6 +42,7 @@ const NAV: Array<{ group: string; items: Array<{ id: DcPage; label: string; icon
         items: [
             { id: "sql", label: "SQL Activity", icon: "⛁" },
             { id: "sqlDataPlane", label: "SQL Data Plane", icon: "⬡" },
+            { id: "dashboard", label: "SQL Dashboard", icon: "▦" },
             { id: "connections", label: "Connections", icon: "⌁" },
             { id: "query", label: "Query & Results", icon: "▶" },
             { id: "oe", label: "Object Explorer", icon: "⌥" },
@@ -348,6 +350,9 @@ export function DebugConsoleApp() {
             break;
         case "sqlDataPlane":
             page = <SqlDataPlanePage />;
+            break;
+        case "dashboard":
+            page = <DashboardDiagnosticsPage />;
             break;
         case "connections":
             page = <ConnectionsPage />;
