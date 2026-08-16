@@ -122,7 +122,14 @@ export class LezerSyntaxService implements SyntaxService {
             preferredBoundaries.add(candidate.start);
             preferredBoundaries.add(candidate.end);
         }
-        const ranges = partitionSqlBatches(document.text, preferredBoundaries);
+        // A fixed-width identifier edit cannot add/remove GO, quotes, or comments, so the safe
+        // chunk topology is unchanged. Avoid rescanning a multi-megabyte document in this common
+        // typing path; structural edits still take the conservative full boundary scan below.
+        const ranges = preservesChunkPartition(previous.document.text, changes)
+            ? candidates
+                  .filter((candidate) => candidate.end > candidate.start)
+                  .map(({ start, end }) => ({ start, end }))
+            : partitionSqlBatches(document.text, preferredBoundaries);
         const candidatesByRange = new Map(
             candidates.map((candidate) => [`${candidate.start}:${candidate.end}`, candidate]),
         );
@@ -204,6 +211,43 @@ export class LezerSyntaxService implements SyntaxService {
     }
 }
 
+function preservesChunkPartition(text: string, changes: readonly TextChange[]): boolean {
+    if (changes.length !== 1) return false;
+    const change = changes[0]!;
+    if (change.text.length !== change.end - change.start) return false;
+    const previous = text.slice(change.start, change.end);
+    const lineStart = text.lastIndexOf("\n", Math.max(0, change.start - 1)) + 1;
+    const nextLineBreak = text.indexOf("\n", change.end);
+    const lineEnd = nextLineBreak < 0 ? text.length : nextLineBreak;
+    if (/^\s*GO(?:\s|$)/iu.test(text.slice(lineStart, lineEnd))) return false;
+    return (
+        isBoundaryNeutralIdentifierText(previous) && isBoundaryNeutralIdentifierText(change.text)
+    );
+}
+
+function isBoundaryNeutralIdentifierText(text: string): boolean {
+    if (text.length === 0) return false;
+    for (let index = 0; index < text.length; index++) {
+        const code = text.charCodeAt(index);
+        if (code === 71 || code === 79 || code === 103 || code === 111) return false;
+        if (
+            !(
+                (code >= 48 && code <= 57) ||
+                (code >= 65 && code <= 90) ||
+                (code >= 97 && code <= 122) ||
+                code === 35 ||
+                code === 36 ||
+                code === 64 ||
+                code === 95 ||
+                code > 127
+            )
+        ) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function isBoundedMixedRegion(node: LezerNode): boolean {
     const parent = node.parent;
     if (!parent) return false;
@@ -236,6 +280,7 @@ class LezerSyntaxSnapshot implements SyntaxSnapshot {
     public readonly diagnostics: readonly SyntaxDiagnostic[];
     public readonly statistics;
     private _materializedTree: Tree | undefined;
+    private _structuralIndex: ReadonlyMap<string, readonly SyntaxNode[]> | undefined;
     private readonly _root: DocumentSyntaxNode;
 
     public constructor(
@@ -280,6 +325,32 @@ class LezerSyntaxSnapshot implements SyntaxSnapshot {
 
     public root(): SyntaxNode {
         return this._root;
+    }
+
+    public structuralIndex(): ReadonlyMap<string, readonly SyntaxNode[]> {
+        if (this._structuralIndex) return this._structuralIndex;
+        const mutable = new Map<string, SyntaxNode[]>();
+        for (const chunk of this.chunks) {
+            chunk.tree.iterate({
+                enter: (node) => {
+                    if (!node.node.parent || (!node.node.firstChild && node.name !== "Variable")) {
+                        return;
+                    }
+                    const nodes = mutable.get(node.name) ?? [];
+                    nodes.push(
+                        new OffsetLezerSyntaxNode(
+                            node.node,
+                            chunk.start,
+                            chunk.tree.topNode,
+                            this._root,
+                        ),
+                    );
+                    mutable.set(node.name, nodes);
+                },
+            });
+        }
+        this._structuralIndex = mutable;
+        return mutable;
     }
 
     public nodeAt(offset: number): SyntaxNode {

@@ -55,6 +55,19 @@ suite("T-SQL incremental batch parsing", () => {
         assertIncrementalEquivalent(service, firstDocument, first, change);
     });
 
+    // Changing a GO repeat count into an identifier invalidates that separator even though the edit
+    // is fixed-width and identifier-shaped.
+    test("rescans a GO line when its repeat count becomes invalid", () => {
+        const service = new LezerSyntaxService();
+        const sql = largeBatchScript().replace("\nGO\n", "\nGO 1\n");
+        const firstDocument = new ImmutableTextSnapshot("file:///go-repeat.sql", 1, sql);
+        const first = service.parse(firstDocument);
+        const start = sql.indexOf("GO 1") + 3;
+        const change = { start, end: start + 1, text: "X" };
+
+        assertIncrementalEquivalent(service, firstDocument, first, change);
+    });
+
     // Verifies native reuse is effective without GO, removing the old topology-dependent worst case.
     test("incrementally reparses a large single batch", () => {
         const service = new LezerSyntaxService();

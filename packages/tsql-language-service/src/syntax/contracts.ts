@@ -79,6 +79,8 @@ export interface SyntaxSnapshot {
     readonly statistics: SyntaxReuseStatistics;
 
     root(): SyntaxNode;
+    /** Optional allocation-conscious structural index supplied by syntax implementations. */
+    structuralIndex?(): ReadonlyMap<string, readonly SyntaxNode[]>;
     nodeAt(offset: number): SyntaxNode;
     contextAt(offset: number): SyntaxContext;
     tokens(range?: TextRange): Iterable<SyntaxToken>;

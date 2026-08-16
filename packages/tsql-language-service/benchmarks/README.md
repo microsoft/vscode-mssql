@@ -8,7 +8,7 @@ the start, middle, and end. Results also include throughput, diagnostics, reused
 full-reparse/incremental speedup.
 
 The runtime scans lossless SQL lexical states once and caches compact Lezer trees in approximately
-16 KiB groups of `GO` batches. Unchanged chunks and their diagnostics are reused by identity. A file
+8 KiB groups of `GO` batches. Unchanged chunks and their diagnostics are reused by identity. A file
 without `GO` remains one chunk and is honestly reported as a full reparse until finer statement-level
 reuse is implemented.
 
@@ -44,6 +44,24 @@ npm run benchmark -- --sizes 100m
 Correctness checks accompany timings: every start/middle/end incremental result must have the same
 normalized tree checksum as a fresh parse. The external ScriptDOM and SqlParser comparison lanes are
 kept separate because ScriptDOM is always labeled full reparse and SqlParser is the diagnostic oracle.
+
+## Incremental runtime optimization checkpoint (2026-08-15)
+
+This isolated Windows/Node 24 run followed the incremental syntax and semantic snapshot work. It is
+a single engineering pass over deterministic exact-size SQL; no other benchmark ran concurrently.
+Every incremental tree matched a fresh parse and all lanes produced zero syntax diagnostics.
+
+|    Size |    Cold full |    Warm full |        Full reparse start/middle/end | Incremental start/middle/end |    Speedup start/middle/end | Reused chunks |
+| ------: | -----------: | -----------: | -----------------------------------: | ---------------------------: | --------------------------: | ------------: |
+| 100 KiB |    178.89 ms |    125.50 ms |          124.07 / 132.74 / 126.95 ms |      14.30 / 10.58 / 6.95 ms |     8.67× / 12.54× / 18.27× |            12 |
+|   1 MiB |  1,292.19 ms |  1,260.20 ms |    1,238.17 / 1,223.23 / 1,237.13 ms |     10.49 / 10.51 / 13.69 ms |  118.00× / 116.33× / 90.36× |           127 |
+|  10 MiB | 12,413.90 ms | 12,381.24 ms | 12,421.13 / 12,386.88 / 12,277.65 ms |     13.59 / 16.83 / 48.16 ms | 914.25× / 736.02× / 254.94× |         1,276 |
+
+The 10 MiB middle worker update fell from 6,450.95 ms to 482.30 ms. Its internal parse fell from
+167.48 ms to 29.16 ms, and semantic binding fell from 6,244.38 ms to 452.23 ms while still reusing
+159,551 semantic units and rebinding exactly one. Initial worker analysis improved from 33,374.25 ms
+to 32,458.40 ms. Whole-file parsing remains essentially unchanged and is tracked separately from
+the large improvement to the normal editor update path.
 
 ## Diagnostic milestone checkpoint (2026-08-15)
 

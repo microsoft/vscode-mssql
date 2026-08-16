@@ -16,7 +16,10 @@ import type {
     SemanticSymbol,
     SymbolId,
 } from "./contracts.js";
-import { collectTsqlSemanticDiagnostics } from "./tsqlSemanticDiagnostics.js";
+import {
+    collectTsqlSemanticDiagnosticsWithState,
+    type TsqlSemanticDiagnosticState,
+} from "./tsqlSemanticDiagnostics.js";
 import { vectorSemanticDiagnostics } from "./vectorSemanticDiagnostics.js";
 
 /**
@@ -41,14 +44,24 @@ export class CatalogSemanticBinder implements SemanticBinder {
         const reboundRanges = batches
             .filter((_batch, index) => !reusePlan.units[index])
             .map((batch) => ({ start: batch.start, end: batch.end }));
-        const tsqlDiagnostics =
+        const priorSnapshot = previous instanceof CatalogSemanticSnapshot ? previous : undefined;
+        const reusableDiagnosticState =
+            priorSnapshot && semanticEnvironmentIsPositionStable(batches, reusePlan, priorSnapshot)
+                ? priorSnapshot.diagnosticState
+                : undefined;
+        const diagnosticResult =
             reboundRanges.length === 0
-                ? []
-                : collectTsqlSemanticDiagnostics(
+                ? { diagnostics: [], state: priorSnapshot?.diagnosticState }
+                : collectTsqlSemanticDiagnosticsWithState(
                       input.syntax,
                       input.metadata,
                       reboundRanges.length === batches.length ? undefined : reboundRanges,
+                      reusableDiagnosticState
+                          ? batches.filter((_batch, index) => !reusePlan.units[index])
+                          : undefined,
+                      reusableDiagnosticState,
                   );
+        const tsqlDiagnostics = diagnosticResult.diagnostics;
         let unitsReused = 0;
 
         const appendReusedUnit = (unit: BoundUnit): void => {
@@ -411,7 +424,8 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 ) {
                     return;
                 }
-                const alias = directChild(node, "TableAlias") ?? firstDescendant(node, "TableAlias");
+                const alias =
+                    directChild(node, "TableAlias") ?? firstDescendant(node, "TableAlias");
                 const aliasName = alias && lastDescendant(alias, "IdentifierName");
                 const variable =
                     node.kind === "VariableTableSource"
@@ -433,7 +447,10 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 if (!qualifier) return;
 
                 if (node.kind === "VariableTableSource" && variable) {
-                    const variableName = input.syntax.document.text.slice(variable.start, variable.end);
+                    const variableName = input.syntax.document.text.slice(
+                        variable.start,
+                        variable.end,
+                    );
                     const owner = [...unitSymbols.values()].find(
                         (candidate) =>
                             candidate.kind === "variable" &&
@@ -587,6 +604,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
             Object.freeze(diagnostics),
             performance.now() - started,
             unitsReused,
+            diagnosticResult.state,
         );
     }
 
@@ -601,19 +619,55 @@ interface SemanticReusePlan {
     readonly exportedVersions: readonly string[];
 }
 
+function semanticEnvironmentIsPositionStable(
+    batches: readonly SyntaxNode[],
+    plan: SemanticReusePlan,
+    previous: CatalogSemanticSnapshot,
+): boolean {
+    return (
+        batches.length === previous.units.length &&
+        batches.every((batch, index) => {
+            const prior = previous.units[index];
+            return (
+                prior !== undefined &&
+                batch.start === prior.range.start &&
+                batch.end === prior.range.end &&
+                plan.incomingVersions[index] === prior.incomingEnvironmentVersion &&
+                plan.exportedVersions[index] === prior.exportedEnvironmentVersion
+            );
+        })
+    );
+}
+
 function planReusableUnits(
     input: BindInput,
     batches: readonly SyntaxNode[],
     previous?: SemanticSnapshot,
 ): SemanticReusePlan {
-    const versions = semanticEnvironmentVersions(input, batches);
+    const versions = semanticEnvironmentVersions(input, batches, previous);
     const units: (BoundUnit | undefined)[] = Array.from({ length: batches.length });
     if (!previous || previous.metadataGeneration !== input.metadata.generation) {
         return { units, ...versions };
     }
 
+    const usedPriorUnits = new Set<BoundUnit>();
+    for (const [index, batch] of batches.entries()) {
+        const prior = previous.units[index];
+        if (
+            !prior ||
+            !batchIsUnchangedAtSamePosition(input, batch, prior, previous) ||
+            prior.incomingEnvironmentVersion !== versions.incomingVersions[index] ||
+            prior.exportedEnvironmentVersion !== versions.exportedVersions[index]
+        ) {
+            continue;
+        }
+        units[index] = prior;
+        usedPriorUnits.add(prior);
+    }
+
     const candidates = new Map<string, BoundUnit[]>();
     for (const prior of previous.units) {
+        if (usedPriorUnits.has(prior)) continue;
         const key = reusableUnitKey(
             prior.range.end - prior.range.start,
             fingerprintHash(prior.syntaxFingerprint),
@@ -625,6 +679,7 @@ function planReusableUnits(
         candidates.set(key, queue);
     }
     for (const [index, batch] of batches.entries()) {
+        if (units[index]) continue;
         const contentHash = hashText(input.syntax.document.text.slice(batch.start, batch.end));
         const key = reusableUnitKey(
             batch.end - batch.start,
@@ -657,6 +712,7 @@ function reusableUnitKey(
 function semanticEnvironmentVersions(
     input: BindInput,
     batches: readonly SyntaxNode[],
+    previous?: SemanticSnapshot,
 ): {
     readonly incomingVersions: readonly string[];
     readonly exportedVersions: readonly string[];
@@ -664,13 +720,42 @@ function semanticEnvironmentVersions(
     const incomingVersions: string[] = [];
     const exportedVersions: string[] = [];
     let environment = `semantic:${input.metadata.generation}`;
-    for (const batch of batches) {
+    for (const [index, batch] of batches.entries()) {
         incomingVersions.push(environment);
+        const prior = previous?.units[index];
+        if (
+            previous?.metadataGeneration === input.metadata.generation &&
+            prior &&
+            prior.incomingEnvironmentVersion === environment &&
+            batchIsUnchangedAtSamePosition(input, batch, prior, previous)
+        ) {
+            environment = prior.exportedEnvironmentVersion;
+            exportedVersions.push(environment);
+            continue;
+        }
         const exported = semanticExportFingerprint(input.syntax, batch);
-        if (exported) environment = `semantic:${input.metadata.generation}:${hashText(`${environment}\0${exported}`)}`;
+        if (exported)
+            environment = `semantic:${input.metadata.generation}:${hashText(`${environment}\0${exported}`)}`;
         exportedVersions.push(environment);
     }
     return { incomingVersions, exportedVersions };
+}
+
+function batchIsUnchangedAtSamePosition(
+    input: BindInput,
+    batch: SyntaxNode,
+    prior: BoundUnit,
+    previous: SemanticSnapshot,
+): boolean {
+    if (batch.start !== prior.range.start || batch.end !== prior.range.end) return false;
+    if (input.syntax.document.version === previous.documentVersion) return true;
+    if (!input.changedRanges) return false;
+    return input.changedRanges.every((range) => !rangesIntersect(range, batch));
+}
+
+function rangesIntersect(left: TextRange, right: TextRange): boolean {
+    if (left.start === left.end) return right.start <= left.start && left.start <= right.end;
+    return left.start < right.end && right.start < left.end;
 }
 
 function semanticExportFingerprint(syntax: BindInput["syntax"], batch: SyntaxNode): string {
@@ -678,6 +763,7 @@ function semanticExportFingerprint(syntax: BindInput["syntax"], batch: SyntaxNod
     visit(batch, (node) => {
         if (
             node.kind === "UseStatement" ||
+            node.kind === "IntoClause" ||
             /^(?:Create|Alter|Drop).+Statement$/u.test(node.kind)
         ) {
             exports.push(
@@ -702,6 +788,13 @@ function shiftBoundUnit(
     exportedEnvironmentVersion: string,
 ): BoundUnit {
     const delta = batch.start - unit.range.start;
+    if (
+        delta === 0 &&
+        unit.incomingEnvironmentVersion === incomingEnvironmentVersion &&
+        unit.exportedEnvironmentVersion === exportedEnvironmentVersion
+    ) {
+        return unit;
+    }
     const shiftId = (id: SymbolId): SymbolId => shiftSymbolId(id, unit.range.start, delta);
     const symbols = unit.symbols.map((symbol) =>
         Object.freeze({
@@ -772,6 +865,7 @@ class CatalogSemanticSnapshot implements SemanticSnapshot {
         public readonly diagnostics: readonly SemanticDiagnostic[],
         elapsedMs: number,
         unitsReused = 0,
+        public readonly diagnosticState?: TsqlSemanticDiagnosticState,
     ) {
         this.statistics = Object.freeze({
             unitsExamined: units.length,

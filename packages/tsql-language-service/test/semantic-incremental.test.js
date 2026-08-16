@@ -56,12 +56,8 @@ suite("incremental semantic binding", () => {
 
     // Changing exported DDL invalidates every later batch whose local catalog view can change.
     test("invalidates dependent batches after local DDL changes", () => {
-        const sql =
-            "CREATE TABLE dbo.Work (Id int);\nGO\nSELECT Id FROM dbo.Work;\nGO\nSELECT 1;";
-        const analysis = analyze(
-            sql,
-            new InMemoryMetadataProvider({ schemas: [{ name: "dbo" }] }),
-        );
+        const sql = "CREATE TABLE dbo.Work (Id int);\nGO\nSELECT Id FROM dbo.Work;\nGO\nSELECT 1;";
+        const analysis = analyze(sql, new InMemoryMetadataProvider({ schemas: [{ name: "dbo" }] }));
         const offset = sql.indexOf("Work");
         const updated = update(analysis, {
             start: offset,
@@ -76,6 +72,43 @@ suite("incremental semantic binding", () => {
             updated.semantics.diagnostics.map(({ code, message }) => ({ code, message })),
             [{ code: "MSSQL208", message: "Invalid object name 'dbo.Work'." }],
         );
+        assertEquivalent(updated.semantics, fresh.semantics);
+    });
+
+    // A query-only edit reuses the document DDL timeline while validating against the local table.
+    test("retains local DDL visibility while incrementally validating a later batch", () => {
+        const sql =
+            "CREATE TABLE dbo.Work (Id int);\nGO\nSELECT Missing FROM dbo.Work;\nGO\nSELECT 1;";
+        const metadata = new InMemoryMetadataProvider({ schemas: [{ name: "dbo" }] });
+        const analysis = analyze(sql, metadata);
+        const offset = sql.indexOf("Missing");
+        const updated = update(analysis, {
+            start: offset,
+            end: offset + "Missing".length,
+            text: "Unknown",
+        });
+        const fresh = analyze(updated.document.text, metadata);
+
+        assert.equal(updated.semantics.statistics.unitsReused, 2);
+        assert.equal(updated.semantics.statistics.unitsRebound, 1);
+        assertEquivalent(updated.semantics, fresh.semantics);
+    });
+
+    // SELECT INTO exports a relation just like CREATE TABLE, so renaming it invalidates consumers.
+    test("invalidates dependent batches after SELECT INTO changes", () => {
+        const sql = "SELECT 1 AS Id INTO dbo.First;\nGO\nSELECT Id FROM dbo.First;";
+        const metadata = new InMemoryMetadataProvider({ schemas: [{ name: "dbo" }] });
+        const analysis = analyze(sql, metadata);
+        const offset = sql.indexOf("First");
+        const updated = update(analysis, {
+            start: offset,
+            end: offset + "First".length,
+            text: "Other",
+        });
+        const fresh = analyze(updated.document.text, metadata);
+
+        assert.equal(updated.semantics.statistics.unitsReused, 0);
+        assert.equal(updated.semantics.statistics.unitsRebound, 2);
         assertEquivalent(updated.semantics, fresh.semantics);
     });
 

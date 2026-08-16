@@ -25,8 +25,52 @@ export function collectTsqlSemanticDiagnostics(
     metadata: MetadataView,
     validationRanges?: readonly TextRange[],
 ): readonly SemanticDiagnostic[] {
-    const index = indexSyntax(syntax.root());
-    const context = new ValidationContext(syntax, metadata, index, validationRanges);
+    return collectTsqlSemanticDiagnosticsWithState(syntax, metadata, validationRanges).diagnostics;
+}
+
+/** Opaque document environment reused when a local edit cannot change DDL visibility. */
+export interface TsqlSemanticDiagnosticState {
+    readonly documentLength: number;
+    readonly metadataGeneration: number;
+}
+
+export interface TsqlSemanticDiagnosticResult {
+    readonly diagnostics: readonly SemanticDiagnostic[];
+    readonly state: TsqlSemanticDiagnosticState;
+}
+
+/**
+ * Incremental entry point used by the binder. When the caller proves that document-level DDL
+ * state is unchanged, only the supplied validation roots are indexed and validated.
+ */
+export function collectTsqlSemanticDiagnosticsWithState(
+    syntax: SyntaxSnapshot,
+    metadata: MetadataView,
+    validationRanges?: readonly TextRange[],
+    validationRoots?: readonly SyntaxNode[],
+    previousState?: TsqlSemanticDiagnosticState,
+): TsqlSemanticDiagnosticResult {
+    const reusableState =
+        validationRoots &&
+        previousState instanceof CachedTsqlSemanticDiagnosticState &&
+        previousState.documentLength === syntax.document.length &&
+        previousState.metadataGeneration === metadata.generation
+            ? previousState
+            : undefined;
+    const index = reusableState
+        ? indexSyntax(validationRoots!)
+        : (syntax.structuralIndex?.() ?? indexSyntax([syntax.root()]));
+    const state =
+        reusableState ??
+        new CachedTsqlSemanticDiagnosticState(
+            syntax.document.length,
+            metadata.generation,
+            indexObjectEvents(collectLocalRelationEvents(syntax, index), metadata),
+            indexObjectEvents(collectLocalProcedureEvents(syntax, index), metadata),
+            indexLoginEvents(collectLocalLoginEvents(syntax, index), metadata),
+            indexObjectEvents(collectLocalTypeEvents(syntax, index), metadata),
+        );
+    const context = new ValidationContext(syntax, metadata, index, validationRanges, state);
     context.validateIdentifierNames();
     context.validateObjects();
     context.validateXmlTableMethods();
@@ -57,7 +101,7 @@ export function collectTsqlSemanticDiagnostics(
     context.validateOptions();
     context.validateCursors();
     context.validateSynonyms();
-    return context.result();
+    return { diagnostics: context.result(), state };
 }
 
 class ValidationContext {
@@ -75,18 +119,21 @@ class ValidationContext {
         private readonly _metadata: MetadataView,
         private readonly _index: ReadonlyMap<string, readonly SyntaxNode[]>,
         private readonly _validationRanges?: readonly TextRange[],
+        environment?: CachedTsqlSemanticDiagnosticState,
     ) {
         this._text = _syntax.document.text;
-        this._localRelations = indexObjectEvents(
-            collectLocalRelationEvents(_syntax, _index),
-            _metadata,
-        );
-        this._localProcedures = indexObjectEvents(
-            collectLocalProcedureEvents(_syntax, _index),
-            _metadata,
-        );
-        this._localLogins = indexLoginEvents(collectLocalLoginEvents(_syntax, _index), _metadata);
-        this._localTypes = indexObjectEvents(collectLocalTypeEvents(_syntax, _index), _metadata);
+        this._localRelations =
+            environment?.localRelations ??
+            indexObjectEvents(collectLocalRelationEvents(_syntax, _index), _metadata);
+        this._localProcedures =
+            environment?.localProcedures ??
+            indexObjectEvents(collectLocalProcedureEvents(_syntax, _index), _metadata);
+        this._localLogins =
+            environment?.localLogins ??
+            indexLoginEvents(collectLocalLoginEvents(_syntax, _index), _metadata);
+        this._localTypes =
+            environment?.localTypes ??
+            indexObjectEvents(collectLocalTypeEvents(_syntax, _index), _metadata);
         this._variableDeclarations = collectVariableDeclarations(_syntax, _index);
     }
 
@@ -3233,6 +3280,17 @@ interface LocalTypeEvent {
     readonly typeCategory: "alias" | "clr" | "table";
 }
 
+class CachedTsqlSemanticDiagnosticState implements TsqlSemanticDiagnosticState {
+    public constructor(
+        public readonly documentLength: number,
+        public readonly metadataGeneration: number,
+        public readonly localRelations: ReadonlyMap<string, readonly LocalRelationEvent[]>,
+        public readonly localProcedures: ReadonlyMap<string, readonly LocalProcedureEvent[]>,
+        public readonly localLogins: ReadonlyMap<string, readonly LocalLoginEvent[]>,
+        public readonly localTypes: ReadonlyMap<string, readonly LocalTypeEvent[]>,
+    ) {}
+}
+
 type UserTypeResolution =
     | { readonly kind: "resolved"; readonly typeCategory: "alias" | "clr" | "table" }
     | { readonly kind: "notFound" }
@@ -3582,9 +3640,9 @@ function collectVariableDeclarations(
     return Object.freeze(declarations.sort((left, right) => left.node.start - right.node.start));
 }
 
-function indexSyntax(root: SyntaxNode): ReadonlyMap<string, readonly SyntaxNode[]> {
+function indexSyntax(roots: readonly SyntaxNode[]): ReadonlyMap<string, readonly SyntaxNode[]> {
     const mutable = new Map<string, SyntaxNode[]>();
-    const pending = [root];
+    const pending = [...roots];
     while (pending.length > 0) {
         const node = pending.pop()!;
         const nodes = mutable.get(node.kind) ?? [];
