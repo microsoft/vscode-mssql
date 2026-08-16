@@ -1,0 +1,197 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+const assert = require("node:assert/strict");
+const { suite, test } = require("node:test");
+const {
+    analyzeSql: analyze,
+    createMetadata: metadata,
+    messages,
+    table,
+} = require("../../support/semanticHarness.js");
+
+suite("T-SQL routine invocation diagnostics", () => {
+    // Authoritative routine metadata supplies required/defaulted parameter counts for scalar and
+    // table-valued function calls without executing a metadata query during binding.
+    test("validates catalog function arguments", async () => {
+        const functionObject = {
+            ref: { id: "price-function", database: "db" },
+            database: "db",
+            schema: "dbo",
+            name: "Price",
+            kind: "scalarFunction",
+        };
+        const provider = metadata({
+            objects: [functionObject],
+            parameters: new Map([
+                [
+                    "price-function",
+                    [
+                        {
+                            ordinal: 1,
+                            name: "@required",
+                            typeDisplay: "int",
+                            hasDefault: false,
+                        },
+                        {
+                            ordinal: 2,
+                            name: "@optional",
+                            typeDisplay: "int",
+                            hasDefault: true,
+                        },
+                    ],
+                ],
+            ]),
+        });
+        const diagnostics = await analyze(
+            "SELECT dbo.Price(), dbo.Price(1), dbo.Price(1, 2, 3);",
+            provider,
+        );
+
+        assert.deepEqual(
+            diagnostics.map(({ code, message }) => ({ code, message })),
+            [
+                {
+                    code: "InsufficientArguments",
+                    message:
+                        "An insufficient number of arguments were supplied for the procedure or function dbo.Price.",
+                },
+                {
+                    code: "TooManyArguments",
+                    message: "Procedure or function 'dbo.Price' has too many arguments specified.",
+                },
+            ],
+        );
+    });
+    // Procedure metadata drives exact named-argument and arity diagnostics without a query round trip.
+    test("validates procedure arguments from the pinned metadata view", async () => {
+        const procedure = {
+            ref: { id: "save", database: "db" },
+            database: "db",
+            schema: "dbo",
+            name: "SaveCustomer",
+            kind: "procedure",
+        };
+        const provider = metadata({
+            objects: [procedure],
+            parameters: new Map([
+                [
+                    "save",
+                    [
+                        { ordinal: 1, name: "@Id", typeDisplay: "int" },
+                        { ordinal: 2, name: "@Name", typeDisplay: "nvarchar(50)", output: true },
+                    ],
+                ],
+            ]),
+        });
+        const diagnostics = await analyze(
+            "EXEC dbo.SaveCustomer @Bad = 1, @Id = 2, @Id = 3, @Name = N'x' OUTPUT, 9;",
+            provider,
+        );
+        assert.ok(
+            messages(diagnostics).includes(
+                "@Bad is not a parameter for procedure dbo.SaveCustomer.",
+            ),
+        );
+        assert.ok(messages(diagnostics).includes("Parameter '@Id' was supplied multiple times."));
+        assert.ok(
+            messages(diagnostics).includes(
+                "Must pass parameter number 5 and subsequent parameters as '@name = value'. After the form '@name = value' has been used, all subsequent parameters must be passed in the form '@name = value'.",
+            ),
+        );
+    });
+    // OUTPUT can write only into a variable; applying it to a constant is rejected independently
+    // of the procedure's own output-parameter declaration.
+    test("rejects constant EXECUTE OUTPUT arguments", async () => {
+        const procedure = {
+            ref: { id: "output-procedure", database: "db" },
+            database: "db",
+            schema: "dbo",
+            name: "OutputProcedure",
+            kind: "procedure",
+        };
+        const diagnostics = await analyze(
+            `DECLARE @result int;
+EXEC dbo.OutputProcedure @value = @result OUTPUT;
+EXEC dbo.OutputProcedure @value = 1 OUTPUT;`,
+            metadata({
+                objects: [procedure],
+                parameters: new Map([
+                    [
+                        "output-procedure",
+                        [{ ordinal: 1, name: "@value", typeDisplay: "int", output: true }],
+                    ],
+                ]),
+            }),
+        );
+
+        assert.deepEqual(
+            diagnostics.map(({ code, message }) => ({ code, message })),
+            [
+                {
+                    code: "InvalidConstantOutput",
+                    message:
+                        "Cannot use the OUTPUT option when passing a constant to a stored procedure.",
+                },
+            ],
+        );
+    });
+    // Missing-parameter diagnostics require authoritative default information. The same contract
+    // works for catalog routines and procedures declared earlier in the document.
+    test("reports required procedure parameters without treating defaults as required", async () => {
+        const procedure = {
+            ref: { id: "required-procedure", database: "db" },
+            database: "db",
+            schema: "dbo",
+            name: "RequiredProcedure",
+            kind: "procedure",
+        };
+        const diagnostics = await analyze(
+            `EXEC dbo.RequiredProcedure @optional = 1;
+GO
+CREATE PROCEDURE dbo.LocalProcedure @required int, @optional int = 1 AS SELECT 1;
+GO
+EXEC dbo.LocalProcedure @optional = 1;`,
+            metadata({
+                objects: [procedure],
+                parameters: new Map([
+                    [
+                        "required-procedure",
+                        [
+                            {
+                                ordinal: 1,
+                                name: "@required",
+                                typeDisplay: "int",
+                                hasDefault: false,
+                            },
+                            {
+                                ordinal: 2,
+                                name: "@optional",
+                                typeDisplay: "int",
+                                hasDefault: true,
+                            },
+                        ],
+                    ],
+                ]),
+            }),
+        );
+
+        assert.deepEqual(
+            diagnostics.map(({ code, message }) => ({ code, message })),
+            [
+                {
+                    code: "MissingParameter",
+                    message:
+                        "Procedure or function 'dbo.RequiredProcedure' expects parameter '@required', which was not supplied.",
+                },
+                {
+                    code: "MissingParameter",
+                    message:
+                        "Procedure or function 'dbo.LocalProcedure' expects parameter '@required', which was not supplied.",
+                },
+            ],
+        );
+    });
+});

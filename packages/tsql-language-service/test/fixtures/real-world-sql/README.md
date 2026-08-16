@@ -17,5 +17,5 @@ The regression suite uses the null metadata provider. It therefore validates los
 After compiling the package, run only this suite with:
 
 ```powershell
-node --test test/real-world-sql-regression.test.js
+node --test --test-isolation=none test/regression/real-world/sql-fixtures.test.js
 ```

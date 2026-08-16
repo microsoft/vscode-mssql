@@ -114,9 +114,7 @@ FROM ${catalog}.sys.schemas AS s WITH (NOLOCK);`,
                     database: String(row.database_name),
                     name: String(row.schema_name),
                 })),
-                databaseCatalogCompleteness: new Map([
-                    [request.database, { schemas: "ready" }],
-                ]),
+                databaseCatalogCompleteness: new Map([[request.database, { schemas: "ready" }]]),
             });
             return;
         }
@@ -153,9 +151,7 @@ WHERE t.is_user_defined = 1 OR t.is_table_type = 1;`,
             );
             publisher.merge({
                 objects: [...mapObjects(rows), ...mapTypes(types)],
-                databaseCatalogCompleteness: new Map([
-                    [request.database, { objects: "ready" }],
-                ]),
+                databaseCatalogCompleteness: new Map([[request.database, { objects: "ready" }]]),
             });
             return;
         }
@@ -211,9 +207,7 @@ ORDER BY c.column_id;`,
         }
         if (request.section === "parameters" && request.object) {
             publisher.merge({
-                parameterStates: new Map([
-                    [request.object.id, { kind: "loaded", value: [] }],
-                ]),
+                parameterStates: new Map([[request.object.id, { kind: "loaded", value: [] }]]),
             });
         }
     }

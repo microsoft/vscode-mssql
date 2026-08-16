@@ -121,11 +121,7 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
         const unqualifiedBracketSql = "SELECT * FROM []";
         const unqualifiedBracketOffset = unqualifiedBracketSql.indexOf("[") + 1;
         await runtime.open(uri, 6, unqualifiedBracketSql);
-        const unqualifiedBracketResult = features.completion(
-            uri,
-            6,
-            unqualifiedBracketOffset,
-        );
+        const unqualifiedBracketResult = features.completion(uri, 6, unqualifiedBracketOffset);
         const dbo = unqualifiedBracketResult.items.find(
             (item) => item.kind === "schema" && item.label === "dbo",
         );
