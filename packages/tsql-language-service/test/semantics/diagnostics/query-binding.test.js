@@ -22,18 +22,91 @@ suite("T-SQL query binding diagnostics", () => {
                 ["orders", [{ name: "Id", typeDisplay: "int" }]],
             ]),
         });
-        const diagnostics = await analyze(
-            `SELECT Missing FROM dbo.Customers;
+        const sql = `SELECT Missing FROM dbo.Customers;
              SELECT Id FROM dbo.Customers c JOIN sales.Orders o ON c.Id = o.Id;
-             SELECT z.Id, c.Nope FROM dbo.Customers c;`,
-            provider,
-        );
+             SELECT z.Id, c.Nope FROM dbo.Customers c;
+             SELECT z.* FROM dbo.Customers c;`;
+        const diagnostics = await analyze(sql, provider);
         assert.deepEqual(messages(diagnostics), [
             "Invalid column name 'Missing'.",
             "Ambiguous column name 'Id'.",
-            "The column prefix 'z' does not match with a table name or alias name used in the query.",
+            // A qualified column whose qualifier binds to nothing is an unbound multi-part
+            // identifier; the prefix-mismatch message belongs to the qualified star below, where
+            // there is no column name to report.
+            'The multi-part identifier "z.Id" could not be bound.',
             "Invalid column name 'Nope'.",
+            "The column prefix 'z' does not match with a table name or alias name used in the query.",
         ]);
+        assert.deepEqual(
+            diagnostics
+                .filter(({ code }) => code === "MultiPartIdentifierBindingError")
+                .map(({ code, message, range }) => ({
+                    code,
+                    message,
+                    text: sql.slice(range.start, range.end),
+                })),
+            [
+                {
+                    code: "MultiPartIdentifierBindingError",
+                    message: 'The multi-part identifier "z.Id" could not be bound.',
+                    text: "z.Id",
+                },
+            ],
+        );
+    });
+
+    // A four-part name in a call position names a remote function, which takes precedence over
+    // every other result for that call. It stays silent when the last part binds as an ordinary
+    // column, because only a UDT or XML column can carry a callable member.
+    test("reports a four-part function call as a remote function reference", async () => {
+        const provider = metadata({
+            objects: [table("customers", "dbo", "Customers")],
+            columns: new Map([
+                [
+                    "customers",
+                    [
+                        { name: "Id", typeDisplay: "int" },
+                        { name: "Payload", typeDisplay: "xml" },
+                    ],
+                ],
+            ]),
+        });
+        const sql = "SELECT srv.db.dbo.Compute(1) FROM dbo.Customers;";
+        assert.deepEqual(
+            (await analyze(sql, provider))
+                .filter(({ code }) => code === "RemoteFunctionRefIsNotAllowed")
+                .map(({ code, message, range }) => ({
+                    code,
+                    message,
+                    text: sql.slice(range.start, range.end),
+                })),
+            [
+                {
+                    code: "RemoteFunctionRefIsNotAllowed",
+                    message:
+                        "Remote function reference 'srv.db.dbo.Compute' is not allowed, and the column name 'Compute' could not be found or is ambiguous.",
+                    text: "srv.db.dbo.Compute",
+                },
+            ],
+        );
+        // A shorter name is an ordinary function reference, and an ordinary column keeps it silent.
+        assert.deepEqual(
+            messages(await analyze("SELECT db.dbo.Compute(1) FROM dbo.Customers;", provider)),
+            [],
+        );
+        assert.deepEqual(
+            messages(await analyze("SELECT srv.db.c.Id(1) FROM dbo.Customers AS c;", provider)),
+            [],
+        );
+        // An XML column can carry a callable member, so the four-part name is still reported.
+        assert.deepEqual(
+            messages(
+                await analyze("SELECT srv.db.c.Payload(1) FROM dbo.Customers AS c;", provider),
+            ),
+            [
+                "Remote function reference 'srv.db.c.Payload' is not allowed, and the column name 'Payload' could not be found or is ambiguous.",
+            ],
+        );
     });
     // SELECT variable assignment cannot be mixed with result-producing expressions, while a
     // statement containing only assignments remains valid.

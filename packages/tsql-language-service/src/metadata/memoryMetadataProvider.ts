@@ -5,9 +5,12 @@
 
 import type { Disposable } from "../common/disposable.js";
 import type {
+    ClrTypeMetadata,
     ColumnMetadata,
     DatabaseCatalogCompleteness,
     DatabaseMetadata,
+    ForeignKeyMetadata,
+    IndexMetadata,
     InMemoryMetadataInput,
     MetadataCompleteness,
     MetadataHydrationRequest,
@@ -24,7 +27,10 @@ import type {
     PrincipalMetadata,
     PrincipalSearchQuery,
     SchemaMetadata,
+    SecurableMetadata,
+    SecurableSearchQuery,
     SqlEnvironment,
+    TriggerMetadata,
 } from "./contracts.js";
 
 const ready: MetadataCompleteness = Object.freeze({
@@ -33,6 +39,15 @@ const ready: MetadataCompleteness = Object.freeze({
     objects: "ready",
     columns: "ready",
     parameters: "ready",
+    indexes: "ready",
+    triggers: "ready",
+    constraints: "ready",
+    // A CLR member list only exists once a backend publishes it.
+    clrTypes: "unknown",
+    // Server-scoped security objects and collations are only authoritative once a backend
+    // publishes them; an empty ready list would otherwise mean "none exist".
+    securables: "unknown",
+    collations: "unknown",
     principals: "ready",
     definitions: "unknown",
 });
@@ -115,13 +130,26 @@ class MemoryView implements MetadataView {
         string,
         MetadataLoadState<readonly ParameterMetadata[]>
     >;
+    private readonly _indexes: ReadonlyMap<string, readonly IndexMetadata[]>;
+    private readonly _indexStates: ReadonlyMap<string, MetadataLoadState<readonly IndexMetadata[]>>;
+    private readonly _triggers: ReadonlyMap<string, readonly TriggerMetadata[]>;
+    private readonly _triggerStates: ReadonlyMap<
+        string,
+        MetadataLoadState<readonly TriggerMetadata[]>
+    >;
+    private readonly _clrTypes: ReadonlyMap<string, ClrTypeMetadata>;
+    private readonly _clrTypeStates: ReadonlyMap<string, MetadataLoadState<ClrTypeMetadata>>;
+    private readonly _foreignKeys: ReadonlyMap<string, readonly ForeignKeyMetadata[]>;
+    private readonly _foreignKeyStates: ReadonlyMap<
+        string,
+        MetadataLoadState<readonly ForeignKeyMetadata[]>
+    >;
     private readonly _schemas: readonly SchemaMetadata[];
     private readonly _databases: readonly DatabaseMetadata[];
     private readonly _principals: readonly PrincipalMetadata[];
-    private readonly _databaseCatalogCompleteness: ReadonlyMap<
-        string,
-        DatabaseCatalogCompleteness
-    >;
+    private readonly _securables: readonly SecurableMetadata[];
+    private readonly _collations: readonly string[] | undefined;
+    private readonly _databaseCatalogCompleteness: ReadonlyMap<string, DatabaseCatalogCompleteness>;
 
     public readonly publishedAt = Date.now();
 
@@ -147,6 +175,14 @@ class MemoryView implements MetadataView {
         this._parameters = input.parameters ?? new Map();
         this._columnStates = input.columnStates ?? new Map();
         this._parameterStates = input.parameterStates ?? new Map();
+        this._indexes = input.indexes ?? new Map();
+        this._indexStates = input.indexStates ?? new Map();
+        this._triggers = input.triggers ?? new Map();
+        this._triggerStates = input.triggerStates ?? new Map();
+        this._clrTypes = input.clrTypes ?? new Map();
+        this._clrTypeStates = input.clrTypeStates ?? new Map();
+        this._foreignKeys = input.foreignKeys ?? new Map();
+        this._foreignKeyStates = input.foreignKeyStates ?? new Map();
         this._schemas = Object.freeze([...(input.schemas ?? [])]);
         this._databases = Object.freeze([...(input.databases ?? [])]);
         this._principals = Object.freeze(
@@ -156,6 +192,8 @@ class MemoryView implements MetadataView {
                 ),
             ),
         );
+        this._securables = Object.freeze([...(input.securables ?? [])]);
+        this._collations = input.collations && Object.freeze([...input.collations]);
         this._databaseCatalogCompleteness = new Map(
             [...(input.databaseCatalogCompleteness ?? [])].map(([database, state]) => [
                 normalizedName(database, environment.caseSensitive),
@@ -213,6 +251,38 @@ class MemoryView implements MetadataView {
             this._parameterStates.get(ref.id) ??
             stateFromLegacyMap(this._parameters, ref.id, this.completeness.parameters)
         );
+    }
+
+    public indexState(ref: ObjectRef): MetadataLoadState<readonly IndexMetadata[]> {
+        return (
+            this._indexStates.get(ref.id) ??
+            stateFromLegacyMap(this._indexes, ref.id, this.completeness.indexes)
+        );
+    }
+
+    public triggerState(ref: ObjectRef): MetadataLoadState<readonly TriggerMetadata[]> {
+        return (
+            this._triggerStates.get(ref.id) ??
+            stateFromLegacyMap(this._triggers, ref.id, this.completeness.triggers)
+        );
+    }
+
+    public foreignKeyState(ref: ObjectRef): MetadataLoadState<readonly ForeignKeyMetadata[]> {
+        return (
+            this._foreignKeyStates.get(ref.id) ??
+            stateFromLegacyMap(this._foreignKeys, ref.id, this.completeness.constraints)
+        );
+    }
+
+    public clrTypeState(ref: ObjectRef): MetadataLoadState<ClrTypeMetadata> {
+        const explicit = this._clrTypeStates.get(ref.id);
+        if (explicit) return explicit;
+        const value = this._clrTypes.get(ref.id);
+        if (value) return { kind: "loaded", value };
+        const state = this.completeness.clrTypes;
+        if (state === "loading") return { kind: "loading" };
+        if (state === "failed") return { kind: "failed" };
+        return { kind: "notLoaded" };
     }
 
     public searchObjects(query: ObjectSearchQuery): readonly ObjectMetadata[] {
@@ -275,6 +345,24 @@ class MemoryView implements MetadataView {
             .slice(0, limit);
     }
 
+    public searchSecurables(query: SecurableSearchQuery): readonly SecurableMetadata[] {
+        const prefix = query.prefix ?? "";
+        return this._securables
+            .filter(
+                (securable) =>
+                    equal(securable.database, query.database, this.environment.caseSensitive) &&
+                    (!query.kinds || query.kinds.includes(securable.kind)) &&
+                    startsWith(securable.name, prefix, this.environment.caseSensitive),
+            )
+            .slice(0, query.limit ?? 100);
+    }
+
+    public collations(): readonly string[] | undefined {
+        return ["unknown", "failed"].includes(this.completeness.collations)
+            ? undefined
+            : (this._collations ?? []);
+    }
+
     public schemas(database?: string): readonly SchemaMetadata[] | undefined {
         if (["unknown", "failed"].includes(this.completeness.schemas)) return undefined;
         if (
@@ -322,15 +410,11 @@ function mergeInput(
         environment: { ...previous.environment, ...next.environment },
         completeness: { ...previous.completeness, ...next.completeness },
         objects: mergeArray(previous.objects, next.objects, (object) => object.ref.id),
-        schemas: mergeArray(
-            previous.schemas,
-            next.schemas,
-            (schema) => `${schema.database ?? ""}\u0000${schema.name}`.toLocaleLowerCase(),
+        schemas: mergeArray(previous.schemas, next.schemas, (schema) =>
+            `${schema.database ?? ""}\u0000${schema.name}`.toLocaleLowerCase(),
         ),
-        databases: mergeArray(
-            previous.databases,
-            next.databases,
-            (database) => database.name.toLocaleLowerCase(),
+        databases: mergeArray(previous.databases, next.databases, (database) =>
+            database.name.toLocaleLowerCase(),
         ),
         databaseCatalogCompleteness: mergeNestedMap(
             previous.databaseCatalogCompleteness,
@@ -338,9 +422,19 @@ function mergeInput(
         ),
         columns: mergeMap(previous.columns, next.columns),
         parameters: mergeMap(previous.parameters, next.parameters),
+        indexes: mergeMap(previous.indexes, next.indexes),
+        triggers: mergeMap(previous.triggers, next.triggers),
+        foreignKeys: mergeMap(previous.foreignKeys, next.foreignKeys),
+        clrTypes: mergeMap(previous.clrTypes, next.clrTypes),
         principals: mergeArray(previous.principals, next.principals, (principal) => principal.id),
+        securables: mergeArray(previous.securables, next.securables, (securable) => securable.id),
+        collations: next.collations ?? previous.collations,
         columnStates: mergeMap(previous.columnStates, next.columnStates),
         parameterStates: mergeMap(previous.parameterStates, next.parameterStates),
+        indexStates: mergeMap(previous.indexStates, next.indexStates),
+        triggerStates: mergeMap(previous.triggerStates, next.triggerStates),
+        foreignKeyStates: mergeMap(previous.foreignKeyStates, next.foreignKeyStates),
+        clrTypeStates: mergeMap(previous.clrTypeStates, next.clrTypeStates),
     };
 }
 
@@ -376,6 +470,38 @@ function replaceSectionInput(
                 parameters: replacement.parameters,
                 parameterStates: replacement.parameterStates,
             });
+        case "indexes":
+            return cloneInput({
+                ...previous,
+                completeness,
+                indexes: replacement.indexes,
+                indexStates: replacement.indexStates,
+            });
+        case "triggers":
+            return cloneInput({
+                ...previous,
+                completeness,
+                triggers: replacement.triggers,
+                triggerStates: replacement.triggerStates,
+            });
+        case "constraints":
+            return cloneInput({
+                ...previous,
+                completeness,
+                foreignKeys: replacement.foreignKeys,
+                foreignKeyStates: replacement.foreignKeyStates,
+            });
+        case "clrTypes":
+            return cloneInput({
+                ...previous,
+                completeness,
+                clrTypes: replacement.clrTypes,
+                clrTypeStates: replacement.clrTypeStates,
+            });
+        case "securables":
+            return cloneInput({ ...previous, completeness, securables: replacement.securables });
+        case "collations":
+            return cloneInput({ ...previous, completeness, collations: replacement.collations });
         case "principals":
             return cloneInput({ ...previous, completeness, principals: replacement.principals });
         case "definitions":
@@ -390,7 +516,9 @@ function mergeArray<T>(
 ): readonly T[] | undefined {
     if (!previous && !next) return undefined;
     if (!next) return previous;
-    return [...new Map([...(previous ?? []), ...next].map((value) => [key(value), value])).values()];
+    return [
+        ...new Map([...(previous ?? []), ...next].map((value) => [key(value), value])).values(),
+    ];
 }
 
 function mergeNestedMap(

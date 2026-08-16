@@ -11,6 +11,12 @@ export type MetadataSection =
     | "objects"
     | "columns"
     | "parameters"
+    | "indexes"
+    | "triggers"
+    | "constraints"
+    | "clrTypes"
+    | "securables"
+    | "collations"
     | "principals"
     | "definitions";
 
@@ -57,6 +63,85 @@ export interface ObjectMetadata {
     readonly typeCategory?: "alias" | "clr" | "table";
     /** True for SQL Server-shipped catalog objects; retained so hosts can rank rather than hide them. */
     readonly system?: boolean;
+    /**
+     * Whether a view was created WITH SCHEMABINDING. Undefined when the backend cannot say, which
+     * is not the same as false: only an explicit `false` proves a view is not schema bound.
+     */
+    readonly schemaBound?: boolean;
+    /** Whether a view was created WITH CHECK OPTION. Undefined means the backend cannot say. */
+    readonly checkOption?: boolean;
+    /**
+     * True for an extended stored procedure, which is implemented outside SQL Server. Parameter
+     * help cannot describe one, so callers present it differently from a Transact-SQL procedure.
+     */
+    readonly extendedProcedure?: boolean;
+}
+
+/** One DML trigger owned by a table or view, described by the actions that fire it. */
+export interface TriggerMetadata {
+    readonly name: string;
+    /** True for an INSTEAD OF trigger; false or undefined for an AFTER or FOR trigger. */
+    readonly insteadOf?: boolean;
+    readonly insert?: boolean;
+    readonly update?: boolean;
+    readonly delete?: boolean;
+    readonly disabled?: boolean;
+}
+
+/** One callable or readable member of a CLR user-defined type. */
+export interface ClrMemberMetadata {
+    readonly name: string;
+    readonly kind: "method" | "property" | "field";
+    /** True for a member reached through the type; false or undefined for an instance member. */
+    readonly static?: boolean;
+}
+
+/**
+ * The CLR class one user-defined type is bound to.
+ *
+ * `system` marks a type shipped with SQL Server, whose member list is complete. A member missing
+ * from a non-system type proves nothing, because the backend may not enumerate user assemblies.
+ */
+export interface ClrTypeMetadata {
+    readonly className: string;
+    readonly assemblyName: string;
+    readonly system?: boolean;
+    readonly members: readonly ClrMemberMetadata[];
+}
+
+/** What a foreign key does to referencing rows when the referenced row changes. */
+export type ForeignKeyAction = "noAction" | "cascade" | "setNull" | "setDefault";
+
+/** One foreign key defined on a table, with the actions that make it cascade. */
+export interface ForeignKeyMetadata {
+    readonly name: string;
+    readonly referencedObject?: ObjectRef;
+    readonly updateAction?: ForeignKeyAction;
+    readonly deleteAction?: ForeignKeyAction;
+}
+
+/**
+ * How an index stores its data. Only a relational index participates in DROP_EXISTING replacement;
+ * XML and spatial indexes have to be dropped and recreated.
+ */
+export type SqlIndexKind = "relational" | "xml" | "spatial";
+
+export interface IndexColumnMetadata {
+    readonly name: string;
+    /** True for an INCLUDE column, which is stored with the index but is not part of its key. */
+    readonly included?: boolean;
+    readonly descending?: boolean;
+}
+
+/** One index or statistics object owned by a table or view. */
+export interface IndexMetadata {
+    readonly name: string;
+    readonly kind: SqlIndexKind;
+    readonly unique?: boolean;
+    readonly clustered?: boolean;
+    /** True for a statistics object, which shares the index namespace of its owning object. */
+    readonly statistics?: boolean;
+    readonly columns?: readonly IndexColumnMetadata[];
 }
 
 export interface ColumnMetadata {
@@ -87,12 +172,7 @@ export interface DatabaseMetadata {
     readonly name: string;
 }
 
-export type SqlPrincipalKind =
-    | "login"
-    | "user"
-    | "databaseRole"
-    | "serverRole"
-    | "applicationRole";
+export type SqlPrincipalKind = "login" | "user" | "databaseRole" | "serverRole" | "applicationRole";
 
 export interface PrincipalMetadata {
     readonly id: string;
@@ -100,6 +180,25 @@ export interface PrincipalMetadata {
     readonly name: string;
     readonly kind: SqlPrincipalKind;
     readonly system?: boolean;
+}
+
+/** Security objects that are named directly by principal DDL rather than through sys.objects. */
+export type SqlSecurableKind = "credential" | "certificate" | "asymmetricKey";
+
+export interface SecurableMetadata {
+    readonly id: string;
+    readonly name: string;
+    readonly kind: SqlSecurableKind;
+    /** Absent for a server-scoped securable such as a credential or a server certificate. */
+    readonly database?: string;
+}
+
+export interface SecurableSearchQuery {
+    /** Omitted searches the server scope; a name searches that database's scope. */
+    readonly database?: string;
+    readonly kinds?: readonly SqlSecurableKind[];
+    readonly prefix?: string;
+    readonly limit?: number;
 }
 
 export interface PrincipalSearchQuery {
@@ -143,8 +242,40 @@ export interface MetadataView {
     object(ref: ObjectRef): ObjectMetadata | undefined;
     columnState(ref: ObjectRef): MetadataLoadState<readonly ColumnMetadata[]>;
     parameterState(ref: ObjectRef): MetadataLoadState<readonly ParameterMetadata[]>;
+    /**
+     * The complete index and statistics set owned by one table or view.
+     *
+     * Only a `loaded` state proves which indexes exist. Every other state means unknown, so an
+     * index conflict or absence must not be reported from it.
+     */
+    indexState(ref: ObjectRef): MetadataLoadState<readonly IndexMetadata[]>;
+    /**
+     * The complete DML trigger set owned by one table or view. Only a `loaded` state proves which
+     * triggers exist, so a duplicate or ownership result must not come from any other state.
+     */
+    triggerState(ref: ObjectRef): MetadataLoadState<readonly TriggerMetadata[]>;
+    /**
+     * The complete foreign key set defined on one table. Only a `loaded` state proves which
+     * cascading relationships exist.
+     */
+    foreignKeyState(ref: ObjectRef): MetadataLoadState<readonly ForeignKeyMetadata[]>;
+    /**
+     * The CLR class and member list behind one user-defined type. Only a `loaded` state describes
+     * which members exist, and only a system type's list is complete enough to prove absence.
+     */
+    clrTypeState(ref: ObjectRef): MetadataLoadState<ClrTypeMetadata>;
     searchObjects(query: ObjectSearchQuery): readonly ObjectMetadata[];
     searchPrincipals(query: PrincipalSearchQuery): readonly PrincipalMetadata[];
+    /**
+     * Credentials, certificates, and asymmetric keys in one scope. Absence is only authoritative
+     * when the securables section is ready.
+     */
+    searchSecurables(query: SecurableSearchQuery): readonly SecurableMetadata[];
+    /**
+     * The collations this server accepts, or undefined when that catalog is unavailable. An
+     * unavailable list must never become an invalid-collation result.
+     */
+    collations(): readonly string[] | undefined;
     databaseCatalogCompleteness(database: string): DatabaseCatalogCompleteness;
     schemas(database?: string): readonly SchemaMetadata[] | undefined;
     databases(): readonly DatabaseMetadata[] | undefined;
@@ -191,12 +322,25 @@ export interface InMemoryMetadataInput {
     readonly columns?: ReadonlyMap<string, readonly ColumnMetadata[]>;
     readonly parameters?: ReadonlyMap<string, readonly ParameterMetadata[]>;
     readonly principals?: readonly PrincipalMetadata[];
+    readonly securables?: readonly SecurableMetadata[];
+    readonly collations?: readonly string[];
     readonly databaseCatalogCompleteness?: ReadonlyMap<
         string,
         Partial<DatabaseCatalogCompleteness>
     >;
+    readonly indexes?: ReadonlyMap<string, readonly IndexMetadata[]>;
+    readonly triggers?: ReadonlyMap<string, readonly TriggerMetadata[]>;
+    readonly foreignKeys?: ReadonlyMap<string, readonly ForeignKeyMetadata[]>;
+    readonly clrTypes?: ReadonlyMap<string, ClrTypeMetadata>;
     readonly columnStates?: ReadonlyMap<string, MetadataLoadState<readonly ColumnMetadata[]>>;
     readonly parameterStates?: ReadonlyMap<string, MetadataLoadState<readonly ParameterMetadata[]>>;
+    readonly indexStates?: ReadonlyMap<string, MetadataLoadState<readonly IndexMetadata[]>>;
+    readonly triggerStates?: ReadonlyMap<string, MetadataLoadState<readonly TriggerMetadata[]>>;
+    readonly foreignKeyStates?: ReadonlyMap<
+        string,
+        MetadataLoadState<readonly ForeignKeyMetadata[]>
+    >;
+    readonly clrTypeStates?: ReadonlyMap<string, MetadataLoadState<ClrTypeMetadata>>;
     readonly schemas?: readonly SchemaMetadata[];
     readonly databases?: readonly DatabaseMetadata[];
 }

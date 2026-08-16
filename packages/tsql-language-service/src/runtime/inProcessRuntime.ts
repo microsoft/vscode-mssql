@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { AnalysisProfile } from "../common/analysisProfile.js";
+import { resolveAnalysisProfile } from "../common/analysisProfile.js";
 import type { Disposable } from "../common/disposable.js";
 import type { MetadataProvider } from "../metadata/index.js";
 import { NullMetadataProvider } from "../metadata/index.js";
@@ -18,11 +20,17 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
     private readonly _documents = new Map<string, DocumentAnalysisSnapshot>();
     private readonly _stats = new LanguageServiceStatsStore();
 
+    /** Frozen for the runtime's lifetime so every snapshot it publishes carries one profile. */
+    public readonly profile: AnalysisProfile;
+
     public constructor(
         private readonly _syntax: SyntaxService = new LezerSyntaxService(),
         private readonly _binder: SemanticBinder = new CatalogSemanticBinder(),
         private readonly _metadata: MetadataProvider = new NullMetadataProvider(),
-    ) {}
+        profile?: Partial<AnalysisProfile>,
+    ) {
+        this.profile = resolveAnalysisProfile(profile);
+    }
 
     public async open(
         uri: string,
@@ -35,7 +43,7 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
         const parseElapsed = performance.now() - parseStarted;
         const bindStarted = performance.now();
         const view = this._metadata.pin();
-        const semantics = this._binder.bind({ syntax, metadata: view });
+        const semantics = this._binder.bind({ syntax, metadata: view, profile: this.profile });
         const bindElapsed = performance.now() - bindStarted;
         const snapshot = Object.freeze({ text: document, syntax, semantics });
         this._documents.set(uri, snapshot);
@@ -60,6 +68,7 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
             metadata: this._metadata.pin(),
             previous: previous.semantics,
             changedRanges: syntax.changedRanges,
+            profile: this.profile,
         });
         const bindElapsed = performance.now() - bindStarted;
         const snapshot = Object.freeze({ text: document, syntax, semantics });
@@ -81,6 +90,7 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
             metadata: this._metadata.pin(),
             previous: previous.semantics,
             changedRanges: [],
+            profile: this.profile,
         });
         const bindElapsed = performance.now() - bindStarted;
         const snapshot = Object.freeze({

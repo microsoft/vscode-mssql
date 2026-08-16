@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { analysisProfileKey, resolveAnalysisProfile } from "../common/analysisProfile.js";
 import type { ColumnMetadata, ObjectMetadata, ObjectRef } from "../metadata/index.js";
 import type { SyntaxNode } from "../syntax/index.js";
 import type { TextRange } from "../text/index.js";
@@ -60,6 +61,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                           ? batches.filter((_batch, index) => !reusePlan.units[index])
                           : undefined,
                       reusableDiagnosticState,
+                      resolveAnalysisProfile(input.profile),
                   );
         const tsqlDiagnostics = diagnosticResult.diagnostics;
         let unitsReused = 0;
@@ -719,7 +721,10 @@ function semanticEnvironmentVersions(
 } {
     const incomingVersions: string[] = [];
     const exportedVersions: string[] = [];
-    let environment = `semantic:${input.metadata.generation}`;
+    // The profile changes which diagnostics a statement produces, so it is part of the reuse key.
+    let environment = `semantic:${input.metadata.generation}:${analysisProfileKey(
+        resolveAnalysisProfile(input.profile),
+    )}`;
     for (const [index, batch] of batches.entries()) {
         incomingVersions.push(environment);
         const prior = previous?.units[index];

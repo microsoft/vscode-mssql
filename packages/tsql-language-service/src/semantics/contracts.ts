@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { AnalysisProfile } from "../common/analysisProfile.js";
 import type { MetadataView, ObjectRef } from "../metadata/index.js";
 import type { SyntaxSnapshot } from "../syntax/index.js";
 import type { TextRange } from "../text/index.js";
@@ -70,6 +71,8 @@ export interface BindInput {
     readonly metadata: MetadataView;
     readonly previous?: SemanticSnapshot;
     readonly changedRanges?: readonly TextRange[];
+    /** Immutable analysis settings pinned for this operation; omitted means the interactive default. */
+    readonly profile?: AnalysisProfile;
     readonly settings?: Readonly<Record<string, string | number | boolean>>;
 }
 

@@ -3,14 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { AnalysisProfile } from "../common/analysisProfile.js";
+import { defaultAnalysisProfile } from "../common/analysisProfile.js";
 import type {
+    ClrTypeMetadata,
     ColumnMetadata,
     MetadataView,
     ObjectMetadata,
+    ObjectResolution,
     ParameterMetadata,
     SqlPrincipalKind,
+    SqlSecurableKind,
 } from "../metadata/index.js";
-import type { SyntaxNode, SyntaxSnapshot } from "../syntax/index.js";
+import type { SyntaxNode, SyntaxSnapshot, SyntaxToken } from "../syntax/index.js";
 import type { TextRange } from "../text/index.js";
 import type { SemanticDiagnostic } from "./contracts.js";
 
@@ -24,8 +29,16 @@ export function collectTsqlSemanticDiagnostics(
     syntax: SyntaxSnapshot,
     metadata: MetadataView,
     validationRanges?: readonly TextRange[],
+    profile: AnalysisProfile = defaultAnalysisProfile,
 ): readonly SemanticDiagnostic[] {
-    return collectTsqlSemanticDiagnosticsWithState(syntax, metadata, validationRanges).diagnostics;
+    return collectTsqlSemanticDiagnosticsWithState(
+        syntax,
+        metadata,
+        validationRanges,
+        undefined,
+        undefined,
+        profile,
+    ).diagnostics;
 }
 
 /** Opaque document environment reused when a local edit cannot change DDL visibility. */
@@ -49,6 +62,7 @@ export function collectTsqlSemanticDiagnosticsWithState(
     validationRanges?: readonly TextRange[],
     validationRoots?: readonly SyntaxNode[],
     previousState?: TsqlSemanticDiagnosticState,
+    profile: AnalysisProfile = defaultAnalysisProfile,
 ): TsqlSemanticDiagnosticResult {
     const reusableState =
         validationRoots &&
@@ -70,9 +84,18 @@ export function collectTsqlSemanticDiagnosticsWithState(
             indexLoginEvents(collectLocalLoginEvents(syntax, index), metadata),
             indexObjectEvents(collectLocalTypeEvents(syntax, index), metadata),
         );
-    const context = new ValidationContext(syntax, metadata, index, validationRanges, state);
+    const context = new ValidationContext(
+        syntax,
+        metadata,
+        index,
+        validationRanges,
+        state,
+        profile,
+    );
+    context.validateBuildMode();
     context.validateIdentifierNames();
     context.validateObjects();
+    context.validateUdtMembers();
     context.validateXmlTableMethods();
     context.validateQueries();
     context.validateProjectedRelations();
@@ -84,18 +107,25 @@ export function collectTsqlSemanticDiagnosticsWithState(
     context.validateForeignKeys();
     context.validateExecutions();
     context.validateDml();
+    context.validateNestedDml();
     context.validateOutputClauses();
     context.validateOrderBy();
     context.validateUserTypes();
     context.validateDataTypesAndColumns();
     context.validateDatabases();
+    context.validateScopedConfigurations();
     context.validatePrincipals();
+    context.validateSecurables();
+    context.validateCollations();
     context.validateModuleDefinitions();
     context.validateDdlObjects();
+    context.validateTriggerCatalog();
     context.validateIndexes();
     context.validateConstraintIndexOptions();
     context.validateComputedColumnConstraints();
     context.validateBatchContracts();
+    context.validateExternalStreamParameters();
+    context.validateBuiltInFunctionNames();
     context.validateBuiltInFunctions();
     context.validateCatalogFunctionArguments();
     context.validateOptions();
@@ -120,6 +150,7 @@ class ValidationContext {
         private readonly _index: ReadonlyMap<string, readonly SyntaxNode[]>,
         private readonly _validationRanges?: readonly TextRange[],
         environment?: CachedTsqlSemanticDiagnosticState,
+        private readonly _profile: AnalysisProfile = defaultAnalysisProfile,
     ) {
         this._text = _syntax.document.text;
         this._localRelations =
@@ -135,6 +166,226 @@ class ValidationContext {
             environment?.localTypes ??
             indexObjectEvents(collectLocalTypeEvents(_syntax, _index), _metadata);
         this._variableDeclarations = collectVariableDeclarations(_syntax, _index);
+    }
+
+    /**
+     * Reports the statements and options a data-tier application build cannot replay.
+     *
+     * A build replays only CREATE data-definition statements, so every other top-level statement is
+     * named by its statement phrase and rejected. Inside an accepted CREATE statement a small set of
+     * options and data types is still unsupported. This runs only for the build deployment mode; the
+     * interactive default must never see any of these diagnostics.
+     */
+    public validateBuildMode(): void {
+        if (this._profile.deploymentMode !== "build") return;
+        for (const batch of this.nodes("Batch")) {
+            // Module bodies mount their own Script/Batch. Only the script's own statements are built.
+            if (ancestor(batch, "Statement")) continue;
+            for (const statement of directChildren(batch, "Statement")) {
+                // Damaged input has no reliable statement identity, so it produces no build error.
+                if (containsErrorNode(statement)) continue;
+                const node = buildModeStatementNode(statement);
+                if (!node) continue;
+                if (!buildModeCreateDdlKinds.has(node.kind)) {
+                    const phrase = this.statementPhrase(node);
+                    if (!phrase) continue;
+                    this.add(
+                        "InvalidBuildModeSqlNullStatement",
+                        `The '${phrase}' statement is not supported in a data-tier application. Remove the statement before rebuilding.`,
+                        statement,
+                    );
+                    continue;
+                }
+                // The code-object walk reports independently of the statement-level result, so a
+                // rejected statement can still carry an unsupported type or execution context.
+                this.validateBuildModeCodeObjects(node);
+                const message = this.buildModeStatementMessage(node);
+                if (message) this.add(message[0], message[1], statement);
+            }
+        }
+    }
+
+    /** Reports unsupported data types and EXECUTE AS SELF anywhere inside a built CREATE statement. */
+    private validateBuildModeCodeObjects(statement: SyntaxNode): void {
+        for (const dataType of descendants(statement, "DataType")) {
+            const name = buildModeUnsupportedDataType(this.source(dataType));
+            if (!name) continue;
+            this.add(
+                "InvalidBuildModeDataTypeUse",
+                `Using the '${name}' data type is not supported in a data-tier application. Remove the statement or change the data type before rebuilding.`,
+                dataType,
+            );
+        }
+        for (const kind of ["ProcedureOption", "TriggerOption", "FunctionOption"]) {
+            for (const option of descendants(statement, kind)) {
+                if (!/^\s*EXEC(?:UTE)?\s+AS\s+SELF\s*$/iu.test(this.source(option))) continue;
+                this.add(
+                    "InvalidBuildModeExecutionContextTypeSelf",
+                    "EXECUTE AS SELF option is not supported in a data-tier application. Specify the principal name explicitly before rebuilding.",
+                    option,
+                );
+            }
+        }
+    }
+
+    /**
+     * Names the single statement-level build error a CREATE statement carries, if any.
+     *
+     * SQL Server evaluates each condition in a fixed order and keeps the last one that matched, so
+     * a DDL trigger outranks its ENCRYPTION option and a cursor parameter outranks ENCRYPTION.
+     */
+    private buildModeStatementMessage(
+        statement: SyntaxNode,
+    ): readonly [code: string, message: string] | undefined {
+        switch (statement.kind) {
+            case "CreateSchemaStatement":
+                return directChildren(statement, "SchemaElement").length > 0
+                    ? [
+                          "InvalidBuildModeStatementCreateSchema",
+                          "CREATE SCHEMA statements that contain schema elements are not supported in a data-tier application. Remove the elements from the statement or write the elements as separate DDL statements before rebuilding.",
+                      ]
+                    : undefined;
+            case "CreateIndexStatement":
+                return this.hasDropExistingIndexOption(statement)
+                    ? [
+                          "InvalidBuildModeStatementCreateIndex",
+                          "CREATE INDEX statements with a DROP_EXISTING option are not supported in a data-tier application. Remove the statement or the DROP EXISTING option before rebuilding.",
+                      ]
+                    : undefined;
+            case "CreateProcedureStatement": {
+                if (this.hasCursorParameter(statement)) {
+                    return [
+                        "InvalidBuildModeStatementCreateProcCursorParams",
+                        "CREATE PROCEDURE statements with cursor parameters are not supported in a data-tier application. Remove the statement or the cursor parameter before rebuilding.",
+                    ];
+                }
+                return this.hasModuleEncryptionOption(statement, "ProcedureOption")
+                    ? [
+                          "InvalidBuildModeStatementCreateProcedureWithEncryption",
+                          "CREATE PROCEDURE statements with ENCRYPTION option are not supported in a data-tier application. Remove the statement or ENCRYPTION option before rebuilding.",
+                      ]
+                    : undefined;
+            }
+            case "CreateFunctionStatement": {
+                // A CLR function has no Transact-SQL body to replay, so the whole statement is named.
+                if (firstDescendant(statement, "ExternalModuleBody")) {
+                    return [
+                        "InvalidBuildModeSqlNullStatement",
+                        "The 'CREATE FUNCTION' statement is not supported in a data-tier application. Remove the statement before rebuilding.",
+                    ];
+                }
+                if (this.hasCursorParameter(statement)) {
+                    return [
+                        "InvalidBuildModeStatementCreateFunction",
+                        "CREATE FUNCTION statements with cursor parameters are not supported in a data-tier application. Remove the statement or the cursor parameter before rebuilding.",
+                    ];
+                }
+                return this.hasModuleEncryptionOption(statement, "FunctionOption")
+                    ? [
+                          "InvalidBuildModeStatementCreateFunctionWithEncryption",
+                          "CREATE FUNCTION statements with ENCRYPTION option are not supported in a data-tier application. Remove the statement or ENCRYPTION option before rebuilding.",
+                      ]
+                    : undefined;
+            }
+            case "CreateTriggerStatement": {
+                if (this.isDdlTriggerDefinition(statement)) {
+                    return [
+                        "InvalidBuildModeStatementCreateTriggerDdl",
+                        "CREATE TRIGGER statements for DDL triggers are not supported in a data-tier application. Remove the statement before rebuilding.",
+                    ];
+                }
+                return this.hasModuleEncryptionOption(statement, "TriggerOption")
+                    ? [
+                          "InvalidBuildModeStatementCreateTriggerWithEncryption",
+                          "CREATE TRIGGER statements with ENCRYPTION option are not supported in a data-tier application. Remove the statement or ENCRYPTION option before rebuilding.",
+                      ]
+                    : undefined;
+            }
+            case "CreateViewStatement": {
+                const options = firstDescendant(statement, "ViewOptionClause");
+                const encrypted =
+                    options !== undefined &&
+                    descendants(options, "IdentifierName").some(
+                        (name) => this.source(name).toLocaleUpperCase() === "ENCRYPTION",
+                    );
+                return encrypted
+                    ? [
+                          "InvalidBuildModeStatementCreateViewWithEncryption",
+                          "CREATE VIEW statements with ENCRYPTION option are not supported in a data-tier application. Remove the statement or ENCRYPTION option before rebuilding.",
+                      ]
+                    : undefined;
+            }
+            case "CreatePrincipalStatement":
+                return this.createLoginBuildModeMessage(statement);
+            default:
+                return undefined;
+        }
+    }
+
+    /** CREATE LOGIN is rejected for its password/SID form without MUST_CHANGE, then for a default database. */
+    private createLoginBuildModeMessage(
+        statement: SyntaxNode,
+    ): readonly [code: string, message: string] | undefined {
+        const creation = firstDescendant(statement, "LoginCreationClause");
+        if (!creation) return undefined;
+        const defaultDatabase = descendants(creation, "PrincipalNonPasswordOption").some((option) =>
+            /^\s*DEFAULT_DATABASE\b/iu.test(this.source(option)),
+        );
+        if (firstDescendant(creation, "LoginPasswordOption")) {
+            const mustChange = directChildren(creation, "LoginPasswordModifier").some((modifier) =>
+                /^\s*MUST_CHANGE\s*$/iu.test(this.source(modifier)),
+            );
+            if (!mustChange) {
+                return [
+                    "InvalidBuildModeStatementCreateLogin",
+                    "CREATE LOGIN statements with PASSWORD or SID options that do not specify a MUST_CHANGE option are not supported in a data-tier application. Remove the statement or add the MUST_CHANGE option before rebuilding.",
+                ];
+            }
+        } else if (!/^\s*FROM\s+WINDOWS\b/iu.test(this.source(creation))) {
+            // Certificate, asymmetric key, and external provider logins carry no build restriction.
+            return undefined;
+        }
+        return defaultDatabase
+            ? [
+                  "InvalidBuildModeStatementCreateLoginWithDefaultDatabase",
+                  "CREATE LOGIN statements with DEFAULT_DATABASE option are not supported in a data-tier application. Remove the statement or DEFAULT_DATABASE option before rebuilding.",
+              ]
+            : undefined;
+    }
+
+    /** A bare DROP_EXISTING and DROP_EXISTING = ON both replace an index; = OFF does not. */
+    private hasDropExistingIndexOption(statement: SyntaxNode): boolean {
+        return descendants(statement, "GenericOption").some((option) => {
+            const name = firstDescendant(option, "GenericOptionName");
+            if (
+                !name ||
+                normalizeIdentifier(this.source(name).trim()).toLocaleUpperCase() !==
+                    "DROP_EXISTING"
+            ) {
+                return false;
+            }
+            const value = firstDescendant(option, "OptionValue");
+            return !value || this.source(value).toLocaleUpperCase() !== "OFF";
+        });
+    }
+
+    /** A declared cursor parameter cannot be replayed by a build, in either module parameter form. */
+    private hasCursorParameter(statement: SyntaxNode): boolean {
+        return descendants(statement, "ProcedureParameter").some(
+            (parameter) => directChildren(parameter, "Cursor").length > 0,
+        );
+    }
+
+    private hasModuleEncryptionOption(statement: SyntaxNode, optionKind: string): boolean {
+        return descendants(statement, optionKind).some(
+            (option) => moduleOptionKey(this.source(option)) === "ENCRYPTION",
+        );
+    }
+
+    /** A DDL trigger targets the database or the whole server rather than a table or view. */
+    private isDdlTriggerDefinition(statement: SyntaxNode): boolean {
+        const target = firstDescendant(statement, "TriggerTarget");
+        return target !== undefined && firstDescendant(target, "MultipartIdentifier") === undefined;
     }
 
     public validateObjects(): void {
@@ -163,6 +414,82 @@ class ValidationContext {
                 'An object or column name is missing or empty. For SELECT INTO statements, verify each column has a name. For other statements, look for empty alias names. Aliases defined as "" or [] are not allowed. Change the alias to a valid name.',
                 identifier,
             );
+        }
+    }
+
+    /**
+     * Reports credentials, certificates, and asymmetric keys a principal statement names but the
+     * catalog does not contain.
+     *
+     * A login is authenticated by a server-scoped securable while a user is mapped to one in the
+     * current database, so each statement searches its own scope. Absence is only authoritative
+     * when the securables section is ready.
+     */
+    public validateSecurables(): void {
+        if (this._metadata.completeness.securables !== "ready") return;
+        for (const clause of this.nodes("LoginCreationClause")) {
+            if (containsErrorNode(clause)) continue;
+            this.validateSecurableReference(clause, undefined);
+        }
+        for (const clause of this.nodes("UserCreationClause")) {
+            if (containsErrorNode(clause)) continue;
+            this.validateSecurableReference(clause, this._metadata.environment.currentDatabase);
+        }
+        // A credential is always server-scoped, wherever the option appears.
+        for (const option of this.nodes("PrincipalNonPasswordOption")) {
+            const tokens = this.significantTokens(option, 3);
+            if (tokens[0]?.text.toLocaleUpperCase() !== "CREDENTIAL") continue;
+            const nameNode = firstDescendant(option, "IdentifierName");
+            if (!nameNode) continue;
+            this.reportMissingSecurable(nameNode, "credential", undefined);
+        }
+    }
+
+    /** Reads the certificate or asymmetric key a principal creation clause authenticates against. */
+    private validateSecurableReference(clause: SyntaxNode, database: string | undefined): void {
+        const words = this.significantTokens(clause, 4).map((token) =>
+            token.text.toLocaleUpperCase(),
+        );
+        const kind = words.includes("CERTIFICATE")
+            ? "certificate"
+            : words.includes("ASYMMETRIC")
+              ? "asymmetricKey"
+              : undefined;
+        if (!kind) return;
+        const nameNode = firstDescendant(clause, "IdentifierName");
+        if (!nameNode) return;
+        this.reportMissingSecurable(nameNode, kind, database);
+    }
+
+    private reportMissingSecurable(
+        nameNode: SyntaxNode,
+        kind: SqlSecurableKind,
+        database: string | undefined,
+    ): void {
+        const name = normalizeIdentifier(this.source(nameNode));
+        const found = this._metadata
+            .searchSecurables({ database, kinds: [kind], prefix: name, limit: 20 })
+            .some((candidate) => this.equal(candidate.name, name));
+        if (found) return;
+        this.add(securableCodes[kind], securableMessage(kind, name), nameNode);
+    }
+
+    /**
+     * Reports a collation name the server does not accept.
+     *
+     * `database_default` always resolves. Every other name has to appear in the server's collation
+     * catalog, and an unavailable catalog reports nothing at all.
+     */
+    public validateCollations(): void {
+        const collations = this._metadata.collations();
+        if (!collations) return;
+        const accepted = new Set(collations.map((collation) => this.fold(collation)));
+        for (const clause of this.nodes("CollateClause")) {
+            const nameNode = firstDescendant(clause, "IdentifierName");
+            if (!nameNode) continue;
+            const name = normalizeIdentifier(this.source(nameNode));
+            if (this.equal(name, "database_default") || accepted.has(this.fold(name))) continue;
+            this.add("InvalidCollation", `Invalid collation '${name}'.`, nameNode);
         }
     }
 
@@ -238,6 +565,36 @@ class ValidationContext {
                     );
                 }
             }
+        }
+    }
+
+    /**
+     * Validates the value families of the database-scoped settings whose contracts are fixed by
+     * SQL Server. Unknown settings remain forward-compatible and are left to the server.
+     */
+    public validateScopedConfigurations(): void {
+        for (const setting of this.nodes("DatabaseScopedConfigurationSetting")) {
+            if (containsErrorNode(setting)) continue;
+            const nameNode = firstDescendant(setting, "IdentifierName");
+            const valueNode = firstDescendant(setting, "ConfigurationValue");
+            if (!nameNode || !valueNode) continue;
+
+            const displayName = normalizeIdentifier(this.source(nameNode));
+            const name = displayName.toLocaleUpperCase();
+            const value = this.source(valueNode).trim().toLocaleUpperCase();
+            const valid =
+                name === "MAXDOP"
+                    ? value === "PRIMARY" || /^[+-]?\d+$/u.test(value)
+                    : scopedBooleanConfigurationNames.has(name)
+                      ? value === "PRIMARY" || value === "ON" || value === "OFF"
+                      : true;
+            if (valid) continue;
+
+            this.add(
+                "InvalidUsageOfScopedConfiguration",
+                `Invalid usage of the scoped configuration ${displayName} in the ALTER DATABASE statement.`,
+                valueNode,
+            );
         }
     }
 
@@ -366,6 +723,9 @@ class ValidationContext {
                 // arguments can recover locally. They are not query-column references.
                 if (ancestor(column, "DataType")) continue;
                 if (ancestor(column, "VectorSearchTableSource")) continue;
+                // A nested DML statement brings its own target and inserted/deleted rowsets, which
+                // the enclosing query's sources do not describe.
+                if (ancestor(column, "NestedDmlTableSource")) continue;
                 if (isFunctionOptionArgument(this._syntax, column)) continue;
                 const parts = multipartIdentifierParts(this.source(column));
                 if (parts.length === 0) continue;
@@ -374,6 +734,9 @@ class ValidationContext {
                 }
                 this.validateColumn(column, parts, visibleSources);
                 this.validateXmlNodeColumnUse(column, parts, visibleSources);
+            }
+            for (const call of descendantsOwnedBy(query, "FunctionCall", query)) {
+                this.validateRemoteFunctionReference(call, visibleSources);
             }
         }
 
@@ -442,6 +805,259 @@ class ValidationContext {
                 "An expression of non-boolean type specified in a context where a condition is expected.",
                 expression,
             );
+        }
+    }
+
+    /**
+     * Validates member access on a CLR user type or an XML value.
+     *
+     * The receiver decides everything: a CLR type is checked against its own member list, an XML
+     * value against the fixed XML method set, and any other known scalar type cannot carry members
+     * at all. A receiver whose type cannot be determined, or a CLR type whose member list is not
+     * loaded, produces nothing. Only the first member is checked, because a member's own type is
+     * not modelled, so a chained access has an unknown receiver.
+     */
+    public validateUdtMembers(): void {
+        for (const expression of this.nodes("VariableMemberExpression")) {
+            if (containsErrorNode(expression)) continue;
+            const variable = firstDescendant(expression, "Variable");
+            const member = this.firstMemberAccess(expression);
+            if (!variable || !member) continue;
+            const declaration = this.variableAt(this.source(variable), variable.start, false);
+            const receiver = this.receiverType(declaration?.typeDisplay);
+            if (!receiver) continue;
+            if (receiver.kind === "other") {
+                this.add(
+                    "CannotCallMethodsOnType",
+                    `Cannot call methods on ${receiver.name}.`,
+                    variable,
+                );
+                continue;
+            }
+            if (receiver.kind === "xml") {
+                this.validateXmlMember(expression, member);
+                continue;
+            }
+            this.validateClrMember(receiver.type, member, false);
+        }
+
+        for (const expression of this.nodes("UdtStaticMemberExpression")) {
+            if (containsErrorNode(expression)) continue;
+            const typeNode = firstDescendant(expression, "MultipartIdentifier");
+            const member = this.firstMemberAccess(expression);
+            if (!typeNode || !member) continue;
+            const parts = multipartIdentifierParts(compactMultipartName(this.source(typeNode)));
+            const resolution = this._metadata.resolveObject(parts);
+            if (resolution.kind !== "resolved") continue;
+            if (resolution.object.kind !== "type" || resolution.object.typeCategory !== "clr") {
+                // The engine names only the object part of the type here, not its schema.
+                this.add(
+                    "CannotCallMethodsOnType",
+                    `Cannot call methods on ${parts.at(-1)!}.`,
+                    typeNode,
+                );
+                continue;
+            }
+            const state = this._metadata.clrTypeState(resolution.object.ref);
+            if (state.kind !== "loaded") continue;
+            this.validateClrMember(state.value, member, true);
+        }
+    }
+
+    /** Reads the first member of a member expression: its name node and whether it is a call. */
+    private firstMemberAccess(
+        expression: SyntaxNode,
+    ): { readonly name: SyntaxNode; readonly call: boolean } | undefined {
+        for (const child of expression.children()) {
+            if (child.kind === "FunctionMemberCall" || child.kind === "UdtDataMemberCall") {
+                const name = firstDescendant(child, "IdentifierName");
+                return name ? { name, call: child.kind === "FunctionMemberCall" } : undefined;
+            }
+            // A static member names its member directly, and its argument list follows it.
+            if (child.kind === "IdentifierName") {
+                return {
+                    name: child,
+                    call: [...expression.children()].some((node) => node.kind === "ArgumentList")
+                        ? true
+                        : this.staticMemberHasArgumentList(expression, child),
+                };
+            }
+        }
+        return undefined;
+    }
+
+    /** A static member with an empty argument list still carries the parentheses that make it a call. */
+    private staticMemberHasArgumentList(expression: SyntaxNode, name: SyntaxNode): boolean {
+        return this.significantTokens({ start: name.end, end: expression.end }, 1)[0]?.text === "(";
+    }
+
+    private validateClrMember(
+        type: ClrTypeMetadata,
+        member: { readonly name: SyntaxNode; readonly call: boolean },
+        viaType: boolean,
+    ): void {
+        const memberName = normalizeIdentifier(this.source(member.name));
+        const candidates = type.members.filter((candidate) =>
+            member.call ? candidate.kind === "method" : candidate.kind !== "method",
+        );
+        const found = candidates.find((candidate) => this.equal(candidate.name, memberName));
+        const location = `of class '${type.className}' in assembly '${type.assemblyName}'`;
+        if (!found) {
+            // Only a system type has a complete member list, so only it can prove absence.
+            if (!type.system) return;
+            this.add(
+                member.call ? "CouldNotFindMethod" : "CouldNotFindPropertyOrField",
+                member.call
+                    ? `Could not find method '${memberName}' for type '${type.className}' in assembly '${type.assemblyName}'.`
+                    : `Could not find property or field '${memberName}' for type '${type.className}' in assembly '${type.assemblyName}'.`,
+                member.name,
+            );
+            return;
+        }
+        const isStatic = found.static === true;
+        if (isStatic === viaType) return;
+        if (member.call) {
+            this.add(
+                isStatic ? "UdtMemberIsStatic" : "UdtMemberIsNotStatic",
+                `Method, property or field '${memberName}' ${location} is${isStatic ? "" : " not"} static.`,
+                member.name,
+            );
+            return;
+        }
+        this.add(
+            isStatic ? "UdtPropertyIsStatic" : "UdtPropertyIsNotStatic",
+            isStatic
+                ? `Property or field '${memberName}' for type '${type.className}' in assembly '${type.assemblyName}' is static.`
+                : `Property or field '${memberName}' for type '${type.className}' in assembly '${type.assemblyName}' is not static`,
+            member.name,
+        );
+    }
+
+    /** XML exposes a fixed method set and no properties at all. */
+    private validateXmlMember(
+        expression: SyntaxNode,
+        member: { readonly name: SyntaxNode; readonly call: boolean },
+    ): void {
+        const written = this.source(member.name);
+        const known = xmlDataTypeMethods.has(normalizeIdentifier(written).toLocaleLowerCase());
+        if (!known) {
+            this.add(
+                "NotValidFunctionOrProperty",
+                `"${written}" is not a valid function, property, or field.`,
+                member.name,
+            );
+            return;
+        }
+        if (member.call) return;
+        // An XML method named without its argument list is the wrong invocation shape.
+        this.add(
+            "IncorrectSyntaxToInvokeXmlMethod",
+            `Incorrect syntax was used to invoke the XML data type method '${written}'.`,
+            expression,
+        );
+    }
+
+    /** Classifies the declared type of a member-expression receiver. */
+    private receiverType(
+        typeDisplay: string | undefined,
+    ):
+        | { readonly kind: "clr"; readonly type: ClrTypeMetadata }
+        | { readonly kind: "xml" }
+        | { readonly kind: "other"; readonly name: string }
+        | undefined {
+        if (!typeDisplay) return undefined;
+        const parts = multipartIdentifierParts(
+            compactMultipartName(typeDisplay.replace(/\(.*$/su, "")),
+        );
+        const name = parts.at(-1);
+        if (!name) return undefined;
+        if (parts.length === 1 && name.toLocaleLowerCase() === "xml") return { kind: "xml" };
+        const resolution = this._metadata.resolveObject(parts);
+        if (resolution.kind === "resolved" && resolution.object.kind === "type") {
+            if (resolution.object.typeCategory !== "clr") return { kind: "other", name };
+            const state = this._metadata.clrTypeState(resolution.object.ref);
+            return state.kind === "loaded" ? { kind: "clr", type: state.value } : undefined;
+        }
+        // A system scalar type is a known type that simply carries no members.
+        if (parts.length === 1 && isSystemDataType(parts, name, typeDisplay)) {
+            return { kind: "other", name: name.toLocaleLowerCase() };
+        }
+        return undefined;
+    }
+
+    /**
+     * Reports a one-part function call that names no built-in function.
+     *
+     * A user-defined scalar function must be schema qualified, so a one-part name can only be a
+     * built-in. A qualified name is a catalog object and is validated elsewhere. Calls the grammar
+     * gives their own node — CAST, CONVERT, TRIM, and the other keyword forms — never reach here.
+     */
+    public validateBuiltInFunctionNames(): void {
+        for (const call of this.nodes("FunctionCall")) {
+            if (containsErrorNode(call)) continue;
+            const nameNode = firstDescendant(call, "MultipartIdentifier");
+            if (!nameNode) continue;
+            const displayName = compactMultipartName(this.source(nameNode));
+            const parts = multipartIdentifierParts(displayName);
+            if (parts.length !== 1) continue;
+            const name = parts[0]!.toLocaleLowerCase();
+            if (builtInScalarFunctionNames.has(name)) continue;
+            // Aggregates and window functions are separate function categories with their own
+            // catalogs; a call carrying OVER or WITHIN GROUP is one of them by construction.
+            if (aggregateFunctionNames.has(name.toLocaleUpperCase())) continue;
+            if (windowFunctionNames.has(name)) continue;
+            if (
+                directChildren(call, "OverClause").length > 0 ||
+                directChildren(call, "WithinGroupClause").length > 0
+            ) {
+                continue;
+            }
+            // A method call on a UDT or XML value keeps its receiver, so it is not a bare call.
+            if (directChildren(call, "FunctionMemberCall").length > 0) continue;
+            if (ancestor(call, "VariableMemberExpression")) continue;
+            this.add(
+                "NotRecognizedFunctionName",
+                `'${displayName}' is not a recognized built-in function name.`,
+                nameNode,
+            );
+        }
+    }
+
+    /**
+     * Validates the parameter list of CREATE EXTERNAL STREAM.
+     *
+     * The statement's parameters are a fixed named set. DATA_SOURCE is the one every stream must
+     * declare, and no parameter may be given twice. Both rules read the parsed parameter nodes, so
+     * a repeat is reported at the parameter that repeats and an absence at the whole list.
+     */
+    public validateExternalStreamParameters(): void {
+        for (const statement of this.nodes("CreateExternalStreamStatement")) {
+            if (containsErrorNode(statement)) continue;
+            const parameters = descendants(statement, "ExternalStreamParam");
+            if (parameters.length === 0) continue;
+            const seen = new Set<string>();
+            for (const parameter of parameters) {
+                const nameNode = firstDescendant(parameter, "IdentifierName");
+                if (!nameNode) continue;
+                const name = normalizeIdentifier(this.source(nameNode)).toLocaleUpperCase();
+                if (!externalStreamParameterNames.has(name)) continue;
+                if (seen.has(name)) {
+                    this.add(
+                        "DuplicateParam",
+                        `The external stream option '${name}' is already included in ddl.`,
+                        parameter,
+                    );
+                }
+                seen.add(name);
+            }
+            for (const required of requiredExternalStreamParameters) {
+                if (seen.has(required)) continue;
+                this.add(
+                    "RequiredParam",
+                    `The external stream option '${required}' must be included in the ddl.`,
+                    statement,
+                );
+            }
         }
     }
 
@@ -1003,6 +1619,23 @@ class ValidationContext {
                         entry.node,
                     );
                 }
+                // An explicit list must match a candidate key: a unique index whose key columns are
+                // exactly those columns. This runs only once every referenced column resolved.
+                if (
+                    !localReference &&
+                    resolution?.kind === "resolved" &&
+                    referencedEntries.every((entry) => entry.column) &&
+                    !this.referencedKeyExists(
+                        resolution.object,
+                        referencedEntries.map((entry) => entry.name),
+                    )
+                ) {
+                    this.add(
+                        "NoPrimaryKeysInReferencedTable",
+                        `There are no primary or candidate keys in the referenced table '${referencedName}' that match the referencing column list in the foreign key '${constraintName}'.`,
+                        referencedNameNode,
+                    );
+                }
             } else {
                 const primaryKey = referencedColumns
                     .filter((column) => column.primaryKeyOrdinal !== undefined)
@@ -1284,8 +1917,53 @@ class ValidationContext {
         }
     }
 
+    /**
+     * Requires the OUTPUT clause that supplies the rows of a DML statement used as a table source.
+     *
+     * The rowset a nested DML statement exposes is its OUTPUT clause, so a nested statement without
+     * one produces no columns at all.
+     */
+    public validateNestedDml(): void {
+        for (const source of this.nodes("NestedDmlTableSource")) {
+            if (containsErrorNode(source)) continue;
+            const statement = [...source.children()].find((child) =>
+                nestedDmlStatementKinds.has(child.kind),
+            );
+            if (!statement || firstDescendant(statement, "OutputClause")) continue;
+            this.add(
+                "NestedDmlMustHaveOutputClause",
+                "A nested INSERT, UPDATE, DELETE, or MERGE statement must have an OUTPUT clause.",
+                statement,
+            );
+        }
+    }
+
     public validateOutputClauses(): void {
         for (const output of this.nodes("OutputClause")) {
+            // A user-defined scalar function may only appear in an OUTPUT clause when it is schema
+            // bound, because otherwise it is assumed to perform data access.
+            for (const call of descendantsOwnedBy(output, "FunctionCall", output)) {
+                const nameNode = firstDescendant(call, "MultipartIdentifier");
+                if (!nameNode) continue;
+                const displayName = compactMultipartName(this.source(nameNode));
+                const parts = multipartIdentifierParts(displayName);
+                if (parts.length < 2) continue;
+                if (this.localRelationEventAt(parts, nameNode.start)) continue;
+                if (this.functionRedefinedBefore(parts, nameNode.start)) continue;
+                const resolution = this._metadata.resolveObject(parts);
+                if (
+                    resolution.kind !== "resolved" ||
+                    resolution.object.kind !== "scalarFunction" ||
+                    resolution.object.schemaBound !== false
+                ) {
+                    continue;
+                }
+                this.add(
+                    "FunctionNotAllowedInOutput",
+                    `Function '${displayName}' is not allowed in the OUTPUT clause, because it performs user or system data access, or is assumed to perform this access. A function is assumed by default to perform data access if it is not schemabound.`,
+                    nameNode,
+                );
+            }
             for (const element of descendantsOwnedBy(output, "OutputElement", output)) {
                 const expression = firstDescendant(element, "Expression");
                 if (!expression) continue;
@@ -1722,6 +2400,234 @@ class ValidationContext {
         }
     }
 
+    /**
+     * Validates a DML trigger against its target object and that object's existing triggers.
+     *
+     * The trigger's own schema is the target's schema when the trigger name is unqualified, so a
+     * qualified trigger name is what makes the schema comparison meaningful. Duplicate-activation
+     * and cascade rules additionally require the statement to be one the engine would carry out,
+     * and every catalog fact behind them must be `loaded`.
+     */
+    public validateTriggerCatalog(): void {
+        for (const kind of ["CreateTriggerStatement", "AlterTriggerStatement"] as const) {
+            for (const statement of this.nodes(kind)) {
+                if (containsErrorNode(statement)) continue;
+                this.validateTriggerStatement(statement, kind === "AlterTriggerStatement");
+            }
+        }
+    }
+
+    private validateTriggerStatement(statement: SyntaxNode, alterOnly: boolean): void {
+        const nameNode = firstDescendant(statement, "MultipartIdentifier");
+        const targetNode = firstDescendant(statement, "TriggerTarget");
+        const targetNameNode = targetNode && firstDescendant(targetNode, "MultipartIdentifier");
+        if (!nameNode || !targetNameNode) return;
+        const triggerName = compactMultipartName(this.source(nameNode));
+        const triggerParts = multipartIdentifierParts(triggerName);
+        const targetName = compactMultipartName(this.source(targetNameNode));
+        const targetParts = multipartIdentifierParts(targetName);
+        if (targetParts.at(-1)?.startsWith("#")) return;
+        // A target created or dropped in this document is newer than any catalog generation.
+        if (this.localRelationEventAt(targetParts, targetNameNode.start)) return;
+
+        const triggerSchema = triggerParts.length >= 2 ? triggerParts.at(-2)! : undefined;
+        const declaredTarget = this._metadata.resolveObject(targetParts);
+        if (declaredTarget.kind !== "resolved") return;
+        const target = declaredTarget.object;
+        const activation = this.triggerActivation(statement);
+
+        // A trigger lives in its own schema, so the object it is attached to is the one carrying the
+        // target's name in that schema. On CREATE an unqualified trigger name takes the target's
+        // schema; on ALTER it takes the default schema, which is what can disagree with the target.
+        const ownerResolution = this.triggerOwnerResolution(
+            targetParts,
+            triggerSchema,
+            alterOnly,
+            declaredTarget,
+        );
+        const owner = ownerResolution?.kind === "resolved" ? ownerResolution.object : undefined;
+        const targetTriggers = this._metadata.triggerState(target.ref);
+        const existingHere =
+            targetTriggers.kind === "loaded"
+                ? targetTriggers.value.find((candidate) =>
+                      this.equal(candidate.name, triggerParts.at(-1)!),
+                  )
+                : undefined;
+        let carriedOut = false;
+
+        if (alterOnly) {
+            if (owner !== undefined && owner.ref.id !== target.ref.id) {
+                this.add(
+                    "TriggerDoesNotBelongToTarget",
+                    `Cannot alter trigger '${triggerName}' on '${targetName}' because this trigger does not belong to this object. Specify the correct trigger name or the correct target object name.`,
+                    nameNode,
+                );
+            } else if (targetTriggers.kind === "loaded" && existingHere) {
+                carriedOut = true;
+            }
+        } else if (targetTriggers.kind === "loaded") {
+            // A CREATE only succeeds when the schemas agree and the name is free on the target.
+            if (
+                triggerSchema !== undefined &&
+                owner !== undefined &&
+                owner.ref.id !== target.ref.id
+            ) {
+                this.add(
+                    "InvalidTriggerSchema",
+                    `Cannot create trigger '${triggerName}' because its schema is different from the schema of the target table or view.`,
+                    identifierPartRange(nameNode, this.source(nameNode), triggerParts.length - 2),
+                );
+            } else if (!existingHere) {
+                carriedOut = true;
+            }
+        }
+
+        if (target.kind === "view") {
+            if (!activation.insteadOf) {
+                this.add(
+                    "RequiredInsteadOfTriggerOnView",
+                    `Cannot create trigger '${triggerName}' on '${targetName}'. Only INSTEAD OF triggers are valid on views.`,
+                    nameNode,
+                );
+            }
+            // Only an explicit true proves a view carries CHECK OPTION.
+            if (target.checkOption === true) {
+                this.add(
+                    "CannotCreateTriggerOnViewWithCheckOption",
+                    `Cannot create trigger '${triggerName}' on '${targetName}' because the view is defined with CHECK OPTION.`,
+                    nameNode,
+                );
+            }
+        } else if (carriedOut && activation.insteadOf) {
+            const foreignKeys = this._metadata.foreignKeyState(target.ref);
+            if (foreignKeys.kind === "loaded") {
+                for (const action of ["UPDATE", "DELETE"] as const) {
+                    if (!activation[action === "UPDATE" ? "update" : "delete"]) continue;
+                    const cascades = foreignKeys.value.some(
+                        (key) =>
+                            (action === "UPDATE" ? key.updateAction : key.deleteAction) ===
+                            "cascade",
+                    );
+                    if (!cascades) continue;
+                    this.add(
+                        "CannotCreateInsteadOfTriggerOnTableWithCascade",
+                        `Cannot create INSTEAD OF ${action} trigger '${triggerName}' on '${targetName}'. This is because table has a FOREIGN KEY with cascading ${action}.`,
+                        nameNode,
+                    );
+                }
+            }
+        }
+
+        if (!carriedOut || !activation.insteadOf || targetTriggers.kind !== "loaded") return;
+        // SQL Server checks the actions in this order and reports at most one per action.
+        for (const action of ["DELETE", "INSERT", "UPDATE"] as const) {
+            const flag = action === "DELETE" ? "delete" : action === "INSERT" ? "insert" : "update";
+            if (!activation[flag]) continue;
+            const conflict = targetTriggers.value.some(
+                (candidate) =>
+                    candidate !== existingHere && candidate.insteadOf === true && candidate[flag],
+            );
+            if (!conflict) continue;
+            this.add(
+                "DuplicateInsteadOfTrigger",
+                `Cannot create trigger '${triggerName}' on '${targetName}' because an INSTEAD OF ${action} trigger already exists on this object.`,
+                nameNode,
+            );
+        }
+    }
+
+    /** Resolves the object a trigger name is attached to, or undefined when it is the target itself. */
+    private triggerOwnerResolution(
+        targetParts: readonly string[],
+        triggerSchema: string | undefined,
+        alterOnly: boolean,
+        declaredTarget: ObjectResolution,
+    ): ObjectResolution | undefined {
+        if (triggerSchema === undefined && !alterOnly) return declaredTarget;
+        const objectName = targetParts.at(-1)!;
+        const database = targetParts.length >= 3 ? [targetParts.at(-3)!] : [];
+        return this._metadata.resolveObject(
+            triggerSchema === undefined
+                ? [...database, objectName]
+                : [...database, triggerSchema, objectName],
+        );
+    }
+
+    /**
+     * Whether this document redefines the named function before this offset.
+     *
+     * A module the document creates or alters is newer than the pinned catalog generation, so the
+     * catalog's description of it — including whether it is schema bound — no longer applies.
+     */
+    private functionRedefinedBefore(parts: readonly string[], offset: number): boolean {
+        const key = objectNameKey(parts, this._metadata);
+        for (const kind of ["CreateFunctionStatement", "AlterFunctionStatement"] as const) {
+            for (const node of this._index.get(kind) ?? []) {
+                if (node.end > offset) continue;
+                const nameNode = firstDescendant(node, "MultipartIdentifier");
+                if (!nameNode) continue;
+                const declared = multipartIdentifierParts(
+                    compactMultipartName(this.source(nameNode)),
+                );
+                if (objectNameKey(declared, this._metadata) === key) return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Whether the referenced table has a candidate key matching exactly these columns.
+     *
+     * A candidate key is a unique index, compared on its key columns only, so an INCLUDE column
+     * never satisfies a foreign key. An index set that is not loaded proves nothing, so the caller
+     * treats an unloaded set as a match and reports nothing.
+     */
+    private referencedKeyExists(object: ObjectMetadata, columns: readonly string[]): boolean {
+        const state = this._metadata.indexState(object.ref);
+        if (state.kind !== "loaded") return true;
+        const wanted = new Set(columns.map((column) => this.fold(column)));
+        if (wanted.size !== columns.length) return true;
+        return state.value.some((index) => {
+            if (index.unique !== true || !index.columns) return false;
+            const keys = index.columns.filter((column) => column.included !== true);
+            if (keys.length !== wanted.size) return false;
+            return keys.every((column) => wanted.has(this.fold(column.name)));
+        });
+    }
+
+    /** Reads the trigger's activation timing and DML actions from its structured event list. */
+    private triggerActivation(statement: SyntaxNode): {
+        insteadOf: boolean;
+        insert: boolean;
+        update: boolean;
+        delete: boolean;
+    } {
+        const events = firstDescendant(statement, "TriggerEventList");
+        const actions = new Set(
+            events
+                ? directChildren(events, "TriggerEvent").map((event) =>
+                      this.source(event).trim().toLocaleUpperCase(),
+                  )
+                : [],
+        );
+        return {
+            insteadOf: this.hasInsteadOfActivation(statement),
+            insert: actions.has("INSERT"),
+            update: actions.has("UPDATE"),
+            delete: actions.has("DELETE"),
+        };
+    }
+
+    /** INSTEAD OF is the two words that introduce the event list, so read them as tokens. */
+    private hasInsteadOfActivation(statement: SyntaxNode): boolean {
+        const events = firstDescendant(statement, "TriggerEventList");
+        if (!events) return false;
+        const tokens = [...this._syntax.tokens({ start: statement.start, end: events.start })]
+            .filter((token) => !token.trivia)
+            .map((token) => token.text.toLocaleUpperCase());
+        return tokens.at(-2) === "INSTEAD" && tokens.at(-1) === "OF";
+    }
+
     public validateModuleDefinitions(): void {
         for (const kind of ["CreateProcedureStatement", "AlterProcedureStatement"] as const) {
             for (const module of this.nodes(kind)) {
@@ -1905,6 +2811,65 @@ class ValidationContext {
                 select,
             );
         }
+    }
+
+    /**
+     * Names a statement the way SQL Server names it in a message.
+     *
+     * Statements the parser gives a dedicated node carry a fixed phrase. A few of those nodes cover
+     * more than one statement, so their phrase comes from their leading words. Everything else is
+     * named from its first significant token plus the second, unless the second is an identifier, a
+     * variable, or single-character punctuation.
+     */
+    private statementPhrase(statement: SyntaxNode): string | undefined {
+        const fixed = typedStatementPhrases.get(statement.kind);
+        if (fixed) return fixed;
+        if (statement.kind === "DeclareStatement") {
+            if (firstDescendant(statement, "CursorDeclaration")) return "DECLARE CURSOR";
+            return descendants(statement, "TableDefinition").length > 0
+                ? "DECLARE TABLE"
+                : "DECLARE";
+        }
+        if (statement.kind === "BeginControlStatement") {
+            const second = this.significantTokens(statement, 2)[1]?.text.toLocaleUpperCase();
+            if (second === "TRY") return "TRY CATCH";
+            if (second === "ATOMIC") return "BEGIN ATOMIC";
+            return "BEGIN END";
+        }
+        if (derivedStatementPhraseKinds.has(statement.kind)) {
+            const words = (this.source(statement).match(/^(?:[\p{L}_]+\s+){0,3}[\p{L}_]+/u) ?? [
+                "",
+            ])[0]
+                .toLocaleUpperCase()
+                .split(/\s+/u);
+            for (let length = words.length; length > 0; length--) {
+                const candidate = words.slice(0, length).join(" ");
+                if (knownStatementPhrases.has(candidate)) return candidate;
+            }
+        }
+        const tokens = this.significantTokens(statement, 2);
+        const first = tokens[0];
+        if (!first) return undefined;
+        const second = tokens[1];
+        if (
+            !second ||
+            unnamedPhraseTokenKinds.has(second.kind) ||
+            (second.text.length === 1 && !/[\p{L}\p{N}_]/u.test(second.text))
+        ) {
+            return first.text.toLocaleUpperCase();
+        }
+        return `${first.text} ${second.text}`.toLocaleUpperCase();
+    }
+
+    /** The first `limit` non-trivia tokens of a node, in document order. */
+    private significantTokens(range: TextRange, limit: number): readonly SyntaxToken[] {
+        const result: SyntaxToken[] = [];
+        for (const token of this._syntax.tokens(range)) {
+            if (token.trivia) continue;
+            result.push(token);
+            if (result.length === limit) break;
+        }
+        return result;
     }
 
     /**
@@ -2106,6 +3071,7 @@ class ValidationContext {
                 }
             }
         }
+        this.validateIndexCatalog();
         for (const index of this.nodes("CreateSemanticIndexStatement")) {
             if (firstDescendant(index, "SemanticExternalModel")) continue;
             const withClause = firstDescendant(index, "SemanticIndexWithClause") ?? index;
@@ -2115,6 +3081,242 @@ class ValidationContext {
                 withClause,
             );
         }
+    }
+
+    /**
+     * Validates CREATE INDEX against the target object's existing index set.
+     *
+     * Every result here needs an authoritative fact: a resolved target, and for the name and
+     * clustering rules a loaded index set. A pending, partial, stale, or failed index section
+     * proves nothing about which indexes exist, so it produces no diagnostic at all.
+     */
+    private validateIndexCatalog(): void {
+        for (const index of this.nodes("CreateIndexStatement")) {
+            if (containsErrorNode(index)) continue;
+            const targetNode = firstDescendant(index, "MultipartIdentifier");
+            const nameNode = firstDescendant(index, "IdentifierName");
+            if (!targetNode || !nameNode) continue;
+            const targetName = compactMultipartName(this.source(targetNode));
+            const parts = multipartIdentifierParts(targetName);
+            // A target created or dropped earlier in this document outranks the pinned catalog,
+            // and its index set is not described by any catalog generation.
+            if (this.localRelationEventAt(parts, targetNode.start)) continue;
+            const resolution = this._metadata.resolveObject(parts);
+            if (resolution.kind !== "resolved") continue;
+            const object = resolution.object;
+            const indexName = normalizeIdentifier(this.source(nameNode));
+            const { unique, clustered } = this.indexKindFlags(index);
+            const isView = object.kind === "view";
+
+            // A view's first clustered index must be unique. SQL Server reports the request and
+            // then continues as though UNIQUE had been written.
+            if (isView && clustered && !unique) {
+                this.add(
+                    "CannotCreateNonuniqueClusteredIndexOnView",
+                    `Cannot create nonunique clustered index on view '${targetName}' because only unique clustered indexes are allowed. Consider creating unique clustered index instead.`,
+                    nameNode,
+                );
+            }
+
+            const state = this._metadata.indexState(object.ref);
+            const existingIndexes = state.kind === "loaded" ? state.value : undefined;
+            const replaced = existingIndexes?.find((candidate) =>
+                this.equal(candidate.name, indexName),
+            );
+            const dropExisting = this.hasDropExistingIndexOption(index);
+            let replaces = false;
+            if (existingIndexes && !dropExisting) {
+                if (replaced) {
+                    this.add(
+                        "IndexOrStatisticsExists",
+                        `The index or statistics with name '${indexName}' already exists on table or view '${targetName}'.`,
+                        nameNode,
+                    );
+                } else {
+                    replaces = true;
+                }
+            } else if (existingIndexes) {
+                if (!replaced) {
+                    this.add(
+                        "CouldNotFindIndex",
+                        `Could not find any index named '${indexName}' for table '${targetName}'.`,
+                        nameNode,
+                    );
+                } else if (replaced.kind !== "relational") {
+                    this.add(
+                        "CannotConvertXmlOrSpatialIndexToRelational",
+                        `Could not convert the XML or spatial index '${indexName}' to a relational index by using the DROP_EXISTING option.  Drop the XML or spatial index and create a relational index with the same name.`,
+                        nameNode,
+                    );
+                } else if (replaced.clustered && !clustered) {
+                    this.add(
+                        "CannotConvertClusteredIndexToNonclustered",
+                        "Cannot convert a clustered index to a nonclustered index by using the DROP_EXISTING option. To change the index type from clustered to nonclustered, delete the clustered index, and then create a nonclustered index by using two separate statements.",
+                        nameNode,
+                    );
+                } else {
+                    replaces = true;
+                }
+            }
+
+            this.validateIndexOrderColumns(index, object, clustered);
+
+            // A large-value INCLUDE column forces an offline build, which ONLINE = ON contradicts.
+            if (this.indexRequiresOfflineBuild(index, object) && this.indexRequestsOnline(index)) {
+                this.add(
+                    "OnlineOperationCannotBePerformedOnIndexInvalidColumns",
+                    `An online operation cannot be performed for index '${indexName}' because the index contains columns of data type text, ntext, image, varchar(max), nvarchar(max), varbinary(max), xml, or large CLR type.`,
+                    nameNode,
+                );
+            }
+
+            // The index this statement replaces is no longer in the object's index set.
+            const otherClustered = existingIndexes?.find(
+                (candidate) => candidate !== replaced && candidate.clustered === true,
+            );
+            if (replaces && clustered && otherClustered) {
+                this.add(
+                    "ClusteredIndexExists",
+                    `Cannot create more than one clustered index on view '${targetName}'. Drop the existing clustered index '${otherClustered.name}' before creating another.`,
+                    nameNode,
+                );
+            }
+
+            if (!isView) continue;
+            // Only an explicit false proves a view is not schema bound; unknown stays silent.
+            if (object.schemaBound === false) {
+                this.add(
+                    "CannotCreateIndexOnViewNotSchemaBound",
+                    `Cannot create index on view '${targetName}' because the view is not schema bound.`,
+                    targetNode,
+                );
+            }
+            const columnState = this._metadata.columnState(object.ref);
+            if (
+                columnState.kind === "loaded" &&
+                columnState.value.some((column) => indexedViewInvalidColumnType(column.typeDisplay))
+            ) {
+                this.add(
+                    "CannotCreateIndexOnViewContainsInvalidColumns",
+                    `Cannot create index on view '${targetName}'. It contains text, ntext, image, FILESTREAM or xml columns.`,
+                    targetNode,
+                );
+            }
+            if (replaces && !clustered && !otherClustered) {
+                this.add(
+                    "CannotCreateIndexOnViewDoesNotHaveUniqueClusteredIndex",
+                    `Cannot create index on view '${targetName}'. It does not have a unique clustered index.`,
+                    nameNode,
+                );
+            }
+        }
+    }
+
+    /**
+     * Validates the columnstore ORDER list against the index's own key and included columns.
+     *
+     * A clustered columnstore index orders any column of the target; a nonclustered index can only
+     * order a column it already stores.
+     */
+    private validateIndexOrderColumns(
+        index: SyntaxNode,
+        object: ObjectMetadata,
+        clustered: boolean,
+    ): void {
+        const order = firstDescendant(index, "IndexOrderClause");
+        if (!order) return;
+        const targetColumns = this._metadata.columnState(object.ref);
+        const indexColumns = new Set(
+            this.indexStoredColumns(index).map((column) => this.fold(column)),
+        );
+        const seen = new Set<string>();
+        for (const column of descendants(order, "IndexOrderColumn")) {
+            const nameNode = firstDescendant(column, "IdentifierName");
+            if (!nameNode) continue;
+            const name = normalizeIdentifier(this.source(nameNode));
+            const key = this.fold(name);
+            if (
+                targetColumns.kind === "loaded" &&
+                !targetColumns.value.some((candidate) => this.equal(candidate.name, name))
+            ) {
+                this.add(
+                    "ColumnNameNotInTargetTable",
+                    `Column name '${name}' does not exist in the target table or view.`,
+                    nameNode,
+                );
+                continue;
+            }
+            if (seen.has(key)) {
+                this.add(
+                    "DuplicateColumnNamesInIndex",
+                    `Cannot use duplicate column names in index. Column name '${name}' listed more than once.`,
+                    nameNode,
+                );
+                continue;
+            }
+            seen.add(key);
+            if (!clustered && !indexColumns.has(key)) {
+                this.add(
+                    "ColumnIsInvalidForUseAsOrderColumnInIndex",
+                    `Column '${name}' in table '${object.name}' is of a type that is invalid for use as an order column in an index.`,
+                    nameNode,
+                );
+            }
+        }
+    }
+
+    /** The key and included column names this CREATE INDEX statement stores. */
+    private indexStoredColumns(index: SyntaxNode): readonly string[] {
+        const keyList = firstDescendant(index, "IndexColumnList");
+        const include = firstDescendant(index, "IncludeClause");
+        const names = keyList
+            ? descendants(keyList, "IndexColumn").flatMap((column) => {
+                  const name = firstDescendant(column, "IdentifierName");
+                  return name ? [normalizeIdentifier(this.source(name))] : [];
+              })
+            : [];
+        if (include) {
+            for (const name of descendants(include, "IdentifierName")) {
+                names.push(normalizeIdentifier(this.source(name)));
+            }
+        }
+        return names;
+    }
+
+    /** UNIQUE and CLUSTERED are separate words of the index kind, so read them as tokens. */
+    private indexKindFlags(index: SyntaxNode): { unique: boolean; clustered: boolean } {
+        const kind = firstDescendant(index, "CreateIndexKind");
+        const words = kind
+            ? this.significantTokens(kind, 4).map((token) => token.text.toLocaleUpperCase())
+            : [];
+        return { unique: words.includes("UNIQUE"), clustered: words.includes("CLUSTERED") };
+    }
+
+    /** A large-value included column can only be built offline. */
+    private indexRequiresOfflineBuild(index: SyntaxNode, object: ObjectMetadata): boolean {
+        const include = firstDescendant(index, "IncludeClause");
+        if (!include) return false;
+        const columnState = this._metadata.columnState(object.ref);
+        if (columnState.kind !== "loaded") return false;
+        return descendants(include, "IdentifierName").some((node) => {
+            const name = normalizeIdentifier(this.source(node));
+            const column = columnState.value.find((candidate) => this.equal(candidate.name, name));
+            return offlineOnlyIncludedColumnType(column?.typeDisplay);
+        });
+    }
+
+    private indexRequestsOnline(index: SyntaxNode): boolean {
+        return descendants(index, "GenericOption").some((option) => {
+            const name = firstDescendant(option, "GenericOptionName");
+            if (
+                !name ||
+                normalizeIdentifier(this.source(name).trim()).toLocaleUpperCase() !== "ONLINE"
+            ) {
+                return false;
+            }
+            const value = firstDescendant(option, "OptionValue");
+            return value !== undefined && this.source(value).toLocaleUpperCase() === "ON";
+        });
     }
 
     public validateBatchContracts(): void {
@@ -2223,6 +3425,38 @@ class ValidationContext {
     }
 
     public validateOptions(): void {
+        for (const clause of this.nodes("LegacyCreateIndexWithClause")) {
+            for (const option of directChildren(clause, "LegacyCreateIndexOption")) {
+                const nameNode = [...option.children()][0];
+                if (!nameNode) continue;
+                const displayName = this.source(nameNode).trim();
+                const name = normalizeIdentifier(displayName).toLocaleUpperCase();
+                const assigned = firstDescendant(option, "Equal") !== undefined;
+                const valid =
+                    (name === "FILLFACTOR" && assigned) ||
+                    (!assigned && legacyCreateIndexOptionNames.has(name));
+                if (valid) continue;
+                this.add(
+                    "InvalidUsageOfIndexOption",
+                    `Invalid usage of the option ${displayName} in the CREATE INDEX statement.`,
+                    nameNode,
+                );
+            }
+        }
+
+        for (const clause of this.nodes("ExecuteWithClause")) {
+            if (containsErrorNode(clause)) continue;
+            for (const option of directChildren(clause, "ExecuteOption")) {
+                const invalid = firstDescendant(option, "InvalidExecuteModuleOption");
+                if (!invalid) continue;
+                this.add(
+                    "InvalidExecuteOption",
+                    'An invalid option was specified for the statement "EXECUTE".',
+                    invalid,
+                );
+            }
+        }
+
         for (const hint of this.nodes("TableHint")) {
             const nameNode = firstDescendant(hint, "TableHintName");
             if (!nameNode) continue;
@@ -2608,6 +3842,40 @@ class ValidationContext {
         }
     }
 
+    /**
+     * Reports a four-part function call that names a remote function.
+     *
+     * A four-part name in a call position takes precedence over every other result for that call.
+     * It stays silent when the call resolves to a function, and when its last part binds as an
+     * ordinary column, because only a UDT or XML column can carry a callable member.
+     */
+    private validateRemoteFunctionReference(
+        call: SyntaxNode,
+        sources: readonly QuerySource[],
+    ): void {
+        if (containsErrorNode(call)) return;
+        const nameNode = firstDescendant(call, "MultipartIdentifier");
+        if (!nameNode) return;
+        const displayName = compactMultipartName(this.source(nameNode));
+        const parts = multipartIdentifierParts(displayName);
+        if (parts.length !== 4) return;
+        if (this.localRelationEventAt(parts, nameNode.start)) return;
+        const resolution = this._metadata.resolveObject(parts);
+        if (resolution.kind === "resolved" || resolution.kind === "unknown") return;
+        const columnName = parts.at(-1)!;
+        const source = sources.find((candidate) =>
+            this.equal(candidate.exposedName, parts.at(-2)!),
+        );
+        const column = source?.columns?.find((candidate) => this.equal(candidate.name, columnName));
+        // A column that can carry a callable member does not make the four-part name valid.
+        if (column && !memberBearingColumnType(column.typeDisplay)) return;
+        this.add(
+            "RemoteFunctionRefIsNotAllowed",
+            `Remote function reference '${displayName}' is not allowed, and the column name '${columnName}' could not be found or is ambiguous.`,
+            nameNode,
+        );
+    }
+
     private validateColumn(
         node: SyntaxNode,
         parts: readonly string[],
@@ -2620,10 +3888,13 @@ class ValidationContext {
                 this.equal(candidate.exposedName, qualifier),
             );
             if (!source) {
+                // A qualified column whose qualifier binds to no rowset is a multi-part identifier
+                // that could not be bound. The prefix-mismatch message belongs to a qualified star,
+                // where there is no column name to report and the qualifier itself is at fault.
                 this.add(
-                    "ColumnPrefixMismatch",
-                    `The column prefix '${qualifier}' does not match with a table name or alias name used in the query.`,
-                    identifierPartRange(node, this.source(node), parts.length - 2),
+                    "MultiPartIdentifierBindingError",
+                    `The multi-part identifier "${compactMultipartName(this.source(node))}" could not be bound.`,
+                    node,
                 );
                 return;
             }
@@ -2687,6 +3958,20 @@ class ValidationContext {
             const star = /^(?:(.+)\.)?\*$/u.exec(this.source(element).trim());
             if (!star) continue;
             const qualifier = star[1] && normalizeIdentifier(star[1]);
+            // A qualified star has no column name to report, so an unmatched qualifier is reported
+            // as a prefix mismatch at the qualifier itself.
+            if (
+                qualifier !== undefined &&
+                sources.length > 0 &&
+                !sources.some((source) => this.equal(source.exposedName, qualifier))
+            ) {
+                const identifiers = descendants(element, "IdentifierName");
+                this.add(
+                    "ColumnPrefixMismatch",
+                    `The column prefix '${qualifier}' does not match with a table name or alias name used in the query.`,
+                    identifiers.at(-1) ?? element,
+                );
+            }
             for (const source of sources) {
                 if (source.scopeDepth !== 0 || !this.isXmlNodesSource(source)) continue;
                 if (qualifier && !this.equal(source.exposedName, qualifier)) continue;
@@ -2759,6 +4044,59 @@ class ValidationContext {
         }
     }
 
+    /**
+     * Reports an argument whose type does not match a non-scalar parameter.
+     *
+     * Only cursor and table-valued parameters carry this rule: a scalar parameter converts its
+     * argument instead. Both type names must be known, so an argument that is not a declared
+     * variable, or a parameter whose type does not resolve, reports nothing.
+     */
+    private validateNonScalarArgumentType(
+        argument: SyntaxNode,
+        parameter: ParameterMetadata,
+        named: boolean,
+    ): void {
+        const parameterType = this.nonScalarTypeName(parameter.typeDisplay);
+        if (!parameterType) return;
+        // A named argument spells the parameter first, so the supplied value is the later variable.
+        const variables = descendants(argument, "Variable");
+        const variable = named ? variables.at(-1) : variables[0];
+        if (!variable || (named && variables.length < 2)) return;
+        const declaration = this.variableAt(this.source(variable), variable.start, false);
+        const argumentType = declaration && this.declaredTypeName(declaration.typeDisplay);
+        if (!argumentType || this.equal(argumentType, parameterType)) return;
+        this.add(
+            "OperandTypeClash",
+            `Operand type clash: ${argumentType} is incompatible with ${parameterType}`,
+            argument,
+        );
+    }
+
+    /** Names a parameter's type when that type is a cursor or a table type, and nothing otherwise. */
+    private nonScalarTypeName(typeDisplay: string | undefined): string | undefined {
+        const name = this.declaredTypeName(typeDisplay);
+        if (!name) return undefined;
+        if (name.toLocaleLowerCase() === "cursor") return name;
+        const parts = multipartIdentifierParts(
+            compactMultipartName(typeDisplay!.replace(/\(.*$/su, "")),
+        );
+        const resolution = this._metadata.resolveObject(parts);
+        return resolution.kind === "resolved" &&
+            resolution.object.kind === "type" &&
+            resolution.object.typeCategory === "table"
+            ? name
+            : undefined;
+    }
+
+    /** The bare type name of a declared type, without its schema or its arguments. */
+    private declaredTypeName(typeDisplay: string | undefined): string | undefined {
+        if (!typeDisplay) return undefined;
+        const parts = multipartIdentifierParts(
+            compactMultipartName(typeDisplay.replace(/\(.*$/su, "")),
+        );
+        return parts.at(-1);
+    }
+
     private validateExecuteArguments(
         execute: SyntaxNode,
         procedureName: string,
@@ -2790,7 +4128,10 @@ class ValidationContext {
             const named = /^\s*(@[\p{L}_][\p{L}\p{N}_$#@]*)\s*=/iu.exec(text)?.[1];
             if (!named) {
                 const positional = parameters[index];
-                if (positional) supplied.add(this.fold(positional.name));
+                if (positional) {
+                    supplied.add(this.fold(positional.name));
+                    this.validateNonScalarArgumentType(argument, positional, false);
+                }
                 if (namedSeen) {
                     this.add(
                         "InconsistentParameterFormat",
@@ -2812,6 +4153,7 @@ class ValidationContext {
             }
             supplied.add(key);
             const parameter = parameterByName.get(key);
+            if (parameter) this.validateNonScalarArgumentType(argument, parameter, true);
             if (!parameter) {
                 this.add(
                     "InvalidParameter",
@@ -2970,6 +4312,7 @@ class ValidationContext {
             ...descendantsOwnedBy(query, "VariableTableSource", query),
             ...descendantsOwnedBy(query, "DerivedTableSource", query),
             ...descendantsOwnedBy(query, "DerivedTable", query),
+            ...descendantsOwnedBy(query, "NestedDmlTableSource", query),
             ...descendantsOwnedBy(query, "VectorSearchTableSource", query),
         ]) {
             const aliasNode = firstDescendant(node, "TableAlias");
@@ -3039,6 +4382,16 @@ class ValidationContext {
         }
         if (source.kind === "DerivedTableSource" || source.kind === "DerivedTable") {
             return projectedColumns(this._syntax, source);
+        }
+        // A nested DML statement exposes exactly the columns its explicit list names; without one
+        // the OUTPUT clause decides, which this layer does not type.
+        if (source.kind === "NestedDmlTableSource") {
+            const names = firstDescendant(source, "ColumnNameList");
+            return names
+                ? descendants(names, "IdentifierName").map((node) => ({
+                      name: normalizeIdentifier(this.source(node)),
+                  }))
+                : undefined;
         }
         if (source.kind === "FunctionTableSource") {
             const builtIn = parts.at(-1)?.toLocaleUpperCase();
@@ -3230,6 +4583,23 @@ class ValidationContext {
     }
 }
 
+// Each security object reports its own code and message when the catalog cannot find it.
+const securableCodes: Readonly<Record<SqlSecurableKind, string>> = Object.freeze({
+    credential: "CouldNotFindCredential",
+    certificate: "CouldNotFindCertificate",
+    asymmetricKey: "CouldNotFindAsymmetricKey",
+});
+
+function securableMessage(kind: SqlSecurableKind, name: string): string {
+    if (kind === "credential") {
+        return `Cannot find the credential '${name}', because it does not exist or you do not have permission.`;
+    }
+    if (kind === "certificate") {
+        return `Cannot find the certificate '${name}', because it does not exist or you do not have permission.`;
+    }
+    return `Cannot find the assymetric key '${name}', because it does not exist or you do not have permission.`;
+}
+
 function principalKinds(kind: string): readonly SqlPrincipalKind[] {
     if (kind === "LOGIN") return ["login"];
     if (kind === "USER") return ["user"];
@@ -3300,6 +4670,8 @@ interface VariableDeclaration {
     readonly name: string;
     readonly node: TextRange;
     readonly scope: string;
+    /** The declared type as written, used to bind member access on the variable. */
+    readonly typeDisplay?: string;
     readonly columns?: readonly ColumnMetadata[];
 }
 
@@ -3610,10 +4982,14 @@ function collectVariableDeclarations(
             const variable = firstDescendant(declaration, "Variable");
             if (!variable) return undefined;
             const definition = firstDescendant(declaration, "TableDefinition");
+            const dataType = firstDescendant(declaration, "DataType");
             return {
                 name: syntax.document.text.slice(variable.start, variable.end),
                 node: variable,
                 scope: nodeKey(scopeAt(syntax.root(), declaration.start)),
+                ...(dataType
+                    ? { typeDisplay: syntax.document.text.slice(dataType.start, dataType.end) }
+                    : {}),
                 ...(definition ? { columns: definitionColumns(syntax, definition) } : {}),
             };
         })
@@ -3988,6 +5364,7 @@ function compactMultipartName(value: string): string {
 function moduleOptionDisplayName(source: string): string {
     const value = source.trim();
     if (/^EXECUTE\s+AS\b/iu.test(value)) return "EXECUTE AS";
+    if (/^RESULT\s+SETS\b/iu.test(value)) return "RESULT SETS";
     return normalizeIdentifier(value).toLocaleUpperCase();
 }
 
@@ -4326,6 +5703,455 @@ const knownStatementPhrases = new Set([
 
 const dmlStatementPhrases = new Set(["DELETE", "INSERT", "MERGE"]);
 
+// The reviewed catalog of built-in scalar function names for the supported engine profiles. A
+// one-part call names a built-in, because a user-defined scalar function must be schema qualified,
+// so a one-part name outside this catalog is not a recognized function at all.
+const builtInScalarFunctionNames = new Set([
+    "abs",
+    "acos",
+    "ai_generate_embeddings",
+    "app_name",
+    "applock_mode",
+    "applock_test",
+    "ascii",
+    "asin",
+    "assemblyproperty",
+    "asymkey_id",
+    "asymkeyproperty",
+    "atan",
+    "atn2",
+    "base64_decode",
+    "base64_encode",
+    "bcpcollationname",
+    "binary_checksum",
+    "bit_count",
+    "brick_id",
+    "cast",
+    "ceiling",
+    "cert_id",
+    "certencoded",
+    "certprivatekey",
+    "certproperty",
+    "change_tracking_current_version",
+    "change_tracking_is_column_in_mask",
+    "change_tracking_min_valid_version",
+    "char",
+    "charindex",
+    "checksum",
+    "choose",
+    "cloud_databasepropertyex",
+    "col_length",
+    "col_name",
+    "collationname",
+    "collationproperty",
+    "collationpropertyfromid",
+    "columnproperty",
+    "columnpropertyex",
+    "columns_updated",
+    "comparecompressedscalars",
+    "comparevardecimal",
+    "compress",
+    "compressnumeric",
+    "compressscalar",
+    "concat",
+    "concat_ws",
+    "connectionproperty",
+    "context_info",
+    "convert",
+    "convertresvtostring",
+    "cos",
+    "cot",
+    "crypt_gen_random",
+    "current_date",
+    "current_request_id",
+    "current_timezone",
+    "current_timezone_id",
+    "current_transaction_id",
+    "cursor_status",
+    "database_principal_id",
+    "databaseproperty",
+    "databasepropertyex",
+    "datalength",
+    "date_bucket",
+    "dateadd",
+    "datediff",
+    "datediff_big",
+    "datefromparts",
+    "datename",
+    "datepart",
+    "datetime2fromparts",
+    "datetimefromparts",
+    "datetimeoffsetfromparts",
+    "datetrunc",
+    "day",
+    "db_id",
+    "db_name",
+    "decompress",
+    "decompressnumeric",
+    "decompressscalar",
+    "decryptbyasymkey",
+    "decryptbycert",
+    "decryptbykey",
+    "decryptbykeyautoasymkey",
+    "decryptbykeyautocert",
+    "decryptbypassphrase",
+    "default_domain",
+    "degrees",
+    "difference",
+    "edit_distance",
+    "edit_distance_similarity",
+    "encryptbyasymkey",
+    "encryptbycert",
+    "encryptbykey",
+    "encryptbypassphrase",
+    "eomonth",
+    "error_line",
+    "error_message",
+    "error_number",
+    "error_procedure",
+    "error_severity",
+    "error_state",
+    "eventdata",
+    "exp",
+    "fazureadminsession",
+    "federation_filtering_value",
+    "file_id",
+    "file_idex",
+    "file_name",
+    "filegroup_id",
+    "filegroup_name",
+    "filegroupproperty",
+    "fileproperty",
+    "filetablerootpath",
+    "floor",
+    "format",
+    "formatmessage",
+    "fulltextcatalogproperty",
+    "fulltextserviceproperty",
+    "gen_norm_tables",
+    "gendbnamefrompath",
+    "get_bit",
+    "get_cloud_partition_max_size",
+    "get_filestream_transaction_context",
+    "get_new_rowversion",
+    "get_transmission_status",
+    "getansinull",
+    "getbinarysparsevector",
+    "getchecksum",
+    "getdate",
+    "getdefault",
+    "getpathlocator",
+    "getutcdate",
+    "greatest",
+    "has_dbaccess",
+    "has_perms_by_name",
+    "hashbytes",
+    "host_id",
+    "host_name",
+    "ident_current",
+    "ident_incr",
+    "ident_seed",
+    "identityproperty",
+    "iif",
+    "index_col",
+    "indexkey_property",
+    "indexproperty",
+    "is_callersigned",
+    "is_member",
+    "is_objectsigned",
+    "is_rolemember",
+    "is_srvrolemember",
+    "isdate",
+    "isjson",
+    "isnull",
+    "isnumeric",
+    "jaro_winkler_distance",
+    "jaro_winkler_similarity",
+    "json_contains",
+    "json_modify",
+    "json_path_exists",
+    "json_query",
+    "json_value",
+    "key_guid",
+    "key_id",
+    "key_name",
+    "least",
+    "left",
+    "left_shift",
+    "len",
+    "log",
+    "log10",
+    "loginproperty",
+    "lower",
+    "ltrim",
+    "min_active_rowversion",
+    "month",
+    "nchar",
+    "newfilestreamvalue",
+    "newid",
+    "newsequentialid",
+    "normalize",
+    "normalize_denormalize",
+    "nt_client",
+    "object_definition",
+    "object_id",
+    "object_name",
+    "object_schema_name",
+    "objectproperty",
+    "objectpropertyex",
+    "objidupdate",
+    "odbcprec",
+    "odbcscale",
+    "original_db_name",
+    "original_login",
+    "parse",
+    "parsename",
+    "partition_fragment_id",
+    "patindex",
+    "permissions",
+    "pi",
+    "platform",
+    "power",
+    "program_name",
+    "publishingservername",
+    "pwdcompare",
+    "pwdencrypt",
+    "quotename",
+    "radians",
+    "rand",
+    "regexp_count",
+    "regexp_instr",
+    "regexp_like",
+    "regexp_replace",
+    "regexp_substr",
+    "replace",
+    "replicate",
+    "retrievedbreplicastate",
+    "reverse",
+    "right",
+    "right_shift",
+    "round",
+    "rowcount_big",
+    "rtrim",
+    "schema_id",
+    "schema_name",
+    "scope_identity",
+    "serverproperty",
+    "session_context",
+    "session_id",
+    "sessionproperty",
+    "set_bit",
+    "sid_binary",
+    "sign",
+    "signbyasymkey",
+    "signbycert",
+    "sin",
+    "smalldatetimefromparts",
+    "soundex",
+    "space",
+    "sql_connection_mode",
+    "sql_variant_property",
+    "sqrt",
+    "square",
+    "stats_date",
+    "str",
+    "string_escape",
+    "stuff",
+    "substring",
+    "suser_id",
+    "suser_name",
+    "suser_sid",
+    "suser_sname",
+    "switchoffset",
+    "symkeyproperty",
+    "sysdatetime",
+    "sysdatetimeoffset",
+    "sysutcdatetime",
+    "tan",
+    "tertiary_weights",
+    "textptr",
+    "textvalid",
+    "timefromparts",
+    "todatetimeoffset",
+    "translate",
+    "trigger_nestlevel",
+    "trim",
+    "try_cast",
+    "try_convert",
+    "try_parse",
+    "type_id",
+    "type_name",
+    "typeproperty",
+    "uncompress",
+    "unicode",
+    "unistr",
+    "update",
+    "upper",
+    "user_id",
+    "user_name",
+    "user_sid",
+    "vector_distance",
+    "vector_norm",
+    "vector_normalize",
+    "verifysignedbyasymkey",
+    "verifysignedbycert",
+    "version",
+    "xact_state",
+    "xml_schema_namespace",
+    "xtypetotds",
+    "year",
+]);
+
+// The named parameters CREATE EXTERNAL STREAM accepts, and the one every stream must declare.
+const externalStreamParameterNames = new Set([
+    "DATA_SOURCE",
+    "FILE_FORMAT",
+    "INPUT_OPTIONS",
+    "LOCATION",
+    "OUTPUT_OPTIONS",
+]);
+const requiredExternalStreamParameters = ["DATA_SOURCE"] as const;
+
+// Ranking and analytic functions are a separate catalog from the built-in scalar functions.
+const windowFunctionNames = new Set([
+    "cume_dist",
+    "dense_rank",
+    "first_value",
+    "lag",
+    "last_value",
+    "lead",
+    "ntile",
+    "percent_rank",
+    "percentile_cont",
+    "percentile_disc",
+    "rank",
+    "row_number",
+]);
+
+// The XML data type exposes exactly these methods and no properties or fields.
+const xmlDataTypeMethods = new Set(["query", "value", "exist", "modify", "nodes"]);
+
+// The statements SQL Server accepts as a rowset when they are written as a table source.
+const nestedDmlStatementKinds = new Set([
+    "DeleteStatement",
+    "InsertStatement",
+    "MergeStatement",
+    "UpdateStatement",
+]);
+
+/**
+ * The statement phrase SQL Server uses for each statement it gives a dedicated parse node.
+ *
+ * The phrase follows the statement kind rather than its spelling, so `EXEC` is still "EXECUTE" and
+ * `CREATE PROC` is still "CREATE PROCEDURE". Kinds absent here are named from their own tokens.
+ */
+const typedStatementPhrases = new Map([
+    ["AlterFunctionStatement", "ALTER FUNCTION"],
+    ["AlterProcedureStatement", "ALTER PROCEDURE"],
+    ["AlterTriggerStatement", "ALTER TRIGGER"],
+    ["AlterViewStatement", "ALTER VIEW"],
+    ["BreakStatement", "BREAK"],
+    ["ContinueStatement", "CONTINUE"],
+    ["CreateFunctionStatement", "CREATE FUNCTION"],
+    ["CreateIndexStatement", "CREATE INDEX"],
+    ["CreateProcedureStatement", "CREATE PROCEDURE"],
+    ["CreateSchemaStatement", "CREATE SCHEMA"],
+    ["CreateSynonymStatement", "CREATE SYNONYM"],
+    ["CreateTableStatement", "CREATE TABLE"],
+    ["CreateTriggerStatement", "CREATE TRIGGER"],
+    ["CreateTypeStatement", "CREATE TYPE"],
+    ["CreateViewStatement", "CREATE VIEW"],
+    ["DbccStatement", "DBCC"],
+    ["DeleteStatement", "DELETE"],
+    ["DropDatabaseStatement", "DROP DATABASE"],
+    ["DropFunctionStatement", "DROP FUNCTION"],
+    ["DropIndexStatement", "DROP INDEX"],
+    ["DropProcedureStatement", "DROP PROCEDURE"],
+    ["DropSchemaStatement", "DROP SCHEMA"],
+    ["DropSequenceStatement", "DROP SEQUENCE"],
+    ["DropSynonymStatement", "DROP SYNONYM"],
+    ["DropTableStatement", "DROP TABLE"],
+    ["DropTriggerStatement", "DROP TRIGGER"],
+    ["DropTypeStatement", "DROP TYPE"],
+    ["DropViewStatement", "DROP VIEW"],
+    ["ExecuteStatement", "EXECUTE"],
+    ["IfStatement", "IF"],
+    ["InsertStatement", "INSERT"],
+    ["MergeStatement", "MERGE"],
+    ["ReturnStatement", "RETURN"],
+    ["SelectStatement", "SELECT"],
+    ["SetStatement", "SET"],
+    ["UpdateStatement", "UPDATE"],
+    ["UseStatement", "USE"],
+    ["WhileStatement", "WHILE"],
+]);
+
+// Identifier and variable tokens never contribute to a statement phrase derived from tokens.
+const unnamedPhraseTokenKinds = new Set([
+    "BracketedIdentifier",
+    "DoubleQuotedIdentifier",
+    "GlobalVariable",
+    "Identifier",
+    "TempIdentifier",
+    "Variable",
+]);
+
+// A data-tier application build replays only these CREATE data-definition statements.
+const buildModeCreateDdlKinds = new Set([
+    "CreateFunctionStatement",
+    "CreateIndexStatement",
+    "CreatePrincipalStatement",
+    "CreateProcedureStatement",
+    "CreateSchemaStatement",
+    "CreateSynonymStatement",
+    "CreateTableStatement",
+    "CreateTriggerStatement",
+    "CreateTypeStatement",
+    "CreateViewStatement",
+]);
+
+// The system types a data-tier application build cannot carry, named as the catalog names them.
+const buildModeUnsupportedDataTypes = new Set(["geography", "geometry", "hierarchyid"]);
+
+/** Only a UDT or XML column can carry a callable member, so only those keep a four-part call valid. */
+function memberBearingColumnType(typeDisplay: string | undefined): boolean {
+    if (!typeDisplay) return true;
+    const normalized = typeDisplay.replace(/\s+/gu, "").toLocaleLowerCase();
+    if (normalized.startsWith("xml")) return true;
+    return !systemDataTypes.has(normalized.replace(/\(.*$/su, ""));
+}
+
+/** An indexed view may not project any of these types, whatever the index itself contains. */
+function indexedViewInvalidColumnType(typeDisplay: string | undefined): boolean {
+    if (!typeDisplay) return false;
+    return /^(?:image|ntext|text|xml)\b/u.test(
+        typeDisplay.replace(/\s+/gu, "").toLocaleLowerCase(),
+    );
+}
+
+/** These included column types are valid, but force the index build to run offline. */
+function offlineOnlyIncludedColumnType(typeDisplay: string | undefined): boolean {
+    if (!typeDisplay) return false;
+    return /^(?:nvarchar|varbinary|varchar)\(max\)$/u.test(
+        typeDisplay.replace(/\s+/gu, "").toLocaleLowerCase(),
+    );
+}
+
+/** Names the unsupported build-mode system type a data type specification uses, if any. */
+function buildModeUnsupportedDataType(source: string): string | undefined {
+    const parts = multipartIdentifierParts(source.replace(/\(.*$/su, ""));
+    const name = parts.at(-1)?.toLocaleLowerCase();
+    return name !== undefined && buildModeUnsupportedDataTypes.has(name) ? name : undefined;
+}
+
+/** Unwraps the statement node a build classifies, seeing through the procedural statement group. */
+function buildModeStatementNode(statement: SyntaxNode): SyntaxNode | undefined {
+    const child = [...statement.children()][0];
+    if (!child) return undefined;
+    if (child.kind !== "ProceduralStatement") return child;
+    return [...child.children()][0] ?? child;
+}
+
 // Index options a key constraint never accepts, and those it accepts only through ALTER TABLE.
 const constraintForbiddenIndexOptions = new Set(["DROP_EXISTING", "STATISTICS_ONLY"]);
 const constraintBuildOnlyIndexOptions = new Set(["MAXDOP", "ONLINE", "SORT_IN_TEMPDB"]);
@@ -4463,6 +6289,24 @@ const collatableSystemTypeSynonyms = new Set([
 
 const viewOptions = new Set(["ENCRYPTION", "SCHEMABINDING", "VIEW_METADATA"]);
 
+// The unparenthesized CREATE INDEX WITH syntax predates the modern option-list syntax and accepts
+// only these flag options plus an assigned FILLFACTOR value.
+const legacyCreateIndexOptionNames = new Set([
+    "DROP_EXISTING",
+    "IGNORE_DUP_KEY",
+    "PAD_INDEX",
+    "SORT_IN_TEMPDB",
+    "STATISTICS_NORECOMPUTE",
+]);
+
+// These scoped settings share the ON/OFF/PRIMARY value family. MAXDOP is validated separately
+// because its value is PRIMARY or a signed integer.
+const scopedBooleanConfigurationNames = new Set([
+    "LEGACY_CARDINALITY_ESTIMATION",
+    "PARAMETER_SNIFFING",
+    "QUERY_OPTIMIZER_HOTFIXES",
+]);
+
 // SQL Server maps exactly these spellings to a cursor option; anything else in either cursor option
 // list is unrecognized. Only INSENSITIVE and SCROLL may appear in the ISO list before CURSOR.
 const cursorOptionNames = new Set([
@@ -4486,6 +6330,7 @@ const isoCursorOptionNames = new Set(["INSENSITIVE", "SCROLL"]);
 // other name there is unrecognized rather than misplaced. EXECUTE AS has its own option syntax.
 const recognizedModuleOptions = new Set([
     "ENCRYPTION",
+    "RESULT SETS",
     "NATIVE_COMPILATION",
     "RECOMPILE",
     "SCHEMABINDING",

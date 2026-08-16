@@ -5,9 +5,12 @@
 
 import type { Disposable } from "../common/disposable.js";
 import type {
+    ClrTypeMetadata,
     ColumnMetadata,
     DatabaseMetadata,
     DatabaseCatalogCompleteness,
+    ForeignKeyMetadata,
+    IndexMetadata,
     MetadataHydrationRequest,
     MetadataLoadState,
     MetadataProvider,
@@ -22,6 +25,9 @@ import type {
     PrincipalMetadata,
     PrincipalSearchQuery,
     SchemaMetadata,
+    SecurableMetadata,
+    SecurableSearchQuery,
+    TriggerMetadata,
 } from "../metadata/index.js";
 
 /**
@@ -118,6 +124,22 @@ class DevQueryPinnedView implements MetadataView {
         return this._inner.parameterState(ref);
     }
 
+    public indexState(ref: ObjectRef): MetadataLoadState<readonly IndexMetadata[]> {
+        return this._inner.indexState(ref);
+    }
+
+    public triggerState(ref: ObjectRef): MetadataLoadState<readonly TriggerMetadata[]> {
+        return this._inner.triggerState(ref);
+    }
+
+    public foreignKeyState(ref: ObjectRef): MetadataLoadState<readonly ForeignKeyMetadata[]> {
+        return this._inner.foreignKeyState(ref);
+    }
+
+    public clrTypeState(ref: ObjectRef): MetadataLoadState<ClrTypeMetadata> {
+        return this._inner.clrTypeState(ref);
+    }
+
     public searchObjects(query: ObjectSearchQuery): readonly ObjectMetadata[] {
         return this._inner.searchObjects(query);
     }
@@ -128,6 +150,14 @@ class DevQueryPinnedView implements MetadataView {
 
     public searchPrincipals(query: PrincipalSearchQuery): readonly PrincipalMetadata[] {
         return this._inner.searchPrincipals(query);
+    }
+
+    public searchSecurables(query: SecurableSearchQuery): readonly SecurableMetadata[] {
+        return this._inner.searchSecurables(query);
+    }
+
+    public collations(): readonly string[] | undefined {
+        return this._inner.collations();
     }
 
     public schemas(database?: string): readonly SchemaMetadata[] | undefined {

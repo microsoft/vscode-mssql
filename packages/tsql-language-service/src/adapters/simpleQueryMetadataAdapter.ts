@@ -6,7 +6,10 @@
 import type { Disposable } from "../common/disposable.js";
 import {
     InMemoryMetadataProvider,
+    type ClrTypeMetadata,
     type ColumnMetadata,
+    type ForeignKeyMetadata,
+    type IndexMetadata,
     type InMemoryMetadataInput,
     type MetadataHydrationRequest,
     type MetadataLoadState,
@@ -15,6 +18,7 @@ import {
     type MetadataSection,
     type MetadataView,
     type ParameterMetadata,
+    type TriggerMetadata,
 } from "../metadata/index.js";
 
 export type SimpleQueryCell = string | number | boolean | bigint | Uint8Array | Date | undefined;
@@ -70,6 +74,12 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
                 objects: "unknown",
                 columns: "unknown",
                 parameters: "unknown",
+                indexes: "unknown",
+                triggers: "unknown",
+                constraints: "unknown",
+                clrTypes: "unknown",
+                securables: "unknown",
+                collations: "unknown",
                 principals: "unknown",
                 definitions: "unknown",
             },
@@ -103,7 +113,12 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
             this.requestDatabaseHydration(request);
             return;
         }
-        if (!request.object || !["columns", "parameters"].includes(request.section)) {
+        if (
+            !request.object ||
+            !["columns", "parameters", "indexes", "triggers", "constraints", "clrTypes"].includes(
+                request.section,
+            )
+        ) {
             void this.refresh().catch(() => undefined);
             return;
         }
@@ -119,7 +134,9 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
                 this._store.merge(
                     loadStatePatch(request, {
                         kind: "failed",
-                        previous: previousValue,
+                        ...(previousValue === undefined
+                            ? {}
+                            : { previous: previousValue as never }),
                     }),
                 );
                 throw error;
@@ -152,7 +169,8 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
         ) {
             return;
         }
-        const state = view.databaseCatalogCompleteness(database)[request.section as "schemas" | "objects"];
+        const state =
+            view.databaseCatalogCompleteness(database)[request.section as "schemas" | "objects"];
         if (state === "ready") return;
         const normalizedRequest = { ...request, database };
         const key = `${request.section}:database:${database.toLocaleLowerCase()}`;
@@ -190,7 +208,7 @@ export class SimpleQueryMetadataAdapter implements MetadataProvider {
         }
         // The simple-query loader currently has an isolated authoritative query for principals.
         // Other invalidations retain correctness by using the complete catalog refresh path.
-        if (normalized.some((section) => section !== "principals")) {
+        if (normalized.some((section) => section !== "principals" && section !== "securables")) {
             return this.refresh(signal);
         }
         const key = normalized.join(",");
@@ -277,19 +295,50 @@ function usableSectionState(state: MetadataView["completeness"][MetadataSection]
 }
 
 function loadState(view: MetadataView, request: MetadataHydrationRequest) {
-    return request.section === "columns"
-        ? view.columnState(request.object!)
-        : view.parameterState(request.object!);
+    if (request.section === "columns") return view.columnState(request.object!);
+    if (request.section === "indexes") return view.indexState(request.object!);
+    if (request.section === "triggers") return view.triggerState(request.object!);
+    if (request.section === "constraints") return view.foreignKeyState(request.object!);
+    if (request.section === "clrTypes") return view.clrTypeState(request.object!);
+    return view.parameterState(request.object!);
 }
 
 function loadStatePatch(
     request: MetadataHydrationRequest,
-    state: MetadataLoadState<readonly unknown[]>,
+    state: MetadataLoadState<never>,
 ): InMemoryMetadataInput {
     if (request.section === "columns") {
         return {
             columnStates: new Map([
                 [request.object!.id, state as MetadataLoadState<readonly ColumnMetadata[]>],
+            ]),
+        };
+    }
+    if (request.section === "indexes") {
+        return {
+            indexStates: new Map([
+                [request.object!.id, state as MetadataLoadState<readonly IndexMetadata[]>],
+            ]),
+        };
+    }
+    if (request.section === "triggers") {
+        return {
+            triggerStates: new Map([
+                [request.object!.id, state as MetadataLoadState<readonly TriggerMetadata[]>],
+            ]),
+        };
+    }
+    if (request.section === "constraints") {
+        return {
+            foreignKeyStates: new Map([
+                [request.object!.id, state as MetadataLoadState<readonly ForeignKeyMetadata[]>],
+            ]),
+        };
+    }
+    if (request.section === "clrTypes") {
+        return {
+            clrTypeStates: new Map([
+                [request.object!.id, state as MetadataLoadState<ClrTypeMetadata>],
             ]),
         };
     }

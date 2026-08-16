@@ -30,6 +30,27 @@ suite("T-SQL signature help", () => {
         assert.match(help.signatures[0].parameters[2].documentation, /Input\/output/u);
     });
 
+    // The signature documentation states the return contract of the routine being called: every
+    // stored procedure returns int, and an extended stored procedure cannot be described at all.
+    test("states the return contract of the routine being called", async () => {
+        const { features, runtime } = createServices();
+        const procedure = "EXEC dbo.SaveOrder ";
+        await runtime.open("file:///return-contract.sql", 1, procedure);
+        assert.equal(
+            features.signatureHelp("file:///return-contract.sql", 1, procedure.length).signatures[0]
+                .documentation,
+            "Stored procedures always return INT.",
+        );
+
+        const extended = "EXEC dbo.xp_LogEvent ";
+        await runtime.open("file:///extended-contract.sql", 1, extended);
+        assert.equal(
+            features.signatureHelp("file:///extended-contract.sql", 1, extended.length)
+                .signatures[0].documentation,
+            "Parameter help is not supported for extended stored procedures.",
+        );
+    });
+
     // A user-defined function exposes catalog parameter names and advances after a top-level comma.
     test("describes catalog function parameters", async () => {
         const { features, runtime } = createServices();
@@ -123,6 +144,7 @@ function createServices() {
         databases: [{ name: "db" }],
         objects: [
             object("procedure", "SaveOrder", "procedure"),
+            { ...object("extended", "xp_LogEvent", "procedure"), extendedProcedure: true },
             object("function", "PriceWithTax", "scalarFunction"),
             object("table", "Orders", "table"),
         ],
@@ -140,6 +162,7 @@ function createServices() {
                     { ordinal: 3, name: "@Result", typeDisplay: "int", output: true },
                 ],
             ],
+            ["extended", [{ ordinal: 1, name: "@message", typeDisplay: "nvarchar(255)" }]],
             [
                 "function",
                 [

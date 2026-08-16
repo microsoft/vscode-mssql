@@ -300,7 +300,12 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
             const parameters = [...(state.kind === "loaded" ? state.value : (state.previous ?? []))]
                 .filter((parameter) => parameter.ordinal > 0)
                 .sort((left, right) => left.ordinal - right.ordinal);
-            return routineSignatureHelp(context, qualifiedName(resolution.object), parameters);
+            return routineSignatureHelp(
+                context,
+                qualifiedName(resolution.object),
+                parameters,
+                resolution.object.extendedProcedure === true,
+            );
         }
 
         return context.kind === "function" ? builtInSignatureHelp(context) : undefined;
@@ -802,6 +807,7 @@ function routineSignatureHelp(
     context: RoutineSignatureContext,
     displayName: string,
     parameters: readonly ParameterMetadata[],
+    extendedProcedure = false,
 ): SignatureHelp {
     const labels = parameters.map(parameterLabel);
     const namedIndex = context.namedParameter
@@ -827,7 +833,9 @@ function routineSignatureHelp(
                         : `${displayName}(${labels.join(", ")})`,
                 documentation:
                     context.kind === "execute"
-                        ? "Stored procedure parameters. Named arguments may be supplied in any order."
+                        ? extendedProcedure
+                            ? "Parameter help is not supported for extended stored procedures."
+                            : "Stored procedures always return INT."
                         : "Function parameters in declaration order.",
                 parameters: parameters.map((parameter) => ({
                     label: parameterLabel(parameter),

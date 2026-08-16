@@ -4,8 +4,49 @@
  *--------------------------------------------------------------------------------------------*/
 
 // A family is listed only after the referenced behavior suite exercises its production validator.
-// Coverage tests verify every path and reject duplicate or unknown family names.
+// The inventory test validates these links and rejects duplicate or unknown names; the referenced
+// behavior suite owns the exact message, range, and false-positive assertions for each path.
 module.exports = [
+    {
+        test: "semantics/diagnostics/build-mode-diagnostics.test.js",
+        suite: "T-SQL build-mode statement validation",
+        diagnostics: ["InvalidBuildModeSqlNullStatement"],
+    },
+    {
+        test: "semantics/diagnostics/build-mode-diagnostics.test.js",
+        suite: "T-SQL build-mode option validation",
+        diagnostics: [
+            "InvalidBuildModeStatementCreateFunction",
+            "InvalidBuildModeStatementCreateFunctionWithEncryption",
+            "InvalidBuildModeStatementCreateIndex",
+            "InvalidBuildModeStatementCreateLogin",
+            "InvalidBuildModeStatementCreateLoginWithDefaultDatabase",
+            "InvalidBuildModeStatementCreateProcCursorParams",
+            "InvalidBuildModeStatementCreateProcedureWithEncryption",
+            "InvalidBuildModeStatementCreateSchema",
+            "InvalidBuildModeStatementCreateTriggerDdl",
+            "InvalidBuildModeStatementCreateTriggerWithEncryption",
+            "InvalidBuildModeStatementCreateViewWithEncryption",
+        ],
+    },
+    {
+        test: "semantics/diagnostics/build-mode-diagnostics.test.js",
+        suite: "T-SQL build-mode code object validation",
+        diagnostics: [
+            "InvalidBuildModeDataTypeUse",
+            "InvalidBuildModeExecutionContextTypeSelf",
+        ],
+    },
+    {
+        test: "semantics/diagnostics/built-in-function-names.test.js",
+        suite: "T-SQL built-in function name validation",
+        diagnostics: ["NotRecognizedFunctionName"],
+    },
+    {
+        test: "semantics/diagnostics/foreign-key-candidate-keys.test.js",
+        suite: "T-SQL foreign key candidate key validation",
+        diagnostics: ["NoPrimaryKeysInReferencedTable"],
+    },
     {
         test: "semantics/diagnostics/computed-column-diagnostics.test.js",
         suite: "T-SQL computed column constraint validation",
@@ -79,9 +120,41 @@ module.exports = [
         ],
     },
     {
+        test: "semantics/diagnostics/external-stream-parameters.test.js",
+        suite: "T-SQL external stream parameter validation",
+        diagnostics: ["DuplicateParam", "RequiredParam"],
+    },
+    {
         test: "semantics/diagnostics/function-body-diagnostics.test.js",
         suite: "T-SQL function body side-effect validation",
         diagnostics: ["InvalidUseOfSideEffectingOperatorWithinFunction"],
+    },
+    {
+        test: "semantics/diagnostics/index-catalog.test.js",
+        suite: "T-SQL index catalog validation",
+        diagnostics: [
+            "CannotConvertClusteredIndexToNonclustered",
+            "CannotConvertXmlOrSpatialIndexToRelational",
+            "ClusteredIndexExists",
+            "CouldNotFindIndex",
+            "IndexOrStatisticsExists",
+            "OnlineOperationCannotBePerformedOnIndexInvalidColumns",
+        ],
+    },
+    {
+        test: "semantics/diagnostics/index-catalog.test.js",
+        suite: "T-SQL indexed view validation",
+        diagnostics: [
+            "CannotCreateIndexOnViewContainsInvalidColumns",
+            "CannotCreateIndexOnViewDoesNotHaveUniqueClusteredIndex",
+            "CannotCreateIndexOnViewNotSchemaBound",
+            "CannotCreateNonuniqueClusteredIndexOnView",
+        ],
+    },
+    {
+        test: "semantics/diagnostics/index-catalog.test.js",
+        suite: "T-SQL columnstore order column validation",
+        diagnostics: ["ColumnIsInvalidForUseAsOrderColumnInIndex"],
     },
     {
         test: "semantics/diagnostics/index-and-temporal.test.js",
@@ -118,6 +191,16 @@ module.exports = [
         ],
     },
     {
+        test: "semantics/diagnostics/nested-dml-and-output.test.js",
+        suite: "T-SQL nested DML table source validation",
+        diagnostics: ["NestedDmlMustHaveOutputClause"],
+    },
+    {
+        test: "semantics/diagnostics/nested-dml-and-output.test.js",
+        suite: "T-SQL OUTPUT clause function validation",
+        diagnostics: ["FunctionNotAllowedInOutput"],
+    },
+    {
         test: "semantics/diagnostics/pivot-prefix-diagnostics.test.js",
         suite: "T-SQL pivot column prefix validation",
         diagnostics: [
@@ -138,6 +221,8 @@ module.exports = [
             "ColumnNameNotInTargetTable",
             "ColumnNameNotUnique",
             "ColumnPrefixMismatch",
+            "MultiPartIdentifierBindingError",
+            "RemoteFunctionRefIsNotAllowed",
             "ColumnSpecifiedMultipleTimesInUnpivot",
             "CorrelationNameNotUnique",
             "DataTypeMissing",
@@ -194,6 +279,7 @@ module.exports = [
             "InvalidProcedureNumberRange",
             "MissingParameter",
             "MissingParameters",
+            "OperandTypeClash",
             "ParameterSuppliedMultipleTimes",
             "ParametersNotSuppliedForFunction",
             "ParametersSuppliedForNonFunction",
@@ -233,6 +319,20 @@ module.exports = [
         ],
     },
     {
+        test: "semantics/diagnostics/security-and-collation.test.js",
+        suite: "T-SQL security object validation",
+        diagnostics: [
+            "CouldNotFindAsymmetricKey",
+            "CouldNotFindCertificate",
+            "CouldNotFindCredential",
+        ],
+    },
+    {
+        test: "semantics/diagnostics/security-and-collation.test.js",
+        suite: "T-SQL collation validation",
+        diagnostics: ["InvalidCollation"],
+    },
+    {
         test: "semantics/diagnostics/statement-shape-diagnostics.test.js",
         suite: "T-SQL DROP scope validation",
         diagnostics: ["InvalidOnClause"],
@@ -246,6 +346,21 @@ module.exports = [
         test: "semantics/diagnostics/statement-shape-diagnostics.test.js",
         suite: "T-SQL EXECUTE argument option validation",
         diagnostics: ["ReadonlyCannotBeUsed"],
+    },
+    {
+        test: "semantics/diagnostics/trigger-catalog.test.js",
+        suite: "T-SQL trigger schema and ownership validation",
+        diagnostics: ["InvalidTriggerSchema", "TriggerDoesNotBelongToTarget"],
+    },
+    {
+        test: "semantics/diagnostics/trigger-catalog.test.js",
+        suite: "T-SQL trigger target validation",
+        diagnostics: [
+            "CannotCreateInsteadOfTriggerOnTableWithCascade",
+            "CannotCreateTriggerOnViewWithCheckOption",
+            "DuplicateInsteadOfTrigger",
+            "RequiredInsteadOfTriggerOnView",
+        ],
     },
     {
         test: "semantics/diagnostics/table-and-type-contracts.test.js",
@@ -289,6 +404,45 @@ module.exports = [
             "UserDefinedTypeExist",
             "XmlSchemaError",
         ],
+    },
+    {
+        test: "semantics/diagnostics/udt-members.test.js",
+        suite: "T-SQL UDT instance member validation",
+        diagnostics: ["UdtMemberIsStatic", "UdtPropertyIsStatic"],
+    },
+    {
+        test: "semantics/diagnostics/udt-members.test.js",
+        suite: "T-SQL UDT static member validation",
+        diagnostics: ["UdtMemberIsNotStatic", "UdtPropertyIsNotStatic"],
+    },
+    {
+        test: "semantics/diagnostics/udt-members.test.js",
+        suite: "T-SQL UDT member resolution",
+        diagnostics: [
+            "CannotCallMethodsOnType",
+            "CouldNotFindMethod",
+            "CouldNotFindPropertyOrField",
+        ],
+    },
+    {
+        test: "semantics/diagnostics/udt-members.test.js",
+        suite: "T-SQL XML member validation",
+        diagnostics: ["IncorrectSyntaxToInvokeXmlMethod", "NotValidFunctionOrProperty"],
+    },
+    {
+        test: "semantics/diagnostics/statement-option-diagnostics.test.js",
+        suite: "T-SQL EXECUTE option validation",
+        diagnostics: ["InvalidExecuteOption"],
+    },
+    {
+        test: "semantics/diagnostics/statement-option-diagnostics.test.js",
+        suite: "T-SQL legacy CREATE INDEX option validation",
+        diagnostics: ["InvalidUsageOfIndexOption"],
+    },
+    {
+        test: "semantics/diagnostics/statement-option-diagnostics.test.js",
+        suite: "T-SQL database-scoped configuration validation",
+        diagnostics: ["InvalidUsageOfScopedConfiguration"],
     },
     {
         test: "semantics/diagnostics/vector.test.js",

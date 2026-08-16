@@ -17,6 +17,8 @@ const nonDiagnosticRoles = new Map([
     ["EndOfFile", "message-fragment"],
     ["Comma", "message-fragment"],
     ["Period", "message-fragment"],
+    ["ExtendedStoredProceduresNotSupported", "signature-help-text"],
+    ["StoredProceduresAlwaysReturnInt", "signature-help-text"],
 ]);
 const supported = evidence.flatMap(({ diagnostics }) => diagnostics);
 
@@ -80,8 +82,8 @@ suite("T-SQL diagnostic coverage inventory", () => {
     // Keeps the headline gap reproducible from the evidence manifest rather than a second set here.
     test("reports supported and remaining product families from evidence", () => {
         const productDiagnostics = target.filter((entry) => entry.role === undefined);
-        assert.equal(productDiagnostics.length, 259);
-        assert.equal(supported.length, 201);
-        assert.equal(productDiagnostics.length - supported.length, 58);
+        assert.equal(productDiagnostics.length, 257);
+        assert.equal(supported.length, 257);
+        assert.equal(productDiagnostics.length - supported.length, 0);
     });
 });

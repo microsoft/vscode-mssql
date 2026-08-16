@@ -79,6 +79,8 @@ Statement {
   | DropExternalDataSourceStatement
   | CreateExternalFileFormatStatement
   | DropExternalFileFormatStatement
+  | CreateExternalStreamStatement
+  | DropExternalStreamStatement
   | CreateExternalModelStatement
   | AlterExternalModelStatement
   | DropExternalModelStatement
@@ -195,7 +197,9 @@ OptionalAzureDatabaseOptions {
   | ~azureDatabaseOptions AzureDatabaseOptions
 }
 DatabaseContainmentClause { Containment Equal (None | Partial) }
-DatabaseCollationClause { Collate IdentifierName }
+// A collation name is a named node everywhere it appears so it can be validated once.
+CollateClause { Collate IdentifierName }
+DatabaseCollationClause { CollateClause }
 CreateDatabaseAddendum { For IdentifierName | As Snapshot Of MultipartIdentifier }
 
 // ALTER DATABASE separates file mutations from option-state transitions and their rollback policy.
@@ -294,7 +298,7 @@ AlterDatabaseAction {
   | Modify AzureDatabaseOptions OptionalDatabaseManualCutoverClause
   | Modify Name Equal IdentifierName
   | Set DatabaseOptionList OptionalDatabaseTermination
-  | Collate IdentifierName
+  | CollateClause
   | Rebuild Log (On FileDefinition)?
   | PerformCutover
 }
@@ -315,7 +319,14 @@ DatabaseTermination {
 // Schema lifecycle statements support ownership and object transfer.
 // CREATE SCHEMA carries a name, an AUTHORIZATION owner, or both; requiring at least one of them is
 // a validation rule so the empty header keeps a schema statement instead of becoming recovery.
-CreateSchemaStatement { Create Schema IdentifierName? (Authorization IdentifierName)? }
+// The header may be followed by schema elements, which carry no statement terminator of their own.
+// SQL Server absorbs them greedily, so the element shift wins over ending the schema statement.
+CreateSchemaStatement {
+  Create Schema IdentifierName? (Authorization IdentifierName)? SchemaElement*
+}
+// SQL Server allows exactly these object and permission statements inside a CREATE SCHEMA header.
+// The marker gives the element shift priority over ending the schema statement before it.
+SchemaElement { !schemaElement (CreateTableStatement | CreateViewStatement | PermissionStatement) }
 AlterSchemaStatement { Alter Schema IdentifierName Transfer MultipartIdentifier }
 // DROP SCHEMA retains legacy CASCADE/RESTRICT and multipart error-recovery shapes structurally.
 DropSchemaStatement { Drop Schema IfExistsClause? MultipartIdentifier (Cascade | Restrict)? }
@@ -444,6 +455,18 @@ CreateExternalFileFormatStatement {
 
 // DROP EXTERNAL FILE FORMAT removes one named format.
 DropExternalFileFormatStatement { Drop External File Format IdentifierName }
+
+// CREATE EXTERNAL STREAM declares an optional input row shape and a named parameter list. Which
+// parameters are required, and whether one is repeated, are validation rules rather than parse
+// rules, so every parameter name parses here.
+CreateExternalStreamStatement {
+  Create External Stream MultipartIdentifier TableDefinition?
+  With OpenParen ExternalStreamParam (Comma ExternalStreamParam)* CloseParen
+}
+ExternalStreamParam { IdentifierName Equal (MultipartIdentifier | StringLiteral) }
+
+// DROP EXTERNAL STREAM removes one named stream.
+DropExternalStreamStatement { Drop External Stream MultipartIdentifier }
 
 // SQL Server 2025 external models bind an embedding model endpoint or local runtime definition.
 CreateExternalModelStatement {
@@ -1080,8 +1103,10 @@ ConfigurationValue {
 // Database-scoped configuration supports primary/secondary SET and cache CLEAR forms.
 DatabaseScopedConfigurationStatement {
   Alter Database Scoped Configuration (For Secondary)?
-  (Set IdentifierName Equal ConfigurationValue | Clear IdentifierName BinaryLiteral?)
+  (Set DatabaseScopedConfigurationSetting | Clear IdentifierName BinaryLiteral?)
 }
+// The setting wrapper keeps the option name and value independently addressable for validation.
+DatabaseScopedConfigurationSetting { IdentifierName Equal ConfigurationValue }
 
 // Database encryption keys retain the algorithm and server protector portions as separate nodes.
 DatabaseEncryptionKeyStatement {
@@ -1522,7 +1547,12 @@ RollbackTransactionStatement { Rollback (Tran | Transaction)? TransactionName? }
 SaveTransactionStatement { Save (Tran | Transaction) TransactionName }
 
 // Transaction names may be fixed identifiers or values supplied through a local variable.
-TransactionName { IdentifierName | Variable }
+// A transaction name is an identifier, a variable, or SQL Server's legacy concatenated form, which
+// joins a signed integer and a two-part identifier into one savepoint name.
+TransactionName { IdentifierName | Variable | LegacyTransactionName }
+LegacyTransactionName {
+  (Plus | Minus)? IntegerLiteral Colon IdentifierName Dot IdentifierName
+}
 
 // EXECUTE AS changes the session execution principal independently of module execution.
 ExecuteAsStatement {
@@ -1681,7 +1711,7 @@ ColumnOption {
   ~columnOption
   (Null
   | Not Null
-  | Collate IdentifierName
+  | CollateClause
   | Sparse
   | Hidden
   | FileStream
@@ -1933,9 +1963,25 @@ CreateIndexKind { Unique? (Clustered | Nonclustered)? Columnstore? }
 
 // A regular index tail orders keys, included columns, filter, options, and storage.
 CreateIndexTail {
-  IndexColumnList? IncludeClause? WhereClause? optionalDdlTail<IndexWithClause>
+  IndexColumnList? IncludeClause? IndexOrderClause? WhereClause?
+  optionalDdlTail<IndexWithClause | LegacyCreateIndexWithClause>
   IndexStorageClause? IndexFileStreamClause?
 }
+
+// Pre-2005 CREATE INDEX accepted a non-parenthesized WITH list. Its small historical allowlist is
+// validation rather than grammar so unsupported identifier-shaped names retain an exact range.
+LegacyCreateIndexWithClause {
+  With LegacyCreateIndexOption (Comma LegacyCreateIndexOption)*
+}
+LegacyCreateIndexOption {
+  (Identifier | FillFactor | DropExisting | MaxDop)
+  (Equal (Plus | Minus)? (IntegerLiteral | DecimalLiteral))?
+}
+
+// A columnstore index declares the ORDER of the columns it sorts for segment elimination.
+// Which columns may appear there is a validation rule, so every column name parses here.
+IndexOrderClause { Order OpenParen IndexOrderColumn (Comma IndexOrderColumn)* CloseParen }
+IndexOrderColumn { IdentifierName (Asc | Desc)? }
 
 // FILESTREAM_ON places FILESTREAM data independently of the relational index filegroup.
 IndexFileStreamClause { FileStreamOn (IdentifierName | StringLiteral | Null) }
@@ -2255,9 +2301,18 @@ ExecuteContextClause { As ((Login | User) (Equal StringLiteral)? | Caller) }
 // EXECUTE AT directs the call to a linked server.
 ExecuteAtClause { At MultipartIdentifier }
 
-// EXECUTE WITH owns RECOMPILE and SQL Server's structured RESULT SETS declarations.
+// EXECUTE WITH owns RECOMPILE and SQL Server's structured RESULT SETS declarations. Known module
+// options that are invalid for EXECUTE use three contextual terminals, avoiding a broad identifier
+// alternative inside this GLR-marked optional continuation.
 ExecuteWithClause { With ExecuteOption (Comma ExecuteOption)* }
-ExecuteOption { Recompile | Result Sets ExecuteResultSetsValue }
+ExecuteOption { Recompile | Result Sets ExecuteResultSetsValue | InvalidExecuteModuleOption }
+InvalidExecuteModuleOption {
+  ExecuteInvalidSimpleOption
+  | ExecuteInvalidContextOption As ModulePrincipal
+  | ExecuteInvalidNullInputOption Null On Null Input
+  | Called On Null Input
+  | ExecuteInvalidInlineOption Equal (On | Off)
+}
 ExecuteResultSetsValue {
   None | Undefined
   | OpenParen ExecuteResultSet (Comma ExecuteResultSet)* CloseParen
@@ -2346,6 +2401,7 @@ TableSource { TableSourcePrimary JoinPart* }
 // A primary rowset is a table, variable, rowset function, or derived query with an optional alias.
 TableSourcePrimary {
   DerivedTable
+  | NestedDmlTableSource
   | ParenthesizedTableSource
   | OdbcOuterJoinTableSource
   | TableValueConstructor
@@ -2367,6 +2423,13 @@ OdbcOuterJoinTableSource { OpenBrace Oj TableSource CloseBrace }
 
 // Parentheses can group a joined table source and expose the complete group through one alias.
 ParenthesizedTableSource { OpenParen TableSource CloseParen TableAlias? }
+
+// A DML statement is a valid rowset; its OUTPUT clause supplies the rows, so requiring that clause
+// is a validation rule rather than a parse rule.
+NestedDmlTableSource {
+  OpenParen (InsertStatement | UpdateStatement | DeleteStatement | MergeStatement) Semicolon?
+  CloseParen TableAlias ColumnNameList?
+}
 
 // A table variable is a valid rowset and may carry a correlation name.
 VariableTableSource { Variable TableAlias? }
@@ -2541,7 +2604,7 @@ WithColumnSchema { ~sourceSuffix With OpenParen ColumnSchemaElement (Comma Colum
 
 // A rowset column schema supplies a name, type/collation, optional path, and optional AS JSON flag.
 ColumnSchemaElement {
-  IdentifierName DataType (Collate IdentifierName)? StringLiteral? (As Json)?
+  IdentifierName DataType CollateClause? StringLiteral? (As Json)?
 }
 
 // TABLESAMPLE accepts an optional method and a numeric sample with an optional unit.
@@ -2811,7 +2874,7 @@ multiplicativeExpression { unaryExpression ((Star | Slash | PercentSign) unaryEx
 // Unary plus, minus, and bitwise not apply to one primary expression.
 unaryExpression {
   (Plus | Minus | Tilde)* primaryExpression
-  (!collateExpression Collate IdentifierName)?
+  (!collateExpression CollateClause)?
 }
 
 // A primary expression is the atomic unit consumed by unary and binary operators.
@@ -2837,6 +2900,7 @@ primaryAtom {
   | JsonValueExpression
   | TrimExpression
   | NextValueExpression
+  | UdtStaticMemberExpression
   | FunctionCall
   | KeywordFunctionCall
   | User
@@ -2847,8 +2911,18 @@ primaryAtom {
   | OpenParen Expression CloseParen
 }
 
-// XML and CLR values stored in variables expose instance methods through dotted calls.
-VariableMemberExpression { Variable FunctionMemberCall+ }
+// XML and CLR values stored in variables expose instance methods and data members through dotted
+// access. A member without an argument list is a property or field; whether that shape is valid for
+// the member it names is a validation rule.
+VariableMemberExpression { Variable (FunctionMemberCall | UdtDataMemberCall)+ }
+UdtDataMemberCall { Dot IdentifierName }
+
+// A CLR user type exposes its static methods, properties, and fields through the :: operator.
+UdtStaticMemberExpression {
+  MultipartIdentifier DoubleColon IdentifierName
+  (!call OpenParen ArgumentList? CloseParen)?
+  (FunctionMemberCall | UdtDataMemberCall)*
+}
 
 // TRIM accepts ordinary, character-set, and SQL Server 2022 positional forms.
 TrimExpression {
@@ -2950,7 +3024,9 @@ FunctionCall {
   FunctionMemberCall*
   WithinGroupClause? OverClause?
 }
-FunctionMemberCall { Dot IdentifierName OpenParen ArgumentList? CloseParen }
+// A member followed by an argument list is a call, so the parenthesis is shifted before the
+// argument-free data-member form can reduce.
+FunctionMemberCall { Dot IdentifierName !call OpenParen ArgumentList? CloseParen }
 
 // WITHIN GROUP orders values consumed by an ordered-set function.
 WithinGroupClause { Within Group OpenParen (OrderByClause | Graph Path) CloseParen }
@@ -3036,7 +3112,13 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   // AT TIME ZONE remains compound in the grammar and is decomposed by the public token API.
   AtTimeZone,
   // Money literals require ScriptDOM's broad Unicode currency-sign and internal-spacing rules.
-  MoneyLiteral
+  MoneyLiteral,
+  // These contextual terminals keep invalid EXECUTE module options structured without widening
+  // the optional EXECUTE tail to every identifier and contextual keyword.
+  ExecuteInvalidSimpleOption,
+  ExecuteInvalidContextOption,
+  ExecuteInvalidNullInputOption,
+  ExecuteInvalidInlineOption
 }
 
 // Separate token groups keep the hot query path from invoking every recovery scanner per token.
@@ -3084,7 +3166,7 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   Preceding, Profile, QueryGovernorCostLimit, QuotedIdentifier, Range, ReadOnly, Rebuild,
   RemoteProcTransactions, Reorganize, Repeatable, Restart, Result, Resume, Rollup, Row, Rows,
   Scroll, ScrollLocks, Sequence, SequenceNumber, Serializable, Sets, ShortestPath, ShowPlanAll, ShowPlanText, ShowPlanXml,
-  Receive, Search, SearchType, Semantic, Snapshot, Source, Sparse, Start, Static, Statistics, Switch, SystemTime, Target, TextImageOn,
+  Receive, Search, SearchType, Semantic, Snapshot, Source, Sparse, Start, Static, Statistics, Stream, Switch, SystemTime, Target, TextImageOn,
   Throw, Ties, Time, Timeout, TransactionId, Try, TryCast, TypeWarning, Unbounded, Uncommitted,
   Synonym, Type, Using, Value, Vector, VectorIndex, VectorSearch, Version, Window, Within, Work, XactAbort, Xml, Cache, Cycle,
   Active, After, Absolute, Affinity, Aggregate, Algorithm, Any, Application, Assembly, Asymmetric, Attested, Audit, Authentication, Availability, BeginDialog, Binding, Buffer, BulkLogged, Catalog, Event, Session, Notification, FanIn, Extract, Fn,
@@ -3112,6 +3194,8 @@ IdentifierName { Identifier | BracketedIdentifier | DoubleQuotedIdentifier | Tem
   whileStatement @cut,
   // MATCH commits to graph traversal syntax instead of falling back to a scalar function call.
   graphMatch @cut,
+  // CREATE SCHEMA owns the elements that follow its header rather than ending before them.
+  schemaElement @right,
   // ELSE binds to the nearest unmatched IF.
   danglingElse @right,
   // Calls must shift an opening parenthesis before reducing the shared multipart name.

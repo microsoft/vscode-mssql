@@ -10,6 +10,7 @@
 // a user as an independent diagnostic, so they are excluded from the coverage denominator:
 //   - "api-precondition": an argument check on an API boundary, not an analysis result.
 //   - "message-fragment": punctuation or clause text assembled into another diagnostic's message.
+//   - "signature-help-text": parameter-help wording surfaced by signature help, not a diagnostic.
 
 module.exports = Object.freeze([
     {
@@ -227,11 +228,13 @@ module.exports = Object.freeze([
     },
     {
         "name": "ExtendedStoredProceduresNotSupported",
-        "category": "binder"
+        "category": "binder",
+        "role": "signature-help-text"
     },
     {
         "name": "StoredProceduresAlwaysReturnInt",
-        "category": "binder"
+        "category": "binder",
+        "role": "signature-help-text"
     },
     {
         "name": "AmbiguousColumnName",

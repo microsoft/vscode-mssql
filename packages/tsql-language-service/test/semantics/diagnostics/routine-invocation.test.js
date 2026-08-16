@@ -13,6 +13,94 @@ const {
 } = require("../../support/semanticHarness.js");
 
 suite("T-SQL routine invocation diagnostics", () => {
+    // A cursor or table-valued parameter is not converted: the supplied argument's declared type
+    // has to be that exact type. A scalar parameter converts instead and is never reported here.
+    test("validates non-scalar argument types", async () => {
+        const procedure = {
+            ref: { id: "load", database: "db" },
+            database: "db",
+            schema: "dbo",
+            name: "LoadOrders",
+            kind: "procedure",
+        };
+        const tableType = (id, name) => ({
+            ref: { id, database: "db" },
+            database: "db",
+            schema: "dbo",
+            name,
+            kind: "type",
+            typeCategory: "table",
+        });
+        const provider = metadata({
+            objects: [
+                procedure,
+                tableType("orderList", "OrderList"),
+                tableType("other", "OtherList"),
+            ],
+            parameters: new Map([
+                [
+                    "load",
+                    [
+                        { ordinal: 1, name: "@rows", typeDisplay: "dbo.OrderList" },
+                        { ordinal: 2, name: "@count", typeDisplay: "int" },
+                    ],
+                ],
+            ]),
+        });
+
+        const positionalSql = "DECLARE @wrong dbo.OtherList; EXEC dbo.LoadOrders @wrong, 1;";
+        assert.deepEqual(
+            (await analyze(positionalSql, provider))
+                .filter(({ code }) => code === "OperandTypeClash")
+                .map(({ code, message, range }) => ({
+                    code,
+                    message,
+                    text: positionalSql.slice(range.start, range.end),
+                })),
+            [
+                {
+                    code: "OperandTypeClash",
+                    message: "Operand type clash: OtherList is incompatible with OrderList",
+                    text: "@wrong",
+                },
+            ],
+        );
+        // The matching type, and a scalar parameter given any variable, stay silent.
+        assert.deepEqual(
+            messages(
+                await analyze(
+                    "DECLARE @rows dbo.OrderList; EXEC dbo.LoadOrders @rows, 1;",
+                    provider,
+                ),
+            ),
+            [],
+        );
+        assert.deepEqual(
+            messages(
+                await analyze(
+                    "DECLARE @rows dbo.OrderList, @n bigint; EXEC dbo.LoadOrders @rows, @n;",
+                    provider,
+                ),
+            ),
+            [],
+        );
+        // The named argument form reaches the same rule.
+        assert.deepEqual(
+            messages(
+                await analyze(
+                    "DECLARE @wrong dbo.OtherList; EXEC dbo.LoadOrders @rows = @wrong, @count = 1;",
+                    provider,
+                ),
+            ),
+            ["Operand type clash: OtherList is incompatible with OrderList"],
+        );
+        // An undeclared argument variable has no type to compare, so this rule stays silent and
+        // only the undeclared-variable result remains.
+        assert.deepEqual(messages(await analyze("EXEC dbo.LoadOrders @unknown, 1;", provider)), [
+            'Must declare the scalar variable "@unknown".',
+        ]);
+    });
+
     // Authoritative routine metadata supplies required/defaulted parameter counts for scalar and
     // table-valued function calls without executing a metadata query during binding.
     test("validates catalog function arguments", async () => {

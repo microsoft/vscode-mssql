@@ -7,6 +7,10 @@ import { ExternalTokenizer, type InputStream, type Stack } from "@lezer/lr";
 import {
     AtTimeZone,
     BlockComment,
+    ExecuteInvalidContextOption,
+    ExecuteInvalidInlineOption,
+    ExecuteInvalidNullInputOption,
+    ExecuteInvalidSimpleOption,
     Go,
     Label,
     Match,
@@ -65,6 +69,7 @@ export const sqlServerTokens = new ExternalTokenizer((input, stack) => {
     }
     if (moneySigns.has(input.next) && stack.canShift(MoneyLiteral) && readMoneyLiteral(input))
         return;
+    if (readInvalidExecuteModuleOption(input, stack)) return;
     // Labels are statement-leading constructs. Checking the lexical line state avoids both
     // misclassifying identifier/colon pairs inside expressions and an expensive LR canShift call
     // for every identifier in the document.
@@ -99,6 +104,24 @@ export const sqlServerTokens = new ExternalTokenizer((input, stack) => {
     }
     if (isLineLeading(stack)) input.acceptToken(lineContentStart);
 });
+
+/** Recognizes only the finite module-option catalog when the EXECUTE tail requests it. */
+function readInvalidExecuteModuleOption(input: InputStream, stack: Stack): boolean {
+    const candidates: readonly [string, number][] = [
+        ["encryption", ExecuteInvalidSimpleOption],
+        ["schemabinding", ExecuteInvalidSimpleOption],
+        ["view_metadata", ExecuteInvalidSimpleOption],
+        ["native_compilation", ExecuteInvalidSimpleOption],
+        ["execute", ExecuteInvalidContextOption],
+        ["returns", ExecuteInvalidNullInputOption],
+        ["inline", ExecuteInvalidInlineOption],
+    ];
+    for (const [word, term] of candidates) {
+        if (!matchesWord(input, 0, word) || !stack.canShift(term)) continue;
+        return readContextualWord(input, word, term);
+    }
+    return false;
+}
 
 function readMoneyLiteral(input: InputStream): boolean {
     if (!moneySigns.has(input.next)) return false;
