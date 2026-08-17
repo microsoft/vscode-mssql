@@ -73,6 +73,7 @@ export interface QueryExecutionCompleteEvent {
     totalMilliseconds: string;
     totalElapsedMilliseconds: number;
     hasError: boolean;
+    isFullExecutionComplete: boolean;
     isRefresh?: boolean;
 }
 
@@ -548,6 +549,7 @@ export default class QueryRunner {
             }),
             totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError,
+            isFullExecutionComplete: true,
         });
         sendActionEvent(
             TelemetryViews.QueryEditor,
@@ -697,6 +699,7 @@ export default class QueryRunner {
             }),
             totalElapsedMilliseconds: this._totalElapsedMilliseconds,
             hasError: !!error,
+            isFullExecutionComplete: false,
         });
         this._statusView.executedQuery(this._ownerUri);
         this.unregisterAllNotificationUris();

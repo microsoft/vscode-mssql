@@ -676,7 +676,13 @@ export class SqlOutputContentProvider {
             });
 
             const onCompleteListener = queryRunner.onComplete(async (e) => {
-                const { totalMilliseconds, totalElapsedMilliseconds, hasError, isRefresh } = e;
+                const {
+                    totalMilliseconds,
+                    totalElapsedMilliseconds,
+                    hasError,
+                    isFullExecutionComplete,
+                    isRefresh,
+                } = e;
                 if (!isRefresh) {
                     // only update query history with new queries
                     vscode.commands.executeCommand(
@@ -684,7 +690,9 @@ export class SqlOutputContentProvider {
                         queryRunner.uri,
                         hasError,
                     );
-                    void this._queryCompletionSoundService.play();
+                    if (isFullExecutionComplete) {
+                        void this._queryCompletionSoundService.play();
+                    }
                 }
 
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
