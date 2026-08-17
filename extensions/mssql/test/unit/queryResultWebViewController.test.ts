@@ -14,6 +14,8 @@ import { QueryResultWebviewController } from "../../src/queryResult/queryResultW
 import { ExecutionPlanService } from "../../src/services/executionPlanService";
 import { getPreviewConfigKey, PreviewFeature } from "../../src/previews/previewService";
 import { stubExtensionContext, stubVscodeWorkspace } from "./utils";
+import { QueryCompletionAudioService } from "../../src/services/queryCompletionAudioService";
+import { PlayQueryCompletionSoundNotification } from "../../src/sharedInterfaces/queryResult";
 
 chai.use(sinonChai);
 
@@ -31,6 +33,7 @@ suite("QueryResultWebviewController", () => {
     let openResultsInTabByDefault = false;
     let betaExecutionPlanEnabled = false;
     let vscodeWorkspace: ReturnType<typeof stubVscodeWorkspace>;
+    let queryCompletionAudioService: sinon.SinonStubbedInstance<QueryCompletionAudioService>;
 
     const testUri = "file:///test.sql";
 
@@ -39,6 +42,7 @@ suite("QueryResultWebviewController", () => {
 
         executionPlanService = sandbox.createStubInstance(ExecutionPlanService);
         sqlOutputContentProvider = sandbox.createStubInstance(SqlOutputContentProvider);
+        queryCompletionAudioService = sandbox.createStubInstance(QueryCompletionAudioService);
 
         clipboardWriteTextStub = sandbox.stub().resolves();
         sandbox.stub(vscode.env, "clipboard").value({ writeText: clipboardWriteTextStub });
@@ -92,6 +96,7 @@ suite("QueryResultWebviewController", () => {
             context,
             executionPlanService as unknown as ExecutionPlanService,
             sqlOutputContentProvider as unknown as SqlOutputContentProvider,
+            queryCompletionAudioService,
         );
 
         controller.addQueryResultState(testUri, "test-query");
@@ -122,6 +127,32 @@ suite("QueryResultWebviewController", () => {
         controller.handleSelectionSummary("file:///unknown.sql");
 
         expect(resolve).to.not.have.been.called;
+    });
+
+    test("sends query completion audio sources to the webview", async () => {
+        const audioSources = {
+            audioSource: "data:audio/mpeg;base64,YXVkaW8=",
+            fallbackAudioSource: "data:audio/wav;base64,d2F2",
+        };
+        queryCompletionAudioService.getAudioSources.resolves(audioSources);
+        sandbox.stub(controller, "whenWebviewReady").resolves();
+        const sendNotificationStub = sandbox.stub(controller, "sendNotification").resolves();
+
+        await controller.playQueryCompletionSound(testUri);
+
+        expect(sendNotificationStub).to.have.been.calledWith(
+            PlayQueryCompletionSoundNotification.type,
+            audioSources,
+        );
+    });
+
+    test("does not notify the webview when completion sounds are disabled", async () => {
+        queryCompletionAudioService.getAudioSources.resolves(undefined);
+        const sendNotificationStub = sandbox.stub(controller, "sendNotification").resolves();
+
+        await controller.playQueryCompletionSound(testUri);
+
+        expect(sendNotificationStub).not.to.have.been.called;
     });
 
     test("moves current result to a tab when the setting is enabled through configuration change", async () => {

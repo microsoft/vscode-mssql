@@ -92,6 +92,17 @@ export interface QueryResultWebviewState extends ExecutionPlanWebviewState {
     rowsAffected?: number;
 }
 
+export interface PlayQueryCompletionSoundParams {
+    audioSource: string;
+    fallbackAudioSource: string;
+}
+
+export namespace PlayQueryCompletionSoundNotification {
+    export const type = new NotificationType<PlayQueryCompletionSoundParams>(
+        "queryResult/playQueryCompletionSound",
+    );
+}
+
 export interface SelectionSummaryMetrics {
     average?: number;
     count: number;

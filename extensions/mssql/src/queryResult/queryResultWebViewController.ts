@@ -32,6 +32,7 @@ import {
     previewService,
 } from "../previews/previewService";
 import { getQueryResultWebviewSource } from "./queryResultWebviewSource";
+import { QueryCompletionAudioService } from "../services/queryCompletionAudioService";
 
 const QUERY_RESULT_VIEW_ID = "queryResult";
 
@@ -61,6 +62,7 @@ export class QueryResultWebviewController extends WebviewViewController<
         context: vscode.ExtensionContext,
         private _executionPlanService: ExecutionPlanService,
         private _sqlOutputContentProvider: SqlOutputContentProvider,
+        private _queryCompletionAudioService: QueryCompletionAudioService = new QueryCompletionAudioService(),
     ) {
         const isBetaResultsGridEnabled = previewService.isFeatureEnabled(
             PreviewFeature.BetaResultsGrid,
@@ -416,6 +418,27 @@ export class QueryResultWebviewController extends WebviewViewController<
                 LocalizedConstants.QueryResult.queryResultPanelFailedToLoad,
             );
             throw e;
+        }
+    }
+
+    public async playQueryCompletionSound(uri: string): Promise<void> {
+        const audioSources = await this._queryCompletionAudioService.getAudioSources();
+        if (!audioSources) {
+            return;
+        }
+
+        const targetController = this._queryResultWebviewPanelControllerMap.get(uri) ?? this;
+        try {
+            await targetController.whenWebviewReady();
+            await targetController.sendNotification(
+                qr.PlayQueryCompletionSoundNotification.type,
+                audioSources,
+            );
+        } catch (error) {
+            this.logger.warn(
+                "Unable to send the query completion sound to the results webview.",
+                error,
+            );
         }
     }
 

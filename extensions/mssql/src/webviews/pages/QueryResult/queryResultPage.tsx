@@ -4,10 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { makeStyles, shorthands } from "@fluentui/react-components";
-import { type ComponentType, useEffect } from "react";
+import { type ComponentType, type SyntheticEvent, useCallback, useEffect, useRef } from "react";
 import { QueryResultPane } from "./queryResultPane";
 import { KeyCode } from "../../common/keys";
 import { isMetaOrCtrlKeyPressed } from "../../common/utils";
+import { useVscodeWebview } from "../../common/vscodeWebviewProvider";
+import {
+    PlayQueryCompletionSoundNotification,
+    QueryResultReducers,
+    QueryResultWebviewState,
+} from "../../../sharedInterfaces/queryResult";
 
 const useStyles = makeStyles({
     root: {
@@ -94,8 +100,75 @@ interface QueryResultProps {
     isBetaResultsGridEnabled: boolean;
 }
 
+const maximumPlaybackSeconds = 5;
+
 export const QueryResult = ({ GridView, isBetaResultsGridEnabled }: QueryResultProps) => {
     const classes = useStyles();
+    const { extensionRpc } = useVscodeWebview<QueryResultWebviewState, QueryResultReducers>();
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const fallbackAudioSourceRef = useRef("");
+    const fallbackAttemptedRef = useRef(false);
+    const playbackGenerationRef = useRef(0);
+    const playbackTimerRef = useRef<number | undefined>(undefined);
+
+    const stopPlayback = useCallback(() => {
+        playbackGenerationRef.current++;
+        if (playbackTimerRef.current !== undefined) {
+            window.clearTimeout(playbackTimerRef.current);
+            playbackTimerRef.current = undefined;
+        }
+        const audio = audioRef.current;
+        if (audio) {
+            audio.pause();
+            audio.currentTime = 0;
+        }
+    }, []);
+
+    const playSource = useCallback(
+        (source: string, isFallback: boolean) => {
+            stopPlayback();
+            fallbackAttemptedRef.current = isFallback;
+            const audio = audioRef.current;
+            if (!audio) {
+                return;
+            }
+
+            const generation = ++playbackGenerationRef.current;
+            audio.src = source;
+            audio.currentTime = 0;
+            playbackTimerRef.current = window.setTimeout(() => {
+                if (generation !== playbackGenerationRef.current) {
+                    return;
+                }
+                stopPlayback();
+            }, maximumPlaybackSeconds * 1000);
+            void audio.play().catch(() => {
+                if (generation !== playbackGenerationRef.current) {
+                    return;
+                }
+                if (!fallbackAttemptedRef.current) {
+                    playSource(fallbackAudioSourceRef.current, true);
+                } else {
+                    stopPlayback();
+                }
+            });
+        },
+        [stopPlayback],
+    );
+
+    useEffect(() => {
+        const disposable = extensionRpc.registerNotificationHandler(
+            PlayQueryCompletionSoundNotification.type,
+            ({ audioSource, fallbackAudioSource }) => {
+                fallbackAudioSourceRef.current = fallbackAudioSource;
+                playSource(audioSource, audioSource === fallbackAudioSource);
+            },
+        );
+        return () => {
+            disposable.dispose();
+            stopPlayback();
+        };
+    }, [extensionRpc, playSource, stopPlayback]);
 
     // This is needed to stop the browser from selecting all the raw text in the webview when ctrl+a is pressed
     useEffect(() => {
@@ -111,8 +184,33 @@ export const QueryResult = ({ GridView, isBetaResultsGridEnabled }: QueryResultP
         };
     }, []);
 
+    const handleAudioError = useCallback(() => {
+        if (!fallbackAttemptedRef.current) {
+            playSource(fallbackAudioSourceRef.current, true);
+        } else {
+            stopPlayback();
+        }
+    }, [playSource, stopPlayback]);
+
+    const handleTimeUpdate = useCallback(
+        (event: SyntheticEvent<HTMLAudioElement>) => {
+            if (event.currentTarget.currentTime >= maximumPlaybackSeconds) {
+                stopPlayback();
+            }
+        },
+        [stopPlayback],
+    );
+
     return (
         <div className={classes.root}>
+            <audio
+                ref={audioRef}
+                hidden
+                preload="auto"
+                onEnded={stopPlayback}
+                onError={handleAudioError}
+                onTimeUpdate={handleTimeUpdate}
+            />
             {
                 <div className={classes.mainContent}>
                     <QueryResultPane

@@ -277,6 +277,8 @@
     "mssql.enableExperimentalFeatures.description": "Enables experimental features in the MSSQL extension. The features are not production-ready and may have bugs or issues. Restart Visual Studio Code after changing this setting.",
     "mssql.legacySetting.deprecationMessage": "This setting will be removed in a future release.",
     "mssql.openQueryResultsInTabByDefault.description": "Automatically display query results in a new tab instead of the query pane.",
+    "mssql.query.playCompletionSound.description": "Play a sound after a query finishes executing.",
+    "mssql.query.completionSoundFile.description": "The path to a custom MP3 file, up to 200 KiB, to play after a query finishes executing. If the path is empty or invalid, or the file is too large, the default sound is played.",
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description": "Do not show prompts to display query results in a new tab.",
     "mssql.transferActiveEditorConnections.description": "When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.",
     "mssql.transferActiveEditorConnections.deprecationMessage": "This setting is deprecated. Use `mssql.newEditorConnectionBehavior` instead. The extension will automatically migrate this setting on startup.",
