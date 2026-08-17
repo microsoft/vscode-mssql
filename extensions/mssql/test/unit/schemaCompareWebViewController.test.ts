@@ -1848,10 +1848,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .stub(scUtils, "publishDatabaseChanges")
             .resolves({ success: true, errorMessage: "" });
 
-        sandbox
-            .stub(vscode.window, "showWarningMessage")
-            .resolves("Yes" as unknown as vscode.MessageItem);
-
         sandbox.stub(UserSurvey, "getInstance").returns({
             promptUserForNPSFeedback: sandbox.stub().resolves(),
         } as unknown as UserSurvey);
@@ -1878,10 +1874,6 @@ suite("SchemaCompareWebViewController Tests", () => {
             .stub(scUtils, "publishDatabaseChanges")
             .resolves({ success: false, errorMessage: "Apply failed" });
 
-        sandbox
-            .stub(vscode.window, "showWarningMessage")
-            .resolves("Yes" as unknown as vscode.MessageItem);
-
         const state = { ...mockInitialState, targetEndpointInfo };
         const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
 
@@ -1899,87 +1891,5 @@ suite("SchemaCompareWebViewController Tests", () => {
             result.schemaCompareResult,
             "schemaCompareResult should be cleared on failure to force re-compare and prevent stale script generation",
         ).to.be.undefined;
-    });
-
-    test("publishChanges reducer - user cancels confirmation - STS not called and state unchanged", async () => {
-        const publishDatabaseChangesStub = sandbox.stub(scUtils, "publishDatabaseChanges");
-
-        sandbox.stub(vscode.window, "showWarningMessage").resolves(undefined);
-
-        const state = { ...mockInitialState, targetEndpointInfo };
-        const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
-
-        const result = await controller["_reducerHandlers"].get("publishChanges")(state, payload);
-
-        expect(
-            publishDatabaseChangesStub,
-            "publishDatabaseChanges should NOT be called when user cancels",
-        ).to.not.have.been.called;
-        expect(result.isApplyInProgress, "isApplyInProgress should remain false when cancelled").to
-            .be.false;
-        expect(result.applySucceeded, "applySucceeded should remain false when cancelled").to.be
-            .false;
-        expect(result.applyFailed, "applyFailed should remain false when cancelled").to.be.false;
-        expect(
-            result.schemaCompareResult,
-            "schemaCompareResult should be unchanged when cancelled",
-        ).to.deep.equal(mockInitialState.schemaCompareResult);
-    });
-
-    test("publishChanges reducer - confirmation identifies database and summarizes included changes", async () => {
-        const showWarningMessageStub = sandbox
-            .stub(vscode.window, "showWarningMessage")
-            .resolves(undefined);
-        const state = {
-            ...mockInitialState,
-            targetEndpointInfo,
-            schemaCompareResult: {
-                ...mockInitialState.schemaCompareResult,
-                differences: [
-                    { ...differences[0], updateAction: SchemaUpdateAction.Add },
-                    { ...differences[1], updateAction: SchemaUpdateAction.Change },
-                    { ...differences[2], updateAction: SchemaUpdateAction.Delete },
-                    {
-                        ...differences[2],
-                        included: false,
-                        updateAction: SchemaUpdateAction.Delete,
-                    },
-                ],
-            },
-        };
-        const payload = { targetServerName: "localhost,1433", targetDatabaseName: "master" };
-
-        await controller["_reducerHandlers"].get("publishChanges")(state, payload);
-
-        expect(showWarningMessageStub).to.have.been.calledWith(
-            'Are you sure you want to apply changes to "localhost,1433.master"?',
-            {
-                modal: true,
-                detail: "Changes to apply:\nAdd: 1\nChange: 1\nDelete: 1",
-            },
-            "Yes",
-        );
-    });
-
-    test("publishChanges reducer - confirmation identifies project target", async () => {
-        const showWarningMessageStub = sandbox
-            .stub(vscode.window, "showWarningMessage")
-            .resolves(undefined);
-        const state = {
-            ...mockInitialState,
-            targetEndpointInfo: sourceEndpointInfo,
-        };
-        const payload = { targetServerName: "", targetDatabaseName: "" };
-
-        await controller["_reducerHandlers"].get("publishChanges")(state, payload);
-
-        expect(showWarningMessageStub).to.have.been.calledWith(
-            'Are you sure you want to apply changes to "/TestSqlProject/TestProject/TestProject.sqlproj"?',
-            {
-                modal: true,
-                detail: "Changes to apply:\nAdd: 3\nChange: 0\nDelete: 0",
-            },
-            "Yes",
-        );
     });
 });

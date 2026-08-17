@@ -2266,6 +2266,41 @@ export class LocConstants {
             ),
             apply: l10n.t("Apply"),
             applyChangesToTarget: l10n.t("Apply changes to target"),
+            applyChangesTitle: (targetName: string) =>
+                l10n.t({
+                    message: "Apply change to {0}",
+                    args: [targetName],
+                    comment: [
+                        "{0} is the target connection name, optionally followed by a colon and the selected database name",
+                    ],
+                }),
+            createChangesSummary: (count: number) =>
+                l10n.t({
+                    message: "Create ({0})",
+                    args: [count],
+                    comment: ["{0} is the total number of objects that will be created"],
+                }),
+            changeChangesSummary: (count: number) =>
+                l10n.t({
+                    message: "Change ({0})",
+                    args: [count],
+                    comment: ["{0} is the total number of objects that will be changed"],
+                }),
+            dropChangesSummary: (count: number) =>
+                l10n.t({
+                    message: "Drop ({0})",
+                    args: [count],
+                    comment: ["{0} is the total number of objects that will be dropped"],
+                }),
+            objectTypeChangeCount: (objectType: string, count: number) =>
+                l10n.t({
+                    message: "{0}: {1}",
+                    args: [objectType, count],
+                    comment: [
+                        "{0} is a schema object type, such as Table or View",
+                        "{1} is the number of objects of that type",
+                    ],
+                }),
             options: l10n.t("Options"),
             switchDirection: l10n.t("Switch Direction"),
             switchSourceAndTarget: l10n.t("Switch Source and Target"),
@@ -2321,9 +2356,6 @@ export class LocConstants {
                         "{0} is a comma-separated list of fully-qualified object names that will be dropped from under the selected parent object when the diff is applied.",
                     ],
                 }),
-            areYouSureYouWantToUpdateTheTarget: l10n.t(
-                "Are you sure you want to update the target?",
-            ),
             thereWasAnErrorUpdatingTheProject: l10n.t("There was an error updating the project"),
             schemaCompareApplyFailed: (errorMessage: string) =>
                 l10n.t({

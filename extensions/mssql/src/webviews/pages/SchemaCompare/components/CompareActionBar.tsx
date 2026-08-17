@@ -34,6 +34,7 @@ import { schemaCompareContext } from "../SchemaCompareStateProvider";
 import { useSchemaCompareSelector } from "../schemaCompareSelector";
 import { SchemaCompareEndpointType } from "../../../../sharedInterfaces/schemaCompare";
 import { SchemaCompareGroupBy } from "../SchemaCompare";
+import { SchemaCompareApplyDialog } from "./SchemaCompareApplyDialog";
 
 interface Props {
     onOptionsClicked: () => void;
@@ -185,14 +186,18 @@ const CompareActionBar = (props: Props) => {
                 disabled={disableGenerateScriptButton() || isApplyInProgress}>
                 {loc.schemaCompare.generateScript}
             </ToolbarButton>
-            <ToolbarButton
-                aria-label={loc.schemaCompare.apply}
-                title={loc.schemaCompare.applyChangesToTarget}
-                icon={<PlayFilled />}
-                onClick={handlePublishChanges}
+            <SchemaCompareApplyDialog
+                targetEndpoint={targetEndpointInfo}
+                differences={schemaCompareResult.differences}
+                onApply={handlePublishChanges}
                 disabled={isComparisonInProgress || isApplyInProgress || disableApplyButton()}>
-                {loc.schemaCompare.apply}
-            </ToolbarButton>
+                <ToolbarButton
+                    aria-label={loc.schemaCompare.apply}
+                    title={loc.schemaCompare.applyChangesToTarget}
+                    icon={<PlayFilled />}>
+                    {loc.schemaCompare.apply}
+                </ToolbarButton>
+            </SchemaCompareApplyDialog>
             <ToolbarButton
                 aria-label={loc.schemaCompare.options}
                 title={loc.schemaCompare.options}
