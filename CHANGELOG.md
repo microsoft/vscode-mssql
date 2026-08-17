@@ -1,5 +1,26 @@
 # Change Log
 
+## Version 1.45.0
+
+- Release date: August 19, 2026
+- Release status: GA
+
+### What's new in 1.45.0
+
+- Released Azure SQL Database provisioning as generally available (GA) for easily creating new free tier Azure SQL databases, with post-deployment actions to copy connection string and migration commands, download deployment scripts (ARM, Bicep, and Terraform template), and discover next steps.
+- Released Shortcuts Configuration as generally available (GA), allowing you to create and manage keyboard shortcuts for Quick Queries, the Query Editor, and the Results Grid.
+- Introduced a new SQL formatter (Preview), enabled by default with `mssql.format.enablePreviewFormatter`, with more formatting options and greater control over T-SQL style and layout.
+- Enabled the new Query Results Grid experience (Preview) by default, featuring improved state management and support for showing, hiding, and freezing columns. To switch back to the previous results grid, disable `mssql.preview.betaResultsGrid` in settings.
+- Fixed an issue that could cause Object Explorer filtering to hang.
+- Improved IntelliSense reliability for larger databases and complex queries, with a new `mssql.intelliSense.completionTimeoutMilliseconds` setting to configure how long the language service waits for large completion results.
+- Fixed an issue that could cancel queries unexpectedly.
+- Improved streaming performance in the Query Results Grid preview.
+- Added a Restore command and custom NuGet analyzer support to SQL Database Projects, and improved schema operations for new and moved objects.
+- Added selection aggregates (Average, Count, and Sum) to the SQL Notebooks results status bar.
+- Improved Table Designer validation for default values and vector columns.
+
+Thank you to @cjohnsto-nz for contributing Microsoft Entra account and token resolution performance improvements!
+
 ## Version 1.44.1
 
 - Release date: July 29, 2026
