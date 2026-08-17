@@ -2268,7 +2268,7 @@ export class LocConstants {
             applyChangesToTarget: l10n.t("Apply changes to target"),
             applyChangesTitle: (targetName: string) =>
                 l10n.t({
-                    message: "Apply change to {0}",
+                    message: "Apply changes to {0}",
                     args: [targetName],
                     comment: [
                         "{0} is the target connection name, optionally followed by a colon and the selected database name",

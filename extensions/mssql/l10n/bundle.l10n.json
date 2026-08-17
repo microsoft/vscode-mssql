@@ -3592,8 +3592,8 @@
     "Stop": "Stop",
     "Generate script to deploy changes to target": "Generate script to deploy changes to target",
     "Apply changes to target": "Apply changes to target",
-    "Apply change to {0}/{0} is the target connection name, optionally followed by a colon and the selected database name": {
-        "message": "Apply change to {0}",
+    "Apply changes to {0}/{0} is the target connection name, optionally followed by a colon and the selected database name": {
+        "message": "Apply changes to {0}",
         "comment": [
             "{0} is the target connection name, optionally followed by a colon and the selected database name"
         ]

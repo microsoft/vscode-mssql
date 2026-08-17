@@ -470,12 +470,12 @@
     <trans-unit id="++CODE++d80d0faa58963b92ed9852bcaab84b26d34ded47f6abe3ac786e9ad48c983aa2">
       <source xml:lang="en">Apply Changes</source>
     </trans-unit>
-    <trans-unit id="++CODE++d40ceca9923e18e86002da8ca8336212149397758fd95a1eb94b31e60726ccd7">
-      <source xml:lang="en">Apply change to {0}</source>
-      <note>{0} is the target connection name, optionally followed by a colon and the selected database name</note>
-    </trans-unit>
     <trans-unit id="++CODE++757ac56c1f67056996dba37c6407eb302cbee2e590429afcb42210d125337f6a">
       <source xml:lang="en">Apply changes to target</source>
+    </trans-unit>
+    <trans-unit id="++CODE++0963a1833c56c3195b7b5963499b990b2c0147db68fb3374bc7d1f1767868636">
+      <source xml:lang="en">Apply changes to {0}</source>
+      <note>{0} is the target connection name, optionally followed by a colon and the selected database name</note>
     </trans-unit>
     <trans-unit id="++CODE++c4a87b18e24f113de61cbf89c652cf2ecc1d73abd2d01baf409c174c8242ef7d">
       <source xml:lang="en">Apply contextual suggestions for SQL syntax, relationships, and constraints</source>

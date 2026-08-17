@@ -85,9 +85,7 @@ export function getSchemaCompareApplyTargetName(endpoint: mssql.SchemaCompareEnd
     const connectionDatabase =
         typeof configuredDatabase === "string" ? configuredDatabase.trim() : "";
 
-    return connectionDatabase.localeCompare(targetDatabase, undefined, {
-        sensitivity: "accent",
-    }) === 0
+    return connectionDatabase.localeCompare(targetDatabase) === 0
         ? connectionName
         : `${connectionName}:${targetDatabase}`;
 }
