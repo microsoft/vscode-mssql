@@ -28,6 +28,7 @@ import * as Utils from "./utils";
 // can transpile to throttle_1.default and fail at runtime in unit tests.
 import throttle = require("lodash/throttle");
 import store from "../queryResult/singletonStore";
+import { QueryCompletionSoundService } from "../services/queryCompletionSoundService";
 // tslint:disable-next-line:no-require-imports
 const pd = require("pretty-data").pd;
 const logger = getLogger("SqlOutputContentProvider");
@@ -63,6 +64,7 @@ export class SqlOutputContentProvider {
         private _context: vscode.ExtensionContext,
         private _statusView: StatusView,
         private _executionPlanService: ExecutionPlanService,
+        private _queryCompletionSoundService: QueryCompletionSoundService = new QueryCompletionSoundService(),
     ) {
         /**
          * TODO: aaskhan
@@ -682,6 +684,7 @@ export class SqlOutputContentProvider {
                         queryRunner.uri,
                         hasError,
                     );
+                    void this._queryCompletionSoundService.play();
                 }
 
                 const resultWebviewState = this._queryResultWebviewController.getQueryResultState(
