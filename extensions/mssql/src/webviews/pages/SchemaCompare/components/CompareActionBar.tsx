@@ -140,6 +140,7 @@ const CompareActionBar = (props: Props) => {
 
     const disableApplyButton = (): boolean => {
         if (
+            targetEndpointInfo &&
             schemaCompareResult &&
             schemaCompareResult.differences &&
             schemaCompareResult.differences.length > 0 &&
@@ -154,6 +155,17 @@ const CompareActionBar = (props: Props) => {
 
         return true;
     };
+
+    const isApplyDisabled = isComparisonInProgress || isApplyInProgress || disableApplyButton();
+    const applyButton = (
+        <ToolbarButton
+            aria-label={loc.schemaCompare.apply}
+            title={loc.schemaCompare.applyChangesToTarget}
+            icon={<PlayFilled />}
+            disabled={isApplyDisabled}>
+            {loc.schemaCompare.apply}
+        </ToolbarButton>
+    );
 
     return (
         <Toolbar>
@@ -186,18 +198,17 @@ const CompareActionBar = (props: Props) => {
                 disabled={disableGenerateScriptButton() || isApplyInProgress}>
                 {loc.schemaCompare.generateScript}
             </ToolbarButton>
-            <SchemaCompareApplyDialog
-                targetEndpoint={targetEndpointInfo}
-                differences={schemaCompareResult.differences}
-                onApply={handlePublishChanges}
-                disabled={isComparisonInProgress || isApplyInProgress || disableApplyButton()}>
-                <ToolbarButton
-                    aria-label={loc.schemaCompare.apply}
-                    title={loc.schemaCompare.applyChangesToTarget}
-                    icon={<PlayFilled />}>
-                    {loc.schemaCompare.apply}
-                </ToolbarButton>
-            </SchemaCompareApplyDialog>
+            {targetEndpointInfo && schemaCompareResult ? (
+                <SchemaCompareApplyDialog
+                    targetEndpoint={targetEndpointInfo}
+                    differences={schemaCompareResult.differences}
+                    onApply={handlePublishChanges}
+                    disabled={isApplyDisabled}>
+                    {applyButton}
+                </SchemaCompareApplyDialog>
+            ) : (
+                applyButton
+            )}
             <ToolbarButton
                 aria-label={loc.schemaCompare.options}
                 title={loc.schemaCompare.options}
