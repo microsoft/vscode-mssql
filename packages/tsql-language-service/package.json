@@ -42,6 +42,7 @@
         "build:grammar": "node scripts/build-grammar.mjs",
         "build:corpus-manifest": "node scripts/build-tsql-corpus-manifest.mjs",
         "report:corpus": "node scripts/report-tsql-corpus.mjs",
+        "report:fixture-inventory": "node scripts/report-fixture-inventory.mjs",
         "build:typescript": "tsc -p tsconfig.json",
         "build:workers": "node scripts/build-workers.mjs",
         "build": "npm run build:grammar && npm run build:typescript && npm run build:workers",
@@ -57,7 +58,8 @@
         "benchmark": "npm run build && node --expose-gc benchmarks/run.mjs",
         "benchmark:features": "npm run build:typescript && node --expose-gc benchmarks/catalog-features.mjs",
         "benchmark:sqlparser": "npm run build && node --expose-gc benchmarks/compare-sqlparser.mjs",
-        "benchmark:smoke": "npm run build && node benchmarks/run.mjs --smoke"
+        "benchmark:smoke": "npm run build && node benchmarks/run.mjs --smoke",
+        "report:scriptdom-diff": "node scripts/report-scriptdom-diff.mjs"
     },
     "dependencies": {
         "@lezer/common": "^1.2.3",

@@ -1,8 +1,8 @@
 # T-SQL diagnostic backlog
 
-Process every item using
-[`DIAGNOSTIC_COMPLETION_RUNBOOK.md`](./DIAGNOSTIC_COMPLETION_RUNBOOK.md). This file is the
-authoritative queue and progress ledger; the runbook is the authoritative execution procedure.
+This is the completed diagnostic inventory and its historical progress ledger. New language-service
+work follows [`LANGUAGE_SERVICE_COMPLETION_RUNBOOK.md`](./LANGUAGE_SERVICE_COMPLETION_RUNBOOK.md);
+do not reopen this backlog merely to increase a coverage count.
 
 This is the review checklist for diagnostic work after `DuplicateTriggerActionType`. The inventory
 comes from `test/fixtures/tsql-diagnostic-catalog.cjs`; completion is locked by

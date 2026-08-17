@@ -20,7 +20,7 @@ const parserLocalContextWords = new Set(
      committed concatnullyieldsnull cookie cube cursorcloseoncommit datefirst dateformat
      chunkusing copy deadlockpriority delay delayeddurability disable dropexisting dynamic edge enable embeddings encrypted externalmodel apiformat model modeltype localruntimepath fastforward
      approx approximate vectorsearch similarto metric topn startid forceannonly
-     filestreamon filetable fanin first fmtonly following forceplan forappend forwardonly freetext function generated global graph hash
+     filestreamon filetable fanin federation enforced dump load init resize forceseek mark keys respect ignore noreset nulls first fmtonly following forceplan forappend forwardonly freetext function generated global graph hash
      fulltextstoplist grouping groups hidden high identityinsert filestream columnset allsparsecolumns implicittransactions include increment io isolation json jsonarray jsonarrayagg jsonobject jsonobjectagg jsonquery jsonvalue keyset
      language lastnode level local locktimeout loop login low masked matched materialized maxvalue minvalue name next no nocount noexec node normal
      maxdop nobrowsetable numericroundabort notification off offset oj only optimistic out output parameters parseonly partition partitions pause

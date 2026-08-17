@@ -38,11 +38,32 @@ for (const file of manifest.files) {
 
 const parseable = results.filter((result) => result.expectation === "parseable");
 const recovery = results.filter((result) => result.expectation === "recovery");
+
+// Fixture classes are reported separately so an expected error in an intentionally malformed
+// fixture is never averaged into the valid-SQL total. Only the valid classes are required to
+// reach zero raw recovery; profile-gated syntax must parse structurally even when a feature gate
+// rejects it, so it is held to the same zero-recovery bar and tracked apart for review.
+const fixtureClassOf = (result) =>
+    result.expectation === "recovery"
+        ? "intentionallyMalformed"
+        : result.flavorHint && result.flavorHint !== "sql-server-or-common"
+          ? "validProfileGated"
+          : result.versionHint
+            ? "validProfileGated"
+            : "validSupported";
+const byFixtureClass = Object.fromEntries(
+    ["validSupported", "validProfileGated", "intentionallyMalformed"].map((name) => [
+        name,
+        summarize(results.filter((result) => fixtureClassOf(result) === name)),
+    ]),
+);
+
 const report = {
     source: manifest.source,
     inventory: manifest.inventory,
     parseable: summarize(parseable),
     recovery: summarize(recovery),
+    byFixtureClass,
     byFlavor: Object.fromEntries(
         [...new Set(parseable.map((result) => result.flavorHint))]
             .sort()
@@ -122,6 +143,13 @@ function printSummary(value) {
         `Recovery: ${value.recovery.files} fixtures, ${value.recovery.rawErrors} raw errors, ` +
             `${value.recovery.elapsedMs.toFixed(1)} ms`,
     );
+    console.log("By fixture class (valid classes must reach zero raw recovery):");
+    for (const [name, summary] of Object.entries(value.byFixtureClass)) {
+        console.log(
+            `  ${name}: ${summary.clean}/${summary.files} clean ` +
+                `(${summary.cleanPercent.toFixed(1)}%), ${summary.rawErrors} raw errors`,
+        );
+    }
     for (const [flavor, summary] of Object.entries(value.byFlavor)) {
         console.log(
             `${flavor}: ${summary.clean}/${summary.files} clean ` +

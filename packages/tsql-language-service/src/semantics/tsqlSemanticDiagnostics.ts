@@ -129,6 +129,8 @@ export function collectTsqlSemanticDiagnosticsWithState(
     context.validateBuiltInFunctions();
     context.validateCatalogFunctionArguments();
     context.validateOptions();
+    context.validateSetStatements();
+    context.validatePermissiveKeywordTails();
     context.validateCursors();
     context.validateSynonyms();
     return { diagnostics: context.result(), state };
@@ -742,7 +744,7 @@ class ValidationContext {
 
         // Only UNION has an ALL form; EXCEPT ALL and INTERSECT ALL parse so the unsupported
         // operator can be named instead of recovered.
-        for (const kind of ["QueryExpression", "QueryTerm"] as const) {
+        for (const kind of ["QueryExpression", "SelectQueryExpression", "QueryTerm"] as const) {
             for (const node of this.nodes(kind)) {
                 let operator: SyntaxNode | undefined;
                 for (const child of node.children()) {
@@ -772,19 +774,27 @@ class ValidationContext {
             );
         }
 
-        for (const expression of this.nodes("QueryExpression")) {
-            const terms = descendantsOwnedBy(expression, "QuerySpecification", expression).sort(
-                (left, right) => left.start - right.start,
-            );
-            if (terms.length < 2) continue;
-            for (const term of terms.slice(1)) {
-                const into = descendantsOwnedBy(term, "IntoClause", term)[0];
-                if (!into) continue;
-                this.add(
-                    "SelectIntoMustBeFirstQuery",
-                    "SELECT INTO must be the first query in a statement containing a UNION, INTERSECT or EXCEPT operator.",
-                    into,
-                );
+        for (const kind of ["QueryExpression", "SelectQueryExpression"] as const) {
+            for (const expression of this.nodes(kind)) {
+                if (
+                    kind === "QueryExpression" &&
+                    [...expression.children()].some(
+                        (child) => child.kind === "SelectQueryExpression",
+                    )
+                ) {
+                    continue;
+                }
+                const terms = setOperatorTerms(expression);
+                if (terms.length < 2) continue;
+                for (const term of terms.slice(1)) {
+                    const into = descendantsOwnedBy(term, "IntoClause", term)[0];
+                    if (!into) continue;
+                    this.add(
+                        "SelectIntoMustBeFirstQuery",
+                        "SELECT INTO must be the first query in a statement containing a UNION, INTERSECT or EXCEPT operator.",
+                        into,
+                    );
+                }
             }
         }
     }
@@ -1095,9 +1105,11 @@ class ValidationContext {
                 }
                 names.add(key);
 
-                const query = firstDescendant(cte, "QueryExpression");
+                const query =
+                    firstDescendant(cte, "QueryExpression") ??
+                    firstDescendant(cte, "SelectQueryExpression");
                 if (!query) continue;
-                const terms = [...query.children()].filter((child) => child.kind === "QueryTerm");
+                const terms = setOperatorTerms(query);
                 if (terms.length === 0) continue;
                 const references = terms.map((term) =>
                     descendants(term, "NamedTableSource").filter((source) => {
@@ -1222,7 +1234,9 @@ class ValidationContext {
 
         for (const unpivot of this.nodes("UnpivotJoin")) {
             const sourceColumns = this.joinInputColumns(unpivot);
-            const list = directChildren(unpivot, "ColumnNameList")[0];
+            // The unpivoted list parses multipart names so a qualified name is diagnosed here
+            // rather than recovered, so it is its own node kind rather than a plain column list.
+            const list = directChildren(unpivot, "UnpivotColumnList")[0];
             if (list) {
                 const seen = new Set<string>();
                 for (const column of descendants(list, "IdentifierName")) {
@@ -2711,6 +2725,9 @@ class ValidationContext {
                       : scalarFunctionOptions;
                 for (const option of options) {
                     if (allowed.has(moduleOptionKey(this.source(option)))) continue;
+                    // An assignment-shaped option names INLINE or nothing; reporting it here too
+                    // would double up on the vocabulary check in validatePermissiveKeywordTails.
+                    if (directChildren(option, "IdentifierName").length > 0) continue;
                     this.add(
                         "InvalidOptionInCreateFunction",
                         'An invalid option was specified for the statement "CREATE/ALTER FUNCTION".',
@@ -3550,6 +3567,124 @@ class ValidationContext {
                 ...directChildren(clause, "PrincipalOption"),
             ];
             this.validateDuplicateOptions(options);
+        }
+    }
+
+    // The SET grammar keeps option names as identifiers so a misspelling retains an exact range
+    // instead of collapsing into recovery. Recognizing the name, and the value family it accepts,
+    // is therefore a validation rule: without this pass `SET BANANA POTATO` would be silently valid.
+    public validateSetStatements(): void {
+        for (const statement of this.nodes("SetStatement")) {
+            if (containsErrorNode(statement)) continue;
+
+            // A bare option list shares one trailing ON/OFF across every name in the list.
+            for (const list of directChildren(statement, "SetOnOffOptionList")) {
+                const togglesOff = /\bOFF\s*;?\s*$/iu.test(this.source(statement));
+                for (const nameNode of directChildren(list, "IdentifierName")) {
+                    const spelling = this.source(nameNode).trim();
+                    const name = normalizeIdentifier(spelling).toLocaleUpperCase();
+                    if (!onOffSetOptionNames.has(name)) {
+                        this.add(
+                            "UnrecognizedOption",
+                            `'${spelling}' is not a recognized option.`,
+                            nameNode,
+                        );
+                        continue;
+                    }
+                    // SQL Server accepts FIPS_FLAGGER in this list only to turn flagging off; the
+                    // ON form is rejected outright. Its other levels use the named-value form.
+                    if (name === "FIPS_FLAGGER" && !togglesOff) {
+                        this.add(
+                            "IncorrectOptionValue",
+                            `'ON' in not a correct value for option '${spelling}'.`,
+                            nameNode,
+                        );
+                    }
+                }
+            }
+
+            // Named-value options carry one option name and one value each, comma-joined.
+            for (const option of directChildren(statement, "SetGenericOption")) {
+                const nameNode = directChildren(option, "IdentifierName")[0];
+                if (!nameNode) continue;
+                const spelling = this.source(nameNode).trim();
+                const name = normalizeIdentifier(spelling).toLocaleUpperCase();
+                const accepts = genericSetOptionValues.get(name);
+                if (!accepts) {
+                    this.add(
+                        "UnrecognizedOption",
+                        `'${spelling}' is not a recognized option.`,
+                        nameNode,
+                    );
+                    continue;
+                }
+                const valueNode = directChildren(option, "SetGenericOptionValue")[0];
+                if (!valueNode) continue;
+                const valueText = this.source(valueNode).trim();
+                // A variable defers its value to run time, so only literal/identifier shapes here.
+                if (/^@/u.test(valueText)) continue;
+                if (!accepts(valueText)) {
+                    this.add(
+                        "IncorrectOptionValue",
+                        `'${valueText}' in not a correct value for option '${spelling}'.`,
+                        valueNode,
+                    );
+                }
+            }
+        }
+    }
+
+    // Three productions accept a bare identifier where the product accepts only a fixed vocabulary:
+    // the words that lead a KILL variant, the option that may carry ON PARTITIONS, and the
+    // boolean-valued function option. The grammar stays permissive so a misspelling keeps an exact
+    // range instead of collapsing into recovery, which makes each vocabulary a validation rule.
+    public validatePermissiveKeywordTails(): void {
+        for (const statement of this.nodes("KillStatement")) {
+            if (containsErrorNode(statement)) continue;
+            const words = directChildren(statement, "IdentifierName");
+            // One leading word is the session/UOW target itself; two or more name a KILL variant.
+            if (words.length < 2) continue;
+            const spellings = words.map((word) => this.source(word).trim().toLocaleUpperCase());
+            // Commit to whichever variant shares the longest prefix, matching how the product
+            // reports the first word it could not reconcile.
+            const variant =
+                killVariantWords.find((candidate) => candidate[0] === spellings[0]) ??
+                defaultKillVariant;
+            for (const [index, word] of words.entries()) {
+                const expected = variant[index] ?? variant[variant.length - 1];
+                if (expected === spellings[index]) continue;
+                this.add(
+                    "ExpectedTokenNotFound",
+                    `Expected ${expected} but encountered ${this.source(word).trim()} instead.`,
+                    word,
+                );
+                break;
+            }
+        }
+
+        // ON PARTITIONS narrows a compression setting to a partition list; no other option takes it.
+        for (const clause of this.nodes("OptionPartitionsClause")) {
+            const option = clause.parent();
+            if (!option || containsErrorNode(option)) continue;
+            const nameNode = firstDescendant(option, "GenericOptionName");
+            if (!nameNode) continue;
+            const name = normalizeIdentifier(this.source(nameNode)).toLocaleUpperCase();
+            if (partitionScopedOptionNames.has(name)) continue;
+            this.add(
+                "IncorrectSyntaxNear",
+                `Incorrect syntax near '${this.source(firstDescendant(clause, "On") ?? clause).trim()}'.`,
+                clause,
+            );
+        }
+
+        // A function option written as `name = ON|OFF` only ever names INLINE.
+        for (const option of this.nodes("FunctionOption")) {
+            if (containsErrorNode(option)) continue;
+            const nameNode = directChildren(option, "IdentifierName")[0];
+            if (!nameNode) continue;
+            const spelling = this.source(nameNode).trim();
+            if (normalizeIdentifier(spelling).toLocaleUpperCase() === "INLINE") continue;
+            this.add("IncorrectSyntaxNear", `Incorrect syntax near '${spelling}'.`, nameNode);
         }
     }
 
@@ -4977,6 +5112,9 @@ function collectVariableDeclarations(
     const declarations = [
         ...(index.get("VariableDeclaration") ?? []),
         ...(index.get("ProcedureParameter") ?? []),
+        // A multi-statement table-valued function names its return table in RETURNS, which declares
+        // that variable for the whole body exactly as a table-variable DECLARE would.
+        ...(index.get("FunctionTableReturnType") ?? []),
     ]
         .map((declaration): VariableDeclaration | undefined => {
             const variable = firstDescendant(declaration, "Variable");
@@ -5288,6 +5426,25 @@ function firstDescendant(node: SyntaxNode, kind: string): SyntaxNode | undefined
     return undefined;
 }
 
+function setOperatorTerms(node: SyntaxNode): SyntaxNode[] {
+    const terms: SyntaxNode[] = [];
+    for (const child of node.children()) {
+        if (child.kind === "SelectQueryExpression") {
+            terms.push(...setOperatorTerms(child));
+            continue;
+        }
+        if (
+            child.kind === "QuerySpecification" ||
+            child.kind === "QueryTerm" ||
+            child.kind === "QueryPrimary" ||
+            child.kind === "ParenthesizedQuery"
+        ) {
+            terms.push(child);
+        }
+    }
+    return terms;
+}
+
 function lastDescendant(node: SyntaxNode, kind: string): SyntaxNode | undefined {
     let result: SyntaxNode | undefined;
     visit(node, (candidate) => {
@@ -5381,6 +5538,8 @@ function moduleOptionKey(value: string): string {
     if (normalized.startsWith("EXECUTE AS ")) return "EXECUTE AS";
     if (normalized.startsWith("RETURNS NULL ON NULL INPUT")) return "RETURNS NULL ON NULL INPUT";
     if (normalized.startsWith("CALLED ON NULL INPUT")) return "CALLED ON NULL INPUT";
+    // INLINE is the one module option written as an assignment; its value is checked separately.
+    if (normalized.startsWith("INLINE")) return "INLINE";
     return normalized;
 }
 
@@ -6189,21 +6348,30 @@ const aggregateFunctionNames = new Set([
     "VARP",
 ]);
 
+// INLINE belongs to every function shape: the scalar-UDF inlining switch is accepted wherever a
+// function WITH clause is, external bodies included.
 const scalarFunctionOptions = new Set([
     "ENCRYPTION",
     "SCHEMABINDING",
     "EXECUTE AS",
     "RETURNS NULL ON NULL INPUT",
     "CALLED ON NULL INPUT",
+    "INLINE",
 ]);
-const tableFunctionOptions = new Set(["ENCRYPTION", "SCHEMABINDING", "EXECUTE AS"]);
-const inlineTableFunctionOptions = new Set(["ENCRYPTION", "SCHEMABINDING", "NATIVE_COMPILATION"]);
+const tableFunctionOptions = new Set(["ENCRYPTION", "SCHEMABINDING", "EXECUTE AS", "INLINE"]);
+const inlineTableFunctionOptions = new Set([
+    "ENCRYPTION",
+    "SCHEMABINDING",
+    "NATIVE_COMPILATION",
+    "INLINE",
+]);
 const externalScalarFunctionOptions = new Set([
     "EXECUTE AS",
     "RETURNS NULL ON NULL INPUT",
     "CALLED ON NULL INPUT",
+    "INLINE",
 ]);
-const externalTableFunctionOptions = new Set(["EXECUTE AS"]);
+const externalTableFunctionOptions = new Set(["EXECUTE AS", "INLINE"]);
 
 const pivotAggregateArities = new Map<string, FunctionArity>([
     ...[
@@ -6325,6 +6493,77 @@ const cursorOptionNames = new Set([
     "TYPE_WARNING",
 ]);
 const isoCursorOptionNames = new Set(["INSENSITIVE", "SCROLL"]);
+
+// KILL either names a session directly or leads with one of exactly these keyword sequences.
+const defaultKillVariant = ["STATS", "JOB"] as const;
+const killVariantWords: readonly (readonly string[])[] = [
+    defaultKillVariant,
+    ["QUERY", "NOTIFICATION", "SUBSCRIPTION"],
+];
+
+// Only the compression settings scope to a partition list.
+const partitionScopedOptionNames = new Set(["DATA_COMPRESSION", "XML_COMPRESSION"]);
+
+// The boolean session settings, which appear as a bare comma-separated name list sharing one
+// trailing ON/OFF. FIPS_FLAGGER belongs here only in its OFF form; its named levels use the
+// value form below.
+const onOffSetOptionNames = new Set([
+    "ANSI_DEFAULTS",
+    "ANSI_NULL_DFLT_OFF",
+    "ANSI_NULL_DFLT_ON",
+    "ANSI_NULLS",
+    "ANSI_PADDING",
+    "ANSI_WARNINGS",
+    "ARITHABORT",
+    "ARITHIGNORE",
+    "CONCAT_NULL_YIELDS_NULL",
+    "CURSOR_CLOSE_ON_COMMIT",
+    "FIPS_FLAGGER",
+    "FMTONLY",
+    "FORCEPLAN",
+    "IMPLICIT_TRANSACTIONS",
+    "NO_BROWSETABLE",
+    "NOCOUNT",
+    "NOEXEC",
+    "NUMERIC_ROUNDABORT",
+    "PARSEONLY",
+    "QUOTED_IDENTIFIER",
+    "REMOTE_PROC_TRANSACTIONS",
+    "SHOWPLAN_ALL",
+    "SHOWPLAN_TEXT",
+    "SHOWPLAN_XML",
+    "XACT_ABORT",
+]);
+
+const isIntegerSetValue = (value: string): boolean => /^[+-]?\d+$/u.test(value);
+const isNameSetValue = (value: string): boolean =>
+    /^'[^']*'$/u.test(value) ||
+    /^[\p{L}_][\p{L}\p{N}_$#@]*$/u.test(value) ||
+    /^\[.*\]$/su.test(value);
+const setValueWord = (value: string): string =>
+    (/^'(.*)'$/su.exec(value)?.[1] ?? value).trim().toLocaleUpperCase();
+
+// SQL Server's named-value SET options: each takes one option name and one value, and several may
+// be comma-joined in one statement. The accepted value family is per option, so an unsupported
+// value shape is reported instead of being silently accepted by the shared grammar production.
+const genericSetOptionValues = new Map<string, (value: string) => boolean>([
+    [
+        "DEADLOCK_PRIORITY",
+        (value) =>
+            isIntegerSetValue(value) || ["LOW", "NORMAL", "HIGH"].includes(setValueWord(value)),
+    ],
+    ["LOCK_TIMEOUT", isIntegerSetValue],
+    ["QUERY_GOVERNOR_COST_LIMIT", isIntegerSetValue],
+    ["DATEFIRST", isIntegerSetValue],
+    ["LANGUAGE", isNameSetValue],
+    ["DATEFORMAT", isNameSetValue],
+    // CONTEXT_INFO stores an opaque binary payload for the session.
+    ["CONTEXT_INFO", (value) => /^0[xX][0-9a-fA-F]*$/u.test(value)],
+    [
+        "FIPS_FLAGGER",
+        (value) => ["ENTRY", "INTERMEDIATE", "FULL", "OFF"].includes(setValueWord(value)),
+    ],
+]);
 
 // SQL Server recognizes exactly these single-word module options inside a module WITH clause; any
 // other name there is unrecognized rather than misplaced. EXECUTE AS has its own option syntax.

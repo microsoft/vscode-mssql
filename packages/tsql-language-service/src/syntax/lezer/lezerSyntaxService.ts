@@ -885,7 +885,7 @@ function collectSyntaxFacts(
                 const option = /^\{\s*([\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(
                     text.slice(node.from, node.to),
                 )?.[1];
-                if (option && !/^(?:CALL|D|ESCAPE|FN|OJ|T|TS)$/iu.test(option)) {
+                if (option && !/^(?:CALL|D|ESCAPE|FN|GUID|OJ|T|TS)$/iu.test(option)) {
                     const start = findWord(text, node.from, node.to, option);
                     diagnostics.push({
                         code: "InvalidOdbcDatetimeExtensionOption",
@@ -1222,6 +1222,9 @@ interface FeatureProfileRule {
     readonly keyword: string;
     readonly minimumServer?: 15 | 16 | 17;
     readonly minimumCompatibility?: 150 | 160 | 170;
+    // Syntax that SQL Server removed rather than added: it parses structurally so the statement
+    // keeps its shape, and is reported once the profile is newer than the last release accepting it.
+    readonly maximumCompatibility?: 80 | 90 | 100 | 110;
     readonly engineFlavors?: readonly TsqlFeatureProfile["engineFlavor"][];
     readonly statementUnavailable?: boolean;
 }
@@ -1232,6 +1235,12 @@ function featureProfileRule(
     profile: TsqlFeatureProfile,
 ): FeatureProfileRule | undefined {
     switch (node.name) {
+        // Pre-7.0 device and backup spellings. They parse so the statement keeps its shape, and are
+        // reported on any profile newer than the last release that accepted them: DUMP and LOAD
+        // were removed after compatibility level 90, DISK INIT and DISK RESIZE after 80. Verified
+        // against ScriptDOM's per-version parsers.
+        case "LegacyDiskStatement":
+            return { keyword: "DISK", maximumCompatibility: 80, statementUnavailable: true };
         case "WindowClause":
             return { keyword: "WINDOW", minimumServer: 16, minimumCompatibility: 160 };
         case "OrderByAllClause":
@@ -1288,10 +1297,21 @@ function featureProfileRule(
                 engineFlavors: ["sql-server"],
                 statementUnavailable: true,
             };
-        case "BackupStatement":
-            return { keyword: "BACKUP", engineFlavors: ["sql-server"] };
-        case "RestoreStatement":
-            return { keyword: "RESTORE", engineFlavors: ["sql-server"] };
+        // DUMP and LOAD reuse these statements' structure, so the spelling selects the rule: the
+        // legacy spellings were removed after compatibility level 90, while the modern ones remain
+        // available on SQL Server but not on Azure SQL Database.
+        case "BackupStatement": {
+            const lead = text.slice(node.from, node.to).trimStart().toUpperCase();
+            return lead.startsWith("DUMP")
+                ? { keyword: "DUMP", maximumCompatibility: 90, statementUnavailable: true }
+                : { keyword: "BACKUP", engineFlavors: ["sql-server"] };
+        }
+        case "RestoreStatement": {
+            const lead = text.slice(node.from, node.to).trimStart().toUpperCase();
+            return lead.startsWith("LOAD")
+                ? { keyword: "LOAD", maximumCompatibility: 90, statementUnavailable: true }
+                : { keyword: "RESTORE", engineFlavors: ["sql-server"] };
+        }
         case "DataType": {
             const value = text.slice(node.from, node.to).trimStart().toLowerCase();
             if (/^(json|vector)\b/u.test(value)) {
@@ -1320,6 +1340,8 @@ function supportsFeature(profile: TsqlFeatureProfile, rule: FeatureProfileRule):
         (rule.minimumServer === undefined || profile.serverMajorVersion >= rule.minimumServer) &&
         (rule.minimumCompatibility === undefined ||
             profile.compatibilityLevel >= rule.minimumCompatibility) &&
+        (rule.maximumCompatibility === undefined ||
+            profile.compatibilityLevel <= rule.maximumCompatibility) &&
         (rule.engineFlavors === undefined || rule.engineFlavors.includes(profile.engineFlavor))
     );
 }
@@ -1407,6 +1429,8 @@ const integerSetOptionNames = new Set([
     "LOCK_TIMEOUT",
     "QUERY_GOVERNOR_COST_LIMIT",
     "TEXTSIZE",
+    "ERRLVL",
+    "ROWCOUNT",
 ]);
 
 const integerOptionNames = new Set([

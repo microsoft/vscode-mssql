@@ -46,6 +46,55 @@ CREATE CREDENTIAL AlterEgo WITH IDENTITY = 'RettigB', SECRET = 'Secret';
         assert.match(snapshot.tree.toString(), /CredentialStatement\(/);
     });
 
+    // Provider-backed keys may omit provider options, add an encryption relationship, and remove
+    // the provider key. OPEN supports password-assisted certificate/asymmetric decryption only.
+    test("parses provider and decryption symmetric-key forms", () => {
+        const snapshot = parse(`
+CREATE SYMMETRIC KEY k1 FROM PROVIDER p1;
+CREATE SYMMETRIC KEY k2 FROM PROVIDER p1
+WITH PROVIDER_KEY_NAME = 'key2', ALGORITHM = AES_256, CREATION_DISPOSITION = OPEN_EXISTING;
+CREATE SYMMETRIC KEY k3 FROM PROVIDER p1 ENCRYPTION BY CERTIFICATE c1;
+DROP SYMMETRIC KEY k3 REMOVE PROVIDER KEY;
+OPEN SYMMETRIC KEY k1 DECRYPTION BY PASSWORD = 'password';
+OPEN SYMMETRIC KEY k1 DECRYPTION BY CERTIFICATE c1 WITH PASSWORD = 'p1';
+OPEN SYMMETRIC KEY k1 DECRYPTION BY ASYMMETRIC KEY ak1 WITH PASSWORD = N'p1';
+OPEN SYMMETRIC KEY k1 DECRYPTION BY SYMMETRIC KEY sk1;
+`);
+
+        assertValid(snapshot);
+        assert.equal((snapshot.tree.toString().match(/SymmetricKeyStatement\(/g) ?? []).length, 4);
+        assert.equal((snapshot.tree.toString().match(/KeyAccessStatement\(/g) ?? []).length, 4);
+
+        for (const sql of [
+            "CREATE SYMMETRIC KEY k FROM PROVIDER p PROVIDER_KEY_NAME = 'x';",
+            "DROP SYMMETRIC KEY k REMOVE PROVIDER;",
+            "OPEN SYMMETRIC KEY k DECRYPTION BY SYMMETRIC KEY sk WITH PASSWORD = 'p';",
+            "OPEN SYMMETRIC KEY k DECRYPTION BY CERTIFICATE WITH PASSWORD = 'p';",
+        ]) {
+            const damaged = parse(`${sql}\nGO\nSELECT 1;`);
+            assert.ok(damaged.diagnostics.length > 0);
+            assert.match(damaged.tree.toString(), /SelectStatement\(/);
+        }
+    });
+
+    // A provider option edit must produce the same tree and diagnostics as a fresh parse.
+    test("keeps provider-backed symmetric keys incrementally equivalent", () => {
+        const service = new LezerSyntaxService();
+        const sql =
+            "CREATE SYMMETRIC KEY k FROM PROVIDER p WITH ALGORITHM = AES_128;\nGO\nSELECT 1;";
+        const firstDocument = new ImmutableTextSnapshot("file:///provider-key.sql", 1, sql);
+        const first = service.parse(firstDocument);
+        const start = sql.indexOf("AES_128");
+        const change = { start, end: start + "AES_128".length, text: "AES_256" };
+        const nextDocument = applyTextChanges(firstDocument, 2, [change]);
+        const incremental = service.update(first, nextDocument, [change]);
+        const fresh = service.parse(nextDocument);
+
+        assert.equal(incremental.tree.toString(), fresh.tree.toString());
+        assert.deepEqual(incremental.diagnostics, fresh.diagnostics);
+        assert.deepEqual([...incremental.tokens()], [...fresh.tokens()]);
+    });
+
     // Verifies messages, contracts, queues, and services retain Broker topology and activation options.
     test("parses Service Broker object families", () => {
         const snapshot = parse(`
@@ -65,6 +114,36 @@ DROP QUEUE .dbo.q1;
         assert.match(tree, /QueueStatement\(/);
         assert.match(tree, /ServiceStatement\(/);
         assert.match(tree, /MultipartOptionValue\(IdentifierName\(Identifier\),Dot,Dot/);
+    });
+
+    // MOVE CONVERSATION reassigns a dialog to another conversation group and remains a distinct
+    // statement rather than being recovered through DECLARE/cursor syntax.
+    test("parses MOVE CONVERSATION statements", () => {
+        assertValid("MOVE CONVERSATION @conversation_handle TO @conversation_group_id;");
+        assertValid("MOVE CONVERSATION dbo.get_handle() TO @group_id;");
+
+        for (const sql of [
+            "MOVE CONVERSATION TO @group_id;",
+            "MOVE CONVERSATION @handle @group_id;",
+            "MOVE CONVERSATION @handle TO;",
+        ]) {
+            const damaged = parse(`${sql}\nGO\nSELECT 1;`);
+            assert.ok(damaged.diagnostics.length > 0);
+            assert.match(damaged.tree.toString(), /SelectStatement\(/);
+        }
+
+        const service = new LezerSyntaxService();
+        const sql = "MOVE CONVERSATION @handle TO @group1;\nGO\nSELECT 1;";
+        const firstDocument = new ImmutableTextSnapshot("file:///move-conversation.sql", 1, sql);
+        const first = service.parse(firstDocument);
+        const start = sql.indexOf("@group1");
+        const change = { start, end: start + 7, text: "@group2" };
+        const nextDocument = applyTextChanges(firstDocument, 2, [change]);
+        const incremental = service.update(first, nextDocument, [change]);
+        const fresh = service.parse(nextDocument);
+        assert.equal(incremental.tree.toString(), fresh.tree.toString());
+        assert.deepEqual(incremental.diagnostics, fresh.diagnostics);
+        assert.deepEqual([...incremental.tokens()], [...fresh.tokens()]);
     });
 
     // Verifies endpoint transport and payload sections remain distinct bounded containers.

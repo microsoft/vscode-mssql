@@ -29,10 +29,12 @@ const statementStarters = new Set([
     "exec",
     "execute",
     "fetch",
+    "get",
     "goto",
     "if",
     "insert",
     "merge",
+    "move",
     "open",
     "print",
     "raiserror",
@@ -191,6 +193,10 @@ function findBoundary(input: InputStream, mode: "condition" | "block" | "stateme
             continue;
         }
         if (current === 41) {
+            // A StatementChunk mounted inside WAITFOR starts after the outer opening parenthesis,
+            // so its matching close appears at local depth zero and belongs to the host grammar.
+            // Balanced parentheses opened by the mounted SQL still remain inside the chunk.
+            if (mode === "statement" && parentheses === 0) return trimEnd(input, offset);
             parentheses = Math.max(0, parentheses - 1);
             offset++;
             continue;

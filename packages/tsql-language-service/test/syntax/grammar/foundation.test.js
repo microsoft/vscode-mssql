@@ -18,7 +18,10 @@ const {
     reservedKeywordNames,
 } = require("../../../dist/index.js");
 
-const { createSyntaxHarness } = require("../../support/syntaxHarness.js");
+const {
+    assertIncrementalEquivalent,
+    createSyntaxHarness,
+} = require("../../support/syntaxHarness.js");
 const { parse } = createSyntaxHarness("foundation.sql");
 
 suite("T-SQL lexical and query grammar foundation", () => {
@@ -129,6 +132,79 @@ FOR JSON PATH;
         ]) {
             assert.match(tree, new RegExp(`${kind}\\(`));
         }
+    });
+
+    // Set-operator operands, CTE bodies, INSERT sources, and wrappers may group a query.
+    // Statement-leading '(SELECT …) UNION …' remains a separate batch so '(' is not a
+    // statement starter.
+    test("parses parenthesized query expressions", () => {
+        const snapshot = parse(`
+SELECT 1 UNION (SELECT 2);
+SELECT 1 EXCEPT (SELECT 2);
+SELECT 1 INTERSECT (SELECT 2);
+WITH c AS ((SELECT 1)) SELECT * FROM c;
+WITH d AS ((SELECT 1 UNION SELECT 2)) SELECT * FROM d;
+SELECT * FROM ((SELECT 1 UNION ALL SELECT 2)) AS t;
+SELECT (((SELECT 1) UNION SELECT 2));
+`);
+        assert.deepEqual(snapshot.diagnostics, []);
+        assert.equal(snapshot.statistics.rawErrorNodeCount, 0);
+        const tree = snapshot.tree.toString();
+        assert.match(tree, /QueryPrimary\(ParenthesizedQuery\(/);
+        assert.match(tree, /WithClause\(/);
+        assert.match(tree, /DerivedTable\(/);
+    });
+
+    // Scalar subqueries and derived tables remain ParenthesizedQuery, not statement wrappers.
+    test("keeps scalar subqueries and derived tables distinct from set grouping", () => {
+        const snapshot = parse(`
+SELECT (SELECT 1);
+SELECT * FROM (SELECT 1 AS Id) AS t;
+`);
+        assert.deepEqual(snapshot.diagnostics, []);
+        assert.equal(snapshot.statistics.rawErrorNodeCount, 0);
+        const tree = snapshot.tree.toString();
+        assert.match(tree, /SelectElement\(Expression\(ParenthesizedQuery\(/);
+        assert.match(tree, /DerivedTable\(ParenthesizedQuery\(/);
+    });
+
+    // A truncated grouped operand stays in its batch so the following GO batch remains a clean SELECT.
+    test("keeps a damaged parenthesized query inside its GO batch", () => {
+        const sql = "SELECT 1 UNION (\nGO\nSELECT 1;";
+        const snapshot = parse(sql);
+        const selectStart = sql.lastIndexOf("SELECT");
+        const cleanSelect = parse("SELECT 1;");
+
+        assert.ok(snapshot.diagnostics.length > 0);
+        assert.ok(snapshot.diagnostics.every((diagnostic) => diagnostic.range.start < selectStart));
+        assert.equal(cleanSelect.statistics.rawErrorNodeCount, 0);
+        assert.deepEqual(cleanSelect.diagnostics, []);
+        assert.match(snapshot.tree.toString(), /SelectStatement\(/);
+        assert.match(snapshot.tree.toString(), /BatchSeparator\(Go\)/);
+    });
+
+    // Incremental grouping of a UNION operand must match a fresh parse of the final text.
+    test("keeps incremental parenthesized query grouping equivalent to a fresh parse", () => {
+        const service = new LezerSyntaxService();
+        const beforeText = "SELECT 1 UNION SELECT 2;\nGO\nSELECT 1;";
+        const previousDocument = new ImmutableTextSnapshot(
+            "file:///parenthesized-query.sql",
+            1,
+            beforeText,
+        );
+        const previousSnapshot = service.parse(previousDocument);
+        const start = beforeText.indexOf("SELECT 2");
+        const { incremental, fresh } = assertIncrementalEquivalent({
+            service,
+            previousDocument,
+            previousSnapshot,
+            version: 2,
+            changes: [{ start, end: start + "SELECT 2".length, text: "(SELECT 2)" }],
+            assertReuse: false,
+        });
+        assert.deepEqual(incremental.diagnostics, []);
+        assert.deepEqual(fresh.diagnostics, []);
+        assert.match(fresh.tree.toString(), /Union,QueryTerm\(QueryPrimary\(ParenthesizedQuery\(/);
     });
 
     // Verifies common rowset and scalar constructs have dedicated nodes rather than recovery gaps.
