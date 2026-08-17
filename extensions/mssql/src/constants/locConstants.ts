@@ -1883,13 +1883,13 @@ export class LocalContainers {
             comment: ["{0} is the container name"],
         });
     };
-    public static containerUsedByOtherConnections = (
+    public static deleteSharedContainerConfirmation = (
         containerName: string,
         connectionDisplayNames: string[],
     ) => {
         return l10n.t({
             message:
-                "The container {0} is also used by other saved connections: {1}. Remove those connections before deleting the container.",
+                "The container {0} is also used by other saved connections: {1}. Deleting it will remove both the container and this connection from VS Code, and the other connections will stop working. Are you sure you want to continue?",
             args: [containerName, connectionDisplayNames.join(", ")],
             comment: [
                 "{0} is the container name",

@@ -7655,8 +7655,8 @@
       <source xml:lang="en">The connection with ID &apos;{0}&apos; does not have the &apos;server&apos; property set and is being ignored.  Please set the &apos;server&apos; property on this connection in order to use it.</source>
       <note>{0} is the connection ID for the connection that has been ignored</note>
     </trans-unit>
-    <trans-unit id="++CODE++69695cf125835cd789041b7926584edecba49a8a2cf8d8584bb6be2055e4eef8">
-      <source xml:lang="en">The container {0} is also used by other saved connections: {1}. Remove those connections before deleting the container.</source>
+    <trans-unit id="++CODE++c26f922e79a16165245c5c477725da52caaa307f8e5731f6be68f341a36028b9">
+      <source xml:lang="en">The container {0} is also used by other saved connections: {1}. Deleting it will remove both the container and this connection from VS Code, and the other connections will stop working. Are you sure you want to continue?</source>
       <note>{0} is the container name
 {1} is the comma-separated list of connection display names</note>
     </trans-unit>

@@ -194,7 +194,7 @@ suite("MainController Tests", function () {
             sandbox.stub(connectionManager, "connectionStore").get(() => connectionStore);
         });
 
-        test("prevents deletion when another saved connection uses the container", async () => {
+        test("cancels deletion when shared container warning is dismissed", async () => {
             const selectedProfile = createContainerConnection(
                 "selected",
                 "Selected connection",
@@ -213,12 +213,37 @@ suite("MainController Tests", function () {
             await controllerAccess.deleteContainerForNode(createContainerNode(selectedProfile));
 
             expect(messageBoxes.showWarningMessage).to.have.been.calledOnceWithExactly(
-                LocalizedConstants.LocalContainers.containerUsedByOtherConnections(
+                LocalizedConstants.LocalContainers.deleteSharedContainerConfirmation(
                     "shared-container",
                     ["Other connection"],
                 ),
+                { modal: true },
+                LocalizedConstants.Common.delete,
             );
             expect(isContainerReadyStub).to.not.have.been.called;
+            expect(messageBoxes.showInformationMessage).to.not.have.been.called;
+        });
+
+        test("continues deletion flow when shared container warning is confirmed", async () => {
+            const selectedProfile = createContainerConnection(
+                "selected",
+                "Selected connection",
+                "shared-container",
+            );
+            const otherProfile = createContainerConnection(
+                "other",
+                "Other connection",
+                "shared-container",
+            );
+            connectionConfig.getConnections.resolves([selectedProfile, otherProfile]);
+            messageBoxes.showWarningMessage.resolves(LocalizedConstants.Common.delete);
+            const isContainerReadyStub = sandbox
+                .stub(controllerAccess, "isContainerReadyForCommands")
+                .resolves(false);
+
+            await controllerAccess.deleteContainerForNode(createContainerNode(selectedProfile));
+
+            expect(isContainerReadyStub).to.have.been.calledOnce;
             expect(messageBoxes.showInformationMessage).to.not.have.been.called;
         });
 

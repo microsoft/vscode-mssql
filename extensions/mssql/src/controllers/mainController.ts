@@ -3479,27 +3479,33 @@ export default class MainController implements vscode.Disposable {
                 profile.id !== connectionProfile.id && profile.containerName === containerName,
         );
         if (otherConnectionsUsingContainer.length > 0) {
-            await vscode.window.showWarningMessage(
-                LocalizedConstants.LocalContainers.containerUsedByOtherConnections(
+            const confirmation = await vscode.window.showWarningMessage(
+                LocalizedConstants.LocalContainers.deleteSharedContainerConfirmation(
                     containerName,
                     otherConnectionsUsingContainer.map(ConnInfo.getConnectionDisplayName),
                 ),
+                { modal: true },
+                LocalizedConstants.Common.delete,
             );
-            return;
+            if (confirmation !== LocalizedConstants.Common.delete) {
+                return;
+            }
         }
 
         if (!(await this.isContainerReadyForCommands(node))) {
             return;
         }
 
-        const confirmation = await vscode.window.showInformationMessage(
-            LocalizedConstants.LocalContainers.deleteContainerConfirmation(containerName),
-            { modal: true },
-            LocalizedConstants.Common.delete,
-        );
+        if (otherConnectionsUsingContainer.length === 0) {
+            const confirmation = await vscode.window.showInformationMessage(
+                LocalizedConstants.LocalContainers.deleteContainerConfirmation(containerName),
+                { modal: true },
+                LocalizedConstants.Common.delete,
+            );
 
-        if (confirmation !== LocalizedConstants.Common.delete) {
-            return;
+            if (confirmation !== LocalizedConstants.Common.delete) {
+                return;
+            }
         }
 
         node.loadingLabel = LocalizedConstants.LocalContainers.deletingContainerLoadingLabel;
