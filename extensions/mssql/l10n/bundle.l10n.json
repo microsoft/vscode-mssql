@@ -1189,7 +1189,6 @@
         "message": "Failed to generate script: '{0}'",
         "comment": ["{0} is the error message returned from the generate script operation"]
     },
-    "Are you sure you want to update the target?": "Are you sure you want to update the target?",
     "Failed to apply changes: '{0}'/{0} is the error message returned from the publish changes operation": {
         "message": "Failed to apply changes: '{0}'",
         "comment": ["{0} is the error message returned from the publish changes operation"]
@@ -3593,6 +3592,31 @@
     "Stop": "Stop",
     "Generate script to deploy changes to target": "Generate script to deploy changes to target",
     "Apply changes to target": "Apply changes to target",
+    "Apply changes to {0}/{0} is the target connection name, optionally followed by a colon and the selected database name": {
+        "message": "Apply changes to {0}",
+        "comment": [
+            "{0} is the target connection name, optionally followed by a colon and the selected database name"
+        ]
+    },
+    "Create ({0})/{0} is the total number of objects that will be created": {
+        "message": "Create ({0})",
+        "comment": ["{0} is the total number of objects that will be created"]
+    },
+    "Change ({0})/{0} is the total number of objects that will be changed": {
+        "message": "Change ({0})",
+        "comment": ["{0} is the total number of objects that will be changed"]
+    },
+    "Drop ({0})/{0} is the total number of objects that will be dropped": {
+        "message": "Drop ({0})",
+        "comment": ["{0} is the total number of objects that will be dropped"]
+    },
+    "{0}: {1}/{0} is a schema object type, such as Table or View{1} is the number of objects of that type": {
+        "message": "{0}: {1}",
+        "comment": [
+            "{0} is a schema object type, such as Table or View",
+            "{1} is the number of objects of that type"
+        ]
+    },
     "Options": "Options",
     "Switch Direction": "Switch Direction",
     "Switch Source and Target": "Switch Source and Target",

@@ -2116,9 +2116,6 @@ export class SchemaCompare {
             args: [errorMessage ? errorMessage : "Unknown"],
             comment: ["{0} is the error message returned from the generate script operation"],
         });
-    public static areYouSureYouWantToUpdateTheTarget = l10n.t(
-        "Are you sure you want to update the target?",
-    );
     public static schemaCompareApplyFailed = (errorMessage: string) =>
         l10n.t({
             message: "Failed to apply changes: '{0}'",
