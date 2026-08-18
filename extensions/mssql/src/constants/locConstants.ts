@@ -1878,7 +1878,7 @@ export class LocalContainers {
     public static deleteContainerConfirmation = (containerName: string) => {
         return l10n.t({
             message:
-                "Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.",
+                "Are you sure you want to delete the container '{0}'?\n\nThis will remove both the container and its connection from VS Code.",
             args: [containerName],
             comment: ["{0} is the container name"],
         });
@@ -1889,8 +1889,8 @@ export class LocalContainers {
     ) => {
         return l10n.t({
             message:
-                "The container {0} is also used by other saved connections: {1}. Deleting it will remove both the container and this connection from VS Code, and the other connections will stop working. Are you sure you want to continue?",
-            args: [containerName, connectionDisplayNames.join(", ")],
+                "The container '{0}' is also used by other saved connections:\n{1}\n\nDeleting it will remove both the container and this connection from VS Code, and the other connections will stop working.\n\nAre you sure you want to continue?",
+            args: [containerName, connectionDisplayNames.map((n) => `· ${n}`).join(os.EOL)],
             comment: [
                 "{0} is the container name",
                 "{1} is the comma-separated list of connection display names",
@@ -2281,7 +2281,7 @@ export class Connection {
         return l10n.t({
             message:
                 "The following workspace or workspace folder connections are missing the 'id' property and are being ignored.  Please manually add the 'id' property to the connection in order to use it. \n\n {0}",
-            args: [connectionDisplayNames.join("\n")],
+            args: [connectionDisplayNames.join(os.EOL)],
             comment: [
                 "{0} is the list of display names for the connections that have been ignored",
             ],

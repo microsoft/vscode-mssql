@@ -495,8 +495,8 @@
       <source xml:lang="en">Are you sure you want to delete &quot;{0}&quot;? This action cannot be undone.</source>
       <note>{0} is the name or summary of a reusable filter</note>
     </trans-unit>
-    <trans-unit id="++CODE++9d9d0bfa74aaf1db2f58269ddd7f7e8141a4069574d576aab3174f0f810ad1e0">
-      <source xml:lang="en">Are you sure you want to delete the container {0}? This will remove both the container and its connection from VS Code.</source>
+    <trans-unit id="++CODE++08dd9018a8985b14cb37706073caca7d76b6b750d933c87571c8250f626ec7ec">
+      <source xml:lang="en">Are you sure you want to delete the container &apos;{0}&apos;?&#10;&#10;This will remove both the container and its connection from VS Code.</source>
       <note>{0} is the container name</note>
     </trans-unit>
     <trans-unit id="++CODE++dc1158b4986e0eadcc929a35b9de0147ca4e8e317ec963db232cb2516688ed79">
@@ -7655,8 +7655,8 @@
       <source xml:lang="en">The connection with ID &apos;{0}&apos; does not have the &apos;server&apos; property set and is being ignored.  Please set the &apos;server&apos; property on this connection in order to use it.</source>
       <note>{0} is the connection ID for the connection that has been ignored</note>
     </trans-unit>
-    <trans-unit id="++CODE++c26f922e79a16165245c5c477725da52caaa307f8e5731f6be68f341a36028b9">
-      <source xml:lang="en">The container {0} is also used by other saved connections: {1}. Deleting it will remove both the container and this connection from VS Code, and the other connections will stop working. Are you sure you want to continue?</source>
+    <trans-unit id="++CODE++26a0558c35e476115eaaaba552878a73ea3729ff0fca5232428bf11381d2b74a">
+      <source xml:lang="en">The container &apos;{0}&apos; is also used by other saved connections:&#10;{1}&#10;&#10;Deleting it will remove both the container and this connection from VS Code, and the other connections will stop working.&#10;&#10;Are you sure you want to continue?</source>
       <note>{0} is the container name
 {1} is the comma-separated list of connection display names</note>
     </trans-unit>
