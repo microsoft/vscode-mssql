@@ -97,6 +97,104 @@ suite("T-SQL permissive keyword tail validation", () => {
         }
     });
 
+    // SERVER CERTIFICATE and SERVER ASYMMETRIC KEY belong to a backup ENCRYPTION option. The
+    // option grammar is shared by every WITH list, so their placement is a validation rule.
+    test("rejects a backup key holder outside the ENCRYPTION option", async () => {
+        assert.deepEqual(
+            await codesAndMessages(
+                "backup database d1 to disk = 'd:' with server certificate = c1;",
+            ),
+            [["IncorrectSyntaxNear", "Incorrect syntax near 'server'."]],
+        );
+        assert.deepEqual(
+            await codesAndMessages(
+                "restore database d1 from disk = 'd' with server certificate = c1;",
+            ),
+            [["IncorrectSyntaxNear", "Incorrect syntax near 'server'."]],
+        );
+    });
+
+    test("accepts a backup key holder inside the ENCRYPTION option", async () => {
+        for (const sql of [
+            "backup database d1 to disk = 'd:' with encryption(algorithm = AES_128, server certificate = cert1);",
+            "backup database d1 to disk = 'd' with encryption(algorithm = AES_256, server asymmetric key = k1);",
+        ]) {
+            assert.deepEqual(await analyze(sql), [], sql);
+        }
+    });
+
+    // A rowset or module name is capped at four parts; a column reference is not. The shared name
+    // rule carries both, so the cap is a validation rule reported on the first part beyond it.
+    test("rejects a rowset or module name beyond four parts", async () => {
+        for (const sql of [
+            "exec a.b.c.d.e;",
+            "insert into a.b.c.d.e values (1);",
+            "delete from a.b.c.d.e;",
+            "select * from a.b.c.d.e.f(1);",
+        ]) {
+            const diagnostics = await analyze(sql);
+            const syntax = diagnostics.filter(({ code }) => code === "IncorrectSyntaxNear");
+            assert.deepEqual(
+                syntax.map(({ message }) => message),
+                ["Incorrect syntax near 'e'."],
+                sql,
+            );
+        }
+    });
+
+    test("ranges an over-long rowset name to the offending part", async () => {
+        const sql = "exec a.b.c.d.e;";
+        const [diagnostic] = (await analyze(sql)).filter(
+            ({ code }) => code === "IncorrectSyntaxNear",
+        );
+        assert.equal(sql.slice(diagnostic.range.start, diagnostic.range.end), "e");
+    });
+
+    test("accepts a column reference beyond four parts", async () => {
+        for (const sql of ["select a.b.c.d.e.f.g from t1;", "select 1 where a.b.c.d.e.f = 1;"]) {
+            const syntax = (await analyze(sql)).filter(
+                ({ code }) => code === "IncorrectSyntaxNear",
+            );
+            assert.deepEqual(syntax, [], sql);
+        }
+    });
+
+    // EXECUTE AS inside an option list names a queue activation principal and nothing else.
+    test("rejects EXECUTE AS outside a queue ACTIVATION option", async () => {
+        assert.deepEqual(
+            await codesAndMessages("backup database d1 to disk = 'd' with execute as self;"),
+            [["IncorrectSyntaxNear", "Incorrect syntax near 'EXECUTE'."]],
+        );
+    });
+
+    test("accepts EXECUTE AS inside a queue ACTIVATION option", async () => {
+        for (const sql of [
+            "create queue q1 with activation(procedure_name = dbo.p1, execute as self, max_queue_readers = 1)",
+            "ALTER QUEUE q1 WITH ACTIVATION (PROCEDURE_NAME = dbo.p, EXECUTE AS 'dbo')",
+        ]) {
+            assert.deepEqual(await analyze(sql), [], sql);
+        }
+    });
+
+    // COMPRESSION_DELAY belongs to a columnstore index; the shared index option list takes any name.
+    test("rejects COMPRESSION_DELAY on a non-columnstore index", async () => {
+        assert.deepEqual(
+            await codesAndMessages(
+                "create table t1 (c int, index ix1 with (compression_delay = 1 minute));",
+            ),
+            [["IncorrectSyntaxNear", "Incorrect syntax near 'compression_delay'."]],
+        );
+    });
+
+    test("accepts COMPRESSION_DELAY on a columnstore index", async () => {
+        for (const sql of [
+            "create table t1 (c int, index ix1 clustered columnstore with (compression_delay = 1 minute));",
+            "create table t1 (c int, index ix1 nonclustered (c) with (fillfactor = 80));",
+        ]) {
+            assert.deepEqual(await analyze(sql), [], sql);
+        }
+    });
+
     // The return table of a multi-statement table-valued function is declared by RETURNS, so
     // neither its own name nor a body reference to it is an undeclared variable.
     test("treats a table-valued function return variable as declared", async () => {

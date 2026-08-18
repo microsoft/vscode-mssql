@@ -8,6 +8,7 @@ import {
     BlockChunk,
     ComputeChunk,
     ConditionChunk,
+    GroupedQueryChunk,
     Return,
     StatementChunk,
     With,
@@ -79,6 +80,26 @@ export const statementToken = new ExternalTokenizer((input) => {
     readStatement(input);
 });
 
+/** Scans one statement-leading parenthesized SELECT for the dedicated grouped-query parser. */
+export const groupedQueryToken = new ExternalTokenizer((input, stack) => {
+    if (!isStatementLeading(stack)) return;
+    if (!looksLikeGroupedSelect(input)) return;
+    const boundary = findBoundary(input, "grouped");
+    if (boundary <= 0) return;
+    input.advance(boundary);
+    input.acceptToken(GroupedQueryChunk);
+});
+
+function looksLikeGroupedSelect(input: InputStream): boolean {
+    if (input.peek(0) !== 40) return false;
+    let offset = 0;
+    while (input.peek(offset) === 40) {
+        offset++;
+        while (isWhitespace(input.peek(offset))) offset++;
+    }
+    return wordAt(input, offset)?.text === "select";
+}
+
 function readCompute(input: InputStream): boolean {
     if (wordAt(input, 0)?.text !== "compute") return false;
     const boundary = findBoundary(input, "statement");
@@ -144,7 +165,10 @@ function readStatement(input: InputStream): boolean {
     return true;
 }
 
-function findBoundary(input: InputStream, mode: "condition" | "block" | "statement"): number {
+function findBoundary(
+    input: InputStream,
+    mode: "condition" | "block" | "statement" | "grouped",
+): number {
     let offset = 0;
     let parentheses = 0;
     let nestedBegins = 0;
@@ -196,14 +220,19 @@ function findBoundary(input: InputStream, mode: "condition" | "block" | "stateme
             // A StatementChunk mounted inside WAITFOR starts after the outer opening parenthesis,
             // so its matching close appears at local depth zero and belongs to the host grammar.
             // Balanced parentheses opened by the mounted SQL still remain inside the chunk.
-            if (mode === "statement" && parentheses === 0) return trimEnd(input, offset);
+            if ((mode === "statement" || mode === "grouped") && parentheses === 0) {
+                return trimEnd(input, offset);
+            }
             parentheses = Math.max(0, parentheses - 1);
             offset++;
             continue;
         }
         // Keep the terminator inside the mounted controlled statement. Otherwise the outer IF
         // grammar sees a stray semicolon between the true branch and its ELSE clause.
-        if (parentheses === 0 && current === 59 && mode === "statement") return offset + 1;
+        if (parentheses === 0 && current === 59) {
+            if (mode === "statement") return offset + 1;
+            if (mode === "grouped") return offset;
+        }
         if (parentheses === 0 && isWordStart(current)) {
             const word = wordAt(input, offset)!;
             // Mounted procedural regions must never consume a SQL client batch separator.
@@ -213,7 +242,7 @@ function findBoundary(input: InputStream, mode: "condition" | "block" | "stateme
             if (mode === "condition" && statementStarters.has(word.text)) {
                 if (!(word.text === "update" && nextNonTrivia(input, word.end) === 40))
                     return trimEnd(input, offset);
-            } else if (mode === "statement") {
+            } else if (mode === "statement" || mode === "grouped") {
                 if (word.text === "else" || word.text === "end") return trimEnd(input, offset);
                 // A semicolon-less controlled statement ends before the next line-leading control
                 // statement. This preserves classic IF/ELSE and WHILE scripts without treating
@@ -249,6 +278,15 @@ function findBoundary(input: InputStream, mode: "condition" | "block" | "stateme
         offset++;
     }
     return trimEnd(input, offset);
+}
+
+function isStatementLeading(stack: Stack): boolean {
+    return (stack.context as SqlLexicalContext | null)?.statementLeading ?? stack.pos === 0;
+}
+
+interface SqlLexicalContext {
+    readonly lineLeading: boolean;
+    readonly statementLeading: boolean;
 }
 
 function isLineLeadingWord(input: InputStream, start: number): boolean {

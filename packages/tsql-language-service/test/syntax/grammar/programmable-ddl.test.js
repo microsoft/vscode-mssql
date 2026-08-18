@@ -90,6 +90,8 @@ AS EXTERNAL NAME UtilityAssembly.StoredProcedures.Echo;
     });
 
     // Verifies CLR functions retain table shapes, output ordering, null-call policy, and entry-point identity.
+    // ORDER follows WITH. This test previously wrote them the other way round, which ScriptDOM
+    // rejects with "Incorrect syntax near 'WITH'"; the grammar had the same inversion.
     test("parses CLR scalar and table-valued function forms", () => {
         const snapshot = parse(`
 CREATE FUNCTION dbo.scalar_clr(@value int)
@@ -97,8 +99,8 @@ RETURNS int WITH RETURNS NULL ON NULL INPUT
 AS EXTERNAL NAME UtilityAssembly.Functions.ScalarValue;
 GO
 CREATE FUNCTION dbo.table_clr(@value int)
-RETURNS TABLE (Id int, Name nvarchar(40)) ORDER (Id DESC)
-WITH EXECUTE AS OWNER
+RETURNS TABLE (Id int, Name nvarchar(40))
+WITH EXECUTE AS OWNER ORDER (Id DESC)
 AS EXTERNAL NAME UtilityAssembly.Functions.TableValue;
 `);
 

@@ -3686,6 +3686,74 @@ class ValidationContext {
             if (normalizeIdentifier(spelling).toLocaleUpperCase() === "INLINE") continue;
             this.add("IncorrectSyntaxNear", `Incorrect syntax near '${spelling}'.`, nameNode);
         }
+
+        // SERVER CERTIFICATE and SERVER ASYMMETRIC KEY name the key holder of a backup ENCRYPTION
+        // option. The option grammar is shared by every WITH list, so where they may appear is a
+        // validation rule: as a top-level backup option the product rejects them outright.
+        for (const nameNode of this.nodes("GenericOptionName")) {
+            const spelling = this.source(nameNode).trim();
+            if (!/^SERVER\s/iu.test(spelling)) continue;
+            const enclosing = ancestor(nameNode.parent() ?? nameNode, "GenericOption");
+            const owner = enclosing ? firstDescendant(enclosing, "GenericOptionName") : undefined;
+            const ownerName = owner
+                ? normalizeIdentifier(this.source(owner)).toLocaleUpperCase()
+                : "";
+            if (ownerName === "ENCRYPTION") continue;
+            const lead = /^\s*(\S+)/u.exec(spelling)?.[1] ?? spelling;
+            this.add("IncorrectSyntaxNear", `Incorrect syntax near '${lead}'.`, nameNode);
+        }
+
+        // A column reference or a scalar call may name more than four parts, but a rowset or module
+        // name is capped at four. The shared name rule carries both, so the cap is checked here and
+        // reported on the first part beyond it, exactly as the product does.
+        for (const owner of [...this.nodes("TableSourceName"), ...this.nodes("ExecutableEntity")]) {
+            const nameNode = directChildren(owner, "MultipartIdentifier")[0];
+            if (!nameNode || containsErrorNode(nameNode)) continue;
+            const spelling = this.source(nameNode);
+            const parts = multipartIdentifierParts(spelling);
+            if (parts.length <= 4) continue;
+            this.add(
+                "IncorrectSyntaxNear",
+                `Incorrect syntax near '${parts[4]}'.`,
+                identifierPartRange(nameNode, spelling, 4),
+            );
+        }
+
+        // EXECUTE AS inside an option list names the principal a queue's activation procedure runs
+        // as. The option grammar is shared by every WITH list, so placement is a validation rule.
+        for (const option of this.nodes("GenericOption")) {
+            if (containsErrorNode(option)) continue;
+            const executeAs = directChildren(option, "Execute")[0];
+            if (!executeAs) continue;
+            const enclosing = ancestor(option, "GenericOption");
+            const owner = enclosing ? firstDescendant(enclosing, "GenericOptionName") : undefined;
+            const ownerName = owner
+                ? normalizeIdentifier(this.source(owner)).toLocaleUpperCase()
+                : "";
+            if (ownerName === "ACTIVATION") continue;
+            this.add("IncorrectSyntaxNear", "Incorrect syntax near 'EXECUTE'.", executeAs);
+        }
+
+        // COMPRESSION_DELAY belongs to a columnstore index; the shared index option list accepts
+        // any name, so the pairing is checked here.
+        for (const definition of [
+            ...this.nodes("InlineIndexDefinition"),
+            ...this.nodes("ColumnInlineIndexDefinition"),
+        ]) {
+            if (containsErrorNode(definition)) continue;
+            if (firstDescendant(definition, "Columnstore")) continue;
+            for (const nameNode of descendantsOwnedBy(
+                definition,
+                "GenericOptionName",
+                definition,
+            )) {
+                const spelling = this.source(nameNode).trim();
+                if (normalizeIdentifier(spelling).toLocaleUpperCase() !== "COMPRESSION_DELAY") {
+                    continue;
+                }
+                this.add("IncorrectSyntaxNear", `Incorrect syntax near '${spelling}'.`, nameNode);
+            }
+        }
     }
 
     public validateCursors(): void {

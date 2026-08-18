@@ -393,27 +393,21 @@ measurements. Templates are in the runbook's "Progress ledger" section.
   introduced, and the two share a single verification run.
 - Owner / milestone / scope: Claude Opus 5 / Milestone 1 / remove raw recovery from the largest
   inventory families that are unambiguously valid T-SQL.
-- Reproduction and expected behavior, batch 1:
-    - Select-list compound assignment (`SELECT @a += 1` and the `-=`, `/=`, `%=`, `&=`, `|=`, `^=`
-      forms) parsed as recovery. `*=` is excluded deliberately: it is also the legacy comparison
-      token and already parsed, and plain `@v = expr` keeps its existing comparison reading so no
-      established tree shape changes.
-    - `||` (string concatenation) and `||=` (its compound assignment) did not exist in the grammar at
-      all. Both are SQL Server 2022 operators; the scanner in
-      `SqlParser/.../Parser/Scanner.ScanImpl.cs` confirms `||` produces `TOKEN_DOUBLEPIPE` and `||=`
-      produces `TOKEN_CONCAT_EQ`, and `assign_with_opt_op` in `sql.180.y` confirms `||=` belongs with
-      the other compound assignment operators. Added as longest-match tokens so `||` never reduces to
-      two bitwise-or tokens.
-    - Query hints pairing a strategy word with a reserved clause keyword (`ORDER GROUP`, `HASH UNION`,
-      `MERGE JOIN`, `FORCE ORDER`, `KEEP UNION`) were recovery because ORDER/GROUP/UNION/JOIN/MERGE are
-      reserved. `USE HINT('...')`, `USE PLAN N'...'`, and `OPTIMIZE FOR (@v = 20 | @v unknown)` were
-      also unsupported. Single-word and `name = value` hints already worked and are covered by an
-      explicit no-regression test.
-    - Partition-scoped option tails (`DATA_COMPRESSION = PAGE ON PARTITIONS (2, 3 TO 5)`,
-      `XML_COMPRESSION = ON ON PARTITIONS (1)`, `RESAMPLE ON PARTITIONS (1, 3 TO 7, 10)`).
-    - Memory-optimized table types and table variables (`CREATE TYPE ... AS TABLE (...) WITH
-(MEMORY_OPTIMIZED = ON)`, `DECLARE @t TABLE (...) WITH (...)`).
-    - `SET OFFSETS SELECT, FROM, ORDER ... ON`, whose list reuses reserved statement keywords.
+- Reproduction and expected behavior, batch 1: - Select-list compound assignment (`SELECT @a += 1` and the `-=`, `/=`, `%=`, `&=`, `|=`, `^=`
+  forms) parsed as recovery. `*=` is excluded deliberately: it is also the legacy comparison
+  token and already parsed, and plain `@v = expr` keeps its existing comparison reading so no
+  established tree shape changes. - `||` (string concatenation) and `||=` (its compound assignment) did not exist in the grammar at
+  all. Both are SQL Server 2022 operators; the scanner in
+  `SqlParser/.../Parser/Scanner.ScanImpl.cs` confirms `||` produces `TOKEN_DOUBLEPIPE` and `||=`
+  produces `TOKEN_CONCAT_EQ`, and `assign_with_opt_op` in `sql.180.y` confirms `||=` belongs with
+  the other compound assignment operators. Added as longest-match tokens so `||` never reduces to
+  two bitwise-or tokens. - Query hints pairing a strategy word with a reserved clause keyword (`ORDER GROUP`, `HASH UNION`,
+  `MERGE JOIN`, `FORCE ORDER`, `KEEP UNION`) were recovery because ORDER/GROUP/UNION/JOIN/MERGE are
+  reserved. `USE HINT('...')`, `USE PLAN N'...'`, and `OPTIMIZE FOR (@v = 20 | @v unknown)` were
+  also unsupported. Single-word and `name = value` hints already worked and are covered by an
+  explicit no-regression test. - Partition-scoped option tails (`DATA_COMPRESSION = PAGE ON PARTITIONS (2, 3 TO 5)`,
+  `XML_COMPRESSION = ON ON PARTITIONS (1)`, `RESAMPLE ON PARTITIONS (1, 3 TO 7, 10)`). - Memory-optimized table types and table variables (`CREATE TYPE ... AS TABLE (...) WITH
+(MEMORY_OPTIMIZED = ON)`, `DECLARE @t TABLE (...) WITH (...)`). - `SET OFFSETS SELECT, FROM, ORDER ... ON`, whose list reuses reserved statement keywords.
 - Reproduction and expected behavior, batch 2:
     - `ALTER INDEX i ON .db..t1` — the `.name..name` shape (server and schema both omitted) was
       missing from `OmittedTableSourceName`; `ALTER INDEX` and `CREATE TABLE` now accept the full
@@ -1008,19 +1002,16 @@ ON PARTITIONS (2))` was written as a positive case, and ScriptDOM rejects it wit
   this was the one that was wrong.
 - Permissive productions and the allowlists they required, per the Milestone 1 criteria. Each was
   checked against ScriptDOM in both directions, and all three had accepted invalid input before the
-  validation pass was added:
-    - KILL leading words: `KILL alpha beta gamma 5`, `KILL SOMETHING JOB 12`, `KILL STATS FOO 12` and
-      `KILL QUERY NOTIFICATION FOO ALL` all parsed clean. `validatePermissiveKeywordTails` now commits
-      to whichever of `STATS JOB` / `QUERY NOTIFICATION SUBSCRIPTION` shares the longest prefix and
-      reports the first irreconcilable word with the product's own SQL46005 text, `Expected {0} but
+  validation pass was added: - KILL leading words: `KILL alpha beta gamma 5`, `KILL SOMETHING JOB 12`, `KILL STATS FOO 12` and
+  `KILL QUERY NOTIFICATION FOO ALL` all parsed clean. `validatePermissiveKeywordTails` now commits
+  to whichever of `STATS JOB` / `QUERY NOTIFICATION SUBSCRIPTION` shares the longest prefix and
+  reports the first irreconcilable word with the product's own SQL46005 text, `Expected {0} but
 encountered {1} instead.` — verified character-for-character against ScriptDOM's output for all
-      four inputs.
-    - `ON PARTITIONS` scope: it attached to any option, so `ONLINE = ON ON PARTITIONS (2)` parsed
-      clean. It is now restricted to `DATA_COMPRESSION` and `XML_COMPRESSION`, reported as SQL46010
-      `Incorrect syntax near '{0}'.`
-    - Boolean-valued function option: `WITH BOGUS = ON` parsed clean; the name is now checked against
-      INLINE. The pre-existing `InvalidOptionInCreateFunction` loop was reporting the same option a
-      second time, so it now skips assignment-shaped options and the vocabulary check owns them.
+  four inputs. - `ON PARTITIONS` scope: it attached to any option, so `ONLINE = ON ON PARTITIONS (2)` parsed
+  clean. It is now restricted to `DATA_COMPRESSION` and `XML_COMPRESSION`, reported as SQL46010
+  `Incorrect syntax near '{0}'.` - Boolean-valued function option: `WITH BOGUS = ON` parsed clean; the name is now checked against
+  INLINE. The pre-existing `InvalidOptionInCreateFunction` loop was reporting the same option a
+  second time, so it now skips assignment-shaped options and the vocabulary check owns them.
 - Defect found while validating, unrelated to the batch but fixed because it fires on ordinary
   T-SQL: a multi-statement table-valued function's `RETURNS @t TABLE (...)` return variable was
   never registered as a declaration, so **every** such function reported `Must declare the scalar
@@ -1226,3 +1217,368 @@ construct at a time.
 - Performance after: generator 220,033 ms; uncontended 100 KiB warm-full 148.15 ms and middle-edit
   incremental 15.87 ms. Warm-full is 3.2% above the 143.49 ms session baseline and incremental is
   11.0% faster than its 17.82 ms baseline, both inside the regression gate.
+
+### 2026-08-17 — M1 audit filters, columnstore indexes, backup encryption, PARSE `[x]`
+
+- Status: `[x]` complete. Grammar generation is now ~3–4 minutes, so this batch was built twice
+  (once for the grammar work, once after the negative-neighbour findings) rather than once.
+- Owner / milestone / scope: Claude Opus 5 / Milestone 1 / continue clearing `oursOnlyRecovers`.
+- Baseline after the upstream push: 545 raw recovery nodes, 381/485 clean, 867/867 fast tests. The
+  pushed `proceduralTokenizer` change — returning at local depth zero for a `statement` chunk —
+  fixed the `WAITFOR (RECEIVE ...)` item this ledger had recorded as known-open, and also cleared
+  `EXECUTE AS CALLER`, `CREATE SYMMETRIC KEY ... FROM PROVIDER`, bare restore devices, and
+  `CREATE EXTERNAL TABLE` column lists, which this batch had queued.
+- Reproductions, each ScriptDOM-verified first:
+    - `CREATE/ALTER SERVER AUDIT ... WHERE <predicate>` and `ALTER SERVER AUDIT a1 REMOVE WHERE`.
+    - `INDEX cci CLUSTERED COLUMNSTORE` with no key column list, including
+      `WITH (COMPRESSION_DELAY = 10 MINUTES)`.
+    - `BACKUP DATABASE db READ_WRITE_FILEGROUPS`, which mixes freely into the file list.
+    - `ENCRYPTION(ALGORITHM = AES_128, SERVER CERTIFICATE = cert1)` and `SERVER ASYMMETRIC KEY = k1`.
+    - `PARSE('12345.54' AS float USING 'en-US')` and `TRY_PARSE`.
+    - `INSERT OVER t1 DEFAULT VALUES`, where OVER stands in INTO's position.
+- Where the negative-neighbour pass changed the design, which is the whole reason for running it:
+    - `BACKUP DATABASE db READ_WRITE_FILEGROUPS, FILE = 'f'` is accepted by the product. The first
+      implementation made READ_WRITE_FILEGROUPS an exclusive alternative to the file list, so that
+      form still recovered. Rewritten as a uniform `backupSelectionItem` list; all four orderings and
+      the repeated form are now covered by tests.
+    - `SERVER CERTIFICATE` was added to `GenericOptionName`, which every WITH list shares. That made
+      `BACKUP ... WITH SERVER CERTIFICATE = c1` parse clean, and the product rejects it with SQL46010.
+      Since the option grammar is deliberately shared, placement is now a validation rule: the name is
+      accepted only when its enclosing option is ENCRYPTION.
+    - Making the inline index column list optional also let `INDEX ix1 WITH (COMPRESSION_DELAY = 1)`
+      parse on a non-columnstore index, which the product rejects. Added as a second allowlist —
+      COMPRESSION_DELAY requires a columnstore index.
+    - Both new diagnostics reuse the product's own SQL46010 text and were verified against ScriptDOM's
+      output for the same input, including which token it names.
+- A small trap worth recording: `normalizeIdentifier` does **not** strip underscores, unlike the
+  `normalize` used by the keyword specializer. The COMPRESSION_DELAY allowlist silently matched
+  nothing until the comparison string kept its underscore. Existing sets such as
+  `partitionScopedOptionNames` already spell their entries with underscores; follow that.
+- Files and tests: `src/syntax/lezer/grammar/tsql.grammar` (`AuditFilterClause`, `backupSelectionItem`,
+  optional `IndexColumnList`, `ParseExpression`, `GenericOptionName`, `InsertStatement`, three new
+  contextual keywords); `src/syntax/lezer/keywordSpecializer.ts` (`parse tryparse
+readwritefilegroups` in `parserLocalContextWords`); `src/semantics/tsqlSemanticDiagnostics.ts`
+  (two allowlists in `validatePermissiveKeywordTails`);
+  `test/syntax/grammar/audit-filters-columnstore-and-parse.test.js` (new, 9 tests, including a
+  negative-neighbour test and a GO-batch containment test) and four added cases in
+  `test/semantics/diagnostics/permissive-keyword-tail-diagnostics.test.js`.
+- Focused / fast / corpus results: 18/18 batch forms clean plus 8/10 of the follow-on list, the two
+  misses being the legacy bare table hints below. Fast suite **881/881**; corpus suite 3/3 including
+  the per-file gate. Corpus raw recovery **545 to 498**; clean parseable fixtures 381 to **385**
+  (79.4%). Per fixture class: validSupported 135/182 clean with 159 raw; validProfileGated 250/303
+  clean with 339 raw; intentionallyMalformed 0/4 clean with 19 raw, the expected outcome.
+- Session totals: corpus raw recovery **1,879 to 498, a 73% reduction**; clean parseable fixtures
+  **322 to 385**; fast suite **713 to 881 tests, all passing**; per-file gate green at every
+  checkpoint.
+- Still known-open: legacy bare table hints with no correlation name
+  (`FROM t1 (holdlock, readpast, index = 0)`), valid at compatibility 80. `LegacyTableHintClause` is
+  reachable only after a `TableAlias`, and making it reachable without one collides directly with a
+  table-valued function call; needs GLR plus dynamic precedence. Worth ~16 nodes.
+
+### 2026-08-17 — M1 schema transfers, queues, certificates, principal options `[x]`
+
+- Status: `[x]` complete. Twenty-two forms verified against ScriptDOM first; twenty-one now parse
+  clean and the twenty-second is a form ScriptDOM also rejects, so the miss is correct behaviour.
+- Owner / milestone / scope: Claude Opus 5 / Milestone 1 / continue clearing `oursOnlyRecovers`.
+- Reproductions, each ScriptDOM-verified first: - `ALTER SCHEMA sc1 TRANSFER type::t1`, `object::a2.b2`, `xml schema collection::c1` — the
+  transferred object may name its securable class. - `CREATE DEFAULT dbo.r1 AS (-10)` — the same shape as CREATE RULE, which already existed. - Queue activation: `ACTIVATION(status = on, procedure_name = dbo..p1, max_queue_readers = 23,
+execute as self)` and `ACTIVATION (PROCEDURE_NAME = dbo.p, EXECUTE AS 'dbo')`. - `ALTER CERTIFICATE c1 REMOVE ATTESTED OPTION` and `ATTESTED BY 'zzz'` — undocumented forms the
+  product still accepts. - `DEFAULT_LANGUAGE = 1033` and `DEFAULT_SCHEMA = null` on a contained user. - `ALTER LOGIN l1 WITH PASSWORD = N'p' HASHED`. - A CLR table function's `ORDER (...)` clause.
+- **Second modifier-ordering inversion found, and it had a test encoding the mistake.** The grammar
+  read `FunctionOrderClause? FunctionWithClause?`, so `RETURNS TABLE (...) ORDER (Id DESC) WITH
+EXECUTE AS OWNER` parsed while the product rejects it with SQL46010 near `WITH`, and the correct
+  `WITH ... ORDER (...)` recovered. This is the same class of defect as the `selectModifiers`
+  inversion in the previous batch.
+  `test/syntax/grammar/programmable-ddl.test.js` asserted the invalid ordering, so correcting the
+  grammar turned that test red. Both orderings were put to ScriptDOM before anything was edited:
+  `ORDER ... WITH` is rejected, `WITH ... ORDER` is accepted, and `ORDER` alone without a WITH clause
+  is accepted. The test was therefore corrected rather than the grammar reverted, and the reason is
+  recorded in a comment beside it. This is not rebaselining to absorb a regression — the previous
+  expectation contradicted the oracle, and the evidence is recorded here.
+- Permissive production and its allowlist: `EXECUTE AS (SELF | OWNER | 'principal')` had to go into
+  the shared `GenericOption`, because a queue's ACTIVATION list is an ordinary nested option list
+  with no dedicated rule. That made `BACKUP ... WITH EXECUTE AS SELF` parse clean, which the product
+  rejects, so placement is now validated: the option is accepted only when its enclosing option is
+  ACTIVATION. `EXECUTE AS CALLER` is excluded from the grammar entirely, since ScriptDOM rejects
+  CALLER here while accepting SELF and OWNER.
+- Option value shapes were pinned one at a time rather than widened together, because the product
+  treats them differently: `DEFAULT_LANGUAGE = 1033` is accepted but `DEFAULT_DATABASE = 1033` is
+  not, and `DEFAULT_SCHEMA = null` is accepted but `DEFAULT_LANGUAGE = null` and `NAME = null` are
+  not. Each rejection is covered by the negative-neighbour test.
+- Known-correct miss: `ALTER QUEUE q1 WITH ACTIVATION(DROP)` still recovers, and ScriptDOM rejects it
+  at compatibility 170 too. `QueueStatementTests.sql` carries no `versionHint`, so the differential
+  checks it at 170; the fixture's remaining nodes are genuinely shared with the oracle.
+- Files and tests: `src/syntax/lezer/grammar/tsql.grammar` (`AlterSchemaStatement`,
+  `RuleDefaultStatement`, function `WITH`/`ORDER` order, `GenericOption`, `AlterCertificateStatement`,
+  `PrincipalNonPasswordOption`, `AlterLoginPasswordModifier`);
+  `src/semantics/tsqlSemanticDiagnostics.ts` (EXECUTE AS placement allowlist);
+  `test/syntax/grammar/schema-transfer-queues-and-principals.test.js` (new, 10 tests) and two added
+  cases in `test/semantics/diagnostics/permissive-keyword-tail-diagnostics.test.js`;
+  `test/syntax/grammar/programmable-ddl.test.js` corrected as described above.
+- Focused / fast / corpus results: 21/22 batch forms clean. Fast suite **893/893**; corpus suite 3/3
+  including the per-file gate. Corpus raw recovery **498 to 459**; clean parseable fixtures 385 to
+  **389** (80.2%). Per fixture class: validSupported 138/182 clean with 131 raw; validProfileGated
+  251/303 clean with 328 raw; intentionallyMalformed 0/4 clean with 19 raw, the expected outcome.
+- Session totals: corpus raw recovery **1,879 to 459, a 76% reduction**; clean parseable fixtures
+  **322 to 389**; fast suite **713 to 893 tests, all passing**; per-file gate green at every
+  checkpoint.
+
+### 2026-08-17 — M1 multipart name part counts `[x]`
+
+- Status: `[x]` complete. This is the first batch into the expression core, so it was built alone.
+- Owner / milestone / scope: Claude Opus 5 / Milestone 1 / the largest single remaining gap family.
+- Reproduction, ScriptDOM-verified first: `SELECT a.b.c.d.e.f.g FROM t1` and `k.l.m.n.o.func()` are
+  accepted by the product; `MultipartIdentifier` capped names at four parts, so every such reference
+  recovered. This one rule feeds `ExpressionTests90`, `CreateIndexStatementTests100`,
+  `InsertStatementTests`, `UpdateStatementTests90` and `FromClauseTests90`.
+- **Where the part cap actually sits, measured rather than assumed.** The product does not apply one
+  limit. A column reference or scalar call is unbounded — `a.b.c.d.e.f.g.h.i.j` parses — while a
+  rowset or module name is capped at four: `EXEC a.b.c.d.e`, `INSERT INTO a.b.c.d.e`,
+  `DELETE FROM a.b.c.d.e` and `FROM a.b.c.d.e.f(1)` are all rejected on the fifth part, and
+  `CREATE TABLE a.b.c.d` is rejected on the fourth. Widening the shared name rule therefore had to
+  come with a cap on the object-name positions, which is now validated on `TableSourceName` and
+  `ExecutableEntity` and reported as SQL46010 on the first part beyond the limit. The CREATE TABLE
+  three-part rule is pre-existing permissiveness and was left alone rather than folded in here.
+- **Three failed formulations before one built, all of the same conflict.** Worth recording because
+  the error message names the symptom rather than the cause:
+    1. `IdentifierName (Dot+ IdentifierName)*` — `GenError`, shift/reduce against
+       `StarExpression -> IdentifierName Dot IdentifierName Dot Star`. The named repetition `Dot+`
+       must reduce before the following identifier, and at `a.b.` the parser cannot yet tell `a.b.c`
+       from `a.b.*`.
+    2. `IdentifierName (Dot Dot? Dot? IdentifierName)*` — same conflict one token later. Inlining the
+       dots removed one reduce point but the `*` is itself a reduce point.
+    3. Seven levels of inline `(Dot Dot? Dot? IdentifierName ...)?` — no conflict, but the build ran
+       past ten minutes against a 3–4 minute baseline. Three dot-variants at each of seven levels
+       multiply states in the hottest rule in the grammar.
+       What builds is the original fixed-arity shape with its plain-dot chain extended from three
+       trailing parts to seven, leaving the two omitted-component alternatives untouched: 246 s, clean.
+       **The rule to carry forward: in this grammar an inline `(...)?` group creates no reduce point, but
+       a named rule, a `*` or a `+` does.** That is why the existing multipart and star rules are written
+       as nested inline optionals, and why they must stay that way.
+- Files and tests: `src/syntax/lezer/grammar/tsql.grammar` (`MultipartIdentifier`);
+  `src/semantics/tsqlSemanticDiagnostics.ts` (object-name part cap);
+  `test/syntax/grammar/multipart-name-parts.test.js` (new, 5 tests, including omitted-component and
+  qualified-star no-regression cases) and three added cases in
+  `test/semantics/diagnostics/permissive-keyword-tail-diagnostics.test.js`.
+- Focused / fast / corpus results: long column references, long scalar calls and all four capped
+  object positions behave as the product does. Fast suite **901/901**; corpus suite 3/3 including
+  the per-file gate. Corpus raw recovery **459 to 432**; clean parseable fixtures unchanged at
+  **389** (80.2%), since the affected fixtures each retain other unrelated gaps.
+- Session totals: corpus raw recovery **1,879 to 432, a 77% reduction**; clean parseable fixtures
+  **322 to 389**; fast suite **713 to 901 tests, all passing**; per-file gate green at every
+  checkpoint.
+- Remaining in this family, all ScriptDOM-confirmed valid and each needing its own build: `SET @a.b
+= 12` and `SET @a::b()` UDT member targets; member access on a parenthesized expression
+  (`(a.b()).A`) and on a call chain (`a.b.c.d.f().g.h.k(1,2,default).l`); leading-dot names in
+  expression position (`.t2::f()`, `..........c1`); `@var1.f(...)` as a table source; and the
+  parenthesized query expression `(SELECT 1) UNION SELECT 2`.
+
+### 2026-08-17 — M1 UDT member targets, parenthesized member access, TOP queries `[x]`
+
+- Status: `[x]` complete. Two builds, both clean first time (254 s and 255 s).
+- Owner / milestone / scope: Claude Opus 5 / Milestone 1 / continue the expression-core family.
+- **The SET member target was modelled from measurement, not by reusing the general member rules,
+  and that mattered.** The obvious implementation is `Set VariableMemberExpression ...`, reusing
+  `Variable (FunctionMemberCall | UdtDataMemberCall)+`. Putting the shapes to ScriptDOM first showed
+  three separate reasons that would have been wrong: - `SET @a.b.c = 1` is rejected — a SET target reaches exactly **one** member level, while
+  `VariableMemberExpression` allows a chain. - `SET @a.b().c = 1` is rejected for the same reason. - `SELECT @a::b` is rejected — the `::` form exists **only** in a SET target, so adding a
+  variable-rooted static member rule to `primaryAtom` would have been wrong in the other
+  direction.
+  The rule was therefore written out inline as
+  `Set Variable (Dot | DoubleColon) IdentifierName (assignmentOperator Expression | OpenParen
+ArgumentList? CloseParen)`, which matches the product exactly. All five positive forms parse and
+  all five negatives recover, with **no allowlist needed** — the grammar is exact rather than
+  permissive here, which is the better outcome when the shape is small enough to state.
+- Also landed, each ScriptDOM-verified first:
+    - `UPDATE t1 SET a.b.c.d.func()` — a UDT column mutated by a method call rather than assigned.
+    - `UPDATE t1 SET a.b.c.d.e = ...` — now reaches five parts via the previous batch's name change.
+    - `(a.b()).A` — member access on a parenthesized value, added as its own rule with a required
+      member list so one token of lookahead separates it from an ordinary parenthesized expression.
+    - `UPDATE TOP (SELECT * FROM t2) t1 SET ...` — the parenthesized TOP form takes a query as well as
+      an expression; the two are told apart by their first token, so they share one pair of
+      parentheses without a marker.
+- Files and tests: `src/syntax/lezer/grammar/tsql.grammar` (`SetStatement`, `SetClause`,
+  `ParenthesizedMemberExpression`, `TopClause`);
+  `test/syntax/grammar/udt-member-targets.test.js` (new, 7 tests, including the five-way negative
+  test and a GO-batch containment test).
+- Focused / fast / corpus results: fast suite **908/908**; corpus suite 3/3 including the per-file
+  gate. Corpus raw recovery **432 to 393**; clean parseable fixtures 389 to **394** (81.2%). Per
+  fixture class: validSupported 138/182 clean with 131 raw; validProfileGated 256/303 clean with
+  262 raw; intentionallyMalformed 0/4 clean with 19 raw, the expected outcome.
+- Session totals: corpus raw recovery **1,879 to 393, a 79% reduction**; clean parseable fixtures
+  **322 to 394**; fast suite **713 to 908 tests, all passing**; per-file gate green at every
+  checkpoint.
+- Remaining in this family: leading-dot names in expression position (`.t2::f()`, and the
+  pathological `((..........c1 > 5))` in a CREATE INDEX filter); `@var1.f(...)` as a table source;
+  the deep call chain `a.b.c.d.f().g.h.k(1,2,default).l`; and the parenthesized query expression
+  `(SELECT 1) UNION SELECT 2`. That last one is a **deliberate** exclusion recorded in the grammar —
+  a lone grouped query reduces ambiguously against a scalar subquery — so it needs a GLR marker
+  rather than a new alternative, and is the one item here that should not be attempted casually.
+
+### 2026-08-17 — M1 variable table sources; leading-dot names ruled out `[x]`
+
+- Status: `[x]` complete for what landed. One half of the batch was reverted with the reason
+  recorded, not left half-built.
+- Owner / milestone / scope: Claude Opus 5 / Milestone 1 / continue the expression-core family.
+- Landed, ScriptDOM-verified first: a table-valued UDT method reached through a variable is a rowset
+  — `FROM @var1.f(default, @c * 23) t(c)`, `@var2.f() [table 1](c,c2)`,
+  `@var3.[g](a.b::C) AS table2(c)`. `VariableTableSource` now takes the same
+  `functionTableSourceTail` as any other function rowset, so the correlation name and exposed-column
+  list come for free and behave consistently.
+- **Reverted, with the reason, rather than shipped narrowed: leading-dot names in expression
+  position** (`.t2::f()`, `.f2(default,'def')`, `..t1.c1`, `.c.d`). All are valid per ScriptDOM.
+  Adding a Dot-initial alternative to `primaryAtom` produced a shift/reduce conflict rooted at
+  `ExecutableEntity -> MultipartIdentifier OptionalExecuteProcedureNumber`: in `EXEC a .b` the
+  parser cannot tell a second name part from a new argument.
+  The tempting narrowing — require two or more leading dots so a single `.x` is never an atom —
+  **does not work**, and it is worth writing down why: LR(1) sees only the first `Dot`, so `.b` and
+  `..b` are indistinguishable at the decision point. Bounding the dot run changes what is accepted
+  without changing the conflict. Resolving this needs a GLR marker spanning both readings, which is
+  a larger and riskier change than the remaining node count justifies right now. The exclusion and
+  its reasoning are recorded in the grammar beside `primaryAtom` so the next attempt does not
+  rediscover it. Table-source positions are unaffected — `OmittedTableSourceName` already covers
+  `..t1` and `.db..t1` there.
+- Files and tests: `src/syntax/lezer/grammar/tsql.grammar` (`VariableTableSource`, plus the recorded
+  exclusion note on `primaryAtom`).
+- Focused / fast / corpus results: all four variable-rowset forms clean. Fast suite **908/908**;
+  corpus suite 3/3 including the per-file gate. Corpus raw recovery **393 to 371**; clean parseable
+  fixtures unchanged at **394** (81.2%).
+- Session totals: corpus raw recovery **1,879 to 371, an 80% reduction**; clean parseable fixtures
+  **322 to 394**; fast suite **713 to 908 tests, all passing**; per-file gate green at every
+  checkpoint.
+- Remaining in this family, all ScriptDOM-confirmed valid: leading-dot expression names as above;
+  the deep call chain `a.b.c.d.f().g.h.k(1,2,default).l`; and the parenthesized query expression
+  `(SELECT 1) UNION SELECT 2`. All three now need a GLR marker rather than a new alternative, which
+  makes them one coherent piece of work rather than three separate batches.
+
+### 2026-08-17 — M1 table options, qualified type names, empty grouping set `[x]`
+
+- Status: `[x]` complete. Fifteen forms verified against ScriptDOM first; all fifteen now parse
+  clean. One build, clean first time (250 s).
+- Owner / milestone / scope: Claude Opus 5 / Milestone 1 / return to statement-level gaps, since the
+  three remaining expression-core items all need the same GLR-marker work and are better done
+  together.
+- Reproductions, each ScriptDOM-verified first:
+    - `WITH (PARTITION(COL0 RANGE FOR VALUES ()))` — RANGE LEFT/RIGHT is optional and the boundary
+      list may be empty; the rule required both.
+    - `WITH (CLUSTERED COLUMNSTORE INDEX ORDER(c1, c3))` — an ordered clustered columnstore index.
+    - `CONSTRAINT [pk1] PRIMARY KEY NONCLUSTERED ([col1] ASC) NOT ENFORCED` — the enforcement marker
+      existed on `ColumnConstraint` but not on `TableConstraintBody`, so only the column-level form
+      parsed. Both now route through the same `optionalDdlTail<ConstraintEnforcement>`, which keeps
+      the documented reason for that shape — a bare trailing `NOT` would otherwise read as the start
+      of a NOT NULL column option — true for both.
+    - `c1 sys.int`, `c2 national sys.text`, `c5 [sys]."Char" varying` — schema-qualified built-in type
+      names. `sys.int` already worked; NATIONAL was the gap, since it accepted only the three bare
+      spellings and not a qualified name.
+    - `xml(CONTENT dbo.xsd1)` and `xml(DOCUMENT dbo.xsd1)` — an XML schema collection binding. Without
+      CONTENT or DOCUMENT the name is an ordinary argument and already parsed, so the new
+      `XmlTypeSpec` is told apart by that leading word and needs no marker.
+    - `GROUP BY CUBE(c1), ROLLUP(c2), GROUPING SETS(c1), (), c1` — the empty grouping set was
+      modelled as a `GROUPING SETS` member only, not as a top-level list element.
+- New keyword registered in both places, per the standing trap: `Document` added to the grammar's
+  contextual extend list **and** to `parserLocalContextWords`. `Content` was already present.
+- Files and tests: `src/syntax/lezer/grammar/tsql.grammar` (`TableConstraintBody`, `TableOption`,
+  `GroupingElement`, `DataType`, `XmlTypeSpec`, `DataTypeName`, plus a stale duplicated comment on
+  `MultipartIdentifier` tidied); `src/syntax/lezer/keywordSpecializer.ts`;
+  `test/syntax/grammar/table-options-types-and-grouping.test.js` (new, 7 tests, each pairing the new
+  forms with the existing ones they must not regress).
+- Focused / fast / corpus results: 15/15 batch forms clean. Fast suite **915/915**; corpus suite 3/3
+  including the per-file gate. Corpus raw recovery **371 to 347**; clean parseable fixtures 394 to
+  **399** (82.3%). The intentionally-malformed class also fell from 19 to 13 raw nodes, which is
+  expected — those fixtures contain valid statements around the deliberate damage.
+- Session totals: corpus raw recovery **1,879 to 347, an 82% reduction**; clean parseable fixtures
+  **322 to 399**; fast suite **713 to 915 tests, all passing**; per-file gate green at every
+  checkpoint.
+
+### 2026-08-17 — M1 grouped-query statements: attempted, reverted, defect recorded `[ ]`
+
+- Status: `[ ]` not done. Three builds spent, all on the same conflict, then reverted to the
+  measured baseline. Recorded here so the next attempt starts from the finding rather than repeating
+  the three builds.
+- Target: `(SELECT 1) UNION SELECT 2;` and `(SELECT 1);` — both accepted by the product, both
+  recovering here.
+- **A tree-shape defect found on the way, which matters more than the node count.** Several grouped
+  queries appear to parse cleanly today but do not. `(SELECT c1 FROM t1);` reports zero raw recovery
+  nodes only because `lezerSyntaxService` _suppresses_ one-character error nodes at offsets that
+  `findGroupedSelectWrapperOffsets` marked. The tree it produces is
+  `Script(⚠(OpenParen), Batch(... NamedTableSource(t1, ⚠(CloseParen))))` — the parentheses are error
+  nodes attached inside the table source, not grouping. So the recovery count is clean while the
+  tree is wrong, which will mislead any consumer that walks it (binder, completion, formatting).
+  `(SELECT 1);` fails differently and more visibly: with no FROM clause the parser recovers it as a
+  phantom `CheckpointStatement`, because `CheckpointStatement { Checkpoint Expression? }` matches an
+  invented CHECKPOINT token followed by the parenthesized query.
+  **The suppression should be reconsidered once the grammar models this properly** — it currently
+  converts a wrong tree into a green metric, which is the one failure mode the per-file corpus gate
+  cannot catch.
+- Why the grammar change does not work yet. Making `ParenthesizedQuery` a statement starter is a
+  shift/reduce conflict against the **empty** alternative of `ReturnStatement -> Return`: at
+  `RETURN (` the parser must decide between this statement's value and a new statement, and
+  `(Semicolon | Statement)+` allows a statement to follow immediately. Three resolutions were tried
+  and all failed for the same underlying reason:
+    1. `!returnValue` shift-preference marker on `Return !returnValue Expression` — the marker sits on
+       the alternative that _has_ an expression, while the competing reduce is the empty one.
+    2. The same marker with explicit alternatives instead of `(...)?` — identical automaton.
+    3. A `~statementLead` GLR marker on both readings plus `@dynamicPrecedence=-1` on the grouped
+       statement — a `~` marker annotates a _span_, and the empty production has no span to annotate.
+       **The generalizable point: neither `!prec` nor `~` can resolve a conflict whose losing side is an
+       empty production.** The fix is to restructure `ReturnStatement` so its bare form cannot reduce
+       before `(` — for example by making the value non-optional and giving bare RETURN its own rule
+       reachable only where a following statement cannot begin. That is a real change to control-flow
+       parsing and was judged larger than the remaining node count justifies today.
+- Build timings measured while doing this, useful for planning: a clean generate is **~250 s**
+  (246/249/250/254/255 s observed); a run that hits a conflict fails in **~105 s**, during automaton
+  construction and well before the collapse phase. Roughly 2.4x faster than the ~600 s baseline
+  before the upstream generator change.
+- Verification after revert: grammar build clean at 249 s, fast suite **915/915**, corpus suite 3/3
+  including the per-file gate, corpus raw recovery **347** and clean parseable fixtures **399**
+  (82.3%) — identical to the pre-attempt measurement, so nothing was left half-applied.
+
+### 2026-08-17 — M1 synonyms, restores without devices, single omitted name component `[x]`
+
+- Status: `[x]` complete. Two builds, both clean (255 s and 257 s).
+- Owner / milestone / scope: Claude Opus 5 / Milestone 1 / statement-level gaps.
+- Reproductions, each ScriptDOM-verified first:
+    - `CREATE SYNONYM .mysyn2 FOR dbo.t1`, `FOR ...t1`, `FOR .[db]..t1` — both the synonym and its
+      target may omit leading name components. The rule used `MultipartIdentifier` on both sides and
+      now uses `TableSourceName`, which already carries the omitted forms.
+    - `RESTORE DATABASE db1` and `RESTORE LOG db1` with no device list — the recovery-completion form.
+      `From BackupDeviceList` is now optional on the database/log branch only; the inspection branch
+      (`FILELISTONLY` and friends) still requires it, matching the product.
+    - `.t1` as a rowset name — `OmittedTableSourceName` covered two or more dots and two or more
+      parts, but not a single leading dot before a single part. Added, and covered in FROM, INSERT and
+      TRUNCATE positions.
+- Correct rejection kept: `CREATE LOGIN l1 FROM cert` recovers here and ScriptDOM rejects it too, so
+  it is asserted as a negative rather than chased.
+- Files and tests: `src/syntax/lezer/grammar/tsql.grammar` (`CreateSynonymStatement`,
+  `RestoreStatement`, `OmittedTableSourceName`);
+  `test/syntax/grammar/synonyms-restores-and-omitted-names.test.js` (new, 5 tests).
+- Focused / fast / corpus results: 10/12 batch forms clean, the two misses being the ScriptDOM
+  rejection above and, before the second build, the single-dot form this batch then fixed. Fast
+  suite **920/920**; corpus suite 3/3 including the per-file gate. Corpus raw recovery **347 to
+  332**; clean parseable fixtures 399 to **401** (82.7%). validSupported improved 140 to 142 clean
+  with raw 129 to 117.
+- Session totals: corpus raw recovery **1,879 to 332, an 82% reduction**; clean parseable fixtures
+  **322 to 401**; fast suite **713 to 920 tests, all passing**; per-file gate green at every
+  checkpoint.
+
+### 2026-08-17 — M1 grouped-query structural fix and final batch audit `[x]`
+
+- Status: `[x]` complete. Removed the grouped-parenthesis diagnostic suppression and replaced it
+  with a bounded statement-leading query token mounted through `GroupedQueryRoot`. Public trees now
+  contain real `OpenParen`, query, and `CloseParen` nodes; `(SELECT 1)` no longer becomes a phantom
+  checkpoint statement. Scalar subqueries, derived tables, `RETURN` expressions, and grouped set
+  operands retain their existing tree shapes, including when they begin on a new line.
+- The first complete per-file corpus audit exposed four regressions hidden by the improved aggregate
+  count: module-signature and sensitivity-classification fixtures had expanded recovery. Added
+  structural rules for ordinary/counter signatures and classification column/option lists instead
+  of accepting a new baseline. The Extended Events no-comma `ADD EVENT` continuation was made
+  explicitly recursive so it remains valid beside the new top-level `ADD` statements.
+- Verification: grammar generation completed in **264.3 s**; fast suite **929/929**; corpus suite
+  **3/3**, including the per-file no-regression gate. The parseable corpus is **407/485 clean
+  (83.9%)** with **350 raw recovery nodes**, down from the checked-in 2,364-node baseline. All four
+  temporarily regressed fixtures are now recovery-free.
+- Parser benchmark (three samples after one warmup, checksum-equivalent edits): warm full parse
+  **152.0 ms / 1,493.8 ms / 14,595.1 ms** at 100 KiB / 1 MiB / 10 MiB. The corresponding bounded
+  edits were **8.6–17.4 ms / 12.8–16.8 ms / 16.5–19.4 ms**, reparsing one approximately 8 KiB
+  chunk. Direct binding over 100 statements measured p50 **7.28 ms** local, **12.43 ms** resolved
+  catalog, and **10.86 ms** missing-object diagnostics.

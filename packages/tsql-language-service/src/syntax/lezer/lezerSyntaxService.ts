@@ -17,7 +17,7 @@ import type {
 } from "../contracts.js";
 import { defaultTsqlFeatureProfile } from "../contracts.js";
 import { keywordMetadata } from "../keywords.generated.js";
-import { findGroupedSelectWrapperOffsets, partitionSqlBatches } from "./batchChunking.js";
+import { partitionSqlBatches } from "./batchChunking.js";
 import { parser as generatedParser } from "./generated/tsqlParser.js";
 
 interface ParsedChunk extends TextRange {
@@ -42,6 +42,7 @@ export class LezerSyntaxService implements SyntaxService {
     private readonly _plainParser: LRParser;
     private readonly _mixedParser: LRParser;
     private readonly _expressionParser: LRParser;
+    private readonly _groupedQueryParser: LRParser;
 
     public constructor(
         parser: LRParser = generatedParser as LRParser,
@@ -49,10 +50,14 @@ export class LezerSyntaxService implements SyntaxService {
     ) {
         this._plainParser = parser;
         this._expressionParser = parser.configure({ top: "ExpressionRoot" });
+        this._groupedQueryParser = parser.configure({ top: "GroupedQueryRoot" });
         this._mixedParser = parser.configure({
             wrap: parseMixed((node) => {
                 if (node.name === "ProceduralCondition") {
                     return { parser: this._expressionParser };
+                }
+                if (node.name === "GroupedQueryChunk" && node.from < node.to) {
+                    return { parser: this._groupedQueryParser };
                 }
                 if (
                     (node.name === "BlockChunk" || node.name === "StatementChunk") &&
@@ -755,7 +760,6 @@ function collectSyntaxFacts(
     const diagnostics: SyntaxDiagnostic[] = [];
     const reportedFeatures = new Set<string>();
     const unterminatedString = unterminatedStringRange(text);
-    const groupedSelectWrappers = findGroupedSelectWrapperOffsets(text);
     let rawErrorNodeCount = 0;
     let hasMixedRegions = false;
     tree.iterate({
@@ -763,7 +767,8 @@ function collectSyntaxFacts(
             if (
                 node.name === "ProceduralCondition" ||
                 node.name === "BlockChunk" ||
-                node.name === "StatementChunk"
+                node.name === "StatementChunk" ||
+                node.name === "GroupedQueryChunk"
             ) {
                 hasMixedRegions = true;
             }
@@ -797,13 +802,6 @@ function collectSyntaxFacts(
                 }
             }
             if (node.type.isError) {
-                if (
-                    node.to === node.from + 1 &&
-                    groupedSelectWrappers.has(node.from) &&
-                    (text[node.from] === "(" || text[node.from] === ")")
-                ) {
-                    return;
-                }
                 rawErrorNodeCount++;
                 if (
                     unterminatedString &&
@@ -1121,7 +1119,8 @@ function treeContainsMixedRegions(tree: Tree): boolean {
         if (
             cursor.name === "ProceduralCondition" ||
             cursor.name === "BlockChunk" ||
-            cursor.name === "StatementChunk"
+            cursor.name === "StatementChunk" ||
+            cursor.name === "GroupedQueryChunk"
         ) {
             return true;
         }

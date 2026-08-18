@@ -277,6 +277,7 @@ function isLineLeading(stack: Stack): boolean {
 
 interface SqlLexicalContext {
     readonly lineLeading: boolean;
+    readonly statementLeading: boolean;
 }
 
 function readBatchSeparator(input: InputStream): boolean {
