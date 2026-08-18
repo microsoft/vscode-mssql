@@ -1582,3 +1582,50 @@ ArgumentList? CloseParen)`, which matches the product exactly. All five positive
   edits were **8.6–17.4 ms / 12.8–16.8 ms / 16.5–19.4 ms**, reparsing one approximately 8 KiB
   chunk. Direct binding over 100 statements measured p50 **7.28 ms** local, **12.43 ms** resolved
   catalog, and **10.86 ms** missing-object diagnostics.
+
+### 2026-08-17 — M4 syntax and semantic coloring `[~]`
+
+- Status: `[~]` batches complete, milestone box left for the integrator. Replaced
+  `ScaffoldColorizationService` with `TsqlColorizationService` and registered full, range, and delta
+  semantic-token providers behind `mssql.preview.languageService`. Nothing new is published when the
+  preview flag is off, and the production middleware already suppresses SQL Tools Service tokens
+  while it is on.
+- Design: three layers combine per token. The lexical kind classifies comments, literals, operators,
+  keywords, and variables; the syntax tree then assigns each name its role, so a multipart name
+  resolves server, database, schema, object, and column by position; bound symbols finally refine the
+  role to the kind an object actually has and add `declaration`, `definition`, and `write`. Each
+  layer degrades on its own, so an unresolved or catalog-free document still colors from its tree.
+- Keyword-demotion guard: `SyntaxSnapshot.tokens()` reports any leaf whose text matches the imported
+  keyword list as `Keyword`, so `SELECT value, name, type` would have colored three column names as
+  keywords. Coloring resolves identifier roles from `IdentifierName` nodes instead of token kind,
+  and a focused test locks that in.
+- Recovery: an unclosed string is published as one `string` token from the `UnclosedQuotationMark`
+  range the syntax snapshot already reports, so recovery cannot present its contents as symbols.
+  Damaged statements fall back to the plain `identifier` role and produce no declarations.
+- Files and tests: `src/coloring/` (`tsqlColorizationService.ts`, `syntacticClassification.ts`,
+  `semanticClassification.ts`, `classificationTables.ts`, `classificationModel.ts`; scaffold
+  deleted); `src/syntax/lezer/lezerSyntaxService.ts` (`leafNodes` range pruning);
+  `test/coloring/{contracts,lexical,syntactic,semantic,incremental}.test.js` (53 tests),
+  `test/support/coloringHarness.js`, `test/performance/coloring.test.js`;
+  `extensions/mssql/src/languageservice/preview/previewSemanticTokens.ts` and the provider in
+  `previewLanguageService.ts`; `extensions/mssql/package.json` semantic token type, modifier, and
+  scope contributions with their `package.nls.json` strings;
+  `extensions/mssql/test/unit/previewSemanticTokens.test.ts` (9 tests).
+- Focused / fast / corpus / performance results: fast suite **980/980** (929 before this batch);
+  corpus suite **3/3** including the per-file no-regression gate; performance lane **3/3**.
+  Extension unit suite **3,491 passed, 2 failed**; both failures reproduce with this batch stashed
+  (`previewSimpleQueryMetadata` principal hydration and the `extension.test.js` activation hook) and
+  are unrelated to coloring.
+- Same-machine coloring benchmark (best of three after one warmup, Node v24.15.0): full document
+  **95.1 ms** at 100 KiB and **1,509.2 ms** at 1 MiB, which tracks the warm full parse rather than
+  adding to it. A 2 KiB viewport range measured **228 ms** on a 1 MiB single-chunk document because
+  `tokens()` walked every leaf of the chunk; pruning `leafNodes` by range brought the same request to
+  **5.1 ms**, and `test/performance/coloring.test.js` now guards the bound. Output equivalence was
+  checked over 190 random sub-ranges across 38 fixtures, each matching the full token stream
+  restricted to that range, and every coloring range result equals the full result token by token.
+- Remaining limitations: an unterminated double-quoted identifier still colors its contents as
+  names, because only the single-quote case carries a dedicated diagnostic code to key from.
+  Sequences, index names, and other objects outside the published legend keep the plain `identifier`
+  role. Built-in routines are recognized from a static name list, so a built-in absent from that list
+  colors as an ordinary function. `system` is inferred from a `sys` qualifier and from global
+  variables; the semantic snapshot carries no per-symbol system flag to use instead.

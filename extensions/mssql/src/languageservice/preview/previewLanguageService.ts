@@ -9,9 +9,11 @@ import {
     LezerSyntaxService,
     NullMetadataProvider,
     SimpleQueryMetadataAdapter,
+    TsqlColorizationService,
     TsqlLanguageFeatureService,
     type CompletionItem as ServiceCompletionItem,
     type DocumentAnalysisSnapshot,
+    type FullColorizationResult,
     type LanguageServiceRuntime,
     type LanguageServiceStats,
     type MetadataProvider,
@@ -29,6 +31,13 @@ import {
     previewLanguageServiceSetting,
     previewLanguageServiceStatsCodeLensSetting,
 } from "./productionLanguageServiceIsolation";
+import {
+    applyColorizationEdits,
+    documentLineSource,
+    encodeSemanticTokens,
+    encodeSemanticTokensEdits,
+    previewSemanticTokensLegend,
+} from "./previewSemanticTokens";
 import SqlToolsServiceClient from "../serviceclient";
 import type { QueryExecutionCatalogEvent } from "../../models/sqlOutputContentProvider";
 
@@ -36,6 +45,12 @@ const showStatsCommand = "mssql.preview.showLanguageServiceStats";
 const refreshMetadataCommand = "mssql.preview.refreshLanguageServiceMetadata";
 const statsScheme = "mssql-language-service-stats";
 const diagnosticSource = "vscode-mssql-preview";
+
+/** The last full colorization published for one document, kept so deltas have a baseline. */
+interface PreviewSemanticTokenCache {
+    readonly result: FullColorizationResult;
+    readonly data: Uint32Array;
+}
 
 interface PreviewDocumentState {
     readonly documentUri: vscode.Uri;
@@ -52,6 +67,7 @@ interface PreviewDocumentState {
     lastRefreshError?: string;
     rebindQueued: boolean;
     rebindAfterRefresh: boolean;
+    semanticTokens?: PreviewSemanticTokenCache;
     disposed: boolean;
 }
 
@@ -66,6 +82,8 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
     private readonly _documents = new Map<string, PreviewDocumentState>();
     private readonly _diagnostics = vscode.languages.createDiagnosticCollection(diagnosticSource);
     private readonly _codeLensChanged = new vscode.EventEmitter<void>();
+    private readonly _semanticTokensChanged = new vscode.EventEmitter<void>();
+    private readonly _coloring = new TsqlColorizationService();
     private readonly _statsChanged = new vscode.EventEmitter<vscode.Uri>();
     private readonly _statsUris = new Map<string, vscode.Uri>();
     private _enabled = false;
@@ -97,10 +115,17 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             () => this._enabled,
             (uri) => this._documents.get(uri.toString()),
         );
+        const semanticTokensProvider = new PreviewSemanticTokensProvider(
+            () => this._enabled,
+            (uri) => this._documents.get(uri.toString()),
+            this._coloring,
+            this._semanticTokensChanged.event,
+        );
 
         this._disposables.push(
             this._diagnostics,
             this._codeLensChanged,
+            this._semanticTokensChanged,
             this._statsChanged,
             vscode.languages.registerCodeLensProvider({ language: "sql" }, codeLensProvider),
             vscode.languages.registerCompletionItemProvider(
@@ -117,6 +142,16 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                 signatureHelpProvider,
                 "(",
                 ",",
+            ),
+            vscode.languages.registerDocumentSemanticTokensProvider(
+                { language: "sql" },
+                semanticTokensProvider,
+                previewSemanticTokensLegend,
+            ),
+            vscode.languages.registerDocumentRangeSemanticTokensProvider(
+                { language: "sql" },
+                semanticTokensProvider,
+                previewSemanticTokensLegend,
             ),
             vscode.workspace.registerTextDocumentContentProvider(statsScheme, statsProvider),
             vscode.commands.registerCommand(showStatsCommand, (uri?: vscode.Uri) =>
@@ -181,6 +216,9 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             } else {
                 this.stop();
             }
+            // Turning the preview off must drop its coloring rather than leave the last tokens
+            // painted, and turning it on must repaint without waiting for the next edit.
+            this._semanticTokensChanged.fire();
         }
         this._codeLensChanged.fire();
     }
@@ -345,6 +383,9 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             state.rebindQueued = false;
             const snapshot = await state.runtime.rebind(state.connectionUri, state.syncedVersion);
             this.publishDiagnostics(state, snapshot);
+            // Binding against newly published metadata can change how names are classified, and
+            // no document edit accompanies it, so the editor is asked to refresh coloring.
+            this._semanticTokensChanged.fire();
         });
     }
 
@@ -507,6 +548,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                         completions: "preview-catalog",
                         signatureHelp: "preview-catalog-and-document",
                         hover: "preview-catalog",
+                        semanticTokens: "preview-syntax-and-catalog",
                         definitions: "preview-not-implemented",
                         references: "preview-not-implemented",
                         formatting: "preview-not-implemented",
@@ -723,6 +765,133 @@ class PreviewSignatureHelpProvider implements vscode.SignatureHelpProvider {
     }
 }
 
+/**
+ * Publishes the language service classifications as VS Code semantic tokens. Every request reads
+ * the snapshot the runtime already produced, so coloring never parses and never waits on metadata.
+ */
+class PreviewSemanticTokensProvider
+    implements vscode.DocumentSemanticTokensProvider, vscode.DocumentRangeSemanticTokensProvider
+{
+    public constructor(
+        private readonly _enabled: () => boolean,
+        private readonly _state: (uri: vscode.Uri) => PreviewDocumentState | undefined,
+        private readonly _coloring: TsqlColorizationService,
+        public readonly onDidChangeSemanticTokens: vscode.Event<void>,
+    ) {}
+
+    public async provideDocumentSemanticTokens(
+        document: vscode.TextDocument,
+        token: vscode.CancellationToken,
+    ): Promise<vscode.SemanticTokens | undefined> {
+        const state = await this.readySnapshot(document, token);
+        if (!state) return undefined;
+        try {
+            const result = this._coloring.provideDocumentColors(
+                state.runtime.snapshot(state.connectionUri, document.version),
+            );
+            return this.publish(state, document, result);
+        } catch {
+            return undefined;
+        }
+    }
+
+    public async provideDocumentSemanticTokensEdits(
+        document: vscode.TextDocument,
+        previousResultId: string,
+        token: vscode.CancellationToken,
+    ): Promise<vscode.SemanticTokens | vscode.SemanticTokensEdits | undefined> {
+        const state = await this.readySnapshot(document, token);
+        if (!state) return undefined;
+        const cached = state.semanticTokens;
+        if (!cached || cached.result.resultId !== previousResultId) {
+            return this.provideDocumentSemanticTokens(document, token);
+        }
+        try {
+            const snapshot = state.runtime.snapshot(state.connectionUri, document.version);
+            const delta = this._coloring.provideColorEdits(cached.result, snapshot, []);
+            if (delta.kind !== "delta") return this.publish(state, document, delta);
+            if (delta.edits.length === 0) {
+                state.semanticTokens = {
+                    result: { ...cached.result, resultId: delta.resultId },
+                    data: cached.data,
+                };
+                return new vscode.SemanticTokensEdits([], delta.resultId);
+            }
+            const tokens = applyColorizationEdits(cached.result.tokens, delta.edits);
+            const data = encodeSemanticTokens(tokens, documentLineSource(document));
+            state.semanticTokens = {
+                result: {
+                    kind: "full",
+                    resultId: delta.resultId,
+                    documentVersion: delta.documentVersion,
+                    metadataGeneration: delta.metadataGeneration,
+                    tokens,
+                },
+                data,
+            };
+            return new vscode.SemanticTokensEdits(
+                encodeSemanticTokensEdits(cached.data, data),
+                delta.resultId,
+            );
+        } catch {
+            return undefined;
+        }
+    }
+
+    public async provideDocumentRangeSemanticTokens(
+        document: vscode.TextDocument,
+        range: vscode.Range,
+        token: vscode.CancellationToken,
+    ): Promise<vscode.SemanticTokens | undefined> {
+        const state = await this.readySnapshot(document, token);
+        if (!state) return undefined;
+        try {
+            const snapshot = state.runtime.snapshot(state.connectionUri, document.version);
+            const result = this._coloring.provideRangeColors({
+                ...snapshot,
+                range: {
+                    start: document.offsetAt(range.start),
+                    end: document.offsetAt(range.end),
+                },
+            });
+            // A range result is a viewport view, never the baseline a later delta is built from.
+            return new vscode.SemanticTokens(
+                encodeSemanticTokens(result.tokens, documentLineSource(document)),
+            );
+        } catch {
+            return undefined;
+        }
+    }
+
+    private publish(
+        state: PreviewDocumentState,
+        document: vscode.TextDocument,
+        result: FullColorizationResult,
+    ): vscode.SemanticTokens {
+        const data = encodeSemanticTokens(result.tokens, documentLineSource(document));
+        state.semanticTokens = { result, data };
+        return new vscode.SemanticTokens(data, result.resultId);
+    }
+
+    private async readySnapshot(
+        document: vscode.TextDocument,
+        token: vscode.CancellationToken,
+    ): Promise<PreviewDocumentState | undefined> {
+        if (!this._enabled()) return undefined;
+        const state = this._state(document.uri);
+        if (!state) return undefined;
+        await state.queue;
+        if (
+            token.isCancellationRequested ||
+            state.disposed ||
+            document.version !== state.syncedVersion
+        ) {
+            return undefined;
+        }
+        return state;
+    }
+}
+
 class PreviewStatusCodeLensProvider implements vscode.CodeLensProvider {
     public constructor(
         private readonly _enabled: () => boolean,
@@ -909,9 +1078,7 @@ function statusTitle(
  * Classifies successful submitted SQL for cheap catalog invalidation. Strings, quoted identifiers,
  * and comments are masked so examples or dynamic SQL do not trigger an authoritative reload.
  */
-export function metadataSectionsInvalidatedByExecutedSql(
-    sql: string,
-): readonly MetadataSection[] {
+export function metadataSectionsInvalidatedByExecutedSql(sql: string): readonly MetadataSection[] {
     const code = maskSqlNonCode(sql);
     const principalDdl =
         /(?:^|[;\r\n])\s*(?:CREATE|ALTER|DROP)\s+(?:(?:SERVER|APPLICATION|DATABASE)\s+)?(?:LOGIN|USER|ROLE)\b/im;
@@ -923,7 +1090,15 @@ export function metadataSectionsInvalidatedByExecutedSql(
     const catalogProcedure =
         /\bEXEC(?:UTE)?\s+(?:[A-Z_][A-Z0-9_$#@]*\s*=\s*)?(?:SYS\.)?SP_(?:RENAME|ADDTYPE|DROPTYPE|ADDEXTENDEDPROPERTY|UPDATEEXTENDEDPROPERTY|DROPEXTENDEDPROPERTY|ADDROLE|DROPROLE|ADDROLEMEMBER|DROPROLEMEMBER)\b/im;
 
-    if (!(catalogDdl.test(code) || permissionDdl.test(code) || triggerStateDdl.test(code) || selectIntoDdl.test(code) || catalogProcedure.test(code))) {
+    if (
+        !(
+            catalogDdl.test(code) ||
+            permissionDdl.test(code) ||
+            triggerStateDdl.test(code) ||
+            selectIntoDdl.test(code) ||
+            catalogProcedure.test(code)
+        )
+    ) {
         return [];
     }
 
@@ -932,7 +1107,15 @@ export function metadataSectionsInvalidatedByExecutedSql(
     if (principalDdl.test(code) && !containsNonPrincipalCatalogMutation(code, principalDdl)) {
         return ["principals"];
     }
-    return ["databases", "schemas", "objects", "columns", "parameters", "principals", "definitions"];
+    return [
+        "databases",
+        "schemas",
+        "objects",
+        "columns",
+        "parameters",
+        "principals",
+        "definitions",
+    ];
 }
 
 function containsNonPrincipalCatalogMutation(sql: string, principalPattern: RegExp): boolean {
@@ -952,8 +1135,7 @@ function containsNonPrincipalCatalogMutation(sql: string, principalPattern: RegE
 
 function maskSqlNonCode(sql: string): string {
     const result = [...sql];
-    let state: "code" | "string" | "quoted" | "bracket" | "lineComment" | "blockComment" =
-        "code";
+    let state: "code" | "string" | "quoted" | "bracket" | "lineComment" | "blockComment" = "code";
     let blockDepth = 0;
     for (let index = 0; index < sql.length; index++) {
         const current = sql[index]!;

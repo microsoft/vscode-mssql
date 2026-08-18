@@ -381,6 +381,117 @@
                 ]
             }
         ],
+        "semanticTokenTypes": [
+            {
+                "id": "server",
+                "superType": "namespace",
+                "description": "%mssql.semanticTokenTypes.server.description%"
+            },
+            {
+                "id": "database",
+                "superType": "namespace",
+                "description": "%mssql.semanticTokenTypes.database.description%"
+            },
+            {
+                "id": "schema",
+                "superType": "namespace",
+                "description": "%mssql.semanticTokenTypes.schema.description%"
+            },
+            {
+                "id": "table",
+                "superType": "type",
+                "description": "%mssql.semanticTokenTypes.table.description%"
+            },
+            {
+                "id": "view",
+                "superType": "type",
+                "description": "%mssql.semanticTokenTypes.view.description%"
+            },
+            {
+                "id": "temporaryTable",
+                "superType": "type",
+                "description": "%mssql.semanticTokenTypes.temporaryTable.description%"
+            },
+            {
+                "id": "commonTableExpression",
+                "superType": "type",
+                "description": "%mssql.semanticTokenTypes.commonTableExpression.description%"
+            },
+            {
+                "id": "column",
+                "superType": "property",
+                "description": "%mssql.semanticTokenTypes.column.description%"
+            },
+            {
+                "id": "procedure",
+                "superType": "function",
+                "description": "%mssql.semanticTokenTypes.procedure.description%"
+            },
+            {
+                "id": "alias",
+                "superType": "variable",
+                "description": "%mssql.semanticTokenTypes.alias.description%"
+            },
+            {
+                "id": "identifier",
+                "description": "%mssql.semanticTokenTypes.identifier.description%"
+            }
+        ],
+        "semanticTokenModifiers": [
+            {
+                "id": "write",
+                "description": "%mssql.semanticTokenModifiers.write.description%"
+            },
+            {
+                "id": "system",
+                "description": "%mssql.semanticTokenModifiers.system.description%"
+            },
+            {
+                "id": "quoted",
+                "description": "%mssql.semanticTokenModifiers.quoted.description%"
+            },
+            {
+                "id": "temporary",
+                "description": "%mssql.semanticTokenModifiers.temporary.description%"
+            }
+        ],
+        "semanticTokenScopes": [
+            {
+                "language": "sql",
+                "scopes": {
+                    "alias": [
+                        "variable.other"
+                    ],
+                    "column": [
+                        "variable.other.property"
+                    ],
+                    "commonTableExpression": [
+                        "entity.name.type"
+                    ],
+                    "database": [
+                        "entity.name.namespace"
+                    ],
+                    "procedure": [
+                        "entity.name.function"
+                    ],
+                    "schema": [
+                        "entity.name.namespace"
+                    ],
+                    "server": [
+                        "entity.name.namespace"
+                    ],
+                    "table": [
+                        "entity.name.type"
+                    ],
+                    "temporaryTable": [
+                        "entity.name.type"
+                    ],
+                    "view": [
+                        "entity.name.type"
+                    ]
+                }
+            }
+        ],
         "snippets": [
             {
                 "language": "sql",

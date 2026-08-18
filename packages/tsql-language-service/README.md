@@ -269,8 +269,18 @@ variables, parameters, aliases, CTEs, temporary tables, and SQL types.
 The coloring strategy consumes the same immutable syntax and semantic snapshots as other features.
 It supports full-document, range, and incremental token-array results carrying document and
 metadata versions. Tokens use UTF-16 offsets; the VS Code/LSP adapter owns line/character encoding
-and semantic-token integer packing. The initial scaffold intentionally returns no classifications
-until the lossless lexer and semantic roles are implemented.
+and semantic-token integer packing.
+
+`TsqlColorizationService` combines three layers per token. The lexical kind classifies comments,
+strings, numbers, operators, keywords, and variables. The syntax tree then gives each name its role,
+so a multipart name resolves from server through database, schema, and object down to column, and a
+contextual keyword used as a name is colored as the name. Bound symbols finally refine those roles
+into the kind an object actually has and add the declaration, definition, and write modifiers.
+
+Each layer degrades independently: a document with no catalog behind it still colors completely from
+its tree, and recovery over damaged input falls back to the plain identifier role rather than
+inventing one. Nothing inside a comment, a string, or an unterminated string is ever reclassified as
+a symbol.
 
 ## Formatting
 

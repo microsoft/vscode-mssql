@@ -4,4 +4,4 @@
  *--------------------------------------------------------------------------------------------*/
 
 export * from "./contracts.js";
-export * from "./scaffoldColorizationService.js";
+export * from "./tsqlColorizationService.js";

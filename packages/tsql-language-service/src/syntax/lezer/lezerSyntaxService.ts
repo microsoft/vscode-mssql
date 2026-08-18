@@ -384,7 +384,11 @@ class LezerSyntaxSnapshot implements SyntaxSnapshot {
     ): Iterable<SyntaxToken> {
         let consumed = range.start;
         for (const chunk of chunksInRange(this.chunks, range)) {
-            for (const node of leafNodes(chunk.tree.topNode)) {
+            for (const node of leafNodes(
+                chunk.tree.topNode,
+                range.start - chunk.start,
+                range.end - chunk.start,
+            )) {
                 const start = chunk.start + node.from;
                 const end = chunk.start + node.to;
                 if (
@@ -634,14 +638,19 @@ function shiftDiagnostic(diagnostic: SyntaxDiagnostic, offset: number): SyntaxDi
           };
 }
 
-function* leafNodes(node: LezerNode): Iterable<LezerNode> {
+/**
+ * Leaves of one chunk that intersect `[from, to]` in chunk-local offsets. Pruning whole subtrees
+ * keeps a viewport-sized request proportional to the viewport rather than to the chunk.
+ */
+function* leafNodes(node: LezerNode, from: number, to: number): Iterable<LezerNode> {
+    if (node.to < from || node.from > to) return;
     let child = node.firstChild;
     if (!child) {
         yield node;
         return;
     }
     while (child) {
-        yield* leafNodes(child);
+        yield* leafNodes(child, from, to);
         child = child.nextSibling;
     }
 }

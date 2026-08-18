@@ -9028,6 +9028,39 @@
     <trans-unit id="mssql.format.options.sqlVersion">
       <source xml:lang="en">**Used when Preview Formatter is enabled.** T-SQL version used to parse and generate formatted scripts.</source>
     </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.identifier.description">
+      <source xml:lang="en">A SQL identifier with no more specific role.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.column.description">
+      <source xml:lang="en">A column name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.commonTableExpression.description">
+      <source xml:lang="en">A common table expression name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.alias.description">
+      <source xml:lang="en">A correlation name for a rowset or a result column.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.database.description">
+      <source xml:lang="en">A database name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.server.description">
+      <source xml:lang="en">A linked server name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.schema.description">
+      <source xml:lang="en">A schema name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.procedure.description">
+      <source xml:lang="en">A stored procedure name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.table.description">
+      <source xml:lang="en">A table name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.temporaryTable.description">
+      <source xml:lang="en">A temporary table name.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenTypes.view.description">
+      <source xml:lang="en">A view name.</source>
+    </trans-unit>
     <trans-unit id="mssql.addObjectExplorer">
       <source xml:lang="en">Add Connection</source>
     </trans-unit>
@@ -9756,6 +9789,18 @@
     </trans-unit>
     <trans-unit id="mssql.maxRecentConnections">
       <source xml:lang="en">The maximum number of recently used connections to store in the connection list.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenModifiers.system.description">
+      <source xml:lang="en">The name belongs to SQL Server rather than to the user.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenModifiers.temporary.description">
+      <source xml:lang="en">The name belongs to a temporary object.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenModifiers.write.description">
+      <source xml:lang="en">The name is assigned or otherwise modified at this position.</source>
+    </trans-unit>
+    <trans-unit id="mssql.semanticTokenModifiers.quoted.description">
+      <source xml:lang="en">The name is delimited by brackets or double quotes.</source>
     </trans-unit>
     <trans-unit id="mssql.connectionGroup.name">
       <source xml:lang="en">The name of the connection group.</source>
