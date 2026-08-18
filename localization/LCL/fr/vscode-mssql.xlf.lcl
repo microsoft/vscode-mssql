@@ -1594,15 +1594,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";bundle.++CODE++0f1b94abd66e64f81ea87f920176dbbbd52464f63ca0c67e770a12a2dfb4d4ba" ItemType="0" PsrId="308" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Shortcuts Configuration (Preview)]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Configuration des raccourcis (Préversion)]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";bundle.++CODE++0f20f13b4e0c02dbfd1419272fdc0223aea4745a0704daf5f91876a21476bda2" ItemType="0" PsrId="308" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to change database]]></Val>
@@ -10410,6 +10401,15 @@
           <Val><![CDATA[Authenticated]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Authentifié]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++6ac3a5dde58a68f029c5950c2516f4cd048d4c110da072784bce3d4665681431" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Format T-SQL with expanded configuration options and greater control over query style and layout using the new SQL Formatter.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Formatez T-SQL avec des options de configuration étendues et un meilleur contrôle sur le style et la présentation des requêtes à l'aide du nouveau formateur SQL.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -22461,6 +22461,15 @@
           <Val><![CDATA[General Options]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Options générales]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";bundle.++CODE++e74a95e3a6af01ffd48fa366bdcc8b0d75763b2dc1e2dc9a6db717eb0c4c920d" ItemType="0" PsrId="308" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SQL Formatter]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Formateur SQL]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
