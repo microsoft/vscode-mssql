@@ -141,7 +141,7 @@ suite("QueryCompletionSoundService", () => {
         expect(statFileStub).to.have.been.calledWith("/home/test-user/sounds/complete.mp3");
     });
 
-    test("plays the default sound when the configured file type is unsupported", async () => {
+    test("plays the bundled default when the configured file type is unsupported", async () => {
         setConfiguration(true, "/sounds/complete.wav");
         returnSuccessfulProcess();
 
@@ -149,11 +149,11 @@ suite("QueryCompletionSoundService", () => {
 
         expect(statFileStub).not.to.have.been.called;
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/System/Library/Sounds/Glass.aiff",
+            "/extension/media/query-complete.mp3",
         ]);
     });
 
-    test("plays the default sound when the configured file does not exist", async () => {
+    test("plays the bundled default when the configured file does not exist", async () => {
         setConfiguration(true, "/sounds/missing.mp3");
         statFileStub.rejects(Object.assign(new Error("File not found"), { code: "ENOENT" }));
         returnSuccessfulProcess();
@@ -161,7 +161,7 @@ suite("QueryCompletionSoundService", () => {
         await createService().play();
 
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/System/Library/Sounds/Glass.aiff",
+            "/extension/media/query-complete.mp3",
         ]);
     });
 
@@ -183,7 +183,7 @@ suite("QueryCompletionSoundService", () => {
         expect(audioProcess.killed).to.be.true;
     });
 
-    test("uses the platform sound when no custom file is configured", async () => {
+    test("uses the bundled default when no custom file is configured", async () => {
         setConfiguration(true);
         returnSuccessfulProcess();
 
@@ -191,58 +191,35 @@ suite("QueryCompletionSoundService", () => {
 
         expect(spawnProcessStub).to.have.been.calledWith(
             "powershell.exe",
-            sinon.match.array.contains([
-                "[System.Media.SystemSounds]::Asterisk.Play(); Start-Sleep -Milliseconds 1000",
-            ]),
+            sinon.match.array,
+            sinon.match({
+                env: sinon.match({
+                    MSSQL_QUERY_COMPLETION_SOUND: "/extension/media/query-complete.mp3",
+                }),
+            }),
         );
     });
 
-    test("plays the bundled MP3 when the default system sound fails", async () => {
+    test("emits OS telemetry when no player can play the bundled default", async () => {
         setConfiguration(true);
-        spawnProcessStub.onFirstCall().returns(createProcessThatClosesWith(1));
-        spawnProcessStub.onSecondCall().returns(createProcessThatClosesWith(0));
+        spawnProcessStub.callsFake(() => createProcessThatClosesWith(1));
 
-        await createService(Constants.Platform.Mac).play();
+        await createService(Constants.Platform.Linux).play();
 
-        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/System/Library/Sounds/Glass.aiff",
-        ]);
-        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/extension/media/query-complete.mp3",
-        ]);
         expect(sendPlaybackFailureTelemetryStub).to.have.been.calledWith({
-            failureStage: "systemSound",
-            platform: Constants.Platform.Mac,
+            failureStage: "bundledDefaultSound",
+            platform: Constants.Platform.Linux,
             architecture: "test-architecture",
             osType: "test-os",
             osRelease: "test-release",
             osVersion: "test-version",
         });
         expect(loggerWarnStub).to.have.been.calledWith(
-            "Unable to play the default system query completion sound. Falling back to the bundled sound.",
+            "Unable to play the bundled default query completion sound because no supported audio player could be used.",
         );
     });
 
-    test("emits telemetry when no player can play the bundled MP3", async () => {
-        setConfiguration(true);
-        spawnProcessStub.callsFake(() => createProcessThatClosesWith(1));
-
-        await createService(Constants.Platform.Linux).play();
-
-        expect(sendPlaybackFailureTelemetryStub).to.have.been.calledWithMatch({
-            failureStage: "systemSound",
-            platform: Constants.Platform.Linux,
-        });
-        expect(sendPlaybackFailureTelemetryStub).to.have.been.calledWithMatch({
-            failureStage: "bundledSound",
-            platform: Constants.Platform.Linux,
-        });
-        expect(loggerWarnStub).to.have.been.calledWith(
-            "Unable to play the bundled query completion sound because no supported audio player could be used.",
-        );
-    });
-
-    test("falls back through the system sound after a custom sound fails", async () => {
+    test("falls back to the bundled default after a custom sound fails", async () => {
         setConfiguration(true, "/sounds/complete.mp3");
         spawnProcessStub.onFirstCall().returns(createProcessThatClosesWith(1));
         spawnProcessStub.onSecondCall().returns(createProcessThatClosesWith(0));
@@ -253,37 +230,11 @@ suite("QueryCompletionSoundService", () => {
             "/sounds/complete.mp3",
         ]);
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/System/Library/Sounds/Glass.aiff",
+            "/extension/media/query-complete.mp3",
         ]);
         expect(sendPlaybackFailureTelemetryStub).not.to.have.been.called;
         expect(loggerWarnStub).to.have.been.calledWith(
             'Unable to play the configured query completion sound "/sounds/complete.mp3". Falling back to the default sound.',
         );
-    });
-
-    test("falls back from a custom sound through the system sound to the bundled MP3", async () => {
-        setConfiguration(true, "/sounds/complete.mp3");
-        spawnProcessStub.onFirstCall().returns(createProcessThatClosesWith(1));
-        spawnProcessStub.onSecondCall().returns(createProcessThatClosesWith(1));
-        spawnProcessStub.onThirdCall().returns(createProcessThatClosesWith(0));
-
-        await createService(Constants.Platform.Mac).play();
-
-        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/sounds/complete.mp3",
-        ]);
-        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/System/Library/Sounds/Glass.aiff",
-        ]);
-        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/extension/media/query-complete.mp3",
-        ]);
-        expect(sendPlaybackFailureTelemetryStub).to.have.been.calledWithMatch({
-            failureStage: "systemSound",
-            platform: Constants.Platform.Mac,
-        });
-        expect(sendPlaybackFailureTelemetryStub).not.to.have.been.calledWithMatch({
-            failureStage: "bundledSound",
-        });
     });
 });

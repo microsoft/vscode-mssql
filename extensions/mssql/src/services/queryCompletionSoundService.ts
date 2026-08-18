@@ -17,8 +17,6 @@ import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry"
 const maximumPlaybackMilliseconds = 5_000;
 const bundledCompletionSoundFile = "query-complete.mp3";
 
-type PlaybackFailureStage = "systemSound" | "bundledSound";
-
 interface AudioCommand {
     command: string;
     args: string[];
@@ -105,16 +103,6 @@ export class QueryCompletionSoundService {
             );
         }
 
-        const defaultSoundPlayed = await this.runCommands(this.getDefaultAudioCommands());
-        if (defaultSoundPlayed) {
-            return;
-        }
-
-        this._dependencies.logger.warn(
-            "Unable to play the default system query completion sound. Falling back to the bundled sound.",
-        );
-        this.emitPlaybackFailureTelemetry("systemSound");
-
         const bundledAudioFile = path.join(
             this._extensionPath,
             "media",
@@ -125,15 +113,15 @@ export class QueryCompletionSoundService {
         );
         if (!bundledSoundPlayed) {
             this._dependencies.logger.warn(
-                "Unable to play the bundled query completion sound because no supported audio player could be used.",
+                "Unable to play the bundled default query completion sound because no supported audio player could be used.",
             );
-            this.emitPlaybackFailureTelemetry("bundledSound");
+            this.emitPlaybackFailureTelemetry();
         }
     }
 
-    private emitPlaybackFailureTelemetry(failureStage: PlaybackFailureStage): void {
+    private emitPlaybackFailureTelemetry(): void {
         this._dependencies.sendPlaybackFailureTelemetry({
-            failureStage,
+            failureStage: "bundledDefaultSound",
             platform: this._dependencies.platform,
             architecture: this._dependencies.architecture,
             osType: this._dependencies.osType(),
@@ -230,45 +218,6 @@ export class QueryCompletionSoundService {
                     {
                         command: "cvlc",
                         args: ["--play-and-exit", "--intf", "dummy", audioFile],
-                    },
-                ];
-            default:
-                return [];
-        }
-    }
-
-    private getDefaultAudioCommands(): AudioCommand[] {
-        switch (this._dependencies.platform) {
-            case Constants.Platform.Mac:
-                return [
-                    {
-                        command: "/usr/bin/afplay",
-                        args: ["/System/Library/Sounds/Glass.aiff"],
-                    },
-                ];
-            case Constants.Platform.Windows:
-                return [
-                    {
-                        command: "powershell.exe",
-                        args: [
-                            "-NoLogo",
-                            "-NoProfile",
-                            "-NonInteractive",
-                            "-Command",
-                            "[System.Media.SystemSounds]::Asterisk.Play(); Start-Sleep -Milliseconds 1000",
-                        ],
-                    },
-                ];
-            case Constants.Platform.Linux:
-                return [
-                    { command: "canberra-gtk-play", args: ["--id=complete"] },
-                    {
-                        command: "paplay",
-                        args: ["/usr/share/sounds/freedesktop/stereo/complete.oga"],
-                    },
-                    {
-                        command: "aplay",
-                        args: ["/usr/share/sounds/alsa/Front_Center.wav"],
                     },
                 ];
             default:

@@ -9708,7 +9708,7 @@
       <source xml:lang="en">The name of the connection group.</source>
     </trans-unit>
     <trans-unit id="mssql.query.completionSoundFile.description">
-      <source xml:lang="en">The path to a custom MP3 file to play after a query finishes executing. If the path is empty or invalid, the default system sound is played, with a bundled chime as a fallback.</source>
+      <source xml:lang="en">The path to a custom MP3 file to play after a query finishes executing. If the path is empty or invalid, the bundled default chime is played.</source>
     </trans-unit>
     <trans-unit id="mssql.objectExplorer.expandTimeout">
       <source xml:lang="en">The timeout in seconds for expanding a node in Object Explorer. The default value is 45 seconds.</source>
