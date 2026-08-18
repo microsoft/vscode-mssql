@@ -54,6 +54,22 @@ const statementStarters = new Set([
     "with",
 ]);
 const controlStarters = new Set(["begin", "if", "while"]);
+/**
+ * Words that continue a grouped query statement after its parentheses close.
+ *
+ * `(SELECT 1) UNION SELECT 2` is one statement; `(SELECT 1) SELECT 2` is two. Without this set the
+ * scan would run past the closing parenthesis to the end of the batch and swallow whatever follows,
+ * because a grouped statement needs no terminator.
+ */
+const groupedQueryContinuations = new Set([
+    "union",
+    "except",
+    "intersect",
+    "order",
+    "for",
+    "option",
+    "compute",
+]);
 const nonBlockBeginFollowers = new Set([
     "conversation",
     "dialog",
@@ -158,7 +174,7 @@ function isStructuredFunctionReturn(input: InputStream): boolean {
 function readStatement(input: InputStream): boolean {
     const firstWord = wordAt(input, 0);
     if (firstWord && controlStarters.has(firstWord.text)) return false;
-    const boundary = findBoundary(input, "statement");
+    const boundary = findBoundary(input, "statement", firstWord?.text);
     if (boundary <= 0) return false;
     input.advance(boundary);
     input.acceptToken(StatementChunk);
@@ -168,11 +184,18 @@ function readStatement(input: InputStream): boolean {
 function findBoundary(
     input: InputStream,
     mode: "condition" | "block" | "statement" | "grouped",
+    initialStatementWord?: string,
 ): number {
     let offset = 0;
     let parentheses = 0;
     let nestedBegins = 0;
     let cases = 0;
+    // Grouped mode only: whether the leading parenthesised group has closed, and the last word
+    // seen outside parentheses. Together they tell a continuation of this statement apart from the
+    // start of the next one.
+    let groupClosed = false;
+    let lastWord = "";
+    let withBodyStarted = false;
     let quote: "string" | "quoted" | "bracket" | undefined;
     let blockComments = 0;
     while (input.peek(offset) >= 0) {
@@ -225,6 +248,18 @@ function findBoundary(
             }
             parentheses = Math.max(0, parentheses - 1);
             offset++;
+            // A grouped query begins at its own opening parenthesis, so depth returning to zero
+            // means the group just closed. The statement ends there unless a set operator or a
+            // trailing clause continues it: a grouped statement needs no terminator, and without
+            // this the scan would consume the next statement as part of this one.
+            if (mode === "grouped" && parentheses === 0) {
+                const following = nextWordAfterTrivia(input, offset);
+                if (!following || !groupedQueryContinuations.has(following.text)) {
+                    return trimEnd(input, offset);
+                }
+                groupClosed = true;
+                lastWord = "";
+            }
             continue;
         }
         // Keep the terminator inside the mounted controlled statement. Otherwise the outer IF
@@ -244,6 +279,43 @@ function findBoundary(
                     return trimEnd(input, offset);
             } else if (mode === "statement" || mode === "grouped") {
                 if (word.text === "else" || word.text === "end") return trimEnd(input, offset);
+                // Once the leading group has closed, a set-operator chain may continue across
+                // lines. A line-leading statement word ends this statement only when it is not
+                // continuing that chain, which the previous word at depth zero decides.
+                if (
+                    mode === "grouped" &&
+                    groupClosed &&
+                    offset > 0 &&
+                    statementStarters.has(word.text) &&
+                    !groupedQueryContinuations.has(lastWord) &&
+                    lastWord !== "all" &&
+                    isLineLeadingWord(input, offset)
+                ) {
+                    return trimEnd(input, offset);
+                }
+                const previousWord = lastWord;
+                if (
+                    mode === "statement" &&
+                    offset > 0 &&
+                    statementStarters.has(word.text) &&
+                    isLineLeadingWord(input, offset) &&
+                    !isStatementContinuation(
+                        initialStatementWord,
+                        word.text,
+                        previousWord,
+                        withBodyStarted,
+                    )
+                ) {
+                    return trimEnd(input, offset);
+                }
+                if (
+                    initialStatementWord === "with" &&
+                    !withBodyStarted &&
+                    isCteBodyStarter(word.text)
+                ) {
+                    withBodyStarted = true;
+                }
+                lastWord = word.text;
                 // A semicolon-less controlled statement ends before the next line-leading control
                 // statement. This preserves classic IF/ELSE and WHILE scripts without treating
                 // ordinary multi-line SELECT/FROM clauses as separate bodies.
@@ -278,6 +350,56 @@ function findBoundary(
         offset++;
     }
     return trimEnd(input, offset);
+}
+
+/**
+ * A small set of statement-leading keywords are also legal continuations of a controlled body.
+ * Everything else ends the mounted statement when it starts a new line. The mounted
+ * ControlledStatementRoot remains the final invariant and rejects any missed boundary.
+ */
+function isStatementContinuation(
+    initialWord: string | undefined,
+    currentWord: string,
+    previousWord: string,
+    withBodyStarted: boolean,
+): boolean {
+    if (
+        (previousWord === "union" || previousWord === "intersect" || previousWord === "except") &&
+        currentWord === "select"
+    ) {
+        return true;
+    }
+    if (initialWord === "with" && !withBodyStarted && isCteBodyStarter(currentWord)) return true;
+    if (initialWord === "update" && currentWord === "set") return true;
+    if (
+        initialWord === "insert" &&
+        (currentWord === "select" ||
+            currentWord === "with" ||
+            currentWord === "exec" ||
+            currentWord === "execute")
+    ) {
+        return true;
+    }
+    if (initialWord === "declare" && currentWord === "select") return true;
+    if (initialWord === "execute" || initialWord === "exec") return currentWord === "with";
+    if (initialWord === "select" || initialWord === "delete") return currentWord === "with";
+    if (
+        initialWord === "merge" &&
+        (currentWord === "update" || currentWord === "delete" || currentWord === "insert")
+    ) {
+        return true;
+    }
+    return false;
+}
+
+function isCteBodyStarter(word: string): boolean {
+    return (
+        word === "select" ||
+        word === "insert" ||
+        word === "update" ||
+        word === "delete" ||
+        word === "merge"
+    );
 }
 
 function isStatementLeading(stack: Stack): boolean {

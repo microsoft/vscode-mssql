@@ -37,6 +37,14 @@ export interface SqlEnvironment {
     readonly engineEdition?: number;
     readonly serverVersion?: string;
     readonly compatibilityLevel?: number;
+    /**
+     * The connected server's name, when the backend reports one.
+     *
+     * It exists so the engine-profile resolver can separate Fabric Data Warehouse from Azure
+     * Synapse serverless, which report the same engine edition. Nothing else reads it, and it is
+     * never included in copied diagnostics.
+     */
+    readonly serverName?: string;
 }
 
 export type SqlObjectKind =

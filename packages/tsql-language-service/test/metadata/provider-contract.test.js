@@ -6,6 +6,7 @@
 const assert = require("node:assert/strict");
 const { suite, test } = require("node:test");
 const {
+    createEngineCapabilities,
     DevQueryMetadataAdapter,
     InMemoryMetadataProvider,
     NullMetadataProvider,
@@ -67,6 +68,34 @@ suite("metadata provider contracts", () => {
                 schemas: [{ name: "dbo" }],
             }),
         );
+    });
+
+    // Every provider must carry the facts the engine-profile resolver reads, and must carry them
+    // as absent rather than defaulted when the backend did not report them.
+    test("carries engine facts through every provider", () => {
+        const empty = new NullMetadataProvider().pin().environment;
+        assert.equal(empty.engineEdition, undefined);
+        assert.equal(empty.serverVersion, undefined);
+        assert.equal(empty.compatibilityLevel, undefined);
+        assert.equal(empty.serverName, undefined);
+        assert.equal(
+            createEngineCapabilities(empty).engineProfile,
+            "unknown",
+            "a provider that reports nothing must not resolve to an engine",
+        );
+
+        const reported = new InMemoryMetadataProvider({
+            environment: {
+                currentDatabase: "warehouse",
+                engineEdition: 11,
+                serverVersion: "12.0.2000.8",
+                compatibilityLevel: 160,
+                serverName: "ws.datawarehouse.fabric.microsoft.com",
+            },
+        }).pin().environment;
+        const capabilities = createEngineCapabilities(reported);
+        assert.equal(capabilities.engineProfile, "fabric-warehouse");
+        assert.equal(capabilities.generation, "fabric-warehouse/16/160/ga");
     });
 
     test("reports the index set of one object without enumerating others", () => {

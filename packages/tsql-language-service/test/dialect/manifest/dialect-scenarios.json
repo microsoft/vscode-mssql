@@ -1,0 +1,1935 @@
+{
+    "schemaVersion": 1,
+    "description": "Machine-readable dialect scenarios. Every entry is independently authored in this package from the referenced ScriptDOM script family; no fixture text is copied. A scenario declares what must be true, so a missing expectation is visible as missing rather than counted as passing.",
+    "classifications": {
+        "valid": "Parses structurally with no raw recovery, no syntax diagnostic, and no availability diagnostic on the declared profile.",
+        "unsupportedProfile": "Parses structurally with no raw recovery and receives exactly the declared availability diagnostics.",
+        "invalid": "A negative neighbour: it must still produce a syntax diagnostic rather than being absorbed by a permissive rule.",
+        "incomplete": "A typing prefix: it must not throw and must keep every range inside the document."
+    },
+    "scenarios": [
+        {
+            "id": "azure-db.backup.backup-unavailable",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "backup",
+            "classification": "unsupportedProfile",
+            "sql": "BACKUP DATABASE analytics TO DISK = 'analytics.bak';",
+            "expectFeatures": ["statement.backup"],
+            "expectSpans": ["BACKUP"],
+            "expectNodes": ["BackupStatement"],
+            "source": "ScriptDOM TestScripts/BackupStatementTests.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.backup.hover-explains-unavailable-feature",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "backup",
+            "classification": "unsupportedProfile",
+            "sql": "BACKUP DATABASE analytics TO DISK = 'analytics.bak';",
+            "expectFeatures": ["statement.backup"],
+            "editor": {
+                "hover": [
+                    {
+                        "offset": 2,
+                        "contains": "not available"
+                    }
+                ]
+            },
+            "source": "Hover explains a restriction the document already contains.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.backup.restore-unavailable",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "backup",
+            "classification": "unsupportedProfile",
+            "sql": "RESTORE DATABASE analytics FROM DISK = 'analytics.bak';",
+            "expectFeatures": ["statement.restore"],
+            "expectSpans": ["RESTORE"],
+            "source": "ScriptDOM TestScripts/RestoreStatementTests.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.database.add-file-unavailable",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "database",
+            "classification": "unsupportedProfile",
+            "sql": "ALTER DATABASE analytics ADD FILE ( NAME = analytics_2, FILENAME = 'D:\\data\\analytics2.ndf' );",
+            "expectFeatures": ["database.file-definition"],
+            "source": "Azure SQL Database exposes no file surface.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.database.alter-modify-edition",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "database",
+            "classification": "valid",
+            "sql": "ALTER DATABASE analytics MODIFY ( EDITION = 'standard', SERVICE_OBJECTIVE = 'S3', BACKUP_STORAGE_REDUNDANCY = 'Zone' );",
+            "expectNodes": ["AlterDatabaseStatement"],
+            "source": "ScriptDOM TestScripts/AlterDatabaseOptionsTests140_Azure.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.database.alter-scoped-configuration",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "database",
+            "classification": "valid",
+            "sql": "ALTER DATABASE SCOPED CONFIGURATION SET MAXDOP = 8;",
+            "source": "ScriptDOM TestScripts/AlterDatabaseOptionsTests140_Azure.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.database.copy-of-missing-source",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "database",
+            "classification": "invalid",
+            "sql": "CREATE DATABASE analytics_copy AS COPY OF;",
+            "source": "Negative neighbour of the database-copy clause.",
+            "provenance": "independently authored",
+            "expectSyntax": [
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near ';'.",
+                    "severity": "error",
+                    "range": {
+                        "start": 41,
+                        "end": 42
+                    }
+                }
+            ]
+        },
+        {
+            "id": "azure-db.database.create-collate-before-edition",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "database",
+            "classification": "valid",
+            "sql": "CREATE DATABASE analytics COLLATE Latin1_General_100_CI_AS_KS_WS ( EDITION = 'standard' );",
+            "expectNodes": ["CreateDatabaseStatement"],
+            "source": "ScriptDOM TestScripts/CreateDatabaseCollateBeforeEditionTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.database.create-copy-of",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "database",
+            "classification": "valid",
+            "sql": "CREATE DATABASE analytics_copy AS COPY OF srv1.analytics;",
+            "expectNodes": ["CreateDatabaseStatement"],
+            "source": "ScriptDOM TestScripts/CreateAlterDatabaseStatementTestsAzure110.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.database.create-elastic-pool",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "database",
+            "classification": "valid",
+            "sql": "CREATE DATABASE analytics ( SERVICE_OBJECTIVE = ELASTIC_POOL ( name = reporting_pool ) );",
+            "expectNodes": ["CreateDatabaseStatement"],
+            "source": "ScriptDOM TestScripts/CreateAlterDatabaseStatementTestsAzure120.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.database.create-service-objective",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "database",
+            "classification": "valid",
+            "sql": "CREATE DATABASE analytics ( EDITION = 'premium', SERVICE_OBJECTIVE = 'P1', MAXSIZE = 500 GB );",
+            "expectNodes": ["CreateDatabaseStatement"],
+            "metadataSections": [],
+            "incremental": "equivalent",
+            "source": "ScriptDOM TestScripts/CreateAlterDatabaseStatementTestsAzure120.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.database.file-definition-unavailable",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "database",
+            "classification": "unsupportedProfile",
+            "sql": "CREATE DATABASE analytics ON ( NAME = analytics_data, FILENAME = 'D:\\data\\analytics.mdf' );",
+            "expectFeatures": ["database.file-definition"],
+            "expectNodes": ["FileDefinition"],
+            "source": "Azure SQL Database exposes no file surface; ScriptDOM TestScripts/CreateDatabaseStatementTests.sql supplies the shape.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.database.incomplete-option-list",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "database",
+            "classification": "incomplete",
+            "sql": "CREATE DATABASE analytics ( EDITION = 'premium', SERVICE_",
+            "source": "Typing prefix of the Azure service-tier option list.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.database.misspelled-service-objective",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "database",
+            "classification": "invalid",
+            "sql": "CREATE DATABASE analytics ( EDITION = );",
+            "source": "Negative neighbour of the Azure service-tier option list.",
+            "provenance": "independently authored",
+            "expectSyntax": [
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near ')'.",
+                    "severity": "error",
+                    "range": {
+                        "start": 38,
+                        "end": 39
+                    }
+                }
+            ]
+        },
+        {
+            "id": "azure-db.external.create-external-data-source",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "external",
+            "classification": "valid",
+            "sql": "CREATE EXTERNAL DATA SOURCE lake WITH ( LOCATION = 'abfss://data@contoso.dfs.core.windows.net', CREDENTIAL = lake_credential );",
+            "expectNodes": ["CreateExternalDataSourceStatement"],
+            "source": "ScriptDOM TestScripts/CreateExternalDataSourceStatementTests160.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.query.completion-in-select-list",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT Cus FROM dbo.Customers;",
+            "metadataSections": ["objects", "columns"],
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 10,
+                        "includes": ["CustomerID"],
+                        "excludes": ["PREDICT"]
+                    }
+                ],
+                "coloring": {
+                    "tokens": [
+                        {
+                            "text": "Cus",
+                            "tokenType": "column"
+                        },
+                        {
+                            "text": "dbo",
+                            "tokenType": "schema"
+                        },
+                        {
+                            "text": "Customers",
+                            "tokenType": "table"
+                        }
+                    ]
+                }
+            },
+            "source": "Azure completion matrix.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.query.completion-withholds-predict",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "query",
+            "classification": "incomplete",
+            "sql": "SELECT * FROM dbo.Customers WHERE CustomerID = 1 PRED",
+            "metadataSections": [],
+            "incremental": "skip",
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 52,
+                        "excludes": ["PREDICT"]
+                    }
+                ]
+            },
+            "source": "PREDICT exists only on the dedicated SQL pool.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.query.definition-of-catalog-table",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT CustomerID FROM dbo.Customers;",
+            "metadataSections": ["objects", "columns"],
+            "editor": {
+                "definition": [
+                    {
+                        "offset": 29,
+                        "object": "dbo.Customers"
+                    }
+                ],
+                "hover": [
+                    {
+                        "offset": 29,
+                        "contains": "Customers"
+                    }
+                ],
+                "coloring": {
+                    "tokens": [
+                        {
+                            "text": "CustomerID",
+                            "tokenType": "column"
+                        },
+                        {
+                            "text": "dbo",
+                            "tokenType": "schema"
+                        },
+                        {
+                            "text": "Customers",
+                            "tokenType": "table"
+                        }
+                    ]
+                }
+            },
+            "source": "Azure definition and hover matrix.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.query.signature-help-for-built-in",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "expression",
+            "classification": "valid",
+            "sql": "SELECT DATEADD(day, 1, GETDATE());",
+            "editor": {
+                "signature": [
+                    {
+                        "offset": 15,
+                        "contains": "DATEADD"
+                    }
+                ]
+            },
+            "source": "Azure signature matrix.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.security.database-scoped-credential",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "security",
+            "classification": "valid",
+            "sql": "CREATE DATABASE SCOPED CREDENTIAL lake_credential WITH IDENTITY = 'Managed Identity';",
+            "source": "ScriptDOM TestScripts/CreateAlterDropCredentialStatementTests.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.security.user-from-external-provider",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "security",
+            "classification": "valid",
+            "sql": "CREATE USER [analyst@contoso.com] FROM EXTERNAL PROVIDER;",
+            "source": "ScriptDOM TestScripts/CreateUserFromExternalProvider160.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-db.server.availability-group-unavailable",
+            "profile": "azure-sql-database",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "server",
+            "classification": "unsupportedProfile",
+            "sql": "DROP AVAILABILITY GROUP reporting_ag;",
+            "expectFeatures": ["statement.availability-group"],
+            "source": "ScriptDOM TestScripts/AvailabilityGroupStatementTests110.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-mi.backup.backup-to-url",
+            "profile": "azure-sql-managed-instance",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "backup",
+            "classification": "valid",
+            "sql": "BACKUP DATABASE analytics TO URL = 'https://contoso.blob.core.windows.net/backups/analytics.bak' WITH COPY_ONLY;",
+            "expectNodes": ["BackupStatement"],
+            "source": "Managed Instance keeps COPY_ONLY backups to URL; ScriptDOM TestScripts/BackupStatementTests.sql supplies the shape.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-mi.backup.misspelled-url-option",
+            "profile": "azure-sql-managed-instance",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "backup",
+            "classification": "invalid",
+            "sql": "BACKUP DATABASE analytics TO URL = ;",
+            "source": "Negative neighbour of BACKUP TO URL.",
+            "provenance": "independently authored",
+            "expectSyntax": [
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near ';'.",
+                    "severity": "error",
+                    "range": {
+                        "start": 35,
+                        "end": 36
+                    }
+                }
+            ]
+        },
+        {
+            "id": "azure-mi.backup.restore-from-url",
+            "profile": "azure-sql-managed-instance",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "backup",
+            "classification": "valid",
+            "sql": "RESTORE DATABASE analytics FROM URL = 'https://contoso.blob.core.windows.net/backups/analytics.bak';",
+            "source": "Managed Instance keeps RESTORE FROM URL.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-mi.database.file-definition-available",
+            "profile": "azure-sql-managed-instance",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "database",
+            "classification": "valid",
+            "sql": "ALTER DATABASE analytics ADD FILE ( NAME = analytics_2, FILENAME = 'analytics2.ndf' );",
+            "expectNodes": ["FileDefinition"],
+            "source": "Managed Instance is instance-scoped and keeps database files.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-mi.database.incomplete-add-file",
+            "profile": "azure-sql-managed-instance",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "database",
+            "classification": "incomplete",
+            "sql": "ALTER DATABASE analytics ADD FILE ( NAME = ",
+            "source": "Typing prefix of a file definition.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-mi.query.completion-cross-database",
+            "profile": "azure-sql-managed-instance",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT Ord FROM sales.Orders;",
+            "metadataSections": ["objects", "columns"],
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 10,
+                        "includes": ["OrderID"]
+                    }
+                ],
+                "coloring": {
+                    "tokens": [
+                        {
+                            "text": "Ord",
+                            "tokenType": "column"
+                        },
+                        {
+                            "text": "sales",
+                            "tokenType": "schema"
+                        },
+                        {
+                            "text": "Orders",
+                            "tokenType": "table"
+                        }
+                    ]
+                }
+            },
+            "source": "Managed Instance completion matrix.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-mi.query.cross-database-reference",
+            "profile": "azure-sql-managed-instance",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT OrderID FROM reporting.sales.Orders;",
+            "metadataSections": ["objects", "databases"],
+            "source": "Managed Instance resolves cross-database names.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-mi.query.hover-signature-definition",
+            "profile": "azure-sql-managed-instance",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT ISNULL(OrderID, 0) FROM sales.Orders;",
+            "metadataSections": ["objects", "columns"],
+            "editor": {
+                "signature": [
+                    {
+                        "offset": 14,
+                        "contains": "ISNULL"
+                    }
+                ],
+                "hover": [
+                    {
+                        "offset": 37,
+                        "contains": "Orders"
+                    }
+                ],
+                "definition": [
+                    {
+                        "offset": 37,
+                        "object": "sales.Orders"
+                    }
+                ],
+                "coloring": {
+                    "tokens": [
+                        {
+                            "text": "ISNULL",
+                            "tokenType": "function"
+                        },
+                        {
+                            "text": "OrderID",
+                            "tokenType": "column"
+                        },
+                        {
+                            "text": "sales",
+                            "tokenType": "schema"
+                        },
+                        {
+                            "text": "Orders",
+                            "tokenType": "table"
+                        }
+                    ]
+                }
+            },
+            "source": "Managed Instance hover, signature, and definition matrix.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-mi.server.availability-group-unavailable",
+            "profile": "azure-sql-managed-instance",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "server",
+            "classification": "unsupportedProfile",
+            "sql": "DROP AVAILABILITY GROUP reporting_ag;",
+            "expectFeatures": ["statement.availability-group"],
+            "source": "Managed Instance has no Always On availability group surface.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-mi.table.valid-filegroup-clause",
+            "profile": "azure-sql-managed-instance",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "table",
+            "classification": "valid",
+            "sql": "CREATE TABLE dbo.Customers ( CustomerID int ) ON [PRIMARY];",
+            "source": "Managed Instance keeps filegroup placement.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "azure-synapse.query.completion-keeps-shared-keywords",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "query",
+            "classification": "incomplete",
+            "sql": "GRANT AL",
+            "metadataSections": [],
+            "incremental": "skip",
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 8,
+                        "includes": ["ALL"]
+                    }
+                ]
+            },
+            "source": "The same shared-keyword rule holds on every profile.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.backup.backup-unavailable",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "backup",
+            "classification": "unsupportedProfile",
+            "sql": "BACKUP DATABASE warehouse TO DISK = 'warehouse.bak';",
+            "expectFeatures": ["statement.backup"],
+            "source": "Fabric Data Warehouse exposes no backup surface.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.expression.ai-functions",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "expression",
+            "classification": "valid",
+            "sql": "SELECT AI_TRANSLATE(Name, 'fr'), AI_SUMMARIZE(Name), AI_CLASSIFY(Name, 'a', 'b') FROM dbo.Customers;",
+            "source": "ScriptDOM TestScripts/AiTranslateTestsFabricDW.sql and sibling AI script families.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.expression.completion-offers-ai-functions",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "expression",
+            "classification": "valid",
+            "sql": "SELECT AI_ FROM dbo.Customers;",
+            "metadataSections": ["objects"],
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 10,
+                        "includes": ["AI_TRANSLATE", "AI_CLASSIFY"]
+                    }
+                ]
+            },
+            "source": "Fabric AI functions must be offered where they run.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.expression.invoke-external-api",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "expression",
+            "classification": "valid",
+            "sql": "SELECT INVOKE_EXTERNAL_API(N'mySet', N'doStuff', 42, 'literal');",
+            "source": "ScriptDOM TestScripts/InvokeExternalApiTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.expression.signature-and-definition",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "expression",
+            "classification": "valid",
+            "sql": "SELECT COALESCE(Name, '') FROM dbo.Customers;",
+            "metadataSections": ["objects", "columns"],
+            "editor": {
+                "signature": [
+                    {
+                        "offset": 16,
+                        "contains": "COALESCE"
+                    }
+                ],
+                "definition": [
+                    {
+                        "offset": 36,
+                        "object": "dbo.Customers"
+                    }
+                ],
+                "hover": [
+                    {
+                        "offset": 36,
+                        "contains": "Customers"
+                    }
+                ]
+            },
+            "source": "Fabric signature, definition, and hover matrix.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.external.external-data-source",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "external",
+            "classification": "valid",
+            "sql": "CREATE EXTERNAL DATA SOURCE lakehouse WITH ( LOCATION = 'abfss://workspace@onelake.dfs.fabric.microsoft.com' );",
+            "expectNodes": ["CreateExternalDataSourceStatement"],
+            "source": "ScriptDOM TestScripts/CreateAlterExternalDataSourceTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.external.external-table",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "external",
+            "classification": "valid",
+            "sql": "CREATE EXTERNAL TABLE dbo.RemoteOrders ( OrderID int ) WITH ( LOCATION = '/orders/', DATA_SOURCE = lakehouse, FILE_FORMAT = parquet_format );",
+            "expectNodes": ["CreateExternalTableStatement"],
+            "source": "ScriptDOM TestScripts/CreateExternalTableStatementTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.module.clone-inside-procedure",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "module",
+            "classification": "valid",
+            "sql": "CREATE PROCEDURE dbo.CloneCustomers AS BEGIN CREATE TABLE dbo.CustomersClone AS CLONE OF dbo.Customers; END;",
+            "source": "ScriptDOM TestScripts/CreateProcedureCloneTableTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.module.external-function",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "module",
+            "classification": "valid",
+            "sql": "CREATE FUNCTION dbo.Translate (@text nvarchar(200)) RETURNS nvarchar(200) AS EXTERNAL FUNCTION textSet.translate;",
+            "expectNodes": ["ExternalFunctionBody"],
+            "source": "ScriptDOM TestScripts/ExternalFunctionTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.module.external-function-missing-name",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "module",
+            "classification": "invalid",
+            "sql": "CREATE FUNCTION dbo.Translate AS EXTERNAL FUNCTION;",
+            "source": "Negative neighbour of an external function body.",
+            "provenance": "independently authored",
+            "expectSyntax": [
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near ';'.",
+                    "severity": "error",
+                    "range": {
+                        "start": 50,
+                        "end": 51
+                    }
+                }
+            ]
+        },
+        {
+            "id": "fabric.query.completion-in-select-list",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT Na FROM dbo.Customers;",
+            "metadataSections": ["objects", "columns"],
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 9,
+                        "includes": ["Name"],
+                        "excludes": ["PREDICT"]
+                    }
+                ],
+                "coloring": {
+                    "tokens": [
+                        {
+                            "text": "Na",
+                            "tokenType": "column"
+                        },
+                        {
+                            "text": "dbo",
+                            "tokenType": "schema"
+                        },
+                        {
+                            "text": "Customers",
+                            "tokenType": "table"
+                        }
+                    ]
+                }
+            },
+            "source": "Fabric completion matrix.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.query.group-by-all",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT CustomerID, COUNT(*) AS Orders FROM sales.Orders GROUP BY ALL;",
+            "expectNodes": ["GroupByAllClause"],
+            "source": "ScriptDOM TestScripts/ModernGroupByAllTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.query.hover-explains-unavailable-feature",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "query",
+            "classification": "unsupportedProfile",
+            "sql": "SELECT p.Score FROM PREDICT ( MODEL = @model, DATA = dbo.Customers AS d ) WITH ( Score float ) AS p;",
+            "expectFeatures": ["query.predict"],
+            "editor": {
+                "hover": [
+                    {
+                        "offset": 22,
+                        "contains": "not available"
+                    }
+                ]
+            },
+            "source": "Hover explains a restriction the document already contains.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.query.nested-cte",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "query",
+            "classification": "valid",
+            "sql": "WITH Regional AS ( WITH SalesData AS ( SELECT CustomerID, OrderID FROM sales.Orders ) SELECT CustomerID FROM SalesData ) SELECT CustomerID FROM Regional;",
+            "expectNodes": ["NestedCommonTableExpressionQuery"],
+            "source": "ScriptDOM TestScripts/NestedCTETestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.query.nested-cte-incomplete",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "query",
+            "classification": "incomplete",
+            "sql": "WITH Regional AS ( WITH SalesData AS ( SELECT CustomerID FROM ",
+            "source": "Typing prefix of a nested common table expression.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.query.nested-cte-three-deep",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "query",
+            "classification": "valid",
+            "sql": "WITH Report AS ( WITH Summary AS ( WITH Detail AS ( SELECT CustomerID FROM dbo.Customers ) SELECT CustomerID FROM Detail ) SELECT CustomerID FROM Summary ) SELECT CustomerID FROM Report;",
+            "expectNodes": ["NestedCommonTableExpressionQuery"],
+            "source": "ScriptDOM TestScripts/NestedCTETestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.query.order-by-all",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT CustomerID, Name FROM dbo.Customers ORDER BY ALL DESC;",
+            "expectNodes": ["OrderByAllClause"],
+            "source": "ScriptDOM TestScripts/OrderByAllTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.query.predict-unavailable",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "query",
+            "classification": "unsupportedProfile",
+            "sql": "SELECT p.Score FROM PREDICT ( MODEL = @model, DATA = dbo.Customers AS d ) WITH ( Score float ) AS p;",
+            "expectFeatures": ["query.predict"],
+            "expectSpans": ["PREDICT"],
+            "source": "PREDICT is dedicated SQL pool syntax and is not part of Fabric Data Warehouse.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.table.alter-add-cluster-by",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "table",
+            "classification": "valid",
+            "sql": "ALTER TABLE dbo.Customers ADD (CLUSTER BY (CustomerID));",
+            "expectNodes": ["ClusterByTableOption"],
+            "source": "ScriptDOM TestScripts/CreateAlterTableClusterByTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.table.clone-of",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "table",
+            "classification": "valid",
+            "sql": "CREATE TABLE dbo.CustomersClone AS CLONE OF dbo.Customers;",
+            "expectNodes": ["CreateTableStatement"],
+            "source": "ScriptDOM TestScripts/CloneTableTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.table.clone-of-at-timestamp",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "table",
+            "classification": "valid",
+            "sql": "CREATE TABLE dbo.CustomersClone AS CLONE OF dbo.Customers AT '2024-05-23T14:24:10.325';",
+            "source": "ScriptDOM TestScripts/CloneTableTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.table.clone-of-missing-source",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "table",
+            "classification": "invalid",
+            "sql": "CREATE TABLE dbo.CustomersClone AS CLONE OF;",
+            "source": "Negative neighbour of the clone-table clause.",
+            "provenance": "independently authored",
+            "expectSyntax": [
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near ';'.",
+                    "severity": "error",
+                    "range": {
+                        "start": 43,
+                        "end": 44
+                    }
+                }
+            ]
+        },
+        {
+            "id": "fabric.table.cluster-by",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "table",
+            "classification": "valid",
+            "sql": "CREATE TABLE dbo.Customers ( CustomerID int, Name nvarchar(100) ) WITH ( CLUSTER BY (CustomerID) );",
+            "expectNodes": ["ClusterByTableOption"],
+            "source": "ScriptDOM TestScripts/CreateAlterTableClusterByTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.table.cluster-by-incomplete",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "table",
+            "classification": "incomplete",
+            "sql": "CREATE TABLE dbo.Customers ( CustomerID int ) WITH ( CLUSTER BY (",
+            "source": "Typing prefix of CLUSTER BY.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.table.cluster-by-missing-columns",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "table",
+            "classification": "invalid",
+            "sql": "CREATE TABLE dbo.Customers ( CustomerID int ) WITH ( CLUSTER BY );",
+            "source": "Negative neighbour of CLUSTER BY.",
+            "provenance": "independently authored",
+            "expectSyntax": [
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near ')'.",
+                    "severity": "error",
+                    "range": {
+                        "start": 64,
+                        "end": 65
+                    }
+                }
+            ]
+        },
+        {
+            "id": "fabric.table.cluster-by-multiple-columns",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "table",
+            "classification": "valid",
+            "sql": "CREATE TABLE sales.Orders ( OrderID int, CustomerID int, OrderDate date ) WITH ( CLUSTER BY (CustomerID, OrderDate), DISTRIBUTION = HASH(CustomerID) );",
+            "expectNodes": ["ClusterByTableOption"],
+            "source": "ScriptDOM TestScripts/CreateAlterTableClusterByTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.table.completion-offers-cluster-keyword",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "table",
+            "classification": "incomplete",
+            "sql": "CREATE TABLE dbo.Customers ( CustomerID int ) WITH ( CLU",
+            "metadataSections": [],
+            "incremental": "skip",
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 55,
+                        "includes": ["CLUSTER"]
+                    }
+                ]
+            },
+            "source": "CLUSTER BY is offered where it runs.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.table.identity-column",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "table",
+            "classification": "valid",
+            "sql": "CREATE TABLE dbo.Customers ( CustomerID int IDENTITY(1,1) NOT NULL, Name nvarchar(100) );",
+            "source": "ScriptDOM TestScripts/IdentityColumnTestsFabricDW.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "fabric.workload.classifier-unavailable",
+            "profile": "fabric-warehouse",
+            "serverMajorVersion": 16,
+            "compatibilityLevel": 160,
+            "family": "workload",
+            "classification": "unsupportedProfile",
+            "sql": "CREATE WORKLOAD CLASSIFIER wcLoad WITH ( WORKLOAD_GROUP = 'wgLoad' );",
+            "expectFeatures": ["workload.classifier"],
+            "source": "Workload classifiers are dedicated SQL pool syntax; Fabric is not implemented as a synonym for Synapse.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.backup.backup-available",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "backup",
+            "classification": "valid",
+            "sql": "BACKUP DATABASE analytics TO DISK = 'analytics.bak' WITH COMPRESSION, CHECKSUM;",
+            "source": "Control: BACKUP is boxed-server surface.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.backup.misspelled-device",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "backup",
+            "classification": "invalid",
+            "sql": "BACKUP DATABASE analytics TO DISKK = 'analytics.bak';",
+            "source": "Negative neighbour: a misspelled backup device is not absorbed by a generic name.",
+            "provenance": "independently authored",
+            "expectSyntax": [
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near '='.",
+                    "severity": "error",
+                    "range": {
+                        "start": 35,
+                        "end": 36
+                    }
+                },
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near ''analytics.bak''.",
+                    "severity": "error",
+                    "range": {
+                        "start": 37,
+                        "end": 52
+                    }
+                }
+            ]
+        },
+        {
+            "id": "sqlserver.dml.copy-into-unavailable",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "dml",
+            "classification": "unsupportedProfile",
+            "sql": "COPY INTO dbo.Staging FROM 'https://contoso.blob.core.windows.net/data/' WITH ( FILE_TYPE = 'CSV' );",
+            "expectFeatures": ["statement.copy-into"],
+            "source": "Control: COPY INTO belongs to the analytics engines.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.expression.completion-withholds-ai-functions",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "expression",
+            "classification": "valid",
+            "sql": "SELECT AI_ FROM dbo.Customers;",
+            "metadataSections": ["objects"],
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 10,
+                        "excludes": ["AI_TRANSLATE", "AI_CLASSIFY", "INVOKE_EXTERNAL_API"]
+                    }
+                ]
+            },
+            "source": "A feature the engine cannot run is never offered.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.expression.signature-help-for-built-in",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "expression",
+            "classification": "valid",
+            "sql": "SELECT DATEADD(day, 1, GETDATE());",
+            "metadataSections": [],
+            "editor": {
+                "signature": [
+                    {
+                        "offset": 15,
+                        "contains": "DATEADD"
+                    }
+                ],
+                "coloring": {
+                    "tokens": [
+                        {
+                            "text": "DATEADD",
+                            "tokenType": "function"
+                        },
+                        {
+                            "text": "day",
+                            "tokenType": "column"
+                        },
+                        {
+                            "text": "GETDATE",
+                            "tokenType": "function"
+                        }
+                    ]
+                }
+            },
+            "source": "Control: built-in signature help.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.module.external-function-unavailable",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "module",
+            "classification": "unsupportedProfile",
+            "sql": "CREATE FUNCTION dbo.Translate AS EXTERNAL FUNCTION textSet.translate;",
+            "expectFeatures": ["module.external-function-body"],
+            "expectSpans": ["EXTERNAL"],
+            "source": "Control: external function bodies are Fabric-only.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.query.completion-hover-definition",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT Cus FROM dbo.Customers;",
+            "metadataSections": ["objects", "columns"],
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 10,
+                        "includes": ["CustomerID"],
+                        "excludes": ["CLUSTER BY"]
+                    }
+                ],
+                "hover": [
+                    {
+                        "offset": 24,
+                        "contains": "Customers"
+                    }
+                ],
+                "definition": [
+                    {
+                        "offset": 24,
+                        "object": "dbo.Customers"
+                    }
+                ],
+                "coloring": {
+                    "tokens": [
+                        {
+                            "text": "Cus",
+                            "tokenType": "column"
+                        },
+                        {
+                            "text": "dbo",
+                            "tokenType": "schema"
+                        },
+                        {
+                            "text": "Customers",
+                            "tokenType": "table"
+                        }
+                    ]
+                }
+            },
+            "source": "Control: the common-language completion, hover, and definition matrix.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.query.completion-keeps-shared-keywords",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "query",
+            "classification": "incomplete",
+            "sql": "SELECT CustomerID FROM dbo.Customers UNION AL",
+            "metadataSections": [],
+            "incremental": "skip",
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 45,
+                        "includes": ["ALL"],
+                        "excludes": ["CLUSTER"]
+                    }
+                ]
+            },
+            "source": "ALL is named only by Fabric features in the registry but is ordinary T-SQL everywhere, so withholding it would break UNION ALL and GRANT ALL.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.query.group-by-all-modern-unavailable",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "query",
+            "classification": "unsupportedProfile",
+            "sql": "SELECT CustomerID, COUNT(*) FROM sales.Orders GROUP BY ALL;",
+            "expectFeatures": ["query.group-by-all"],
+            "expectSpans": ["ALL"],
+            "source": "Control: the column-less GROUP BY ALL is Fabric-only.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.query.legacy-group-by-all-remains-valid",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT CustomerID, COUNT(*) FROM sales.Orders GROUP BY ALL CustomerID;",
+            "expectNodes": ["GroupByAllClause"],
+            "source": "Control: legacy GROUP BY ALL with a grouping list is boxed SQL Server syntax and must not be gated.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.query.nested-cte-unavailable",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "query",
+            "classification": "unsupportedProfile",
+            "sql": "WITH Regional AS ( WITH SalesData AS ( SELECT CustomerID FROM sales.Orders ) SELECT CustomerID FROM SalesData ) SELECT CustomerID FROM Regional;",
+            "expectFeatures": ["query.nested-cte"],
+            "expectSpans": ["WITH"],
+            "source": "Control: a nested common table expression is Fabric-only.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.query.order-by-all-unavailable",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "query",
+            "classification": "unsupportedProfile",
+            "sql": "SELECT CustomerID FROM dbo.Customers ORDER BY ALL;",
+            "expectFeatures": ["clause.order-by-all"],
+            "expectSpans": ["ALL"],
+            "source": "Control: ORDER BY ALL is Fabric-only; ScriptDOM TestScripts/OrderByAllTestsFabricDW.sql.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.table.clone-unavailable",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "table",
+            "classification": "unsupportedProfile",
+            "sql": "CREATE TABLE dbo.CustomersClone AS CLONE OF dbo.Customers;",
+            "expectFeatures": ["table.clone"],
+            "expectSpans": ["CLONE"],
+            "source": "Control: clone tables are Fabric-only.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.table.cluster-by-unavailable",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "table",
+            "classification": "unsupportedProfile",
+            "sql": "CREATE TABLE dbo.Customers ( CustomerID int ) WITH ( CLUSTER BY (CustomerID) );",
+            "expectFeatures": ["table.cluster-by"],
+            "expectSpans": ["CLUSTER"],
+            "source": "Control: CLUSTER BY is Fabric-only.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.table.completion-withholds-cluster-keyword",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "table",
+            "classification": "incomplete",
+            "sql": "CREATE TABLE dbo.Customers ( CustomerID int ) WITH ( CLU",
+            "metadataSections": [],
+            "incremental": "skip",
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 55,
+                        "excludes": ["CLUSTER"]
+                    }
+                ]
+            },
+            "source": "CLUSTER exists only inside the Fabric CLUSTER BY option.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.table.distribution-unavailable",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "table",
+            "classification": "unsupportedProfile",
+            "sql": "CREATE TABLE dbo.FactSales ( CustomerID int ) WITH ( DISTRIBUTION = HASH(CustomerID) );",
+            "expectFeatures": ["table.distribution"],
+            "expectSpans": ["DISTRIBUTION"],
+            "source": "Control: distributed tables belong to the analytics engines.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.table.incomplete-with-option",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "table",
+            "classification": "incomplete",
+            "sql": "CREATE TABLE dbo.Customers ( CustomerID int ) WITH ( DATA_COMPRESSION = ",
+            "source": "Typing prefix of a table option list.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "sqlserver.view.materialized-view-unavailable",
+            "profile": "sql-server",
+            "serverMajorVersion": 17,
+            "compatibilityLevel": 170,
+            "family": "view",
+            "classification": "unsupportedProfile",
+            "sql": "CREATE MATERIALIZED VIEW dbo.OrdersByCustomer WITH ( DISTRIBUTION = HASH(CustomerID) ) AS SELECT CustomerID, COUNT_BIG(*) AS Orders FROM sales.Orders GROUP BY CustomerID;",
+            "expectFeatures": ["statement.materialized-view", "table.distribution"],
+            "expectSpans": ["MATERIALIZED", "DISTRIBUTION"],
+            "source": "Control: materialized views belong to the analytics engines.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.dml.copy-into",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "dml",
+            "classification": "valid",
+            "sql": "COPY INTO dbo.Staging (OrderID 1, CustomerID 2) FROM 'https://contoso.blob.core.windows.net/data/orders/' WITH ( FILE_TYPE = 'CSV', CREDENTIAL = ( IDENTITY = 'Shared Access Signature', SECRET = 'token' ), MAXERRORS = 10, ERRORFILE = '/rejects/' );",
+            "expectNodes": ["CopyIntoStatement", "CopyWithClause"],
+            "source": "ScriptDOM TestScripts/CopyCommandTestsDw.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.dml.copy-into-incomplete-options",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "dml",
+            "classification": "incomplete",
+            "sql": "COPY INTO dbo.Staging FROM 'https://contoso.blob.core.windows.net/data/' WITH ( FILE_TYPE = ",
+            "source": "Typing prefix of COPY INTO options.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.expression.signature-help-for-built-in",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "expression",
+            "classification": "valid",
+            "sql": "SELECT ISNULL(CustomerID, 0) FROM dbo.Customers;",
+            "metadataSections": ["objects", "columns"],
+            "editor": {
+                "signature": [
+                    {
+                        "offset": 14,
+                        "contains": "ISNULL"
+                    }
+                ],
+                "definition": [
+                    {
+                        "offset": 38,
+                        "object": "dbo.Customers"
+                    }
+                ]
+            },
+            "source": "Synapse signature and definition matrix.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.external.cetas",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "external",
+            "classification": "valid",
+            "sql": "CREATE EXTERNAL TABLE dbo.ExportedOrders WITH ( LOCATION = '/exports/orders/', DATA_SOURCE = lake, FILE_FORMAT = parquet_format ) AS SELECT OrderID FROM sales.Orders;",
+            "expectNodes": ["CreateExternalTableStatement", "ExternalTableWithClause"],
+            "source": "ScriptDOM TestScripts/ExternalTableCtasStatementTests.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.external.external-data-source-illegal-option",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "external",
+            "classification": "invalid",
+            "sql": "CREATE EXTERNAL DATA SOURCE lake WITH ( LOCATION = );",
+            "source": "Negative neighbour of the external data source option list.",
+            "provenance": "independently authored",
+            "expectSyntax": [
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near ')'.",
+                    "severity": "error",
+                    "range": {
+                        "start": 51,
+                        "end": 52
+                    }
+                }
+            ]
+        },
+        {
+            "id": "synapse.external.external-file-format",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "external",
+            "classification": "valid",
+            "sql": "CREATE EXTERNAL FILE FORMAT delimited WITH ( FORMAT_TYPE = DELIMITEDTEXT, FORMAT_OPTIONS ( FIELD_TERMINATOR = ',', STRING_DELIMITER = '\"', FIRST_ROW = 2 ) );",
+            "expectNodes": ["CreateExternalFileFormatStatement"],
+            "source": "ScriptDOM TestScripts/CreateExternalFileFormatStatementTests130.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.external.external-table-sharded",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "external",
+            "classification": "valid",
+            "sql": "CREATE EXTERNAL TABLE dbo.RemoteOrders ( OrderID int NOT NULL ) WITH ( DATA_SOURCE = shard_map, DISTRIBUTION = SHARDED(OrderID), SCHEMA_NAME = 'sales', OBJECT_NAME = 'Orders' );",
+            "expectNodes": ["ExternalTableColumnOptionValue"],
+            "source": "ScriptDOM TestScripts/CreateExternalTableStatementTests130.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.index.columnstore-index",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "index",
+            "classification": "valid",
+            "sql": "CREATE CLUSTERED COLUMNSTORE INDEX cci ON dbo.FactSales WITH ( DROP_EXISTING = ON );",
+            "expectNodes": ["CreateIndexStatement"],
+            "source": "ScriptDOM TestScripts/CreateColumnStoreIndexTestsDw.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.query.completion-offers-distribution-columns",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT Ord FROM sales.Orders;",
+            "metadataSections": ["objects", "columns"],
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 10,
+                        "includes": ["OrderID"],
+                        "excludes": ["JSON_OBJECTAGG"]
+                    }
+                ],
+                "coloring": {
+                    "tokens": [
+                        {
+                            "text": "Ord",
+                            "tokenType": "column"
+                        },
+                        {
+                            "text": "sales",
+                            "tokenType": "schema"
+                        },
+                        {
+                            "text": "Orders",
+                            "tokenType": "table"
+                        }
+                    ]
+                }
+            },
+            "source": "Synapse completion matrix.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.query.completion-offers-predict",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "query",
+            "classification": "incomplete",
+            "sql": "SELECT * FROM dbo.Customers WHERE CustomerID = 1 PRED",
+            "metadataSections": [],
+            "incremental": "skip",
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 52,
+                        "includes": ["PREDICT"]
+                    }
+                ]
+            },
+            "source": "PREDICT is offered where it runs.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.query.hover-explains-unavailable-feature",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "query",
+            "classification": "unsupportedProfile",
+            "sql": "CREATE TABLE dbo.FactSales ( CustomerID int ) WITH ( CLUSTER BY (CustomerID) );",
+            "expectFeatures": ["table.cluster-by"],
+            "editor": {
+                "hover": [
+                    {
+                        "offset": 53,
+                        "contains": "not available"
+                    }
+                ]
+            },
+            "source": "Hover must explain an availability restriction the document already contains.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.query.predict",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT d.CustomerID, p.Score FROM PREDICT ( MODEL = ( SELECT Model FROM dbo.Models WHERE OrderID = 4 ), DATA = dbo.Customers AS d, RUNTIME = ONNX ) WITH ( Score float ) AS p;",
+            "expectNodes": ["PredictTableSource", "PredictParameter", "PredictArgument"],
+            "source": "ScriptDOM TestScripts/PredictSqlDwTests.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.query.predict-incomplete",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "query",
+            "classification": "incomplete",
+            "sql": "SELECT * FROM PREDICT ( MODEL = @model, DATA = ",
+            "source": "Typing prefix of PREDICT.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.query.window-clause-unavailable",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "query",
+            "classification": "unsupportedProfile",
+            "sql": "SELECT SUM(OrderID) OVER w FROM sales.Orders WINDOW w AS ( ORDER BY OrderID );",
+            "expectFeatures": ["clause.named-window"],
+            "source": "The named WINDOW clause requires the 160 language level, above the dedicated pool's.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.table.cluster-by-unavailable",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "table",
+            "classification": "unsupportedProfile",
+            "sql": "CREATE TABLE dbo.FactSales ( CustomerID int ) WITH ( CLUSTER BY (CustomerID) );",
+            "expectFeatures": ["table.cluster-by"],
+            "expectSpans": ["CLUSTER"],
+            "source": "CLUSTER BY is Fabric Data Warehouse syntax; ScriptDOM models it only in TSqlFabricDW.g.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.table.ctas-hash-distribution",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "table",
+            "classification": "valid",
+            "sql": "CREATE TABLE dbo.FactSalesCopy WITH ( DISTRIBUTION = HASH(CustomerID), CLUSTERED COLUMNSTORE INDEX ) AS SELECT CustomerID, OrderID FROM sales.Orders;",
+            "expectNodes": ["CreateTableStatement", "TableOption"],
+            "source": "ScriptDOM TestScripts/CtasStatementTests.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.table.ctas-incomplete-distribution",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "table",
+            "classification": "incomplete",
+            "sql": "CREATE TABLE dbo.FactSalesCopy WITH ( DISTRIBUTION = HASH(",
+            "source": "Typing prefix of a distributed CTAS.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.table.ctas-missing-select",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "table",
+            "classification": "invalid",
+            "sql": "CREATE TABLE dbo.FactSalesCopy WITH ( DISTRIBUTION = ROUND_ROBIN ) AS;",
+            "source": "Negative neighbour of CTAS.",
+            "provenance": "independently authored",
+            "expectSyntax": [
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near ';'.",
+                    "severity": "error",
+                    "range": {
+                        "start": 69,
+                        "end": 70
+                    }
+                }
+            ]
+        },
+        {
+            "id": "synapse.table.ctas-replicate-partition",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "table",
+            "classification": "valid",
+            "sql": "CREATE TABLE dbo.DimDate WITH ( DISTRIBUTION = REPLICATE, PARTITION ( OrderDate RANGE RIGHT FOR VALUES ( '2023-01-01', '2024-01-01' ) ) ) AS SELECT OrderDate FROM sales.Orders;",
+            "expectNodes": ["TableOption"],
+            "source": "ScriptDOM TestScripts/CtasStatementTests.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.table.ctas-round-robin-heap",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "table",
+            "classification": "valid",
+            "sql": "CREATE TABLE dbo.Staging WITH ( DISTRIBUTION = ROUND_ROBIN, HEAP ) AS SELECT * FROM sales.Orders OPTION ( LABEL = 'load' );",
+            "expectNodes": ["TableOption"],
+            "source": "ScriptDOM TestScripts/CtasStatementTests.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.table.distribution-illegal-value",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "table",
+            "classification": "invalid",
+            "sql": "CREATE TABLE dbo.FactSales ( CustomerID int ) WITH ( DISTRIBUTION = );",
+            "source": "Negative neighbour of the distribution option.",
+            "provenance": "independently authored",
+            "expectSyntax": [
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near ')'.",
+                    "severity": "error",
+                    "range": {
+                        "start": 68,
+                        "end": 69
+                    }
+                }
+            ]
+        },
+        {
+            "id": "synapse.view.materialized-view",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "view",
+            "classification": "valid",
+            "sql": "CREATE MATERIALIZED VIEW dbo.OrdersByCustomer WITH ( DISTRIBUTION = HASH(CustomerID) ) AS SELECT CustomerID, COUNT_BIG(*) AS Orders FROM sales.Orders GROUP BY CustomerID;",
+            "expectNodes": ["CreateMaterializedViewStatement"],
+            "source": "ScriptDOM TestScripts/MaterializedViewTests150.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.workload.alter-classifier-is-invalid",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "workload",
+            "classification": "invalid",
+            "sql": "ALTER WORKLOAD CLASSIFIER wcLoad WITH ( IMPORTANCE = LOW );",
+            "source": "Negative neighbour: a dedicated SQL pool has no ALTER WORKLOAD CLASSIFIER.",
+            "provenance": "independently authored",
+            "expectSyntax": [
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near 'CLASSIFIER'.",
+                    "severity": "error",
+                    "range": {
+                        "start": 15,
+                        "end": 25
+                    }
+                },
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near 'wcLoad'.",
+                    "severity": "error",
+                    "range": {
+                        "start": 26,
+                        "end": 32
+                    }
+                }
+            ]
+        },
+        {
+            "id": "synapse.workload.classifier-incomplete",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "workload",
+            "classification": "incomplete",
+            "sql": "CREATE WORKLOAD CLASSIFIER wcLoad WITH ( WORKLOAD_GROUP = ",
+            "source": "Typing prefix of a workload classifier.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.workload.create-workload-classifier",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "workload",
+            "classification": "valid",
+            "sql": "CREATE WORKLOAD CLASSIFIER wcLoad WITH ( WORKLOAD_GROUP = 'wgLoad', MEMBERNAME = 'ELTRole', WLM_LABEL = 'nightly', IMPORTANCE = HIGH );",
+            "expectNodes": ["WorkloadClassifierStatement"],
+            "source": "ScriptDOM TestScripts/CreateWorkloadClassifierStatementSqlDwTests.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.workload.create-workload-group",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "workload",
+            "classification": "valid",
+            "sql": "CREATE WORKLOAD GROUP wgLoad WITH ( MIN_PERCENTAGE_RESOURCE = 10, CAP_PERCENTAGE_RESOURCE = 40, REQUEST_MIN_RESOURCE_GRANT_PERCENT = 5 );",
+            "expectNodes": ["WorkloadGroupStatement"],
+            "source": "ScriptDOM TestScripts/CreateWorkloadGroupStatementSqlDwTests130.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "synapse.workload.drop-workload-classifier",
+            "profile": "azure-synapse-dedicated",
+            "serverMajorVersion": 13,
+            "compatibilityLevel": 130,
+            "family": "workload",
+            "classification": "valid",
+            "sql": "DROP WORKLOAD CLASSIFIER wcLoad;",
+            "expectNodes": ["WorkloadClassifierStatement"],
+            "source": "ScriptDOM TestScripts/CreateWorkloadClassifierStatementSqlDwTests.sql",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "unknown.backup.backup-deferred",
+            "profile": "unknown",
+            "family": "backup",
+            "classification": "valid",
+            "sql": "BACKUP DATABASE analytics TO DISK = 'analytics.bak';",
+            "source": "An unidentified engine defers every platform decision.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "unknown.query.completion-defers-nothing",
+            "profile": "unknown",
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT Cus FROM dbo.Customers;",
+            "metadataSections": ["objects", "columns"],
+            "editor": {
+                "completion": [
+                    {
+                        "offset": 10,
+                        "includes": ["CustomerID"]
+                    }
+                ],
+                "coloring": {
+                    "tokens": [
+                        {
+                            "text": "Cus",
+                            "tokenType": "column"
+                        },
+                        {
+                            "text": "dbo",
+                            "tokenType": "schema"
+                        },
+                        {
+                            "text": "Customers",
+                            "tokenType": "table"
+                        }
+                    ]
+                }
+            },
+            "source": "An unidentified engine still answers from the document and the catalog.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "unknown.query.hover-signature-definition",
+            "profile": "unknown",
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT ISNULL(CustomerID, 0) FROM dbo.Customers;",
+            "metadataSections": ["objects", "columns"],
+            "editor": {
+                "signature": [
+                    {
+                        "offset": 14,
+                        "contains": "ISNULL"
+                    }
+                ],
+                "hover": [
+                    {
+                        "offset": 38,
+                        "contains": "Customers"
+                    }
+                ],
+                "definition": [
+                    {
+                        "offset": 38,
+                        "object": "dbo.Customers"
+                    }
+                ],
+                "coloring": {
+                    "tokens": [
+                        {
+                            "text": "ISNULL",
+                            "tokenType": "function"
+                        },
+                        {
+                            "text": "CustomerID",
+                            "tokenType": "column"
+                        },
+                        {
+                            "text": "dbo",
+                            "tokenType": "schema"
+                        },
+                        {
+                            "text": "Customers",
+                            "tokenType": "table"
+                        }
+                    ]
+                }
+            },
+            "source": "An unidentified engine answers every document-and-catalog feature normally.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "unknown.query.predict-deferred",
+            "profile": "unknown",
+            "family": "query",
+            "classification": "valid",
+            "sql": "SELECT p.Score FROM PREDICT ( MODEL = @model, DATA = dbo.Customers AS d ) WITH ( Score float ) AS p;",
+            "source": "An unidentified engine defers every platform decision.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "unknown.table.cluster-by-deferred",
+            "profile": "unknown",
+            "family": "table",
+            "classification": "valid",
+            "sql": "CREATE TABLE dbo.Customers ( CustomerID int ) WITH ( CLUSTER BY (CustomerID) );",
+            "source": "An unidentified engine defers every platform decision.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "unknown.table.incomplete-cluster-by",
+            "profile": "unknown",
+            "family": "table",
+            "classification": "incomplete",
+            "sql": "CREATE TABLE dbo.Customers ( CustomerID int ) WITH ( CLUSTER BY (",
+            "source": "Typing prefix under an unidentified engine.",
+            "provenance": "independently authored"
+        },
+        {
+            "id": "unknown.table.invalid-neighbour",
+            "profile": "unknown",
+            "family": "table",
+            "classification": "invalid",
+            "sql": "CREATE TABLE dbo.Customers ( CustomerID int ) WITH ( CLUSTER BYY (CustomerID) );",
+            "source": "An unidentified engine still reports genuine syntax errors.",
+            "provenance": "independently authored",
+            "expectSyntax": [
+                {
+                    "code": "syntax",
+                    "message": "Incorrect syntax near 'BYY'.",
+                    "severity": "error",
+                    "range": {
+                        "start": 61,
+                        "end": 64
+                    }
+                }
+            ]
+        },
+        {
+            "id": "unknown.type.json-deferred",
+            "profile": "unknown",
+            "family": "type",
+            "classification": "valid",
+            "sql": "CREATE TABLE dbo.Documents ( payload json );",
+            "source": "An unreported language level defers a version gate rather than restricting it.",
+            "provenance": "independently authored"
+        }
+    ]
+}

@@ -15,7 +15,10 @@ export const brokerPriorityEndToken = new ExternalTokenizer((input) => {
     if (!startsWithSetKeyword(input)) input.acceptToken(BrokerPriorityEnd);
 });
 
-function startsWithSetKeyword(input: { readonly next: number; peek(offset: number): number }): boolean {
+function startsWithSetKeyword(input: {
+    readonly next: number;
+    peek(offset: number): number;
+}): boolean {
     if (lower(input.next) !== 115 || lower(input.peek(1)) !== 101 || lower(input.peek(2)) !== 116) {
         return false;
     }

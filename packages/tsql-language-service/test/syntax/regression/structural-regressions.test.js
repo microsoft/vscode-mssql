@@ -9,6 +9,15 @@ const { suite, test } = require("node:test");
 const { createSyntaxHarness } = require("../../support/syntaxHarness.js");
 const { assertValid, parse } = createSyntaxHarness("structural-regressions.sql");
 
+// Distributed tables and COPY INTO belong to the analytics engines, so those structural
+// fixtures are read under the dedicated SQL pool profile.
+const analyticsProfile = {
+    engineProfile: "azure-synapse-dedicated",
+    serverMajorVersion: 13,
+    compatibilityLevel: 130,
+    previewFeatures: false,
+};
+
 suite("T-SQL structural grammar regressions", () => {
     // Graph tables define named and unnamed edge-connection constraints.
     test("parses graph edge constraints", () => {
@@ -88,11 +97,14 @@ SELECT * FROM ::LegacyRows(1, NULL, DEFAULT) AS r;
 
     // Synapse-compatible CTAS options remain structured so flavor gates can report them precisely.
     test("parses structured CTAS table options", () => {
-        const snapshot = parse(`
+        const snapshot = parse(
+            `
 CREATE TABLE dbo.Fact
 WITH (DISTRIBUTION = HASH(Id), CLUSTERED INDEX(Id))
 AS SELECT Id FROM dbo.Source;
-`);
+`,
+            analyticsProfile,
+        );
 
         assertValid(snapshot);
         assert.match(snapshot.tree.toString(), /TableOptionClause/);

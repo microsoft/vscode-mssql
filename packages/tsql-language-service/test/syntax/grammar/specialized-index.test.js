@@ -51,8 +51,13 @@ CREATE SPATIAL INDEX sp1 ON a..c(d) USING GEOMETRY_GRID WITH (
 `);
 
         assertValid(snapshot);
-        assert.match(snapshot.tree.toString(), /SpatialIndexStatement\(/);
-        assert.ok((snapshot.tree.toString().match(/GenericOptionList\(/g) ?? []).length >= 3);
+        const tree = snapshot.tree.toString();
+        assert.match(tree, /SpatialIndexStatement\(/);
+        // An index WITH list is a list of IndexOption, so that ORDER(a, b) — which names columns
+        // rather than taking a value — has somewhere to live. Each option that does take a nested
+        // list still keeps it structured, which is what this fixture is here to hold in place.
+        assert.equal((tree.match(/IndexOption\(/g) ?? []).length, 2);
+        assert.equal((tree.match(/GenericOptionList\(/g) ?? []).length, 2);
     });
 
     // Verifies full-text catalog, stoplist, index, alteration, and drop forms have explicit nodes.

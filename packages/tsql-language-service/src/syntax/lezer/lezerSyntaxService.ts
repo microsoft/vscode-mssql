@@ -15,10 +15,28 @@ import type {
     SyntaxToken,
     TsqlFeatureProfile,
 } from "../contracts.js";
-import { defaultTsqlFeatureProfile } from "../contracts.js";
+import { capabilityGeneration, defaultTsqlFeatureProfile } from "../contracts.js";
+import {
+    featureAvailabilityDetail,
+    featureAvailabilityDiagnosticCode,
+    featureAvailabilityMessage,
+    platformFeatureForNode,
+} from "../../common/platformFeatureRegistry.js";
 import { keywordMetadata } from "../keywords.generated.js";
 import { partitionSqlBatches } from "./batchChunking.js";
 import { parser as generatedParser } from "./generated/tsqlParser.js";
+import {
+    ancestorNamed,
+    availabilityRange,
+    diagnosticNearRange,
+    expectedSuffix,
+    findWord,
+    isAtLineStart,
+    missingMergeTerminator,
+    requiresIntegerLiteral,
+    unterminatedBlockCommentRange,
+    unterminatedStringRange,
+} from "./syntaxDiagnosticUtilities.js";
 
 interface ParsedChunk extends TextRange {
     readonly tree: Tree;
@@ -44,10 +62,13 @@ export class LezerSyntaxService implements SyntaxService {
     private readonly _expressionParser: LRParser;
     private readonly _groupedQueryParser: LRParser;
 
+    private _profile: TsqlFeatureProfile;
+
     public constructor(
         parser: LRParser = generatedParser as LRParser,
-        public readonly profile: TsqlFeatureProfile = defaultTsqlFeatureProfile,
+        profile: TsqlFeatureProfile = defaultTsqlFeatureProfile,
     ) {
+        this._profile = profile;
         this._plainParser = parser;
         this._expressionParser = parser.configure({ top: "ExpressionRoot" });
         this._groupedQueryParser = parser.configure({ top: "GroupedQueryRoot" });
@@ -63,15 +84,64 @@ export class LezerSyntaxService implements SyntaxService {
                     (node.name === "BlockChunk" || node.name === "StatementChunk") &&
                     isBoundedMixedRegion(node.node)
                 ) {
-                    // Mounted SQL can itself contain BEGIN/END or controlled statements. Reuse
-                    // the mixed parser so every bounded nested region remains structurally
-                    // visible. The structural guard prevents recovery-created chunks from
-                    // recursively mounting the same unsupported statement forever.
                     return { parser: this._mixedParser };
                 }
                 return null;
             }),
         });
+    }
+
+    /** The engine profile every snapshot this service produces is stamped with. */
+    public get profile(): TsqlFeatureProfile {
+        return this._profile;
+    }
+
+    /**
+     * Adopts a newly resolved engine profile.
+     *
+     * Existing snapshots keep the profile they were produced under; a caller republishes them
+     * through {@link reprofile}, which reuses their trees rather than reparsing.
+     */
+    public setProfile(profile: TsqlFeatureProfile): void {
+        this._profile = profile;
+    }
+
+    /**
+     * Republishes a snapshot under the service's current profile.
+     *
+     * Only the availability layer depends on the profile, so the retained per-chunk trees are
+     * reused and no text is presented to the parser again. A snapshot already produced under the
+     * current profile is returned unchanged.
+     */
+    public reprofile(previous: SyntaxSnapshot): SyntaxSnapshot {
+        if (!(previous instanceof LezerSyntaxSnapshot)) {
+            throw new TypeError("LezerSyntaxService can reprofile only snapshots that it created");
+        }
+        if (previous.profileGeneration === capabilityGeneration(this._profile)) return previous;
+        const documentText = previous.document.text;
+        const chunks = previous.chunks.map((chunk) => {
+            const text = documentText.slice(chunk.start, chunk.end);
+            const facts = collectSyntaxFacts(chunk.tree, text, this._profile);
+            return Object.freeze({
+                ...chunk,
+                diagnostics: Object.freeze(facts.diagnostics),
+                rawErrorNodeCount: facts.rawErrorNodeCount,
+            });
+        });
+        return new LezerSyntaxSnapshot(
+            previous.document,
+            chunks,
+            [],
+            "incremental",
+            {
+                reusableFragmentCount: 0,
+                reusedChunkCount: chunks.length,
+                reparsedChunkCount: 0,
+                parsedCharacterCount: 0,
+            },
+            this._profile,
+            () => this.parseCompleteDocument(documentText),
+        );
     }
 
     public parse(document: TextSnapshot): SyntaxSnapshot {
@@ -89,7 +159,7 @@ export class LezerSyntaxService implements SyntaxService {
                 reparsedChunkCount: chunks.length,
                 parsedCharacterCount: document.length,
             },
-            this.profile,
+            this._profile,
             () => this.parseCompleteDocument(document.text),
         );
     }
@@ -115,7 +185,7 @@ export class LezerSyntaxService implements SyntaxService {
                     reparsedChunkCount: 0,
                     parsedCharacterCount: 0,
                 },
-                this.profile,
+                this._profile,
                 () => this.parseCompleteDocument(document.text),
             );
         }
@@ -179,7 +249,7 @@ export class LezerSyntaxService implements SyntaxService {
                 reparsedChunkCount,
                 parsedCharacterCount,
             },
-            this.profile,
+            this._profile,
             () => this.parseCompleteDocument(document.text),
         );
     }
@@ -193,11 +263,11 @@ export class LezerSyntaxService implements SyntaxService {
         const candidate = reusable[0]?.tree;
         let mixed = candidate ? treeContainsMixedRegions(candidate) : false;
         let tree = (mixed ? this._mixedParser : this._plainParser).parse(text, reusable);
-        let facts = collectSyntaxFacts(tree, text, this.profile);
+        let facts = collectSyntaxFacts(tree, text, this._profile);
         if (!mixed && facts.hasMixedRegions) {
             mixed = true;
             tree = this._mixedParser.parse(text, reusable);
-            facts = collectSyntaxFacts(tree, text, this.profile);
+            facts = collectSyntaxFacts(tree, text, this._profile);
         }
         return Object.freeze({
             ...range,
@@ -284,6 +354,8 @@ function isBoundedMixedRegion(node: LezerNode): boolean {
 class LezerSyntaxSnapshot implements SyntaxSnapshot {
     public readonly diagnostics: readonly SyntaxDiagnostic[];
     public readonly statistics;
+    public readonly profile: TsqlFeatureProfile;
+    public readonly profileGeneration: string;
     private _materializedTree: Tree | undefined;
     private _structuralIndex: ReadonlyMap<string, readonly SyntaxNode[]> | undefined;
     private readonly _root: DocumentSyntaxNode;
@@ -302,7 +374,8 @@ class LezerSyntaxSnapshot implements SyntaxSnapshot {
         profile: TsqlFeatureProfile,
         private readonly _materializeTree: () => Tree,
     ) {
-        void profile;
+        this.profile = profile;
+        this.profileGeneration = capabilityGeneration(profile);
         this._root = new DocumentSyntaxNode(document.length, chunks);
         this.diagnostics = Object.freeze(
             chunks.flatMap((chunk) =>
@@ -902,19 +975,20 @@ function collectSyntaxFacts(
                     });
                 }
             }
-            const rule = featureProfileRule(node.node, text, profile);
-            if (!rule || supportsFeature(profile, rule)) return;
-            const start = findWord(text, node.from, node.to, rule.keyword);
-            const key = `${start}:${rule.keyword}`;
-            if (start < 0 || reportedFeatures.has(key)) return;
+            const feature = platformFeatureForNode(node.name, text.slice(node.from, node.to));
+            if (!feature) return;
+            const detail = featureAvailabilityDetail(feature, profile);
+            if (!detail) return;
+            const range = availabilityRange(node.node, text, feature.keyword);
+            const key = `${range.start}:${feature.id}`;
+            if (reportedFeatures.has(key)) return;
             reportedFeatures.add(key);
             diagnostics.push({
-                code: "syntax",
-                message: rule.statementUnavailable
-                    ? `Statement '${statementPhrase(node.node, text, rule.keyword)}' is not supported in this version of SQL Server.`
-                    : `Incorrect syntax near '${rule.keyword}'.`,
+                code: featureAvailabilityDiagnosticCode,
+                message: featureAvailabilityMessage(feature, profile, detail),
                 severity: "error",
-                range: { start, end: start + rule.keyword.length },
+                range,
+                availability: detail,
             });
         },
     });
@@ -1135,328 +1209,4 @@ function treeContainsMixedRegions(tree: Tree): boolean {
         }
     } while (cursor.next());
     return false;
-}
-
-function unterminatedBlockCommentRange(text: string): TextRange | undefined {
-    const stack: number[] = [];
-    let quote: "string" | "quoted" | "bracket" | undefined;
-    for (let index = 0; index < text.length; index++) {
-        const current = text[index];
-        const next = text[index + 1];
-        if (stack.length > 0) {
-            if (current === "/" && next === "*") {
-                stack.push(index++);
-            } else if (current === "*" && next === "/") {
-                stack.pop();
-                index++;
-            }
-            continue;
-        }
-        if (quote) {
-            const close = quote === "string" ? "'" : quote === "quoted" ? '"' : "]";
-            if (current === close && next === close) index++;
-            else if (current === close) quote = undefined;
-        } else if (current === "-" && next === "-") {
-            const newline = text.indexOf("\n", index + 2);
-            if (newline < 0) break;
-            index = newline;
-        } else if (current === "/" && next === "*") {
-            stack.push(index++);
-        } else if (current === "'") quote = "string";
-        else if (current === '"') quote = "quoted";
-        else if (current === "[") quote = "bracket";
-    }
-    const start = stack[0];
-    return start === undefined ? undefined : { start, end: text.length };
-}
-
-function unterminatedStringRange(text: string): TextRange | undefined {
-    let stringStart: number | undefined;
-    let quote: "quoted" | "bracket" | undefined;
-    let blockDepth = 0;
-    for (let index = 0; index < text.length; index++) {
-        const current = text[index];
-        const next = text[index + 1];
-        if (blockDepth > 0) {
-            if (current === "/" && next === "*") {
-                blockDepth++;
-                index++;
-            } else if (current === "*" && next === "/") {
-                blockDepth--;
-                index++;
-            }
-            continue;
-        }
-        if (stringStart !== undefined) {
-            if (current === "'" && next === "'") index++;
-            else if (current === "'") stringStart = undefined;
-            continue;
-        }
-        if (quote) {
-            const close = quote === "quoted" ? '"' : "]";
-            if (current === close && next === close) index++;
-            else if (current === close) quote = undefined;
-            continue;
-        }
-        if (current === "-" && next === "-") {
-            const newline = text.indexOf("\n", index + 2);
-            if (newline < 0) break;
-            index = newline;
-        } else if (current === "/" && next === "*") {
-            blockDepth++;
-            index++;
-        } else if (current === "'") {
-            stringStart = index;
-        } else if (current === '"') {
-            quote = "quoted";
-        } else if (current === "[") {
-            quote = "bracket";
-        }
-    }
-    return stringStart === undefined ? undefined : { start: stringStart, end: text.length };
-}
-
-function statementPhrase(node: LezerNode, text: string, fallback: string): string {
-    const source = text.slice(node.from, node.to);
-    return (
-        /^\s*((?:CREATE|ALTER|DROP)\s+[\p{L}_]+(?:\s+[\p{L}_]+)?)/iu
-            .exec(source)?.[1]
-            ?.replace(/\s+/gu, " ")
-            .toLocaleUpperCase() ?? fallback
-    );
-}
-
-interface FeatureProfileRule {
-    readonly keyword: string;
-    readonly minimumServer?: 15 | 16 | 17;
-    readonly minimumCompatibility?: 150 | 160 | 170;
-    // Syntax that SQL Server removed rather than added: it parses structurally so the statement
-    // keeps its shape, and is reported once the profile is newer than the last release accepting it.
-    readonly maximumCompatibility?: 80 | 90 | 100 | 110;
-    readonly engineFlavors?: readonly TsqlFeatureProfile["engineFlavor"][];
-    readonly statementUnavailable?: boolean;
-}
-
-function featureProfileRule(
-    node: LezerNode,
-    text: string,
-    profile: TsqlFeatureProfile,
-): FeatureProfileRule | undefined {
-    switch (node.name) {
-        // Pre-7.0 device and backup spellings. They parse so the statement keeps its shape, and are
-        // reported on any profile newer than the last release that accepted them: DUMP and LOAD
-        // were removed after compatibility level 90, DISK INIT and DISK RESIZE after 80. Verified
-        // against ScriptDOM's per-version parsers.
-        case "LegacyDiskStatement":
-            return { keyword: "DISK", maximumCompatibility: 80, statementUnavailable: true };
-        case "WindowClause":
-            return { keyword: "WINDOW", minimumServer: 16, minimumCompatibility: 160 };
-        case "OrderByAllClause":
-            return { keyword: "ALL", engineFlavors: ["fabric"] };
-        case "CreateJsonIndexStatement":
-            return { keyword: "JSON", minimumServer: 17, minimumCompatibility: 170 };
-        case "JsonConstructorExpression": {
-            const value = text.slice(node.from, node.to).trimStart().toUpperCase();
-            return {
-                keyword: value.startsWith("JSON_OBJECT") ? "JSON_OBJECT" : "JSON_ARRAY",
-                minimumServer: 16,
-                minimumCompatibility: 160,
-            };
-        }
-        case "JsonAggregateExpression": {
-            const value = text.slice(node.from, node.to).trimStart().toUpperCase();
-            return {
-                keyword: value.startsWith("JSON_OBJECTAGG") ? "JSON_OBJECTAGG" : "JSON_ARRAYAGG",
-                minimumServer: 17,
-                minimumCompatibility: 170,
-            };
-        }
-        case "JsonArrayWrapperClause":
-            return { keyword: "ARRAY", minimumServer: 17, minimumCompatibility: 170 };
-        case "JsonReturningClause":
-        case "JsonValueReturningClause":
-            return { keyword: "RETURNING", minimumServer: 17, minimumCompatibility: 170 };
-        case "CreateVectorIndexStatement":
-            return { keyword: "VECTOR", minimumServer: 17, minimumCompatibility: 170 };
-        case "VectorSearchTableSource":
-            return { keyword: "VECTOR_SEARCH", minimumServer: 17, minimumCompatibility: 170 };
-        case "ApproximateKeyword": {
-            const value = text.slice(node.from, node.to).trimStart().toUpperCase();
-            return {
-                keyword: value.startsWith("APPROXIMATE") ? "APPROXIMATE" : "APPROX",
-                minimumServer: 17,
-                minimumCompatibility: 170,
-            };
-        }
-        case "AiGenerateEmbeddingsExpression":
-            return {
-                keyword: "AI_GENERATE_EMBEDDINGS",
-                minimumServer: 17,
-                minimumCompatibility: 170,
-            };
-        case "CreateMaterializedViewStatement":
-        case "AlterMaterializedViewStatement":
-            return { keyword: "MATERIALIZED", engineFlavors: ["azure-synapse", "fabric"] };
-        case "ExternalFunctionBody":
-            return { keyword: "EXTERNAL", engineFlavors: ["fabric"] };
-        case "AvailabilityGroupStatement":
-            return {
-                keyword: "AVAILABILITY",
-                engineFlavors: ["sql-server"],
-                statementUnavailable: true,
-            };
-        // DUMP and LOAD reuse these statements' structure, so the spelling selects the rule: the
-        // legacy spellings were removed after compatibility level 90, while the modern ones remain
-        // available on SQL Server but not on Azure SQL Database.
-        case "BackupStatement": {
-            const lead = text.slice(node.from, node.to).trimStart().toUpperCase();
-            return lead.startsWith("DUMP")
-                ? { keyword: "DUMP", maximumCompatibility: 90, statementUnavailable: true }
-                : { keyword: "BACKUP", engineFlavors: ["sql-server"] };
-        }
-        case "RestoreStatement": {
-            const lead = text.slice(node.from, node.to).trimStart().toUpperCase();
-            return lead.startsWith("LOAD")
-                ? { keyword: "LOAD", maximumCompatibility: 90, statementUnavailable: true }
-                : { keyword: "RESTORE", engineFlavors: ["sql-server"] };
-        }
-        case "DataType": {
-            const value = text.slice(node.from, node.to).trimStart().toLowerCase();
-            if (/^(json|vector)\b/u.test(value)) {
-                return {
-                    keyword: value.startsWith("json") ? "JSON" : "VECTOR",
-                    minimumServer: 17,
-                    minimumCompatibility: 170,
-                };
-            }
-            return undefined;
-        }
-        default:
-            return profile.previewFeatures ? undefined : previewFeatureRule(node.name);
-    }
-}
-
-function previewFeatureRule(nodeName: string): FeatureProfileRule | undefined {
-    // Keep preview-only gates explicit here as SQL Server adds grammar ahead of a final release.
-    // The current 150/160/170 structural set contains no preview-only statement node.
-    void nodeName;
-    return undefined;
-}
-
-function supportsFeature(profile: TsqlFeatureProfile, rule: FeatureProfileRule): boolean {
-    return (
-        (rule.minimumServer === undefined || profile.serverMajorVersion >= rule.minimumServer) &&
-        (rule.minimumCompatibility === undefined ||
-            profile.compatibilityLevel >= rule.minimumCompatibility) &&
-        (rule.maximumCompatibility === undefined ||
-            profile.compatibilityLevel <= rule.maximumCompatibility) &&
-        (rule.engineFlavors === undefined || rule.engineFlavors.includes(profile.engineFlavor))
-    );
-}
-
-function findWord(text: string, start: number, end: number, word: string): number {
-    const lowerWord = word.toLowerCase();
-    for (let index = start; index + word.length <= end; index++) {
-        if (text.slice(index, index + word.length).toLowerCase() !== lowerWord) continue;
-        if (
-            (index === start || !isIdentifierCharacter(text.charCodeAt(index - 1))) &&
-            (index + word.length === end ||
-                !isIdentifierCharacter(text.charCodeAt(index + word.length)))
-        ) {
-            return index;
-        }
-    }
-    return -1;
-}
-
-function expectedSuffix(node: LezerNode, text: string, range: TextRange): string {
-    if (range.start !== text.length) return "";
-    const parent = node.parent;
-    if (
-        parent?.name === "MultipartIdentifier" &&
-        text.slice(parent.from, node.from).endsWith(".")
-    ) {
-        return "  Expecting '.', ID, or QUOTED_ID.";
-    }
-    return "";
-}
-
-function diagnosticNearRange(start: number, end: number, text: string): TextRange {
-    if (start !== end || start === text.length) return { start, end };
-    let tokenEnd = start;
-    if (isIdentifierCharacter(text.charCodeAt(start))) {
-        while (tokenEnd < text.length && isIdentifierCharacter(text.charCodeAt(tokenEnd))) {
-            tokenEnd++;
-        }
-    } else {
-        tokenEnd++;
-    }
-    return { start, end: tokenEnd };
-}
-
-function isIdentifierCharacter(code: number): boolean {
-    return (
-        (code >= 48 && code <= 57) ||
-        (code >= 65 && code <= 90) ||
-        (code >= 97 && code <= 122) ||
-        code === 35 ||
-        code === 64 ||
-        code === 95 ||
-        code >= 128
-    );
-}
-
-function ancestorNamed(node: LezerNode, name: string): LezerNode | undefined {
-    for (let current: LezerNode | null = node.parent; current; current = current.parent) {
-        if (current.name === name) return current;
-    }
-    return undefined;
-}
-
-function missingMergeTerminator(merge: LezerNode, text: string, errorOffset: number): boolean {
-    if (errorOffset < merge.from || errorOffset > merge.to) return false;
-    return text.slice(merge.from, errorOffset).trimEnd().toLowerCase().startsWith("merge");
-}
-
-function requiresIntegerLiteral(node: LezerNode, text: string): boolean {
-    const setStatement = ancestorNamed(node, "SetStatement");
-    if (setStatement) {
-        const option = /^\s*SET\s+([\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(
-            text.slice(setStatement.from, setStatement.to),
-        )?.[1];
-        if (option && integerSetOptionNames.has(option.toLocaleUpperCase())) return true;
-    }
-    const option = ancestorNamed(node, "GenericOption");
-    if (!option) return false;
-    const name = /^\s*([\p{L}_][\p{L}\p{N}_$#@]*)/iu.exec(text.slice(option.from, option.to))?.[1];
-    return Boolean(name && integerOptionNames.has(name.toLocaleUpperCase()));
-}
-
-const integerSetOptionNames = new Set([
-    "DEADLOCK_PRIORITY",
-    "LOCK_TIMEOUT",
-    "QUERY_GOVERNOR_COST_LIMIT",
-    "TEXTSIZE",
-    "ERRLVL",
-    "ROWCOUNT",
-]);
-
-const integerOptionNames = new Set([
-    "BUCKET_COUNT",
-    "COMPRESSION_DELAY",
-    "FILLFACTOR",
-    "MAXDOP",
-    "MAX_DURATION",
-    "R",
-    "L",
-    "M",
-]);
-
-function isAtLineStart(text: string, offset: number): boolean {
-    for (let index = offset - 1; index >= 0; index--) {
-        const character = text[index];
-        if (character === "\n" || character === "\r") return true;
-        if (character !== " " && character !== "\t") return false;
-    }
-    return true;
 }

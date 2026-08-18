@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { FeatureAvailabilityDetail } from "../common/platformFeatureRegistry.js";
 import type { TextChange, TextRange, TextSnapshot } from "../text/index.js";
 
 export interface SyntaxDiagnostic {
@@ -10,6 +11,11 @@ export interface SyntaxDiagnostic {
     readonly message: string;
     readonly severity: "error" | "warning" | "information";
     readonly range: TextRange;
+    /**
+     * Present only on deliberate platform/version availability diagnostics. Its absence is what
+     * separates "this engine cannot run it" from "this is not T-SQL".
+     */
+    readonly availability?: FeatureAvailabilityDetail;
 }
 
 export interface SyntaxToken extends TextRange {
@@ -20,23 +26,21 @@ export interface SyntaxToken extends TextRange {
     readonly keyword?: "reserved" | "contextual";
 }
 
-export type SqlServerMajorVersion = 15 | 16 | 17;
-export type SqlCompatibilityLevel = 150 | 160 | 170;
-export type SqlEngineFlavor = "sql-server" | "azure-sql" | "azure-synapse" | "fabric";
-
-export interface TsqlFeatureProfile {
-    readonly serverMajorVersion: SqlServerMajorVersion;
-    readonly compatibilityLevel: SqlCompatibilityLevel;
-    readonly engineFlavor: SqlEngineFlavor;
-    readonly previewFeatures: boolean;
-}
-
-export const defaultTsqlFeatureProfile: TsqlFeatureProfile = Object.freeze({
-    serverMajorVersion: 17,
-    compatibilityLevel: 170,
-    engineFlavor: "sql-server",
-    previewFeatures: false,
-});
+// The engine profile model lives in `common` because metadata, semantics, and features consume it
+// as well; syntax re-exports it so a grammar-facing caller keeps one import.
+export type {
+    EngineCapabilities,
+    FeatureAvailability,
+    SqlCompatibilityLevel,
+    SqlServerMajorVersion,
+    TsqlFeatureProfile,
+} from "../common/engineCapabilities.js";
+export type { SqlEngineProfile } from "../common/engineProfile.js";
+export {
+    capabilityGeneration,
+    defaultTsqlFeatureProfile,
+    unknownEngineCapabilities,
+} from "../common/engineCapabilities.js";
 
 export interface SyntaxNode extends TextRange {
     readonly kind: string;
@@ -77,6 +81,10 @@ export interface SyntaxSnapshot {
     readonly diagnostics: readonly SyntaxDiagnostic[];
     readonly changedRanges: readonly TextRange[];
     readonly statistics: SyntaxReuseStatistics;
+    /** The engine profile this snapshot was produced for. Part of the snapshot's identity. */
+    readonly profile: import("../common/engineCapabilities.js").TsqlFeatureProfile;
+    /** {@link profile} reduced to one comparable string. Two snapshots agree only when it matches. */
+    readonly profileGeneration: string;
 
     root(): SyntaxNode;
     /** Optional allocation-conscious structural index supplied by syntax implementations. */

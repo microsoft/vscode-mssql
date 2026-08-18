@@ -43,13 +43,13 @@ suite("T-SQL lexical and query grammar foundation", () => {
         assert.deepEqual(defaultTsqlFeatureProfile, {
             serverMajorVersion: 17,
             compatibilityLevel: 170,
-            engineFlavor: "sql-server",
+            engineProfile: "sql-server",
             previewFeatures: false,
         });
         const profile = {
             serverMajorVersion: 15,
             compatibilityLevel: 150,
-            engineFlavor: "sql-server",
+            engineProfile: "sql-server",
             previewFeatures: false,
         };
         assert.equal(new LezerSyntaxService(undefined, profile).profile, profile);

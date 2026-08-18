@@ -98,10 +98,12 @@ SELECT * FROM t1 INNER JOIN {oj t2 CROSS JOIN t3} ON t1.Id = t2.Id;
         const sql = `
 SELECT City, COUNT(*) FROM dbo.Employees GROUP BY ALL City HAVING COUNT(*) > 1 ORDER BY ALL DESC
 OFFSET 0 ROWS FETCH NEXT 5 ROWS ONLY;`;
-        assert.deepEqual(parse(sql, "fabric").diagnostics, []);
+        assert.deepEqual(parse(sql, "fabric-warehouse").diagnostics, []);
         assert.deepEqual(
             parse(sql, "sql-server").diagnostics.map(({ message }) => message),
-            ["Incorrect syntax near 'ALL'."],
+            [
+                "ORDER BY ALL (near 'ALL') is not available on SQL Server 2025 (compatibility level 170). It is available on Fabric Data Warehouse.",
+            ],
         );
     });
 
@@ -163,11 +165,11 @@ function assertValid(sql) {
     assert.deepEqual(snapshot.diagnostics, []);
 }
 
-function parse(sql, engineFlavor = "sql-server") {
+function parse(sql, engineProfile = "sql-server") {
     return new LezerSyntaxService(undefined, {
         serverMajorVersion: 17,
         compatibilityLevel: 170,
-        engineFlavor,
+        engineProfile,
         previewFeatures: false,
     }).parse(document(1, sql));
 }

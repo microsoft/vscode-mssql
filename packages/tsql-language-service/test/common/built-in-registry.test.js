@@ -88,11 +88,17 @@ suite("built-in registry", () => {
         const always = lookupBuiltIn("GETDATE");
         assert.equal(isBuiltInAvailable(always, { compatibilityLevel: 100 }), true);
         assert.equal(
-            isBuiltInAvailable({ engineFlavors: ["fabric"] }, { engineFlavor: "sql-server" }),
+            isBuiltInAvailable(
+                { engineProfiles: ["fabric-warehouse"] },
+                { engineProfile: "sql-server" },
+            ),
             false,
         );
         assert.equal(
-            isBuiltInAvailable({ engineFlavors: ["fabric"] }, { engineFlavor: "fabric" }),
+            isBuiltInAvailable(
+                { engineProfiles: ["fabric-warehouse"] },
+                { engineProfile: "fabric-warehouse" },
+            ),
             true,
         );
     });

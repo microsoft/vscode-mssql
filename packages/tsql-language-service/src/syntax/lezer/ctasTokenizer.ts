@@ -65,7 +65,11 @@ function skipTrivia(input: InputStream, start: number): number {
         while (isWhitespace(input.peek(offset))) offset++;
         if (input.peek(offset) === 45 && input.peek(offset + 1) === 45) {
             offset += 2;
-            while (input.peek(offset) >= 0 && input.peek(offset) !== 10 && input.peek(offset) !== 13)
+            while (
+                input.peek(offset) >= 0 &&
+                input.peek(offset) !== 10 &&
+                input.peek(offset) !== 13
+            )
                 offset++;
             continue;
         }

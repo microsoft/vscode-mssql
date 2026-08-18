@@ -5,5 +5,6 @@
 
 export * from "./contracts.js";
 export * from "./catalogSemanticBinder.js";
+export * from "./platformSemanticDiagnostics.js";
 export * from "./vectorSemanticDiagnostics.js";
 export * from "./scaffoldBinder.js";

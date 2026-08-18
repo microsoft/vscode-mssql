@@ -64,7 +64,7 @@ CREATE FUNCTION dbo.ExternalScalar(@x INT, @label NVARCHAR(50))
 RETURNS BIGINT AS EXTERNAL FUNCTION remote_set.scalar_fn;
 ALTER FUNCTION dbo.ExternalScalar(@x INT)
 AS EXTERNAL FUNCTION remote_set.scalar_fn_v2;`,
-            profile("fabric"),
+            profile("fabric-warehouse"),
         );
 
         assert.deepEqual(snapshot.diagnostics, []);
@@ -79,8 +79,18 @@ AS EXTERNAL FUNCTION remote_set.scalar_fn_v2;`,
         );
 
         assert.deepEqual(
-            snapshot.diagnostics.map((diagnostic) => diagnostic.message),
-            ["Incorrect syntax near 'EXTERNAL'."],
+            snapshot.diagnostics.map((diagnostic) => [
+                diagnostic.code,
+                diagnostic.availability.featureId,
+                diagnostic.availability.requirement,
+            ]),
+            [
+                [
+                    "FeatureNotAvailable",
+                    "module.external-function-body",
+                    "It is available on Fabric Data Warehouse.",
+                ],
+            ],
         );
     });
 
@@ -88,17 +98,17 @@ AS EXTERNAL FUNCTION remote_set.scalar_fn_v2;`,
     test("reports truncated EXECUTE and external function forms", () => {
         assert.ok(parse("EXEC dbo.p WITH RESULT SETS ();").diagnostics.length > 0);
         assert.ok(
-            parse("CREATE FUNCTION dbo.f AS EXTERNAL FUNCTION;", profile("fabric")).diagnostics
-                .length > 0,
+            parse("CREATE FUNCTION dbo.f AS EXTERNAL FUNCTION;", profile("fabric-warehouse"))
+                .diagnostics.length > 0,
         );
     });
 });
 
-function profile(engineFlavor) {
+function profile(engineProfile) {
     return {
         serverMajorVersion: 17,
         compatibilityLevel: 170,
-        engineFlavor,
+        engineProfile,
         previewFeatures: false,
     };
 }

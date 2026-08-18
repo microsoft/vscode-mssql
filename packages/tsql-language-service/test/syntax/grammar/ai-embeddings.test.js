@@ -33,7 +33,9 @@ SELECT AI_GENERATE_EMBEDDINGS(
         assert.equal(old.statistics.rawErrorNodeCount, 0);
         assert.deepEqual(
             old.diagnostics.map((diagnostic) => diagnostic.message),
-            ["Incorrect syntax near 'AI_GENERATE_EMBEDDINGS'."],
+            [
+                "AI_GENERATE_EMBEDDINGS (near 'AI_GENERATE_EMBEDDINGS') is not available on SQL Server 2022 (compatibility level 160). It requires SQL Server 2025 or later with database compatibility level 170 or higher.",
+            ],
         );
         assert.deepEqual(current.diagnostics, []);
     });
@@ -49,7 +51,7 @@ function profile(serverMajorVersion, compatibilityLevel) {
     return {
         serverMajorVersion,
         compatibilityLevel,
-        engineFlavor: "sql-server",
+        engineProfile: "sql-server",
         previewFeatures: false,
     };
 }

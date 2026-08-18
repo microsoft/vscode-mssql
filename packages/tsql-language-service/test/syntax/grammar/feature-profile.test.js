@@ -16,7 +16,17 @@ suite("T-SQL compatibility and engine feature profiles", () => {
         const current = parse(sql, profile(16, 160, "sql-server"));
 
         assert.equal(old.statistics.rawErrorNodeCount, 0);
-        assert.deepEqual(old.diagnostics, [near(sql, "WINDOW")]);
+        assert.deepEqual(old.diagnostics, [
+            unavailable(sql, "WINDOW", {
+                featureId: "clause.named-window",
+                displayName: "The named WINDOW clause",
+                family: "query",
+                kind: "version",
+                profile: "sql-server",
+                requirement:
+                    "It requires SQL Server 2022 or later with database compatibility level 160 or higher.",
+            }),
+        ]);
         assert.deepEqual(current.diagnostics, []);
     });
 
@@ -30,35 +40,71 @@ CREATE VECTOR INDEX ixv ON dbo.Modern(v);`;
 
         assert.equal(old.statistics.rawErrorNodeCount, 0);
         assert.deepEqual(
-            old.diagnostics.map((diagnostic) => diagnostic.message),
+            old.diagnostics.map((diagnostic) => diagnostic.availability.featureId),
             [
-                "Incorrect syntax near 'JSON'.",
-                "Incorrect syntax near 'VECTOR'.",
-                "Incorrect syntax near 'JSON'.",
-                "Incorrect syntax near 'VECTOR'.",
+                "type.json",
+                "type.vector",
+                "statement.create-json-index",
+                "statement.create-vector-index",
             ],
+        );
+        assert.deepEqual(
+            old.diagnostics.map((diagnostic) => diagnostic.code),
+            Array(4).fill("FeatureNotAvailable"),
         );
         assert.deepEqual(current.diagnostics, []);
     });
 
-    // Verifies server-instance HADR and media operations are rejected for Azure SQL profiles.
-    test("gates server-instance statements by engine flavor", () => {
+    // Verifies server-instance HADR and media operations are rejected for Azure SQL Database while
+    // Managed Instance, which is instance-scoped, keeps them.
+    test("gates server-instance statements by engine profile", () => {
         const sql = `BACKUP DATABASE db TO DISK = 'db.bak';
 RESTORE FILELISTONLY FROM DISK = 'db.bak';
 DROP AVAILABILITY GROUP ag;`;
-        const azure = parse(sql, profile(17, 170, "azure-sql"));
+        const azure = parse(sql, profile(17, 170, "azure-sql-database"));
+        const managedInstance = parse(sql, profile(17, 170, "azure-sql-managed-instance"));
         const server = parse(sql, profile(17, 170, "sql-server"));
 
         assert.equal(azure.statistics.rawErrorNodeCount, 0);
         assert.deepEqual(
+            azure.diagnostics.map((diagnostic) => diagnostic.availability.featureId),
+            ["statement.backup", "statement.restore", "statement.availability-group"],
+        );
+        assert.deepEqual(
             azure.diagnostics.map((diagnostic) => diagnostic.message),
             [
-                "Incorrect syntax near 'BACKUP'.",
-                "Incorrect syntax near 'RESTORE'.",
-                "Statement 'DROP AVAILABILITY GROUP' is not supported in this version of SQL Server.",
+                "The BACKUP statement (near 'BACKUP') is not available on Azure SQL Database (compatibility level 170). It is available on SQL Server and Azure SQL Managed Instance.",
+                "The RESTORE statement (near 'RESTORE') is not available on Azure SQL Database (compatibility level 170). It is available on SQL Server and Azure SQL Managed Instance.",
+                "Availability group statements is not available on Azure SQL Database (compatibility level 170). It is available on SQL Server.",
             ],
         );
+        // Managed Instance keeps media operations and loses only the instance-clustering statement.
+        assert.deepEqual(
+            managedInstance.diagnostics.map((diagnostic) => diagnostic.availability.featureId),
+            ["statement.availability-group"],
+        );
         assert.deepEqual(server.diagnostics, []);
+    });
+
+    // Verifies an unidentified engine defers every platform decision instead of guessing one.
+    test("defers platform availability while the engine is unknown", () => {
+        const sql = `BACKUP DATABASE db TO DISK = 'db.bak';
+SELECT * FROM t ORDER BY ALL;`;
+        const unknown = parse(sql, {
+            engineProfile: "unknown",
+            previewFeatures: false,
+        });
+
+        assert.equal(unknown.statistics.rawErrorNodeCount, 0);
+        assert.deepEqual(unknown.diagnostics, []);
+    });
+
+    // Verifies a version gate also defers when the engine reported no level at all.
+    test("defers version availability when no level was reported", () => {
+        const sql = "SELECT SUM(v) OVER w FROM dbo.t WINDOW w AS (ORDER BY id);";
+        const snapshot = parse(sql, { engineProfile: "unknown", previewFeatures: false });
+
+        assert.deepEqual(snapshot.diagnostics, []);
     });
 
     // Verifies profile diagnostics preserve exact, case-insensitive keyword spans.
@@ -66,20 +112,24 @@ DROP AVAILABILITY GROUP ag;`;
         const sql = "select sum(v) over w from t window w as (order by id);";
         const snapshot = parse(sql, profile(15, 150, "sql-server"));
 
-        assert.deepEqual(snapshot.diagnostics, [near(sql, "window")]);
+        assert.deepEqual(
+            snapshot.diagnostics.map((diagnostic) => diagnostic.range),
+            [{ start: sql.indexOf("window"), end: sql.indexOf("window") + "window".length }],
+        );
     });
 });
 
-function profile(serverMajorVersion, compatibilityLevel, engineFlavor) {
-    return { serverMajorVersion, compatibilityLevel, engineFlavor, previewFeatures: false };
+function profile(serverMajorVersion, compatibilityLevel, engineProfile) {
+    return { serverMajorVersion, compatibilityLevel, engineProfile, previewFeatures: false };
 }
 
-function near(sql, word) {
+function unavailable(sql, word, availability) {
     const start = sql.toLowerCase().indexOf(word.toLowerCase());
     return {
-        code: "syntax",
-        message: `Incorrect syntax near '${word.toUpperCase()}'.`,
+        code: "FeatureNotAvailable",
+        message: `${availability.displayName} (near '${word.toUpperCase()}') is not available on SQL Server 2019 (compatibility level 150). ${availability.requirement}`,
         severity: "error",
         range: { start, end: start + word.length },
+        availability,
     };
 }

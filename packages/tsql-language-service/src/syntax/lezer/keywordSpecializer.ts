@@ -31,6 +31,7 @@ const parserLocalContextWords = new Set(
      trycast type typewarning unbounded uncommitted using value vector vectorindex version window within xactabort xml xmldata xmlschema
      cache cycle absent active after absolute affinity aggregate algorithm any array assembly asymmetric atomic attested audit authentication auto availability base64 before begindialog binding binary block broker priority conversation prioritylevel contractname remoteservicename localservicename buffer bulklogged called catalog classification counter signature sensitivity checkexpiration checkpolicy clear clone close cluster collection configuration connect contained contains content context cpu diagnostics filter predicate
      containment contract control credential cryptographic data document datasource deallocate decryption defaultdatabase defaultlanguage dependents disk elements empty environmentvariables event explicit
+     classifier predict rewindonly some
      endpoint executable extract extension fn connection definition
      defaultschema distribution encryption file fileformat filegroup filegrowth filelistonly filename format formatoptions
      failover force forcefailoverallowdataloss fullscan fulltext hadr hashed headeronly holdlock identity incremental initiator instead labelonly last location

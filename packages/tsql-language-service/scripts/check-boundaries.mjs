@@ -14,6 +14,8 @@ const forbidden = new Map([
     ["features", ["adapters", "worker"]],
     ["coloring", ["adapters", "features", "runtime", "worker", "lsp"]],
     ["metadata", ["syntax", "semantics", "features", "runtime", "worker", "lsp"]],
+    // SQLCMD is a document layer in front of the parser: it must not learn T-SQL, metadata, or a host.
+    ["sqlcmd", ["syntax", "semantics", "metadata", "runtime", "worker", "lsp", "adapters"]],
 ]);
 const hostImports = [/from\s+["']vscode["']/, /from\s+["']tedious["']/, /from\s+["']mssql["']/];
 const errors = [];

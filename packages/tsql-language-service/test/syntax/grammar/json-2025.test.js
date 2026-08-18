@@ -72,7 +72,7 @@ function profile(serverMajorVersion, compatibilityLevel) {
     return {
         serverMajorVersion,
         compatibilityLevel,
-        engineFlavor: "sql-server",
+        engineProfile: "sql-server",
         previewFeatures: false,
     };
 }

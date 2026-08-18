@@ -63,9 +63,9 @@ and adapter under `src/metadata` and `src/adapters`, then run their shared contr
   spellings and combinations must still produce the intended diagnostic.
 - Do not commit, push, reset, clean, or touch unrelated worktree changes unless explicitly asked.
 - Do not run grammar generation and TypeScript compilation concurrently.
-- Grammar generation is long-running and machine-dependent; observed runs range from roughly 10
-  minutes to more than 20 minutes. Allow at least 30 minutes, batch the grammar edits for one claimed
-  scope into a single regeneration, never regenerate per tweak, and skip generation when grammar
+- Grammar generation is long-running and machine-dependent. The current measured local baseline is
+  about 218 seconds with the configured heap; record a same-machine baseline before assessing a
+  change. Batch related grammar edits, never regenerate per tweak, and skip generation when grammar
   inputs are unchanged. Do not infer a regression from cross-machine generation time.
 - Keyword demotion trap: the runtime keyword specializer
   ([`keywordSpecializer.ts`](../../src/syntax/lezer/keywordSpecializer.ts)) applies the reserved list

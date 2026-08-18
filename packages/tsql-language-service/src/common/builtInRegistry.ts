@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { SqlEngineProfile } from "./engineProfile.js";
+
 /**
  * Shared editor-facing descriptions of SQL Server routines, system variables, and built-in data
  * types that no catalog lookup returns. Completion, hover, signature help, and coloring read this
@@ -35,8 +37,8 @@ export interface BuiltInSignature {
 export interface BuiltInAvailability {
     /** Lowest database compatibility level that accepts the name. */
     readonly minimumCompatibility?: number;
-    /** Engine flavors that accept the name; absent means every flavor does. */
-    readonly engineFlavors?: readonly string[];
+    /** Engine profiles that accept the name; absent means every resolved profile does. */
+    readonly engineProfiles?: readonly SqlEngineProfile[];
 }
 
 export interface BuiltInEntry extends BuiltInAvailability {
@@ -50,7 +52,7 @@ export interface BuiltInEntry extends BuiltInAvailability {
 /** The profile a caller is analysing, as far as availability is concerned. */
 export interface BuiltInProfile {
     readonly compatibilityLevel?: number;
-    readonly engineFlavor?: string;
+    readonly engineProfile?: SqlEngineProfile;
 }
 
 export function lookupBuiltIn(name: string, kind?: BuiltInKind): BuiltInEntry | undefined {
@@ -69,7 +71,13 @@ export function builtInsOfKind(kind: BuiltInKind): readonly BuiltInEntry[] {
     return [...registry.values()].filter((entry) => entry.kind === kind);
 }
 
-/** True when the profile accepts the name. An unknown profile accepts everything. */
+/**
+ * True when the profile accepts the name.
+ *
+ * A missing fact defers rather than restricts: an absent profile, an absent compatibility level,
+ * and the `unknown` engine profile all accept everything, so a still-connecting document never
+ * loses a completion it would have been offered.
+ */
 export function isBuiltInAvailable(entry: BuiltInAvailability, profile?: BuiltInProfile): boolean {
     if (!profile) return true;
     if (
@@ -80,9 +88,10 @@ export function isBuiltInAvailable(entry: BuiltInAvailability, profile?: BuiltIn
         return false;
     }
     return (
-        entry.engineFlavors === undefined ||
-        profile.engineFlavor === undefined ||
-        entry.engineFlavors.includes(profile.engineFlavor)
+        entry.engineProfiles === undefined ||
+        profile.engineProfile === undefined ||
+        profile.engineProfile === "unknown" ||
+        entry.engineProfiles.includes(profile.engineProfile)
     );
 }
 
@@ -129,7 +138,7 @@ function routine(name: string, declaration: RoutineDeclaration): BuiltInEntry {
         ...(declaration.minimumCompatibility !== undefined
             ? { minimumCompatibility: declaration.minimumCompatibility }
             : {}),
-        ...(declaration.engineFlavors ? { engineFlavors: declaration.engineFlavors } : {}),
+        ...(declaration.engineProfiles ? { engineProfiles: declaration.engineProfiles } : {}),
         ...(declaration.returnType ? { returnType: declaration.returnType } : {}),
         signatures: [
             {
@@ -426,6 +435,57 @@ const documentedRoutines: readonly BuiltInEntry[] = [
         returnType: "vector",
         minimumCompatibility: 170,
         separator: " ",
+    }),
+    // Fabric Data Warehouse AI functions. They are ordinary calls rather than distinct grammar
+    // nodes, so availability is expressed here: completion withholds them elsewhere and hover
+    // still describes one a document already contains.
+    routine("AI_TRANSLATE", {
+        parameters: ["expression", "target_language"],
+        documentation: "Translates the expression into the target language.",
+        returnType: "nvarchar",
+        engineProfiles: ["fabric-warehouse"],
+    }),
+    routine("AI_SUMMARIZE", {
+        parameters: ["expression"],
+        documentation: "Summarizes the expression.",
+        returnType: "nvarchar",
+        engineProfiles: ["fabric-warehouse"],
+    }),
+    routine("AI_CLASSIFY", {
+        parameters: ["expression", "label", "...label"],
+        documentation: "Returns the label that best classifies the expression.",
+        returnType: "nvarchar",
+        engineProfiles: ["fabric-warehouse"],
+    }),
+    routine("AI_EXTRACT", {
+        parameters: ["expression", "field", "...field"],
+        documentation: "Extracts the named fields from the expression.",
+        returnType: "nvarchar",
+        engineProfiles: ["fabric-warehouse"],
+    }),
+    routine("AI_FIX_GRAMMAR", {
+        parameters: ["expression"],
+        documentation: "Returns the expression with its grammar corrected.",
+        returnType: "nvarchar",
+        engineProfiles: ["fabric-warehouse"],
+    }),
+    routine("AI_GENERATE_RESPONSE", {
+        parameters: ["prompt"],
+        documentation: "Returns a generated response for the prompt.",
+        returnType: "nvarchar",
+        engineProfiles: ["fabric-warehouse"],
+    }),
+    routine("AI_ANALYZE_SENTIMENT", {
+        parameters: ["expression"],
+        documentation: "Returns the sentiment the expression expresses.",
+        returnType: "nvarchar",
+        engineProfiles: ["fabric-warehouse"],
+    }),
+    routine("INVOKE_EXTERNAL_API", {
+        parameters: ["function_set", "function_name", "...argument"],
+        documentation: "Calls a registered external function set.",
+        returnType: "nvarchar",
+        engineProfiles: ["fabric-warehouse"],
     }),
     routine("GREATEST", {
         parameters: ["expression", "...expression"],

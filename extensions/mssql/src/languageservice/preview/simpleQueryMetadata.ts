@@ -322,6 +322,7 @@ function mapEnvironment(environment: ReadonlyMap<string, string | undefined>) {
         engineEdition: numberValue(environment.get("engine_edition")),
         serverVersion: environment.get("server_version"),
         compatibilityLevel: numberValue(environment.get("compatibility_level")),
+        serverName: environment.get("server_name"),
     };
 }
 
@@ -479,6 +480,7 @@ SELECT
          THEN 1 ELSE 0 END AS case_sensitive,
     CONVERT(int, SERVERPROPERTY('EngineEdition')) AS engine_edition,
     CONVERT(nvarchar(128), SERVERPROPERTY('ProductVersion')) AS server_version,
+    CONVERT(nvarchar(256), SERVERPROPERTY('ServerName')) AS server_name,
     compatibility_level
 FROM sys.databases WITH (NOLOCK)
 WHERE name = DB_NAME();`;

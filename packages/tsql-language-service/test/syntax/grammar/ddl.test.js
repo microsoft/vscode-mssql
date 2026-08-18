@@ -10,6 +10,22 @@ const { ImmutableTextSnapshot, LezerSyntaxService } = require("../../../dist/ind
 const { createSyntaxHarness } = require("../../support/syntaxHarness.js");
 const { parse } = createSyntaxHarness("ddl.sql");
 
+// Clone tables are Fabric Data Warehouse syntax and distributed CTAS is analytics-engine
+// syntax, so those structural fixtures are read under the profile that owns them. The
+// availability gate on every other profile is covered by the dialect inventory.
+const fabricProfile = {
+    engineProfile: "fabric-warehouse",
+    serverMajorVersion: 16,
+    compatibilityLevel: 160,
+    previewFeatures: false,
+};
+const analyticsProfile = {
+    engineProfile: "azure-synapse-dedicated",
+    serverMajorVersion: 13,
+    compatibilityLevel: 130,
+    previewFeatures: false,
+};
+
 suite("T-SQL table and index DDL grammar", () => {
     // Verifies ordinary and temporary CREATE TABLE definitions parse without recovery nodes.
     test("parses columns and table constraints", () => {
@@ -63,21 +79,27 @@ CREATE TABLE dbo.ModernData (
 
     // Verifies Fabric table cloning retains both current and point-in-time source forms.
     test("parses cloned table sources", () => {
-        const snapshot = parse(`
+        const snapshot = parse(
+            `
 CREATE TABLE dbo.EmployeeCopy AS CLONE OF hr.Employee;
 CREATE TABLE dbo.EmployeeHistory AS CLONE OF hr.Employee AT '2026-08-14T12:00:00';
-`);
+`,
+            fabricProfile,
+        );
         assert.deepEqual(snapshot.diagnostics, []);
         assert.equal((snapshot.tree.toString().match(/CreateTableStatement\(/g) ?? []).length, 2);
     });
 
     // Verifies CTAS can assign output column names before the physical table options.
     test("parses CTAS with an output column list", () => {
-        const snapshot = parse(`
+        const snapshot = parse(
+            `
 CREATE TABLE dbo.OrderSummary (OrderId, Total)
 WITH (DISTRIBUTION = HASH(OrderId))
 AS SELECT OrderId, Total FROM sales.Orders;
-`);
+`,
+            analyticsProfile,
+        );
         assert.deepEqual(snapshot.diagnostics, []);
         assert.match(snapshot.tree.toString(), /CtasColumnNameList/);
     });
@@ -103,25 +125,30 @@ WITH (METRIC = 'cosine', TYPE = 'diskann');
         const service = new LezerSyntaxService(undefined, {
             serverMajorVersion: 16,
             compatibilityLevel: 160,
-            engineFlavor: "sql-server",
+            engineProfile: "sql-server",
             previewFeatures: false,
         });
         const sql = "CREATE JSON INDEX IX_J ON dbo.t(j); CREATE VECTOR INDEX IX_V ON dbo.t(v);";
         const snapshot = service.parse(new ImmutableTextSnapshot("file:///version.sql", 1, sql));
-        assert.deepEqual(snapshot.diagnostics, [
-            {
-                code: "syntax",
-                message: "Incorrect syntax near 'JSON'.",
-                severity: "error",
-                range: { start: 7, end: 11 },
-            },
-            {
-                code: "syntax",
-                message: "Incorrect syntax near 'VECTOR'.",
-                severity: "error",
-                range: { start: 43, end: 49 },
-            },
-        ]);
+        assert.deepEqual(
+            snapshot.diagnostics.map(({ code, availability, range }) => ({
+                code,
+                featureId: availability.featureId,
+                range,
+            })),
+            [
+                {
+                    code: "FeatureNotAvailable",
+                    featureId: "statement.create-json-index",
+                    range: { start: 7, end: 11 },
+                },
+                {
+                    code: "FeatureNotAvailable",
+                    featureId: "statement.create-vector-index",
+                    range: { start: 43, end: 49 },
+                },
+            ],
+        );
     });
 
     // Verifies ALTER/DROP table and index actions do not fall through generic recovery.

@@ -52,6 +52,11 @@ export interface BoundUnit {
 export interface SemanticSnapshot {
     readonly documentVersion: number;
     readonly metadataGeneration: number;
+    /**
+     * The engine profile identity this binding was produced under, copied from the syntax
+     * snapshot. A published result whose generation differs from the current one is stale.
+     */
+    readonly profileGeneration: string;
     readonly units: readonly BoundUnit[];
     readonly diagnostics: readonly SemanticDiagnostic[];
     readonly statistics: {

@@ -9,6 +9,15 @@ const { suite, test } = require("node:test");
 const { createSyntaxHarness } = require("../../support/syntaxHarness.js");
 const { assertValid, parse } = createSyntaxHarness("unpivot-partition-and-copy.sql");
 
+// Distributed tables and COPY INTO belong to the analytics engines, so those structural
+// fixtures are read under the dedicated SQL pool profile.
+const analyticsProfile = {
+    engineProfile: "azure-synapse-dedicated",
+    serverMajorVersion: 13,
+    compatibilityLevel: 130,
+    previewFeatures: false,
+};
+
 suite("T-SQL UNPIVOT column lists, partition range changes, and COPY options", () => {
     // The unpivoted column list parses multipart names so a qualified name is diagnosed by
     // validation rather than collapsing into recovery.
@@ -40,8 +49,13 @@ suite("T-SQL UNPIVOT column lists, partition range changes, and COPY options", (
 
     // IDENTITY_INSERT is a reserved SET option name that is also a COPY option name.
     test("parses IDENTITY_INSERT as a COPY option", () => {
-        assertValid("COPY INTO t FROM 'x' WITH (IDENTITY_INSERT = 'ON');");
-        assertValid("COPY INTO t FROM 'x' WITH (FILE_TYPE = 'CSV', IDENTITY_INSERT = 'OFF');");
+        // COPY INTO belongs to the analytics engines, so its structural fixtures are read under the
+        // dedicated SQL pool profile; the availability gate is covered by the dialect inventory.
+        assertValid("COPY INTO t FROM 'x' WITH (IDENTITY_INSERT = 'ON');", analyticsProfile);
+        assertValid(
+            "COPY INTO t FROM 'x' WITH (FILE_TYPE = 'CSV', IDENTITY_INSERT = 'OFF');",
+            analyticsProfile,
+        );
     });
 
     // The SET statement form of IDENTITY_INSERT is unaffected.

@@ -86,6 +86,7 @@ src/
   syntax/           Lezer adapter and typed syntax facade
   semantics/        scopes, symbols, types, binding, dependency indexes
   metadata/         portable contracts and offline providers
+  sqlcmd/           directives, variables, includes, projection, and source maps
   coloring/         lexical and semantic classifications plus incremental token deltas
   features/         remaining host-neutral editor features
   formatting/       document, range, and on-type formatting
@@ -156,6 +157,67 @@ Binding phases are:
 6. Build shared position, definition, reference, visibility, and dependency indexes.
 
 After an edit, the binder rebinds the smallest affected unit and continues downstream only when the unit's exported environment changes.
+
+## Engine profiles and platform availability
+
+T-SQL is one language with several engines behind it, so every analysis carries the engine it was
+made for. The profiles are `sql-server`, `azure-sql-database`, `azure-sql-managed-instance`,
+`azure-synapse-dedicated`, `fabric-warehouse`, and `unknown`.
+
+`unknown` is a real state rather than a placeholder for SQL Server. A document that is still
+connecting, connected to an engine the host has not identified, or not connected at all is analysed
+under it, and every platform decision is deferred: nothing is reported that no server asked for.
+`resolveEngineProfile` is the only function in the package permitted to read an `engineEdition`
+number, and it is exhaustively tested against the published engine-edition list. Azure services keep
+reporting boxed product versions, so a reported product version is read only for `sql-server`; every
+other profile takes its language level from a documented table.
+
+The profile is part of snapshot identity. `SyntaxSnapshot` and `SemanticSnapshot` both carry a
+`profileGeneration`, the binder's reuse key contains it, and the worker protocol carries it on every
+document result. A connection or database change therefore republishes a document without reparsing
+it: the runtime reuses the retained per-chunk trees and recomputes only the availability layer and
+the binding that depends on it.
+
+One grammar parses the structural superset, and a separate registry decides availability. Each
+entry in `platformFeatureRegistry.ts` names a stable feature id, the grammar nodes that carry it,
+the profiles and levels it needs, and the evidence the restriction was verified from. An
+unavailable construct produces one deliberate `FeatureNotAvailable` diagnostic — never a generic
+syntax error — carrying a structured payload that hover reads back verbatim, and completion
+withholds the words and built-ins the connected engine cannot run. An audit test proves every
+registered node exists in the generated parser, that no version comparison survives beside the
+grammar, and that every profile-gated feature has an unsupported-profile scenario in the inventory.
+
+Restrictions that need a metadata fact as well as a structured node live in the semantic layer
+instead. A name that reaches another database is one of those: whether it crosses a boundary depends
+on which database the connection is in, so it is decided where the pinned metadata view is
+available, and it is deferred whenever the capability or the current database is unknown.
+
+`scripts/report-dialect-readiness.mjs` publishes readiness per profile from a manifest whose
+denominator is the reviewed ScriptDOM script-family list. A category with no scenario is reported as
+missing rather than counted as passing.
+
+## SQLCMD documents
+
+SQLCMD is a document and execution mode, not an engine flavor, so it sits in front of the T-SQL
+parser rather than inside the grammar. `SqlCmdDocumentService` reads a document into directives,
+variables, include dependencies, connection regions, the SQL it projects, and a bidirectional map
+from every projected character back to the file it came from, including substitutions whose lengths
+differ.
+
+The layer performs no I/O of any kind: it never opens a file, connects to a server, runs a shell
+command, or reads a process environment variable. A host supplies already-loaded include text, seed
+variables, and a connection lookup through `SqlCmdHost`; anything the service cannot answer becomes
+a SQLCMD diagnostic rather than a guess. `!!` is recognized and reported but never executed, a
+credential switch's value is blanked at the scanner so it cannot reach a diagnostic or a statistics
+payload, and an unresolved `$(name)` is projected exactly as written so it can never become a
+phantom SQL object. Includes have cycle detection and depth, count, and size limits, each with its
+own diagnostic.
+
+Updates resume from a checkpoint recorded at the start of the edited line, so an edit rescans only
+from where it landed and everything before it is reused. Full and incremental reads of the same
+final text produce identical directives, projected text, source maps, connection regions, and
+diagnostics — asserted for edits at the start, middle, and end, and for edits that change a
+`:setvar` or insert a `:connect`.
 
 ## Metadata
 

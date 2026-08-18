@@ -15,12 +15,16 @@ import type {
 import type { DocumentAnalysisSnapshot, LanguageServiceRuntime } from "../runtime/index.js";
 import {
     builtInsOfKind,
-    formatParameter,
     formatSignature,
     isBuiltInAvailable,
     lookupBuiltIn,
-    type BuiltInSignature,
+    type BuiltInProfile,
 } from "../common/builtInRegistry.js";
+import { latestCompatibilityLevel, type TsqlFeatureProfile } from "../common/engineCapabilities.js";
+import {
+    platformFeatureKeywords,
+    platformOnlyKeywords,
+} from "../common/platformFeatureRegistry.js";
 import {
     multipartIdentifierParts,
     normalizeIdentifier,
@@ -31,9 +35,33 @@ import {
     keywordMetadata,
     reservedKeywordNames,
     type SyntaxNode,
+    type SyntaxSnapshot,
 } from "../syntax/index.js";
+import {
+    ancestorOfKind as ancestor,
+    descendantsOfKind as descendants,
+    directChildOfKind as directChild,
+    firstDescendantOfKind as firstDescendant,
+    hasDescendantOfKind as hasDescendant,
+    lastDescendantOfKind as lastDescendant,
+    visitSyntaxTree as visit,
+} from "../syntax/treeUtilities.js";
 import { collectFoldingRanges, type FoldingRangeOptions } from "./foldingRanges.js";
+import {
+    completionIdentifierInsertion,
+    completionMultipartInsertion,
+    completionPrefix,
+    type PrefixContext,
+} from "./completionPrefix.js";
+import { preserveIdentifierQuotes, quoteIdentifier } from "./identifierFormatting.js";
 import { isRoutineParameter, syntacticHover } from "./syntacticHover.js";
+import {
+    builtInSignatureHelp,
+    insertSignatureHelp,
+    localRoutineAt,
+    routineSignatureHelp,
+    signatureContext,
+} from "./signatureHelp.js";
 import type {
     CompletionItem,
     CompletionResult,
@@ -85,7 +113,9 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
         );
         const source = sourceForQualifier(snapshot, view, offset, prefix.qualifiers);
         if (dataTypeContext) {
-            if (prefix.qualifiers.length === 0) items.push(...dataTypeCompletions(prefix, view));
+            if (prefix.qualifiers.length === 0) {
+                items.push(...dataTypeCompletions(prefix, snapshot.syntax.profile));
+            }
             const catalog = catalogCompletions(this._metadata, view, prefix, {
                 kinds: ["type"],
             });
@@ -130,10 +160,10 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
             incomplete ||= insertColumns.incomplete;
             items.push(...localSymbolCompletions(snapshot, prefix));
             if (isExpressionCompletionContext(snapshot.text.text, prefix.range.start)) {
-                items.push(...builtInFunctionCompletions(prefix, view));
+                items.push(...builtInFunctionCompletions(prefix, snapshot.syntax.profile));
                 items.push(...scalarFunctionCompletions(view, prefix));
             }
-            items.push(...keywordCompletions(prefix, view));
+            items.push(...keywordCompletions(prefix, snapshot.syntax.profile));
         }
 
         if (isVectorParameterContext(snapshot, offset)) {
@@ -150,6 +180,11 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
     public hover(uri: string, version: number, offset: number): HoverResult | undefined {
         const snapshot = this._runtime.snapshot(uri, version);
         const view = this._metadata.pin();
+        // A construct the engine cannot run is explained before anything else. The document
+        // already contains it, so hiding it from completion is not enough: the author needs to be
+        // told why the editor marked it.
+        const unavailable = availabilityHover(snapshot.syntax, offset);
+        if (unavailable) return unavailable;
         const symbol = snapshot.semantics.symbolAt(offset);
         if (!symbol) {
             return (
@@ -353,7 +388,9 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
             );
         }
 
-        return context.kind === "function" ? builtInSignatureHelp(context, view) : undefined;
+        return context.kind === "function"
+            ? builtInSignatureHelp(context, snapshot.syntax.profile)
+            : undefined;
     }
 
     private columns(
@@ -705,621 +742,10 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
     }
 }
 
-interface PrefixContext {
-    readonly qualifiers: readonly string[];
-    readonly prefix: string;
-    readonly range: { readonly start: number; readonly end: number };
-    readonly contextStart: number;
-    readonly delimiter?: {
-        readonly kind: "bracket" | "doubleQuote";
-        readonly closed: boolean;
-    };
-}
-
 interface BoundSource {
     readonly qualifier: string;
     readonly object?: ObjectMetadata;
     readonly columns?: readonly ColumnMetadata[];
-}
-
-interface RoutineSignatureContext {
-    readonly kind: "function" | "execute";
-    readonly target: readonly string[];
-    readonly activeParameter: number;
-    readonly namedParameter?: string;
-}
-
-interface InsertSignatureContext {
-    readonly kind: "insert";
-    readonly target: readonly string[];
-    readonly columns?: readonly string[];
-    readonly activeParameter: number;
-    /** True while the cursor is inside the target column list rather than a VALUES row. */
-    readonly namingColumns?: boolean;
-}
-
-type SignatureContext = RoutineSignatureContext | InsertSignatureContext;
-
-/**
- * Expressions the grammar models in their own right rather than as calls. Each still reads as a
- * routine to anyone typing one, so signature help answers for them the same way.
- */
-const specialExpressionRoutines: ReadonlyMap<string, string> = new Map([
-    ["JsonValueExpression", "JSON_VALUE"],
-    ["JsonQueryExpression", "JSON_QUERY"],
-    ["JsonConstructorExpression", "JSON_OBJECT"],
-    ["JsonAggregateExpression", "JSON_OBJECTAGG"],
-    ["CastExpression", "CAST"],
-    ["TryCastExpression", "TRY_CAST"],
-    ["ConvertExpression", "CONVERT"],
-    ["ParseExpression", "PARSE"],
-    ["TrimExpression", "TRIM"],
-    ["AiGenerateEmbeddingsExpression", "AI_GENERATE_EMBEDDINGS"],
-    // Statements that read as calls. Their arguments have fixed meanings, which is why the grammar
-    // gives them their own shape, but anyone typing one expects the same help a call gives.
-    ["RaiserrorStatement", "RAISERROR"],
-    ["ThrowStatement", "THROW"],
-    ["WaitForStatement", "WAITFOR"],
-]);
-
-/** CONVERT and PARSE share a node with their TRY_ form, so the written spelling decides. */
-function conversionSpelling(
-    snapshot: DocumentAnalysisSnapshot,
-    node: SyntaxNode,
-    fallback: string,
-): string {
-    const written = /^[A-Za-z_]+/u.exec(snapshot.text.text.slice(node.start, node.end))?.[0];
-    return written ? written.toLocaleUpperCase() : fallback;
-}
-
-/**
- * CAST separates its two arguments with AS rather than a comma, so the keyword advances the active
- * parameter the way a comma does elsewhere.
- */
-function conversionActiveParameter(node: SyntaxNode, offset: number): number {
-    let active = activeParameterIn(node, offset);
-    for (const child of node.children()) {
-        // AS and USING separate arguments here the way a comma does in an ordinary call.
-        if ((child.kind === "As" || child.kind === "Using") && child.start < offset) active++;
-    }
-    return active;
-}
-
-function signatureContext(
-    snapshot: DocumentAnalysisSnapshot,
-    offset: number,
-): SignatureContext | undefined {
-    const specialized = cursorAncestor(snapshot, offset, [...specialExpressionRoutines.keys()]);
-    if (specialized) {
-        const routine = specialExpressionRoutines.get(specialized.kind)!;
-        return {
-            kind: "function",
-            target: [conversionSpelling(snapshot, specialized, routine)],
-            activeParameter: conversionActiveParameter(specialized, offset),
-        };
-    }
-
-    const call = cursorAncestor(snapshot, offset, [
-        "FunctionCall",
-        "FunctionTableSource",
-        "GlobalFunctionTableSource",
-    ]);
-    if (call) {
-        const name =
-            firstDescendant(call, "MultipartIdentifier") ?? firstDescendant(call, "IdentifierName");
-        if (name) {
-            const argumentsNode =
-                firstDescendant(call, "ArgumentList") ??
-                firstDescendant(call, "TableFunctionArgumentList");
-            return {
-                kind: "function",
-                target: multipartIdentifierParts(snapshot.text.text.slice(name.start, name.end)),
-                activeParameter: argumentsNode ? activeParameterIn(argumentsNode, offset) : 0,
-            };
-        }
-    }
-
-    // The target column list of an INSERT sits inside the target itself, which the grammar also
-    // uses for the parenthesised form of a rowset target, so the parentheses are found there.
-    const dmlTarget = cursorAncestor(snapshot, offset, ["DmlTarget"]);
-    if (dmlTarget && ancestor(dmlTarget, ["InsertStatement"])) {
-        const open = childOfKind(dmlTarget, "OpenParen");
-        const close = childOfKind(dmlTarget, "CloseParen");
-        const name = firstDescendant(dmlTarget, "MultipartIdentifier");
-        if (name && open && offset > open.start && (!close || offset <= close.start)) {
-            const list =
-                firstDescendant(dmlTarget, "InsertColumnList") ??
-                firstDescendant(dmlTarget, "ArgumentList");
-            return {
-                kind: "insert",
-                target: multipartIdentifierParts(snapshot.text.text.slice(name.start, name.end)),
-                activeParameter: list ? activeParameterIn(list, offset) : 0,
-                namingColumns: true,
-            };
-        }
-    }
-
-    const row = cursorAncestor(snapshot, offset, ["RowValue"]);
-    const insert = row && ancestor(row, ["InsertStatement"]);
-    if (row && insert && ancestor(row, ["ValuesInsertSource"])) {
-        const target = firstDescendant(insert, "DmlTarget");
-        const name = target && firstDescendant(target, "MultipartIdentifier");
-        if (target && name) {
-            const explicit =
-                firstDescendant(target, "InsertColumnList") ??
-                firstDescendant(target, "ArgumentList");
-            const columns = explicit
-                ? descendants(explicit, "ColumnReference")
-                      .map((column) =>
-                          multipartIdentifierParts(
-                              snapshot.text.text.slice(column.start, column.end),
-                          ).at(-1),
-                      )
-                      .filter((column): column is string => column !== undefined)
-                : undefined;
-            return {
-                kind: "insert",
-                target: multipartIdentifierParts(snapshot.text.text.slice(name.start, name.end)),
-                ...(columns && columns.length > 0 ? { columns } : {}),
-                activeParameter: activeParameterIn(row, offset),
-            };
-        }
-    }
-
-    const execute = cursorAncestor(snapshot, offset, ["ExecuteStatement"]);
-    if (execute) {
-        const entity = firstDescendant(execute, "ExecutableEntity");
-        const name = entity && firstDescendant(entity, "MultipartIdentifier");
-        if (name) {
-            const argumentsNode = firstDescendant(execute, "ExecuteArgumentList");
-            return {
-                kind: "execute",
-                target: multipartIdentifierParts(snapshot.text.text.slice(name.start, name.end)),
-                activeParameter: argumentsNode ? activeParameterIn(argumentsNode, offset) : 0,
-                ...(argumentsNode
-                    ? {
-                          namedParameter: activeNamedParameter(
-                              snapshot.text.text,
-                              argumentsNode,
-                              offset,
-                          ),
-                      }
-                    : {}),
-            };
-        }
-    }
-    return undefined;
-}
-
-function cursorAncestor(
-    snapshot: DocumentAnalysisSnapshot,
-    offset: number,
-    kinds: readonly string[],
-): SyntaxNode | undefined {
-    const exact = ancestor(snapshot.syntax.nodeAt(offset), kinds);
-    return exact ?? (offset > 0 ? ancestor(snapshot.syntax.nodeAt(offset - 1), kinds) : undefined);
-}
-
-function childOfKind(node: SyntaxNode, kind: string): SyntaxNode | undefined {
-    for (const child of node.children()) {
-        if (child.kind === kind) return child;
-    }
-    return undefined;
-}
-
-function activeParameterIn(node: SyntaxNode, offset: number): number {
-    let active = 0;
-    for (const child of node.children()) {
-        if (child.kind === "Comma" && child.start < offset) active++;
-    }
-    return active;
-}
-
-function activeNamedParameter(
-    text: string,
-    argumentsNode: SyntaxNode,
-    offset: number,
-): string | undefined {
-    let start = argumentsNode.start;
-    for (const child of argumentsNode.children()) {
-        if (child.kind === "Comma" && child.start < offset) start = child.end;
-    }
-    return /(@[\p{L}_][\p{L}\p{N}_$#@]*)\s*=/iu.exec(text.slice(start, offset))?.[1];
-}
-
-function routineSignatureHelp(
-    context: RoutineSignatureContext,
-    displayName: string,
-    parameters: readonly ParameterMetadata[],
-    extendedProcedure = false,
-): SignatureHelp {
-    const labels = parameters.map(parameterLabel);
-    const namedIndex = context.namedParameter
-        ? parameters.findIndex(
-              (parameter) =>
-                  parameter.name.toLocaleLowerCase() ===
-                  context.namedParameter!.toLocaleLowerCase(),
-          )
-        : -1;
-    const activeParameter =
-        parameters.length === 0
-            ? 0
-            : Math.min(
-                  namedIndex >= 0 ? namedIndex : context.activeParameter,
-                  parameters.length - 1,
-              );
-    return {
-        signatures: [
-            {
-                label:
-                    context.kind === "execute"
-                        ? `EXEC ${displayName}${labels.length > 0 ? ` ${labels.join(", ")}` : ""}`
-                        : `${displayName}(${labels.join(", ")})`,
-                documentation:
-                    context.kind === "execute"
-                        ? extendedProcedure
-                            ? "Parameter help is not supported for extended stored procedures."
-                            : "Stored procedures always return INT."
-                        : "Function parameters in declaration order.",
-                parameters: parameters.map((parameter) => ({
-                    label: parameterLabel(parameter),
-                    documentation: parameterDocumentation(parameter),
-                })),
-            },
-        ],
-        activeSignature: 0,
-        activeParameter,
-    };
-}
-
-function parameterLabel(parameter: ParameterMetadata): string {
-    const name = parameter.name || `#${parameter.ordinal}`;
-    return `${name} ${parameter.typeDisplay ?? "unknown"}${
-        parameter.hasDefault ? " = DEFAULT" : ""
-    }${parameter.output ? " OUTPUT" : ""}`;
-}
-
-function parameterDocumentation(parameter: ParameterMetadata): string {
-    const direction = parameter.output ? "Input/output" : "Input";
-    const requirement =
-        parameter.hasDefault === undefined
-            ? "optionality unavailable"
-            : parameter.hasDefault
-              ? "optional"
-              : "required";
-    return `${direction} parameter (${requirement}). Type: \`${parameter.typeDisplay ?? "unknown"}\`.`;
-}
-
-function insertSignatureHelp(
-    context: InsertSignatureContext,
-    columns: readonly ColumnMetadata[],
-): SignatureHelp {
-    const labels = columns.map(
-        (column) =>
-            `${quoteIdentifierIfNeeded(column.name)} ${column.typeDisplay ?? "unknown"}${
-                column.nullable === undefined ? "" : column.nullable ? " NULL" : " NOT NULL"
-            }`,
-    );
-    return {
-        signatures: [
-            {
-                label: `INSERT INTO ${context.target.map(quoteIdentifierIfNeeded).join(".")}${
-                    context.namingColumns ? "" : " VALUES"
-                } (${labels.join(", ")})`,
-                documentation: context.namingColumns
-                    ? "Name the target columns to populate; the highlighted one is next."
-                    : "Each VALUES expression corresponds to the highlighted target column.",
-                parameters: columns.map((column, index) => ({
-                    label: labels[index]!,
-                    documentation: `Target column \`${column.name}\`. Type: \`${
-                        column.typeDisplay ?? "unknown"
-                    }\`${
-                        column.nullable === undefined
-                            ? "."
-                            : column.nullable
-                              ? "; NULL is allowed."
-                              : "; NULL is not allowed."
-                    }`,
-                })),
-            },
-        ],
-        activeSignature: 0,
-        activeParameter: Math.min(context.activeParameter, columns.length - 1),
-    };
-}
-
-function localRoutineAt(
-    snapshot: DocumentAnalysisSnapshot,
-    view: MetadataView,
-    target: readonly string[],
-    offset: number,
-    callKind: RoutineSignatureContext["kind"],
-): { readonly displayName: string; readonly parameters: readonly ParameterMetadata[] } | undefined {
-    const declarationKinds =
-        callKind === "execute"
-            ? ["CreateProcedureStatement", "AlterProcedureStatement"]
-            : ["CreateFunctionStatement", "AlterFunctionStatement"];
-    const dropKind = callKind === "execute" ? "DropProcedureStatement" : "DropFunctionStatement";
-    let result:
-        | {
-              readonly offset: number;
-              readonly displayName: string;
-              readonly parameters: readonly ParameterMetadata[];
-          }
-        | undefined;
-    visit(snapshot.syntax.root(), (node) => {
-        if (
-            node.end > offset ||
-            (!declarationKinds.includes(node.kind) && node.kind !== dropKind)
-        ) {
-            return;
-        }
-        const names =
-            node.kind === dropKind
-                ? descendants(node, "MultipartIdentifier")
-                : [firstDescendant(node, "MultipartIdentifier")].filter(
-                      (name): name is SyntaxNode => name !== undefined,
-                  );
-        for (const name of names) {
-            const parts = multipartIdentifierParts(snapshot.text.text.slice(name.start, name.end));
-            if (!localNameMatches(parts, target, view)) continue;
-            if (!result || node.end >= result.offset) {
-                result =
-                    node.kind === dropKind
-                        ? undefined
-                        : {
-                              offset: node.end,
-                              displayName: parts.join("."),
-                              parameters: localRoutineParameters(snapshot, node),
-                          };
-            }
-        }
-    });
-    return result;
-}
-
-function localNameMatches(
-    declaration: readonly string[],
-    target: readonly string[],
-    view: MetadataView,
-): boolean {
-    const declarationName = declaration.at(-1);
-    const targetName = target.at(-1);
-    if (!declarationName || !targetName || !equal(declarationName, targetName, view)) return false;
-    if (target.length === 1) {
-        const schema = declaration.at(-2);
-        return !schema || equal(schema, view.environment.defaultSchema, view);
-    }
-    const count = Math.min(declaration.length, target.length);
-    for (let index = 1; index <= count; index++) {
-        if (!equal(declaration.at(-index)!, target.at(-index)!, view)) return false;
-    }
-    return true;
-}
-
-function localRoutineParameters(
-    snapshot: DocumentAnalysisSnapshot,
-    routine: SyntaxNode,
-): readonly ParameterMetadata[] {
-    const list =
-        firstDescendant(routine, "ProcedureParameterClause") ??
-        firstDescendant(routine, "FunctionParameterList");
-    if (!list) return [];
-    return descendants(list, "ProcedureParameter").map((parameter, index) => {
-        const variable = firstDescendant(parameter, "Variable");
-        const dataType = firstDescendant(parameter, "DataType");
-        const source = snapshot.text.text.slice(parameter.start, parameter.end);
-        return {
-            ordinal: index + 1,
-            name: variable
-                ? snapshot.text.text.slice(variable.start, variable.end)
-                : `@parameter${index + 1}`,
-            ...(dataType
-                ? { typeDisplay: snapshot.text.text.slice(dataType.start, dataType.end) }
-                : {}),
-            output: /\b(?:OUT|OUTPUT)\s*$/iu.test(source),
-            hasDefault: /=/u.test(source),
-        };
-    });
-}
-
-function builtInSignatureHelp(
-    context: RoutineSignatureContext,
-    view: MetadataView,
-): SignatureHelp | undefined {
-    const name = context.target.at(-1);
-    const entry = name ? lookupBuiltIn(name, "routine") : undefined;
-    if (!entry || !isBuiltInAvailable(entry, builtInProfile(view))) return undefined;
-    const signatures = entry?.signatures;
-    if (!name || !signatures || signatures.length === 0) return undefined;
-    return {
-        signatures: signatures.map((signature) => ({
-            label: formatSignature(name, signature),
-            documentation: signatureDocumentation(signature),
-            parameters: signature.parameters.map((parameter) => ({
-                label: formatParameter(parameter),
-                ...(parameter.optional ? { documentation: "Optional." } : {}),
-                ...(parameter.variadic ? { documentation: "May be repeated." } : {}),
-            })),
-        })),
-        activeSignature: 0,
-        activeParameter: activeParameterWithin(signatures[0]!, context.activeParameter),
-    };
-}
-
-/** A variadic argument absorbs every argument after it, so the last one stays highlighted. */
-function activeParameterWithin(signature: BuiltInSignature, active: number): number {
-    const count = signature.parameters.length;
-    if (count === 0) return 0;
-    return Math.min(active, count - 1);
-}
-
-function signatureDocumentation(signature: BuiltInSignature): string {
-    return signature.returnType
-        ? `${signature.documentation}\n\nReturns \`${signature.returnType}\`.`
-        : signature.documentation;
-}
-
-function completionPrefix(snapshot: DocumentAnalysisSnapshot, offset: number): PrefixContext {
-    const text = snapshot.text.text;
-    const delimited = delimitedIdentifierAt(snapshot, offset);
-    let partStart: number;
-    let prefix: string;
-    let range: { start: number; end: number };
-    let delimiter: PrefixContext["delimiter"];
-
-    if (delimited) {
-        partStart = delimited.start;
-        const contentStart = delimited.start + 1;
-        const contentEnd = delimited.closed ? delimited.end - 1 : delimited.end;
-        const rawPrefix = text.slice(contentStart, offset);
-        prefix =
-            delimited.kind === "bracket"
-                ? rawPrefix.replaceAll("]]", "]")
-                : rawPrefix.replaceAll('""', '"');
-        range = { start: contentStart, end: contentEnd };
-        delimiter = { kind: delimited.kind, closed: delimited.closed };
-    } else {
-        partStart = offset;
-        while (partStart > 0 && isIdentifierCompletionCharacter(text[partStart - 1]!)) {
-            partStart--;
-        }
-        let partEnd = offset;
-        while (partEnd < text.length && isIdentifierCompletionCharacter(text[partEnd]!)) {
-            partEnd++;
-        }
-        prefix = text.slice(partStart, offset);
-        range = { start: partStart, end: partEnd };
-    }
-
-    const qualifier = multipartQualifierBefore(text, partStart);
-    return {
-        qualifiers:
-            qualifier.length === 0
-                ? []
-                : splitMultipartPrefix(qualifier).map((part) => normalizeIdentifier(part.trim())),
-        prefix,
-        range,
-        contextStart: partStart,
-        ...(delimiter ? { delimiter } : {}),
-    };
-}
-
-function delimitedIdentifierAt(
-    snapshot: DocumentAnalysisSnapshot,
-    offset: number,
-):
-    | {
-          readonly kind: "bracket" | "doubleQuote";
-          readonly start: number;
-          readonly end: number;
-          readonly closed: boolean;
-      }
-    | undefined {
-    const candidates = [offset, offset - 1, offset + 1]
-        .filter((position) => position >= 0 && position <= snapshot.text.text.length)
-        .map((position) => snapshot.syntax.nodeAt(position));
-    for (const node of candidates) {
-        const kind =
-            node.kind === "BracketedIdentifier"
-                ? "bracket"
-                : node.kind === "DoubleQuotedIdentifier"
-                  ? "doubleQuote"
-                  : undefined;
-        if (!kind || offset < node.start + 1 || offset > node.end - 1) continue;
-        return { kind, start: node.start, end: node.end, closed: true };
-    }
-
-    // During typing, the closing delimiter may not exist yet and therefore has no lexer token.
-    // Limit this fallback to the current line and reject string-literal nodes so SQL string text
-    // cannot accidentally become an identifier completion context.
-    const current = snapshot.syntax.nodeAt(offset);
-    if (current.kind === "StringLiteral") return undefined;
-    const lineStart =
-        Math.max(
-            snapshot.text.text.lastIndexOf("\n", offset - 1),
-            snapshot.text.text.lastIndexOf("\r", offset - 1),
-        ) + 1;
-    const leading = snapshot.text.text.slice(lineStart, offset);
-    const bracket = /\[((?:[^\]]|\]\])*)$/u.exec(leading);
-    if (bracket?.index !== undefined) {
-        return {
-            kind: "bracket",
-            start: lineStart + bracket.index,
-            end: offset,
-            closed: false,
-        };
-    }
-    const doubleQuote = /"((?:[^"]|"")*)$/u.exec(leading);
-    if (doubleQuote?.index !== undefined) {
-        return {
-            kind: "doubleQuote",
-            start: lineStart + doubleQuote.index,
-            end: offset,
-            closed: false,
-        };
-    }
-    return undefined;
-}
-
-function multipartQualifierBefore(text: string, partStart: number): string {
-    const identifier = String.raw`(?:\[(?:[^\]]|\]\])*\]|"(?:[^"]|"")*"|[\p{L}_$#@][\p{L}\p{N}_$#@]*)`;
-    const match = new RegExp(String.raw`(?:${identifier}\s*\.\s*)+$`, "u").exec(
-        text.slice(0, partStart),
-    );
-    return match?.[0] ?? "";
-}
-
-function isIdentifierCompletionCharacter(character: string): boolean {
-    return /[\p{L}\p{N}_$#@]/u.test(character);
-}
-
-function splitMultipartPrefix(value: string): string[] {
-    value = value.trim();
-    const parts: string[] = [];
-    let start = 0;
-    let close = "";
-    for (let index = 0; index < value.length; index++) {
-        const character = value[index]!;
-        if (!close && character === "[") close = "]";
-        else if (!close && character === '"') close = '"';
-        else if (close && character === close) {
-            if (value[index + 1] === close) index++;
-            else close = "";
-        } else if (!close && character === ".") {
-            parts.push(value.slice(start, index));
-            start = index + 1;
-        }
-    }
-    parts.push(value.slice(start));
-    if (value.endsWith(".")) parts.pop();
-    return parts;
-}
-
-function completionIdentifierInsertion(
-    prefix: PrefixContext,
-    value: string,
-    quoteIfNeeded = true,
-): string {
-    if (prefix.delimiter?.kind === "bracket") {
-        return `${value.replaceAll("]", "]]")}${prefix.delimiter.closed ? "" : "]"}`;
-    }
-    if (prefix.delimiter?.kind === "doubleQuote") {
-        return `${value.replaceAll('"', '""')}${prefix.delimiter.closed ? "" : '"'}`;
-    }
-    return quoteIfNeeded ? quoteIdentifierIfNeeded(value) : value;
-}
-
-function completionMultipartInsertion(prefix: PrefixContext, parts: readonly string[]): string {
-    if (prefix.delimiter?.kind === "bracket") {
-        const content = parts.map((part) => part.replaceAll("]", "]]")).join("].[");
-        return `${content}${prefix.delimiter.closed ? "" : "]"}`;
-    }
-    if (prefix.delimiter?.kind === "doubleQuote") {
-        const content = parts.map((part) => part.replaceAll('"', '""')).join('"."');
-        return `${content}${prefix.delimiter.closed ? "" : '"'}`;
-    }
-    return parts.map(quoteIdentifierIfNeeded).join(".");
 }
 
 function catalogCompletions(
@@ -1661,8 +1087,16 @@ function columnCompletion(
     };
 }
 
+// The general keyword catalogue plus the words the platform registry names. Several dialect words
+// — CLUSTER, PREDICT, DISTRIBUTION — are parser-local and absent from SqlParser's context catalogue,
+// so a profile that runs them would otherwise never be offered them.
+const generalKeywords: ReadonlySet<string> = new Set(
+    [...reservedKeywordNames, ...contextualKeywordNames].map((keyword) =>
+        keyword.toLocaleUpperCase(),
+    ),
+);
 const completionKeywords = Object.freeze(
-    [...new Set([...reservedKeywordNames, ...contextualKeywordNames])]
+    [...new Set([...generalKeywords, ...platformFeatureKeywords])]
         .map((keyword) => keyword.toLocaleUpperCase())
         .sort(),
 );
@@ -1678,16 +1112,25 @@ const vectorParameters = Object.freeze([
     "START_ID",
 ]);
 
-function keywordCompletions(prefix: PrefixContext, view: MetadataView): readonly CompletionItem[] {
+function keywordCompletions(
+    prefix: PrefixContext,
+    profile: TsqlFeatureProfile,
+): readonly CompletionItem[] {
     if (prefix.prefix.length === 0) return [];
     const folded = prefix.prefix.toLocaleLowerCase();
+    // An unreported compatibility level defers rather than restricts, so a still-connecting
+    // document keeps every keyword the newest level accepts.
+    const compatibility = profile.compatibilityLevel ?? latestCompatibilityLevel;
+    // A word that exists only inside a feature this engine cannot run is never offered. A word the
+    // general catalogue also carries is never withheld, because it is ordinary T-SQL as well.
+    const withheld = platformOnlyKeywords(profile, generalKeywords);
     return completionKeywords
         .filter((keyword) => {
             if (!keyword.toLocaleLowerCase().startsWith(folded)) return false;
+            if (withheld.has(keyword)) return false;
             const metadata = keywordMetadata(keyword);
             return (
-                metadata?.category !== "reserved" ||
-                metadata.minimumCompatibility <= (view.environment.compatibilityLevel ?? 170)
+                metadata?.category !== "reserved" || metadata.minimumCompatibility <= compatibility
             );
         })
         .map((keyword) => ({
@@ -1701,10 +1144,13 @@ function keywordCompletions(prefix: PrefixContext, view: MetadataView): readonly
         }));
 }
 
-function dataTypeCompletions(prefix: PrefixContext, view: MetadataView): readonly CompletionItem[] {
+function dataTypeCompletions(
+    prefix: PrefixContext,
+    profile: TsqlFeatureProfile,
+): readonly CompletionItem[] {
     const folded = prefix.prefix.toLocaleLowerCase();
     return builtInsOfKind("dataType")
-        .filter((entry) => isBuiltInAvailable(entry, builtInProfile(view)))
+        .filter((entry) => isBuiltInAvailable(entry, builtInProfile(profile)))
         .map((entry) => entry.name.toLocaleUpperCase())
         .filter((type) => type.toLocaleLowerCase().startsWith(folded))
         .map((type) => ({
@@ -1721,11 +1167,11 @@ function dataTypeCompletions(prefix: PrefixContext, view: MetadataView): readonl
 
 function builtInFunctionCompletions(
     prefix: PrefixContext,
-    view: MetadataView,
+    profile: TsqlFeatureProfile,
 ): readonly CompletionItem[] {
     const folded = prefix.prefix.toLocaleLowerCase();
     return builtInsOfKind("routine")
-        .filter((entry) => isBuiltInAvailable(entry, builtInProfile(view)))
+        .filter((entry) => isBuiltInAvailable(entry, builtInProfile(profile)))
         .filter((entry) => entry.signatures && entry.signatures.length > 0)
         .map((entry) => entry.name.toLocaleUpperCase())
         .filter((name) => name.toLocaleLowerCase().startsWith(folded))
@@ -1741,10 +1187,41 @@ function builtInFunctionCompletions(
         }));
 }
 
-function builtInProfile(view: MetadataView): { readonly compatibilityLevel?: number } {
-    return view.environment.compatibilityLevel === undefined
-        ? {}
-        : { compatibilityLevel: view.environment.compatibilityLevel };
+/**
+ * The availability facts the built-in registry reads, taken from the snapshot's resolved profile
+ * rather than from the metadata environment, so syntax and completion never disagree about which
+ * engine a document belongs to.
+ */
+/**
+ * Explains an availability restriction the document already contains.
+ *
+ * The syntax snapshot already carries the structured detail, so hover reads the published
+ * diagnostic rather than re-deriving the decision and risking a different answer.
+ */
+function availabilityHover(syntax: SyntaxSnapshot, offset: number): HoverResult | undefined {
+    const diagnostic = syntax.diagnostics.find(
+        (candidate) =>
+            candidate.availability !== undefined &&
+            candidate.range.start <= offset &&
+            offset <= candidate.range.end,
+    );
+    if (!diagnostic?.availability) return undefined;
+    const detail = diagnostic.availability;
+    return {
+        range: diagnostic.range,
+        markdown: `**${detail.displayName}**
+
+${diagnostic.message}`,
+    };
+}
+
+function builtInProfile(profile: TsqlFeatureProfile): BuiltInProfile {
+    return {
+        engineProfile: profile.engineProfile,
+        ...(profile.compatibilityLevel === undefined
+            ? {}
+            : { compatibilityLevel: profile.compatibilityLevel }),
+    };
 }
 
 function scalarFunctionCompletions(
@@ -2278,22 +1755,6 @@ function occurrenceRange(
     return node ? { start: node.start, end: node.end } : undefined;
 }
 
-function preserveIdentifierQuotes(original: string, replacement: string): string {
-    if (original.startsWith("[") && original.endsWith("]")) return quoteIdentifier(replacement);
-    if (original.startsWith('"') && original.endsWith('"')) {
-        return `"${replacement.replaceAll('"', '""')}"`;
-    }
-    return replacement;
-}
-
-function quoteIdentifier(value: string): string {
-    return "[" + value.replaceAll("]", "]]") + "]";
-}
-
-function quoteIdentifierIfNeeded(value: string): string {
-    return /^[\p{L}_#][\p{L}\p{N}_$#@]*$/u.test(value) ? value : quoteIdentifier(value);
-}
-
 function startsWith(value: string, prefix: string, view: MetadataView): boolean {
     return view.environment.caseSensitive
         ? value.startsWith(prefix)
@@ -2314,13 +1775,6 @@ function deduplicate(items: readonly CompletionItem[]): readonly CompletionItem[
         seen.add(key);
         return true;
     });
-}
-
-function ancestor(node: SyntaxNode | undefined, kinds: readonly string[]): SyntaxNode | undefined {
-    for (let current = node; current; current = current.parent()) {
-        if (kinds.includes(current.kind)) return current;
-    }
-    return undefined;
 }
 
 /**
@@ -2383,44 +1837,6 @@ function distanceToRange(
     if (offset < range.start) return range.start - offset;
     if (offset > range.end) return offset - range.end;
     return 0;
-}
-
-function visit(node: SyntaxNode, callback: (node: SyntaxNode) => void): void {
-    callback(node);
-    for (const child of node.children()) visit(child, callback);
-}
-
-function firstDescendant(node: SyntaxNode, kind: string): SyntaxNode | undefined {
-    for (const child of node.children()) {
-        if (child.kind === kind) return child;
-        const nested = firstDescendant(child, kind);
-        if (nested) return nested;
-    }
-    return undefined;
-}
-
-function lastDescendant(node: SyntaxNode, kind: string): SyntaxNode | undefined {
-    let result: SyntaxNode | undefined;
-    visit(node, (candidate) => {
-        if (candidate.kind === kind) result = candidate;
-    });
-    return result;
-}
-
-function descendants(node: SyntaxNode, kind: string): SyntaxNode[] {
-    const result: SyntaxNode[] = [];
-    visit(node, (candidate) => {
-        if (candidate !== node && candidate.kind === kind) result.push(candidate);
-    });
-    return result;
-}
-
-function directChild(node: SyntaxNode, kind: string): SyntaxNode | undefined {
-    return [...node.children()].find((child) => child.kind === kind);
-}
-
-function hasDescendant(node: SyntaxNode, kind: string): boolean {
-    return firstDescendant(node, kind) !== undefined;
 }
 
 function assertOffset(snapshot: DocumentAnalysisSnapshot, offset: number): void {

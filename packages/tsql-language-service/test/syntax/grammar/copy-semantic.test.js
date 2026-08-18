@@ -9,17 +9,29 @@ const { suite, test } = require("node:test");
 const { createSyntaxHarness } = require("../../support/syntaxHarness.js");
 const { parse } = createSyntaxHarness("copy-semantic.sql");
 
+// COPY INTO belongs to the analytics engines, so the structural fixtures are read under the
+// dedicated SQL pool profile; the availability gate itself is covered by the dialect inventory.
+const analyticsProfile = {
+    engineProfile: "azure-synapse-dedicated",
+    serverMajorVersion: 13,
+    compatibilityLevel: 130,
+    previewFeatures: false,
+};
+
 suite("T-SQL COPY and semantic index grammar", () => {
     // Verifies COPY supports column mappings, multiple files, and nested credentials.
     test("parses COPY INTO external-load variants", () => {
-        const snapshot = parse(`
+        const snapshot = parse(
+            `
 COPY INTO dbo.Target (Id DEFAULT 0 1, Payload 2)
 FROM 'https://storage/a.csv', 'https://storage/b.csv'
 WITH (
     FILE_TYPE = 'CSV',
     CREDENTIAL = (IDENTITY = 'Managed Identity', SECRET = 'test'),
     FIRSTROW = 2
-);`);
+);`,
+            analyticsProfile,
+        );
 
         assert.deepEqual(snapshot.diagnostics, []);
         const tree = snapshot.tree.toString();

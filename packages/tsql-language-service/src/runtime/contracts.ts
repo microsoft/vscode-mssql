@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { EngineCapabilities } from "../common/engineCapabilities.js";
+import type { EngineFacts } from "../common/engineProfile.js";
 import type { LanguageServiceStatsProvider } from "../observability/index.js";
 import type { SemanticSnapshot } from "../semantics/index.js";
 import type { SyntaxSnapshot } from "../syntax/index.js";
@@ -16,6 +18,22 @@ export interface DocumentAnalysisSnapshot {
 
 export interface LanguageServiceRuntime extends LanguageServiceStatsProvider {
     readonly mode: "in-process" | "node-worker" | "web-worker";
+    /**
+     * The engine profile every document currently open in this runtime is analysed under.
+     *
+     * It is `unknown` until a host reports server facts. Nothing downgrades it to SQL Server
+     * merely because metadata has not arrived.
+     */
+    readonly capabilities: EngineCapabilities;
+    /**
+     * Adopts newly observed server facts and republishes every open document under the resolved
+     * profile. Documents whose text did not change are not reparsed: only the availability layer
+     * and the binding that depends on it are recomputed.
+     *
+     * Returns the capabilities in force afterwards, which are unchanged when the facts resolve to
+     * the same profile generation.
+     */
+    setEngineFacts(facts: EngineFacts | undefined): Promise<EngineCapabilities>;
     open(uri: string, version: number, text: string): Promise<DocumentAnalysisSnapshot>;
     change(
         uri: string,

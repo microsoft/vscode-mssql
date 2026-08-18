@@ -48,6 +48,41 @@ END
         assert.match(snapshot.tree.toString(), /IfStatement\(/);
     });
 
+    // A semicolon-less IF body owns one statement; the next line remains a top-level sibling.
+    test("does not absorb a following statement into an IF body", () => {
+        const snapshot = parse("IF 1 = 1 SELECT 1\nSELECT 2");
+
+        assert.deepEqual(snapshot.diagnostics, []);
+        assert.equal(snapshot.statistics.rawErrorNodeCount, 0);
+        const rootChildren = [...snapshot.root().children()];
+        assert.equal(rootChildren.length, 1);
+        const batch = rootChildren[0];
+        assert.equal(batch.kind, "Batch");
+        const statements = [...batch.children()];
+        assert.equal(statements.length, 2);
+        assert.equal(statements[0].kind, "Statement");
+        assert.equal(statements[0].end, 17);
+        assert.equal(statements[1].kind, "Statement");
+        assert.equal(statements[1].start, 18);
+    });
+
+    // WHILE and ELSE bodies follow the same one-statement ownership rule as IF bodies.
+    test("does not absorb following statements into WHILE or ELSE bodies", () => {
+        for (const sql of [
+            "WHILE 1 = 1 UPDATE dbo.T SET Value = 1\nSELECT 2",
+            "IF 1 = 1 PRINT 'yes'\nELSE PRINT 'no'\nSELECT 2",
+        ]) {
+            const snapshot = parse(sql);
+            assert.deepEqual(snapshot.diagnostics, []);
+            assert.equal(snapshot.statistics.rawErrorNodeCount, 0);
+            const batch = [...snapshot.root().children()][0];
+            const statements = [...batch.children()];
+            assert.equal(statements.length, 2, sql);
+            assert.equal(statements[1].kind, "Statement", sql);
+            assert.equal(sql.slice(statements[1].start), "SELECT 2", sql);
+        }
+    });
+
     // Verifies TRY/CATCH and WAITFOR wrappers are recognized without weakening their SQL leaves.
     test("accepts TRY/CATCH and WAITFOR", () => {
         const snapshot = parse(`

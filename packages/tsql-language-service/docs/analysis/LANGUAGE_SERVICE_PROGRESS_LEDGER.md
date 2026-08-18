@@ -1928,3 +1928,462 @@ ArgumentList? CloseParen)`, which matches the product exactly. All five positive
   structural grammar node, computationally incremental semantic-token updates, a grammar-node
   coverage matrix across five features, adapter cancellation tests, and running the feature matrix
   over the organized corpus with latency and allocation gates.
+
+## Dialect first-class readiness
+
+### 2026-08-18 — dialect baseline `[dialect-readiness]`
+
+- Owner / date / branch / commit: primary implementation agent / 2026-08-18 /
+  `aasim/feat/lezer-tsql-language-service` / `25769e40a`
+- Worktree and machine: package worktree clean apart from the runbook; Windows 11, Node 24.15.0,
+  16 logical CPUs.
+- Profile(s) and compatibility level(s) before the work: one `engineFlavor` union with four values
+  (`sql-server`, `azure-sql`, `azure-synapse`, `fabric`), no `unknown` state, and a fixed
+  `serverMajorVersion: 15 | 16 | 17` / `compatibilityLevel: 150 | 160 | 170` pair.
+- Package results: offline fast lane 1,077/1,077; corpus lane 3/3.
+- Corpus report totals: 407/485 parseable fixtures clean (83.9%), 350 raw recovery nodes.
+  By engine hint — `azure-sql` 6/7 (1 raw error), `fabric` 18/20 (23), `synapse-dw` 4/6 (8),
+  `sql-server-or-common` 379/452 (318).
+- Readiness report totals by profile: none. No dialect inventory or reporter existed.
+- Known false positives, false negatives, recovery, or missing evidence at baseline:
+    - No `unknown` profile, so a connected-but-unidentified document was analysed as SQL Server and
+      could receive platform diagnostics no server asked for.
+    - The extension constructed `new LezerSyntaxService()` per document and never passed
+      `engineEdition`, `serverVersion`, or `compatibilityLevel`, so every preview document was
+      analysed as SQL Server 2025 regardless of what it was connected to.
+    - Platform gates lived in a private `featureProfileRule` switch inside the syntax service and
+      published `code: "syntax"`, indistinguishable from a real syntax error.
+    - Managed Instance did not exist as a profile and inherited Azure SQL Database's restrictions.
+    - Fabric-only `CLUSTER BY`, nested common table expressions, and dedicated-pool `PREDICT`,
+      workload classifiers, and external-table `DISTRIBUTION = SHARDED(...)` all recovered.
+    - No SQLCMD layer of any kind.
+
+### 2026-08-18 — engine profile model and extension wiring `[dialect-readiness] [~]`
+
+- Milestone / scenario IDs: Milestone 1; every `*.query.*` and `*.backup.*` scenario depends on it.
+- User-visible behavior: a document is analysed for the engine it is actually connected to, and an
+  unidentified engine produces no platform diagnostic at all.
+- Claimed files/hotspots: `src/common/engineProfile.ts` (new), `src/common/engineCapabilities.ts`
+  (new), `src/syntax/contracts.ts`, `src/syntax/lezer/lezerSyntaxService.ts`,
+  `src/runtime/contracts.ts`, `src/runtime/inProcessRuntime.ts`, `src/observability/contracts.ts`,
+  `src/worker/protocol.ts`, `src/worker/client.ts`, `src/worker/requestHandler.ts`,
+  `src/metadata/contracts.ts`, `extensions/mssql/src/languageservice/preview/*`.
+- Source-reference evidence reviewed: `DatabaseEngineEdition` in SQL Management Objects
+  (`Microsoft/SqlServer/Management/ConnectionInfo/ConnectionEnums.cs`) for the twelve engine-edition
+  values; `SqlScriptDom/Parser/TSql/SqlVersionFlags.cs` for Fabric's `TSqlFabricDWAndAbove` level;
+  the extension's own `azure/providerSettings.ts` for the Fabric endpoint suffixes.
+- Focused tests added before implementation: `test/common/engine-profile.test.js` (14),
+  `test/runtime/engine-profile-runtime.test.js` (6), `test/worker/engine-profile-parity.test.js` (3).
+- Results: fast lane 1,113/1,113 after the batch; boundaries green; extension `tsgo` typecheck clean.
+- Full/incremental and wrong-profile results: `reprofile` republishes an open document from its
+  retained per-chunk trees, so a connection change costs a rebind and zero parser calls — asserted by
+  a counting syntax service. A profile change is part of the semantic reuse key, so the same text
+  rebinds rather than reusing a binding made for another engine.
+- Decisions worth recording:
+    - Azure services keep reporting boxed product versions (`12.0.x`), so the reported version is
+      read only for `sql-server`; every other profile takes its language level from a documented
+      table. Azure SQL Database and Managed Instance are evergreen (17/170), a dedicated SQL pool is
+      130-level, Fabric Data Warehouse is 160-level plus its own extensions.
+    - Engine edition 11 is shared by Azure Synapse serverless and Fabric Data Warehouse. The Fabric
+      endpoint host name separates them; edition 11 without one resolves to `unknown` with an
+      explicit out-of-scope reason rather than being absorbed into `azure-synapse-dedicated`.
+    - The runtime's default syntax service is now the `unknown` profile. `LezerSyntaxService`
+      constructed directly still defaults to the newest boxed engine, which is what the corpus
+      reporter, benchmarks, and grammar fixtures analyse.
+- Remaining limitation: the preview extension still routes in process; the worker transport carries
+  the profile but the preview does not use it yet.
+
+### 2026-08-18 — one platform feature registry `[dialect-readiness] [~]`
+
+- Milestone / scenario IDs: Milestone 2; all 15 profile-gated features.
+- User-visible behavior: an unavailable construct produces one deliberate availability diagnostic
+  naming the feature, the engine, and what the feature needs — never a generic syntax error.
+- Claimed files/hotspots: `src/common/platformFeatureRegistry.ts` (new),
+  `src/syntax/lezer/lezerSyntaxService.ts`, `src/common/builtInRegistry.ts`,
+  `src/features/tsqlLanguageFeatureService.ts`.
+- Focused test added before implementation: `test/common/platform-feature-registry.test.js` (12).
+- Results: 33 features registered, 15 profile-gated. The audit proves every registered grammar node
+  exists in the generated parser, every entry carries reviewable evidence, no version comparison or
+  flavor list survives in the syntax service, and no file outside `engineProfile.ts` compares an
+  engine-edition number.
+- Diagnostic contract: code `FeatureNotAvailable`, plus a structured `availability` payload on
+  `SyntaxDiagnostic` carrying feature id, display name, family, restriction kind
+  (`profile` / `version` / `removed` / `preview`), profile, and requirement sentence.
+- Wrong-profile results: `featureAvailability` returns `deferred`, never `unavailable`, for every
+  registered feature under the `unknown` profile — asserted over the whole registry rather than a
+  sample.
+- Remaining limitation: the semantic diagnostic name and arity tables in
+  `tsqlSemanticDiagnostics.ts` still hold their own catalogues and have not been migrated.
+
+### 2026-08-18 — first-class SQLCMD document model `[dialect-readiness] [~]`
+
+- Milestone / scenario IDs: Milestone 3.
+- User-visible behavior: a SQLCMD script is understood as one — directives, variables, includes, and
+  connection regions — and every range maps back to the file it was written in.
+- Claimed files: `src/sqlcmd/contracts.ts`, `src/sqlcmd/sqlCmdScanner.ts`,
+  `src/sqlcmd/sqlCmdDocument.ts`, `src/sqlcmd/sqlCmdCompletion.ts`, `src/sqlcmd/memorySqlCmdHost.ts`,
+  `src/sqlcmd/index.ts`, plus a new `sqlcmd` layer rule in `scripts/check-boundaries.mjs`.
+- Focused test added before implementation: `test/sqlcmd/sqlcmd-document.test.js` (29).
+- Full/incremental results: the fold keeps a checkpoint per root line, so an update resumes from the
+  line before the edit and truncates every append-only output array to that checkpoint. Equivalence
+  is asserted for edits at the start, middle, and end, and separately for a changed `:setvar` and an
+  inserted `:connect`, comparing projected text, directives, mappings, connection regions,
+  diagnostics, variables, and includes against a full read.
+- Safety results asserted by test: `!!` is recognized, reported, and never executed; a `-P` value is
+  blanked at the scanner so no payload — diagnostic, statistics, or projection — can contain it; an
+  unresolved `$(name)` is projected verbatim rather than as empty text, so it cannot become a
+  phantom object; include cycles, depth, count, and size limits each report their own diagnostic.
+- Remaining limitation: the preview extension does not yet mount the SQLCMD layer, so directives are
+  not projected in the editor. The layer, its contracts, and its in-memory host are complete and
+  contract-tested; wiring is the remaining work.
+
+### 2026-08-18 — dialect inventory and readiness report `[dialect-readiness] [~]`
+
+- Milestone / scenario IDs: Milestone 0, and the executable evidence for Milestones 4, 5, and 6.
+- Claimed files: `test/dialect/inventory/scriptdom-families.json`,
+  `test/dialect/manifest/dialect-scenarios.json`, `test/support/dialectScenarios.js`,
+  `test/dialect/dialect-readiness.test.js`, `scripts/report-dialect-readiness.mjs`.
+- Inventory denominator: 73 ScriptDOM script families matching the dialect selection. 64 covered by
+  scenarios, 9 explicitly out of scope (external libraries and languages, which are R/Python/Java
+  extensibility; Azure SQL Database federations, retired in 2015), 0 missing.
+- Scenarios: 113, across `sql-server` (17), `azure-sql-database` (22),
+  `azure-sql-managed-instance` (10), `azure-synapse-dedicated` (27), `fabric-warehouse` (29), and
+  `unknown` (8). Every scoped profile has valid, unsupported-profile, invalid-neighbour, and
+  incomplete-typing scenarios; `unknown` has no unsupported-profile case by construction and the
+  report prints that as `notApplicable` rather than `missing`.
+- Results: 113/113 passing, 0 unexpected recovery on any profile, 15/15 profile-gated features have
+  an unsupported-profile scenario, and no editor category is `missing` on any profile.
+- Command: `node scripts/report-dialect-readiness.mjs` (also `npm run report:dialect`). It needs no
+  live server and exits non-zero when any scenario fails.
+
+### 2026-08-18 — dialect grammar batch one `[dialect-readiness] [~]`
+
+- Milestone / scenario IDs: Milestones 5 and 6.
+- Grammar changes, regenerated once together: the Fabric `CLUSTER BY` table option and its
+  `ALTER TABLE ... ADD (CLUSTER BY (...))` action; a nested common table expression; the dedicated
+  pool's `PREDICT` table source with its `DATA = source AS alias` argument; `CREATE`/`DROP WORKLOAD
+CLASSIFIER`; and an external-table option value that names a distribution column, as
+  `DISTRIBUTION = SHARDED(c1)` does. Two contextual tokens were added, `Predict` and `Classifier`.
+- Generator result: clean, no conflicts. Warnings were the pre-existing unused-rule and
+  choice-count notices.
+- Corpus before / after: 407/485 clean with 350 raw errors to 413/485 clean with 306 raw errors.
+  By engine hint, `fabric` 18/20 to **20/20 with zero raw recovery** and `synapse-dw` 4/6 to **6/6
+  with zero raw recovery**. `azure-sql` stayed 6/7; the remaining fixture is the
+  `STOPATMARK = 'm' AFTER @datetime` restore option, taken in batch two.
+- Design note recorded for the next agent: `DISTRIBUTION = SHARDED(c1)` could not be added to the
+  shared `GenericOption` value, because `name (list)` there is ambiguous with an Azure service-tier
+  option value — the grammar already documents that limitation. The external-table option list is
+  bounded, so the call form is unambiguous inside it and was added there only.
+
+### 2026-08-18 — dialect grammar batch two `[dialect-readiness] [~]`
+
+- Milestone / scenario IDs: Milestone 4; `azure-db.database.*`, `azure-mi.database.*`.
+- Grammar changes, regenerated once together:
+    - `BackupRestoreWithClause` now models `STOPATMARK = 'mark' AFTER <datetime>`. The `AFTER`
+      suffix is accepted only there rather than by widening every generic option list.
+    - Every `ALTER DATABASE` action that reaches a file or filegroup became one `DatabaseFileAction`
+      node. `ADD FILEGROUP fg` previously produced no node of its own, so an engine with no file
+      surface had nothing to report against.
+- Generator result: clean, no conflicts.
+- Corpus before / after: 413/485 clean with 306 raw errors to **414/485 clean with 304 raw errors**.
+  `azure-sql` 6/7 to **7/7 with zero raw recovery**. All three dialect corpora are now clean:
+  `azure-sql` 7/7, `fabric` 20/20, `synapse-dw` 6/6, each with zero raw recovery nodes.
+- Registry follow-up: `database.file-definition` gates `DatabaseFileAction`, `DatabaseFileClause`,
+  and `DatabaseLogClause` — one node per construct. An earlier draft also gated the nested
+  `FileDefinition` and reported `ALTER DATABASE ... ADD FILE (...)` twice; the duplicate was caught
+  before it reached a test and the node list was narrowed.
+
+### 2026-08-18 — dialect-aware semantics and editor features `[dialect-readiness] [~]`
+
+- Milestone / scenario IDs: Milestone 7.
+- User-visible behavior:
+    - Hover explains a restriction the document already contains. It reads the published
+      availability payload rather than re-deriving the decision, so hover and the diagnostic can
+      never disagree.
+    - Completion withholds a word that exists only inside a feature the connected engine cannot run,
+      and offers it where the engine does. `CLUSTER` is offered on Fabric and withheld elsewhere;
+      `PREDICT` is offered on the dedicated pool and withheld elsewhere. A word shared with an
+      available feature is never withheld, so `ALL` survives on every profile.
+    - Completion also gained the dialect words the general keyword catalogue does not carry:
+      `CLUSTER`, `PREDICT`, and `DISTRIBUTION` are parser-local and absent from SqlParser's context
+      catalogue, so an engine that runs them would never have been offered them.
+    - Fabric's AI functions and `INVOKE_EXTERNAL_API` are registered built-ins restricted to
+      `fabric-warehouse`, so completion offers them there and nowhere else.
+    - A name that reaches another database is reported on the engines that cannot resolve one.
+- Claimed files: `src/semantics/platformSemanticDiagnostics.ts` (new),
+  `src/semantics/catalogSemanticBinder.ts`, `src/features/tsqlLanguageFeatureService.ts`,
+  `src/common/platformFeatureRegistry.ts`, `src/common/builtInRegistry.ts`.
+- Focused test added before implementation:
+  `test/semantics/diagnostics/platform-capabilities.test.js` (7).
+- Wrong-profile results: the cross-database check fires on `azure-sql-database` and
+  `azure-synapse-dedicated`, and not on `sql-server`, `azure-sql-managed-instance`,
+  `fabric-warehouse`, or `unknown` — asserted profile by profile against the capability table.
+- Deliberate deferral: the check needs an authoritative capability _and_ an authoritative metadata
+  fact. With no current database reported it produces nothing, because whether a name crosses a
+  boundary cannot be known without knowing which database the connection is in.
+
+### 2026-08-18 — dialect readiness evidence `[dialect-readiness] [~]`
+
+- Owner / date / branch: primary implementation agent / 2026-08-18 /
+  `aasim/feat/lezer-tsql-language-service`. Nothing was committed or pushed.
+- Machine: Windows 11, Node v24.15.0, win32/x64, 16 logical CPUs.
+- Commands and results:
+    - `npm run build:typescript` — clean.
+    - `npm run build:workers` — clean.
+    - `npm run lint` (`scripts/check-boundaries.mjs`) — architecture boundaries passed, including
+      the new `sqlcmd` layer rule.
+    - `node scripts/run-tests.mjs fast` — **1,268/1,268**, 0 failed (1,077 at baseline).
+    - `node scripts/run-tests.mjs corpus` — **3/3**.
+    - `node scripts/run-tests.mjs all` — **1,274/1,274** across 188 suites, 0 failed, 0 skipped.
+    - `node scripts/run-tests.mjs integration` — **6/6** against the configured live SQL Server.
+    - `node scripts/report-tsql-corpus.mjs` — 414/485 parseable fixtures clean (85.4%), 304 raw
+      recovery nodes. `azure-sql` 7/7, `fabric` 20/20, `synapse-dw` 6/6, each with **zero** raw
+      recovery. Baseline was 407/485 with 350 raw errors and 6/7, 18/20, 4/6.
+    - `node scripts/report-dialect-readiness.mjs` — 73 ScriptDOM families (64 covered, 9 out of
+      scope, 0 missing); 113/113 scenarios passing; 0 unexpected recovery on every profile; 15/15
+      profile-gated features exercised; no `missing` category on any profile.
+    - `node --expose-gc benchmarks/dialect.mjs --sizes 100k,1m` — profile resolution 1.57 µs each;
+      availability gating overhead **−0.8%** at 100 KB and **−1.1%** at 1 MB against the deferring
+      profile; SQLCMD SQL-only pipeline overhead **4.0%** at 100 KB and **4.4%** at 1 MB against a
+      bare parse, inside the 5% bar; SQLCMD incremental update 55–59% faster than a full read;
+      profile-only rebind p50 239 ms at 100 KB and 6.37 s at 1 MB.
+    - `node --expose-gc benchmarks/catalog-features.mjs` — 57,885-object catalog indexed in
+      140.5 ms; schema-root completion p50 9.67 ms; `dbo` empty prefix p50 1.15 ms. The reference
+      baseline is 159.3 ms / 9.06 ms / 1.11 ms, so no repeatable regression.
+- Live targets exercised: one boxed SQL Server, through
+  `test/integration/language-service.e2e.test.js`. The new smoke test reads
+  `SERVERPROPERTY('EngineEdition')`, `ProductVersion`, `ServerName`, and the database's
+  compatibility level from the live server, resolves them, asserts the profile is not `unknown`,
+  and confirms a Fabric-only construct is reported as unavailable rather than as a syntax error on
+  that engine.
+- Known service limitations: Azure SQL Database, Azure SQL Managed Instance, Azure Synapse
+  dedicated SQL pool, and Fabric Data Warehouse are not reachable from this machine, so they have
+  no live smoke test. Their evidence is the deterministic dialect inventory (113 scenarios), the
+  offline corpora, and the profile-resolver table tests over every published engine edition.
+
+#### Work this batch deliberately did not do
+
+Recorded so the integrator reviews it rather than discovers it.
+
+- **SQLCMD is not mounted in the preview extension.** The layer, its host contracts, its in-memory
+  host, its completion, and its incremental equivalence are complete and tested, and the package
+  exports them. The preview extension does not yet build a `SqlCmdDocumentSnapshot`, so directives
+  are not projected, `:r` includes are not loaded from disk, and editor ranges are not routed
+  through the source map in the running editor. Everything needed to wire it exists; the wiring is
+  the remaining work, and it needs a host include loader with cancellation, which is a VS Code
+  file-system concern rather than a package one.
+- **Azure Synapse serverless SQL pools remain out of scope**, as the runbook's scope table requires.
+  Engine edition 11 without a Fabric endpoint resolves to `unknown` with an explicit reason rather
+  than being absorbed into `azure-synapse-dedicated`.
+- **Preview routing is still in process.** The worker protocol carries engine facts and stamps every
+  document result with its profile generation, and in-process, Node-worker, and browser-handler
+  parity is asserted; the preview extension has not been switched onto the worker transport, which
+  the package README already records as waiting on compact metadata transfer.
+- **Semantic diagnostic catalogues are not migrated.** `tsqlSemanticDiagnostics.ts` still owns its
+  own name and arity tables. They are version-related rather than platform-related, and moving them
+  into the platform registry was not attempted in this batch.
+- **A dedicated pool's DML, transaction, constraint, and query-hint restrictions are not encoded.**
+  Only restrictions with reviewable evidence were registered. ScriptDOM models platform syntax but
+  not platform restrictions, so the remaining ones need a documentation oracle this workspace does
+  not contain; guessing them would have produced exactly the false diagnostics this runbook forbids.
+- **Milestone boxes are left unchecked.** The runbook reserves that for the designated integrator
+  after independent review, and this entry is the evidence for that review.
+
+### 2026-08-18 — parse throughput, measured against a same-machine control `[dialect-readiness]`
+
+- Why this entry exists: `benchmarks/run.mjs` reported a warm full parse of 149.65 ms at 100 KiB,
+  1,536.16 ms at 1 MiB, and 14,666.58 ms at 10 MiB. Against the recorded reference baseline
+  (140.84 / 1,349.63 / 13,424.40 ms) that reads as +6.3% / +13.8% / +9.3%, and the 1 MiB lane is
+  above the 10% bar. The reference baseline was taken in another session, and the ledger's own
+  baseline entry warns that it is not a portable budget — so it cannot settle whether the grammar
+  changed anything.
+- What was done instead of accepting or dismissing the number: the parser was regenerated from the
+  **baseline grammar** (`git show HEAD:.../tsql.grammar`, 3,806 lines) into a scratch directory and
+  paired with its own generated terms, then both parsers were run over identical input — all 489
+  corpus fixtures plus 1 MiB of generated SQL — interleaved sample by sample so any thermal or
+  scheduler drift lands on both lanes.
+- Result: baseline grammar p50 1,803.0 ms / p95 1,936.2 ms; current grammar p50 1,792.0 ms /
+  p95 1,889.9 ms. **Change: −0.6% p50, −2.4% p95.** The grammar additions cost nothing measurable;
+  the apparent regression against the recorded reference is cross-session variance.
+- Validation that the control was a real control: the baseline parser exposes 1,581 node types
+  against the current parser's 1,596, and it produces two error nodes for
+  `CREATE TABLE dbo.t (a int) WITH (CLUSTER BY (a))` where the current parser produces none.
+- The staged baseline parser was removed from `dist/` afterwards; nothing was committed, pushed, or
+  left in the worktree.
+- Method note for the next agent: a same-machine control needs the baseline **terms** as well as the
+  baseline parser, because the external tokenizers resolve term numbers through
+  `generated/tsqlParser.terms.js`. Pairing a baseline parser with current terms measures nothing.
+  The current keyword specializer works unchanged against baseline terms, because it looks terms up
+  by name and skips the ones a baseline does not define.
+
+## Corpus conformance, measured against ScriptDOM
+
+### 2026-08-18 — the corpus metric was measuring the wrong thing `[corpus-conformance]`
+
+- Owner / date / branch: primary implementation agent / 2026-08-18 /
+  `aasim/feat/lezer-tsql-language-service`. Nothing committed or pushed.
+- Why this entry exists: `report-tsql-corpus.mjs` reports raw recovery nodes against a manifest
+  whose `expectation` field is a coarse `parseable` / `recovery` hint. That number reads as "how
+  much of T-SQL we fail to parse", and it is not. It counts fixtures ScriptDOM also rejects at the
+  version they are pinned to, and it counts syntax a 150-170 parser is _correct_ to reject.
+- What was run: `node scripts/report-scriptdom-diff.mjs`, which loads the real ScriptDOM assembly
+  (`Microsoft.SqlServer.TransactSql.ScriptDom.dll`) and parses every fixture with the parser class
+  for that fixture's own compatibility level. That is the authoritative oracle; the manifest hint
+  is not.
+- The corrected picture, at the start of this work (414/485 fixtures clean, 304 raw nodes):
+
+    | verdict            | fixtures | meaning                                      |
+    | ------------------ | -------: | -------------------------------------------- |
+    | `bothClean`        |      402 | agreed                                       |
+    | `oursOnlyRecovers` |       66 | the real gap: 251 nodes                      |
+    | `scriptDomRejects` |       17 | ScriptDOM rejects them too                   |
+    | `bothReject`       |        4 | intentionally malformed, working as intended |
+
+- Two consequences worth recording:
+    - Roughly a sixth of the raw nodes are in fixtures ScriptDOM rejects at their pinned version.
+      `MiscDeprecatedIn110Tests.sql` is registered in ScriptDOM as `ParserTest80And90And100`, so it
+      is _expected_ to fail from 110 onwards; this package targets 150-170. `ParserModeTests.sql`
+      is registered as `ParserTest80` with one expected error. Driving those to zero would mean
+      accepting syntax the authoritative parser rejects.
+    - Five fixtures are the reverse — we accept what `TSql170Parser` rejects:
+      `CloneTableTestsFabricDW`, `CreateAlterTableClusterByTestsFabricDW`, `NestedCTETestsFabricDW`,
+      `OrderByAllTestsFabricDW`, and `ExternalFunctionTestsFabricDW`. That is the dialect
+      architecture working: those need `TSqlFabricDWParser`, and this package parses the structural
+      superset and reports availability separately.
+- Conclusion for whoever picks this up: the number to drive to zero is `oursOnlyRecovers`, not the
+  raw node count. The raw count has a floor above zero that is not a defect.
+
+### 2026-08-18 — corpus batch one `[corpus-conformance] [~]`
+
+- Constructs added, one regeneration: a quantified subquery comparison (`= ANY (SELECT ...)`, and
+  the same after `IS [NOT] DISTINCT FROM`); permission names spelled with a reserved word
+  (`GRANT CREATE PROCEDURE`, `GRANT BACKUP LOG`); a memory-optimized `HASH` key constraint; a
+  columnstore `ORDER (a, b)` index option; `BACKUP`/`RESTORE TRANSACTION` and `TRAN`;
+  `RESTORE REWINDONLY`; `FILE = 3` as a backup option; a multi-partition `TRUNCATE`;
+  `ALTER MASTER KEY FORCE REGENERATE`; an unenforced foreign key; and `ALL`/`INDEX` as
+  `UPDATE STATISTICS` options.
+- Results: corpus 414/485 clean with 304 raw nodes to **424/485 clean with 251 raw nodes**; the
+  ScriptDOM gap fell from **66 fixtures / 251 nodes to 57 fixtures / 206 nodes**. Offline fast lane
+  1,270/1,270.
+- Two generator conflicts were hit and are recorded so they are not repeated:
+    - Adding `File` to the shared `GenericOptionName` collides with
+      `PrivateKeyOption -> File Equal StringLiteral` in a certificate's private-key list. It was
+      scoped to the backup/restore option list instead.
+    - `INDEX ix UNIQUE` inside a column definition is genuinely ambiguous: `UNIQUE` is also a
+      standalone column constraint, so after `INDEX ix` the parser cannot tell whether the index
+      definition ended. Backed out rather than papered over; it needs a marker over the competing
+      reduction and belongs in its own batch.
+- One test was updated rather than weakened: `parses spatial indexes` asserted at least three
+  `GenericOptionList` nodes. An index `WITH` list is now a list of `IndexOption`, so that `ORDER`
+  — which names columns rather than taking a value — has somewhere to live. The behavioural
+  `assertValid` check is unchanged and the loose `>= 3` was replaced with exact counts of both node
+  kinds, which is a stricter assertion than the one it replaced.
+
+### 2026-08-18 — nested option values stay deferred, now with evidence `[corpus-conformance]`
+
+- `REMOTE_DATA_ARCHIVE = OFF_WITHOUT_DATA_RECOVERY (MIGRATION_STATE = PAUSED)` was attempted, on
+  the reasoning that its collision was with the Azure service-tier option value — the same shape
+  reached through a different route — and that one shared ambiguity marker over both readings would
+  therefore be the grammar's own idiom rather than a papered-over conflict.
+- That reasoning was wrong, and the generator said so: the branch also collides with
+  `TableOptionValue -> IdentifierName OpenParen ArgumentList? CloseParen`, the production that
+  reads `DISTRIBUTION = HASH(a)`. Those are two different _meanings_ of the same text — a call and
+  a nested option list — reached through two different productions. A shared marker over them
+  would bless the ambiguity instead of resolving it, which is exactly what the original comment
+  said.
+- The branch was reverted and the grammar comment rewritten to carry this evidence, so the next
+  agent does not spend a third regeneration rediscovering it. Modelling the construct needs a
+  bounded option list that does not route through the shared `OptionValue` at all.
+
+### 2026-08-18 — corpus batches two through six `[corpus-conformance] [~]`
+
+- Owner / date / branch: primary implementation agent / 2026-08-18 /
+  `aasim/feat/lezer-tsql-language-service`. Nothing committed or pushed.
+- Measured results, verified after every build by diffing **every fixture** against the session-start
+  snapshot rather than reading the aggregate:
+
+    |               | fixtures clean | raw nodes | fixtures failing | ScriptDOM gap |
+    | ------------- | -------------: | --------: | ---------------: | ------------: |
+    | session start |        414/485 |       304 |               71 |            66 |
+    | final         |    **434/485** |   **177** |           **51** |        **47** |
+
+- Offline `all` lane **1,276/1,276** across 188 suites; live integration **6/6**; architecture
+  boundaries green; dialect readiness report still all-passing with no `missing` category.
+- Same-machine parser A/B against the session-start grammar, both parsers paired with their own
+  generated terms and run interleaved over all 489 fixtures plus 1 MiB of generated SQL:
+  baseline p50 1,526.7 ms / p95 1,570.0 ms; current p50 1,567.4 ms / p95 1,601.6 ms — **+2.7% p50,
+  +2.0% p95**, inside the 10% bar for a grammar that gained roughly thirty constructs.
+
+#### Two fixes that needed no regeneration at all
+
+Both were tokenizer bugs wearing the costume of a missing grammar rule. Recording them because the
+diagnostic habit is the transferable part.
+
+- **Grouped-query statement boundary.** `GroupedQueryChunk` scans a bounded region for a
+  parenthesised query statement, and its scan ended at `)` only at depth zero. A grouped query
+  _starts_ with `(`, so its matching close sat at depth one and the scan ran to the end of the
+  batch. `(SELECT 1) SELECT 2` was read as one statement. Now the statement ends when its leading
+  group closes unless a set operator or trailing clause continues it, and once the group has closed
+  a line-leading statement word ends it — but only when the previous word at depth zero was not
+  itself a set operator, so a chain written across lines still holds together. This was an
+  editor-facing defect, not only a fixture one.
+- **`LeadingDot`.** Omitted name components (`..t1.c1`) failed twice as a grammar edit, because
+  letting a leading `.` start a name makes `EXEC name · Dot` ambiguous — the dot may continue the
+  name being held or begin a new omitted one, and both readings are legitimate. The third attempt
+  moved the decision into the tokenizer, which can see the parser state: a `LeadingDot` is emitted
+  only where an ordinary `Dot` cannot be shifted, so the two tokens are mutually exclusive by
+  construction. It generated with no conflict. `omittedOrMultipartName` then made the two name
+  forms interchangeable for `ColumnReference`, `FunctionCall`, and `UdtStaticMemberExpression`, so
+  `.t2.f()` and `.t2::f()` parse too.
+
+#### A regression the aggregate hid
+
+After `LeadingDot`, the corpus total was 208 before and 208 after — apparently a no-op. Per-fixture
+comparison showed otherwise: `CreateIndexStatementTests100` 12→7 and `SelectExpressionTests` 6→4,
+against **`ExpressionTests90` 6→15**. The gains and the loss nearly cancelled. The cause was real:
+an omitted name now reduced to a complete `ColumnReference`, so a call or CLR member following it
+had nothing to attach to. Fixed by the shared name rule above. **Read per-fixture deltas, never the
+total** — the total is capable of reporting a regression as a no-op.
+
+#### Constructs confirmed unmodellable as attempted
+
+Each was tried, rejected by the generator, backed out, and documented _in the grammar_ next to the
+rule with the generator's own reasoning, so the next agent does not re-spend the cycle.
+
+- **Nested option values** (`REMOTE_DATA_ARCHIVE = OFF_WITHOUT_DATA_RECOVERY (MIGRATION_STATE = ...)`)
+  — collides with `TableOptionValue -> IdentifierName OpenParen ArgumentList? CloseParen`, the
+  production reading `DISTRIBUTION = HASH(a)`. A call and a nested option list meaning the same text
+  through different productions; one shared marker would bless the ambiguity. Needs a bounded option
+  list that does not route through the shared `OptionValue`.
+- **Inline `INDEX ix UNIQUE`** — `UNIQUE` is also a standalone column constraint, so after
+  `INDEX ix` the parser cannot tell whether the index definition ended.
+- **Infix `a...d`** — turns `EXEC name · Dot` into a shift/reduce against `ExecutableEntity`. The
+  leading forms are unaffected and now covered.
+
+#### Remaining 47 gaps, triaged
+
+- **Ambiguous, needing a mechanism rather than a rule (~6):** the three above, plus legacy table
+  hints without a correlation name (`FROM t1 (holdlock, index = 0)` is indistinguishable from a
+  function call without knowing which words are hint names — ScriptDOM resolves this semantically);
+  `SET a off, b 'entry'` (the generic option list exists but `SET x off` matches the ON/OFF rule
+  first and `SetGenericOption` carries `@dynamicPrecedence=-1`, so this is precedence tuning on one
+  of the hottest statements in the grammar); and a missing comma between a column definition and a
+  table constraint.
+- **Tractable, roughly 1–4 nodes each (~40 fixtures, 132 nodes total):** `OPENROWSET(BULK ...)`
+  modern forms, `.property COLLATE x .property` chains, a variable named `@` alone,
+  `GROUP BY () WITH ROLLUP`, `SET @c = CURSOR SCROLL DYNAMIC FOR ...`, `ALTER PARTITION FUNCTION f()
+MERGE`, `DROP PERIOD FOR SYSTEM_TIME`, `CREATE PARTITION FUNCTION ... COLLATE`, cursor-positioned
+  `DELETE ... WHERE CURRENT OF`, and a long tail of similar single constructs. Each needs its own
+  investigation plus one ~3.5-minute build; yield in the last two batches was 6–12 nodes per cycle.
+
+#### Method notes for whoever continues
+
+1. **A clean generation is 218 s (3 min 38 s), measured.** Not the 10–20+ minutes the completion
+   runbook states; that figure predates the heap flag being baked into `build-grammar.mjs`. A run
+   that hits a `GenError` returns faster still, usually under two minutes.
+2. **Prefer one construct per build.** Bundling to amortize cost is a false economy at this speed:
+   the generator names only the first conflict, so one bad edit invalidates the whole run and hides
+   which edit was wrong. Batches three and four each took three attempts for exactly this reason.
+3. **Check for a tokenizer fix first.** External tokenizers are plain TypeScript — `tsc` only, no
+   regeneration. The two largest wins in this work came from there.
+4. **Diff per fixture after every build**, against a snapshot taken before the work started.

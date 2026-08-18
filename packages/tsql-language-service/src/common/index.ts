@@ -5,4 +5,7 @@
 
 export * from "./analysisProfile.js";
 export * from "./builtInRegistry.js";
+export * from "./engineCapabilities.js";
+export * from "./engineProfile.js";
+export * from "./platformFeatureRegistry.js";
 export * from "./disposable.js";

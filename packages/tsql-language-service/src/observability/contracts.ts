@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import type { Disposable } from "../common/disposable.js";
+import type { EngineCapabilitySet } from "../common/engineCapabilities.js";
+import type { EngineProfileSource, SqlEngineProfile } from "../common/engineProfile.js";
 import type { MetadataCompleteness } from "../metadata/index.js";
 
 export interface LatencySummary {
@@ -58,6 +60,22 @@ export interface LanguageServiceStats {
         readonly latency: Readonly<Record<string, LatencySummary>>;
         readonly cancelled: number;
         readonly staleResultsDiscarded: number;
+    };
+    /**
+     * Which engine produced the visible result. A support view reads this to answer "why did I
+     * see that diagnostic" without needing the connection.
+     */
+    readonly engine: {
+        readonly profile: SqlEngineProfile;
+        /** The comparable identity every snapshot in this result carries. */
+        readonly generation: string;
+        readonly displayName: string;
+        readonly source: EngineProfileSource;
+        readonly reason: string;
+        readonly serverMajorVersion?: number;
+        readonly compatibilityLevel?: number;
+        readonly previewFeatures: boolean;
+        readonly capabilities: EngineCapabilitySet;
     };
 }
 

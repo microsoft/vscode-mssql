@@ -13,6 +13,8 @@ const {
     LezerSyntaxService,
     SimpleQueryMetadataAdapter,
     TsqlLanguageFeatureService,
+    createEngineCapabilities,
+    unknownEngineCapabilities,
 } = require("../../dist/index.js");
 const { SqlServerCatalogLoader } = require("./sqlServerCatalogLoader.js");
 const {
@@ -39,6 +41,55 @@ suite("SQL Server end-to-end integration", { skip: !connectionString }, () => {
     });
 
     after(async () => client?.close());
+
+    // Resolves the engine profile from the facts the live server actually reports, so the mapping
+    // is proved against a server rather than only against the offline table. Engines this
+    // repository cannot reach are covered by the deterministic dialect inventory instead.
+    test("resolves the connected engine profile from live server facts", async () => {
+        const rows = rowsAsObjects(
+            await client.execute(
+                "SELECT CONVERT(int, SERVERPROPERTY('EngineEdition')) AS engine_edition," +
+                    " CONVERT(nvarchar(128), SERVERPROPERTY('ProductVersion')) AS server_version," +
+                    " CONVERT(nvarchar(256), SERVERPROPERTY('ServerName')) AS server_name," +
+                    " (SELECT compatibility_level FROM sys.databases WHERE name = DB_NAME()) AS compatibility_level;",
+            ),
+        );
+        const facts = {
+            engineEdition: Number(rows[0].engine_edition),
+            serverVersion: String(rows[0].server_version),
+            serverName: String(rows[0].server_name),
+            compatibilityLevel: Number(rows[0].compatibility_level),
+        };
+        const capabilities = createEngineCapabilities(facts);
+
+        assert.notEqual(
+            capabilities.engineProfile,
+            "unknown",
+            `a live server must identify itself: ${capabilities.resolution.reason}`,
+        );
+        assert.equal(capabilities.resolution.source, "engineEdition");
+        assert.equal(capabilities.compatibilityLevel, facts.compatibilityLevel);
+        assert.equal(
+            capabilities.generation,
+            `${capabilities.engineProfile}/${capabilities.serverMajorVersion}/${capabilities.compatibilityLevel}/ga`,
+        );
+
+        // A document opened against the live facts is analysed under that profile, and a construct
+        // the engine does not have is reported as unavailable rather than as a syntax error.
+        const runtime = new InProcessLanguageServiceRuntime(
+            new LezerSyntaxService(undefined, unknownEngineCapabilities),
+        );
+        const uri = "integration:/profile.sql";
+        await runtime.open(uri, 1, "CREATE TABLE dbo.t ( a int ) WITH ( CLUSTER BY (a) );");
+        await runtime.setEngineFacts(facts);
+        const snapshot = runtime.snapshot(uri, 1);
+        assert.equal(snapshot.syntax.statistics.rawErrorNodeCount, 0);
+        assert.deepEqual(
+            snapshot.syntax.diagnostics.map((diagnostic) => diagnostic.availability?.featureId),
+            capabilities.engineProfile === "fabric-warehouse" ? [] : ["table.cluster-by"],
+        );
+        await runtime.close(uri);
+    });
 
     // Confirms the configured Docker SQL Server accepts an encrypted tedious connection.
     test("connects and executes a read-only query", async () => {

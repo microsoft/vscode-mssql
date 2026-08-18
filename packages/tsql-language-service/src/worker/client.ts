@@ -3,12 +3,26 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { EngineFacts } from "../common/engineProfile.js";
 import type { LanguageServiceStats } from "../observability/index.js";
+import type { FullColorizationResult } from "../coloring/index.js";
+import type {
+    CompletionResult,
+    DefinitionTarget,
+    DocumentSymbol,
+    FoldingRange,
+    HoverResult,
+    Location,
+    SignatureHelp,
+} from "../features/index.js";
+import type { TextRange } from "../text/index.js";
 import type { TextChange } from "../text/index.js";
 import {
     isWorkerResponse,
     workerProtocolVersion,
     type WorkerDocumentSummary,
+    type WorkerEngineCapabilities,
+    type WorkerDiagnostics,
     type WorkerRequest,
 } from "./protocol.js";
 
@@ -66,6 +80,35 @@ export class LanguageServiceWorkerClient {
         return result;
     }
 
+    /**
+     * Reports server facts to the worker and returns the capabilities in force afterwards.
+     *
+     * Only plain facts cross the boundary. The worker resolves the profile itself, so the host and
+     * worker cannot disagree about which engine a document belongs to.
+     */
+    public setEngineFacts(facts?: EngineFacts): Promise<WorkerEngineCapabilities> {
+        return this.sendEngineFacts(facts);
+    }
+
+    /** Changes one document's engine without affecting documents attached to other connections. */
+    public setDocumentEngineFacts(
+        uri: string,
+        facts?: EngineFacts,
+    ): Promise<WorkerEngineCapabilities> {
+        this.requireVersion(uri);
+        return this.sendEngineFacts(facts, uri);
+    }
+
+    private sendEngineFacts(facts?: EngineFacts, uri?: string): Promise<WorkerEngineCapabilities> {
+        return this.send<WorkerEngineCapabilities>({
+            protocolVersion: workerProtocolVersion,
+            type: "engineFacts",
+            id: this.nextId(),
+            ...(uri === undefined ? {} : { uri }),
+            ...(facts === undefined ? {} : { facts }),
+        });
+    }
+
     public stats(uri: string): Promise<LanguageServiceStats> {
         return this.send<LanguageServiceStats>({
             protocolVersion: workerProtocolVersion,
@@ -83,6 +126,113 @@ export class LanguageServiceWorkerClient {
             id: this.nextId(),
             uri,
             expectedVersion: this.requireVersion(uri),
+        });
+    }
+
+    public diagnostics(uri: string): Promise<WorkerDiagnostics> {
+        return this.send<WorkerDiagnostics>({
+            protocolVersion: workerProtocolVersion,
+            type: "diagnostics",
+            id: this.nextId(),
+            uri,
+            expectedVersion: this.requireVersion(uri),
+        });
+    }
+
+    public completion(uri: string, offset: number): Promise<CompletionResult> {
+        return this.send<CompletionResult>({
+            protocolVersion: workerProtocolVersion,
+            type: "completion",
+            id: this.nextId(),
+            uri,
+            expectedVersion: this.requireVersion(uri),
+            offset,
+        });
+    }
+
+    public hover(uri: string, offset: number): Promise<HoverResult | undefined> {
+        return this.send<HoverResult | undefined>({
+            protocolVersion: workerProtocolVersion,
+            type: "hover",
+            id: this.nextId(),
+            uri,
+            expectedVersion: this.requireVersion(uri),
+            offset,
+        });
+    }
+
+    public definition(uri: string, offset: number): Promise<DefinitionTarget> {
+        return this.send<DefinitionTarget>({
+            protocolVersion: workerProtocolVersion,
+            type: "definition",
+            id: this.nextId(),
+            uri,
+            expectedVersion: this.requireVersion(uri),
+            offset,
+        });
+    }
+
+    public references(uri: string, offset: number): Promise<readonly Location[]> {
+        return this.send<readonly Location[]>({
+            protocolVersion: workerProtocolVersion,
+            type: "references",
+            id: this.nextId(),
+            uri,
+            expectedVersion: this.requireVersion(uri),
+            offset,
+        });
+    }
+
+    public documentSymbols(uri: string): Promise<readonly DocumentSymbol[]> {
+        return this.send<readonly DocumentSymbol[]>({
+            protocolVersion: workerProtocolVersion,
+            type: "documentSymbols",
+            id: this.nextId(),
+            uri,
+            expectedVersion: this.requireVersion(uri),
+        });
+    }
+
+    public foldingRanges(uri: string): Promise<readonly FoldingRange[]> {
+        return this.send<readonly FoldingRange[]>({
+            protocolVersion: workerProtocolVersion,
+            type: "foldingRanges",
+            id: this.nextId(),
+            uri,
+            expectedVersion: this.requireVersion(uri),
+        });
+    }
+
+    public selectionRanges(uri: string, offsets: readonly number[]): Promise<readonly TextRange[]> {
+        return this.send<readonly TextRange[]>({
+            protocolVersion: workerProtocolVersion,
+            type: "selectionRanges",
+            id: this.nextId(),
+            uri,
+            expectedVersion: this.requireVersion(uri),
+            offsets,
+        });
+    }
+
+    public signatureHelp(uri: string, offset: number): Promise<SignatureHelp | undefined> {
+        return this.send<SignatureHelp | undefined>({
+            protocolVersion: workerProtocolVersion,
+            type: "signatureHelp",
+            id: this.nextId(),
+            uri,
+            expectedVersion: this.requireVersion(uri),
+            offset,
+        });
+    }
+
+    public coloring(uri: string, range?: TextRange): Promise<FullColorizationResult> {
+        return this.send<FullColorizationResult>({
+            protocolVersion: workerProtocolVersion,
+            type: "coloring",
+            id: this.nextId(),
+            uri,
+            expectedVersion: this.requireVersion(uri),
+            ...(range ? { range } : {}),
         });
     }
 

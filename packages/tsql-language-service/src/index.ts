@@ -13,6 +13,7 @@ export * from "./metadata/index.js";
 export * from "./observability/index.js";
 export * from "./runtime/index.js";
 export * from "./semantics/index.js";
+export * from "./sqlcmd/index.js";
 export * from "./syntax/index.js";
 export * from "./text/index.js";
 export * from "./worker/index.js";

@@ -3,10 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { analysisProfileKey, resolveAnalysisProfile } from "../common/analysisProfile.js";
 import { lookupBuiltIn } from "../common/builtInRegistry.js";
+import { resolveAnalysisProfile } from "../common/analysisProfile.js";
 import type { ColumnMetadata, ObjectMetadata, ObjectRef } from "../metadata/index.js";
 import type { SyntaxNode } from "../syntax/index.js";
+import {
+    descendantsOfKind as descendants,
+    directChildOfKind as directChild,
+    firstDescendantOfKind as firstDescendant,
+    lastDescendantOfKind as lastDescendant,
+    visitSyntaxTree as visit,
+} from "../syntax/treeUtilities.js";
 import type { TextRange } from "../text/index.js";
 import type {
     BindInput,
@@ -22,7 +29,13 @@ import {
     collectTsqlSemanticDiagnosticsWithState,
     type TsqlSemanticDiagnosticState,
 } from "./tsqlSemanticDiagnostics.js";
+import { platformSemanticDiagnostics } from "./platformSemanticDiagnostics.js";
 import { vectorSemanticDiagnostics } from "./vectorSemanticDiagnostics.js";
+import {
+    hashSemanticText as hashText,
+    planReusableUnits,
+    semanticEnvironmentIsPositionStable,
+} from "./semanticReuse.js";
 
 /**
  * Binds catalog-backed object references without constructing an eager typed AST. The binder walks
@@ -105,6 +118,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     : normalizeIdentifier(value).toLocaleLowerCase();
             const unitDiagnostics = [
                 ...vectorSemanticDiagnostics(input.syntax, batch),
+                ...platformSemanticDiagnostics(input.syntax, batch, input.metadata),
                 ...tsqlDiagnostics.filter(
                     (diagnostic) =>
                         batch.start <= diagnostic.range.start && diagnostic.range.end <= batch.end,
@@ -701,6 +715,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
         return new CatalogSemanticSnapshot(
             input.syntax.document.version,
             input.metadata.generation,
+            input.syntax.profileGeneration,
             Object.freeze(units),
             symbols,
             referencesBySymbol,
@@ -718,247 +733,13 @@ export class CatalogSemanticBinder implements SemanticBinder {
     }
 }
 
-interface SemanticReusePlan {
-    readonly units: readonly (BoundUnit | undefined)[];
-    readonly incomingVersions: readonly string[];
-    readonly exportedVersions: readonly string[];
-}
-
-function semanticEnvironmentIsPositionStable(
-    batches: readonly SyntaxNode[],
-    plan: SemanticReusePlan,
-    previous: CatalogSemanticSnapshot,
-): boolean {
-    return (
-        batches.length === previous.units.length &&
-        batches.every((batch, index) => {
-            const prior = previous.units[index];
-            return (
-                prior !== undefined &&
-                batch.start === prior.range.start &&
-                batch.end === prior.range.end &&
-                plan.incomingVersions[index] === prior.incomingEnvironmentVersion &&
-                plan.exportedVersions[index] === prior.exportedEnvironmentVersion
-            );
-        })
-    );
-}
-
-function planReusableUnits(
-    input: BindInput,
-    batches: readonly SyntaxNode[],
-    previous?: SemanticSnapshot,
-): SemanticReusePlan {
-    const versions = semanticEnvironmentVersions(input, batches, previous);
-    const units: (BoundUnit | undefined)[] = Array.from({ length: batches.length });
-    if (!previous || previous.metadataGeneration !== input.metadata.generation) {
-        return { units, ...versions };
-    }
-
-    const usedPriorUnits = new Set<BoundUnit>();
-    for (const [index, batch] of batches.entries()) {
-        const prior = previous.units[index];
-        if (
-            !prior ||
-            !batchIsUnchangedAtSamePosition(input, batch, prior, previous) ||
-            prior.incomingEnvironmentVersion !== versions.incomingVersions[index] ||
-            prior.exportedEnvironmentVersion !== versions.exportedVersions[index]
-        ) {
-            continue;
-        }
-        units[index] = prior;
-        usedPriorUnits.add(prior);
-    }
-
-    const candidates = new Map<string, BoundUnit[]>();
-    for (const prior of previous.units) {
-        if (usedPriorUnits.has(prior)) continue;
-        const key = reusableUnitKey(
-            prior.range.end - prior.range.start,
-            fingerprintHash(prior.syntaxFingerprint),
-            prior.incomingEnvironmentVersion,
-            prior.exportedEnvironmentVersion,
-        );
-        const queue = candidates.get(key) ?? [];
-        queue.push(prior);
-        candidates.set(key, queue);
-    }
-    for (const [index, batch] of batches.entries()) {
-        if (units[index]) continue;
-        const contentHash = hashText(input.syntax.document.text.slice(batch.start, batch.end));
-        const key = reusableUnitKey(
-            batch.end - batch.start,
-            contentHash,
-            versions.incomingVersions[index]!,
-            versions.exportedVersions[index]!,
-        );
-        const prior = candidates.get(key)?.shift();
-        if (!prior) continue;
-        units[index] = shiftBoundUnit(
-            prior,
-            batch,
-            contentHash,
-            versions.incomingVersions[index]!,
-            versions.exportedVersions[index]!,
-        );
-    }
-    return { units, ...versions };
-}
-
-function reusableUnitKey(
-    length: number,
-    contentHash: string,
-    incomingEnvironmentVersion: string,
-    exportedEnvironmentVersion: string,
-): string {
-    return `${length}:${contentHash}:${incomingEnvironmentVersion}:${exportedEnvironmentVersion}`;
-}
-
-function semanticEnvironmentVersions(
-    input: BindInput,
-    batches: readonly SyntaxNode[],
-    previous?: SemanticSnapshot,
-): {
-    readonly incomingVersions: readonly string[];
-    readonly exportedVersions: readonly string[];
-} {
-    const incomingVersions: string[] = [];
-    const exportedVersions: string[] = [];
-    // The profile changes which diagnostics a statement produces, so it is part of the reuse key.
-    let environment = `semantic:${input.metadata.generation}:${analysisProfileKey(
-        resolveAnalysisProfile(input.profile),
-    )}`;
-    for (const [index, batch] of batches.entries()) {
-        incomingVersions.push(environment);
-        const prior = previous?.units[index];
-        if (
-            previous?.metadataGeneration === input.metadata.generation &&
-            prior &&
-            prior.incomingEnvironmentVersion === environment &&
-            batchIsUnchangedAtSamePosition(input, batch, prior, previous)
-        ) {
-            environment = prior.exportedEnvironmentVersion;
-            exportedVersions.push(environment);
-            continue;
-        }
-        const exported = semanticExportFingerprint(input.syntax, batch);
-        if (exported)
-            environment = `semantic:${input.metadata.generation}:${hashText(`${environment}\0${exported}`)}`;
-        exportedVersions.push(environment);
-    }
-    return { incomingVersions, exportedVersions };
-}
-
-function batchIsUnchangedAtSamePosition(
-    input: BindInput,
-    batch: SyntaxNode,
-    prior: BoundUnit,
-    previous: SemanticSnapshot,
-): boolean {
-    if (batch.start !== prior.range.start || batch.end !== prior.range.end) return false;
-    if (input.syntax.document.version === previous.documentVersion) return true;
-    if (!input.changedRanges) return false;
-    return input.changedRanges.every((range) => !rangesIntersect(range, batch));
-}
-
-function rangesIntersect(left: TextRange, right: TextRange): boolean {
-    if (left.start === left.end) return right.start <= left.start && left.start <= right.end;
-    return left.start < right.end && right.start < left.end;
-}
-
-function semanticExportFingerprint(syntax: BindInput["syntax"], batch: SyntaxNode): string {
-    const exports: string[] = [];
-    visit(batch, (node) => {
-        if (
-            node.kind === "UseStatement" ||
-            node.kind === "IntoClause" ||
-            /^(?:Create|Alter|Drop).+Statement$/u.test(node.kind)
-        ) {
-            exports.push(
-                `${node.kind}:${node.start - batch.start}:${hashText(
-                    syntax.document.text.slice(node.start, node.end),
-                )}`,
-            );
-        }
-    });
-    return exports.length === 0 ? "" : hashText(exports.join("\0"));
-}
-
-function fingerprintHash(fingerprint: string): string {
-    return fingerprint.slice(fingerprint.lastIndexOf(":") + 1);
-}
-
-function shiftBoundUnit(
-    unit: BoundUnit,
-    batch: SyntaxNode,
-    contentHash: string,
-    incomingEnvironmentVersion: string,
-    exportedEnvironmentVersion: string,
-): BoundUnit {
-    const delta = batch.start - unit.range.start;
-    if (
-        delta === 0 &&
-        unit.incomingEnvironmentVersion === incomingEnvironmentVersion &&
-        unit.exportedEnvironmentVersion === exportedEnvironmentVersion
-    ) {
-        return unit;
-    }
-    const shiftId = (id: SymbolId): SymbolId => shiftSymbolId(id, unit.range.start, delta);
-    const symbols = unit.symbols.map((symbol) =>
-        Object.freeze({
-            ...symbol,
-            id: shiftId(symbol.id),
-            ...(symbol.declaration ? { declaration: shiftRange(symbol.declaration, delta) } : {}),
-        }),
-    );
-    const references = unit.references.map((reference) =>
-        Object.freeze({
-            ...reference,
-            start: reference.start + delta,
-            end: reference.end + delta,
-            ...(reference.symbol ? { symbol: shiftId(reference.symbol) } : {}),
-        }),
-    );
-    const diagnostics = unit.diagnostics.map((diagnostic) =>
-        Object.freeze({
-            ...diagnostic,
-            range: shiftRange(diagnostic.range, delta),
-        }),
-    );
-    return Object.freeze({
-        ...unit,
-        range: Object.freeze({ start: batch.start, end: batch.end }),
-        syntaxFingerprint: `${batch.start}:${batch.end}:${contentHash}`,
-        incomingEnvironmentVersion,
-        exportedEnvironmentVersion,
-        symbols: Object.freeze(symbols),
-        references: Object.freeze(references),
-        diagnostics: Object.freeze(diagnostics),
-    });
-}
-
-function shiftSymbolId(id: SymbolId, oldBatchStart: number, delta: number): SymbolId {
-    const batchScoped = /^(variable|cte|local-table):(\d+):/u.exec(id);
-    if (batchScoped && Number(batchScoped[2]) === oldBatchStart) {
-        return `${batchScoped[1]}:${oldBatchStart + delta}:${id.slice(batchScoped[0].length)}`;
-    }
-    const positionScoped = /^(alias|rowset):(\d+):/u.exec(id);
-    if (positionScoped) {
-        return `${positionScoped[1]}:${Number(positionScoped[2]) + delta}:${id.slice(positionScoped[0].length)}`;
-    }
-    return id;
-}
-
-function shiftRange(range: TextRange, delta: number): TextRange {
-    return Object.freeze({ start: range.start + delta, end: range.end + delta });
-}
-
 class CatalogSemanticSnapshot implements SemanticSnapshot {
     public readonly statistics;
 
     public constructor(
         public readonly documentVersion: number,
         public readonly metadataGeneration: number,
+        public readonly profileGeneration: string,
         public readonly units: readonly BoundUnit[],
         private readonly _symbols: ReadonlyMap<SymbolId, SemanticSymbol>,
         private readonly _references: ReadonlyMap<SymbolId, readonly BoundReference[]>,
@@ -1172,40 +953,6 @@ function catalogSymbol(object: ObjectMetadata): SemanticSymbol {
     };
 }
 
-function visit(node: SyntaxNode, callback: (node: SyntaxNode) => void): void {
-    callback(node);
-    for (const child of node.children()) visit(child, callback);
-}
-
-function firstDescendant(node: SyntaxNode, kind: string): SyntaxNode | undefined {
-    for (const child of node.children()) {
-        if (child.kind === kind) return child;
-        const nested = firstDescendant(child, kind);
-        if (nested) return nested;
-    }
-    return undefined;
-}
-
-function lastDescendant(node: SyntaxNode, kind: string): SyntaxNode | undefined {
-    let result: SyntaxNode | undefined;
-    visit(node, (candidate) => {
-        if (candidate.kind === kind) result = candidate;
-    });
-    return result;
-}
-
-function descendants(node: SyntaxNode, kind: string): SyntaxNode[] {
-    const result: SyntaxNode[] = [];
-    visit(node, (candidate) => {
-        if (candidate !== node && candidate.kind === kind) result.push(candidate);
-    });
-    return result;
-}
-
-function directChild(node: SyntaxNode, kind: string): SyntaxNode | undefined {
-    return [...node.children()].find((child) => child.kind === kind);
-}
-
 function identifierPartRanges(node: SyntaxNode, text: string): readonly TextRange[] {
     const result: TextRange[] = [];
     const matcher = /\[(?:[^\]]|\]\])*\]|"(?:[^"]|"")*"|[^.\s]+/gu;
@@ -1234,15 +981,6 @@ export function normalizeIdentifier(value: string): string {
         return value.slice(1, -1).replaceAll('""', '"');
     }
     return value;
-}
-
-function hashText(text: string): string {
-    let hash = 2166136261;
-    for (let index = 0; index < text.length; index++) {
-        hash ^= text.charCodeAt(index);
-        hash = Math.imul(hash, 16777619);
-    }
-    return (hash >>> 0).toString(16);
 }
 
 function rangeKey(range: TextRange): string {

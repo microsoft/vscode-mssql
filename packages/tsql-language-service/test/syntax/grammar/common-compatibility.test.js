@@ -15,7 +15,7 @@ suite("T-SQL compatibility grammar", () => {
             `CREATE MATERIALIZED VIEW mv WITH (DISTRIBUTION = HASH(c1, c2), FOR_APPEND)
 AS SELECT c1, c2 FROM dbo.t GROUP BY c1, c2;
 ALTER MATERIALIZED VIEW mv REBUILD;`,
-            profile("azure-synapse"),
+            profile("azure-synapse-dedicated"),
         );
 
         assert.deepEqual(snapshot.diagnostics, []);
@@ -57,11 +57,11 @@ DROP ROUTE outbound_route;`);
     });
 });
 
-function profile(engineFlavor = "sql-server") {
+function profile(engineProfile = "sql-server") {
     return {
         serverMajorVersion: 17,
         compatibilityLevel: 170,
-        engineFlavor,
+        engineProfile,
         previewFeatures: false,
     };
 }

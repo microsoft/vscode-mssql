@@ -15,7 +15,11 @@ import type {
 /** Empty binder used to exercise document, worker, metadata, and stale-result plumbing. */
 export class ScaffoldSemanticBinder implements SemanticBinder {
     public bind(input: BindInput): SemanticSnapshot {
-        return new EmptySemanticSnapshot(input.syntax.document.version, input.metadata.generation);
+        return new EmptySemanticSnapshot(
+            input.syntax.document.version,
+            input.metadata.generation,
+            input.syntax.profileGeneration,
+        );
     }
 
     public update(_previous: SemanticSnapshot, input: BindInput): SemanticSnapshot {
@@ -36,6 +40,7 @@ class EmptySemanticSnapshot implements SemanticSnapshot {
     public constructor(
         public readonly documentVersion: number,
         public readonly metadataGeneration: number,
+        public readonly profileGeneration: string,
     ) {}
 
     public symbolAt(_offset: number): SemanticSymbol | undefined {

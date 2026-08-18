@@ -28,7 +28,7 @@ suite("T-SQL semantic table functions, federated tables, and constraint enforcem
         const legacy = createSyntaxHarness("legacy.sql", {
             serverMajorVersion: 17,
             compatibilityLevel: 90,
-            engineFlavor: "sql-server",
+            engineProfile: "sql-server",
             previewFeatures: false,
         });
         for (const sql of [
@@ -46,7 +46,9 @@ suite("T-SQL semantic table functions, federated tables, and constraint enforcem
         assert.equal(snapshot.statistics.rawErrorNodeCount, 0);
         assert.deepEqual(
             snapshot.diagnostics.map(({ message }) => message),
-            ["Statement 'DUMP' is not supported in this version of SQL Server."],
+            [
+                "The DUMP statement is not available on SQL Server 2025 (compatibility level 170). It was removed after database compatibility level 90.",
+            ],
         );
     });
 
@@ -63,7 +65,7 @@ suite("T-SQL semantic table functions, federated tables, and constraint enforcem
         const legacy = createSyntaxHarness("legacy-disk.sql", {
             serverMajorVersion: 17,
             compatibilityLevel: 80,
-            engineFlavor: "sql-server",
+            engineProfile: "sql-server",
             previewFeatures: false,
         });
         legacy.assertValid(

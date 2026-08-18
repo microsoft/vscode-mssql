@@ -12,8 +12,10 @@ import {
     SimpleQueryMetadataAdapter,
     TsqlColorizationService,
     TsqlLanguageFeatureService,
+    unknownEngineCapabilities,
     type CompletionItem as ServiceCompletionItem,
     type DocumentAnalysisSnapshot,
+    type EngineFacts,
     type FullColorizationResult,
     type LanguageServiceRuntime,
     type LanguageServiceStats,
@@ -80,9 +82,10 @@ interface PreviewDocumentState {
     lastRefreshMs?: number;
     lastRefreshError?: string;
     rebindQueued: boolean;
-    rebindAfterRefresh: boolean;
     lastDefinitionMs?: number;
     lastDefinitionError?: string;
+    /** The engine identity the runtime last adopted, so an unchanged connection reprofiles once. */
+    profileGeneration: string;
     semanticTokens?: PreviewSemanticTokenCache;
     disposed: boolean;
 }
@@ -287,8 +290,11 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         if (this._documents.has(key)) return;
 
         const metadata = this.createMetadataProvider(key);
+        // The engine is unidentified until the connection reports one. Nothing here constructs a
+        // SQL Server profile by default, so an unconnected or still-connecting document never
+        // receives a platform restriction the server never asked for.
         const runtime = new InProcessLanguageServiceRuntime(
-            new LezerSyntaxService(),
+            new LezerSyntaxService(undefined, unknownEngineCapabilities),
             new CatalogSemanticBinder(),
             metadata,
         );
@@ -305,7 +311,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             syncedText: document.getText(),
             refreshing: false,
             rebindQueued: false,
-            rebindAfterRefresh: false,
+            profileGeneration: runtime.capabilities.generation,
             disposed: false,
         };
         state.disposables.push(
@@ -316,12 +322,10 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             ),
             asVscodeDisposable(
                 metadata.onDidChange(() => {
-                    if (state.refreshing) {
-                        state.rebindAfterRefresh = true;
-                        this.fireStatusChanged(state);
-                    } else {
-                        this.scheduleRebind(state);
-                    }
+                    // A published metadata generation can be the first to report the engine's
+                    // compatibility level, so the profile is re-resolved before rebinding.
+                    this.scheduleReprofile(state);
+                    if (state.refreshing) this.fireStatusChanged(state);
                 }),
             ),
         );
@@ -333,6 +337,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         });
 
         if (this._controller.connectionManager.isConnected(key)) {
+            this.scheduleReprofile(state);
             void this.refreshState(state, false);
         }
         this.fireStatusChanged(state);
@@ -426,6 +431,77 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             });
     }
 
+    /**
+     * Adopts the connected engine's facts and republishes the document under the resolved profile.
+     *
+     * The runtime reuses the retained parse, so a connection or database change costs a rebind
+     * rather than a reparse. Facts that resolve to the profile already in force do nothing.
+     */
+    private scheduleReprofile(state: PreviewDocumentState): void {
+        this.enqueue(state, async () => {
+            if (state.disposed) return;
+            // Facts are read when the reprofile runs rather than when it was queued, so a
+            // connection that changed while the queue drained is not adopted from stale values.
+            const capabilities = await state.runtime.setEngineFacts(this.engineFacts(state));
+            if (capabilities.generation === state.profileGeneration) {
+                // Metadata commonly publishes while refreshState still owns the refresh indicator.
+                // Queue the rebind even then: scheduleRebind coalesces duplicate publications and
+                // runs after this operation, while setEngineFacts already handled the changed-
+                // generation case below.
+                this.scheduleRebind(state);
+                return;
+            }
+            state.profileGeneration = capabilities.generation;
+            try {
+                const snapshot = state.runtime.snapshot(state.connectionUri, state.syncedVersion);
+                this.publishDiagnostics(state, snapshot);
+            } catch {
+                // The document moved on while the profile was adopted; the next edit republishes.
+                return;
+            }
+            // Availability changes what completion offers and how names are classified, and no
+            // edit accompanies it, so the editor is asked to refresh coloring.
+            this._semanticTokensChanged.fire();
+            this.fireStatusChanged(state);
+        });
+    }
+
+    /**
+     * The server facts the profile resolver reads.
+     *
+     * The engine edition comes from the connection, which knows it before any catalog query runs.
+     * The product version and compatibility level come from the published metadata environment,
+     * because that is where `SERVERPROPERTY('ProductVersion')` is actually read; the connection's
+     * own version fields are only composed as a fallback, since `IServerInfo.serverVersion` is
+     * display text rather than a parseable version. A missing fact is left out, never defaulted.
+     */
+    private engineFacts(state: PreviewDocumentState): EngineFacts | undefined {
+        const info = this.serverInfo(state.connectionUri);
+        const credentials = this._controller.connectionManager.getConnectionInfoFromUri(
+            state.connectionUri,
+        );
+        const environment = state.metadata.pin().environment;
+        const facts: {
+            engineEdition?: number;
+            serverVersion?: string;
+            compatibilityLevel?: number;
+            serverName?: string;
+        } = {};
+        if (typeof info?.engineEditionId === "number") facts.engineEdition = info.engineEditionId;
+        const serverVersion =
+            environment.serverVersion ??
+            (typeof info?.serverMajorVersion === "number"
+                ? `${info.serverMajorVersion}.${info.serverMinorVersion ?? 0}.${info.serverReleaseVersion ?? 0}`
+                : undefined);
+        if (serverVersion) facts.serverVersion = serverVersion;
+        if (typeof environment.compatibilityLevel === "number") {
+            facts.compatibilityLevel = environment.compatibilityLevel;
+        }
+        const serverName = credentials?.server ?? environment.serverName;
+        if (serverName) facts.serverName = serverName;
+        return Object.keys(facts).length === 0 ? undefined : facts;
+    }
+
     private scheduleRebind(state: PreviewDocumentState): void {
         if (state.rebindQueued) return;
         state.rebindQueued = true;
@@ -504,10 +580,6 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             }
         } finally {
             state.refreshing = false;
-            if (state.rebindAfterRefresh) {
-                state.rebindAfterRefresh = false;
-                this.scheduleRebind(state);
-            }
             this.fireStatusChanged(state);
         }
     }
@@ -539,10 +611,6 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         } finally {
             if (ownsRefreshIndicator && !state.disposed) {
                 state.refreshing = false;
-                if (state.rebindAfterRefresh) {
-                    state.rebindAfterRefresh = false;
-                    this.scheduleRebind(state);
-                }
                 this.fireStatusChanged(state);
             }
         }
@@ -696,6 +764,19 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                         references: "preview-not-implemented",
                         formatting: "preview-not-implemented",
                     },
+                    engine: state
+                        ? {
+                              profile: state.runtime.capabilities.engineProfile,
+                              generation: state.runtime.capabilities.generation,
+                              displayName: state.runtime.capabilities.displayName,
+                              source: state.runtime.capabilities.resolution.source,
+                              reason: state.runtime.capabilities.resolution.reason,
+                              serverMajorVersion: state.runtime.capabilities.serverMajorVersion,
+                              compatibilityLevel: state.runtime.capabilities.compatibilityLevel,
+                              previewFeatures: state.runtime.capabilities.previewFeatures,
+                              capabilities: state.runtime.capabilities.capabilities,
+                          }
+                        : null,
                     lastDefinitionMs: state?.lastDefinitionMs,
                     lastDefinitionError: state?.lastDefinitionError,
                     metadataRefreshInProgress: state?.refreshing ?? false,

@@ -3,7 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { EngineCapabilities } from "../common/engineCapabilities.js";
+import type { EngineFacts } from "../common/engineProfile.js";
 import type { LanguageServiceStats } from "../observability/index.js";
+import type { FullColorizationResult } from "../coloring/index.js";
+import type {
+    CompletionResult,
+    DefinitionTarget,
+    DocumentSymbol,
+    FoldingRange,
+    HoverResult,
+    Location,
+    SignatureHelp,
+} from "../features/index.js";
+import type { SemanticDiagnostic } from "../semantics/index.js";
+import type { SyntaxDiagnostic } from "../syntax/index.js";
+import type { TextRange } from "../text/index.js";
 import type { TextChange } from "../text/index.js";
 
 export const workerProtocolVersion = 1;
@@ -11,6 +26,11 @@ export const workerProtocolVersion = 1;
 interface RequestBase {
     readonly protocolVersion: typeof workerProtocolVersion;
     readonly id: number;
+}
+
+interface DocumentRequest extends RequestBase {
+    readonly uri: string;
+    readonly expectedVersion: number;
 }
 
 export type WorkerRequest =
@@ -38,11 +58,41 @@ export type WorkerRequest =
           readonly uri: string;
           readonly expectedVersion: number;
       })
+    | (RequestBase & {
+          /**
+           * Reports newly observed server facts. Only serializable facts cross the boundary; a
+           * connection object, credential, or resolver never does.
+           */
+          readonly type: "engineFacts";
+          /** Absent changes the default and every open document; present changes only this URI. */
+          readonly uri?: string;
+          readonly facts?: EngineFacts;
+      })
+    | (DocumentRequest & { readonly type: "diagnostics" })
+    | (DocumentRequest & { readonly type: "completion"; readonly offset: number })
+    | (DocumentRequest & { readonly type: "hover"; readonly offset: number })
+    | (DocumentRequest & { readonly type: "definition"; readonly offset: number })
+    | (DocumentRequest & { readonly type: "references"; readonly offset: number })
+    | (DocumentRequest & { readonly type: "documentSymbols" })
+    | (DocumentRequest & { readonly type: "foldingRanges" })
+    | (DocumentRequest & { readonly type: "selectionRanges"; readonly offsets: readonly number[] })
+    | (DocumentRequest & { readonly type: "signatureHelp"; readonly offset: number })
+    | (DocumentRequest & { readonly type: "coloring"; readonly range?: TextRange })
     | {
           readonly protocolVersion: typeof workerProtocolVersion;
           readonly type: "cancel";
           readonly id: number;
       };
+
+/** The serializable projection of the worker's engine capabilities. */
+export interface WorkerEngineCapabilities {
+    readonly profile: EngineCapabilities["engineProfile"];
+    readonly generation: string;
+    readonly displayName: string;
+    readonly serverMajorVersion?: number;
+    readonly compatibilityLevel?: number;
+    readonly previewFeatures: boolean;
+}
 
 export interface WorkerDocumentSummary {
     readonly uri: string;
@@ -51,7 +101,29 @@ export interface WorkerDocumentSummary {
     readonly syntaxErrorCount: number;
     readonly semanticDiagnosticCount: number;
     readonly workerElapsedMs: number;
+    /** The engine profile identity the worker produced this result under. */
+    readonly profileGeneration: string;
+    /** Availability diagnostics inside `syntaxErrorCount`, so a host can total them separately. */
+    readonly availabilityDiagnosticCount: number;
 }
+
+export interface WorkerDiagnostics {
+    readonly syntax: readonly SyntaxDiagnostic[];
+    readonly semantic: readonly SemanticDiagnostic[];
+}
+
+export type WorkerFeatureResult =
+    | WorkerDiagnostics
+    | CompletionResult
+    | HoverResult
+    | DefinitionTarget
+    | readonly Location[]
+    | readonly DocumentSymbol[]
+    | readonly FoldingRange[]
+    | readonly TextRange[]
+    | SignatureHelp
+    | FullColorizationResult
+    | undefined;
 
 export type WorkerResponse =
     | {
@@ -60,7 +132,12 @@ export type WorkerResponse =
           readonly id: number;
           readonly ok: true;
           readonly documentVersion?: number;
-          readonly result: WorkerDocumentSummary | LanguageServiceStats | boolean;
+          readonly result:
+              | WorkerDocumentSummary
+              | LanguageServiceStats
+              | WorkerEngineCapabilities
+              | WorkerFeatureResult
+              | boolean;
       }
     | {
           readonly protocolVersion: typeof workerProtocolVersion;

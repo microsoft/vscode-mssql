@@ -11,8 +11,10 @@ import {
     ExecuteInvalidInlineOption,
     ExecuteInvalidNullInputOption,
     ExecuteInvalidSimpleOption,
+    Dot,
     Go,
     Label,
+    LeadingDot,
     Match,
     MoneyLiteral,
     UpdatePredicateKeyword,
@@ -53,6 +55,29 @@ const moneySigns = new Set([
     0x0024, 0x00a3, 0x00a4, 0x00a5, 0x09f2, 0x09f3, 0x0e3f, 0x20ac, 0x20a1, 0x20a2, 0x20a3, 0x20a4,
     0x20a6, 0x20a7, 0x20a8, 0x20a9, 0x20aa, 0x20ab,
 ]);
+
+/**
+ * A `.` that begins a name rather than continuing one.
+ *
+ * SQL Server lets a multipart name omit its leading components, so `..t1.c1` and `master..t1.c1`
+ * name an object whose server or database parts are left out. Expressing that with the ordinary
+ * `Dot` makes the grammar ambiguous: in `EXEC name . proc` the parser cannot tell whether the dot
+ * continues the name it is holding or starts a new omitted one, and both readings are legitimate,
+ * so no additional rule resolves it.
+ *
+ * The choice is made here instead, where it is decidable. A leading dot is emitted only where the
+ * parser cannot already shift an ordinary `Dot` — that is, only where no name is in progress — so
+ * the two tokens are mutually exclusive by construction and the parser never has to choose.
+ */
+export const leadingDotToken = new ExternalTokenizer((input, stack) => {
+    if (input.next !== period) return;
+    if (!stack.canShift(LeadingDot)) return;
+    // A name already in progress continues with an ordinary dot; only a name that has not started
+    // yet may begin with one.
+    if (stack.canShift(Dot)) return;
+    input.advance();
+    input.acceptToken(LeadingDot);
+});
 
 export const sqlServerTokens = new ExternalTokenizer((input, stack) => {
     if (isHorizontalSpace(input.next)) {
