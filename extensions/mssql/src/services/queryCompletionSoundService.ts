@@ -5,14 +5,19 @@
 
 import { spawn, SpawnOptions } from "child_process";
 import { stat } from "fs/promises";
-import { homedir } from "os";
+import { arch, homedir, release, type, version } from "os";
 import * as path from "path";
 import * as vscode from "vscode";
+import { sendActionEvent } from "extension-toolkit/vscode";
 import * as Constants from "../constants/constants";
 import { logger } from "../models/logger";
 import { ILogger } from "../sharedInterfaces/logger";
+import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 const maximumPlaybackMilliseconds = 5_000;
+const bundledCompletionSoundFile = "query-complete.mp3";
+
+type PlaybackFailureStage = "systemSound" | "bundledSound";
 
 interface AudioCommand {
     command: string;
@@ -39,22 +44,38 @@ export type SpawnAudioProcess = (
 
 export interface QueryCompletionSoundServiceDependencies {
     platform: NodeJS.Platform;
+    architecture: string;
     spawnProcess: SpawnAudioProcess;
     statFile: (file: string) => Promise<{ isFile(): boolean }>;
     homeDirectory: () => string;
+    osType: () => string;
+    osRelease: () => string;
+    osVersion: () => string;
+    sendPlaybackFailureTelemetry: (properties: Record<string, string>) => void;
     logger: ILogger;
 }
 
 const defaultDependencies: QueryCompletionSoundServiceDependencies = {
     platform: process.platform,
+    architecture: arch(),
     spawnProcess: spawn,
     statFile: stat,
     homeDirectory: homedir,
+    osType: type,
+    osRelease: release,
+    osVersion: version,
+    sendPlaybackFailureTelemetry: (properties) =>
+        sendActionEvent(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.QueryCompletionSoundPlaybackFailed,
+            properties,
+        ),
     logger: logger.withPrefix("QueryCompletionSoundService"),
 };
 
 export class QueryCompletionSoundService {
     constructor(
+        private readonly _extensionPath: string,
         private readonly _dependencies: QueryCompletionSoundServiceDependencies = defaultDependencies,
     ) {}
 
@@ -85,11 +106,40 @@ export class QueryCompletionSoundService {
         }
 
         const defaultSoundPlayed = await this.runCommands(this.getDefaultAudioCommands());
-        if (!defaultSoundPlayed) {
-            this._dependencies.logger.warn(
-                "Unable to play a query completion sound because no supported audio player was available.",
-            );
+        if (defaultSoundPlayed) {
+            return;
         }
+
+        this._dependencies.logger.warn(
+            "Unable to play the default system query completion sound. Falling back to the bundled sound.",
+        );
+        this.emitPlaybackFailureTelemetry("systemSound");
+
+        const bundledAudioFile = path.join(
+            this._extensionPath,
+            "media",
+            bundledCompletionSoundFile,
+        );
+        const bundledSoundPlayed = await this.runCommands(
+            this.getCustomAudioCommands(bundledAudioFile),
+        );
+        if (!bundledSoundPlayed) {
+            this._dependencies.logger.warn(
+                "Unable to play the bundled query completion sound because no supported audio player could be used.",
+            );
+            this.emitPlaybackFailureTelemetry("bundledSound");
+        }
+    }
+
+    private emitPlaybackFailureTelemetry(failureStage: PlaybackFailureStage): void {
+        this._dependencies.sendPlaybackFailureTelemetry({
+            failureStage,
+            platform: this._dependencies.platform,
+            architecture: this._dependencies.architecture,
+            osType: this._dependencies.osType(),
+            osRelease: this._dependencies.osRelease(),
+            osVersion: this._dependencies.osVersion(),
+        });
     }
 
     private async getValidCustomAudioFile(configuredFile: string): Promise<string | undefined> {

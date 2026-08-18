@@ -32,12 +32,16 @@ suite("QueryCompletionSoundService", () => {
     let getConfigurationStub: sinon.SinonStub;
     let spawnProcessStub: sinon.SinonStub;
     let statFileStub: sinon.SinonStub;
+    let sendPlaybackFailureTelemetryStub: sinon.SinonStub;
+    let loggerWarnStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         getConfigurationStub = sandbox.stub(vscode.workspace, "getConfiguration");
         spawnProcessStub = sandbox.stub();
         statFileStub = sandbox.stub().resolves({ isFile: () => true });
+        sendPlaybackFailureTelemetryStub = sandbox.stub();
+        loggerWarnStub = sandbox.stub(logger, "warn");
     });
 
     teardown(() => {
@@ -58,12 +62,17 @@ suite("QueryCompletionSoundService", () => {
     ): QueryCompletionSoundService {
         const dependencies: QueryCompletionSoundServiceDependencies = {
             platform,
+            architecture: "test-architecture",
             spawnProcess: spawnProcessStub,
             statFile: statFileStub,
             homeDirectory: () => "/home/test-user",
+            osType: () => "test-os",
+            osRelease: () => "test-release",
+            osVersion: () => "test-version",
+            sendPlaybackFailureTelemetry: sendPlaybackFailureTelemetryStub,
             logger,
         };
-        return new QueryCompletionSoundService(dependencies);
+        return new QueryCompletionSoundService("/extension", dependencies);
     }
 
     function returnSuccessfulProcess(): TestAudioProcess {
@@ -74,6 +83,15 @@ suite("QueryCompletionSoundService", () => {
                 audioProcess.emit("close", 0, null);
             });
             return audioProcess;
+        });
+        return audioProcess;
+    }
+
+    function createProcessThatClosesWith(code: number): TestAudioProcess {
+        const audioProcess = new TestAudioProcess();
+        setImmediate(() => {
+            audioProcess.emit("spawn");
+            audioProcess.emit("close", code, null);
         });
         return audioProcess;
     }
@@ -177,5 +195,95 @@ suite("QueryCompletionSoundService", () => {
                 "[System.Media.SystemSounds]::Asterisk.Play(); Start-Sleep -Milliseconds 1000",
             ]),
         );
+    });
+
+    test("plays the bundled MP3 when the default system sound fails", async () => {
+        setConfiguration(true);
+        spawnProcessStub.onFirstCall().returns(createProcessThatClosesWith(1));
+        spawnProcessStub.onSecondCall().returns(createProcessThatClosesWith(0));
+
+        await createService(Constants.Platform.Mac).play();
+
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
+            "/System/Library/Sounds/Glass.aiff",
+        ]);
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
+            "/extension/media/query-complete.mp3",
+        ]);
+        expect(sendPlaybackFailureTelemetryStub).to.have.been.calledWith({
+            failureStage: "systemSound",
+            platform: Constants.Platform.Mac,
+            architecture: "test-architecture",
+            osType: "test-os",
+            osRelease: "test-release",
+            osVersion: "test-version",
+        });
+        expect(loggerWarnStub).to.have.been.calledWith(
+            "Unable to play the default system query completion sound. Falling back to the bundled sound.",
+        );
+    });
+
+    test("emits telemetry when no player can play the bundled MP3", async () => {
+        setConfiguration(true);
+        spawnProcessStub.callsFake(() => createProcessThatClosesWith(1));
+
+        await createService(Constants.Platform.Linux).play();
+
+        expect(sendPlaybackFailureTelemetryStub).to.have.been.calledWithMatch({
+            failureStage: "systemSound",
+            platform: Constants.Platform.Linux,
+        });
+        expect(sendPlaybackFailureTelemetryStub).to.have.been.calledWithMatch({
+            failureStage: "bundledSound",
+            platform: Constants.Platform.Linux,
+        });
+        expect(loggerWarnStub).to.have.been.calledWith(
+            "Unable to play the bundled query completion sound because no supported audio player could be used.",
+        );
+    });
+
+    test("falls back through the system sound after a custom sound fails", async () => {
+        setConfiguration(true, "/sounds/complete.mp3");
+        spawnProcessStub.onFirstCall().returns(createProcessThatClosesWith(1));
+        spawnProcessStub.onSecondCall().returns(createProcessThatClosesWith(0));
+
+        await createService(Constants.Platform.Mac).play();
+
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
+            "/sounds/complete.mp3",
+        ]);
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
+            "/System/Library/Sounds/Glass.aiff",
+        ]);
+        expect(sendPlaybackFailureTelemetryStub).not.to.have.been.called;
+        expect(loggerWarnStub).to.have.been.calledWith(
+            'Unable to play the configured query completion sound "/sounds/complete.mp3". Falling back to the default sound.',
+        );
+    });
+
+    test("falls back from a custom sound through the system sound to the bundled MP3", async () => {
+        setConfiguration(true, "/sounds/complete.mp3");
+        spawnProcessStub.onFirstCall().returns(createProcessThatClosesWith(1));
+        spawnProcessStub.onSecondCall().returns(createProcessThatClosesWith(1));
+        spawnProcessStub.onThirdCall().returns(createProcessThatClosesWith(0));
+
+        await createService(Constants.Platform.Mac).play();
+
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
+            "/sounds/complete.mp3",
+        ]);
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
+            "/System/Library/Sounds/Glass.aiff",
+        ]);
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
+            "/extension/media/query-complete.mp3",
+        ]);
+        expect(sendPlaybackFailureTelemetryStub).to.have.been.calledWithMatch({
+            failureStage: "systemSound",
+            platform: Constants.Platform.Mac,
+        });
+        expect(sendPlaybackFailureTelemetryStub).not.to.have.been.calledWithMatch({
+            failureStage: "bundledSound",
+        });
     });
 });

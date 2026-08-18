@@ -59,13 +59,17 @@ export class SqlOutputContentProvider {
     private _queryExecutionInFlightUris: Set<string> = new Set();
     // Throttled state update functions per result URI (messages, results, etc.)
     private _stateUpdateThrottles: Map<string, ReturnType<typeof throttle>> = new Map();
+    private _queryCompletionSoundService: QueryCompletionSoundService;
 
     constructor(
         private _context: vscode.ExtensionContext,
         private _statusView: StatusView,
         private _executionPlanService: ExecutionPlanService,
-        private _queryCompletionSoundService: QueryCompletionSoundService = new QueryCompletionSoundService(),
+        queryCompletionSoundService?: QueryCompletionSoundService,
     ) {
+        this._queryCompletionSoundService =
+            queryCompletionSoundService ??
+            new QueryCompletionSoundService(this._context.extensionPath);
         /**
          * TODO: aaskhan
          * Remove query results management code from queryResultwebviewController so
