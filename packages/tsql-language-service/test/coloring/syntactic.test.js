@@ -163,6 +163,40 @@ suite("syntactic coloring", () => {
         assert.deepEqual(described, ["USE keyword", "master database"]);
     });
 
+    test("classifies a granted securable by the class the statement names", async () => {
+        const object = await colorize("GRANT SELECT ON dbo.Customers TO reader;");
+        assert.deepEqual(classificationOf(object.tokens, object.sql, "Customers"), {
+            type: "table",
+            modifiers: [],
+        });
+        const schema = await colorize("GRANT SELECT ON SCHEMA::dbo TO reader;");
+        assert.deepEqual(classificationOf(schema.tokens, schema.sql, "dbo"), {
+            type: "schema",
+            modifiers: [],
+        });
+        const database = await colorize("GRANT VIEW DEFINITION ON DATABASE::db TO reader;");
+        assert.deepEqual(classificationOf(database.tokens, database.sql, "db"), {
+            type: "database",
+            modifiers: [],
+        });
+    });
+
+    test("classifies a cursor the same way where it is declared and where it is used", async () => {
+        const { tokens, sql } = await colorize(
+            "DECLARE cur CURSOR FOR SELECT 1; OPEN cur; FETCH NEXT FROM cur; CLOSE cur;",
+        );
+        assert.deepEqual(classificationOf(tokens, sql, "cur", 0), {
+            type: "variable",
+            modifiers: ["declaration"],
+        });
+        for (const occurrence of [1, 2, 3]) {
+            assert.deepEqual(classificationOf(tokens, sql, "cur", occurrence), {
+                type: "variable",
+                modifiers: [],
+            });
+        }
+    });
+
     test("keeps an unrecognized name as a plain identifier", async () => {
         const { tokens, sql } = await colorize("CREATE SEQUENCE dbo.Counter AS int;");
         assert.deepEqual(classificationOf(tokens, sql, "Counter"), {

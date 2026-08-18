@@ -1629,3 +1629,96 @@ ArgumentList? CloseParen)`, which matches the product exactly. All five positive
   role. Built-in routines are recognized from a static name list, so a built-in absent from that list
   colors as an ordinary function. `system` is inferred from a `sys` qualifier and from global
   variables; the semantic snapshot carries no per-symbol system flag to use instead.
+
+### 2026-08-17 — folding ranges (user-directed, outside the milestone list) `[~]`
+
+- Status: `[~]` batches complete. Requested directly by the user, so it sits outside the six
+  milestones. The runbook lists folding as out of scope and routes it to a legacy provider in
+  release-preview mode; that routing is unchanged for the production client, but preview mode now
+  serves folding itself instead of losing it. Before this batch the isolation middleware suppressed
+  `provideFoldingRanges` while preview was enabled and nothing replaced it, so a preview user had no
+  folding at all.
+- Replaced the placeholder in `TsqlLanguageFeatureService.foldingRanges`, which returned every
+  multi-line node and therefore produced overlapping ranges that repeated a start line dozens of
+  times. `collectFoldingRanges` now derives ranges from the published snapshot and guarantees what a
+  host needs before converting them: more than one line each, one range per starting line, and
+  proper nesting. `FoldingRange` extends `TextRange` with an optional `comment`/`region` kind, so the
+  contract change is additive.
+- Structure: statements, module bodies, bracketed definition lists, subqueries, and `CASE` fold from
+  their own header line. `BEGIN`/`END` pairs are read from the block keywords rather than the
+  enclosing statement, so `BEGIN TRY` and `BEGIN CATCH` collapse separately. Wrapper nodes
+  (`Statement`, `ProceduralStatement`) and the `Script`/`Batch` nodes the mixed parser mounts inside
+  a module body are transparent, otherwise a block would take its arrow from its first body line.
+  A batch folds only when `GO` actually groups several statements, so a script without batch
+  separators does not offer to collapse itself.
+- Trivia: a parse tree hands trailing trivia to the construct before it, so a procedure appeared to
+  reach through the blank line and trailing comment after its `END`. Structural ends now snap back
+  to the last code token they contain; comment and region folds keep their own ends.
+- Registering a folding provider replaces the editor indentation fallback, which owns the
+  `-- #region` markers declared in `syntaxes/sql.configuration.json`. The service emits those markers
+  itself, along with block comments and runs of line comments, so nothing the configuration promised
+  disappears.
+- Files and tests: `src/features/foldingRanges.ts` (new), `src/features/contracts.ts`,
+  `src/features/tsqlLanguageFeatureService.ts`, `src/features/index.ts`;
+  `test/features/folding/{folding,runtime}.test.js` (20 tests), `test/support/foldingHarness.js`;
+  `extensions/mssql/src/languageservice/preview/previewFoldingRanges.ts` and the provider in
+  `previewLanguageService.ts`; `extensions/mssql/test/unit/previewFoldingRanges.test.ts` (5 tests).
+  `SemanticTokenLineSource` became `DocumentLineSource` now that two adapters share it.
+- Focused / fast / corpus / performance results: offline suite **1,007/1,007** (987 before this
+  batch); corpus and performance lanes unchanged and green. Extension preview unit tests **42
+  passed, 1 failed**, the failure being the pre-existing `previewSimpleQueryMetadata` principal
+  hydration case. The contract guarantees are asserted over all 38 real-world fixtures rather than
+  only on hand-written scripts.
+- Remaining limitations: clause-level folds (`SELECT` list, `FROM`, `WHERE`) are deliberately absent,
+  since one fold per line means a clause fold would displace the statement fold that shares its line.
+  For the same reason the first statement of a multi-statement batch cannot fold separately from the
+  batch. Selection ranges still use their original placeholder.
+
+### 2026-08-17 — folding coverage and coloring corrections (user-directed) `[~]`
+
+- Status: `[~]` batches complete. Follow-up to the two entries above, working the gap list the user
+  asked for after reviewing what the extension already declares for folding.
+- Folding, measured before and after against the same probe set:
+    - `BEGIN TRANSACTION` now pairs with the `COMMIT` or `ROLLBACK` that closes it, innermost first,
+      over the statements of one batch. It previously folded nothing because the two are siblings
+      with no enclosing node. An unclosed transaction still folds nothing.
+    - Clauses that begin with their own keyword fold: `FROM`, `WHERE`, `GROUP BY`, `HAVING`,
+      `ORDER BY`. This is what makes a long `IN (...)` list collapsible, since the list itself starts
+      at its first item rather than at the parenthesis. `SelectList` stays excluded for that reason.
+    - Bracketed clauses fold: table hints, index/DDL option lists, table constraints, `PIVOT`,
+      `UNPIVOT`, window specifications, and `MERGE` actions.
+    - String literals spanning several lines fold, which covers dynamic SQL and JSON payloads.
+    - Region markers now match `syntaxes/sql.configuration.json` rather than a stricter shape: the
+      trailing `` is gone, so `-- #region Load data` and `--#region` both fold, and matching stays
+      case-insensitive as a documented superset of the configuration.
+- Range budget: `collectFoldingRanges` accepts an optional `limit`, and the preview provider passes
+  `editor.foldingMaximumRegions`. Over budget, the narrowest ranges are dropped, which cannot orphan
+  a nested range because no range is wider than the one containing it. Evidence on an 18,001-line
+  mixed script: with a 2,000-range budget folds still reach line **17,977**, where plain
+  head-truncation stops at line **6,922**. On a uniform script where every range has the same span
+  the budget is inert by construction, and matches what the editor would have done anyway.
+- Coloring corrections found by probing the same way:
+    - A rowset function was colored as a correlation-name declaration. The binder records
+      `OPENJSON(...)` as the rowset it exposes, and that bound kind was overriding the call site, so
+      `OPENJSON` read as `alias declaration`. The syntactic role now wins for routines bound as
+      rowsets, and a preferred syntactic role drops the bound modifiers with the bound type, since a
+      call site is not a declaration.
+    - A granted securable was left as a plain identifier while its qualifier was already a schema.
+      `GRANT SELECT ON dbo.Customers` now classifies the object, and `SCHEMA::`, `DATABASE::`, and
+      `TYPE::` classify by the class the statement names.
+    - A cursor was `variable` where it was declared and a plain identifier at `OPEN`, `FETCH`,
+      `CLOSE`, and `DEALLOCATE`. All four now agree with the declaration.
+- Files and tests: `src/features/foldingRanges.ts`, `src/features/contracts.ts`,
+  `src/features/tsqlLanguageFeatureService.ts`; `src/coloring/syntacticClassification.ts`,
+  `src/coloring/tsqlColorizationService.ts`; `test/features/folding/coverage.test.js` (new, 9 tests);
+  additions to `test/coloring/{syntactic,semantic}.test.js` (4 tests);
+  `extensions/mssql/src/languageservice/preview/previewLanguageService.ts` passes the editor cap.
+- Results: offline suite **1,017/1,017** (1,007 before this batch); corpus and performance lanes
+  green; extension preview unit tests **42 passed, 1 failed**, the failure being the pre-existing
+  `previewSimpleQueryMetadata` principal hydration case.
+- Still open, deliberately: SQLCMD directives (`:setvar`, `:r`) are not grammar, so recovery can both
+  color and fold them oddly. `GO 5` repeat counts, `/* #region */` block-comment markers, and
+  `-- region` without the `#` are unsupported, matching the language configuration. The first CTE,
+  the first `UNION` branch, and the first statement of a multi-statement batch still cannot fold
+  separately, because an editor allows one range per starting line and the wider range wins.
+  Sequences, index names, collations, and principals have no legend entry and stay `identifier`.

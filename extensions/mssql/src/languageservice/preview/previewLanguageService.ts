@@ -31,6 +31,7 @@ import {
     previewLanguageServiceSetting,
     previewLanguageServiceStatsCodeLensSetting,
 } from "./productionLanguageServiceIsolation";
+import { toVscodeFoldingRanges } from "./previewFoldingRanges";
 import {
     applyColorizationEdits,
     documentLineSource,
@@ -115,6 +116,10 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             () => this._enabled,
             (uri) => this._documents.get(uri.toString()),
         );
+        const foldingRangeProvider = new PreviewFoldingRangeProvider(
+            () => this._enabled,
+            (uri) => this._documents.get(uri.toString()),
+        );
         const semanticTokensProvider = new PreviewSemanticTokensProvider(
             () => this._enabled,
             (uri) => this._documents.get(uri.toString()),
@@ -142,6 +147,10 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                 signatureHelpProvider,
                 "(",
                 ",",
+            ),
+            vscode.languages.registerFoldingRangeProvider(
+                { language: "sql" },
+                foldingRangeProvider,
             ),
             vscode.languages.registerDocumentSemanticTokensProvider(
                 { language: "sql" },
@@ -549,6 +558,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                         signatureHelp: "preview-catalog-and-document",
                         hover: "preview-catalog",
                         semanticTokens: "preview-syntax-and-catalog",
+                        folding: "preview-syntax",
                         definitions: "preview-not-implemented",
                         references: "preview-not-implemented",
                         formatting: "preview-not-implemented",
@@ -763,6 +773,58 @@ class PreviewSignatureHelpProvider implements vscode.SignatureHelpProvider {
             return undefined;
         }
     }
+}
+
+/**
+ * Publishes the collapsible regions the language service derives from the parse tree. Registering a
+ * folding provider replaces the editor indentation fallback, so this also carries the `#region`
+ * markers the SQL language configuration declares.
+ */
+class PreviewFoldingRangeProvider implements vscode.FoldingRangeProvider {
+    public constructor(
+        private readonly _enabled: () => boolean,
+        private readonly _state: (uri: vscode.Uri) => PreviewDocumentState | undefined,
+    ) {}
+
+    public async provideFoldingRanges(
+        document: vscode.TextDocument,
+        _context: vscode.FoldingContext,
+        token: vscode.CancellationToken,
+    ): Promise<vscode.FoldingRange[] | undefined> {
+        if (!this._enabled()) return undefined;
+        const state = this._state(document.uri);
+        if (!state) return undefined;
+        await state.queue;
+        if (
+            token.isCancellationRequested ||
+            state.disposed ||
+            document.version !== state.syncedVersion
+        ) {
+            return undefined;
+        }
+        try {
+            return toVscodeFoldingRanges(
+                state.features.foldingRanges(state.connectionUri, document.version, {
+                    limit: foldingRangeLimit(document),
+                }),
+                documentLineSource(document),
+            );
+        } catch {
+            return undefined;
+        }
+    }
+}
+
+/**
+ * The editor stops folding once a document exceeds this many regions and drops the excess in
+ * document order, which would leave the end of a long script unfoldable. Passing the limit to the
+ * language service lets it spend the budget on the widest regions instead.
+ */
+function foldingRangeLimit(document: vscode.TextDocument): number {
+    const configured = vscode.workspace
+        .getConfiguration("editor", document)
+        .get<number>("foldingMaximumRegions");
+    return typeof configured === "number" && configured > 0 ? configured : 5000;
 }
 
 /**

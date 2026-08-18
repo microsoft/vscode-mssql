@@ -34,6 +34,7 @@ const nameKinds = new Set([
     "MultipartIdentifier",
     "OmittedTableSourceName",
     "TableSourceName",
+    "SecurableName",
     "DataTypeName",
     "IdentifierName",
 ]);
@@ -182,6 +183,17 @@ class SyntacticCollector {
                 if (name) this.setRole(name, "variable", ["declaration"]);
                 return;
             }
+            case "CursorLifecycleStatement": {
+                // OPEN, FETCH, CLOSE, and DEALLOCATE name a cursor declared as a local.
+                const name = directNames(node)[0];
+                if (name) this.setRole(name, "variable", []);
+                return;
+            }
+            case "PermissionTarget": {
+                const name = directNames(node)[0];
+                if (name) this.assignObject(name, securableType(node, this._text), []);
+                return;
+            }
             case "UseStatement": {
                 const name = directNames(node)[0];
                 if (name) this.setRole(name, "database", []);
@@ -301,6 +313,25 @@ class SyntacticCollector {
 }
 
 /** Direct name children of a node, keeping source order. */
+/**
+ * The class of a granted securable, taken from the `SCHEMA::` style qualifier when the statement
+ * carries one. Without a qualifier SQL Server resolves the name as an object, which is what an
+ * unqualified `GRANT SELECT ON dbo.Orders` means.
+ */
+function securableType(node: SyntaxNode, text: string): SqlColorTokenType {
+    for (const child of node.children()) {
+        if (child.kind !== "SecurableClass") continue;
+        const declared = normalizeIdentifier(text.slice(child.start, child.end))
+            .trim()
+            .toLocaleLowerCase();
+        if (declared === "schema") return "schema";
+        if (declared === "database") return "database";
+        if (declared === "type") return "type";
+        return "identifier";
+    }
+    return "table";
+}
+
 function directNames(node: SyntaxNode): readonly SyntaxNode[] {
     const names: SyntaxNode[] = [];
     for (const child of node.children()) {

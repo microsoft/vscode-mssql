@@ -5,6 +5,7 @@
 
 import type { SemanticDiagnostic } from "../semantics/index.js";
 import type { SyntaxDiagnostic } from "../syntax/index.js";
+import type { FoldingRangeOptions } from "./foldingRanges.js";
 import type { TextRange } from "../text/index.js";
 
 export interface TextEdit extends TextRange {
@@ -51,6 +52,21 @@ export interface DocumentSymbol {
     readonly children?: readonly DocumentSymbol[];
 }
 
+/**
+ * Folding kinds a host can style separately. Structural folds carry no kind, matching LSP, where an
+ * absent kind means an ordinary code region.
+ */
+export type FoldingRangeKind = "comment" | "region";
+
+/**
+ * A collapsible region in UTF-16 offsets. The service guarantees that each range covers more than
+ * one line, that no two ranges begin on the same line, and that ranges nest without partial
+ * overlap, so a host only has to convert offsets to its own line encoding.
+ */
+export interface FoldingRange extends TextRange {
+    readonly kind?: FoldingRangeKind;
+}
+
 export interface SignatureHelp {
     readonly signatures: readonly {
         readonly label: string;
@@ -77,7 +93,11 @@ export interface LanguageFeatureService {
         readonly semantic: readonly SemanticDiagnostic[];
     };
     documentSymbols(uri: string, version: number): readonly DocumentSymbol[];
-    foldingRanges(uri: string, version: number): readonly TextRange[];
+    foldingRanges(
+        uri: string,
+        version: number,
+        options?: FoldingRangeOptions,
+    ): readonly FoldingRange[];
     selectionRanges(uri: string, version: number, offsets: readonly number[]): readonly TextRange[];
     signatureHelp(uri: string, version: number, offset: number): SignatureHelp | undefined;
 }

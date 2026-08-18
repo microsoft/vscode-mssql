@@ -20,10 +20,12 @@ import {
     reservedKeywordNames,
     type SyntaxNode,
 } from "../syntax/index.js";
+import { collectFoldingRanges, type FoldingRangeOptions } from "./foldingRanges.js";
 import type {
     CompletionItem,
     CompletionResult,
     DocumentSymbol,
+    FoldingRange,
     HoverResult,
     LanguageFeatureService,
     Location,
@@ -229,16 +231,12 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
         );
     }
 
-    public foldingRanges(uri: string, version: number) {
-        const snapshot = this._runtime.snapshot(uri, version);
-        const result: { start: number; end: number }[] = [];
-        visit(snapshot.syntax.root(), (node) => {
-            if (node.kind === "Script" || node.end <= node.start) return;
-            if (/\r|\n/u.test(snapshot.text.text.slice(node.start, node.end))) {
-                result.push({ start: node.start, end: node.end });
-            }
-        });
-        return result;
+    public foldingRanges(
+        uri: string,
+        version: number,
+        options?: FoldingRangeOptions,
+    ): readonly FoldingRange[] {
+        return collectFoldingRanges(this._runtime.snapshot(uri, version).syntax, options);
     }
 
     public selectionRanges(uri: string, version: number, offsets: readonly number[]) {

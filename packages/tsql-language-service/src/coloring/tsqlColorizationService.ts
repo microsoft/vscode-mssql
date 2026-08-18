@@ -153,14 +153,18 @@ function classifyToken(
     const key = rangeKey(token);
     const syntacticRole = syntactic.roles.get(key);
     const boundRole = semantic.get(key);
-    if (syntacticRole || boundRole) {
-        const type =
-            boundRole && !prefersSyntacticType(syntacticRole, boundRole)
-                ? boundRole.type
-                : syntacticRole!.type;
-        return classification(type, [
+    if (syntacticRole && (!boundRole || prefersSyntacticType(syntacticRole, boundRole))) {
+        // The binding described the same name less precisely, so its modifiers are dropped with
+        // its type: a call site is not the declaration the binder recorded there.
+        return classification(syntacticRole.type, [
+            ...syntacticRole.modifiers,
+            ...tokenModifiers(token),
+        ]);
+    }
+    if (boundRole) {
+        return classification(boundRole.type, [
             ...(syntacticRole?.modifiers ?? []),
-            ...(boundRole?.modifiers ?? []),
+            ...boundRole.modifiers,
             ...tokenModifiers(token),
         ]);
     }
@@ -168,14 +172,18 @@ function classifyToken(
 }
 
 /**
- * The binder records a routine parameter as an ordinary local variable. The declaration site is the
- * only place that distinguishes the two, so its syntactic role is kept.
+ * Cases where the tree knows more than the binding does.
+ *
+ * A routine parameter is recorded as an ordinary local variable, and only its declaration site
+ * tells the two apart. A rowset function such as `OPENJSON` is recorded as the rowset it exposes,
+ * which would otherwise present the call as the declaration of a correlation name.
  */
-function prefersSyntacticType(
-    syntacticRole: Classification | undefined,
-    boundRole: Classification,
-): boolean {
-    return syntacticRole?.type === "parameter" && boundRole.type === "variable";
+function prefersSyntacticType(syntacticRole: Classification, boundRole: Classification): boolean {
+    if (syntacticRole.type === "parameter") return boundRole.type === "variable";
+    return (
+        (syntacticRole.type === "function" || syntacticRole.type === "procedure") &&
+        boundRole.type === "alias"
+    );
 }
 
 function lexicalClassification(token: SyntaxToken): Classification | undefined {

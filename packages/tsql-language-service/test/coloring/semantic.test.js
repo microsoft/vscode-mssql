@@ -129,6 +129,27 @@ suite("bound coloring", () => {
         });
     });
 
+    test("a rowset function stays a routine at its call site", async () => {
+        const withSchema = await colorize("SELECT * FROM OPENJSON(@j) WITH (Id int);", {
+            provider: provider(),
+        });
+        assert.deepEqual(classificationOf(withSchema.tokens, withSchema.sql, "OPENJSON"), {
+            type: "function",
+            modifiers: ["defaultLibrary"],
+        });
+        const aliased = await colorize("SELECT * FROM OPENJSON(@j) AS j;", {
+            provider: provider(),
+        });
+        assert.deepEqual(classificationOf(aliased.tokens, aliased.sql, "OPENJSON"), {
+            type: "function",
+            modifiers: ["defaultLibrary"],
+        });
+        assert.deepEqual(classificationOf(aliased.tokens, aliased.sql, "j"), {
+            type: "alias",
+            modifiers: ["declaration"],
+        });
+    });
+
     test("an unresolved name keeps its syntactic role instead of inventing a kind", async () => {
         const { tokens, sql } = await colorize("SELECT 1 FROM dbo.Missing;", {
             provider: provider(),

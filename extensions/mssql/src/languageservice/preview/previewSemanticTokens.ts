@@ -23,13 +23,13 @@ const tokenModifierBits = new Map(
     sqlColorizationLegend.tokenModifiers.map((modifier, index) => [modifier, 1 << index]),
 );
 
-/** Minimal line view of a document, so encoding can be tested without a real editor. */
-export interface SemanticTokenLineSource {
+/** Minimal line view of a document, so offset conversion can be tested without an editor. */
+export interface DocumentLineSource {
     lineAt(offset: number): { readonly line: number; readonly character: number };
     lineLength(line: number): number;
 }
 
-export function documentLineSource(document: vscode.TextDocument): SemanticTokenLineSource {
+export function documentLineSource(document: vscode.TextDocument): DocumentLineSource {
     return {
         lineAt(offset) {
             const position = document.positionAt(offset);
@@ -47,7 +47,7 @@ export function documentLineSource(document: vscode.TextDocument): SemanticToken
  */
 export function encodeSemanticTokens(
     tokens: readonly ColorizedToken[],
-    source: SemanticTokenLineSource,
+    source: DocumentLineSource,
 ): Uint32Array {
     const data: number[] = [];
     let previousLine = 0;
@@ -71,7 +71,7 @@ export function encodeSemanticTokens(
 
 function* splitTokenLines(
     token: ColorizedToken,
-    source: SemanticTokenLineSource,
+    source: DocumentLineSource,
 ): Iterable<{ readonly line: number; readonly character: number; readonly length: number }> {
     const start = source.lineAt(token.start);
     const end = source.lineAt(token.end);

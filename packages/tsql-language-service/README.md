@@ -282,6 +282,31 @@ its tree, and recovery over damaged input falls back to the plain identifier rol
 inventing one. Nothing inside a comment, a string, or an unterminated string is ever reclassified as
 a symbol.
 
+## Folding
+
+Folding ranges come from the same published parse tree. Statements, module bodies, `BEGIN`/`END`
+blocks, bracketed definition lists, subqueries, and `CASE` expressions each collapse from their own
+header line, and `BEGIN TRY`/`BEGIN CATCH` collapse separately because the pairs are read from the
+block keywords rather than from the enclosing statement. A batch folds only where `GO` actually
+groups several statements, so a script without batch separators does not offer to collapse itself.
+
+Clauses that begin with their own keyword — `FROM`, `WHERE`, `GROUP BY`, `HAVING`, `ORDER BY` —
+fold from that keyword, as do bracketed hint, option, constraint, `PIVOT`, and window clauses. A
+select list is deliberately excluded: it starts at its first expression, which would put an arrow in
+the middle of the statement holding it. A transaction has no enclosing node, so `BEGIN TRANSACTION`
+is paired with the `COMMIT` or `ROLLBACK` that closes it, innermost first.
+
+Runs of line comments, block comments, string literals that run over several lines, and the
+`-- #region` and `-- #endregion` markers the SQL language configuration declares all fold with their
+own kinds. Ranges use UTF-16 offsets like every other feature, and the service guarantees what a
+host needs before it converts them: more than one line each, one range per starting line, and proper
+nesting. A structural range stops at the last code it contains, so trailing comments and blank lines
+are never swallowed by the construct above them.
+
+An editor caps how many regions it will fold and drops the excess in document order, which leaves
+the end of a long script unfoldable. A caller may pass that cap as a range budget, and the service
+then spends it on the widest regions, so structure survives across the whole document.
+
 ## Formatting
 
 Formatting uses the lossless token stream and typed syntax facade. It does not require metadata or semantic binding. Options include indentation, keyword casing, comma placement, and safe line breaks.

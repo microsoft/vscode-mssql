@@ -22,13 +22,13 @@ import {
     encodeSemanticTokens,
     encodeSemanticTokensEdits,
     previewSemanticTokensLegend,
-    type SemanticTokenLineSource,
+    type DocumentLineSource,
 } from "../../src/languageservice/preview/previewSemanticTokens";
 
 chai.use(sinonChai);
 
 /** A line view over plain text, matching what a VS Code document reports. */
-function lineSource(text: string): SemanticTokenLineSource {
+function lineSource(text: string): DocumentLineSource {
     const lines = text.split("\n");
     const starts: number[] = [];
     let offset = 0;
