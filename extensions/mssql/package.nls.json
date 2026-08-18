@@ -278,7 +278,7 @@
     "mssql.legacySetting.deprecationMessage": "This setting will be removed in a future release.",
     "mssql.openQueryResultsInTabByDefault.description": "Automatically display query results in a new tab instead of the query pane.",
     "mssql.query.playCompletionSound.description": "Play a sound after a query finishes executing.",
-    "mssql.query.completionSoundFile.description": "The path to a custom MP3 file to play after a query finishes executing. The bundled default chime is used when the path is empty or invalid, or when the custom file is larger than 200 KB.",
+    "mssql.query.completionSoundFile.description": "The path to a custom WAV file to play after a query finishes executing. The bundled default chime is used when the path is empty or invalid, or when the custom file is larger than 400 KB.",
     "mssql.openQueryResultsInTabByDefaultDoNotShowPrompt.description": "Do not show prompts to display query results in a new tab.",
     "mssql.transferActiveEditorConnections.description": "When enabled, automatically transfer the active connection to newly opened SQL files. When disabled, you must explicitly connect to a database for each SQL file.",
     "mssql.transferActiveEditorConnections.deprecationMessage": "This setting is deprecated. Use `mssql.newEditorConnectionBehavior` instead. The extension will automatically migrate this setting on startup.",

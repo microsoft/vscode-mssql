@@ -14,8 +14,8 @@ import { logger } from "../models/logger";
 import { TelemetryActions, TelemetryViews } from "../sharedInterfaces/telemetry";
 
 const maximumPlaybackMilliseconds = 5_000;
-const maximumCustomAudioFileBytes = 200 * 1024;
-const bundledCompletionSoundFile = "query-complete.mp3";
+const maximumCustomAudioFileBytes = 400 * 1024;
+const bundledCompletionSoundFile = "query-complete.wav";
 
 interface AudioCommand {
     command: string;
@@ -92,9 +92,9 @@ export class QueryCompletionSoundService {
 
         const audioFile = this.expandHomeDirectory(configuredFile);
 
-        if (path.extname(audioFile).toLowerCase() !== ".mp3") {
+        if (path.extname(audioFile).toLowerCase() !== ".wav") {
             this._logger.warn(
-                `The configured query completion sound "${audioFile}" is not an MP3 file. Falling back to the default sound.`,
+                `The configured query completion sound "${audioFile}" is not a WAV file. Falling back to the default sound.`,
             );
 
             return undefined;
@@ -112,7 +112,7 @@ export class QueryCompletionSoundService {
 
             if (fileStats.size > maximumCustomAudioFileBytes) {
                 this._logger.error(
-                    `The configured query completion sound "${audioFile}" is larger than 200 KB and will not be played. Falling back to the default sound.`,
+                    `The configured query completion sound "${audioFile}" is larger than 400 KB and will not be played. Falling back to the default sound.`,
                 );
                 return undefined;
             }
@@ -152,14 +152,9 @@ export class QueryCompletionSoundService {
                             "-NonInteractive",
                             "-Command",
                             [
-                                "$player = New-Object -ComObject WMPlayer.OCX",
-                                "$player.URL = $env:MSSQL_QUERY_COMPLETION_SOUND",
-                                "$player.controls.play()",
-                                "Start-Sleep -Milliseconds 100",
-                                "$deadline = (Get-Date).AddSeconds(5)",
-                                "while ((Get-Date) -lt $deadline -and $player.playState -ne 1) { Start-Sleep -Milliseconds 100 }",
-                                "$player.controls.stop()",
-                                "$player.close()",
+                                "$ErrorActionPreference = 'Stop'",
+                                "$player = New-Object System.Media.SoundPlayer",
+                                "try { $player.SoundLocation = $env:MSSQL_QUERY_COMPLETION_SOUND; $player.Load(); $player.PlaySync() } finally { $player.Dispose() }",
                             ].join("; "),
                         ],
                         options: {
@@ -172,11 +167,13 @@ export class QueryCompletionSoundService {
                 ];
             case Constants.Platform.Linux:
                 return [
+                    { command: "pw-play", args: [audioFile] },
+                    { command: "paplay", args: [audioFile] },
+                    { command: "aplay", args: ["--quiet", audioFile] },
                     {
                         command: "ffplay",
                         args: ["-nodisp", "-autoexit", "-loglevel", "quiet", audioFile],
                     },
-                    { command: "mpg123", args: ["--quiet", audioFile] },
                     {
                         command: "mpv",
                         args: ["--no-video", "--really-quiet", audioFile],

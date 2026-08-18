@@ -90,22 +90,22 @@ suite("QueryCompletionSoundService", () => {
     }
 
     test("does not start a player when the setting is disabled", async () => {
-        setConfiguration(false, "/sounds/complete.mp3");
+        setConfiguration(false, "/sounds/complete.wav");
 
         await createService().play();
 
         expect(spawnProcessStub).not.to.have.been.called;
     });
 
-    test("plays a configured MP3 file", async () => {
-        setConfiguration(true, "/sounds/complete.mp3");
+    test("plays a configured WAV file", async () => {
+        setConfiguration(true, "/sounds/complete.wav");
         returnSuccessfulProcess();
 
         await createService().play();
 
         expect(spawnProcessStub).to.have.been.calledWith(
             "/usr/bin/afplay",
-            ["/sounds/complete.mp3"],
+            ["/sounds/complete.wav"],
             sinon.match({
                 windowsHide: true,
                 stdio: "ignore",
@@ -113,91 +113,94 @@ suite("QueryCompletionSoundService", () => {
         );
     });
 
-    test("plays a configured MP3 file that is exactly 200 KB", async () => {
-        setConfiguration(true, "/sounds/complete.mp3");
+    test("plays a configured WAV file that is exactly 400 KB", async () => {
+        setConfiguration(true, "/sounds/complete.wav");
         statFileStub.resolves({
             isFile: () => true,
-            size: 200 * 1024,
+            size: 400 * 1024,
         } as Stats);
         returnSuccessfulProcess();
 
         await createService().play();
 
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/sounds/complete.mp3",
+            "/sounds/complete.wav",
         ]);
         expect(loggerErrorStub).not.to.have.been.called;
     });
 
-    test("uses the bundled default when the configured MP3 is larger than 200 KB", async () => {
-        setConfiguration(true, "/sounds/large.mp3");
+    test("uses the bundled default when the configured WAV is larger than 400 KB", async () => {
+        setConfiguration(true, "/sounds/large.wav");
         statFileStub.resolves({
             isFile: () => true,
-            size: 200 * 1024 + 1,
+            size: 400 * 1024 + 1,
         } as Stats);
         returnSuccessfulProcess();
 
         await createService().play();
 
         expect(spawnProcessStub).not.to.have.been.calledWith("/usr/bin/afplay", [
-            "/sounds/large.mp3",
+            "/sounds/large.wav",
         ]);
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/extension/media/query-complete.mp3",
+            "/extension/media/query-complete.wav",
         ]);
         expect(loggerErrorStub).to.have.been.calledWith(
-            'The configured query completion sound "/sounds/large.mp3" is larger than 200 KB and will not be played. Falling back to the default sound.',
+            'The configured query completion sound "/sounds/large.wav" is larger than 400 KB and will not be played. Falling back to the default sound.',
         );
     });
 
     test("expands the home directory in a configured path", async () => {
-        setConfiguration(true, "~/sounds/complete.mp3");
+        setConfiguration(true, "~/sounds/complete.wav");
         returnSuccessfulProcess();
 
         await createService().play();
 
-        expect(statFileStub).to.have.been.calledWith("/home/test-user/sounds/complete.mp3");
+        expect(statFileStub).to.have.been.calledWith("/home/test-user/sounds/complete.wav");
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/home/test-user/sounds/complete.mp3",
+            "/home/test-user/sounds/complete.wav",
         ]);
     });
 
     test("expands a forward-slash home directory path on Windows", async () => {
-        setConfiguration(true, "~/sounds/complete.mp3");
+        setConfiguration(true, "~/sounds/complete.wav");
         returnSuccessfulProcess();
 
         await createService(Constants.Platform.Windows).play();
 
-        expect(statFileStub).to.have.been.calledWith("/home/test-user/sounds/complete.mp3");
+        expect(statFileStub).to.have.been.calledWith("/home/test-user/sounds/complete.wav");
     });
 
     test("plays the bundled default when the configured file type is unsupported", async () => {
-        setConfiguration(true, "/sounds/complete.wav");
+        setConfiguration(true, "/sounds/complete.mp3");
         returnSuccessfulProcess();
 
         await createService().play();
 
         expect(statFileStub).not.to.have.been.called;
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/extension/media/query-complete.mp3",
+            "/extension/media/query-complete.wav",
         ]);
+        expect(loggerWarnStub).to.have.been.calledWith(
+            'The configured query completion sound "/sounds/complete.mp3" is not a WAV file. Falling back to the default sound.',
+        );
     });
 
     test("plays the bundled default when the configured file does not exist", async () => {
-        setConfiguration(true, "/sounds/missing.mp3");
+        setConfiguration(true, "/sounds/missing.wav");
         statFileStub.rejects(Object.assign(new Error("File not found"), { code: "ENOENT" }));
         returnSuccessfulProcess();
 
         await createService().play();
 
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/extension/media/query-complete.mp3",
+            "/extension/media/query-complete.wav",
         ]);
     });
 
     test("stops playback after five seconds", async () => {
         const clock = sandbox.useFakeTimers();
-        setConfiguration(true, "/sounds/long.mp3");
+        setConfiguration(true, "/sounds/long.wav");
         const audioProcess = new childProcess.ChildProcess();
         const killStub = sandbox.stub(audioProcess, "kill").returns(true);
         spawnProcessStub.callsFake(() => {
@@ -220,10 +223,14 @@ suite("QueryCompletionSoundService", () => {
 
         expect(spawnProcessStub).to.have.been.calledWith(
             "powershell.exe",
-            sinon.match.array,
+            sinon.match(
+                (args: string[]) =>
+                    args.some((arg) => arg.includes("New-Object System.Media.SoundPlayer")),
+                "PowerShell SoundPlayer command",
+            ),
             sinon.match({
                 env: sinon.match({
-                    MSSQL_QUERY_COMPLETION_SOUND: "/extension/media/query-complete.mp3",
+                    MSSQL_QUERY_COMPLETION_SOUND: "/extension/media/query-complete.wav",
                 }),
             }),
         );
@@ -253,22 +260,22 @@ suite("QueryCompletionSoundService", () => {
     });
 
     test("falls back to the bundled default after a custom sound fails", async () => {
-        setConfiguration(true, "/sounds/complete.mp3");
+        setConfiguration(true, "/sounds/complete.wav");
         spawnProcessStub.callsFake((_command, args) =>
-            createProcessThatClosesWith(args.includes("/sounds/complete.mp3") ? 1 : 0),
+            createProcessThatClosesWith(args.includes("/sounds/complete.wav") ? 1 : 0),
         );
 
         await createService(Constants.Platform.Mac).play();
 
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/sounds/complete.mp3",
+            "/sounds/complete.wav",
         ]);
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
-            "/extension/media/query-complete.mp3",
+            "/extension/media/query-complete.wav",
         ]);
         expect(sendActionEventStub).not.to.have.been.called;
         expect(loggerWarnStub).to.have.been.calledWith(
-            'Unable to play the configured query completion sound "/sounds/complete.mp3". Falling back to the default sound.',
+            'Unable to play the configured query completion sound "/sounds/complete.wav". Falling back to the default sound.',
         );
     });
 });
