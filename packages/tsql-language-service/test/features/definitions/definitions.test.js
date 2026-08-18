@@ -57,6 +57,20 @@ function catalog() {
                 kind: "type",
                 typeCategory: "alias",
             },
+            {
+                ref: { id: "rate", database: "db" },
+                database: "db",
+                schema: "dbo",
+                name: "fn_Rate",
+                kind: "scalarFunction",
+            },
+            {
+                ref: { id: "refresh", database: "db" },
+                database: "db",
+                schema: "dbo",
+                name: "usp_Refresh",
+                kind: "procedure",
+            },
         ],
     });
 }
@@ -108,15 +122,44 @@ suite("definition targets", () => {
         });
     });
 
-    // The binder resolves rowsets and routines, not the type names a declaration mentions, so a
-    // user-defined type is not navigable yet. The descriptor already carries `typeCategory` for
-    // when it becomes one.
-    test("names nothing for a type reference the binder does not resolve", async () => {
+    test("carries the category that distinguishes user type kinds", async () => {
         const sql = "DECLARE @v dbo.OrderCode;";
         const features = await open(sql);
-        assert.deepEqual(features.definitionTarget(uri, 1, sql.indexOf("OrderCode")), {
-            locations: [],
+        assert.deepEqual(features.definitionTarget(uri, 1, sql.indexOf("OrderCode")).object, {
+            database: "db",
+            schema: "dbo",
+            name: "OrderCode",
+            kind: "type",
+            typeCategory: "alias",
         });
+    });
+
+    test("names the routine behind a call and the module behind an EXEC", async () => {
+        const call = "SELECT dbo.fn_Rate(1);";
+        assert.equal(
+            (await open(call)).definitionTarget(uri, 1, call.indexOf("fn_Rate")).object?.name,
+            "fn_Rate",
+        );
+        const execute = "EXEC dbo.usp_Refresh;";
+        assert.equal(
+            (await open(execute)).definitionTarget(uri, 1, execute.indexOf("usp_Refresh")).object
+                ?.name,
+            "usp_Refresh",
+        );
+    });
+
+    test("names the object a DDL statement acts on", async () => {
+        for (const sql of [
+            "ALTER TABLE dbo.Customers ADD b int;",
+            "DROP TABLE dbo.Customers;",
+            "TRUNCATE TABLE dbo.Customers;",
+            "CREATE INDEX ix ON dbo.Customers (Id);",
+            "GRANT SELECT ON dbo.Customers TO reader;",
+        ]) {
+            const features = await open(sql);
+            const target = features.definitionTarget(uri, 1, sql.indexOf("Customers") + 1);
+            assert.equal(target.object?.name, "Customers", sql);
+        }
     });
 
     test("names nothing for an unresolved object or an empty position", async () => {
@@ -249,6 +292,87 @@ suite("object definition providers", () => {
         assert.equal(cached.size, 0);
         assert.deepEqual(await cached.getDefinition(request), { text: "script" });
         assert.equal(attempts, 2);
+    });
+
+    test("nothing found is not remembered, so a later request looks again", async () => {
+        let attempts = 0;
+        const cached = new CachedObjectDefinitionProvider({
+            async getDefinition() {
+                attempts++;
+                return attempts === 1 ? undefined : { text: "script" };
+            },
+        });
+
+        assert.equal(await cached.getDefinition(request), undefined);
+        assert.equal(cached.size, 0);
+        assert.deepEqual(await cached.getDefinition(request), { text: "script" });
+        assert.equal(attempts, 2);
+    });
+
+    test("one caller giving up leaves the fetch running for the others", async () => {
+        let fetches = 0;
+        let release = () => {};
+        const cached = new CachedObjectDefinitionProvider({
+            async getDefinition() {
+                fetches++;
+                await new Promise((resolve) => {
+                    release = resolve;
+                });
+                return { text: "script" };
+            },
+        });
+
+        const abandoned = new AbortController();
+        const giving_up = cached.getDefinition(request, abandoned.signal);
+        const waiting = cached.getDefinition(request);
+        abandoned.abort();
+
+        await assert.rejects(() => giving_up, /cancelled/u);
+        release();
+        assert.deepEqual(await waiting, { text: "script" });
+        assert.equal(fetches, 1);
+    });
+
+    test("the shared fetch is cancelled after every caller gives up", async () => {
+        let innerSignal;
+        const cached = new CachedObjectDefinitionProvider({
+            async getDefinition(_request, signal) {
+                innerSignal = signal;
+                await new Promise((_resolve, reject) => {
+                    signal.addEventListener(
+                        "abort",
+                        () => reject(Object.assign(new Error("aborted"), { name: "AbortError" })),
+                        { once: true },
+                    );
+                });
+            },
+        });
+        const first = new AbortController();
+        const second = new AbortController();
+        const firstRequest = cached.getDefinition(request, first.signal);
+        const secondRequest = cached.getDefinition(request, second.signal);
+
+        first.abort();
+        await assert.rejects(() => firstRequest, { name: "AbortError" });
+        assert.equal(innerSignal.aborted, false);
+
+        second.abort();
+        await assert.rejects(() => secondRequest, { name: "AbortError" });
+        assert.equal(innerSignal.aborted, true);
+        assert.equal(cached.size, 0);
+    });
+
+    test("a caller that has already given up is never served", async () => {
+        const cached = new CachedObjectDefinitionProvider({
+            async getDefinition() {
+                return { text: "script" };
+            },
+        });
+        const controller = new AbortController();
+        controller.abort();
+        await assert.rejects(() => cached.getDefinition(request, controller.signal), {
+            name: "AbortError",
+        });
     });
 
     test("the cache drops the least recently used entry over its budget", async () => {

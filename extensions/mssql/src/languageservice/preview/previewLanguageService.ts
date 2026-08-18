@@ -50,12 +50,20 @@ const showStatsCommand = "mssql.preview.showLanguageServiceStats";
 const refreshMetadataCommand = "mssql.preview.refreshLanguageServiceMetadata";
 const statsScheme = "mssql-language-service-stats";
 const definitionScheme = "mssql-definition";
+/** Generated documents kept before the least recently published one is dropped. */
+const maximumDefinitionDocuments = 32;
 const diagnosticSource = "vscode-mssql-preview";
 
 /** The last full colorization published for one document, kept so deltas have a baseline. */
 interface PreviewSemanticTokenCache {
     readonly result: FullColorizationResult;
     readonly data: Uint32Array;
+}
+
+interface ResolvedDefinitionTarget {
+    readonly uri: vscode.Uri;
+    readonly targetRange: vscode.Range;
+    readonly targetSelectionRange: vscode.Range;
 }
 
 interface PreviewDocumentState {
@@ -73,6 +81,8 @@ interface PreviewDocumentState {
     lastRefreshError?: string;
     rebindQueued: boolean;
     rebindAfterRefresh: boolean;
+    lastDefinitionMs?: number;
+    lastDefinitionError?: string;
     semanticTokens?: PreviewSemanticTokenCache;
     disposed: boolean;
 }
@@ -92,6 +102,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
     private readonly _coloring = new TsqlColorizationService();
     private readonly _definitions: CachedObjectDefinitionProvider;
     private readonly _definitionDocuments = new Map<string, string>();
+    private readonly _definitionsChanged = new vscode.EventEmitter<vscode.Uri>();
     private readonly _statsChanged = new vscode.EventEmitter<vscode.Uri>();
     private readonly _statsUris = new Map<string, vscode.Uri>();
     private _enabled = false;
@@ -140,8 +151,9 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             (uri) => this._documents.get(uri.toString()),
             (descriptor, state, signal) => this.resolveDefinition(descriptor, state, signal),
         );
-        const definitionDocumentProvider = new PreviewDefinitionDocumentProvider((uri) =>
-            this._definitionDocuments.get(uri.toString()),
+        const definitionDocumentProvider = new PreviewDefinitionDocumentProvider(
+            (uri) => this._definitionDocuments.get(uri.toString()),
+            this._definitionsChanged.event,
         );
         const semanticTokensProvider = new PreviewSemanticTokensProvider(
             () => this._enabled,
@@ -154,6 +166,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             this._diagnostics,
             this._codeLensChanged,
             this._semanticTokensChanged,
+            this._definitionsChanged,
             this._statsChanged,
             vscode.languages.registerCodeLensProvider({ language: "sql" }, codeLensProvider),
             vscode.languages.registerCompletionItemProvider(
@@ -556,20 +569,75 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         descriptor: ObjectDefinitionDescriptor,
         state: PreviewDocumentState,
         signal: AbortSignal,
-    ): Promise<vscode.Location | undefined> {
-        const definition = await this._definitions.getDefinition(
-            {
-                ...descriptor,
-                connectionId: state.connectionUri,
-                metadataGeneration: state.metadata.pin().generation,
-            },
-            signal,
-        );
+    ): Promise<ResolvedDefinitionTarget | undefined> {
+        const requestedVersion = state.syncedVersion;
+        const requestedGeneration = state.metadata.pin().generation;
+        const started = Date.now();
+        let definition;
+        try {
+            definition = await this._definitions.getDefinition(
+                {
+                    ...descriptor,
+                    connectionId: state.connectionUri,
+                    metadataGeneration: requestedGeneration,
+                },
+                signal,
+            );
+        } catch (error) {
+            // Cancellation is normal editor lifecycle, not a scripting failure worth surfacing in
+            // diagnostics or the status view.
+            if (!signal.aborted) state.lastDefinitionError = errorMessage(error);
+            state.lastDefinitionMs = Date.now() - started;
+            this.fireStatusChanged(state);
+            throw error;
+        }
+        state.lastDefinitionError = undefined;
+        state.lastDefinitionMs = Date.now() - started;
+        this.fireStatusChanged(state);
         if (!definition || state.disposed) return undefined;
-        const uri = definitionUri(state.connectionUri, descriptor);
-        this._definitionDocuments.set(uri.toString(), definition.text);
-        const position = positionOfOffset(definition.text, definition.definitionOffset ?? 0);
-        return new vscode.Location(uri, position);
+        // A result that arrived after the document moved on describes a document that no longer
+        // exists, and a newer catalog may script the object differently.
+        if (
+            state.syncedVersion !== requestedVersion ||
+            state.metadata.pin().generation !== requestedGeneration
+        ) {
+            return undefined;
+        }
+        const uri = definitionUri(state.connectionUri, descriptor, requestedGeneration);
+        const key = uri.toString();
+        const replaced =
+            this._definitionDocuments.has(key) &&
+            this._definitionDocuments.get(key) !== definition.text;
+        this._definitionDocuments.delete(key);
+        this._definitionDocuments.set(key, definition.text);
+        // Keep only what a session is likely to revisit, so generated text cannot grow without
+        // bound over a long session.
+        while (this._definitionDocuments.size > maximumDefinitionDocuments) {
+            const open = new Set(
+                vscode.workspace.textDocuments.map((document) => document.uri.toString()),
+            );
+            const oldest = [...this._definitionDocuments.keys()].find(
+                (candidate) => candidate !== key && !open.has(candidate),
+            );
+            // Never blank a definition document someone still has open. The cache may temporarily
+            // exceed its soft bound until one of those editors closes.
+            if (!oldest) break;
+            this._definitionDocuments.delete(oldest);
+        }
+        // An editor holding the previous text needs to be told it changed underneath.
+        if (replaced) this._definitionsChanged.fire(uri);
+        const targetSelectionRange = new vscode.Range(
+            positionOfOffset(definition.text, definition.definitionOffset ?? 0),
+            positionOfOffset(definition.text, definition.definitionOffset ?? 0),
+        );
+        return {
+            uri,
+            targetRange: new vscode.Range(
+                new vscode.Position(0, 0),
+                positionOfOffset(definition.text, definition.text.length),
+            ),
+            targetSelectionRange,
+        };
     }
 
     private async showStats(uri: vscode.Uri | undefined): Promise<void> {
@@ -628,6 +696,8 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                         references: "preview-not-implemented",
                         formatting: "preview-not-implemented",
                     },
+                    lastDefinitionMs: state?.lastDefinitionMs,
+                    lastDefinitionError: state?.lastDefinitionError,
                     metadataRefreshInProgress: state?.refreshing ?? false,
                     lastMetadataRefreshMs: state?.lastRefreshMs,
                     lastMetadataRefreshError: state?.lastRefreshError,
@@ -1032,14 +1102,14 @@ class PreviewDefinitionProvider implements vscode.DefinitionProvider {
             descriptor: ObjectDefinitionDescriptor,
             state: PreviewDocumentState,
             signal: AbortSignal,
-        ) => Promise<vscode.Location | undefined>,
+        ) => Promise<ResolvedDefinitionTarget | undefined>,
     ) {}
 
     public async provideDefinition(
         document: vscode.TextDocument,
         position: vscode.Position,
         token: vscode.CancellationToken,
-    ): Promise<vscode.Location[] | undefined> {
+    ): Promise<vscode.LocationLink[] | undefined> {
         if (!this._enabled()) return undefined;
         const state = this._state(document.uri);
         if (!state) return undefined;
@@ -1062,25 +1132,52 @@ class PreviewDefinitionProvider implements vscode.DefinitionProvider {
         } catch {
             return undefined;
         }
-        if (target.locations.length > 0) {
-            return target.locations.map(
-                (location) =>
-                    new vscode.Location(
-                        document.uri,
-                        new vscode.Range(
-                            document.positionAt(location.range.start),
-                            document.positionAt(location.range.end),
-                        ),
-                    ),
+        const origin =
+            target.originRange &&
+            new vscode.Range(
+                document.positionAt(target.originRange.start),
+                document.positionAt(target.originRange.end),
             );
+        if (target.locations.length > 0) {
+            // A link reports the name that was navigated from and selects the declared name at the
+            // other end, so the editor highlights both rather than a whole line.
+            return target.locations.map((location) => {
+                const range = new vscode.Range(
+                    document.positionAt(location.range.start),
+                    document.positionAt(location.range.end),
+                );
+                return {
+                    originSelectionRange: origin,
+                    targetUri: document.uri,
+                    targetRange: range,
+                    targetSelectionRange: range,
+                };
+            });
         }
         if (!target.object) return undefined;
 
+        const requestedVersion = document.version;
         const controller = new AbortController();
         const cancellation = token.onCancellationRequested(() => controller.abort());
         try {
-            const location = await this._resolve(target.object, state, controller.signal);
-            return location && !token.isCancellationRequested ? [location] : undefined;
+            const resolved = await this._resolve(target.object, state, controller.signal);
+            if (
+                !resolved ||
+                token.isCancellationRequested ||
+                state.disposed ||
+                document.version !== requestedVersion ||
+                state.syncedVersion !== requestedVersion
+            ) {
+                return undefined;
+            }
+            return [
+                {
+                    originSelectionRange: origin,
+                    targetUri: resolved.uri,
+                    targetRange: resolved.targetRange,
+                    targetSelectionRange: resolved.targetSelectionRange,
+                },
+            ];
         } catch {
             // A dropped object, a denied permission, or a dead connection is not an error the
             // editor should report; navigation simply finds nothing.
@@ -1093,23 +1190,32 @@ class PreviewDefinitionProvider implements vscode.DefinitionProvider {
 }
 
 class PreviewDefinitionDocumentProvider implements vscode.TextDocumentContentProvider {
-    public constructor(private readonly _content: (uri: vscode.Uri) => string | undefined) {}
+    public constructor(
+        private readonly _content: (uri: vscode.Uri) => string | undefined,
+        public readonly onDidChange: vscode.Event<vscode.Uri>,
+    ) {}
 
     public provideTextDocumentContent(uri: vscode.Uri): string {
         return this._content(uri) ?? "";
     }
 }
 
-/** A stable URI per connection and object, ending in `.sql` so the editor colors what it opens. */
+/** A URI per catalog generation and object, ending in `.sql` so the editor colors what it opens. */
 export function definitionUri(
     connectionUri: string,
     descriptor: ObjectDefinitionDescriptor,
+    metadataGeneration?: number,
 ): vscode.Uri {
     const name = [descriptor.schema, descriptor.name].join(".").replaceAll(/[\\/?#]/gu, "_");
     return vscode.Uri.from({
         scheme: definitionScheme,
-        path: `/${descriptor.database ?? "current"}/${name}.sql`,
-        query: encodeURIComponent(connectionUri),
+        path: `/${descriptor.database ?? "current"}/${descriptor.kind}/${name}.sql`,
+        query: new URLSearchParams({
+            connection: connectionUri,
+            ...(metadataGeneration === undefined
+                ? {}
+                : { generation: metadataGeneration.toString() }),
+        }).toString(),
     });
 }
 

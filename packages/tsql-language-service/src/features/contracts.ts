@@ -53,6 +53,11 @@ export interface Location {
 export interface DefinitionTarget {
     readonly locations: readonly Location[];
     readonly object?: ObjectDefinitionDescriptor;
+    /**
+     * The identifier occurrence navigation started from. A host renders it as the clickable
+     * origin of a definition link instead of highlighting unrelated surrounding syntax.
+     */
+    readonly originRange?: TextRange;
 }
 
 export interface DocumentSymbol {

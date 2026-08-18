@@ -4,4 +4,5 @@
  *--------------------------------------------------------------------------------------------*/
 
 export * from "./analysisProfile.js";
+export * from "./builtInRegistry.js";
 export * from "./disposable.js";

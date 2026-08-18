@@ -156,12 +156,25 @@ suite("Preview scripted definitions", () => {
             name: "Customers",
             kind: "table",
         });
+        const refreshed = definitionUri(
+            "file:///a.sql",
+            { schema: "dbo", name: "Customers", kind: "table" },
+            2,
+        );
+        const differentKind = definitionUri("file:///a.sql", {
+            schema: "dbo",
+            name: "Customers",
+            kind: "view",
+        });
 
         expect(first.scheme).to.equal("mssql-definition");
         expect(first.path.endsWith(".sql")).to.be.true;
         expect(first.toString()).to.not.equal(second.toString());
         expect(first.toString()).to.not.equal(scoped.toString());
+        expect(first.toString()).to.not.equal(refreshed.toString());
+        expect(first.toString()).to.not.equal(differentKind.toString());
         expect(scoped.path).to.contain("archive");
+        expect(refreshed.query).to.contain("generation=2");
     });
 
     test("an offset inside generated text becomes the line and character to reveal", () => {

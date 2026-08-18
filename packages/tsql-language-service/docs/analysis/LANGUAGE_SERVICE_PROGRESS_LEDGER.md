@@ -1823,3 +1823,108 @@ ArgumentList? CloseParen)`, which matches the product exactly. All five positive
   and the `mssql-definition:` virtual documents, so nothing is written to disk.
 - Results: offline suite **1,033/1,033**; extension preview unit tests **51 passed, 1 failed**, the
   failure being the pre-existing `previewSimpleQueryMetadata` principal hydration case.
+
+### 2026-08-17 — M5 hover for unbound names `[~]`
+
+- Status: `[~]` batches complete. Closes the hover gaps found by probing every construct rather than
+  reading intentions; the inventory that drove it also covers signature help and semantic binding,
+  both still open.
+- Answered now, none of which hovered before: built-in functions (with the documented signature when
+  one exists, and the name alone when it does not), built-in data types, system variables, labels at
+  both the definition and the `GOTO`, cursors at the declaration and at `OPEN`/`FETCH`/`CLOSE`,
+  result-column aliases, and index names.
+- Corrected: a routine parameter hovered as **variable**. The binder records one as an ordinary
+  local, so the tree is asked where the declaration sits. `nodeAt` at a token's first offset resolves
+  leftwards into the enclosing statement, so the probe reads one character inside the declaration.
+- Kept deliberately: a multipart name answers about the object from any part of it. Hovering `dbo` in
+  `dbo.Customers` describing the table is correct, not the bug the inventory first called it — a
+  namespace qualifier is not worth describing. Aliases and common table expressions still describe
+  themselves, because the author declared them.
+- The built-in routine name list moved from `coloring/classificationTables.ts` to
+  `common/builtInRegistry.ts` so hover and coloring share one list; `coloring` may not import
+  `features`, so a neutral layer is the only place both can read it from.
+- Files and tests: `src/features/syntacticHover.ts` (new), `src/features/tsqlLanguageFeatureService.ts`,
+  `src/common/builtInRegistry.ts` (new), `src/coloring/classificationTables.ts`,
+  `test/features/hover/syntactic-hover.test.js` (new, 11 tests). One test asserts hover and coloring
+  agree on the same token, so the two cannot drift.
+- Results: offline suite **1,044/1,044** (1,033 before this batch); boundaries and corpus green.
+- Still open from the inventory: keywords have no statement-level hover, and an option name inside a
+  `WITH (...)` list has none either — both need a content table rather than more tree work. Signature
+  help still misses table-valued functions, INSERT column lists, `CAST`, and `OPENJSON`. Binding still
+  misses `EXEC` targets, function calls, write-side columns, `ORDER BY` columns, DDL names, and type
+  references.
+
+### 2026-08-17 — signature help for the contexts it did not answer `[~]`
+
+- Status: `[~]` batches complete.
+- Corrected first: the inventory reported that catalog routines showed no parameters while hover
+  found them. That was wrong, and the ledger entry above has been corrected. `ParameterMetadata`
+  requires `ordinal`, and the probe omitted it, so the service correctly dropped every parameter
+  through the `ordinal > 0` filter that removes a routine's return-value row. Re-probed with valid
+  metadata, `EXEC` and scalar-function help list their parameters. No product change was needed, and
+  none was made.
+- Answered now, none of which answered before:
+    - A table-valued function used as a rowset. Its arguments live in `TableFunctionArgumentList`
+      rather than `ArgumentList`, and the call node is `FunctionTableSource`, so both are accepted
+      alongside the scalar forms. `OPENJSON` follows the same path and gained a signature.
+    - The target column list of an `INSERT`. The parentheses parse as part of `DmlTarget`, which the
+      grammar shares with the parenthesised rowset target form, so the context is detected there and
+      bounded by the target's own parentheses. Naming columns and supplying values are kept apart:
+      the label drops `VALUES` and the documentation says which one the cursor is in.
+    - `CAST`, `TRY_CAST`, `CONVERT`, `TRY_CONVERT`, `PARSE`, and `TRY_PARSE`, which the grammar
+      models as their own expressions rather than as calls. `CAST` separates its arguments with `AS`,
+      so a signature may declare its separator and the keyword advances the active argument the way
+      a comma does elsewhere. The written spelling selects the `TRY_` form.
+- Files and tests: `src/features/tsqlLanguageFeatureService.ts`;
+  `test/features/signature-help/contexts.test.js` (new, 9 tests).
+- Results: offline suite **1,053/1,053** (1,044 before this batch); boundaries green.
+- Still open: an option list — `WITH (LOCATION = ..., CREDENTIAL = ...)` — has no signature help. The
+  tree is ready for it, since `GenericOptionName` and `OptionValue` are distinct nodes; what is
+  missing is a per-statement option catalog, and two behaviours positional arguments do not need:
+  tracking the active option by name once typed, and describing the value shape after `=`.
+
+### 2026-08-17 — language feature review, partial implementation `[~]`
+
+- Status: `[~]`. The checklist in `LANGUAGE_FEATURE_REVIEW_TODO.md` is the source of remaining work
+  and is ticked only where the stated acceptance criterion is complete.
+- **Shared editor built-in registry.** Routine names, editor completions, signatures, data types,
+  type documentation, and system-variable documentation now share
+  (`src/common/builtInRegistry.ts`). Entries carry kind, documentation, return type, and signatures
+  whose parameters may be optional (`[style]`) or repeated (`...expression`), plus availability as
+  data (`minimumCompatibility`, `engineFlavors`) applied by compatible consumers. Coloring, hover,
+  signature help, and completion all read it, and a test asserts the routine name set is exactly the
+  routine entries. Semantic diagnostic name and arity tables have not been migrated yet, so the
+  registry is not a complete language-wide source of truth.
+- **Binding.** Added high-value occurrences from the earlier inventory: executed modules, called
+  routines, rowset functions (which resolved
+  their object but never recorded an occurrence at the name), user-defined types, the objects DDL
+  acts on including `ALTER`, `DROP`, `TRUNCATE`, index and trigger targets, granted securables that
+  name an object, the columns an `INSERT` names and a `SET` clause assigns, the columns `OUTPUT`
+  exposes through `inserted` and `deleted`, and the columns `ORDER BY` names — which sits outside the
+  query specification it orders. A name that resolves to the wrong kind for its position, and one
+  that does not resolve at all, are both left unbound rather than given an invented symbol. The
+  corpus lane stayed green, so no diagnostic moved. Sequences, principals, class-qualified
+  securables, trigger identities, and less common DDL forms remain open in the review TODO.
+- **Definitions.** `objectDefinitions.ts` was literally a binary file: six NUL bytes used as key
+  separators, which `grep` refused and no diff could show. The separator is right — NUL cannot occur
+  in an identifier — so it stayed and is now written `"\\u0000"`. Shared fetches no longer take the
+  first caller's abort signal, so one caller giving up cannot cancel what another is waiting on;
+  the underlying request is cancelled once no caller remains. Empty results are no longer
+  remembered, an object kind and metadata generation now take part in a generated document's
+  identity, the generated-document cache has a soft bound that preserves open documents, a
+  result that arrives after the document version or metadata generation moved on is rejected, and
+  scripting failures and latency are recorded in the status view rather than shown as errors.
+  Navigation now returns definition links carrying the origin name and the selected target range.
+- **Signature help.** `USING` advances to the culture argument of `PARSE`. Statements and
+  expressions that read as calls now answer: `RAISERROR`, `THROW`, `WAITFOR`, `TRIM`, the JSON
+  constructors and aggregates, and `AI_GENERATE_EMBEDDINGS`.
+- **Hover.** A catalog object of the same name as a shipped one is no longer masked by it, which
+  binding made true and a test now holds in place.
+- Corrected in an earlier entry: the claim that catalog routines showed no parameters was a fault in
+  the probe, not the product.
+- Verification numbers are recorded only after the final batch run rather than copied from
+  intermediate runs.
+- Remaining items are recorded unticked. The largest are a reviewed fold policy for every
+  structural grammar node, computationally incremental semantic-token updates, a grammar-node
+  coverage matrix across five features, adapter cancellation tests, and running the feature matrix
+  over the organized corpus with latency and allocation gates.

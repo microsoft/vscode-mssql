@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { analysisProfileKey, resolveAnalysisProfile } from "../common/analysisProfile.js";
+import { lookupBuiltIn } from "../common/builtInRegistry.js";
 import type { ColumnMetadata, ObjectMetadata, ObjectRef } from "../metadata/index.js";
 import type { SyntaxNode } from "../syntax/index.js";
 import type { TextRange } from "../text/index.js";
@@ -96,6 +97,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
             const dependencies = new Set<string>();
             const declarationRanges = new Set<string>();
             const columnsBySource = new Map<SymbolId, Map<string, SymbolId>>();
+            const dmlTargets = new Map<string, SymbolId>();
             const sourcesByQuery = new Map<string, Map<string, QuerySourceBinding>>();
             const fold = (value: string): string =>
                 input.metadata.environment.caseSensitive
@@ -142,7 +144,7 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 node: SyntaxNode,
                 qualifier: string,
             ): QuerySourceBinding | undefined => {
-                let query = ancestorNode(node, "QuerySpecification");
+                let query = ancestorNode(node, "QuerySpecification") ?? trailingClauseQuery(node);
                 while (query) {
                     const binding = sourcesByQuery.get(rangeKey(query))?.get(fold(qualifier));
                     if (binding) return binding;
@@ -152,12 +154,21 @@ export class CatalogSemanticBinder implements SemanticBinder {
             };
             const visibleSourceScopes = (node: SyntaxNode): readonly QuerySourceBinding[][] => {
                 const result: QuerySourceBinding[][] = [];
-                let query = ancestorNode(node, "QuerySpecification");
+                let query = ancestorNode(node, "QuerySpecification") ?? trailingClauseQuery(node);
                 while (query) {
                     result.push([...new Set(sourcesByQuery.get(rangeKey(query))?.values() ?? [])]);
                     query = correlatableOuterQuery(query);
                 }
                 return result;
+            };
+            /** The column of the object a DML statement writes, when the name is one of them. */
+            const dmlTargetColumn = (
+                node: SyntaxNode,
+                columnName: string,
+            ): SymbolId | undefined => {
+                const statement = dmlStatement(node);
+                const target = statement && dmlTargets.get(rangeKey(statement));
+                return target ? columnsBySource.get(target)?.get(columnName) : undefined;
             };
             const registerColumns = (owner: SemanticSymbol, root: SyntaxNode): void => {
                 const members = new Map<string, SymbolId>();
@@ -389,6 +400,10 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     write: node.kind === "DmlTarget",
                 };
                 registerReference(reference);
+                if (node.kind === "DmlTarget") {
+                    const statement = dmlStatement(node);
+                    if (statement) dmlTargets.set(rangeKey(statement), symbol.id);
+                }
 
                 if (node.kind === "NamedTableSource") {
                     const alias = firstDescendant(node, "TableAlias");
@@ -477,6 +492,15 @@ export class CatalogSemanticBinder implements SemanticBinder {
                         symbols.set(owner.id, owner);
                         unitSymbols.set(owner.id, owner);
                         dependencies.add(resolution.object.ref.id);
+                        // The name is an occurrence of the routine, so the cursor finds it there.
+                        if (nameNode) {
+                            registerReference({
+                                start: nameNode.start,
+                                end: nameNode.end,
+                                symbol: owner.id,
+                                write: false,
+                            });
+                        }
                         const state = input.metadata.columnState(resolution.object.ref);
                         if (state.kind === "loaded") {
                             registerMetadataColumns(owner, resolution.object, state.value);
@@ -511,6 +535,44 @@ export class CatalogSemanticBinder implements SemanticBinder {
                 }
             });
 
+            // Catalog names that are not rowsets: routines that are called, modules that are
+            // executed, user types that are mentioned, and the objects DDL acts on. Each is an
+            // occurrence of the object, so navigation and hover find it at the cursor.
+            visit(batch, (node) => {
+                const rule = catalogReferenceRule(node);
+                if (!rule) return;
+                const nameNode = rule.name(node);
+                if (!nameNode) return;
+                const parts = multipartIdentifierParts(
+                    input.syntax.document.text.slice(nameNode.start, nameNode.end),
+                );
+                if (parts.length === 0) return;
+                // One-part built-ins belong to the language, even if an unusually named catalog
+                // object happens to use the same spelling. Qualified names remain catalog names.
+                if (
+                    parts.length === 1 &&
+                    ((node.kind === "FunctionCall" && lookupBuiltIn(parts[0]!, "routine")) ||
+                        (node.kind === "DataTypeName" && lookupBuiltIn(parts[0]!, "dataType")))
+                ) {
+                    return;
+                }
+                const resolution = input.metadata.resolveObject(parts);
+                // Only a resolved name becomes an occurrence. An unresolved one is left alone so
+                // damaged or offline input never gains a symbol that was never proven to exist.
+                if (resolution.kind !== "resolved") return;
+                if (rule.kinds && !rule.kinds.includes(resolution.object.kind)) return;
+                const symbol = catalogSymbol(resolution.object);
+                symbols.set(symbol.id, symbol);
+                unitSymbols.set(symbol.id, symbol);
+                dependencies.add(resolution.object.ref.id);
+                registerReference({
+                    start: nameNode.start,
+                    end: nameNode.end,
+                    symbol: symbol.id,
+                    write: rule.write === true,
+                });
+            });
+
             // Bind local variable uses and alias qualifiers after declarations and sources exist.
             visit(batch, (node) => {
                 if (node.kind === "Variable" && !declarationRanges.has(rangeKey(node))) {
@@ -528,6 +590,22 @@ export class CatalogSemanticBinder implements SemanticBinder {
                             write: false,
                         });
                     }
+                } else if (node.kind === "SetClause") {
+                    const assigned = directChild(node, "MultipartIdentifier");
+                    if (!assigned) return;
+                    const parts = multipartIdentifierParts(
+                        input.syntax.document.text.slice(assigned.start, assigned.end),
+                    );
+                    const columnName = parts.at(-1)?.toLocaleLowerCase();
+                    const target = columnName && dmlTargetColumn(node, columnName);
+                    if (target) {
+                        registerReference({
+                            start: assigned.start,
+                            end: assigned.end,
+                            symbol: target,
+                            write: true,
+                        });
+                    }
                 } else if (node.kind === "ColumnReference") {
                     if (ancestorNode(node, "DataType")) return;
                     const text = input.syntax.document.text.slice(node.start, node.end);
@@ -535,6 +613,16 @@ export class CatalogSemanticBinder implements SemanticBinder {
                     const columnName = parts.at(-1)?.toLocaleLowerCase();
                     if (!columnName) return;
                     if (parts.length === 1) {
+                        const targetColumn = dmlTargetColumn(node, columnName);
+                        if (targetColumn) {
+                            registerReference({
+                                start: node.start,
+                                end: node.end,
+                                symbol: targetColumn,
+                                write: writesItsTarget(node),
+                            });
+                            return;
+                        }
                         for (const scope of visibleSourceScopes(node)) {
                             const candidates = uniqueSymbolIds(
                                 scope.flatMap(({ source }) => {
@@ -556,6 +644,21 @@ export class CatalogSemanticBinder implements SemanticBinder {
                         return;
                     }
                     const qualifier = parts.at(-2)!;
+                    // OUTPUT exposes the rows a statement changed under two fixed names, both of
+                    // which carry the columns of the object being written.
+                    if (outputPseudoTables.has(fold(qualifier))) {
+                        const target = dmlTargetColumn(node, columnName);
+                        if (target) {
+                            const columnRange = identifierPartRanges(node, text).at(-1)!;
+                            registerReference({
+                                start: columnRange.start,
+                                end: columnRange.end,
+                                symbol: target,
+                                write: false,
+                            });
+                        }
+                        return;
+                    }
                     const binding = visibleSource(node, qualifier);
                     if (!binding) return;
                     const ranges = identifierPartRanges(node, text);
@@ -923,6 +1026,124 @@ function rowsetAliasSymbol(
         declaration: { start: aliasName.start, end: aliasName.end },
         ...(object ? { object } : {}),
     };
+}
+
+interface CatalogReferenceRule {
+    /** The name node the statement or expression refers to. */
+    readonly name: (node: SyntaxNode) => SyntaxNode | undefined;
+    /** Object kinds the position accepts; other kinds are left unbound. */
+    readonly kinds?: readonly string[];
+    /** True where the statement changes the object rather than reading it. */
+    readonly write?: boolean;
+}
+
+const routineKinds = ["scalarFunction", "tableFunction"] as const;
+
+/** A rowset name reaches its parts through a wrapper the grammar shares across statements. */
+function rowsetName(node: SyntaxNode, wrapper = "TableSourceName"): SyntaxNode | undefined {
+    const held = directChild(node, wrapper);
+    return held ? directChild(held, "MultipartIdentifier") : undefined;
+}
+const rowsetKinds = ["table", "view", "synonym", "tableFunction"] as const;
+
+/**
+ * Where a catalog name appears outside a rowset position, and what kind of object may stand there.
+ * The name is taken from the construct that owns it rather than from a descendant search, so an
+ * argument or a nested statement is never mistaken for the name of the outer one.
+ */
+function catalogReferenceRule(node: SyntaxNode): CatalogReferenceRule | undefined {
+    switch (node.kind) {
+        case "ExecutableEntity":
+            return {
+                name: (owner) => directChild(owner, "MultipartIdentifier"),
+                kinds: ["procedure"],
+            };
+        case "FunctionCall":
+            return {
+                name: (owner) => directChild(owner, "MultipartIdentifier"),
+                kinds: routineKinds,
+            };
+        case "DataTypeName":
+            return { name: (owner) => directChild(owner, "MultipartIdentifier"), kinds: ["type"] };
+        case "TriggerTarget":
+            return {
+                name: (owner) => directChild(owner, "MultipartIdentifier"),
+                kinds: rowsetKinds,
+            };
+        case "AlterTableStatement":
+            return {
+                name: (owner) => directChild(owner, "MultipartIdentifier"),
+                kinds: ["table"],
+                write: true,
+            };
+        case "TruncateTableStatement":
+            return { name: (owner) => rowsetName(owner), kinds: ["table"], write: true };
+        case "PermissionTarget":
+            // A securable with no class qualifier is an object, which is what a bare name means.
+            return {
+                name: (owner) =>
+                    directChild(owner, "SecurableClass")
+                        ? undefined
+                        : rowsetName(owner, "SecurableName"),
+            };
+        case "DropTableStatement":
+        case "DropViewStatement":
+        case "DropProcedureStatement":
+        case "DropFunctionStatement":
+        case "DropTypeStatement":
+        case "DropSynonymStatement":
+            return { name: (owner) => directChild(owner, "MultipartIdentifier"), write: true };
+        case "CreateIndexStatement":
+        case "CreateJsonIndexStatement":
+        case "CreateVectorIndexStatement":
+        case "CreateSemanticIndexStatement":
+        case "AlterIndexStatement":
+        case "CreateStatisticsStatement":
+            // The index is named first and the table it belongs to second.
+            return {
+                name: (owner) => directChild(owner, "MultipartIdentifier"),
+                kinds: rowsetKinds,
+                write: true,
+            };
+        default:
+            return undefined;
+    }
+}
+
+/** The two rowsets an OUTPUT clause exposes, which mirror the columns of the written object. */
+const outputPseudoTables = new Set(["inserted", "deleted"]);
+
+const dmlStatementKinds = new Set([
+    "InsertStatement",
+    "UpdateStatement",
+    "DeleteStatement",
+    "MergeStatement",
+]);
+
+/** The data-modification statement a node belongs to, if any. */
+function dmlStatement(node: SyntaxNode): SyntaxNode | undefined {
+    for (let current = node.parent(); current; current = current.parent()) {
+        if (dmlStatementKinds.has(current.kind)) return current;
+    }
+    return undefined;
+}
+
+/** A column named in the target list of an INSERT is written; one read in OUTPUT or WHERE is not. */
+function writesItsTarget(node: SyntaxNode): boolean {
+    for (let current = node.parent(); current; current = current.parent()) {
+        if (current.kind === "DmlTarget") return true;
+        if (dmlStatementKinds.has(current.kind)) return false;
+    }
+    return false;
+}
+
+/**
+ * ORDER BY, OPTION, and FOR follow the query they apply to rather than sitting inside it, so the
+ * sources of the statement's own query specification remain in scope for them.
+ */
+function trailingClauseQuery(node: SyntaxNode): SyntaxNode | undefined {
+    const statement = ancestorNode(node, "SelectStatement");
+    return statement ? firstDescendant(statement, "QuerySpecification") : undefined;
 }
 
 function ancestorNode(node: SyntaxNode, kind: string): SyntaxNode | undefined {

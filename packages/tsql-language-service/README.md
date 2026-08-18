@@ -282,6 +282,27 @@ its tree, and recovery over damaged input falls back to the plain identifier rol
 inventing one. Nothing inside a comment, a string, or an unterminated string is ever reclassified as
 a symbol.
 
+## Hover
+
+Hover resolves the token under the cursor. Any component of a multipart object name resolves to the
+same catalog object, so hovering either component of `dbo.Customers` describes the table. Declared
+correlation names and common table expressions retain their own symbol identity.
+
+Bound symbols answer first: objects, columns with their type and source, aliases, variables. Names
+no symbol is bound to are answered from the tree instead — data types, system variables, built-in
+routines, labels, cursors, index names, and result-column aliases. A routine parameter is named a
+parameter rather than a variable by consulting its declaration context in the syntax tree.
+
+## Signature help
+
+Signature help answers wherever an argument is being supplied, which in T-SQL is more places than a
+call. A routine call — scalar, procedure, or a table-valued function used as a rowset — lists its
+parameters from the catalog, or from the document when the routine is declared there. The target
+column list of an `INSERT` lists the table's columns, kept apart from the `VALUES` row that follows
+it. Conversions that the grammar models as their own expressions rather than as calls, such as
+`CAST` and `PARSE`, answer like the routines they read as; their arguments are separated by a
+keyword, so the keyword advances the active argument the way a comma does elsewhere.
+
 ## Definitions
 
 Navigating to a name has two answers. A declaration in the same document — a variable, correlation

@@ -13,7 +13,19 @@ import type {
     SqlPrincipalKind,
 } from "../metadata/index.js";
 import type { DocumentAnalysisSnapshot, LanguageServiceRuntime } from "../runtime/index.js";
-import { multipartIdentifierParts, normalizeIdentifier } from "../semantics/index.js";
+import {
+    builtInsOfKind,
+    formatParameter,
+    formatSignature,
+    isBuiltInAvailable,
+    lookupBuiltIn,
+    type BuiltInSignature,
+} from "../common/builtInRegistry.js";
+import {
+    multipartIdentifierParts,
+    normalizeIdentifier,
+    type SemanticSymbol,
+} from "../semantics/index.js";
 import {
     contextualKeywordNames,
     keywordMetadata,
@@ -21,6 +33,7 @@ import {
     type SyntaxNode,
 } from "../syntax/index.js";
 import { collectFoldingRanges, type FoldingRangeOptions } from "./foldingRanges.js";
+import { isRoutineParameter, syntacticHover } from "./syntacticHover.js";
 import type {
     CompletionItem,
     CompletionResult,
@@ -72,7 +85,7 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
         );
         const source = sourceForQualifier(snapshot, view, offset, prefix.qualifiers);
         if (dataTypeContext) {
-            if (prefix.qualifiers.length === 0) items.push(...dataTypeCompletions(prefix));
+            if (prefix.qualifiers.length === 0) items.push(...dataTypeCompletions(prefix, view));
             const catalog = catalogCompletions(this._metadata, view, prefix, {
                 kinds: ["type"],
             });
@@ -117,7 +130,7 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
             incomplete ||= insertColumns.incomplete;
             items.push(...localSymbolCompletions(snapshot, prefix));
             if (isExpressionCompletionContext(snapshot.text.text, prefix.range.start)) {
-                items.push(...builtInFunctionCompletions(prefix));
+                items.push(...builtInFunctionCompletions(prefix, view));
                 items.push(...scalarFunctionCompletions(view, prefix));
             }
             items.push(...keywordCompletions(prefix, view));
@@ -138,7 +151,12 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
         const snapshot = this._runtime.snapshot(uri, version);
         const view = this._metadata.pin();
         const symbol = snapshot.semantics.symbolAt(offset);
-        if (!symbol) return this.catalogHover(snapshot, view, offset);
+        if (!symbol) {
+            return (
+                this.catalogHover(snapshot, view, offset) ??
+                syntacticHover(snapshot.syntax, offset, describeBuiltInRoutine)
+            );
+        }
         const object = symbol.object && view.object(symbol.object);
         const type = symbol.type
             ? `\n\nType: \`${symbol.type.displayName}${symbol.type.nullable ? " NULL" : " NOT NULL"}\``
@@ -159,7 +177,7 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
                     ? `**column** \`${symbol.name}\`${type}${source}`
                     : object
                       ? this.objectHover(view, object)
-                      : `**${symbol.kind}** \`${symbol.name}\`${type}`,
+                      : `**${localSymbolKind(snapshot, symbol)}** \`${symbol.name}\`${type}`,
         };
     }
 
@@ -171,9 +189,11 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
         const snapshot = this._runtime.snapshot(uri, version);
         const symbol = snapshot.semantics.symbolAt(offset);
         if (!symbol) return emptyDefinitionTarget;
+        const originRange = occurrenceRange(snapshot, offset);
         if (symbol.declaration) {
             return Object.freeze({
                 locations: Object.freeze([{ uri, range: symbol.declaration }]),
+                ...(originRange ? { originRange } : {}),
             });
         }
         if (!symbol.object) return emptyDefinitionTarget;
@@ -183,6 +203,7 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
         if (!object) return emptyDefinitionTarget;
         return Object.freeze({
             locations: Object.freeze([]),
+            ...(originRange ? { originRange } : {}),
             object: Object.freeze({
                 ...(object.database ? { database: object.database } : {}),
                 schema: object.schema,
@@ -332,7 +353,7 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
             );
         }
 
-        return context.kind === "function" ? builtInSignatureHelp(context) : undefined;
+        return context.kind === "function" ? builtInSignatureHelp(context, view) : undefined;
     }
 
     private columns(
@@ -713,35 +734,107 @@ interface InsertSignatureContext {
     readonly target: readonly string[];
     readonly columns?: readonly string[];
     readonly activeParameter: number;
+    /** True while the cursor is inside the target column list rather than a VALUES row. */
+    readonly namingColumns?: boolean;
 }
 
 type SignatureContext = RoutineSignatureContext | InsertSignatureContext;
+
+/**
+ * Expressions the grammar models in their own right rather than as calls. Each still reads as a
+ * routine to anyone typing one, so signature help answers for them the same way.
+ */
+const specialExpressionRoutines: ReadonlyMap<string, string> = new Map([
+    ["JsonValueExpression", "JSON_VALUE"],
+    ["JsonQueryExpression", "JSON_QUERY"],
+    ["JsonConstructorExpression", "JSON_OBJECT"],
+    ["JsonAggregateExpression", "JSON_OBJECTAGG"],
+    ["CastExpression", "CAST"],
+    ["TryCastExpression", "TRY_CAST"],
+    ["ConvertExpression", "CONVERT"],
+    ["ParseExpression", "PARSE"],
+    ["TrimExpression", "TRIM"],
+    ["AiGenerateEmbeddingsExpression", "AI_GENERATE_EMBEDDINGS"],
+    // Statements that read as calls. Their arguments have fixed meanings, which is why the grammar
+    // gives them their own shape, but anyone typing one expects the same help a call gives.
+    ["RaiserrorStatement", "RAISERROR"],
+    ["ThrowStatement", "THROW"],
+    ["WaitForStatement", "WAITFOR"],
+]);
+
+/** CONVERT and PARSE share a node with their TRY_ form, so the written spelling decides. */
+function conversionSpelling(
+    snapshot: DocumentAnalysisSnapshot,
+    node: SyntaxNode,
+    fallback: string,
+): string {
+    const written = /^[A-Za-z_]+/u.exec(snapshot.text.text.slice(node.start, node.end))?.[0];
+    return written ? written.toLocaleUpperCase() : fallback;
+}
+
+/**
+ * CAST separates its two arguments with AS rather than a comma, so the keyword advances the active
+ * parameter the way a comma does elsewhere.
+ */
+function conversionActiveParameter(node: SyntaxNode, offset: number): number {
+    let active = activeParameterIn(node, offset);
+    for (const child of node.children()) {
+        // AS and USING separate arguments here the way a comma does in an ordinary call.
+        if ((child.kind === "As" || child.kind === "Using") && child.start < offset) active++;
+    }
+    return active;
+}
 
 function signatureContext(
     snapshot: DocumentAnalysisSnapshot,
     offset: number,
 ): SignatureContext | undefined {
-    const specialized = cursorAncestor(snapshot, offset, [
-        "JsonValueExpression",
-        "JsonQueryExpression",
-    ]);
+    const specialized = cursorAncestor(snapshot, offset, [...specialExpressionRoutines.keys()]);
     if (specialized) {
+        const routine = specialExpressionRoutines.get(specialized.kind)!;
         return {
             kind: "function",
-            target: [specialized.kind === "JsonValueExpression" ? "JSON_VALUE" : "JSON_QUERY"],
-            activeParameter: activeParameterIn(specialized, offset),
+            target: [conversionSpelling(snapshot, specialized, routine)],
+            activeParameter: conversionActiveParameter(specialized, offset),
         };
     }
 
-    const call = cursorAncestor(snapshot, offset, ["FunctionCall"]);
+    const call = cursorAncestor(snapshot, offset, [
+        "FunctionCall",
+        "FunctionTableSource",
+        "GlobalFunctionTableSource",
+    ]);
     if (call) {
-        const name = firstDescendant(call, "MultipartIdentifier");
+        const name =
+            firstDescendant(call, "MultipartIdentifier") ?? firstDescendant(call, "IdentifierName");
         if (name) {
-            const argumentsNode = firstDescendant(call, "ArgumentList");
+            const argumentsNode =
+                firstDescendant(call, "ArgumentList") ??
+                firstDescendant(call, "TableFunctionArgumentList");
             return {
                 kind: "function",
                 target: multipartIdentifierParts(snapshot.text.text.slice(name.start, name.end)),
                 activeParameter: argumentsNode ? activeParameterIn(argumentsNode, offset) : 0,
+            };
+        }
+    }
+
+    // The target column list of an INSERT sits inside the target itself, which the grammar also
+    // uses for the parenthesised form of a rowset target, so the parentheses are found there.
+    const dmlTarget = cursorAncestor(snapshot, offset, ["DmlTarget"]);
+    if (dmlTarget && ancestor(dmlTarget, ["InsertStatement"])) {
+        const open = childOfKind(dmlTarget, "OpenParen");
+        const close = childOfKind(dmlTarget, "CloseParen");
+        const name = firstDescendant(dmlTarget, "MultipartIdentifier");
+        if (name && open && offset > open.start && (!close || offset <= close.start)) {
+            const list =
+                firstDescendant(dmlTarget, "InsertColumnList") ??
+                firstDescendant(dmlTarget, "ArgumentList");
+            return {
+                kind: "insert",
+                target: multipartIdentifierParts(snapshot.text.text.slice(name.start, name.end)),
+                activeParameter: list ? activeParameterIn(list, offset) : 0,
+                namingColumns: true,
             };
         }
     }
@@ -805,6 +898,13 @@ function cursorAncestor(
 ): SyntaxNode | undefined {
     const exact = ancestor(snapshot.syntax.nodeAt(offset), kinds);
     return exact ?? (offset > 0 ? ancestor(snapshot.syntax.nodeAt(offset - 1), kinds) : undefined);
+}
+
+function childOfKind(node: SyntaxNode, kind: string): SyntaxNode | undefined {
+    for (const child of node.children()) {
+        if (child.kind === kind) return child;
+    }
+    return undefined;
 }
 
 function activeParameterIn(node: SyntaxNode, offset: number): number {
@@ -903,11 +1003,12 @@ function insertSignatureHelp(
     return {
         signatures: [
             {
-                label: `INSERT INTO ${context.target
-                    .map(quoteIdentifierIfNeeded)
-                    .join(".")} VALUES (${labels.join(", ")})`,
-                documentation:
-                    "Each VALUES expression corresponds to the highlighted target column.",
+                label: `INSERT INTO ${context.target.map(quoteIdentifierIfNeeded).join(".")}${
+                    context.namingColumns ? "" : " VALUES"
+                } (${labels.join(", ")})`,
+                documentation: context.namingColumns
+                    ? "Name the target columns to populate; the highlighted one is next."
+                    : "Each VALUES expression corresponds to the highlighted target column.",
                 parameters: columns.map((column, index) => ({
                     label: labels[index]!,
                     documentation: `Target column \`${column.name}\`. Type: \`${
@@ -1022,125 +1123,41 @@ function localRoutineParameters(
     });
 }
 
-interface BuiltInSignature {
-    readonly parameters: readonly string[];
-    readonly documentation: string;
-}
-
-const builtInSignatures: Readonly<Record<string, readonly BuiltInSignature[]>> = Object.freeze({
-    abs: [{ parameters: ["numeric_expression"], documentation: "Returns the absolute value." }],
-    avg: [{ parameters: ["expression"], documentation: "Returns the average value." }],
-    coalesce: [
-        {
-            parameters: ["expression", "...expression"],
-            documentation: "Returns the first non-NULL expression.",
-        },
-    ],
-    concat: [
-        {
-            parameters: ["string_value", "...string_value"],
-            documentation: "Concatenates two or more values.",
-        },
-    ],
-    count: [{ parameters: ["expression"], documentation: "Returns the number of items." }],
-    count_big: [
-        { parameters: ["expression"], documentation: "Returns the number of items as bigint." },
-    ],
-    dateadd: [
-        {
-            parameters: ["datepart", "number", "date"],
-            documentation: "Adds a signed number of date parts to a date value.",
-        },
-    ],
-    datediff: [
-        {
-            parameters: ["datepart", "startdate", "enddate"],
-            documentation: "Returns the number of date-part boundaries crossed.",
-        },
-    ],
-    datediff_big: [
-        {
-            parameters: ["datepart", "startdate", "enddate"],
-            documentation: "Returns date-part boundaries crossed as bigint.",
-        },
-    ],
-    isnull: [
-        {
-            parameters: ["check_expression", "replacement_value"],
-            documentation: "Replaces NULL with the supplied value.",
-        },
-    ],
-    json_query: [
-        {
-            parameters: ["expression", "path"],
-            documentation: "Extracts an object or array from JSON text.",
-        },
-    ],
-    json_value: [
-        {
-            parameters: ["expression", "path"],
-            documentation: "Extracts a scalar value from JSON text.",
-        },
-    ],
-    max: [{ parameters: ["expression"], documentation: "Returns the maximum value." }],
-    min: [{ parameters: ["expression"], documentation: "Returns the minimum value." }],
-    newid: [{ parameters: [], documentation: "Creates a uniqueidentifier value." }],
-    nullif: [
-        {
-            parameters: ["expression", "expression"],
-            documentation: "Returns NULL when both expressions are equal.",
-        },
-    ],
-    object_id: [
-        {
-            parameters: ["object_name", "object_type"],
-            documentation: "Returns the database object identifier.",
-        },
-    ],
-    string_agg: [
-        {
-            parameters: ["expression", "separator"],
-            documentation: "Concatenates row values with a separator.",
-        },
-    ],
-    string_split: [
-        {
-            parameters: ["string", "separator", "enable_ordinal"],
-            documentation: "Splits a string into rows.",
-        },
-    ],
-    substring: [
-        {
-            parameters: ["expression", "start", "length"],
-            documentation: "Returns part of a character, binary, text, or image expression.",
-        },
-    ],
-    sum: [{ parameters: ["expression"], documentation: "Returns the sum of values." }],
-    vector_distance: [
-        {
-            parameters: ["distance_metric", "vector_1", "vector_2"],
-            documentation: "Calculates the distance between two vectors.",
-        },
-    ],
-});
-
-function builtInSignatureHelp(context: RoutineSignatureContext): SignatureHelp | undefined {
+function builtInSignatureHelp(
+    context: RoutineSignatureContext,
+    view: MetadataView,
+): SignatureHelp | undefined {
     const name = context.target.at(-1);
-    if (!name) return undefined;
-    const signatures = builtInSignatures[normalizeIdentifier(name).toLocaleLowerCase()];
-    if (!signatures) return undefined;
+    const entry = name ? lookupBuiltIn(name, "routine") : undefined;
+    if (!entry || !isBuiltInAvailable(entry, builtInProfile(view))) return undefined;
+    const signatures = entry?.signatures;
+    if (!name || !signatures || signatures.length === 0) return undefined;
     return {
         signatures: signatures.map((signature) => ({
-            label: `${name.toLocaleUpperCase()}(${signature.parameters.join(", ")})`,
-            documentation: signature.documentation,
-            parameters: signature.parameters.map((label) => ({ label })),
+            label: formatSignature(name, signature),
+            documentation: signatureDocumentation(signature),
+            parameters: signature.parameters.map((parameter) => ({
+                label: formatParameter(parameter),
+                ...(parameter.optional ? { documentation: "Optional." } : {}),
+                ...(parameter.variadic ? { documentation: "May be repeated." } : {}),
+            })),
         })),
         activeSignature: 0,
-        activeParameter: Math.min(
-            context.activeParameter,
-            Math.max(0, (signatures[0]?.parameters.length ?? 1) - 1),
-        ),
+        activeParameter: activeParameterWithin(signatures[0]!, context.activeParameter),
     };
+}
+
+/** A variadic argument absorbs every argument after it, so the last one stays highlighted. */
+function activeParameterWithin(signature: BuiltInSignature, active: number): number {
+    const count = signature.parameters.length;
+    if (count === 0) return 0;
+    return Math.min(active, count - 1);
+}
+
+function signatureDocumentation(signature: BuiltInSignature): string {
+    return signature.returnType
+        ? `${signature.documentation}\n\nReturns \`${signature.returnType}\`.`
+        : signature.documentation;
 }
 
 function completionPrefix(snapshot: DocumentAnalysisSnapshot, offset: number): PrefixContext {
@@ -1650,85 +1667,6 @@ const completionKeywords = Object.freeze(
         .sort(),
 );
 
-const sqlDataTypes = Object.freeze([
-    "BIGINT",
-    "BINARY",
-    "BIT",
-    "CHAR",
-    "CURSOR",
-    "DATE",
-    "DATETIME",
-    "DATETIME2",
-    "DATETIMEOFFSET",
-    "DECIMAL",
-    "FLOAT",
-    "GEOGRAPHY",
-    "GEOMETRY",
-    "HIERARCHYID",
-    "IMAGE",
-    "INT",
-    "JSON",
-    "MONEY",
-    "NCHAR",
-    "NTEXT",
-    "NUMERIC",
-    "NVARCHAR",
-    "REAL",
-    "ROWVERSION",
-    "SMALLDATETIME",
-    "SMALLINT",
-    "SMALLMONEY",
-    "SQL_VARIANT",
-    "TABLE",
-    "TEXT",
-    "TIME",
-    "TIMESTAMP",
-    "TINYINT",
-    "UNIQUEIDENTIFIER",
-    "VARBINARY",
-    "VARCHAR",
-    "VECTOR",
-    "XML",
-]);
-
-const builtInFunctions = Object.freeze([
-    "ABS",
-    "AVG",
-    "CAST",
-    "COALESCE",
-    "CONCAT",
-    "CONVERT",
-    "COUNT",
-    "COUNT_BIG",
-    "DATEADD",
-    "DATEDIFF",
-    "DATETRUNC",
-    "FORMAT",
-    "ISNULL",
-    "JSON_ARRAY",
-    "JSON_ARRAYAGG",
-    "JSON_MODIFY",
-    "JSON_OBJECT",
-    "JSON_OBJECTAGG",
-    "JSON_PATH_EXISTS",
-    "JSON_QUERY",
-    "JSON_VALUE",
-    "MAX",
-    "MIN",
-    "NEWID",
-    "NULLIF",
-    "OBJECT_ID",
-    "OPENJSON",
-    "ROW_NUMBER",
-    "STRING_AGG",
-    "STRING_SPLIT",
-    "SUBSTRING",
-    "SUM",
-    "TRY_CAST",
-    "TRY_CONVERT",
-    "VECTOR_DISTANCE",
-]);
-
 const vectorParameters = Object.freeze([
     "TABLE",
     "COLUMN",
@@ -1763,9 +1701,11 @@ function keywordCompletions(prefix: PrefixContext, view: MetadataView): readonly
         }));
 }
 
-function dataTypeCompletions(prefix: PrefixContext): readonly CompletionItem[] {
+function dataTypeCompletions(prefix: PrefixContext, view: MetadataView): readonly CompletionItem[] {
     const folded = prefix.prefix.toLocaleLowerCase();
-    return sqlDataTypes
+    return builtInsOfKind("dataType")
+        .filter((entry) => isBuiltInAvailable(entry, builtInProfile(view)))
+        .map((entry) => entry.name.toLocaleUpperCase())
         .filter((type) => type.toLocaleLowerCase().startsWith(folded))
         .map((type) => ({
             label: type,
@@ -1779,9 +1719,15 @@ function dataTypeCompletions(prefix: PrefixContext): readonly CompletionItem[] {
         }));
 }
 
-function builtInFunctionCompletions(prefix: PrefixContext): readonly CompletionItem[] {
+function builtInFunctionCompletions(
+    prefix: PrefixContext,
+    view: MetadataView,
+): readonly CompletionItem[] {
     const folded = prefix.prefix.toLocaleLowerCase();
-    return builtInFunctions
+    return builtInsOfKind("routine")
+        .filter((entry) => isBuiltInAvailable(entry, builtInProfile(view)))
+        .filter((entry) => entry.signatures && entry.signatures.length > 0)
+        .map((entry) => entry.name.toLocaleUpperCase())
         .filter((name) => name.toLocaleLowerCase().startsWith(folded))
         .map((name) => ({
             label: name,
@@ -1793,6 +1739,12 @@ function builtInFunctionCompletions(prefix: PrefixContext): readonly CompletionI
                 newText: completionIdentifierInsertion(prefix, name, false),
             },
         }));
+}
+
+function builtInProfile(view: MetadataView): { readonly compatibilityLevel?: number } {
+    return view.environment.compatibilityLevel === undefined
+        ? {}
+        : { compatibilityLevel: view.environment.compatibilityLevel };
 }
 
 function scalarFunctionCompletions(
@@ -2288,6 +2240,30 @@ function identifierRangeAt(
     while (start > 0 && /[\p{L}\p{N}_$#@\[\]"]/u.test(text[start - 1]!)) start--;
     while (end < text.length && /[\p{L}\p{N}_$#@\[\]"]/u.test(text[end]!)) end++;
     return end > start ? { start, end } : undefined;
+}
+
+/**
+ * How a bound local is described. The binder records a routine parameter as an ordinary variable,
+ * and only its declaration distinguishes the two, so the tree is asked where that declaration sits.
+ */
+function localSymbolKind(snapshot: DocumentAnalysisSnapshot, symbol: SemanticSymbol): string {
+    if (
+        symbol.kind === "variable" &&
+        symbol.declaration &&
+        isRoutineParameter(snapshot.syntax, symbol.declaration)
+    ) {
+        return "parameter";
+    }
+    return symbol.kind;
+}
+
+/** One-line documentation for a shipped routine, or nothing when the name is not one. */
+function describeBuiltInRoutine(name: string): string | undefined {
+    const signature = lookupBuiltIn(name, "routine")?.signatures?.[0];
+    if (!signature) return undefined;
+    const call = `\`${formatSignature(name, signature)}\``;
+    const returns = signature.returnType ? ` Returns \`${signature.returnType}\`.` : "";
+    return `${call}\n\n${signature.documentation}${returns}`;
 }
 
 function occurrenceRange(
