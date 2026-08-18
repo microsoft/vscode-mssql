@@ -2229,7 +2229,6 @@ export class LocConstants {
             ),
             selectSourceSchema: l10n.t("Select Source Schema"),
             selectTargetSchema: l10n.t("Select Target Schema"),
-            addServerConnection: l10n.t("Add Server Connection"),
             noDifferences: l10n.t("No schema differences were found."),
             initializingComparison: l10n.t("Initializing comparison, this might take a while..."),
             applyingChanges: l10n.t("Applying changes, this might take a while..."),

@@ -226,9 +226,6 @@
     <trans-unit id="++CODE++02a16a835f1e9c9cbe76a8cb9042d2f3861fc237036221e1f0c60383600f45f6">
       <source xml:lang="en">Add Row</source>
     </trans-unit>
-    <trans-unit id="++CODE++937a7b0b3cc8c58a787de5a63bfc07573789ee22a22918957f92651c0edb31f9">
-      <source xml:lang="en">Add Server Connection</source>
-    </trans-unit>
     <trans-unit id="++CODE++cbc187e255409f8de0f011bbebfc96b04028928cce72ccb35ca8a088f156aba9">
       <source xml:lang="en">Add Table</source>
     </trans-unit>

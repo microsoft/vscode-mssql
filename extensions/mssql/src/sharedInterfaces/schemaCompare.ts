@@ -31,6 +31,13 @@ export {
     SchemaUpdateAction,
     TaskExecutionMode,
 };
+
+export interface SchemaCompareServer {
+    profileName: string;
+    server: string;
+    database?: string;
+}
+
 export interface SchemaCompareWebViewState {
     isSqlProjectExtensionInstalled: boolean;
     isComparisonInProgress: boolean;
@@ -38,8 +45,11 @@ export interface SchemaCompareWebViewState {
     applySucceeded: boolean;
     applyFailed: boolean;
     isIncludeExcludeAllOperationInProgress: boolean;
-    activeServers: { [connectionId: string]: { profileName: string; server: string } };
+    activeServers: { [connectionId: string]: SchemaCompareServer };
     databases: string[];
+    databaseListConnectionId: string;
+    isDatabaseListLoading: boolean;
+    databaseListError: string;
     defaultDeploymentOptionsResult: SchemaCompareOptionsResult;
     auxiliaryEndpointInfo: SchemaCompareEndpointInfo;
     intermediaryOptionsResult: SchemaCompareOptionsResult;
@@ -68,7 +78,10 @@ export interface SchemaCompareReducers {
 
     listActiveServers: {};
 
-    listDatabasesForActiveServer: { connectionUri: string };
+    listDatabasesForActiveServer: {
+        connectionUri: string;
+        connectionDatabaseName?: string;
+    };
 
     openAddNewConnectionDialog: { endpointType: "source" | "target" };
 
@@ -161,7 +174,7 @@ export interface SchemaCompareContextProps extends CoreRPCs {
 
     listActiveServers: () => void;
 
-    listDatabasesForActiveServer: (connectionUri: string) => void;
+    listDatabasesForActiveServer: (connectionUri: string, connectionDatabaseName?: string) => void;
 
     openAddNewConnectionDialog: (endpointType: "source" | "target") => void;
 

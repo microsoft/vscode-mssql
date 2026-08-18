@@ -1451,6 +1451,7 @@ export default class ConnectionManager {
             connectionSource?: string;
             connectionRequestId?: string;
             serverlessWakeFailedAttempts?: number;
+            onError?: (errorMessage: string) => void;
         } = {},
     ): Promise<boolean> {
         this.normalizeServerName(credentials);
@@ -1460,6 +1461,7 @@ export default class ConnectionManager {
             connectionSource = "",
             connectionRequestId,
             serverlessWakeFailedAttempts = 0,
+            onError,
         } = options;
 
         const connectionActivity = startActivity(
@@ -1554,6 +1556,7 @@ export default class ConnectionManager {
                 error,
                 false, // includeErrorMessage
             );
+            onError?.(getErrorMessage(error));
             return false;
         }
 
@@ -1573,6 +1576,7 @@ export default class ConnectionManager {
                 initialConnectionError,
                 true, // include error message
             );
+            onError?.(initialConnectionError.message);
             return false;
         }
 
@@ -1628,6 +1632,7 @@ export default class ConnectionManager {
                         connectionSource,
                         connectionRequestId,
                         serverlessWakeFailedAttempts: failedAttempts,
+                        onError,
                     });
                 }
             }
@@ -1647,6 +1652,7 @@ export default class ConnectionManager {
                     return await this.connect(fileUri, errorHandlingResult.updatedCredentials, {
                         connectionSource: connectionSource,
                         connectionRequestId,
+                        onError,
                     });
                 }
             }
@@ -1678,6 +1684,7 @@ export default class ConnectionManager {
                 connectionInfo.credentials,
                 result.serverInfo,
             );
+            onError?.(result.errorMessage || result.messages);
             return false;
         }
     }

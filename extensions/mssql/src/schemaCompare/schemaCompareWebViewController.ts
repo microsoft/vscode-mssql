@@ -14,6 +14,7 @@ import {
     ExtractTarget,
     SchemaCompareEndpointType,
     SchemaCompareReducers,
+    SchemaCompareServer,
     SchemaCompareWebViewState,
     SchemaDifferenceType,
     SchemaUpdateAction,
@@ -69,6 +70,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
     private pendingConnectionRequestId: string | undefined;
     private handlingConnectionRequestId: string | undefined;
     private databaseListRequestGeneration = 0;
+    private readonly databaseListCache = new Map<string, string[]>();
 
     constructor(
         context: vscode.ExtensionContext,
@@ -103,6 +105,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 isIncludeExcludeAllOperationInProgress: false,
                 activeServers: {},
                 databases: [],
+                databaseListConnectionId: "",
+                isDatabaseListLoading: false,
+                databaseListError: "",
                 defaultDeploymentOptionsResult: structuredClone(schemaCompareOptionsResult),
                 intermediaryOptionsResult: undefined,
                 endpointsSwitched: false,
@@ -592,6 +597,12 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
         this.registerReducer("listDatabasesForActiveServer", async (state, payload) => {
             const requestGeneration = ++this.databaseListRequestGeneration;
+            const connectionDatabaseName =
+                payload.connectionDatabaseName ??
+                state.activeServers[payload.connectionUri]?.database ??
+                "";
+            const databaseCacheKey =
+                this.connectionUris.get(payload.connectionUri) ?? payload.connectionUri;
             this.logger.debug(
                 `Listing databases for server connection: ${payload.connectionUri} - OperationId: ${this.operationId}`,
             );
@@ -605,22 +616,45 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 },
             );
 
-            let databases: string[] = [];
+            state.databaseListConnectionId = payload.connectionUri;
+            state.databaseListError = "";
+
+            const cachedDatabases = this.databaseListCache.get(databaseCacheKey);
+            if (cachedDatabases) {
+                state.databases = this.includeConnectionDatabase(
+                    cachedDatabases,
+                    connectionDatabaseName,
+                );
+                state.isDatabaseListLoading = false;
+                this.updateState(state);
+                endActivity.end(ActivityStatus.Succeeded, {
+                    operationId: this.operationId,
+                    databaseCount: state.databases.length.toString(),
+                    cacheHit: "true",
+                });
+                return state;
+            }
+
+            state.databases = connectionDatabaseName ? [connectionDatabaseName] : [];
+            state.isDatabaseListLoading = true;
+            this.updateState(state);
+
             try {
                 const connectionUri = await this.connectToServer(payload.connectionUri);
                 if (requestGeneration !== this.databaseListRequestGeneration) {
                     endActivity.end(ActivityStatus.Canceled);
                     return state;
                 }
-                if (!connectionUri) {
-                    throw new Error("Failed to connect to server");
-                }
 
-                databases = await this.connectionMgr.listDatabases(connectionUri);
+                const databases = this.includeConnectionDatabase(
+                    await this.connectionMgr.listDatabases(connectionUri),
+                    connectionDatabaseName,
+                );
                 if (requestGeneration !== this.databaseListRequestGeneration) {
                     endActivity.end(ActivityStatus.Canceled);
                     return state;
                 }
+                this.databaseListCache.set(connectionUri, [...databases]);
                 this.logger.debug(
                     `Found ${databases.length} database(s) on server - OperationId: ${this.operationId}`,
                 );
@@ -629,6 +663,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                     operationId: this.operationId,
                     databaseCount: databases.length.toString(),
                 });
+
+                state.databases = databases;
+                state.isDatabaseListLoading = false;
+                state.databaseListError = "";
             } catch (error) {
                 if (requestGeneration !== this.databaseListRequestGeneration) {
                     endActivity.end(ActivityStatus.Canceled);
@@ -649,9 +687,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                         operationId: this.operationId,
                     },
                 );
+                state.isDatabaseListLoading = false;
+                state.databaseListError = getErrorMessage(error);
             }
 
-            state.databases = databases;
             this.updateState(state);
 
             return state;
@@ -2358,6 +2397,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             ) {
                 return;
             }
+            this.databaseListCache.set(activeConnectionUri, [...databases]);
             this.logger.debug(
                 `Found ${databases.length} databases on server - OperationId: ${this.operationId}`,
             );
@@ -2421,6 +2461,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
 
                     // Update the databases list for the UI
                     this.state.databases = databases;
+                    this.state.databaseListConnectionId = connectionUri;
+                    this.state.isDatabaseListLoading = false;
+                    this.state.databaseListError = "";
                 } else {
                     this.logger.warn(
                         `No connection profile found for connection URI: ${connectionUri} - OperationId: ${this.operationId}`,
@@ -2531,14 +2574,9 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
      * Saved profiles use their profile ID as the picker value.
      */
     private async getAvailableServersList(): Promise<{
-        [connectionId: string]: { profileName: string; server: string };
+        [connectionId: string]: SchemaCompareServer;
     }> {
-        const activeServers: {
-            [connectionId: string]: {
-                profileName: string;
-                server: string;
-            };
-        } = {};
+        const activeServers: { [connectionId: string]: SchemaCompareServer } = {};
         const activeConnections = this.connectionMgr.activeConnections;
         const savedConnectionIds = new Set<string>();
         const savedConnectionUris = new Set<string>();
@@ -2562,6 +2600,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
                 activeServers[connectionId] = {
                     profileName: profile.profileName || getConnectionDisplayName(profile),
                     server: profile.server,
+                    ...(profile.database ? { database: profile.database } : {}),
                 };
             }
         } catch (error) {
@@ -2584,6 +2623,7 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             activeServers[connectionUri] = {
                 profileName: credentials.profileName ?? "",
                 server: credentials.server,
+                ...(credentials.database ? { database: credentials.database } : {}),
             };
             this.connectionUris.set(connectionUri, connectionUri);
         }
@@ -2591,7 +2631,30 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         return activeServers;
     }
 
-    private async connectToServer(connectionId: string): Promise<string | undefined> {
+    private includeConnectionDatabase(
+        databases: string[],
+        connectionDatabaseName: string,
+    ): string[] {
+        const result = [...databases];
+        if (connectionDatabaseName && !result.includes(connectionDatabaseName)) {
+            result.unshift(connectionDatabaseName);
+        }
+        return result;
+    }
+
+    private getConnectionError(
+        existingConnectionUris: Set<string>,
+        profile: IConnectionProfile,
+    ): string | undefined {
+        return Object.entries(this.connectionMgr.activeConnections).find(
+            ([connectionUri, connection]) =>
+                !existingConnectionUris.has(connectionUri) &&
+                this.connectionMatchesProfile(connection.credentials, profile) &&
+                connection.errorMessage,
+        )?.[1].errorMessage;
+    }
+
+    private async connectToServer(connectionId: string): Promise<string> {
         const existingConnectionUri = this.connectionUris.get(connectionId) ?? connectionId;
         const savedConnections = await this.connectionMgr.connectionStore.readAllConnections();
         const profile = savedConnections.find((connection) => {
@@ -2602,9 +2665,14 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         }) as IConnectionProfile | undefined;
 
         if (!profile) {
-            return this.connectionMgr.isConnected(existingConnectionUri)
-                ? existingConnectionUri
-                : undefined;
+            if (this.connectionMgr.isConnected(existingConnectionUri)) {
+                return existingConnectionUri;
+            }
+
+            throw new Error(
+                this.connectionMgr.activeConnections[existingConnectionUri]?.errorMessage ||
+                    locConstants.SchemaCompare.failedToConnectToServer,
+            );
         }
 
         const existingConnection = this.connectionMgr.activeConnections[existingConnectionUri];
@@ -2618,8 +2686,20 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
         this.connectionUris.delete(connectionId);
 
         const existingConnectionUris = this.getCurrentConnectionUris();
-        if (!(await this.connectionMgr.connect("", profile))) {
-            return undefined;
+        let connectionError = "";
+        if (
+            !(await this.connectionMgr.connect("", profile, {
+                shouldHandleErrors: false,
+                onError: (errorMessage) => {
+                    connectionError = errorMessage;
+                },
+            }))
+        ) {
+            throw new Error(
+                connectionError ||
+                    this.getConnectionError(existingConnectionUris, profile) ||
+                    locConstants.SchemaCompare.failedToConnectToServer,
+            );
         }
 
         const connectionUri =
@@ -2634,8 +2714,10 @@ export class SchemaCompareWebViewController extends WebviewPanelController<
             ) ?? this.getConnectedUriForProfile(profile);
         if (connectionUri) {
             this.connectionUris.set(connectionId, connectionUri);
+            return connectionUri;
         }
-        return connectionUri;
+
+        throw new Error(locConstants.SchemaCompare.failedToConnectToServer);
     }
 
     private async schemaCompare(

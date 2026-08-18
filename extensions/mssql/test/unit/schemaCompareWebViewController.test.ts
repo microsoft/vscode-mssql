@@ -204,6 +204,9 @@ suite("SchemaCompareWebViewController Tests", () => {
             isIncludeExcludeAllOperationInProgress: false,
             activeServers: {},
             databases: [],
+            databaseListConnectionId: "",
+            isDatabaseListLoading: false,
+            databaseListError: "",
             defaultDeploymentOptionsResult: deploymentOptionsResultMock,
             intermediaryOptionsResult: undefined,
             endpointsSwitched: false,
@@ -1097,6 +1100,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         expect(actualResult.activeServers["saved-connection-id"]).to.deep.equal({
             profileName: "Saved connection",
             server: "saved-server",
+            database: "saved-database",
         });
     });
 
@@ -1606,6 +1610,92 @@ suite("SchemaCompareWebViewController Tests", () => {
         ).to.deep.equal(expectedResult);
     });
 
+    test("listDatabasesForActiveServer reducer - immediately replaces old databases with the configured database while loading", async () => {
+        let resolveDatabases!: (databases: string[]) => void;
+        connectionManagerStub.listDatabases.returns(
+            new Promise<string[]>((resolve) => {
+                resolveDatabases = resolve;
+            }),
+        );
+        const state = structuredClone(mockInitialState);
+        state.databases = ["old-database"];
+        state.databaseListConnectionId = "old-connection";
+
+        const request = controller["_reducerHandlers"].get("listDatabasesForActiveServer")(state, {
+            connectionUri: "conn_uri",
+            connectionDatabaseName: "configured-database",
+        });
+        await new Promise<void>((resolve) => setImmediate(resolve));
+
+        expect(state.databaseListConnectionId).to.equal("conn_uri");
+        expect(state.databases).to.deep.equal(["configured-database"]);
+        expect(state.isDatabaseListLoading).to.be.true;
+        expect(state.databaseListError).to.equal("");
+
+        resolveDatabases(["db1"]);
+        await request;
+
+        expect(state.databases).to.deep.equal(["configured-database", "db1"]);
+        expect(state.isDatabaseListLoading).to.be.false;
+    });
+
+    test("listDatabasesForActiveServer reducer - caches database lists per connection", async () => {
+        connectionManagerStub.isConnected.withArgs("server-a-uri").returns(true);
+        connectionManagerStub.isConnected.withArgs("server-b-uri").returns(true);
+        connectionManagerStub.listDatabases.withArgs("server-a-uri").resolves(["a-database"]);
+        connectionManagerStub.listDatabases.withArgs("server-b-uri").resolves(["b-database"]);
+        const state = structuredClone(mockInitialState);
+        const listDatabases = controller["_reducerHandlers"].get("listDatabasesForActiveServer");
+
+        await listDatabases(state, { connectionUri: "server-a-uri" });
+        await listDatabases(state, { connectionUri: "server-b-uri" });
+        const cachedResult = await listDatabases(state, { connectionUri: "server-a-uri" });
+
+        expect(connectionManagerStub.listDatabases.withArgs("server-a-uri")).to.have.been
+            .calledOnce;
+        expect(connectionManagerStub.listDatabases.withArgs("server-b-uri")).to.have.been
+            .calledOnce;
+        expect(cachedResult.databases).to.deep.equal(["a-database"]);
+        expect(cachedResult.databaseListConnectionId).to.equal("server-a-uri");
+        expect(cachedResult.isDatabaseListLoading).to.be.false;
+    });
+
+    test("listDatabasesForActiveServer reducer - exposes connection failures and retains the configured database", async () => {
+        const savedConnection = {
+            id: "saved-connection-id",
+            profileName: "Saved connection",
+            server: "saved-server",
+            database: "configured-database",
+            profileSource: CredentialsQuickPickItemType.Profile,
+        } as IConnectionProfileWithSource;
+        connectionStoreStub.readAllConnections.resolves([savedConnection]);
+        connectionManagerStub.connect.callsFake(async (_fileUri, _credentials, options) => {
+            const failedConnection = new ConnectionInfo();
+            failedConnection.credentials = savedConnection;
+            failedConnection.errorMessage = "Login failed";
+            activeConnections["failed-connection-uri"] = failedConnection;
+            options?.onError?.("Login failed");
+            return false;
+        });
+        const state = structuredClone(mockInitialState);
+        state.activeServers = {
+            [savedConnection.id]: {
+                profileName: savedConnection.profileName,
+                server: savedConnection.server,
+                database: savedConnection.database,
+            },
+        };
+
+        const result = await controller["_reducerHandlers"].get("listDatabasesForActiveServer")(
+            state,
+            { connectionUri: savedConnection.id },
+        );
+
+        expect(result.databases).to.deep.equal(["configured-database"]);
+        expect(result.isDatabaseListLoading).to.be.false;
+        expect(result.databaseListError).to.equal("Login failed");
+    });
+
     test("listDatabasesForActiveServer reducer - stale request cannot overwrite newer databases", async () => {
         let resolveFirstDatabases!: (databases: string[]) => void;
         connectionManagerStub.isConnected.withArgs("server-a-uri").returns(true);
@@ -1631,6 +1721,7 @@ suite("SchemaCompareWebViewController Tests", () => {
         await firstRequest;
 
         expect(state.databases).to.deep.equal(["b-database"]);
+        expect(controller["databaseListCache"].has("server-a-uri")).to.be.false;
     });
 
     test("connection events - auto-selection invalidates an older saved-profile database load", async () => {
