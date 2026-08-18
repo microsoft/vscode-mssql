@@ -12,6 +12,10 @@ import {
     unknownEngineCapabilities,
 } from "../common/engineCapabilities.js";
 import type { EngineFacts } from "../common/engineProfile.js";
+import {
+    featureAvailabilityDiagnosticCode,
+    platformFeatures,
+} from "../common/platformFeatureRegistry.js";
 import type { Disposable } from "../common/disposable.js";
 import type { MetadataProvider } from "../metadata/index.js";
 import { NullMetadataProvider } from "../metadata/index.js";
@@ -21,6 +25,23 @@ import { CatalogSemanticBinder, type SemanticBinder } from "../semantics/index.j
 import { LezerSyntaxService, type SyntaxService } from "../syntax/index.js";
 import { applyTextChanges, ImmutableTextSnapshot, type TextChange } from "../text/index.js";
 import type { DocumentAnalysisSnapshot, LanguageServiceRuntime } from "./contracts.js";
+
+/** Placeholder the stats store replaces with the document's rolling window. */
+const emptyHistory = Object.freeze({
+    samples: Object.freeze([]),
+    unit: "ms" as const,
+    capacity: 0,
+    observed: 0,
+});
+// Budgets are stated once here so "slow" is a threshold a view can draw, not a feeling.
+const parseBudget = Object.freeze({
+    targetMs: 20,
+    rationale: "A keystroke reparses before the next one arrives.",
+});
+const bindBudget = Object.freeze({
+    targetMs: 80,
+    rationale: "Binding finishes inside one completion round trip.",
+});
 
 export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
     public readonly mode = "in-process" as const;
@@ -202,6 +223,11 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
         bindElapsedMs: number,
     ): void {
         const view = this._metadata.pin();
+        const availability = snapshot.syntax.diagnostics.filter(
+            (diagnostic) => diagnostic.code === featureAvailabilityDiagnosticCode,
+        ).length;
+        const bySeverity = { error: 0, warning: 0, information: 0, hint: 0 };
+        for (const diagnostic of snapshot.semantics.diagnostics) bySeverity[diagnostic.severity]++;
         this._stats.publish({
             document: {
                 uri: snapshot.text.uri,
@@ -215,16 +241,35 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
                 changedRangeCount: snapshot.syntax.statistics.changedRangeCount,
                 reusableFragmentCount: snapshot.syntax.statistics.reusableFragmentCount,
                 errorCount: snapshot.syntax.diagnostics.length,
+                reusedChunkCount: snapshot.syntax.statistics.reusedChunkCount,
+                reparsedChunkCount: snapshot.syntax.statistics.reparsedChunkCount,
+                parsedCharacterCount: snapshot.syntax.statistics.parsedCharacterCount,
+                documentCharacterCount: snapshot.text.length,
+                availabilityDiagnosticCount: availability,
+                // Replaced by the store, which owns the rolling window.
+                history: emptyHistory,
+                budget: parseBudget,
             },
             semantics: {
                 state: "ready",
                 documentVersion: snapshot.semantics.documentVersion,
                 metadataGeneration: snapshot.semantics.metadataGeneration,
+                profileGeneration: snapshot.semantics.profileGeneration,
                 elapsedMs: bindElapsedMs,
                 unitsExamined: snapshot.semantics.statistics.unitsExamined,
                 unitsReused: snapshot.semantics.statistics.unitsReused,
                 unitsRebound: snapshot.semantics.statistics.unitsRebound,
                 diagnosticCount: snapshot.semantics.diagnostics.length,
+                diagnostics: {
+                    ...bySeverity,
+                    // The binder only reports a name as missing once the namespace is complete, so
+                    // a pending-metadata diagnostic cannot occur by construction. Reported as a
+                    // measured zero rather than left out, because a view showing "0 waiting on the
+                    // catalog" is the reassurance this field exists to give.
+                    unresolvedPendingMetadata: 0,
+                },
+                history: emptyHistory,
+                budget: bindBudget,
             },
             metadata: {
                 providerId: view.providerId,
@@ -232,8 +277,16 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
                 completeness: view.completeness,
                 ageMs: Math.max(0, Date.now() - view.publishedAt),
                 refreshInProgress: false,
-                cacheHits: 0,
-                cacheMisses: 0,
+                inFlight: 0,
+                // The in-process runtime does not instrument the provider, so residency and the
+                // fetch log are left unreported rather than reported as zero. A view must render
+                // these as "not measured"; a hit rate computed from an unwired counter would be
+                // a confident lie.
+                scopes: [],
+                fetches: [],
+                observedFetches: 0,
+                invalidations: [],
+                history: emptyHistory,
             },
             runtime: { mode: this.mode, state: "ready", queueDepth: 0 },
             requests: { latency: {}, cancelled: 0, staleResultsDiscarded: 0 },
@@ -251,6 +304,10 @@ export class InProcessLanguageServiceRuntime implements LanguageServiceRuntime {
                     : { compatibilityLevel: this._capabilities.compatibilityLevel }),
                 previewFeatures: this._capabilities.previewFeatures,
                 capabilities: this._capabilities.capabilities,
+                // While the engine is unidentified every platform decision is deferred, so the
+                // absence of availability diagnostics proves nothing about this document.
+                deferredDecisions:
+                    this._capabilities.engineProfile === "unknown" ? platformFeatures.length : 0,
             },
         });
     }
