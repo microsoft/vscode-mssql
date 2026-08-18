@@ -627,6 +627,11 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Apply changes to target</source>
         <target state="translated">Aplicar cambios al objetivo</target>
       </trans-unit>
+      <trans-unit id="++CODE++0963a1833c56c3195b7b5963499b990b2c0147db68fb3374bc7d1f1767868636">
+        <source xml:lang="en">Apply changes to {0}</source>
+        <note>{0} is the target connection name, optionally followed by a colon and the selected database name</note>
+        <target state="new">Apply changes to {0}</target>
+      </trans-unit>
       <trans-unit id="++CODE++c4a87b18e24f113de61cbf89c652cf2ecc1d73abd2d01baf409c174c8242ef7d">
         <source xml:lang="en">Apply contextual suggestions for SQL syntax, relationships, and constraints</source>
         <target state="translated">Aplicar sugerencias contextuales para la sintaxis, las relaciones y las restricciones de SQL</target>
@@ -687,10 +692,6 @@ Seleccione "{0}" para establecer una conexión.</target>
       <trans-unit id="++CODE++aa77fc627924038ff6102753f77884b3fac27ed5e3f422e7b96ea681cb99a417">
         <source xml:lang="en">Are you sure you want to undo all copilot changes? This will revert all tracked changes to their original state.</source>
         <target state="translated">¿Está seguro de que desea deshacer todos los cambios de Copilot? Esto revertirá todos los cambios registrados a su estado original.</target>
-      </trans-unit>
-      <trans-unit id="++CODE++2f582613dd0458d381445844942f7e490b54f428e2c1e42e8c7643e1aa646a17">
-        <source xml:lang="en">Are you sure you want to update the target?</source>
-        <target state="translated">¿Seguro de que desea actualizar el destino?</target>
       </trans-unit>
       <trans-unit id="++CODE++7eef7067697ade3fc0f13737f97978c65df37d0c48ff8f50718f6062f6e6e246">
         <source xml:lang="en">Are you sure you want to {0}?</source>
@@ -1260,6 +1261,11 @@ Seleccione "{0}" para establecer una conexión.</target>
       <trans-unit id="++CODE++c0bf75bd78bf9572596720d596bd5a20a5b9145cde0fe50dec1e783cb184d69b">
         <source xml:lang="en">Change</source>
         <target state="translated">Cambiar</target>
+      </trans-unit>
+      <trans-unit id="++CODE++9b854acdaffe1ccfbbe1f3cd5a96568aabc4aabd00a7c4f46e21df4209ea6f6c">
+        <source xml:lang="en">Change ({0})</source>
+        <note>{0} is the total number of objects that will be changed</note>
+        <target state="new">Change ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++f07538573cf58e02922ee656434ca50a18ffecd2668d86edf8360309745f7e74">
         <source xml:lang="en">Change Connection</source>
@@ -2534,6 +2540,11 @@ Seleccione "{0}" para establecer una conexión.</target>
         <source xml:lang="en">Create</source>
         <target state="translated">Crear</target>
       </trans-unit>
+      <trans-unit id="++CODE++67c81fd9f64486ea6821165b00081accf1585e73f1e56216f4fccbef8347cf50">
+        <source xml:lang="en">Create ({0})</source>
+        <note>{0} is the total number of objects that will be created</note>
+        <target state="new">Create ({0})</target>
+      </trans-unit>
       <trans-unit id="++CODE++48d1f93834dfc421237288d07022d5dc4c61f90e5cc91494cee4960abc481d1d">
         <source xml:lang="en">Create Connection Group</source>
         <target state="translated">Crear grupo de conexiones</target>
@@ -3286,6 +3297,11 @@ Seleccione "{0}" para establecer una conexión.</target>
         <note>{0} is the database name
 {1} is the server name</note>
         <target state="translated">Quite ''{0}'' de ''{1}''. Esta acción no se puede deshacer.</target>
+      </trans-unit>
+      <trans-unit id="++CODE++f8015b4fbcb2d117cf37878c082deba94ddcb0494be0d317ac829a86118dfd18">
+        <source xml:lang="en">Drop ({0})</source>
+        <note>{0} is the total number of objects that will be dropped</note>
+        <target state="new">Drop ({0})</target>
       </trans-unit>
       <trans-unit id="++CODE++090015e97e08461a02b0915ed446e955928a4686cdc839c66bd9f7781b81d8fb">
         <source xml:lang="en">Drop Database</source>
@@ -11515,6 +11531,12 @@ Consulta: {2}</target>
         <note>{0} is the column name
 {1} is the filter description</note>
         <target state="translated">{0}: {1}</target>
+      </trans-unit>
+      <trans-unit id="++CODE++55f24db16f4beabd9824e9b1d95a51c23fc95d0c90963d57090e89c7c01dfad2">
+        <source xml:lang="en">{0}: {1}</source>
+        <note>{0} is a schema object type, such as Table or View
+{1} is the number of objects of that type</note>
+        <target state="new">{0}: {1}</target>
       </trans-unit>
       <trans-unit id="++CODE++0873f7c5661e8c2fe6846216acefe354d9d8358b51c94dba0dea19b699b5b6d3">
         <source xml:lang="en">{0}: {1}</source>
