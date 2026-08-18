@@ -24,6 +24,7 @@ import { collectFoldingRanges, type FoldingRangeOptions } from "./foldingRanges.
 import type {
     CompletionItem,
     CompletionResult,
+    DefinitionTarget,
     DocumentSymbol,
     FoldingRange,
     HoverResult,
@@ -34,6 +35,7 @@ import type {
 } from "./contracts.js";
 
 const tableKinds = ["table", "view", "tableFunction", "synonym"] as const;
+const emptyDefinitionTarget: DefinitionTarget = Object.freeze({ locations: Object.freeze([]) });
 const maximumCatalogItems = 1_000;
 
 /** Host-neutral editor features backed by one versioned runtime snapshot and pinned metadata view. */
@@ -161,10 +163,34 @@ export class TsqlLanguageFeatureService implements LanguageFeatureService {
         };
     }
 
-    public definition(_uri: string, _version: number, _offset: number): readonly Location[] {
-        const snapshot = this._runtime.snapshot(_uri, _version);
-        const symbol = snapshot.semantics.symbolAt(_offset);
-        return symbol?.declaration ? [{ uri: _uri, range: symbol.declaration }] : [];
+    public definition(uri: string, version: number, offset: number): readonly Location[] {
+        return this.definitionTarget(uri, version, offset).locations;
+    }
+
+    public definitionTarget(uri: string, version: number, offset: number): DefinitionTarget {
+        const snapshot = this._runtime.snapshot(uri, version);
+        const symbol = snapshot.semantics.symbolAt(offset);
+        if (!symbol) return emptyDefinitionTarget;
+        if (symbol.declaration) {
+            return Object.freeze({
+                locations: Object.freeze([{ uri, range: symbol.declaration }]),
+            });
+        }
+        if (!symbol.object) return emptyDefinitionTarget;
+        // A catalog object has no declaration in this document. The identity comes from the pinned
+        // metadata view, so a still-loading catalog yields nothing rather than a guessed name.
+        const object = this._metadata.pin().object(symbol.object);
+        if (!object) return emptyDefinitionTarget;
+        return Object.freeze({
+            locations: Object.freeze([]),
+            object: Object.freeze({
+                ...(object.database ? { database: object.database } : {}),
+                schema: object.schema,
+                name: object.name,
+                kind: object.kind,
+                ...(object.typeCategory ? { typeCategory: object.typeCategory } : {}),
+            }),
+        });
     }
 
     public references(uri: string, version: number, offset: number): readonly Location[] {

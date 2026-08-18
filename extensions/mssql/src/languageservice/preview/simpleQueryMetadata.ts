@@ -15,17 +15,17 @@ import type {
     SimpleQueryResult,
     SqlObjectKind,
 } from "@vscode-mssql/tsql-language-service";
-import type { ConnectionSharingService } from "../../connectionSharing/connectionSharingService";
+import { sendSimpleQuery, type SimpleQuerySender } from "./previewSimpleQuery";
 
 export class ExtensionSimpleQueryExecutor implements SimpleQueryExecutor {
     public constructor(
-        private readonly _connectionSharing: ConnectionSharingService,
         private readonly _connectionUri: string,
+        private readonly _send: SimpleQuerySender = sendSimpleQuery,
     ) {}
 
     public async execute(query: string, signal?: AbortSignal): Promise<SimpleQueryResult> {
         throwIfAborted(signal);
-        const result = await this._connectionSharing.executeSimpleQuery(this._connectionUri, query);
+        const result = await this._send(this._connectionUri, query);
         throwIfAborted(signal);
         return {
             columns: result.columnInfo.map((column) => ({
@@ -176,9 +176,7 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         signal?: AbortSignal,
     ): Promise<void> {
         if (request.section === "principals") {
-            const identityRows = rows(
-                await executor.execute(schemasAndPrincipalsQuery, signal),
-            );
+            const identityRows = rows(await executor.execute(schemasAndPrincipalsQuery, signal));
             const principals = mapPrincipals(
                 identityRows.filter((row) => row.get("entry_kind") === "principal"),
             );
@@ -200,20 +198,14 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
             });
             publisher.merge({
                 schemas,
-                databaseCatalogCompleteness: new Map([
-                    [request.database, { schemas: "ready" }],
-                ]),
+                databaseCatalogCompleteness: new Map([[request.database, { schemas: "ready" }]]),
             });
             return;
         }
         if (request.database && request.section === "objects") {
             let lastObjectId = -2_147_483_649;
-            const typeRows = rows(
-                await executor.execute(userTypesQuery(request.database), signal),
-            );
-            const objects: ObjectMetadata[] = [
-                ...mapUserTypes(typeRows, request.database),
-            ];
+            const typeRows = rows(await executor.execute(userTypesQuery(request.database), signal));
+            const objects: ObjectMetadata[] = [...mapUserTypes(typeRows, request.database)];
             let publishedFirstObjectPage = false;
             while (true) {
                 const objectRows = rows(
@@ -246,10 +238,7 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         const objectId = numericObjectId(request.object.id);
         if (request.section === "columns") {
             const columnRows = rows(
-                await executor.execute(
-                    columnsQuery(objectId, request.object.database),
-                    signal,
-                ),
+                await executor.execute(columnsQuery(objectId, request.object.database), signal),
             );
             const columns = mapColumns(columnRows);
             publisher.merge({
@@ -260,10 +249,7 @@ export class VscodeMssqlSimpleQueryMetadataLoader implements SimpleQueryMetadata
         }
         if (request.section === "parameters") {
             const parameterRows = rows(
-                await executor.execute(
-                    parametersQuery(objectId, request.object.database),
-                    signal,
-                ),
+                await executor.execute(parametersQuery(objectId, request.object.database), signal),
             );
             const parameters = mapParameters(parameterRows);
             publisher.merge({
@@ -643,5 +629,5 @@ ORDER BY p.parameter_id;`;
 };
 
 function quoteIdentifier(value: string): string {
-    return `[${value.replaceAll("]", "]]" )}]`;
+    return `[${value.replaceAll("]", "]]")}]`;
 }

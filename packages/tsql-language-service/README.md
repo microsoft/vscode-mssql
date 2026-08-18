@@ -282,6 +282,22 @@ its tree, and recovery over damaged input falls back to the plain identifier rol
 inventing one. Nothing inside a comment, a string, or an unterminated string is ever reclassified as
 a symbol.
 
+## Definitions
+
+Navigating to a name has two answers. A declaration in the same document — a variable, correlation
+name, common table expression, or temporary table — resolves synchronously from the published
+snapshot. A catalog object has no declaration in the document, so `definitionTarget` returns its
+identity instead: database, schema, name, kind, and the category that separates user type kinds.
+
+Fetching the text is the host's job, through `ObjectDefinitionProvider`. The preview extension
+scripts the object through the same service "Script as Create" uses, so a definition reads
+identically wherever the extension shows one. The service performs no I/O
+for definitions any more than it does for anything else, and a `NullObjectDefinitionProvider` keeps
+the offline behavior honest. `CachedObjectDefinitionProvider` remembers results per connection,
+database, object identity, and metadata generation, so a refreshed catalog or executed DDL is never
+answered from a stale script; concurrent requests for one object share a single fetch, and a failure
+is never remembered.
+
 ## Folding
 
 Folding ranges come from the same published parse tree. Statements, module bodies, `BEGIN`/`END`

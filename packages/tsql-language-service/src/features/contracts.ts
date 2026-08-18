@@ -6,6 +6,7 @@
 import type { SemanticDiagnostic } from "../semantics/index.js";
 import type { SyntaxDiagnostic } from "../syntax/index.js";
 import type { FoldingRangeOptions } from "./foldingRanges.js";
+import type { ObjectDefinitionDescriptor } from "./objectDefinitions.js";
 import type { TextRange } from "../text/index.js";
 
 export interface TextEdit extends TextRange {
@@ -42,6 +43,16 @@ export interface HoverResult {
 export interface Location {
     readonly uri: string;
     readonly range: TextRange;
+}
+
+/**
+ * Where a name is defined. A local declaration resolves inside the document and needs nothing
+ * further. A catalog object resolves to an identity the host fetches asynchronously, because
+ * reading an object definition is I/O and this service performs none.
+ */
+export interface DefinitionTarget {
+    readonly locations: readonly Location[];
+    readonly object?: ObjectDefinitionDescriptor;
 }
 
 export interface DocumentSymbol {
@@ -82,6 +93,11 @@ export interface LanguageFeatureService {
     resolveCompletion(item: CompletionItem): Promise<CompletionItem>;
     hover(uri: string, version: number, offset: number): HoverResult | undefined;
     definition(uri: string, version: number, offset: number): readonly Location[];
+    /**
+     * The same resolution as `definition`, plus the catalog object to fetch when the name is one.
+     * Declarations inside the document still resolve synchronously and completely.
+     */
+    definitionTarget(uri: string, version: number, offset: number): DefinitionTarget;
     references(uri: string, version: number, offset: number): readonly Location[];
     prepareRename(uri: string, version: number, offset: number): TextRange | undefined;
     rename(uri: string, version: number, offset: number, newName: string): readonly TextEdit[];

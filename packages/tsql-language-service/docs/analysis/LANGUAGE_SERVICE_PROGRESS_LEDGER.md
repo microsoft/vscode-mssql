@@ -1722,3 +1722,104 @@ ArgumentList? CloseParen)`, which matches the product exactly. All five positive
   the first `UNION` branch, and the first statement of a multi-statement batch still cannot fold
   separately, because an editor allows one range per starting line and the wider range wins.
   Sequences, index names, collations, and principals have no legend entry and stay `identifier`.
+
+### 2026-08-17 — M6 catalog definitions over the simple-query channel `[~]`
+
+- Status: `[~]` batches complete. Milestone 6 wording says to connect the preview definition provider
+  to the scripting service; the user directed the simple-query channel instead, so that is what this
+  batch implements. Everything else in the milestone is followed: host-neutral provider and
+  descriptor contract, null and in-memory providers, generated virtual documents rather than temp
+  files, cross-database support, and caching keyed by connection, database, identity, and metadata
+  generation.
+- Before this batch, preview mode had no definitions at all: the isolation middleware suppresses the
+  SQL Tools Service provider while the preview flag is on, and the preview registered none. The
+  language service resolved only declarations inside the document.
+- Contracts: `ObjectDefinitionDescriptor`, `ObjectDefinitionRequest`, `ObjectDefinitionResult`,
+  `ObjectDefinitionProvider`, `NullObjectDefinitionProvider`, `InMemoryObjectDefinitionProvider`, and
+  `CachedObjectDefinitionProvider` now live in `features`, beside the feature that consumes them; the
+  two placeholder declarations in `lsp/contracts.ts` are gone. `definition()` keeps its signature and
+  delegates to the new `definitionTarget()`, which adds the catalog identity. The identity comes from
+  the pinned metadata view, so a still-loading catalog yields nothing rather than a guessed name.
+- Transport: the preview no longer uses `ConnectionSharingService`, which is being retired.
+  `executeSimpleQuery` was a connected-check plus one `query/simpleexecute` send, so both the catalog
+  loader and the new definition provider now send that request directly through
+  `SqlToolsServiceClient`. That removes the last connection-sharing dependency from the preview.
+- Definitions read the module text SQL Server already stores, so a procedure, view, or function opens
+  exactly as its author wrote it, including the comment banner above the `CREATE`; the reported
+  offset skips to the first line-leading `CREATE` so navigation lands on the statement. A table has
+  no stored text, so its shape is rebuilt from `sys.columns` and friends: types with their real
+  lengths and precisions, nullability, identity seed and increment, computed expressions, defaults,
+  collations, user-defined type names, and the primary key.
+- Presentation: results are published under an `mssql-definition:` scheme whose paths end in `.sql`,
+  so the editor colors them and nothing is written to disk. STS writes temp files under
+  `%TEMP%\mssql_definition_<guid>` that outlive the session; this does not.
+- Files and tests: `src/features/objectDefinitions.ts` (new), `src/features/contracts.ts`,
+  `src/features/tsqlLanguageFeatureService.ts`, `src/features/index.ts`, `src/lsp/contracts.ts`;
+  `test/features/definitions/definitions.test.js` (new, 14 tests);
+  `extensions/mssql/src/languageservice/preview/previewSimpleQuery.ts` and
+  `previewObjectDefinitions.ts` (new), the provider and virtual-document scheme in
+  `previewLanguageService.ts`, `simpleQueryMetadata.ts`;
+  `extensions/mssql/test/unit/previewObjectDefinitions.test.ts` (new, 11 tests).
+- Results: offline suite **1,033/1,033** (1,019 before this batch); corpus and performance lanes
+  green; extension preview unit tests **53 passed, 1 failed**, the failure being the pre-existing
+  `previewSimpleQueryMetadata` principal hydration case.
+- Still open: a user-defined type reference is not navigable, because the binder resolves rowsets and
+  routines but not the type names a declaration mentions; the descriptor already carries
+  `typeCategory` for when it does. Synonyms, sequences, and principals have no definition path.
+  An encrypted module reports nothing, as it must. Rebuilt tables carry no indexes, foreign keys, or
+  triggers — the catalog reports those separately. Columns navigate to their table, not to the column
+  within it.
+
+### 2026-08-17 — definitions through the scripting service `[~]`
+
+- Status: `[~]` complete. Corrects the batch above, which replaced object scripting with catalog
+  queries; the user had asked for the scripting service twice and that is what this restores. The
+  provider seam made the source swappable without touching the language service.
+- Coverage measured against what the SQL Tools Service peek definition supports
+  (`Scripter.cs` `AddSupportedType`): Table, View, StoredProcedure, Schema, UserDefinedDataType,
+  UserDefinedTableType, Synonym, ScalarValuedFunction, TableValuedFunction. The previous batch
+  covered five of those and missed synonyms, schemas, and both user type kinds. Scripting restores
+  synonyms and both user type kinds now, and schema navigation stays out of reach for a different
+  reason: the binder resolves rowsets and routines, so `definitionTarget` never names a schema or a
+  type reference to begin with. Transport was never the limit there.
+- Composition, in order: stored module text, then scripting, then a catalog-rebuilt table. Modules
+  keep their exact authored text including the comment banner above `CREATE`; everything else is
+  scripted the way it shipped before; the rebuilt table remains only as a last resort for a session
+  where scripting is unavailable. One source failing never hides what a later source can produce,
+  and a failure surfaces only when no source produced anything.
+- Quiet scripting: `ScriptingService.script` took an options argument. A background caller passes
+  `quiet`, which skips the progress notification and the failure message box, and passes its own
+  cancellation token so an abandoned navigation cancels the operation rather than leaving it to run.
+  Command-invoked scripting is unchanged and still shows both.
+- `IScriptingObject` gained the optional `databaseName` the service contract already carries
+  (`ScriptingObject.DatabaseName`), so a cross-database object scripts from the database that owns
+  it rather than from the connection's current one.
+- Files and tests: `extensions/mssql/src/languageservice/preview/previewScriptedDefinitions.ts`
+  (new), `previewObjectDefinitions.ts` (kind filter), `previewLanguageService.ts` (composition),
+  `src/scripting/scriptingService.ts` (quiet mode), `src/controllers/mainController.ts` (accessor),
+  `typings/vscode-mssql.d.ts`; `test/unit/previewScriptedDefinitions.test.ts` (new, 10 tests) and one
+  more in `previewObjectDefinitions.test.ts`.
+- Results: offline suite **1,033/1,033**; extension preview unit tests **64 passed, 1 failed**, the
+  failure being the pre-existing `previewSimpleQueryMetadata` principal hydration case.
+
+### 2026-08-17 — one definition source `[~]`
+
+- Status: `[~]` complete. Removed the catalog-query definition source added two entries above, so
+  scripting is the only way a definition is produced.
+- Why: rebuilding a table from `sys.columns` rendered a different `CREATE TABLE` than
+  "Script as Create" does for the same table, and it sat behind a fallback the user could not see.
+  Two renderings of one object, chosen invisibly, is worse than one rendering everywhere. The stored
+  module read went with it: its claimed advantage was exact authored text, but scripting reads the
+  same stored text for a module, so the difference was one round trip rather than fidelity, which
+  does not pay for a second code path.
+- Removed: `previewObjectDefinitions.ts` and its 12 tests, `CompositeObjectDefinitionProvider` and
+  its 4 tests, and the identifier-quoting helpers that only the removed queries used.
+  `createStatementOffset` moved into `previewScriptedDefinitions.ts`, which still needs it: a
+  scripted module keeps the comment banner above its `CREATE`, so navigation lands on the statement.
+- Kept: `previewSimpleQuery.ts`, which is the direct `query/simpleexecute` path the **catalog
+  metadata** loader uses in place of the retiring connection-sharing service. It has nothing to do
+  with definitions.
+- Also kept: the definition cache keyed by connection, database, identity, and metadata generation,
+  and the `mssql-definition:` virtual documents, so nothing is written to disk.
+- Results: offline suite **1,033/1,033**; extension preview unit tests **51 passed, 1 failed**, the
+  failure being the pre-existing `previewSimpleQueryMetadata` principal hydration case.

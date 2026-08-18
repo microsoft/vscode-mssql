@@ -5,4 +5,5 @@
 
 export * from "./contracts.js";
 export * from "./foldingRanges.js";
+export * from "./objectDefinitions.js";
 export * from "./tsqlLanguageFeatureService.js";

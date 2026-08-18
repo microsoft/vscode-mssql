@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import {
+    CachedObjectDefinitionProvider,
     CatalogSemanticBinder,
     InProcessLanguageServiceRuntime,
     LezerSyntaxService,
@@ -18,9 +19,11 @@ import {
     type LanguageServiceStats,
     type MetadataProvider,
     type MetadataSection,
+    type ObjectDefinitionDescriptor,
     type TextChange,
 } from "@vscode-mssql/tsql-language-service";
 import * as vscode from "vscode";
+import type { IServerInfo } from "vscode-mssql";
 import { PreviewLanguageService as PreviewLoc } from "../../constants/locConstants";
 import type MainController from "../../controllers/mainController";
 import {
@@ -32,6 +35,7 @@ import {
     previewLanguageServiceStatsCodeLensSetting,
 } from "./productionLanguageServiceIsolation";
 import { toVscodeFoldingRanges } from "./previewFoldingRanges";
+import { ScriptingObjectDefinitionProvider } from "./previewScriptedDefinitions";
 import {
     applyColorizationEdits,
     documentLineSource,
@@ -45,6 +49,7 @@ import type { QueryExecutionCatalogEvent } from "../../models/sqlOutputContentPr
 const showStatsCommand = "mssql.preview.showLanguageServiceStats";
 const refreshMetadataCommand = "mssql.preview.refreshLanguageServiceMetadata";
 const statsScheme = "mssql-language-service-stats";
+const definitionScheme = "mssql-definition";
 const diagnosticSource = "vscode-mssql-preview";
 
 /** The last full colorization published for one document, kept so deltas have a baseline. */
@@ -85,6 +90,8 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
     private readonly _codeLensChanged = new vscode.EventEmitter<void>();
     private readonly _semanticTokensChanged = new vscode.EventEmitter<void>();
     private readonly _coloring = new TsqlColorizationService();
+    private readonly _definitions: CachedObjectDefinitionProvider;
+    private readonly _definitionDocuments = new Map<string, string>();
     private readonly _statsChanged = new vscode.EventEmitter<vscode.Uri>();
     private readonly _statsUris = new Map<string, vscode.Uri>();
     private _enabled = false;
@@ -95,6 +102,14 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         context: vscode.ExtensionContext,
         private readonly _controller: MainController,
     ) {
+        // Objects are scripted through the same service "Script as Create" uses, so a definition
+        // reads identically wherever the extension shows one. It runs quietly here, because
+        // answering a keystroke must not raise a progress notification.
+        this._definitions = new CachedObjectDefinitionProvider(
+            new ScriptingObjectDefinitionProvider(_controller.scriptingService, (connectionUri) =>
+                this.serverInfo(connectionUri),
+            ),
+        );
         const codeLensProvider = new PreviewStatusCodeLensProvider(
             () => isPreviewStatsCodeLensEnabled(this._enabled, this._statsCodeLensEnabled),
             (uri) => this._documents.get(uri.toString()),
@@ -119,6 +134,14 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         const foldingRangeProvider = new PreviewFoldingRangeProvider(
             () => this._enabled,
             (uri) => this._documents.get(uri.toString()),
+        );
+        const definitionProvider = new PreviewDefinitionProvider(
+            () => this._enabled,
+            (uri) => this._documents.get(uri.toString()),
+            (descriptor, state, signal) => this.resolveDefinition(descriptor, state, signal),
+        );
+        const definitionDocumentProvider = new PreviewDefinitionDocumentProvider((uri) =>
+            this._definitionDocuments.get(uri.toString()),
         );
         const semanticTokensProvider = new PreviewSemanticTokensProvider(
             () => this._enabled,
@@ -151,6 +174,11 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             vscode.languages.registerFoldingRangeProvider(
                 { language: "sql" },
                 foldingRangeProvider,
+            ),
+            vscode.languages.registerDefinitionProvider({ language: "sql" }, definitionProvider),
+            vscode.workspace.registerTextDocumentContentProvider(
+                definitionScheme,
+                definitionDocumentProvider,
             ),
             vscode.languages.registerDocumentSemanticTokensProvider(
                 { language: "sql" },
@@ -236,6 +264,8 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         for (const uri of [...this._documents.keys()]) this.disposeState(uri);
         this._diagnostics.clear();
         this._statsUris.clear();
+        this._definitions.invalidate();
+        this._definitionDocuments.clear();
     }
 
     private openDocument(document: vscode.TextDocument): void {
@@ -337,6 +367,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         this._documents.delete(key);
         state.disposed = true;
         for (const disposable of state.disposables) disposable.dispose();
+        this._definitions.invalidate(key);
         void state.runtime.close(key);
         this._diagnostics.delete(state.documentUri);
         this.fireStatusChanged(state);
@@ -362,10 +393,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
             return new NullMetadataProvider();
         }
         return new SimpleQueryMetadataAdapter(
-            new ExtensionSimpleQueryExecutor(
-                this._controller.connectionSharingService,
-                connectionUri,
-            ),
+            new ExtensionSimpleQueryExecutor(connectionUri),
             new VscodeMssqlSimpleQueryMetadataLoader(),
         );
     }
@@ -507,6 +535,43 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
         }
     }
 
+    /**
+     * Fetches an object definition and publishes it as a read-only document. The text is generated,
+     * so it lives behind a scheme of its own rather than a temporary file that would outlive the
+     * session. A definition is cached per connection, object identity, and metadata generation, so
+     * a refreshed catalog or executed DDL is never answered from a stale script.
+     */
+    /** Server version and edition drive the scripting options; an unknown connection uses defaults. */
+    private serverInfo(connectionUri: string): IServerInfo | undefined {
+        try {
+            const details =
+                this._controller.connectionManager.getConnectionInfoFromUri(connectionUri);
+            return details ? this._controller.connectionManager.getServerInfo(details) : undefined;
+        } catch {
+            return undefined;
+        }
+    }
+
+    private async resolveDefinition(
+        descriptor: ObjectDefinitionDescriptor,
+        state: PreviewDocumentState,
+        signal: AbortSignal,
+    ): Promise<vscode.Location | undefined> {
+        const definition = await this._definitions.getDefinition(
+            {
+                ...descriptor,
+                connectionId: state.connectionUri,
+                metadataGeneration: state.metadata.pin().generation,
+            },
+            signal,
+        );
+        if (!definition || state.disposed) return undefined;
+        const uri = definitionUri(state.connectionUri, descriptor);
+        this._definitionDocuments.set(uri.toString(), definition.text);
+        const position = positionOfOffset(definition.text, definition.definitionOffset ?? 0);
+        return new vscode.Location(uri, position);
+    }
+
     private async showStats(uri: vscode.Uri | undefined): Promise<void> {
         const document = this.resolveSqlDocument(uri);
         if (!document) {
@@ -559,7 +624,7 @@ export class PreviewLanguageServiceIntegration implements vscode.Disposable {
                         hover: "preview-catalog",
                         semanticTokens: "preview-syntax-and-catalog",
                         folding: "preview-syntax",
-                        definitions: "preview-not-implemented",
+                        definitions: "preview-scripting",
                         references: "preview-not-implemented",
                         formatting: "preview-not-implemented",
                     },
@@ -952,6 +1017,108 @@ class PreviewSemanticTokensProvider
         }
         return state;
     }
+}
+
+/**
+ * Navigates to a name. A declaration in the same document resolves from the published snapshot; a
+ * catalog object is fetched by the host, because reading a definition is I/O the language service
+ * never performs.
+ */
+class PreviewDefinitionProvider implements vscode.DefinitionProvider {
+    public constructor(
+        private readonly _enabled: () => boolean,
+        private readonly _state: (uri: vscode.Uri) => PreviewDocumentState | undefined,
+        private readonly _resolve: (
+            descriptor: ObjectDefinitionDescriptor,
+            state: PreviewDocumentState,
+            signal: AbortSignal,
+        ) => Promise<vscode.Location | undefined>,
+    ) {}
+
+    public async provideDefinition(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+        token: vscode.CancellationToken,
+    ): Promise<vscode.Location[] | undefined> {
+        if (!this._enabled()) return undefined;
+        const state = this._state(document.uri);
+        if (!state) return undefined;
+        await state.queue;
+        if (
+            token.isCancellationRequested ||
+            state.disposed ||
+            document.version !== state.syncedVersion
+        ) {
+            return undefined;
+        }
+
+        let target;
+        try {
+            target = state.features.definitionTarget(
+                state.connectionUri,
+                document.version,
+                document.offsetAt(position),
+            );
+        } catch {
+            return undefined;
+        }
+        if (target.locations.length > 0) {
+            return target.locations.map(
+                (location) =>
+                    new vscode.Location(
+                        document.uri,
+                        new vscode.Range(
+                            document.positionAt(location.range.start),
+                            document.positionAt(location.range.end),
+                        ),
+                    ),
+            );
+        }
+        if (!target.object) return undefined;
+
+        const controller = new AbortController();
+        const cancellation = token.onCancellationRequested(() => controller.abort());
+        try {
+            const location = await this._resolve(target.object, state, controller.signal);
+            return location && !token.isCancellationRequested ? [location] : undefined;
+        } catch {
+            // A dropped object, a denied permission, or a dead connection is not an error the
+            // editor should report; navigation simply finds nothing.
+            return undefined;
+        } finally {
+            cancellation.dispose();
+            controller.abort();
+        }
+    }
+}
+
+class PreviewDefinitionDocumentProvider implements vscode.TextDocumentContentProvider {
+    public constructor(private readonly _content: (uri: vscode.Uri) => string | undefined) {}
+
+    public provideTextDocumentContent(uri: vscode.Uri): string {
+        return this._content(uri) ?? "";
+    }
+}
+
+/** A stable URI per connection and object, ending in `.sql` so the editor colors what it opens. */
+export function definitionUri(
+    connectionUri: string,
+    descriptor: ObjectDefinitionDescriptor,
+): vscode.Uri {
+    const name = [descriptor.schema, descriptor.name].join(".").replaceAll(/[\\/?#]/gu, "_");
+    return vscode.Uri.from({
+        scheme: definitionScheme,
+        path: `/${descriptor.database ?? "current"}/${name}.sql`,
+        query: encodeURIComponent(connectionUri),
+    });
+}
+
+export function positionOfOffset(text: string, offset: number): vscode.Position {
+    const safeOffset = Math.max(0, Math.min(offset, text.length));
+    const before = text.slice(0, safeOffset);
+    const line = before.split("\n").length - 1;
+    const lineStart = before.lastIndexOf("\n") + 1;
+    return new vscode.Position(line, safeOffset - lineStart);
 }
 
 class PreviewStatusCodeLensProvider implements vscode.CodeLensProvider {
