@@ -3,45 +3,50 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { EventEmitter } from "events";
+import * as childProcess from "child_process";
+import { Stats } from "fs";
+import * as fsPromises from "fs/promises";
+import * as os from "os";
 import * as chai from "chai";
 import * as sinon from "sinon";
 import * as vscode from "vscode";
+import * as telemetry from "extension-toolkit/vscode/telemetry";
 import * as Constants from "../../src/constants/constants";
 import { logger } from "../../src/models/logger";
-import {
-    AudioProcess,
-    QueryCompletionSoundService,
-    QueryCompletionSoundServiceDependencies,
-} from "../../src/services/queryCompletionSoundService";
+import { QueryCompletionSoundService } from "../../src/services/queryCompletionSoundService";
+import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import * as stubs from "./stubs";
 
 const { expect } = chai;
-
-class TestAudioProcess extends EventEmitter implements AudioProcess {
-    public killed = false;
-
-    public kill(): boolean {
-        this.killed = true;
-        return true;
-    }
-}
 
 suite("QueryCompletionSoundService", () => {
     let sandbox: sinon.SinonSandbox;
     let getConfigurationStub: sinon.SinonStub;
     let spawnProcessStub: sinon.SinonStub;
     let statFileStub: sinon.SinonStub;
-    let sendPlaybackFailureTelemetryStub: sinon.SinonStub;
+    let platformStub: sinon.SinonStub;
+    let sendActionEventStub: sinon.SinonStub;
     let loggerWarnStub: sinon.SinonStub;
+    let loggerErrorStub: sinon.SinonStub;
 
     setup(() => {
         sandbox = sinon.createSandbox();
         getConfigurationStub = sandbox.stub(vscode.workspace, "getConfiguration");
-        spawnProcessStub = sandbox.stub();
-        statFileStub = sandbox.stub().resolves({ isFile: () => true });
-        sendPlaybackFailureTelemetryStub = sandbox.stub();
+        spawnProcessStub = sandbox.stub(childProcess, "spawn");
+        statFileStub = sandbox.stub(fsPromises, "stat").resolves({
+            isFile: () => true,
+            size: 1024,
+        } as Stats);
+        platformStub = sandbox.stub(os, "platform").returns(Constants.Platform.Mac);
+        sandbox.stub(os, "arch").returns("test-architecture");
+        sandbox.stub(os, "homedir").returns("/home/test-user");
+        sandbox.stub(os, "type").returns("test-os");
+        sandbox.stub(os, "release").returns("test-release");
+        sandbox.stub(os, "version").returns("test-version");
+        sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        sandbox.stub(logger, "withPrefix").returns(logger);
         loggerWarnStub = sandbox.stub(logger, "warn");
+        loggerErrorStub = sandbox.stub(logger, "error");
     });
 
     teardown(() => {
@@ -60,35 +65,23 @@ suite("QueryCompletionSoundService", () => {
     function createService(
         platform: NodeJS.Platform = Constants.Platform.Mac,
     ): QueryCompletionSoundService {
-        const dependencies: QueryCompletionSoundServiceDependencies = {
-            platform,
-            architecture: "test-architecture",
-            spawnProcess: spawnProcessStub,
-            statFile: statFileStub,
-            homeDirectory: () => "/home/test-user",
-            osType: () => "test-os",
-            osRelease: () => "test-release",
-            osVersion: () => "test-version",
-            sendPlaybackFailureTelemetry: sendPlaybackFailureTelemetryStub,
-            logger,
-        };
-        return new QueryCompletionSoundService("/extension", dependencies);
+        platformStub.returns(platform);
+        return new QueryCompletionSoundService("/extension");
     }
 
-    function returnSuccessfulProcess(): TestAudioProcess {
-        const audioProcess = new TestAudioProcess();
+    function returnSuccessfulProcess(): void {
         spawnProcessStub.callsFake(() => {
+            const audioProcess = new childProcess.ChildProcess();
             setImmediate(() => {
                 audioProcess.emit("spawn");
                 audioProcess.emit("close", 0, null);
             });
             return audioProcess;
         });
-        return audioProcess;
     }
 
-    function createProcessThatClosesWith(code: number): TestAudioProcess {
-        const audioProcess = new TestAudioProcess();
+    function createProcessThatClosesWith(code: number): childProcess.ChildProcess {
+        const audioProcess = new childProcess.ChildProcess();
         setImmediate(() => {
             audioProcess.emit("spawn");
             audioProcess.emit("close", code, null);
@@ -117,6 +110,43 @@ suite("QueryCompletionSoundService", () => {
                 windowsHide: true,
                 stdio: "ignore",
             }),
+        );
+    });
+
+    test("plays a configured MP3 file that is exactly 200 KB", async () => {
+        setConfiguration(true, "/sounds/complete.mp3");
+        statFileStub.resolves({
+            isFile: () => true,
+            size: 200 * 1024,
+        } as Stats);
+        returnSuccessfulProcess();
+
+        await createService().play();
+
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
+            "/sounds/complete.mp3",
+        ]);
+        expect(loggerErrorStub).not.to.have.been.called;
+    });
+
+    test("uses the bundled default when the configured MP3 is larger than 200 KB", async () => {
+        setConfiguration(true, "/sounds/large.mp3");
+        statFileStub.resolves({
+            isFile: () => true,
+            size: 200 * 1024 + 1,
+        } as Stats);
+        returnSuccessfulProcess();
+
+        await createService().play();
+
+        expect(spawnProcessStub).not.to.have.been.calledWith("/usr/bin/afplay", [
+            "/sounds/large.mp3",
+        ]);
+        expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
+            "/extension/media/query-complete.mp3",
+        ]);
+        expect(loggerErrorStub).to.have.been.calledWith(
+            'The configured query completion sound "/sounds/large.mp3" is larger than 200 KB and will not be played. Falling back to the default sound.',
         );
     });
 
@@ -168,8 +198,8 @@ suite("QueryCompletionSoundService", () => {
     test("stops playback after five seconds", async () => {
         const clock = sandbox.useFakeTimers();
         setConfiguration(true, "/sounds/long.mp3");
-        const audioProcess = new TestAudioProcess();
-        const killSpy = sandbox.spy(audioProcess, "kill");
+        const audioProcess = new childProcess.ChildProcess();
+        const killStub = sandbox.stub(audioProcess, "kill").returns(true);
         spawnProcessStub.callsFake(() => {
             setImmediate(() => audioProcess.emit("spawn"));
             return audioProcess;
@@ -179,8 +209,7 @@ suite("QueryCompletionSoundService", () => {
         await clock.tickAsync(5_000);
         await playPromise;
 
-        expect(killSpy).to.have.been.called;
-        expect(audioProcess.killed).to.be.true;
+        expect(killStub).to.have.been.called;
     });
 
     test("uses the bundled default when no custom file is configured", async () => {
@@ -206,14 +235,18 @@ suite("QueryCompletionSoundService", () => {
 
         await createService(Constants.Platform.Linux).play();
 
-        expect(sendPlaybackFailureTelemetryStub).to.have.been.calledWith({
-            failureStage: "bundledDefaultSound",
-            platform: Constants.Platform.Linux,
-            architecture: "test-architecture",
-            osType: "test-os",
-            osRelease: "test-release",
-            osVersion: "test-version",
-        });
+        expect(sendActionEventStub).to.have.been.calledWith(
+            TelemetryViews.QueryEditor,
+            TelemetryActions.QueryCompletionSoundPlaybackFailed,
+            {
+                failureStage: "bundledDefaultSound",
+                platform: Constants.Platform.Linux,
+                architecture: "test-architecture",
+                osType: "test-os",
+                osRelease: "test-release",
+                osVersion: "test-version",
+            },
+        );
         expect(loggerWarnStub).to.have.been.calledWith(
             "Unable to play the bundled default query completion sound because no supported audio player could be used.",
         );
@@ -221,8 +254,9 @@ suite("QueryCompletionSoundService", () => {
 
     test("falls back to the bundled default after a custom sound fails", async () => {
         setConfiguration(true, "/sounds/complete.mp3");
-        spawnProcessStub.onFirstCall().returns(createProcessThatClosesWith(1));
-        spawnProcessStub.onSecondCall().returns(createProcessThatClosesWith(0));
+        spawnProcessStub.callsFake((_command, args) =>
+            createProcessThatClosesWith(args.includes("/sounds/complete.mp3") ? 1 : 0),
+        );
 
         await createService(Constants.Platform.Mac).play();
 
@@ -232,7 +266,7 @@ suite("QueryCompletionSoundService", () => {
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
             "/extension/media/query-complete.mp3",
         ]);
-        expect(sendPlaybackFailureTelemetryStub).not.to.have.been.called;
+        expect(sendActionEventStub).not.to.have.been.called;
         expect(loggerWarnStub).to.have.been.calledWith(
             'Unable to play the configured query completion sound "/sounds/complete.mp3". Falling back to the default sound.',
         );
