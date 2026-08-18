@@ -9,15 +9,17 @@ import * as fsPromises from "fs/promises";
 import * as os from "os";
 import * as chai from "chai";
 import * as sinon from "sinon";
+import sinonChai from "sinon-chai";
 import * as vscode from "vscode";
-import * as telemetry from "extension-toolkit/vscode/telemetry";
 import * as Constants from "../../src/constants/constants";
 import { logger } from "../../src/models/logger";
 import { QueryCompletionSoundService } from "../../src/services/queryCompletionSoundService";
 import { TelemetryActions, TelemetryViews } from "../../src/sharedInterfaces/telemetry";
 import * as stubs from "./stubs";
+import { stubTelemetry } from "./utils";
 
 const { expect } = chai;
+chai.use(sinonChai);
 
 suite("QueryCompletionSoundService", () => {
     let sandbox: sinon.SinonSandbox;
@@ -25,7 +27,7 @@ suite("QueryCompletionSoundService", () => {
     let spawnProcessStub: sinon.SinonStub;
     let statFileStub: sinon.SinonStub;
     let platformStub: sinon.SinonStub;
-    let sendActionEventStub: sinon.SinonStub;
+    let sendErrorEventStub: sinon.SinonStub;
     let loggerWarnStub: sinon.SinonStub;
     let loggerErrorStub: sinon.SinonStub;
 
@@ -43,7 +45,7 @@ suite("QueryCompletionSoundService", () => {
         sandbox.stub(os, "type").returns("test-os");
         sandbox.stub(os, "release").returns("test-release");
         sandbox.stub(os, "version").returns("test-version");
-        sendActionEventStub = sandbox.stub(telemetry, "sendActionEvent");
+        ({ sendErrorEvent: sendErrorEventStub } = stubTelemetry(sandbox));
         sandbox.stub(logger, "withPrefix").returns(logger);
         loggerWarnStub = sandbox.stub(logger, "warn");
         loggerErrorStub = sandbox.stub(logger, "error");
@@ -146,7 +148,7 @@ suite("QueryCompletionSoundService", () => {
             "/extension/media/query-complete.wav",
         ]);
         expect(loggerErrorStub).to.have.been.calledWith(
-            'The configured query completion sound "/sounds/large.wav" is larger than 400 KB and will not be played. Falling back to the default sound.',
+            'The configured query completion sound "/sounds/large.wav" is larger than 400 KB and will not be played. Using default sound instead.',
         );
     });
 
@@ -182,7 +184,7 @@ suite("QueryCompletionSoundService", () => {
             "/extension/media/query-complete.wav",
         ]);
         expect(loggerWarnStub).to.have.been.calledWith(
-            'The configured query completion sound "/sounds/complete.mp3" is not a WAV file. Falling back to the default sound.',
+            'The configured query completion sound "/sounds/complete.mp3" is not a WAV file. Using default sound.',
         );
     });
 
@@ -242,11 +244,17 @@ suite("QueryCompletionSoundService", () => {
 
         await createService(Constants.Platform.Linux).play();
 
-        expect(sendActionEventStub).to.have.been.calledWith(
+        expect(sendErrorEventStub).to.have.been.calledWith(
             TelemetryViews.QueryEditor,
-            TelemetryActions.QueryCompletionSoundPlaybackFailed,
+            TelemetryActions.QueryCompletionSoundPlayback,
+            sinon.match({
+                message:
+                    "Unable to play the bundled default query completion sound because no supported audio player could be used.",
+            }),
+            true,
+            undefined,
+            undefined,
             {
-                failureStage: "bundledDefaultSound",
                 platform: Constants.Platform.Linux,
                 architecture: "test-architecture",
                 osType: "test-os",
@@ -273,9 +281,9 @@ suite("QueryCompletionSoundService", () => {
         expect(spawnProcessStub).to.have.been.calledWith("/usr/bin/afplay", [
             "/extension/media/query-complete.wav",
         ]);
-        expect(sendActionEventStub).not.to.have.been.called;
+        expect(sendErrorEventStub).not.to.have.been.called;
         expect(loggerWarnStub).to.have.been.calledWith(
-            'Unable to play the configured query completion sound "/sounds/complete.wav". Falling back to the default sound.',
+            'Unable to play the custom query completion sound "/sounds/complete.wav". Using default sound instead.',
         );
     });
 });
