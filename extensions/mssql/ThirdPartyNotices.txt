@@ -318,11 +318,8 @@ END OF MICROSOFT SQL SERVER 2016 TRANSACT-SQL LANGUAGE SERVICE NOTICES, INFORMAT
 The query completion sound is derived from Information_Block.ogg from Notifications:
 https://github.com/akx/Notifications
 
-The original sound is dual-licensed under the Creative Commons Attribution 3.0
-Unported license and CC0 Public Domain. This distribution uses the public domain
-option:
+The original sound is licensed under the Creative Commons Public Domain license:
 https://creativecommons.org/publicdomain/mark/1.0/
 
-The sound was converted from OGG to WAV and renamed query-complete.wav.
 =========================================
 END OF Notifications NOTICES, INFORMATION, AND LICENSE
